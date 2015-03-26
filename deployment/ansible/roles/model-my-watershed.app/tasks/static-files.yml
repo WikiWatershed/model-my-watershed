@@ -1,0 +1,34 @@
+---
+- name: Create folders for static files
+  file: path={{ item }}
+        state=directory
+        owner=root
+        group=mmw
+        mode=0775
+  with_items:
+    - "{{ app_static_root }}"
+    - "{{ app_media_root }}"
+    - "{{ app_static_cache }}"
+
+- name: Install application javascript dependencies
+  command: npm install
+  args:
+    chdir: "{{ app_home }}"
+
+- name: Create static files and run collectstatic (staging/production)
+  command: npm run build
+  args:
+    chdir: "{{ app_home }}"
+  when: "['development'] | is_not_in(group_names)"
+
+- name: Create static files and run collectstatic (development)
+  command: npm run build-debug
+  args:
+    chdir: "{{ app_home }}"
+  when: "['development'] | is_in(group_names)"
+
+- name: Create JS test harness
+  template: src=testem-harness.html.j2
+            dest={{ app_static_root }}/test.html
+  sudo_user: mmw
+  when: "['development', 'test'] | some_are_in(group_names)"

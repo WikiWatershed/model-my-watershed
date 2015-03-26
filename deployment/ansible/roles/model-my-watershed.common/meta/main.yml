@@ -4,3 +4,4 @@ dependencies:
   - { role: "azavea.git" }
   - { role: "model-my-watershed.nginx", when: "['monitoring-servers'] | is_not_in(group_names)" }
   - { role: "azavea.daemontools", when: "['monitoring-servers'] | is_not_in(group_names)" }
+  - { role: "azavea.nodejs", when: "['monitoring-servers'] | is_not_in(group_names)" }

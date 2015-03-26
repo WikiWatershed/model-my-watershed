@@ -1,12 +1,12 @@
 ---
-django_settings_module: "model_my_watershed.settings.development"
+django_settings_module: "mmw.settings.development"
 
 redis_bind_address: "0.0.0.0"
 
 postgresql_listen_addresses: "*"
-postgresql_username: model_my_watershed
-postgresql_password: model_my_watershed
-postgresql_database: model_my_watershed
+postgresql_username: mmw
+postgresql_password: mmw
+postgresql_database: mmw
 postgresql_log_min_duration_statement: 500
 postgresql_hba_mapping:
   - { type: "host", database: "all", user: "all", address: "33.33.33.1/24", method: "md5" }

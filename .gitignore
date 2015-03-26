@@ -58,3 +58,13 @@ deployment/ansible/roles/azavea.*
 
 # Vagrant
 .vagrant
+
+# NodeJS / Browserify stuff
+node_modules/
+npm-debug.log
+
+# Emacs
+*~
+
+# MacOS
+.DS_Store

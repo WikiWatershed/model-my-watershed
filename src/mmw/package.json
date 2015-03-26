@@ -1,0 +1,22 @@
+{
+  "name": "model-my-watershed",
+  "version": "0.0.1",
+  "description": "",
+  "scripts": {
+    "test": "test",
+    "build": "echo 1",
+    "build-debug": "echo 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/azavea/model-my-watershed.git"
+  },
+  "author": "",
+  "license": "Apache-2",
+  "bugs": {
+    "url": "https://github.com/azavea/model-my-watershed/issues"
+  },
+  "homepage": "https://github.com/azavea/model-my-watershed",
+  "devDependencies": {
+  }
+}
