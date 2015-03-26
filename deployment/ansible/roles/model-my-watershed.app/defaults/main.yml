@@ -1,0 +1,37 @@
+---
+app_home: /opt/app
+app_config_home: /etc/mmw.d/env
+app_deploy_branch: "master"
+
+app_config:
+  - { file: "MMW_DB_NAME", content: "{{ postgresql_database }}" }
+  - { file: "MMW_DB_USER", content: "{{ postgresql_username }}" }
+  - { file: "MMW_DB_PASSWORD", content: "{{ postgresql_password }}" }
+  - { file: "MMW_DB_HOST", content: "{{ postgresql_host }}" }
+  - { file: "MMW_DB_PORT", content: "{{ postgresql_port }}" }
+  - { file: "MMW_TEST_DB_NAME", content: "{{ django_test_database }}" }
+  - { file: "MMW_STATSD_HOST", content: "{{ statsite_host }}" }
+  - { file: "MMW_CACHE_HOST", content: "{{ redis_host }}" }
+  - { file: "MMW_CACHE_PORT", content: "{{ redis_port }}" }
+  - { file: "DJANGO_SETTINGS_MODULE", content: "{{ django_settings_module }}" }
+  - { file: "DJANGO_STATIC_ROOT", content: "{{ app_static_root }}" }
+  - { file: "DJANGO_MEDIA_ROOT", content: "{{ app_media_root }}" }
+  - { file: "DJANGO_POSTGIS_VERSION", content: "{{ app_postgis_version }}" }
+  - { file: "DJANGO_SECRET_KEY", content: "{{ app_secret_key }}" }
+
+app_log: /var/log/mmw-app.log
+app_log_rotate_count: 5
+app_log_rotate_interval: daily
+
+app_gunicorn_log: /var/log/mmw-gunicorn.log
+app_gunicorn_log_rotate_count: 5
+app_gunicorn_log_rotate_internal: daily
+
+app_static_root: /var/www/mmw/static/
+app_media_root: /var/www/mmw/media/
+
+app_static_cache: /var/cache/mmw/static/
+
+app_sass_version: 3.4.9
+app_postgis_version: 2.1.3
+app_secret_key: "{{ postgresql_password | md5 }}"

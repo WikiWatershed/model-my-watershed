@@ -1,4 +1,6 @@
 ---
+django_test_database: "{{ lookup('env', 'MMW_TEST_DB_NAME') | default('test_mmw', true) }}"
+
 redis_port: 6379
 postgresql_port: 5432
 kibana_port: 5601
@@ -17,5 +19,7 @@ postgis_version: "2.1"
 postgis_package_version: "2.1.*.pgdg14.04+1"
 
 elasticsearch_cluster_name: "logstash"
+
+nodejs_npm_version: 2.1.14
 
 java_version: "7u75-*"

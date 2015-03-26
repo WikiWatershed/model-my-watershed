@@ -1,4 +1,6 @@
 azavea.ntp,0.1.1
+azavea.pip,0.1.0
+azavea.nodejs,0.3.0
 azavea.git,0.1.0
 azavea.nginx,0.2.0
 azavea.daemontools,0.1.0
@@ -9,6 +11,7 @@ azavea.pgweb,0.1.1
 azavea.redis,0.1.0
 azavea.graphite,0.5.0
 azavea.statsite,0.1.1
+azavea.phantomjs,0.1.0
 azavea.relp,0.1.2
 azavea.curator,0.1.0
 azavea.elasticsearch,0.2.0
