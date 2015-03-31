@@ -18,5 +18,7 @@
   },
   "homepage": "https://github.com/azavea/model-my-watershed",
   "devDependencies": {
+    "browserify": "^9.0.3",
+    "watchify": "^3.1.0"
   }
 }
