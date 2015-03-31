@@ -3,9 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "scripts": {
-    "test": "test",
-    "build": "echo 1",
-    "build-debug": "echo 1"
+    "test": "test"
   },
   "repository": {
     "type": "git",

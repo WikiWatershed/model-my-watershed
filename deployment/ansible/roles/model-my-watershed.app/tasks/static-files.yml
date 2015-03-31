@@ -16,16 +16,21 @@
     chdir: "{{ app_home }}"
 
 - name: Create static files and run collectstatic (staging/production)
-  command: npm run build
+  command: envdir {{ app_config_home }} ./bundle.sh
   args:
     chdir: "{{ app_home }}"
   when: "['development'] | is_not_in(group_names)"
 
 - name: Create static files and run collectstatic (development)
-  command: npm run build-debug
+  command: envdir {{ app_config_home }} ./bundle.sh --debug
   args:
     chdir: "{{ app_home }}"
   when: "['development'] | is_in(group_names)"
+
+- name: Run Django collectstatic command
+  command: envdir {{ app_config_home }} ./manage.py collectstatic --noinput
+  args:
+    chdir: "{{ app_home }}"
 
 - name: Create JS test harness
   template: src=testem-harness.html.j2
