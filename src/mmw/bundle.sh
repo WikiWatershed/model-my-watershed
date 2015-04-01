@@ -2,13 +2,18 @@
 
 set -e
 
+if [ -z "$DJANGO_STATIC_ROOT" ]; then
+    echo "Environment variable not defined DJANGO_STATIC_ROOT"
+    exit 1
+fi
+
 # Defaults
 ENTRY_JS_FILES="./js/src/main.js"
-STATIC_JS_DIR=/var/www/mmw/static/js
+STATIC_JS_DIR="$DJANGO_STATIC_ROOT/js"
 BROWSERIFY=./node_modules/.bin/browserify
 
 ENTRY_CSS_FILE=./sass/main.scss
-STATIC_CSS_DIR=/var/www/mmw/static/css
+STATIC_CSS_DIR="$DJANGO_STATIC_ROOT/css"
 NODESASS=./node_modules/.bin/node-sass
 
 usage() {
