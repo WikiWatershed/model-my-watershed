@@ -1,0 +1,39 @@
+//Layout
+#analyze-output-wrapper{
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 300px;
+  height: 55%;
+  background-color: $paper;
+  z-index: 100;
+
+
+  //Title Row
+  .title-row{
+    background-color: $ui-primary;
+    height: 68px;
+
+    .title{
+      display: inline-block;
+      position: relative;
+
+      h2{
+        margin-top: 0.4rem!important;
+        line-height: 0.4rem;
+      }
+    }
+
+    .cta-wrapper{
+      position: relative;
+      float: right;
+      margin-right: 1rem;
+      margin-top: -40px;
+
+      @media(min-width: 768px){
+        margin-right: 56px;
+      }
+    }
+  }
+}

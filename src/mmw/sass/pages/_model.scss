@@ -1,0 +1,33 @@
+//Layout
+#model-output-wrapper{
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 300px;
+  height: 55%;
+  background-color: $paper;
+  z-index: 100;
+  box-shadow: 0 0 4px $black-54;
+
+  .title-row{
+    background-color: $ui-light;
+    color: $ui-secondary;
+
+    .title{
+      display: inline-block;
+      position: relative;
+
+      h2{
+        margin-top: 0.4rem!important;
+        line-height: 0.4rem;
+      }
+    }
+  }
+
+  .tab-content{
+    .row{
+      width: 100%;
+    }
+  }
+}

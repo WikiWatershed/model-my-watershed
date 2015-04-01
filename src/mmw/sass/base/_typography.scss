@@ -1,0 +1,63 @@
+//Paragraph Styles
+p{
+  font-size: 1rem;
+  font-weight: 300;
+  color: $black-54;
+  line-height: 1.4;
+  margin: 0;
+}
+
+//Heading Styles
+h1, h2, h3{
+  margin: 0;
+
+  &.light{
+    color: $paper;
+  }
+
+  &.dark{
+    color: $ui-primary;
+  }
+}
+
+h1{
+  font-size: 1.5rem;
+  font-weight: 100;
+}
+
+h2{
+  font-size: 1rem;
+  font-weight: 100;
+}
+
+h3{
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+//Label Styles
+label{
+  font-weight: 500;
+  font-size: 0.6rem;
+  line-height: 1.2;
+
+  &.paper{
+    color: $paper;
+  }
+
+  &.light{
+    color: $paper-54;
+  }
+
+  &.medium{
+    color: $black-54;
+  }
+
+  &.dark{
+    color: $ui-secondary;
+  }
+
+  &.small{
+    font-size: 0.5rem;
+  }
+}

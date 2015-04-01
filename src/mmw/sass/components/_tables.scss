@@ -1,0 +1,47 @@
+//General Styling
+.table{
+  width: 100%;
+  font-size: 0.7rem;
+  color: $ui-primary;
+
+  .strong{
+    font-weight: 700;
+    color: $brand-primary;
+  }
+
+  th, td{
+    padding: 0.8rem 0.4rem!important;
+    line-height: 1!important;
+    vertical-align: middle!important;
+    border-top: none!important;
+  }
+}
+
+//Hover Table
+.custom-hover{
+
+  thead{
+    border-bottom: solid 1px $black-12;
+    font-weight: 500;
+  }
+
+  tr{
+
+    &:hover{
+      background-color: $ui-light;
+    }
+  }
+}
+
+//Modification Table
+.modifications{
+  margin-bottom: 1rem;
+
+  th, td{
+    white-space: nowrap;
+
+    &:last-child{
+      padding-right: 0;
+    }
+  }
+}

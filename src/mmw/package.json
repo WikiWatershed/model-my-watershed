@@ -19,5 +19,7 @@
     "browserify": "9.0.3",
     "node-sass": "git://github.com/sass/node-sass#v3.0.0-pre",
     "watchify": "3.1.0"
+  },
+  "dependencies": {
   }
 }
