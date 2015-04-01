@@ -7,13 +7,13 @@ if [ -z "$DJANGO_STATIC_ROOT" ]; then
     exit 1
 fi
 
-# Defaults
+# Default settings
 ENTRY_JS_FILES="./js/src/main.js"
-STATIC_JS_DIR="$DJANGO_STATIC_ROOT/js"
+STATIC_JS_DIR="${DJANGO_STATIC_ROOT}js/"
 BROWSERIFY=./node_modules/.bin/browserify
 
 ENTRY_SASS_FILE=./sass/main.scss
-STATIC_CSS_DIR="$DJANGO_STATIC_ROOT/css"
+STATIC_CSS_DIR="${DJANGO_STATIC_ROOT}css/"
 NODE_SASS=./node_modules/.bin/node-sass
 
 usage() {
@@ -28,32 +28,33 @@ Bundle JS and CSS static assets.
 "
 }
 
-# Read options
-while [[ $1 = -?* ]]; do
-  case $1 in
-    -h|--help) usage; exit 1 ;;
-    --watch) ENABLE_WATCH=1 ;;
-    --debug) ENABLE_DEBUG=1 ;;
-  esac
-  shift
+# Handle options
+while [[ -n $1 ]]; do
+    case $1 in
+        --watch) ENABLE_WATCH=1 ;;
+        --debug) ENABLE_DEBUG=1 ;;
+        -h|--help|*) usage; exit 1 ;;
+    esac
+    shift
 done
 
 if [ -n "$ENABLE_WATCH" ]; then
     BROWSERIFY=./node_modules/.bin/watchify
-    # These flags have to appear at the end or watchify will exit.
+    # These flags have to appear last or watchify will exit immediately.
     EXTRA_ARGS="--verbose --poll"
     NODE_SASS="$NODE_SASS --watch --recursive"
 fi
 
 if [ -n "$ENABLE_DEBUG" ]; then
     BROWSERIFY="$BROWSERIFY --debug"
-    NODE_SASS="$NODE_SASS --source-map $STATIC_CSS_DIR/main.css.map --source-map-contents"
+    NODE_SASS="$NODE_SASS --source-map ${STATIC_CSS_DIR}main.css.map \
+        --source-map-contents"
 fi
 
 VAGRANT_COMMAND="cd /opt/app && \
     mkdir -p $STATIC_JS_DIR $STATIC_CSS_DIR && { \
-    $NODE_SASS $ENTRY_SASS_FILE -o $STATIC_CSS_DIR & \
-    $BROWSERIFY $ENTRY_JS_FILES -o $STATIC_JS_DIR/main.js $EXTRA_ARGS; }"
+    $NODE_SASS $ENTRY_SASS_FILE -o ${STATIC_CSS_DIR} & \
+    $BROWSERIFY $ENTRY_JS_FILES -o ${STATIC_JS_DIR}main.js $EXTRA_ARGS; }"
 
 echo "$VAGRANT_COMMAND"
 eval "$VAGRANT_COMMAND"
