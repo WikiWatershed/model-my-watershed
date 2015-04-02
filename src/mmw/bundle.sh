@@ -12,7 +12,7 @@ ENTRY_JS_FILES="./js/src/main.js"
 STATIC_JS_DIR="${DJANGO_STATIC_ROOT}js/"
 BROWSERIFY=./node_modules/.bin/browserify
 
-ENTRY_SASS_FILE=./sass/main.scss
+ENTRY_SASS_DIR=./sass/
 STATIC_CSS_DIR="${DJANGO_STATIC_ROOT}css/"
 NODE_SASS=./node_modules/.bin/node-sass
 
@@ -53,7 +53,7 @@ fi
 
 VAGRANT_COMMAND="cd /opt/app && \
     mkdir -p $STATIC_JS_DIR $STATIC_CSS_DIR && { \
-    $NODE_SASS $ENTRY_SASS_FILE -o ${STATIC_CSS_DIR} & \
+    $NODE_SASS $ENTRY_SASS_DIR -o ${STATIC_CSS_DIR} & \
     $BROWSERIFY $ENTRY_JS_FILES -o ${STATIC_JS_DIR}main.js $EXTRA_ARGS; }"
 
 echo "$VAGRANT_COMMAND"
