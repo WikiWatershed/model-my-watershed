@@ -13,6 +13,7 @@ STATIC_JS_DIR="${DJANGO_STATIC_ROOT}js/"
 BROWSERIFY=./node_modules/.bin/browserify
 
 ENTRY_SASS_DIR=./sass/
+ENTRY_SASS_FILE=./sass/main.scss
 STATIC_CSS_DIR="${DJANGO_STATIC_ROOT}css/"
 NODE_SASS=./node_modules/.bin/node-sass
 
@@ -43,6 +44,9 @@ if [ -n "$ENABLE_WATCH" ]; then
     # These flags have to appear last or watchify will exit immediately.
     EXTRA_ARGS="--verbose --poll"
     NODE_SASS="$NODE_SASS --watch --recursive"
+    # This argument must be a folder in watch mode, but a
+    # single file otherwise.
+    ENTRY_SASS_FILE="$ENTRY_SASS_DIR"
 fi
 
 if [ -n "$ENABLE_DEBUG" ]; then
@@ -53,7 +57,7 @@ fi
 
 VAGRANT_COMMAND="cd /opt/app && \
     mkdir -p $STATIC_JS_DIR $STATIC_CSS_DIR && { \
-    $NODE_SASS $ENTRY_SASS_DIR -o ${STATIC_CSS_DIR} & \
+    $NODE_SASS $ENTRY_SASS_FILE -o ${STATIC_CSS_DIR} & \
     $BROWSERIFY $ENTRY_JS_FILES -o ${STATIC_JS_DIR}main.js $EXTRA_ARGS; }"
 
 echo "$VAGRANT_COMMAND"
