@@ -1,5 +1,101 @@
-{% load staticfiles %}
-<p>Hello world!</p>
-<link rel="stylesheet" href="{% static 'css/main.css' %}" />
-<script type="text/javascript" src="{% static 'js/main.js' %}"></script>
+{% extends 'base.html' %}
 
+{% block header %}
+<header> <!-- Search Header -->
+
+    <nav id="app-header" class="navbar-watershed">
+        <div class="brand"><a href="#">Model My Watershed</a></div>
+        <div class="navigation">
+            <ul class="main">
+                <li><a href="#">Community</a></li>
+                <li><a href="#">ctaylor</a></li>
+            </ul>
+        </div>
+    </nav>
+
+</header> <!-- End Search Header -->
+{% endblock header %}
+
+{% block content %}
+<div class="container-fluid top-nav"> <!-- Container -->
+
+    <div id="search-map"> <!-- Search Tools -->
+        <input class="search-input" type="text" placeholder="Search"/> <!-- Search Input -->
+        <div class="dropdown"> <!-- Select Area -->
+          <button class="btn btn-md btn-search-tool dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
+            Select Area
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu menu-left" role="menu" aria-labelledby="select-area">
+            <li role="presentation"><a role="menuitem" tabindex="-1" href="analyze">Huc 8</a></li>
+            <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Huc 10</a></li>
+            <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Huc 12</a></li>
+          </ul>
+        </div> <!-- End Select Area -->
+        <button class="btn btn-md btn-search-tool">Draw Area</button> <!-- Draw -->
+        <div class="dropdown menu-left"> <!-- Delineate Watershed -->
+          <button class="btn btn-md btn-search-tool dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
+            Delineate Watershed
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu menu-left" role="menu" aria-labelledby="select-area">
+            <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Hill Slope</a></li>
+            <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Stream Network</a></li>
+            <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Trace Flow Down</a></li>
+          </ul>
+        </div> <!-- End Delineate Watershed -->
+    </div> <!-- End Search Tools -->
+
+    <div id="map"></div> <!-- Leaflet Map -->
+
+</div> <!-- End Container -->
+
+<!-- Modals -->
+<div class="modal modal-large fade" id="login" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="false"> <!-- Add Tags Modal -->
+    <div class="modal-dialog modal-dialog-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="light">Model My Watershed</h2>
+            </div>
+            <div class="modal-body">
+                <div class="signup">
+                    <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">Sign Up</button>
+                </div>
+                <div class="custom-input-group">
+                  <input type="text" required>
+                  <span class="highlight"></span>
+                  <span class="bar"></span>
+                  <label>Username</label>
+                </div>
+                <div class="custom-input-group">
+                  <input type="text" required>
+                  <span class="highlight"></span>
+                  <span class="bar"></span>
+                  <label>Password</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-lg btn-block btn-primary margin-bottom-sm" data-dismiss="modal">Continue As Guest</button>
+                <button type="button" class="btn btn-lg btn-block btn-active" data-dismiss="modal">Sign In</button>
+            </div>
+        </div>
+    </div>
+</div> <!-- End Add Tags Modal -->
+{% endblock content %}
+
+{% block footer %}
+
+{% endblock footer %}
+
+{% block scripts %}
+$(window).load(function(){
+    $('#login').modal('show');
+});
+
+var map = L.map('map').setView([40.1, -75.7], 10);
+
+L.tileLayer('http://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png', {
+    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+    maxZoom: 18
+}).addTo(map);
+{% endblock scripts %}

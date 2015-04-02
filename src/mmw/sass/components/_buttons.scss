@@ -1,0 +1,179 @@
+//General Styles
+.btn{
+  display: inline-block;
+  position: relative;
+  transition: all 0.2s ease-out;
+}
+
+.btn-xs{
+  font-size: 0.5rem;
+  padding: 0 0.3rem;
+  line-height: $height-xs;
+}
+
+.btn-sm{
+  border-radius: $radius-sm;
+  font-size: 0.6rem;
+  padding: 0 0.7rem;
+  line-height: $height-sm;
+}
+
+.btn-md{
+  line-height: $height-md;
+  border-radius: $radius-sm;
+  font-size: 0.7rem;
+  padding: 0 1rem;
+}
+
+.btn-lg{
+  line-height: $height-lg;
+  border-radius: $radius-sm;
+  font-size: 0.7rem;
+  padding: 0 1rem;
+}
+
+.btn-default{
+  color: $brand-primary;
+  position: relative;
+  display: inline-block;
+  background-color: transparent;
+  border: solid 1px transparent;
+
+  &:hover, &.focus{
+    color: $paper;
+    background-color: $brand-primary;
+    border: solid 1px transparent;
+  }
+}
+
+.btn-primary{
+  color: $black-74;
+  position: relative;
+  display: inline-block;
+  background-color: $ui-light;
+  border: solid 1px darken($ui-light, 5%);
+
+  i{
+    color: $black-54;
+  }
+
+  &:hover, &.focus{
+    color: $black-74;
+    background-color: darken($ui-light, 5%);
+    border: solid 1px darken($ui-light, 10%);
+  }
+}
+
+.btn-active{
+  color: $paper;
+  position: relative;
+  display: inline-block;
+  background-color: $brand-primary;
+  border: darken($brand-primary, 5%);
+
+  &:hover, &.focus{
+    color: $paper!important;
+    background-color: darken($brand-primary, 5%);
+    border: darken($brand-primary, 10%);
+  }
+}
+
+//Specific Buttons
+.btn-cta{
+  color: $paper;
+  text-align: center;
+  background-color: $active;
+  width: 56px;
+  line-height: 56px;
+  text-align: center;
+  border-radius: 28px;
+  box-shadow: 0 3px 3px $black-54;
+  margin-bottom: 0.5rem;
+
+  &:hover, &:focus{
+    color: $paper;
+    background-color: darken($active, 10%);
+  }
+}
+
+.btn-tab{
+  margin-right: 1px;
+  width: 29px;
+  height: 29px;
+  background-color: transparent;
+  color: $paper-54;
+  font-size: 0.6rem;
+  padding: 4px;
+  border-radius: 0!important;
+
+  &:hover, &:focus{
+    background-color: $paper-12;
+    color: $paper;
+  }
+}
+
+.btn-icon{
+  text-align: center;
+  background-color: transparent;
+  line-height: inherit!important;
+
+  &.light{
+    color: $paper-74;
+
+    &:hover, &:focus{
+      color: $paper;
+    }
+  }
+
+  &.dark{
+    color: $black-54;
+
+    &:hover, &:focus{
+      color: $black-74;
+    }
+  }
+}
+
+.btn-compare{
+  color: $paper;
+  background-color: $ui-secondary;
+  font-size: 0.6rem;
+  height: $height-lg;
+  border-radius: 0!important;
+  padding: 0.7rem;
+
+  i{
+    margin-right: 4px;
+    color: $paper-54;
+  }
+
+  &:hover{
+    color: $paper;
+    background-color: $brand-primary;
+
+    i{
+      color: $paper-54;
+    }
+  }
+}
+
+.btn-search-tool{
+  color: $ui-secondary;
+  position: relative;
+  display: inline-block;
+  background-color: $paper;
+  box-shadow: 0 0 6px $black-74;
+  margin-right: 0.6rem;
+
+  &:hover{
+    color: $ui-secondary;
+    background-color: $ui-light;
+    box-shadow: 0 0 8px $black-74;
+  }
+}
+
+//Dropdown Button Classes
+.open > .btn-primary.dropdown-toggle{
+  background-color: darken($ui-light, 5%);
+  border: solid 1px darken($ui-light, 10%);
+}
