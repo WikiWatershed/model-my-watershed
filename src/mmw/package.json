@@ -3,9 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "scripts": {
-    "test": "test",
-    "build": "echo 1",
-    "build-debug": "echo 1"
+    "test": "test"
   },
   "repository": {
     "type": "git",
@@ -18,5 +16,8 @@
   },
   "homepage": "https://github.com/azavea/model-my-watershed",
   "devDependencies": {
+    "browserify": "9.0.3",
+    "node-sass": "git://github.com/sass/node-sass#v3.0.0-pre",
+    "watchify": "3.1.0"
   }
 }
