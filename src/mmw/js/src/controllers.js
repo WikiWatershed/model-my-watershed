@@ -13,7 +13,7 @@ var AppController = {
 
     analyze: function() {
         // TODO: Move to view
-        var map = App.mapRegion.map,
+        var map = App.getMap(),
             marker = L.marker([40.1, -75.7]),
             popup = L.popup()
               .setLatLng([40.1, -75.7])
