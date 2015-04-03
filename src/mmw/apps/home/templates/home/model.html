@@ -371,30 +371,3 @@
 
 {% block footer %}
 {% endblock footer %}
-
-{% block scripts %}
-var map = L.map('map').setView([40.1, -75.7], 10);
-
-L.tileLayer('http://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png', {
-    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-    maxZoom: 18
-}).addTo(map);
-
-$('#output-tab a').click(function (e) {
-  e.preventDefault();
-  $(this).tab('show');
-});
-
-$('#scenario-tab a').click(function (e) {
-  e.preventDefault();
-  $(this).tab('show');
-});
-
-$('.selectpicker').selectpicker({
-  tickIcon: '',
-});
-
-$(function () {
-  $('[data-toggle="tooltip"]').tooltip();
-});
-{% endblock scripts %}

@@ -150,24 +150,3 @@
 
 {% block footer %}
 {% endblock footer %}
-
-{% block scripts %}
-var map = L.map('map').setView([40.1, -75.7], 10);
-
-var marker = L.marker([40.1, -75.7]).addTo(map);
-
-var popup = L.popup()
-  .setLatLng([40.1, -75.7])
-  .setContent("River Gauge")
-  .openOn(map);
-
-L.tileLayer('http://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png', {
-    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-    maxZoom: 18
-}).addTo(map);
-
-$('#analyze-tab a').click(function (e) {
-  e.preventDefault()
-  $(this).tab('show')
-})
-{% endblock scripts %}

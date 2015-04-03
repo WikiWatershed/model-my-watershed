@@ -8,14 +8,21 @@ if [ -z "$DJANGO_STATIC_ROOT" ]; then
 fi
 
 # Default settings
-ENTRY_JS_FILES="./js/src/main.js"
 STATIC_JS_DIR="${DJANGO_STATIC_ROOT}js/"
-BROWSERIFY=./node_modules/.bin/browserify
-
-ENTRY_SASS_DIR=./sass/
-ENTRY_SASS_FILE=./sass/main.scss
 STATIC_CSS_DIR="${DJANGO_STATIC_ROOT}css/"
+STATIC_IMAGES_DIR="${DJANGO_STATIC_ROOT}images/"
+STATIC_FONTS_DIR="${DJANGO_STATIC_ROOT}fonts/"
+
+BROWSERIFY=./node_modules/.bin/browserify
+ENTRY_JS_FILES="./js/src/main.js"
+
+JSTIFY_TRANSFORM="-t [ jstify --noMinify ]"
+
 NODE_SASS=./node_modules/.bin/node-sass
+ENTRY_SASS_DIR=./sass/
+ENTRY_SASS_FILE="${ENTRY_SASS_DIR}main.scss"
+VENDOR_CSS_FILE="${STATIC_CSS_DIR}vendor.css"
+
 
 usage() {
     echo -n "$(basename $0) [OPTION]...
@@ -55,10 +62,33 @@ if [ -n "$ENABLE_DEBUG" ]; then
         --source-map-contents"
 fi
 
+ENSURE_DIRS_EXIST="mkdir -p \
+    $STATIC_JS_DIR \
+    $STATIC_CSS_DIR \
+    $STATIC_IMAGES_DIR \
+    $STATIC_FONTS_DIR"
+
+COPY_IMAGES_COMMAND="cp -r \
+    ./node_modules/leaflet/dist/images/* \
+    $STATIC_IMAGES_DIR"
+
+COPY_FONTS_COMMAND="cp -r \
+    ./node_modules/font-awesome/fonts/* \
+    $STATIC_FONTS_DIR"
+
+CONCAT_VENDOR_CSS_COMMAND="cat \
+    ./node_modules/leaflet/dist/leaflet.css \
+    ./node_modules/font-awesome/css/font-awesome.min.css \
+    > $VENDOR_CSS_FILE"
+
 VAGRANT_COMMAND="cd /opt/app && \
-    mkdir -p $STATIC_JS_DIR $STATIC_CSS_DIR && { \
+    $ENSURE_DIRS_EXIST && { \
+    $COPY_IMAGES_COMMAND &
+    $COPY_FONTS_COMMAND &
+    $CONCAT_VENDOR_CSS_COMMAND &
     $NODE_SASS $ENTRY_SASS_FILE -o ${STATIC_CSS_DIR} & \
-    $BROWSERIFY $ENTRY_JS_FILES -o ${STATIC_JS_DIR}main.js $EXTRA_ARGS; }"
+    $BROWSERIFY $ENTRY_JS_FILES $JSTIFY_TRANSFORM \
+        -o ${STATIC_JS_DIR}main.js $EXTRA_ARGS; }"
 
 echo "$VAGRANT_COMMAND"
 eval "$VAGRANT_COMMAND"
