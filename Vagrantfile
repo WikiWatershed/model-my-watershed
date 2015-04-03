@@ -77,7 +77,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "services" do |services|
     services.vm.hostname = "services"
-    services.vm.network "private_network", ip: ENV.fetch("MMW_SERVICES_IP", "33.33.33.30")
+    services.vm.network "private_network", ip: ENV.fetch("MMW_SERVICES_IP", "33.33.34.30")
 
     services.vm.synced_folder ".", "/vagrant", disabled: true
 
@@ -120,7 +120,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "app" do |app|
     app.vm.hostname = "app"
-    app.vm.network "private_network", ip: ENV.fetch("MMW_APP_IP", "33.33.33.10")
+    app.vm.network "private_network", ip: ENV.fetch("MMW_APP_IP", "33.33.34.10")
 
     app.vm.synced_folder ".", "/vagrant", disabled: true
 
