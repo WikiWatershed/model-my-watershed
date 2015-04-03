@@ -86,16 +86,3 @@
 {% block footer %}
 
 {% endblock footer %}
-
-{% block scripts %}
-$(window).load(function(){
-    $('#login').modal('show');
-});
-
-var map = L.map('map').setView([40.1, -75.7], 10);
-
-L.tileLayer('http://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png', {
-    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-    maxZoom: 18
-}).addTo(map);
-{% endblock scripts %}
