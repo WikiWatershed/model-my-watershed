@@ -292,3 +292,13 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = '%s.wsgi.application' % SITE_NAME
 # END WSGI CONFIGURATION
+
+
+# Work-around to get django-registration-redux to work with Django 1.8.
+# Source: https://github.com/evonove/django-oauth-toolkit/issues/204
+REGISTRATION_MANAGER_MODEL = 'registration.RegistrationManager'
+REGISTRATION_PROFILE_MODEL = 'registration.RegistrationProfile'
+
+MIGRATION_MODULES = {
+    'registration': 'mmw.migrations.registration',
+}
