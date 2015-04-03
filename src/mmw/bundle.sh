@@ -16,6 +16,7 @@ STATIC_FONTS_DIR="${DJANGO_STATIC_ROOT}fonts/"
 BROWSERIFY=./node_modules/.bin/browserify
 ENTRY_JS_FILES="./js/src/main.js"
 
+JSTIFY_TRANSFORM="-t [ jstify --noMinify ]"
 
 NODE_SASS=./node_modules/.bin/node-sass
 ENTRY_SASS_DIR=./sass/
@@ -86,7 +87,8 @@ VAGRANT_COMMAND="cd /opt/app && \
     $COPY_FONTS_COMMAND &
     $CONCAT_VENDOR_CSS_COMMAND &
     $NODE_SASS $ENTRY_SASS_FILE -o ${STATIC_CSS_DIR} & \
-    $BROWSERIFY $ENTRY_JS_FILES -o ${STATIC_JS_DIR}main.js $EXTRA_ARGS; }"
+    $BROWSERIFY $ENTRY_JS_FILES $JSTIFY_TRANSFORM \
+        -o ${STATIC_JS_DIR}main.js $EXTRA_ARGS; }"
 
 echo "$VAGRANT_COMMAND"
 eval "$VAGRANT_COMMAND"
