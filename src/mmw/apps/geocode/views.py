@@ -26,7 +26,7 @@ def geocode(request, format=None):
     result = geocoder.geocode(pq)
     candidates = result['candidates']
     candidates = [_omgeo_candidate_to_dict(c) for c in candidates]
-    return Response({'results': candidates})
+    return Response(candidates)
 
 
 def _omgeo_candidate_to_dict(candidate):

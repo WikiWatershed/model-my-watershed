@@ -1,0 +1,7 @@
+<% if (numResults > 1) { %>
+    <h3>Multiple results found.</h3><ul></ul>
+<% } else if (numResults === 0) { %>
+    <h3>No results found.<h3>
+<% } else { // Should not happen %>
+    <ul></ul>
+<% } %>

@@ -1,14 +1,18 @@
 "use strict";
 
 var $ = require('jquery'),
+    _ = require('underscore'),
     L = require('leaflet'),
     App = require('./app'),
-    views = require('./views');
+    geocoder = require('./geocode/controller');
 
 var AppController = {
     index: function() {
+        var geocodeSearch = geocoder.geocodeSearchboxView;
+
         // TODO: Move to view
         $('#login').modal('show');
+        App.rootView.geocodeSearchRegion.show(geocodeSearch);
     },
 
     analyze: function() {
@@ -59,7 +63,7 @@ var AppController = {
         });
 
         $('.selectpicker').selectpicker({
-          tickIcon: '',
+            tickIcon: ''
         });
 
         $('[data-toggle="tooltip"]').tooltip();
