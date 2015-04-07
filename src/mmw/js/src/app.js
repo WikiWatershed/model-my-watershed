@@ -1,13 +1,18 @@
 "use strict";
 
 var Marionette = require('../shim/backbone.marionette'),
-    regions = require('./regions');
+    views = require('./views');
 
-var App = new Marionette.Application();
+var App = new Marionette.Application({
+    load: function(data) {
+        App.rootView.load(data);
+    },
 
-App.addRegions({
-    mainRegion: '#container',
-    mapRegion: regions.MapRegion
+    // Return Leaflet map instance.
+    getMap: function() {
+        return App.rootView.mapRegion.map;
+    }
 });
+App.rootView = new views.RootView();
 
 module.exports = window.MMW = App;

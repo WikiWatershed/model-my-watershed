@@ -14,6 +14,13 @@ var MapRegion = Marionette.Region.extend({
             maxZoom: 18
         }).addTo(map);
         this.map = map;
+    },
+
+    load: function(data) {
+        var state = data.map;
+        if (state) {
+            this.map.setView([state.lat, state.lng], state.zoom);
+        }
     }
 });
 
