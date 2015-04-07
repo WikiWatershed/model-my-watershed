@@ -1,0 +1,8 @@
+-r base.txt
+
+coverage==3.6
+selenium==2.44
+# There is a PR for these changes at:
+# https://github.com/safarijv/sbo-selenium/pull/5
+git+https://github.com/azavea/sbo-selenium.git@7cdcfc660b0
+flake8==2.2.5
