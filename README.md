@@ -17,10 +17,28 @@ The `app` virtual machine contains an instance of the Django application and `se
 - Graphite
 - Statsite
 
+### Getting Started
+
 Use the following command to bring up a local development environment:
 
 ```bash
 $ vagrant up
+```
+
+The application will now be running at [http://localhost:8000](http://localhost:8000).
+
+Watch the JavaScript and SASS files for changes:
+
+```bash
+$ ./scripts/bundle.sh --debug --watch
+```
+
+When creating new JavaScript or SASS files, you may need to stop and restart the bundle script.
+
+If changes were made to the one of the VM's configuration or requirements since the last time you provisioned, you'll need to reprovision.
+
+```bash
+$ vagrant provision app # or services
 ```
 
 After provisioning is complete, you can login to the application server and execute Django management commands:
