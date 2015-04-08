@@ -58,14 +58,15 @@ envdir: fatal: unable to switch to directory /etc/mmw.d/env: access denied
 
 The Vagrant configuration maps the following host ports to services running in the virtual machines.
 
-Service                | Port  | URL
----------------------- | ----- | ------------------------------------------------
-Django Web Application | 8000  | [http://localhost:8000](http://localhost:8000)
-Graphite Dashboard     | 8080  | [http://localhost:8080](http://localhost:8080)
+Service                | Port | URL
+---------------------- | -----| ------------------------------------------------
+Django Web Application | 8000 | [http://localhost:8000](http://localhost:8000)
+Graphite Dashboard     | 8080 | [http://localhost:8080](http://localhost:8080)
 Kibana Dashboard       | 5601 | [http://localhost:5601](http://localhost:5601)
 PostgreSQL             | 5432 | `psql -h localhost`
 pgweb                  | 5433 | [http://localhost:5433](http://localhost:5433)
 Redis                  | 6379 | `redis-cli -h localhost 6379`
+Testem                 | 7357 |
 
 ### Caching
 
