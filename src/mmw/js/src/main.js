@@ -37,4 +37,9 @@ App.on('start', function() {
 });
 
 App.start();
-loadData().then(App.load);
+
+loadData().then(function(data) {
+    App.load(data);
+});
+
+window.MMW = App;
