@@ -17,7 +17,14 @@ var App = new Marionette.Application({
     },
 
     load: function(data) {
-        this.map.load(data);
+        var mapState = data.map;
+        if (mapState) {
+            this.map.set({
+                lat: mapState.lat,
+                lng: mapState.lng,
+                zoom: mapState.zoom
+            });
+        }
     },
 
     // Return Leaflet map instance.
