@@ -18,5 +18,7 @@ vagrant ssh app -c "cd /opt/app && envdir /etc/mmw.d/env ./manage.py test --noin
 # vagrant ssh app -c "cd /opt/app && npm run lint"
 
 # Run JS unit tests.
-# vagrant ssh app -c "cd /var/www/nyc-trees/static &&
+# vagrant ssh app -c "cd /var/www/mmw/static &&
 #    xvfb-run /opt/app/node_modules/.bin/testem -f /opt/app/testem.json ci"
+vagrant ssh app -c "cd /var/www/mmw/static &&
+    xvfb-run /opt/app/node_modules/.bin/testem -f /opt/app/testem.json ci Firefox $*"

@@ -28,6 +28,9 @@
     "lodash": "3.6.0",
     "node-sass": "git://github.com/sass/node-sass#v3.0.0-pre",
     "underscore": "1.8.3",
-    "watchify": "3.1.0"
+    "watchify": "3.1.0",
+    "chai": "1.10.0",
+    "mocha": "2.0.1",
+    "testem": "0.5.15"
   }
 }
