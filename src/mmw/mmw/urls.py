@@ -9,9 +9,11 @@ from rest_framework import routers
 
 import registration.backends.default.urls
 import watchman.urls
+import rest_framework.urls
+
+import apps.geocode.urls
 import apps.home.urls
 import apps.home.views
-import rest_framework.urls
 
 admin.autodiscover()
 
@@ -27,4 +29,5 @@ urlpatterns = patterns(
     url(r'^admin/', include(admin.site.urls)),
     url(r'^watchman/', include(watchman.urls)),
     url(r'^accounts/', include(registration.backends.default.urls)),
+    url(r'^api/geocode/', include(apps.geocode.urls)),
 )

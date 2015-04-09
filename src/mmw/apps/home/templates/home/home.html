@@ -20,7 +20,7 @@
 <div class="container-fluid top-nav"> <!-- Container -->
 
     <div id="search-map"> <!-- Search Tools -->
-        <input class="search-input" type="text" placeholder="Search"/> <!-- Search Input -->
+        <div id="geocode-search-region"></div> <!-- Search Input -->
         <div class="dropdown"> <!-- Select Area -->
           <button class="btn btn-md btn-search-tool dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
             Select Area
@@ -51,7 +51,7 @@
 </div> <!-- End Container -->
 
 <!-- Modals -->
-<div class="modal modal-large fade" id="login" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="false"> <!-- Add Tags Modal -->
+<div class="modal modal-large fade" id="login" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="false">
     <div class="modal-dialog modal-dialog-sm">
         <div class="modal-content">
             <div class="modal-header">
@@ -80,7 +80,8 @@
             </div>
         </div>
     </div>
-</div> <!-- End Add Tags Modal -->
+</div>
+<!-- End Modals -->
 {% endblock content %}
 
 {% block footer %}

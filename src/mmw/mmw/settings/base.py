@@ -16,6 +16,8 @@ from sys import path
 # into your settings, but ImproperlyConfigured is an exception.
 from django.core.exceptions import ImproperlyConfigured
 
+from omgeo import postprocessors
+
 
 def get_env_setting(setting):
     """ Get the environment setting or return exception """
@@ -281,6 +283,7 @@ REGISTRATION_AUTO_LOGIN = True  # Automatically log the user in.
 LOCAL_APPS = (
     'apps.core',
     'apps.home',
+    'apps.geocode',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -293,7 +296,6 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 WSGI_APPLICATION = '%s.wsgi.application' % SITE_NAME
 # END WSGI CONFIGURATION
 
-
 # Work-around to get django-registration-redux to work with Django 1.8.
 # Source: https://github.com/evonove/django-oauth-toolkit/issues/204
 REGISTRATION_MANAGER_MODEL = 'registration.RegistrationManager'
@@ -302,3 +304,22 @@ REGISTRATION_PROFILE_MODEL = 'registration.RegistrationProfile'
 MIGRATION_MODULES = {
     'registration': 'mmw.migrations.registration',
 }
+
+OMGEO_SETTINGS = [[
+    'omgeo.services.EsriWGSSSL',
+    {
+        'preprocessors': [],
+        'postprocessors': [
+            postprocessors.UseHighScoreIfAtLeast(99),
+            postprocessors.DupePicker(
+                attr_dupes='match_addr',
+                attr_sort='locator_type',
+                ordered_list=['PointAddress', 'BuildingName', 'StreetAddress']
+            ),
+            postprocessors.ScoreSorter(),
+            postprocessors.GroupBy('match_addr'),
+            postprocessors.GroupBy(('x', 'y')),
+            postprocessors.SnapPoints(distance=10)
+        ]
+    }
+]]

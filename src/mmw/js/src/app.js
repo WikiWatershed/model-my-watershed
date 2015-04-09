@@ -25,11 +25,6 @@ var App = new Marionette.Application({
                 zoom: mapState.zoom
             });
         }
-    },
-
-    // Return Leaflet map instance.
-    getMap: function() {
-        return this.map._leafletMap;
     }
 });
 

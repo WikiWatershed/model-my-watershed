@@ -10,6 +10,7 @@ var AppRouter = Backbone.Marionette.AppRouter.extend({
 });
 
 var router = new AppRouter();
+
 router.processAppRoutes(controllers.AppController, {
     '': 'index',
     'analyze': 'analyze',
