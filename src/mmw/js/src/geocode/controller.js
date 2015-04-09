@@ -39,7 +39,11 @@ function selectCandidate(data) {
 }
 
 function setMapView(lat, lng, zoom) {
-    App.getMap().setView(L.latLng(lat, lng), zoom);
+    App.map.set({
+        lat: lat,
+        lng: lng,
+        zoom: zoom
+    });
 }
 
 // Prevent too many search queries from piling up.
