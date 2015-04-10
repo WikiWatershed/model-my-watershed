@@ -10,8 +10,6 @@ var L = require('leaflet');
 // See: https://github.com/Leaflet/Leaflet/issues/766
 L.Icon.Default.imagePath = '/static/images/';
 
-require('./router');
-
 // Fetch data from server based on current URL.
 function loadData() {
     var defer = $.Deferred();
@@ -30,9 +28,14 @@ function loadData() {
 }
 
 var Backbone = require('../shim/backbone'),
-    App = require('./app');
+    App = require('./app'),
+    router = require('./router');
 
 App.on('start', function() {
+    $('body').on('click', '[data-url]', function(e) {
+        e.preventDefault();
+        router.navigate($(this).data('url'), { trigger: true });
+    });
     Backbone.history.start({ pushState: true });
 });
 
@@ -43,3 +46,4 @@ loadData().then(function(data) {
 });
 
 window.MMW = App;
+window.MMW.router = router;
