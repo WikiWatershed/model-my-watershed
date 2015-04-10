@@ -66,8 +66,29 @@ Kibana Dashboard       | 5601 | [http://localhost:5601](http://localhost:5601)
 PostgreSQL             | 5432 | `psql -h localhost`
 pgweb                  | 5433 | [http://localhost:5433](http://localhost:5433)
 Redis                  | 6379 | `redis-cli -h localhost 6379`
-Testem                 | 7357 |
+Testem                 | 7357 | [http://localhost:7357](http://localhost:7357)
 
 ### Caching
 
 In order to speed up things up, you may want to consider leveraging the `vagrant-cachier` plugin. If installed, it is automatically used by Vagrant.
+
+### Testing
+
+Run all the tests:
+
+```bash
+$ ./scripts/test.sh
+```
+
+##### JavaScript
+
+When creating new tests or debugging old tests, it may be easier to open the testem page, which polls for changes to the test bundle and updates the test state dynamically.
+
+First, start the testem process.
+
+```bash
+$ ./scripts/testem.sh
+```
+
+Then view the test runner page at [http://localhost:7357](http://localhost:7357).
+
