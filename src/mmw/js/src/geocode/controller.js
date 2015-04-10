@@ -4,7 +4,7 @@ var $ = require('jquery'),
     _ = require('underscore'),
     L = require('leaflet'),
     App = require('../app'),
-    views = require('../views'),
+    views = require('../core/views'),
     geocodeViews = require('./views'),
     models = require('./models');
 

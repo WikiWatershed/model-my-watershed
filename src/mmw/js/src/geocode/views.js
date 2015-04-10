@@ -3,7 +3,6 @@
 var _ = require('underscore'),
     $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
-    regions = require('../regions'),
 
     geocodeCandaidateTemplate = require('./templates/geocodeCandidate.ejs'),
     geocodeCollectionTemplate = require('./templates/geocodeCollection.ejs'),
