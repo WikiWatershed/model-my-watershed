@@ -23,7 +23,7 @@ ENTRY_SASS_DIR=./sass/
 ENTRY_SASS_FILE="${ENTRY_SASS_DIR}main.scss"
 VENDOR_CSS_FILE="${STATIC_CSS_DIR}vendor.css"
 
-TEST_DIR=./js/test/
+TEST_FILES=./js/src/**/tests.js
 
 usage() {
     echo -n "$(basename $0) [OPTION]...
@@ -89,8 +89,8 @@ VAGRANT_COMMAND="cd /opt/app && \
     $CONCAT_VENDOR_CSS_COMMAND &
     $NODE_SASS $ENTRY_SASS_FILE -o ${STATIC_CSS_DIR} & \
     $BROWSERIFY $ENTRY_JS_FILES $JSTIFY_TRANSFORM \
-        -o ${STATIC_JS_DIR}main.js $EXTRA_ARGS; \
-    $BROWSERIFY ${TEST_DIR}*.js $JSTIFY_TRANSFORM \
+        -o ${STATIC_JS_DIR}main.js $EXTRA_ARGS & \
+    $BROWSERIFY $TEST_FILES $JSTIFY_TRANSFORM \
         -o ${STATIC_JS_DIR}test.bundle.js $EXTRA_ARGS; }"
 
 echo "$VAGRANT_COMMAND"

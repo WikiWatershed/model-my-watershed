@@ -1,7 +1,7 @@
 "use strict";
 
-var Backbone = require('../shim/backbone'),
-    Marionette = require('../shim/backbone.marionette');
+var Backbone = require('../../shim/backbone'),
+    Marionette = require('../../shim/backbone.marionette');
 
 var MapModel = Backbone.Model.extend({
     defaults: {

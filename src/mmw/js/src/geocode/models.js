@@ -1,16 +1,25 @@
 "use strict";
 
-var Backbone = require('../../shim/backbone');
+var Backbone = require('../../shim/backbone'),
+    App = require('../app');
 
 
-var GeocodeResult = Backbone.Model.extend({});
+var GeocodeCandidate = Backbone.Model.extend({
+    setMapViewToCandidate: function(zoom) {
+        App.map.set({
+            lat: this.get('y'),
+            lng: this.get('x'),
+            zoom: zoom
+        });
+    }
+});
 
 var GeocodeCandidates = Backbone.Collection.extend({
     url: '/api/geocode/',
-    model: GeocodeResult
+    model: GeocodeCandidate
 });
 
 module.exports = {
-    GeocodeResult: GeocodeResult,
+    GeocodeCandidate: GeocodeCandidate,
     GeocodeCandidates: GeocodeCandidates
 };

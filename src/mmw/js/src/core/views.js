@@ -2,7 +2,7 @@
 
 var $ = require('jquery'),
     L = require('leaflet'),
-    Marionette = require('../shim/backbone.marionette');
+    Marionette = require('../../shim/backbone.marionette');
 
 /**
  * A basic view for showing a static message.

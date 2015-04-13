@@ -3,8 +3,7 @@
 var $ = require('jquery'),
     _ = require('underscore'),
     L = require('leaflet'),
-    App = require('../app'),
-    views = require('../views'),
+    views = require('../core/views'),
     geocodeViews = require('./views'),
     models = require('./models');
 
@@ -38,24 +37,17 @@ function selectCandidate(data) {
     return defer.promise();
 }
 
-function setMapView(lat, lng, zoom) {
-    App.map.set({
-        lat: lat,
-        lng: lng,
-        zoom: zoom
-    });
-}
-
 // Prevent too many search queries from piling up.
-var runSearch = _.throttle(function(e) {
-    fetchResults(e)
+var runSearch = _.throttle(function(query) {
+    fetchResults(query)
         .then(selectCandidate)
         .then(zoomToCandidate)
         .fail(displayErrorMessage);
 }, 333, { leading: false, trailing: true });
 
 var zoomToCandidate = function(candidate) {
-    setMapView(candidate.get('y'), candidate.get('x'), 18);
+    var zoomLevel = 18;
+    candidate.setMapViewToCandidate(zoomLevel);
 };
 
 var displayErrorMessage = function(message) {
