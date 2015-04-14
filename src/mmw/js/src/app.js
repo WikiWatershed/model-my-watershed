@@ -11,7 +11,7 @@ var App = new Marionette.Application({
         this.map = new models.MapModel();
 
         // This view is intentionally not attached to any region.
-        this.mapView = new views.MapView({
+        this._mapView = new views.MapView({
             model: this.map
         });
 
@@ -30,7 +30,7 @@ var App = new Marionette.Application({
     },
 
     getLeafletMap: function() {
-        return this.mapView._leafletMap;
+        return this._mapView._leafletMap;
     }
 });
 

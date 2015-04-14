@@ -62,10 +62,13 @@ var MapView = Marionette.ItemView.extend({
         this._areaOfInterestLayer = areaOfInterestLayer;
     },
 
+    // Override the default render method because we manually update
+    // the Leaflet map based on property changes on the map model.
     render: function() {
         // Noop
     },
 
+    // Update map position and zoom level.
     updateView: function() {
         var lat = this.model.get('lat'),
             lng = this.model.get('lng'),
@@ -75,6 +78,7 @@ var MapView = Marionette.ItemView.extend({
         }
     },
 
+    // Add a GeoJSON layer if `areaOfInterest` is set.
     updateAreaOfInterest: function() {
         var areaOfInterest = this.model.get('areaOfInterest');
         if (!areaOfInterest) {
