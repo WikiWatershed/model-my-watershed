@@ -46,20 +46,21 @@ end
 ANSIBLE_GROUPS = {
   "app-servers" => [ "app" ],
   "services" => [ "services" ],
+  "workers" => [ "worker" ],
   "monitoring-servers" => [ "services" ]
 }
 
 if !ENV["VAGRANT_ENV"].nil? && ENV["VAGRANT_ENV"] == "TEST"
   ANSIBLE_ENV_GROUPS = {
     "test:children" => [
-      "app-servers", "services"
+      "app-servers", "services", "workers"
     ]
   }
   VAGRANT_NETWORK_OPTIONS = { auto_correct: true }
 else
   ANSIBLE_ENV_GROUPS = {
     "development:children" => [
-      "app-servers", "services", "monitoring-servers"
+      "app-servers", "services", "monitoring-servers", "workers"
     ]
   }
   VAGRANT_NETWORK_OPTIONS = { auto_correct: false }
@@ -113,6 +114,30 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     services.vm.provision "ansible" do |ansible|
       ansible.playbook = "deployment/ansible/services.yml"
+      ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
+      ansible.raw_arguments = ["--timeout=60"]
+    end
+  end
+
+  config.vm.define "worker" do |worker|
+    worker.vm.hostname = "worker"
+    worker.vm.network "private_network", ip: ENV.fetch("MMW_SERVICES_IP", "33.33.34.20")
+
+    worker.vm.synced_folder ".", "/vagrant", disabled: true
+
+    if Vagrant::Util::Platform.windows? || Vagrant::Util::Platform.cygwin?
+      worker.vm.synced_folder "src/mmw", "/opt/app/", type: "rsync", rsync__exclude: ["node_modules/", "apps/"]
+      worker.vm.synced_folder "src/mmw/apps", "/opt/app/apps"
+    else
+      worker.vm.synced_folder "src/mmw", "/opt/app/"
+    end
+
+    worker.vm.provider "virtualbox" do |v|
+      v.memory = 1024
+    end
+
+    worker.vm.provision "ansible" do |ansible|
+      ansible.playbook = "deployment/ansible/workers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
     end

@@ -1,0 +1,3 @@
+---
+celery_number_of_workers: 2
+celery_processes_per_worker: 1

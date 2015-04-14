@@ -3,5 +3,4 @@ dependencies:
   - { role: "azavea.python", python_development: True }
   - { role: "azavea.pip" }
   - { role: "azavea.postgresql-support" }
-  - { role: "azavea.phantomjs" }
   - { role: "model-my-watershed.celery" }
