@@ -58,3 +58,18 @@ a{
     width: 100%;
   }
 }
+
+#geocode-search-region {
+    display: inline-block;
+
+    #search-results-container {
+        position: absolute;
+    }
+}
+
+#draw-tools-region,
+#select-area-region,
+#draw-area-region,
+#place-marker-region {
+    display: inline-block;
+}
