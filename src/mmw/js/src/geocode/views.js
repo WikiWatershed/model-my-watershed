@@ -3,93 +3,158 @@
 var _ = require('underscore'),
     $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
-
-    geocodeCandaidateTemplate = require('./templates/geocodeCandidate.ejs'),
-    geocodeCollectionTemplate = require('./templates/geocodeCollection.ejs'),
-    geocodeSearchTemplate = require('./templates/geocodeSearch.ejs');
+    models = require('./models'),
+    geocoderTmpl = require('./templates/geocoder.ejs'),
+    geocoderSearchTmpl = require('./templates/geocoderSearch.ejs'),
+    geocoderCandidateTmpl = require('./templates/geocoderCandidate.ejs'),
+    noGeocodeResultsTmpl = require('./templates/noGeocodeResults.ejs');
 
 var ENTER_KEYCODE = 13;
 
-    /**
-     * Single geocode result view.
-     */
-var GeocodeCandidateView = Marionette.ItemView.extend({
-    tagName: 'li',
-    template: geocodeCandaidateTemplate,
-    triggers: { 'click': 'clickCandidate' }
+var GeocoderView = Marionette.LayoutView.extend({
+    template: geocoderTmpl,
+
+    regions: {
+        searchBoxRegion: '#geocoder-search-box-region'
+    },
+
+    onShow: function() {
+        this.searchBoxRegion.show(
+            new GeocoderSearchBoxView({
+                model: new models.GeocoderModel(),
+                collection: new models.GeocoderCandidatesCollection()
+            })
+        );
+    }
 });
 
-/**
- * Collection view of geocode results.
- * The selected candidate is a promise that is resolved when an item is
- * clicked.
- * ChildEvents listens for clicks on the individual candidates.
- * The view is a composite so that we can display other messages along with
- * the list of results.
- */
-var GeocodeCandidateCollectionView = Marionette.CompositeView.extend({
-    options: {},
-    childView: GeocodeCandidateView,
-    childViewContainer: 'ul',
-    template: geocodeCollectionTemplate,
-    templateHelpers: function() {
-        return { numResults: this.collection.length };
+var GeocoderSearchBoxView = Marionette.LayoutView.extend({
+    template: geocoderSearchTmpl,
+
+    ui: {
+        'searchBox': '#geocoder-search'
     },
-    initialize: function(options) {
-        this.options = options;
+
+    events: {
+        'keyup @ui.searchBox': 'prepareSearch'
     },
+
+    modelEvents: {
+        'change:message': 'renderMessage',
+        'change:query': 'render'
+    },
+
     childEvents: {
-        'clickCandidate': function (view) {
-            this.options.candidateClicked(view.model);
+        'candidate:selected': function() {
+            this.reset();
         }
+    },
+
+    regions: {
+        'resultsRegion': '#geocode-search-results-region'
+    },
+
+    renderMessage: function() {
+        this.$el.find('.message').html(this.model.get('message'));
+    },
+
+    prepareSearch: function(e) {
+        var query = $(e.target).val().trim();
+
+        if (query === '') {
+            this.reset();
+            return false;
+        }
+
+        if (e.keyCode === ENTER_KEYCODE) {
+            var zoomLevel = 18;
+            this.collection.first().setMapViewToCandidate(18);
+            this.reset();
+        } else if (query !== this.model.get('query')) {
+            this.model.set('query', query, { silent: true });
+            this.model.set('message', 'Searching...');
+            this.handleSearch(query);
+        }
+    },
+
+    handleSearch: _.throttle(function(query, cb) {
+        this.search(query)
+            .then(_.bind(this.clearMessage, this))
+            .then(_.bind(this.showResultsRegion, this))
+            .fail(_.bind(this.setErrorMessage, this))
+            .always(function() {
+                if (cb && typeof cb === 'function') { cb(this); }
+            });
+
+    }, 1000, { leading: false, trailing: true }),
+
+    search: function(query) {
+        return this.collection.fetch({
+            data: { search: query },
+            reset: true
+        });
+    },
+
+    clearMessage: function() {
+        this.model.set('message', '');
+    },
+
+    setErrorMessage: function() {
+        this.model.set('message', 'Sorry, an error occured while searching.');
+    },
+
+    showResultsRegion: function() {
+        this.getRegion('resultsRegion').show(
+            new GeocoderCandidateCollectionView({
+                collection: this.collection
+            })
+        );
+    },
+
+    reset: function() {
+        this.getRegion('resultsRegion').empty();
+        this.model.set('query', '');
+        this.clearMessage();
     }
 });
 
 /**
- * View to display the search box and wire keypress events to it.
- * On initialization, pass in a runSearch function as part of options. This
- * will be called when the text of the search box changes.
+ * Single geocode result view.
  */
-var GeocodeSearchboxView = Marionette.LayoutView.extend({
-    options: {},
-    template: geocodeSearchTemplate,
-    regions: {
-        results: '#search-results-container'
-    },
-    events: {
-        'keyup #geocode-search': 'runSearch'
-    },
-    childEvents: {
-        'clickCandidate': function (view) {
-            this.getRegion('results').empty();
-            this.$el.find('#geocode-search').val('');
+var GeocoderCandidateView = Marionette.ItemView.extend({
+    tagName: 'li',
+    template: geocoderCandidateTmpl,
 
-        }
+    ui: {
+        'result': 'span'
     },
-    initialize: function(options) {
-        this.options = options;
+
+    events: {
+        'click @ui.result': 'selectCandidate'
     },
-    runSearch: function(e) {
-        var newVal = this.$el.find('#geocode-search').val();
-        if (this.currentSearchVal !== newVal) {
-            this.currentSearchVal = newVal;
-            if (this.currentSearchVal === '') { // Don't hit endpoint with empty searches.
-                return;
-            } else {
-                var query = $(e.target).val().trim();
-                this.options.runSearch(query);
-            }
-        }
-        if (e.keyCode === ENTER_KEYCODE) {
-            this.$el.find('#search-results-container ul li').first().trigger('click');
-        }
-    },
-    currentSearchVal: ''
+
+    selectCandidate: function() {
+        var zoomLevel = 18;
+        this.model.setMapViewToCandidate(18);
+        this.triggerMethod('candidate:selected');
+    }
 });
 
+var NoGeocodeResultsView = Marionette.ItemView.extend({
+    template: noGeocodeResultsTmpl
+});
+
+/**
+ * Collection view of geocode results.
+ */
+var GeocoderCandidateCollectionView = Marionette.CollectionView.extend({
+    tagName: 'ul',
+    childView: GeocoderCandidateView,
+    emptyView: NoGeocodeResultsView
+});
 
 module.exports = {
-    GeocodeCandidateView: GeocodeCandidateView,
-    GeocodeCandidateCollectionView: GeocodeCandidateCollectionView,
-    GeocodeSearchboxView: GeocodeSearchboxView
+    GeocoderView: GeocoderView,
+    GeocoderCandidateCollectionView: GeocoderCandidateCollectionView,
+    GeocoderCandidateView: GeocoderCandidateView
 };

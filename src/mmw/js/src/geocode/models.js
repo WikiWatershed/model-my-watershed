@@ -3,8 +3,14 @@
 var Backbone = require('../../shim/backbone'),
     App = require('../app');
 
+var GeocoderModel = Backbone.Model.extend({
+    defaults: {
+        message: '',
+        query: ''
+    }
+});
 
-var GeocodeCandidate = Backbone.Model.extend({
+var GeocoderCandidateModel = Backbone.Model.extend({
     setMapViewToCandidate: function(zoom) {
         App.map.set({
             lat: this.get('y'),
@@ -14,12 +20,13 @@ var GeocodeCandidate = Backbone.Model.extend({
     }
 });
 
-var GeocodeCandidates = Backbone.Collection.extend({
+var GeocoderCandidatesCollection = Backbone.Collection.extend({
     url: '/api/geocode/',
-    model: GeocodeCandidate
+    model: GeocoderCandidateModel
 });
 
 module.exports = {
-    GeocodeCandidate: GeocodeCandidate,
-    GeocodeCandidates: GeocodeCandidates
+    GeocoderModel: GeocoderModel,
+    GeocoderCandidateModel: GeocoderCandidateModel,
+    GeocoderCandidatesCollection: GeocoderCandidatesCollection
 };

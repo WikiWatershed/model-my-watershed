@@ -33,8 +33,8 @@ suite('Geocode', function() {
     });
 
     test('view renders no list items if there are no search candidates', function() {
-        var collection = new models.GeocodeCandidates([]),
-            view = new views.GeocodeCandidateCollectionView({ collection: collection });
+        var collection = new models.GeocoderCandidatesCollection([]),
+            view = new views.GeocoderCandidateCollectionView({ collection: collection });
 
         $('#sandbox').html(view.render().el);
 
@@ -43,8 +43,8 @@ suite('Geocode', function() {
 
     test('view renders one list item if there is one search candidate', function() {
         var testData = getTestCandidates(1),
-            collection = new models.GeocodeCandidates(testData),
-            view = new views.GeocodeCandidateCollectionView({ collection: collection });
+            collection = new models.GeocoderCandidatesCollection(testData),
+            view = new views.GeocoderCandidateCollectionView({ collection: collection });
 
         $('#sandbox').html(view.render().el);
 
@@ -53,8 +53,8 @@ suite('Geocode', function() {
 
     test('view renders multiple list items if there are multiple search candidates', function() {
         var testData = getTestCandidates(10),
-            collection = new models.GeocodeCandidates(testData),
-            view = new views.GeocodeCandidateCollectionView({ collection: collection });
+            collection = new models.GeocoderCandidatesCollection(testData),
+            view = new views.GeocoderCandidateCollectionView({ collection: collection });
 
         $('#sandbox').html(view.render().el);
 
@@ -63,7 +63,7 @@ suite('Geocode', function() {
 
     test('model.setMapViewToCandidate sets map model\'s position attributes to the candidates position', function() {
         var testData = getTestCandidates(1),
-            model = new models.GeocodeCandidate(testData[0]);
+            model = new models.GeocoderCandidateModel(testData[0]);
 
         var zoomLevel = 18;
         model.setMapViewToCandidate(zoomLevel);
