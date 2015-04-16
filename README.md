@@ -41,6 +41,8 @@ If changes were made to the one of the VM's configuration or requirements since 
 $ vagrant provision app # or services
 ```
 
+If you add a JS dependency and want it to be included in the `vendor.js` bundle, you will need to update the `JS_DEPS` array in `bundle.sh` accordingly.
+
 After provisioning is complete, you can login to the application server and execute Django management commands:
 
 ```bash
@@ -91,4 +93,3 @@ $ ./scripts/testem.sh
 ```
 
 Then view the test runner page at [http://localhost:7357](http://localhost:7357).
-

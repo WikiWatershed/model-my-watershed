@@ -86,14 +86,32 @@ CONCAT_VENDOR_CSS_COMMAND="cat \
     ./node_modules/font-awesome/css/font-awesome.min.css \
     > $VENDOR_CSS_FILE"
 
+JS_DEPS=(jquery backbone backbone.marionette \
+        bootstrap bootstrap-select \
+        leaflet leaflet-draw lodash underscore \
+        chai)
+
+BROWSERIFY_EXT=""
+BROWSERIFY_REQ=""
+for DEP in "${JS_DEPS[@]}"
+do
+    BROWSERIFY_EXT+="-x $DEP "
+    BROWSERIFY_REQ+="-r $DEP "
+done
+
 VAGRANT_COMMAND="cd /opt/app && \
     $ENSURE_DIRS_EXIST && { \
     $COPY_IMAGES_COMMAND &
     $COPY_FONTS_COMMAND &
     $CONCAT_VENDOR_CSS_COMMAND &
     $NODE_SASS $ENTRY_SASS_FILE -o ${STATIC_CSS_DIR} & \
-    $BROWSERIFY $ENTRY_JS_FILES $JSTIFY_TRANSFORM \
+
+    $BROWSERIFY $ENTRY_JS_FILES $BROWSERIFY_EXT $JSTIFY_TRANSFORM \
         -o ${STATIC_JS_DIR}main.js $EXTRA_ARGS & \
+
+    $BROWSERIFY $BROWSERIFY_REQ \
+        -o ${STATIC_JS_DIR}vendor.js $EXTRA_ARGS & \
+
     $BROWSERIFY $TEST_FILES $JSTIFY_TRANSFORM \
         -o ${STATIC_JS_DIR}test.bundle.js $EXTRA_ARGS; }"
 
