@@ -78,23 +78,6 @@ DJANGO_REDIS_IGNORE_EXCEPTIONS = True
 # END CACHE CONFIGURATION
 
 
-# CELERY CONFIGURATION
-BROKER_URL = 'redis://{0}:{1}/2'.format(
-    environ.get('MMW_CACHE_HOST', 'localhost'),
-    environ.get('MMW_CACHE_PORT', 6379))
-
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-
-STATSD_CELERY_SIGNALS = True
-
-# Add celery tasks in tasks.py of an app. Celery should auto-detect them:
-# http://celery.readthedocs.org/en/latest/django/first-steps-with-django.html
-
-# END CELERY CONFIGURATION
-
-
 # DATABASE CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {
@@ -113,6 +96,22 @@ POSTGIS_VERSION = tuple(
     map(int, environ.get('DJANGO_POSTGIS_VERSION', '2.1.3').split("."))
 )
 # END DATABASE CONFIGURATION
+
+
+# CELERY CONFIGURATION
+BROKER_URL = 'redis://{0}:{1}/2'.format(
+    environ.get('MMW_CACHE_HOST', 'localhost'),
+    environ.get('MMW_CACHE_PORT', 6379))
+
+CELERY_IMPORTS = ('celery.task.http',)
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_RESULT_BACKEND = 'djcelery.backends.cache:CacheBackend'
+STATSD_CELERY_SIGNALS = True
+
+
+# END CELERY CONFIGURATION
 
 
 # LOGGING CONFIGURATION
@@ -301,6 +300,7 @@ LOCAL_APPS = (
     'apps.core',
     'apps.home',
     'apps.geocode',
+    'apps.task',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
