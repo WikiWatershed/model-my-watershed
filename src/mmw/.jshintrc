@@ -13,6 +13,9 @@
         "beforeEach": false,
         "before": false,
         "afterEach": false,
-        "after": false
+        "after": false,
+        "done": false,
+        "it": false,
+        "describe": false
     }
 }

@@ -11,7 +11,7 @@ var $ = require('jquery'),
 var DrawController = {
     draw: function() {
         var rootView = App.rootView,
-            geocodeSearch = geocoder.geocodeSearchboxView,
+            geocodeSearch = geocoder.view,
             toolbarModel = new models.ToolbarModel(),
             toolbarView = new views.ToolbarView({
                 model: toolbarModel

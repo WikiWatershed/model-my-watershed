@@ -3,93 +3,202 @@
 var _ = require('underscore'),
     $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
-
-    geocodeCandaidateTemplate = require('./templates/geocodeCandidate.ejs'),
-    geocodeCollectionTemplate = require('./templates/geocodeCollection.ejs'),
-    geocodeSearchTemplate = require('./templates/geocodeSearch.ejs');
+    models = require('./models'),
+    geocoderTmpl = require('./templates/geocoder.ejs'),
+    searchTmpl = require('./templates/search.ejs'),
+    suggestionTmpl = require('./templates/suggestion.ejs'),
+    noResultsTmpl = require('./templates/noResults.ejs');
 
 var ENTER_KEYCODE = 13;
 
-    /**
-     * Single geocode result view.
-     */
-var GeocodeCandidateView = Marionette.ItemView.extend({
-    tagName: 'li',
-    template: geocodeCandaidateTemplate,
-    triggers: { 'click': 'clickCandidate' }
-});
+var GeocoderView = Marionette.LayoutView.extend({
+    template: geocoderTmpl,
 
-/**
- * Collection view of geocode results.
- * The selected candidate is a promise that is resolved when an item is
- * clicked.
- * ChildEvents listens for clicks on the individual candidates.
- * The view is a composite so that we can display other messages along with
- * the list of results.
- */
-var GeocodeCandidateCollectionView = Marionette.CompositeView.extend({
-    options: {},
-    childView: GeocodeCandidateView,
-    childViewContainer: 'ul',
-    template: geocodeCollectionTemplate,
-    templateHelpers: function() {
-        return { numResults: this.collection.length };
+    regions: {
+        searchBoxRegion: '#geocoder-search-box-region'
     },
-    initialize: function(options) {
-        this.options = options;
-    },
-    childEvents: {
-        'clickCandidate': function (view) {
-            this.options.candidateClicked(view.model);
-        }
+
+    onShow: function() {
+        this.searchBoxRegion.show(
+            new SearchBoxView({
+                model: new models.GeocoderModel(),
+                collection: new models.SuggestionsCollection()
+            })
+        );
     }
 });
 
-/**
- * View to display the search box and wire keypress events to it.
- * On initialization, pass in a runSearch function as part of options. This
- * will be called when the text of the search box changes.
- */
-var GeocodeSearchboxView = Marionette.LayoutView.extend({
-    options: {},
-    template: geocodeSearchTemplate,
-    regions: {
-        results: '#search-results-container'
-    },
-    events: {
-        'keyup #geocode-search': 'runSearch'
-    },
-    childEvents: {
-        'clickCandidate': function (view) {
-            this.getRegion('results').empty();
-            this.$el.find('#geocode-search').val('');
+var SearchBoxView = Marionette.LayoutView.extend({
+    template: searchTmpl,
 
+    ui: {
+        'searchBox': '#geocoder-search',
+        'message': '.message',
+        'resultsRegion': '#geocode-search-results-region'
+    },
+
+    events: {
+        'keyup @ui.searchBox': 'processSearchInputEvent',
+    },
+
+    modelEvents: {
+        'change:message': 'renderMessage',
+        'change:query': 'render'
+    },
+
+    childEvents: {
+        'suggestion:select:in-progress': function() {
+            this.model.set('message', 'Loading...');
+        },
+        'suggestion:select:success': function() {
+            this.reset();
+            this.clearMessage();
+        },
+        'suggestion:select:failure': function() {
+            this.getRegion('resultsRegion').empty();
+            this.setErrorMessage();
         }
     },
-    initialize: function(options) {
-        this.options = options;
+
+    regions: {
+        'resultsRegion': '#geocode-search-results-region'
     },
-    runSearch: function(e) {
-        var newVal = this.$el.find('#geocode-search').val();
-        if (this.currentSearchVal !== newVal) {
-            this.currentSearchVal = newVal;
-            if (this.currentSearchVal === '') { // Don't hit endpoint with empty searches.
-                return;
-            } else {
-                var query = $(e.target).val().trim();
-                this.options.runSearch(query);
-            }
+
+    renderMessage: function() {
+        this.ui.message.html(this.model.get('message'));
+    },
+
+    processSearchInputEvent: function(e) {
+        var query = $(e.target).val().trim();
+
+        if (query === '') {
+            this.clearMessage();
+            this.emptyResultsRegion();
+            return false;
         }
+
         if (e.keyCode === ENTER_KEYCODE) {
-            this.$el.find('#search-results-container ul li').first().trigger('click');
+            if (this.collection.length >= 1) {
+                this.selectFirst();
+            }
+        } else if (query !== this.model.get('query')) {
+            this.model.set('query', query, { silent: true });
+            this.model.set('message', 'Searching...');
+            this.makeThrottledSearch(query);
         }
     },
-    currentSearchVal: ''
+
+    makeThrottledSearch: _.throttle(function(query) {
+        this.handleSearch(query);
+    }, 500, { leading: false, trailing: true }),
+
+    handleSearch: function(query) {
+        var defer = $.Deferred();
+
+        this.search(query)
+            .then(_.bind(this.clearMessage, this))
+            .done(_.bind(this.showResultsRegion, this))
+            .fail(_.bind(this.setErrorMessage, this));
+
+        return defer.promise();
+    },
+
+    search: function(query) {
+        return this.collection.fetch({
+            data: { text: query },
+            reset: true
+        });
+    },
+
+    selectFirst: function() {
+        var self = this,
+            defer = $.Deferred();
+
+        this.model.set('message', 'Loading...');
+
+        this.collection
+            .first()
+            .select()
+                .done(function() {
+                    self.clearMessage();
+                    self.collection.first().setMapViewToLocation();
+                })
+                .fail(_.bind(this.setErrorMessage, this))
+                .always(_.bind(this.reset, this));
+
+        return defer.promise();
+    },
+
+    clearMessage: function() {
+        this.model.set('message', '');
+    },
+
+    setErrorMessage: function() {
+        this.model.set('message', 'Sorry, an error occured while searching.');
+    },
+
+    showResultsRegion: function() {
+        this.getRegion('resultsRegion').show(
+            new SuggestionsView({
+                collection: this.collection
+            })
+        );
+    },
+
+    emptyResultsRegion: function() {
+        this.getRegion('resultsRegion').empty();
+    },
+
+    reset: function() {
+        this.model.set('query', '');
+        this.emptyResultsRegion();
+    }
 });
 
+var SuggestionView = Marionette.ItemView.extend({
+    tagName: 'li',
+    template: suggestionTmpl,
+
+    ui: {
+        'result': 'span'
+    },
+
+    events: {
+        'click @ui.result': 'selectSuggestion'
+    },
+
+    selectSuggestion: function() {
+        this.triggerMethod('suggestion:select:in-progress');
+
+        this.model
+            .select()
+            .done(_.bind(this.selectSuccess, this))
+            .fail(_.bind(this.selectFail, this));
+    },
+
+    selectSuccess: function() {
+        this.model.setMapViewToLocation();
+        this.triggerMethod('suggestion:select:success');
+    },
+
+    selectFail: function() {
+        this.triggerMethod('suggestion:select:failure');
+    }
+});
+
+var NoResultsView = Marionette.ItemView.extend({
+    template: noResultsTmpl
+});
+
+var SuggestionsView = Marionette.CollectionView.extend({
+    tagName: 'ul',
+    childView: SuggestionView,
+    emptyView: NoResultsView
+});
 
 module.exports = {
-    GeocodeCandidateView: GeocodeCandidateView,
-    GeocodeCandidateCollectionView: GeocodeCandidateCollectionView,
-    GeocodeSearchboxView: GeocodeSearchboxView
+    GeocoderView: GeocoderView,
+    SuggestionsView: SuggestionsView,
+    SuggestionView: SuggestionView,
+    SearchBoxView: SearchBoxView
 };
