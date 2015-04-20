@@ -8,4 +8,4 @@
 
   roles:
     - { role: "model-my-watershed.common" }
-    - { role: "model-my-watershed.celery.worker" }
+    - { role: "model-my-watershed.celery-worker" }
