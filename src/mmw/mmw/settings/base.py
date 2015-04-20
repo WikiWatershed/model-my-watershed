@@ -88,6 +88,10 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
 STATSD_CELERY_SIGNALS = True
+
+# Add celery tasks in tasks.py of an app. Celery should auto-detect them:
+# http://celery.readthedocs.org/en/latest/django/first-steps-with-django.html
+
 # END CELERY CONFIGURATION
 
 
