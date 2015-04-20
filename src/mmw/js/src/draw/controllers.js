@@ -4,18 +4,20 @@ var $ = require('jquery'),
     _ = require('underscore'),
     L = require('leaflet'),
     App = require('../app'),
-    geocoder = require('../geocode/controller'),
+    geocoder = require('../geocode/views'),
     views = require('./views'),
     models = require('./models');
 
 var DrawController = {
     draw: function() {
         var rootView = App.rootView,
-            geocodeSearch = geocoder.view,
+            geocodeSearch = new geocoder.GeocoderView(),
             toolbarModel = new models.ToolbarModel(),
             toolbarView = new views.ToolbarView({
                 model: toolbarModel
             });
+
+        App.map.set('halfSize', false);
 
         App.restApi.getPredefinedShapes().then(function(data) {
             toolbarModel.set('predefinedShapes', data.shapes);
@@ -23,6 +25,7 @@ var DrawController = {
 
         rootView.geocodeSearchRegion.show(geocodeSearch);
         rootView.drawToolsRegion.show(toolbarView);
+        rootView.footerRegion.empty();
 
         // TODO: Move?
         //$('#login').modal('show');

@@ -4,6 +4,7 @@ var _ = require('lodash'),
     $ = require('jquery'),
     L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
+    router = require('../router'),
     App = require('../app'),
     models = require('./models'),
     toolbarTmpl = require('./templates/toolbar.ejs'),
@@ -60,6 +61,7 @@ var SelectAreaView = Marionette.ItemView.extend({
             id: shapeId
         }).then(function(shape) {
             addLayer(shape);
+            navigateToAnalyze();
         }).fail(function() {
             revertLayer();
         }).always(function() {
@@ -94,6 +96,7 @@ var DrawAreaView = Marionette.ItemView.extend({
         this.model.disableTools();
         drawPolygon().then(function(shape) {
             addLayer(shape);
+            navigateToAnalyze();
         }).fail(function() {
             revertLayer();
         }).always(function() {
@@ -131,6 +134,7 @@ var PlaceMarkerView = Marionette.ItemView.extend({
                 lng: latlng.lng
             }).then(function(shape) {
                 addLayer(shape);
+                navigateToAnalyze();
             }).fail(function() {
                 revertLayer();
             });
@@ -205,6 +209,10 @@ function placeMarker() {
     tool.enable();
 
     return defer.promise();
+}
+
+function navigateToAnalyze() {
+    router.navigate('analyze', { trigger: true });
 }
 
 module.exports = {

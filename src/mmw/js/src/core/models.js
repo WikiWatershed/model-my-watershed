@@ -9,7 +9,8 @@ var MapModel = Backbone.Model.extend({
         lng: 0,
         zoom: 0,
         // Active shape on the map; GeoJSON object
-        areaOfInterest: null
+        areaOfInterest: null,
+        halfSize: false
     }
 });
 

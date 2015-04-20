@@ -2,7 +2,8 @@
 
 var $ = require('jquery'),
     L = require('leaflet'),
-    Marionette = require('../../shim/backbone.marionette');
+    Marionette = require('../../shim/backbone.marionette'),
+    regions = require('./regions');
 
 /**
  * A basic view for showing a static message.
@@ -27,16 +28,25 @@ var RootView = Marionette.LayoutView.extend({
     regions: {
         mainRegion: '#container',
         geocodeSearchRegion: '#geocode-search-region',
-        drawToolsRegion: '#draw-tools-region'
+        drawToolsRegion: '#draw-tools-region',
+        footerRegion: {
+            regionClass: regions.SlidingRegion,
+            selector: '#footer'
+        }
     }
 });
 
 // This view houses a Leaflet instance. The map container element must exist
 // in the DOM before initializing.
 var MapView = Marionette.ItemView.extend({
+    ui: {
+        map: '#map'
+    },
+
     modelEvents: {
         'change:lat change:lng change:zoom': 'updateView',
-        'change:areaOfInterest': 'updateAreaOfInterest'
+        'change:areaOfInterest': 'updateAreaOfInterest',
+        'change:halfSize': 'toggleMapSize'
     },
 
     // Leaflet map instance.
@@ -92,6 +102,16 @@ var MapView = Marionette.ItemView.extend({
                 console.log('Error adding Leaflet layer (invalid GeoJSON object)');
             }
         }
+    },
+
+    toggleMapSize: function() {
+        if (this.model.get('halfSize')) {
+            $(this.ui.map).addClass('half');
+        } else {
+            $(this.ui.map).removeClass('half');
+        }
+
+        this._leafletMap.invalidateSize();
     }
 });
 

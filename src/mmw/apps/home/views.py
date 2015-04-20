@@ -25,10 +25,6 @@ def home_page(request):
     return render_to_response('home/home.html')
 
 
-def analyze(request):
-    return render_to_response('home/analyze.html')
-
-
 def model(request):
     return render_to_response('home/model.html')
 

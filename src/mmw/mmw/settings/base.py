@@ -301,6 +301,7 @@ LOCAL_APPS = (
     'apps.home',
     'apps.geocode',
     'apps.task',
+    'apps.analyze'
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

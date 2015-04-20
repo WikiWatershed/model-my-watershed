@@ -5,13 +5,13 @@ from __future__ import division
 
 from django.conf.urls import patterns, url
 
-from apps.home.views import home_page, analyze, model, compare
+from apps.home.views import home_page, model, compare
 
 
 urlpatterns = patterns(
     '',
     url(r'^$', home_page, name='home_page'),
-    url(r'^analyze$', analyze, name='analyze'),
+    url(r'^analyze$', home_page, name='home_page'),
     url(r'^model$', model, name='model'),
     url(r'^compare$', compare, name='compare'),
 )
