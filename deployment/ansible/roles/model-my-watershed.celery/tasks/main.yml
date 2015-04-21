@@ -1,0 +1,10 @@
+---
+- name: Install Celery
+  pip: name="celery[redis]" version={{ celery_version }} state=present
+
+- name: Patch celery
+  copy: src=django.py
+        dest=/usr/local/lib/python2.7/dist-packages/celery/fixups/django.py
+        owner=root
+        group=root
+        mode=644

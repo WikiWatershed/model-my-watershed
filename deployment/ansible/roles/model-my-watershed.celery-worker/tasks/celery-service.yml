@@ -1,0 +1,12 @@
+---
+- name: Configure Celery service definition
+  template: src=celeryd.j2
+            dest=/etc/init.d/celeryd
+            mode=0755
+  notify:
+    - Restart Celery
+
+- name: Configure Celery service definition defaults
+  template: src=celeryd-defaults.j2 dest=/etc/default/celeryd
+  notify:
+    - Restart Celery

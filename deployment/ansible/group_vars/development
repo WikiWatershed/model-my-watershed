@@ -19,3 +19,7 @@ postgresql_host: "{{ services_ip }}"
 relp_host: "{{ services_ip }}"
 graphite_host: "{{ services_ip }}"
 statsite_host: "{{ services_ip }}"
+
+celery_log_level: "DEBUG"
+celery_number_of_workers: 2
+celery_processes_per_worker: 1
