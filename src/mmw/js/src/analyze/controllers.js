@@ -19,7 +19,8 @@ var AnalyzeController = {
 
         var rootView = App.rootView,
             analyzeWindow = new views.AnalyzeWindow({
-                id: 'analyze-output-wrapper'
+                id: 'analyze-output-wrapper',
+                collection: new models.LayerCollection({})
             });
 
         rootView.footerRegion.show(analyzeWindow);
