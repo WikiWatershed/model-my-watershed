@@ -48,7 +48,7 @@ def analyze(request, format=None):
                 {
                     "type": "Forest",
                     "area": 1804,
-                    "coverage": 9.4
+                    "coverage": .094
                 }
             ]
         },

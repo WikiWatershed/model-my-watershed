@@ -6,6 +6,7 @@ var _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
+    charts = require('./chart'),
     windowTmpl = require('./templates/window.ejs'),
     headerTmpl = require('./templates/header.ejs'),
     detailsTmpl = require('./templates/details.ejs'),
@@ -117,6 +118,11 @@ var TabContentView = Marionette.LayoutView.extend({
         this.tableRegion.show(new TableView({
             collection: categories
         }));
+
+        this.chartRegion.show(new ChartView({
+            model: this.model,
+            collection: categories
+        }));
     }
 });
 
@@ -140,7 +146,23 @@ var TableView = Marionette.CompositeView.extend({
 });
 
 var ChartView = Marionette.ItemView.extend({
-    template: chartTmpl
+    template: chartTmpl,
+    id: function() {
+        return 'chart-' + this.model.get('name');
+    },
+
+    onAttach: function() {
+        this.addChart();
+    },
+
+    addChart: function() {
+        var chartData = this.collection.map(function(model) {
+                return model.attributes;
+            }),
+            selector = '#' + this.id() + ' .bar-chart';
+
+        charts.makeBarChart(selector, chartData, 'type', 'coverage');
+    }
 });
 
 module.exports = {

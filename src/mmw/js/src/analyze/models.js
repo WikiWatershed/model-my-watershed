@@ -21,10 +21,6 @@ var LayerCollection = Backbone.Collection.extend({
     model: LayerModel
 });
 
-var CategoryCollection = Backbone.Model.extend({
-
-});
-
 // Each category that makes up the areas of each layer
 var LayerCategoryCollection = Backbone.Collection.extend({
 
@@ -34,6 +30,5 @@ module.exports = {
     AnalyzeModel: AnalyzeModel,
     LayerModel: LayerModel,
     LayerCollection: LayerCollection,
-    CategoryCollection: CategoryCollection,
     LayerCategoryCollection: LayerCategoryCollection
 };
