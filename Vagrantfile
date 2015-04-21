@@ -121,7 +121,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define "worker" do |worker|
     worker.vm.hostname = "worker"
-    worker.vm.network "private_network", ip: ENV.fetch("MMW_SERVICES_IP", "33.33.34.20")
+    worker.vm.network "private_network", ip: ENV.fetch("MMW_WORKER_IP", "33.33.34.20")
 
     worker.vm.synced_folder ".", "/vagrant", disabled: true
 
