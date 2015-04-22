@@ -4,7 +4,7 @@
     Select Area
     <span class="caret"></span>
   </button>
-  <ul class="dropdown-menu menu-left" role="menu" aria-labelledby="select-area">
+  <ul class="dropdown-menu menu-left" role="menu" aria-labelledby="select-area" id="wrapper">
   <% _.each(predefinedShapes, function(item) { %>
       <li role="presentation"><a role="menuitem" tabindex="-1" href="#" data-shape-id="<%- item.id %>"><%- item.name %></a></li>
   <% }) %>
