@@ -19,8 +19,10 @@
     {% block content %}
     {% endblock content %}
 
-    {% block footer %}
-    {% endblock footer %}
+    <div id="footer">
+        {% block footer %}
+        {% endblock footer %}
+    </div>
 
     <script type="text/javascript" src="{% static 'js/vendor.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/main.js' %}"></script>

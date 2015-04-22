@@ -10,31 +10,28 @@
     width: 9%;
     margin: 0 2%;
     display: inline-block;
-    background-color: $brand-primary;
+    fill: $brand-primary;
     border-radius: $radius-sm;
     vertical-align: bottom;
 
-    &.full{
-      height: 170px;
-    }
-
-    &.half{
-      height: 85px;
-    }
-
     &:hover{
-      background-color: lighten($brand-primary, 10%);
+      fill: lighten($brand-primary, 10%);
     }
+  }
 
-    label{
-      display: block;
-      color: $ui-primary;
-      font-size: 0.5rem;
-      position: absolute;
-      top: 200px;
-      width: 8%;
-      white-space: normal;
-      vertical-align: text-top;
+  .axis {
+    color: $ui-primary;
+    font-size: 0.5rem;
+    white-space: normal;
+
+    line, path {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
     }
+  }
+
+  .x.axis line, .x.axis path {
+    display: none;
   }
 }
