@@ -31,16 +31,7 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        this.collection.fetch({
-                // TODO: This is just being passed along for
-                // demonstration purposes. In the future,
-                // the analysis should be customized for the
-                // area of interest.
-                data: {
-                    areaOfInterest: App.map.get('areaOfInterest')
-                },
-                reset: true
-        });
+        this.collection.fetch({ reset: true });
     },
 
     showRegions: function() {
