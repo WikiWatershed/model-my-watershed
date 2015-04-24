@@ -31,7 +31,7 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        this.collection.fetch({ reset: true });
+        this.collection.fetch({ reset: true, method: 'POST' });
     },
 
     showRegions: function() {
