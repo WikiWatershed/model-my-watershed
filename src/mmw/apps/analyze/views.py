@@ -7,7 +7,7 @@ from rest_framework import decorators
 from rest_framework.permissions import AllowAny
 
 
-@decorators.api_view(['GET'])
+@decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
 def analyze(request, format=None):
     results = [
