@@ -15,8 +15,6 @@ var AnalyzeController = {
             return false;
         }
 
-        App.map.set('halfSize', true);
-
         var rootView = App.rootView,
             analyzeWindow = new views.AnalyzeWindow({
                 id: 'analyze-output-wrapper',

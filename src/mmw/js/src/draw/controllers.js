@@ -17,8 +17,6 @@ var DrawController = {
                 model: toolbarModel
             });
 
-        App.map.set('halfSize', false);
-
         App.restApi.getPredefinedShapes().then(function(data) {
             toolbarModel.set('predefinedShapes', data.shapes);
         });
