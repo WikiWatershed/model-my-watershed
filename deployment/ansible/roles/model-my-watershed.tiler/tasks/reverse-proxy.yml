@@ -1,0 +1,13 @@
+---
+- name: Configure Nginx site
+  template: src=nginx-mmw-tiler.conf.j2
+            dest=/etc/nginx/sites-available/mmw-tiler.conf
+  notify:
+    - Restart Nginx
+
+- name: Enable Nginx site
+  file: src=/etc/nginx/sites-available/mmw-tiler.conf
+        dest=/etc/nginx/sites-enabled/mmw-tiler
+        state=link
+  notify:
+    - Restart Nginx

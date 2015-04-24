@@ -1,0 +1,18 @@
+---
+- name: Clone application source
+  git: repo=https://github.com/azavea/model-my-watershed.git
+       dest=/opt/model-my-watershed
+       version="{{ tiler_deploy_branch }}"
+
+- name: Ensure that tiler_home exists
+  file: path="{{ tiler_home }}"
+        state=directory
+
+- name: Synchronize tiler code into into tiler_home
+  synchronize: archive=no
+               checksum=yes
+               compress=no
+               recursive=yes
+               set_remote_user=no
+               src=/opt/model-my-watershed/src/tiler
+               dest="{{ tiler_home }}/"

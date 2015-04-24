@@ -1,0 +1,4 @@
+---
+dependencies:
+  - { role: "azavea.mapnik" }
+  - { role: "azavea.build-essential" }
