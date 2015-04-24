@@ -56,7 +56,7 @@ var MapView = Marionette.ItemView.extend({
     _areaOfInterestLayer: null,
 
     initialize: function() {
-        var map = new L.Map('map'),
+        var map = new L.Map('map', { zoomControl: false }),
             // TODO: Replace tile layer, eventually.
             tileLayer = new L.TileLayer('https://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png', {
                 attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
@@ -64,6 +64,7 @@ var MapView = Marionette.ItemView.extend({
             }),
             areaOfInterestLayer = new L.FeatureGroup();
 
+        map.addControl(new L.Control.Zoom({position: 'topright'}));
         map.setView([40.1, -75.7], 10);
         map.addLayer(tileLayer);
         map.addLayer(areaOfInterestLayer);
