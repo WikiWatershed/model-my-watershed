@@ -7,7 +7,9 @@ var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     Backbone = require('../../shim/backbone'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
-    App = require('../app');
+    App = require('../app'),
+    views = require('./views'),
+    models = require('./models');
 
 var TEST_SHAPE = {
     'type': 'Feature',
@@ -36,14 +38,53 @@ describe('Core', function() {
     });
 
     describe('MapView', function() {
-        it('adds layers to the map when the model attribute areaOfInterest is set', function() {
+        it('adds layers to the map when the map model attribute areaOfInterest is set', function() {
             var mapView = App._mapView,
                 featureGroup = mapView._areaOfInterestLayer;
+
             assert.equal(featureGroup.getLayers().length, 0);
             App.map.set('areaOfInterest', TEST_SHAPE);
             assert.equal(featureGroup.getLayers().length, 1);
             App.map.set('areaOfInterest', null);
             assert.equal(featureGroup.getLayers().length, 0);
+
+            App._mapView._leafletMap.remove();
+        });
+
+        it('updates the position of the map when the map model location attributes are set', function() {
+            var model = new models.MapModel(),
+                view = new views.MapView({
+                    model: model
+                }),
+                latLng = [40, -75],
+                zoom = 18;
+
+            view._leafletMap.setView([0, 0], 0);
+
+            model.set({ lat: latLng[0], lng: latLng[1], zoom: zoom });
+
+            assert.equal(view._leafletMap.getCenter().lat, latLng[0]);
+            assert.equal(view._leafletMap.getCenter().lng, latLng[1]);
+            assert.equal(view._leafletMap.getZoom(), zoom);
+
+            view._leafletMap.remove();
+        });
+
+        it('silently sets the map model location attributes when the map position is updated', function() {
+            var model = new models.MapModel(),
+                view = new views.MapView({
+                    model: model
+                }),
+                latLng = [40, -75],
+                zoom = 18;
+
+            view._leafletMap.setView(latLng, zoom);
+
+            assert.equal(model.get('lat'), 40);
+            assert.equal(model.get('lng'), -75);
+            assert.equal(model.get('zoom'), zoom);
+
+            view._leafletMap.remove();
         });
     });
 
