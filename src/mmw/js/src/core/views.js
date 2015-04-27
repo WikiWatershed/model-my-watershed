@@ -3,7 +3,7 @@
 var $ = require('jquery'),
     L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
-    regions = require('./regions');
+    TransitionRegion = require('../../shim/marionette.transition-region');
 
 /**
  * A basic view for showing a static message.
@@ -30,7 +30,7 @@ var RootView = Marionette.LayoutView.extend({
         geocodeSearchRegion: '#geocode-search-region',
         drawToolsRegion: '#draw-tools-region',
         footerRegion: {
-            regionClass: regions.SlidingRegion,
+            regionClass: TransitionRegion,
             selector: '#footer'
         }
     }
@@ -113,6 +113,10 @@ var MapView = Marionette.ItemView.extend({
         }
 
         this._leafletMap.invalidateSize();
+
+        if (this.model.get('areaOfInterest')) {
+            this._leafletMap.fitBounds(this._areaOfInterestLayer.getBounds());
+        }
     }
 });
 

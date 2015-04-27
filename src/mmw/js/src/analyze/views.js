@@ -41,6 +41,28 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
         this.detailsRegion.show(new DetailsView({
             collection: this.collection
         }));
+    },
+
+    transitionInCss: {
+        height: '0%',
+    },
+
+    animateIn: function() {
+        var self = this;
+
+        this.$el.animate({ height: '55%' }, 400, function() {
+            self.trigger('animateIn');
+            App.map.set('halfSize', true);
+        });
+    },
+
+    animateOut: function() {
+        var self = this;
+
+        this.$el.animate({ height: '0%' }, 100, function() {
+            self.trigger('animateOut');
+            App.map.set('halfSize', false);
+        });
     }
 });
 
