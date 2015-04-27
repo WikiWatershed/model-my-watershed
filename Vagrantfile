@@ -23,6 +23,8 @@ def install_dependent_roles
   ansible_roles_txt = File.join(ansible_directory, "roles.txt")
 
   File.foreach(ansible_roles_txt) do |line|
+    next if line.strip.empty?
+
     role_name, role_version = line.split(",")
     role_path = File.join(ansible_directory, "roles", role_name)
     galaxy_metadata = galaxy_install_info(role_name)
