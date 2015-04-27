@@ -18,5 +18,6 @@ uuid_regex = r'^(?P<job_uuid>[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-' \
 urlpatterns = patterns(
     '',
     url(r'^start/tr55/$', views.start_tr55, name='start_tr55'),
+    url(r'^start/analyze/$', views.start_analyze, name='start_analyze'),
     url(uuid_regex, views.get_job, name='get_job'),
 )

@@ -1,7 +1,8 @@
 "use strict";
 
 var Backbone = require('../../shim/backbone'),
-    Marionette = require('../../shim/backbone.marionette');
+    Marionette = require('../../shim/backbone.marionette'),
+    $ = require('jquery');
 
 var MapModel = Backbone.Model.extend({
     defaults: {
@@ -14,6 +15,55 @@ var MapModel = Backbone.Model.extend({
     }
 });
 
+var TaskModel = Backbone.Model.extend({
+    defaults: {
+        pollInterval: 500,
+        timeout: 5000
+    },
+
+    url: function() {
+        if (this.get('job')) {
+            return '/api/jobs/' + this.get('job') + '/';
+        } else {
+            return '/api/jobs/start/' + this.get('taskName') + '/';
+        }
+    },
+
+    pollForResults: function() {
+        var defer = $.Deferred(),
+            duration = 0,
+            self = this;
+
+        // Check the task endpoint to see if the job is
+        // completed. If it is, return the results of
+        // the job. If not, check again after
+        // pollInterval has elapsed.
+        var getResults = function() {
+                if (duration >= self.get('timeout')) {
+                    defer.reject();
+                    return;
+                }
+
+                self.fetch()
+                    .done(function(response) {
+                        console.log('Polling ' + self.url());
+                        if (response.status !== 'complete') {
+                            duration = duration + self.get('pollInterval');
+                            window.setTimeout(getResults, self.get('pollInterval'));
+                        } else {
+                            defer.resolve(response);
+                        }
+                    })
+                    .fail(defer.reject);
+        };
+
+        window.setTimeout(getResults, self.get('pollInterval'));
+
+        return defer.promise();
+    }
+});
+
 module.exports = {
-    MapModel: MapModel
+    MapModel: MapModel,
+    TaskModel: TaskModel
 };
