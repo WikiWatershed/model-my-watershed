@@ -301,7 +301,6 @@ LOCAL_APPS = (
     'apps.home',
     'apps.geocode',
     'apps.task',
-    'apps.analyze',
     'apps.predefined_shapes',
 )
 

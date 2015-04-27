@@ -32,6 +32,5 @@ urlpatterns = patterns(
     url(r'^watchman/', include(watchman.urls)),
     url(r'^accounts/', include(registration.backends.default.urls)),
     url(r'^api/geocode/', include(apps.geocode.urls)),
-    url(r'^api/jobs/', include(apps.task.urls)),
-    url(r'^api/analyze/', include(apps.analyze.urls)),
+    url(r'^api/jobs/', include(apps.task.urls))
 )
