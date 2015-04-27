@@ -86,6 +86,32 @@ describe('Core', function() {
 
             view._leafletMap.remove();
         });
+
+        it('adds the class "half" to the map view when the map model attribute halfSize is set to true', function(){
+            var model = new models.MapModel(),
+                view = new views.MapView({
+                    model: model
+                });
+
+            model.set('halfSize', true);
+            assert.isTrue($('#map').hasClass('half'));
+
+            view._leafletMap.remove();
+            $('#map').removeClass('half');
+        });
+
+
+        it('removes the class "half" to the map view when the map model attribute halfSize is set to false', function(){
+            var model = new models.MapModel(),
+                view = new views.MapView({
+                    model: model
+                });
+
+            model.set('halfSize', false);
+            assert.isFalse($('#map').hasClass('half'));
+
+            view._leafletMap.remove();
+        });
     });
 
     describe('Regions', function() {
