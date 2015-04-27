@@ -67,6 +67,8 @@ var SelectAreaView = Marionette.ItemView.extend({
         }).always(function() {
             self.model.enableTools();
         });
+
+        e.preventDefault();
     },
 
     getTemplate: function() {
