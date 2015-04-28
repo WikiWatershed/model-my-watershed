@@ -30,7 +30,7 @@ function loadData() {
 
 var Backbone = require('../shim/backbone'),
     App = require('./app'),
-    router = require('./router'),
+    router = require('./router').router,
     routes = require('./routes');
 
 App.on('start', function() {
