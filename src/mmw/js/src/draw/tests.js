@@ -20,62 +20,65 @@ var SandboxRegion = Marionette.Region.extend({
     el: '#sandbox'
 });
 
-suite('Draw', function() {
+describe('Draw', function() {
     beforeEach(function() {
         $('body').append('<div id="sandbox">');
     });
 
     afterEach(function() {
         $('#sandbox').remove();
+        window.location.hash = '';
     });
 
-    // Setup the toolbar controls, enable/disable them, and verify
-    // the correct CSS classes are applied.
-    test('Can enable/disable toolbar controls', function() {
-        var sandbox = new SandboxRegion(),
-            $el = sandbox.$el,
-            model = new models.ToolbarModel(),
-            view = new views.ToolbarView({
-                model: model
-            });
+    describe('ToolbarView', function() {
+        // Setup the toolbar controls, enable/disable them, and verify
+        // the correct CSS classes are applied.
+        it('enables/disables toolbar controls when the model enableTools/disableTools methods are called', function() {
+            var sandbox = new SandboxRegion(),
+                $el = sandbox.$el,
+                model = new models.ToolbarModel(),
+                view = new views.ToolbarView({
+                    model: model
+                });
 
-        sandbox.show(view);
-        populateSelectAreaDropdown($el, model);
+            sandbox.show(view);
+            populateSelectAreaDropdown($el, model);
 
-        // Nothing should be disabled at this point.
-        // Test that toggling the `toolsEnabled` property on the model
-        // will disable all drawing tools.
-        assert.equal($el.find('.disabled').size(), 0);
-        model.disableTools();
-        assert.equal($el.find('.disabled').size(), 3);
-        model.enableTools();
-        assert.equal($el.find('.disabled').size(), 0);
-    });
+            // Nothing should be disabled at this point.
+            // Test that toggling the `toolsEnabled` property on the model
+            // will disable all drawing tools.
+            assert.equal($el.find('.disabled').size(), 0);
+            model.disableTools();
+            assert.equal($el.find('.disabled').size(), 3);
+            model.enableTools();
+            assert.equal($el.find('.disabled').size(), 0);
+        });
 
-    // Simulate clicking a predefined shape in the "Select Area"
-    // control. That should fetch a polygon GeoJSON from the API
-    // and update the `areaOfInterest` property on the map model.
-    test('Controls update the map', function() {
-        var sandbox = new SandboxRegion(),
-            $el = sandbox.$el,
-            model = new models.ToolbarModel(),
-            view = new views.ToolbarView({
-                model: model
-            });
+        // Simulate clicking a predefined shape in the "Select Area"
+        // control. That should fetch a polygon GeoJSON from the API
+        // and update the `areaOfInterest` property on the map model.
+        it('adds a layer to the map when an area of interest is chosen from the select area dropdown', function() {
+            var sandbox = new SandboxRegion(),
+                $el = sandbox.$el,
+                model = new models.ToolbarModel(),
+                view = new views.ToolbarView({
+                    model: model
+                });
 
-        sandbox.show(view);
-        populateSelectAreaDropdown($el, model);
+            sandbox.show(view);
+            populateSelectAreaDropdown($el, model);
 
-        App.restApi = {
-            getPolygon: function() {
-                return $.Deferred().resolve(TEST_SHAPE).promise();
-            }
-        };
+            App.restApi = {
+                getPolygon: function() {
+                    return $.Deferred().resolve(TEST_SHAPE).promise();
+                }
+            };
 
-        var $li = $($el.find('#select-area-region li a').get(0));
-        $li.trigger('click');
+            var $li = $($el.find('#select-area-region li a').get(0));
+            $li.trigger('click');
 
-        assert.equal(App.map.get('areaOfInterest'), TEST_SHAPE);
+            assert.equal(App.map.get('areaOfInterest'), TEST_SHAPE);
+        });
     });
 });
 
