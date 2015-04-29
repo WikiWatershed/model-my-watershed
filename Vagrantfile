@@ -49,20 +49,21 @@ ANSIBLE_GROUPS = {
   "app-servers" => [ "app" ],
   "services" => [ "services" ],
   "workers" => [ "worker" ],
-  "monitoring-servers" => [ "services" ]
+  "monitoring-servers" => [ "services" ],
+  "tile-servers" => [ "tiler" ]
 }
 
 if !ENV["VAGRANT_ENV"].nil? && ENV["VAGRANT_ENV"] == "TEST"
   ANSIBLE_ENV_GROUPS = {
     "test:children" => [
-      "app-servers", "services", "workers"
+      "app-servers", "services", "workers", "tile-servers"
     ]
   }
   VAGRANT_NETWORK_OPTIONS = { auto_correct: true }
 else
   ANSIBLE_ENV_GROUPS = {
     "development:children" => [
-      "app-servers", "services", "monitoring-servers", "workers"
+      "app-servers", "services", "monitoring-servers", "workers", "tile-servers"
     ]
   }
   VAGRANT_NETWORK_OPTIONS = { auto_correct: false }
@@ -178,6 +179,31 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     app.vm.provision "ansible" do |ansible|
       ansible.playbook = "deployment/ansible/app-servers.yml"
+      ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
+      ansible.raw_arguments = ["--timeout=60"]
+    end
+  end
+
+  config.vm.define "tiler" do |tiler|
+    tiler.vm.hostname = "tiler"
+    tiler.vm.network "private_network", ip: ENV.fetch("MMW_TILER_IP", "33.33.34.35")
+
+    tiler.vm.synced_folder ".", "/vagrant", disabled: true
+
+    if Vagrant::Util::Platform.windows? || Vagrant::Util::Platform.cygwin?
+      tiler.vm.synced_folder "src/tiler", "/opt/tiler/", type: "rsync", rsync__exclude: ["node_modules/"]
+    else
+      tiler.vm.synced_folder "src/tiler", "/opt/tiler/"
+    end
+
+    # Expose the tiler. Tiler is served by Nginx.
+    tiler.vm.network "forwarded_port", {
+      guest: 80,
+      host: 4000
+    }.merge(VAGRANT_NETWORK_OPTIONS)
+
+    tiler.vm.provision "ansible" do |ansible|
+      ansible.playbook = "deployment/ansible/tile-servers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
     end

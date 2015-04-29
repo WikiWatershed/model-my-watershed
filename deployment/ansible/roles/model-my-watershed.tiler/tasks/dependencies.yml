@@ -1,0 +1,15 @@
+---
+- name: Install canvas rendering dependencies
+  apt: pkg={{ item }} state=present
+  with_items:
+    - "libcairo2-dev=1.13.*"
+    - "libpango1.0-dev=1.36.*"
+    - "libjpeg8-dev=8c*"
+    - "libgif-dev=4.1.*"
+
+- name: Install tiler javascript dependencies
+  command: npm install --unsafe-perm
+  args:
+    chdir: "{{ tiler_home }}"
+  environment:
+    PKG_CONFIG_PATH: "/usr/lib/pkgconfig/pycairo.pc"
