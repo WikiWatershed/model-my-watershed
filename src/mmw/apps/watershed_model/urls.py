@@ -5,9 +5,9 @@ from __future__ import division
 
 from django.conf.urls import patterns, url
 
-from apps.task import views
+from apps.watershed_model import views
 
 urlpatterns = patterns(
     '',
-    url(r'^start/tr55/$', views.start_tr55, name='start_tr55'),
+    url(r'start/tr55/$', views.start_tr55, name='start_tr55'),
 )

@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from apps.core.models import Job
-from apps.task import views
+from apps.watershed_model import views
 
 from django.test import TestCase
 from django.test.utils import override_settings

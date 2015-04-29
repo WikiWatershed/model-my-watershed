@@ -300,7 +300,7 @@ LOCAL_APPS = (
     'apps.core',
     'apps.home',
     'apps.geocode',
-    'apps.task',
+    'apps.watershed_model',
     'apps.analyze',
     'apps.predefined_shapes',
 )

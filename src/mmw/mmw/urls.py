@@ -13,7 +13,7 @@ import rest_framework.urls
 
 import apps.core.urls
 import apps.geocode.urls
-import apps.task.urls
+import apps.watershed_model.urls
 import apps.analyze.urls
 import apps.home.urls
 import apps.home.views
@@ -34,6 +34,6 @@ urlpatterns = patterns(
     url(r'^watchman/', include(watchman.urls)),
     url(r'^accounts/', include(registration.backends.default.urls)),
     url(r'^api/geocode/', include(apps.geocode.urls)),
-    url(r'^api/jobs/tasks', include(apps.task.urls)),
+    url(r'^api/jobs/watershed_model', include(apps.watershed_model.urls)),
     url(r'^api/analyze/', include(apps.analyze.urls)),
 )

@@ -13,7 +13,7 @@ from celery import chain
 
 from apps.core.models import Job
 from apps.core.task_helpers import save_job_error, save_job_result
-from apps.task import tasks
+from apps.watershed_model import tasks
 
 
 @decorators.api_view(['GET'])
