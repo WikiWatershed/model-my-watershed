@@ -3,11 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
-from django.utils.timezone import now
 from celery import shared_task
-from apps.task.models import Job
 
-import json
 import logging
 import urllib2
 
@@ -69,43 +66,3 @@ def run_tr55(model_input, landscape):
         'et': et,
         'inf': inf,
     }
-
-
-@shared_task(bind=True)
-def save_job_error(self, uuid, job_id):
-    """
-    A handler task attached to the Celery chain. Any exception thrown along the
-    chain will trigger this task, which logs the failure to the Job row so that
-    the poling client will know that the run failed.
-    """
-    result = self.app.AsyncResult(uuid)
-    error_message = 'Task {0} run from job {1} raised exception: {2}\n{3}'
-    logger.error(error_message.format(str(uuid), str(job_id),
-                                      str(result.result),
-                                      str(result.traceback)))
-    try:
-        job = Job.objects.get(id=job_id)
-        job.error = result.result
-        job.traceback = result.traceback
-        job.delivered_at = now()
-        job.status = 'failed'
-        job.save()
-    except Exception as e:
-        logger.error('Failed to save job error status. Job will appear hung. \
-                     Job Id: {0}'.format(job.id))
-        logger.error('Error number: {0} - Error: {1}'
-                     .format(e.errno, e.strerror))
-
-
-@shared_task(bind=True)
-def save_job_result(self, result, id, model_input):
-    """
-    Updates a job row in the database with final results.
-    """
-    job = Job.objects.get(id=id)
-    job.result = json.dumps(result)
-    job.delivered_at = now()
-    job.uuid = self.request.id
-    job.model_input = model_input
-    job.status = 'complete'
-    job.save()
