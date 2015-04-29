@@ -15,10 +15,11 @@ var AnalyzeController = {
             return false;
         }
 
-        var rootView = App.rootView,
+        var taskModel = new models.AnalyzeTaskModel(),
+            rootView = App.rootView,
             analyzeWindow = new views.AnalyzeWindow({
                 id: 'analyze-output-wrapper',
-                collection: new models.LayerCollection({})
+                model: taskModel
             });
 
         rootView.footerRegion.show(analyzeWindow);

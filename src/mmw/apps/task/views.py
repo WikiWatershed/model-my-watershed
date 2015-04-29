@@ -67,3 +67,32 @@ def initiate_tr55_job_chain(model_input, job_id):
                  tasks.run_tr55.s(model_input),
                  tasks.save_job_result.s(job_id, model_input)) \
         .apply_async(link_error=tasks.save_job_error.s(job_id))
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((AllowAny, ))
+def start_analyze(request, format=None):
+    user = request.user if request.user.is_authenticated() else None
+    created = now()
+    area_of_interest = request.POST
+    job = Job.objects.create(created_at=created, result='', error='',
+                             traceback='', user=user, status='started')
+
+    task_list = initiate_analyze_job_chain(area_of_interest, job.id)
+
+    job.uuid = task_list.id
+    job.save()
+
+    return Response(
+        {
+            'job': task_list.id,
+            'status': 'started',
+        }
+    )
+
+
+def initiate_analyze_job_chain(area_of_interest, job_id):
+    return chain(tasks.make_gt_service_call_task.s(area_of_interest),
+                 tasks.run_analyze.s(area_of_interest),
+                 tasks.save_job_result.s(job_id, area_of_interest)) \
+        .apply_async(link_error=tasks.save_job_error.s(job_id))

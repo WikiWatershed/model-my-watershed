@@ -71,6 +71,78 @@ def run_tr55(model_input, landscape):
     }
 
 
+@shared_task
+def run_analyze(area_of_interest, landscape):
+    time.sleep(3)
+
+    results = [
+        {
+            "name": "land",
+            "displayName": "Land",
+            "categories": [
+                {
+                    "type": "Water",
+                    "area": 21,
+                    "coverage": 0.01
+                },
+                {
+                    "type": "Developed: Open",
+                    "area": 5041,
+                    "coverage": .263
+                },
+                {
+                    "type": "Developed: Low",
+                    "area": 5181,
+                    "coverage": .271
+                },
+                {
+                    "type": "Developed: Medium",
+                    "area": 3344,
+                    "coverage": .175
+                },
+                {
+                    "type": "Developed: High",
+                    "area": 1103,
+                    "coverage": .058
+                },
+                {
+                    "type": "Bare Soil",
+                    "area": 19,
+                    "coverage": .001
+                },
+                {
+                    "type": "Forest",
+                    "area": 1804,
+                    "coverage": .094
+                }
+            ]
+        },
+        {
+            "name": "soil",
+            "displayName": "Soil",
+            "categories": [
+                {
+                    "type": "Clay",
+                    "area": 21,
+                    "coverage": 0.01
+                },
+                {
+                    "type": "Silt",
+                    "area": 5041,
+                    "coverage": .263
+                },
+                {
+                    "type": "Sand",
+                    "area": 21,
+                    "coverage": .271
+                },
+            ]
+        }
+    ]
+
+    return results
+
+
 @shared_task(bind=True)
 def save_job_error(self, uuid, job_id):
     """
