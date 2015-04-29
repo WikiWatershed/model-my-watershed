@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     L = require('leaflet'),
+    _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region');
 
@@ -44,7 +45,7 @@ var MapView = Marionette.ItemView.extend({
     },
 
     modelEvents: {
-        'change:lat change:lng change:zoom': 'updateView',
+        'change': 'updateView',
         'change:areaOfInterest': 'updateAreaOfInterest',
         'change:halfSize': 'toggleMapSize'
     },
@@ -69,6 +70,10 @@ var MapView = Marionette.ItemView.extend({
         map.addLayer(tileLayer);
         map.addLayer(areaOfInterestLayer);
 
+        // Keep the map model up-to-date with the position of the map
+        this.listenTo(map, 'moveend', this.updateMapModelPosition);
+        this.listenTo(map, 'zoomend', this.updateMapModelZoom);
+
         this._leafletMap = map;
         this._areaOfInterestLayer = areaOfInterestLayer;
     },
@@ -84,9 +89,31 @@ var MapView = Marionette.ItemView.extend({
         var lat = this.model.get('lat'),
             lng = this.model.get('lng'),
             zoom = this.model.get('zoom');
+
         if (lat && lng && zoom) {
             this._leafletMap.setView([lat, lng], zoom);
         }
+    },
+
+    // Update the map model position and zoom level
+    // based on the current position and zoom level
+    // of the map. Do it silently so that we don't
+    // get stuck in an update -> set -> update loop.
+    updateMapModelPosition: function() {
+        var center = this._leafletMap.getCenter();
+
+        this.model.set({
+            lat: center.lat,
+            lng: center.lng
+        }, { silent: true });
+    },
+
+    updateMapModelZoom: function() {
+        var zoom = this._leafletMap.getZoom();
+
+        this.model.set({
+            zoom: zoom
+        }, { silent: true });
     },
 
     // Add a GeoJSON layer if `areaOfInterest` is set.
