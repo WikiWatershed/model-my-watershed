@@ -4,4 +4,5 @@ dependencies:
   - { role: "azavea.pip" }
   - { role: "azavea.postgresql-support" }
   - { role: "azavea.phantomjs" }
+  - { role: "model-my-watershed.monitoring", collectd_prefix: "collectd.app.", when: "['test'] | is_not_in(group_names)" }
   - { role: "model-my-watershed.celery" }
