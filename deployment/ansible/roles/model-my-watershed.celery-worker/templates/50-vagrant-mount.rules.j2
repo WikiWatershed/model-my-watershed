@@ -1,0 +1,2 @@
+SUBSYSTEM=="bdi",ACTION=="add",RUN+="/usr/bin/screen -m -d bash -c 'sleep 5; /usr/sbin/service celeryd start'"
+SUBSYSTEM=="bdi",ACTION=="remove",RUN+="/usr/bin/screen -m -d bash -c 'sleep 5; /usr/sbin/service celeryd stop'"

@@ -5,7 +5,6 @@
 - name: Install Django Celery
   pip: name="django-celery" version={{ djcelery_version }} state=present
 
-
 - name: Patch celery
   copy: src=django.py
         dest=/usr/local/lib/python2.7/dist-packages/celery/fixups/django.py

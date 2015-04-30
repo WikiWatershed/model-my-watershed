@@ -14,9 +14,14 @@
 - name: Install PostgreSQL client
   apt: pkg=postgresql-client-{{ postgresql_version }}={{ postgresql_package_version }}
 
-- name: Install application Python dependencies for dev
-  pip: chdir="{{ celery_dir }}/requirements" requirements=development.txt
-  when: "['development'] | is_in(group_names)"
+- name: Install application Python dependencies for development and test
+  pip: chdir="{{ celery_dir }}/requirements" requirements={{ item }}.txt
+  with_items:
+    - development
+    - test
+  when: "['development', 'test'] | some_are_in(group_names)"
+  notify:
+    - Restart Celery
 
 - name: Install application Python dependencies for production
   pip: chdir="{{ celery_dir }}/requirements" requirements=production.txt
