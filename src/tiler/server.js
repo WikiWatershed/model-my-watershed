@@ -34,6 +34,7 @@ var config = {
         host: redisHost,
         port: redisPort
     },
+    log_format: '{ "timestamp": ":date[iso]", "@fields": { "remote_addr": ":remote-addr", "body_bytes_sent": ":res[content-length]", "request_time": ":response-time", "status": ":status", "request": ":method :url HTTP/:http-version", "request_method": ":method", "http_referrer": ":referrer", "http_user_agent": ":user-agent" } }',
     beforeTileRender: function(req, res, callback) {
         callback(null);
     },

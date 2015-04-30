@@ -2,3 +2,4 @@
 dependencies:
   - { role: "azavea.mapnik" }
   - { role: "azavea.build-essential" }
+  - { role: "model-my-watershed.monitoring", collectd_prefix: "collectd.tiler.", when: "['test'] | is_not_in(group_names)" }

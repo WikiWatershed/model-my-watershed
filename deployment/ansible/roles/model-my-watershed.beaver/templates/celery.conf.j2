@@ -1,0 +1,5 @@
+[/var/log/celery/*.log]
+multiline_regex_after = (^\s+File.*, line \d+, in)
+multiline_regex_before = (^Traceback \(most recent call last\):)|(^\s+File.*, line \d+, in)|(^\w+Error: )
+type: celery
+tags: celery,beaver
