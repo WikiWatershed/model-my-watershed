@@ -7,9 +7,11 @@ var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     Backbone = require('../../shim/backbone'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
+    sinon = require('sinon'),
     App = require('../app'),
     views = require('./views'),
-    models = require('./models');
+    models = require('./models'),
+    AppRouter = require('../router').AppRouter;
 
 var TEST_SHAPE = {
     'type': 'Feature',
@@ -31,6 +33,8 @@ describe('Core', function() {
 
     afterEach(function() {
         $('#sandbox').empty();
+        window.location.hash = '';
+        Backbone.history.stop();
     });
 
     after(function() {
@@ -140,6 +144,115 @@ describe('Core', function() {
             });
         });
     });
+
+    describe('AppRouter', function() {
+        it('executes a route\'s prepare function before navigating to that route', function() {
+            var controller = getController(),
+                router = new AppRouter(),
+                spy = sinon.spy(controller, 'fooPrepare');
+
+            router.addRoute(/^foo/, controller, 'foo');
+
+            Backbone.history.start();
+
+            router.navigate('foo', { trigger: true });
+
+            assert.equal(spy.callCount, 1);
+        });
+
+        it('executes a route\'s cleanUp function before navigating to a new route', function(done) {
+            var controller = getController(),
+                router = new AppRouter(),
+                barCleanUpSpy = sinon.spy(controller, 'barCleanUp'),
+                fooPrepareSpy = sinon.spy(controller, 'fooPrepare');
+
+            // Run the tests in the route function that is called last
+            controller.foo = function() {
+                assert.isTrue(barCleanUpSpy.calledBefore(fooPrepareSpy));
+                assert.isTrue(fooPrepareSpy.calledAfter(barCleanUpSpy));
+                done();
+            };
+
+            router.addRoute(/^bar/, controller, 'bar');
+            router.addRoute(/^foo/, controller, 'foo');
+
+            Backbone.history.start();
+
+            router.navigate('bar', { trigger: true });
+            router.navigate('foo', { trigger: true });
+        });
+
+        it('executes the prepare, route, and cleanUp functions in the correct order', function(done) {
+            var controller = getController(),
+                router = new AppRouter(),
+                fooPrepareSpy = sinon.spy(controller, 'fooPrepare'),
+                fooSpy = sinon.spy(controller, 'foo'),
+                fooCleanUpSpy = sinon.spy(controller, 'fooCleanUp'),
+                barPrepareSpy = sinon.spy(controller, 'barPrepare');
+
+            // Run the tests in the route function that is called last
+            controller.bar = function() {
+                // Go to #foo
+                assert.isTrue(fooPrepareSpy.calledBefore(fooSpy));
+                assert.isTrue(fooSpy.calledAfter(fooPrepareSpy));
+
+                // Go to #bar
+                assert.isTrue(fooCleanUpSpy.calledBefore(barPrepareSpy));
+                assert.isTrue(barPrepareSpy.calledAfter(fooCleanUpSpy));
+                assert.isTrue(barSpy.calledAfter(barPrepareSpy));
+
+                done();
+            };
+
+            var barSpy = sinon.spy(controller, 'bar');
+
+            router.addRoute(/^foo/, controller, 'foo');
+            router.addRoute(/^bar/, controller, 'bar');
+
+            Backbone.history.start();
+
+            router.navigate('foo', { trigger: true });
+            router.navigate('bar', { trigger: true });
+        });
+
+        it('does not execute a route if that route\'s prepare function returns false', function() {
+            var controller = getController(),
+                router = new AppRouter(),
+                spy = sinon.spy(controller, 'blah');
+
+            router.addRoute(/^foo/, controller, 'foo');
+            router.addRoute(/^bar/, controller, 'bar');
+            router.addRoute(/^blah/, controller, 'blah');
+
+            Backbone.history.start();
+
+            router.navigate('bar', { trigger: true });
+            // blahPrepare returns false
+            router.navigate('blah', { trigger: true });
+
+            assert.equal(spy.callCount, 0);
+        });
+
+        it('does not execute route A\'s cleanUp function when navigating to route B if route A\'s prepare ' +
+           'function returned false (i.e. route A was never navigated to)', function() {
+
+            var controller = getController(),
+                router = new AppRouter(),
+                spy = sinon.spy(controller, 'blahCleanUp');
+
+            router.addRoute(/^foo/, controller, 'foo');
+            router.addRoute(/^bar/, controller, 'bar');
+            router.addRoute(/^blah/, controller, 'blah');
+
+
+            router.navigate('bar', { trigger: true });
+            // blahPrepare returns false
+            router.navigate('blah', { trigger: true });
+            router.navigate('foo', { trigger: true });
+
+            assert.equal(spy.callCount, 0);
+        });
+    });
 });
 
 function createTransitionRegionWithAnimatedHeightView(displayHeight, hiddenHeight) {
@@ -178,4 +291,49 @@ function createTransitionRegionWithAnimatedHeightView(displayHeight, hiddenHeigh
         testParentView: testParentView,
         testSubView: testSubView
     };
+}
+
+function getController() {
+    var controller = {
+            fooPrepare: function() {
+                console.log('fooPrepare');
+                return true;
+            },
+            foo: function() {
+                console.log('foo');
+                return true;
+            },
+            fooCleanUp: function() {
+                console.log('fooCleanUp');
+            },
+            barPrepare: function() {
+                console.log('barPrepareStart');
+                var defer = new $.Deferred();
+
+                setTimeout(function() {
+                    console.log('barPrepareResolve');
+                    defer.resolve();
+                }, 500);
+
+                return defer.promise();
+            },
+            bar: function() {
+                console.log('bar');
+            },
+            barCleanUp: function() {
+                console.log('barCleanUp');
+            },
+            blahPrepare: function() {
+                console.log('blahPrepare');
+                return false;
+            },
+            blah: function() {
+                console.log('blah');
+            },
+            blahCleanUp: function() {
+                console.log('blahCleanUp');
+            }
+    };
+
+    return controller;
 }

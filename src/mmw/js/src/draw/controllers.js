@@ -9,9 +9,13 @@ var $ = require('jquery'),
     models = require('./models');
 
 var DrawController = {
+    drawPrepare: function() {
+        // TODO: Move?
+        //$('#login').modal('show');
+    },
+
     draw: function() {
-        var rootView = App.rootView,
-            geocodeSearch = new geocoder.GeocoderView(),
+        var geocodeSearch = new geocoder.GeocoderView(),
             toolbarModel = new models.ToolbarModel(),
             toolbarView = new views.ToolbarView({
                 model: toolbarModel
@@ -21,12 +25,13 @@ var DrawController = {
             toolbarModel.set('predefinedShapes', data.shapes);
         });
 
-        rootView.geocodeSearchRegion.show(geocodeSearch);
-        rootView.drawToolsRegion.show(toolbarView);
-        rootView.footerRegion.empty();
+        App.rootView.geocodeSearchRegion.show(geocodeSearch);
+        App.rootView.drawToolsRegion.show(toolbarView);
+    },
 
-        // TODO: Move?
-        //$('#login').modal('show');
+    drawCleanUp: function() {
+        App.rootView.geocodeSearchRegion.empty();
+        App.rootView.drawToolsRegion.empty();
     }
 };
 

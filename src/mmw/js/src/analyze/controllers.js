@@ -4,26 +4,29 @@ var $ = require('jquery'),
     _ = require('underscore'),
     L = require('leaflet'),
     App = require('../app'),
-    router = require('../router'),
+    router = require('../router').router,
     views = require('./views'),
     models = require('./models');
 
 var AnalyzeController = {
-    analyze: function() {
+    analyzePrepare: function() {
         if (!App.map.get('areaOfInterest')) {
             router.navigate('', { trigger: true });
             return false;
         }
+    },
 
-        var rootView = App.rootView,
-            analyzeWindow = new views.AnalyzeWindow({
+    analyze: function() {
+        var analyzeWindow = new views.AnalyzeWindow({
                 id: 'analyze-output-wrapper',
                 collection: new models.LayerCollection({})
             });
 
-        rootView.footerRegion.show(analyzeWindow);
-        rootView.geocodeSearchRegion.empty();
-        rootView.drawToolsRegion.empty();
+        App.rootView.footerRegion.show(analyzeWindow);
+    },
+
+    analyzeCleanUp: function() {
+        App.rootView.footerRegion.empty();
     }
 };
 

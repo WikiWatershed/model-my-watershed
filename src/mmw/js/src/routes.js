@@ -1,6 +1,6 @@
 'use strict';
 
-var router = require('./router'),
+var router = require('./router').router,
     controllers = require('./controllers'),
     AppController = controllers.AppController,
     DrawController = require('./draw/controllers').DrawController,
