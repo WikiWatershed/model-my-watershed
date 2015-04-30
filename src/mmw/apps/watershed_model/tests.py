@@ -20,7 +20,7 @@ class TaskRunnerTestCase(TestCase):
                                  traceback='', user=None, status='started')
         job.save()
 
-        task_list = views.initiate_tr55_job_chain(model_input, job.id)
+        task_list = views._initiate_tr55_job_chain(model_input, job.id)
 
         found_job = Job.objects.get(uuid=task_list.id)
 

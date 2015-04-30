@@ -17,9 +17,11 @@ var AnalyzeController = {
     },
 
     analyze: function() {
-        var analyzeWindow = new views.AnalyzeWindow({
+        var taskModel = new models.AnalyzeTaskModel(),
+            rootView = App.rootView,
+            analyzeWindow = new views.AnalyzeWindow({
                 id: 'analyze-output-wrapper',
-                collection: new models.LayerCollection({})
+                model: taskModel
             });
 
         App.rootView.footerRegion.show(analyzeWindow);
