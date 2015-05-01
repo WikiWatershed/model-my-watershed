@@ -1,3 +1,12 @@
+// The height and width must be set to 100%
+// so that the actual height and width of the
+// enclosing element will get propagated down to the
+// bar-chart elements.
+.chart-container{
+  width: 100%;
+  height: 100%;
+}
+
 .bar-chart{
   width: 100%;
   display: block;

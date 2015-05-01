@@ -103,6 +103,15 @@ var TabPanelsView = Marionette.CollectionView.extend({
         role: 'tablist'
     },
     childView: TabPanelView,
+
+    events: {
+        'shown.bs.tab li a ': 'triggerBarChartRefresh'
+    },
+
+    triggerBarChartRefresh: function() {
+        $('#analyze-output-wrapper .bar-chart').trigger('bar-chart:refresh');
+    },
+
     onRender: function() {
         this.$el.find('li:first').addClass('active');
     }
@@ -155,7 +164,7 @@ var TableRowView = Marionette.ItemView.extend({
 var TableView = Marionette.CompositeView.extend({
     childView: TableRowView,
     childViewContainer: 'tbody',
-    template: tableTmpl,
+    template: tableTmpl
 });
 
 var ChartView = Marionette.ItemView.extend({
@@ -163,6 +172,7 @@ var ChartView = Marionette.ItemView.extend({
     id: function() {
         return 'chart-' + this.model.get('name');
     },
+    className: 'chart-container',
 
     onAttach: function() {
         this.addChart();
