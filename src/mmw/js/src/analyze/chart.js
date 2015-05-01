@@ -1,6 +1,7 @@
 "use strict";
 
-var d3 = require('d3');
+var d3 = require('d3'),
+    $ = require('jquery');
 
 // Somewhat based on the reusable chart pattern
 // by Mike Bostock http://bost.ocks.org/mike/chart/
