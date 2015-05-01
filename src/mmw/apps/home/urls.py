@@ -15,5 +15,6 @@ urlpatterns = patterns(
     url(r'^api/congressional_districts$', district, name='district'),
     url(r'^api/congressional_districts/id/(?P<id>[0-9]+)$', district, name='district'),  # noqa
     url(r'^model$', model, name='model'),
+    url(r'^model$', model, name='test'),
     url(r'^compare$', compare, name='compare'),
 )
