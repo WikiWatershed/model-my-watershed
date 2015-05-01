@@ -23,9 +23,9 @@ var TaskModel = Backbone.Model.extend({
 
     url: function() {
         if (this.get('job')) {
-            return '/api/jobs/' + this.get('job') + '/';
+            return '/api/' + this.get('taskType') + '/jobs/' + this.get('job');
         } else {
-            return '/api/jobs/start/' + this.get('taskName') + '/';
+            return '/api/' + this.get('taskType') + '/start/' + this.get('taskName') + '/';
         }
     },
 

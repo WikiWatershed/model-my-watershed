@@ -30,7 +30,10 @@ var LayerCategoryCollection = Backbone.Collection.extend({
 
 var AnalyzeTaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
-        { taskName: 'analyze' },
+        {
+            taskName: 'analyze',
+            taskType: 'analyze'
+        },
         coreModels.TaskModel.prototype.defaults
     )
 });
