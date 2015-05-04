@@ -11,8 +11,9 @@ from rest_framework.permissions import AllowAny
 
 from celery import chain
 
-from apps.task.models import Job
-from apps.task import tasks
+from apps.core.models import Job
+from apps.core.task_helpers import save_job_error, save_job_result
+from apps.watershed_model import tasks
 
 
 @decorators.api_view(['GET'])
@@ -49,7 +50,7 @@ def start_tr55(request, format=None):
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
 
-    task_list = initiate_tr55_job_chain(model_input, job.id)
+    task_list = _initiate_tr55_job_chain(model_input, job.id)
 
     job.uuid = task_list.id
     job.save()
@@ -62,8 +63,8 @@ def start_tr55(request, format=None):
     )
 
 
-def initiate_tr55_job_chain(model_input, job_id):
+def _initiate_tr55_job_chain(model_input, job_id):
     return chain(tasks.make_gt_service_call_task.s(model_input),
                  tasks.run_tr55.s(model_input),
-                 tasks.save_job_result.s(job_id, model_input)) \
-        .apply_async(link_error=tasks.save_job_error.s(job_id))
+                 save_job_result.s(job_id, model_input)) \
+        .apply_async(link_error=save_job_error.s(job_id))

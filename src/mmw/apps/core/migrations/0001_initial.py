@@ -15,8 +15,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Job',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False,
-                                        auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('uuid', models.UUIDField(null=True)),
                 ('model_input', models.TextField()),
                 ('created_at', models.DateTimeField()),
@@ -25,8 +24,7 @@ class Migration(migrations.Migration):
                 ('error', models.TextField()),
                 ('traceback', models.TextField()),
                 ('status', models.CharField(max_length=255)),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL,
-                                           null=True)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, null=True)),
             ],
         ),
     ]

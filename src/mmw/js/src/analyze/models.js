@@ -1,7 +1,9 @@
 "use strict";
 
 var Backbone = require('../../shim/backbone'),
-    App = require('../app');
+    _ = require('lodash'),
+    App = require('../app'),
+    coreModels = require('../core/models');
 
 var AnalyzeModel = Backbone.Model.extend({
     defaults: {
@@ -26,8 +28,19 @@ var LayerCategoryCollection = Backbone.Collection.extend({
 
 });
 
+var AnalyzeTaskModel = coreModels.TaskModel.extend({
+    defaults: _.extend(
+        {
+            taskName: 'analyze',
+            taskType: 'analyze'
+        },
+        coreModels.TaskModel.prototype.defaults
+    )
+});
+
 module.exports = {
     AnalyzeModel: AnalyzeModel,
+    AnalyzeTaskModel: AnalyzeTaskModel,
     LayerModel: LayerModel,
     LayerCollection: LayerCollection,
     LayerCategoryCollection: LayerCategoryCollection

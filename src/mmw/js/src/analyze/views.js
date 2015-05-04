@@ -21,8 +21,24 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     id: 'analyze-output-wrapper',
     template: windowTmpl,
 
-    collectionEvents: {
-        'reset': 'showRegions'
+    initialize: function() {
+        var self = this;
+
+        this.model.fetch({ method: 'POST' })
+                .done(function() {
+                    self.model.pollForResults()
+                        .done(_.bind(self.showDetailsRegion, self))
+                        .fail(function() {
+                            console.log('Failed to get analyze results');
+                            // TODO: Show an error message across the whole
+                            // analyze window
+                        });
+                })
+                .fail(function() {
+                    console.log('Failed to start analyze job');
+                    // TODO: Show an error message across the whole
+                    // analyze window
+                });
     },
 
     regions: {
@@ -31,20 +47,27 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        this.collection.fetch({ reset: true, method: 'POST' });
+        this.showHeaderRegion();
+        // TODO: Show loading spinner until
+        // model.pollForResults is finished
     },
 
-    showRegions: function() {
+    showHeaderRegion: function() {
         this.headerRegion.show(new HeaderView({
             model: new models.AnalyzeModel({})
         }));
+    },
+
+    showDetailsRegion: function() {
+        var results = JSON.parse(this.model.get('result'));
+
         this.detailsRegion.show(new DetailsView({
-            collection: this.collection
+            collection: new models.LayerCollection(results)
         }));
     },
 
     transitionInCss: {
-        height: '0%',
+        height: '0%'
     },
 
     animateIn: function() {

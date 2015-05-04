@@ -3,8 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from apps.task.models import Job
-from apps.task import views
+from apps.core.models import Job
+from apps.watershed_model import views
 
 from django.test import TestCase
 from django.test.utils import override_settings
@@ -20,7 +20,7 @@ class TaskRunnerTestCase(TestCase):
                                  traceback='', user=None, status='started')
         job.save()
 
-        task_list = views.initiate_tr55_job_chain(model_input, job.id)
+        task_list = views._initiate_tr55_job_chain(model_input, job.id)
 
         found_job = Job.objects.get(uuid=task_list.id)
 
