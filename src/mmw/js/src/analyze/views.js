@@ -205,9 +205,13 @@ var ChartView = Marionette.ItemView.extend({
         var chartData = this.collection.map(function(model) {
                 return model.attributes;
             }),
-            selector = '#' + this.id() + ' .bar-chart';
+            selector = '#' + this.id() + ' .bar-chart',
+            chartOptions = {};
 
-        charts.makeBarChart(selector, chartData, 'type', 'coverage');
+        if (this.model.get('name') === 'land') {
+            chartOptions.useHorizBars = true;
+        }
+        charts.makeBarChart(selector, chartData, 'type', 'coverage', chartOptions);
     }
 });
 
