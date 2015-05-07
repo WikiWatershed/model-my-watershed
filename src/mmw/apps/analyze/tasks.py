@@ -52,6 +52,36 @@ def run_analyze(area_of_interest):
                     "type": "Forest",
                     "area": 1804,
                     "coverage": .094
+                },
+                {
+                    "type": "Deciduous Forest",
+                    "area": 1103,
+                    "coverage": .058
+                },
+                {
+                    "type": "Evergreen Forest",
+                    "area": 19,
+                    "coverage": .001
+                },
+                {
+                    "type": "Mixed Forest",
+                    "area": 1804,
+                    "coverage": .094
+                },
+                {
+                    "type": "Dwarf Scrub",
+                    "area": 1103,
+                    "coverage": .058
+                },
+                {
+                    "type": "Moss",
+                    "area": 19,
+                    "coverage": .001
+                },
+                {
+                    "type": "Pasture",
+                    "area": 1804,
+                    "coverage": .094
                 }
             ]
         },
