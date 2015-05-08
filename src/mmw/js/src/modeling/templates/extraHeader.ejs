@@ -1,0 +1,252 @@
+<header id="model-header"> <!-- Model Header -->
+
+    <div class="top"> <!-- Top Bar -->
+
+        <div class="project"> <!-- Project -->
+            <div class="back"> <!-- Back -->
+                <a data-url="/analyze" class="btn btn-md btn-icon light"><i class="fa fa-arrow-left"></i></a>
+            </div> <!-- End Back -->
+            <div class="project-title"> <!-- Project Name -->
+                <h3 class="light">Project Name</h3>
+                <div id="project-settings" class="dropdown pull-right"> <!-- Project Settings Dropdown -->
+                    <button class="btn btn-sm btn-icon light dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
+                    <i class="fa fa-caret-down"></i>
+                    </button>
+                    <ul class="dropdown-menu menu-right" role="menu" aria-labelledby="select-area">
+                        <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" data-target="#rename-project">Rename</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" data-target="#share-project">Share</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" onclick="window.print();return false;">Print</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" data-target="#delete-project">Delete</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" data-target="#add-tag">Add Tags</a></li>
+                        <li role="presentation" class="divider"></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#">My Projects</a></li>
+                        <li role="presentation" class="divider"></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#"><i class="fa fa-plus-circle"></i> New Project</a></li>
+                    </ul>
+                </div> <!-- End Project Settings Dropdown -->
+            </div> <!-- End Project Name -->
+        </div> <!-- End Project -->
+
+        <div class="top-bar"> <!-- Top Bar -->
+            <div class="tab-controls"> <!-- Tab Control Buttons -->
+                <div class="dropdown"> <!-- Tab List -->
+                    <button class="btn btn btn-tab dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
+                    <i class="fa fa-bars"></i>
+                    </button>
+                    <ul class="dropdown-menu menu-left" role="menu" aria-labelledby="select-area">
+                        <li role="presentation"><a href="#current" data-toggle="tab">Current</a></li>
+                        <li role="presentation"><a href="#scenario1" data-toggle="tab">Scenario 1</a></li>
+                    </ul>
+                </div> <!-- End Tab List -->
+                <button class="btn btn-tab"><i class="fa fa-plus"></i></button> <!-- Create New Tab -->
+            </div> <!-- End Tab Control Buttons -->
+            <div id="scenario-wrapper" class="scenario-tabs-wrapper"> <!-- Scenario Tab Wrapper -->
+                <div role="tabpanel"> <!-- Scenario Tabs -->
+                    <ul id="scenario-tab" class="nav nav-tabs" role="tablist">
+                        <li role="presentation"><a href="#current" aria-controls="home" role="tab" data-toggle="tab">Current</a>
+                            <div class="scenario-btn-dropdown"> <!-- Scenario Settings -->
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-icon dark dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
+                                    <i class="fa fa-caret-down"></i>
+                                    </button>
+                                    <ul class="dropdown-menu menu-right" role="menu" aria-labelledby="select-area">
+                                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Share</a></li>
+                                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Print</a></li>
+                                    </ul>
+                                </div>
+                            </div> <!-- End Scenario Settings -->
+                        </li>
+                        <li role="presentation" class="active"><a href="#scenario1" aria-controls="profile" role="tab" data-toggle="tab">Scenario 1 </a>
+                            <div class="scenario-btn-dropdown"> <!-- Scenario Settings -->
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-icon dark dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
+                                    <i class="fa fa-caret-down"></i>
+                                    </button>
+                                    <ul class="dropdown-menu menu-right" role="menu" aria-labelledby="select-area">
+                                        <li role="presentation"><a role="menuitem" tabindex="-1">Rename</a></li>
+                                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Share</a></li>
+                                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Print</a></li>
+                                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Delete</a></li>
+                                    </ul>
+                                </div>
+                            </div> <!-- End Scenario Settings -->
+                        </li>
+                    </ul>
+                </div> <!-- End Scenario Tabs -->
+            </div> <!-- End Scenario Tab Wrapper -->
+            <div class="fade-tabs"></div> <!-- Fade Tabs -->
+            <div class="compare-top-btn"> <!-- Compare Button -->
+                <a href="compare" class="btn btn-compare"><i class="fa fa-th"></i> Compare</a href="compare">
+            </div> <!-- End Compare Button -->
+        </div> <!-- End Top Bar -->
+    </div> <!-- End Top -->
+
+    <div class="toolbar"> <!-- Modification Bar -->
+        <div class="tab-content"> <!-- Scenario Tools -->
+            <div role="tabpanel" class="tab-pane" id="current"> <!-- Current tab -->
+                Current Conditions
+            </div> <!-- End Current tab -->
+            <div role="tabpanel" class="tab-pane active" id="scenario1"> <!-- Scenario 1 Tools -->
+
+                <div id="land-cover-tools" class="dropdown"> <!-- Landcover Tools -->
+                    <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
+                    <i class="fa fa-plus-circle"></i> Land Cover
+                    </button>
+                    <div id="land-tools" class="dropdown-menu menu-left" role="menu" aria-labelledby="select-area"> <!-- Dropdown -->
+                        <div class="pad-1"> <!-- Dropdown Content -->
+                            <ul class="row">
+                                <li>
+                                    <div class="thumb"></div>
+                                    <label class="dark">LIR</label>
+                                </li>
+                                <li>
+                                    <div class="thumb"></div>
+                                    <label class="dark">HIR</label>
+                                </li>
+                                <li>
+                                    <div class="thumb"></div>
+                                    <label class="dark">Commercial</label>
+                                </li>
+                            </ul>
+                            <ul class="row">
+                                <li>
+                                    <div class="thumb"></div>
+                                    <label class="dark">Forest</label>
+                                </li>
+                                <li>
+                                    <div class="thumb"></div>
+                                    <label class="dark">Turf Grass</label>
+                                </li>
+                                <li>
+                                    <div class="thumb"></div>
+                                    <label class="dark">Pasture</label>
+                                </li>
+                            </ul>
+                            <ul class="row">
+                                <li>
+                                    <div class="thumb"></div>
+                                    <label class="dark">Grassland</label>
+                                </li>
+                                <li>
+                                    <div class="thumb"></div>
+                                    <label class="dark">Row Crop</label>
+                                </li>
+                                <li>
+                                    <div class="thumb"></div>
+                                    <label class="dark">Wetland</label>
+                                </li>
+                            </ul>
+                        </div> <!-- End Dropdown Content -->
+
+                        <div class="dropdown-footer pad-1"> <!-- Dropdown Footer -->
+                            <h2 class="dark">Grassland</h2>
+                            <br>
+                            <span>Grassland is lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat</span>
+                        </div> <!-- End Dropdown Footer -->
+                    </div> <!-- End Dropdown -->
+                </div> <!-- End Land Cover Tools -->
+
+                <div id="conservation-practice-tools" class="dropdown"> <!-- Conservation Practice Tools -->
+                    <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
+                    <i class="fa fa-plus-circle"></i> Conservation Practice
+                    </button>
+                    <div id="conserve-tools" class="dropdown-menu draw-tools menu-left" role="menu" aria-labelledby="select-area"> <!-- Dropdown -->
+                        <div class="pad-1"> <!-- Dropdown Content -->
+                            <ul class="row">
+                                <li>
+                                    <div class="thumb"></div>
+                                    <label class="dark">Rain garden</label>
+                                </li>
+                                <li>
+                                    <div class="thumb"></div>
+                                    <label class="dark">Veg Infil Basin</label>
+                                </li>
+                                <li>
+                                    <div class="thumb"></div>
+                                    <label class="dark">Porous Paving</label>
+                                </li>
+                            </ul>
+                            <ul class="row">
+                                <li>
+                                    <div class="thumb"></div>
+                                    <label class="dark">Green Roof</label>
+                                </li>
+                                <li>
+                                    <div class="thumb"></div>
+                                    <label class="dark">No-Till Agriculture</label>
+                                </li>
+                                <li>
+                                    <div class="thumb"></div>
+                                    <label class="dark">Cluster Housing</label>
+                                </li>
+                            </ul>
+                        </div> <!-- End Dropdown Content -->
+
+                        <div class="dropdown-footer pad-1"> <!-- Dropdown Footer -->
+                            <h2 class="dark">Cluster Housing</h2>
+                            <br>
+                            <span>Cluster Housing is lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat</span>
+                        </div> <!-- End Dropdown Footer -->
+                    </div> <!-- End Dropdown -->
+                </div> <!-- End Conservation Practice Tools -->
+
+                <select class="selectpicker" data-style="btn btn-sm btn-primary" data-size="3"> <!-- Weather Tools -->
+                    <option data-target="24hour">24 Hour</option>
+                    <option>Historical</option>
+                    <option>Custom</option>
+                </select> <!-- End Weather Tools -->
+
+                <div class="dropdown" data-toggle="tooltip" data-placement="bottom" title="Advanced"> <!-- Advanced Settings -->
+                    <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
+                    <i class="fa fa-cog"></i>
+                    </button>
+                    <ul class="dropdown-menu menu-right" role="menu" aria-labelledby="select-area">
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Advanced Inputs</a></li>
+                    </ul>
+                </div>
+
+                <div id="modification-btn-wrapper"> <!-- Modifications Dropdown -->
+                    <div class="dropdown"> <!-- Dropdown Button -->
+                        <button class="btn btn-sm btn-default inverted" type="button" data-toggle="dropdown" aria-expanded="true">
+                        <span id="modification-number"><strong>3</strong></span> Modifications
+                        </button>
+                        <div id="modifications" class="dropdown-menu menu-right" role="menu" aria-labelledby="select-area"> <!-- DropdownContent -->
+                            <div class="pad-1 brd-bottom"> <!-- Land Cover Modifications -->
+                                <table id="mod-landCover" class="table modifications custom-hover">
+                                    <label class="medium">Land Cover</label>
+                                    <tr>
+                                        <td>Grassland</td>
+                                        <td class="strong text-right">+3.2 Acres</td>
+                                        <td class="text-right"><button class="btn btn-sm btn-icon dark" type="button">
+                                        <i class="fa fa-trash"></i>
+                                        </button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Pasture</td>
+                                        <td class="strong text-right">+2.3 Acres</td>
+                                        <td class="text-right"><button class="btn btn-sm btn-icon dark" type="button">
+                                        <i class="fa fa-trash"></i>
+                                        </button></td>
+                                    </tr>
+                                </table>
+                            </div> <!-- End Land Cover Modifications -->
+                            <div class="pad-1"> <!-- Conservation Practice Modifications -->
+                                <table id="mod-conservationPractice" class="table modifications custom-hover">
+                                    <label class="medium">Conservation Practice</label>
+                                    <tr>
+                                        <td>Cluster Housing</td>
+                                        <td class="strong text-right">+0.5 Acres</td>
+                                        <td class="text-right"><button class="btn btn-sm btn-icon dark" type="button">
+                                        <i class="fa fa-trash"></i>
+                                        </button></td>
+                                    </tr>
+                                </table>
+                            </div> <!-- End Conservation Practice Modifications -->
+                        </div> <!-- End Dropdown Content -->
+                    </div> <!-- End Dropdown Button -->
+                </div> <!-- Modifications Dropdown -->
+            </div> <!-- End Scenario 1 Tools -->
+        </div> <!-- End Scenario Tools -->
+    </div> <!-- End Modification Bar -->
+
+</header>
