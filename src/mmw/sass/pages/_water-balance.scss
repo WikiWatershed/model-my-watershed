@@ -1,6 +1,10 @@
 //Home
 #water-balance{
 
+  h1 {
+    font-weight: 900;
+  }
+
   //Layout =====================================
 
   &.container-fluid{
@@ -169,6 +173,11 @@
       border-top-left-radius: 0.3rem;
       z-index: 200;
     }
+
+    label {
+      display: block;
+      text-align: center;
+    }
   }
 
   //Wells =================================================
@@ -269,6 +278,9 @@
 
         label{
           padding-bottom: 6px;
+          display: block;
+          text-align: center;
+          font-size: 0.55rem;
         }
 
         &.active a{
@@ -280,7 +292,7 @@
             right: -10px;
             content: "\f00c";
             font-family: FontAwesome;
-            font-size: 0.9rem;
+            font-size: 14px;
             padding-top: 4px;
             color: $paper;
             background-color: $active;
@@ -308,6 +320,10 @@
       padding: 2rem;
       color: $black-74;
       background-color: $paper;
+    }
+
+    h2 {
+      margin-bottom: 1rem;
     }
   }
 }
