@@ -6,7 +6,7 @@ var _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
-    charts = require('./chart'),
+    chart = require('../core/chart'),
     windowTmpl = require('./templates/window.ejs'),
     headerTmpl = require('./templates/header.ejs'),
     detailsTmpl = require('./templates/details.ejs'),
@@ -14,7 +14,7 @@ var _ = require('lodash'),
     tableRowTmpl = require('./templates/tableRow.ejs'),
     tabPanelTmpl = require('./templates/tabPanel.ejs'),
     tabContentTmpl = require('./templates/tabContent.ejs'),
-    chartTmpl = require('./templates/chart.ejs');
+    barChartTmpl = require('../core/templates/barChart.ejs');
 
 var AnalyzeWindow = Marionette.LayoutView.extend({
     tagName: 'div',
@@ -161,12 +161,10 @@ var TabContentView = Marionette.LayoutView.extend({
     attributes: {
         role: 'tabpanel'
     },
-
     regions: {
         tableRegion: '.analyze-table-region',
         chartRegion: '.analyze-chart-region'
     },
-
     onShow: function() {
         var categories = new models.LayerCategoryCollection(
                 this.model.get('categories')
@@ -203,7 +201,7 @@ var TableView = Marionette.CompositeView.extend({
 });
 
 var ChartView = Marionette.ItemView.extend({
-    template: chartTmpl,
+    template: barChartTmpl,
     id: function() {
         return 'chart-' + this.model.get('name');
     },
@@ -215,16 +213,22 @@ var ChartView = Marionette.ItemView.extend({
 
     addChart: function() {
         var chartData = this.collection.map(function(model) {
-                return model.attributes;
-            }),
+            return model.attributes;
+        }),
             selector = '#' + this.id() + ' .bar-chart',
-            chartOptions = {};
+            chartOptions = {
+                isPercentage: true,
+                depAxisLabel: 'Coverage'
+            },
+            depVars = ['coverage'],
+            indVar = 'type';
 
         if (this.model.get('name') === 'land') {
             chartOptions.useHorizBars = true;
         }
-        charts.makeBarChart(selector, chartData, 'type', 'coverage', chartOptions);
+        chart.makeBarChart(selector, chartData, indVar, depVars, chartOptions);
     }
+
 });
 
 module.exports = {

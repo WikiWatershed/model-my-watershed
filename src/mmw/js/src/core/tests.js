@@ -5,7 +5,6 @@ require('../core/testInit.js');
 var $ = require('jquery'),
     assert = require('chai').assert,
     _ = require('lodash'),
-    $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     Backbone = require('../../shim/backbone'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
@@ -13,7 +12,9 @@ var $ = require('jquery'),
     App = require('../app'),
     views = require('./views'),
     models = require('./models'),
-    AppRouter = require('../router').AppRouter;
+    AppRouter = require('../router').AppRouter,
+    chart = require('./chart'),
+    sandboxTemplate = require('./templates/sandbox.ejs');
 
 var TEST_SHAPE = {
     'type': 'Feature',
@@ -22,6 +23,84 @@ var TEST_SHAPE = {
         'coordinates': [[[-5e6, -1e6], [-4e6, 1e6], [-3e6, -1e6]]]
     }
 };
+
+var chartData = [{x: 'a', y: 1},
+                {x: 'b', y: 2},
+                {x: 'c', y: 3}],
+    xValue = 'x',
+    yValue = 'y',
+    sandboxHeight = '500',
+    sandboxWidth = '700',
+    sandboxSelector = '#display-sandbox';
+
+var SandboxRegion = Marionette.Region.extend({
+    el: '#display-sandbox'
+});
+
+describe('Core', function() {
+    beforeEach(function() {
+        $('#display-sandbox').remove();
+        // Use a special sandbox so that we can test responsiveness of chart.
+        $('body').append(sandboxTemplate({height: sandboxHeight, width: sandboxWidth}));
+    });
+
+    afterEach(function() {
+        $('#display-sandbox').remove();
+    });
+
+    describe('Chart', function() {
+        beforeEach(function() {
+        });
+
+        afterEach(function() {
+            $('#display-sandbox').empty();
+        });
+
+        it('changes size when the browser is resized and height and width are not provided', function() {
+            chart.makeBarChart(sandboxSelector, chartData, xValue, yValue);
+            var $svg = $(sandboxSelector).children('svg');
+
+            var beforeHeight = $svg.attr('height');
+            var beforeWidth = $svg.attr('width');
+            assert.equal(sandboxHeight, beforeHeight);
+            assert.equal(sandboxWidth, beforeWidth);
+
+            var afterSandboxHeight = 300;
+            var afterSandboxWidth = 400;
+            $(sandboxSelector).css('height', afterSandboxHeight);
+            $(sandboxSelector).css('width', afterSandboxWidth);
+            $(window).trigger('resize');
+            var afterHeight = $svg.attr('height');
+            var afterWidth = $svg.attr('width');
+            assert.equal(afterSandboxHeight, afterHeight);
+            assert.equal(afterSandboxWidth, afterWidth);
+        });
+
+        it('stays the same size when the browser is resized and height and width are provided', function() {
+            var options = {
+                height: 400,
+                width: 600
+            };
+            chart.makeBarChart(sandboxSelector, chartData, xValue, yValue, options);
+            var $svg = $(sandboxSelector).children('svg');
+
+            var beforeHeight = $svg.attr('height');
+            var beforeWidth = $svg.attr('width');
+            assert.equal(options.height, beforeHeight);
+            assert.equal(options.width, beforeWidth);
+
+            var afterSandboxHeight = 300;
+            var afterSandboxWidth = 400;
+            $(sandboxSelector).css('height', afterSandboxHeight);
+            $(sandboxSelector).css('width', afterSandboxWidth);
+            $(window).trigger('resize');
+            var afterHeight = $svg.attr('height');
+            var afterWidth = $svg.attr('width');
+            assert.equal(options.height, afterHeight);
+            assert.equal(options.width, afterWidth);
+        });
+    });
+});
 
 describe('Core', function() {
     before(function() {

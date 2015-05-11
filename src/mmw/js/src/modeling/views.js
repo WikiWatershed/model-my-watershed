@@ -17,7 +17,9 @@ var _ = require('lodash'),
     scenarioMenuItemTmpl = require('./templates/scenarioMenuItem.ejs'),
     projectMenuTmpl = require('./templates/projectMenu.ejs'),
     currentConditionsToolbarTabContentTmpl = require('./templates/currentConditionsToolbarTabContent.ejs'),
-    scenarioToolbarTabContentTmpl = require('./templates/scenarioToolbarTabContent.ejs');
+    scenarioToolbarTabContentTmpl = require('./templates/scenarioToolbarTabContent.ejs'),
+    chart = require('../core/chart.js'),
+    barChartTmpl = require('../core/templates/barChart.ejs');
 
 // The entire modeling header.
 var ModelingHeaderView = Marionette.LayoutView.extend({
@@ -298,11 +300,18 @@ var ResultsTabPanelsView = Marionette.CollectionView.extend({
     attributes: {
         role: 'tablist'
     },
+    events: {
+        'shown.bs.tab li a ': 'triggerBarChartRefresh'
+    },
 
     childView: ResultsTabPanelView,
 
     onRender: function() {
         this.$el.find('li:first').addClass('active');
+    },
+
+    triggerBarChartRefresh: function() {
+        $('#model-output-wrapper .bar-chart').trigger('bar-chart:refresh');
     }
 });
 
@@ -316,6 +325,51 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
     template: resultsTabContentTmpl,
     attributes: {
         role: 'tabpanel'
+    },
+    regions: {
+        barChartRegion: '.bar-chart-region'
+    },
+    onShow: function() {
+        this.barChartRegion.show(new BarChartView({
+            model: this.model
+        }));
+    }
+});
+
+var BarChartView = Marionette.ItemView.extend({
+    template: barChartTmpl,
+    id: function() {
+        return 'bar-chart-' + this.model.get('name');
+    },
+    className: 'chart-container',
+    onAttach: function() {
+        this.addChart();
+    },
+    addChart: function() {
+        //TODO use real model results
+        var selector = '#' + this.id() + ' .bar-chart',
+            fakeStackedData = [
+                {
+                    type: 'Original',
+                    infiltration: 0.8,
+                    runoff: 0.1,
+                    evap: 0.1
+                },
+                {
+                    type: 'Modified',
+                    infiltration: 0.4,
+                    runoff: 0.2,
+                    evap: 0.4
+                }
+            ],
+            options = {
+                barColors: ['green', 'blue', 'brown'],
+                depAxisLabel: 'Level',
+                depDisplayNames: ['Infiltration', 'Runoff', 'Evaporation']
+            },
+            indVar = 'type',
+            depVars = ['infiltration', 'runoff', 'evap'];
+        chart.makeBarChart(selector, fakeStackedData, indVar, depVars, options);
     }
 });
 
