@@ -8,8 +8,7 @@ from celery import shared_task
 import logging
 import urllib2
 
-# TODO import TR55
-# from tr55.model import simulate_year
+from tr55.model import simulate_year
 
 # TODO REMOVE THIS.
 import time
@@ -54,13 +53,7 @@ def run_tr55(model_input, landscape):
     }
     time.sleep(5)
 
-    # TODO Get the real simpulation data.
-    # (q, et, inf) = simulate_year(landscape)
-
-    # TODO Dummy data. Remove me.
-    q = 2
-    et = 3
-    inf = 4
+    (q, et, inf) = simulate_year(landscape)
     return {
         'q': q,
         'et': et,
