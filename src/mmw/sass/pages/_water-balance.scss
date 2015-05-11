@@ -1,11 +1,11 @@
 //Home
-#mini-home{
+#water-balance{
 
   //Layout =====================================
 
-  .container-fluid{
+  &.container-fluid{
     background-color: $sky-blue;
-    background-image: url('../img/art_clouds.png');
+    background-image: url('../images/water_balance/art_clouds.png');
     background-position: top center;
     background-repeat: no-repeat;
     background-size: contain;
@@ -14,7 +14,7 @@
     @media
     (-webkit-min-device-pixel-ratio: 2),
     (min-resolution: 192dpi) {
-       background-image: url('../img/art_clouds@2x.png');
+       background-image: url('../images/water_balance/art_clouds@2x.png');
     }
   }
 
@@ -293,7 +293,9 @@
       }
     }
   }
+}
 
+.water-balance {
   //Info Dropdown =====================================
   #info{
 

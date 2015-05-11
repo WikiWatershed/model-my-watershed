@@ -1,20 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Model My Watershed</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="assets/css/main.css" rel="stylesheet">
-    <link rel="icon" type="image/png" href="assets/img/favicon_16.png" sizes="16x16">
-    <link rel="icon" type="image/png" href="assets/img/favicon_32.png" sizes="32x32">
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-</head>
+{% extends 'base.html' %}
 
-<body id="mini-home">
-
-    <header>
+{% block header %}
+    <header class="water-balance">
 
         <nav id="app-header" class="navbar-watershed">
             <div class="brand"><a href="#">Model My Watershed</a></div>
@@ -32,8 +19,10 @@
         </nav>
 
     </header>
+{% endblock header %}
 
-    <div class="container-fluid top-nav"> <!-- Container -->
+{% block content %}
+    <div id="water-balance" class="container-fluid top-nav"> <!-- Container -->
 
         <div class="canvas"> <!-- Canvas -->
 
@@ -334,5 +323,7 @@
           $('[data-toggle="tooltip"]').tooltip()
         })
     </script>
+{% endblock content %}
 
-</body>
+{% block footer %}
+{% endblock footer %}
