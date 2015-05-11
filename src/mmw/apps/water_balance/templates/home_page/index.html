@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% load staticfiles %}
+
 {% block header %}
     <header class="water-balance">
 
@@ -57,61 +59,61 @@
                     <!-- Effects -->
 
                     <div id="effect-rain" class="animated fadeInDown">
-                        <img src="assets/img/art_rain.png" alt="rain">
+                        <img src="{% static 'images/water_balance/art_rain.png' %}" alt="rain">
                     </div>
 
                     <div id="effect-evapo" class="animated fadeInUp">
-                        <img src="assets/img/art_evapo.png" alt="evapotranspiration">
+                        <img src="{% static 'images/water_balance/art_evapo.png' %}" alt="evapotranspiration">
                     </div>
 
                     <!-- Land Cover -->
 
                     <div id="land-lir" role="tabpanel" class="tab-pane active land"> <!-- LIR -->
-                        <img src="assets/img/art_land_lir.png" alt="low intensity residential">
+                        <img src="{% static 'images/water_balance/art_land_lir.png' %}" alt="low intensity residential">
                     </div>
 
                     <div id="land-hir" role="tabpanel" class="tab-pane land"> <!-- HIR -->
-                        <img src="assets/img/art_land_hir.png" alt="high intensity residential">
+                        <img src="{% static 'images/water_balance/art_land_hir.png' %}" alt="high intensity residential">
                     </div>
 
                     <div id="land-commercial" role="tabpanel" class="tab-pane land"> <!-- commercial -->
-                        <img src="assets/img/art_land_commercial.png" alt="commercial">
+                        <img src="{% static 'images/water_balance/art_land_commercial.png' %}" alt="commercial">
                     </div>
 
                     <div id="land-grassland" role="tabpanel" class="tab-pane land"> <!-- grassland -->
-                        <img src="assets/img/art_land_grassland.png" alt="grassland">
+                        <img src="{% static 'images/water_balance/art_land_grassland.png' %}" alt="grassland">
                     </div>
 
                     <div id="land-forest" role="tabpanel" class="tab-pane land"> <!-- forest -->
-                        <img src="assets/img/art_land_forest.png" alt="forest">
+                        <img src="{% static 'images/water_balance/art_land_forest.png' %}" alt="forest">
                     </div>
 
                     <div id="land-turfGrass" role="tabpanel" class="tab-pane land"> <!-- turfGrass -->
-                        <img src="assets/img/art_land_turfGrass.png" alt="Turf Grass">
+                        <img src="{% static 'images/water_balance/art_land_turfGrass.png' %}" alt="Turf Grass">
                     </div>
 
                     <div id="land-pasture" role="tabpanel" class="tab-pane land"> <!-- pasture -->
-                        <img src="assets/img/art_land_pasture.png" alt="pasture">
+                        <img src="{% static 'images/water_balance/art_land_pasture.png' %}" alt="pasture">
                     </div>
 
                     <div id="land-rowCrops" role="tabpanel" class="tab-pane land"> <!-- rowCrops -->
-                        <img src="assets/img/art_land_rowCrops.png" alt="Row Crops">
+                        <img src="{% static 'images/water_balance/art_land_rowCrops.png' %}" alt="Row Crops">
                     </div>
 
                     <div id="land-chaparrel" role="tabpanel" class="tab-pane land"> <!-- chaparrel -->
-                        <img src="assets/img/art_land_chaparrel.png" alt="chaparrel">
+                        <img src="{% static 'images/water_balance/art_land_chaparrel.png' %}" alt="chaparrel">
                     </div>
 
                     <div id="land-tallGrass" role="tabpanel" class="tab-pane land"> <!-- tallGrass -->
-                        <img src="assets/img/art_land_tallGrass.png" alt="Tall Grass Prairie">
+                        <img src="{% static 'images/water_balance/art_land_tallGrass.png' %}" alt="Tall Grass Prairie">
                     </div>
 
                     <div id="land-shortGrass" role="tabpanel" class="tab-pane land"> <!-- shortGrass -->
-                        <img src="assets/img/art_land_shortGrass.png" alt="Short Grass Prairie">
+                        <img src="{% static 'images/water_balance/art_land_shortGrass.png' %}" alt="Short Grass Prairie">
                     </div>
 
                     <div id="land-desert" role="tabpanel" class="tab-pane land"> <!-- desert -->
-                        <img src="assets/img/art_land_desert.png" alt="Desert">
+                        <img src="{% static 'images/water_balance/art_land_desert.png' %}" alt="Desert">
                     </div>
 
                 </div> <!-- End Land Cover Type -->
@@ -123,29 +125,29 @@
                     <!-- Effects -->
 
                     <div id="effect-runoff" class="animated fadeInRight">
-                        <img src="assets/img/art_runoff.png" alt="runoff">
+                        <img src="{% static 'images/water_balance/art_runoff.png' %}" alt="runoff">
                     </div>
 
                     <div id="effect-infiltration" class="animated fadeInDown">
-                        <img src="assets/img/art_infiltration.png" alt="infiltration">
+                        <img src="{% static 'images/water_balance/art_infiltration.png' %}" alt="infiltration">
                     </div>
 
                     <!-- Land Cover -->
 
                     <div id="soil-sand" role="tabpanel" class="tab-pane soil active">
-                        <img src="assets/img/art_soil_sand.png" alt="sand">
+                        <img src="{% static 'images/water_balance/art_soil_sand.png' %}" alt="sand">
                     </div>
 
                     <div id="soil-loam" role="tabpanel" class="tab-pane soil">
-                        <img src="assets/img/art_soil_loam.png" alt="loam">
+                        <img src="{% static 'images/water_balance/art_soil_loam.png' %}" alt="loam">
                     </div>
 
                     <div id="soil-sandyClay" role="tabpanel" class="tab-pane soil">
-                        <img src="assets/img/art_soil_sandyClay.png" alt="sandyClay">
+                        <img src="{% static 'images/water_balance/art_soil_sandyClay.png' %}" alt="sandyClay">
                     </div>
 
                     <div id="soil-clayLoam" role="tabpanel" class="tab-pane soil">
-                        <img src="assets/img/art_soil_clayLoam.png" alt="clayLoam">
+                        <img src="{% static 'images/water_balance/art_soil_clayLoam.png' %}" alt="clayLoam">
                     </div>
                 </div> <!-- End Soil Type -->
 
@@ -170,13 +172,13 @@
                 <br>
                 <div class="well-rain">
                     <label class="pull-left">
-                        <img src="assets/img/slider_min.png" alt="slider min">
+                        <img src="{% static 'images/water_balance/slider_min.png' %}" alt="slider min">
                     </label>
                     <div class="slider-wrapper">
                         <input type="text" data-slider="true" data-slider-range="1,12">
                     </div>
                     <label class="pull-right">
-                        <img src="assets/img/slider_max.png" alt="slider max">
+                        <img src="{% static 'images/water_balance/slider_max.png' %}" alt="slider max">
                     </label>
                 </div>
 
@@ -189,84 +191,84 @@
 
                     <li id="thumb-lir" class="active"> <!-- LIR Thumb -->
                         <a href="#land-lir" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="assets/img/thumb_lir.png" alt="low intensity residential">
+                            <img src="{% static 'images/water_balance/thumb_lir.png' %}" alt="low intensity residential">
                         </a>
                         <label>LIR</label>
                     </li>
 
                     <li id="thumb-hir"> <!-- HIR Thumb -->
                         <a href="#land-hir" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="assets/img/thumb_hir.png" alt="high intensity residential">
+                            <img src="{% static 'images/water_balance/thumb_hir.png' %}" alt="high intensity residential">
                         </a>
                         <label>HIR</label>
                     </li>
 
                     <li id="thumb-commercial"> <!-- Commercial Thumb -->
                         <a href="#land-commercial" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="assets/img/thumb_commercial.png" alt="commercial">
+                            <img src="{% static 'images/water_balance/thumb_commercial.png' %}" alt="commercial">
                         </a>
                         <label>Commercial</label>
                     </li>
 
                     <li id="thumb-grassland"> <!-- Grassland Thumb -->
                         <a href="#land-grassland" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="assets/img/thumb_grassland.png" alt="grasland">
+                            <img src="{% static 'images/water_balance/thumb_grassland.png' %}" alt="grasland">
                         </a>
                         <label>Grassland</label>
                     </li>
 
                     <li id="thumb-forest"> <!-- Forest Thumb -->
                         <a href="#land-forest" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="assets/img/thumb_forest.png" alt="Forest">
+                            <img src="{% static 'images/water_balance/thumb_forest.png' %}" alt="Forest">
                         </a>
                         <label>Forest</label>
                     </li>
 
                     <li id="thumb-turfGrass"> <!-- TurfGrass Thumb -->
                         <a href="#land-turfGrass" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="assets/img/thumb_turfGrass.png" alt="Turf Grass">
+                            <img src="{% static 'images/water_balance/thumb_turfGrass.png' %}" alt="Turf Grass">
                         </a>
                         <label>Turf Grass</label>
                     </li>
 
                     <li id="thumb-pasture"> <!-- Pasture Thumb -->
                         <a href="#land-pasture" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="assets/img/thumb_pasture.png" alt="pasture">
+                            <img src="{% static 'images/water_balance/thumb_pasture.png' %}" alt="pasture">
                         </a>
                         <label>Pasture</label>
                     </li>
 
                     <li id="thumb-rowCrops"> <!-- Row Crops Thumb -->
                         <a href="#land-rowCrops" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="assets/img/thumb_rowCrops.png" alt="Row Crops">
+                            <img src="{% static 'images/water_balance/thumb_rowCrops.png' %}" alt="Row Crops">
                         </a>
                         <label>Row Crops</label>
                     </li>
 
                     <li id="thumb-chaparrel"> <!-- Chaparrel Thumb -->
                         <a href="#land-chaparrel" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="assets/img/thumb_chaparrel.png" alt="Chaparrel">
+                            <img src="{% static 'images/water_balance/thumb_chaparrel.png' %}" alt="Chaparrel">
                         </a>
                         <label>Chaparrel</label>
                     </li>
 
                     <li id="thumb-tallGrass"> <!-- TallGrass Thumb -->
                         <a href="#land-tallGrass" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="assets/img/thumb_tallGrass.png" alt="Tall Grass Prairie">
+                            <img src="{% static 'images/water_balance/thumb_tallGrass.png' %}" alt="Tall Grass Prairie">
                         </a>
                         <label>Tall Grass Prairie</label>
                     </li>
 
                     <li id="thumb-shortGrass"> <!-- ShortGrass Thumb -->
                         <a href="#land-shortGrass" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="assets/img/thumb_shortGrass.png" alt="Short Grass prairie">
+                            <img src="{% static 'images/water_balance/thumb_shortGrass.png' %}" alt="Short Grass prairie">
                         </a>
                         <label>Short Grass prairie</label>
                     </li>
 
                     <li id="thumb-desert"> <!-- Desert Thumb -->
                         <a href="#land-desert" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="assets/img/thumb_desert.png" alt="Desert">
+                            <img src="{% static 'images/water_balance/thumb_desert.png' %}" alt="Desert">
                         </a>
                         <label>Desert</label>
                     </li>
@@ -282,28 +284,28 @@
 
                     <li id="thumb-sand" class="active"> <!-- Sand Thumb -->
                         <a href="#soil-sand" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="assets/img/thumb_sand.png" alt="Sand">
+                            <img src="{% static 'images/water_balance/thumb_sand.png' %}" alt="Sand">
                         </a>
                         <label>Sand</label>
                     </li>
 
                     <li id="thumb-loam"> <!-- Loam Thumb -->
                         <a href="#soil-loam" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="assets/img/thumb_loam.png" alt="loam">
+                            <img src="{% static 'images/water_balance/thumb_loam.png' %}" alt="loam">
                         </a>
                         <label>Loam</label>
                     </li>
 
                     <li id="thumb-sandyClay"> <!-- Sandy Clay Thumb -->
                         <a href="#soil-sandyClay" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="assets/img/thumb_sandyClay.png" alt="Sandy Clay">
+                            <img src="{% static 'images/water_balance/thumb_sandyClay.png' %}" alt="Sandy Clay">
                         </a>
                         <label>Sandy Clay</label>
                     </li>
 
                     <li id="thumb-clayLoam"> <!-- Clay Loam Thumb -->
                         <a href="#soil-clayLoam" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="assets/img/thumb_clayLoam.png" alt="Clay Loam">
+                            <img src="{% static 'images/water_balance/thumb_clayLoam.png' %}" alt="Clay Loam">
                         </a>
                         <label>Clay Laom</label>
                     </li>
