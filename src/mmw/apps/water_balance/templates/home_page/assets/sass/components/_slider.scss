@@ -1,0 +1,28 @@
+.slider {
+  width: 200px;
+  margin-left: 12px!important;
+  display: inline-block!important;
+  padding: 12px 0;
+
+  .dragger{
+    background-color: $active;
+    -webkit-border-radius: 12px;
+    -moz-border-radius: 12px;
+    border-radius: 12px;
+    border: 3px solid $paper;
+    width: 24px;
+    height: 24px;
+  }
+
+  .track, .highlight-track{
+    background-color: $black-12;
+    height: 4px;
+  }
+
+  .highlight-track{
+    background-color: $water;
+    height: 4px;
+  }
+}
+
+

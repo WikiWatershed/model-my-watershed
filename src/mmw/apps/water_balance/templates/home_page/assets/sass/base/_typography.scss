@@ -1,0 +1,63 @@
+//Paragraph Styles
+p{
+  font-size: 1rem;
+  font-weight: 300;
+  color: $black-54;
+  line-height: 1.4;
+  margin: 0;
+}
+
+//Heading Styles
+h1, h2, h3{
+  margin: 0;
+
+  &.light{
+    color: $paper;
+  }
+
+  &.dark{
+    color: $ui-primary;
+  }
+}
+
+h1{
+  font-size: 1.5rem;
+  font-weight: 900;
+
+  &.precip{
+    color: $water;
+  }
+
+  &.evapo{
+    color: $et;
+  }
+
+  &.runoff{
+    color: $r;
+  }
+
+  &.infil{
+    color: $i;
+  }
+}
+
+h2{
+  font-size: 1.2rem;
+  font-weight: 100;
+  color: $ui-secondary;
+  margin-bottom: 1rem;
+}
+
+h3{
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+//Label Styles
+
+label{
+  display: block;
+  font-size: 0.7rem;
+  text-align: center;
+  margin: 0;
+}

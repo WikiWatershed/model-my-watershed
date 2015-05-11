@@ -1,0 +1,312 @@
+//Home
+#mini-home{
+
+  //Layout =====================================
+
+  .container-fluid{
+    background-color: $sky-blue;
+    background-image: url('../img/art_clouds.png');
+    background-position: top center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    min-width: 1024px;
+
+    @media
+    (-webkit-min-device-pixel-ratio: 2),
+    (min-resolution: 192dpi) {
+       background-image: url('../img/art_clouds@2x.png');
+    }
+  }
+
+  .canvas{
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    margin-right: 360px;
+    overflow: auto;
+    white-space: nowrap;
+  }
+
+  //Model Output =====================================
+
+  .model-container{
+    position: absolute;
+    display: block;
+    width: 400px;
+    margin: 0 auto;
+    float: left;
+    top: 0;
+    left: 0;
+    right: 100px;
+    bottom: 0;
+
+    .land-container{
+      width: 100%;
+      height: auto;
+      position: absolute;
+      top: 40px;
+      display: block;
+      margin: 0 auto;
+      z-index: 200;
+
+      .land{
+        width: 100%;
+
+        img{
+          width: 100%;
+          max-width: 500px;
+          height: auto;
+        }
+      }
+    }
+
+    .soil-container{
+      width: 100%;
+      height: auto;
+      position: absolute;
+      top: 320px;
+      display: block;
+      margin: 0 auto;
+      z-index: 200;
+
+      .soil{
+        width: 100%;
+
+        img{
+          width: 100%;
+          max-width: 500px;
+          height: auto;
+        }
+      }
+    }
+  }
+
+  //Effects ==========================================
+
+  #effect-rain{
+    position: absolute;
+    top: 90px;
+    z-index: 100;
+  }
+
+  #effect-evapo{
+    position: absolute;
+    top: 90px;
+    right: 0;
+    z-index: 100;
+  }
+
+   #effect-runoff{
+    position: absolute;
+    bottom: 40px;
+    z-index: 100;
+  }
+
+  #effect-infiltration{
+    position: absolute;
+    bottom: 30px;
+    right: 0;
+    z-index: 100;
+  }
+
+
+  //Water Column =====================================
+
+  #water-column-container{
+    position: absolute;
+    display: block;
+    width: 84px;
+    margin: 0 auto;
+    right: 16px;
+    top: 40px;
+    bottom: 40px;
+    padding-bottom: 48px;
+    white-space: normal;
+
+    .column{
+      position: relative;
+      display: block;
+      width: 100%;
+      text-align: right;
+
+      label{
+        color: $paper;
+        padding: 0.4rem;
+        text-align: right;
+      }
+    }
+
+    #column-et{
+      height: 30%;
+      background-color: $et;
+      border-top-left-radius: 0.3rem;
+      border-top-right-radius: 0.3rem;
+    }
+
+    #column-r{
+      height: 40%;
+      background-color: $r;
+    }
+
+    #column-i{
+      height: 30%;
+      background-color: $i;
+      border-bottom-left-radius: 0.3rem;
+      border-bottom-right-radius: 0.3rem;
+    }
+
+    #column-overlay{
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 24px;
+      margin: 16px 16px 48px 16px;
+      background-color: $black-12;
+      border-bottom-left-radius: 0.3rem;
+      border-top-left-radius: 0.3rem;
+      z-index: 200;
+    }
+  }
+
+  //Wells =================================================
+
+  #well-precip{
+    position: absolute;
+    left: 0;
+    top: 40px;
+    min-width: 116px;
+  }
+
+  #well-evapo{
+    position: absolute;
+    right: 0;
+    top: 40px;
+    min-width: 116px;
+  }
+
+  #well-runoff{
+    position: absolute;
+    left: 0;
+    bottom: 40px;
+    min-width: 116px;
+  }
+
+  #well-infil{
+    position: absolute;
+    right: 0;
+    bottom: 40px;
+    min-width: 116px;
+  }
+
+  .well-custom{
+    background-color: $paper;
+    border-radius: 0.3rem;
+    padding: 16px;
+
+    label{
+      padding-top: 4px;
+    }
+  }
+
+  .well-rain{
+    background-color: $sky-blue;
+    border-radius: 0.3rem;
+    padding: 16px 6px;
+    margin: 8px;
+    height: 54px;
+
+    label{
+      display: inline-block!important;
+    }
+  }
+
+  //Sidebar =================================================
+
+  .sidebar{
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 360px;
+    background-color: $paper;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.74);
+    overflow-y: auto;
+
+    .slider-wrapper{
+      display: inline-block;
+    }
+
+    p{
+      margin: 0 0 0 8px;
+    }
+
+    ul{
+      list-style-type: none;
+      padding: 0;
+      white-space: nowrap;
+      float: left;
+
+      li{
+        display: inline-block;
+        float: left;
+        position: relative;
+        margin: 8px 8px 0 8px;
+        width: 66px;
+        white-space: normal;
+
+        a{
+          padding: 0;
+          border: solid 3px transparent;
+
+          img{
+            width: 100%;
+            height: auto;
+          }
+        }
+
+        label{
+          padding-bottom: 6px;
+        }
+
+        &.active a{
+          border: solid 3px $active;
+
+          &:after{
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            content: "\f00c";
+            font-family: FontAwesome;
+            font-size: 0.9rem;
+            padding-top: 4px;
+            color: $paper;
+            background-color: $active;
+            width: 24px;
+            height: 24px;
+            border-radius: 12px;
+            text-align: center;
+          }
+        }
+      }
+    }
+  }
+
+  //Info Dropdown =====================================
+  #info{
+
+    &.dropdown-menu{
+      border-radius: 2px;
+      border: 0!important;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.74);
+      font-size: 0.8rem;
+      width: 360px;
+      padding: 2rem;
+      color: $black-74;
+      background-color: $paper;
+    }
+  }
+}
+

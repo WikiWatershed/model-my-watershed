@@ -1,0 +1,128 @@
+//General
+.modal{
+  background-color: $black-54;
+
+  .modal-dialog{
+    margin: 60px auto;
+  }
+
+  .modal-content{
+    border-radius: 0!important;
+    border: 1px solid $black-12;
+    box-shadow: 0 0 6px $black-24;
+  }
+
+  .cancel{
+    position: absolute;
+    top: 1rem;
+    right: 0;
+  }
+}
+
+.modal-dialog-sm{
+  width: 100%;
+
+  @media(min-width:768px){
+    width: 400px;
+  }
+}
+
+//Basic Modal
+.modal-basic{
+
+  .modal-content{
+    padding: 1rem;
+
+    .modal-header{
+      padding: 0 0 1rem 0;
+      border: 0;
+    }
+
+    .modal-body{
+      padding: 1rem 0;
+    }
+
+    .modal-footer{
+      padding: 0;
+      border: 0;
+    }
+  }
+}
+
+
+//Large Modal
+.modal-large{
+
+  .modal-content{
+    padding: 0;
+
+    .modal-header{
+      padding: 3rem 2rem;
+      border: 0;
+      background-color: $brand-primary;
+
+      h2{
+        margin-bottom: 4px;
+      }
+
+      p{
+        font-size: 0.7rem;
+        color: $paper;
+        line-height: 1.6;
+      }
+    }
+
+    .modal-body{
+      padding: 2rem;
+    }
+
+    .modal-footer{
+      padding: 0 2rem 2rem 2rem;
+      border: 0;
+    }
+  }
+}
+
+//XL Modal//Large Modal
+.modal-xl{
+
+  .modal-dialog{
+    width: 960px;
+  }
+
+  .modal-content{
+    padding: 0;
+
+    .modal-header{
+      padding: 1.5rem;
+      border: 0;
+      background-color: $brand-primary;
+
+      h2{
+        margin-bottom: 4px;
+      }
+
+      p{
+        font-size: 0.7rem;
+        color: $paper-54;
+        line-height: 1;
+      }
+    }
+
+    .modal-body{
+      padding: 1.5rem;
+    }
+
+    .modal-footer{
+      padding: 0 1.5rem 1.5rem 1.5rem;
+      border: 0;
+    }
+  }
+}
+
+//Log In
+.signup{
+  position: absolute;
+  top: 1rem;
+  right: 2rem;
+}

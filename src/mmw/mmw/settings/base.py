@@ -303,6 +303,7 @@ LOCAL_APPS = (
     'apps.watershed_model',
     'apps.analyze',
     'apps.predefined_shapes',
+    'apps.water_balance',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
