@@ -17,6 +17,7 @@ STATIC_FONTS_DIR="${DJANGO_STATIC_ROOT}fonts/"
 
 BROWSERIFY="$BIN/browserify"
 ENTRY_JS_FILES="./js/src/main.js"
+ENTRY_JS_FILES_WATER_BALANCE="./js/src/main_water_balance.js"
 
 JSTIFY_TRANSFORM="-t [ jstify --noMinify ]"
 
@@ -99,6 +100,16 @@ do
     BROWSERIFY_REQ+="-r $DEP "
 done
 
+JS_DEPS_WATER_BALANCE=(jquery bootstrap bootstrap-select retina.js)
+
+BROWSERIFY_EXT_WATER_BALANCE=""
+BROWSERIFY_REQ_WATER_BALANCE=""
+for DEP in "${JS_DEPS_WATER_BALANCE[@]}"
+do
+    BROWSERIFY_EXT_WATER_BALANCE+="-x $DEP "
+    BROWSERIFY_REQ_WATER_BALANCE+="-r $DEP "
+done
+
 VAGRANT_COMMAND="cd /opt/app && \
     $ENSURE_DIRS_EXIST && { \
     $COPY_IMAGES_COMMAND &
@@ -111,6 +122,12 @@ VAGRANT_COMMAND="cd /opt/app && \
 
     $BROWSERIFY $BROWSERIFY_REQ \
         -o ${STATIC_JS_DIR}vendor.js $EXTRA_ARGS & \
+
+    $BROWSERIFY $ENTRY_JS_FILES_WATER_BALANCE $BROWSERIFY_EXT_WATER_BALANCE $JSTIFY_TRANSFORM \
+        -o ${STATIC_JS_DIR}main_water_balance.js $EXTRA_ARGS & \
+
+    $BROWSERIFY $BROWSERIFY_REQ_WATER_BALANCE \
+        -o ${STATIC_JS_DIR}vendor_water_balance.js $EXTRA_ARGS & \
 
     $BROWSERIFY $TEST_FILES $JSTIFY_TRANSFORM \
         -o ${STATIC_JS_DIR}test.bundle.js $EXTRA_ARGS; }"

@@ -1,0 +1,69 @@
+// Generated and simplified from http://danielstern.ca/range.css/
+.slider {
+    -webkit-appearance: none;
+    width: 100%;
+    margin: 10px 0;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+    }
+    &::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 4px;
+      background: #a4c9d7;
+    }
+    &::-webkit-slider-thumb {
+      border: 3px solid $paper;
+      height: 24px;
+      width: 24px;
+      border-radius: 15px;
+      background: $active;
+      -webkit-appearance: none;
+      margin-top: -10px;
+    }
+    &:focus::-webkit-slider-runnable-track {
+      background: #a4c9d7;
+    }
+    &::-moz-range-track {
+      width: 100%;
+      height: 4px;
+      background: #a4c9d7;
+    }
+    &::-moz-range-thumb {
+      border: 3px solid $paper;
+      height: 24px;
+      width: 24px;
+      border-radius: 15px;
+      background: $active;
+    }
+    &::-ms-track {
+      width: 100%;
+      height: 4px;
+      background: transparent;
+      border-color: transparent;
+      color: transparent;
+    }
+    &::-ms-fill-lower {
+      background: #a4c9d7;
+      border: 0px solid #000000;
+    }
+    &::-ms-fill-upper {
+      background: #a4c9d7;
+      border: 0px solid #000000;
+    }
+    &::-ms-thumb {
+      border: 3px solid $paper;
+      height: 24px;
+      width: 24px;
+      border-radius: 15px;
+      background: $active;
+      height: 4px;
+    }
+    &:focus::-ms-fill-lower {
+      background: #a4c9d7;
+    }
+    &:focus::-ms-fill-upper {
+      background: #a4c9d7;
+    }
+}

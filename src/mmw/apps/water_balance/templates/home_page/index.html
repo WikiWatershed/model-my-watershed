@@ -170,14 +170,14 @@
             <div class="row pad-sm bdr-bottom"> <!-- Rainfall Slider -->
                 <div class="pull-left"><p>Precipitation</p></div>
                 <br>
-                <div class="well-rain">
-                    <label class="pull-left">
+                <div class="well-rain row">
+                    <label class="col-md-2">
                         <img src="{% static 'images/water_balance/slider_min.png' %}" alt="slider min">
                     </label>
-                    <div class="slider-wrapper">
-                        <input type="text" data-slider="true" data-slider-range="1,12">
+                    <div class="slider-wrapper col-md-8">
+                        <input class="slider" type="range" min="1" max="12" vaue="1">
                     </div>
-                    <label class="pull-right">
+                    <label class="col-md-2">
                         <img src="{% static 'images/water_balance/slider_max.png' %}" alt="slider max">
                     </label>
                 </div>
@@ -316,16 +316,9 @@
         </div>
 
     </div> <!-- End Container -->
-
-    <!-- Scripts -->
-    <script type="text/javascript" src="assets/js/retina.js"></script>
-    <script src="assets/js/simple-slider.js"></script>
-    <script type="text/javascript">
-        $(function () {
-          $('[data-toggle="tooltip"]').tooltip()
-        })
-    </script>
 {% endblock content %}
 
-{% block footer %}
-{% endblock footer %}
+{% block javascript %}
+    <script type="text/javascript" src="{% static 'js/vendor_water_balance.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/main_water_balance.js' %}"></script>
+{% endblock javascript %}
