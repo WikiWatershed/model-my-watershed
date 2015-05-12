@@ -23,6 +23,22 @@ h1, h2, h3{
 h1{
   font-size: 1.5rem;
   font-weight: 100;
+
+  &.precip{
+    color: $water;
+  }
+
+  &.evapo{
+    color: $et;
+  }
+
+  &.runoff{
+    color: $r;
+  }
+
+  &.infil{
+    color: $i;
+  }
 }
 
 h2{

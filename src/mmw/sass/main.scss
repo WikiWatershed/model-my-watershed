@@ -13,6 +13,7 @@
  * Bootstrap, Foundation, Select2, etc
  */
 @import
+  "animate",
   "bootstrap";
 
 /**
@@ -55,6 +56,7 @@
   "components/dropdowns",
   "components/modals",
   "components/inputs",
+  "components/slider-native",
   "components/tables";
 
   /**
@@ -64,6 +66,7 @@
   "pages/search-map",
   "pages/model",
   "pages/compare",
+  "pages/water-balance",
   "pages/analyze";
 
 #wrapper {

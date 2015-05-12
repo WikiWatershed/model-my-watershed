@@ -11,6 +11,12 @@
     border: 1px solid $black-12;
     box-shadow: 0 0 6px $black-24;
   }
+
+  .cancel{
+    position: absolute;
+    top: 1rem;
+    right: 0;
+  }
 }
 
 .modal-dialog-sm{
@@ -55,6 +61,10 @@
       border: 0;
       background-color: $brand-primary;
 
+      h2{
+        margin-bottom: 4px;
+      }
+
       p{
         font-size: 0.7rem;
         color: $paper;
@@ -68,6 +78,43 @@
 
     .modal-footer{
       padding: 0 2rem 2rem 2rem;
+      border: 0;
+    }
+  }
+}
+
+//XL Modal//Large Modal
+.modal-xl{
+
+  .modal-dialog{
+    width: 960px;
+  }
+
+  .modal-content{
+    padding: 0;
+
+    .modal-header{
+      padding: 1.5rem;
+      border: 0;
+      background-color: $brand-primary;
+
+      h2{
+        margin-bottom: 4px;
+      }
+
+      p{
+        font-size: 0.7rem;
+        color: $paper-54;
+        line-height: 1;
+      }
+    }
+
+    .modal-body{
+      padding: 1.5rem;
+    }
+
+    .modal-footer{
+      padding: 0 1.5rem 1.5rem 1.5rem;
       border: 0;
     }
   }
