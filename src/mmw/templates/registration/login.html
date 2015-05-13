@@ -3,7 +3,7 @@
 
 {% block title %}{% trans "Log in" %}{% endblock %}
 
-{% block content %}
+{% block registration_content %}
 <form method="post" action="">
     {% csrf_token %}
     {{ form.as_p }}

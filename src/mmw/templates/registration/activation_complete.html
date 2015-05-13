@@ -1,9 +1,9 @@
-{% extends "base.html" %}
+{% extends "registration/registration_base.html" %}
 {% load i18n %}
 
 {% block title %}{% trans "Account Activated" %}{% endblock %}
 
-{% block content %}
+{% block registration_content %}
 <p>
     {% trans "Your account is now activated." %}
     {% if not user.is_authenticated %}
