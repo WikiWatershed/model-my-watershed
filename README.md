@@ -6,8 +6,10 @@ A combination of Vagrant 1.6+ and Ansible 1.8+ is used to setup the development 
 
 - `app`
 - `services`
+- `tiler`
+- `worker`
 
-The `app` virtual machine contains an instance of the Django application and `services` contains:
+The `app` virtual machine contains an instance of the Django application, `services` contains:
 
 - PostgreSQL
 - Pgweb
@@ -16,6 +18,15 @@ The `app` virtual machine contains an instance of the Django application and `se
 - Kibana
 - Graphite
 - Statsite
+
+`tiler` contains:
+
+- Windshaft
+- Mapnik
+
+`worker` contains:
+
+- Celery
 
 ### Getting Started
 
@@ -27,6 +38,19 @@ $ vagrant up
 
 The application will now be running at [http://localhost:8000](http://localhost:8000).
 
+After pulling in new commits, you may need to run the following two commands:
+
+```bash
+$ ./scripts/manage.sh migrate
+$ ./scripts/manage.sh reload_dev_data
+```
+
+See debug messages from the web app server:
+
+```bash
+$ ./scripts/debugserver.sh
+```
+
 Watch the JavaScript and SASS files for changes:
 
 ```bash
@@ -35,13 +59,13 @@ $ ./scripts/bundle.sh --debug --watch
 
 When creating new JavaScript or SASS files, you may need to stop and restart the bundle script.
 
+If you add a JS dependency and want it to be included in the `vendor.js` bundle, you will need to update the `JS_DEPS` array in `bundle.sh` accordingly.
+
 If changes were made to the one of the VM's configuration or requirements since the last time you provisioned, you'll need to reprovision.
 
 ```bash
-$ vagrant provision app # or services
+$ vagrant provision <VM name>
 ```
-
-If you add a JS dependency and want it to be included in the `vendor.js` bundle, you will need to update the `JS_DEPS` array in `bundle.sh` accordingly.
 
 After provisioning is complete, you can login to the application server and execute Django management commands:
 
@@ -69,6 +93,7 @@ PostgreSQL             | 5432 | `psql -h localhost`
 pgweb                  | 5433 | [http://localhost:5433](http://localhost:5433)
 Redis                  | 6379 | `redis-cli -h localhost 6379`
 Testem                 | 7357 | [http://localhost:7357](http://localhost:7357)
+Tiler                  | 4000 | [http://localhost:4000](http://localhost:4000)
 
 ### Caching
 
@@ -80,6 +105,20 @@ Run all the tests:
 
 ```bash
 $ ./scripts/test.sh
+```
+
+##### Python
+
+To run all the tests on the Django app:
+
+```bash
+$ ./scripts/manage.sh test
+```
+
+Or just for a specific app:
+
+```bash
+$ ./scripts/manage.sh test appname
 ```
 
 ##### JavaScript
