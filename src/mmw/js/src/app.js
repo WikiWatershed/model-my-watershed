@@ -3,7 +3,8 @@
 var $ = require('jquery'),
     Marionette = require('../shim/backbone.marionette'),
     views = require('./core/views'),
-    models = require('./core/models');
+    models = require('./core/models'),
+    userModels = require('./user/models');
 
 var App = new Marionette.Application({
     initialize: function() {
@@ -16,6 +17,8 @@ var App = new Marionette.Application({
         });
 
         this.rootView = new views.RootView();
+        this.user = new userModels.UserModel({});
+        this.showLoginModal();
     },
 
     load: function(data) {
@@ -31,6 +34,14 @@ var App = new Marionette.Application({
 
     getLeafletMap: function() {
         return this._mapView._leafletMap;
+    },
+
+    showLoginModal: function() {
+        $('#login').modal('show');
+    },
+
+    hideLoginModal: function() {
+        $('#login').modal('hide');
     }
 });
 

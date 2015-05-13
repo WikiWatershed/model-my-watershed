@@ -31,7 +31,9 @@ function loadData() {
 var Backbone = require('../shim/backbone'),
     App = require('./app'),
     router = require('./router').router,
-    routes = require('./routes');
+    routes = require('./routes'),
+    userViews = require('./user/views'),
+    userModels = require('./user/models');
 
 App.on('start', function() {
     $('body').on('click', '[data-url]', function(e) {
@@ -39,6 +41,14 @@ App.on('start', function() {
         router.navigate($(this).data('url'), { trigger: true });
     });
     Backbone.history.start({ pushState: true });
+
+    // Ideally, this would be done in App.init,
+    // but userViews requires App, so it's here
+    // to avoid a circular requires.
+    new userViews.LoginModalView({
+        el: '#login',
+        model: new userModels.LoginFormModel({})
+    }).render();
 });
 
 App.start();
