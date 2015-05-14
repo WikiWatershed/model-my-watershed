@@ -191,8 +191,8 @@ function setupAnalyzeView(data, server) {
             "result": data
         });
 
-    server.respondWith('/api/analyze/start/analyze', startResponse);
-    server.respondWith('/api/analyze/job/' + jobId, endResponse);
+    server.respondWith('/api/modeling/start/analyze', startResponse);
+    server.respondWith('/api/modeling/job/' + jobId, endResponse);
     sandbox.show(view);
     return view;
 };

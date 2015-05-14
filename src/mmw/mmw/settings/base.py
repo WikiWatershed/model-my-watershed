@@ -298,11 +298,9 @@ REGISTRATION_AUTO_LOGIN = True  # Automatically log the user in.
 # Apps specific for this project go here.
 LOCAL_APPS = (
     'apps.core',
+    'apps.modeling',
     'apps.home',
     'apps.geocode',
-    'apps.watershed_model',
-    'apps.analyze',
-    'apps.predefined_shapes',
     'apps.water_balance',
     'apps.user'
 )

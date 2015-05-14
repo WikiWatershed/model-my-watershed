@@ -19,7 +19,7 @@ var LayerModel = Backbone.Model.extend({
 // Each layer returned from the analyze endpoint.
 // Land, soil, etc.
 var LayerCollection = Backbone.Collection.extend({
-    url: '/api/analyze/',
+    url: '/api/modeling/',
     model: LayerModel
 });
 
@@ -32,7 +32,7 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
         {
             taskName: 'analyze',
-            taskType: 'analyze'
+            taskType: 'modeling'
         },
         coreModels.TaskModel.prototype.defaults
     )
