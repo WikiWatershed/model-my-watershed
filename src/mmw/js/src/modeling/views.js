@@ -10,7 +10,7 @@ var _ = require('lodash'),
     detailsTmpl = require('./templates/details.ejs'),
     tabPanelTmpl = require('./templates/tabPanel.ejs'),
     tabContentTmpl = require('./templates/tabContent.ejs'),
-    extraHeaderTmpl = require('./templates/extraHeader.ejs');
+    modelingHeaderTmpl = require('./templates/modelingHeader.ejs');
 
 var ModelingWindow = Marionette.LayoutView.extend({
     tagName: 'div',
@@ -123,11 +123,11 @@ var TabContentsView = Marionette.CollectionView.extend({
 
 });
 
-var ExtraHeaderView = Marionette.ItemView.extend({
-    template: extraHeaderTmpl
+var ModelingHeaderView = Marionette.ItemView.extend({
+    template: modelingHeaderTmpl
 });
 
 module.exports = {
     ModelingWindow: ModelingWindow,
-    ExtraHeaderView: ExtraHeaderView
+    ModelingHeaderView: ModelingHeaderView
 };

@@ -23,14 +23,14 @@ var ModelingController = {
                 id: 'analyze-output-wrapper',
                 model: taskModel
             }),
-            extraHeader = new views.ExtraHeaderView();
+            modelingHeader = new views.ModelingHeaderView();
 
-        App.rootView.extraHeaderRegion.show(extraHeader);
+        App.rootView.subHeaderRegion.show(modelingHeader);
         App.rootView.footerRegion.show(tr55Window);
     },
 
     modelCleanUp: function() {
-        App.rootView.extraHeaderRegion.empty();
+        App.rootView.subHeaderRegion.empty();
         App.rootView.footerRegion.empty();
     }
 };
