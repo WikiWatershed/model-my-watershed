@@ -347,7 +347,8 @@ OMGEO_SETTINGS = [[
 
 # ITSI Portal Settings
 ITSI = {
-    'client_id': get_env_setting('ITSI_CLIENT_ID'),
-    'client_secret': get_env_setting('ITSI_CLIENT_SECRET'),
-    'base_url': get_env_setting('ITSI_BASE_URL'),
+    'client_id': environ.get('ITSI_CLIENT_ID', 'model-my-watershed'),
+    'client_secret': environ.get('ITSI_SECRET_KEY', 'itsi_secret_key'),
+    'base_url': environ.get('ITSI_BASE_URL',
+                            'http://learn.staging.concord.org/'),
 }

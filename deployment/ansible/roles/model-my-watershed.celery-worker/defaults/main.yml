@@ -18,6 +18,9 @@ app_config:
   - { file: "DJANGO_MEDIA_ROOT", content: "{{ app_media_root }}" }
   - { file: "DJANGO_POSTGIS_VERSION", content: "{{ app_postgis_version }}" }
   - { file: "DJANGO_SECRET_KEY", content: "{{ app_secret_key }}" }
+  - { file: "ITSI_CLIENT_ID", content: "{{ itsi_client_id }}" }
+  - { file: "ITSI_SECRET_KEY", content: "{{ itsi_secret_key }}" }
+  - { file: "ITSI_BASE_URL", content: "{{ itsi_base_url }}" }
 
 app_postgis_version: 2.1.3
 app_secret_key: "{{ postgresql_password | md5 }}"
