@@ -344,3 +344,10 @@ OMGEO_SETTINGS = [[
         ]
     }
 ]]
+
+# ITSI Portal Settings
+ITSI = {
+    'client_id': get_env_setting('ITSI_CLIENT_ID'),
+    'client_secret': get_env_setting('ITSI_CLIENT_SECRET'),
+    'base_url': get_env_setting('ITSI_BASE_URL'),
+}
