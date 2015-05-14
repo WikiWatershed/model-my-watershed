@@ -2,7 +2,7 @@ azavea.ntp,0.1.1
 azavea.pip,0.1.1
 azavea.nodejs,0.3.0
 azavea.git,0.1.0
-azavea.nginx,0.2.0
+azavea.nginx,0.2.1
 azavea.daemontools,0.1.0
 azavea.postgresql-support,0.2.0
 azavea.postgresql,0.3.0
