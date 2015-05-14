@@ -10,8 +10,6 @@ var $ = require('jquery'),
 
 var DrawController = {
     drawPrepare: function() {
-        // TODO: Move?
-        //$('#login').modal('show');
     },
 
     draw: function() {

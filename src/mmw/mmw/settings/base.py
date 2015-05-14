@@ -304,6 +304,7 @@ LOCAL_APPS = (
     'apps.analyze',
     'apps.predefined_shapes',
     'apps.water_balance',
+    'apps.user'
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

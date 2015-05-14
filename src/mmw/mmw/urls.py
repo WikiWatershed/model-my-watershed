@@ -17,6 +17,7 @@ import apps.analyze.urls
 import apps.home.urls
 import apps.home.views
 import apps.water_balance.urls
+import apps.user.urls
 
 admin.autodiscover()
 
@@ -36,4 +37,5 @@ urlpatterns = patterns(
     url(r'^api/watershed_model/', include(apps.watershed_model.urls)),
     url(r'^api/analyze/', include(apps.analyze.urls)),
     url(r'^simple/', include(apps.water_balance.urls)),
+    url(r'^user/', include(apps.user.urls))
 )
