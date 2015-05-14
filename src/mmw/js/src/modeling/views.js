@@ -10,9 +10,16 @@ var _ = require('lodash'),
     detailsTmpl = require('./templates/details.ejs'),
     tabPanelTmpl = require('./templates/tabPanel.ejs'),
     tabContentTmpl = require('./templates/tabContent.ejs'),
-    modelingHeaderTmpl = require('./templates/modelingHeader.ejs');
+    modelingHeaderTmpl = require('./templates/modelingHeader.ejs'),
+    scenariosBarTmpl = require('./templates/scenariosBar.ejs'),
+    scenarioTabPanelTmpl = require('./templates/scenarioTabPanel.ejs'),
+    scenarioMenuTmpl = require('./templates/scenarioMenu.ejs'),
+    scenarioMenuItemTmpl = require('./templates/scenarioMenuItem.ejs'),
+    projectMenuTmpl = require('./templates/projectMenu.ejs'),
+    currentConditionsToolbarTabContentTmpl = require('./templates/currentConditionsToolbarTabContent.ejs'),
+    scenarioToolbarTabContentTmpl = require('./templates/scenarioToolbarTabContent.ejs');
 
-var ModelingWindow = Marionette.LayoutView.extend({
+var ModelingResultsWindow = Marionette.LayoutView.extend({
     tagName: 'div',
     id: 'modeling-output-wrapper',
     template: windowTmpl,
@@ -22,11 +29,7 @@ var ModelingWindow = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        var self = this;
-
-        setTimeout(function() {
-            self.showDetailsRegion();
-        }, 1000);
+        this.showDetailsRegion();
     },
 
     showDetailsRegion: function() {
@@ -120,14 +123,160 @@ var TabContentsView = Marionette.CollectionView.extend({
     onRender: function() {
         this.$el.find('.tab-pane:first').addClass('active');
     }
-
 });
 
-var ModelingHeaderView = Marionette.ItemView.extend({
-    template: modelingHeaderTmpl
+// The entire modeling header.
+var ModelingHeaderView = Marionette.LayoutView.extend({
+    template: modelingHeaderTmpl,
+
+    regions: {
+        projectMenuRegion: '#project-menu-region',
+        scenariosRegion: '#scenarios-region',
+        toolbarRegion: '#toolbar-region'
+    },
+
+    onShow: function() {
+        this.projectMenuRegion.show(new ProjectMenuView({
+            model: this.model
+        }));
+
+        this.scenariosRegion.show(new ScenariosView({
+            collection: this.model.get('scenarios')
+        }));
+
+        this.toolbarRegion.show(new ToolbarTabContentsView({
+            collection: this.model.get('scenarios'),
+            model: this.model.get('modelPackage')
+        }));
+    }
+});
+
+// The drop down containing the project name
+// and projects options drop down.
+var ProjectMenuView = Marionette.ItemView.extend({
+    template: projectMenuTmpl
+});
+
+// The toolbar containing the scenario tabs,
+// scenario drop down menu, and the add
+// scenario button.
+var ScenariosView = Marionette.LayoutView.extend({
+    template: scenariosBarTmpl,
+
+    ui: {
+        addScenario: '#add-scenario'
+    },
+
+    events: {
+        'click @ui.addScenario': 'addScenario'
+    },
+
+    regions: {
+        dropDownRegion: '#scenarios-drop-down-region',
+        panelsRegion: '#scenarios-tab-panel-region'
+    },
+
+    onShow: function() {
+        this.panelsRegion.show(new ScenarioTabPanelsView({
+            collection: this.collection
+        }));
+
+        this.dropDownRegion.show(new ScenarioDropDownMenuView({
+            collection: this.collection
+        }));
+    },
+
+    addScenario: function() {
+        var scenario = new models.ScenarioModel({
+                name: 'New Scenario'
+            });
+
+        this.collection.add(scenario);
+    }
+});
+
+// A scenario tab.
+var ScenarioTabPanelView = Marionette.ItemView.extend({
+    tagName: 'li',
+    template: scenarioTabPanelTmpl,
+    attributes: {
+        role: 'presentation'
+    },
+
+    modelEvents: {
+        'change:name': 'updateSlug'
+    },
+
+    updateSlug: function() {
+        this.model.slugifyName();
+    }
+});
+
+// The tabs used to select a scenario.
+var ScenarioTabPanelsView = Marionette.CollectionView.extend({
+    tagName: 'ul',
+    className: 'nav nav-tabs',
+    attributes: {
+        role: 'tablist'
+    },
+
+    childView: ScenarioTabPanelView,
+
+    onRender: function() {
+        this.$el.find('li:first').addClass('active');
+    }
+});
+
+// The menu item for a scenario in the scenario drop down menu.
+var ScenarioDropDownMenuItemView = Marionette.ItemView.extend({
+    tagName: 'li',
+    template: scenarioMenuItemTmpl,
+    attributes: {
+        role: 'presentation'
+    }
+});
+
+// The menu next to the scenario tabs that is used to select a
+// scenario.
+var ScenarioDropDownMenuView = Marionette.CompositeView.extend({
+    template: scenarioMenuTmpl,
+    childView: ScenarioDropDownMenuItemView,
+    childViewContainer: 'ul'
+});
+
+// The toolbar that contains the modification and input tools
+// for a scenario.
+var ToolbarTabContentView = Marionette.ItemView.extend({
+    tagName: 'div',
+    className: 'tab-pane',
+    attributes: {
+        role: 'tabpanel'
+    },
+
+    id: function() {
+        return this.model.get('slug');
+    },
+
+    getTemplate: function() {
+        if (this.model.get('currentConditions')) {
+            return currentConditionsToolbarTabContentTmpl;
+        } else {
+            return scenarioToolbarTabContentTmpl;
+        }
+    }
+});
+
+// The collection of modification and input toolbars for each
+// scenario.
+var ToolbarTabContentsView = Marionette.CollectionView.extend({
+    className: 'tab-content',
+    childView: ToolbarTabContentView,
+    onRender: function() {
+        this.$el.find('.tab-pane:first').addClass('active');
+    }
 });
 
 module.exports = {
-    ModelingWindow: ModelingWindow,
+    ModelingResultsWindow: ModelingResultsWindow,
     ModelingHeaderView: ModelingHeaderView
 };
