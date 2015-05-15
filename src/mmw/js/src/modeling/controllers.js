@@ -47,6 +47,7 @@ var ModelingController = {
                 name: 'My Project',
                 createdAt: Date.now(),
                 areaOfInterest: App.map.get('areaOfInterest'),
+                activeScenarioSlug: 'scenario-1',
                 modelPackage: new models.ModelPackageModel({
                     name: 'TR-55',
                     taskModel: taskModel
@@ -60,8 +61,7 @@ var ModelingController = {
 
         // Init views
         var modelingResultsWindow = new views.ModelingResultsWindow({
-                id: 'analyze-output-wrapper',
-                model: taskModel
+                model: project
             }),
             modelingHeader = new views.ModelingHeaderView({
                 model: project

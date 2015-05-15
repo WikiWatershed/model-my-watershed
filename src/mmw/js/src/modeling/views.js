@@ -6,10 +6,10 @@ var _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
-    windowTmpl = require('./templates/window.ejs'),
-    detailsTmpl = require('./templates/details.ejs'),
-    tabPanelTmpl = require('./templates/tabPanel.ejs'),
-    tabContentTmpl = require('./templates/tabContent.ejs'),
+    resultsWindowTmpl = require('./templates/resultsWindow.ejs'),
+    resultsDetailsTmpl = require('./templates/resultsDetails.ejs'),
+    resultsTabPanelTmpl = require('./templates/resultsTabPanel.ejs'),
+    resultsTabContentTmpl = require('./templates/resultsTabContent.ejs'),
     modelingHeaderTmpl = require('./templates/modelingHeader.ejs'),
     scenariosBarTmpl = require('./templates/scenariosBar.ejs'),
     scenarioTabPanelTmpl = require('./templates/scenarioTabPanel.ejs'),
@@ -19,115 +19,13 @@ var _ = require('lodash'),
     currentConditionsToolbarTabContentTmpl = require('./templates/currentConditionsToolbarTabContent.ejs'),
     scenarioToolbarTabContentTmpl = require('./templates/scenarioToolbarTabContent.ejs');
 
-var ModelingResultsWindow = Marionette.LayoutView.extend({
-    tagName: 'div',
-    id: 'modeling-output-wrapper',
-    template: windowTmpl,
-
-    regions: {
-        detailsRegion: '#modeling-details-region'
-    },
-
-    onShow: function() {
-        this.showDetailsRegion();
-    },
-
-    showDetailsRegion: function() {
-        this.detailsRegion.show(new DetailsView({
-            collection: new models.ResultCollection([
-                {name: 'runoff',  displayName: 'Runoff'},
-                {name: 'quality', displayName: 'Water Quality'}
-            ])}));
-    },
-
-    transitionInCss: {
-        height: '0%'
-    },
-
-    animateIn: function() {
-        var self = this;
-
-        this.$el.animate({ height: '55%' }, 400, function() {
-            self.trigger('animateIn');
-            App.map.set('halfSize', true);
-        });
-    },
-
-    animateOut: function() {
-        var self = this;
-
-        this.$el.animate({ height: '0%' }, 100, function() {
-            self.trigger('animateOut');
-            App.map.set('halfSize', false);
-        });
-    }
-});
-
-var DetailsView = Marionette.LayoutView.extend({
-    template: detailsTmpl,
-
-    regions: {
-        panelsRegion: '.tab-panels-region',
-        contentRegion: '.tab-contents-region'
-    },
-
-    onShow: function() {
-        this.panelsRegion.show(new TabPanelsView({
-            collection: this.collection
-        }));
-
-        this.contentRegion.show(new TabContentsView({
-            collection: this.collection
-        }));
-    }
-});
-
-var TabPanelView = Marionette.ItemView.extend({
-    tagName: 'li',
-    template: tabPanelTmpl,
-    attributes: {
-        role: 'presentation'
-    }
-});
-
-var TabPanelsView = Marionette.CollectionView.extend({
-    tagName: 'ul',
-    className: 'nav nav-tabs',
-    attributes: {
-        role: 'tablist'
-    },
-
-    childView: TabPanelView,
-
-    onRender: function() {
-        this.$el.find('li:first').addClass('active');
-    }
-});
-
-var TabContentView = Marionette.LayoutView.extend({
-    tagName: 'div',
-    className: 'tab-pane',
-    id: function() {
-        return this.model.get('name');
-    },
-    template: tabContentTmpl,
-    attributes: {
-        role: 'tabpanel'
-    }
-});
-
-var TabContentsView = Marionette.CollectionView.extend({
-    tagName: 'div',
-    className: 'tab-content',
-    childView: TabContentView,
-    onRender: function() {
-        this.$el.find('.tab-pane:first').addClass('active');
-    }
-});
-
 // The entire modeling header.
 var ModelingHeaderView = Marionette.LayoutView.extend({
     template: modelingHeaderTmpl,
+
+    childEvents: {
+        'set:activeScenario': 'setActiveScenario'
+    },
 
     regions: {
         projectMenuRegion: '#project-menu-region',
@@ -141,13 +39,19 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         }));
 
         this.scenariosRegion.show(new ScenariosView({
+            initialScenario: this.model.get('activeScenarioSlug'),
             collection: this.model.get('scenarios')
         }));
 
         this.toolbarRegion.show(new ToolbarTabContentsView({
+            initialScenario: this.model.get('activeScenarioSlug'),
             collection: this.model.get('scenarios'),
             model: this.model.get('modelPackage')
         }));
+    },
+
+    setActiveScenario: function(childView, scenarioSlug) {
+        this.model.set('activeScenarioSlug', scenarioSlug);
     }
 });
 
@@ -164,11 +68,13 @@ var ScenariosView = Marionette.LayoutView.extend({
     template: scenariosBarTmpl,
 
     ui: {
-        addScenario: '#add-scenario'
+        addScenario: '#add-scenario',
+        tab: '[data-toggle="tab"]'
     },
 
     events: {
-        'click @ui.addScenario': 'addScenario'
+        'click @ui.addScenario': 'addScenario',
+        'click @ui.tab': 'setActiveScenario'
     },
 
     regions: {
@@ -176,8 +82,10 @@ var ScenariosView = Marionette.LayoutView.extend({
         panelsRegion: '#scenarios-tab-panel-region'
     },
 
+
     onShow: function() {
         this.panelsRegion.show(new ScenarioTabPanelsView({
+            initialScenario: this.options.initialScenario,
             collection: this.collection
         }));
 
@@ -192,6 +100,12 @@ var ScenariosView = Marionette.LayoutView.extend({
             });
 
         this.collection.add(scenario);
+    },
+
+    setActiveScenario: function(e) {
+        var scenarioSlug = $(e.target).data('scenario-slug');
+
+        this.triggerMethod('set:activeScenario', scenarioSlug);
     }
 });
 
@@ -223,7 +137,12 @@ var ScenarioTabPanelsView = Marionette.CollectionView.extend({
     childView: ScenarioTabPanelView,
 
     onRender: function() {
-        this.$el.find('li:first').addClass('active');
+        if (this.options.initialScenario) {
+            var selector = '[data-scenario-slug="' + this.options.initialScenario + '"]';
+            this.$el.find(selector).parent().addClass('active');
+        } else {
+            this.$el.find('li:first').addClass('active');
+        }
     }
 });
 
@@ -271,6 +190,140 @@ var ToolbarTabContentView = Marionette.ItemView.extend({
 var ToolbarTabContentsView = Marionette.CollectionView.extend({
     className: 'tab-content',
     childView: ToolbarTabContentView,
+
+    onRender: function() {
+        if (this.options.initialScenario) {
+            var selector = '#' + this.options.initialScenario;
+            this.$el.find(selector).addClass('active');
+        } else {
+            this.$el.find('li:first').addClass('active');
+        }
+    }
+});
+
+// The entire modeling results window
+var ModelingResultsWindow = Marionette.LayoutView.extend({
+    id: 'model-output-wrapper',
+    tagName: 'div',
+    template: resultsWindowTmpl,
+
+    modelEvents: {
+        'change:activeScenarioSlug': 'showDetailsRegion'
+    },
+
+    regions: {
+        detailsRegion: '#modeling-details-region'
+    },
+
+    onShow: function() {
+        this.showDetailsRegion();
+    },
+
+    showDetailsRegion: function() {
+        // TODO: Pass in model results for the active scenario, along
+        // with some info for the tabs.
+        // Project.modelPackage.taskModel runs the model
+        // Project.modelPackage.taskModel.results will contain the results
+        // They should be attached scenario they were run for, or maybe
+        // consider modifying the structure so that every scenario has
+        // it's own taskModel which can run jobs.
+        var activeScenarioSlug = this.model.get('activeScenarioSlug'),
+            activeScenario = this.model.get('scenarios').findWhere({ slug: activeScenarioSlug });
+
+        this.detailsRegion.show(new ResultsDetailsView({
+            collection: new models.ResultCollection([
+                { name: 'runoff', displayName: 'Runoff', results: activeScenario.get('name') + ' runoff results' },
+                { name: 'quality', displayName: 'Water Quality', results: activeScenario.get('name') + ' water quality results' },
+            ])
+        }));
+    },
+
+    transitionInCss: {
+        height: '0%'
+    },
+
+    animateIn: function() {
+        var self = this;
+
+        this.$el.animate({ height: '55%' }, 400, function() {
+            self.trigger('animateIn');
+            App.map.set('halfSize', true);
+        });
+    },
+
+    animateOut: function() {
+        var self = this;
+
+        this.$el.animate({ height: '0%' }, 100, function() {
+            self.trigger('animateOut');
+            App.map.set('halfSize', false);
+        });
+    }
+});
+
+// Tab panels and tab contents which contain charts
+// and graphs for the modeling results.
+var ResultsDetailsView = Marionette.LayoutView.extend({
+    template: resultsDetailsTmpl,
+
+    regions: {
+        panelsRegion: '.tab-panels-region',
+        contentRegion: '.tab-contents-region'
+    },
+
+    onShow: function() {
+        this.panelsRegion.show(new ResultsTabPanelsView({
+            collection: this.collection
+        }));
+
+        this.contentRegion.show(new ResultsTabContentsView({
+            collection: this.collection
+        }));
+    }
+});
+
+// A model result tab
+var ResultsTabPanelView = Marionette.ItemView.extend({
+    tagName: 'li',
+    template: resultsTabPanelTmpl,
+    attributes: {
+        role: 'presentation'
+    }
+});
+
+// Tabs used to cycle through model results
+var ResultsTabPanelsView = Marionette.CollectionView.extend({
+    tagName: 'ul',
+    className: 'nav nav-tabs',
+    attributes: {
+        role: 'tablist'
+    },
+
+    childView: ResultsTabPanelView,
+
+    onRender: function() {
+        this.$el.find('li:first').addClass('active');
+    }
+});
+
+// Model result contents (i.e. charts and graphs)
+var ResultsTabContentView = Marionette.LayoutView.extend({
+    tagName: 'div',
+    className: 'tab-pane',
+    id: function() {
+        return this.model.get('name');
+    },
+    template: resultsTabContentTmpl,
+    attributes: {
+        role: 'tabpanel'
+    }
+});
+
+// Collection of model result tab contents
+var ResultsTabContentsView = Marionette.CollectionView.extend({
+    tagName: 'div',
+    className: 'tab-content',
+    childView: ResultsTabContentView,
     onRender: function() {
         this.$el.find('.tab-pane:first').addClass('active');
     }
