@@ -33,7 +33,7 @@ The `app` virtual machine contains an instance of the Django application, `servi
 Use the following command to bring up a local development environment:
 
 ```bash
-$ vagrant up
+$ MMW_ITSI_SECRET_KEY="***" vagrant up
 ```
 
 The application will now be running at [http://localhost:8000](http://localhost:8000).

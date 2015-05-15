@@ -23,3 +23,7 @@ statsite_host: "{{ services_ip }}"
 celery_log_level: "DEBUG"
 celery_number_of_workers: 2
 celery_processes_per_worker: 1
+
+itsi_base_url: "https://learn.staging.concord.org/"
+itsi_client_id: "model-my-watershed"
+itsi_secret_key: "{{ lookup('env', 'MMW_ITSI_SECRET_KEY') }}"
