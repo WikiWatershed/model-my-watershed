@@ -1,40 +1,46 @@
-<div class="modal-dialog modal-dialog-sm">
+<div class="modal-dialog modal-dialog-sm" id="login-modal">
     <div class="modal-content">
         <div class="modal-header">
             <h2 class="light">Model My Watershed</h2>
         </div>
         <div class="modal-body">
-            <div class="signup">
+            <div class="forgot">
+                <button type="button" class="btn btn-sm btn-default">Forgot?</button>
+            </div>
+            <div class="sign-up">
                 <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">Sign Up</button>
             </div>
-            {% if validationError %}
+            {% if validationErrors %}
                 <ul>
-                {% for error in validationError %}
-                    <li>{{ error }}</li>
-                {% endfor %}
+                    {% for error in validationErrors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
                 </ul>
-            {% endif %}
-            {% if signInError %}
-                <span class="error">Incorrect username or password</span>
             {% endif %}
             <form>
                 <div class="custom-input-group">
-                  <input name="username" type="text" id="id_username" required value="{{ username }}">
-                  <span class="highlight"></span>
-                  <span class="bar"></span>
-                  <label>Username</label>
+                    <input name="username" type="text" id="id_username" required value="{{ username }}">
+                    <span class="highlight"></span>
+                    <span class="bar"></span>
+                    <label>Username</label>
+                    {% if loginError %}
+                        <span class="error">Incorrect username or password</span>
+                    {% endif %}
                 </div>
                 <div class="custom-input-group">
-                  <input name="password" type="password" id="id_password" required value="{{ password }}">
-                  <span class="highlight"></span>
-                  <span class="bar"></span>
-                  <label>Password</label>
+                    <input name="password" type="password" id="id_password" required value="{{ password }}">
+                    <span class="highlight"></span>
+                    <span class="bar"></span>
+                    <label>Password</label>
+                    {% if loginError %}
+                        <span class="error">Incorrect username or password</span>
+                    {% endif %}
                 </div>
             </form>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-lg btn-block btn-primary margin-bottom-sm" data-dismiss="modal" id="continue-as-guest">Continue As Guest</button>
-            <button type="button" class="btn btn-lg btn-block btn-active" id="sign-in">Sign In</button>
+            <button type="button" class="btn btn-lg btn-block btn-active" id="login-button">Sign In</button>
         </div>
     </div>
 </div>

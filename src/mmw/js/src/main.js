@@ -44,7 +44,7 @@ App.on('start', function() {
     // but userViews requires App, so it's here
     // to avoid a circular requires.
     new userViews.LoginModalView({
-        el: '#login',
+        el: '#user-modal',
         model: new userModels.LoginFormModel({})
     }).render();
 });

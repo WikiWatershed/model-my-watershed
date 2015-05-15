@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 
 class TaskRunnerTestCase(LiveServerTestCase):
     HOMEPAGE_URL = 'http://localhost:8081/'
-    LOGIN_URL = 'http://localhost:8081/user/ajaxlogin'
+    LOGIN_URL = 'http://localhost:8081/user/login'
 
     def setUp(self):
         User.objects.create_user(username='bob', email='bob@azavea.com',

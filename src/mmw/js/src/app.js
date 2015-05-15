@@ -20,6 +20,7 @@ var App = new Marionette.Application({
         this.rootView = new views.RootView();
         this.user = new userModels.UserModel({});
         this.getUserOrShowLogin();
+
         var header = new views.HeaderView({
             el: 'header',
             model: this.user
@@ -54,13 +55,12 @@ var App = new Marionette.Application({
     },
 
     showLoginModal: function() {
-        $('#login').find('#id_username').val("");
-        $('#login').find('#id_password').val("");
-        $('#login').modal('show');
+        $('#user-modal').find('input').val('');
+        $('#user-modal').modal('show');
     },
 
     hideLoginModal: function() {
-        $('#login').modal('hide');
+        $('#user-modal').modal('hide');
     }
 });
 

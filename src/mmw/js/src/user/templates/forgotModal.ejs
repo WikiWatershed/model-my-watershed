@@ -1,0 +1,63 @@
+<div class="modal-dialog modal-dialog-sm" id="forgot-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="light">Model My Watershed</h2>
+        </div>
+        <div class="modal-body">
+            <% if (clientErrors) { %>
+                <ul>
+                    <% _.each(clientErrors, function(error) { %>
+                        <li><%= error %></li>
+                    <% }); %>
+                </ul>
+            <% } %>
+            <% if (serverErrors) { %>
+                <ul>
+                    <% _.each(serverErrors, function(error) { %>
+                        <li><%= error %></li>
+                    <% }); %>
+                </ul>
+            <% } %>
+            <% if (success) { %>
+                Please check your email to reset your account.
+            <% } else { %>
+                <form>
+                    <div class="custom-input-group">
+                        <input name="email" type="text" id="email" required value="<%= email %>">
+                        <span class="highlight"></span>
+                        <span class="bar"></span>
+                        <label>Email</label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <% if (username) { %>
+                                <input name="username" type="checkbox" id="username" checked>
+                            <% } else { %>
+                                <input name="username" type="checkbox" id="username">
+                            <% } %>
+                            Forgot Username
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <% if (password) { %>
+                                <input name="password" type="checkbox" id="password" checked>
+                            <% } else { %>
+                                <input name="password" type="checkbox" id="password">
+                            <% } %>
+                            Forgot Password
+                        </label>
+                    </div>
+                </form>
+            <% } %>
+        </div>
+
+        <div class="modal-footer">
+            <% if (success) { %>
+                <button type="button" class="btn btn-lg btn-block btn-active" data-dismiss="modal">Continue As Guest</button>
+            <% } else { %>
+                <button type="button" class="btn btn-lg btn-block btn-active" id="retrieve-button">Retrieve</button>
+            <% } %>
+        </div>
+    </div>
+</div>

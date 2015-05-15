@@ -43,7 +43,7 @@ describe('UserModalLogin', function() {
 
             loginView.$el.find('#id_username').val('');
             loginView.$el.find('#id_password').val('password');
-            loginView.$el.find('#sign-in').click();
+            loginView.$el.find('#login-button').click();
             var validationError = loginView.$el.find('ul li').first().text();
             assert.equal(validationError, 'Please enter a username', 'Could not find missing username message.');
         });
@@ -55,7 +55,7 @@ describe('UserModalLogin', function() {
 
             loginView.$el.find('#id_username').val('bob');
             loginView.$el.find('#id_password').val('');
-            loginView.$el.find('#sign-in').click();
+            loginView.$el.find('#login-button').click();
             var validationError = loginView.$el.find('ul li').first().text();
             assert.equal(validationError, 'Please enter a password', 'Could not find missing password message.');
         });
@@ -68,8 +68,8 @@ describe('UserModalLogin', function() {
 
             loginView.$el.find('#id_username').val('bad');
             loginView.$el.find('#id_password').val('apple');
-            loginView.$el.find('#sign-in').click();
-            var validationError = loginView.$el.find('span.error').text();
+            loginView.$el.find('#login-button').click();
+            var validationError = loginView.$el.find('span.error').first().text();
             assert.equal(validationError, 'Incorrect username or password', 'Could not find failed login message.');
         });
         it('logs the user in when there is a valid response', function() {
@@ -85,7 +85,7 @@ describe('UserModalLogin', function() {
 
             loginView.$el.find('#id_username').val(username);
             loginView.$el.find('#id_password').val(username);
-            loginView.$el.find('#sign-in').click();
+            loginView.$el.find('#login-button').click();
 
             assert.notOk(loginView.$el.is(':visible'), 'Modal should no longer be visible.');
             assert.equal(App.user.get('username'), username, 'Could not get username.');
