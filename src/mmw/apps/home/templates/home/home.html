@@ -1,25 +1,21 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<header> <!-- Search Header -->
-</header> <!-- End Search Header -->
+<header></header>
 {% endblock header %}
 
 {% block content %}
-<div class="container-fluid top-nav"> <!-- Container -->
-    <div id="sub-header"></div> <!-- Sub Header -->
-    <div id="search-map"> <!-- Search Tools -->
-        <div id="geocode-search-region"></div> <!-- Search Input -->
+    <div id="sub-header"></div>
+    <div id="search-map">
+        <div id="geocode-search-region"></div>
         <div id="draw-tools-region"></div>
-    </div> <!-- End Search Tools -->
+    </div>
 
-    <div id="map"></div> <!-- Leaflet Map -->
-
-</div> <!-- End Container -->
-
-<div class="modal modal-large fade" id="login" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="false">
-</div>
+    <div id="map"></div>
 {% endblock content %}
 
 {% block footer %}
 {% endblock footer %}
+
+<div class="modal modal-large fade" id="login" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="false">
+</div>

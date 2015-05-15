@@ -16,12 +16,14 @@
     {% block header %}
     {% endblock header %}
 
-    {% block content %}
-    {% endblock content %}
+    <div class="container-fluid top-nav">
+        {% block content %}
+        {% endblock content %}
 
-    <div id="footer">
-        {% block footer %}
-        {% endblock footer %}
+        <div id="footer">
+            {% block footer %}
+            {% endblock footer %}
+        </div>
     </div>
 
     {% block javascript %}
