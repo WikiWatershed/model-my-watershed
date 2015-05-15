@@ -10,5 +10,6 @@ urlpatterns = patterns(
     '',
     url(r'^$', home_page, name='home_page'),
     url(r'^analyze$', home_page, name='home_page'),
+    url(r'^model$', home_page, name='home_page'),
     url(r'^compare$', compare, name='compare'),
 )
