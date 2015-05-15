@@ -3,6 +3,10 @@
 var Backbone = require('../../shim/backbone');
 
 var UserModel = Backbone.Model.extend({
+    defaults: {
+        guest: true
+    },
+
     url: 'user/ajaxlogin'
 });
 

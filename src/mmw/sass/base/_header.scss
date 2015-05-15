@@ -38,13 +38,17 @@ header{
       list-style-type: none;
       display: inline-block;
 
-      li {
-        line-height: $height-lg;
+      li.header-link {
+        line-height: $height-lg !important;
         font-size: 0.7rem;
         font-weight: 300;
         margin-left: 1rem;
         display: inline-block;
         float: left;
+
+        .dropdown-menu a {
+          color: $ui-secondary;
+        }
 
         a{
           color: $paper-54;
