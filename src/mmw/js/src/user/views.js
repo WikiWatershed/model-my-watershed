@@ -76,14 +76,12 @@ var LoginModalView = Marionette.ItemView.extend({
 
     handleSignInSuccess: function() {
         this.$el.modal('hide');
-
-        // TODO: Temporary. For demo purposes only.
-        // This should be handled in a view for the header
-        $('.main li a:last').text(App.user.get('username'));
+        App.user.set('guest', false);
     },
 
     handleSignInFail: function() {
         this.model.set('signInError', true);
+        App.user.set('guest', true);
     },
 
     // TODO: Move this to a general helpers file if it's needed elsewhere

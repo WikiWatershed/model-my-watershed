@@ -4,7 +4,8 @@ var $ = require('jquery'),
     L = require('leaflet'),
     _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
-    TransitionRegion = require('../../shim/marionette.transition-region');
+    TransitionRegion = require('../../shim/marionette.transition-region'),
+    headerTmpl = require('./templates/header.ejs');
 
 /**
  * A basic view for showing a static message.
@@ -36,6 +37,29 @@ var RootView = Marionette.LayoutView.extend({
             selector: '#footer'
         }
     }
+});
+
+var HeaderView = Marionette.ItemView.extend({
+    template: headerTmpl,
+
+    ui: {
+        login: '.show-login'
+    },
+
+    events: {
+        'click @ui.login': 'showLogin'
+    },
+
+    modelEvents: {
+        'change': 'render'
+    },
+
+    showLogin: function() {
+        // Defer requiring app until needed as it is not defined when
+        // core.views are initialized (they are required in app.js)
+        require('../app').showLoginModal();
+    }
+
 });
 
 // This view houses a Leaflet instance. The map container element must exist
@@ -150,6 +174,7 @@ var MapView = Marionette.ItemView.extend({
 
 
 module.exports = {
+    HeaderView: HeaderView,
     MapView: MapView,
     RootView: RootView,
     StaticView: StaticView
