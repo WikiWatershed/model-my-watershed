@@ -293,6 +293,12 @@ REST_FRAMEWORK = {
 ACCOUNT_ACTIVATION_DAYS = 7  # One-week activation window.
 REGISTRATION_AUTO_LOGIN = True  # Automatically log the user in.
 
+# Add custom authentication classes
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'apps.user.backends.ItsiAuthenticationBackend',
+)
+
 # END THIRD-PARTY CONFIGURATION
 
 # Apps specific for this project go here.
