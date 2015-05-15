@@ -68,3 +68,6 @@ npm-debug.log
 
 # MacOS
 .DS_Store
+
+# PyCharm
+.idea
