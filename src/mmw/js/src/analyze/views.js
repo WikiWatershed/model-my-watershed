@@ -68,9 +68,11 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     showDetailsRegion: function() {
         var results = JSON.parse(this.model.get('result'));
 
-        this.detailsRegion.show(new DetailsView({
-            collection: new models.LayerCollection(results)
-        }));
+        if (!this.isDestroyed) {
+            this.detailsRegion.show(new DetailsView({
+                collection: new models.LayerCollection(results)
+            }));
+        }
     },
 
     transitionInCss: {
