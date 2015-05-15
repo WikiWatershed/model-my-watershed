@@ -9,7 +9,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from apps.predefined_shapes.models import District
+from apps.modeling.models import District
 
 
 class Command(BaseCommand):
@@ -25,7 +25,7 @@ class Command(BaseCommand):
         District.objects.all().delete()
 
         self.stdout.write('Importing district data')
-        shapes = '/opt/app/apps/predefined_shapes/fixtures/district*.json'
+        shapes = '/opt/app/apps/modeling/fixtures/district*.json'
         district_fixtures = glob(shapes)
         for fixture in district_fixtures:
             call_command('loaddata', fixture)

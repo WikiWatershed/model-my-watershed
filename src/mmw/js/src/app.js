@@ -49,14 +49,14 @@ function RestAPI() {
     return {
         getPredefinedShapes: function() {
             return $.ajax({
-                'url': '/api/congressional_districts',
+                'url': '/api/modeling/congressional_districts',
                 'type': 'GET'
             });
         },
 
         getPolygon: function(args) {
             return $.ajax({
-                'url': '/api/congressional_districts/id/' + args.id,
+                'url': '/api/modeling/congressional_districts/id/' + args.id,
                 'type': 'GET'
             });
         }
