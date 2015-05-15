@@ -1,5 +1,7 @@
 "use strict";
 
+require('../core/testInit.js');
+
 var _ = require('lodash'),
     $ = require('jquery'),
     assert = require('chai').assert,
