@@ -252,6 +252,11 @@ ROOT_URLCONF = '%s.urls' % SITE_NAME
 # END URL CONFIGURATION
 
 
+# TILER
+MMW_TILER_HOST = environ.get('MMW_TILER_HOST', environ.get('MMW_TILER_IP', 'localhost'))  # noqa
+MMW_TILER_PORT = environ.get('MMW_TILER_PORT', '4000')
+BOUNDARY_LAYERS = [{'display': 'Congressional Districts', 'name': 'tiles'}]
+
 # APP CONFIGURATION
 DJANGO_APPS = (
     # Default Django apps:

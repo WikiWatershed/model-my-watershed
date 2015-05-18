@@ -8,6 +8,8 @@ require('bootstrap-select');
 
 var L = require('leaflet');
 require('leaflet-draw');
+require('../shim/leaflet.utfgrid');
+
 // See: https://github.com/Leaflet/Leaflet/issues/766
 L.Icon.Default.imagePath = '/static/images/';
 

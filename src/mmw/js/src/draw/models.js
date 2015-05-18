@@ -6,8 +6,8 @@ var Backbone = require('../../shim/backbone'),
 var ToolbarModel = Backbone.Model.extend({
     defaults: {
         toolsEnabled: true,
-        // Array of { id, name } objects.
-        predefinedShapes: null
+        // Array of { id, name, url } objects.
+        predefinedShapeTypes: null
     },
 
     enableTools: function() {
