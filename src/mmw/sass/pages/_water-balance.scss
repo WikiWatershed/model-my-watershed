@@ -134,6 +134,7 @@
       display: block;
       width: 100%;
       text-align: right;
+      transition: height 0.3s ease;
 
       label{
         color: $paper;
