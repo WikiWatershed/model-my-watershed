@@ -1,6 +1,7 @@
 "use strict";
 
 require('../core/testInit.js');
+require('../../shim/leaflet.utfgrid');
 
 var _ = require('lodash'),
     $ = require('jquery'),
@@ -53,10 +54,10 @@ describe('Draw', function() {
             assert.equal($el.find('.disabled').size(), 0);
         });
 
-        // Simulate clicking a predefined shape in the "Select Area"
-        // control. That should fetch a polygon GeoJSON from the API
-        // and update the `areaOfInterest` property on the map model.
-        it('adds a layer to the map when an area of interest is chosen from the select area dropdown', function() {
+        // Simulate clicking on an item under the "Select by Boundary"
+        // control. That should make it possible to select an area of
+        // interest by clicking on the map.
+        it('adds a layer to the map when an area of interest is chosen by clicking on the map', function() {
             var sandbox = new SandboxRegion(),
                 $el = sandbox.$el,
                 model = new models.ToolbarModel(),
@@ -75,7 +76,7 @@ describe('Draw', function() {
 
             var $li = $($el.find('#select-area-region li a').get(0));
             $li.trigger('click');
-
+            App.getLeafletMap().fireEvent('click', {'latlng': [29.979, 31.134]});
             assert.equal(App.map.get('areaOfInterest'), TEST_SHAPE);
         });
     });
@@ -90,11 +91,14 @@ function populateSelectAreaDropdown($el, toolbarModel) {
     assertTextEqual($el, '#select-area-region button', 'Loading...');
 
     // Load some shapes...
-    toolbarModel.set('predefinedShapes', [
-        { id: 0, name: 'Test Shape' }
-    ]);
+    toolbarModel.set('predefinedShapeTypes', [
+    {
+        "endpoint": "http://localhost:4000/0/{z}/{x}/{y}",
+        "display": "Congressional Districts",
+        "name": "tiles"
+    }]);
 
     // This dropdown should now be populated.
-    assertTextEqual($el, '#select-area-region button', 'Select Area');
-    assertTextEqual($el, '#select-area-region li', 'Test Shape');
+    assertTextEqual($el, '#select-area-region button', 'Select by Boundary');
+    assertTextEqual($el, '#select-area-region li', 'Congressional Districts');
 }

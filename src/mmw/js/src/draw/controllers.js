@@ -19,8 +19,8 @@ var DrawController = {
                 model: toolbarModel
             });
 
-        App.restApi.getPredefinedShapes().then(function(data) {
-            toolbarModel.set('predefinedShapes', data.shapes);
+        App.restApi.getPredefinedShapeTypes().then(function(data) {
+            toolbarModel.set('predefinedShapeTypes', data);
         });
 
         App.rootView.geocodeSearchRegion.show(geocodeSearch);

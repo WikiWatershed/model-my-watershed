@@ -10,16 +10,23 @@ var dbUser = process.env.MMW_DB_USER,
     redisHost = process.env.MMW_CACHE_HOST,
     redisPort = process.env.MMW_CACHE_PORT;
 
+// N. B. These must be kept in sync with src/mmw/mmw/settings/base.py
+// and there must be a style in styles.mss for every table.  The table
+// keys (e.g. 0 for 'modeling_district') should be given
+// sequentially).
+var interactivity = {'modeling_district': 'state_short,id'},
+    tables = {0: 'modeling_district'};
+
 var config = {
-    base_url: '/tiles',
-    base_url_notable: '/tiles',
+    base_url: '/:tableId',
+    base_url_notable: '/:tableId',
     grainstore: {
         datasource: {
             user: dbUser,
             host: dbHost,
             port: dbPort,
             password: dbPass,
-            geometry_field: 'polygon', // TODO Change name.
+            geometry_field: 'geom',
             srid: 4326
         }
     },
@@ -35,20 +42,24 @@ var config = {
         port: redisPort
     },
     log_format: '{ "timestamp": ":date[iso]", "@fields": { "remote_addr": ":remote-addr", "body_bytes_sent": ":res[content-length]", "request_time": ":response-time", "status": ":status", "request": ":method :url HTTP/:http-version", "request_method": ":method", "http_referrer": ":referrer", "http_user_agent": ":user-agent" } }',
+
     beforeTileRender: function(req, res, callback) {
         callback(null);
     },
+
     afterTileRender: function(req, res, tile, headers, callback) {
         callback(null, tile, headers);
     },
+
     req2params: function(req, callback) {
         try {
-            // TODO make this dynamic.
-            req.params.table = 'predefined_shapes_district';
+            var tableId = req.params.tableId,
+                tableName = tables[tableId];
+
+            req.params.table = tableName;
             req.params.dbname = dbName;
             req.params.style = styles;
-            // TODO make this dynamic.
-            req.params.interactivity = 'state_short,id'; // TODO make this configurable for data set.
+            req.params.interactivity = interactivity[tableName];
             callback(null, req);
         } catch(err) {
             callback(err, null);

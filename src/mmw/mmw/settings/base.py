@@ -252,6 +252,17 @@ ROOT_URLCONF = '%s.urls' % SITE_NAME
 # END URL CONFIGURATION
 
 
+# TILER
+MMW_TILER_HOST = environ.get('MMW_TILER_HOST', 'localhost')
+MMW_TILER_PORT = environ.get('MMW_TILER_PORT', '4000')
+
+# N. B. This must be kept in sync with src/tiler/server.js.  In the
+# dictionary below, the keys are the table ids.
+BOUNDARY_LAYERS = {
+    '0': {'display': 'Congressional Districts',
+          'table_name': 'modeling_district'}
+}
+
 # APP CONFIGURATION
 DJANGO_APPS = (
     # Default Django apps:

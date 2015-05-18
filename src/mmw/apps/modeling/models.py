@@ -31,7 +31,7 @@ class District(models.Model):
     lsad = models.CharField(
         max_length=2,
         help_text='Legal/Statistical Area Description')
-    polygon = models.MultiPolygonField(
+    geom = models.MultiPolygonField(
         null=True,
         help_text='District polygon')
 
@@ -40,7 +40,7 @@ class District(models.Model):
 
     def __str__(self):
         dictionary = model_to_dict(self)
-        dictionary.pop('polygon', None)
+        dictionary.pop('geom', None)
         return str(dictionary)
 
 
