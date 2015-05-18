@@ -179,7 +179,7 @@
                         <img src="{% static 'images/water_balance/slider_min.png' %}" alt="slider min">
                     </label>
                     <div class="slider-wrapper col-md-8">
-                        <input class="slider" type="range" min="1" max="12" vaue="1">
+                        <input id="rain-slider" class="slider" type="range" min="0" max="4" value="2">
                     </div>
                     <label class="col-md-2">
                         <img src="{% static 'images/water_balance/slider_max.png' %}" alt="slider max">
@@ -191,7 +191,7 @@
             <div class="row pad-sm bdr-bottom"> <!-- Land Cover -->
                 <div class="pull-left"><p>Land Cover</p></div>
 
-                <ul class="nav" role="tablist"> <!-- Landcover Thumbs -->
+                <ul id="thumbs-land" class="nav" role="tablist"> <!-- Landcover Thumbs -->
 
                     <li id="thumb-lir" class="active"> <!-- LIR Thumb -->
                         <a href="#land-lir" aria-controls="filter-tab" role="tab" data-toggle="tab">
@@ -284,7 +284,7 @@
             <div class="row pad-sm"> <!-- SoilS -->
                 <div class="pull-left"><p>Soil</p></div>
 
-                <ul class="nav" role="tablist"> <!-- Soil Thumbs -->
+                <ul id="thumbs-soil" class="nav" role="tablist"> <!-- Soil Thumbs -->
 
                     <li id="thumb-sand" class="active"> <!-- Sand Thumb -->
                         <a href="#soil-sand" aria-controls="filter-tab" role="tab" data-toggle="tab">

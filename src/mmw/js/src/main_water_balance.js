@@ -361,4 +361,60 @@ var rainKey = ['0.5', '1', '2', '3.2', '8'];
 $(function() {
     R.Retina.init(window);
     $('[data-toggle="tooltip"]').tooltip();
+
+    // Cache references to DOM elements so as not to query them each time
+    var $et = $('#column-et');
+    var $r  = $('#column-r');
+    var $i  = $('#column-i');
+
+    var $thumbsLand = $('#thumbs-land');
+    var $thumbsSoil = $('#thumbs-soil');
+    var $rainSlider = $('#rain-slider');
+
+    var $precipText = $('#well-precip > h1');
+    var $evapoText = $('#well-evapo > h1');
+    var $runoffText = $('#well-runoff > h1');
+    var $infilText = $('#well-infil > h1');
+
+    var getType = function($el) {
+        // Return thumb type, after the 'thumb-' part of id
+        return $el.attr('id').substring(6);
+    };
+
+    var recalculate = function() {
+        var soil = getType($thumbsSoil.children('.active'));
+        var land = getType($thumbsLand.children('.active'));
+        var rain = rainKey[$rainSlider.val()];
+
+        var result = data[soil][land][rain];
+
+        $precipText.text(rain + '"');
+        $evapoText.text(result.et + '"');
+        $runoffText.text(result.r + '"');
+        $infilText.text(result.i + '"');
+
+        $et.css('height', (100 * result.et / parseFloat(rain)) + '%');
+        $r.css('height', (100 * result.r / parseFloat(rain)) + '%');
+        $i.css('height', (100 * result.i / parseFloat(rain)) + '%');
+
+        // Set border radius for middle Runoff div
+        // which has rounded borders whenever it is on the edge
+        // but not when it is in the middle
+        var topRadius = (result.et === 0) ? '0.3rem' : '0';
+        var bottomRadius = (result.i === 0) ? '0.3rem' : '0';
+
+        $r.css({
+            'border-top-left-radius': topRadius,
+            'border-top-right-radius': topRadius,
+            'border-bottom-left-radius': bottomRadius,
+            'border-bottom-right-radius': bottomRadius
+        });
+    };
+
+    // Wire up events
+    $rainSlider.change(recalculate);
+    $('a[data-toggle="tab"]').on('shown.bs.tab', recalculate);
+
+    // Trigger the first time page loads
+    recalculate();
 });
