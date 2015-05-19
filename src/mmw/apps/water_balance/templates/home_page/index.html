@@ -9,7 +9,7 @@
             <div class="brand"><a href="#">Model My Watershed</a></div>
             <div class="navigation">
                 <ul class="main">
-                    <li>
+                    <li class="header-link">
                         <div class="dropdown" data-toggle="tooltip" data-placement="bottom" title="Information">
                             <a class="main dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
                             <i class="fa fa-info-circle"></i>
@@ -28,7 +28,7 @@
 {% endblock header %}
 
 {% block content %}
-    <div id="water-balance" class="container-fluid top-nav"> <!-- Container -->
+    <div id="water-balance" class="container-fluid"> <!-- Container -->
 
         <div class="canvas"> <!-- Canvas -->
 
@@ -62,8 +62,8 @@
 
                     <!-- Effects -->
 
-                    <div id="effect-rain" class="animated fadeInDown">
-                        <img src="{% static 'images/water_balance/art_rain.png' %}" alt="rain">
+                    <div id="effect-precip" class="animated fadeInDown">
+                        <img src="{% static 'images/water_balance/art_precip.png' %}" alt="precipitation">
                     </div>
 
                     <div id="effect-evapo" class="animated fadeInUp">
@@ -104,8 +104,8 @@
                         <img src="{% static 'images/water_balance/art_land_rowCrops.png' %}" alt="Row Crops">
                     </div>
 
-                    <div id="land-chaparrel" role="tabpanel" class="tab-pane land"> <!-- chaparrel -->
-                        <img src="{% static 'images/water_balance/art_land_chaparrel.png' %}" alt="chaparrel">
+                    <div id="land-chaparral" role="tabpanel" class="tab-pane land"> <!-- chaparral -->
+                        <img src="{% static 'images/water_balance/art_land_chaparral.png' %}" alt="chaparral">
                     </div>
 
                     <div id="land-tallGrass" role="tabpanel" class="tab-pane land"> <!-- tallGrass -->
@@ -171,52 +171,52 @@
 
         <div class="sidebar">
 
-            <div class="row pad-sm bdr-bottom"> <!-- Rainfall Slider -->
+            <div class="row pad-sm bdr-bottom"> <!-- Precipitation Slider -->
                 <div class="pull-left"><p>Precipitation</p></div>
                 <br>
-                <div class="well-rain row">
+                <div class="well-precip row">
                     <label class="col-md-2">
                         <img src="{% static 'images/water_balance/slider_min.png' %}" alt="slider min">
                     </label>
                     <div class="slider-wrapper col-md-8">
-                        <input class="slider" type="range" min="1" max="12" vaue="1">
+                        <input id="precip-slider" class="slider" type="range" min="0" max="4" value="2">
                     </div>
                     <label class="col-md-2">
                         <img src="{% static 'images/water_balance/slider_max.png' %}" alt="slider max">
                     </label>
                 </div>
 
-            </div> <!-- End Rainfall Slider -->
+            </div> <!-- End Precipitation Slider -->
 
             <div class="row pad-sm bdr-bottom"> <!-- Land Cover -->
                 <div class="pull-left"><p>Land Cover</p></div>
 
-                <ul class="nav" role="tablist"> <!-- Landcover Thumbs -->
+                <ul id="thumbs-land" class="nav" role="tablist"> <!-- Landcover Thumbs -->
 
                     <li id="thumb-lir" class="active"> <!-- LIR Thumb -->
                         <a href="#land-lir" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_lir.png' %}" alt="low intensity residential">
+                            <img src="{% static 'images/water_balance/thumb_lir.png' %}" alt="Low Intensity Residential">
                         </a>
                         <label>LIR</label>
                     </li>
 
                     <li id="thumb-hir"> <!-- HIR Thumb -->
                         <a href="#land-hir" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_hir.png' %}" alt="high intensity residential">
+                            <img src="{% static 'images/water_balance/thumb_hir.png' %}" alt="High Intensity Residential">
                         </a>
                         <label>HIR</label>
                     </li>
 
                     <li id="thumb-commercial"> <!-- Commercial Thumb -->
                         <a href="#land-commercial" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_commercial.png' %}" alt="commercial">
+                            <img src="{% static 'images/water_balance/thumb_commercial.png' %}" alt="Commercial">
                         </a>
                         <label>Commercial</label>
                     </li>
 
                     <li id="thumb-grassland"> <!-- Grassland Thumb -->
                         <a href="#land-grassland" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_grassland.png' %}" alt="grasland">
+                            <img src="{% static 'images/water_balance/thumb_grassland.png' %}" alt="Grassland">
                         </a>
                         <label>Grassland</label>
                     </li>
@@ -237,7 +237,7 @@
 
                     <li id="thumb-pasture"> <!-- Pasture Thumb -->
                         <a href="#land-pasture" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_pasture.png' %}" alt="pasture">
+                            <img src="{% static 'images/water_balance/thumb_pasture.png' %}" alt="Pasture">
                         </a>
                         <label>Pasture</label>
                     </li>
@@ -249,11 +249,11 @@
                         <label>Row Crops</label>
                     </li>
 
-                    <li id="thumb-chaparrel"> <!-- Chaparrel Thumb -->
-                        <a href="#land-chaparrel" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_chaparrel.png' %}" alt="Chaparrel">
+                    <li id="thumb-chaparral"> <!-- chaparral Thumb -->
+                        <a href="#land-chaparral" aria-controls="filter-tab" role="tab" data-toggle="tab">
+                            <img src="{% static 'images/water_balance/thumb_chaparral.png' %}" alt="Chaparral">
                         </a>
-                        <label>Chaparrel</label>
+                        <label>Chaparral</label>
                     </li>
 
                     <li id="thumb-tallGrass"> <!-- TallGrass Thumb -->
@@ -265,9 +265,9 @@
 
                     <li id="thumb-shortGrass"> <!-- ShortGrass Thumb -->
                         <a href="#land-shortGrass" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_shortGrass.png' %}" alt="Short Grass prairie">
+                            <img src="{% static 'images/water_balance/thumb_shortGrass.png' %}" alt="Short Grass Prairie">
                         </a>
-                        <label>Short Grass prairie</label>
+                        <label>Short Grass Prairie</label>
                     </li>
 
                     <li id="thumb-desert"> <!-- Desert Thumb -->
@@ -284,7 +284,7 @@
             <div class="row pad-sm"> <!-- SoilS -->
                 <div class="pull-left"><p>Soil</p></div>
 
-                <ul class="nav" role="tablist"> <!-- Soil Thumbs -->
+                <ul id="thumbs-soil" class="nav" role="tablist"> <!-- Soil Thumbs -->
 
                     <li id="thumb-sand" class="active"> <!-- Sand Thumb -->
                         <a href="#soil-sand" aria-controls="filter-tab" role="tab" data-toggle="tab">
