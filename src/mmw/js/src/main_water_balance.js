@@ -11,7 +11,7 @@ var wbm = require('./water_balance/models');
 
 var initialize = function(model) {
     // Used to convert slider values into data keys
-    var rainKey = ['0.5', '1.0', '2.0', '3.2', '8.0'];
+    var precipKey = ['0.5', '1.0', '2.0', '3.2', '8.0'];
 
     // Cache references to DOM elements so as not to query them each time
     var $et = $('#column-et');
@@ -20,7 +20,7 @@ var initialize = function(model) {
 
     var $thumbsLand = $('#thumbs-land');
     var $thumbsSoil = $('#thumbs-soil');
-    var $rainSlider = $('#rain-slider');
+    var $precipSlider = $('#precip-slider');
 
     var $precipText = $('#well-precip > h1');
     var $evapoText = $('#well-evapo > h1');
@@ -35,18 +35,18 @@ var initialize = function(model) {
     var recalculate = function() {
         var soil = getType($thumbsSoil.children('.active'));
         var land = getType($thumbsLand.children('.active'));
-        var rain = rainKey[$rainSlider.val()];
+        var precip = precipKey[$precipSlider.val()];
 
-        var result = model[soil][land][rain];
+        var result = model[soil][land][precip];
 
-        $precipText.text(rain + '"');
+        $precipText.text(precip + '"');
         $evapoText.text(result.et + '"');
         $runoffText.text(result.r + '"');
         $infilText.text(result.i + '"');
 
-        $et.css('height', (100 * result.et / parseFloat(rain)) + '%');
-        $r.css('height', (100 * result.r / parseFloat(rain)) + '%');
-        $i.css('height', (100 * result.i / parseFloat(rain)) + '%');
+        $et.css('height', (100 * result.et / parseFloat(precip)) + '%');
+        $r.css('height', (100 * result.r / parseFloat(precip)) + '%');
+        $i.css('height', (100 * result.i / parseFloat(precip)) + '%');
 
         // Set border radius for middle Runoff div
         // which has rounded borders whenever it is on the edge
@@ -63,7 +63,7 @@ var initialize = function(model) {
     };
 
     // Wire up events
-    $rainSlider.on('input', recalculate);
+    $precipSlider.on('input', recalculate);
     $('a[data-toggle="tab"]').on('shown.bs.tab', recalculate);
 
     // Trigger the first time page loads

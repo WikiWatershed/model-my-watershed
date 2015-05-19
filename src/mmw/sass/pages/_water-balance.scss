@@ -89,7 +89,7 @@
 
   //Effects ==========================================
 
-  #effect-rain{
+  #effect-precip{
     position: absolute;
     top: 90px;
     z-index: 100;
@@ -221,7 +221,7 @@
     }
   }
 
-  .well-rain{
+  .well-precip{
     background-color: $sky-blue;
     border-radius: 0.3rem;
     padding: 16px 6px;
