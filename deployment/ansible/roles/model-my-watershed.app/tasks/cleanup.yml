@@ -1,0 +1,2 @@
+- name: Delete *.pyc files
+  shell: find {{ app_home }} -iname "*.pyc" -exec rm -f {} \;
