@@ -24,7 +24,8 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     initialize: function() {
         var self = this;
 
-        this.model.fetch({ method: 'POST' })
+        if (!this.model.get('result')) {
+            this.model.fetch({ method: 'POST' })
                 .done(function() {
                     self.model.pollForResults()
                         .done(_.bind(self.showDetailsRegion, self))
@@ -39,6 +40,12 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
                     // TODO: Show an error message across the whole
                     // analyze window
                 });
+        } else {
+            this.lock = $.Deferred();
+            this.lock.done(function() {
+                self.showDetailsRegion();
+            });
+        }
     },
 
     regions: {
@@ -61,9 +68,11 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     showDetailsRegion: function() {
         var results = JSON.parse(this.model.get('result'));
 
-        this.detailsRegion.show(new DetailsView({
-            collection: new models.LayerCollection(results)
-        }));
+        if (!this.isDestroyed) {
+            this.detailsRegion.show(new DetailsView({
+                collection: new models.LayerCollection(results)
+            }));
+        }
     },
 
     transitionInCss: {
@@ -77,6 +86,9 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
             self.trigger('animateIn');
             App.map.set('halfSize', true);
         });
+        if (this.lock !== undefined) {
+            this.lock.resolve();
+        }
     },
 
     animateOut: function() {

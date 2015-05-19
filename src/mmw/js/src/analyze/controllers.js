@@ -8,6 +8,10 @@ var $ = require('jquery'),
     views = require('./views'),
     models = require('./models');
 
+var createTaskModel = _.memoize(function(aoi) {
+    return new models.AnalyzeTaskModel();
+});
+
 var AnalyzeController = {
     analyzePrepare: function() {
         if (!App.map.get('areaOfInterest')) {
@@ -17,12 +21,12 @@ var AnalyzeController = {
     },
 
     analyze: function() {
-        var taskModel = new models.AnalyzeTaskModel(),
-            rootView = App.rootView,
-            analyzeWindow = new views.AnalyzeWindow({
-                id: 'analyze-output-wrapper',
-                model: taskModel
-            });
+        var aoi = JSON.stringify(App.map.get('areaOfInterest'));
+
+        var analyzeWindow = new views.AnalyzeWindow({
+            id: 'analyze-output-wrapper',
+            model: createTaskModel(aoi)
+        });
 
         App.rootView.footerRegion.show(analyzeWindow);
     },
