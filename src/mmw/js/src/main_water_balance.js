@@ -412,7 +412,7 @@ $(function() {
     };
 
     // Wire up events
-    $rainSlider.change(recalculate);
+    $rainSlider.on('input', recalculate);
     $('a[data-toggle="tab"]').on('shown.bs.tab', recalculate);
 
     // Trigger the first time page loads
