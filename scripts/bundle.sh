@@ -8,4 +8,4 @@ set -x
 ARGS=$*
 
 vagrant ssh app -c "cd /opt/app && \
-    sudo envdir /etc/mmw.d/env ./bundle.sh $ARGS"
+    envdir /etc/mmw.d/env ./bundle.sh $ARGS"

@@ -1,8 +1,8 @@
 ---
 - name: Create folders for static files
-  file: path={{ item }}
+  file: path="{{ item }}"
         state=directory
-        owner=root
+        owner="{{ ansible_ssh_user }}"
         group=mmw
         mode=0775
   with_items:
@@ -14,26 +14,31 @@
   command: npm install --unsafe-perm
   args:
     chdir: "{{ app_home }}"
+  sudo: False
 
 - name: Create static files and run collectstatic (staging/production)
-  command: envdir {{ app_config_home }} ./bundle.sh
+  command: "./bundle.sh"
   args:
     chdir: "{{ app_home }}"
+  environment: app_config
+  sudo: False
   when: "['development'] | is_not_in(group_names)"
 
 - name: Create static files and run collectstatic (development)
-  command: envdir {{ app_config_home }} ./bundle.sh --debug
+  command: "./bundle.sh --debug"
   args:
     chdir: "{{ app_home }}"
+  environment: app_config
+  sudo: False
   when: "['development'] | is_in(group_names)"
 
 - name: Run Django collectstatic command
-  command: envdir {{ app_config_home }} ./manage.py collectstatic --noinput
-  args:
-    chdir: "{{ app_home }}"
+  django_manage: command=collectstatic app_path="{{ app_home }}"
+  environment: app_config
+  sudo: False
 
-- name: Create JS test harness
+- name: Create JavaScript test harness
   template: src=testem-harness.html.j2
             dest={{ app_static_root }}/test.html
-  sudo_user: mmw
+  sudo: False
   when: "['development', 'test'] | some_are_in(group_names)"

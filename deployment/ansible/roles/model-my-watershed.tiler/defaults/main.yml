@@ -4,14 +4,14 @@ tiler_config_home: /etc/mmw.d/env
 tiler_deploy_branch: "master"
 
 tiler_config:
-  - { file: "MMW_DB_USER", content: "{{ postgresql_username }}" }
-  - { file: "MMW_DB_NAME", content: "{{ postgresql_database }}" }
-  - { file: "MMW_DB_PASSWORD", content: "{{ postgresql_password }}" }
-  - { file: "MMW_DB_HOST", content: "{{ postgresql_host }}" }
-  - { file: "MMW_DB_PORT", content: "{{ postgresql_port }}" }
-  - { file: "MMW_STATSD_HOST", content: "{{ statsite_host }}" }
-  - { file: "MMW_REDIS_HOST", content: "{{ redis_host }}" }
-  - { file: "MMW_REDIS_PORT", content: "{{ redis_port }}" }
+  MMW_DB_USER: "{{ postgresql_username }}"
+  MMW_DB_NAME: "{{ postgresql_database }}"
+  MMW_DB_PASSWORD: "{{ postgresql_password }}"
+  MMW_DB_HOST: "{{ postgresql_host }}"
+  MMW_DB_PORT: "{{ postgresql_port }}"
+  MMW_STATSD_HOST: "{{ statsite_host }}"
+  MMW_REDIS_HOST: "{{ redis_host }}"
+  MMW_REDIS_PORT: "{{ redis_port }}"
 
 tiler_log: /var/log/mmw-tiler.log
 tiler_log_rotate_count: 5

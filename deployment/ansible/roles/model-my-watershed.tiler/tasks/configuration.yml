@@ -6,19 +6,11 @@
         shell=/bin/false
         state=present
 
-- name: Add Vagrant user to the mmw group
-  user: name=vagrant
+- name: Add Ansible SSH user to the mmw group
+  user: name={{ ansible_ssh_user }}
         append=yes
         group=mmw
         state=present
-  when: "['development', 'test'] | some_are_in(group_names)"
-
-- name: Add Ubuntu user to the mmw group
-  user: name=ubuntu
-        append=yes
-        group=mmw
-        state=present
-  when: "['packer'] | is_in(group_names)"
 
 - name: Create configuration file directory
   file: path={{ tiler_config_home }}
@@ -28,12 +20,12 @@
         state=directory
 
 - name: Configure application
-  copy: content={{ item.content }}
-        dest={{ tiler_config_home }}/{{ item.file }}
+  copy: content={{ item.value }}
+        dest={{ tiler_config_home }}/{{ item.key }}
         owner=root
         group=mmw
         mode=0750
-  with_items: tiler_config
+  with_dict: tiler_config
   notify:
     - Restart mmw-tiler
 

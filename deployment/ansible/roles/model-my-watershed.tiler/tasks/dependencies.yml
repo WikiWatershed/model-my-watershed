@@ -7,9 +7,10 @@
     - "libjpeg8-dev=8c*"
     - "libgif-dev=4.1.*"
 
-- name: Install tiler javascript dependencies
+- name: Install Windshaft JavaScript dependencies
   command: npm install --unsafe-perm
   args:
     chdir: "{{ tiler_home }}"
   environment:
     PKG_CONFIG_PATH: "/usr/lib/pkgconfig/pycairo.pc"
+  sudo: False
