@@ -57,6 +57,8 @@ var App = new Marionette.Application({
     },
 
     showLoginModal: function() {
+        $('#login').find('#id_username').val("");
+        $('#login').find('#id_password').val("");
         $('#login').modal('show');
     },
 
