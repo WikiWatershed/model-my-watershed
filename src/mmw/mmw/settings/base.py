@@ -293,6 +293,12 @@ REST_FRAMEWORK = {
 ACCOUNT_ACTIVATION_DAYS = 7  # One-week activation window.
 REGISTRATION_AUTO_LOGIN = True  # Automatically log the user in.
 
+# Add custom authentication classes
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'apps.user.backends.ItsiAuthenticationBackend',
+)
+
 # END THIRD-PARTY CONFIGURATION
 
 # Apps specific for this project go here.
@@ -342,3 +348,14 @@ OMGEO_SETTINGS = [[
         ]
     }
 ]]
+
+# ITSI Portal Settings
+ITSI = {
+    'client_id': environ.get('ITSI_CLIENT_ID', 'model-my-watershed'),
+    'client_secret': environ.get('ITSI_SECRET_KEY', 'itsi_secret_key'),
+    'base_url': environ.get('ITSI_BASE_URL',
+                            'http://learn.staging.concord.org/'),
+    'authorize_url': 'auth/concord_id/authorize',
+    'access_token_url': 'auth/concord_id/access_token',
+    'user_json_url': 'auth/concord_id/user.json',
+}
