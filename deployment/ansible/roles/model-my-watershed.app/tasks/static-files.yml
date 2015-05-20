@@ -10,8 +10,8 @@
     - "{{ app_media_root }}"
     - "{{ app_static_cache }}"
 
-- name: Install application javascript dependencies
-  command: npm install
+- name: Install application JavaScript dependencies
+  command: npm install --unsafe-perm
   args:
     chdir: "{{ app_home }}"
 
