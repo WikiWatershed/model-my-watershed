@@ -27,7 +27,7 @@
     "leaflet": "0.7.3",
     "leaflet-draw": "0.2.3",
     "lodash": "3.6.0",
-    "node-sass": "git://github.com/sass/node-sass#v3.0.0-pre",
+    "node-sass": "3.1.1",
     "underscore": "1.8.3",
     "watchify": "3.1.0",
     "chai": "1.10.0",
