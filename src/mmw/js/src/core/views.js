@@ -51,6 +51,7 @@ var HeaderView = Marionette.ItemView.extend({
     },
 
     modelEvents: {
+        'sync'  : 'render',
         'change': 'render'
     },
 
