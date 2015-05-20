@@ -1,7 +1,9 @@
 "use strict";
 
 var $ = require('jquery'),
+    _ = require('lodash'),
     Marionette = require('../shim/backbone.marionette'),
+    helpers = require('./helpers'),
     views = require('./core/views'),
     models = require('./core/models'),
     userModels = require('./user/models');
@@ -18,7 +20,7 @@ var App = new Marionette.Application({
 
         this.rootView = new views.RootView();
         this.user = new userModels.UserModel({});
-        this.showLoginModal();
+        this.getUserOrShowLogin();
         var header = new views.HeaderView({
             el: 'header',
             model: this.user
@@ -38,6 +40,20 @@ var App = new Marionette.Application({
 
     getLeafletMap: function() {
         return this._mapView._leafletMap;
+    },
+
+    getUserOrShowLogin: function() {
+        var csrftoken = helpers.Cookie.get('csrftoken');
+
+        this.user.fetch({
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader('X-CSRFToken', csrftoken);
+            }
+        }).always(function() {
+            if (App.user.get('guest')) {
+                App.showLoginModal();
+            }
+        });
     },
 
     showLoginModal: function() {
