@@ -4,6 +4,7 @@ var _ = require('underscore'),
     $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
+    helpers = require('../helpers'),
     models = require('./models'),
     loginModalTmpl = require('./templates/loginModal.ejs');
 
@@ -56,14 +57,14 @@ var LoginModalView = Marionette.ItemView.extend({
     },
 
     signIn: function() {
-        var crsftoken = this.getCookie('csrftoken'),
+        var csrftoken = helpers.Cookie.get('csrftoken'),
             formData = this.$el.find('form').serialize();
 
         App.user.fetch({
             method: 'POST',
             data: formData,
             beforeSend: function(xhr) {
-                xhr.setRequestHeader('X-CSRFToken', crsftoken);
+                xhr.setRequestHeader('X-CSRFToken', csrftoken);
             }
         })
         .done(_.bind(this.handleSignInSuccess, this))
@@ -82,25 +83,6 @@ var LoginModalView = Marionette.ItemView.extend({
     handleSignInFail: function() {
         this.model.set('signInError', true);
         App.user.set('guest', true);
-    },
-
-    // TODO: Move this to a general helpers file if it's needed elsewhere
-    // Source: https://docs.djangoproject.com/en/dev/ref/csrf/#ajax
-    getCookie: function(name) {
-        var cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            var cookies = document.cookie.split(';');
-            for (var i = 0; i < cookies.length; i++) {
-                var cookie = $.trim(cookies[i]);
-                // Does this cookie string begin with the name we want?
-                if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-
-        return cookieValue;
     }
 });
 
