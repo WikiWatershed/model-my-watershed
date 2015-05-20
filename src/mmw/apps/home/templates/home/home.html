@@ -12,10 +12,13 @@
     </div>
 
     <div id="map"></div>
+
 {% endblock content %}
 
 {% block footer %}
 {% endblock footer %}
 
-<div class="modal modal-large fade" id="login" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="false">
-</div>
+{% block modals %}
+    <div class="modal modal-large fade" id="login" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="false">
+    </div>
+{% endblock modals %}
