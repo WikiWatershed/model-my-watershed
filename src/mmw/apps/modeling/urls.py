@@ -21,6 +21,5 @@ urlpatterns = patterns(
     url(r'jobs/' + uuid_regex, views.get_job, name='get_job'),
     url(r'start/tr55/$', views.start_tr55, name='start_tr55'),
     url(r'boundary_layers/$', views.boundary_layers, name='boundary_layers'),
-    url(r'congressional_districts$', views.district, name='district'),
     url(r'congressional_districts/id/(?P<id>[0-9]+)$', views.district, name='district'),  # noqa
 )

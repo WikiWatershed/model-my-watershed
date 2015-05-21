@@ -11,8 +11,8 @@ var dbUser = process.env.MMW_DB_USER,
     redisPort = process.env.MMW_REDIS_PORT;
 
 var config = {
-    base_url: '/tiles',
-    base_url_notable: '/tiles',
+    base_url: '/congress',
+    base_url_notable: '/congress',
     grainstore: {
         datasource: {
             user: dbUser,
@@ -24,7 +24,7 @@ var config = {
         }
     },
     renderCache: {
-        ttl: 60000, // seconds
+        ttl: 1, // seconds
     },
     mapnik: {
         metatile: 4,
@@ -44,7 +44,7 @@ var config = {
     req2params: function(req, callback) {
         try {
             // TODO make this dynamic.
-            req.params.table = 'predefined_shapes_district';
+            req.params.table = 'modeling_district';
             req.params.dbname = dbName;
             req.params.style = styles;
             // TODO make this dynamic.

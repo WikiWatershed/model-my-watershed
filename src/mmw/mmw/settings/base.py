@@ -255,7 +255,7 @@ ROOT_URLCONF = '%s.urls' % SITE_NAME
 # TILER
 MMW_TILER_HOST = environ.get('MMW_TILER_HOST', environ.get('MMW_TILER_IP', 'localhost'))  # noqa
 MMW_TILER_PORT = environ.get('MMW_TILER_PORT', '4000')
-BOUNDARY_LAYERS = [{'display': 'Congressional Districts', 'name': 'tiles'}]
+BOUNDARY_LAYERS = [{'display': 'Congressional Districts', 'name': 'congress'}]
 
 # APP CONFIGURATION
 DJANGO_APPS = (

@@ -96,7 +96,7 @@ function populateSelectAreaDropdown($el, toolbarModel) {
     // Load some shapes...
     toolbarModel.set('predefinedShapeTypes', [
     {
-        "endpoint": "http://localhost:4000/tiles/{z}/{x}/{y}",
+        "endpoint": "http://localhost:4000/congress/{z}/{x}/{y}",
         "display": "Congressional Districts",
         "name": "tiles"
     }]);
