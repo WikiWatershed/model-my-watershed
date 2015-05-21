@@ -5,16 +5,17 @@ from __future__ import division
 
 import requests
 
-from django.test import TestCase
+from django.test import LiveServerTestCase
 from django.contrib.auth.models import User
 
 
-class TaskRunnerTestCase(TestCase):
-    HOMEPAGE_URL = 'http://localhost:80/'
-    LOGIN_URL = 'http://localhost:80/user/ajaxlogin'
+class TaskRunnerTestCase(LiveServerTestCase):
+    HOMEPAGE_URL = 'http://localhost:8081/'
+    LOGIN_URL = 'http://localhost:8081/user/ajaxlogin'
 
     def setUp(self):
-        User.objects.create_user('bob', 'bob@azavea.com', 'bob')
+        User.objects.create_user(username='bob', email='bob@azavea.com',
+                                 password='bob')
 
     def get_token(self):
         try:
