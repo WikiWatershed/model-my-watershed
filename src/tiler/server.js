@@ -7,8 +7,8 @@ var dbUser = process.env.MMW_DB_USER,
     dbHost = process.env.MMW_DB_HOST,
     dbName = process.env.MMW_DB_NAME,
     dbPort = process.env.MMW_DB_PORT,
-    redisHost = process.env.MMW_REDIS_HOST,
-    redisPort = process.env.MMW_REDIS_PORT;
+    redisHost = process.env.MMW_CACHE_HOST,
+    redisPort = process.env.MMW_CACHE_PORT;
 
 var config = {
     base_url: '/tiles',

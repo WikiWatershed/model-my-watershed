@@ -7,8 +7,6 @@
       apt: update_cache=yes cache_valid_time=3600
 
   roles:
-    - { role: "model-my-watershed.common" }
-
     - { role: "model-my-watershed.postgresql", when: "['development', 'test'] | some_are_in(group_names)" }
     - { role: "model-my-watershed.pgweb", when: "['development', 'test'] | some_are_in(group_names)" }
     - { role: "azavea.redis", when: "['development', 'test'] | some_are_in(group_names)" }

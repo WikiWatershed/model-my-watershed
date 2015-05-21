@@ -11,7 +11,7 @@
     - "{{ app_static_cache }}"
 
 - name: Install application JavaScript dependencies
-  command: npm install --unsafe-perm
+  command: "npm install --unsafe-perm"
   args:
     chdir: "{{ app_home }}"
   sudo: False
@@ -39,6 +39,6 @@
 
 - name: Create JavaScript test harness
   template: src=testem-harness.html.j2
-            dest={{ app_static_root }}/test.html
+            dest="{{ app_static_root }}/test.html"
   sudo: False
   when: "['development', 'test'] | some_are_in(group_names)"

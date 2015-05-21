@@ -1,27 +1,7 @@
 ---
-- name: Create service account for application
-  user: name=mmw
-        system=yes
-        home=/var/lib/mmw
-        shell=/bin/false
-        state=present
-
-- name: Add Ansible SSH user to the mmw group
-  user: name={{ ansible_ssh_user }}
-        append=yes
-        group=mmw
-        state=present
-
-- name: Create configuration file directory
-  file: path={{ app_config_home }}
-        owner=root
-        group=mmw
-        mode=0750
-        state=directory
-
 - name: Configure application
-  copy: content={{ item.value }}
-        dest={{ app_config_home }}/{{ item.key }}
+  copy: content="{{ item.value }}"
+        dest="{{ envdir_home }}/{{ item.key }}"
         owner=root
         group=mmw
         mode=0750

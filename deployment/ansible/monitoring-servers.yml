@@ -7,8 +7,6 @@
       apt: update_cache=yes cache_valid_time=3600
 
   roles:
-    - { role: "model-my-watershed.common" }
-
     - { role: "model-my-watershed.graphite", when: "['test'] | is_not_in(group_names)" }
     - { role: "model-my-watershed.logstash", when: "['test'] | is_not_in(group_names)" }
     - { role: "azavea.kibana", when: "['test'] | is_not_in(group_names)" }

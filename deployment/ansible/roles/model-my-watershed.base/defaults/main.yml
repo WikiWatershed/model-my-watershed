@@ -1,0 +1,11 @@
+envdir_home: "/etc/mmw.d/env"
+
+envdir_config:
+  MMW_DB_NAME: "{{ postgresql_database }}"
+  MMW_DB_USER: "{{ postgresql_username }}"
+  MMW_DB_PASSWORD: "{{ postgresql_password }}"
+  MMW_DB_HOST: "{{ postgresql_host }}"
+  MMW_DB_PORT: "{{ postgresql_port }}"
+  MMW_STATSD_HOST: "{{ statsite_host }}"
+  MMW_CACHE_HOST: "{{ redis_host }}"
+  MMW_CACHE_PORT: "{{ redis_port }}"

@@ -88,7 +88,7 @@ DATABASES = {
         'PASSWORD': environ.get('MMW_DB_PASSWORD', 'mmw'),
         'HOST': environ.get('MMW_DB_HOST', 'localhost'),
         'PORT': environ.get('MMW_DB_PORT', 5432),
-        'TEST_NAME': environ.get('MMW_TEST_DB_NAME', 'test_mmw')
+        'TEST_NAME': environ.get('DJANGO_TEST_DB_NAME', 'test_mmw')
     }
 }
 

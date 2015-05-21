@@ -13,7 +13,6 @@
       when: "['packer'] | is_in(group_names)"
 
   roles:
-    - { role: "model-my-watershed.common" }
     - { role: "model-my-watershed.app" }
 
   post_tasks:
