@@ -3,7 +3,6 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     Marionette = require('../shim/backbone.marionette'),
-    helpers = require('./helpers'),
     views = require('./core/views'),
     models = require('./core/models'),
     userModels = require('./user/models');
@@ -43,13 +42,7 @@ var App = new Marionette.Application({
     },
 
     getUserOrShowLogin: function() {
-        var csrftoken = helpers.Cookie.get('csrftoken');
-
-        this.user.fetch({
-            beforeSend: function(xhr) {
-                xhr.setRequestHeader('X-CSRFToken', csrftoken);
-            }
-        }).always(function() {
+        this.user.fetch().always(function() {
             if (App.user.get('guest')) {
                 App.showLoginModal();
             }
