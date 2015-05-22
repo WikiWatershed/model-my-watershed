@@ -8,8 +8,11 @@ from rest_framework.permissions import AllowAny
 
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
+from django.conf import settings
 
 from celery import chain
+
+from urlparse import urljoin
 
 from apps.core.models import Job
 from apps.core.task_helpers import save_job_error, save_job_result
@@ -102,18 +105,31 @@ def _initiate_tr55_job_chain(model_input, job_id):
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
 def district(request, id=None, state=None):
-    if id:  # query by unique id
-        district = get_object_or_404(District, id=id)
-        coordinates = []
-        for polygon in district.polygon.coords:
-            coordinates.append(polygon[0])
-        dictionary = {'type': 'Feature',
-                      'properties': {},
-                      'geometry': {'type': 'Polygon',
-                                   'coordinates': coordinates}}
-        return Response(dictionary)
-    else:  # provide list of all ids
-        shapes = District.objects.order_by('state_fips', 'district_fips')
-        shapes = [{'id': shape.id, 'name': shape.name()} for shape in shapes]
-        dictionary = {'shapes': shapes}
-        return Response(dictionary)
+    district = get_object_or_404(District, id=id)
+    coordinates = []
+    for polygon in district.polygon.coords:
+        coordinates.append(polygon[0])
+    dictionary = {'type': 'Feature',
+                  'properties': {},
+                  'geometry': {'type': 'Polygon',
+                               'coordinates': coordinates}}
+    return Response(dictionary)
+
+
+@decorators.api_view(['GET'])
+@decorators.permission_classes((AllowAny, ))
+def boundary_layers(request, id=None, state=None):
+    tiler_prefix = '//'
+    tiler_host = getattr(settings, 'MMW_TILER_HOST')
+    tiler_port = getattr(settings, 'MMW_TILER_PORT')
+    tiler_postfix = '/{z}/{x}/{y}'
+    tiler_base = tiler_prefix + tiler_host + ':' + tiler_port
+
+    def augment(d):
+        retval = d.copy()
+        retval['endpoint'] = urljoin(tiler_base, d['name'] + tiler_postfix)
+        return retval
+
+    layers = [augment(d) for d in getattr(settings, 'BOUNDARY_LAYERS')]
+
+    return Response(layers)

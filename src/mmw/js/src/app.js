@@ -69,16 +69,17 @@ var App = new Marionette.Application({
 
 function RestAPI() {
     return {
-        getPredefinedShapes: function() {
+        getPredefinedShapeTypes: function() {
             return $.ajax({
-                'url': '/api/modeling/congressional_districts',
+                'url': '/api/modeling/boundary_layers/',
                 'type': 'GET'
             });
         },
 
         getPolygon: function(args) {
+            var url = '/api/modeling/congressional_districts/id/' + args.id;
             return $.ajax({
-                'url': '/api/modeling/congressional_districts/id/' + args.id,
+                'url': url,
                 'type': 'GET'
             });
         }

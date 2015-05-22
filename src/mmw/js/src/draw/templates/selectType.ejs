@@ -1,12 +1,12 @@
 <div id="predefined-shape" class="dropdown">
   <button class="btn btn-md btn-search-tool dropdown-toggle<% if (!toolsEnabled) { %> disabled<% } %>"
       type="button" data-toggle="dropdown" aria-expanded="true">
-    Select Area
+    Select by Boundary
     <span class="caret"></span>
   </button>
   <ul class="dropdown-menu menu-left" role="menu" aria-labelledby="select-area" id="wrapper">
-  <% _.each(predefinedShapes, function(item) { %>
-      <li role="presentation"><a role="menuitem" tabindex="-1" href="#" data-shape-id="<%- item.id %>"><%- item.name %></a></li>
+  <% _.each(predefinedShapeTypes, function(item) { %>
+      <li role="presentation"><a role="menuitem" tabindex="-1" href="#" data-endpoint="<%- item.endpoint %>"><%- item.display %></a></li>
   <% }) %>
   </ul>
 </div>

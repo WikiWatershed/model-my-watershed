@@ -9,7 +9,7 @@ var _ = require('lodash'),
     models = require('./models'),
     toolbarTmpl = require('./templates/toolbar.ejs'),
     loadingTmpl = require('./templates/loading.ejs'),
-    selectAreaTmpl = require('./templates/selectArea.ejs'),
+    selectTypeTmpl = require('./templates/selectType.ejs'),
     drawAreaTmpl = require('./templates/drawArea.ejs'),
     placeMarkerTmpl = require('./templates/placeMarker.ejs');
 
@@ -19,13 +19,13 @@ var ToolbarView = Marionette.LayoutView.extend({
     template: toolbarTmpl,
 
     regions: {
-        selectAreaRegion: '#select-area-region',
+        selectTypeRegion: '#select-area-region',
         drawAreaRegion: '#draw-area-region',
         placeMarkerRegion: '#place-marker-region'
     },
 
     onShow: function() {
-        this.selectAreaRegion.show(new SelectAreaView({
+        this.selectTypeRegion.show(new SelectAreaView({
             model: this.model
         }));
         this.drawAreaRegion.show(new DrawAreaView({
@@ -67,7 +67,7 @@ function conformMapToShape(shape) {
 
 var SelectAreaView = Marionette.ItemView.extend({
     ui: {
-        'items': '[data-shape-id]',
+        'items': '[data-endpoint]',
         'button': '#predefined-shape'
     },
 
@@ -82,26 +82,15 @@ var SelectAreaView = Marionette.ItemView.extend({
     onItemClicked: function(e) {
         var self = this,
             $el = $(e.target),
-            shapeId = $el.data('shape-id'),
-            revertLayer = clearLayer();
-        this.model.disableTools();
-        App.restApi.getPolygon({
-            id: shapeId
-        }).then(function(shape) {
-            addLayer(shape);
-            navigateToAnalyze();
-        }).fail(function() {
-            revertLayer();
-        }).always(function() {
-            self.model.enableTools();
-        });
+            endpoint = $el.data('endpoint');
 
+        changeOutlineLayer(endpoint, this.model);
         e.preventDefault();
     },
 
     getTemplate: function() {
-        var shapes = this.model.get('predefinedShapes');
-        return !shapes ? loadingTmpl : selectAreaTmpl;
+        var types = this.model.get('predefinedShapeTypes');
+        return !types ? loadingTmpl : selectTypeTmpl;
     }
 });
 
@@ -123,6 +112,8 @@ var DrawAreaView = Marionette.ItemView.extend({
     onButtonPressed: function() {
         var self = this,
             revertLayer = clearLayer();
+
+        changeOutlineLayer();
         this.model.disableTools();
         drawPolygon().then(function(shape) {
             addLayer(shape);
@@ -156,6 +147,8 @@ var PlaceMarkerView = Marionette.ItemView.extend({
             $el = $(e.target),
             shapeType = $el.data('shape-type'),
             revertLayer = clearLayer();
+
+        changeOutlineLayer();
         this.model.disableTools();
         placeMarker().then(function(latlng) {
             App.restApi.getPolygon({
@@ -176,7 +169,55 @@ var PlaceMarkerView = Marionette.ItemView.extend({
     }
 });
 
-function clearLayer(layer) {
+function changeOutlineLayer(endpoint,select) {
+    var map = App.getLeafletMap(),
+        ol = App.outlineLayer,
+        grid = App.utfGrid;
+
+    if (ol) {
+        map.removeLayer(ol);
+    }
+
+    if (grid) {
+        map.removeLayer(grid);
+    }
+
+    if (endpoint) {
+        ol = App.outlineLayer = new L.TileLayer(endpoint + '.png', {maxZoom: 18});
+        map.addLayer(ol);
+        grid = App.utfGrid = new L.UtfGrid(endpoint + '.grid.json?callback={cb}', { resolution: 4, maxZoom: 18 });
+        map.addLayer(grid);
+
+        grid.on('click', function (e) {
+            var shapeId = e.data ? e.data.id : null,
+                revertLayer = clearLayer();
+
+            if (select) {
+                select.disableTools();
+            }
+            App.restApi.getPolygon({
+                id: shapeId
+            }).then(function(shape) {
+                addLayer(shape);
+                navigateToAnalyze();
+            }).fail(function() {
+                revertLayer();
+            }).always(function() {
+                if (select) {
+                    select.enableTools();
+                }
+                if (ol) {
+                    map.removeLayer(ol);
+                }
+                if (grid) {
+                    map.removeLayer(grid);
+                }
+            });
+        });
+    }
+}
+
+function clearLayer() {
     App.map.set('areaOfInterest', null);
     return function revertLayer() {
         var previousShape = App.map.previous('areaOfInterest');
