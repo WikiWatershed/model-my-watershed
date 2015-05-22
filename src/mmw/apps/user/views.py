@@ -1,5 +1,5 @@
 from rest_framework.response import Response
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
@@ -43,6 +43,20 @@ def ajax_login(request):
     else:
         response_data['result'] = 'invalid'
         status = 400
+
+    return Response(data=response_data, status=status)
+
+
+@decorators.api_view(['GET'])
+@decorators.permission_classes((AllowAny, ))
+def ajax_logout(request):
+    response_data = {}
+    status = 200
+
+    logout(request)
+
+    response_data['guest'] = True
+    response_data['result'] = 'success'
 
     return Response(data=response_data, status=status)
 
