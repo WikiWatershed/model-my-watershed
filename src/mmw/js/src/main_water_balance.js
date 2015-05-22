@@ -44,9 +44,10 @@ var initialize = function(model) {
         $runoffText.text(result.r + '"');
         $infilText.text(result.i + '"');
 
-        $et.css('height', (100 * result.et / parseFloat(precip)) + '%');
-        $r.css('height', (100 * result.r / parseFloat(precip)) + '%');
-        $i.css('height', (100 * result.i / parseFloat(precip)) + '%');
+        var total = parseFloat(result.et) + parseFloat(result.r) + parseFloat(result.i);
+        $et.css('height', (100 * result.et / total) + '%');
+        $r.css('height', (100 * result.r / total) + '%');
+        $i.css('height', (100 * result.i / total) + '%');
 
         // Set border radius for middle Runoff div
         // which has rounded borders whenever it is on the edge
