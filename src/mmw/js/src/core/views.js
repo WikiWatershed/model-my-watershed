@@ -3,6 +3,7 @@
 var $ = require('jquery'),
     L = require('leaflet'),
     _ = require('lodash'),
+    router = require('../router.js').router,
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
     headerTmpl = require('./templates/header.ejs');
@@ -65,7 +66,9 @@ var HeaderView = Marionette.ItemView.extend({
 
     userLogout: function(event) {
         event.preventDefault();
-        this.model.logout();
+        this.model.logout().done(function() {
+            router.navigate('', {trigger: true});
+        });
     }
 
 });
