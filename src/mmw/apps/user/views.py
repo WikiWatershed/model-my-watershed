@@ -1,8 +1,8 @@
 from rest_framework.response import Response
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render_to_response
 
 from rest_framework import decorators
 from rest_framework.permissions import AllowAny
@@ -45,6 +45,18 @@ def ajax_login(request):
         status = 400
 
     return Response(data=response_data, status=status)
+
+
+@decorators.api_view(['GET'])
+@decorators.permission_classes((AllowAny, ))
+def user_logout(request):
+    logout(request)
+
+    if request.is_ajax():
+        response_data = {'guest': True, 'result': 'success'}
+        return Response(data=response_data)
+    else:
+        return render_to_response('user/logout.html')
 
 
 itsi = ItsiService()
