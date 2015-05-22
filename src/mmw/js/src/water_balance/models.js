@@ -2,7 +2,7 @@
 
 var WaterBalanceModel = {
     landMap: {
-        '21': ['turfGrass'],
+        '21': ['turfGrass', 'tallGrass'],
         '22': ['lir'],
         '23': ['hir'],
         '24': ['commercial'],
@@ -11,8 +11,7 @@ var WaterBalanceModel = {
         '52': ['chaparral'],
         '71': ['grassland'],
         '81': ['pasture', 'shortGrass'],
-        '82': ['rowCrops'],
-        '85': ['tallGrass']
+        '82': ['rowCrops']
     },
 
     soilMap: [
