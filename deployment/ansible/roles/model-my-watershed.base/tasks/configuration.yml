@@ -1,0 +1,31 @@
+---
+- name: Create service account for application
+  user: name=mmw
+        system=yes
+        home=/var/lib/mmw
+        shell=/bin/false
+        state=present
+
+- name: Add Ansible SSH user to the mmw group
+  user: name="{{ ansible_ssh_user }}"
+        append=yes
+        group=mmw
+        state=present
+
+- name: Create configuration file directory
+  file: path="{{ envdir_home }}"
+        owner=root
+        group=mmw
+        mode=0750
+        state=directory
+
+- name: Configure base settings
+  copy: content="{{ item.value }}"
+        dest="{{ envdir_home }}/{{ item.key }}"
+        owner=root
+        group=mmw
+        mode=0750
+  with_dict: envdir_config
+  notify:
+    - Restart mmw-app
+    - Restart Celery

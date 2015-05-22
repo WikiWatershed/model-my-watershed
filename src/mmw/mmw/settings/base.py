@@ -88,7 +88,7 @@ DATABASES = {
         'PASSWORD': environ.get('MMW_DB_PASSWORD', 'mmw'),
         'HOST': environ.get('MMW_DB_HOST', 'localhost'),
         'PORT': environ.get('MMW_DB_PORT', 5432),
-        'TEST_NAME': environ.get('MMW_TEST_DB_NAME', 'test_mmw')
+        'TEST_NAME': environ.get('DJANGO_TEST_DB_NAME', 'test_mmw')
     }
 }
 
@@ -351,9 +351,9 @@ OMGEO_SETTINGS = [[
 
 # ITSI Portal Settings
 ITSI = {
-    'client_id': environ.get('ITSI_CLIENT_ID', 'model-my-watershed'),
-    'client_secret': environ.get('ITSI_SECRET_KEY', 'itsi_secret_key'),
-    'base_url': environ.get('ITSI_BASE_URL',
+    'client_id': environ.get('MMW_ITSI_CLIENT_ID', 'model-my-watershed'),
+    'client_secret': environ.get('MMW_ITSI_SECRET_KEY', 'itsi_secret_key'),
+    'base_url': environ.get('MMW_ITSI_BASE_URL',
                             'http://learn.staging.concord.org/'),
     'authorize_url': 'auth/concord_id/authorize',
     'access_token_url': 'auth/concord_id/access_token',

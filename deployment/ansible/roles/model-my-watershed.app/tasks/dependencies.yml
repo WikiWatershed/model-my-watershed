@@ -1,18 +1,12 @@
 ---
-- name: Install Geospatial libraries
-  apt: pkg={{ item }} state=present
+- name: Install application Python dependencies for development and test
+  pip: chdir={{ app_home }}/requirements requirements={{ item }}.txt
   with_items:
-    - "binutils=2.24*"
-    - "libproj-dev=4.8.0*"
-    - "gdal-bin=1.10.1*"
-    - "libgdal1-dev=1.10.1*"
-
-- name: Configure the main PostgreSQL APT repository
-  apt_repository: repo="deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release}}-pgdg main"
-                  state=present
-
-- name: Install PostgreSQL client
-  apt: pkg=postgresql-client-{{ postgresql_version }}={{ postgresql_package_version }}
+    - development
+    - test
+  when: "['development', 'test'] | some_are_in(group_names)"
+  notify:
+    - Restart mmw-app
 
 - name: Install application Python dependencies for production
   pip: chdir="{{ app_home }}/requirements" requirements=production.txt

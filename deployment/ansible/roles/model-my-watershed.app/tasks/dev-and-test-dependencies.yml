@@ -1,12 +1,4 @@
 ---
-- name: Install application Python dependencies for development and test
-  pip: chdir={{ app_home }}/requirements requirements={{ item }}.txt
-  with_items:
-    - development
-    - test
-  notify:
-    - Restart mmw-app
-
 - name: Install Firefox for UI tests
   apt: pkg=firefox="3*" state=present
 

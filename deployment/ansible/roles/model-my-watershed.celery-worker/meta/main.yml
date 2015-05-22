@@ -1,7 +1,7 @@
 ---
 dependencies:
+  - { role: "model-my-watershed.base" }
   - { role: "azavea.python", python_development: True }
   - { role: "azavea.pip" }
-  - { role: "azavea.postgresql-support" }
   - { role: "model-my-watershed.monitoring", collectd_prefix: "collectd.worker.", when: "['test'] | is_not_in(group_names)" }
   - { role: "model-my-watershed.celery" }
