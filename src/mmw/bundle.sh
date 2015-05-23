@@ -36,6 +36,9 @@ Bundle JS and CSS static assets.
  Options:
   --watch      Listen for file changes
   --debug      Generate source maps
+  --tests      Generate test bundles
+  --list       List browserify dependencies
+  --vendor     Generate vendor bundle and copy assets
   -h, --help   Display this help text
 "
 }
@@ -45,6 +48,9 @@ while [[ -n $1 ]]; do
     case $1 in
         --watch) ENABLE_WATCH=1 ;;
         --debug) ENABLE_DEBUG=1 ;;
+        --tests) ENABLE_TESTS=1 ;;
+        --list) LIST_DEPS=1 ;;
+        --vendor) BUILD_VENDOR_BUNDLE=1 ;;
         -h|--help|*) usage; exit 1 ;;
     esac
     shift
@@ -66,11 +72,9 @@ if [ -n "$ENABLE_DEBUG" ]; then
         --source-map-contents"
 fi
 
-ENSURE_DIRS_EXIST="mkdir -p \
-    $STATIC_JS_DIR \
-    $STATIC_CSS_DIR \
-    $STATIC_IMAGES_DIR \
-    $STATIC_FONTS_DIR"
+if [ -n "$LIST_DEPS" ]; then
+    BROWSERIFY="$BROWSERIFY --list"
+fi
 
 COPY_IMAGES_COMMAND="cp -r \
     ./node_modules/leaflet/dist/images/* \
@@ -110,27 +114,38 @@ do
     BROWSERIFY_REQ_WATER_BALANCE+="-r $DEP "
 done
 
-VAGRANT_COMMAND="cd /opt/app && \
-    $ENSURE_DIRS_EXIST && { \
-    $COPY_IMAGES_COMMAND &
-    $COPY_FONTS_COMMAND &
-    $CONCAT_VENDOR_CSS_COMMAND &
-    $NODE_SASS $ENTRY_SASS_FILE -o ${STATIC_CSS_DIR} & \
+VENDOR_COMMAND=""
+if [ -n "$BUILD_VENDOR_BUNDLE" ]; then
+    VENDOR_COMMAND="
+        $COPY_IMAGES_COMMAND &
+        $COPY_FONTS_COMMAND &
+        $CONCAT_VENDOR_CSS_COMMAND &
+        $BROWSERIFY $BROWSERIFY_REQ \
+            -o ${STATIC_JS_DIR}vendor.js $EXTRA_ARGS &
+        $BROWSERIFY $BROWSERIFY_REQ_WATER_BALANCE \
+            -o ${STATIC_JS_DIR}vendor_water_balance.js $EXTRA_ARGS &"
+fi
 
+TEST_COMMAND=""
+if [ -n "$ENABLE_TESTS" ]; then
+    TEST_COMMAND="
+        $BROWSERIFY $TEST_FILES $JSTIFY_TRANSFORM \
+            -o ${STATIC_JS_DIR}test.bundle.js $EXTRA_ARGS &"
+fi
+
+VAGRANT_COMMAND="$TEST_COMMAND $VENDOR_COMMAND
+    $NODE_SASS $ENTRY_SASS_FILE -o ${STATIC_CSS_DIR} &
     $BROWSERIFY $ENTRY_JS_FILES $BROWSERIFY_EXT $JSTIFY_TRANSFORM \
-        -o ${STATIC_JS_DIR}main.js $EXTRA_ARGS & \
-
-    $BROWSERIFY $BROWSERIFY_REQ \
-        -o ${STATIC_JS_DIR}vendor.js $EXTRA_ARGS & \
-
+        -o ${STATIC_JS_DIR}main.js $EXTRA_ARGS &
     $BROWSERIFY $ENTRY_JS_FILES_WATER_BALANCE $BROWSERIFY_EXT_WATER_BALANCE $JSTIFY_TRANSFORM \
-        -o ${STATIC_JS_DIR}main_water_balance.js $EXTRA_ARGS & \
+        -o ${STATIC_JS_DIR}main_water_balance.js $EXTRA_ARGS"
 
-    $BROWSERIFY $BROWSERIFY_REQ_WATER_BALANCE \
-        -o ${STATIC_JS_DIR}vendor_water_balance.js $EXTRA_ARGS & \
-
-    $BROWSERIFY $TEST_FILES $JSTIFY_TRANSFORM \
-        -o ${STATIC_JS_DIR}test.bundle.js $EXTRA_ARGS; }"
+# Ensure static asset folders exist.
+mkdir -p \
+    $STATIC_JS_DIR \
+    $STATIC_CSS_DIR \
+    $STATIC_IMAGES_DIR \
+    $STATIC_FONTS_DIR
 
 echo "$VAGRANT_COMMAND"
 eval "$VAGRANT_COMMAND"
