@@ -149,3 +149,10 @@ mkdir -p \
 
 echo "$VAGRANT_COMMAND"
 eval "$VAGRANT_COMMAND"
+
+# Wait for background jobs to finish if watch is not enabled.
+if [ -z "$ENABLE_WATCH" ]; then
+    echo "Waiting..."
+    wait
+    echo "Done"
+fi
