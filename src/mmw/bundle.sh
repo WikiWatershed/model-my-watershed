@@ -90,7 +90,7 @@ CONCAT_VENDOR_CSS_COMMAND="cat \
 JS_DEPS=(jquery backbone backbone.marionette \
         bootstrap bootstrap-select \
         leaflet leaflet-draw lodash underscore \
-        chai)
+        chai d3)
 
 BROWSERIFY_EXT=""
 BROWSERIFY_REQ=""
