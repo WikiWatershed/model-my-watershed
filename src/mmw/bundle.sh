@@ -8,7 +8,7 @@ if [ -z "$DJANGO_STATIC_ROOT" ]; then
 fi
 
 # Default settings
-BIN=./node_modules/.bin
+BIN="./node_modules/.bin"
 
 STATIC_JS_DIR="${DJANGO_STATIC_ROOT}js/"
 STATIC_CSS_DIR="${DJANGO_STATIC_ROOT}css/"
@@ -22,11 +22,11 @@ ENTRY_JS_FILES_WATER_BALANCE="./js/src/main_water_balance.js"
 JSTIFY_TRANSFORM="-t [ jstify --noMinify ]"
 
 NODE_SASS="$BIN/node-sass"
-ENTRY_SASS_DIR=./sass/
+ENTRY_SASS_DIR="./sass/"
 ENTRY_SASS_FILE="${ENTRY_SASS_DIR}main.scss"
 VENDOR_CSS_FILE="${STATIC_CSS_DIR}vendor.css"
 
-TEST_FILES=./js/src/**/tests.js
+TEST_FILES="./js/src/**/tests.js"
 
 usage() {
     echo -n "$(basename $0) [OPTION]...
