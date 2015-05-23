@@ -92,10 +92,9 @@ CONCAT_VENDOR_CSS_COMMAND="cat \
     > $VENDOR_CSS_FILE"
 
 JS_DEPS=(jquery backbone backbone.marionette \
-        bootstrap bootstrap-select \
-        leaflet leaflet-draw lodash underscore \
-        chai d3)
-
+         bootstrap bootstrap-select \
+         leaflet leaflet-draw lodash underscore \
+         d3)
 BROWSERIFY_EXT=""
 BROWSERIFY_REQ=""
 for DEP in "${JS_DEPS[@]}"
@@ -104,8 +103,17 @@ do
     BROWSERIFY_REQ+="-r $DEP "
 done
 
-JS_DEPS_WATER_BALANCE=(jquery bootstrap bootstrap-select retina.js)
+JS_TEST_DEPS=(chai sinon)
+BROWSERIFY_TEST_EXT=""
+BROWSERIFY_TEST_REQ=""
+for DEP in "${JS_TEST_DEPS[@]}"
+do
+    BROWSERIFY_TEST_EXT+="-x $DEP "
+    BROWSERIFY_TEST_REQ+="-r $DEP "
+done
 
+# TODO: Combine with original vendor bundle.
+JS_DEPS_WATER_BALANCE=(jquery bootstrap bootstrap-select retina.js)
 BROWSERIFY_EXT_WATER_BALANCE=""
 BROWSERIFY_REQ_WATER_BALANCE=""
 for DEP in "${JS_DEPS_WATER_BALANCE[@]}"
@@ -122,6 +130,8 @@ if [ -n "$BUILD_VENDOR_BUNDLE" ]; then
         $CONCAT_VENDOR_CSS_COMMAND &
         $BROWSERIFY $BROWSERIFY_REQ \
             -o ${STATIC_JS_DIR}vendor.js $EXTRA_ARGS &
+        $BROWSERIFY $BROWSERIFY_REQ $BROWSERIFY_TEST_REQ \
+            -o ${STATIC_JS_DIR}test.vendor.js $EXTRA_ARGS &
         $BROWSERIFY $BROWSERIFY_REQ_WATER_BALANCE \
             -o ${STATIC_JS_DIR}vendor_water_balance.js $EXTRA_ARGS &"
 fi
@@ -129,7 +139,7 @@ fi
 TEST_COMMAND=""
 if [ -n "$ENABLE_TESTS" ]; then
     TEST_COMMAND="
-        $BROWSERIFY $TEST_FILES $JSTIFY_TRANSFORM \
+        $BROWSERIFY $TEST_FILES $BROWSERIFY_EXT $BROWSERIFY_TEST_EXT $JSTIFY_TRANSFORM \
             -o ${STATIC_JS_DIR}test.bundle.js $EXTRA_ARGS &"
 fi
 
