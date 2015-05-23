@@ -4,7 +4,6 @@ var _ = require('underscore'),
     $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
-    csrf = require('../csrf'),
     models = require('./models'),
     loginModalTmpl = require('./templates/loginModal.ejs');
 
@@ -71,9 +70,6 @@ var LoginModalView = Marionette.ItemView.extend({
     },
 
     handleSignInSuccess: function() {
-        // Update CSRF token attached to subsequent ajax requests.
-        $.ajaxSetup(csrf.getAjaxOptions());
-
         this.$el.modal('hide');
         App.user.set('guest', false);
     },

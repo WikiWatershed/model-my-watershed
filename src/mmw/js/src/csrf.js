@@ -26,14 +26,13 @@ function getCookie(name) {
     return cookieValue;
 }
 
-exports.getAjaxOptions = function() {
-    var csrftoken = getCookie('csrftoken');
-    return {
-        crossDomain: false,
-        beforeSend: function(xhr, settings) {
-            if (!csrfSafeMethod(settings.type)) {
-                xhr.setRequestHeader("X-CSRFToken", csrftoken);
-            }
+
+exports.jqueryAjaxSetupOptions = {
+    crossDomain: false,
+    beforeSend: function(xhr, settings) {
+        var csrftoken = getCookie('csrftoken');
+        if (!csrfSafeMethod(settings.type)) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
         }
-    };
+    }
 };

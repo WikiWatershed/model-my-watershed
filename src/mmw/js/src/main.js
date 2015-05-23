@@ -19,7 +19,7 @@ require('leaflet-draw');
 L.Icon.Default.imagePath = '/static/images/';
 
 var csrf = require('./csrf');
-$.ajaxSetup(csrf.getAjaxOptions());
+$.ajaxSetup(csrf.jqueryAjaxSetupOptions);
 
 ////
 // Initialize application.
