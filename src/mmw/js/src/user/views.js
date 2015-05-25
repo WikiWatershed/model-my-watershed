@@ -4,7 +4,6 @@ var _ = require('underscore'),
     $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
-    helpers = require('../helpers'),
     models = require('./models'),
     loginModalTmpl = require('./templates/loginModal.ejs');
 
@@ -57,15 +56,10 @@ var LoginModalView = Marionette.ItemView.extend({
     },
 
     signIn: function() {
-        var csrftoken = helpers.Cookie.get('csrftoken'),
-            formData = this.$el.find('form').serialize();
-
+        var formData = this.$el.find('form').serialize();
         App.user.fetch({
             method: 'POST',
-            data: formData,
-            beforeSend: function(xhr) {
-                xhr.setRequestHeader('X-CSRFToken', csrftoken);
-            }
+            data: formData
         })
         .done(_.bind(this.handleSignInSuccess, this))
         .fail(_.bind(this.handleSignInFail, this));
