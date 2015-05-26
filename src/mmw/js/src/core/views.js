@@ -150,8 +150,8 @@ var MapView = Marionette.ItemView.extend({
         } else {
             try {
                 var layer = new L.GeoJSON(areaOfInterest);
-                this._areaOfInterestLayer.addLayer(layer);
-                this._leafletMap.fitBounds(getShapeBounds(areaOfInterest));
+                applyMask(this._areaOfInterestLayer, layer);
+                this._leafletMap.fitBounds(layer.getBounds(), { reset: true });
             } catch (ex) {
                 console.log('Error adding Leaflet layer (invalid GeoJSON object)');
             }
@@ -169,36 +169,62 @@ var MapView = Marionette.ItemView.extend({
 
         var areaOfInterest = this.model.get('areaOfInterest');
         if (areaOfInterest) {
-            this._leafletMap.fitBounds(getShapeBounds(areaOfInterest));
+            var layer = new L.GeoJSON(areaOfInterest);
+            this._leafletMap.fitBounds(layer.getBounds(), { reset: true });
         }
     }
 });
 
-// map.fitBounds((new L.GeoJSON(shape)).getBounds()) or similar does
-// not work because getBounds only returns the bounding box around the
-// first component of the (possibly multi-component) shape.
-function getShapeBounds(shape) {
-    function second(pair) {
-        return pair[1];
+// Apply a mask over the entire map excluding bounds/shape specified.
+function applyMask(featureGroup, shapeLayer) {
+    var worldBounds = L.latLngBounds([-90, -360], [90, 360]),
+        outerRing = getLatLngs(worldBounds),
+        innerRings = getLatLngs(shapeLayer),
+        polygonOptions = {
+            stroke: false,
+            fill: true,
+            fillColor: '#000',
+            fillOpacity: 0.5
+        },
+
+        // Should be a 2D array of latlngs where the first array contains
+        // the exterior ring, and the following arrays contain the holes.
+        latlngs = _.reduce(innerRings, function(acc, hole) {
+            return acc.concat(hole);
+        }, [outerRing]),
+
+        maskLayer = L.polygon(latlngs, polygonOptions);
+
+    featureGroup.clearLayers();
+    featureGroup.addLayer(maskLayer);
+}
+
+// Return 2D array of LatLng objects.
+function getLatLngs(boundsOrShape) {
+    var bounds = boundsOrShape instanceof L.LatLngBounds && boundsOrShape,
+        featureGroup = boundsOrShape instanceof L.FeatureGroup && boundsOrShape;
+
+    if (bounds) {
+        // Return bounding box.
+        return [
+            bounds.getNorthWest(),
+            bounds.getNorthEast(),
+            bounds.getSouthEast(),
+            bounds.getSouthWest()
+        ];
+    } else if (featureGroup) {
+        // Return LatLng array, for each feature, for each layer.
+        return _.map(featureGroup.getLayers(), function(layer) {
+            var latlngs = layer.getLatLngs();
+            if (layer instanceof L.Polygon) {
+                return [latlngs];
+            }
+            // Assume layer is an instance of MultiPolygon.
+            return latlngs;
+        });
     }
 
-    var flatShape = _.flatten(shape.geometry.coordinates),
-        lngs = _.map(flatShape, _.first),
-        lats = _.map(flatShape, second),
-        minlat = _.min(lats),
-        minlng = _.min(lngs),
-        maxlat = _.max(lats),
-        maxlng = _.max(lngs);
-
-    if (minlat && minlng && maxlat && maxlng) {
-        return [[minlat, minlng],
-                [maxlat, maxlng]];
-    } else {
-        // if the bounding box of the shape could not be computed, use
-        // the bounding box for the US.
-        return [[-124.848974, 24.396308],
-                [-66.885444, 49.384358]];
-    }
+    throw 'Unable to extract latlngs from boundsOrShape argument';
 }
 
 module.exports = {
