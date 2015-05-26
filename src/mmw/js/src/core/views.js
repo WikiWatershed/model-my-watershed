@@ -151,7 +151,7 @@ var MapView = Marionette.ItemView.extend({
             try {
                 var layer = new L.GeoJSON(areaOfInterest);
                 this._areaOfInterestLayer.addLayer(layer);
-                this._leafletMap.fitBounds(this._areaOfInterestLayer.getBounds());
+                this._leafletMap.fitBounds(getShapeBounds(areaOfInterest));
             } catch (ex) {
                 console.log('Error adding Leaflet layer (invalid GeoJSON object)');
             }
@@ -167,12 +167,39 @@ var MapView = Marionette.ItemView.extend({
 
         this._leafletMap.invalidateSize();
 
-        if (this.model.get('areaOfInterest')) {
-            this._leafletMap.fitBounds(this._areaOfInterestLayer.getBounds());
+        var areaOfInterest = this.model.get('areaOfInterest');
+        if (areaOfInterest) {
+            this._leafletMap.fitBounds(getShapeBounds(areaOfInterest));
         }
     }
 });
 
+// map.fitBounds((new L.GeoJSON(shape)).getBounds()) or similar does
+// not work because getBounds only returns the bounding box around the
+// first component of the (possibly multi-component) shape.
+function getShapeBounds(shape) {
+    function second(pair) {
+        return pair[1];
+    }
+
+    var flatShape = _.flatten(shape.geometry.coordinates),
+        lngs = _.map(flatShape, _.first),
+        lats = _.map(flatShape, second),
+        minlat = _.min(lats),
+        minlng = _.min(lngs),
+        maxlat = _.max(lats),
+        maxlng = _.max(lngs);
+
+    if (minlat && minlng && maxlat && maxlng) {
+        return [[minlat, minlng],
+                [maxlat, maxlng]];
+    } else {
+        // if the bounding box of the shape could not be computed, use
+        // the bounding box for the US.
+        return [[-124.848974, 24.396308],
+                [-66.885444, 49.384358]];
+    }
+}
 
 module.exports = {
     HeaderView: HeaderView,
