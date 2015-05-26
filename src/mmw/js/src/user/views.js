@@ -12,9 +12,7 @@ var ENTER_KEYCODE = 13;
 
 var LoginModalView = Marionette.ItemView.extend({
     template: loginModalTmpl,
-
     className: 'modal modal-large fade',
-
     ui: {
         'loginButton': '#login-button',
         'continueAsGuest': '#continue-as-guest',

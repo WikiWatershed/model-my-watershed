@@ -3,10 +3,12 @@
 var _ = require('lodash'),
     $ = require('jquery'),
     L = require('leaflet'),
+    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
     drawUtils = require('../draw/utils'),
+    coreViews = require('../core/views'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultsDetailsTmpl = require('./templates/resultsDetails.html'),
     resultsTabPanelTmpl = require('./templates/resultsTabPanel.html'),
@@ -22,10 +24,22 @@ var _ = require('lodash'),
     chart = require('../core/chart.js'),
     barChartTmpl = require('../core/templates/barChart.html');
 
+var ENTER_KEYCODE = 13,
+    ESCAPE_KEYCODE = 27;
+
 // The entire modeling header.
 var ModelingHeaderView = Marionette.LayoutView.extend({
     model: models.ProjectModel,
     template: modelingHeaderTmpl,
+
+    childEvents: {
+        'rename:scenario': function(view, model, newName) {
+            this.model.updateScenarioName(model, newName);
+        },
+        'create:scenario': function() {
+            this.model.createNewScenario();
+        }
+    },
 
     regions: {
         projectMenuRegion: '#project-menu-region',
@@ -75,11 +89,16 @@ var ScenariosView = Marionette.LayoutView.extend({
         'click @ui.tab': 'onScenarioTabClicked'
     },
 
+   childEvents: {
+        'rename:scenario': function(view, model, newName) {
+            this.triggerMethod('rename:scenario', model, newName);
+        }
+    },
+
     regions: {
         dropDownRegion: '#scenarios-drop-down-region',
         panelsRegion: '#scenarios-tab-panel-region'
     },
-
 
     onShow: function() {
         this.panelsRegion.show(new ScenarioTabPanelsView({
@@ -92,11 +111,7 @@ var ScenariosView = Marionette.LayoutView.extend({
     },
 
     addScenario: function() {
-        var scenario = new models.ScenarioModel({
-                name: 'New Scenario'
-            });
-        this.collection.add(scenario);
-        this.collection.setActiveScenario(scenario.cid);
+        this.triggerMethod('create:scenario');
     },
 
     onScenarioTabClicked: function(e) {
@@ -127,6 +142,73 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
 
     onRender: function() {
         this.$el.toggleClass('active', this.model.get('active'));
+    },
+
+    ui: {
+        share: '.share',
+        destroyConfirm: '.delete',
+        rename: '.rename',
+        print: '.print',
+        nameField: '.tab-name'
+    },
+    events: {
+        'click @ui.rename': 'renameScenario',
+        'click @ui.destroyConfirm': 'destroyConfirm',
+        'click @ui.share': 'showShareModal',
+        'click @ui.print': function() {
+            window.print();
+        }
+    },
+    renameScenario: function() {
+        var self = this;
+
+        this.ui.nameField.attr('contenteditable', true).focus();
+
+        this.ui.nameField.on('keyup', function(e) {
+            // Cancel on escape key.
+            if (e.keyCode === ESCAPE_KEYCODE) {
+                self.render();
+            }
+        });
+
+        this.ui.nameField.on('keypress', function(e) {
+            var keycode = (e.keyCode ? e.keyCode : e.which);
+            if (keycode == ENTER_KEYCODE) {
+                // Don't add line returns to the text.
+                e.preventDefault();
+
+                if (self.model.get('name') !== $(this).text()) {
+                    self.triggerMethod('rename:scenario', self.model, $(this).text());
+                } else {
+                    self.render();
+                }
+            }
+        });
+
+        this.ui.nameField.on('blur', function(e) {
+           self.triggerMethod('rename:scenario', self.model, $(this).text());
+        });
+    },
+
+    destroyConfirm: function() {
+        var del = new coreViews.DeleteModal({
+            objToDelete: this.model,
+            model: new Backbone.Model({ deleteLabel: 'scenario' })
+        });
+        del.render();
+        del.$el.modal('show');
+    },
+
+    showShareModal: function() {
+        if (App.user.get('guest')) {
+            alert('Guest cannot share scenarios. Please log in or register.');
+            return;
+        }
+        var share = new coreViews.ShareModal({
+            model: new Backbone.Model({ url: window.location.href })
+        });
+        share.render();
+        share.$el.modal('show');
     }
 });
 
@@ -138,7 +220,8 @@ var ScenarioTabPanelsView = Marionette.CollectionView.extend({
     attributes: {
         role: 'tablist'
     },
-    childView: ScenarioTabPanelView
+
+    childView: ScenarioTabPanelView,
 });
 
 // The menu item for a scenario in the scenario drop down menu.

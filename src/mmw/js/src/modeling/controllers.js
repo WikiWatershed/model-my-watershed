@@ -38,7 +38,8 @@ var ModelingController = {
                 scenarios: new models.ScenariosCollection([
                     new models.ScenarioModel({
                         name: 'Current Conditions',
-                        is_current_conditions: true
+                        is_current_conditions: true,
+                        active: true
                     })
                 ])
             });

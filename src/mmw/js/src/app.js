@@ -56,14 +56,15 @@ var App = new Marionette.Application({
     },
 
     showLoginModal: function() {
-        new userViews.LoginModalView({
+        this.loginModal = new userViews.LoginModalView({
             model: new userModels.LoginFormModel({}),
             app: this
         }).render();
+        this.loginModal.$el.modal('show');
     },
 
     hideLoginModal: function() {
-        $('#user-modal').modal('hide');
+        this.loginModal.$el.modal('hide');
     }
 });
 

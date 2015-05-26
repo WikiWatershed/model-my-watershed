@@ -37,9 +37,9 @@ describe('UserModalLogin', function() {
     describe('LoginView', function() {
         it('creates an error when there is no username', function() {
             var loginView = new views.LoginModalView({
+                el: '#sandbox',
                 model: new models.LoginFormModel({}),
-                app: require('../app'),
-                el: '#sandbox'
+                app: App
             }).render();
 
             loginView.$el.find('#id_username').val('');
@@ -51,9 +51,9 @@ describe('UserModalLogin', function() {
 
         it('creates an error when there is no password', function() {
             var loginView = new views.LoginModalView({
+                el: '#sandbox',
                 model: new models.LoginFormModel({}),
-                app: require('../app'),
-                el: '#sandbox'
+                app: App
             }).render();
 
             loginView.$el.find('#id_username').val('bob');
@@ -66,9 +66,9 @@ describe('UserModalLogin', function() {
         it('creates an error when trying to fetch a user with bad credentials', function() {
             this.server.respondWith([400, { 'Content-Type': 'application/json' }, '{"result": "error"}']);
             var loginView = new views.LoginModalView({
+                el: '#sandbox',
                 model: new models.LoginFormModel({}),
-                app: require('../app'),
-                el: '#sandbox'
+                app: App
             }).render();
 
             loginView.$el.find('#id_username').val('bad');
@@ -83,9 +83,9 @@ describe('UserModalLogin', function() {
             var username = 'bob';
             this.server.respondWith([200, { 'Content-Type': 'application/json' }, '{"result": "success", "username": "bob" }']);
             var loginView = new views.LoginModalView({
+                el: '#sandbox',
                 model: new models.LoginFormModel({}),
-                app: require('../app'),
-                el: '#sandbox'
+                app: App
             }).render();
             // Activate modal and make sure it is visible.
             loginView.$el.modal('show');
@@ -103,18 +103,11 @@ describe('UserModalLogin', function() {
             var username = 'john';
             this.server.respondWith([200, { 'Content-Type': 'application/json' }, '{"result": "success", "username": "' + username + '" }']);
             var loginView = new views.LoginModalView({
+                el: '#sandbox',
                 model: new models.LoginFormModel({}),
-                app: require('../app'),
-                el: '#sandbox'
+                app: App
             }).render();
-
-            // Logging in will cause the LoginModalView to
-            // destroy() itself and its $el, which is $sandbox.
-            // So we need to put the header in its own container.
-            var $headerContainer = $('<div>', {id: 'header-container'});
-            $('body').append($headerContainer);
             var header = new coreViews.HeaderView({
-                el: '#header-container',
                 model: App.user
             }).render();
 
@@ -131,7 +124,7 @@ describe('UserModalLogin', function() {
             assert.notOk(loginView.$el.is(':visible'), 'Modal should no longer be visible.');
 
             // Make sure the header changes to show the username.
-            var match = _.find($('#header-container .navigation ul.main li a.dropdown-toggle'), function(item) {
+            var match = _.find(header.$el.find('.navigation ul.main li a.dropdown-toggle'), function(item) {
                return $(item).text().trim() === username;
             });
             assert.ok(match, 'Username did not show up in the header');
@@ -141,9 +134,9 @@ describe('UserModalLogin', function() {
 
         it('should not dismiss the modal form if a non-enter key is pressed', function() {
             var loginView = new views.LoginModalView({
+                el: '#sandbox',
                 model: new models.LoginFormModel({}),
-                app: require('../app'),
-                el: '#sandbox'
+                app: App
             }).render();
 
             // Activate modal and make sure it is visible.

@@ -94,6 +94,57 @@ var ProjectModel = Backbone.Model.extend({
         response.taskModel = new Tr55TaskModel();
 
         return response;
+    },
+
+    /**
+     * Return a new scenario name of the format "New Scenario X" where X is a
+     * positive number and that is greater than all previous X.
+     */
+    makeNewScenarioName: function() {
+        // When making new scenarios, we need to make sure we don't
+        // accidentally give two the same name. Use a counter but ensure slug
+        // name is not in use by looking at all the current names.
+        var scenarios = this.get('scenarios').models;
+
+        var numbers = _.without(_.map(scenarios, function(model) {
+            var name = model.get('name'),
+                regEx = /^New Scenario (\d)+/g;
+
+            if (name.match(regEx) !== null && name.match(regEx).length === 1) {
+                return parseInt(model.get('name').replace(/^New Scenario /g, ''));
+            }
+        }), undefined);
+        if (!_.isEmpty(numbers)) {
+            var max = _.max(numbers) + 1;
+            return 'New Scenario ' + max;
+        } else {
+            return 'New Scenario 1';
+        }
+    },
+
+    createNewScenario: function() {
+        var scenario = new ScenarioModel({
+            name: this.makeNewScenarioName()
+        });
+        this.get('scenarios').add(scenario);
+        this.get('scenarios').setActiveScenario(scenario.cid);
+    },
+
+    updateScenarioName: function(model, newName) {
+        // Bail early if the name actually didn't change.
+        if (model.get('name') === newName) {
+            return;
+        }
+
+        var match = _.find(this.get('scenarios').models, function(model) {
+            return model.get('name') === newName;
+        });
+        if (match) {
+            alert('This name is already in use.');
+            return;
+        } else if (model.get('name') !== newName) {
+            model.set('name', newName);
+        }
     }
 });
 

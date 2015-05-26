@@ -7,7 +7,11 @@ var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
     drawUtils = require('../draw/utils'),
-    headerTmpl = require('./templates/header.html');
+    headerTmpl = require('./templates/header.html'),
+    modalDeleteTmpl = require('./templates/deleteModal.html'),
+    modalShareTmpl = require('./templates/shareModal.html');
+
+var BASIC_MODAL_CLASS = 'modal modal-basic fade';
 
 /**
  * A basic view for showing a static message.
@@ -274,9 +278,52 @@ function getLatLngs(boundsOrShape) {
     throw 'Unable to extract latlngs from boundsOrShape argument';
 }
 
+var DeleteModal = Marionette.ItemView.extend({
+    className: BASIC_MODAL_CLASS,
+
+    viewOptions: ['objToDelete'],
+
+    initialize: function(options) {
+        var self = this;
+        this.mergeOptions(options, this.viewOptions);
+        this.$el.on('hide.bs.modal', function() {
+            self.destroy();
+        });
+    },
+
+    template: modalDeleteTmpl,
+
+    ui: {
+        deleteConfirmed: '.delete',
+    },
+
+    events: {
+        'click @ui.deleteConfirmed': 'deleteModel',
+    },
+
+    deleteModel: function() {
+        this.objToDelete.destroy();
+    }
+});
+
+var ShareModal = Marionette.ItemView.extend({
+    className: BASIC_MODAL_CLASS,
+
+    initialize: function(options) {
+        var self = this;
+        this.$el.on('hide.bs.modal', function() {
+            self.destroy();
+        });
+    },
+
+    template: modalShareTmpl
+});
+
 module.exports = {
     HeaderView: HeaderView,
     MapView: MapView,
     RootView: RootView,
-    StaticView: StaticView
+    StaticView: StaticView,
+    DeleteModal: DeleteModal,
+    ShareModal: ShareModal
 };
