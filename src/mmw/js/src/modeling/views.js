@@ -21,6 +21,9 @@ var _ = require('lodash'),
     chart = require('../core/chart.js'),
     barChartTmpl = require('../core/templates/barChart.ejs');
 
+var ENTER_KEYCODE = 13,
+    ESCAPE_KEYCODE = 27;
+
 // The entire modeling header.
 var ModelingHeaderView = Marionette.LayoutView.extend({
     template: modelingHeaderTmpl,
@@ -88,7 +91,6 @@ var ScenariosView = Marionette.LayoutView.extend({
         panelsRegion: '#scenarios-tab-panel-region'
     },
 
-
     onShow: function() {
         this.panelsRegion.show(new ScenarioTabPanelsView({
             initialScenario: this.options.initialScenario,
@@ -102,15 +104,35 @@ var ScenariosView = Marionette.LayoutView.extend({
 
     addScenario: function() {
         var scenario = new models.ScenarioModel({
-                name: 'New Scenario'
-            });
+            name: 'New Scenario ' + this.scenarioCounter()
+        });
 
         this.collection.add(scenario);
     },
 
-    setActiveScenario: function(e) {
-        var scenarioSlug = $(e.target).data('scenario-slug');
+    counter: 0,
 
+    scenarioCounter: function() {
+        this.counter++;
+        if (this.counter < this.collection.length) {
+            this.counter = this.collection.length;
+        }
+        return this.counter;
+    },
+
+    setActiveScenario: function(e) {
+        var scenarioSlug = $(e.currentTarget).data('scenario-slug');
+
+        _.each(this.collection.models, function(model) {
+            model.set('active', false);
+        }, this);
+
+        _.find(this.collection.models, function(model) {
+            return model.get('slug') === scenarioSlug;
+        }, this).set('active', true);
+
+        // we are trying to active a different tab so need to switch tabs here.
+        this.panelsRegion.$el.find('a[data-scenario-slug=' + scenarioSlug + ']').tab('show');
         this.triggerMethod('set:activeScenario', scenarioSlug);
     }
 });
@@ -125,11 +147,61 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
 
     modelEvents: {
         'change:name': 'updateSlug',
+<<<<<<< HEAD
         'change': 'render'
+=======
+>>>>>>> Create functioning scenario tabs.
     },
 
     updateSlug: function() {
         this.model.slugifyName();
+        this.render();
+    },
+    ui: {
+        share: '.share',
+        destroy: '.delete',
+        rename: '.rename',
+        print: '.print' 
+    },
+    events: {
+        'click @ui.rename': 'renameScenario',
+        'click @ui.destroy': 'destroyScenario',
+        'click @ui.print': function() {
+            window.print();
+        },
+        'click @ui.share': function() {
+            alert(window.location.href);
+        }
+    },
+    renameScenario: function() {
+        var self = this,
+            $nameField = this.$el.find('.tab-name');
+
+        $nameField.attr('contenteditable', true).focus();
+
+        $nameField.on('keyup', function(e) {
+            // Cancel on escape key.
+            if (e.keyCode === ESCAPE_KEYCODE) {
+                self.render();
+            }
+        });
+
+        $nameField.on('keypress', function(e) {
+            var keycode = (e.keyCode ? e.keyCode : e.which);
+            if (keycode == ENTER_KEYCODE) {
+                // Don't add line returns to the text.
+                e.preventDefault();
+                self.triggerMethod('rename:scenario', self.model, $(this).text());
+            }
+        });
+
+        $nameField.on('blur', function(e) {
+           self.triggerMethod('rename:scenario', self.model, $(this).text());
+        });
+    },
+
+    destroyScenario: function() {
+        this.model.destroy();
     }
 });
 
@@ -142,6 +214,20 @@ var ScenarioTabPanelsView = Marionette.CollectionView.extend({
     },
 
     childView: ScenarioTabPanelView,
+    childEvents: {
+        'rename:scenario': function(view, model, newName) {
+            var match = _.find(this.collection.models, function(model) {
+                return model.get('name') === newName ||
+                       model.get('slug') === model.makeSlug(newName);
+            });
+            if (match) {
+                alert('This name is already in use.');
+                return;
+            } else if (model.get('name') !== newName) {
+                model.set('name', newName);
+            }
+        }
+    },
 
     onRender: function() {
         if (this.options.initialScenario) {
@@ -158,7 +244,23 @@ var ScenarioDropDownMenuItemView = Marionette.ItemView.extend({
     tagName: 'li',
     template: scenarioMenuItemTmpl,
     attributes: {
-        role: 'presentation'
+        'role': 'presentation'
+    },
+    modelEvents: {
+        'change': 'render'
+    },
+    onDomRefresh: function() {
+        if (this.model.get('active')) {
+            this.$el.addClass('active');
+        } else {
+            this.$el.removeClass('active');
+        }
+    },
+    events: {
+        'click': function() {
+            this.$el.addClass('active');
+            this.trigger('dropdown:item:change');
+        }
     }
 });
 
