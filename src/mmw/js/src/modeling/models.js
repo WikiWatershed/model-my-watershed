@@ -15,7 +15,9 @@ var ResultCollection = Backbone.Collection.extend({
     model: ResultModel
 });
 
-var ProjectModel = Backbone.Model.extend({});
+var ProjectModel = Backbone.Model.extend({
+    urlRoot: '/api/modeling/projects'
+});
 
 var ScenarioModel = Backbone.Model.extend({
     initialize: function() {
@@ -36,7 +38,9 @@ var ScenarioModel = Backbone.Model.extend({
     }
 });
 
-var ScenariosCollection = Backbone.Collection.extend({});
+var ScenariosCollection = Backbone.Collection.extend({
+    comparator: 'created_at'
+});
 
 module.exports = {
     ResultModel: ResultModel,
