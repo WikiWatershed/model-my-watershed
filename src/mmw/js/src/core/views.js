@@ -3,6 +3,7 @@
 var $ = require('jquery'),
     L = require('leaflet'),
     _ = require('lodash'),
+    router = require('../router.js').router,
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
     headerTmpl = require('./templates/header.ejs');
@@ -43,11 +44,13 @@ var HeaderView = Marionette.ItemView.extend({
     template: headerTmpl,
 
     ui: {
-        login: '.show-login'
+        login: '.show-login',
+        logout: '.user-logout'
     },
 
     events: {
-        'click @ui.login': 'showLogin'
+        'click @ui.login': 'showLogin',
+        'click @ui.logout': 'userLogout'
     },
 
     modelEvents: {
@@ -59,6 +62,13 @@ var HeaderView = Marionette.ItemView.extend({
         // Defer requiring app until needed as it is not defined when
         // core.views are initialized (they are required in app.js)
         require('../app').showLoginModal();
+    },
+
+    userLogout: function(event) {
+        event.preventDefault();
+        this.model.logout().done(function() {
+            router.navigate('', {trigger: true});
+        });
     }
 
 });

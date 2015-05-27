@@ -56,10 +56,9 @@ var LoginModalView = Marionette.ItemView.extend({
     },
 
     signIn: function() {
-        var formData = this.$el.find('form').serialize();
-        App.user.fetch({
-            method: 'POST',
-            data: formData
+        App.user.login({
+            username: this.model.get('username'),
+            password: this.model.get('password')
         })
         .done(_.bind(this.handleSignInSuccess, this))
         .fail(_.bind(this.handleSignInFail, this));
