@@ -17,7 +17,9 @@ from apps.core.models import Job
 from apps.core.task_helpers import save_job_error, save_job_result
 from apps.modeling import tasks
 from apps.modeling.models import District, Project, Scenario
-from apps.modeling.serializers import ProjectSerializer, ScenarioSerializer
+from apps.modeling.serializers import (ProjectSerializer,
+                                       ProjectUpdateSerializer,
+                                       ScenarioSerializer)
 
 
 @decorators.api_view(['GET', 'POST'])
@@ -57,7 +59,8 @@ def project(request, proj_id):
 
     elif request.method == 'PUT':
         ctx = {'request': request}
-        serializer = ProjectSerializer(project, data=request.data, context=ctx)
+        serializer = ProjectUpdateSerializer(project, data=request.data,
+                                             context=ctx)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -95,10 +98,7 @@ def scenarios(request):
 @decorators.permission_classes((IsAuthenticated, ))
 def scenario(request, scen_id):
     """Retrieve, update or delete a scenario"""
-    try:
-        scenario = Scenario.objects.filter(user=request.user, id=scen_id)
-    except Scenario.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+    scenario = get_object_or_404(Scenario, id=scen_id)
 
     if request.method == 'GET':
         serializer = ScenarioSerializer(scenario)

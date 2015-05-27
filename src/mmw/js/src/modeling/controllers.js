@@ -27,41 +27,24 @@ var ModelingController = {
             project
                 .fetch()
                 .done(function(data) {
-                    var scenarios = new models.ScenariosCollection();
-
-                    _.each(data.scenarios, function(scenario) {
-                        scenarios.add(new models.ScenarioModel(scenario));
-                    });
-
-                    project.set('scenarios', scenarios);
-                    project.set('active_scenario_slug', 'current-conditions');
-
+                    App.map.set('areaOfInterest', project.get('area_of_interest'));
                     initViews(project);
                 });
         } else {
-            var taskModel = new models.Tr55TaskModel(),
-                currentConditions = new models.ScenarioModel({
-                    name: 'Current Conditions',
-                    is_current_conditions: true
-                });
-
             project = new models.ProjectModel({
                 name: 'My Project',
                 created_at: Date.now(),
                 area_of_interest: App.map.get('areaOfInterest'),
-                active_scenario_slug: 'current-conditions',
-                model_package: new models.ModelPackageModel({
-                    // TODO: For a new project, users will eventually
-                    // be able to choose which modeling package
-                    // they want to use in their project. For
-                    // now, the only option is TR55, so it is
-                    // hard-coded here.
-                    name: 'TR-55',
-                    taskModel: taskModel
-                }),
                 scenarios: new models.ScenariosCollection([
-                    currentConditions
+                    new models.ScenarioModel({
+                        name: 'Current Conditions',
+                        is_current_conditions: true
+                    })
                 ])
+            });
+
+            project.on('change:id', function(model) {
+                router.navigate('model/' + model.id);
             });
 
             initViews(project);

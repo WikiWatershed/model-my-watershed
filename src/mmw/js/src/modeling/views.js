@@ -60,6 +60,10 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
 // The drop down containing the project name
 // and projects options drop down.
 var ProjectMenuView = Marionette.ItemView.extend({
+    modelEvents: {
+        'change': 'render'
+    },
+
     template: projectMenuTmpl
 });
 
@@ -120,7 +124,8 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     },
 
     modelEvents: {
-        'change:name': 'updateSlug'
+        'change:name': 'updateSlug',
+        'change': 'render'
     },
 
     updateSlug: function() {

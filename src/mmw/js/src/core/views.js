@@ -154,6 +154,7 @@ var MapView = Marionette.ItemView.extend({
 
     // Add a GeoJSON layer if `areaOfInterest` is set.
     updateAreaOfInterest: function() {
+        this.model.restructureAoI();
         var areaOfInterest = this.model.get('areaOfInterest');
         if (!areaOfInterest) {
             this._areaOfInterestLayer.clearLayers();

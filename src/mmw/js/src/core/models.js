@@ -12,6 +12,26 @@ var MapModel = Backbone.Model.extend({
         // Active shape on the map; GeoJSON object
         areaOfInterest: null,
         halfSize: false
+    },
+
+    restructureAoI: function() {
+        // The structure of the AoI is slightly different depending
+        // on whether the shape was drawn or selected. It needs to
+        // be consistent because Project is always expecting an
+        // object with type='MultiPolygon', a coordinates attribute
+        // and nothing else.
+        if (this.get('areaOfInterest')) {
+            var aoi = this.get('areaOfInterest').geometry ?
+                      this.get('areaOfInterest').geometry :
+                      this.get('areaOfInterest');
+
+            if (aoi.type === 'Polygon') {
+                aoi.type = 'MultiPolygon';
+                aoi.coordinates = [aoi.coordinates];
+            }
+
+            this.set('areaOfInterest', aoi);
+        }
     }
 });
 
