@@ -104,7 +104,7 @@ var ScenariosView = Marionette.LayoutView.extend({
 
     addScenario: function() {
         var scenario = new models.ScenarioModel({
-            name: 'New Scenario ' + this.scenarioCounter()
+            name: this.makeNewScenarioName()
         });
 
         this.collection.add(scenario);
@@ -118,6 +118,29 @@ var ScenariosView = Marionette.LayoutView.extend({
             this.counter = this.collection.length;
         }
         return this.counter;
+    },
+
+    /**
+     * Return a new scenario name of the format "New Scenario X" where X is a
+     * positive number and that is greater than all previous X.
+     */
+    makeNewScenarioName: function() {
+        // When making new scenarios, we need to make sure we don't
+        // accidentally give two the same name. Use a counter but ensure slug
+        // name is not in use by looking at all the current names.
+        var numbers = _.without(_.map(this.collection.models, function(model) {
+            var slug = model.get('slug')
+            var regEx = /^new-scenario-(\d)+/g;
+            if (slug.match(regEx) !== null && slug.match(regEx).length === 1) {
+                return parseInt(model.get('slug').replace(/^new-scenario-/g, ''));
+            }
+        }), undefined);
+        if (!_.isEmpty(numbers)) {
+            var max = _.max(numbers) + 1;
+            return 'New Scenario ' + max;
+        } else {
+            return 'New Scenario ' + this.scenarioCounter();
+        }
     },
 
     setActiveScenario: function(e) {
