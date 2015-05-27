@@ -62,12 +62,12 @@ var App = new Marionette.Application({
 
 function RestAPI() {
     return {
-        getPredefinedShapes: function() {
+        getPredefinedShapes: _.memoize(function() {
             return $.ajax({
                 'url': '/api/modeling/congressional_districts',
                 'type': 'GET'
             });
-        },
+        }),
 
         getPolygon: function(args) {
             return $.ajax({

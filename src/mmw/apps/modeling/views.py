@@ -2,6 +2,8 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import json
+
 from rest_framework.response import Response
 from rest_framework import decorators, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -203,14 +205,8 @@ def _initiate_tr55_job_chain(model_input, job_id):
 def district(request, id=None, state=None):
     if id:  # query by unique id
         district = get_object_or_404(District, id=id)
-        coordinates = []
-        for polygon in district.polygon.coords:
-            coordinates.append(polygon[0])
-        dictionary = {'type': 'Feature',
-                      'properties': {},
-                      'geometry': {'type': 'Polygon',
-                                   'coordinates': coordinates}}
-        return Response(dictionary)
+        geojson = json.loads(district.polygon.geojson)
+        return Response(geojson)
     else:  # provide list of all ids
         shapes = District.objects.order_by('state_fips', 'district_fips')
         shapes = [{'id': shape.id, 'name': shape.name()} for shape in shapes]

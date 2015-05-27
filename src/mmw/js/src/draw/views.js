@@ -37,34 +37,6 @@ var ToolbarView = Marionette.LayoutView.extend({
     }
 });
 
-// map.fitBounds((new L.GeoJSON(shape)).getBounds()) or similar does
-// not work because getBounds only returns the bounding box around the
-// first component of the (possibly multi-component) shape.
-function conformMapToShape(shape) {
-    function second(pair) {
-        return pair[1];
-    }
-
-    var map = App.getLeafletMap(),
-        flatShape = _.flatten(shape.geometry.coordinates),
-        lngs = _.map(flatShape, _.first),
-        lats = _.map(flatShape, second),
-        minlat = _.min(lats),
-        minlng = _.min(lngs),
-        maxlat = _.max(lats),
-        maxlng = _.max(lngs);
-
-    if (minlat && minlng && maxlat && maxlng) {
-        map.fitBounds([[minlat, minlng],
-                       [maxlat, maxlng]]);
-    } else {
-        // if the bounding box of the shape could not be computed, use
-        // the bounding box for the US.
-        map.fitBounds([[-124.848974, 24.396308],
-                       [-66.885444, 49.384358]]);
-    }
-}
-
 var SelectAreaView = Marionette.ItemView.extend({
     ui: {
         'items': '[data-shape-id]',
@@ -186,7 +158,6 @@ function clearLayer(layer) {
 
 function addLayer(shape) {
     App.map.set('areaOfInterest', shape);
-    conformMapToShape(shape);
 }
 
 function drawPolygon() {
