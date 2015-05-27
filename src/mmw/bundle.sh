@@ -8,7 +8,7 @@ if [ -z "$DJANGO_STATIC_ROOT" ]; then
 fi
 
 # Default settings
-BIN=./node_modules/.bin
+BIN="./node_modules/.bin"
 
 STATIC_JS_DIR="${DJANGO_STATIC_ROOT}js/"
 STATIC_CSS_DIR="${DJANGO_STATIC_ROOT}css/"
@@ -22,11 +22,11 @@ ENTRY_JS_FILES_WATER_BALANCE="./js/src/main_water_balance.js"
 JSTIFY_TRANSFORM="-t [ jstify --noMinify ]"
 
 NODE_SASS="$BIN/node-sass"
-ENTRY_SASS_DIR=./sass/
+ENTRY_SASS_DIR="./sass/"
 ENTRY_SASS_FILE="${ENTRY_SASS_DIR}main.scss"
 VENDOR_CSS_FILE="${STATIC_CSS_DIR}vendor.css"
 
-TEST_FILES=./js/src/**/tests.js
+TEST_FILES="./js/src/**/tests.js"
 
 usage() {
     echo -n "$(basename $0) [OPTION]...
@@ -36,6 +36,9 @@ Bundle JS and CSS static assets.
  Options:
   --watch      Listen for file changes
   --debug      Generate source maps
+  --tests      Generate test bundles
+  --list       List browserify dependencies
+  --vendor     Generate vendor bundle and copy assets
   -h, --help   Display this help text
 "
 }
@@ -45,6 +48,9 @@ while [[ -n $1 ]]; do
     case $1 in
         --watch) ENABLE_WATCH=1 ;;
         --debug) ENABLE_DEBUG=1 ;;
+        --tests) ENABLE_TESTS=1 ;;
+        --list) LIST_DEPS=1 ;;
+        --vendor) BUILD_VENDOR_BUNDLE=1 ;;
         -h|--help|*) usage; exit 1 ;;
     esac
     shift
@@ -66,11 +72,9 @@ if [ -n "$ENABLE_DEBUG" ]; then
         --source-map-contents"
 fi
 
-ENSURE_DIRS_EXIST="mkdir -p \
-    $STATIC_JS_DIR \
-    $STATIC_CSS_DIR \
-    $STATIC_IMAGES_DIR \
-    $STATIC_FONTS_DIR"
+if [ -n "$LIST_DEPS" ]; then
+    BROWSERIFY="$BROWSERIFY --list"
+fi
 
 COPY_IMAGES_COMMAND="cp -r \
     ./node_modules/leaflet/dist/images/* \
@@ -88,10 +92,9 @@ CONCAT_VENDOR_CSS_COMMAND="cat \
     > $VENDOR_CSS_FILE"
 
 JS_DEPS=(jquery backbone backbone.marionette \
-        bootstrap bootstrap-select \
-        leaflet leaflet-draw lodash underscore \
-        chai)
-
+         bootstrap bootstrap-select \
+         leaflet leaflet-draw lodash underscore \
+         d3)
 BROWSERIFY_EXT=""
 BROWSERIFY_REQ=""
 for DEP in "${JS_DEPS[@]}"
@@ -100,8 +103,17 @@ do
     BROWSERIFY_REQ+="-r $DEP "
 done
 
-JS_DEPS_WATER_BALANCE=(jquery bootstrap bootstrap-select retina.js)
+JS_TEST_DEPS=(chai sinon)
+BROWSERIFY_TEST_EXT=""
+BROWSERIFY_TEST_REQ=""
+for DEP in "${JS_TEST_DEPS[@]}"
+do
+    BROWSERIFY_TEST_EXT+="-x $DEP "
+    BROWSERIFY_TEST_REQ+="-r $DEP "
+done
 
+# TODO: Combine with original vendor bundle.
+JS_DEPS_WATER_BALANCE=(jquery bootstrap bootstrap-select retina.js)
 BROWSERIFY_EXT_WATER_BALANCE=""
 BROWSERIFY_REQ_WATER_BALANCE=""
 for DEP in "${JS_DEPS_WATER_BALANCE[@]}"
@@ -110,27 +122,47 @@ do
     BROWSERIFY_REQ_WATER_BALANCE+="-r $DEP "
 done
 
-VAGRANT_COMMAND="cd /opt/app && \
-    $ENSURE_DIRS_EXIST && { \
-    $COPY_IMAGES_COMMAND &
-    $COPY_FONTS_COMMAND &
-    $CONCAT_VENDOR_CSS_COMMAND &
-    $NODE_SASS $ENTRY_SASS_FILE -o ${STATIC_CSS_DIR} & \
+VENDOR_COMMAND=""
+if [ -n "$BUILD_VENDOR_BUNDLE" ]; then
+    VENDOR_COMMAND="
+        $COPY_IMAGES_COMMAND &
+        $COPY_FONTS_COMMAND &
+        $CONCAT_VENDOR_CSS_COMMAND &
+        $BROWSERIFY $BROWSERIFY_REQ \
+            -o ${STATIC_JS_DIR}vendor.js $EXTRA_ARGS &
+        $BROWSERIFY $BROWSERIFY_REQ $BROWSERIFY_TEST_REQ \
+            -o ${STATIC_JS_DIR}test.vendor.js $EXTRA_ARGS &
+        $BROWSERIFY $BROWSERIFY_REQ_WATER_BALANCE \
+            -o ${STATIC_JS_DIR}vendor_water_balance.js $EXTRA_ARGS &"
+fi
 
+TEST_COMMAND=""
+if [ -n "$ENABLE_TESTS" ]; then
+    TEST_COMMAND="
+        $BROWSERIFY $TEST_FILES $BROWSERIFY_EXT $BROWSERIFY_TEST_EXT $JSTIFY_TRANSFORM \
+            -o ${STATIC_JS_DIR}test.bundle.js $EXTRA_ARGS &"
+fi
+
+VAGRANT_COMMAND="$TEST_COMMAND $VENDOR_COMMAND
+    $NODE_SASS $ENTRY_SASS_FILE -o ${STATIC_CSS_DIR} &
     $BROWSERIFY $ENTRY_JS_FILES $BROWSERIFY_EXT $JSTIFY_TRANSFORM \
-        -o ${STATIC_JS_DIR}main.js $EXTRA_ARGS & \
-
-    $BROWSERIFY $BROWSERIFY_REQ \
-        -o ${STATIC_JS_DIR}vendor.js $EXTRA_ARGS & \
-
+        -o ${STATIC_JS_DIR}main.js $EXTRA_ARGS &
     $BROWSERIFY $ENTRY_JS_FILES_WATER_BALANCE $BROWSERIFY_EXT_WATER_BALANCE $JSTIFY_TRANSFORM \
-        -o ${STATIC_JS_DIR}main_water_balance.js $EXTRA_ARGS & \
+        -o ${STATIC_JS_DIR}main_water_balance.js $EXTRA_ARGS"
 
-    $BROWSERIFY $BROWSERIFY_REQ_WATER_BALANCE \
-        -o ${STATIC_JS_DIR}vendor_water_balance.js $EXTRA_ARGS & \
-
-    $BROWSERIFY $TEST_FILES $JSTIFY_TRANSFORM \
-        -o ${STATIC_JS_DIR}test.bundle.js $EXTRA_ARGS; }"
+# Ensure static asset folders exist.
+mkdir -p \
+    $STATIC_JS_DIR \
+    $STATIC_CSS_DIR \
+    $STATIC_IMAGES_DIR \
+    $STATIC_FONTS_DIR
 
 echo "$VAGRANT_COMMAND"
 eval "$VAGRANT_COMMAND"
+
+# Wait for background jobs to finish if watch is not enabled.
+if [ -z "$ENABLE_WATCH" ]; then
+    echo "Waiting..."
+    wait
+    echo "Done"
+fi

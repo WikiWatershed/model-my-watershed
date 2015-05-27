@@ -43,6 +43,7 @@ After pulling in new commits, you may need to run the following two commands:
 ```bash
 $ ./scripts/manage.sh migrate
 $ ./scripts/manage.sh reload_dev_data
+$ ./scripts/bundle.sh
 ```
 
 See debug messages from the web app server:
@@ -130,5 +131,34 @@ First, start the testem process.
 ```bash
 $ ./scripts/testem.sh
 ```
-
 Then view the test runner page at [http://localhost:7357](http://localhost:7357).
+
+#### Bundling static assets
+
+The `bundle.sh` script runs browserify, node-sass, and othe pre-processing
+tasks to generate static assets.
+
+The vendor bundle is not created until you run this command with the
+`--vendor` flag. This bundle will be very large if combined with `--debug`.
+
+Test bundles are not created unless the `--tests` flag is used.
+
+In general, you should be able to combine `--vendor`, `--tests`, `--debug`,
+and `--watch` and have it behave as you would expect.
+
+The `--list` flag displays module dependencies and does not actually generate
+any bundles. It doesn't make sense to combine this with `--watch`.
+This flag is for troubleshooting purposes only.
+
+    > bundle.sh -h
+    bundle.sh [OPTION]...
+
+    Bundle JS and CSS static assets.
+
+     Options:
+      --watch      Listen for file changes
+      --debug      Generate source maps
+      --tests      Generate test bundles
+      --list       List browserify dependencies
+      --vendor     Generate vendor bundle and copy assets
+      -h, --help   Display this help text
