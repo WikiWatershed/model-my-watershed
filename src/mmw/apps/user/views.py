@@ -63,14 +63,14 @@ def itsi_auth(request):
 
     # Basic validation
     if code is None:
-        return redirect('/error-itsi')  # TODO Make this Backbone route
+        return redirect('/error/itsi')
 
     try:
         session = itsi.get_session_from_code(code)
         itsi_user = session.get_user()
     except:
         # In case we are unable to reach ITSI and get an unexpected response
-        return redirect('/error-itsi')   # TODO Make this Backbone route
+        return redirect('/error/itsi')
 
     user = authenticate(itsi_id=itsi_user['id'])
     if user is not None and user.is_active:

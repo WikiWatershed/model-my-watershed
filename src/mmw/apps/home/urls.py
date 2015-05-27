@@ -12,4 +12,5 @@ urlpatterns = patterns(
     url(r'^analyze$', home_page, name='home_page'),
     url(r'^model$', home_page, name='home_page'),
     url(r'^compare$', compare, name='compare'),
+    url(r'^error', home_page, name='home_page'),
 )
