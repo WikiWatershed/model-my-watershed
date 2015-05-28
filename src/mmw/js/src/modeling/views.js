@@ -3,9 +3,11 @@
 var _ = require('lodash'),
     $ = require('jquery'),
     L = require('leaflet'),
+    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
+    coreViews = require('../core/views'),
     resultsWindowTmpl = require('./templates/resultsWindow.ejs'),
     resultsDetailsTmpl = require('./templates/resultsDetails.ejs'),
     resultsTabPanelTmpl = require('./templates/resultsTabPanel.ejs'),
@@ -182,19 +184,17 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     },
     ui: {
         share: '.share',
-        destroy: '.delete',
+        destroyConfirm: '.delete',
         rename: '.rename',
         print: '.print' 
     },
     events: {
         'click @ui.rename': 'renameScenario',
-        'click @ui.destroy': 'destroyScenario',
+        'click @ui.destroyConfirm': 'destroyConfirm',
         'click @ui.print': function() {
             window.print();
         },
-        'click @ui.share': function() {
-            alert(window.location.href);
-        }
+        'click @ui.share': 'showShareModal'
     },
     renameScenario: function() {
         var self = this,
@@ -223,8 +223,21 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
         });
     },
 
-    destroyScenario: function() {
-        this.model.destroy();
+    destroyConfirm: function() {
+        var del = new coreViews.DeleteModal({
+            objToDelete: this.model,
+            model: new Backbone.Model({ deleteLabel: 'scenario' })
+        });
+        del.render();
+        del.$el.modal('show');
+    },
+
+    showShareModal: function() {
+        var share = new coreViews.ShareModal({
+            model: new Backbone.Model({ url: window.location.href })
+        });
+        share.render();
+        share.$el.modal('show');
     }
 });
 
