@@ -87,11 +87,16 @@ var MapView = Marionette.ItemView.extend({
         'change:halfSize': 'toggleMapSize'
     },
 
-    // Leaflet map instance.
+    // L.Map instance.
     _leafletMap: null,
 
-    // Active "area of interest" shape on the map; Feature Group object
+    // Active "area of interest" shape on the map.
+    // L.FeatureGroup instance.
     _areaOfInterestLayer: null,
+
+    // Scenario modification shapes drawn on top of area of interest.
+    // L.FeatureGroup instance.
+    _modificationsLayer: null,
 
     initialize: function() {
         var map = new L.Map('map', { zoomControl: false }),
@@ -100,12 +105,14 @@ var MapView = Marionette.ItemView.extend({
                 attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
                 maxZoom: 18
             }),
-            areaOfInterestLayer = new L.FeatureGroup();
+            areaOfInterestLayer = new L.FeatureGroup(),
+            modificationsLayer = new L.FeatureGroup();
 
         map.addControl(new L.Control.Zoom({position: 'topright'}));
         map.setView([40.1, -75.7], 10);
         map.addLayer(tileLayer);
         map.addLayer(areaOfInterestLayer);
+        map.addLayer(modificationsLayer);
 
         // Keep the map model up-to-date with the position of the map
         this.listenTo(map, 'moveend', this.updateMapModelPosition);
@@ -113,6 +120,7 @@ var MapView = Marionette.ItemView.extend({
 
         this._leafletMap = map;
         this._areaOfInterestLayer = areaOfInterestLayer;
+        this._modificationsLayer = modificationsLayer;
     },
 
     // Override the default render method because we manually update
@@ -168,6 +176,32 @@ var MapView = Marionette.ItemView.extend({
                 console.log('Error adding Leaflet layer (invalid GeoJSON object)');
             }
         }
+    },
+
+    // Add GeoJSON layer for each modification model in modificationsColl.
+    // Pass null or empty argument to clear modification layers.
+    updateModifications: function(modificationsColl) {
+        var self = this,
+            map = this._leafletMap;
+
+        drawUtils.cancelDrawing(map);
+        this._modificationsLayer.clearLayers();
+
+        if (!modificationsColl) {
+            return;
+        }
+
+        var layers = modificationsColl.reduce(function(acc, model) {
+                try {
+                    return acc.concat(new L.GeoJSON(model.get('geojson')));
+                } catch (ex) {
+                    console.log('Error creating Leaflet layer (invalid GeoJSON object)');
+                }
+            }, []);
+
+        _.each(layers, function(layer) {
+            self._modificationsLayer.addLayer(layer);
+        });
     },
 
     toggleMapSize: function() {

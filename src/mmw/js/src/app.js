@@ -37,6 +37,10 @@ var App = new Marionette.Application({
         }
     },
 
+    getMapView: function() {
+        return this._mapView;
+    },
+
     getLeafletMap: function() {
         return this._mapView._leafletMap;
     },

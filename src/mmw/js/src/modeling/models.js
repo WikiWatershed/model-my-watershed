@@ -116,7 +116,6 @@ var ScenarioModel = Backbone.Model.extend({
         name: '',
         is_current_conditions: false,
         modifications: null,      // ModificationsCollection
-        controlsEnabled: true,
         active: false
     },
 
@@ -132,14 +131,6 @@ var ScenarioModel = Backbone.Model.extend({
                        .replace(/ /g, '-') // Spaces to hyphens
                        .replace(/[^\w-]/g, ''); // Remove non-alphanumeric characters
         return slug;
-    },
-
-    enableControls: function() {
-        this.set('controlsEnabled', true);
-    },
-
-    disableControls: function() {
-        this.set('controlsEnabled', false);
     }
 });
 
@@ -149,7 +140,12 @@ var ScenariosCollection = Backbone.Collection.extend({
 
     setActiveScenario: function(cid) {
         this.each(function(model) {
-            model.set('active', model.cid === cid);
+            var active = model.cid === cid;
+            if (active) {
+                var modificationsColl = model.get('modifications');
+                App.getMapView().updateModifications(modificationsColl);
+            }
+            model.set('active', active);
         });
     }
 });

@@ -6,43 +6,43 @@
         <div class="pad-1"> <!-- Dropdown Content -->
             <ul class="row">
                 <li>
-                    <div class="thumb"></div>
+                    <div class="thumb" data-feature-type="Land Cover" data-feature-name="LIR"></div>
                     <label class="dark">LIR</label>
                 </li>
                 <li>
-                    <div class="thumb"></div>
+                    <div class="thumb" data-feature-type="Land Cover" data-feature-name="HIR"></div>
                     <label class="dark">HIR</label>
                 </li>
                 <li>
-                    <div class="thumb"></div>
+                    <div class="thumb" data-feature-type="Land Cover" data-feature-name="Commercial"></div>
                     <label class="dark">Commercial</label>
                 </li>
             </ul>
             <ul class="row">
                 <li>
-                    <div class="thumb"></div>
+                    <div class="thumb" data-feature-type="Land Cover" data-feature-name="Forest"></div>
                     <label class="dark">Forest</label>
                 </li>
                 <li>
-                    <div class="thumb"></div>
+                    <div class="thumb" data-feature-type="Land Cover" data-feature-name="Turf Grass"></div>
                     <label class="dark">Turf Grass</label>
                 </li>
                 <li>
-                    <div class="thumb"></div>
+                    <div class="thumb" data-feature-type="Land Cover" data-feature-name="Pasture"></div>
                     <label class="dark">Pasture</label>
                 </li>
             </ul>
             <ul class="row">
                 <li>
-                    <div class="thumb"></div>
+                    <div class="thumb" data-feature-type="Land Cover" data-feature-name="Grassland"></div>
                     <label class="dark">Grassland</label>
                 </li>
                 <li>
-                    <div class="thumb"></div>
+                    <div class="thumb" data-feature-type="Land Cover" data-feature-name="Row Crop"></div>
                     <label class="dark">Row Crop</label>
                 </li>
                 <li>
-                    <div class="thumb"></div>
+                    <div class="thumb" data-feature-type="Land Cover" data-feature-name="Wetland"></div>
                     <label class="dark">Wetland</label>
                 </li>
             </ul>
@@ -64,29 +64,29 @@
         <div class="pad-1"> <!-- Dropdown Content -->
             <ul class="row">
                 <li>
-                    <div class="thumb"></div>
+                    <div class="thumb" data-feature-type="Conservation Practice" data-feature-name="Rain Garden"></div>
                     <label class="dark">Rain garden</label>
                 </li>
                 <li>
-                    <div class="thumb"></div>
+                    <div class="thumb" data-feature-type="Conservation Practice" data-feature-name="Veg Infil Basin"></div>
                     <label class="dark">Veg Infil Basin</label>
                 </li>
                 <li>
-                    <div class="thumb"></div>
+                    <div class="thumb" data-feature-type="Conservation Practice" data-feature-name="Porous Paving"></div>
                     <label class="dark">Porous Paving</label>
                 </li>
             </ul>
             <ul class="row">
                 <li>
-                    <div class="thumb"></div>
+                    <div class="thumb" data-feature-type="Conservation Practice" data-feature-name="Green Roof"></div>
                     <label class="dark">Green Roof</label>
                 </li>
                 <li>
-                    <div class="thumb"></div>
+                    <div class="thumb" data-feature-type="Conservation Practice" data-feature-name="No-Till Agriculture"></div>
                     <label class="dark">No-Till Agriculture</label>
                 </li>
                 <li>
-                    <div class="thumb"></div>
+                    <div class="thumb" data-feature-type="Conservation Practice" data-feature-name="Cluster Housing"></div>
                     <label class="dark">Cluster Housing</label>
                 </li>
             </ul>
@@ -118,40 +118,25 @@
 <div id="modification-btn-wrapper"> <!-- Modifications Dropdown -->
     <div class="dropdown"> <!-- Dropdown Button -->
         <button class="btn btn-sm btn-default inverted" type="button" data-toggle="dropdown" aria-expanded="true">
-        <span id="modification-number"><strong>3</strong></span> Modifications
+        <span id="modification-number"><strong>{{ modifications.size() }}</strong></span> Modifications
         </button>
         <div id="modifications" class="dropdown-menu menu-right" role="menu"> <!-- DropdownContent -->
-            <div class="pad-1 brd-bottom"> <!-- Land Cover Modifications -->
+        {% for featureType, models in modifications.groupBy('type') %}
+            <div class="pad-1 brd-bottom">
+                <label class="medium">{{ featureType }}</label>
                 <table id="mod-landCover" class="table modifications custom-hover">
-                    <label class="medium">Land Cover</label>
+                {% for model in models %}
                     <tr>
-                        <td>Grassland</td>
+                        <td>{{ model.get('name') }}</td>
                         <td class="strong text-right">+3.2 Acres</td>
-                        <td class="text-right"><button class="btn btn-sm btn-icon dark" type="button">
+                        <td class="text-right"><button class="btn btn-sm btn-icon dark" type="button" data-delete="{{ model.cid }}">
                         <i class="fa fa-trash"></i>
                         </button></td>
                     </tr>
-                    <tr>
-                        <td>Pasture</td>
-                        <td class="strong text-right">+2.3 Acres</td>
-                        <td class="text-right"><button class="btn btn-sm btn-icon dark" type="button">
-                        <i class="fa fa-trash"></i>
-                        </button></td>
-                    </tr>
+                {% endfor %}
                 </table>
-            </div> <!-- End Land Cover Modifications -->
-            <div class="pad-1"> <!-- Conservation Practice Modifications -->
-                <table id="mod-conservationPractice" class="table modifications custom-hover">
-                    <label class="medium">Conservation Practice</label>
-                    <tr>
-                        <td>Cluster Housing</td>
-                        <td class="strong text-right">+0.5 Acres</td>
-                        <td class="text-right"><button class="btn btn-sm btn-icon dark" type="button">
-                        <i class="fa fa-trash"></i>
-                        </button></td>
-                    </tr>
-                </table>
-            </div> <!-- End Conservation Practice Modifications -->
+            </div>
+        {% endfor %}
         </div> <!-- End Dropdown Content -->
     </div> <!-- End Dropdown Button -->
 </div> <!-- Modifications Dropdown -->
