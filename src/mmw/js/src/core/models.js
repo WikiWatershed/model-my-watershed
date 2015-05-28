@@ -9,8 +9,8 @@ var MapModel = Backbone.Model.extend({
         lat: 0,
         lng: 0,
         zoom: 0,
-        // Active shape on the map; GeoJSON object
-        areaOfInterest: null,
+        // TODO: Delete (already exists on project model)
+        areaOfInterest: null,           // GeoJSON
         halfSize: false
     },
 
