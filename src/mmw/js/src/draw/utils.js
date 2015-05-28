@@ -63,8 +63,36 @@ function cancelDrawing(map) {
     map.fire('draw:drawstop');
 }
 
+// TODO: Remove
+function randomDrawOpts() {
+    var dashes = [
+        '5, 5',
+        '5, 10',
+        '10, 5',
+        '5, 1',
+        '1, 5',
+        '0.9',
+        '15, 10, 5',
+        '15, 10, 5, 10',
+        '15, 10, 5, 10, 15',
+        '5, 5, 1, 5'
+    ];
+
+    function choice() {
+        return arguments[Math.floor(Math.random() * arguments.length)];
+    }
+
+    return {
+        clickable: false,
+        color: '#' + choice('f', '0') + choice('f', '0') + choice('f', '0'),
+        fillColor: '#' + choice('f', '0') + choice('f', '0') + choice('f', '0'),
+        dashArray: choice.apply(null, dashes)
+    };
+}
+
 module.exports = {
     drawPolygon: drawPolygon,
     placeMarker: placeMarker,
-    cancelDrawing: cancelDrawing
+    cancelDrawing: cancelDrawing,
+    randomDrawOpts: randomDrawOpts
 };

@@ -193,7 +193,8 @@ var MapView = Marionette.ItemView.extend({
 
         var layers = modificationsColl.reduce(function(acc, model) {
                 try {
-                    return acc.concat(new L.GeoJSON(model.get('geojson')));
+                    var opts = drawUtils.randomDrawOpts();
+                    return acc.concat(new L.GeoJSON(model.get('geojson'), opts));
                 } catch (ex) {
                     console.log('Error creating Leaflet layer (invalid GeoJSON object)');
                 }
