@@ -123,9 +123,9 @@
     display: block;
     width: 84px;
     margin: 0 auto;
-    right: 16px;
-    top: 40px;
-    bottom: 40px;
+    right: 20px;
+    top: 30px;
+    bottom: 30px;
     padding-bottom: 48px;
     white-space: normal;
 
@@ -186,28 +186,28 @@
   #well-precip{
     position: absolute;
     left: 0;
-    top: 40px;
+    top: 30px;
     min-width: 116px;
   }
 
   #well-evapo{
     position: absolute;
     right: 0;
-    top: 40px;
+    top: 30px;
     min-width: 116px;
   }
 
   #well-runoff{
     position: absolute;
     left: 0;
-    top: 552px;
+    bottom: 30px;
     min-width: 116px;
   }
 
   #well-infil{
     position: absolute;
     right: 0;
-    top: 552px;
+    bottom: 30px;
     min-width: 116px;
   }
 
@@ -224,9 +224,9 @@
   .well-precip{
     background-color: $sky-blue;
     border-radius: 0.3rem;
-    padding: 16px 6px;
-    margin: 8px;
-    height: 54px;
+    padding: 10px 6px;
+    margin: 8px 8px 0 8px!important;
+    height: 42px;
 
     label{
       display: inline-block!important;
@@ -240,7 +240,7 @@
     top: 0;
     right: 0;
     bottom: 0;
-    width: 360px;
+    width: 370px;
     background-color: $paper;
     box-shadow: 0 0 6px rgba(0, 0, 0, 0.74);
     overflow-y: auto;
