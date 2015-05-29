@@ -79,7 +79,7 @@ class Scenario(models.Model):
     name = models.CharField(
         max_length=255)
     project = models.ForeignKey(Project, related_name='scenarios')
-    current_condition = models.BooleanField(
+    is_current_conditions = models.BooleanField(
         default=False,
         help_text='A special type of scenario without modification abilities')
     modifications = models.TextField(

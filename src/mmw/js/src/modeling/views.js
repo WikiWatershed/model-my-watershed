@@ -41,25 +41,29 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         }));
 
         this.scenariosRegion.show(new ScenariosView({
-            initialScenario: this.model.get('activeScenarioSlug'),
+            initialScenario: this.model.get('active_scenario_slug'),
             collection: this.model.get('scenarios')
         }));
 
         this.toolbarRegion.show(new ToolbarTabContentsView({
-            initialScenario: this.model.get('activeScenarioSlug'),
+            initialScenario: this.model.get('active_scenario_slug'),
             collection: this.model.get('scenarios'),
-            model: this.model.get('modelPackage')
+            model: this.model.get('model_package')
         }));
     },
 
     setActiveScenario: function(childView, scenarioSlug) {
-        this.model.set('activeScenarioSlug', scenarioSlug);
+        this.model.set('active_scenario_slug', scenarioSlug);
     }
 });
 
 // The drop down containing the project name
 // and projects options drop down.
 var ProjectMenuView = Marionette.ItemView.extend({
+    modelEvents: {
+        'change': 'render'
+    },
+
     template: projectMenuTmpl
 });
 
@@ -120,7 +124,8 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     },
 
     modelEvents: {
-        'change:name': 'updateSlug'
+        'change:name': 'updateSlug',
+        'change': 'render'
     },
 
     updateSlug: function() {
@@ -179,7 +184,7 @@ var ToolbarTabContentView = Marionette.ItemView.extend({
     },
 
     getTemplate: function() {
-        if (this.model.get('currentConditions')) {
+        if (this.model.get('is_current_conditions')) {
             return currentConditionsToolbarTabContentTmpl;
         } else {
             return scenarioToolbarTabContentTmpl;
@@ -229,7 +234,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         // They should be attached scenario they were run for, or maybe
         // consider modifying the structure so that every scenario has
         // it's own taskModel which can run jobs.
-        var activeScenarioSlug = this.model.get('activeScenarioSlug'),
+        var activeScenarioSlug = this.model.get('active_scenario_slug'),
             activeScenario = this.model.get('scenarios').findWhere({ slug: activeScenarioSlug });
 
         this.detailsRegion.show(new ResultsDetailsView({

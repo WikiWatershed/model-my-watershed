@@ -7,7 +7,7 @@ var UserModel = Backbone.Model.extend({
         guest: true
     },
 
-    url: 'user/ajaxlogin',
+    url: '/user/ajaxlogin',
 
     // Both login and logout methods return jqXHR objects so that callbacks can
     // be specified upon usage. They both update the user model, so any event

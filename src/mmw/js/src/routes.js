@@ -11,5 +11,7 @@ var router = require('./router').router,
 router.addRoute(/^/, DrawController, 'draw');
 router.addRoute(/^analyze/, AnalyzeController, 'analyze');
 router.addRoute(/^model/, ModelingController, 'model');
+router.addRoute('model/:projectId', ModelingController, 'model');
+router.addRoute('model/:projectId/', ModelingController, 'model');
 router.addRoute(/^compare/, AppController, 'compare');
 router.addRoute('error(/)(:type)', ErrorController, 'error');
