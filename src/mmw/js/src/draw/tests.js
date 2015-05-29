@@ -11,11 +11,8 @@ var _ = require('lodash'),
     views = require('./views');
 
 var TEST_SHAPE = {
-    'type': 'Feature',
-    'geometry': {
-        'type': 'Polygon',
-        'coordinates': [[[-5e6, -1e6], [-4e6, 1e6], [-3e6, -1e6]]]
-    }
+    'type': 'MultiPolygon',
+    'coordinates': [[[-5e6, -1e6], [-4e6, 1e6], [-3e6, -1e6]]]
 };
 
 var SandboxRegion = Marionette.Region.extend({
