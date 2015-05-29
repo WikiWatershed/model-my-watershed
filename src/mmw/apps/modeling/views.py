@@ -10,13 +10,18 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
+from django.conf import settings
+from django.db import connection
+from django.contrib.gis.geos import GEOSGeometry
 
 from celery import chain
+
+from urlparse import urljoin
 
 from apps.core.models import Job
 from apps.core.task_helpers import save_job_error, save_job_result
 from apps.modeling import tasks
-from apps.modeling.models import District, Project, Scenario
+from apps.modeling.models import Project, Scenario
 from apps.modeling.serializers import (ProjectSerializer,
                                        ProjectUpdateSerializer,
                                        ScenarioSerializer)
@@ -202,13 +207,35 @@ def _initiate_tr55_job_chain(model_input, job_id):
 
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
-def district(request, id=None, state=None):
-    if id:  # query by unique id
-        district = get_object_or_404(District, id=id)
-        geojson = json.loads(district.polygon.geojson)
-        return Response(geojson)
-    else:  # provide list of all ids
-        shapes = District.objects.order_by('state_fips', 'district_fips')
-        shapes = [{'id': shape.id, 'name': shape.name()} for shape in shapes]
-        dictionary = {'shapes': shapes}
-        return Response(dictionary)
+def boundary_layers(request, table_id=None, obj_id=None):
+    if not table_id and not obj_id:
+        tiler_prefix = '//'
+        tiler_host = settings.MMW_TILER_HOST
+        tiler_port = settings.MMW_TILER_PORT
+        tiler_postfix = '/{z}/{x}/{y}'
+        tiler_base = '%s%s:%s' % (tiler_prefix, tiler_host, tiler_port)
+
+        def augment(index, dictionary):
+            retval = {}
+            retval['display'] = dictionary['display']
+            retval['tableId'] = index
+            retval['endpoint'] = urljoin(tiler_base, index + tiler_postfix)
+            return retval
+
+        layers = [augment(i, d)
+                  for i, d in settings.BOUNDARY_LAYERS.items()]
+        return Response(layers)
+    elif table_id in settings.BOUNDARY_LAYERS and obj_id:
+        # obj_id = str(int(obj_id))
+        table_name = settings.BOUNDARY_LAYERS[table_id]['table_name']
+        cursor = connection.cursor()
+        query = 'SELECT geom FROM ' + table_name + ' WHERE id = %s'
+        cursor.execute(query, [int(obj_id)])
+        row = cursor.fetchone()
+        if row:
+            geojson = json.loads(GEOSGeometry(row[0]).geojson)
+            return Response(geojson)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response(status=status.HTTP_400_BAD_REQUEST)

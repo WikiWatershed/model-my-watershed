@@ -9,7 +9,7 @@ var _ = require('lodash'),
     models = require('./models'),
     toolbarTmpl = require('./templates/toolbar.ejs'),
     loadingTmpl = require('./templates/loading.ejs'),
-    selectAreaTmpl = require('./templates/selectArea.ejs'),
+    selectTypeTmpl = require('./templates/selectType.ejs'),
     drawAreaTmpl = require('./templates/drawArea.ejs'),
     placeMarkerTmpl = require('./templates/placeMarker.ejs');
 
@@ -19,13 +19,31 @@ var ToolbarView = Marionette.LayoutView.extend({
     template: toolbarTmpl,
 
     regions: {
-        selectAreaRegion: '#select-area-region',
+        selectTypeRegion: '#select-area-region',
         drawAreaRegion: '#draw-area-region',
         placeMarkerRegion: '#place-marker-region'
     },
 
+    modelEvents: {
+        'change:toolsEnabled': 'manageOutlineLayer'
+    },
+
+    initialize: function() {
+        var map = App.getLeafletMap(),
+            ofg = L.featureGroup();
+        this.model.set('outlineFeatureGroup', ofg);
+        map.addLayer(ofg);
+    },
+
+    onDestroy: function() {
+        var map = App.getLeafletMap(),
+            ofg = this.model.get('outlineFeatureGroup');
+        map.removeLayer(ofg);
+        this.model.set('outlineFeatureGroup', null);
+    },
+
     onShow: function() {
-        this.selectAreaRegion.show(new SelectAreaView({
+        this.selectTypeRegion.show(new SelectAreaView({
             model: this.model
         }));
         this.drawAreaRegion.show(new DrawAreaView({
@@ -34,12 +52,22 @@ var ToolbarView = Marionette.LayoutView.extend({
         this.placeMarkerRegion.show(new PlaceMarkerView({
             model: this.model
         }));
+    },
+
+    manageOutlineLayer: function() {
+        var enabled = this.model.get('toolsEnabled'),
+            ofg = this.model.get('outlineFeatureGroup');
+
+        if (!enabled) {
+            ofg.clearLayers();
+        }
     }
+
 });
 
 var SelectAreaView = Marionette.ItemView.extend({
     ui: {
-        'items': '[data-shape-id]',
+        'items': '[data-endpoint]',
         'button': '#predefined-shape'
     },
 
@@ -54,26 +82,16 @@ var SelectAreaView = Marionette.ItemView.extend({
     onItemClicked: function(e) {
         var self = this,
             $el = $(e.target),
-            shapeId = $el.data('shape-id'),
-            revertLayer = clearLayer();
-        this.model.disableTools();
-        App.restApi.getPolygon({
-            id: shapeId
-        }).then(function(shape) {
-            addLayer(shape);
-            navigateToAnalyze();
-        }).fail(function() {
-            revertLayer();
-        }).always(function() {
-            self.model.enableTools();
-        });
+            endpoint = $el.data('endpoint'),
+            tableId = $el.data('tableid');
 
+        changeOutlineLayer(endpoint, tableId, this.model);
         e.preventDefault();
     },
 
     getTemplate: function() {
-        var shapes = this.model.get('predefinedShapes');
-        return !shapes ? loadingTmpl : selectAreaTmpl;
+        var types = this.model.get('predefinedShapeTypes');
+        return !types ? loadingTmpl : selectTypeTmpl;
     }
 });
 
@@ -95,6 +113,7 @@ var DrawAreaView = Marionette.ItemView.extend({
     onButtonPressed: function() {
         var self = this,
             revertLayer = clearLayer();
+
         this.model.disableTools();
         drawPolygon().then(function(shape) {
             addLayer(shape);
@@ -128,6 +147,7 @@ var PlaceMarkerView = Marionette.ItemView.extend({
             $el = $(e.target),
             shapeType = $el.data('shape-type'),
             revertLayer = clearLayer();
+
         this.model.disableTools();
         placeMarker().then(function(latlng) {
             App.restApi.getPolygon({
@@ -148,7 +168,41 @@ var PlaceMarkerView = Marionette.ItemView.extend({
     }
 });
 
-function clearLayer(layer) {
+function changeOutlineLayer(endpoint, tableId, model) {
+    var map = App.getLeafletMap();
+
+    if (endpoint && tableId != undefined) {
+        var ol = new L.TileLayer(endpoint + '.png'),
+            grid = new L.UtfGrid(endpoint + '.grid.json?callback={cb}', { resolution: 4 }),
+            ofg = model.get('outlineFeatureGroup');
+
+        ofg.addLayer(ol);
+        ofg.addLayer(grid);
+
+        grid.on('click', function (e) {
+            var shapeId = e.data ? e.data.id : null,
+                revertLayer = clearLayer();
+
+            if (model) {
+                model.disableTools();
+            }
+            App.restApi.getPolygon({
+                tableId: tableId,
+                shapeId: shapeId
+            }).then(function(shape) {
+                addLayer(shape);
+                navigateToAnalyze();
+            }).fail(function() {
+                revertLayer();
+            }).always(function() {
+                model.enableTools();
+                ofg.clearLayers();
+            });
+        });
+    }
+}
+
+function clearLayer() {
     App.map.set('areaOfInterest', null);
     return function revertLayer() {
         var previousShape = App.map.previous('areaOfInterest');
