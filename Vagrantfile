@@ -128,7 +128,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       guest: 80,
       host: 8000
     }.merge(VAGRANT_NETWORK_OPTIONS)
-    # Livereload server (for gulp watch)
+    # Livereload server
     app.vm.network "forwarded_port", {
       guest: 35729,
       host: 35729,
