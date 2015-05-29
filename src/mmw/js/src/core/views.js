@@ -241,24 +241,26 @@ function getLatLngs(boundsOrShape) {
 }
 
 var DeleteModal = Marionette.ItemView.extend({
-    el: '#delete-modal',
+    el: '#modal-basic-target',
 
     viewOptions: ['objToDelete'],
 
     initialize: function(options) {
+        var self = this;
         this.mergeOptions(options, this.viewOptions);
+        this.$el.on('hide.bs.modal', function(e) {
+            self.cleanup();
+        });
     },
 
     template: modalDeleteTmpl,
 
     ui: {
         deleteConfirmed: '.delete',
-        button: '.btn'
     },
 
     events: {
         'click @ui.deleteConfirmed': 'deleteModel',
-        'click @ui.button': 'cleanup'
     },
 
     deleteModel: function() {
@@ -268,11 +270,19 @@ var DeleteModal = Marionette.ItemView.extend({
     cleanup: function() {
         this.model.destroy();
         this.$el.empty();
+        this.undelegateEvents();
     }
 });
 
 var ShareModal = Marionette.ItemView.extend({
-    el: '#share-modal',
+    el: '#modal-basic-target',
+
+    initialize: function(options) {
+        var self = this;
+        this.$el.on('hide.bs.modal', function(e) {
+            self.cleanup();
+        });
+    },
 
     template: modalShareTmpl,
 
@@ -287,6 +297,7 @@ var ShareModal = Marionette.ItemView.extend({
     cleanup: function() {
         this.model.destroy();
         this.$el.empty();
+        this.undelegateEvents();
     }
 });
 

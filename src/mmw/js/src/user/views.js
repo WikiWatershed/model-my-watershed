@@ -11,7 +11,7 @@ var ENTER_KEYCODE = 13;
 
 var LoginModalView = Marionette.ItemView.extend({
     template: loginModalTmpl,
-
+    el: '#modal-large-target',
     ui: {
         'signIn': '#sign-in',
         'continueAsGuest': '#continue-as-guest',
@@ -27,7 +27,11 @@ var LoginModalView = Marionette.ItemView.extend({
     },
 
     initialize: function() {
+        var self = this;
         this.listenTo(this.model, 'change', this.render);
+        this.$el.on('hide.bs.modal', function(e) {
+            self.cleanup();
+        });
     },
 
     handleKeyUpEvent: function(e) {
@@ -76,6 +80,11 @@ var LoginModalView = Marionette.ItemView.extend({
     handleSignInFail: function() {
         this.model.set('signInError', true);
         App.user.set('guest', true);
+    },
+
+    cleanup: function() {
+        this.$el.empty();
+        this.undelegateEvents();
     }
 });
 

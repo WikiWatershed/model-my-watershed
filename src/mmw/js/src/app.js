@@ -50,13 +50,14 @@ var App = new Marionette.Application({
     },
 
     showLoginModal: function() {
-        $('#login').find('#id_username').val("");
-        $('#login').find('#id_password').val("");
-        $('#login').modal('show');
+        this.loginModal.render();
+        this.loginModal.$el.find('#id_username').val('');
+        this.loginModal.$el.find('#id_password').val('');
+        this.loginModal.$el.modal('show');
     },
 
     hideLoginModal: function() {
-        $('#login').modal('hide');
+        this.loginModal.$el.modal('hide');
     }
 });
 
