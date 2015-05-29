@@ -17,7 +17,7 @@
   sudo: False
 
 - name: Create static files and run collectstatic (staging/production)
-  command: "./bundle.sh --vendor"
+  command: "./bundle.sh --vendor --tests"
   args:
     chdir: "{{ app_home }}"
   environment: app_config
