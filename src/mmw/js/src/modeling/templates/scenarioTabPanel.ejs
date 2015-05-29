@@ -1,15 +1,15 @@
-<a href="#<%= slug %>" data-scenario-slug="<%= slug %>" aria-controls="home" role="tab" data-toggle="tab"><%= name %></a>
+<a class="tab-name" data-scenario-slug="<%= slug %>" aria-controls="home" role="tab" data-toggle="tab"><span><%= name %></span></a>
 <div class="scenario-btn-dropdown">
     <div class="dropdown">
         <button class="btn btn-sm btn-icon dark dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
         <i class="fa fa-caret-down"></i>
         </button>
         <ul class="dropdown-menu menu-right" role="menu" aria-labelledby="select-area">
-            <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Share</a></li>
-            <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Print</a></li>
+            <li role="presentation"><a role="menuitem" tabindex="-1" class="share">Share</a></li>
+            <li role="presentation"><a role="menuitem" tabindex="-1" class="print">Print</a></li>
             <% if (!currentConditions) { %>
-            <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Rename</a></li>
-            <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Delete</a></li>
+            <li role="presentation"><a role="menuitem" tabindex="-1" class="rename">Rename</a></li>
+            <li role="presentation"><a role="menuitem" tabindex="-1" class="delete">Delete</a></li>
             <% } %>
         </ul>
     </div>

@@ -42,10 +42,9 @@ App.on('start', function() {
     // Ideally, this would be done in App.init,
     // but userViews requires App, so it's here
     // to avoid a circular requires.
-    new userViews.LoginModalView({
-        el: '#login',
+    this.loginModal = new userViews.LoginModalView({
         model: new userModels.LoginFormModel({})
-    }).render();
+    });
 });
 
 App.start();

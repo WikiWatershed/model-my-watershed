@@ -141,6 +141,10 @@ header{
         height: $height-lg;
         width: 5000px;
 
+        .nav-tabs a.tab-name[contenteditable=true] span{
+            border: 1px solid maroon;
+        }
+
         .scenario-btn-dropdown{
           position: absolute;
           top: 0.5rem;

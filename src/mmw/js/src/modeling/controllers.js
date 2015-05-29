@@ -24,6 +24,7 @@ var ModelingController = {
                 id: projectId
             });
 
+<<<<<<< HEAD
             project
                 .fetch()
                 .done(function(data) {
@@ -40,6 +41,26 @@ var ModelingController = {
                         name: 'Current Conditions',
                         is_current_conditions: true
                     })
+=======
+        // Init models
+        var taskModel = new models.Tr55TaskModel(),
+            currentConditions = new models.ScenarioModel({
+                name: 'Current',
+                currentConditions: true,
+                active: true
+            }),
+            project = new models.ProjectModel({
+                name: 'My Project',
+                createdAt: Date.now(),
+                areaOfInterest: App.map.get('areaOfInterest'),
+                activeScenarioSlug: 'current',
+                modelPackage: new models.ModelPackageModel({
+                    name: 'TR-55',
+                    taskModel: taskModel
+                }),
+                scenarios: new models.ScenariosCollection([
+                    currentConditions
+>>>>>>> Create functioning scenario tabs.
                 ])
             });
 

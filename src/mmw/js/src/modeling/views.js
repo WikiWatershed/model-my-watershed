@@ -3,9 +3,11 @@
 var _ = require('lodash'),
     $ = require('jquery'),
     L = require('leaflet'),
+    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
+    coreViews = require('../core/views'),
     resultsWindowTmpl = require('./templates/resultsWindow.ejs'),
     resultsDetailsTmpl = require('./templates/resultsDetails.ejs'),
     resultsTabPanelTmpl = require('./templates/resultsTabPanel.ejs'),
@@ -20,6 +22,9 @@ var _ = require('lodash'),
     scenarioToolbarTabContentTmpl = require('./templates/scenarioToolbarTabContent.ejs'),
     chart = require('../core/chart.js'),
     barChartTmpl = require('../core/templates/barChart.ejs');
+
+var ENTER_KEYCODE = 13,
+    ESCAPE_KEYCODE = 27;
 
 // The entire modeling header.
 var ModelingHeaderView = Marionette.LayoutView.extend({
@@ -88,7 +93,6 @@ var ScenariosView = Marionette.LayoutView.extend({
         panelsRegion: '#scenarios-tab-panel-region'
     },
 
-
     onShow: function() {
         this.panelsRegion.show(new ScenarioTabPanelsView({
             initialScenario: this.options.initialScenario,
@@ -102,15 +106,58 @@ var ScenariosView = Marionette.LayoutView.extend({
 
     addScenario: function() {
         var scenario = new models.ScenarioModel({
-                name: 'New Scenario'
-            });
+            name: this.makeNewScenarioName()
+        });
 
         this.collection.add(scenario);
     },
 
-    setActiveScenario: function(e) {
-        var scenarioSlug = $(e.target).data('scenario-slug');
+    counter: 0,
 
+    scenarioCounter: function() {
+        this.counter++;
+        if (this.counter < this.collection.length) {
+            this.counter = this.collection.length;
+        }
+        return this.counter;
+    },
+
+    /**
+     * Return a new scenario name of the format "New Scenario X" where X is a
+     * positive number and that is greater than all previous X.
+     */
+    makeNewScenarioName: function() {
+        // When making new scenarios, we need to make sure we don't
+        // accidentally give two the same name. Use a counter but ensure slug
+        // name is not in use by looking at all the current names.
+        var numbers = _.without(_.map(this.collection.models, function(model) {
+            var slug = model.get('slug')
+            var regEx = /^new-scenario-(\d)+/g;
+            if (slug.match(regEx) !== null && slug.match(regEx).length === 1) {
+                return parseInt(model.get('slug').replace(/^new-scenario-/g, ''));
+            }
+        }), undefined);
+        if (!_.isEmpty(numbers)) {
+            var max = _.max(numbers) + 1;
+            return 'New Scenario ' + max;
+        } else {
+            return 'New Scenario ' + this.scenarioCounter();
+        }
+    },
+
+    setActiveScenario: function(e) {
+        var scenarioSlug = $(e.currentTarget).data('scenario-slug');
+
+        _.each(this.collection.models, function(model) {
+            model.set('active', false);
+        }, this);
+
+        _.find(this.collection.models, function(model) {
+            return model.get('slug') === scenarioSlug;
+        }, this).set('active', true);
+
+        // we are trying to active a different tab so need to switch tabs here.
+        this.panelsRegion.$el.find('a[data-scenario-slug=' + scenarioSlug + ']').tab('show');
         this.triggerMethod('set:activeScenario', scenarioSlug);
     }
 });
@@ -125,11 +172,72 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
 
     modelEvents: {
         'change:name': 'updateSlug',
+<<<<<<< HEAD
         'change': 'render'
+=======
+>>>>>>> Create functioning scenario tabs.
     },
 
     updateSlug: function() {
         this.model.slugifyName();
+        this.render();
+    },
+    ui: {
+        share: '.share',
+        destroyConfirm: '.delete',
+        rename: '.rename',
+        print: '.print' 
+    },
+    events: {
+        'click @ui.rename': 'renameScenario',
+        'click @ui.destroyConfirm': 'destroyConfirm',
+        'click @ui.print': function() {
+            window.print();
+        },
+        'click @ui.share': 'showShareModal'
+    },
+    renameScenario: function() {
+        var self = this,
+            $nameField = this.$el.find('.tab-name');
+
+        $nameField.attr('contenteditable', true).focus();
+
+        $nameField.on('keyup', function(e) {
+            // Cancel on escape key.
+            if (e.keyCode === ESCAPE_KEYCODE) {
+                self.render();
+            }
+        });
+
+        $nameField.on('keypress', function(e) {
+            var keycode = (e.keyCode ? e.keyCode : e.which);
+            if (keycode == ENTER_KEYCODE) {
+                // Don't add line returns to the text.
+                e.preventDefault();
+                self.triggerMethod('rename:scenario', self.model, $(this).text());
+            }
+        });
+
+        $nameField.on('blur', function(e) {
+           self.triggerMethod('rename:scenario', self.model, $(this).text());
+        });
+    },
+
+    destroyConfirm: function() {
+        var del = new coreViews.DeleteModal({
+            objToDelete: this.model,
+            model: new Backbone.Model({ deleteLabel: 'scenario' })
+        });
+        del.render();
+        del.$el.modal('show');
+    },
+
+    showShareModal: function() {
+        var share = new coreViews.ShareModal({
+            model: new Backbone.Model({ url: window.location.href })
+        });
+        share.render();
+        share.$el.modal('show');
     }
 });
 
@@ -142,6 +250,20 @@ var ScenarioTabPanelsView = Marionette.CollectionView.extend({
     },
 
     childView: ScenarioTabPanelView,
+    childEvents: {
+        'rename:scenario': function(view, model, newName) {
+            var match = _.find(this.collection.models, function(model) {
+                return model.get('name') === newName ||
+                       model.get('slug') === model.makeSlug(newName);
+            });
+            if (match) {
+                alert('This name is already in use.');
+                return;
+            } else if (model.get('name') !== newName) {
+                model.set('name', newName);
+            }
+        }
+    },
 
     onRender: function() {
         if (this.options.initialScenario) {
@@ -158,7 +280,23 @@ var ScenarioDropDownMenuItemView = Marionette.ItemView.extend({
     tagName: 'li',
     template: scenarioMenuItemTmpl,
     attributes: {
-        role: 'presentation'
+        'role': 'presentation'
+    },
+    modelEvents: {
+        'change': 'render'
+    },
+    onDomRefresh: function() {
+        if (this.model.get('active')) {
+            this.$el.addClass('active');
+        } else {
+            this.$el.removeClass('active');
+        }
+    },
+    events: {
+        'click': function() {
+            this.$el.addClass('active');
+            this.trigger('dropdown:item:change');
+        }
     }
 });
 

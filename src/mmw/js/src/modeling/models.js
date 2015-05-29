@@ -87,16 +87,19 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     defaults: {
-        currentConditions: false
+        currentConditions: false,
+        active: false
     },
 
     slugifyName: function() {
-        var slug = this.get('name')
-                       .toLowerCase()
-                       .replace(/ /g, '-') // Spaces to hyphens
-                       .replace(/[^\w-]/g, ''); // Remove non-alphanumeric characters
-
+        var slug = this.makeSlug(this.get('name'));
         this.set('slug', slug);
+    },
+
+    makeSlug: function(name) {
+        return name.toLowerCase()
+                   .replace(/ /g, '-') // Spaces to hyphens
+                   .replace(/[^\w-]/g, ''); // Remove non-alphanumeric characters
     }
 });
 
