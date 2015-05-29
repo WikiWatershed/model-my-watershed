@@ -1,4 +1,6 @@
-from django.contrib.auth import authenticate, logout, login as auth_login
+from django.contrib.auth import (authenticate,
+                                 logout as auth_logout,
+                                 login as auth_login)
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect, render_to_response
@@ -50,8 +52,8 @@ def login(request):
 
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
-def user_logout(request):
-    logout(request)
+def logout(request):
+    auth_logout(request)
 
     if request.is_ajax():
         response_data = {'guest': True, 'result': 'success'}

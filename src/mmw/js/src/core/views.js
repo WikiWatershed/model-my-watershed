@@ -62,7 +62,7 @@ var HeaderView = Marionette.ItemView.extend({
     showLogin: function() {
         // Defer requiring app until needed as it is not defined when
         // core.views are initialized (they are required in app.js)
-        require('../app').showLoginModal();
+        require('../app').getUserOrShowLogin();
     },
 
     userLogout: function(event) {

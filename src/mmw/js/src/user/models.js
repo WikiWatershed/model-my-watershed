@@ -88,8 +88,10 @@ var SignUpFormModel = Backbone.Model.extend({
     validate: function(attrs, options) {
         var errors = [];
 
-        this.set('clientErrors', null);
-        this.set('serverErrors', null);
+        this.set({
+            'clientErrors': null,
+            'serverErrors': null
+        });
 
         if (!attrs.username) {
             errors.push('Please enter a username');
@@ -120,8 +122,10 @@ var SignUpFormModel = Backbone.Model.extend({
     getServerErrors: function(serverResponse) {
         var errors = [];
 
-        this.set('clientErrors', null);
-        this.set('serverErrors', null);
+        this.set({
+            'clientErrors': null,
+            'serverErrors': null
+        });
 
         if (serverResponse) {
             if (!serverResponse['email_valid']) {
@@ -156,8 +160,10 @@ var ForgotFormModel = Backbone.Model.extend({
     validate: function(attrs, options) {
         var errors = [];
 
-        this.set('clientErrors', null);
-        this.set('serverErrors', null);
+        this.set({
+            'clientErrors': null,
+            'serverErrors': null
+        });
 
         if (!attrs.email) {
             errors.push('Please enter an email address');
@@ -176,8 +182,10 @@ var ForgotFormModel = Backbone.Model.extend({
     getServerErrors: function(response) {
         var errors = [];
 
-        this.set('clientErrors', null);
-        this.set('serverErrors', null);
+        this.set({
+            'clientErrors': null,
+            'serverErrors': null
+        });
 
         if (!response['email_valid']) {
             errors.push('Email is invalid');

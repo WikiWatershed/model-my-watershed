@@ -39,14 +39,6 @@ App.on('start', function() {
         router.navigate($(this).data('url'), { trigger: true });
     });
     Backbone.history.start({ pushState: true });
-
-    // Ideally, this would be done in App.init,
-    // but userViews requires App, so it's here
-    // to avoid a circular requires.
-    new userViews.LoginModalView({
-        el: '#user-modal',
-        model: new userModels.LoginFormModel({})
-    }).render();
 });
 
 App.start();

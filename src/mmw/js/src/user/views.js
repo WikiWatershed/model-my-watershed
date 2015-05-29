@@ -3,7 +3,6 @@
 var _ = require('underscore'),
     $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
-    App = require('../app'),
     models = require('./models'),
     loginModalTmpl = require('./templates/loginModal.html'),
     signUpModalTmpl = require('./templates/signUpModal.ejs'),
@@ -13,6 +12,8 @@ var ENTER_KEYCODE = 13;
 
 var LoginModalView = Marionette.ItemView.extend({
     template: loginModalTmpl,
+
+    className: 'modal modal-large fade',
 
     ui: {
         'loginButton': '#login-button',
@@ -33,8 +34,17 @@ var LoginModalView = Marionette.ItemView.extend({
         'click @ui.forgot': 'forgot'
     },
 
-    initialize: function() {
+    initialize: function(options) {
+        this.app = options.app;
         this.listenTo(this.model, 'change', this.render);
+        var self = this;
+        this.$el.on('hidden.bs.modal', function() {
+            self.destroy();
+        });
+    },
+
+    onRender: function() {
+        this.$el.modal('show');
     },
 
     handleKeyUpEvent: function(e) {
@@ -61,7 +71,7 @@ var LoginModalView = Marionette.ItemView.extend({
     },
 
     login: function() {
-        App.user
+        this.app.user
             .login({
                 username: this.model.get('username'),
                 password: this.model.get('password')
@@ -71,37 +81,43 @@ var LoginModalView = Marionette.ItemView.extend({
     },
 
     signUp: function() {
-        var signUpView = new SignUpModalView({
-            el: '#user-modal',
-            model: new models.SignUpFormModel({})
-        }).render();
+        this.$el.modal('hide');
+        this.$el.on('hidden.bs.modal', function() {
+            new SignUpModalView({
+                model: new models.SignUpFormModel({})
+            }).render();
+        });
     },
 
     forgot: function() {
-        var forgotView = new ForgotModalView({
-            el: '#user-modal',
-            model: new models.ForgotFormModel({})
-        }).render();
+        this.$el.modal('hide');
+        this.$el.on('hidden.bs.modal', function() {
+            new ForgotModalView({
+                model: new models.ForgotFormModel({})
+            }).render();
+        });
     },
 
     continueAsGuest: function() {
-        App.user.set('guest', true);
+        this.app.user.set('guest', true);
     },
 
     handleSuccess: function() {
         this.$el.modal('hide');
-        App.user.set('guest', false);
+        this.app.user.set('guest', false);
     },
 
     handleFail: function() {
         this.model.set('loginError', true);
-        App.user.set('guest', true);
+        this.app.user.set('guest', true);
     }
 });
 
 
 var SignUpModalView = Marionette.ItemView.extend({
     template: signUpModalTmpl,
+
+    className: 'modal modal-large fade',
 
     ui: {
         'signUpButton': '#sign-up-button',
@@ -121,6 +137,14 @@ var SignUpModalView = Marionette.ItemView.extend({
 
     initialize: function() {
         this.listenTo(this.model, 'change', this.render);
+        var self = this;
+        this.$el.on('hidden.bs.modal', function() {
+            self.destroy();
+        });
+    },
+
+    onRender: function() {
+        this.$el.modal('show');
     },
 
     handleKeyUpEvent: function(e) {
@@ -175,6 +199,8 @@ var SignUpModalView = Marionette.ItemView.extend({
 var ForgotModalView = Marionette.ItemView.extend({
     template: forgotModalTmpl,
 
+    className: 'modal modal-large fade',
+
     ui: {
         'forgotModal': '#forgot-modal',
         'retrieveButton': '#retrieve-button',
@@ -190,6 +216,10 @@ var ForgotModalView = Marionette.ItemView.extend({
         'submit @ui.form': 'cancelFormSubmit'
     },
 
+    onRender: function() {
+        this.$el.modal('show');
+    },
+
     // Used to prevent the form from being submitted by the default mechanism
     // when hitting enter.
     cancelFormSubmit: function(e) {
@@ -198,6 +228,10 @@ var ForgotModalView = Marionette.ItemView.extend({
 
     initialize: function() {
         this.listenTo(this.model, 'change', this.render);
+        var self = this;
+        this.$el.on('hidden.bs.modal', function() {
+            self.destroy();
+        });
     },
 
     handleKeyUpEvent: function(e) {

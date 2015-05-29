@@ -5,7 +5,8 @@ var $ = require('jquery'),
     Marionette = require('../shim/backbone.marionette'),
     views = require('./core/views'),
     models = require('./core/models'),
-    userModels = require('./user/models');
+    userModels = require('./user/models'),
+    userViews = require('./user/views');
 
 var App = new Marionette.Application({
     initialize: function() {
@@ -55,8 +56,10 @@ var App = new Marionette.Application({
     },
 
     showLoginModal: function() {
-        $('#user-modal').find('input').val('');
-        $('#user-modal').modal('show');
+        new userViews.LoginModalView({
+            model: new userModels.LoginFormModel({}),
+            app: this
+        }).render();
     },
 
     hideLoginModal: function() {

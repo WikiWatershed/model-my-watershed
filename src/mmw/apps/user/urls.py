@@ -8,14 +8,14 @@ from django.conf.urls import patterns, url
 from apps.user.views import (login,
                              sign_up,
                              forgot,
-                             user_logout,
+                             logout,
                              itsi_login,
                              itsi_auth,
                              itsi_register)
 
 urlpatterns = patterns(
     '',
-    url(r'^logout$', user_logout, name='logout'),
+    url(r'^logout$', logout, name='logout'),
     url(r'^itsi/login$', itsi_login, name='itsi_login'),
     url(r'^itsi/authenticate$', itsi_auth, name='itsi_auth'),
     url(r'^itsi/register$', itsi_register, name='itsi_register'),
