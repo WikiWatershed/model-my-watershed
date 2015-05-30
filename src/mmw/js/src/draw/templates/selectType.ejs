@@ -4,7 +4,7 @@
     Select by Boundary
     <span class="caret"></span>
   </button>
-  <ul class="dropdown-menu menu-left" role="menu" aria-labelledby="select-area" id="wrapper">
+  <ul class="dropdown-menu menu-left" role="menu" id="wrapper">
   <% _.each(predefinedShapeTypes, function(item) { %>
       <li role="presentation"><a role="menuitem" tabindex="-1" href="#" data-endpoint="<%- item.endpoint %>" data-tableid="<%- item.tableId %>"><%- item.display %></a></li>
   <% }) %>
