@@ -5,9 +5,9 @@
 var Backbone = require('./backbone'),
     Marionette = require('backbone.marionette');
 
-// Enable support for bundled templates (jstify).
-Backbone.Marionette.Renderer.render = function(template, data, view) {
-    return template.call(view, data);
+// Enable support for bundled templates.
+Backbone.Marionette.Renderer.render = function(template, data) {
+    return template.render(data);
 };
 
 // Expose Backbone and Marionette for the Marionette Inspector
