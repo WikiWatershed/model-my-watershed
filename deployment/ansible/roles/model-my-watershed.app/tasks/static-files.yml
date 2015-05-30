@@ -16,15 +16,23 @@
     chdir: "{{ app_home }}"
   sudo: False
 
-- name: Create static files and run collectstatic (staging/production)
-  command: "./bundle.sh --vendor --tests"
+- name: Create minified JS vendor bundle (staging/production)
+  command: "./bundle.sh --vendor --minify"
   args:
     chdir: "{{ app_home }}"
   environment: app_config
   sudo: False
   when: "['development'] | is_not_in(group_names)"
 
-- name: Create static files and run collectstatic (development)
+- name: Create primary JS bundles (staging/production)
+  command: "./bundle.sh --tests"
+  args:
+    chdir: "{{ app_home }}"
+  environment: app_config
+  sudo: False
+  when: "['development'] | is_not_in(group_names)"
+
+- name: Create JS bundles (development)
   command: "./bundle.sh --vendor --tests --debug"
   args:
     chdir: "{{ app_home }}"
