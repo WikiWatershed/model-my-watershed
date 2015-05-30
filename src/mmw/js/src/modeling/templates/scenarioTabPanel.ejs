@@ -1,4 +1,4 @@
-<a href="#<%= slug %>" data-scenario-slug="<%= slug %>" aria-controls="home" role="tab" data-toggle="tab"><%= name %></a>
+<a href="#<%- this.model.cid %>" data-scenario-cid="<%- this.model.cid %>" aria-controls="home" role="tab" data-toggle="tab"><%- name %></a>
 <div class="scenario-btn-dropdown">
     <div class="dropdown">
         <button class="btn btn-sm btn-icon dark dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
@@ -7,7 +7,7 @@
         <ul class="dropdown-menu menu-right" role="menu">
             <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Share</a></li>
             <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Print</a></li>
-            <% if (!currentConditions) { %>
+            <% if (!is_current_conditions) { %>
             <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Rename</a></li>
             <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Delete</a></li>
             <% } %>

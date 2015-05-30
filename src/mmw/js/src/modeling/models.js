@@ -27,8 +27,17 @@ var ProjectModel = Backbone.Model.extend({
         // itself in the future, with more modification
         // and input control data.
         this.set('model_package', 'tr-55');
-        this.set('active_scenario_slug', 'current-conditions');
         this.set('taskModel', new Tr55TaskModel());
+
+        this.makeFirstScenarioActive();
+    },
+
+    makeFirstScenarioActive: function() {
+        var scenariosColl = this.get('scenarios'),
+            scenario = scenariosColl.first();
+        if (scenario) {
+            scenariosColl.setActiveScenario(scenario.cid);
+        }
     },
 
     saveAll: function() {
@@ -82,27 +91,30 @@ var ProjectModel = Backbone.Model.extend({
 var ScenarioModel = Backbone.Model.extend({
     urlRoot: '/api/modeling/scenarios/',
 
-    initialize: function() {
-        this.slugifyName();
-    },
-
     defaults: {
-        currentConditions: false
+        name: '',
+        is_current_conditions: false,
+        active: false
     },
 
-    slugifyName: function() {
+    getSlug: function() {
         var slug = this.get('name')
                        .toLowerCase()
                        .replace(/ /g, '-') // Spaces to hyphens
                        .replace(/[^\w-]/g, ''); // Remove non-alphanumeric characters
-
-        this.set('slug', slug);
+        return slug;
     }
 });
 
 var ScenariosCollection = Backbone.Collection.extend({
     model: ScenarioModel,
-    comparator: 'created_at'
+    comparator: 'created_at',
+
+    setActiveScenario: function(cid) {
+        this.each(function(model) {
+            model.set('active', model.cid === cid);
+        });
+    }
 });
 
 module.exports = {
