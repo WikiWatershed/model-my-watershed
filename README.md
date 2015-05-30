@@ -146,6 +146,9 @@ Test bundles are not created unless the `--tests` flag is used.
 In general, you should be able to combine `--vendor`, `--tests`, `--debug`,
 and `--watch` and have it behave as you would expect.
 
+You can also minify bundles by using the `--minify` flag. This operation is
+not fast, and also disables source maps.
+
 The `--list` flag displays module dependencies and does not actually generate
 any bundles. It doesn't make sense to combine this with `--watch`.
 This flag is for troubleshooting purposes only.
@@ -158,6 +161,7 @@ This flag is for troubleshooting purposes only.
      Options:
       --watch      Listen for file changes
       --debug      Generate source maps
+      --minify     Minify bundles (**SLOW**); Disables source maps
       --tests      Generate test bundles
       --list       List browserify dependencies
       --vendor     Generate vendor bundle and copy assets
