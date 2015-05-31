@@ -1,5 +1,5 @@
 <div id="delineate-shape" class="dropdown menu-left">
-  <button class="btn btn-md btn-search-tool dropdown-toggle<% if (!toolsEnabled) { %> disabled<% } %>"
+  <button class="btn btn-md btn-search-tool dropdown-toggle {{ 'disabled' if not toolsEnabled }}"
       type="button" data-toggle="dropdown" aria-expanded="true">
     Delineate Watershed
     <span class="caret"></span>

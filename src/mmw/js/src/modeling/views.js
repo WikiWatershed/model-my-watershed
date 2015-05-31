@@ -6,20 +6,20 @@ var _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
-    resultsWindowTmpl = require('./templates/resultsWindow.ejs'),
-    resultsDetailsTmpl = require('./templates/resultsDetails.ejs'),
-    resultsTabPanelTmpl = require('./templates/resultsTabPanel.ejs'),
-    resultsTabContentTmpl = require('./templates/resultsTabContent.ejs'),
-    modelingHeaderTmpl = require('./templates/modelingHeader.ejs'),
-    scenariosBarTmpl = require('./templates/scenariosBar.ejs'),
-    scenarioTabPanelTmpl = require('./templates/scenarioTabPanel.ejs'),
-    scenarioMenuTmpl = require('./templates/scenarioMenu.ejs'),
-    scenarioMenuItemTmpl = require('./templates/scenarioMenuItem.ejs'),
-    projectMenuTmpl = require('./templates/projectMenu.ejs'),
-    currentConditionsToolbarTabContentTmpl = require('./templates/currentConditionsToolbarTabContent.ejs'),
-    scenarioToolbarTabContentTmpl = require('./templates/scenarioToolbarTabContent.ejs'),
+    resultsWindowTmpl = require('./templates/resultsWindow.html'),
+    resultsDetailsTmpl = require('./templates/resultsDetails.html'),
+    resultsTabPanelTmpl = require('./templates/resultsTabPanel.html'),
+    resultsTabContentTmpl = require('./templates/resultsTabContent.html'),
+    modelingHeaderTmpl = require('./templates/modelingHeader.html'),
+    scenariosBarTmpl = require('./templates/scenariosBar.html'),
+    scenarioTabPanelTmpl = require('./templates/scenarioTabPanel.html'),
+    scenarioMenuTmpl = require('./templates/scenarioMenu.html'),
+    scenarioMenuItemTmpl = require('./templates/scenarioMenuItem.html'),
+    projectMenuTmpl = require('./templates/projectMenu.html'),
+    currentConditionsToolbarTabContentTmpl = require('./templates/currentConditionsToolbarTabContent.html'),
+    scenarioToolbarTabContentTmpl = require('./templates/scenarioToolbarTabContent.html'),
     chart = require('../core/chart.js'),
-    barChartTmpl = require('../core/templates/barChart.ejs');
+    barChartTmpl = require('../core/templates/barChart.html');
 
 // The entire modeling header.
 var ModelingHeaderView = Marionette.LayoutView.extend({
@@ -118,6 +118,12 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
         'change': 'render'
     },
 
+    templateHelpers: function() {
+        return {
+            cid: this.model.cid
+        };
+    },
+
     onRender: function() {
         this.$el.toggleClass('active', this.model.get('active'));
     }
@@ -142,6 +148,14 @@ var ScenarioDropDownMenuItemView = Marionette.ItemView.extend({
     template: scenarioMenuItemTmpl,
     attributes: {
         role: 'presentation'
+    },
+    templateHelpers: function() {
+        return {
+            cid: this.model.cid
+        };
+    },
+    modelEvents: {
+        'change': 'render'
     }
 });
 

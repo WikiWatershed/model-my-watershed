@@ -4,10 +4,10 @@ var _ = require('underscore'),
     $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     models = require('./models'),
-    geocoderTmpl = require('./templates/geocoder.ejs'),
-    searchTmpl = require('./templates/search.ejs'),
-    suggestionTmpl = require('./templates/suggestion.ejs'),
-    noResultsTmpl = require('./templates/noResults.ejs');
+    geocoderTmpl = require('./templates/geocoder.html'),
+    searchTmpl = require('./templates/search.html'),
+    suggestionTmpl = require('./templates/suggestion.html'),
+    noResultsTmpl = require('./templates/noResults.html');
 
 var ENTER_KEYCODE = 13;
 

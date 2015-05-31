@@ -7,11 +7,11 @@ var _ = require('lodash'),
     router = require('../router').router,
     App = require('../app'),
     models = require('./models'),
-    toolbarTmpl = require('./templates/toolbar.ejs'),
-    loadingTmpl = require('./templates/loading.ejs'),
-    selectTypeTmpl = require('./templates/selectType.ejs'),
-    drawAreaTmpl = require('./templates/drawArea.ejs'),
-    placeMarkerTmpl = require('./templates/placeMarker.ejs');
+    toolbarTmpl = require('./templates/toolbar.html'),
+    loadingTmpl = require('./templates/loading.html'),
+    selectTypeTmpl = require('./templates/selectType.html'),
+    drawAreaTmpl = require('./templates/drawArea.html'),
+    placeMarkerTmpl = require('./templates/placeMarker.html');
 
 // Responsible for loading and displaying tools for selecting and drawing
 // shapes on the map.

@@ -10,7 +10,7 @@ var _ = require('lodash'),
     models = require('./models'),
     views = require('./views'),
     chart = require('../core/chart'),
-    sandboxTemplate = require('../core/templates/sandbox.ejs');
+    sandboxTemplate = require('../core/templates/sandbox.html');
 
 var sandboxHeight = '500',
     sandboxWidth = '700',

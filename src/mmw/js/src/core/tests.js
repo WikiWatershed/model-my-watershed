@@ -14,7 +14,7 @@ var $ = require('jquery'),
     models = require('./models'),
     AppRouter = require('../router').AppRouter,
     chart = require('./chart'),
-    sandboxTemplate = require('./templates/sandbox.ejs');
+    sandboxTemplate = require('./templates/sandbox.html');
 
 var TEST_SHAPE = {
     'type': 'Feature',
