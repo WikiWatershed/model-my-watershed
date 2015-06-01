@@ -34,20 +34,16 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        var activeScenarioSlug = this.model.get('active_scenario_slug'),
-            scenariosColl = this.model.get('scenarios'),
-            scenario = scenariosColl.findWhere({ slug: activeScenarioSlug });
-
         this.projectMenuRegion.show(new ProjectMenuView({
             model: this.model
         }));
 
         this.scenariosRegion.show(new ScenariosView({
-            collection:scenariosColl
+            collection: this.model.get('scenarios')
         }));
 
         this.toolbarRegion.show(new ToolbarTabContentsView({
-            collection:scenariosColl
+            collection: this.model.get('scenarios')
         }));
     }
 });
