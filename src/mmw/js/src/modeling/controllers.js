@@ -52,6 +52,7 @@ var ModelingController = {
     },
 
     modelCleanUp: function() {
+        App.getMapView().updateModifications(null);
         App.rootView.subHeaderRegion.empty();
         App.rootView.footerRegion.empty();
     }

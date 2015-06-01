@@ -6,6 +6,7 @@ var _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
+    drawUtils = require('../draw/utils'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultsDetailsTmpl = require('./templates/resultsDetails.html'),
     resultsTabPanelTmpl = require('./templates/resultsTabPanel.html'),
@@ -137,7 +138,6 @@ var ScenarioTabPanelsView = Marionette.CollectionView.extend({
     attributes: {
         role: 'tablist'
     },
-
     childView: ScenarioTabPanelView
 });
 
@@ -200,8 +200,52 @@ var ToolbarTabContentView = Marionette.ItemView.extend({
         'change:active': 'render'
     },
 
+    ui: {
+        drawControl: '[data-feature-name]',
+        deleteModification: '[data-delete]'
+    },
+
+    events: {
+        'click @ui.drawControl': 'startDrawing',
+        'click @ui.deleteModification': 'deleteModification'
+    },
+
+    initialize: function() {
+        var modificationsColl = this.model.get('modifications');
+        this.listenTo(modificationsColl, 'add remove', this.updateMap);
+        this.listenTo(modificationsColl, 'add remove', this.render);
+    },
+
     onRender: function() {
         this.$el.toggleClass('active', this.model.get('active'));
+    },
+
+    updateMap: function() {
+        var modificationsColl = this.model.get('modifications');
+        App.getMapView().updateModifications(modificationsColl);
+    },
+
+    startDrawing: function(e) {
+        var $el = $(e.currentTarget),
+            modificationsColl = this.model.get('modifications'),
+            featureName = $el.data('feature-name'),
+            featureType = $el.data('feature-type'),
+            map = App.getLeafletMap();
+        drawUtils.drawPolygon(map).then(function(geojson) {
+            modificationsColl.add(new models.ModificationModel({
+                name: featureName,
+                type: featureType,
+                geojson: geojson
+            }));
+        });
+    },
+
+    deleteModification: function(e) {
+        var $el = $(e.currentTarget),
+            cid = $el.data('delete'),
+            modificationsColl = this.model.get('modifications'),
+            modification = modificationsColl.get(cid);
+        modificationsColl.remove(modification);
     },
 
     getTemplate: function() {
@@ -227,6 +271,10 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
     id: 'model-output-wrapper',
     tagName: 'div',
     template: resultsWindowTmpl,
+
+    modelEvents: {
+        'change:active_scenario_slug': 'showDetailsRegion'
+    },
 
     regions: {
         detailsRegion: '#modeling-details-region'

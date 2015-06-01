@@ -18,6 +18,15 @@ var ResultCollection = Backbone.Collection.extend({
 var ProjectModel = Backbone.Model.extend({
     urlRoot: '/api/modeling/projects/',
 
+    defaults: {
+        name: '',
+        created_at: null,          // Date
+        area_of_interest: null,    // GeoJSON
+        model_package: null,       // ModelPackageModel
+        taskModel: null,           // TaskModel
+        scenarios: null            // ScenariosCollection
+    },
+
     initialize: function() {
         // TODO: For a new project, users will eventually
         // be able to choose which modeling package
@@ -88,13 +97,32 @@ var ProjectModel = Backbone.Model.extend({
     }
 });
 
+var ModificationModel = Backbone.Model.extend({
+    defaults: {
+        name: '',
+        type: '',
+        geojson: null
+    }
+});
+
+var ModificationsCollection = Backbone.Collection.extend({
+    model: ModificationModel
+});
+
 var ScenarioModel = Backbone.Model.extend({
     urlRoot: '/api/modeling/scenarios/',
 
     defaults: {
         name: '',
         is_current_conditions: false,
+        modifications: null,      // ModificationsCollection
         active: false
+    },
+
+    initialize: function() {
+        // TODO: When fetching model or populating from a preloaded source
+        // this attribute should not be initialized as empty.
+        this.set('modifications', new ModificationsCollection());
     },
 
     getSlug: function() {
@@ -112,7 +140,12 @@ var ScenariosCollection = Backbone.Collection.extend({
 
     setActiveScenario: function(cid) {
         this.each(function(model) {
-            model.set('active', model.cid === cid);
+            var active = model.cid === cid;
+            if (active) {
+                var modificationsColl = model.get('modifications');
+                App.getMapView().updateModifications(modificationsColl);
+            }
+            model.set('active', active);
         });
     }
 });
@@ -123,6 +156,8 @@ module.exports = {
     ModelPackageModel: ModelPackageModel,
     Tr55TaskModel: Tr55TaskModel,
     ProjectModel: ProjectModel,
+    ModificationModel: ModificationModel,
+    ModificationsCollection: ModificationsCollection,
     ScenarioModel: ScenarioModel,
     ScenariosCollection: ScenariosCollection
 };

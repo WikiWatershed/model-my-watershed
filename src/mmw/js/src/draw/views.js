@@ -7,6 +7,7 @@ var _ = require('lodash'),
     router = require('../router').router,
     App = require('../app'),
     models = require('./models'),
+    utils = require('./utils'),
     toolbarTmpl = require('./templates/toolbar.html'),
     loadingTmpl = require('./templates/loading.html'),
     selectTypeTmpl = require('./templates/selectType.html'),
@@ -112,10 +113,11 @@ var DrawAreaView = Marionette.ItemView.extend({
 
     onButtonPressed: function() {
         var self = this,
+            map = App.getLeafletMap(),
             revertLayer = clearLayer();
 
         this.model.disableTools();
-        drawPolygon().then(function(shape) {
+        utils.drawPolygon(map).then(function(shape) {
             addLayer(shape);
             navigateToAnalyze();
         }).fail(function() {
@@ -146,10 +148,11 @@ var PlaceMarkerView = Marionette.ItemView.extend({
         var self = this,
             $el = $(e.target),
             shapeType = $el.data('shape-type'),
+            map = App.getLeafletMap(),
             revertLayer = clearLayer();
 
         this.model.disableTools();
-        placeMarker().then(function(latlng) {
+        utils.placeMarker(map).then(function(latlng) {
             App.restApi.getPolygon({
                 shapeType: shapeType,
                 lat: latlng.lat,
@@ -212,59 +215,6 @@ function clearLayer() {
 
 function addLayer(shape) {
     App.map.set('areaOfInterest', shape);
-}
-
-function drawPolygon() {
-    var defer = $.Deferred(),
-        map = App.getLeafletMap(),
-        tool = new L.Draw.Polygon(map),
-        clearEvents = function() {
-            map.off('draw:created');
-            map.off('draw:drawstop');
-        },
-        doneDrawing = function(e) {
-            var layer = e.layer,
-                shape = layer.toGeoJSON();
-            clearEvents();
-            defer.resolve(shape);
-        },
-        cancelDrawing = function() {
-            clearEvents();
-            defer.reject();
-        },
-        drawOpts = {};
-
-    map.on('draw:created', doneDrawing);
-    map.on('draw:drawstop', cancelDrawing);
-    tool.enable();
-
-    return defer.promise();
-}
-
-function placeMarker() {
-    var defer = $.Deferred(),
-        map = App.getLeafletMap(),
-        tool = new L.Draw.Marker(map),
-        clearEvents = function() {
-            map.off('draw:created');
-            map.off('draw:drawstop');
-        },
-        doneDrawing = function(e) {
-            var latlng = e.layer.getLatLng();
-            clearEvents();
-            defer.resolve(latlng);
-        },
-        cancelDrawing = function() {
-            clearEvents();
-            defer.reject();
-        },
-        drawOpts = {};
-
-    map.on('draw:created', doneDrawing);
-    map.on('draw:drawstop', cancelDrawing);
-    tool.enable();
-
-    return defer.promise();
 }
 
 function navigateToAnalyze() {
