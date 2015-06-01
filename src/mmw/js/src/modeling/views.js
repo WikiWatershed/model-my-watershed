@@ -456,10 +456,6 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
     tagName: 'div',
     template: resultsWindowTmpl,
 
-    modelEvents: {
-        'change:active_scenario_slug': 'showDetailsRegion'
-    },
-
     regions: {
         detailsRegion: '#modeling-details-region'
     },
