@@ -114,6 +114,9 @@ describe('Core', function() {
 
     afterEach(function() {
         $('#sandbox').empty();
+        // App adds a LoginModalView to the body
+        // so we need to remove it.
+        $('.modal').remove();
         window.location.hash = '';
         Backbone.history.stop();
     });

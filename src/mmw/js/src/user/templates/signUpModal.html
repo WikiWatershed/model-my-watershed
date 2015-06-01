@@ -1,0 +1,73 @@
+<div class="modal-dialog modal-dialog-sm" id="sign-up-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="light">Model My Watershed</h2>
+        </div>
+
+        <div class="modal-body">
+            {% if clientErrors %}
+                <ul>
+                    {% for error in clientErrors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% if serverErrors %}
+                <ul>
+                    {% for error in serverErrors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            {% if success %}
+                Sign up was successful! Please check your email to active your account.
+            {% else %}
+                <form>
+                    <div class="custom-input-group">
+                        <input name="username" type="text" id="username" required value="{{ username }}">
+                        <span class="highlight"></span>
+                        <span class="bar"></span>
+                        <label>Username</label>
+                    </div>
+                    <div class="custom-input-group">
+                        <input name="email" type="text" id="email" required value="{{ email }}">
+                        <span class="highlight"></span>
+                        <span class="bar"></span>
+                        <label>Email</label>
+                    </div>
+                    <div class="custom-input-group">
+                        <input name="password1" type="password" id="password1" required value="{{ password1 }}">
+                        <span class="highlight"></span>
+                        <span class="bar"></span>
+                        <label>Password</label>
+                    </div>
+                    <div class="custom-input-group">
+                        <input name="password2" type="password" id="password2" required value="{{ password2 }}">
+                        <span class="highlight"></span>
+                        <span class="bar"></span>
+                        <label>Repeat Password</label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            {% if agreed %}
+                                <input type="checkbox" id="agreed" checked>
+                            {% else %}
+                                <input type="checkbox" id="agreed">
+                            {% endif %}
+                            I agree to something
+                        </label>
+                    </div>
+                </form>
+            {% endif %}
+        </div>
+
+        <div class="modal-footer">
+            {% if success %}
+                <button type="button" class="btn btn-lg btn-block btn-active" data-dismiss="modal">Continue As Guest</button>
+            {% else %}
+                <button type="button" class="btn btn-lg btn-block btn-active" id="sign-up-button">Sign Up</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
