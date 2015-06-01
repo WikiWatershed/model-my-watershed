@@ -133,6 +133,13 @@ $ ./scripts/testem.sh
 ```
 Then view the test runner page at [http://localhost:7357](http://localhost:7357).
 
+To enable livereload, [download the browser extension](http://livereload.com/extensions/)
+and start the livereload server with the following command:
+
+```bash
+./scripts/npm.sh run livereload
+```
+
 #### Bundling static assets
 
 The `bundle.sh` script runs browserify, node-sass, and othe pre-processing
