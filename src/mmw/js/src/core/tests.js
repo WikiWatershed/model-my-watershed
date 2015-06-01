@@ -14,7 +14,7 @@ var $ = require('jquery'),
     models = require('./models'),
     AppRouter = require('../router').AppRouter,
     chart = require('./chart'),
-    sandboxTemplate = require('./templates/sandbox.ejs');
+    sandboxTemplate = require('./templates/sandbox.html');
 
 var TEST_SHAPE = {
     'type': 'Feature',
@@ -41,7 +41,7 @@ describe('Core', function() {
     beforeEach(function() {
         $('#display-sandbox').remove();
         // Use a special sandbox so that we can test responsiveness of chart.
-        $('body').append(sandboxTemplate({height: sandboxHeight, width: sandboxWidth}));
+        $('body').append(sandboxTemplate.render({height: sandboxHeight, width: sandboxWidth}));
     });
 
     afterEach(function() {

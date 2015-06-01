@@ -19,7 +19,7 @@ BROWSERIFY="$BIN/browserify"
 ENTRY_JS_FILES="./js/src/main.js"
 ENTRY_JS_FILES_WATER_BALANCE="./js/src/main_water_balance.js"
 
-JSTIFY_TRANSFORM="-t [ jstify --noMinify ]"
+NUNJUCKS_TRANSFORM="-t [ nunjucksify --extension='.html' ]"
 
 NODE_SASS="$BIN/node-sass"
 ENTRY_SASS_DIR="./sass/"
@@ -94,7 +94,7 @@ CONCAT_VENDOR_CSS_COMMAND="cat \
 JS_DEPS=(jquery backbone backbone.marionette \
          bootstrap bootstrap-select \
          leaflet leaflet-draw lodash underscore \
-         d3)
+         d3 nunjucks)
 BROWSERIFY_EXT=""
 BROWSERIFY_REQ=""
 for DEP in "${JS_DEPS[@]}"
@@ -139,15 +139,15 @@ fi
 TEST_COMMAND=""
 if [ -n "$ENABLE_TESTS" ]; then
     TEST_COMMAND="
-        $BROWSERIFY $TEST_FILES $BROWSERIFY_EXT $BROWSERIFY_TEST_EXT $JSTIFY_TRANSFORM \
+        $BROWSERIFY $TEST_FILES $BROWSERIFY_EXT $BROWSERIFY_TEST_EXT $NUNJUCKS_TRANSFORM \
             -o ${STATIC_JS_DIR}test.bundle.js $EXTRA_ARGS &"
 fi
 
 VAGRANT_COMMAND="$TEST_COMMAND $VENDOR_COMMAND
     $NODE_SASS $ENTRY_SASS_FILE -o ${STATIC_CSS_DIR} &
-    $BROWSERIFY $ENTRY_JS_FILES $BROWSERIFY_EXT $JSTIFY_TRANSFORM \
+    $BROWSERIFY $ENTRY_JS_FILES $BROWSERIFY_EXT $NUNJUCKS_TRANSFORM \
         -o ${STATIC_JS_DIR}main.js $EXTRA_ARGS &
-    $BROWSERIFY $ENTRY_JS_FILES_WATER_BALANCE $BROWSERIFY_EXT_WATER_BALANCE $JSTIFY_TRANSFORM \
+    $BROWSERIFY $ENTRY_JS_FILES_WATER_BALANCE $BROWSERIFY_EXT_WATER_BALANCE $NUNJUCKS_TRANSFORM \
         -o ${STATIC_JS_DIR}main_water_balance.js $EXTRA_ARGS"
 
 # Ensure static asset folders exist.

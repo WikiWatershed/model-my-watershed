@@ -6,7 +6,7 @@ var $ = require('jquery'),
     router = require('../router.js').router,
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
-    headerTmpl = require('./templates/header.ejs');
+    headerTmpl = require('./templates/header.html');
 
 /**
  * A basic view for showing a static message.

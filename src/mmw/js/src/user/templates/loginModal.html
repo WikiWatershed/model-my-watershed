@@ -7,25 +7,25 @@
             <div class="signup">
                 <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">Sign Up</button>
             </div>
-            <% if (validationError) { %>
+            {% if validationError %}
                 <ul>
-                <% _.each(validationError, function(error) { %>
-                    <li><%= error %></li>
-                <% }); %>
+                {% for error in validationError %}
+                    <li>{{ error }}</li>
+                {% endfor %}
                 </ul>
-            <% } %>
-            <% if (signInError) { %>
+            {% endif %}
+            {% if signInError %}
                 <span class="error">Incorrect username or password</span>
-            <% } %>
+            {% endif %}
             <form>
                 <div class="custom-input-group">
-                  <input name="username" type="text" id="id_username" required value="<%= username %>">
+                  <input name="username" type="text" id="id_username" required value="{{ username }}">
                   <span class="highlight"></span>
                   <span class="bar"></span>
                   <label>Username</label>
                 </div>
                 <div class="custom-input-group">
-                  <input name="password" type="password" id="id_password" required value="<%= password %>">
+                  <input name="password" type="password" id="id_password" required value="{{ password }}">
                   <span class="highlight"></span>
                   <span class="bar"></span>
                   <label>Password</label>

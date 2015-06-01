@@ -10,7 +10,7 @@ var _ = require('lodash'),
     models = require('./models'),
     views = require('./views'),
     chart = require('../core/chart'),
-    sandboxTemplate = require('../core/templates/sandbox.ejs');
+    sandboxTemplate = require('../core/templates/sandbox.html');
 
 var sandboxHeight = '500',
     sandboxWidth = '700',
@@ -81,7 +81,7 @@ describe('Analyze', function() {
     beforeEach(function() {
         $('#display-sandbox').remove();
         // Use a special sandbox so that we can test responsiveness of chart.
-        $('body').append(sandboxTemplate({height: sandboxHeight, width: sandboxWidth}));
+        $('body').append(sandboxTemplate.render({height: sandboxHeight, width: sandboxWidth}));
     });
 
     afterEach(function() {

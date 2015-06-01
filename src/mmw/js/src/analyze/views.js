@@ -7,14 +7,14 @@ var _ = require('lodash'),
     App = require('../app'),
     models = require('./models'),
     chart = require('../core/chart'),
-    windowTmpl = require('./templates/window.ejs'),
-    headerTmpl = require('./templates/header.ejs'),
-    detailsTmpl = require('./templates/details.ejs'),
-    tableTmpl = require('./templates/table.ejs'),
-    tableRowTmpl = require('./templates/tableRow.ejs'),
-    tabPanelTmpl = require('./templates/tabPanel.ejs'),
-    tabContentTmpl = require('./templates/tabContent.ejs'),
-    barChartTmpl = require('../core/templates/barChart.ejs');
+    windowTmpl = require('./templates/window.html'),
+    headerTmpl = require('./templates/header.html'),
+    detailsTmpl = require('./templates/details.html'),
+    tableTmpl = require('./templates/table.html'),
+    tableRowTmpl = require('./templates/tableRow.html'),
+    tabPanelTmpl = require('./templates/tabPanel.html'),
+    tabContentTmpl = require('./templates/tabContent.html'),
+    barChartTmpl = require('../core/templates/barChart.html');
 
 var AnalyzeWindow = Marionette.LayoutView.extend({
     tagName: 'div',
