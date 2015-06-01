@@ -38,7 +38,9 @@ var ProjectModel = Backbone.Model.extend({
         this.set('model_package', 'tr-55');
         this.set('taskModel', new Tr55TaskModel());
 
-        this.makeFirstScenarioActive();
+        // After the scenario collection is initialized, set
+        // the first scenario as the active scenario.
+        this.listenToOnce(this, 'change:scenarios', this.makeFirstScenarioActive);
     },
 
     makeFirstScenarioActive: function() {
