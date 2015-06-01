@@ -3,61 +3,63 @@
         <div class="modal-header">
             <h2 class="light">Model My Watershed</h2>
         </div>
+
         <div class="modal-body">
-            <% if (clientErrors) { %>
+           {% if clientErrors %}
                 <ul>
-                    <% _.each(clientErrors, function(error) { %>
-                        <li><%= error %></li>
-                    <% }); %>
+                    {% for error in clientErrors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
                 </ul>
-            <% } %>
-            <% if (serverErrors) { %>
+            {% endif %}
+            {% if serverErrors %}
                 <ul>
-                    <% _.each(serverErrors, function(error) { %>
-                        <li><%= error %></li>
-                    <% }); %>
+                    {% for error in serverErrors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
                 </ul>
-            <% } %>
-            <% if (success) { %>
+            {% endif %}
+
+            {% if success %}
                 Please check your email to reset your account.
-            <% } else { %>
+            {% else %}
                 <form>
                     <div class="custom-input-group">
-                        <input name="email" type="text" id="email" required value="<%= email %>">
+                        <input name="email" type="text" id="email" required value="{{ email }}">
                         <span class="highlight"></span>
                         <span class="bar"></span>
                         <label>Email</label>
                     </div>
                     <div class="checkbox">
                         <label>
-                            <% if (username) { %>
+                            {% if username %}
                                 <input name="username" type="checkbox" id="username" checked>
-                            <% } else { %>
+                            {% else %}
                                 <input name="username" type="checkbox" id="username">
-                            <% } %>
+                            {% endif %}
                             Forgot Username
                         </label>
                     </div>
                     <div class="checkbox">
                         <label>
-                            <% if (password) { %>
+                            {% if password %}
                                 <input name="password" type="checkbox" id="password" checked>
-                            <% } else { %>
+                            {% else %}
                                 <input name="password" type="checkbox" id="password">
-                            <% } %>
+                            {% endif %}
                             Forgot Password
                         </label>
                     </div>
                 </form>
-            <% } %>
+            {% endif %}
         </div>
 
         <div class="modal-footer">
-            <% if (success) { %>
+            {% if success %}
                 <button type="button" class="btn btn-lg btn-block btn-active" data-dismiss="modal">Continue As Guest</button>
-            <% } else { %>
+            {% else %}
                 <button type="button" class="btn btn-lg btn-block btn-active" id="retrieve-button">Retrieve</button>
-            <% } %>
+            {% endif %}
         </div>
     </div>
 </div>

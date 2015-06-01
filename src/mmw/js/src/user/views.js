@@ -5,8 +5,8 @@ var _ = require('underscore'),
     Marionette = require('../../shim/backbone.marionette'),
     models = require('./models'),
     loginModalTmpl = require('./templates/loginModal.html'),
-    signUpModalTmpl = require('./templates/signUpModal.ejs'),
-    forgotModalTmpl = require('./templates/forgotModal.ejs');
+    signUpModalTmpl = require('./templates/signUpModal.html'),
+    forgotModalTmpl = require('./templates/forgotModal.html');
 
 var ENTER_KEYCODE = 13;
 
