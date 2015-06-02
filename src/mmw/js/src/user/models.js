@@ -7,7 +7,7 @@ var UserModel = Backbone.Model.extend({
         guest: true
     },
 
-    url: 'user/login',
+    url: '/user/login',
 
     // Both login and logout methods return jqXHR objects so that callbacks can
     // be specified upon usage. They both update the user model, so any event
@@ -15,14 +15,14 @@ var UserModel = Backbone.Model.extend({
     login: function(attrs) {
         return this.fetch({
             type: 'POST',
-            url: 'user/login',
+            url: '/user/login',
             data: attrs
         });
     },
 
     logout: function() {
         var jqXHR = this.fetch({
-            url: 'user/logout'
+            url: '/user/logout'
         });
 
         var user = this;
@@ -83,7 +83,7 @@ var SignUpFormModel = Backbone.Model.extend({
         success: false
     },
 
-    url: 'user/sign_up',
+    url: '/user/sign_up',
 
     validate: function(attrs, options) {
         var errors = [];
@@ -155,7 +155,7 @@ var ForgotFormModel = Backbone.Model.extend({
         password: false
     },
 
-    url: 'user/forgot',
+    url: '/user/forgot',
 
     validate: function(attrs, options) {
         var errors = [];
