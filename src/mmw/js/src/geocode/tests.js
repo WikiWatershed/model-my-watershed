@@ -167,30 +167,34 @@ describe('Geocoder', function() {
     });
 
     describe('SuggestionModel', function() {
-        it('#setMapViewToLocation sets map model\'s position attributes to the geocode result position', function() {
-            var testSuggestion = getTestSuggestions(1),
-                model = new models.SuggestionModel(testSuggestion[0]),
-                testGeocode = getTestGeocodes(1),
-                zoomLevel = 15;
+        describe('#setMapViewLocation', function() {
+            it('sets map model\'s position attributes to the geocode result position', function() {
+                var testSuggestion = getTestSuggestions(1),
+                    model = new models.SuggestionModel(testSuggestion[0]),
+                    testGeocode = getTestGeocodes(1),
+                    zoomLevel = 15;
 
-            model.set('location', new models.LocationModel(testGeocode[0]));
-            model.setMapViewToLocation(zoomLevel);
+                model.set('location', new models.LocationModel(testGeocode[0]));
+                model.setMapViewToLocation(zoomLevel);
 
-            assert.equal(App.map.get('lat'), model.get('location').get('y'));
-            assert.equal(App.map.get('lng'), model.get('location').get('x'));
-            assert.equal(App.map.get('zoom'), zoomLevel);
+                assert.equal(App.map.get('lat'), model.get('location').get('y'));
+                assert.equal(App.map.get('lng'), model.get('location').get('x'));
+                assert.equal(App.map.get('zoom'), zoomLevel);
+            });
         });
 
-        it('#select fetchs location information for the selected model', function(done) {
-            var testSuggestion = getTestSuggestions(1),
-                model = new models.SuggestionModel(testSuggestion[0]),
-                testGeocode = JSON.stringify(getTestGeocodes(1));
+        describe('#select', function() {
+            it('fetchs location information for the selected model', function(done) {
+                var testSuggestion = getTestSuggestions(1),
+                    model = new models.SuggestionModel(testSuggestion[0]),
+                    testGeocode = JSON.stringify(getTestGeocodes(1));
 
-            this.server.respondWith([200, { 'Content-Type': 'application/json' }, testGeocode]);
+                this.server.respondWith([200, { 'Content-Type': 'application/json' }, testGeocode]);
 
-            model.select().done(function() {
-                assert.instanceOf(model.get('location'), Backbone.Model);
-                done();
+                model.select().done(function() {
+                    assert.instanceOf(model.get('location'), Backbone.Model);
+                    done();
+                });
             });
         });
     });
