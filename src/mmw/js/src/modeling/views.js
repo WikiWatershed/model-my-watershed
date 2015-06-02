@@ -177,7 +177,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
                 // Don't add line returns to the text.
                 e.preventDefault();
 
-                if (self.model.get('name') !== $(this).text()) {
+                if (self.model.get('name') !== $(this).text() && $(this).text() !== '') {
                     self.triggerMethod('rename:scenario', self.model, $(this).text());
                 } else {
                     self.render();
