@@ -194,9 +194,14 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     initialize: function() {
-        // TODO: When fetching model or populating from a preloaded source
-        // this attribute should not be initialized as empty.
-        this.set('modifications', new ModificationsCollection());
+        // TODO: When #278 is resolved, we should be doing something like this
+        // to setup or restore modifications.
+        // var mods = this.get('modifications') === null ? [] : JSON.parse(this.get('modifications'));
+        var mods = this.get('modifications');
+
+        if (mods === null || typeof mods === 'string') {
+            this.set('modifications', new ModificationsCollection());
+        }
     },
 
     getSlug: function() {
@@ -221,6 +226,36 @@ var ScenariosCollection = Backbone.Collection.extend({
             }
             model.set('active', active);
         });
+    },
+
+    duplicateScenario: function(cid) {
+        var source = this.get(cid),
+            sourceMods = source.get('modifications').models,
+            newModel = new ScenarioModel({
+                is_current_conditions: false,
+                name: this.makeNewScenarioName('Copy of ' + source.get('name')),
+                modifications: new ModificationsCollection(sourceMods)
+            });
+
+        this.add(newModel);
+        this.setActiveScenario(newModel.cid);
+    },
+
+    // Generate a unique scenario name based off the baseName.
+    // Assumes a basic structure of "baseName X", where X is
+    // iterated as new scenarios with the same baseName are created.
+    // The first duplicate will not have an iterated X in the name.
+    // The second duplicate will be "baseName 1".
+    makeNewScenarioName: function(baseName) {
+        var existingNames = this.pluck('name');
+
+        if (!_.contains(existingNames, baseName)) {
+            return baseName;
+        }
+
+        for (var i=1; _.contains(existingNames, baseName + ' ' + i); i++);
+
+        return baseName + ' ' + i;
     }
 });
 

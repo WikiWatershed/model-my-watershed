@@ -153,20 +153,24 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     },
 
     ui: {
-        share: '.share',
-        destroyConfirm: '.delete',
-        rename: '.rename',
-        print: '.print',
+        share: '[data-action="share"]',
+        destroyConfirm: '[data-action="delete"]',
+        rename: '[data-action="rename"]',
+        print: '[data-action="print"]',
+        duplicate: '[data-action="duplicate"]',
         nameField: '.tab-name'
     },
+
     events: {
         'click @ui.rename': 'renameScenario',
         'click @ui.destroyConfirm': 'destroyConfirm',
         'click @ui.share': 'showShareModal',
         'click @ui.print': function() {
             window.print();
-        }
+        },
+        'click @ui.duplicate': 'duplicateScenario'
     },
+
     renameScenario: function() {
         var self = this;
 
@@ -225,6 +229,10 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
         });
         share.render();
         share.$el.modal('show');
+    },
+
+    duplicateScenario: function() {
+        this.model.collection.duplicateScenario(this.model.cid);
     }
 });
 
