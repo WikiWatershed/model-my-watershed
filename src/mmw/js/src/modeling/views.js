@@ -228,7 +228,7 @@ var ScenarioTabPanelsView = Marionette.CollectionView.extend({
         role: 'tablist'
     },
 
-    childView: ScenarioTabPanelView,
+    childView: ScenarioTabPanelView
 });
 
 // The menu item for a scenario in the scenario drop down menu.
