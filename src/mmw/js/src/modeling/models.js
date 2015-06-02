@@ -143,7 +143,7 @@ var ProjectModel = Backbone.Model.extend({
             return model.get('name') === newName;
         });
         if (match) {
-            alert('This name is already in use.');
+            window.alert('This name is already in use.');
             return;
         } else if (model.get('name') !== newName) {
             model.set('name', newName);

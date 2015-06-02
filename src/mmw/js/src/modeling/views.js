@@ -217,7 +217,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
 
     showShareModal: function() {
         if (App.user.get('guest')) {
-            alert('Guest cannot share scenarios. Please log in or register.');
+            window.alert('Guest cannot share scenarios. Please log in or register.');
             return;
         }
         var share = new coreViews.ShareModal({
