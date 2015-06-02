@@ -60,10 +60,6 @@ var App = new Marionette.Application({
             model: new userModels.LoginFormModel({}),
             app: this
         }).render();
-    },
-
-    hideLoginModal: function() {
-        $('#user-modal').modal('hide');
     }
 });
 

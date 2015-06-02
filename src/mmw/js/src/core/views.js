@@ -7,7 +7,11 @@ var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
     drawUtils = require('../draw/utils'),
-    headerTmpl = require('./templates/header.html');
+    headerTmpl = require('./templates/header.html'),
+    modalConfirmTmpl = require('./templates/confirmModal.html'),
+    modalShareTmpl = require('./templates/shareModal.html');
+
+var BASIC_MODAL_CLASS = 'modal modal-basic fade';
 
 /**
  * A basic view for showing a static message.
@@ -274,9 +278,49 @@ function getLatLngs(boundsOrShape) {
     throw 'Unable to extract latlngs from boundsOrShape argument';
 }
 
+var ConfirmModal = Marionette.ItemView.extend({
+    className: BASIC_MODAL_CLASS,
+
+    ui: {
+        confirmation: '.confirm'
+    },
+
+    events: {
+        'click @ui.confirmation': 'triggerConfirmation'
+    },
+
+    initialize: function(options) {
+        var self = this;
+        this.$el.on('hide.bs.modal', function() {
+            self.destroy();
+        });
+    },
+
+    template: modalConfirmTmpl,
+
+    triggerConfirmation: function() {
+        this.triggerMethod('confirmation');
+    }
+});
+
+var ShareModal = Marionette.ItemView.extend({
+    className: BASIC_MODAL_CLASS,
+
+    initialize: function(options) {
+        var self = this;
+        this.$el.on('hide.bs.modal', function() {
+            self.destroy();
+        });
+    },
+
+    template: modalShareTmpl
+});
+
 module.exports = {
     HeaderView: HeaderView,
     MapView: MapView,
     RootView: RootView,
-    StaticView: StaticView
+    StaticView: StaticView,
+    ConfirmModal: ConfirmModal,
+    ShareModal: ShareModal
 };
