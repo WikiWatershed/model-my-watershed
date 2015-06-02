@@ -8,7 +8,7 @@ var _ = require('lodash'),
     App = require('../app'),
     filters = require('../filters'),
     models = require('./models'),
-    drawUtils = require('../draw/utils'),
+    controls = require('./controls'),
     coreViews = require('../core/views'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultsDetailsTmpl = require('./templates/resultsDetails.html'),
@@ -50,7 +50,8 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         }));
 
         this.toolbarRegion.show(new ToolbarTabContentsView({
-            collection: this.model.get('scenarios')
+            collection: this.model.get('scenarios'),
+            model_package: this.model.get('model_package')
         }));
     }
 });
@@ -369,13 +370,29 @@ var ScenarioDropDownMenuView = Marionette.CompositeView.extend({
 
 // The toolbar that contains the modification and input tools
 // for a scenario.
-var ToolbarTabContentView = Marionette.ItemView.extend({
-    model: models.Scenario,
+var ToolbarTabContentView = Marionette.CompositeView.extend({
+    model: models.ScenarioModel,
+    collection: models.ModificationsCollection,
+    childViewContainer: '.controls',
+
     tagName: 'div',
     className: 'tab-pane',
+
+    childViewOptions: function(model) {
+        var modificationModel = this.getModificationForInputControl(model),
+            addModification = _.bind(this.model.addModification, this.model),
+            addOrReplaceModification = _.bind(this.model.addOrReplaceModification, this.model);
+        return {
+            modificationModel: modificationModel,
+            addModification: addModification,
+            addOrReplaceModification: addOrReplaceModification
+        };
+    },
+
     id: function() {
         return this.model.cid;
     },
+
     attributes: {
         role: 'tabpanel'
     },
@@ -385,12 +402,10 @@ var ToolbarTabContentView = Marionette.ItemView.extend({
     },
 
     ui: {
-        drawControl: '[data-feature-name]',
         deleteModification: '[data-delete]'
     },
 
     events: {
-        'click @ui.drawControl': 'startDrawing',
         'click @ui.deleteModification': 'deleteModification'
     },
 
@@ -398,6 +413,20 @@ var ToolbarTabContentView = Marionette.ItemView.extend({
         var modificationsColl = this.model.get('modifications');
         this.listenTo(modificationsColl, 'add remove', this.updateMap);
         this.listenTo(modificationsColl, 'add remove', this.render);
+    },
+
+    templateHelpers: function() {
+        var modificationsColl = this.model.get('modifications'),
+            shapes = modificationsColl.filter(function(model) {
+                return model.get('shape') !== null;
+            }),
+            groupedShapes = _.groupBy(shapes, function(model) {
+                return model.get('name');
+            });
+        return {
+            shapes: shapes,
+            groupedShapes: groupedShapes
+        };
     },
 
     onRender: function() {
@@ -409,27 +438,23 @@ var ToolbarTabContentView = Marionette.ItemView.extend({
         App.getMapView().updateModifications(modificationsColl);
     },
 
-    startDrawing: function(e) {
-        var $el = $(e.currentTarget),
-            modificationsColl = this.model.get('modifications'),
-            featureName = $el.data('feature-name'),
-            featureType = $el.data('feature-type'),
-            map = App.getLeafletMap();
-        drawUtils.drawPolygon(map).then(function(geojson) {
-            modificationsColl.add(new models.ModificationModel({
-                name: featureName,
-                type: featureType,
-                geojson: geojson
-            }));
-        });
-    },
-
     deleteModification: function(e) {
         var $el = $(e.currentTarget),
             cid = $el.data('delete'),
             modificationsColl = this.model.get('modifications'),
             modification = modificationsColl.get(cid);
         modificationsColl.remove(modification);
+    },
+
+    getChildView: function(model) {
+        var controlName = model.get('name');
+        return controls.getControlView(controlName);
+    },
+
+    getModificationForInputControl: function(model) {
+        var modificationsColl = this.model.get('modifications'),
+            controlName = model.get('name');
+        return modificationsColl.findWhere({ name: controlName });
     },
 
     getTemplate: function() {
@@ -446,7 +471,18 @@ var ToolbarTabContentView = Marionette.ItemView.extend({
 var ToolbarTabContentsView = Marionette.CollectionView.extend({
     collection: models.ScenariosCollection,
     className: 'tab-content',
-    childView: ToolbarTabContentView
+    childView: ToolbarTabContentView,
+    childViewOptions: function(model) {
+        var controls = model.get('is_current_conditions') ? null :
+            this.options.model_package.get('controls');
+        return {
+            collection: controls
+        };
+    },
+
+    initialize: function(options) {
+        this.mergeOptions(options, ['model_package']);
+    }
 });
 
 // The entire modeling results window
