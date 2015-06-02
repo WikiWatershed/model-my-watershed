@@ -92,7 +92,14 @@ var ScenariosView = Marionette.LayoutView.extend({
    childEvents: {
         'rename:scenario': function(view, model, newName) {
             this.triggerMethod('rename:scenario', model, newName);
-        }
+        },
+        'tab:removed': function(view, cid) {
+            var modelIndex = _.findIndex(this.collection.models, function(model) {
+                return model.cid === cid;
+            });
+            var newCid = this.collection.models[modelIndex - 1].cid;
+            this.collection.setActiveScenario(newCid);
+       }
     },
 
     regions: {
@@ -202,6 +209,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
         del.render();
         del.$el.modal('show');
         del.on('confirmation', function() {
+            self.triggerMethod('tab:removed', self.model.cid);
             self.model.destroy();
         });
     },
