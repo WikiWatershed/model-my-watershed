@@ -191,12 +191,19 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     },
 
     destroyConfirm: function() {
-        var del = new coreViews.DeleteModal({
-            objToDelete: this.model,
-            model: new Backbone.Model({ deleteLabel: 'scenario' })
-        });
+        var self = this,
+            del = new coreViews.ConfirmModal({
+                model: new Backbone.Model({
+                    question: 'Are you sure you want to delete this scenario?',
+                    confirmLabel: 'Delete',
+                    cancelLabel: 'Cancel'
+                })
+            });
         del.render();
         del.$el.modal('show');
+        del.on('confirmation', function() {
+            self.model.destroy();
+        });
     },
 
     showShareModal: function() {

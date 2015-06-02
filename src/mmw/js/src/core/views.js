@@ -8,7 +8,7 @@ var $ = require('jquery'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
     drawUtils = require('../draw/utils'),
     headerTmpl = require('./templates/header.html'),
-    modalDeleteTmpl = require('./templates/deleteModal.html'),
+    modalConfirmTmpl = require('./templates/confirmModal.html'),
     modalShareTmpl = require('./templates/shareModal.html');
 
 var BASIC_MODAL_CLASS = 'modal modal-basic fade';
@@ -278,31 +278,28 @@ function getLatLngs(boundsOrShape) {
     throw 'Unable to extract latlngs from boundsOrShape argument';
 }
 
-var DeleteModal = Marionette.ItemView.extend({
+var ConfirmModal = Marionette.ItemView.extend({
     className: BASIC_MODAL_CLASS,
 
-    viewOptions: ['objToDelete'],
+    ui: {
+        confirmation: '.confirm'
+    },
+
+    events: {
+        'click @ui.confirmation': 'triggerConfirmation'
+    },
 
     initialize: function(options) {
         var self = this;
-        this.mergeOptions(options, this.viewOptions);
         this.$el.on('hide.bs.modal', function() {
             self.destroy();
         });
     },
 
-    template: modalDeleteTmpl,
+    template: modalConfirmTmpl,
 
-    ui: {
-        deleteConfirmed: '.delete',
-    },
-
-    events: {
-        'click @ui.deleteConfirmed': 'deleteModel',
-    },
-
-    deleteModel: function() {
-        this.objToDelete.destroy();
+    triggerConfirmation: function() {
+        this.triggerMethod('confirmation');
     }
 });
 
@@ -324,6 +321,6 @@ module.exports = {
     MapView: MapView,
     RootView: RootView,
     StaticView: StaticView,
-    DeleteModal: DeleteModal,
+    ConfirmModal: ConfirmModal,
     ShareModal: ShareModal
 };
