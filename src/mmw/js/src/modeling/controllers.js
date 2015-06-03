@@ -48,6 +48,12 @@ var ModelingController = {
                 router.navigate('model/' + model.id);
             });
 
+            var scenariosColl = project.get('scenarios'),
+                mapView = App.getMapView();
+            scenariosColl.on('change:activeScenario', function(scenario) {
+                mapView.updateModifications(scenario.get('modifications'));
+            });
+
             initViews(project);
         }
     },

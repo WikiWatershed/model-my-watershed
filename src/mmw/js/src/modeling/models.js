@@ -210,15 +210,15 @@ var ScenariosCollection = Backbone.Collection.extend({
     },
 
     setActiveScenario: function(cid) {
+        var result = null;
         this.each(function(model) {
             var active = model.cid === cid;
             if (active) {
-                var modificationsColl = model.get('modifications');
-                // TODO: Move to controller
-                App.getMapView().updateModifications(modificationsColl);
+                result = model;
             }
             model.set('active', active);
         });
+        this.trigger('change:activeScenario', result);
     },
 
     createNewScenario: function() {
