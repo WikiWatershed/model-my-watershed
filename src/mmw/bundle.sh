@@ -20,6 +20,7 @@ ENTRY_JS_FILES="./js/src/main.js"
 ENTRY_JS_FILES_WATER_BALANCE="./js/src/main_water_balance.js"
 
 NUNJUCKS_TRANSFORM="-t [ nunjucksify --extension='.html' ]"
+MINIFY_PLUGIN="-p [ minifyify --no-map ]"
 
 NODE_SASS="$BIN/node-sass"
 ENTRY_SASS_DIR="./sass/"
@@ -36,6 +37,7 @@ Bundle JS and CSS static assets.
  Options:
   --watch      Listen for file changes
   --debug      Generate source maps
+  --minify     Minify bundles (**SLOW**); Disables source maps
   --tests      Generate test bundles
   --list       List browserify dependencies
   --vendor     Generate vendor bundle and copy assets
@@ -48,6 +50,7 @@ while [[ -n $1 ]]; do
     case $1 in
         --watch) ENABLE_WATCH=1 ;;
         --debug) ENABLE_DEBUG=1 ;;
+        --minify) ENABLE_MINIFY=1 ;;
         --tests) ENABLE_TESTS=1 ;;
         --list) LIST_DEPS=1 ;;
         --vendor) BUILD_VENDOR_BUNDLE=1 ;;
@@ -70,6 +73,10 @@ if [ -n "$ENABLE_DEBUG" ]; then
     BROWSERIFY="$BROWSERIFY --debug"
     NODE_SASS="$NODE_SASS --source-map ${STATIC_CSS_DIR}main.css.map \
         --source-map-contents"
+fi
+
+if [ -n "$ENABLE_MINIFY" ]; then
+    EXTRA_ARGS="$MINIFY_PLUGIN $EXTRA_ARGS"
 fi
 
 if [ -n "$LIST_DEPS" ]; then
