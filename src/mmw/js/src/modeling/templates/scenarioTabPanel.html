@@ -5,11 +5,12 @@
         <i class="fa fa-caret-down"></i>
         </button>
         <ul class="dropdown-menu menu-right" role="menu">
-            <li role="presentation"><a role="menuitem" tabindex="-1" class="share">Share</a></li>
-            <li role="presentation"><a role="menuitem" tabindex="-1" class="print">Print</a></li>
+            <li role="presentation"><a role="menuitem" tabindex="-1" data-action="share">Share</a></li>
+            <li role="presentation"><a role="menuitem" tabindex="-1" data-action="print">Print</a></li>
             {% if not is_current_conditions %}
-            <li role="presentation"><a role="menuitem" tabindex="-1" class="rename">Rename</a></li>
-            <li role="presentation"><a role="menuitem" tabindex="-1" class="delete">Delete</a></li>
+            <li role="presentation"><a role="menuitem" tabindex="-1" data-action="rename">Rename</a></li>
+            <li role="presentation"><a role="menuitem" tabindex="-1" data-action="duplicate">Duplicate</a></li>
+            <li role="presentation"><a role="menuitem" tabindex="-1" data-action="delete">Delete</a></li>
             {% endif %}
         </ul>
     </div>
