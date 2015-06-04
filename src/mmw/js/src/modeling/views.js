@@ -14,6 +14,7 @@ var _ = require('lodash'),
     resultsDetailsTmpl = require('./templates/resultsDetails.html'),
     resultsTabPanelTmpl = require('./templates/resultsTabPanel.html'),
     resultsTabContentTmpl = require('./templates/resultsTabContent.html'),
+    router = require('../router').router,
     modelingHeaderTmpl = require('./templates/modelingHeader.html'),
     scenariosBarTmpl = require('./templates/scenariosBar.html'),
     scenarioTabPanelTmpl = require('./templates/scenarioTabPanel.html'),
@@ -66,10 +67,83 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
 // The drop down containing the project name
 // and projects options drop down.
 var ProjectMenuView = Marionette.ItemView.extend({
-    model: models.ProjectModel,
+    ui: {
+        rename: '#rename-project',
+        share: '#share-project',
+        remove: '#delete-project',
+        print: '#print-project'
+
+    },
+    events: {
+        'click @ui.rename': 'renameProject',
+        'click @ui.remove': 'deleteProject',
+        'click @ui.share': 'shareProject',
+        'click @ui.print': 'printProject'
+    },
     template: projectMenuTmpl,
     modelEvents: {
         'change': 'render'
+    },
+
+    renameProject: function() {
+        var self = this,
+            rename = new coreViews.InputModal({
+            model: new Backbone.Model({
+                initial: this.model.get('name'),
+                title: 'Rename Project',
+                fieldLabel: 'Project Name'
+            })
+        });
+        rename.render();
+        rename.on('update', function(val) {
+            self.model.updateName(val);
+        });
+    },
+
+    shareProject: function() {
+        var share = new coreViews.ShareModal({
+                model: new Backbone.Model({
+                    text: 'Project',
+                    url: window.location.href,
+                    guest: App.user.get('guest')
+                }),
+                app: App
+            });
+
+        share.render();
+
+    },
+
+    deleteProject: function() {
+        var self = this,
+            del = new coreViews.ConfirmModal({
+                model: new Backbone.Model({
+                    question: 'Are you sure you want to delete this Project?',
+                    confirmLabel: 'Delete',
+                    cancelLabel: 'Cancel'
+                })
+            });
+        del.render();
+        del.on('confirmation', function() {
+            // TODO: our version of backbone returns false if model isNew and an
+            // xhr otherwise.  Future versions will return just an xhr always at
+            // which point this could get consolidated without a conditional.
+            var xhr = self.model.destroy({wait: true});
+            if (xhr) {
+                xhr.done(function() {
+                        router.navigate('/', {trigger: true});
+                    })
+                    .fail(function() {
+                        window.alert('Could not delete this project.');
+                    });
+            } else {
+                router.navigate('/', {trigger: true});
+            }
+        });
+    },
+
+    printProject: function() {
+        window.print();
     }
 });
 
@@ -212,7 +286,6 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
                 })
             });
         del.render();
-        del.$el.modal('show');
         del.on('confirmation', function() {
             self.triggerMethod('tab:removed', self.model.cid);
             self.model.destroy();
@@ -220,15 +293,15 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     },
 
     showShareModal: function() {
-        if (App.user.get('guest')) {
-            window.alert('Guest cannot share scenarios. Please log in or register.');
-            return;
-        }
         var share = new coreViews.ShareModal({
-            model: new Backbone.Model({ url: window.location.href })
-        });
+                model: new Backbone.Model({
+                    text: 'Scenario',
+                    url: window.location.href,
+                    guest: App.user.get('guest')
+                }),
+                app: App
+            });
         share.render();
-        share.$el.modal('show');
     },
 
     duplicateScenario: function() {

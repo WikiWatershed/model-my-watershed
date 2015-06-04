@@ -9,6 +9,7 @@ var $ = require('jquery'),
     drawUtils = require('../draw/utils'),
     headerTmpl = require('./templates/header.html'),
     modalConfirmTmpl = require('./templates/confirmModal.html'),
+    modalInputTmpl = require('./templates/inputModal.html'),
     modalShareTmpl = require('./templates/shareModal.html');
 
 var BASIC_MODAL_CLASS = 'modal modal-basic fade';
@@ -278,7 +279,24 @@ function getLatLngs(boundsOrShape) {
     throw 'Unable to extract latlngs from boundsOrShape argument';
 }
 
-var ConfirmModal = Marionette.ItemView.extend({
+var BaseModal = Marionette.ItemView.extend({
+    initialize: function(options) {
+        var self = this;
+        this.$el.on('hide.bs.modal', function() {
+            self.destroy();
+        });
+    },
+
+    onRender: function() {
+        this.$el.modal('show');
+    },
+
+    hide: function() {
+        this.$el.modal('hide');
+    }
+});
+
+var ConfirmModal = BaseModal.extend({
     className: BASIC_MODAL_CLASS,
 
     ui: {
@@ -289,13 +307,6 @@ var ConfirmModal = Marionette.ItemView.extend({
         'click @ui.confirmation': 'triggerConfirmation'
     },
 
-    initialize: function(options) {
-        var self = this;
-        this.$el.on('hide.bs.modal', function() {
-            self.destroy();
-        });
-    },
-
     template: modalConfirmTmpl,
 
     triggerConfirmation: function() {
@@ -303,17 +314,57 @@ var ConfirmModal = Marionette.ItemView.extend({
     }
 });
 
-var ShareModal = Marionette.ItemView.extend({
+var InputModal = BaseModal.extend({
     className: BASIC_MODAL_CLASS,
 
-    initialize: function(options) {
-        var self = this;
-        this.$el.on('hide.bs.modal', function() {
-            self.destroy();
-        });
+    template: modalInputTmpl,
+
+    ui: {
+        save: '.save',
+        input: 'input',
+        error: '.error'
     },
 
-    template: modalShareTmpl
+    events: {
+        'click @ui.save': 'updateFromInput'
+    },
+
+    updateFromInput: function(e) {
+        var val = this.ui.input.val().trim();
+        if (val) {
+            this.triggerMethod('update', val);
+            this.hide();
+        } else {
+            this.ui.error.text('Please enter a valid project name');
+        }
+    }
+});
+
+var ShareModal = BaseModal.extend({
+    className: BASIC_MODAL_CLASS,
+
+    template: modalShareTmpl,
+
+    ui: {
+        'signin': '.signin',
+        'copy': '.copy',
+        'input': 'input'
+    },
+
+    events: {
+        'click @ui.signin': 'signIn',
+        'click @ui.copy': 'copyLinkToClipboard'
+    },
+
+    copyLinkToClipboard: function() {
+        var url = this.ui.input.val();
+        // TODO https://github.com/WikiWatershed/model-my-watershed/issues/282
+    },
+
+    signIn: function() {
+        this.options.app.getUserOrShowLogin();
+    }
+
 });
 
 module.exports = {
@@ -322,5 +373,6 @@ module.exports = {
     RootView: RootView,
     StaticView: StaticView,
     ConfirmModal: ConfirmModal,
+    InputModal: InputModal,
     ShareModal: ShareModal
 };

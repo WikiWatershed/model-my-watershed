@@ -52,6 +52,12 @@ var ProjectModel = Backbone.Model.extend({
         }
     },
 
+    updateName: function(newName) {
+        // TODO: Having fetched a users list of projects,
+        // ensure that this new name is unique prior to saving
+        this.set('name', newName);
+    },
+
     saveAll: function() {
         var self = this;
 

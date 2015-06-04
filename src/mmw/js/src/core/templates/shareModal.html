@@ -1,19 +1,28 @@
 <div class="modal-dialog modal-dialog-sm">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>Share Project</h2>
+            <h2>Share {{ text }}</h2>
         </div>
         <div class="modal-body">
-            <div class="custom-input-group">
-              <input type="text" required value="{{ url }}">
-              <span class="highlight"></span>
-              <span class="bar"></span>
-              <label>URL</label>
-            </div>
+            {% if guest %}
+                <p>Sorry, only saved {{ text }}s are able to be shared.  Please log in to share your work.</p>
+            {% else %}
+                <div class="custom-input-group">
+                  <input type="text" required value="{{ url }}">
+                  <span class="highlight"></span>
+                  <span class="bar"></span>
+                  <label>URL</label>
+                </div>
+            {% endif %}
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-md btn-default" data-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-md btn-default" data-dismiss="modal">Copy Link</button>
+            {% if guest %}
+                <button type="button" class="btn btn-md btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-md btn-default signin" data-dismiss="modal">Sign In</button>
+            {% else %}
+                <button type="button" class="btn btn-md btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-md btn-default" data-dismiss="modal">Copy Link</button>
+            {% endif %}
         </div>
     </div>
 </div>
