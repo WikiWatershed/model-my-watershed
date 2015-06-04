@@ -124,7 +124,7 @@
         {% for featureType, models in modifications.groupBy('type') %}
             <div class="pad-1 brd-bottom">
                 <label class="medium">{{ featureType }}</label>
-                <table id="mod-landCover" class="table modifications custom-hover">
+                <table id="mod-{{ featureType|lower|replace(' ', '') }}" class="table modifications custom-hover">
                 {% for model in models %}
                     <tr>
                         <td>{{ model.get('name') }}</td>

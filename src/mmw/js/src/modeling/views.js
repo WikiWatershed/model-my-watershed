@@ -34,15 +34,6 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
     model: models.ProjectModel,
     template: modelingHeaderTmpl,
 
-    childEvents: {
-        'rename:scenario': function(view, model, newName) {
-            this.model.updateScenarioName(model, newName);
-        },
-        'create:scenario': function() {
-            this.model.createNewScenario();
-        }
-    },
-
     regions: {
         projectMenuRegion: '#project-menu-region',
         scenariosRegion: '#scenarios-region',
@@ -164,19 +155,6 @@ var ScenariosView = Marionette.LayoutView.extend({
         'click @ui.tab': 'onScenarioTabClicked'
     },
 
-   childEvents: {
-        'rename:scenario': function(view, model, newName) {
-            this.triggerMethod('rename:scenario', model, newName);
-        },
-        'tab:removed': function(view, cid) {
-            var modelIndex = _.findIndex(this.collection.models, function(model) {
-                return model.cid === cid;
-            });
-            var newCid = this.collection.models[modelIndex - 1].cid;
-            this.collection.setActiveScenario(newCid);
-       }
-    },
-
     regions: {
         dropDownRegion: '#scenarios-drop-down-region',
         panelsRegion: '#scenarios-tab-panel-region'
@@ -193,12 +171,13 @@ var ScenariosView = Marionette.LayoutView.extend({
     },
 
     addScenario: function() {
-        this.triggerMethod('create:scenario');
+        this.collection.createNewScenario();
     },
 
     onScenarioTabClicked: function(e) {
         var $el = $(e.currentTarget),
             cid = $el.data('scenario-cid');
+
         this.collection.setActiveScenario(cid);
     }
 });
@@ -264,7 +243,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
                 e.preventDefault();
 
                 if (self.model.get('name') !== $(this).text() && $(this).text() !== '') {
-                    self.triggerMethod('rename:scenario', self.model, $(this).text());
+                    self.model.collection.updateScenarioName(self.model, $(this).text());
                 } else {
                     self.render();
                 }
@@ -272,7 +251,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
         });
 
         this.ui.nameField.on('blur', function(e) {
-           self.triggerMethod('rename:scenario', self.model, $(this).text());
+            self.model.collection.updateScenarioName(self.model, $(this).text());
         });
     },
 
@@ -285,6 +264,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
                     cancelLabel: 'Cancel'
                 })
             });
+
         del.render();
         del.on('confirmation', function() {
             self.triggerMethod('tab:removed', self.model.cid);
@@ -301,6 +281,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
                 }),
                 app: App
             });
+
         share.render();
     },
 
@@ -318,7 +299,22 @@ var ScenarioTabPanelsView = Marionette.CollectionView.extend({
         role: 'tablist'
     },
 
-    childView: ScenarioTabPanelView
+    childView: ScenarioTabPanelView,
+
+    collectionEvents: {
+        'change': 'render'
+    },
+
+    childEvents: {
+        'tab:removed': function(view, cid) {
+            var modelIndex = _.findIndex(this.collection.models, function(model) {
+                    return model.cid === cid;
+                }),
+                newCid = this.collection.models[modelIndex - 1].cid;
+
+            this.collection.setActiveScenario(newCid);
+       }
+    }
 });
 
 // The menu item for a scenario in the scenario drop down menu.
@@ -357,8 +353,10 @@ var ScenarioDropDownMenuView = Marionette.CompositeView.extend({
 
     onMenuItemClick: function(e) {
         e.preventDefault();
+
         var $el = $(e.currentTarget),
             cid = $el.data('scenario-cid');
+
         this.collection.setActiveScenario(cid);
     }
 });
@@ -628,5 +626,9 @@ var ResultsTabContentsView = Marionette.CollectionView.extend({
 
 module.exports = {
     ModelingResultsWindow: ModelingResultsWindow,
-    ModelingHeaderView: ModelingHeaderView
+    ModelingHeaderView: ModelingHeaderView,
+    ScenariosView: ScenariosView,
+    ScenarioTabPanelsView: ScenarioTabPanelsView,
+    ScenarioDropDownMenuView: ScenarioDropDownMenuView,
+    ToolbarTabContentView: ToolbarTabContentView
 };
