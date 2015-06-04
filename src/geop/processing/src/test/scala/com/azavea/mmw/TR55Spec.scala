@@ -18,7 +18,7 @@ class TR55Spec extends FunSpec with Matchers with OnlyIfCanRunSpark {
         val p = s"$dataPath/NLCD_DE-clipped.tif"
         val expected = TestFiles.getRaster(p).tile
         val actual = TestFiles.delawareNLCD.stitch
-
+        
         actual.cols should be (expected.cols)
         actual.rows should be (expected.rows)
         
