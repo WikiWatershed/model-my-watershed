@@ -1,0 +1,11 @@
+[staging]
+Region: 'us-east-1'
+StackType: 'Staging'
+KeyName: 'stg'
+IPAccess: '0.0.0.0/0'
+NATInstanceType: 't2.micro'
+NATInstanceAMI: ''
+NATAvailabilityZones: ['us-east-1a', 'us-east-1b']
+BastionHostInstanceType: 't2.micro'
+BastionHostAMI: ''
+PrivateHostedZoneName: 'mmw.internal'
