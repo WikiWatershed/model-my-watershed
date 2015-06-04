@@ -172,13 +172,15 @@ var PlaceMarkerView = Marionette.ItemView.extend({
 });
 
 function changeOutlineLayer(endpoint, tableId, model) {
-    var map = App.getLeafletMap();
+    var map = App.getLeafletMap(),
+        ofg = model.get('outlineFeatureGroup');
 
+    // Go about the business of adding the ouline and UTFgrid layers.
     if (endpoint && tableId != undefined) {
         var ol = new L.TileLayer(endpoint + '.png'),
-            grid = new L.UtfGrid(endpoint + '.grid.json?callback={cb}', { resolution: 4 }),
-            ofg = model.get('outlineFeatureGroup');
+            grid = new L.UtfGrid(endpoint + '.grid.json?callback={cb}', { resolution: 4 });
 
+        ofg.clearLayers();
         ofg.addLayer(ol);
         ofg.addLayer(grid);
 
