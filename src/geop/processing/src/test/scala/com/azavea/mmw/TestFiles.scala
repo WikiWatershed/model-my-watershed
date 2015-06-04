@@ -7,6 +7,7 @@ import geotrellis.vector._
 import geotrellis.vector.reproject._
 import geotrellis.spark._
 import geotrellis.spark.tiling._
+import geotrellis.raster.mosaic._
 
 import geotrellis.proj4._
 
@@ -27,8 +28,8 @@ object TestFiles {
 
   def makeRDD(p: String)(implicit sc: SparkContext): RasterRDD[SpatialKey] = {
     val Raster(tile, extent) = getRaster(p)
-
-    createRasterRDD(tile, extent, 25, 25)
+    
+    createRasterRDD(tile, extent)
   }
 
   def delawareNLCD(implicit sc: SparkContext): RasterRDD[SpatialKey] =
@@ -39,36 +40,50 @@ object TestFiles {
 
   def createRasterRDD(
     tile: Tile,
-    extent: Extent,
-    layoutCols: Int,
-    layoutRows: Int
+    extent: Extent
   )(implicit sc: SparkContext): RasterRDD[SpatialKey] = {
+    val crs = LatLng
+    val worldExtent = crs.worldExtent
+    
 
-    val worldExtent = LatLng.worldExtent
+    // the tile layout implies a resolution of the world layer, may/will cause resampling when .merge is called
+    val layoutLevel: LayoutLevel = ZoomedLayoutScheme(tileSize = 256).levelFor(worldExtent, CellSize(extent, tile.cols, tile.rows))
 
-    val tileLayout = 
-      TileLayout(
-        layoutCols,
-        layoutRows,
-        tile.cols / layoutCols,
-        tile.rows / layoutRows
-      )
+    println(s"Matched $extent to zoom level ${layoutLevel.zoom}")
+    val tileLayout = layoutLevel.tileLayout
+
+    // Tile layout could be specified directly (as below), but the above method mirros the ingest methodology
+    // val tileLayout = 
+    //   TileLayout(
+    //     layoutCols,
+    //     layoutRows,
+    //     256,
+    //     256
+    //   )
+
+    // this objects knows how to translate between world tile layout,
+    // tiled relative to CRS world extent boundatires and world extents
+    // we assume that the output raster is in WGS 84 
+    val outputMapTransform = new MapKeyTransform(worldExtent, tileLayout.layoutCols, tileLayout.layoutRows)
 
     val metaData = RasterMetaData(
       tile.cellType,
       extent,
-      LatLng,
+      crs,
       tileLayout
     )
 
-    val compositTile =
-      CompositeTile.wrap(tile, tileLayout, cropped = false)
-
-    val tmsTiles =
-      for(tileRow <- 0 until tileLayout.layoutRows;
-        tileCol <- 0 until tileLayout.layoutCols) yield {
-        val cropped = compositTile.tiles(tileRow * tileLayout.layoutCols + tileCol)
-        (SpatialKey(tileCol, tileRow), cropped.toArrayTile)
+    val tmsTiles = 
+      for {
+        (col, row) <- outputMapTransform(extent).coords // iterate over all tiles we should have for input extent in the world layout
+      } yield {
+        val key = SpatialKey(col, row)
+        println(s"MAKING: $key")
+        val worldTileExtent = outputMapTransform(key) // this may be partially out of bounds of input tile
+        val keyTile = ArrayTile.empty(tile.cellType, tileLayout.tileCols, tileLayout.tileRows) 
+        // tile.merge comes from `import geotrellis.raster.mosaic`        
+        keyTile.merge(worldTileExtent, extent, tile)
+        key -> keyTile
       }
 
     asRasterRDD(metaData) {
