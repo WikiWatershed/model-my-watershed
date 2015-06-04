@@ -32,7 +32,7 @@ var ModelingController = {
                 });
         } else {
             project = new models.ProjectModel({
-                name: 'My Project',
+                name: 'Untitled Project',
                 created_at: Date.now(),
                 area_of_interest: App.map.get('areaOfInterest'),
                 scenarios: new models.ScenariosCollection([
