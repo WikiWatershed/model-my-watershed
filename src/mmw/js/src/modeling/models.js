@@ -38,18 +38,6 @@ var ProjectModel = Backbone.Model.extend({
         // and input control data.
         this.set('model_package', 'tr-55');
         this.set('taskModel', new Tr55TaskModel());
-
-        // After the scenario collection is initialized, set
-        // the first scenario as the active scenario.
-        this.listenToOnce(this, 'change:scenarios', this.makeFirstScenarioActive);
-    },
-
-    makeFirstScenarioActive: function() {
-        var scenariosColl = this.get('scenarios'),
-            scenario = scenariosColl.first();
-        if (scenario) {
-            scenariosColl.setActiveScenario(scenario.cid);
-        }
     },
 
     updateName: function(newName) {
@@ -103,57 +91,6 @@ var ProjectModel = Backbone.Model.extend({
         response.taskModel = new Tr55TaskModel();
 
         return response;
-    },
-
-    /**
-     * Return a new scenario name of the format "New Scenario X" where X is a
-     * positive number and that is greater than all previous X.
-     */
-    makeNewScenarioName: function() {
-        // When making new scenarios, we need to make sure we don't
-        // accidentally give two the same name. Use a counter but ensure slug
-        // name is not in use by looking at all the current names.
-        var scenarios = this.get('scenarios').models;
-
-        var numbers = _.without(_.map(scenarios, function(model) {
-            var name = model.get('name'),
-                regEx = /^New Scenario (\d)+/g;
-
-            if (name.match(regEx) !== null && name.match(regEx).length === 1) {
-                return parseInt(model.get('name').replace(/^New Scenario /g, ''));
-            }
-        }), undefined);
-        if (!_.isEmpty(numbers)) {
-            var max = _.max(numbers) + 1;
-            return 'New Scenario ' + max;
-        } else {
-            return 'New Scenario 1';
-        }
-    },
-
-    createNewScenario: function() {
-        var scenario = new ScenarioModel({
-            name: this.makeNewScenarioName()
-        });
-        this.get('scenarios').add(scenario);
-        this.get('scenarios').setActiveScenario(scenario.cid);
-    },
-
-    updateScenarioName: function(model, newName) {
-        // Bail early if the name actually didn't change.
-        if (model.get('name') === newName) {
-            return;
-        }
-
-        var match = _.find(this.get('scenarios').models, function(model) {
-            return model.get('name') === newName;
-        });
-        if (match) {
-            window.alert('This name is already in use.');
-            return;
-        } else if (model.get('name') !== newName) {
-            model.set('name', newName);
-        }
     }
 });
 
@@ -223,6 +160,18 @@ var ScenariosCollection = Backbone.Collection.extend({
     model: ScenarioModel,
     comparator: 'created_at',
 
+    initialize: function() {
+        this.on('reset', this.makeFirstScenarioActive);
+    },
+
+    makeFirstScenarioActive: function() {
+        var first = this.first();
+
+        if (first) {
+            this.setActiveScenario(first.cid);
+        }
+    },
+
     setActiveScenario: function(cid) {
         this.each(function(model) {
             var active = model.cid === cid;
@@ -232,6 +181,35 @@ var ScenariosCollection = Backbone.Collection.extend({
             }
             model.set('active', active);
         });
+    },
+
+    createNewScenario: function() {
+        var scenario = new ScenarioModel({
+            name: this.makeNewScenarioName('New Scenario')
+        });
+
+        this.add(scenario);
+        this.setActiveScenario(scenario.cid);
+    },
+
+    updateScenarioName: function(model, newName) {
+        newName = newName.trim();
+
+        // Bail early if the name actually didn't change.
+        if (model.get('name') === newName) {
+            return;
+        }
+
+        var match = this.find(function(model) {
+            return model.get('name').toLowerCase() === newName.toLowerCase();
+        });
+
+        if (match) {
+            console.log('This name is already in use.');
+            return;
+        } else if (model.get('name') !== newName) {
+            model.set('name', newName);
+        }
     },
 
     duplicateScenario: function(cid) {
@@ -247,7 +225,7 @@ var ScenariosCollection = Backbone.Collection.extend({
         this.setActiveScenario(newModel.cid);
     },
 
-    // Generate a unique scenario name based off the baseName.
+    // Generate a unique scenario name based off baseName.
     // Assumes a basic structure of "baseName X", where X is
     // iterated as new scenarios with the same baseName are created.
     // The first duplicate will not have an iterated X in the name.

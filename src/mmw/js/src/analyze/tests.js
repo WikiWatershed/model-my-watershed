@@ -20,62 +20,6 @@ var SandboxRegion = Marionette.Region.extend({
     el: '#display-sandbox'
 });
 
-var analyzeDataSets = [
-    [
-        {
-            "displayName":"Land",
-            "name":"land",
-            "categories":[]
-        }
-    ],
-    [
-        {
-            "displayName":"Land",
-            "name":"land",
-            "categories":[
-                {
-                    "type":"Developed: Open",
-                    "coverage":0.263,
-                    "area":5041
-                }
-            ]
-        }
-    ],
-    [
-        {
-            "displayName":"Land",
-            "name":"land",
-            "categories":[
-                {
-                    "type":"Water",
-                    "coverage":0.01,
-                    "area":21
-                },
-                {
-                    "type":"Developed: Open",
-                    "coverage":0.263,
-                    "area":5041
-                }
-            ]
-        },
-        {
-            "displayName":"Soil",
-            "name":"soil",
-            "categories":[
-                {
-                    "type":"Clay",
-                    "coverage":0.01,
-                    "area":21
-                },
-                {
-                    "type":"Silt",
-                    "coverage":0.263,
-                    "area":5041
-                }
-            ]
-        }
-    ]
-];
 
 describe('Analyze', function() {
     beforeEach(function() {
@@ -98,6 +42,8 @@ describe('Analyze', function() {
             $('#display-sandbox').empty();
             this.server.restore();
         });
+
+        var analyzeDataSets = getTestAnalyzeData();
 
         for (var dataSetInd = 0; dataSetInd < analyzeDataSets.length; dataSetInd++) {
             var dataSet = analyzeDataSets[dataSetInd];
@@ -139,14 +85,14 @@ function setupAnalyzeView(data, server) {
     server.respondWith('/api/modeling/job/' + jobId, endResponse);
     sandbox.show(view);
     return view;
-};
+}
 
 function checkTable(data) {
     _.each(data, function(subData) {
         checkTableHeader(subData.name);
         checkTableBody(subData);
     });
-};
+}
 
 function checkTableHeader(name) {
     var expectedHeaderLabels = ['Type', 'Area', 'Coverage'];
@@ -154,7 +100,7 @@ function checkTableHeader(name) {
         return $(this).text();
     }).get();
     assert.deepEqual(expectedHeaderLabels, headerLabels);
-};
+}
 
 // Check that all elements in table match the dataset.
 function checkTableBody(subData) {
@@ -191,4 +137,65 @@ function checkChart(data) {
         var numBars = $('#' + subData.name + ' .bar').length;
         assert.equal(expectedNumBars, numBars);
     });
-};
+}
+
+function getTestAnalyzeData() {
+    var analyzeDataSets = [
+        [
+            {
+                "displayName":"Land",
+                "name":"land",
+                "categories":[]
+            }
+        ],
+        [
+            {
+                "displayName":"Land",
+                "name":"land",
+                "categories":[
+                    {
+                        "type":"Developed: Open",
+                        "coverage":0.263,
+                        "area":5041
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "displayName":"Land",
+                "name":"land",
+                "categories":[
+                    {
+                        "type":"Water",
+                        "coverage":0.01,
+                        "area":21
+                    },
+                    {
+                        "type":"Developed: Open",
+                        "coverage":0.263,
+                        "area":5041
+                    }
+                ]
+            },
+            {
+                "displayName":"Soil",
+                "name":"soil",
+                "categories":[
+                    {
+                        "type":"Clay",
+                        "coverage":0.01,
+                        "area":21
+                    },
+                    {
+                        "type":"Silt",
+                        "coverage":0.263,
+                        "area":5041
+                    }
+                ]
+            }
+        ]
+    ];
+
+    return analyzeDataSets;
+}

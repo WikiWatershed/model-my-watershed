@@ -14,7 +14,7 @@ var _ = require('lodash'),
 var ENTER_KEYCODE = 13;
 
 
-describe('UserModalLogin', function() {
+describe('User', function() {
     before(function() {
     });
 

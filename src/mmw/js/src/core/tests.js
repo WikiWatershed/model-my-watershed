@@ -38,6 +38,12 @@ var SandboxRegion = Marionette.Region.extend({
 });
 
 describe('Core', function() {
+    before(function() {
+        if ($('#sandbox').length === 0) {
+            $('<div>', {id: 'sandbox'}).appendTo('body');
+        }
+    });
+
     beforeEach(function() {
         $('#display-sandbox').remove();
         // Use a special sandbox so that we can test responsiveness of chart.
@@ -45,17 +51,20 @@ describe('Core', function() {
     });
 
     afterEach(function() {
+        $('#sandbox').empty();
         $('#display-sandbox').remove();
+        // App adds a LoginModalView to the body
+        // so we need to remove it.
+        $('.modal').remove();
+        window.location.hash = '';
+        Backbone.history.stop();
+    });
+
+    after(function() {
+        $('#sandbox').remove();
     });
 
     describe('Chart', function() {
-        beforeEach(function() {
-        });
-
-        afterEach(function() {
-            $('#display-sandbox').empty();
-        });
-
         it('changes size when the browser is resized and height and width are not provided', function() {
             chart.makeBarChart(sandboxSelector, chartData, xValue, yValue);
             var $svg = $(sandboxSelector).children('svg');
@@ -99,30 +108,6 @@ describe('Core', function() {
             assert.equal(options.height, afterHeight);
             assert.equal(options.width, afterWidth);
         });
-    });
-});
-
-describe('Core', function() {
-    before(function() {
-        if ($('#sandbox').length === 0) {
-            $('<div>', {id: 'sandbox'}).appendTo('body');
-        }
-    });
-
-    beforeEach(function() {
-    });
-
-    afterEach(function() {
-        $('#sandbox').empty();
-        // App adds a LoginModalView to the body
-        // so we need to remove it.
-        $('.modal').remove();
-        window.location.hash = '';
-        Backbone.history.stop();
-    });
-
-    after(function() {
-        $('#sandbox').remove();
     });
 
     describe('MapView', function() {
