@@ -10,6 +10,12 @@ statsite_port: 8125
 apache_port: 8080
 graphite_web_port: "{{ apache_port }}"
 
+itsi_client_id: "model-my-watershed"
+
+postgresql_username: mmw
+postgresql_password: mmw
+postgresql_database: mmw
+
 postgresql_version: "9.4"
 postgresql_package_version: "9.4.*-1.pgdg14.04+1"
 postgresql_support_repository_channel: "main"

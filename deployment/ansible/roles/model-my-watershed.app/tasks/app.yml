@@ -6,6 +6,9 @@
 
 - name: Ensure that app_home exists
   file: path="{{ app_home }}"
+        owner="{{ ansible_ssh_user }}"
+        group=mmw
+        mode=0755
         state=directory
 
 - name: Synchronize Django application into app_home

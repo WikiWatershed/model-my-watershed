@@ -4,9 +4,6 @@ django_settings_module: "mmw.settings.test"
 redis_bind_address: "0.0.0.0"
 
 postgresql_listen_addresses: "*"
-postgresql_username: mmw
-postgresql_password: mmw
-postgresql_database: mmw
 postgresql_hba_mapping:
   - { type: "host", database: "all", user: "all", address: "33.33.34.1/24", method: "md5" }
 
@@ -20,3 +17,6 @@ statsite_host: "{{ services_ip }}"
 
 celery_number_of_workers: 2
 celery_processes_per_worker: 1
+
+itsi_base_url: "https://learn.staging.concord.org/"
+itsi_secret_key: "{{ lookup('env', 'MMW_ITSI_SECRET_KEY') }}"
