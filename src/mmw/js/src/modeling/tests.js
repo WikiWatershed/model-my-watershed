@@ -89,7 +89,10 @@ describe('Modeling', function() {
             it('updates the modification count when there is a change to a scenario\'s modifications', function() {
                 var modsCollection = new models.ModificationsCollection(),
                     model = new models.ScenarioModel({ name: 'New Scenario', modifications: modsCollection }),
-                    view = new views.ToolbarTabContentView({ model: model }),
+                    view = new views.ToolbarTabContentView({
+                        model: model,
+                        collection: getTR55ModelPackage().get('controls')
+                    }),
                     modsModel1 = new models.ModificationModel(modificationsSample1),
                     modsModel2 = new models.ModificationModel(modificationsSample2);
 
@@ -105,7 +108,10 @@ describe('Modeling', function() {
                     modsModel2 = new models.ModificationModel(modificationsSample2),
                     modsCollection = new models.ModificationsCollection([ modsModel1, modsModel2 ]),
                     model = new models.ScenarioModel({ name: 'New Scenario', modifications: modsCollection }),
-                    view = new views.ToolbarTabContentView({ model: model });
+                    view = new views.ToolbarTabContentView({
+                        model: model,
+                        collection: getTR55ModelPackage().get('controls')
+                    });
 
                 $('#sandbox').html(view.render().el);
                 assert.equal($('#sandbox #mod-landcover tr td:first-child').text(), 'LIR');
@@ -182,7 +188,7 @@ describe('Modeling', function() {
             describe('#setDisplayArea', function() {
                 it('calculates and sets the area attribute to square feet if the area is less than one acre', function() {
                     var model = new models.ModificationModel({
-                        geojson: lessThanOneAcrePolygon
+                        shape: lessThanOneAcrePolygon
                     });
 
                     assert.equal(Math.round(model.get('area')), 6234);
@@ -191,7 +197,7 @@ describe('Modeling', function() {
 
                 it('calculates and sets the area attribute to acres if the area is greater than one acre', function() {
                     var model = new models.ModificationModel({
-                        geojson: greaterThanOneAcrePolygon
+                        shape: greaterThanOneAcrePolygon
                     });
 
                     assert.equal(Math.round(model.get('area')), 7);
@@ -376,9 +382,21 @@ var lessThanOneAcrePolygon = { "type": "Feature", "properties": {}, "geometry": 
 
 var greaterThanOneAcrePolygon = { "type": "FeatureCollection", "features": [ { "type": "Feature", "properties": {}, "geometry": { "type": "Polygon", "coordinates": [ [ [ -75.17273247241974, 39.950349703806005 ], [ -75.1707261800766, 39.95009473644421 ], [ -75.17104804515839, 39.94857313726802 ], [ -75.17302215099335, 39.94882399784062 ], [ -75.17273247241974, 39.950349703806005 ] ] ] } } ] };
 
-var modificationsSample1 = { "name":"LIR","type":"Land Cover","geojson":{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[-76.00479125976562,40.19251207621169],[-76.04324340820312,40.13794057716276],[-75.95260620117188,40.136890695345905],[-75.93338012695312,40.182020964319086],[-75.96221923828125,40.199854889057676],[-76.00479125976562,40.19251207621169]]]}},"area":10977.041602204828,"units":"acres" };
+var modificationsSample1 = {
+    "name":"Land Cover",
+    "value":"LIR",
+    "shape":{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[-76.00479125976562,40.19251207621169],[-76.04324340820312,40.13794057716276],[-75.95260620117188,40.136890695345905],[-75.93338012695312,40.182020964319086],[-75.96221923828125,40.199854889057676],[-76.00479125976562,40.19251207621169]]]}},
+    "area":10977.041602204828,
+    "units":"acres"
+};
 
-var modificationsSample2  = { "name":"Rain Garden","type":"Conservation Practice","geojson":{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[-75.53237915039062,40.18307014852534],[-75.66009521484375,40.107487419012415],[-75.50491333007812,40.10118506258701],[-75.43350219726561,40.13899044275822],[-75.42800903320312,40.1673306817866],[-75.53237915039062,40.18307014852534]]]}},"area":26292.18855342856,"units":"acres" };
+var modificationsSample2  = {
+    "name":"Conservation Practice",
+    "value":"Rain Garden",
+    "shape":{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[-75.53237915039062,40.18307014852534],[-75.66009521484375,40.107487419012415],[-75.50491333007812,40.10118506258701],[-75.43350219726561,40.13899044275822],[-75.42800903320312,40.1673306817866],[-75.53237915039062,40.18307014852534]]]}},
+    "area":26292.18855342856,
+    "units":"acres"
+};
 
 function getTestScenarioCollection() {
     var collection = new models.ScenariosCollection([
@@ -391,7 +409,7 @@ function getTestScenarioCollection() {
                 modifications: new models.ModificationsCollection([
                     new models.ModificationModel({
                         name: 'Mod 1',
-                        geojson: _.cloneDeep(greaterThanOneAcrePolygon)
+                        shape: _.cloneDeep(greaterThanOneAcrePolygon)
                     })
                 ]),
                 active: true
@@ -423,4 +441,15 @@ function getTestProject() {
         });
 
     return project;
+}
+
+function getTR55ModelPackage() {
+    return new models.ModelPackageModel({
+        name: 'tr-55',
+        controls: new models.ModelPackageControlsCollection([
+            new models.ModelPackageControlModel({ name: 'landcover' }),
+            new models.ModelPackageControlModel({ name: 'conservation_practice' }),
+            new models.ModelPackageControlModel({ name: 'precipitation' })
+        ])
+    });
 }
