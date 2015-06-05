@@ -4,6 +4,8 @@ var _ = require('lodash'),
     $ = require('jquery'),
     L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
+    turfRandom = require('turf-random'),
+    turfBuffer = require('turf-buffer'),
     router = require('../router').router,
     App = require('../app'),
     models = require('./models'),
@@ -153,16 +155,28 @@ var PlaceMarkerView = Marionette.ItemView.extend({
 
         this.model.disableTools();
         utils.placeMarker(map).then(function(latlng) {
-            App.restApi.getPolygon({
-                shapeType: shapeType,
-                lat: latlng.lat,
-                lng: latlng.lng
-            }).then(function(shape) {
-                addLayer(shape);
-                navigateToAnalyze();
-            }).fail(function() {
-                revertLayer();
-            });
+            // TODO: This is temporary until we have
+            // endpoints that can actually delienate
+            // watersheds.
+            var point = {
+                  "type": "Feature", "properties": {}, "geometry": {
+                    "type": "Point",
+                    "coordinates": [latlng.lng, latlng.lat]
+                  }
+                },
+                buffered = turfBuffer(point, 5000, 'meters'),
+                bounds = L.geoJson(buffered).getBounds(),
+                shape = turfRandom('polygons', 1, {
+                    max_vertcies: 50,
+                    bbox: [
+                        bounds.getWest(), bounds.getSouth(),
+                        bounds.getEast(), bounds.getNorth()
+                    ],
+                    max_radial_length: 0.25
+                });
+
+            addLayer(shape);
+            navigateToAnalyze();
         }).fail(function() {
             revertLayer();
         }).always(function() {
