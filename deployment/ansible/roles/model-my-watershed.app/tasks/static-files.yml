@@ -16,16 +16,8 @@
     chdir: "{{ app_home }}"
   sudo: False
 
-- name: Create minified JS vendor bundle (staging/production)
-  command: "./bundle.sh --vendor --minify"
-  args:
-    chdir: "{{ app_home }}"
-  environment: app_config
-  sudo: False
-  when: "['development'] | is_not_in(group_names)"
-
-- name: Create primary JS bundles (staging/production)
-  command: "./bundle.sh --tests"
+- name: Create JS bundles (staging/production)
+  command: "./bundle.sh --vendor --tests"
   args:
     chdir: "{{ app_home }}"
   environment: app_config
