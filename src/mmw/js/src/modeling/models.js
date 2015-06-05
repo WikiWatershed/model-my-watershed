@@ -6,7 +6,22 @@ var Backbone = require('../../shim/backbone'),
     App = require('../app'),
     coreModels = require('../core/models');
 
-var ModelPackageModel = Backbone.Model.extend({});
+var ModelPackageControlModel = Backbone.Model.extend({
+    defaults: {
+        name: ''
+    }
+});
+
+var ModelPackageControlsCollection = Backbone.Collection.extend({
+    model: ModelPackageControlModel
+});
+
+var ModelPackageModel = Backbone.Model.extend({
+    defaults: {
+        name: '',
+        controls: null  // ModelPackageControlsCollection
+    }
+});
 
 var Tr55TaskModel = coreModels.TaskModel.extend({});
 
@@ -33,10 +48,15 @@ var ProjectModel = Backbone.Model.extend({
         // be able to choose which modeling package
         // they want to use in their project. For
         // now, the only option is TR55, so it is
-        // hard-coded here. This will likely be a model
-        // itself in the future, with more modification
-        // and input control data.
-        this.set('model_package', 'tr-55');
+        // hard-coded here.
+        this.set('model_package', new ModelPackageModel({
+            name: 'tr-55',
+            controls: new ModelPackageControlsCollection([
+                new ModelPackageControlModel({ name: 'landcover' }),
+                new ModelPackageControlModel({ name: 'conservation_practice' }),
+                new ModelPackageControlModel({ name: 'precipitation' })
+            ])
+        }));
         this.set('taskModel', new Tr55TaskModel());
     },
 
@@ -97,8 +117,8 @@ var ProjectModel = Backbone.Model.extend({
 var ModificationModel = Backbone.Model.extend({
     defaults: {
         name: '',
-        type: '',
-        geojson: null,
+        value: '',
+        shape: null,         // GeoJSON
         area: '0',
         units: 'meter(s)'
     },
@@ -108,7 +128,11 @@ var ModificationModel = Backbone.Model.extend({
     },
 
     setDisplayArea: function() {
-        var areaInMeters = turfArea(this.get('geojson'));
+        if (!this.get('shape')) {
+            return;
+        }
+
+        var areaInMeters = turfArea(this.get('shape'));
 
         // For areas less than an acre, use sq ft,
         // otherwise use acres
@@ -153,6 +177,19 @@ var ScenarioModel = Backbone.Model.extend({
                        .replace(/ /g, '-') // Spaces to hyphens
                        .replace(/[^\w-]/g, ''); // Remove non-alphanumeric characters
         return slug;
+    },
+
+    addModification: function(modification) {
+        this.get('modifications').add(modification);
+    },
+
+    addOrReplaceModification: function(modification) {
+        var modificationsColl = this.get('modifications'),
+            existing = modificationsColl.findWhere({ name: modification.get('name') });
+        if (existing) {
+            modificationsColl.remove(existing);
+        }
+        modificationsColl.add(modification);
     }
 });
 
@@ -173,14 +210,15 @@ var ScenariosCollection = Backbone.Collection.extend({
     },
 
     setActiveScenario: function(cid) {
+        var result = null;
         this.each(function(model) {
             var active = model.cid === cid;
             if (active) {
-                var modificationsColl = model.get('modifications');
-                App.getMapView().updateModifications(modificationsColl);
+                result = model;
             }
             model.set('active', active);
         });
+        this.trigger('change:activeScenario', result);
     },
 
     createNewScenario: function() {
@@ -247,6 +285,8 @@ module.exports = {
     ResultModel: ResultModel,
     ResultCollection: ResultCollection,
     ModelPackageModel: ModelPackageModel,
+    ModelPackageControlsCollection: ModelPackageControlsCollection,
+    ModelPackageControlModel: ModelPackageControlModel,
     Tr55TaskModel: Tr55TaskModel,
     ProjectModel: ProjectModel,
     ModificationModel: ModificationModel,
