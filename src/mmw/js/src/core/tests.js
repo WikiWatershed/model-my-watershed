@@ -187,6 +187,28 @@ describe('Core', function() {
         });
     });
 
+    describe('GeoModel', function() {
+        describe('#setDisplayArea', function() {
+            it('calculates and sets the area attribute to sq. m. if the area is less than 1 sq. km.', function() {
+                var model = new models.GeoModel({
+                    shape: polygon270m
+                });
+
+                assert.equal(Math.round(model.get('area')), 270);
+                assert.equal(model.get('units'), 'm<sup>2</sup>');
+            });
+
+            it('calculates and sets the area attribute to sq. km. if the area is greater than 1,000 sq. m.', function() {
+                var model = new models.GeoModel({
+                    shape: polygon7Km
+                });
+
+                assert.equal(Math.round(model.get('area')), 7);
+                assert.equal(model.get('units'), 'km<sup>2</sup>');
+            });
+        });
+    });
+
     describe('Regions', function() {
         describe('TransitionRegion', function() {
             it('calls view.animateIn and executes the correct animation when show is called', function(done) {
@@ -406,3 +428,7 @@ function getController() {
 
     return controller;
 }
+
+var polygon7Km = { "type": "FeatureCollection", "features": [ { "type": "Feature", "properties": { "stroke": "#555555", "stroke-width": 2, "stroke-opacity": 1, "fill": "#555555", "fill-opacity": 0.5 }, "geometry": { "type": "Polygon", "coordinates": [ [ [ -75.17231941223145, 39.96955588282636 ], [ -75.17798423767088, 39.94560797785181 ], [ -75.15000343322754, 39.945213161909656 ], [ -75.14073371887207, 39.96784559630992 ], [ -75.1606035232544, 39.971134570861665 ], [ -75.17231941223145, 39.96955588282636 ] ] ] } } ] };
+
+var polygon270m =  { "type": "Feature", "properties": {}, "geometry": { "type": "Polygon", "coordinates": [ [ [ -75.16355395317078, 39.97186634617687 ], [ -75.16357004642487, 39.97174712489007 ], [ -75.16333937644957, 39.97173890272471 ], [ -75.1633071899414, 39.97184167972083 ], [ -75.1634681224823, 39.97187045725201 ], [ -75.16355395317078, 39.97186634617687 ] ] ] } };

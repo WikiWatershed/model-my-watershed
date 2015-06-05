@@ -8,10 +8,6 @@ var $ = require('jquery'),
     views = require('./views'),
     models = require('./models');
 
-var createTaskModel = _.memoize(function(aoi) {
-    return new models.AnalyzeTaskModel();
-});
-
 var AnalyzeController = {
     analyzePrepare: function() {
         if (!App.map.get('areaOfInterest')) {
@@ -21,12 +17,11 @@ var AnalyzeController = {
     },
 
     analyze: function() {
-        var aoi = JSON.stringify(App.map.get('areaOfInterest'));
-
-        var analyzeWindow = new views.AnalyzeWindow({
-            id: 'analyze-output-wrapper',
-            model: createTaskModel(aoi)
-        });
+        var aoi = JSON.stringify(App.map.get('areaOfInterest')),
+            analyzeWindow = new views.AnalyzeWindow({
+                id: 'analyze-output-wrapper',
+                model: createTaskModel(aoi)
+            });
 
         App.rootView.footerRegion.show(analyzeWindow);
     },
@@ -35,6 +30,16 @@ var AnalyzeController = {
         App.rootView.footerRegion.empty();
     }
 };
+
+// Pass in the serialized Area of Interest for
+// caching purposes (_.memoize returns the same
+// results for any object), and deserialize
+// the AoI for use on the model.
+var createTaskModel = _.memoize(function(aoi) {
+    return new models.AnalyzeTaskModel({
+        area_of_interest: JSON.parse(aoi)
+    });
+});
 
 module.exports = {
     AnalyzeController: AnalyzeController

@@ -61,7 +61,9 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
 
     showHeaderRegion: function() {
         this.headerRegion.show(new HeaderView({
-            model: new models.AnalyzeModel({})
+            model: new models.AnalyzeModel({
+                shape: this.model.get('area_of_interest')
+            })
         }));
     },
 

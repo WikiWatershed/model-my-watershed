@@ -115,9 +115,9 @@ describe('Modeling', function() {
 
                 $('#sandbox').html(view.render().el);
                 assert.equal($('#sandbox #mod-landcover tr td:first-child').text(), 'LIR');
-                assert.equal($('#sandbox #mod-landcover tr td:nth-child(2)').text(), '10,977 acres');
+                assert.equal($('#sandbox #mod-landcover tr td:nth-child(2)').text(), '44.4 km2');
                 assert.equal($('#sandbox #mod-conservationpractice tr td:first-child').text(), 'Rain Garden');
-                assert.equal($('#sandbox #mod-conservationpractice tr td:nth-child(2)').text(), '26,292.2 acres');
+                assert.equal($('#sandbox #mod-conservationpractice tr td:nth-child(2)').text(), '106.4 km2');
             });
         });
     });
@@ -184,25 +184,12 @@ describe('Modeling', function() {
             });
         });
 
-        describe('ModificationModel', function() {
-            describe('#setDisplayArea', function() {
-                it('calculates and sets the area attribute to square feet if the area is less than one acre', function() {
-                    var model = new models.ModificationModel({
-                        shape: lessThanOneAcrePolygon
-                    });
+        describe('ModificatioModel', function() {
+            it('inherits defaults from coreModels.GeoModel', function() {
+                var model = new models.ModificationModel({});
 
-                    assert.equal(Math.round(model.get('area')), 6234);
-                    assert.equal(model.get('units'), 'sq. ft.');
-                });
-
-                it('calculates and sets the area attribute to acres if the area is greater than one acre', function() {
-                    var model = new models.ModificationModel({
-                        shape: greaterThanOneAcrePolygon
-                    });
-
-                    assert.equal(Math.round(model.get('area')), 7);
-                    assert.equal(model.get('units'), 'acres');
-                });
+                assert.equal(model.get('units'), 'm<sup>2</sup>');
+                assert.equal(model.get('area'), 0);
             });
         });
 
