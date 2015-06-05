@@ -62,14 +62,16 @@ var ProjectMenuView = Marionette.ItemView.extend({
         rename: '#rename-project',
         share: '#share-project',
         remove: '#delete-project',
-        print: '#print-project'
+        print: '#print-project',
+        save: '#save-project'
 
     },
     events: {
         'click @ui.rename': 'renameProject',
         'click @ui.remove': 'deleteProject',
         'click @ui.share': 'shareProject',
-        'click @ui.print': 'printProject'
+        'click @ui.print': 'printProject',
+        'click @ui.save': 'saveProject'
     },
     template: projectMenuTmpl,
     modelEvents: {
@@ -135,6 +137,10 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
     printProject: function() {
         window.print();
+    },
+
+    saveProject: function() {
+        this.model.saveAll();
     }
 });
 
