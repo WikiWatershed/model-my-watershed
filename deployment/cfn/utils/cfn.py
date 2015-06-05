@@ -51,6 +51,17 @@ def get_subnet_cidr_block():
         current += 1
 
 
+def get_recent_ami(aws_profile, ami_name, owner="self"):
+    conn = boto.connect_ec2(profile_name=aws_profile)
+    images = conn.get_all_images(owners=owner, filters={
+        'name': ami_name
+    })
+
+    return sorted(filter(lambda i: True if 'beta' not in i.name else False,
+                         images),
+                  key=lambda i: i.name, reverse=True)[0].id
+
+
 def read_file(file_name):
     """Reads an entire file and returns it as a string
 

@@ -7,7 +7,12 @@ from troposphere import (
     Join
 )
 
-from utils.cfn import get_availability_zones, get_subnet_cidr_block
+from utils.cfn import (
+    get_availability_zones,
+    get_recent_ami,
+    get_subnet_cidr_block
+)
+
 from utils.constants import (
     ALLOW_ALL_CIDR,
     EC2_INSTANCE_TYPES,
@@ -17,7 +22,7 @@ from utils.constants import (
     VPC_CIDR
 )
 
-from majorkirby import StackNode
+from majorkirby import StackNode, MKUnresolvableInputError
 
 
 cidr_generator = get_subnet_cidr_block()
@@ -44,7 +49,6 @@ class VPC(StackNode):
         'KeyName': 'mmw-stg',
         'IPAccess': '0.0.0.0',
         'NATInstanceType': 't2.micro',
-        'NATInstanceAMI': 'ami-303b1458',  # TODO: Make this default dynamic
         'NATAvailabilityZones': ['us-east-1b', 'us-east-1d'],
         'BastionHostInstanceType': 't2.medium',
         'BastionHostAMI': 'ami-83c525e8',  # TODO: Make this default dynamic
@@ -88,7 +92,7 @@ class VPC(StackNode):
         ), 'NATInstanceType')
 
         self.nat_instance_ami_parameter = self.add_parameter(Parameter(
-            'NATInstanceAMI', Type='String',
+            'NATInstanceAMI', Type='String', Default=self.get_recent_nat_ami(),
             Description='NAT EC2 Instance AMI'
         ), 'NATInstanceAMI')
 
@@ -113,6 +117,15 @@ class VPC(StackNode):
                                Value=Join(',', map(Ref, self.default_private_subnets))))  # NOQA
         self.add_output(Output('PublicSubnets',
                                Value=Join(',', map(Ref, self.default_public_subnets))))  # NOQA
+
+    def get_recent_nat_ami(self):
+        try:
+            nat_ami_id = self.get_input('NATInstanceAMI')
+        except MKUnresolvableInputError:
+            nat_ami_id = get_recent_ami(self.aws_profile, '*ami-vpc-nat-hvm*',
+                                        owner='amazon')
+
+        return nat_ami_id
 
     def create_vpc(self):
         vpc_name = 'MMWVPC'
