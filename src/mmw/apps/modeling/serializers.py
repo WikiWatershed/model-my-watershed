@@ -8,6 +8,8 @@ from rest_framework_gis import serializers as gis_serializers
 
 from apps.modeling.models import Project, Scenario
 
+import json
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -15,9 +17,20 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'email')
 
 
+class ModificationsField(serializers.BaseSerializer):
+
+    def to_representation(self, obj):
+        return json.loads(obj)
+
+    def to_internal_value(self, obj):
+        return json.dumps(obj)
+
+
 class ScenarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Scenario
+
+    modifications = ModificationsField()
 
 
 class ProjectSerializer(gis_serializers.GeoModelSerializer):
