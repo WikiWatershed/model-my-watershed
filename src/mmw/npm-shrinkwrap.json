@@ -3797,6 +3797,57 @@
         }
       }
     },
+    "turf-buffer": {
+      "version": "1.0.4",
+      "from": "turf-buffer@*",
+      "resolved": "https://registry.npmjs.org/turf-buffer/-/turf-buffer-1.0.4.tgz",
+      "dependencies": {
+        "geojson-normalize": {
+          "version": "0.0.0",
+          "from": "https://registry.npmjs.org/geojson-normalize/-/geojson-normalize-0.0.0.tgz",
+          "resolved": "https://registry.npmjs.org/geojson-normalize/-/geojson-normalize-0.0.0.tgz"
+        },
+        "jsts": {
+          "version": "0.15.0",
+          "from": "https://registry.npmjs.org/jsts/-/jsts-0.15.0.tgz",
+          "resolved": "https://registry.npmjs.org/jsts/-/jsts-0.15.0.tgz",
+          "dependencies": {
+            "javascript.util": {
+              "version": "0.12.5",
+              "from": "https://registry.npmjs.org/javascript.util/-/javascript.util-0.12.5.tgz",
+              "resolved": "https://registry.npmjs.org/javascript.util/-/javascript.util-0.12.5.tgz"
+            }
+          }
+        },
+        "turf-combine": {
+          "version": "1.0.2",
+          "from": "https://registry.npmjs.org/turf-combine/-/turf-combine-1.0.2.tgz",
+          "resolved": "https://registry.npmjs.org/turf-combine/-/turf-combine-1.0.2.tgz"
+        },
+        "turf-featurecollection": {
+          "version": "1.0.1",
+          "from": "turf-featurecollection@1.0.1",
+          "resolved": "https://registry.npmjs.org/turf-featurecollection/-/turf-featurecollection-1.0.1.tgz"
+        },
+        "turf-polygon": {
+          "version": "1.0.3",
+          "from": "turf-polygon@1.0.3",
+          "resolved": "https://registry.npmjs.org/turf-polygon/-/turf-polygon-1.0.3.tgz"
+        }
+      }
+    },
+    "turf-random": {
+      "version": "1.0.2",
+      "from": "turf-random@*",
+      "resolved": "https://registry.npmjs.org/turf-random/-/turf-random-1.0.2.tgz",
+      "dependencies": {
+        "geojson-random": {
+          "version": "0.2.2",
+          "from": "geojson-random@>=0.2.2 <0.3.0",
+          "resolved": "https://registry.npmjs.org/geojson-random/-/geojson-random-0.2.2.tgz"
+        }
+      }
+    },
     "underscore": {
       "version": "1.8.3",
       "from": "underscore@1.8.3",
