@@ -32,6 +32,7 @@ def login(request):
             response_data['result'] = 'success'
             response_data['username'] = user.username
             response_data['guest'] = False
+            response_data['uid'] = user.id
         else:
             response_data['errors'] = ['Invalid username or password']
             response_data['guest'] = True
@@ -42,6 +43,7 @@ def login(request):
         if user.is_authenticated() and user.is_active:
             response_data['username'] = user.username
             response_data['guest'] = False
+            response_data['uid'] = user.id
         else:
             response_data['guest'] = True
 
@@ -57,7 +59,11 @@ def logout(request):
     auth_logout(request)
 
     if request.is_ajax():
-        response_data = {'guest': True, 'result': 'success'}
+        response_data = {
+            'guest': True,
+            'result': 'success',
+            'uid': None
+        }
         return Response(data=response_data)
     else:
         return render_to_response('user/logout.html')
