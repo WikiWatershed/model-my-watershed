@@ -110,101 +110,106 @@ describe('Core', function() {
         });
     });
 
-    describe('MapView', function() {
-        it('adds layers to the map when the map model attribute areaOfInterest is set', function() {
-            var mapView = App._mapView,
-                featureGroup = mapView._areaOfInterestLayer;
 
-            assert.equal(featureGroup.getLayers().length, 0);
-            App.map.set('areaOfInterest', TEST_SHAPE);
-            assert.equal(featureGroup.getLayers().length, 1);
-            App.map.set('areaOfInterest', null);
-            assert.equal(featureGroup.getLayers().length, 0);
+    describe('Views', function() {
+        describe('MapView', function() {
+            it('adds layers to the map when the map model attribute areaOfInterest is set', function() {
+                var mapView = App._mapView,
+                    featureGroup = mapView._areaOfInterestLayer;
 
-            App._mapView._leafletMap.remove();
-        });
+                assert.equal(featureGroup.getLayers().length, 0);
+                App.map.set('areaOfInterest', TEST_SHAPE);
+                assert.equal(featureGroup.getLayers().length, 1);
+                App.map.set('areaOfInterest', null);
+                assert.equal(featureGroup.getLayers().length, 0);
 
-        it('updates the position of the map when the map model location attributes are set', function() {
-            var model = new models.MapModel(),
-                view = new views.MapView({
-                    model: model
-                }),
-                latLng = [40, -75],
-                zoom = 18;
+                App._mapView._leafletMap.remove();
+            });
 
-            view._leafletMap.setView([0, 0], 0);
+            it('updates the position of the map when the map model location attributes are set', function() {
+                var model = new models.MapModel(),
+                    view = new views.MapView({
+                        model: model
+                    }),
+                    latLng = [40, -75],
+                    zoom = 18;
 
-            model.set({ lat: latLng[0], lng: latLng[1], zoom: zoom });
+                view._leafletMap.setView([0, 0], 0);
 
-            assert.equal(view._leafletMap.getCenter().lat, latLng[0]);
-            assert.equal(view._leafletMap.getCenter().lng, latLng[1]);
-            assert.equal(view._leafletMap.getZoom(), zoom);
+                model.set({ lat: latLng[0], lng: latLng[1], zoom: zoom });
 
-            view._leafletMap.remove();
-        });
+                assert.equal(view._leafletMap.getCenter().lat, latLng[0]);
+                assert.equal(view._leafletMap.getCenter().lng, latLng[1]);
+                assert.equal(view._leafletMap.getZoom(), zoom);
 
-        it('silently sets the map model location attributes when the map position is updated', function() {
-            var model = new models.MapModel(),
-                view = new views.MapView({
-                    model: model
-                }),
-                latLng = [40, -75],
-                zoom = 18;
+                view._leafletMap.remove();
+            });
 
-            view._leafletMap.setView(latLng, zoom);
+            it('silently sets the map model location attributes when the map position is updated', function() {
+                var model = new models.MapModel(),
+                    view = new views.MapView({
+                        model: model
+                    }),
+                    latLng = [40, -75],
+                    zoom = 18;
 
-            assert.equal(model.get('lat'), 40);
-            assert.equal(model.get('lng'), -75);
-            assert.equal(model.get('zoom'), zoom);
+                view._leafletMap.setView(latLng, zoom);
 
-            view._leafletMap.remove();
-        });
+                assert.equal(model.get('lat'), 40);
+                assert.equal(model.get('lng'), -75);
+                assert.equal(model.get('zoom'), zoom);
 
-        it('adds the class "half" to the map view when the map model attribute halfSize is set to true', function(){
-            var model = new models.MapModel(),
-                view = new views.MapView({
-                    model: model
-                });
+                view._leafletMap.remove();
+            });
 
-            model.set('halfSize', true);
-            assert.isTrue($('#map').hasClass('half'));
+            it('adds the class "half" to the map view when the map model attribute halfSize is set to true', function(){
+                var model = new models.MapModel(),
+                    view = new views.MapView({
+                        model: model
+                    });
 
-            view._leafletMap.remove();
-            $('#map').removeClass('half');
-        });
+                model.set('halfSize', true);
+                assert.isTrue($('#map').hasClass('half'));
+
+                view._leafletMap.remove();
+                $('#map').removeClass('half');
+            });
 
 
-        it('removes the class "half" to the map view when the map model attribute halfSize is set to false', function(){
-            var model = new models.MapModel(),
-                view = new views.MapView({
-                    model: model
-                });
+            it('removes the class "half" to the map view when the map model attribute halfSize is set to false', function(){
+                var model = new models.MapModel(),
+                    view = new views.MapView({
+                        model: model
+                    });
 
-            model.set('halfSize', false);
-            assert.isFalse($('#map').hasClass('half'));
+                model.set('halfSize', false);
+                assert.isFalse($('#map').hasClass('half'));
 
-            view._leafletMap.remove();
+                view._leafletMap.remove();
+            });
         });
     });
 
-    describe('GeoModel', function() {
-        describe('#setDisplayArea', function() {
-            it('calculates and sets the area attribute to sq. m. if the area is less than 1 sq. km.', function() {
-                var model = new models.GeoModel({
-                    shape: polygon270m
+    describe('Models', function() {
+        describe('GeoModel', function() {
+            describe('#setDisplayArea', function() {
+                it('calculates and sets the area attribute to sq. m. if the area is less than 1 sq. km.', function() {
+                    var model = new models.GeoModel({
+                        shape: polygon270m
+                    });
+
+                    assert.equal(Math.round(model.get('area')), 270);
+                    assert.equal(model.get('units'), 'm<sup>2</sup>');
                 });
 
-                assert.equal(Math.round(model.get('area')), 270);
-                assert.equal(model.get('units'), 'm<sup>2</sup>');
-            });
+                it('calculates and sets the area attribute to sq. km. if the area is greater than 1,000 sq. m.', function() {
+                    var model = new models.GeoModel({
+                        shape: polygon7Km
+                    });
 
-            it('calculates and sets the area attribute to sq. km. if the area is greater than 1,000 sq. m.', function() {
-                var model = new models.GeoModel({
-                    shape: polygon7Km
+                    assert.equal(Math.round(model.get('area')), 7);
+                    assert.equal(model.get('units'), 'km<sup>2</sup>');
                 });
-
-                assert.equal(Math.round(model.get('area')), 7);
-                assert.equal(model.get('units'), 'km<sup>2</sup>');
             });
         });
     });
