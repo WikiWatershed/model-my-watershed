@@ -39,7 +39,7 @@
   background-color: transparent;
   border: solid 1px transparent;
 
-  &:hover, &.focus{
+  &:hover, &:focus{
     color: $paper;
     background-color: $brand-primary;
     border: solid 1px transparent;
@@ -57,7 +57,7 @@
     color: $black-54;
   }
 
-  &:hover, &.focus{
+  &:hover, &:focus{
     color: $black-74;
     background-color: darken($ui-light, 5%);
     border: solid 1px darken($ui-light, 10%);
@@ -71,7 +71,7 @@
   background-color: $brand-primary;
   border: darken($brand-primary, 5%);
 
-  &:hover, &.focus{
+  &:hover, &:focus{
     color: $paper!important;
     background-color: darken($brand-primary, 5%);
     border: darken($brand-primary, 10%);
