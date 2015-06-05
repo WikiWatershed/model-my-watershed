@@ -464,6 +464,14 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         detailsRegion: '#modeling-details-region'
     },
 
+    ui: {
+        'toggle': '.tab-content-toggle'
+    },
+
+    events: {
+        'click @ui.toggle': 'toggleResultsWindow'
+    },
+
     onShow: function() {
         this.showDetailsRegion();
     },
@@ -494,19 +502,37 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
     animateIn: function() {
         var self = this;
 
-        this.$el.animate({ height: '55%' }, 400, function() {
+        this.$el.animate({ height: '55%', 'min-height': '300px' }, 200, function() {
             self.trigger('animateIn');
             App.map.set('halfSize', true);
+            $(self.ui.toggle.selector).blur()
+                .find('i')
+                    .removeClass('fa-angle-up')
+                    .addClass('fa-angle-down');
         });
     },
 
     animateOut: function() {
         var self = this;
 
-        this.$el.animate({ height: '0%' }, 100, function() {
+        // Change map to full size first so there isn't empty space when
+        // results window animates out
+        App.map.set('halfSize', false);
+        this.$el.animate({ height: '0%', 'min-height': '50px' }, 200, function() {
             self.trigger('animateOut');
-            App.map.set('halfSize', false);
+            $(self.ui.toggle.selector).blur()
+                .find('i')
+                    .removeClass('fa-angle-down')
+                    .addClass('fa-angle-up');
         });
+    },
+
+    toggleResultsWindow: function() {
+        if (this.$el.css('height') === '50px') {
+            this.animateIn();
+        } else {
+            this.animateOut();
+        }
     }
 });
 

@@ -35,4 +35,12 @@
       width: 100%;
     }
   }
+
+  .tab-content-toggle {
+    position: absolute;
+    margin: 0.5rem;
+    right: 0.5rem;
+
+    outline: none;
+  }
 }
