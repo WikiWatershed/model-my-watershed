@@ -8,33 +8,4 @@
   background-color: $paper;
   z-index: 100;
   width: 100%;
-
-
-  //Title Row
-  .title-row{
-    background-color: $ui-primary;
-    height: 68px;
-    padding: 0.7rem;
-
-    .title{
-      display: inline-block;
-      position: relative;
-
-      h2{
-        margin-top: 0.4rem!important;
-        line-height: 0.4rem;
-      }
-    }
-
-    .cta-wrapper{
-      position: relative;
-      float: right;
-      margin-right: 1rem;
-      margin-top: -40px;
-
-      @media(min-width: 768px){
-        margin-right: 56px;
-      }
-    }
-  }
 }

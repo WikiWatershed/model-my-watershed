@@ -5,15 +5,7 @@ var Backbone = require('../../shim/backbone'),
     App = require('../app'),
     coreModels = require('../core/models');
 
-var AnalyzeModel = coreModels.GeoModel.extend({
-    defaults: _.extend({
-        place: 'Selected Area'
-    }, coreModels.GeoModel.prototype.defaults)
-});
-
-var LayerModel = Backbone.Model.extend({
-
-});
+var LayerModel = Backbone.Model.extend({});
 
 // Each layer returned from the analyze endpoint.
 // Land, soil, etc.
@@ -36,7 +28,6 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
 });
 
 module.exports = {
-    AnalyzeModel: AnalyzeModel,
     AnalyzeTaskModel: AnalyzeTaskModel,
     LayerModel: LayerModel,
     LayerCollection: LayerCollection,

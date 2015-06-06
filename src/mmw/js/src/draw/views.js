@@ -9,6 +9,7 @@ var _ = require('lodash'),
     router = require('../router').router,
     App = require('../app'),
     models = require('./models'),
+    filters = require('../filters'),
     utils = require('./utils'),
     toolbarTmpl = require('./templates/toolbar.html'),
     loadingTmpl = require('./templates/loading.html'),
@@ -88,6 +89,7 @@ var SelectAreaView = Marionette.ItemView.extend({
             endpoint = $el.data('endpoint'),
             tableId = $el.data('tableid');
 
+        clearLayer();
         changeOutlineLayer(endpoint, tableId, this.model);
         e.preventDefault();
     },
@@ -190,7 +192,7 @@ function changeOutlineLayer(endpoint, tableId, model) {
         ofg = model.get('outlineFeatureGroup');
 
     // Go about the business of adding the ouline and UTFgrid layers.
-    if (endpoint && tableId != undefined) {
+    if (endpoint && tableId !== undefined) {
         var ol = new L.TileLayer(endpoint + '.png'),
             grid = new L.UtfGrid(endpoint + '.grid.json?callback={cb}', { resolution: 4 });
 

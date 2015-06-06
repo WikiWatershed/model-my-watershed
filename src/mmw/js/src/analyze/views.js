@@ -6,9 +6,11 @@ var _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
+    coreModels = require('../core/models'),
+    coreViews = require('../core/views'),
     chart = require('../core/chart'),
+    filters = require('../filters'),
     windowTmpl = require('./templates/window.html'),
-    headerTmpl = require('./templates/header.html'),
     detailsTmpl = require('./templates/details.html'),
     tableTmpl = require('./templates/table.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
@@ -17,7 +19,6 @@ var _ = require('lodash'),
     barChartTmpl = require('../core/templates/barChart.html');
 
 var AnalyzeWindow = Marionette.LayoutView.extend({
-    tagName: 'div',
     id: 'analyze-output-wrapper',
     template: windowTmpl,
 
@@ -60,9 +61,13 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     },
 
     showHeaderRegion: function() {
-        this.headerRegion.show(new HeaderView({
-            model: new models.AnalyzeModel({
-                shape: this.model.get('area_of_interest')
+        this.headerRegion.show(new coreViews.AreaOfInterestView({
+            App: App,
+            model: new coreModels.AreaOfInterestModel({
+                shape: this.model.get('area_of_interest'),
+                can_go_back: true,
+                next_label: 'Model',
+                url: 'model'
             })
         }));
     },
@@ -84,7 +89,7 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     animateIn: function() {
         var self = this;
 
-        this.$el.animate({ height: '55%' }, 400, function() {
+        this.$el.animate({ height: '55%' }, 200, function() {
             self.trigger('animateIn');
             App.map.set('halfSize', true);
         });
@@ -96,15 +101,11 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     animateOut: function() {
         var self = this;
 
-        this.$el.animate({ height: '0%' }, 100, function() {
+        App.map.set('halfSize', false);
+        this.$el.animate({ height: '0%' }, 200, function() {
             self.trigger('animateOut');
-            App.map.set('halfSize', false);
         });
     }
-});
-
-var HeaderView = Marionette.ItemView.extend({
-    template: headerTmpl
 });
 
 var DetailsView = Marionette.LayoutView.extend({
