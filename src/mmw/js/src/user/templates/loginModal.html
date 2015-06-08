@@ -1,46 +1,28 @@
-<div class="modal-dialog modal-dialog-sm" id="login-modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 class="light">Model My Watershed</h2>
-        </div>
-        <div class="modal-body">
-            <div class="forgot">
-                <button type="button" class="btn btn-sm btn-default">Forgot?</button>
-            </div>
-            <div class="sign-up">
-                <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">Sign Up</button>
-            </div>
-            {% if validationErrors %}
-                <ul>
-                    {% for error in validationErrors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-            <form>
-                <div class="custom-input-group">
-                    <input name="username" type="text" id="id_username" required value="{{ username }}">
-                    <span class="highlight"></span>
-                    <span class="bar"></span>
-                    <label>Username</label>
-                    {% if loginError %}
-                        <span class="error">Incorrect username or password</span>
-                    {% endif %}
-                </div>
-                <div class="custom-input-group">
-                    <input name="password" type="password" id="id_password" required value="{{ password }}">
-                    <span class="highlight"></span>
-                    <span class="bar"></span>
-                    <label>Password</label>
-                    {% if loginError %}
-                        <span class="error">Incorrect username or password</span>
-                    {% endif %}
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-lg btn-block btn-primary margin-bottom-sm" data-dismiss="modal" id="continue-as-guest">Continue As Guest</button>
-            <button type="button" class="btn btn-lg btn-block btn-active" id="login-button">Sign In</button>
-        </div>
+{% extends './baseModal.html' %}
+
+{% block preamble %}
+    <div class="forgot">
+        <button type="button" class="btn btn-sm btn-default">Forgot?</button>
     </div>
-</div>
+    <div class="sign-up">
+        <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">Sign Up</button>
+    </div>
+{% endblock %}
+
+{% block form %}
+    {{ field(username, 'username', 'Username') }}
+    {{ field(password, 'password', 'Password', 'password') }}
+{% endblock %}
+
+{% block footer %}
+    <div class="row">
+        <button type="button" class="btn btn-lg btn-block btn-active" id="primary-button">Sign In</button>
+    </div>
+    <div class="text-muted" id="continue-as-divider">
+        Or continue as
+    </div>
+    <div class="row" id="guest-buttons">
+        <button type="button" class="btn btn-lg btn-primary" data-dismiss="modal" id="dismiss-button">Guest</button>
+        <a href="/user/itsi/login" class="btn btn-lg btn-primary">ITSI</a>
+    </div>
+{% endblock %}
