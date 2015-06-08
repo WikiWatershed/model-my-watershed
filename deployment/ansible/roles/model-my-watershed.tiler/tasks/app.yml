@@ -6,6 +6,9 @@
 
 - name: Ensure that tiler_home exists
   file: path="{{ tiler_home }}"
+        owner="{{ ansible_ssh_user }}"
+        group=mmw
+        mode=0755
         state=directory
 
 - name: Synchronize tiler code into into tiler_home
@@ -14,5 +17,5 @@
                compress=no
                recursive=yes
                set_remote_user=no
-               src=/opt/model-my-watershed/src/tiler
+               src=/opt/model-my-watershed/src/tiler/
                dest="{{ tiler_home }}/"
