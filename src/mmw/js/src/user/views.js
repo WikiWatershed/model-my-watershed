@@ -3,6 +3,7 @@
 var _ = require('underscore'),
     $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
+    router = require('../router').router,
     models = require('./models'),
     loginModalTmpl = require('./templates/loginModal.html'),
     signUpModalTmpl = require('./templates/signUpModal.html'),
@@ -155,9 +156,7 @@ var LoginModalView = ModalBaseView.extend({
     signUp: function() {
         this.$el.modal('hide');
         this.$el.on('hidden.bs.modal', function() {
-            new SignUpModalView({
-                model: new models.SignUpFormModel({})
-            }).render();
+            router.navigate('/sign-up', { trigger: true });
         });
     },
 
@@ -185,6 +184,9 @@ var SignUpModalView = ModalBaseView.extend({
 
     initialize: function(options) {
         ModalBaseView.prototype.initialize(this, options);
+        this.$el.on('hidden.bs.modal', function() {
+            router.navigate('', { trigger: true });
+        });
     },
 
     setFields: function() {

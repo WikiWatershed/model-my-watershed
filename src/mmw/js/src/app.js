@@ -20,7 +20,6 @@ var App = new Marionette.Application({
 
         this.rootView = new views.RootView();
         this.user = new userModels.UserModel({});
-        this.getUserOrShowLogin();
 
         var header = new views.HeaderView({
             el: 'header',

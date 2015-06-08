@@ -39,6 +39,13 @@ App.on('start', function() {
         router.navigate($(this).data('url'), { trigger: true });
     });
     Backbone.history.start({ pushState: true });
+
+    // Show login modal only if landing on home page
+    if (Backbone.history.getFragment() === "") {
+        this.getUserOrShowLogin();
+    } else {
+        this.user.fetch();
+    }
 });
 
 App.start();
