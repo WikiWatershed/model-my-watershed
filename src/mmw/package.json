@@ -40,6 +40,8 @@
     "sinon": "1.14.1",
     "testem": "0.5.15",
     "turf-area": "1.1.1",
+    "turf-buffer": "1.0.4",
+    "turf-random": "1.0.2",
     "underscore": "1.8.3",
     "watchify": "3.1.0"
   }
