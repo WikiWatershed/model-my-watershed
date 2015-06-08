@@ -1,6 +1,6 @@
 "use strict";
 
-require('../core/testInit.js');
+require('../core/setup');
 
 var _ = require('lodash'),
     L = require('leaflet'),

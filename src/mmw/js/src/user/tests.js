@@ -1,5 +1,7 @@
 "use strict";
 
+require('../core/setup');
+
 var _ = require('lodash'),
     L = require('leaflet'),
     $ = require('jquery'),
