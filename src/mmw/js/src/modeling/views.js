@@ -474,7 +474,7 @@ var ToolbarTabContentsView = Marionette.CollectionView.extend({
     childView: ToolbarTabContentView,
     childViewOptions: function(model) {
         var controls = model.get('is_current_conditions') ? null :
-            this.options.model_package.get('controls');
+            models.getControlsForModelPackage(this.options.model_package);
         return {
             collection: controls
         };

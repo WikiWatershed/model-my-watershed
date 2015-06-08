@@ -15,12 +15,7 @@ var ModelPackageControlsCollection = Backbone.Collection.extend({
     model: ModelPackageControlModel
 });
 
-var ModelPackageModel = Backbone.Model.extend({
-    defaults: {
-        name: '',
-        controls: null  // ModelPackageControlsCollection
-    }
-});
+var ModelPackageModel = Backbone.Model.extend();
 
 var Tr55TaskModel = coreModels.TaskModel.extend({});
 
@@ -37,7 +32,7 @@ var ProjectModel = Backbone.Model.extend({
         name: '',
         created_at: null,          // Date
         area_of_interest: null,    // GeoJSON
-        model_package: null,       // ModelPackageModel
+        model_package: '',         // Package name
         taskModel: null,           // TaskModel
         scenarios: null            // ScenariosCollection
     },
@@ -48,14 +43,7 @@ var ProjectModel = Backbone.Model.extend({
         // they want to use in their project. For
         // now, the only option is TR55, so it is
         // hard-coded here.
-        this.set('model_package', new ModelPackageModel({
-            name: 'tr-55',
-            controls: new ModelPackageControlsCollection([
-                new ModelPackageControlModel({ name: 'landcover' }),
-                new ModelPackageControlModel({ name: 'conservation_practice' }),
-                new ModelPackageControlModel({ name: 'precipitation' })
-            ])
-        }));
+        this.set('model_package', 'tr-55');
         this.set('taskModel', new Tr55TaskModel());
     },
 
@@ -256,7 +244,20 @@ var ScenariosCollection = Backbone.Collection.extend({
     }
 });
 
+function getControlsForModelPackage(modelPackageName) {
+    switch (modelPackageName) {
+        case 'tr-55':
+            return new ModelPackageControlsCollection([
+                new ModelPackageControlModel({ name: 'landcover' }),
+                new ModelPackageControlModel({ name: 'conservation_practice' }),
+                new ModelPackageControlModel({ name: 'precipitation' })
+            ]);
+    }
+    throw 'Model package not supported ' + modelPackageName;
+}
+
 module.exports = {
+    getControlsForModelPackage: getControlsForModelPackage,
     ResultModel: ResultModel,
     ResultCollection: ResultCollection,
     ModelPackageModel: ModelPackageModel,
