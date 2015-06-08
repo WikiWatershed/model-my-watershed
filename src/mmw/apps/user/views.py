@@ -94,10 +94,38 @@ def itsi_auth(request):
     else:
         # User did not authenticate. Save their ITSI ID and send to /register
         request.session['itsi_id'] = itsi_user['id']
-        return redirect('/register')  # TODO Make this Backbone route
+        return redirect(
+            '/sign-up/itsi/{username}/{first_name}/{last_name}'.format(
+                **itsi_user['extra']
+            )
+        )
 
 
-def itsi_register(request):
+@decorators.api_view(['POST'])
+@decorators.permission_classes((AllowAny, ))
+def itsi_sign_up(request):
+    # Validate request
+    errors = []
+    if 'itsi_id' not in request.session:
+        errors.append("There was an error in authenticating you with ITSI")
+
+    if 'username' not in request.POST or not request.POST.get('username'):
+        errors.append("Username must be specified")
+    elif User.objects.filter(username=request.POST.get('username')).exists():
+        errors.append("Username already exists")
+
+    if 'first_name' not in request.POST or not request.POST.get('first_name'):
+        errors.append("First name must be specified")
+    if 'last_name' not in request.POST or not request.POST.get('last_name'):
+        errors.append("Last name must be specified")
+    if 'agreed' not in request.POST or not request.POST.get('agreed'):
+        errors.append("You must agree to the terms")
+
+    if len(errors) > 0:
+        response_data = {"errors": errors}
+        return Response(data=response_data,
+                        status=status.HTTP_400_BAD_REQUEST)
+
     itsi_id = request.session['itsi_id']
 
     # Create new user with given details and no email address or password
@@ -119,7 +147,11 @@ def itsi_register(request):
     user = authenticate(itsi_id=itsi_id)
     auth_login(request, user)
 
-    return redirect('/')
+    response_data = {'result': 'success',
+                     'username': user.username,
+                     'guest': False}
+    return Response(data=response_data,
+                    status=status.HTTP_200_OK)
 
 
 @decorators.api_view(['POST'])

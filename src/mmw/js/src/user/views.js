@@ -7,7 +7,8 @@ var _ = require('underscore'),
     models = require('./models'),
     loginModalTmpl = require('./templates/loginModal.html'),
     signUpModalTmpl = require('./templates/signUpModal.html'),
-    forgotModalTmpl = require('./templates/forgotModal.html');
+    forgotModalTmpl = require('./templates/forgotModal.html'),
+    itsiSignUpModalTmpl = require('./templates/itsiSignUpModal.html');
 
 var ENTER_KEYCODE = 13;
 
@@ -222,8 +223,58 @@ var ForgotModalView = ModalBaseView.extend({
     }
 });
 
+var ItsiSignUpModalView = ModalBaseView.extend({
+    template: itsiSignUpModalTmpl,
+
+    ui: {
+        'username': '#username',
+        'first_name': '#first_name',
+        'last_name': '#last_name',
+        'agreed': '#agreed'
+    },
+
+    initialize: function(options) {
+        ModalBaseView.prototype.initialize(this, options);
+        this.$el.on('hidden.bs.modal', function() {
+            router.navigate('', { trigger: true });
+        });
+    },
+
+    setFields: function() {
+        this.model.set({
+            username: $(this.ui.username.selector).val(),
+            first_name: $(this.ui.first_name.selector).val(),
+            last_name: $(this.ui.last_name.selector).val(),
+            agreed: $(this.ui.agreed.selector).prop('checked')
+        }, { silent: true });
+    },
+
+    // Override to provide custom success handler
+    primaryAction: function() {
+        var formData = this.$el.find('form').serialize();
+        this.model
+            .fetch({
+                method: 'POST',
+                data: formData
+            })
+            .done(_.bind(this.handleSuccess, this))
+            .fail(_.bind(this.handleServerFailure, this));
+    },
+
+    // User account has been created and user has been logged in.
+    // Dismiss modal and update App user state.
+    handleSuccess: function(response) {
+        this.$el.modal('hide');
+        this.app.user.set({
+            'username': response.username,
+            'guest': false
+        });
+    }
+});
+
 module.exports = {
     LoginModalView: LoginModalView,
     SignUpModalView: SignUpModalView,
-    ForgotModalView: ForgotModalView
+    ForgotModalView: ForgotModalView,
+    ItsiSignUpModalView: ItsiSignUpModalView
 };
