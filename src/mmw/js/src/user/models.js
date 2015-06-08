@@ -16,7 +16,10 @@ var UserModel = Backbone.Model.extend({
         return this.fetch({
             type: 'POST',
             url: '/user/login',
-            data: attrs
+            data: {
+                'username': attrs.username,
+                'password': attrs.password
+            }
         });
     },
 
@@ -42,19 +45,24 @@ var UserModel = Backbone.Model.extend({
     }
 });
 
-var LoginFormModel = Backbone.Model.extend({
+var ModalBaseModel = Backbone.Model.extend({
     defaults: {
-        validationErrors: null,
+        success: false,
+        client_errors: null,
+        server_errors: null
+    }
+});
+
+var LoginFormModel = ModalBaseModel.extend({
+    defaults: {
         username: null,
-        password: null,
-        loginError: null
+        password: null
     },
 
-    validate: function(attrs, options) {
-        var errors = [];
+    url: '/user/login',
 
-        this.set('validationErrors', null);
-        this.set('loginError', null);
+    validate: function(attrs) {
+        var errors = [];
 
         if (!attrs.username) {
             errors.push('Please enter a username');
@@ -64,41 +72,41 @@ var LoginFormModel = Backbone.Model.extend({
             errors.push('Please enter a password');
         }
 
-        if (errors.length >= 1) {
-            this.set('validationErrors', errors);
+        if (errors.length) {
+            this.set({
+                'client_errors': errors,
+                'server_errors': null
+            });
             return errors;
+        } else {
+            this.set({
+                'client_errors': null,
+                'server_errors': null
+            })
         }
     }
 });
 
-var SignUpFormModel = Backbone.Model.extend({
+var SignUpFormModel = ModalBaseModel.extend({
     defaults: {
         username: null,
         password1: null,
         password2: null,
         email: null,
-        agreed: false,
-        clientErrors: null,
-        serverErrors: null,
-        success: false
+        agreed: false
     },
 
     url: '/user/sign_up',
 
-    validate: function(attrs, options) {
+    validate: function(attrs) {
         var errors = [];
-
-        this.set({
-            'clientErrors': null,
-            'serverErrors': null
-        });
 
         if (!attrs.username) {
             errors.push('Please enter a username');
         }
 
         if (!attrs.email) {
-            errors.push('Please enter an email addresss');
+            errors.push('Please enter an email address');
         }
 
         if (!attrs.password1) {
@@ -109,61 +117,40 @@ var SignUpFormModel = Backbone.Model.extend({
             errors.push('Please repeat the password');
         }
 
+        if (!(attrs.password1 === attrs.password2)) {
+            errors.push('Passwords do not match');
+        }
+
         if (!attrs.agreed) {
             errors.push('Please check the agreement');
         }
 
-        if (errors.length >= 1) {
-            this.set('clientErrors', errors);
+        if (errors.length) {
+            this.set({
+                'client_errors': errors,
+                'server_errors': null
+            });
             return errors;
-        }
-    },
-
-    getServerErrors: function(serverResponse) {
-        var errors = [];
-
-        this.set({
-            'clientErrors': null,
-            'serverErrors': null
-        });
-
-        if (serverResponse) {
-            if (!serverResponse['email_valid']) {
-                errors.push('Email is invalid or already in use');
-            }
-            if (!serverResponse['password_valid']) {
-                errors.push('Passwords are invalid or do not match');
-            }
-            if (!serverResponse['username_valid']) {
-                errors.push('User name is invalid or already in use');
-            }
-        }
-
-        if (errors.length >= 1) {
-            this.set('serverErrors', errors);
+        } else {
+            this.set({
+                'client_errors': null,
+                'server_errors': null
+            })
         }
     }
 });
 
-var ForgotFormModel = Backbone.Model.extend({
+var ForgotFormModel = ModalBaseModel.extend({
     defaults: {
-        success: null,
-        clientErrors: null,
-        serverErrors: null,
-        email: null,
         username: false,
-        password: false
+        password: false,
+        email: null
     },
 
     url: '/user/forgot',
 
-    validate: function(attrs, options) {
+    validate: function(attrs) {
         var errors = [];
-
-        this.set({
-            'clientErrors': null,
-            'serverErrors': null
-        });
 
         if (!attrs.email) {
             errors.push('Please enter an email address');
@@ -173,26 +160,17 @@ var ForgotFormModel = Backbone.Model.extend({
             errors.push('Please check user name and/or password');
         }
 
-        if (errors.length >= 1) {
-            this.set('clientErrors', errors);
+        if (errors.length) {
+            this.set({
+                'client_errors': errors,
+                'server_errors': null
+            });
             return errors;
-        }
-    },
-
-    getServerErrors: function(response) {
-        var errors = [];
-
-        this.set({
-            'clientErrors': null,
-            'serverErrors': null
-        });
-
-        if (!response['email_valid']) {
-            errors.push('Email is invalid');
-        }
-
-        if (errors.length >= 1) {
-            this.set('serverErrors', errors);
+        } else {
+            this.set({
+                'client_errors': null,
+                'server_errors': null
+            })
         }
     }
 });

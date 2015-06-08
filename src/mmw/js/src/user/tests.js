@@ -42,9 +42,9 @@ describe('User', function() {
                 app: App
             }).render();
 
-            loginView.$el.find('#id_username').val('');
-            loginView.$el.find('#id_password').val('password');
-            loginView.$el.find('#login-button').click();
+            loginView.$el.find('#username').val('');
+            loginView.$el.find('#password').val('password');
+            loginView.$el.find('#primary-button').click();
             var validationError = loginView.$el.find('ul li').first().text();
             assert.equal(validationError, 'Please enter a username', 'Could not find missing username message.');
         });
@@ -56,27 +56,27 @@ describe('User', function() {
                 app: App
             }).render();
 
-            loginView.$el.find('#id_username').val('bob');
-            loginView.$el.find('#id_password').val('');
-            loginView.$el.find('#login-button').click();
+            loginView.$el.find('#username').val('bob');
+            loginView.$el.find('#password').val('');
+            loginView.$el.find('#primary-button').click();
             var validationError = loginView.$el.find('ul li').first().text();
             assert.equal(validationError, 'Please enter a password', 'Could not find missing password message.');
         });
 
         it('creates an error when trying to fetch a user with bad credentials', function() {
-            this.server.respondWith([400, { 'Content-Type': 'application/json' }, '{"result": "error"}']);
+            this.server.respondWith([400, { 'Content-Type': 'application/json' }, '{"errors": ["Invalid username or password"], "guest": true}']);
             var loginView = new views.LoginModalView({
                 el: '#sandbox',
                 model: new models.LoginFormModel({}),
                 app: App
             }).render();
 
-            loginView.$el.find('#id_username').val('bad');
-            loginView.$el.find('#id_password').val('apple');
-            loginView.$el.find('#login-button').click();
-            var validationError = loginView.$el.find('span.error').first().text();
+            loginView.$el.find('#username').val('bad');
+            loginView.$el.find('#password').val('apple');
+            loginView.$el.find('#primary-button').click();
+            var validationError = loginView.$el.find('ul li').first().text();
 
-            assert.equal(validationError, 'Incorrect username or password', 'Could not find failed login message.');
+            assert.equal(validationError, 'Invalid username or password', 'Could not find failed login message.');
         });
 
         it('logs the user in when there is a valid response', function() {
@@ -91,9 +91,9 @@ describe('User', function() {
             loginView.$el.modal('show');
             assert.ok(loginView.$el.is(':visible'), 'Modal is not visible');
 
-            loginView.$el.find('#id_username').val(username);
-            loginView.$el.find('#id_password').val(username);
-            loginView.$el.find('#login-button').click();
+            loginView.$el.find('#username').val(username);
+            loginView.$el.find('#password').val(username);
+            loginView.$el.find('#primary-button').click();
 
             assert.notOk(loginView.$el.is(':visible'), 'Modal should no longer be visible.');
             assert.equal(App.user.get('username'), username, 'Could not get username.');
@@ -115,11 +115,11 @@ describe('User', function() {
             loginView.$el.modal('show');
             assert.ok(loginView.$el.is(':visible'), 'Modal is not visible');
 
-            loginView.$el.find('#id_username').val(username);
-            loginView.$el.find('#id_password').val(username);
+            loginView.$el.find('#username').val(username);
+            loginView.$el.find('#password').val(username);
             var e = $.Event('keyup');
             e.keyCode = ENTER_KEYCODE;
-            loginView.$el.find('#id_password').trigger(e);
+            loginView.$el.find('#password').trigger(e);
 
             assert.notOk(loginView.$el.is(':visible'), 'Modal should no longer be visible.');
 
@@ -145,7 +145,7 @@ describe('User', function() {
 
             var e = $.Event('keyup');
             e.keyCode = 22;
-            loginView.$el.find('#id_password').trigger(e);
+            loginView.$el.find('#password').trigger(e);
 
             assert.ok(loginView.$el.is(':visible'), 'Modal still be visible.');
         });

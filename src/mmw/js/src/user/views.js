@@ -10,35 +10,37 @@ var _ = require('underscore'),
 
 var ENTER_KEYCODE = 13;
 
-var LoginModalView = Marionette.ItemView.extend({
-    template: loginModalTmpl,
+var ModalBaseView = Marionette.ItemView.extend({
     className: 'modal modal-large fade',
+
     ui: {
-        'loginButton': '#login-button',
-        'continueAsGuest': '#continue-as-guest',
-        // The id names come from the default Django login form
-        'username': '#id_username',
-        'password': '#id_password',
-        'signUp': '.sign-up',
-        'forgot': '.forgot',
-        'loginModal': '#login-modal'
+        primary_button: '#primary-button',
+        dismiss_button: '#dismiss-button'
     },
 
     events: {
-        'click @ui.loginButton': 'validate',
-        'keyup @ui.loginModal': 'handleKeyUpEvent',
-        'click @ui.continueAsGuest': 'continueAsGuest',
-        'click @ui.signUp': 'signUp',
-        'click @ui.forgot': 'forgot'
+        'keyup input': 'handleKeyUpEvent',
+        'click @ui.primary_button': 'validate',
+        'click @ui.dismiss_button': 'dismissAction'
     },
 
-    initialize: function(options) {
-        this.app = options.app;
-        this.listenTo(this.model, 'change', this.render);
-        var self = this;
-        this.$el.on('hidden.bs.modal', function() {
-            self.destroy();
-        });
+    modalViewOptions: ['app'],
+
+    // Combine base and child `ui` and `event` hashes,
+    // import `app` if specified,
+    // initialize common routines and handlers.
+    initialize: function(child, options) {
+        child.ui = _.extend(child.ui, this.ui);
+        child.events = _.extend(child.events, this.events);
+
+        child.mergeOptions(options, child.modalViewOptions);
+
+        child.listenTo(child.model, 'change', child.render);
+        child.$el.on('hidden.bs.modal', _.bind(this.onModalHidden, child));
+    },
+
+    onModalHidden: function() {
+        this.destroy();
     },
 
     onRender: function() {
@@ -49,6 +51,74 @@ var LoginModalView = Marionette.ItemView.extend({
         if (e.keyCode === ENTER_KEYCODE) {
             this.validate();
         }
+    },
+
+    // Primary Action might be "log in" or "sign up" or "reset password".
+    // By default this serializes all form data and POSTs to child's `url`.
+    // Override if other behavior is required.
+    primaryAction: function() {
+        var formData = this.$el.find('form').serialize();
+        this.model
+            .fetch({
+                method: 'POST',
+                data: formData
+            })
+            .done(_.bind(this.handleServerSuccess, this))
+            .fail(_.bind(this.handleServerFailure, this));
+    },
+
+    handleServerSuccess: function() {
+        this.model.set({
+            'success': true,
+            'client_errors': null,
+            'server_errors': null
+        });
+    },
+
+    // Default failure handler, will display any `errors` received from server.
+    handleServerFailure: function(response) {
+        var server_errors = ["Server communication error"];
+        if (response.responseJSON.errors) {
+            server_errors = response.responseJSON.errors;
+        }
+        this.model.set({
+            'success': false,
+            'client_errors': null,
+            'server_errors': server_errors
+        });
+    },
+
+    // Dismiss Action can be "cancel" or "continue as guest". Noop by default.
+    // Override if other behavior is required.
+    dismissAction: function() { },
+
+    // Performs Primary Action if model is in valid state.
+    // `setFields` must be defined on child.
+    validate: function() {
+        this.setFields();
+        if (this.model.isValid()) {
+            this.primaryAction();
+        }
+    }
+});
+
+var LoginModalView = ModalBaseView.extend({
+    template: loginModalTmpl,
+
+    ui: {
+        username: '#username',
+        password: '#password',
+        signUp:   '.sign-up',
+        forgot:   '.forgot'
+    },
+
+    events: {
+        'click @ui.signUp': 'signUp',
+        'click @ui.forgot': 'forgot'
+    },
+
+    initialize: function(options) {
+        ModalBaseView.prototype.initialize(this, options);
     },
 
     setFields: function() {
@@ -58,26 +128,30 @@ var LoginModalView = Marionette.ItemView.extend({
         }, { silent: true });
     },
 
-    validate: function() {
-        this.setFields();
-
-        var errors = this.model.validate(this.model.attributes);
-
-        if (!errors) {
-            this.login();
-        }
-    },
-
-    login: function() {
+    // Login
+    primaryAction: function() {
         this.app.user
-            .login({
-                username: this.model.get('username'),
-                password: this.model.get('password')
-            })
+            .login(this.model.attributes)
             .done(_.bind(this.handleSuccess, this))
-            .fail(_.bind(this.handleFail, this));
+            .fail(_.bind(this.handleFailure, this));
     },
 
+    handleSuccess: function() {
+        this.$el.modal('hide');
+        this.app.user.set('guest', false);
+    },
+
+    handleFailure: function(response) {
+        this.handleServerFailure(response);
+        this.app.user.set('guest', true);
+    },
+
+    // Continue as Guest
+    dismissAction: function() {
+        this.app.user.set('guest', true);
+    },
+
+    // Sign Up
     signUp: function() {
         this.$el.modal('hide');
         this.$el.on('hidden.bs.modal', function() {
@@ -87,6 +161,7 @@ var LoginModalView = Marionette.ItemView.extend({
         });
     },
 
+    // Forgot
     forgot: function() {
         this.$el.modal('hide');
         this.$el.on('hidden.bs.modal', function() {
@@ -94,61 +169,22 @@ var LoginModalView = Marionette.ItemView.extend({
                 model: new models.ForgotFormModel({})
             }).render();
         });
-    },
-
-    continueAsGuest: function() {
-        this.app.user.set('guest', true);
-    },
-
-    handleSuccess: function() {
-        this.$el.modal('hide');
-        this.app.user.set('guest', false);
-    },
-
-    handleFail: function() {
-        this.model.set('loginError', true);
-        this.app.user.set('guest', true);
     }
 });
 
-
-var SignUpModalView = Marionette.ItemView.extend({
+var SignUpModalView = ModalBaseView.extend({
     template: signUpModalTmpl,
 
-    className: 'modal modal-large fade',
-
     ui: {
-        'signUpButton': '#sign-up-button',
-        // The id names come from the default Django login form
         'username': '#username',
         'email': '#email',
         'password1': '#password1',
         'password2': '#password2',
-        'agreed': '#agreed',
-        'signUpModal': '#sign-up-modal'
+        'agreed': '#agreed'
     },
 
-    events: {
-        'click @ui.signUpButton': 'validate',
-        'keyup @ui.signUpModal': 'handleKeyUpEvent'
-    },
-
-    initialize: function() {
-        this.listenTo(this.model, 'change', this.render);
-        var self = this;
-        this.$el.on('hidden.bs.modal', function() {
-            self.destroy();
-        });
-    },
-
-    onRender: function() {
-        this.$el.modal('show');
-    },
-
-    handleKeyUpEvent: function(e) {
-        if (e.keyCode === ENTER_KEYCODE) {
-            this.validate();
-        }
+    initialize: function(options) {
+        ModalBaseView.prototype.initialize(this, options);
     },
 
     setFields: function() {
@@ -159,83 +195,20 @@ var SignUpModalView = Marionette.ItemView.extend({
             password2: $(this.ui.password2.selector).val(),
             agreed: $(this.ui.agreed.selector).prop('checked')
         }, { silent: true });
-    },
-
-    validate: function() {
-        this.setFields();
-
-        var errors = this.model.validate(this.model.attributes);
-        if (!errors) {
-            this.signUp();
-        }
-    },
-
-    signUp: function() {
-        var formData = this.$el.find('form').serialize();
-        this.model
-            .fetch({
-                method: 'POST',
-                data: formData
-            })
-            .done(_.bind(this.handleSuccess, this))
-            .fail(_.bind(this.handleFail, this));
-    },
-
-    handleSuccess: function() {
-        this.model.set({
-            'success': true,
-            'clientErrors': null,
-            'serverErrors': null
-        });
-    },
-
-    handleFail: function(response) {
-        this.model.getServerErrors(response.responseJSON);
     }
 });
 
-var ForgotModalView = Marionette.ItemView.extend({
+var ForgotModalView = ModalBaseView.extend({
     template: forgotModalTmpl,
 
-    className: 'modal modal-large fade',
-
     ui: {
-        'forgotModal': '#forgot-modal',
-        'retrieveButton': '#retrieve-button',
         'email': '#email',
         'username': '#username',
-        'password': '#password',
-        'form': 'form'
+        'password': '#password'
     },
 
-    events: {
-        'click @ui.retrieveButton': 'validate',
-        'keyup @ui.forgotModal': 'handleKeyUpEvent',
-        'submit @ui.form': 'cancelFormSubmit'
-    },
-
-    onRender: function() {
-        this.$el.modal('show');
-    },
-
-    // Used to prevent the form from being submitted by the default mechanism
-    // when hitting enter.
-    cancelFormSubmit: function(e) {
-        e.preventDefault();
-    },
-
-    initialize: function() {
-        this.listenTo(this.model, 'change', this.render);
-        var self = this;
-        this.$el.on('hidden.bs.modal', function() {
-            self.destroy();
-        });
-    },
-
-    handleKeyUpEvent: function(e) {
-        if (e.keyCode === ENTER_KEYCODE) {
-            this.validate();
-        }
+    initialize: function(options) {
+        ModalBaseView.prototype.initialize(this, options);
     },
 
     setFields: function() {
@@ -244,38 +217,6 @@ var ForgotModalView = Marionette.ItemView.extend({
             username: $(this.ui.username.selector).prop('checked'),
             password: $(this.ui.password.selector).prop('checked')
         }, { silent: true });
-    },
-
-    validate: function() {
-        this.setFields();
-
-        var errors = this.model.validate(this.model.attributes);
-        if (!errors) {
-            this.attemptReset();
-        }
-    },
-
-    attemptReset: function() {
-        var formData = this.$el.find('form').serialize();
-        this.model
-            .fetch({
-                method: 'POST',
-                data: formData
-            })
-            .done(_.bind(this.handleSuccess, this))
-            .fail(_.bind(this.handleFail, this));
-    },
-
-    handleSuccess: function() {
-        this.model.set({
-            'success': true,
-            'clientErrors': null,
-            'serverErrors': null
-        });
-    },
-
-    handleFail: function(response) {
-        this.model.getServerErrors(response.responseJSON);
     }
 });
 
