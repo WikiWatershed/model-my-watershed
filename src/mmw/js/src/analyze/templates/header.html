@@ -3,7 +3,7 @@
 </div>
 <div class="title">
     <h2 class="light">{{ place }}</h2>
-    <label class="light">{{ area }} acres</label>
+    <label class="light">{{ area|round|toLocaleString }} {{ units }}</label>
 </div>
 <div class="cta-wrapper">
     <a data-url="/model" class="btn btn-lg btn-cta"><i class="fa fa-arrow-right"></i></a>

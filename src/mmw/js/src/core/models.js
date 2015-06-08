@@ -2,7 +2,8 @@
 
 var Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
-    $ = require('jquery');
+    $ = require('jquery'),
+    turfArea = require('turf-area');
 
 var MapModel = Backbone.Model.extend({
     defaults: {
@@ -83,7 +84,37 @@ var TaskModel = Backbone.Model.extend({
     }
 });
 
+var GeoModel = Backbone.Model.extend({
+    M_IN_KM: 1000000,
+
+    defaults: {
+        name: '',
+        shape: null,        // GeoJSON
+        area: '0',
+        units: 'm<sup>2</sup>',
+    },
+
+    initialize: function() {
+        this.setDisplayArea();
+    },
+
+    setDisplayArea: function() {
+        if (!this.get('shape')) { return; }
+
+        var areaInMeters = turfArea(this.get('shape'));
+
+        // If the area is less than 1 km, use m
+        if (areaInMeters < this.M_IN_KM) {
+            this.set('area', areaInMeters);
+        } else {
+            this.set('area', areaInMeters / this.M_IN_KM);
+            this.set('units', 'km<sup>2</sup>');
+        }
+    }
+});
+
 module.exports = {
     MapModel: MapModel,
-    TaskModel: TaskModel
+    TaskModel: TaskModel,
+    GeoModel: GeoModel
 };

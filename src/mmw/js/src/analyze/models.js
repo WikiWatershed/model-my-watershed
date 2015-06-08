@@ -5,11 +5,10 @@ var Backbone = require('../../shim/backbone'),
     App = require('../app'),
     coreModels = require('../core/models');
 
-var AnalyzeModel = Backbone.Model.extend({
-    defaults: {
-        area: 10,
-        place: 'Philadelphia'
-    }
+var AnalyzeModel = coreModels.GeoModel.extend({
+    defaults: _.extend({
+        place: 'Selected Area'
+    }, coreModels.GeoModel.prototype.defaults)
 });
 
 var LayerModel = Backbone.Model.extend({
@@ -29,12 +28,10 @@ var LayerCategoryCollection = Backbone.Collection.extend({
 });
 
 var AnalyzeTaskModel = coreModels.TaskModel.extend({
-    defaults: _.extend(
-        {
+    defaults: _.extend( {
             taskName: 'analyze',
             taskType: 'modeling'
-        },
-        coreModels.TaskModel.prototype.defaults
+        }, coreModels.TaskModel.prototype.defaults
     )
 });
 

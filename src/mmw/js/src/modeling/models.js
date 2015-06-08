@@ -2,7 +2,6 @@
 
 var Backbone = require('../../shim/backbone'),
     _ = require('lodash'),
-    turfArea = require('turf-area'),
     App = require('../app'),
     coreModels = require('../core/models');
 
@@ -114,36 +113,12 @@ var ProjectModel = Backbone.Model.extend({
     }
 });
 
-var ModificationModel = Backbone.Model.extend({
-    defaults: {
-        name: '',
-        value: '',
-        shape: null,         // GeoJSON
-        area: '0',
-        units: 'meter(s)'
-    },
-
-    initialize: function() {
-        this.setDisplayArea();
-    },
-
-    setDisplayArea: function() {
-        if (!this.get('shape')) {
-            return;
-        }
-
-        var areaInMeters = turfArea(this.get('shape'));
-
-        // For areas less than an acre, use sq ft,
-        // otherwise use acres
-        if (areaInMeters < 4046.86) {
-            this.set('area', areaInMeters * 10.7639);
-            this.set('units', 'sq. ft.');
-        } else {
-            this.set('area', areaInMeters * 0.000247105);
-            this.set('units', 'acres');
-        }
-    }
+var ModificationModel = coreModels.GeoModel.extend({
+    defaults: _.extend({
+            name: '',
+            type: ''
+        }, coreModels.GeoModel.prototype.defaults
+    )
 });
 
 var ModificationsCollection = Backbone.Collection.extend({
