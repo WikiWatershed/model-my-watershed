@@ -1,0 +1,354 @@
+from troposphere import (
+    Parameter,
+    Ref,
+    Output,
+    Tags,
+    ec2,
+    Join
+)
+
+from utils.cfn import get_availability_zones, get_subnet_cidr_block
+from utils.constants import (
+    ALLOW_ALL_CIDR,
+    EC2_INSTANCE_TYPES,
+    HTTP,
+    HTTPS,
+    SSH,
+    VPC_CIDR
+)
+
+from majorkirby import StackNode
+
+
+cidr_generator = get_subnet_cidr_block()
+
+
+class VPC(StackNode):
+    INPUTS = {
+        'Tags': ['global:Tags'],
+        'Region': ['global:Region'],
+        'StackType': ['global:StackType'],
+        'KeyName': ['global:KeyName'],
+        'IPAccess': ['global:IPAccess'],
+        'NATInstanceType': ['global:NATInstanceType'],
+        'NATInstanceAMI': ['global:NATInstanceAMI'],
+        'NATAvailabilityZones': ['global:NATAvailabilityZones'],
+        'BastionHostInstanceType': ['global:BastionHostInstanceType'],
+        'BastionHostAMI': ['global:BastionHostAMI'],
+    }
+
+    DEFAULTS = {
+        'Tags': {},
+        'Region': 'us-east-1',
+        'StackType': 'Staging',
+        'KeyName': 'mmw-stg',
+        'IPAccess': '0.0.0.0',
+        'NATInstanceType': 't2.micro',
+        'NATInstanceAMI': 'ami-303b1458',  # TODO: Make this default dynamic
+        'NATAvailabilityZones': ['us-east-1b', 'us-east-1d'],
+        'BastionHostInstanceType': 't2.medium',
+        'BastionHostAMI': 'ami-83c525e8',  # TODO: Make this default dynamic
+    }
+
+    ATTRIBUTES = {'StackType': 'StackType'}
+
+    PUBLIC_SUBNETS = []
+    PRIVATE_SUBNETS = []
+
+    _NAT_SECURITY_GROUP_CACHE = None
+
+    def set_up_stack(self):
+        super(VPC, self).set_up_stack()
+
+        tags = self.get_input('Tags').copy()
+        tags.update({'StackType': 'VPC'})
+
+        self.default_tags = tags
+        self.region = self.get_input('Region')
+        self.availability_zones = get_availability_zones(self.aws_profile)
+
+        self.add_description('VPC stack for MMW')
+
+        # Parameters
+        self.keyname_parameter = self.add_parameter(Parameter(
+            'KeyName', Type='String',
+            Description='Name of an existing EC2 key pair'
+        ), 'KeyName')
+
+        self.ip_access_parameter = self.add_parameter(Parameter(
+            'IPAccess', Type='String', Default=self.get_input('IPAccess'),
+            Description='CIDR for allowing SSH access'
+        ), 'IPAccess')
+
+        self.nat_instance_type_parameter = self.add_parameter(Parameter(
+            'NATInstanceType', Type='String', Default='t2.micro',
+            Description='NAT EC2 instance type',
+            AllowedValues=EC2_INSTANCE_TYPES,
+            ConstraintDescription='must be a valid EC2 instance type.'
+        ), 'NATInstanceType')
+
+        self.nat_instance_ami_parameter = self.add_parameter(Parameter(
+            'NATInstanceAMI', Type='String',
+            Description='NAT EC2 Instance AMI'
+        ), 'NATInstanceAMI')
+
+        self.bastion_instance_type_parameter = self.add_parameter(Parameter(
+            'BastionHostInstanceType', Type='String', Default='t2.medium',
+            Description='Bastion host EC2 instance type',
+            AllowedValues=EC2_INSTANCE_TYPES,
+            ConstraintDescription='must be a valid EC2 instance type.'
+        ), 'BastionHostInstanceType')
+
+        self.bastion_host_ami_parameter = self.add_parameter(Parameter(
+            'BastionHostAMI', Type='String', Description='Bastion host AMI'
+        ), 'BastionHostAMI')
+
+        self.create_vpc()
+
+        # TODO: Setup VPC endpoint to bypass NAT when talking to S3
+
+        self.add_output(Output('AvailabilityZones',
+                               Value=','.join(self.default_azs)))
+        self.add_output(Output('PrivateSubnets',
+                               Value=Join(',', map(Ref, self.default_private_subnets))))  # NOQA
+        self.add_output(Output('PublicSubnets',
+                               Value=Join(',', map(Ref, self.default_public_subnets))))  # NOQA
+
+    def create_vpc(self):
+        vpc_name = 'MMWVPC'
+
+        self.vpc = self.create_resource(ec2.VPC(
+            vpc_name,
+            CidrBlock=VPC_CIDR, EnableDnsSupport=True,
+            EnableDnsHostnames=True, Tags=self.get_tags(Name=vpc_name)
+        ), output='VpcId')
+
+        public_route_table = self.create_routing_resources()
+        self.create_subnets(public_route_table)
+        self.create_bastion()
+
+    def create_routing_resources(self):
+        gateway = self.create_resource(
+            ec2.InternetGateway(
+                'InternetGateway',
+                Tags=self.get_tags()
+            )
+        )
+
+        gateway_attachment = self.create_resource(
+            ec2.VPCGatewayAttachment(
+                'VPCGatewayAttachment',
+                VpcId=Ref(self.vpc),
+                InternetGatewayId=Ref(gateway)
+            )
+        )
+
+        public_route_table = self.create_resource(
+            ec2.RouteTable(
+                'PublicRouteTable',
+                VpcId=Ref(self.vpc))
+        )
+
+        self.create_resource(
+            ec2.Route(
+                'PublicRoute',
+                RouteTableId=Ref(public_route_table),
+                DestinationCidrBlock=ALLOW_ALL_CIDR,
+                DependsOn=gateway_attachment.title,
+                GatewayId=Ref(gateway)
+            )
+        )
+
+        return public_route_table
+
+    def create_subnets(self, public_route_table):
+        self.default_azs = []
+        self.default_private_subnets = []
+        self.default_public_subnets = []
+
+        for num, availability_zone in enumerate(self.availability_zones):
+            public_subnet_name = '{}PublicSubnet'.format(availability_zone.cfn_name)  # NOQA
+
+            public_subnet = self.create_resource(ec2.Subnet(
+                public_subnet_name,
+                VpcId=Ref(self.vpc),
+                CidrBlock=cidr_generator.next(),
+                AvailabilityZone=availability_zone.name,
+                Tags=self.get_tags(Name=public_subnet_name)
+            ))
+
+            self.create_resource(ec2.SubnetRouteTableAssociation(
+                '{}PublicRouteTableAssociation'.format(public_subnet.title),
+                SubnetId=Ref(public_subnet),
+                RouteTableId=Ref(public_route_table)
+            ))
+
+            private_subnet_name = '{}PrivateSubnet'.format(availability_zone.cfn_name)  # NOQA
+
+            private_subnet = self.create_resource(ec2.Subnet(
+                private_subnet_name,
+                VpcId=Ref(self.vpc),
+                CidrBlock=cidr_generator.next(),
+                AvailabilityZone=availability_zone.name,
+                Tags=self.get_tags(Name=private_subnet_name)
+                ))
+
+            private_route_table_name = '{}PrivateRouteTable'.format(availability_zone.cfn_name)  # NOQA
+
+            private_route_table = self.create_resource(ec2.RouteTable(
+                private_route_table_name,
+                VpcId=Ref(self.vpc),
+                Tags=self.get_tags(Name=private_route_table_name)
+            ))
+
+            self.create_resource(ec2.SubnetRouteTableAssociation(
+                '{}PrivateSubnetRouteTableAssociation'.format(private_subnet.title),  # NOQA
+                SubnetId=Ref(private_subnet),
+                RouteTableId=Ref(private_route_table)
+            ))
+
+            self.PUBLIC_SUBNETS.append(public_subnet)
+            self.PRIVATE_SUBNETS.append(private_subnet)
+
+            if availability_zone.name in self.get_input('NATAvailabilityZones'):  # NOQA
+                self.create_nat(availability_zone, public_subnet,
+                                private_route_table)
+                self.default_azs.append(availability_zone.name)
+                self.default_private_subnets.append(private_subnet)
+                self.default_public_subnets.append(public_subnet)
+
+    def create_nat(self, availability_zone, public_subnet, private_route_table):  # NOQA
+        nat_device_name = '{}NATDevice'.format(availability_zone.cfn_name)
+
+        nat_device = self.create_resource(ec2.Instance(
+            nat_device_name,
+            InstanceType=Ref(self.nat_instance_type_parameter),
+            KeyName=Ref(self.keyname_parameter),
+            SourceDestCheck=False,
+            ImageId=Ref(self.nat_instance_ami_parameter),
+            NetworkInterfaces=[
+                ec2.NetworkInterfaceProperty(
+                    Description='ENI for NATDevice',
+                    GroupSet=[Ref(self.nat_security_group)],
+                    SubnetId=Ref(public_subnet),
+                    AssociatePublicIpAddress=True,
+                    DeviceIndex=0,
+                    DeleteOnTermination=True,
+                )
+            ],
+            Tags=self.get_tags(Name=nat_device_name)
+        ))
+
+        self.create_resource(ec2.Route(
+            '{}PrivateRoute'.format(availability_zone.cfn_name),
+            RouteTableId=Ref(private_route_table),
+            DestinationCidrBlock=ALLOW_ALL_CIDR,
+            InstanceId=Ref(nat_device))
+        )
+
+    def create_bastion(self):
+        bastion_security_group_name = 'sgBastion'
+
+        bastion_security_group = self.create_resource(ec2.SecurityGroup(
+            bastion_security_group_name,
+            GroupDescription='Enables access to the BastionHost',
+            VpcId=Ref(self.vpc),
+            SecurityGroupIngress=[
+                ec2.SecurityGroupRule(IpProtocol='tcp',
+                                      CidrIp=Ref(self.ip_access_parameter),
+                                      FromPort=p, ToPort=p)
+                for p in [SSH]
+            ],
+            SecurityGroupEgress=[
+                ec2.SecurityGroupRule(IpProtocol='tcp',
+                                      CidrIp=Ref(self.ip_access_parameter),
+                                      FromPort=p, ToPort=p)
+                for p in [HTTP, HTTPS, SSH]
+            ],
+            Tags=self.get_tags(Name=bastion_security_group_name)
+        ), output='BastionSecurityGroup')
+
+        bastion_host_name = 'BastionHost'
+
+        self.add_resource(ec2.Instance(
+            bastion_host_name,
+            BlockDeviceMappings=[
+                {
+                    "DeviceName": "/dev/sda1",
+                    "Ebs": {
+                        "VolumeType": "gp2",
+                        "VolumeSize": "256"
+                    }
+                }
+            ],
+            InstanceType=Ref(self.bastion_instance_type_parameter),
+            KeyName=Ref(self.keyname_parameter),
+            ImageId=Ref(self.bastion_host_ami_parameter),
+            NetworkInterfaces=[
+                ec2.NetworkInterfaceProperty(
+                    Description='ENI for BastionHost',
+                    GroupSet=[Ref(bastion_security_group)],
+                    SubnetId=Ref(self.PUBLIC_SUBNETS[0]),
+                    AssociatePublicIpAddress=True,
+                    DeviceIndex=0,
+                    DeleteOnTermination=True
+                )
+            ],
+            Tags=self.get_tags(Name=bastion_host_name)
+        ))
+
+    @property
+    def nat_security_group(self):
+        if self._NAT_SECURITY_GROUP_CACHE:
+            return self._NAT_SECURITY_GROUP_CACHE
+        else:
+            nat_security_group_name = 'sgNAT'
+
+            self._NAT_SECURITY_GROUP_CACHE = self.create_resource(
+                ec2.SecurityGroup(nat_security_group_name,
+                                  GroupDescription='Enables access to the NAT '
+                                                   'devices',
+                                  VpcId=Ref(self.vpc),
+                                  SecurityGroupEgress=[
+                                      ec2.SecurityGroupRule(
+                                          IpProtocol='tcp',
+                                          CidrIp=ALLOW_ALL_CIDR,
+                                          FromPort=port, ToPort=port
+                                      ) for port in [HTTP, HTTPS]
+                                  ],
+                                  Tags=self.get_tags(Name=nat_security_group_name)),  # NOQA
+                                  'NATSecurityGroup'
+            )
+            return self._NAT_SECURITY_GROUP_CACHE
+
+    def create_resource(self, resource, output=None):
+        """Helper method to attach resource to template and return it
+
+        This helper method is used when adding _any_ CloudFormation resource
+        to the template. It abstracts out the creation of the resource, adding
+        it to the template, and optionally adding it to the outputs as well
+
+        Args:
+          resource: Troposphere resource to create
+          output: Name of output to return this value as
+        """
+        resource = self.add_resource(resource)
+
+        if output:
+            cloudformation_output = Output(
+                output,
+                Value=Ref(resource)
+            )
+
+            self.add_output(cloudformation_output)
+
+        return resource
+
+    def get_tags(self, **kwargs):
+        """Helper method to return Troposphere tags + default tags
+
+        Args:
+          **kwargs: arbitrary keyword arguments to be used as tags
+        """
+        kwargs.update(self.default_tags)
+        return Tags(**kwargs)
