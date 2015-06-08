@@ -39,7 +39,7 @@
   background-color: transparent;
   border: solid 1px transparent;
 
-  &:hover, &:focus{
+  &:hover, &:focus, &.focus{
     color: $paper;
     background-color: $brand-primary;
     border: solid 1px transparent;
