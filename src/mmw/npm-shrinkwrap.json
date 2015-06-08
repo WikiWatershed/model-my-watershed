@@ -4534,6 +4534,11 @@
           "resolved": "https://registry.npmjs.org/xtend/-/xtend-4.0.0.tgz"
         }
       }
+    },
+    "zeroclipboard": {
+      "version": "2.2.0",
+      "from": "zeroclipboard@*",
+      "resolved": "https://registry.npmjs.org/zeroclipboard/-/zeroclipboard-2.2.0.tgz"
     }
   }
 }
