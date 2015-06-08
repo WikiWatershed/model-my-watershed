@@ -1,0 +1,16 @@
+#continue-as-divider {
+  margin: 1.2rem 0;
+  font-size: 0.6rem;
+  text-align: center;
+}
+
+#guest-buttons {
+  .btn {
+    float: left;
+    width: 48%;
+  }
+
+  .btn + .btn {
+    margin-left: 4%;
+  }
+}

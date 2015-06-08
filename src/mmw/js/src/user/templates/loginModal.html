@@ -15,6 +15,14 @@
 {% endblock %}
 
 {% block footer %}
-    <button type="button" class="btn btn-lg btn-block btn-primary margin-bottom-sm" data-dismiss="modal" id="dismiss-button">Continue as Guest</button>
-    <button type="button" class="btn btn-lg btn-block btn-active" id="primary-button">Sign In</button>
+    <div class="row">
+        <button type="button" class="btn btn-lg btn-block btn-active" id="primary-button">Sign In</button>
+    </div>
+    <div class="text-muted" id="continue-as-divider">
+        Or continue as
+    </div>
+    <div class="row" id="guest-buttons">
+        <button type="button" class="btn btn-lg btn-primary" data-dismiss="modal" id="dismiss-button">Guest</button>
+        <a href="/user/itsi/login" class="btn btn-lg btn-primary">ITSI</a>
+    </div>
 {% endblock %}
