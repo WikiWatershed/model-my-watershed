@@ -103,8 +103,16 @@ var ProjectModel = Backbone.Model.extend({
     parse: function(response, options) {
         if (response.scenarios) {
             // If we returned scenarios (probably from a GET) then set them.
-            var scenariosCollection = this.get('scenarios');
-            scenariosCollection.reset(response.scenarios);
+            var uid = response.uid = response.user.id,
+                scenariosCollection = this.get('scenarios'),
+                scenarios = _.map(response.scenarios, function(scenario) {
+                    var scenarioModel = new ScenarioModel(scenario);
+                    scenarioModel.set('uid', uid);
+                    scenarioModel.get('modifications').reset(scenario.modifications);
+                    return scenarioModel;
+                });
+            scenariosCollection.reset(scenarios);
+            delete response.scenarios;
         }
 
         // TODO: Does this hurt anything if we always set.
@@ -125,6 +133,7 @@ var ModificationModel = coreModels.GeoModel.extend({
 var ModificationsCollection = Backbone.Collection.extend({
     model: ModificationModel
 });
+
 // Static method to create an instance of this collection.
 // This lets us create a collection from an array of raw objects (web app)
 // or from an array of models (unit tests).
