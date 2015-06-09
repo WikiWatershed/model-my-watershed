@@ -105,7 +105,8 @@ CONCAT_VENDOR_CSS_COMMAND="cat \
 JS_DEPS=(jquery backbone backbone.marionette \
          bootstrap bootstrap-select \
          leaflet leaflet-draw lodash underscore \
-         d3 nunjucks turf-area)
+         d3 nunjucks turf-area \
+         zeroclipboard)
 BROWSERIFY_EXT=""
 BROWSERIFY_REQ=""
 for DEP in "${JS_DEPS[@]}"
