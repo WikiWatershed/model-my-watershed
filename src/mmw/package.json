@@ -43,6 +43,7 @@
     "turf-buffer": "1.0.4",
     "turf-random": "1.0.2",
     "underscore": "1.8.3",
-    "watchify": "3.1.0"
+    "watchify": "3.1.0",
+    "zeroclipboard": "2.2.0"
   }
 }

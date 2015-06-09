@@ -6,6 +6,7 @@ var $ = require('jquery'),
     router = require('../router.js').router,
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
+    ZeroClipboard = require('zeroclipboard'),
     drawUtils = require('../draw/utils'),
     headerTmpl = require('./templates/header.html'),
     filters = require('../filters'),
@@ -372,13 +373,23 @@ var ShareModal = BaseModal.extend({
     },
 
     events: {
-        'click @ui.signin': 'signIn',
-        'click @ui.copy': 'copyLinkToClipboard'
+        'click @ui.signin': 'signIn'
     },
 
-    copyLinkToClipboard: function() {
-        var url = this.ui.input.val();
-        // TODO https://github.com/WikiWatershed/model-my-watershed/issues/282
+    // Override to initialize ZeroClipboard
+    initialize: function() {
+        BaseModal.prototype.initialize.call(this);
+        this.zc = new ZeroClipboard();
+    },
+
+    // Override to attach ZeroClipboard to ui.copy button
+    onRender: function() {
+        var self = this;
+        this.$el.on('shown.bs.modal', function() {
+            self.zc.clip(self.$el.find(self.ui.copy.selector));
+        });
+
+        this.$el.modal('show');
     },
 
     signIn: function() {
