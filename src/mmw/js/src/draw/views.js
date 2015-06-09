@@ -198,9 +198,9 @@ var ResetDrawView = Marionette.ItemView.extend({
 
     ui: { 'reset': 'button' },
 
-    events: { 'click @ui.reset': 'reset' },
+    events: { 'click @ui.reset': 'resetDrawingState' },
 
-    reset: function() {
+    resetDrawingState: function() {
         utils.cancelDrawing(App.getLeafletMap());
         clearAoiLayer();
         clearBoundaryLayer(this.model);
