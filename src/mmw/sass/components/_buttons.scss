@@ -65,10 +65,10 @@
 }
 
 .btn-active{
-  color: $paper;
+  color: $paper !important;
   position: relative;
   display: inline-block;
-  background-color: $brand-primary;
+  background-color: $brand-primary !important;
   border: darken($brand-primary, 5%);
 
   &:hover, &:focus{

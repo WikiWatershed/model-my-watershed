@@ -15,6 +15,7 @@ var _ = require('lodash'),
     loadingTmpl = require('./templates/loading.html'),
     selectTypeTmpl = require('./templates/selectType.html'),
     drawAreaTmpl = require('./templates/drawArea.html'),
+    resetDrawTmpl = require('./templates/reset.html'),
     placeMarkerTmpl = require('./templates/placeMarker.html');
 
 // Responsible for loading and displaying tools for selecting and drawing
@@ -22,10 +23,13 @@ var _ = require('lodash'),
 var ToolbarView = Marionette.LayoutView.extend({
     template: toolbarTmpl,
 
+    className: 'draw-tools-container',
+
     regions: {
         selectTypeRegion: '#select-area-region',
         drawAreaRegion: '#draw-area-region',
-        placeMarkerRegion: '#place-marker-region'
+        placeMarkerRegion: '#place-marker-region',
+        resetRegion: '#reset-draw-region'
     },
 
     modelEvents: {
@@ -56,14 +60,16 @@ var ToolbarView = Marionette.LayoutView.extend({
         this.placeMarkerRegion.show(new PlaceMarkerView({
             model: this.model
         }));
+        this.resetRegion.show(new ResetDrawView({
+            model: this.model
+        }));
     },
 
     manageOutlineLayer: function() {
-        var enabled = this.model.get('toolsEnabled'),
-            ofg = this.model.get('outlineFeatureGroup');
+        var enabled = this.model.get('toolsEnabled');
 
         if (!enabled) {
-            ofg.clearLayers();
+            clearBoundaryLayer(this.model);
         }
     }
 
@@ -89,7 +95,7 @@ var SelectAreaView = Marionette.ItemView.extend({
             endpoint = $el.data('endpoint'),
             tableId = $el.data('tableid');
 
-        clearLayer();
+        clearAoiLayer();
         changeOutlineLayer(endpoint, tableId, this.model);
         e.preventDefault();
     },
@@ -118,7 +124,7 @@ var DrawAreaView = Marionette.ItemView.extend({
     onButtonPressed: function() {
         var self = this,
             map = App.getLeafletMap(),
-            revertLayer = clearLayer();
+            revertLayer = clearAoiLayer();
 
         this.model.disableTools();
         utils.drawPolygon(map).then(function(shape) {
@@ -153,7 +159,7 @@ var PlaceMarkerView = Marionette.ItemView.extend({
             $el = $(e.target),
             shapeType = $el.data('shape-type'),
             map = App.getLeafletMap(),
-            revertLayer = clearLayer();
+            revertLayer = clearAoiLayer();
 
         this.model.disableTools();
         utils.placeMarker(map).then(function(latlng) {
@@ -187,6 +193,20 @@ var PlaceMarkerView = Marionette.ItemView.extend({
     }
 });
 
+var ResetDrawView = Marionette.ItemView.extend({
+    template: resetDrawTmpl,
+
+    ui: { 'reset': 'button' },
+
+    events: { 'click @ui.reset': 'resetDrawingState' },
+
+    resetDrawingState: function() {
+        utils.cancelDrawing(App.getLeafletMap());
+        clearAoiLayer();
+        clearBoundaryLayer(this.model);
+    }
+});
+
 function changeOutlineLayer(endpoint, tableId, model) {
     var map = App.getLeafletMap(),
         ofg = model.get('outlineFeatureGroup');
@@ -202,7 +222,7 @@ function changeOutlineLayer(endpoint, tableId, model) {
 
         grid.on('click', function (e) {
             var shapeId = e.data ? e.data.id : null,
-                revertLayer = clearLayer();
+                revertLayer = clearAoiLayer();
 
             if (model) {
                 model.disableTools();
@@ -223,12 +243,19 @@ function changeOutlineLayer(endpoint, tableId, model) {
     }
 }
 
-function clearLayer() {
+function clearAoiLayer() {
     App.map.set('areaOfInterest', null);
     return function revertLayer() {
         var previousShape = App.map.previous('areaOfInterest');
         App.map.set('areaOfInterest', previousShape);
     };
+}
+
+function clearBoundaryLayer(model) {
+    var ofg = model.get('outlineFeatureGroup');
+    if (ofg) {
+        ofg.clearLayers();
+    }
 }
 
 function addLayer(shape) {

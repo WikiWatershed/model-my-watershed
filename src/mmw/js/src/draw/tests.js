@@ -4,10 +4,13 @@ require('../core/setup');
 
 var _ = require('lodash'),
     $ = require('jquery'),
+    L = require('leaflet'),
     assert = require('chai').assert,
+    sinon = require('sinon'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
+    utils = require('./utils'),
     views = require('./views');
 
 var TEST_SHAPE = {
@@ -78,8 +81,71 @@ describe('Draw', function() {
             App.getLeafletMap().fireEvent('click', {'latlng': [29.979, 31.134]});
             assert.equal(App.map.get('areaOfInterest'), TEST_SHAPE);
         });
+
+        it('resets the current area of interest on Reset', function() {
+            var setup = setupResetTestObject();
+
+            App.map.set('areaOfInterest', TEST_SHAPE);
+            setup.resetRegion.currentView.resetDrawingState();
+
+            assert.isNull(App.map.get('areaOfInterest',
+                    'Area of Interest was not removed on reset from the map'));
+
+        });
+
+        it('resets the boundary layer on Reset', function() {
+            var setup = setupResetTestObject(),
+                ofg = L.featureGroup(),
+                testFeature = {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [-104.99404, 39.75621]
+                    }
+                };
+
+            ofg.addLayer(L.geoJson(testFeature));
+            assert.equal(ofg.getLayers().length, 1);
+
+            setup.model.set('outlineFeatureGroup', ofg);
+            setup.resetRegion.currentView.resetDrawingState();
+            assert.equal(ofg.getLayers().length, 0,
+                'Boundary Layer should have been removed from layer group');
+        });
+
+        it('removes in progress drawing on Reset', function() {
+            var setup = setupResetTestObject(),
+                 spy = sinon.spy(utils, 'cancelDrawing');
+
+            utils.drawPolygon(setup.map);
+            setup.resetRegion.currentView.resetDrawingState();
+
+            assert.equal(spy.callCount, 1);
+        });
     });
 });
+
+
+function setupResetTestObject() {
+
+    var sandbox = new SandboxRegion(),
+        model = new models.ToolbarModel(),
+        view = new views.ToolbarView({
+            model: model
+        }),
+        resetRegion = view.getRegion('resetRegion'),
+        map = App.getLeafletMap();
+
+        sandbox.show(view);
+
+    return {
+        sandbox: sandbox,
+        model: model,
+        view: view,
+        resetRegion: resetRegion,
+        map: map
+    };
+}
 
 function assertTextEqual($el, sel, text) {
     assert.equal($el.find(sel).text().trim(), text);
