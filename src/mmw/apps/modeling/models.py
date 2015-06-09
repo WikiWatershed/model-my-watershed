@@ -45,9 +45,6 @@ class District(models.Model):
 
 
 class Project(models.Model):
-    class Meta:
-        unique_together = ('name', 'user')
-
     TR55 = 'tr-55'
     MODEL_PACKAGES = ((TR55, 'Simple Model'),)
 
