@@ -13,11 +13,7 @@ $ pip install -r requirements.txt
 
 Next, install [Packer](https://packer.io/) using the steps detailed on Packer's [website](https://packer.io/downloads.html).
 
-## Create Identity and Access Management (IAM) Roles
-
-TBD
-
-## Create and Download an EC2 Keypair
+## Create Identity and Access Management (IAM) roles
 
 TBD
 
@@ -31,19 +27,25 @@ $ aws configure --profile mmw-stg
 
 You will be prompted to enter your AWS credentials, along with a default region. These credentials will be used to authenticate calls to the AWS API when using Boto, Packer, and the AWS CLI.
 
-## Edit the Configuration File
+## Edit the configuration file
 
 A configuration file is required to launch the stack. An example file (`default.yml.example`) is available in the current directory.
 
-## Launch and Manage Stacks
+## Launch and manage stacks
 
-Launching stacks is managed with `mmw_stack.py`. This command provides an interface for automatically generating AMIs and launching Model My Watershed stacks.
+Stack launching is managed with `mmw_stack.py`. This command provides an interface for automatically generating AMIs and launching Model My Watershed stacks.
 
 ### Generating AMIs
 
-TBD
+Before launching the Model My Watershed stack, AMIs for each service need to be generated:
 
-### Launch Stack
+
+```bash
+$ ./mmw_stack.py create-ami --aws-profile mmw-stg --mmw-profile staging \
+                            --machine-type mmw-{app,monitoring,tiler,worker}
+```
+
+### Launching Stacks
 
 After successfully creating AMIs, you can launch a Model My Watershed stack with the `launch-stacks` subcommand. To view all options for the `launch-stacks` subcommand, you can use the `--help` option.
 

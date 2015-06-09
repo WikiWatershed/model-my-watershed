@@ -5,6 +5,7 @@ import argparse
 import os
 
 from cfn.stacks import build_stacks, get_config
+from packer.driver import run_packer
 
 
 current_file_dir = os.path.dirname(os.path.realpath(__file__))
@@ -12,6 +13,13 @@ current_file_dir = os.path.dirname(os.path.realpath(__file__))
 
 def launch_stacks(mmw_config, aws_profile, **kwargs):
     build_stacks(mmw_config, aws_profile, **kwargs)
+
+
+def create_ami(mmw_config, aws_profile, machine_type, **kwargs):
+    run_packer(machine_type,
+               aws_profile=aws_profile,
+               region=mmw_config['Region'],
+               stack_type=mmw_config['StackType'])
 
 
 def main():
@@ -32,11 +40,16 @@ def main():
     subparsers = parser.add_subparsers(title='Model My Watershed Stack '
                                              'Commands')
 
-    # Launch MMW Stack
     mmw_stacks = subparsers.add_parser('launch-stacks',
                                        help='Launch MMW Stack',
                                        parents=[common_parser])
     mmw_stacks.set_defaults(func=launch_stacks)
+
+    mmw_ami = subparsers.add_parser('create-ami', help='Create AMI for Model '
+                                                       'My Watershed Stack',
+                                    parents=[common_parser])
+    mmw_ami.add_argument('--machine-type', help='Type of AMI to build')
+    mmw_ami.set_defaults(func=create_ami)
 
     args = parser.parse_args()
     mmw_config = get_config(args.mmw_config_path, args.mmw_profile)
