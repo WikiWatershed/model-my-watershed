@@ -3,6 +3,7 @@
 var Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     $ = require('jquery'),
+    _ = require('lodash'),
     turfArea = require('turf-area');
 
 var MapModel = Backbone.Model.extend({
@@ -10,9 +11,14 @@ var MapModel = Backbone.Model.extend({
         lat: 0,
         lng: 0,
         zoom: 0,
-        // TODO: Delete (already exists on project model)
         areaOfInterest: null,           // GeoJSON
         halfSize: false
+    },
+
+    revertMaskLayer: function() {
+        // If a mask layer is applied, remove it in favor of a traditional
+        // area of interest polygon
+        this.set('maskLayerApplied', false);
     },
 
     restructureAoI: function() {
@@ -113,8 +119,16 @@ var GeoModel = Backbone.Model.extend({
     }
 });
 
+var AreaOfInterestModel = GeoModel.extend({
+    defaults: _.extend({
+        place: 'Selected Area',
+        can_go_back: false
+    }, GeoModel.prototype.defaults)
+});
+
 module.exports = {
     MapModel: MapModel,
     TaskModel: TaskModel,
-    GeoModel: GeoModel
+    GeoModel: GeoModel,
+    AreaOfInterestModel: AreaOfInterestModel
 };

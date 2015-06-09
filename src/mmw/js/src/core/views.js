@@ -8,11 +8,13 @@ var $ = require('jquery'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
     drawUtils = require('../draw/utils'),
     headerTmpl = require('./templates/header.html'),
+    filters = require('../filters'),
     modalConfirmTmpl = require('./templates/confirmModal.html'),
     modalInputTmpl = require('./templates/inputModal.html'),
-    modalShareTmpl = require('./templates/shareModal.html');
+    modalShareTmpl = require('./templates/shareModal.html'),
+    areaOfInterestTmpl = require('../core/templates/areaOfInterestHeader.html'),
 
-var BASIC_MODAL_CLASS = 'modal modal-basic fade';
+    BASIC_MODAL_CLASS = 'modal modal-basic fade';
 
 /**
  * A basic view for showing a static message.
@@ -89,7 +91,8 @@ var MapView = Marionette.ItemView.extend({
     modelEvents: {
         'change': 'updateView',
         'change:areaOfInterest': 'updateAreaOfInterest',
-        'change:halfSize': 'toggleMapSize'
+        'change:halfSize': 'toggleMapSize',
+        'change:maskLayerApplied': 'toggleMask'
     },
 
     // L.Map instance.
@@ -166,6 +169,22 @@ var MapView = Marionette.ItemView.extend({
         }, { silent: true });
     },
 
+
+    toggleMask: function() {
+        var aoi = this.model.get('areaOfInterest');
+        if (!aoi) {
+            return;
+        }
+
+        if (this.model.get('maskLayerApplied')) {
+            this.updateAreaOfInterest();
+        } else {
+            this._areaOfInterestLayer.clearLayers();
+            var layer = new L.GeoJSON(aoi);
+            this._areaOfInterestLayer.addLayer(layer);
+        }
+    },
+
     // Add a GeoJSON layer if `areaOfInterest` is set.
     updateAreaOfInterest: function() {
         this.model.restructureAoI();
@@ -176,6 +195,7 @@ var MapView = Marionette.ItemView.extend({
             try {
                 var layer = new L.GeoJSON(areaOfInterest);
                 applyMask(this._areaOfInterestLayer, layer);
+                this.model.set('maskLayerApplied', true);
                 this._leafletMap.fitBounds(layer.getBounds(), { reset: true });
             } catch (ex) {
                 console.log('Error adding Leaflet layer (invalid GeoJSON object)');
@@ -367,6 +387,21 @@ var ShareModal = BaseModal.extend({
 
 });
 
+var AreaOfInterestView = Marionette.ItemView.extend({
+    template: areaOfInterestTmpl,
+    initialize: function() {
+        this.map = this.options.App.map;
+        this.listenTo(this.map, 'change areaOfInterest', this.syncArea);
+    },
+
+    modelEvents: { 'change shape': 'render' },
+
+    syncArea: function() {
+        this.model.set('shape', this.map.get('areaOfInterest'));
+    }
+});
+
+
 module.exports = {
     HeaderView: HeaderView,
     MapView: MapView,
@@ -374,5 +409,6 @@ module.exports = {
     StaticView: StaticView,
     ConfirmModal: ConfirmModal,
     InputModal: InputModal,
-    ShareModal: ShareModal
+    ShareModal: ShareModal,
+    AreaOfInterestView: AreaOfInterestView
 };

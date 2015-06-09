@@ -14,6 +14,12 @@ var AnalyzeController = {
             router.navigate('', { trigger: true });
             return false;
         }
+
+        // The mask layer should always be applied to the map when entering
+        // analyze mode
+        if (!App.map.get('maskLayerApplied')) {
+            App.map.set('maskLayerApplied', true);
+        }
     },
 
     analyze: function() {
