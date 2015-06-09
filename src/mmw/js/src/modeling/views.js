@@ -79,6 +79,12 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
     template: projectMenuTmpl,
 
+    templateHelpers: function() {
+        return {
+            editable: this.model.get('uid') === App.user.get('uid')
+        };
+    },
+
     modelEvents: {
         'change': 'render'
     },
@@ -182,6 +188,12 @@ var ScenariosView = Marionette.LayoutView.extend({
     collection: models.ScenariosCollection,
     template: scenariosBarTmpl,
 
+    templateHelpers: function() {
+        return {
+            editable: this.collection.first().get('uid') === App.user.get('uid')
+        };
+    },
+
     ui: {
         addScenario: '#add-scenario',
         tab: '[data-toggle="tab"]'
@@ -234,7 +246,8 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         return {
-            cid: this.model.cid
+            cid: this.model.cid,
+            editable: this.model.get('uid') === App.user.get('uid')
         };
     },
 

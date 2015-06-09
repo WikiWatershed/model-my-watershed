@@ -152,11 +152,13 @@ var ScenarioModel = Backbone.Model.extend({
         name: '',
         is_current_conditions: false,
         modifications: null,      // ModificationsCollection
-        active: false
+        active: false,
+        uid: null
     },
 
     initialize: function(attrs, options) {
         Backbone.Model.prototype.initialize.apply(this, arguments);
+        this.set('uid', App.user.get('uid'));
         this.set('modifications', ModificationsCollection.create(attrs.modifications));
 
         this.on('change:project change:name', this.attemptSave, this);
