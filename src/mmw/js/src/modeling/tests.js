@@ -126,6 +126,51 @@ describe('Modeling', function() {
                 assert.equal($('#sandbox #mod-conservationpractice tr td:nth-child(2)').text(), '106.4 km2');
             });
         });
+
+        describe('ProjectMenuView', function() {
+            it('displays a limited list of options in the drop down menu until the project is saved', function() {
+                var project = getTestProject(),
+                    view = new views.ProjectMenuView({ model: project });
+
+                $('#sandbox').html(view.render().el);
+
+                assert.equal($('#sandbox li').length, 3);
+            });
+
+            it('displays all the options in the drop down menu if the project is saved', function() {
+                var project = getTestProject(),
+                    view = new views.ProjectMenuView({ model: project }),
+                    projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[],"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}';
+
+                this.server.respondWith('POST', '/api/modeling/projects/',
+                            [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
+
+                project.save();
+
+                $('#sandbox').html(view.render().el);
+
+                assert.equal($('#sandbox li').length, 7);
+            });
+
+            it('changes the privacy menu item depending on the is_private attribute of the project', function() {
+                var project = getTestProject(),
+                    view = new views.ProjectMenuView({ model: project });
+
+                project.set({
+                    id: 1,
+                    is_private: true
+                });
+
+                $('#sandbox').html(view.render().el);
+
+                assert.equal($('#sandbox #project-privacy').text(), 'Make Public');
+
+                project.set('is_private', false);
+                $('#sandbox').html(view.render().el);
+
+                assert.equal($('#sandbox #project-privacy').text(), 'Make Private');
+            });
+        });
     });
 
     describe('Models', function() {

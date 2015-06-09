@@ -726,5 +726,6 @@ module.exports = {
     ScenariosView: ScenariosView,
     ScenarioTabPanelsView: ScenarioTabPanelsView,
     ScenarioDropDownMenuView: ScenarioDropDownMenuView,
-    ToolbarTabContentView: ToolbarTabContentView
+    ToolbarTabContentView: ToolbarTabContentView,
+    ProjectMenuView: ProjectMenuView
 };

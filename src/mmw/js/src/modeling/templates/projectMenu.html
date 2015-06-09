@@ -8,12 +8,14 @@
         <i class="fa fa-caret-down"></i>
         </button>
         <ul class="dropdown-menu menu-right" role="menu">
+            {% if id %}
+                <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="share-project">Share</a></li>
+                <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="project-privacy">{% if is_private %}Make Public{% else %}Make Private{% endif %}</a></li>
+                <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="delete-project">Delete</a></li>
+                <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="add-tag">Add Tags</a></li>
+            {% endif %}
             <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="rename-project">Rename</a></li>
-            <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="share-project">Share</a></li>
-            <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="project-privacy">{% if is_private %} Make Public {% else %} Make Private {% endif %}</a></li>
             <li role="presentation"><a role="menuitem" tabindex="-1" id="print-project">Print</a></li>
-            <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="delete-project">Delete</a></li>
-            <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="add-tag">Add Tags</a></li>
             <li role="presentation"><a role="menuitem" tabindex="-1" id="save-project">Save</a></li>
         </ul>
     </div>
