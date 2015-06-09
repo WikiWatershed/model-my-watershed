@@ -145,7 +145,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
     },
 
     saveProject: function() {
-        this.model.saveAll();
+        this.model.saveProjectAndScenarios();
     },
 
     setProjectPrivacy: function() {
