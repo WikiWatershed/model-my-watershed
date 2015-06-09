@@ -48,6 +48,27 @@ def update_ansible_roles():
     subprocess.check_call(ansible_command, cwd=ansible_dir)
 
 
+def get_git_sha():
+    """Function that executes Git to determine the current SHA"""
+    git_command = ['git',
+                   'describe',
+                   '--tags',
+                   '--always',
+                   '--dirty']
+
+    return subprocess.check_output(git_command).rstrip()
+
+
+def get_git_branch():
+    """Function that executes Git to determine the current branch"""
+    git_command = ['git',
+                   'rev-parse',
+                   '--abbrev-ref',
+                   'HEAD']
+
+    return subprocess.check_output(git_command).rstrip()
+
+
 def run_packer(machine_type, aws_profile, region, stack_type):
     """Function to run packer
 
@@ -84,9 +105,9 @@ def run_packer(machine_type, aws_profile, region, stack_type):
 
     packer_command = ['packer', 'build',
                       '-var', 'version={}'.format(env.get('GIT_COMMIT',
-                                                          'origin/develop')),
+                                                          get_git_sha())),
                       '-var', 'branch={}'.format(env.get('GIT_BRANCH',
-                                                         'origin/develop')),
+                                                         get_git_branch())),
                       '-var', 'aws_region={}'.format(region),
                       '-var', 'aws_ubuntu_ami={}'.format(aws_ubuntu_ami),
                       '-var', 'stack_type={}'.format(stack_type),

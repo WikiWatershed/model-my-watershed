@@ -14,7 +14,7 @@
             "source_ami": "{{user `aws_ubuntu_ami`}}",
             "instance_type": "m3.large",
             "ssh_username": "ubuntu",
-            "ami_name": "mmw-app-{{timestamp}}",
+            "ami_name": "mmw-app-{{timestamp}}-{{user `version`}}",
             "run_tags": {
                 "PackerBuilder": "amazon-ebs"
             },
@@ -35,7 +35,7 @@
             "source_ami": "{{user `aws_ubuntu_ami`}}",
             "instance_type": "m3.large",
             "ssh_username": "ubuntu",
-            "ami_name": "mmw-tiler-{{timestamp}}",
+            "ami_name": "mmw-tiler-{{timestamp}}-{{user `version`}}",
             "run_tags": {
                 "PackerBuilder": "amazon-ebs"
             },
@@ -56,7 +56,7 @@
             "source_ami": "{{user `aws_ubuntu_ami`}}",
             "instance_type": "m3.large",
             "ssh_username": "ubuntu",
-            "ami_name": "mmw-worker-{{timestamp}}",
+            "ami_name": "mmw-worker-{{timestamp}}-{{user `version`}}",
             "run_tags": {
                 "PackerBuilder": "amazon-ebs"
             },
