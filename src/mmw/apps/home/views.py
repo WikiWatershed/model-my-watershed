@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from django.http import Http404
 from django.contrib.auth.models import User
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template.context_processors import csrf
@@ -33,16 +34,19 @@ def home_page(request):
 def model(request, proj_id=None):
     """
     If proj_id was specified, check that the user owns
-    the project. It not, return a 404. Otherwise, just
-    load the index template and the let the front-end
-    handle the route and request the project through
-    the API.
+    the project or if the project is public.
+    If not, return a 404. Otherwise, just load the index
+    template and the let the front-end handle the route
+    and request the project through the API.
     """
     csrf_token = {}
     csrf_token.update(csrf(request))
 
     if proj_id:
-        get_object_or_404(Project, user=request.user.id, id=proj_id)
+        project = get_object_or_404(Project, id=proj_id)
+
+        if project.user != request.user and project.is_private:
+            raise Http404
 
     return render_to_response('home/home.html', csrf_token)
 

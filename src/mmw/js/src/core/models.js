@@ -32,9 +32,14 @@ var MapModel = Backbone.Model.extend({
                       this.get('areaOfInterest').geometry :
                       this.get('areaOfInterest');
 
-            if (aoi.type === 'Polygon') {
+            if (aoi.type !== 'MultiPolygon') {
+                if (aoi.type === 'Polygon') {
+                    aoi.coordinates = [aoi.coordinates];
+                } else if (aoi.type === 'FeatureCollection') {
+                    aoi.coordinates = [aoi.features[0].geometry.coordinates];
+                }
+
                 aoi.type = 'MultiPolygon';
-                aoi.coordinates = [aoi.coordinates];
             }
 
             this.set('areaOfInterest', aoi);

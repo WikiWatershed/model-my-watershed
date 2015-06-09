@@ -137,7 +137,6 @@ def run_tr55(model_input, landscape):
     """
     A thin Celery wrapper around our TR55 implementation.
     """
-    print(landscape)
     # TODO Remove this.
     # hard coded values for test
     landscape = {

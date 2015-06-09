@@ -64,17 +64,21 @@ var ProjectMenuView = Marionette.ItemView.extend({
         share: '#share-project',
         remove: '#delete-project',
         print: '#print-project',
-        save: '#save-project'
-
+        save: '#save-project',
+        privacy: '#project-privacy'
     },
+
     events: {
         'click @ui.rename': 'renameProject',
         'click @ui.remove': 'deleteProject',
         'click @ui.share': 'shareProject',
         'click @ui.print': 'printProject',
-        'click @ui.save': 'saveProject'
+        'click @ui.save': 'saveProject',
+        'click @ui.privacy': 'setProjectPrivacy'
     },
+
     template: projectMenuTmpl,
+
     modelEvents: {
         'change': 'render'
     },
@@ -142,6 +146,32 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
     saveProject: function() {
         this.model.saveAll();
+    },
+
+    setProjectPrivacy: function() {
+        var self = this,
+            currentSettings = this.model.get('is_private') ? 'private' : 'public',
+            newSettings = currentSettings === 'private' ? 'public' : 'private',
+            primaryText = 'This project is currently ' + currentSettings + '. ' +
+                      'Are you sure you want to make it ' + newSettings + '? ',
+            additionalText = currentSettings === 'private' ?
+                    'Anyone with the URL will be able to access it.' :
+                    'Only you will be able to access it.',
+            question = primaryText + additionalText,
+            modal = new coreViews.ConfirmModal({
+                model: new Backbone.Model({
+                    question: question,
+                    confirmLabel: 'Confirm',
+                    cancelLabel: 'Cancel'
+                })
+            });
+
+        modal.render();
+        modal.on('confirmation', function() {
+            self.model.set('is_private', !self.model.get('is_private'));
+            // TODO: Save just the project. Change after #226 is implemented.
+            self.model.saveAll();
+        });
     }
 });
 
@@ -696,5 +726,6 @@ module.exports = {
     ScenariosView: ScenariosView,
     ScenarioTabPanelsView: ScenarioTabPanelsView,
     ScenarioDropDownMenuView: ScenarioDropDownMenuView,
-    ToolbarTabContentView: ToolbarTabContentView
+    ToolbarTabContentView: ToolbarTabContentView,
+    ProjectMenuView: ProjectMenuView
 };
