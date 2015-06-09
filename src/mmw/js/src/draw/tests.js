@@ -1,7 +1,6 @@
 "use strict";
 
-require('../core/testInit.js');
-require('../../shim/leaflet.utfgrid');
+require('../core/setup');
 
 var _ = require('lodash'),
     $ = require('jquery'),

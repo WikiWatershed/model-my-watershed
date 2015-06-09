@@ -13,7 +13,10 @@ var _ = require('lodash'),
 // Simulation input controls base class.
 var ControlView = Marionette.ItemView.extend({
     model: models.ModelPackageControlModel,
-    className: 'inline',
+
+    className: function() {
+        return 'inline ' + this.getControlName();
+    },
 
     initialize: function(options) {
         this.mergeOptions(options, [
@@ -74,24 +77,31 @@ var PrecipitationView = ControlView.extend({
     template: precipitationTmpl,
 
     ui: {
-        slider: '.selectpicker'
+        slider: 'input',
+        displayValue: '.value'
     },
 
     events: {
-        'change @ui.slider': 'update'
+        'input @ui.slider': 'onSliderDragged',
+        'change @ui.slider': 'onSliderChanged'
     },
 
-    onRender: function() {
-        var model = this.modificationModel;
-        if (model) {
-            this.ui.slider.find('[value="' + model.get('value') + '"]')
-                .attr('selected', 'selected');
-        }
+    getControlName: function() {
+        return 'precipitation';
     },
 
-    update: function(e) {
-        var $el = $(e.currentTarget),
-            value = $el.val(),
+    getDisplayValue: function(value) {
+        return value === 0 ? '' : value.toFixed(1) + '"';
+    },
+
+    onSliderDragged: function(e) {
+        // Preview slider value while dragging.
+        var value = parseFloat(this.ui.slider.val());
+        this.ui.displayValue.text(this.getDisplayValue(value));
+    },
+
+    onSliderChanged: function() {
+        var value = parseFloat(this.ui.slider.val()),
             modification = new models.ModificationModel({
                 name: this.getControlName(),
                 value: value
@@ -99,8 +109,11 @@ var PrecipitationView = ControlView.extend({
         this.addOrReplaceModification(modification);
     },
 
-    getControlName: function() {
-        return 'precipitation';
+    onRender: function() {
+        var model = this.modificationModel,
+            value = model && model.get('value') || 0;
+        this.ui.slider.val(value);
+        this.ui.displayValue.text(this.getDisplayValue(value));
     }
 });
 

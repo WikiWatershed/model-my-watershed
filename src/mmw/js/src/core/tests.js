@@ -1,6 +1,6 @@
 "use strict";
 
-require('../core/testInit.js');
+require('./setup');
 
 var $ = require('jquery'),
     assert = require('chai').assert,

@@ -194,6 +194,18 @@ header{
 
     .inline {
       display: inline-block;
+      margin-right: 5px;
+    }
+
+    .controls {
+      // Precipitation slider
+      .precipitation {
+        // Undo bootstrap input[type="range"] syling
+        input {
+          display: inline-block;
+          width: auto;
+        }
+      }
     }
   }
 }
