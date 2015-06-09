@@ -1,6 +1,7 @@
 "use strict";
 
-var _ = require('lodash'),
+var $ = require('jquery'),
+    _ = require('lodash'),
     Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),

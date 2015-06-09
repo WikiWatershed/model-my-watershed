@@ -6,7 +6,8 @@ require('./core/setup');
 // Initialize application.
 //
 
-var Backbone = require('../shim/backbone'),
+var $ = require('jquery'),
+    Backbone = require('../shim/backbone'),
     App = require('./app'),
     router = require('./router').router,
     routes = require('./routes'),
