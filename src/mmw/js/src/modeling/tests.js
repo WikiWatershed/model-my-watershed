@@ -88,10 +88,13 @@ describe('Modeling', function() {
         describe('ToolbarTabContentView', function() {
             it('updates the modification count when there is a change to a scenario\'s modifications', function() {
                 var modsCollection = new models.ModificationsCollection(),
-                    model = new models.ScenarioModel({ name: 'New Scenario', modifications: modsCollection }),
+                    model = new models.ScenarioModel({
+                        name: 'New Scenario',
+                        modifications: modsCollection
+                    }),
                     view = new views.ToolbarTabContentView({
                         model: model,
-                        collection: getTR55ModelPackage().get('controls')
+                        collection: models.getControlsForModelPackage('tr-55')
                     }),
                     modsModel1 = new models.ModificationModel(modificationsSample1),
                     modsModel2 = new models.ModificationModel(modificationsSample2);
@@ -107,10 +110,13 @@ describe('Modeling', function() {
                 var modsModel1 = new models.ModificationModel(modificationsSample1),
                     modsModel2 = new models.ModificationModel(modificationsSample2),
                     modsCollection = new models.ModificationsCollection([ modsModel1, modsModel2 ]),
-                    model = new models.ScenarioModel({ name: 'New Scenario', modifications: modsCollection }),
+                    model = new models.ScenarioModel({
+                        name: 'New Scenario',
+                        modifications: modsCollection
+                    }),
                     view = new views.ToolbarTabContentView({
                         model: model,
-                        collection: getTR55ModelPackage().get('controls')
+                        collection: models.getControlsForModelPackage('tr-55')
                     });
 
                 $('#sandbox').html(view.render().el);
@@ -428,15 +434,4 @@ function getTestProject() {
         });
 
     return project;
-}
-
-function getTR55ModelPackage() {
-    return new models.ModelPackageModel({
-        name: 'tr-55',
-        controls: new models.ModelPackageControlsCollection([
-            new models.ModelPackageControlModel({ name: 'landcover' }),
-            new models.ModelPackageControlModel({ name: 'conservation_practice' }),
-            new models.ModelPackageControlModel({ name: 'precipitation' })
-        ])
-    });
 }
