@@ -1,0 +1,8 @@
+[mmw-monitoring]
+localhost ansible_ssh_user=ubuntu
+
+[monitoring-servers]
+mmw-monitoring
+
+[packer:children]
+monitoring-servers

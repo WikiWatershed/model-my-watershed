@@ -69,6 +69,27 @@
                 "Environment": "{{user `stack_type`}}"
             },
             "associate_public_ip_address": true
+        },
+        {
+            "name": "mmw-monitoring",
+            "type": "amazon-ebs",
+            "region": "{{user `aws_region`}}",
+            "source_ami": "{{user `aws_ubuntu_ami`}}",
+            "instance_type": "m3.large",
+            "ssh_username": "ubuntu",
+            "ami_name": "mmw-monitoring-{{timestamp}}-{{user `version`}}",
+            "run_tags": {
+                "PackerBuilder": "amazon-ebs"
+            },
+            "tags": {
+                "Name": "mmw-monitoring",
+                "Version": "{{user `version`}}",
+                "Branch": "{{user `branch`}}",
+                "Created": "{{ isotime }}",
+                "Service": "Monitoring",
+                "Environment": "{{user `stack_type`}}"
+            },
+            "associate_public_ip_address": true
         }
     ],
     "provisioners": [
@@ -106,6 +127,15 @@
             "inventory_file": "ansible/inventory/packer-worker-server",
             "only": [
                 "mmw-worker"
+            ]
+        },
+        {
+            "type": "ansible-local",
+            "playbook_file": "ansible/monitoring-servers.yml",
+            "playbook_dir": "ansible",
+            "inventory_file": "ansible/inventory/packer-monitoring-server",
+            "only": [
+                "mmw-monitoring"
             ]
         }
     ]
