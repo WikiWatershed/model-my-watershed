@@ -112,6 +112,16 @@ var ModificationModel = coreModels.GeoModel.extend({
 var ModificationsCollection = Backbone.Collection.extend({
     model: ModificationModel
 });
+// Static method to create an instance of this collection.
+// This lets us create a collection from an array of raw objects (web app)
+// or from an array of models (unit tests).
+ModificationsCollection.create = function(data) {
+    if (data instanceof ModificationsCollection) {
+        return data;
+    } else {
+        return new ModificationsCollection(data);
+    }
+};
 
 var ScenarioModel = Backbone.Model.extend({
     urlRoot: '/api/modeling/scenarios/',
@@ -123,15 +133,9 @@ var ScenarioModel = Backbone.Model.extend({
         active: false
     },
 
-    initialize: function() {
-        // TODO: When #278 is resolved, we should be doing something like this
-        // to setup or restore modifications.
-        // var mods = this.get('modifications') === null ? [] : JSON.parse(this.get('modifications'));
-        var mods = this.get('modifications');
-
-        if (mods === null || typeof mods === 'string') {
-            this.set('modifications', new ModificationsCollection());
-        }
+    initialize: function(attrs, options) {
+        Backbone.Model.prototype.initialize.apply(this, arguments);
+        this.set('modifications', ModificationsCollection.create(attrs.modifications));
     },
 
     getSlug: function() {
@@ -153,6 +157,11 @@ var ScenarioModel = Backbone.Model.extend({
             modificationsColl.remove(existing);
         }
         modificationsColl.add(modification);
+    },
+
+    parse: function(response, options) {
+        var modificationsColl = this.get('modifications');
+        modificationsColl.reset(response.modifications);
     }
 });
 

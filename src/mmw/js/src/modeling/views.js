@@ -411,7 +411,6 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
 
     initialize: function() {
         var modificationsColl = this.model.get('modifications');
-        this.listenTo(modificationsColl, 'add remove', this.updateMap);
         this.listenTo(modificationsColl, 'add remove', this.render);
     },
 
@@ -431,11 +430,14 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
 
     onRender: function() {
         this.$el.toggleClass('active', this.model.get('active'));
+        this.updateMap();
     },
 
     updateMap: function() {
-        var modificationsColl = this.model.get('modifications');
-        App.getMapView().updateModifications(modificationsColl);
+        if (this.model.get('active')) {
+            var modificationsColl = this.model.get('modifications');
+            App.getMapView().updateModifications(modificationsColl);
+        }
     },
 
     deleteModification: function(e) {
