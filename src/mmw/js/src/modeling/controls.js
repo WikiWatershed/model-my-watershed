@@ -82,6 +82,7 @@ var PrecipitationView = ControlView.extend({
     },
 
     events: {
+        'input @ui.slider': 'onSliderDragged',
         'change @ui.slider': 'onSliderChanged'
     },
 
@@ -89,10 +90,14 @@ var PrecipitationView = ControlView.extend({
         return 'precipitation';
     },
 
-    getDisplayValue: function() {
-        var model = this.modificationModel,
-            value = model && model.get('value') || 0;
-        return value === 0 ? '' : value + '"';
+    getDisplayValue: function(value) {
+        return value === 0 ? '' : value.toFixed(1) + '"';
+    },
+
+    onSliderDragged: function(e) {
+        // Preview slider value while dragging.
+        var value = parseFloat(this.ui.slider.val());
+        this.ui.displayValue.text(this.getDisplayValue(value));
     },
 
     onSliderChanged: function() {
@@ -108,7 +113,7 @@ var PrecipitationView = ControlView.extend({
         var model = this.modificationModel,
             value = model && model.get('value') || 0;
         this.ui.slider.val(value);
-        this.ui.displayValue.text(this.getDisplayValue());
+        this.ui.displayValue.text(this.getDisplayValue(value));
     }
 });
 
