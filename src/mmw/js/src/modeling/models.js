@@ -63,6 +63,10 @@ var ProjectModel = Backbone.Model.extend({
     },
 
     saveProjectAndScenarios: function() {
+        if (App.user.get('uid') !== this.get('uid')) {
+            return;
+        }
+
         if (!this.get('id')) {
             // We haven't saved the project before, save the project and then
             // set the project ID on each scenario, then reattach the senarios
@@ -112,6 +116,9 @@ var ProjectModel = Backbone.Model.extend({
                     return scenarioModel;
                 });
             scenariosCollection.reset(scenarios);
+            // Set the uid to ensure controls are properly set.
+            response.uid = uid;
+
             delete response.scenarios;
         }
 
@@ -166,6 +173,9 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     attemptSave: function() {
+        if (App.user.get('uid') !== this.get('uid')) {
+            return;
+        }
         this.save().fail(function() {
             console.log('Failed to save scenario');
         });
