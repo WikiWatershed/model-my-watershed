@@ -18,7 +18,6 @@ from utils.constants import (
     EC2_INSTANCE_TYPES,
     HTTP,
     HTTPS,
-    SSH,
     VPC_CIDR
 )
 
@@ -34,12 +33,9 @@ class VPC(StackNode):
         'Region': ['global:Region'],
         'StackType': ['global:StackType'],
         'KeyName': ['global:KeyName'],
-        'IPAccess': ['global:IPAccess'],
         'NATInstanceType': ['global:NATInstanceType'],
         'NATInstanceAMI': ['global:NATInstanceAMI'],
         'NATAvailabilityZones': ['global:NATAvailabilityZones'],
-        'BastionHostInstanceType': ['global:BastionHostInstanceType'],
-        'BastionHostAMI': ['global:BastionHostAMI'],
     }
 
     DEFAULTS = {
@@ -47,11 +43,8 @@ class VPC(StackNode):
         'Region': 'us-east-1',
         'StackType': 'Staging',
         'KeyName': 'mmw-stg',
-        'IPAccess': '0.0.0.0',
         'NATInstanceType': 't2.micro',
         'NATAvailabilityZones': ['us-east-1b', 'us-east-1d'],
-        'BastionHostInstanceType': 't2.medium',
-        'BastionHostAMI': 'ami-83c525e8',  # TODO: Make this default dynamic
     }
 
     ATTRIBUTES = {'StackType': 'StackType'}
@@ -79,11 +72,6 @@ class VPC(StackNode):
             Description='Name of an existing EC2 key pair'
         ), 'KeyName')
 
-        self.ip_access_parameter = self.add_parameter(Parameter(
-            'IPAccess', Type='String', Default=self.get_input('IPAccess'),
-            Description='CIDR for allowing SSH access'
-        ), 'IPAccess')
-
         self.nat_instance_type_parameter = self.add_parameter(Parameter(
             'NATInstanceType', Type='String', Default='t2.micro',
             Description='NAT EC2 instance type',
@@ -95,17 +83,6 @@ class VPC(StackNode):
             'NATInstanceAMI', Type='String', Default=self.get_recent_nat_ami(),
             Description='NAT EC2 Instance AMI'
         ), 'NATInstanceAMI')
-
-        self.bastion_instance_type_parameter = self.add_parameter(Parameter(
-            'BastionHostInstanceType', Type='String', Default='t2.medium',
-            Description='Bastion host EC2 instance type',
-            AllowedValues=EC2_INSTANCE_TYPES,
-            ConstraintDescription='must be a valid EC2 instance type.'
-        ), 'BastionHostInstanceType')
-
-        self.bastion_host_ami_parameter = self.add_parameter(Parameter(
-            'BastionHostAMI', Type='String', Description='Bastion host AMI'
-        ), 'BastionHostAMI')
 
         public_route_table = self.create_vpc()
 
@@ -137,7 +114,6 @@ class VPC(StackNode):
 
         public_route_table = self.create_routing_resources()
         self.create_subnets(public_route_table)
-        self.create_bastion()
 
         return public_route_table
 
@@ -259,57 +235,6 @@ class VPC(StackNode):
             DestinationCidrBlock=ALLOW_ALL_CIDR,
             InstanceId=Ref(nat_device))
         )
-
-    def create_bastion(self):
-        bastion_security_group_name = 'sgBastion'
-
-        bastion_security_group = self.create_resource(ec2.SecurityGroup(
-            bastion_security_group_name,
-            GroupDescription='Enables access to the BastionHost',
-            VpcId=Ref(self.vpc),
-            SecurityGroupIngress=[
-                ec2.SecurityGroupRule(IpProtocol='tcp',
-                                      CidrIp=Ref(self.ip_access_parameter),
-                                      FromPort=p, ToPort=p)
-                for p in [SSH]
-            ],
-            SecurityGroupEgress=[
-                ec2.SecurityGroupRule(IpProtocol='tcp',
-                                      CidrIp=Ref(self.ip_access_parameter),
-                                      FromPort=p, ToPort=p)
-                for p in [HTTP, HTTPS, SSH]
-            ],
-            Tags=self.get_tags(Name=bastion_security_group_name)
-        ), output='BastionSecurityGroup')
-
-        bastion_host_name = 'BastionHost'
-
-        self.add_resource(ec2.Instance(
-            bastion_host_name,
-            BlockDeviceMappings=[
-                {
-                    "DeviceName": "/dev/sda1",
-                    "Ebs": {
-                        "VolumeType": "gp2",
-                        "VolumeSize": "256"
-                    }
-                }
-            ],
-            InstanceType=Ref(self.bastion_instance_type_parameter),
-            KeyName=Ref(self.keyname_parameter),
-            ImageId=Ref(self.bastion_host_ami_parameter),
-            NetworkInterfaces=[
-                ec2.NetworkInterfaceProperty(
-                    Description='ENI for BastionHost',
-                    GroupSet=[Ref(bastion_security_group)],
-                    SubnetId=Ref(self.PUBLIC_SUBNETS[0]),
-                    AssociatePublicIpAddress=True,
-                    DeviceIndex=0,
-                    DeleteOnTermination=True
-                )
-            ],
-            Tags=self.get_tags(Name=bastion_host_name)
-        ))
 
     @property
     def nat_security_group(self):
