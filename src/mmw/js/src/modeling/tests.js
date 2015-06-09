@@ -354,7 +354,7 @@ describe('Modeling', function() {
 
                     assert.isFalse(collection.at(2).get('active'));
 
-                    collection.setActiveScenario(collection.at(2).cid);
+                    collection.setActiveScenario(collection.at(2));
 
                     assert.isTrue(collection.at(2).get('active'));
                 });
@@ -363,7 +363,7 @@ describe('Modeling', function() {
                     var collection = getTestScenarioCollection();
 
                     collection.first().set('active', true);
-                    collection.setActiveScenario(collection.at(2).cid);
+                    collection.setActiveScenario(collection.at(2));
 
                     assert.isFalse(collection.at(0).get('active'));
                     assert.isFalse(collection.at(1).get('active'));
