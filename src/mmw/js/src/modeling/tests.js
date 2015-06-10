@@ -9,7 +9,9 @@ var _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
     sinon = require('sinon'),
     models = require('./models'),
-    views = require('./views');
+    views = require('./views'),
+    App = require('../app.js');
+
 
 describe('Modeling', function() {
     before(function() {
@@ -138,6 +140,8 @@ describe('Modeling', function() {
             });
 
             it('displays all the options in the drop down menu if the project is saved', function() {
+                // Let the application know which user we are.
+                App.user.set('uid', 1);
                 var project = getTestProject(),
                     view = new views.ProjectMenuView({ model: project }),
                     projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[],"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}';
@@ -175,24 +179,29 @@ describe('Modeling', function() {
 
     describe('Models', function() {
         describe('ProjectModel', function() {
-            describe('#saveAll', function() {
-                it('calls #save on the project and on every scenario that\'s part of the project', function() {
-                    this.server.respondWith([200, { 'Content-Type': 'application/json' }, '[]']);
+            describe('#saveProjectAndScenarios', function() {
+                it('calls #save on the project and sets the id on every scenario that\'s part of the project', function() {
+                    // Let the application know which user we are.
+                    App.user.set('uid', 1);
+                    
+                    var projectResponse = '{"id":57,"user":{"id":1,"username":"test","email":"test@azavea.com"},"name":"My Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}';
+                    this.server.respondWith('POST', '/api/modeling/projects/',
+                            [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
 
                     var project = getTestProject(),
                         projectSpy = sinon.spy(project, 'save'),
                         scenario1Spy = sinon.spy(project.get('scenarios').at(0), 'save'),
                         scenario2Spy = sinon.spy(project.get('scenarios').at(1), 'save');
 
-                    project.saveAll();
+                    project.saveProjectAndScenarios();
 
-                    assert.isTrue(projectSpy.calledOnce);
-                    assert.isTrue(scenario1Spy.calledOnce);
-                    assert.isTrue(scenario1Spy.calledOnce);
+                    assert.isTrue(projectSpy.calledOnce, 'Project was not saved once.');
+                    assert.isTrue(scenario1Spy.calledOnce, 'Scenario1 was not saved once.');
+                    assert.isTrue(scenario2Spy.calledOnce, 'Scenario2 was not saved once.');
                 });
 
                 it('properly associates scenarios with the project when initially saving the project', function() {
-                    var projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[],"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}',
+                    var projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}',
                         scenarioResponse = '{"id":32,"name":"Current Conditions","is_current_conditions":true,"modifications":"[]","modification_hash":null,"results":null,"created_at":"2015-06-03T20:09:12.161075Z","modified_at":"2015-06-03T20:09:12.161117Z","project":21}';
 
                     this.server.respondWith('POST', '/api/modeling/projects/',
@@ -205,7 +214,7 @@ describe('Modeling', function() {
                         scenario1Spy = sinon.spy(project.get('scenarios').at(0), 'save'),
                         scenario2Spy = sinon.spy(project.get('scenarios').at(1), 'save');
 
-                    project.saveAll();
+                    project.saveProjectAndScenarios();
 
                     // spy.thisValues[0] == `this` when function being spied on
                     // was first called.
@@ -366,9 +375,9 @@ describe('Modeling', function() {
                     assert.equal(collection.length, 3);
 
                     collection.duplicateScenario(scenario.cid);
-                    assert.equal(collection.length, 4);
-                    assert.deepEqual(collection.at(1).get('modifications'), collection.at(3).get('modifications'));
-                    assert.equal(collection.at(3).get('name'), 'Copy of ' + collection.at(1).get('name'));
+                    assert.equal(collection.length, 4, 'Collection length did not update after duplication.');
+                    assert.deepEqual(collection.at(1).get('modifications').attributes, collection.at(3).get('modifications').attributes, 'Modifications did not match.');
+                    assert.equal(collection.at(3).get('name'), 'Copy of ' + collection.at(1).get('name'), 'Names did not match.');
                 });
             });
 
@@ -465,6 +474,7 @@ function getTestProject() {
             name: 'My Project',
             created_at: Date.now(),
             area_of_interest: '[]',
+            uid: 1,
             scenarios: new models.ScenariosCollection([
                 new models.ScenarioModel({
                     name: 'Current Conditions',
