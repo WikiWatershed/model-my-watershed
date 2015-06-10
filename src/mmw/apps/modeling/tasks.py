@@ -5,10 +5,12 @@ from __future__ import absolute_import
 
 from celery import shared_task
 import logging
-import urllib2
 
 # TODO Remove this when stub task is deleted.
 import time
+
+from tr55.model import simulate_modifications, simulate_cell_day
+from tr55.tablelookup import lookup_ki
 
 logger = logging.getLogger(__name__)
 
@@ -120,34 +122,52 @@ def make_gt_service_call_task(model_input):
     """
     Call geotrellis and calculate the tile data for use in the TR55 model.
     """
-    # TODO call the real service
-    # It would be nicer to use HttpDispatchTask but there were import problems.
-    # In testing we could not make it work so we will probably need to default
-    # to urllib2.
-    # return HttpDispatchTask(url="http://gtservice.internal/endpoint",
-    #                         method="POST", input=model_input)
 
-    # TODO remove me. For testing fetch something over the web.
-    result = urllib2.urlopen('http://azavea.com')
-    return result.read()
+    # TODO actually call geotrellis with model_input
+    census = {
+        'cell_count': 8,
+        'distribution': {
+            'c:commercial': {'cell_count': 5},
+            'a:deciduous_forest': {'cell_count': 3}
+        },
+        'modifications': [
+            {
+                'bmp': 'no_till',
+                'cell_count': 1,
+                'distribution': {
+                    'a:deciduous_forest': {'cell_count': 1},
+                }
+            },
+            {
+                'reclassification': 'd:rock',
+                'cell_count': 1,
+                'distribution': {
+                    'a:deciduous_forest': {'cell_count': 1}
+                }
+            }
+        ]
+    }
+    return census
 
 
 @shared_task
-def run_tr55(model_input, landscape):
+def run_tr55(census, model_input):
     """
     A thin Celery wrapper around our TR55 implementation.
     """
-    time.sleep(5)
 
-    # TODO Get the real simpulation data.
-    # (q, et, inf) = simulate_year(landscape)
+    # TODO Remove after testing.
+    time.sleep(3)
 
-    # TODO Dummy data. Remove me.
-    q = 2
-    et = 3
-    inf = 4
-    return {
-        'q': q,
-        'et': et,
-        'inf': inf,
-    }
+    et_max = 0.207
+    precip_mod = filter(lambda mod: mod['name'] == 'precipitation',
+                        model_input['modifications'])[0]
+    precip = precip_mod['value']
+
+    def simulate_day(cell, cell_count):
+
+        (soil_type, land_use) = cell.lower().split(':')
+        et = et_max * lookup_ki(land_use)
+        return simulate_cell_day((precip, et), cell, cell_count)
+
+    return simulate_modifications(census, fn=simulate_day)

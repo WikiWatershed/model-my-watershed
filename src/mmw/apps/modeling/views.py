@@ -196,7 +196,7 @@ def start_tr55(request, format=None):
     user = request.user if request.user.is_authenticated() else None
     created = now()
     # TODO Validate input data.
-    model_input = request.POST
+    model_input = json.loads(request.POST['model_input'])
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
 

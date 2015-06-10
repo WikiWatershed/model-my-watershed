@@ -17,7 +17,15 @@ from rest_framework.test import APIClient
 class TaskRunnerTestCase(TestCase):
     @override_settings(CELERY_ALWAYS_EAGER=True)
     def test_tr55_job_runs_in_chain(self):
-        model_input = 'TEST'
+        model_input = {
+            'modifications': [
+                {
+                    'name': 'precipitation',
+                    'value': 1.2
+                }
+            ]
+        }
+
         created = now()
         job = Job.objects.create(created_at=created, result='', error='',
                                  traceback='', user=None, status='started')
