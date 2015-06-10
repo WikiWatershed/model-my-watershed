@@ -61,36 +61,56 @@ var TaskModel = Backbone.Model.extend({
         }
     },
 
+    // Cancels any currently running jobs. The promise returned
+    // by previous calls to pollForResults will be rejected.
+    reset: function() {
+        this.set({
+            'job': null,
+            'result': null,
+            'status': null
+        });
+    },
+
     pollForResults: function() {
         var defer = $.Deferred(),
             duration = 0,
-            self = this;
+            self = this,
+            expectedJob = self.get('job');
 
         // Check the task endpoint to see if the job is
         // completed. If it is, return the results of
         // the job. If not, check again after
         // pollInterval has elapsed.
         var getResults = function() {
-                if (duration >= self.get('timeout')) {
-                    defer.reject();
-                    return;
-                }
+            if (duration >= self.get('timeout')) {
+                defer.reject();
+                return;
+            }
 
-                self.fetch()
-                    .done(function(response) {
-                        console.log('Polling ' + self.url());
-                        if (response.status !== 'complete') {
-                            duration = duration + self.get('pollInterval');
-                            window.setTimeout(getResults, self.get('pollInterval'));
-                        } else {
-                            defer.resolve(response);
-                        }
-                    })
-                    .fail(defer.reject);
+            // If job was cancelled.
+            if (expectedJob != self.get('job')) {
+                defer.reject({
+                    reset: {
+                        job: expectedJob
+                    }
+                });
+                return;
+            }
+
+            self.fetch()
+                .done(function(response) {
+                    console.log('Polling ' + self.url());
+                    if (response.status !== 'complete') {
+                        duration = duration + self.get('pollInterval');
+                        window.setTimeout(getResults, self.get('pollInterval'));
+                    } else {
+                        defer.resolve(response);
+                    }
+                })
+                .fail(defer.reject);
         };
 
         window.setTimeout(getResults, self.get('pollInterval'));
-
         return defer.promise();
     }
 });
