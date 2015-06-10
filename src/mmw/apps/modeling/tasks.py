@@ -156,18 +156,12 @@ def run_tr55(census, model_input):
     A thin Celery wrapper around our TR55 implementation.
     """
 
-    # TODO Remove after testing.
-    time.sleep(3)
-
     et_max = 0.207
-    precip_mod = filter(lambda mod: mod['name'] == 'precipitation',
-                        model_input['modifications'])[0]
-    precip = precip_mod['value']
+    precip = model_input['precip']
 
     def simulate_day(cell, cell_count):
-
-        (soil_type, land_use) = cell.lower().split(':')
+        soil_type, land_use = cell.lower().split(':')
         et = et_max * lookup_ki(land_use)
         return simulate_cell_day((precip, et), cell, cell_count)
 
-    return simulate_modifications(census, fn=simulate_day)
+    return {'runoff': simulate_modifications(census, fn=simulate_day)}

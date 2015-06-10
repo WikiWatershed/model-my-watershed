@@ -69,7 +69,7 @@ function setupAnalyzeView(data, server) {
     var sandbox = new SandboxRegion(),
         view = new views.AnalyzeWindow({
             id: 'analyze-output-wrapper',
-            model: new models.LayerCollection({})
+            model: new models.AnalyzeTaskModel()
         }),
         jobId = "abc",
         startResponse = JSON.stringify({

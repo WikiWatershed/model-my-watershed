@@ -19,6 +19,11 @@ describe('Modeling', function() {
         if ($('#sandbox').length === 0) {
             $('<div>', {id: 'sandbox'}).appendTo('body');
         }
+
+        // ScenarioModel.initialize() expects
+        // App.currProject to be set, and uses it to determine the
+        // taskModel and modelPackage to use.
+        App.currProject = new models.ProjectModel();
     });
 
     beforeEach(function() {

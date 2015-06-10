@@ -71,7 +71,47 @@ var TaskModel = Backbone.Model.extend({
         });
     },
 
+    // taskHelper should be an object containing an optional object,
+    // postData, an optional function, onStart, and functions pollSuccess,
+    // pollFailure, and startFailure.
+    start: function(taskHelper) {
+        taskHelper = _.defaults(taskHelper, {
+            onStart: _.noop,
+            pollSuccess: _.noop,
+            pollFailure: _.noop,
+            startFailure: _.noop
+        });
+
+        this.reset();
+        if (taskHelper.onStart) {
+            taskHelper.onStart();
+        }
+        var self = this;
+
+        self
+            .fetch({
+                method: 'POST',
+                data: taskHelper.postData
+            })
+            .done(function() {
+                self.pollForResults()
+                    .done(taskHelper.pollSuccess)
+                    .fail(function(error) {
+                        if (error && error.cancelledJob) {
+                            console.log('Job ' + error.cancelledJob + ' was cancelled.');
+                        } else {
+                            taskHelper.pollFailure();
+                        }
+                    });
+            })
+            .fail(taskHelper.startFailure);
+    },
+
     pollForResults: function() {
+        // expectedJob is the value of this.get('job')
+        // associated with a single call to start(). If start()
+        // is called again, the values of this.get('job') and
+        // expectedJob will diverge.
         var defer = $.Deferred(),
             duration = 0,
             self = this,
@@ -89,11 +129,7 @@ var TaskModel = Backbone.Model.extend({
 
             // If job was cancelled.
             if (expectedJob != self.get('job')) {
-                defer.reject({
-                    reset: {
-                        job: expectedJob
-                    }
-                });
+                defer.reject({cancelledJob: expectedJob});
                 return;
             }
 

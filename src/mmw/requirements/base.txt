@@ -10,3 +10,4 @@ django-registration-redux==1.1
 python-omgeo==1.7.2
 rauth==0.7.1
 djangorestframework-gis==0.8.2
+tr55==0.1.0

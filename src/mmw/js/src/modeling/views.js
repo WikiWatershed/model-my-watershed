@@ -21,7 +21,6 @@ var _ = require('lodash'),
     scenarioMenuTmpl = require('./templates/scenarioMenu.html'),
     scenarioMenuItemTmpl = require('./templates/scenarioMenuItem.html'),
     projectMenuTmpl = require('./templates/projectMenu.html'),
-    currentConditionsToolbarTabContentTmpl = require('./templates/currentConditionsToolbarTabContent.html'),
     scenarioToolbarTabContentTmpl = require('./templates/scenarioToolbarTabContent.html'),
     chart = require('../core/chart.js'),
     barChartTmpl = require('../core/templates/barChart.html');
@@ -429,6 +428,7 @@ var ScenarioDropDownMenuView = Marionette.CompositeView.extend({
 // for a scenario.
 var ToolbarTabContentView = Marionette.CompositeView.extend({
     model: models.ScenarioModel,
+    template: scenarioToolbarTabContentTmpl,
     collection: models.ModificationsCollection,
     childViewContainer: '.controls',
 
@@ -514,14 +514,6 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
         var modificationsColl = this.model.get('modifications'),
             controlName = model.get('name');
         return modificationsColl.findWhere({ name: controlName });
-    },
-
-    getTemplate: function() {
-        if (this.model.get('is_current_conditions')) {
-            return currentConditionsToolbarTabContentTmpl;
-        } else {
-            return scenarioToolbarTabContentTmpl;
-        }
     }
 });
 
@@ -532,8 +524,10 @@ var ToolbarTabContentsView = Marionette.CollectionView.extend({
     className: 'tab-content',
     childView: ToolbarTabContentView,
     childViewOptions: function(model) {
-        var controls = model.get('is_current_conditions') ? null :
-            models.getControlsForModelPackage(this.options.model_package);
+        var controls = models.getControlsForModelPackage(
+            this.options.model_package,
+            {is_current_conditions: model.get('is_current_conditions')}
+        );
         return {
             collection: controls
         };
@@ -563,25 +557,20 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         'click @ui.toggle': 'toggleResultsWindow'
     },
 
+    initialize: function() {
+        this.listenTo(this.model.get('scenarios'), 'change:active', this.showDetailsRegion);
+    },
+
     onShow: function() {
         this.showDetailsRegion();
     },
 
     showDetailsRegion: function() {
-        // TODO: Pass in model results for the active scenario, along
-        // with some info for the tabs.
-        // Project.modelPackage.taskModel runs the model
-        // Project.modelPackage.taskModel.results will contain the results
-        // They should be attached scenario they were run for, or maybe
-        // consider modifying the structure so that every scenario has
-        // it's own taskModel which can run jobs.
         var scenario = this.model.get('scenarios').findWhere({ active: true });
+
         if (scenario) {
             this.detailsRegion.show(new ResultsDetailsView({
-                collection: new models.ResultCollection([
-                    { name: 'runoff', displayName: 'Runoff', results: scenario.get('name') + ' runoff results' },
-                    { name: 'quality', displayName: 'Water Quality', results: scenario.get('name') + ' water quality results' },
-                ])
+                collection: scenario.get('results')
             }));
         }
     },
@@ -654,6 +643,9 @@ var ResultsTabPanelView = Marionette.ItemView.extend({
     template: resultsTabPanelTmpl,
     attributes: {
         role: 'presentation'
+    },
+    initialize: function() {
+        this.listenTo(this.model, 'change:polling', this.render);
     }
 });
 
@@ -681,18 +673,24 @@ var ResultsTabPanelsView = Marionette.CollectionView.extend({
 
 // Model result contents (i.e. charts and graphs)
 var ResultsTabContentView = Marionette.LayoutView.extend({
-    tagName: 'div',
-    className: 'tab-pane',
-    id: function() {
-        return this.model.get('name');
-    },
     template: resultsTabContentTmpl,
+
+    tagName: 'div',
+
+    className: 'tab-pane',
+
     attributes: {
         role: 'tabpanel'
     },
+
     regions: {
         barChartRegion: '.bar-chart-region'
     },
+
+    id: function() {
+        return this.model.get('name');
+    },
+
     onShow: function() {
         this.barChartRegion.show(new BarChartView({
             model: this.model
@@ -706,34 +704,43 @@ var BarChartView = Marionette.ItemView.extend({
         return 'bar-chart-' + this.model.get('name');
     },
     className: 'chart-container',
+
+    initialize: function() {
+        this.listenTo(this.model, 'change', this.addChart);
+    },
+
     onAttach: function() {
         this.addChart();
     },
+
     addChart: function() {
-        //TODO use real model results
-        var selector = '#' + this.id() + ' .bar-chart',
-            fakeStackedData = [
-                {
-                    type: 'Original',
-                    infiltration: 0.8,
-                    runoff: 0.1,
-                    evap: 0.1
-                },
-                {
-                    type: 'Modified',
-                    infiltration: 0.4,
-                    runoff: 0.2,
-                    evap: 0.4
-                }
-            ],
-            options = {
-                barColors: ['#329b9c', '#4aeab3', '#4ebaea'],
-                depAxisLabel: 'Level',
-                depDisplayNames: ['Infiltration', 'Runoff', 'Evaporation']
-            },
-            indVar = 'type',
-            depVars = ['infiltration', 'runoff', 'evap'];
-        chart.makeBarChart(selector, fakeStackedData, indVar, depVars, options);
+        var selector = '#' + this.id() + ' .bar-chart';
+        $(selector).empty();
+        var result = this.model.get('result');
+        if (result) {
+            var indVar = 'type',
+                depVars = ['inf', 'runoff', 'et'],
+                data = [
+                    {
+                        type: 'Original',
+                        inf: result['unmodified']['inf'],
+                        runoff: result['unmodified']['runoff'],
+                        et: result['unmodified']['et']
+                    },
+                    {
+                        type: 'Modified',
+                        inf: result['modified']['inf'],
+                        runoff: result['modified']['runoff'],
+                        et: result['modified']['et']
+                    }
+                ],
+                options = {
+                    barColors: ['#329b9c', '#4aeab3', '#4ebaea'],
+                    depAxisLabel: 'Level',
+                    depDisplayNames: ['Infiltration', 'Runoff', 'Evapotranspiration']
+                };
+            chart.makeBarChart(selector, data, indVar, depVars, options);
+        }
     }
 });
 

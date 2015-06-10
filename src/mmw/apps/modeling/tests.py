@@ -23,7 +23,8 @@ class TaskRunnerTestCase(TestCase):
                     'name': 'precipitation',
                     'value': 1.2
                 }
-            ]
+            ],
+            'precip': 1.0
         }
 
         created = now()
