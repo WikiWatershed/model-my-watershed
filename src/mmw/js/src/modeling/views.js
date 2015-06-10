@@ -40,19 +40,32 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         toolbarRegion: '#toolbar-region'
     },
 
-    onShow: function() {
+    initialize: function() {
+        // If the user changes, we should refresh all the views because they
+        // have user contextual controls.
+        this.listenTo(App.user, 'change', this.reRender);
+    },
+
+    reRender: function() {
+        this.projectMenuRegion.empty();
         this.projectMenuRegion.show(new ProjectMenuView({
             model: this.model
         }));
 
+        this.scenariosRegion.empty();
         this.scenariosRegion.show(new ScenariosView({
             collection: this.model.get('scenarios')
         }));
 
+        this.toolbarRegion.empty();
         this.toolbarRegion.show(new ToolbarTabContentsView({
             collection: this.model.get('scenarios'),
             model_package: this.model.get('model_package')
         }));
+    },
+
+    onShow: function() {
+        this.reRender();
     }
 });
 
@@ -175,8 +188,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
         modal.render();
         modal.on('confirmation', function() {
             self.model.set('is_private', !self.model.get('is_private'));
-            // TODO: Save just the project. Change after #226 is implemented.
-            self.model.saveAll();
+            self.model.saveProjectAndScenarios();
         });
     }
 });
