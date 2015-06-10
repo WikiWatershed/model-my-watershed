@@ -36,6 +36,7 @@ def login(request):
         else:
             response_data['errors'] = ['Invalid username or password']
             response_data['guest'] = True
+            response_data['uid'] = 0
             status_code = status.HTTP_400_BAD_REQUEST
     elif request.method == 'GET':
         user = request.user
@@ -46,6 +47,7 @@ def login(request):
             response_data['uid'] = user.id
         else:
             response_data['guest'] = True
+            response_data['uid'] = 0
 
         response_data['result'] = 'success'
         status_code = status.HTTP_200_OK
@@ -62,7 +64,7 @@ def logout(request):
         response_data = {
             'guest': True,
             'result': 'success',
-            'uid': None
+            'uid': 0
         }
         return Response(data=response_data)
     else:
