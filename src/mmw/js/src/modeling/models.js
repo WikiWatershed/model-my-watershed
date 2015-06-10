@@ -34,8 +34,8 @@ var ProjectModel = Backbone.Model.extend({
         area_of_interest: null,    // GeoJSON
         model_package: '',         // Package name
         taskModel: null,           // TaskModel
-        scenarios: null,            // ScenariosCollection
-        uid: null
+        scenarios: null,           // ScenariosCollection
+        user_id: 0                 // User that created the project
     },
 
     initialize: function() {
@@ -50,7 +50,7 @@ var ProjectModel = Backbone.Model.extend({
         // hard-coded here.
         this.set('model_package', 'tr-55');
         this.set('taskModel', new Tr55TaskModel());
-        this.set('uid', App.user.get('uid'));
+        this.set('user_id', App.user.get('id'));
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
         this.on('change:name', this.saveProjectAndScenarios, this);
@@ -63,7 +63,7 @@ var ProjectModel = Backbone.Model.extend({
     },
 
     saveProjectAndScenarios: function() {
-        if (App.user.get('uid') !== this.get('uid') || App.user.get('uid') < 1) {
+        if (App.user.get('id') !== this.get('user_id') || App.user.get('id') < 1) {
             return;
         }
 
@@ -107,17 +107,17 @@ var ProjectModel = Backbone.Model.extend({
     parse: function(response, options) {
         if (response.scenarios) {
             // If we returned scenarios (probably from a GET) then set them.
-            var uid = response.uid = response.user.id,
+            var user_id = response.user.id,
                 scenariosCollection = this.get('scenarios'),
                 scenarios = _.map(response.scenarios, function(scenario) {
                     var scenarioModel = new ScenarioModel(scenario);
-                    scenarioModel.set('uid', uid);
+                    scenarioModel.set('user_id', user_id);
                     scenarioModel.get('modifications').reset(scenario.modifications);
                     return scenarioModel;
                 });
             scenariosCollection.reset(scenarios);
-            // Set the uid to ensure controls are properly set.
-            response.uid = uid;
+            // Set the user_id to ensure controls are properly set.
+            response.user_id = user_id;
 
             delete response.scenarios;
         }
@@ -158,14 +158,14 @@ var ScenarioModel = Backbone.Model.extend({
     defaults: {
         name: '',
         is_current_conditions: false,
-        modifications: null,      // ModificationsCollection
+        modifications: null, // ModificationsCollection
         active: false,
-        uid: null
+        user_id: 0 // User that created the project
     },
 
     initialize: function(attrs, options) {
         Backbone.Model.prototype.initialize.apply(this, arguments);
-        this.set('uid', App.user.get('uid'));
+        this.set('user_id', App.user.get('id'));
         this.set('modifications', ModificationsCollection.create(attrs.modifications));
 
         this.on('change:project change:name', this.attemptSave, this);
@@ -173,7 +173,7 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     attemptSave: function() {
-        if (App.user.get('uid') !== this.get('uid') || App.user.get('uid') < 1) {
+        if (App.user.get('id') !== this.get('user_id') || App.user.get('id') < 1) {
             return;
         }
         this.save().fail(function() {

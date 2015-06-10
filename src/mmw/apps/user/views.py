@@ -32,11 +32,11 @@ def login(request):
             response_data['result'] = 'success'
             response_data['username'] = user.username
             response_data['guest'] = False
-            response_data['uid'] = user.id
+            response_data['id'] = user.id
         else:
             response_data['errors'] = ['Invalid username or password']
             response_data['guest'] = True
-            response_data['uid'] = 0
+            response_data['id'] = 0
             status_code = status.HTTP_400_BAD_REQUEST
     elif request.method == 'GET':
         user = request.user
@@ -44,10 +44,10 @@ def login(request):
         if user.is_authenticated() and user.is_active:
             response_data['username'] = user.username
             response_data['guest'] = False
-            response_data['uid'] = user.id
+            response_data['id'] = user.id
         else:
             response_data['guest'] = True
-            response_data['uid'] = 0
+            response_data['id'] = 0
 
         response_data['result'] = 'success'
         status_code = status.HTTP_200_OK
@@ -64,7 +64,7 @@ def logout(request):
         response_data = {
             'guest': True,
             'result': 'success',
-            'uid': 0
+            'id': 0
         }
         return Response(data=response_data)
     else:

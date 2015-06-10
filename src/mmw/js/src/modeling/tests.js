@@ -141,7 +141,7 @@ describe('Modeling', function() {
 
             it('displays all the options in the drop down menu if the project is saved', function() {
                 // Let the application know which user we are.
-                App.user.set('uid', 1);
+                App.user.set('id', 1);
                 var project = getTestProject(),
                     view = new views.ProjectMenuView({ model: project }),
                     projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[],"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}';
@@ -182,7 +182,7 @@ describe('Modeling', function() {
             describe('#saveProjectAndScenarios', function() {
                 it('calls #save on the project and sets the id on every scenario that\'s part of the project', function() {
                     // Let the application know which user we are.
-                    App.user.set('uid', 1);
+                    App.user.set('id', 1);
                     
                     var projectResponse = '{"id":57,"user":{"id":1,"username":"test","email":"test@azavea.com"},"name":"My Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}';
                     this.server.respondWith('POST', '/api/modeling/projects/',
@@ -474,7 +474,7 @@ function getTestProject() {
             name: 'My Project',
             created_at: Date.now(),
             area_of_interest: '[]',
-            uid: 1,
+            user_id: 1,
             scenarios: new models.ScenariosCollection([
                 new models.ScenarioModel({
                     name: 'Current Conditions',

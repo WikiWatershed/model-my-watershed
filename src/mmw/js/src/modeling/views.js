@@ -94,7 +94,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         return {
-            editable: this.model.get('uid') === App.user.get('uid')
+            editable: this.model.get('user_id') === App.user.get('id')
         };
     },
 
@@ -202,7 +202,7 @@ var ScenariosView = Marionette.LayoutView.extend({
 
     templateHelpers: function() {
         return {
-            editable: this.collection.first().get('uid') === App.user.get('uid')
+            editable: this.collection.first().get('user_id') === App.user.get('id')
         };
     },
 
@@ -259,7 +259,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     templateHelpers: function() {
         return {
             cid: this.model.cid,
-            editable: this.model.get('uid') === App.user.get('uid')
+            editable: this.model.get('user_id') === App.user.get('id')
         };
     },
 
