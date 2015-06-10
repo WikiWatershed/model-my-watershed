@@ -5,7 +5,7 @@ var $ = require('jquery'),
 
 function drawPolygon(map, drawOpts) {
     var defer = $.Deferred(),
-        tool = new L.Draw.Polygon(map, drawOpts || {}),
+        tool = new L.Draw.Polygon(map, { shapeOptions: drawOpts || {}}),
         clearEvents = function() {
             map.off('draw:created');
             map.off('draw:drawstop');
@@ -33,7 +33,7 @@ function drawPolygon(map, drawOpts) {
 
 function placeMarker(map, drawOpts) {
     var defer = $.Deferred(),
-        tool = new L.Draw.Marker(map, drawOpts || {}),
+        tool = new L.Draw.Marker(map, { shapeOptions: drawOpts || {}}),
         clearEvents = function() {
             map.off('draw:created');
             map.off('draw:drawstop');
