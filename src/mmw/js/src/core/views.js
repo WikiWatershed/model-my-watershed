@@ -10,6 +10,7 @@ var $ = require('jquery'),
     drawUtils = require('../draw/utils'),
     headerTmpl = require('./templates/header.html'),
     filters = require('../filters'),
+    patterns = require('./patterns'),
     modalConfirmTmpl = require('./templates/confirmModal.html'),
     modalInputTmpl = require('./templates/inputModal.html'),
     modalShareTmpl = require('./templates/shareModal.html'),
@@ -219,7 +220,7 @@ var MapView = Marionette.ItemView.extend({
 
         var layers = modificationsColl.reduce(function(acc, model) {
                 try {
-                    var opts = drawUtils.randomDrawOpts();
+                    var opts = patterns.getDrawOpts(model.get('value'));
                     return acc.concat(new L.GeoJSON(model.get('shape'), opts));
                 } catch (ex) {
                     console.log('Error creating Leaflet layer (invalid GeoJSON object)');

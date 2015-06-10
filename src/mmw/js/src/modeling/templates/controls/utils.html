@@ -1,0 +1,10 @@
+{% macro thumb(name, value, size=56) %}
+    <li>
+        <div class="thumb" data-value="{{ value }}">
+            <svg>
+                <rect height="{{ size }}" width="{{ size }}" fill="url(#fill-{{ value }})"></rect>
+            </svg>
+        </div>
+        <label class="dark">{{ name }}</label>
+    </li>
+{% endmacro %}

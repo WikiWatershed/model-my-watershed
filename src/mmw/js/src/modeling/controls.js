@@ -5,6 +5,7 @@ var _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     drawUtils = require('../draw/utils'),
+    patterns = require('../core/patterns'),
     models = require('./models'),
     landCoverTmpl = require('./templates/controls/landCover.html'),
     conservationPracticeTmpl = require('./templates/controls/conservationPractice.html'),
@@ -47,7 +48,7 @@ var DrawControlView = ControlView.extend({
             controlName = this.getControlName(),
             controlValue = $el.data('value'),
             map = App.getLeafletMap();
-        drawUtils.drawPolygon(map).then(function(geojson) {
+        drawUtils.drawPolygon(map, patterns.getDrawOpts(controlValue)).then(function(geojson) {
             self.addModification(new models.ModificationModel({
                 name: controlName,
                 value: controlValue,
