@@ -43,7 +43,7 @@ def projects(request):
 
     elif request.method == 'POST':
         serializer = ProjectUpdateSerializer(data=request.data,
-                                       context={"request": request})
+                                             context={"request": request})
         if serializer.is_valid():
             serializer.save()
 
