@@ -302,6 +302,34 @@ describe('Modeling', function() {
                             });
                 });
             });
+
+            describe('#getReferenceUrl', function() {
+                var base = '/model/';
+
+                it('generates no url fragment for unsaved projects', function() {
+                    var project = new models.ProjectModel({ id: null });
+                    assert.equal(project.getReferenceUrl(), base);
+                });
+
+                it('generates a project id fragment when a project is saved and no active scenario is set', function() {
+                    var project = new models.ProjectModel({ id: 42 });
+
+                    assert.equal(project.getReferenceUrl(), base + project.id);
+                });
+
+                it('generates a project & scenario id fragment when a project is saved and an active scenario is set', function() {
+                    var project = new models.ProjectModel({ id: 42 }),
+                        scenario = new models.ScenarioModel({ id: 23 }),
+                        coll = new models.ScenariosCollection([ scenario ]);
+
+                    project.set('scenarios', coll);
+
+                    coll.setActiveScenario(scenario);
+
+                    assert.equal(project.getReferenceUrl(), base + project.id +
+                                 '/scenario/' + scenario.id);
+                });
+            });
         });
 
         describe('ModificatioModel', function() {
