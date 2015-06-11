@@ -63,7 +63,7 @@ var ProjectModel = Backbone.Model.extend({
     },
 
     saveProjectAndScenarios: function() {
-        if (App.user.get('id') !== this.get('user_id') || App.user.get('id') < 1) {
+        if (!App.user.loggedInUserMatch(this.get('user_id'))) {
             return;
         }
 
@@ -173,7 +173,7 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     attemptSave: function() {
-        if (App.user.get('id') !== this.get('user_id') || App.user.get('id') < 1) {
+        if (!App.user.loggedInUserMatch(this.get('user_id'))) {
             return;
         }
         this.save().fail(function() {
