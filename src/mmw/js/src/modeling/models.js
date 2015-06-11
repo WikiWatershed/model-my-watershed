@@ -34,10 +34,15 @@ var ProjectModel = Backbone.Model.extend({
         area_of_interest: null,    // GeoJSON
         model_package: '',         // Package name
         taskModel: null,           // TaskModel
-        scenarios: null            // ScenariosCollection
+        scenarios: null,           // ScenariosCollection
+        user_id: 0                 // User that created the project
     },
 
     initialize: function() {
+        var scenarios = this.get('scenarios');
+        if (scenarios === null || typeof scenarios === 'string') {
+            this.set('scenarios', new ScenariosCollection());
+        }
         // TODO: For a new project, users will eventually
         // be able to choose which modeling package
         // they want to use in their project. For
@@ -45,6 +50,10 @@ var ProjectModel = Backbone.Model.extend({
         // hard-coded here.
         this.set('model_package', 'tr-55');
         this.set('taskModel', new Tr55TaskModel());
+        this.set('user_id', App.user.get('id'));
+
+        this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
+        this.on('change:name', this.saveProjectAndScenarios, this);
     },
 
     updateName: function(newName) {
@@ -53,48 +62,67 @@ var ProjectModel = Backbone.Model.extend({
         this.set('name', newName);
     },
 
-    saveAll: function() {
-        var self = this;
-
-        // If we haven't saved the project before,
-        // hold on to the scenarios so that we can
-        // save each one once we have an ID for the project
-        if (this.isNew) {
-            var tempScenarios = this.get('scenarios');
+    saveProjectAndScenarios: function() {
+        if (!App.user.loggedInUserMatch(this.get('user_id'))) {
+            return;
         }
 
-        this.save()
-            .done(function(resp) {
-                console.log('Saved project');
-
-                var scenarios = tempScenarios ? tempScenarios : self.get('scenarios');
-
-                scenarios.each(function(scenario) {
-                    if (!scenario.get('project')) {
-                        scenario.set('project', self.get('id'));
-                    }
-
-                    scenario
-                        .save()
-                        .done(function(resp) {
-                            console.log('Saved scenario');
-                        })
-                        .fail(function(resp) {
-                            console.log('Failed to save scenario');
-                        });
+        if (!this.get('id')) {
+            // We haven't saved the project before, save the project and then
+            // set the project ID on each scenario, then reattach the senarios
+            // to the project.
+            var self = this;
+            this.save()
+                .done(function() {
+                    self.updateProjectScenarios(self.get('id'), self.get('scenarios'));
+                })
+                .fail(function() {
+                    console.log('Failed to save project');
                 });
-            })
-            .fail(function(resp) {
-                console.log('Failed to save project');
-            });
+        } else {
+            this.save()
+                .fail(function() {
+                    console.log('Failed to save project');
+                });
+        }
+    },
+
+    addIdsToScenarios: function() {
+        var projectId = this.get('id');
+        if (!projectId) {
+            this.saveProjectAndScenarios();
+        } else {
+            this.updateProjectScenarios(projectId, this.get('scenarios'));
+        }
+    },
+
+    updateProjectScenarios: function(projectId, scenarios) {
+        scenarios.each(function(scenario) {
+            if (!scenario.get('project')) {
+                scenario.set('project', projectId);
+            }
+        });
     },
 
     parse: function(response, options) {
-        var scenariosCollection = new ScenariosCollection();
+        if (response.scenarios) {
+            // If we returned scenarios (probably from a GET) then set them.
+            var user_id = response.user.id,
+                scenariosCollection = this.get('scenarios'),
+                scenarios = _.map(response.scenarios, function(scenario) {
+                    var scenarioModel = new ScenarioModel(scenario);
+                    scenarioModel.set('user_id', user_id);
+                    scenarioModel.get('modifications').reset(scenario.modifications);
+                    return scenarioModel;
+                });
+            scenariosCollection.reset(scenarios);
+            // Set the user_id to ensure controls are properly set.
+            response.user_id = user_id;
 
-        scenariosCollection.reset(response.scenarios);
+            delete response.scenarios;
+        }
 
-        response.scenarios = scenariosCollection;
+        // TODO: Does this hurt anything if we always set.
         response.taskModel = new Tr55TaskModel();
 
         return response;
@@ -112,6 +140,7 @@ var ModificationModel = coreModels.GeoModel.extend({
 var ModificationsCollection = Backbone.Collection.extend({
     model: ModificationModel
 });
+
 // Static method to create an instance of this collection.
 // This lets us create a collection from an array of raw objects (web app)
 // or from an array of models (unit tests).
@@ -129,13 +158,27 @@ var ScenarioModel = Backbone.Model.extend({
     defaults: {
         name: '',
         is_current_conditions: false,
-        modifications: null,      // ModificationsCollection
-        active: false
+        modifications: null, // ModificationsCollection
+        active: false,
+        user_id: 0 // User that created the project
     },
 
     initialize: function(attrs, options) {
         Backbone.Model.prototype.initialize.apply(this, arguments);
+        this.set('user_id', App.user.get('id'));
         this.set('modifications', ModificationsCollection.create(attrs.modifications));
+
+        this.on('change:project change:name', this.attemptSave, this);
+        this.get('modifications').on('add remove', this.attemptSave, this);
+    },
+
+    attemptSave: function() {
+        if (!App.user.loggedInUserMatch(this.get('user_id'))) {
+            return;
+        }
+        this.save().fail(function() {
+            console.log('Failed to save scenario');
+        });
     },
 
     getSlug: function() {
@@ -160,9 +203,12 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     parse: function(response, options) {
-        var modificationsColl = this.get('modifications');
-        modificationsColl.reset(response.modifications);
-    }
+        // Modifications are essentially write only. So if we have them on our
+        // model, we shouldn't reset them from the server. Pull them off of
+        // the response to prevent overwriting them.
+        delete response.modifications;
+        return response;
+     }
 });
 
 var ScenariosCollection = Backbone.Collection.extend({

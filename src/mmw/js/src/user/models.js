@@ -42,6 +42,14 @@ var UserModel = Backbone.Model.extend({
         });
 
         return jqXHR;
+    },
+
+    loggedInUserMatch: function(user_id) {
+        return user_id > 0 && this.userMatch(user_id);
+    },
+
+    userMatch: function(user_id) {
+        return user_id === this.id;
     }
 });
 

@@ -40,19 +40,32 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         toolbarRegion: '#toolbar-region'
     },
 
-    onShow: function() {
+    initialize: function() {
+        // If the user changes, we should refresh all the views because they
+        // have user contextual controls.
+        this.listenTo(App.user, 'change', this.reRender);
+    },
+
+    reRender: function() {
+        this.projectMenuRegion.empty();
         this.projectMenuRegion.show(new ProjectMenuView({
             model: this.model
         }));
 
+        this.scenariosRegion.empty();
         this.scenariosRegion.show(new ScenariosView({
             collection: this.model.get('scenarios')
         }));
 
+        this.toolbarRegion.empty();
         this.toolbarRegion.show(new ToolbarTabContentsView({
             collection: this.model.get('scenarios'),
             model_package: this.model.get('model_package')
         }));
+    },
+
+    onShow: function() {
+        this.reRender();
     }
 });
 
@@ -78,6 +91,12 @@ var ProjectMenuView = Marionette.ItemView.extend({
     },
 
     template: projectMenuTmpl,
+
+    templateHelpers: function() {
+        return {
+            editable: App.user.userMatch(this.model.get('user_id'))
+        };
+    },
 
     modelEvents: {
         'change': 'render'
@@ -145,7 +164,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
     },
 
     saveProject: function() {
-        this.model.saveAll();
+        this.model.saveProjectAndScenarios();
     },
 
     setProjectPrivacy: function() {
@@ -169,8 +188,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
         modal.render();
         modal.on('confirmation', function() {
             self.model.set('is_private', !self.model.get('is_private'));
-            // TODO: Save just the project. Change after #226 is implemented.
-            self.model.saveAll();
+            self.model.saveProjectAndScenarios();
         });
     }
 });
@@ -181,6 +199,14 @@ var ProjectMenuView = Marionette.ItemView.extend({
 var ScenariosView = Marionette.LayoutView.extend({
     collection: models.ScenariosCollection,
     template: scenariosBarTmpl,
+
+    templateHelpers: function() {
+        return {
+            // Check the first scenario in the collection as a proxy for the
+            // entire collection.
+            editable: App.user.userMatch(this.collection.first().get('user_id'))
+        };
+    },
 
     ui: {
         addScenario: '#add-scenario',
@@ -234,7 +260,8 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         return {
-            cid: this.model.cid
+            cid: this.model.cid,
+            editable: App.user.userMatch(this.model.get('user_id'))
         };
     },
 

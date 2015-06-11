@@ -1,6 +1,8 @@
 <div class="tab-controls">
     <div class="dropdown" id="scenarios-drop-down-region"></div>
-    <button class="btn btn-tab" id="add-scenario"><i class="fa fa-plus"></i></button>
+    {% if editable %}
+        <button class="btn btn-tab" id="add-scenario"><i class="fa fa-plus"></i></button>
+    {% endif %}
 </div>
 <div id="scenario-wrapper" class="scenario-tabs-wrapper">
     <div role="tabpanel" id="scenarios-tab-panel-region">
