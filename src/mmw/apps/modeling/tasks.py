@@ -137,18 +137,6 @@ def run_tr55(model_input, landscape):
     """
     A thin Celery wrapper around our TR55 implementation.
     """
-    # TODO Remove this.
-    # hard coded values for test
-    landscape = {
-        'result': {
-            'cell_count': 147,
-            'distribution': {
-                'd:hi_residential': 33,
-                'c:commercial': 42,
-                'a:deciduous_forest': 72
-            }
-        }
-    }
     time.sleep(5)
 
     # TODO Get the real simpulation data.
