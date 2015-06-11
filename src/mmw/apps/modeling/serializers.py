@@ -2,19 +2,13 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework_gis import serializers as gis_serializers
 
 from apps.modeling.models import Project, Scenario
+from apps.user.serializers import UserSerializer
 
 import json
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('id', 'username', 'email')
 
 
 class ModificationsField(serializers.BaseSerializer):

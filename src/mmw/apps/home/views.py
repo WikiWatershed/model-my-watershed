@@ -7,15 +7,10 @@ from django.http import Http404
 from django.contrib.auth.models import User
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template.context_processors import csrf
-from rest_framework import serializers, viewsets
+from rest_framework import viewsets
+
 from apps.modeling.models import Project
-
-
-# Serializers define the API representation.
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ('url', 'username', 'email', 'is_staff')
+from apps.user.serializers import UserSerializer
 
 
 # ViewSets define the view behavior.
