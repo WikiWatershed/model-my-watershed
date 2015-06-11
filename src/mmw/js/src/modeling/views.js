@@ -668,7 +668,7 @@ var BarChartView = Marionette.ItemView.extend({
                 }
             ],
             options = {
-                barColors: ['green', 'blue', 'brown'],
+                barColors: ['#329b9c', '#4aeab3', '#4ebaea'],
                 depAxisLabel: 'Level',
                 depDisplayNames: ['Infiltration', 'Runoff', 'Evaporation']
             },
