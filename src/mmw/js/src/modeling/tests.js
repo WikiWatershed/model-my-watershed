@@ -8,6 +8,7 @@ var _ = require('lodash'),
     assert = require('chai').assert,
     Marionette = require('../../shim/backbone.marionette'),
     sinon = require('sinon'),
+    patterns = require('../core/patterns'),
     models = require('./models'),
     views = require('./views');
 
@@ -124,6 +125,22 @@ describe('Modeling', function() {
                 assert.equal($('#sandbox #mod-landcover tr td:nth-child(2)').text(), '44.4 km2');
                 assert.equal($('#sandbox #mod-conservationpractice tr td:first-child').text(), 'Rain Garden');
                 assert.equal($('#sandbox #mod-conservationpractice tr td:nth-child(2)').text(), '106.4 km2');
+            });
+
+            it('ensures each modification has a pattern', function() {
+                $('.inline.controls .thumb').each(function() {
+                    var pattern = 'pattern#fill-' + $(this).data('value');
+                    assert.isDefined($(pattern));
+                });
+            });
+
+            it('ensures each modification has draw options', function() {
+                var unknownDrawOpts = patterns.getDrawOpts('');
+
+                $('.inline.controls .thumb').each(function() {
+                    var thisDrawOpts = patterns.getDrawOpts($(this).data('value'));
+                    assert.notEqual(thisDrawOpts, unknownDrawOpts);
+                });
             });
         });
 

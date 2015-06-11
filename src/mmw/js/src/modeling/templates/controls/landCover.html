@@ -1,3 +1,5 @@
+{% import './utils.html' as utils %}
+
 <div id="land-cover-tools" class="dropdown"> <!-- Landcover Tools -->
     <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
     <i class="fa fa-plus-circle"></i> Land Cover
@@ -5,46 +7,19 @@
     <div id="land-tools" class="dropdown-menu menu-left" role="menu"> <!-- Dropdown -->
         <div class="pad-1"> <!-- Dropdown Content -->
             <ul class="row">
-                <li>
-                    <div class="thumb" data-value="LIR"></div>
-                    <label class="dark">LIR</label>
-                </li>
-                <li>
-                    <div class="thumb" data-value="HIR"></div>
-                    <label class="dark">HIR</label>
-                </li>
-                <li>
-                    <div class="thumb" data-value="Commercial"></div>
-                    <label class="dark">Commercial</label>
-                </li>
+                {{ utils.thumb('LIR', 'lir') }}
+                {{ utils.thumb('HIR', 'hir') }}
+                {{ utils.thumb('Commercial', 'commercial') }}
             </ul>
             <ul class="row">
-                <li>
-                    <div class="thumb" data-value="Forest"></div>
-                    <label class="dark">Forest</label>
-                </li>
-                <li>
-                    <div class="thumb" data-value="Turf Grass"></div>
-                    <label class="dark">Turf Grass</label>
-                </li>
-                <li>
-                    <div class="thumb" data-value="Pasture"></div>
-                    <label class="dark">Pasture</label>
-                </li>
+                {{ utils.thumb('Forest', 'forest') }}
+                {{ utils.thumb('Turf Grass', 'turf_grass') }}
+                {{ utils.thumb('Pasture', 'pasture') }}
             </ul>
             <ul class="row">
-                <li>
-                    <div class="thumb" data-value="Grassland"></div>
-                    <label class="dark">Grassland</label>
-                </li>
-                <li>
-                    <div class="thumb" data-value="Row Crop"></div>
-                    <label class="dark">Row Crop</label>
-                </li>
-                <li>
-                    <div class="thumb" data-value="Wetland"></div>
-                    <label class="dark">Wetland</label>
-                </li>
+                {{ utils.thumb('Grassland', 'grassland') }}
+                {{ utils.thumb('Row Crop', 'row_crop') }}
+                {{ utils.thumb('Wetland', 'wetland') }}
             </ul>
         </div> <!-- End Dropdown Content -->
 
