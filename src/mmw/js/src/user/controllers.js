@@ -7,6 +7,7 @@ var App = require('../app'),
 var SignUpController = {
     signUp: function() {
         new views.SignUpModalView({
+            app: App,
             model: new models.SignUpFormModel({})
         }).render();
     },
