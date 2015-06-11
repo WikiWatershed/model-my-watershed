@@ -85,6 +85,32 @@ describe('Modeling', function() {
                 $('#sandbox').html(view.render().el);
                 assert.equal($('#sandbox ul.nav.nav-tabs > li').length, 3);
             });
+
+            it('renders tab dropdowns for editing if the user owns the project', function() {
+                App.user.set('id', 1);
+                var project = getTestProject();
+
+                project.get('scenarios').invoke('set', 'user_id', 1);
+
+                var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
+
+                $('#sandbox').html(view.render().el);
+                // Get dropdown items in the tab. (share, print, rename, duplicate, delete).
+                assert.equal($('#sandbox ul.nav.nav-tabs li.active ul.dropdown-menu li').length, 5);
+            });
+
+            it('renders appropriate tab dropdowns if the user does not own the project', function() {
+                App.user.set('id', 8);
+                var project = getTestProject();
+
+                project.get('scenarios').invoke('set', 'user_id', 1);
+
+                var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
+
+                $('#sandbox').html(view.render().el);
+                // Get dropdown items in the tab. (print).
+                assert.equal($('#sandbox ul.nav.nav-tabs li.active ul.dropdown-menu li').length, 1);
+            });
         });
 
         describe('ToolbarTabContentView', function() {
@@ -156,6 +182,23 @@ describe('Modeling', function() {
                 assert.equal($('#sandbox li').length, 7);
             });
 
+            it('displays limited options in the user does not own the project', function() {
+                // Let the application know which user we are.
+                App.user.set('id', 8);
+                var project = getTestProject(),
+                    view = new views.ProjectMenuView({ model: project }),
+                    projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[],"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}';
+
+                this.server.respondWith('POST', '/api/modeling/projects/',
+                            [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
+
+                project.save();
+
+                $('#sandbox').html(view.render().el);
+                // Print is the only option for non project owners.
+                assert.equal($('#sandbox li').length, 1);
+            });
+
             it('changes the privacy menu item depending on the is_private attribute of the project', function() {
                 var project = getTestProject(),
                     view = new views.ProjectMenuView({ model: project });
@@ -183,7 +226,7 @@ describe('Modeling', function() {
                 it('calls #save on the project and sets the id on every scenario that\'s part of the project', function() {
                     // Let the application know which user we are.
                     App.user.set('id', 1);
-                    
+
                     var projectResponse = '{"id":57,"user":{"id":1,"username":"test","email":"test@azavea.com"},"name":"My Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}';
                     this.server.respondWith('POST', '/api/modeling/projects/',
                             [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
