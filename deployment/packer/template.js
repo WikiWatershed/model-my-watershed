@@ -26,6 +26,7 @@
                 "Service": "Application",
                 "Environment": "{{user `stack_type`}}"
             },
+            "subnet_id": "subnet-3781f46e",
             "associate_public_ip_address": true
         },
         {
@@ -68,6 +69,7 @@
                 "Service": "Worker",
                 "Environment": "{{user `stack_type`}}"
             },
+            "subnet_id": "subnet-3781f46e",
             "associate_public_ip_address": true
         },
         {
@@ -89,6 +91,7 @@
                 "Service": "Monitoring",
                 "Environment": "{{user `stack_type`}}"
             },
+            "subnet_id": "subnet-3781f46e",
             "associate_public_ip_address": true
         }
     ],
@@ -107,6 +110,9 @@
             "playbook_file": "ansible/app-servers.yml",
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-app-server",
+            "extra_arguments": [
+                "--extra-vars 'app_deploy_branch={{user `version`}}'"
+            ],
             "only": [
                 "mmw-app"
             ]
@@ -116,6 +122,9 @@
             "playbook_file": "ansible/tile-servers.yml",
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-tile-server",
+            "extra_arguments": [
+                "--extra-vars 'tiler_deploy_branch={{user `version`}}'"
+            ],
             "only": [
                 "mmw-tiler"
             ]
@@ -125,6 +134,9 @@
             "playbook_file": "ansible/workers.yml",
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-worker-server",
+            "extra_arguments": [
+                "--extra-vars 'app_deploy_branch={{user `version`}}'"
+            ],
             "only": [
                 "mmw-worker"
             ]

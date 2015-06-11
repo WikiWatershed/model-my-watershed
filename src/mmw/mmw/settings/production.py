@@ -22,6 +22,7 @@ if not instance_metadata:
 # HOST CONFIGURATION
 # See: https://docs.djangoproject.com/en/1.5/releases/1.5/#allowed-hosts-required-in-production  # NOQA
 ALLOWED_HOSTS = [
+    'mmw.azavea.com',
     '.elb.amazonaws.com',
     'localhost'
 ]
@@ -30,6 +31,7 @@ ALLOWED_HOSTS = [
 # the Host header.
 ALLOWED_HOSTS.append(instance_metadata['local-ipv4'])
 # END HOST CONFIGURATION
+
 
 # EMAIL CONFIGURATION
 EMAIL_BACKEND = 'apps.core.mail.backends.boto.EmailBackend'

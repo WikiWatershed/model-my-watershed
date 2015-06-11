@@ -1,9 +1,6 @@
 ---
 django_settings_module: "mmw.settings.production"
 
-app_deploy_branch: "{{ lookup('env', 'GIT_COMMIT') | default('origin/develop', true) }}"
-tiler_deploy_branch: "{{ lookup('env', 'GIT_COMMIT') | default('origin/develop', true) }}"
-
 postgresql_username: "modelmywatershed"
 postgresql_password: "{{ lookup('env', 'MMW_DB_PASSWORD') | default('modelmywatershed', true) }}"
 postgresql_database: "modelmywatershed"

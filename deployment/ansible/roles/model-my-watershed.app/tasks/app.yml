@@ -1,15 +1,19 @@
 ---
-- name: Clone application source
-  git: repo=https://github.com/azavea/model-my-watershed.git
-       dest=/opt/model-my-watershed
-       version="{{ app_deploy_branch }}"
-
-- name: Ensure that app_home exists
-  file: path="{{ app_home }}"
+- name: Ensure that source directories exist
+  file: path="{{ item }}"
         owner="{{ ansible_ssh_user }}"
         group=mmw
         mode=0755
         state=directory
+  with_items:
+    - "{{ app_home }}"
+    - "/opt/model-my-watershed"
+
+- name: Clone application source
+  git: repo=https://github.com/azavea/model-my-watershed.git
+       dest=/opt/model-my-watershed
+       version="{{ app_deploy_branch }}"
+  sudo: False
 
 - name: Synchronize Django application into app_home
   synchronize: archive=no
@@ -19,3 +23,4 @@
                set_remote_user=no
                src=/opt/model-my-watershed/src/mmw/
                dest="{{ app_home }}/"
+  sudo: False

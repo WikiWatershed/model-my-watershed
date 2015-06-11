@@ -3,8 +3,8 @@ from troposphere import (
     Ref,
     Output,
     Tags,
-    ec2,
-    Join
+    Join,
+    ec2
 )
 
 from utils.cfn import (
@@ -33,9 +33,9 @@ class VPC(StackNode):
         'Region': ['global:Region'],
         'StackType': ['global:StackType'],
         'KeyName': ['global:KeyName'],
+        'AvailabilityZones': ['global:AvailabilityZones'],
         'NATInstanceType': ['global:NATInstanceType'],
         'NATInstanceAMI': ['global:NATInstanceAMI'],
-        'NATAvailabilityZones': ['global:NATAvailabilityZones'],
     }
 
     DEFAULTS = {
@@ -43,8 +43,8 @@ class VPC(StackNode):
         'Region': 'us-east-1',
         'StackType': 'Staging',
         'KeyName': 'mmw-stg',
+        'AvailabilityZones': 'us-east-1b,us-east-1d',
         'NATInstanceType': 't2.micro',
-        'NATAvailabilityZones': ['us-east-1b', 'us-east-1d'],
     }
 
     ATTRIBUTES = {'StackType': 'StackType'}
@@ -200,7 +200,7 @@ class VPC(StackNode):
             self.PUBLIC_SUBNETS.append(public_subnet)
             self.PRIVATE_SUBNETS.append(private_subnet)
 
-            if availability_zone.name in self.get_input('NATAvailabilityZones'):  # NOQA
+            if availability_zone.name in self.get_input('AvailabilityZones').split(','):  # NOQA
                 self.create_nat(availability_zone, public_subnet,
                                 private_route_table)
                 self.default_azs.append(availability_zone.name)
@@ -248,6 +248,13 @@ class VPC(StackNode):
                                   GroupDescription='Enables access to the NAT '
                                                    'devices',
                                   VpcId=Ref(self.vpc),
+                                  SecurityGroupIngress=[
+                                      ec2.SecurityGroupRule(
+                                          IpProtocol='tcp', CidrIp=VPC_CIDR,
+                                          FromPort=p, ToPort=p
+                                      )
+                                      for p in [HTTP, HTTPS]
+                                  ],
                                   SecurityGroupEgress=[
                                       ec2.SecurityGroupRule(
                                           IpProtocol='tcp',
