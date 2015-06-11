@@ -110,7 +110,6 @@ describe('Core', function() {
         });
     });
 
-
     describe('Views', function() {
         describe('MapView', function() {
             it('adds layers to the map when the map model attribute areaOfInterest is set', function() {
@@ -174,7 +173,6 @@ describe('Core', function() {
                 view._leafletMap.remove();
                 $('#map').removeClass('half');
             });
-
 
             it('removes the class "half" to the map view when the map model attribute halfSize is set to false', function(){
                 var model = new models.MapModel(),
@@ -347,6 +345,94 @@ describe('Core', function() {
             router.navigate('foo', { trigger: true });
 
             assert.equal(spy.callCount, 0);
+        });
+    });
+
+    describe('CSRF', function() {
+        beforeEach(function() {
+           this.xhr = sinon.useFakeXMLHttpRequest();
+           var requests = this.requests = [];
+
+           this.xhr.onCreate = function(req) { requests.push(req); };
+           document.cookie = 'csrftoken=fakecsrftoken';
+        });
+
+        afterEach(function() {
+            this.xhr.restore();
+        });
+
+        it('doesn\'t attach CSRF tokens to internal GET/HEAD/OPTIONS/TRACE requests', function() {
+            var requestMethods = [
+                'GET',
+                'HEAD',
+                'OPTIONS',
+                'TRACE'
+            ];
+
+            _.each(requestMethods, function(method) {
+                $.ajax({
+                    method: method,
+                    url: '/foo',
+                    success: function(data) {
+                        sinon.spy(null, data);
+                    }
+                });
+            });
+
+            for(var i=0; i<this.requests.length; i++) {
+                assert.notProperty(this.requests[i].requestHeaders, 'X-CSRFToken');
+            }
+        });
+
+        it('attaches CSRF tokens to internal POST/PUT/DELETE requests', function() {
+            var requestMethods = [
+                'POST',
+                'PUT',
+                'DELETE'
+            ];
+
+            _.each(requestMethods, function(method) {
+                $.ajax({
+                    method: method,
+                    url: '/foo',
+                    success: function(data) {
+                        sinon.spy(null, data);
+                    }
+                });
+            });
+
+            for(var i=0; i<this.requests.length; i++) {
+                assert.property(this.requests[i].requestHeaders, 'X-CSRFToken');
+                assert.equal(this.requests[i].requestHeaders['X-CSRFToken'], 'fakecsrftoken');
+            }
+        });
+
+        it('doesn\'t attach CSRF tokens to external requests', function() {
+            var requestMethods = [
+                'GET',
+                'HEAD',
+                'OPTIONS',
+                'TRACE',
+                'POST',
+                'PUT',
+                'DELETE',
+                'PATCH'
+            ];
+
+            _.each(requestMethods, function(method) {
+                $.ajax({
+                    method: method,
+                    url: 'http://www.example.com',
+                    success: function(data) {
+                        sinon.spy(null, data);
+                    }
+                });
+            });
+
+            for(var i=0; i<this.requests.length; i++) {
+                assert.notProperty(this.requests[i].requestHeaders, 'X-Requested-With');
+                assert.notProperty(this.requests[i].requestHeaders, 'X-CSRFToken');
+            }
         });
     });
 });
