@@ -81,6 +81,22 @@ describe('User', function() {
             assert.equal(validationError, 'Invalid username or password', 'Could not find failed login message.');
         });
 
+        it ('creates an error when failing to communicate with server', function() {
+            this.server.respondWith([500, {}, '']);
+            var loginView = new views.LoginModalView({
+                el: '#sandbox',
+                model: new models.LoginFormModel({}),
+                app: App
+            }).render();
+
+            loginView.$el.find('#username').val('bad');
+            loginView.$el.find('#password').val('apple');
+            loginView.$el.find('#primary-button').click();
+            var validationError = loginView.$el.find('ul li').first().text();
+
+            assert.equal(validationError, 'Server communication error', 'Could not find failed server message.');
+        });
+
         it('logs the user in when there is a valid response', function() {
             var username = 'bob';
             this.server.respondWith([200, { 'Content-Type': 'application/json' }, '{"result": "success", "username": "bob" }']);

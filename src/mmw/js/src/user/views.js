@@ -80,7 +80,7 @@ var ModalBaseView = Marionette.ItemView.extend({
     // Default failure handler, will display any `errors` received from server.
     handleServerFailure: function(response) {
         var server_errors = ["Server communication error"];
-        if (response.responseJSON.errors) {
+        if (response && response.responseJSON && response.responseJSON.errors) {
             server_errors = response.responseJSON.errors;
         }
         this.model.set({
