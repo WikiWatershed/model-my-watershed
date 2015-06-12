@@ -8,9 +8,9 @@ from troposphere import (
     Select,
     cloudwatch,
     ec2,
-    elasticache,
+    elasticache as ec,
     rds,
-    route53
+    route53 as r53
 )
 
 from utils.cfn import get_recent_ami
@@ -88,24 +88,24 @@ class DataPlane(StackNode):
         self.add_description('Data plane stack for MMW')
 
         # Parameters
-        self.keyname_parameter = self.add_parameter(Parameter(
+        self.keyname = self.add_parameter(Parameter(
             'KeyName', Type='String',
             Description='Name of an existing EC2 key pair'
         ), 'KeyName')
 
-        self.ip_access_parameter = self.add_parameter(Parameter(
+        self.ip_access = self.add_parameter(Parameter(
             'IPAccess', Type='String', Default=self.get_input('IPAccess'),
             Description='CIDR for allowing SSH access'
         ), 'IPAccess')
 
-        self.bastion_instance_type_parameter = self.add_parameter(Parameter(
+        self.bastion_instance_type = self.add_parameter(Parameter(
             'BastionHostInstanceType', Type='String', Default='t2.medium',
             Description='Bastion host EC2 instance type',
             AllowedValues=EC2_INSTANCE_TYPES,
             ConstraintDescription='must be a valid EC2 instance type.'
         ), 'BastionHostInstanceType')
 
-        self.bastion_host_ami_parameter = self.add_parameter(Parameter(
+        self.bastion_host_ami = self.add_parameter(Parameter(
             'BastionHostAMI', Type='String',
             Default=self.get_recent_monitoring_ami(),
             Description='Bastion host AMI'
@@ -204,7 +204,7 @@ class DataPlane(StackNode):
             VpcId=Ref(self.vpc_id),
             SecurityGroupIngress=[
                 ec2.SecurityGroupRule(IpProtocol='tcp',
-                                      CidrIp=Ref(self.ip_access_parameter),
+                                      CidrIp=Ref(self.ip_access),
                                       FromPort=p, ToPort=p)
                 for p in [GRAPHITE_WEB, KIBANA, SSH]
             ] + [
@@ -244,9 +244,9 @@ class DataPlane(StackNode):
                     }
                 }
             ],
-            InstanceType=Ref(self.bastion_instance_type_parameter),
-            KeyName=Ref(self.keyname_parameter),
-            ImageId=Ref(self.bastion_host_ami_parameter),
+            InstanceType=Ref(self.bastion_instance_type),
+            KeyName=Ref(self.keyname),
+            ImageId=Ref(self.bastion_host_ami),
             NetworkInterfaces=[
                 ec2.NetworkInterfaceProperty(
                     Description='ENI for BastionHost',
@@ -425,21 +425,21 @@ class DataPlane(StackNode):
             Tags=self.get_tags(Name=elasticache_security_group_name)
         ))
 
-        elasticache_subnet_group = self.add_resource(elasticache.SubnetGroup(
+        elasticache_subnet_group = self.add_resource(ec.SubnetGroup(
             'ecsngCacheCluster',
             Description='Private subnets for the ElastiCache instances',
             SubnetIds=Ref(self.private_subnets)
         ))
 
         elasticache_parameter_group = self.add_resource(
-            elasticache.ParameterGroup(
+            ec.ParameterGroup(
                 'ecpgCacheCluster',
                 CacheParameterGroupFamily='redis2.8',
                 Description='Parameter group for the ElastiCache instances',
                 Properties={'appendonly': 'yes'})
         )
 
-        return self.add_resource(elasticache.CacheCluster(
+        return self.add_resource(ec.CacheCluster(
             'CacheCluster',
             AutoMinorVersionUpgrade=True,
             CacheNodeType=Ref(self.elasticache_instance_type),
@@ -495,11 +495,11 @@ class DataPlane(StackNode):
             ))
 
     def create_dns_records(self, bastion_host, rds_database):
-        self.add_resource(route53.RecordSetGroup(
+        self.add_resource(r53.RecordSetGroup(
             'dnsPublicRecords',
             HostedZoneName=Join('', [Ref(self.public_hosted_zone_name), '.']),
             RecordSets=[
-                route53.RecordSet(
+                r53.RecordSet(
                     'dnsMonitoringServer',
                     Name=Join('', ['monitoring.',
                               Ref(self.public_hosted_zone_name), '.']),
@@ -510,11 +510,11 @@ class DataPlane(StackNode):
             ]
         ))
 
-        self.add_resource(route53.RecordSetGroup(
+        self.add_resource(r53.RecordSetGroup(
             'dnsPrivateRecords',
             HostedZoneId=Ref(self.private_hosted_zone_id),
             RecordSets=[
-                route53.RecordSet(
+                r53.RecordSet(
                     'dnsBastionHost',
                     Name=Join('', ['monitoring.service.',
                               Ref(self.private_hosted_zone_name), '.']),
@@ -522,7 +522,7 @@ class DataPlane(StackNode):
                     TTL='10',
                     ResourceRecords=[GetAtt(bastion_host, 'PrivateIp')]
                 ),
-                route53.RecordSet(
+                r53.RecordSet(
                     'dnsDatabaseServer',
                     Name=Join('', ['database.service.',
                               Ref(self.private_hosted_zone_name), '.']),

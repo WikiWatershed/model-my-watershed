@@ -67,19 +67,19 @@ class VPC(StackNode):
         self.add_description('VPC stack for MMW')
 
         # Parameters
-        self.keyname_parameter = self.add_parameter(Parameter(
+        self.keyname = self.add_parameter(Parameter(
             'KeyName', Type='String',
             Description='Name of an existing EC2 key pair'
         ), 'KeyName')
 
-        self.nat_instance_type_parameter = self.add_parameter(Parameter(
+        self.nat_instance_type = self.add_parameter(Parameter(
             'NATInstanceType', Type='String', Default='t2.micro',
             Description='NAT EC2 instance type',
             AllowedValues=EC2_INSTANCE_TYPES,
             ConstraintDescription='must be a valid EC2 instance type.'
         ), 'NATInstanceType')
 
-        self.nat_instance_ami_parameter = self.add_parameter(Parameter(
+        self.nat_instance_ami = self.add_parameter(Parameter(
             'NATInstanceAMI', Type='String', Default=self.get_recent_nat_ami(),
             Description='NAT EC2 Instance AMI'
         ), 'NATInstanceAMI')
@@ -212,10 +212,10 @@ class VPC(StackNode):
 
         nat_device = self.create_resource(ec2.Instance(
             nat_device_name,
-            InstanceType=Ref(self.nat_instance_type_parameter),
-            KeyName=Ref(self.keyname_parameter),
+            InstanceType=Ref(self.nat_instance_type),
+            KeyName=Ref(self.keyname),
             SourceDestCheck=False,
-            ImageId=Ref(self.nat_instance_ami_parameter),
+            ImageId=Ref(self.nat_instance_ami),
             NetworkInterfaces=[
                 ec2.NetworkInterfaceProperty(
                     Description='ENI for NATDevice',
