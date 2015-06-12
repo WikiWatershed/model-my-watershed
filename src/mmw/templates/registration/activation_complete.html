@@ -7,7 +7,7 @@
 <p>
     {% trans "Your account is now activated." %}
     {% if not user.is_authenticated %}
-    {% trans "You can log in." %}
+    {% trans "If you had work in progress, please switch back to that tab and login to save your work." %}
     {% endif %}
 </p>
 {% endblock %}
