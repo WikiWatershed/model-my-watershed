@@ -180,11 +180,19 @@ describe('Modeling', function() {
         describe('ProjectMenuView', function() {
             it('displays a limited list of options in the drop down menu until the project is saved', function() {
                 var project = getTestProject(),
-                    view = new views.ProjectMenuView({ model: project });
+                    view = new views.ProjectMenuView({ model: project }),
+                    preSaveMenuItems = [
+                        'Rename',
+                        'Save',
+                        'Print'
+                    ];
 
                 $('#sandbox').html(view.render().el);
 
                 assert.equal($('#sandbox li').length, 3);
+                $('#sandbox li').each(function() {
+                    assert.include(preSaveMenuItems, $(this).text());
+                });
             });
 
             it('displays all the options in the drop down menu if the project is saved', function() {
@@ -192,7 +200,15 @@ describe('Modeling', function() {
                 App.user.set('id', 1);
                 var project = getTestProject(),
                     view = new views.ProjectMenuView({ model: project }),
-                    projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[],"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}';
+                    projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[],"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}',
+                    postSaveMenuItems = [
+                        'Share',
+                        'Make Public',
+                        'Delete',
+                        'Add Tags',
+                        'Rename',
+                        'Print'
+                    ];
 
                 this.server.respondWith('POST', '/api/modeling/projects/',
                             [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
@@ -201,7 +217,10 @@ describe('Modeling', function() {
 
                 $('#sandbox').html(view.render().el);
 
-                assert.equal($('#sandbox li').length, 7);
+                assert.equal($('#sandbox li').length, 6);
+                $('#sandbox li').each(function() {
+                    assert.include(postSaveMenuItems, $(this).text());
+                });
             });
 
             it('displays limited options in the user does not own the project', function() {

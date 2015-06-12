@@ -85,7 +85,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
         'click @ui.remove': 'deleteProject',
         'click @ui.share': 'shareProject',
         'click @ui.print': 'printProject',
-        'click @ui.save': 'saveProject',
+        'click @ui.save': 'saveProjectOrLoginUser',
         'click @ui.privacy': 'setProjectPrivacy'
     },
 
@@ -162,8 +162,12 @@ var ProjectMenuView = Marionette.ItemView.extend({
         window.print();
     },
 
-    saveProject: function() {
-        this.model.saveProjectAndScenarios();
+    saveProjectOrLoginUser: function() {
+        if (App.user.get('guest')) {
+            App.getUserOrShowLogin();
+        } else {
+            this.model.saveProjectAndScenarios();
+        }
     },
 
     setProjectPrivacy: function() {
