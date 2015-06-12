@@ -73,21 +73,26 @@ var AppRouter = PatchedRouter.extend({
             });
         }
 
+        var self = this;
         this._sequence = this._sequence.then(function() {
             var result = prepare.apply(null, args);
             // Assume result is a promise if an object is returned.
             if (_.isObject(result)) {
+                self._previousRouteName = routeName;
                 return result.then(function() {
                     cb.apply(null, args);
                 });
-            // Only execute the route callback if prepare
-            // did not return false.
             } else if (result !== false) {
+                // Only execute the route callback if prepare
+                // did not return false.
+                self._previousRouteName = routeName;
                 cb.apply(null, args);
+            } else {
+                // Don't execute the route function
+                // and cancel the route transition
+                return false;
             }
         });
-
-        this._previousRouteName = routeName;
     },
 
     getSuffixMethod: function(context, suffix) {
