@@ -27,17 +27,24 @@ def login(request):
         user = authenticate(username=request.REQUEST.get('username'),
                             password=request.REQUEST.get('password'))
 
-        if user is not None and user.is_active:
-            auth_login(request, user)
-            response_data['result'] = 'success'
-            response_data['username'] = user.username
-            response_data['guest'] = False
-            response_data['id'] = user.id
+        if user is not None:
+            if user.is_active:
+                auth_login(request, user)
+                response_data['result'] = 'success'
+                response_data['username'] = user.username
+                response_data['guest'] = False
+                response_data['id'] = user.id
+            else:
+                response_data['errors'] = ['Please activate your account']
+                response_data['guest'] = True
+                response_data['id'] = 0
+                status_code = status.HTTP_400_BAD_REQUEST
         else:
             response_data['errors'] = ['Invalid username or password']
             response_data['guest'] = True
             response_data['id'] = 0
             status_code = status.HTTP_400_BAD_REQUEST
+
     elif request.method == 'GET':
         user = request.user
 

@@ -198,6 +198,10 @@ var SignUpModalView = ModalBaseView.extend({
             password2: $(this.ui.password2.selector).val(),
             agreed: $(this.ui.agreed.selector).prop('checked')
         }, { silent: true });
+    },
+
+    dismissAction: function() {
+        this.app.showLoginModal();
     }
 });
 
