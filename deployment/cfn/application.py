@@ -95,7 +95,7 @@ class Application(StackNode):
 
         self.app_server_ami = self.add_parameter(Parameter(
             'AppServerAMI', Type='String',
-            Default=self.get_recent_application_server_ami(),
+            Default=self.get_recent_app_server_ami(),
             Description='Application server AMI'
         ), 'AppServerAMI')
 
@@ -145,7 +145,8 @@ class Application(StackNode):
             Description='ARN for an SNS topic to broadcast notifications'
         ), 'GlobalNotificationsARN')
 
-        app_server_lb_security_group, app_server_security_group = self.create_security_groups()  # NOQA
+        app_server_lb_security_group, \
+            app_server_security_group = self.create_security_groups()
         app_server_lb = self.create_load_balancer(app_server_lb_security_group)
 
         self.create_auto_scaling_resources(app_server_security_group,
@@ -159,15 +160,14 @@ class Application(StackNode):
                                Value=GetAtt(app_server_lb,
                                             'CanonicalHostedZoneNameID')))
 
-    def get_recent_application_server_ami(self):
+    def get_recent_app_server_ami(self):
         try:
-            application_server_ami_id = self.get_input('AppServerAMI')
+            app_server_ami_id = self.get_input('AppServerAMI')
         except MKUnresolvableInputError:
-            application_server_ami_id = get_recent_ami(self.aws_profile,
-                                                       'mmw-app-*',
-                                                       owner='self')
+            app_server_ami_id = get_recent_ami(self.aws_profile, 'mmw-app-*',
+                                               owner='self')
 
-        return application_server_ami_id
+        return app_server_ami_id
 
     def create_security_groups(self):
         app_server_lb_security_group_name = 'sgAppServerLoadBalancer'
