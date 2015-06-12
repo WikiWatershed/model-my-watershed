@@ -16,7 +16,7 @@ var ModelingController = {
         }
     },
 
-    model: function(projectId) {
+    model: function(projectId, scenarioParam) {
         var project;
 
         if (projectId) {
@@ -28,7 +28,19 @@ var ModelingController = {
                 .fetch()
                 .done(function(data) {
                     App.map.set('areaOfInterest', project.get('area_of_interest'));
+                    initScenarioEvents(project);
                     initViews(project);
+                    if (scenarioParam) {
+                        var scenarioId = parseInt(scenarioParam, 10),
+                            scenarios = project.get('scenarios');
+
+                        if (!scenarios.setActiveScenarioById(scenarioId)) {
+                            scenarios.makeFirstScenarioActive();
+                        }
+                    } else {
+                        project.get('scenarios').makeFirstScenarioActive();
+                    }
+
                 });
         } else {
             project = new models.ProjectModel({
@@ -45,17 +57,13 @@ var ModelingController = {
             });
 
             project.on('change:id', function(model) {
-                router.navigate('model/' + model.id);
+                router.navigate(project.getReferenceUrl());
             });
 
-            var scenariosColl = project.get('scenarios'),
-                mapView = App.getMapView();
-            scenariosColl.on('change:activeScenario', function(scenario) {
-                mapView.updateModifications(scenario.get('modifications'));
-            });
-
+            initScenarioEvents(project);
             initViews(project);
         }
+
     },
 
     modelCleanUp: function() {
@@ -64,6 +72,16 @@ var ModelingController = {
         App.rootView.footerRegion.empty();
     }
 };
+
+function initScenarioEvents(project) {
+    var scenariosColl = project.get('scenarios'),
+        mapView = App.getMapView();
+
+    scenariosColl.on('change:activeScenario change:id', function(scenario) {
+        mapView.updateModifications(scenario.get('modifications'));
+        router.navigate(project.getReferenceUrl());
+    });
+}
 
 function initViews(project) {
     var modelingResultsWindow = new views.ModelingResultsWindow({

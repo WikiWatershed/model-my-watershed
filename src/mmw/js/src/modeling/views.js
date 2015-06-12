@@ -241,7 +241,7 @@ var ScenariosView = Marionette.LayoutView.extend({
         var $el = $(e.currentTarget),
             cid = $el.data('scenario-cid');
 
-        this.collection.setActiveScenario(cid);
+        this.collection.setActiveScenarioByCid(cid);
     }
 });
 
@@ -376,7 +376,7 @@ var ScenarioTabPanelsView = Marionette.CollectionView.extend({
                 }),
                 newCid = this.collection.models[modelIndex - 1].cid;
 
-            this.collection.setActiveScenario(newCid);
+            this.collection.setActiveScenarioByCid(newCid);
        }
     }
 });
@@ -421,7 +421,7 @@ var ScenarioDropDownMenuView = Marionette.CompositeView.extend({
         var $el = $(e.currentTarget),
             cid = $el.data('scenario-cid');
 
-        this.collection.setActiveScenario(cid);
+        this.collection.setActiveScenarioByCid(cid);
     }
 });
 

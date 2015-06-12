@@ -126,6 +126,25 @@ var ProjectModel = Backbone.Model.extend({
         response.taskModel = new Tr55TaskModel();
 
         return response;
+    },
+
+    getReferenceUrl: function() {
+        // Return a url fragment that can access this project at its
+        // current state /model/<id>/scenario/<id>
+        var root = '/model/';
+
+        if (this.get('id')) {
+            var modelPart = this.id,
+                scenarioPart = '',
+                activeScenario = this.get('scenarios').getActiveScenario();
+
+            if (activeScenario && activeScenario.id) {
+                scenarioPart = '/scenario/' + activeScenario.id;
+            }
+
+            return root + modelPart + scenarioPart;
+        }
+        return root;
     }
 });
 
@@ -223,20 +242,27 @@ var ScenariosCollection = Backbone.Collection.extend({
         var first = this.first();
 
         if (first) {
-            this.setActiveScenario(first.cid);
+            this.setActiveScenarioByCid(first.cid);
         }
     },
 
-    setActiveScenario: function(cid) {
-        var result = null;
-        this.each(function(model) {
-            var active = model.cid === cid;
-            if (active) {
-                result = model;
-            }
-            model.set('active', active);
-        });
-        this.trigger('change:activeScenario', result);
+    setActiveScenario: function(scenario) {
+        if (scenario) {
+            this.invoke('set', 'active', false);
+            scenario.set('active', true);
+            this.trigger('change:activeScenario', scenario);
+            return true;
+        }
+
+        return false;
+    },
+
+    setActiveScenarioById: function(scenarioId) {
+        return this.setActiveScenario(this.get(scenarioId));
+    },
+
+    setActiveScenarioByCid: function(cid) {
+        return this.setActiveScenario(this.get({ cid: cid }));
     },
 
     createNewScenario: function() {
@@ -245,7 +271,7 @@ var ScenariosCollection = Backbone.Collection.extend({
         });
 
         this.add(scenario);
-        this.setActiveScenario(scenario.cid);
+        this.setActiveScenarioByCid(scenario.cid);
     },
 
     updateScenarioName: function(model, newName) {
@@ -278,7 +304,7 @@ var ScenariosCollection = Backbone.Collection.extend({
             });
 
         this.add(newModel);
-        this.setActiveScenario(newModel.cid);
+        this.setActiveScenarioByCid(newModel.cid);
     },
 
     // Generate a unique scenario name based off baseName.
@@ -296,6 +322,10 @@ var ScenariosCollection = Backbone.Collection.extend({
         for (var i=1; _.contains(existingNames, baseName + ' ' + i); i++);
 
         return baseName + ' ' + i;
+    },
+
+    getActiveScenario: function() {
+        return this.findWhere({active: true});
     }
 });
 
