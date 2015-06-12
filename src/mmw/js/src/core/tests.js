@@ -327,6 +327,27 @@ describe('Core', function() {
             assert.equal(spy.callCount, 0);
         });
 
+        it('does not navigated to the route associated with a prepare function that returns false', function() {
+            var controller = getController(),
+                router = new AppRouter(),
+                otherController = getOtherController(router),
+                spy = sinon.spy(controller, 'foo'),
+                otherSpy = sinon.spy(otherController, 'bazCleanUp');
+
+            router.addRoute(/^foo/, controller, 'foo');
+            router.addRoute(/^baz/, otherController, 'baz');
+
+            Backbone.history.start();
+
+            router.navigate('baz', { trigger: true });
+            router.navigate('foo', { trigger: true });
+
+            // if bazCleanup was never run then evidently the baz
+            // route was never navigated to.
+            assert.equal(spy.callCount, 1);
+            assert.equal(otherSpy.callCount, 0);
+        });
+
         it('does not execute route A\'s cleanUp function when navigating to route B if route A\'s prepare ' +
            'function returned false (i.e. route A was never navigated to)', function() {
 
@@ -473,6 +494,24 @@ function createTransitionRegionWithAnimatedHeightView(displayHeight, hiddenHeigh
         testParentView: testParentView,
         testSubView: testSubView
     };
+}
+
+function getOtherController(router) {
+    var controller = {
+        bazPrepare: function() {
+            console.log('bazPrepare');
+            router.navigate('bar', { trigger: true });
+            return false;
+        },
+        baz: function() {
+            console.log('baz');
+        },
+        bazCleanUp: function() {
+            console.log('bazCleanUp');
+        }
+    };
+
+    return controller;
 }
 
 function getController() {
