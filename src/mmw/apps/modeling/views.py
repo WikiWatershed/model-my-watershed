@@ -229,10 +229,9 @@ def _initiate_tr55_job_chain(model_input, job_id):
 def boundary_layers(request, table_id=None, obj_id=None):
     if not table_id and not obj_id:
         tiler_prefix = '//'
-        tiler_host = settings.MMW_TILER_HOST
-        tiler_port = settings.MMW_TILER_PORT
+        tiler_host = settings.TILER_HOST
         tiler_postfix = '/{z}/{x}/{y}'
-        tiler_base = '%s%s:%s' % (tiler_prefix, tiler_host, tiler_port)
+        tiler_base = '%s%s' % (tiler_prefix, tiler_host)
 
         def augment(index, dictionary):
             retval = {}

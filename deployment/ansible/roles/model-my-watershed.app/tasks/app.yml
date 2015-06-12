@@ -10,7 +10,7 @@
     - "/opt/model-my-watershed"
 
 - name: Clone application source
-  git: repo=https://github.com/azavea/model-my-watershed.git
+  git: repo=https://github.com/WikiWatershed/model-my-watershed.git
        dest=/opt/model-my-watershed
        version="{{ app_deploy_branch }}"
   sudo: False

@@ -48,6 +48,7 @@
                 "Service": "Tiler",
                 "Environment": "{{user `stack_type`}}"
             },
+            "subnet_id": "subnet-3781f46e",
             "associate_public_ip_address": true
         },
         {
