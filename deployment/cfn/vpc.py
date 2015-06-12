@@ -107,9 +107,7 @@ class VPC(StackNode):
             'BastionHostAMI', Type='String', Description='Bastion host AMI'
         ), 'BastionHostAMI')
 
-        self.create_vpc()
-
-        # TODO: Setup VPC endpoint to bypass NAT when talking to S3
+        public_route_table = self.create_vpc()
 
         self.add_output(Output('AvailabilityZones',
                                Value=','.join(self.default_azs)))
@@ -117,6 +115,7 @@ class VPC(StackNode):
                                Value=Join(',', map(Ref, self.default_private_subnets))))  # NOQA
         self.add_output(Output('PublicSubnets',
                                Value=Join(',', map(Ref, self.default_public_subnets))))  # NOQA
+        self.add_output(Output('RouteTableId', Value=Ref(public_route_table)))
 
     def get_recent_nat_ami(self):
         try:
@@ -139,6 +138,8 @@ class VPC(StackNode):
         public_route_table = self.create_routing_resources()
         self.create_subnets(public_route_table)
         self.create_bastion()
+
+        return public_route_table
 
     def create_routing_resources(self):
         gateway = self.create_resource(
