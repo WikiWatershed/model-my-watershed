@@ -26,12 +26,24 @@ function getCookie(name) {
     return cookieValue;
 }
 
+// Source: http://stackoverflow.com/questions/6238351/fastest-way-to-detect-external-urls
+var isExternal = (function(){
+    var domainRe = /https?:\/\/((?:[\w\d]+\.)+[\w\d]{2,})/i;
+
+    return function(url) {
+        function domain(url) {
+          var result = domainRe.exec(url) !== null ? domainRe.exec(url)[1] : null;
+          return result;
+        }
+
+        return domain(location.href) !== domain(url);
+    };
+})();
 
 exports.jqueryAjaxSetupOptions = {
-    crossDomain: false,
     beforeSend: function(xhr, settings) {
         var csrftoken = getCookie('csrftoken');
-        if (!csrfSafeMethod(settings.type)) {
+        if (!csrfSafeMethod(settings.type) && !isExternal(settings.url)) {
             xhr.setRequestHeader("X-CSRFToken", csrftoken);
         }
     }

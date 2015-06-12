@@ -1,3 +1,4 @@
+"use strict";
 
 // Setup shims and require third party dependencies in the correct order.
 // For example, jQuery needs to exist before requiring boostrap.
