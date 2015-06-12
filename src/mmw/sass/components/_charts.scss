@@ -28,13 +28,13 @@
   }
 
   .axis {
-    color: $ui-primary;
+    color: red;
     font-size: 0.5rem;
     white-space: normal;
 
     line, path {
       fill: none;
-      stroke: #000;
+      stroke: red;
       shape-rendering: crispEdges;
     }
   }

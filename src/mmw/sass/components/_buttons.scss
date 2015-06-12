@@ -62,6 +62,12 @@
     background-color: darken($ui-light, 5%);
     border: solid 1px darken($ui-light, 10%);
   }
+
+  //For precip control
+  &.label{
+    color: $black-74;
+    font-weight: normal;
+  }
 }
 
 .btn-active{
