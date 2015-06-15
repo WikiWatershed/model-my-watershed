@@ -19,7 +19,7 @@
     margin: 0 2%;
     display: inline-block;
     fill: $brand-primary;
-    border-radius: $radius-sm;
+    border-radius: $radius-sm!important;
     vertical-align: bottom;
 
     &:hover{
