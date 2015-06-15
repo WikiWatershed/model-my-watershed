@@ -114,6 +114,7 @@ var PrecipitationView = ControlView.extend({
     onRender: function() {
         var model = this.modificationModel,
             value = model && model.get('value') || 0;
+
         this.ui.slider.val(value);
         this.ui.displayValue.text(this.getDisplayValue(value));
     }

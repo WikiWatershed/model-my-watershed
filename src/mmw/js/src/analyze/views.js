@@ -23,24 +23,23 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     template: windowTmpl,
 
     initialize: function() {
-        var self = this;
 
+        var self = this;
         if (!this.model.get('result')) {
-            this.model.fetch({ method: 'POST' })
-                .done(function() {
-                    self.model.pollForResults()
-                        .done(_.bind(self.showDetailsRegion, self))
-                        .fail(function() {
-                            console.log('Failed to get analyze results');
-                            // TODO: Show an error message across the whole
-                            // analyze window
-                        });
-                })
-                .fail(function() {
+            var taskHelper = {
+                pollSuccess: function() {
+                    self.showDetailsRegion();
+                },
+
+                pollFailure: function() {
+                    console.log('Failed to get analyze results');
+                },
+
+                startFailure: function() {
                     console.log('Failed to start analyze job');
-                    // TODO: Show an error message across the whole
-                    // analyze window
-                });
+                }
+            };
+            this.model.start(taskHelper);
         } else {
             this.lock = $.Deferred();
             this.lock.done(function() {

@@ -1,7 +1,8 @@
 "use strict";
 
 var Backbone = require('../../shim/backbone'),
-    _ = require('lodash'),
+    _ = require('underscore'),
+    $ = require('jquery'),
     App = require('../app'),
     coreModels = require('../core/models');
 
@@ -17,12 +18,36 @@ var ModelPackageControlsCollection = Backbone.Collection.extend({
 
 var ModelPackageModel = Backbone.Model.extend();
 
-var Tr55TaskModel = coreModels.TaskModel.extend({});
+var Tr55TaskModel = coreModels.TaskModel.extend({
+    defaults: _.extend(
+        {
+            taskName: 'tr55',
+            taskType: 'modeling'
+        },
+        coreModels.TaskModel.prototype.defaults
+    )
+});
 
-var ResultModel = Backbone.Model.extend({});
+var ResultModel = Backbone.Model.extend({
+    defaults: {
+        polling: false
+    }
+});
 
 var ResultCollection = Backbone.Collection.extend({
-    model: ResultModel
+    model: ResultModel,
+
+    setPolling: function(polling) {
+        this.forEach(function(resultModel) {
+            resultModel.set('polling', polling);
+        });
+    },
+
+    setNullResults: function() {
+        this.forEach(function(resultModel) {
+            resultModel.set('result', null);
+        });
+    }
 });
 
 var ProjectModel = Backbone.Model.extend({
@@ -50,10 +75,20 @@ var ProjectModel = Backbone.Model.extend({
         // hard-coded here.
         this.set('model_package', 'tr-55');
         this.set('taskModel', new Tr55TaskModel());
+
         this.set('user_id', App.user.get('id'));
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
         this.on('change:name', this.saveProjectAndScenarios, this);
+    },
+
+    getResultsIfNeeded: function() {
+        this.get('scenarios').forEach(function(scenario) {
+            scenario.getResultsIfNeeded();
+        });
+        this.get('scenarios').on('add', function(scenario) {
+            scenario.getResultsIfNeeded();
+        });
     },
 
     updateName: function(newName) {
@@ -110,9 +145,15 @@ var ProjectModel = Backbone.Model.extend({
             var user_id = response.user.id,
                 scenariosCollection = this.get('scenarios'),
                 scenarios = _.map(response.scenarios, function(scenario) {
+                    // TODO We don't want to set the results until a future
+                    // PR when we intentionally cache results.
+                    delete scenario.results;
+                    scenario.taskModel = new Tr55TaskModel();
+
                     var scenarioModel = new ScenarioModel(scenario);
                     scenarioModel.set('user_id', user_id);
                     scenarioModel.get('modifications').reset(scenario.modifications);
+
                     return scenarioModel;
                 });
             scenariosCollection.reset(scenarios);
@@ -177,18 +218,51 @@ var ScenarioModel = Backbone.Model.extend({
     defaults: {
         name: '',
         is_current_conditions: false,
+        user_id: 0, // User that created the project
         modifications: null, // ModificationsCollection
         active: false,
-        user_id: 0 // User that created the project
+        job_id: null,
+        results: null
     },
 
     initialize: function(attrs, options) {
         Backbone.Model.prototype.initialize.apply(this, arguments);
         this.set('user_id', App.user.get('id'));
+
+        // TODO The default modifications might be a function
+        // of the model_package in the future.
+        _.defaults(attrs, {
+            modifications: [
+                {
+                    name: 'precipitation',
+                    value: 1.0
+                }
+            ]});
         this.set('modifications', ModificationsCollection.create(attrs.modifications));
 
         this.on('change:project change:name', this.attemptSave, this);
         this.get('modifications').on('add remove', this.attemptSave, this);
+
+        var debouncedGetResults = _.debounce(_.bind(this.getResults, this), 500);
+        this.get('modifications').on('add change', debouncedGetResults);
+        this.set('taskModel', $.extend(true, {}, App.currProject.get('taskModel')));
+
+        var resultCollection;
+        if (App.currProject.get('model_package') == 'tr-55') {
+            resultCollection = new ResultCollection([
+                {
+                    name: 'runoff',
+                    displayName: 'Runoff',
+                    result: null
+                },
+	            {
+                    name: 'quality',
+                    displayName: 'Water Quality',
+                    result: null
+                }
+            ]);
+        }
+        this.set('results', resultCollection);
     },
 
     attemptSave: function() {
@@ -226,8 +300,81 @@ var ScenarioModel = Backbone.Model.extend({
         // model, we shouldn't reset them from the server. Pull them off of
         // the response to prevent overwriting them.
         delete response.modifications;
+
+        // TODO We don't want to set the results until a future
+        // PR when we intentionally cache results.
+        delete response.results;
+
         return response;
-     }
+    },
+
+    getResultsIfNeeded: function() {
+        var needsResults = this.get('results').some(function(resultModel) {
+            return !resultModel.get('result');
+        });
+        if (needsResults) {
+            this.getResults();
+        }
+    },
+
+    // Poll the taskModel for results and reset the results collection when done.
+    // If not successful, the results collection is reset to be empty.
+    getResults: function() {
+        var self = this,
+            results = this.get('results'),
+            taskModel = this.get('taskModel'),
+            setResults = function() {
+                var rawServerResults = taskModel.get('result');
+                if (rawServerResults == "" || rawServerResults == null) {
+                    results.setNullResults();
+                } else {
+                    var serverResults = JSON.parse(rawServerResults);
+                    results.forEach(function(resultModel) {
+                        var resultName = resultModel.get('name');
+                        if (serverResults[resultName]) {
+                            resultModel.set('result', serverResults[resultName]);
+                        } else {
+                            console.log('Response is missing ' + resultName + '.');
+                        }
+                    });
+                }
+                results.setPolling(false);
+            },
+            taskHelper = {
+                postData: {
+                    model_input: JSON.stringify({
+                        modifications: self.get('modifications').toJSON(),
+                        area_of_interest: App.currProject.get('area_of_interest')
+                    })
+                },
+
+                onStart: function() {
+                    results.setNullResults();
+                    results.setPolling(true);
+                },
+
+                pollSuccess: function() {
+                    setResults();
+                },
+
+                pollFailure: function(response) {
+                    console.log('Failed to get TR55 results.');
+                    results.setNullResults();
+                    results.setPolling(false);
+                },
+
+                startFailure: function(response) {
+                    console.log('Failed to start TR55 job.');
+                    if (response.responseJSON && response.responseJSON.error) {
+                        console.log(response.responseJSON.error);
+                    }
+                    results.setNullResults();
+                    results.setPolling(false);
+                }
+            };
+
+        taskModel.start(taskHelper);
+    }
 });
 
 var ScenariosCollection = Backbone.Collection.extend({
@@ -267,7 +414,8 @@ var ScenariosCollection = Backbone.Collection.extend({
 
     createNewScenario: function() {
         var scenario = new ScenarioModel({
-            name: this.makeNewScenarioName('New Scenario')
+            name: this.makeNewScenarioName('New Scenario'),
+            taskModel: $.extend(true, {}, App.currProject.get('taskModel'))
         });
 
         this.add(scenario);
@@ -329,14 +477,19 @@ var ScenariosCollection = Backbone.Collection.extend({
     }
 });
 
-function getControlsForModelPackage(modelPackageName) {
-    switch (modelPackageName) {
-        case 'tr-55':
+function getControlsForModelPackage(modelPackageName, options) {
+    if (modelPackageName == 'tr-55') {
+        if (options && options.is_current_conditions) {
+            return new ModelPackageControlsCollection([
+                new ModelPackageControlModel({ name: 'precipitation' })
+            ]);
+        } else {
             return new ModelPackageControlsCollection([
                 new ModelPackageControlModel({ name: 'landcover' }),
                 new ModelPackageControlModel({ name: 'conservation_practice' }),
                 new ModelPackageControlModel({ name: 'precipitation' })
             ]);
+        }
     }
     throw 'Model package not supported ' + modelPackageName;
 }

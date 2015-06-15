@@ -61,36 +61,92 @@ var TaskModel = Backbone.Model.extend({
         }
     },
 
+    // Cancels any currently running jobs. The promise returned
+    // by previous calls to pollForResults will be rejected.
+    reset: function() {
+        this.set({
+            'job': null,
+            'result': null,
+            'status': null
+        });
+    },
+
+    // taskHelper should be an object containing an optional object,
+    // postData, an optional function, onStart, and functions pollSuccess,
+    // pollFailure, and startFailure.
+    start: function(taskHelper) {
+        taskHelper = _.defaults(taskHelper, {
+            onStart: _.noop,
+            pollSuccess: _.noop,
+            pollFailure: _.noop,
+            startFailure: _.noop
+        });
+
+        this.reset();
+        if (taskHelper.onStart) {
+            taskHelper.onStart();
+        }
+        var self = this;
+
+        self
+            .fetch({
+                method: 'POST',
+                data: taskHelper.postData
+            })
+            .done(function() {
+                self.pollForResults()
+                    .done(taskHelper.pollSuccess)
+                    .fail(function(error) {
+                        if (error && error.cancelledJob) {
+                            console.log('Job ' + error.cancelledJob + ' was cancelled.');
+                        } else {
+                            taskHelper.pollFailure();
+                        }
+                    });
+            })
+            .fail(taskHelper.startFailure);
+    },
+
     pollForResults: function() {
+        // expectedJob is the value of this.get('job')
+        // associated with a single call to start(). If start()
+        // is called again, the values of this.get('job') and
+        // expectedJob will diverge.
         var defer = $.Deferred(),
             duration = 0,
-            self = this;
+            self = this,
+            expectedJob = self.get('job');
 
         // Check the task endpoint to see if the job is
         // completed. If it is, return the results of
         // the job. If not, check again after
         // pollInterval has elapsed.
         var getResults = function() {
-                if (duration >= self.get('timeout')) {
-                    defer.reject();
-                    return;
-                }
+            if (duration >= self.get('timeout')) {
+                defer.reject();
+                return;
+            }
 
-                self.fetch()
-                    .done(function(response) {
-                        console.log('Polling ' + self.url());
-                        if (response.status !== 'complete') {
-                            duration = duration + self.get('pollInterval');
-                            window.setTimeout(getResults, self.get('pollInterval'));
-                        } else {
-                            defer.resolve(response);
-                        }
-                    })
-                    .fail(defer.reject);
+            // If job was cancelled.
+            if (expectedJob != self.get('job')) {
+                defer.reject({cancelledJob: expectedJob});
+                return;
+            }
+
+            self.fetch()
+                .done(function(response) {
+                    console.log('Polling ' + self.url());
+                    if (response.status !== 'complete') {
+                        duration = duration + self.get('pollInterval');
+                        window.setTimeout(getResults, self.get('pollInterval'));
+                    } else {
+                        defer.resolve(response);
+                    }
+                })
+                .fail(defer.reject);
         };
 
         window.setTimeout(getResults, self.get('pollInterval'));
-
         return defer.promise();
     }
 });

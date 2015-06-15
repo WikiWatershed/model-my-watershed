@@ -1,3 +1,4 @@
+
 "use strict";
 
 var $ = require('jquery'),
@@ -24,6 +25,8 @@ var ModelingController = {
                 id: projectId
             });
 
+            App.currProject = project;
+
             project
                 .fetch()
                 .done(function(data) {
@@ -40,21 +43,24 @@ var ModelingController = {
                     } else {
                         project.get('scenarios').makeFirstScenarioActive();
                     }
-
+                    project.getResultsIfNeeded();
                 });
         } else {
             project = new models.ProjectModel({
                 name: 'Untitled Project',
                 created_at: Date.now(),
                 area_of_interest: App.map.get('areaOfInterest'),
-                scenarios: new models.ScenariosCollection([
-                    new models.ScenarioModel({
-                        name: 'Current Conditions',
-                        is_current_conditions: true,
-                        active: true
-                    })
-                ])
+                scenarios: new models.ScenariosCollection()
             });
+
+            App.currProject = project;
+
+            var currentConditionsScenario = new models.ScenarioModel({
+                name: 'Current Conditions',
+                is_current_conditions: true,
+                active: true
+            });
+            project.get('scenarios').add(currentConditionsScenario);
 
             project.on('change:id', function(model) {
                 router.navigate(project.getReferenceUrl());
@@ -62,8 +68,9 @@ var ModelingController = {
 
             initScenarioEvents(project);
             initViews(project);
-        }
 
+            project.getResultsIfNeeded();
+        }
     },
 
     modelCleanUp: function() {
