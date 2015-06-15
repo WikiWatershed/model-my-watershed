@@ -186,6 +186,30 @@ describe('Core', function() {
                 view._leafletMap.remove();
             });
         });
+
+        describe('ModificationPopupView', function() {
+            it('deletes the modification it is associated with when the delete button is clicked', function() {
+                var model = new Backbone.Model({
+                        value: 'lir',
+                        shape: {},
+                        area: 100,
+                        units: 'm<sup>2</sup>',
+                    }),
+                    view = new views.ModificationPopupView({ model: model });
+
+                // ModificationModel has a static method
+                // for getting the label.
+                model.label = function() {
+                    return 'Modification Label';
+                };
+
+                var spy = sinon.spy(model, 'destroy');
+
+                $('#sandbox').html(view.render().el);
+                $('#sandbox .delete-modification').click();
+                assert.equal(spy.callCount, 1);
+            });
+        });
     });
 
     describe('Models', function() {

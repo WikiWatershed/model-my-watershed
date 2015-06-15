@@ -1,0 +1,12 @@
+<h2>{{ label }}</h2>
+<table class='table'>
+    <tr>
+        <td>Total Area</td>
+        <td class='strong text-right'>{{ area|round(1)|toLocaleString }} {{ units }}</td>
+    </tr>
+</table>
+<span>
+    <button class="btn btn-sm btn-icon dark delete-modification" type="button">
+        <i class="fa fa-trash"></i>
+    </button>
+</span>
