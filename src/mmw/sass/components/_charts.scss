@@ -19,7 +19,7 @@
     margin: 0 2%;
     display: inline-block;
     fill: $brand-primary;
-    border-radius: $radius-sm;
+    border-radius: $radius-sm!important;
     vertical-align: bottom;
 
     &:hover{
@@ -28,14 +28,18 @@
   }
 
   .axis {
-    color: $ui-primary;
+    color: $black-54;
     font-size: 0.5rem;
     white-space: normal;
 
     line, path {
       fill: none;
-      stroke: #000;
+      stroke: $black-12;
       shape-rendering: crispEdges;
+    }
+
+    text{
+      color: $black-54;
     }
   }
 
