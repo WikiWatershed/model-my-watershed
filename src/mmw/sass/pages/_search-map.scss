@@ -38,8 +38,37 @@
     }
   }
 
-  .message{
+  .search-icon {
+    font-size: 0.8rem;
+    margin-left: -2.5rem;
+    color: $black-54;
+
+    &.empty {
+      color: $black-24;
+    }
+
+    &.error {
+      color: $ui-danger;
+    }
+  }
+
+  .message {
     position: absolute;
+    color: $paper-74;
+    background-color: $black-54;
+    border-radius: 2px;
+    box-shadow: 0 0 6px $black-74;
+    font-size: 0.7rem;
+    padding: 0.5rem 1rem;
+    margin-top: 6px;
+    width: 300px;
+
+    .dismiss {
+      float: right;
+      padding: 0;
+      border: none;
+      background-color: transparent;
+    }
   }
 }
 
