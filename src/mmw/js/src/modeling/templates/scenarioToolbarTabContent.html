@@ -27,7 +27,7 @@
                 <table id="mod-{{ controlName|lower|replace(' ', '') }}" class="table modifications custom-hover">
                 {% for model in models %}
                     <tr>
-                        <td>{{ model.get('value') }}</td>
+                        <td>{{ model.label(model.get('value')) }}</td>
                         <td class="strong text-right">{{ model.get('area')|round(1)|toLocaleString }} {{ model.get('units') }}</td>
                         <td class="text-right"><button class="btn btn-sm btn-icon dark" type="button" data-delete="{{ model.cid }}">
                         <i class="fa fa-trash"></i>

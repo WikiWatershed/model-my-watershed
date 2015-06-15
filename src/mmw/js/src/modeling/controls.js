@@ -62,6 +62,12 @@ var DrawControlView = ControlView.extend({
 var LandCoverView = DrawControlView.extend({
     template: landCoverTmpl,
 
+    templateHelpers: function() {
+        return {
+            label: models.getHumanReadableLabel
+        };
+    },
+
     getControlName: function() {
         return 'landcover';
     }
@@ -69,6 +75,12 @@ var LandCoverView = DrawControlView.extend({
 
 var ConservationPracticeView = DrawControlView.extend({
     template: conservationPracticeTmpl,
+
+    templateHelpers: function() {
+        return {
+            label: models.getHumanReadableLabel
+        };
+    },
 
     getControlName: function() {
         return 'conservation_practice';
