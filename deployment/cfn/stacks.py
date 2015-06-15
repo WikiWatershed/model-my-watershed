@@ -3,6 +3,7 @@ from majorkirby import GlobalConfigNode
 from vpc import VPC
 from s3_vpc_endpoint import S3VPCEndpoint
 from private_hosted_zone import PrivateHostedZone
+from data_plane import DataPlane
 
 import ConfigParser
 
@@ -33,15 +34,17 @@ def build_graph(mmw_config, aws_profile, **kwargs):
     s3_vpc_endpoint = S3VPCEndpoint(globalconfig=global_config, VPC=vpc,
                                     aws_profile=aws_profile)
     private_hosted_zone = PrivateHostedZone(globalconfig=global_config,
-                                            VPC=vpc,
-                                            aws_profile=aws_profile)
+                                            VPC=vpc, aws_profile=aws_profile)
+    data_plane = DataPlane(globalconfig=global_config, VPC=vpc,
+                           PrivateHostedZone=private_hosted_zone,
+                           aws_profile=aws_profile)
 
-    return s3_vpc_endpoint, private_hosted_zone
+    return s3_vpc_endpoint, data_plane
 
 
 def build_stacks(mmw_config, aws_profile, **kwargs):
     """Trigger actual building of graphs"""
-    s3_vpc_endpoint_graph, private_hosted_zone_graph = build_graph(
-        mmw_config, aws_profile)
+    s3_vpc_endpoint_graph, data_plane_graph = build_graph(mmw_config,
+                                                          aws_profile)
     s3_vpc_endpoint_graph.go()
-    private_hosted_zone_graph.go()
+    data_plane_graph.go()
