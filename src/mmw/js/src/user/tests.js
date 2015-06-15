@@ -3,10 +3,8 @@
 require('../core/setup');
 
 var _ = require('lodash'),
-    L = require('leaflet'),
     $ = require('jquery'),
     assert = require('chai').assert,
-    Backbone = require('../../shim/backbone'),
     sinon = require('sinon'),
     App = require('../app'),
     views = require('./views'),

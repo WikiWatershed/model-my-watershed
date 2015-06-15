@@ -31,7 +31,7 @@ var getDrawOpts = function(pattern) {
             weight: 3,
             fillColor: '#888',
             fillOpacity: 0.74
-        }
+        };
     } else {
         return {
             clickable: false,

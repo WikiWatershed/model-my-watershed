@@ -2,8 +2,7 @@
 // License: MIT, Copyright (c) 2014 James Smith
 "use strict";
 
-var Backbone = require('./backbone'),
-    Marionette = require('backbone.marionette'),
+var Marionette = require('./backbone.marionette'),
     _ = require('lodash');
 
 var TransitionRegion = Marionette.Region.extend({

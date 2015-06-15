@@ -1,15 +1,13 @@
 "use strict";
 
-var _ = require('lodash'),
+    var _ = require('lodash'),
     $ = require('jquery'),
-    L = require('leaflet'),
     Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
     controls = require('./controls'),
     coreViews = require('../core/views'),
-    filters = require('../filters'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultsDetailsTmpl = require('./templates/resultsDetails.html'),
     resultsTabPanelTmpl = require('./templates/resultsTabPanel.html'),
@@ -301,7 +299,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
 
         this.ui.nameField.on('keypress', function(e) {
             var keycode = (e.keyCode ? e.keyCode : e.which);
-            if (keycode == ENTER_KEYCODE) {
+            if (keycode === ENTER_KEYCODE) {
                 // Don't add line returns to the text.
                 e.preventDefault();
 
@@ -313,7 +311,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
             }
         });
 
-        this.ui.nameField.on('blur', function(e) {
+        this.ui.nameField.on('blur', function() {
             self.model.collection.updateScenarioName(self.model, $(this).text());
         });
     },

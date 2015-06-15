@@ -1,7 +1,6 @@
 "use strict";
 
-var Backbone = require('../../shim/backbone'),
-    Marionette = require('../../shim/backbone.marionette');
+var Backbone = require('../../shim/backbone');
 
 var ToolbarModel = Backbone.Model.extend({
     defaults: {

@@ -1,15 +1,12 @@
 "use strict";
 
-var _ = require('lodash'),
-    $ = require('jquery'),
-    L = require('leaflet'),
+var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
     chart = require('../core/chart'),
-    filters = require('../filters'),
     windowTmpl = require('./templates/window.html'),
     detailsTmpl = require('./templates/details.html'),
     tableTmpl = require('./templates/table.html'),

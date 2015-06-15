@@ -1,6 +1,7 @@
 "use strict";
 
 require('./core/setup');
+require('./routes');
 
 //
 // Initialize application.
@@ -9,10 +10,7 @@ require('./core/setup');
 var $ = require('jquery'),
     Backbone = require('../shim/backbone'),
     App = require('./app'),
-    router = require('./router').router,
-    routes = require('./routes'),
-    userViews = require('./user/views'),
-    userModels = require('./user/models');
+    router = require('./router').router;
 
 App.on('start', function() {
     $('body').on('click', '[data-url]', function(e) {

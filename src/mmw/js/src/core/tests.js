@@ -33,10 +33,6 @@ var chartData = [{x: 'a', y: 1},
     sandboxWidth = '700',
     sandboxSelector = '#display-sandbox';
 
-var SandboxRegion = Marionette.Region.extend({
-    el: '#display-sandbox'
-});
-
 describe('Core', function() {
     before(function() {
         if ($('#sandbox').length === 0) {

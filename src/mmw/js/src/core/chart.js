@@ -21,12 +21,13 @@ var d3 = require('d3'),
 // depDisplayNames is the human readable counterpart to depVars.
 // If barColors is supplied, a legend will be drawn using the colors.
 function makeBarChart(selector, data, indVar, depVars, options) {
-    var options = options || {},
-        numYTicks = options.numYTicks || 10,
+    options = options || {};
+
+    var numYTicks = options.numYTicks || 10,
         hiddenSize = 100,
         horizMargin = options.horizMargin || {top: 20, right: 80, bottom: 40, left: 120},
         vertMargin = options.vertMargin || {top: 20, right: 80, bottom: 30, left: 40},
-        useHorizBars = options.useHorizBars != undefined ? options.useHorizBars : false,
+        useHorizBars = options.useHorizBars !== undefined ? options.useHorizBars : false,
         maxDepSum,
         containerWidth,
         width,

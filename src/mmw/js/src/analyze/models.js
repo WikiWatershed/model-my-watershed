@@ -2,7 +2,6 @@
 
 var Backbone = require('../../shim/backbone'),
     _ = require('lodash'),
-    App = require('../app'),
     coreModels = require('../core/models');
 
 var LayerModel = Backbone.Model.extend({});

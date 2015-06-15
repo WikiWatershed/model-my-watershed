@@ -9,12 +9,10 @@ var _ = require('lodash'),
     sinon = require('sinon'),
     models = require('./models'),
     views = require('./views'),
-    chart = require('../core/chart'),
     sandboxTemplate = require('../core/templates/sandbox.html');
 
 var sandboxHeight = '500',
-    sandboxWidth = '700',
-    sandboxSelector = '#display-sandbox';
+    sandboxWidth = '700';
 
 var SandboxRegion = Marionette.Region.extend({
     el: '#display-sandbox'
@@ -43,11 +41,7 @@ describe('Analyze', function() {
             this.server.restore();
         });
 
-        var analyzeDataSets = getTestAnalyzeData();
-
-        for (var dataSetInd = 0; dataSetInd < analyzeDataSets.length; dataSetInd++) {
-            var dataSet = analyzeDataSets[dataSetInd];
-
+        function testDataSet(dataSet) {
             it('renders tables that match the data when there are ' + dataSetInd + ' categories in the dataset', function() {
                 var view = setupAnalyzeView(analyzeDataSets[dataSetInd], this.server);
                 view.listenTo(view, 'show', function() {
@@ -61,6 +55,12 @@ describe('Analyze', function() {
                     checkChart(dataSet);
                 });
             });
+        }
+
+        var analyzeDataSets = getTestAnalyzeData();
+        for (var dataSetInd = 0; dataSetInd < analyzeDataSets.length; dataSetInd++) {
+            var dataSet = analyzeDataSets[dataSetInd];
+            testDataSet(dataSet);
         }
     });
 });

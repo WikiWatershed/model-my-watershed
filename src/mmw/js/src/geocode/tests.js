@@ -3,7 +3,6 @@
 require('../core/setup');
 
 var _ = require('lodash'),
-    L = require('leaflet'),
     $ = require('jquery'),
     assert = require('chai').assert,
     Backbone = require('../../shim/backbone'),
@@ -126,7 +125,6 @@ describe('Geocoder', function() {
 
             this.server.respondWith([200, { 'Content-Type': 'application/json' }, responseData]);
 
-            var self = this;
             view.handleSearch('a query').done(function() {
                 var e = $.Event('keyup'),
                     spy = sinon.spy(view, 'selectFirst');
@@ -149,7 +147,6 @@ describe('Geocoder', function() {
 
             this.server.respondWith([200, { 'Content-Type': 'application/json' }, responseData]);
 
-            var self = this;
             view.handleSearch('a query').done(function() {
                 var e = $.Event('keyup'),
                     spy = sinon.spy(view, 'selectFirst');
