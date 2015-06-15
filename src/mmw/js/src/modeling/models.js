@@ -197,6 +197,8 @@ var ModificationModel = coreModels.GeoModel.extend({
     )
 });
 
+ModificationModel.prototype.label = getHumanReadableLabel;
+
 var ModificationsCollection = Backbone.Collection.extend({
     model: ModificationModel
 });
@@ -494,6 +496,32 @@ function getControlsForModelPackage(modelPackageName, options) {
     throw 'Model package not supported ' + modelPackageName;
 }
 
+function getHumanReadableLabel(value) {
+    var mapping = {
+        'commercial': 'Commercial',
+        'forest': 'Forest',
+        'grassland': 'Grassland',
+        'hir': 'HIR',
+        'lir': 'LIR',
+        'pasture': 'Pasture',
+        'row_crop': 'Row Crop',
+        'turf_grass': 'Turf Grass',
+        'wetland': 'Wetland',
+        'cluster_housing': 'Cluster Housing',
+        'green_roof': 'Green Roof',
+        'no_till_agriculture': 'No-Till Agriculture',
+        'porous_paving': 'Porous Paving',
+        'rain_garden': 'Rain Garden',
+        'veg_infil_basin': 'Veg Infil Basin'
+    };
+
+    if (mapping[value]) {
+        return mapping[value];
+    } else {
+        throw 'Unknown Land Cover or Conservation Practice: ' + value;
+    }
+}
+
 module.exports = {
     getControlsForModelPackage: getControlsForModelPackage,
     ResultModel: ResultModel,
@@ -506,5 +534,6 @@ module.exports = {
     ModificationModel: ModificationModel,
     ModificationsCollection: ModificationsCollection,
     ScenarioModel: ScenarioModel,
-    ScenariosCollection: ScenariosCollection
+    ScenariosCollection: ScenariosCollection,
+    getHumanReadableLabel: getHumanReadableLabel
 };

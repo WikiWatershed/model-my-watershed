@@ -524,7 +524,7 @@ var greaterThanOneAcrePolygon = { "type": "FeatureCollection", "features": [ { "
 
 var modificationsSample1 = {
     "name":"Land Cover",
-    "value":"LIR",
+    "value":"lir",
     "shape":{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[-76.00479125976562,40.19251207621169],[-76.04324340820312,40.13794057716276],[-75.95260620117188,40.136890695345905],[-75.93338012695312,40.182020964319086],[-75.96221923828125,40.199854889057676],[-76.00479125976562,40.19251207621169]]]}},
     "area":10977.041602204828,
     "units":"acres"
@@ -532,7 +532,7 @@ var modificationsSample1 = {
 
 var modificationsSample2  = {
     "name":"Conservation Practice",
-    "value":"Rain Garden",
+    "value":"rain_garden",
     "shape":{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[-75.53237915039062,40.18307014852534],[-75.66009521484375,40.107487419012415],[-75.50491333007812,40.10118506258701],[-75.43350219726561,40.13899044275822],[-75.42800903320312,40.1673306817866],[-75.53237915039062,40.18307014852534]]]}},
     "area":26292.18855342856,
     "units":"acres"
