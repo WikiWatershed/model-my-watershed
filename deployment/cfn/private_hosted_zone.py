@@ -1,4 +1,4 @@
-from boto import route53
+from boto import route53 as r53
 
 from majorkirby import CustomActionNode
 
@@ -24,7 +24,7 @@ class PrivateHostedZone(CustomActionNode):
 
     def action(self):
         region = self.get_input('Region')
-        conn = route53.connect_to_region(region, profile_name=self.aws_profile)
+        conn = r53.connect_to_region(region, profile_name=self.aws_profile)
         comment = json.dumps(self.get_raw_tags())
 
         hosted_zones = conn.get_all_hosted_zones()
