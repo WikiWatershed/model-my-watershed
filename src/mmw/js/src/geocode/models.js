@@ -5,7 +5,6 @@ var Backbone = require('../../shim/backbone'),
 
 var GeocoderModel = Backbone.Model.extend({
     defaults: {
-        message: '',
         query: ''
     }
 });
