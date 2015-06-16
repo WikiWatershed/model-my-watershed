@@ -1,7 +1,6 @@
 "use strict";
 
 var Backbone = require('../../shim/backbone'),
-    Marionette = require('../../shim/backbone.marionette'),
     $ = require('jquery'),
     _ = require('lodash'),
     turfArea = require('turf-area');
@@ -128,7 +127,7 @@ var TaskModel = Backbone.Model.extend({
             }
 
             // If job was cancelled.
-            if (expectedJob != self.get('job')) {
+            if (expectedJob !== self.get('job')) {
                 defer.reject({cancelledJob: expectedJob});
                 return;
             }

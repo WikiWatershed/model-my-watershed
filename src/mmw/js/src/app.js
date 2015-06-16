@@ -24,7 +24,8 @@ var App = new Marionette.Application({
         var header = new views.HeaderView({
             el: 'header',
             model: this.user
-        }).render();
+        });
+        header.render();
     },
 
     load: function(data) {

@@ -1,9 +1,6 @@
 "use strict";
 
-var $ = require('jquery'),
-    _ = require('underscore'),
-    L = require('leaflet'),
-    App = require('./app');
+var $ = require('jquery');
 
 var AppController = {
     compare: function() {

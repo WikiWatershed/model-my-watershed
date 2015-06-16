@@ -9,7 +9,6 @@ var $ = require('jquery'),
     ZeroClipboard = require('zeroclipboard'),
     drawUtils = require('../draw/utils'),
     headerTmpl = require('./templates/header.html'),
-    filters = require('../filters'),
     patterns = require('./patterns'),
     modalConfirmTmpl = require('./templates/confirmModal.html'),
     modalInputTmpl = require('./templates/inputModal.html'),
@@ -302,7 +301,7 @@ function getLatLngs(boundsOrShape) {
 }
 
 var BaseModal = Marionette.ItemView.extend({
-    initialize: function(options) {
+    initialize: function() {
         var self = this;
         this.$el.on('hide.bs.modal', function() {
             self.destroy();
@@ -351,7 +350,7 @@ var InputModal = BaseModal.extend({
         'click @ui.save': 'updateFromInput'
     },
 
-    updateFromInput: function(e) {
+    updateFromInput: function() {
         var val = this.ui.input.val().trim();
         if (val) {
             this.triggerMethod('update', val);

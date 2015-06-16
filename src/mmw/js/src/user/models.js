@@ -90,7 +90,7 @@ var LoginFormModel = ModalBaseModel.extend({
             this.set({
                 'client_errors': null,
                 'server_errors': null
-            })
+            });
         }
     }
 });
@@ -125,7 +125,7 @@ var SignUpFormModel = ModalBaseModel.extend({
             errors.push('Please repeat the password');
         }
 
-        if (!(attrs.password1 === attrs.password2)) {
+        if (attrs.password1 !== attrs.password2) {
             errors.push('Passwords do not match');
         }
 
@@ -143,7 +143,7 @@ var SignUpFormModel = ModalBaseModel.extend({
             this.set({
                 'client_errors': null,
                 'server_errors': null
-            })
+            });
         }
     }
 });
@@ -178,7 +178,7 @@ var ForgotFormModel = ModalBaseModel.extend({
             this.set({
                 'client_errors': null,
                 'server_errors': null
-            })
+            });
         }
     }
 });
@@ -222,7 +222,7 @@ var ItsiSignUpFormModel = ModalBaseModel.extend({
             this.set({
                 'client_errors': null,
                 'server_errors': null
-            })
+            });
         }
     }
 });

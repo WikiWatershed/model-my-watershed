@@ -9,14 +9,19 @@ var Backbone = require('../shim/backbone'),
 // Source: https://github.com/jashkenas/backbone/commit/623207831ec09687f9cd9fa3a461f88849b02578
 var PatchedRouter = Backbone.Marionette.AppRouter.extend({
     route: function(route, name, callback) {
-        if (!_.isRegExp(route)) route = this._routeToRegExp(route);
+        if (!_.isRegExp(route)) {
+            route = this._routeToRegExp(route);
+        }
 
         if (_.isFunction(name)) {
             callback = name;
             name = '';
         }
 
-        if (!callback) callback = this[name];
+        if (!callback) {
+            callback = this[name];
+        }
+
         var router = this;
         Backbone.history.route(route, function(fragment) {
             var args = router._extractParameters(route, fragment);

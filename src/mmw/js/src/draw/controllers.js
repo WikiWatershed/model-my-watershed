@@ -1,9 +1,6 @@
 "use strict";
 
-var $ = require('jquery'),
-    _ = require('underscore'),
-    L = require('leaflet'),
-    App = require('../app'),
+var App = require('../app'),
     geocoder = require('../geocode/views'),
     views = require('./views'),
     coreModels = require('../core/models'),

@@ -1,10 +1,7 @@
 
 "use strict";
 
-var $ = require('jquery'),
-    _ = require('underscore'),
-    L = require('leaflet'),
-    App = require('../app'),
+var App = require('../app'),
     router = require('../router').router,
     views = require('./views'),
     models = require('./models');
@@ -29,7 +26,7 @@ var ModelingController = {
 
             project
                 .fetch()
-                .done(function(data) {
+                .done(function() {
                     App.map.set('areaOfInterest', project.get('area_of_interest'));
                     initScenarioEvents(project);
                     initViews(project);
@@ -62,7 +59,7 @@ var ModelingController = {
             });
             project.get('scenarios').add(currentConditionsScenario);
 
-            project.on('change:id', function(model) {
+            project.on('change:id', function() {
                 router.navigate(project.getReferenceUrl());
             });
 
