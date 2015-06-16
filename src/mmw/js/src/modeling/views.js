@@ -43,6 +43,7 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         // If the user changes, we should refresh all the views because they
         // have user contextual controls.
         this.listenTo(App.user, 'change', this.reRender);
+        this.listenTo(App.user, 'change:guest', this.saveAfterLogin);
     },
 
     reRender: function() {
@@ -65,6 +66,17 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
 
     onShow: function() {
         this.reRender();
+    },
+
+    saveAfterLogin: function(user, guest) {
+        if (!guest && this.model.isNew()) {
+            var user_id = user.get('id');
+            this.model.set('user_id', user_id);
+            this.model.get('scenarios').each(function(scenario) {
+                scenario.set('user_id', user_id);
+            });
+            this.model.saveProjectAndScenarios();
+        }
     }
 });
 
@@ -85,7 +97,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
         'click @ui.remove': 'deleteProject',
         'click @ui.share': 'shareProject',
         'click @ui.print': 'printProject',
-        'click @ui.save': 'saveProject',
+        'click @ui.save': 'saveProjectOrLoginUser',
         'click @ui.privacy': 'setProjectPrivacy'
     },
 
@@ -162,8 +174,12 @@ var ProjectMenuView = Marionette.ItemView.extend({
         window.print();
     },
 
-    saveProject: function() {
-        this.model.saveProjectAndScenarios();
+    saveProjectOrLoginUser: function() {
+        if (App.user.get('guest')) {
+            App.getUserOrShowLogin();
+        } else {
+            this.model.saveProjectAndScenarios();
+        }
     },
 
     setProjectPrivacy: function() {

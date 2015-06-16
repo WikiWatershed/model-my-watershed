@@ -16,6 +16,8 @@
             {% endif %}
             {% if editable %}
                 <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="rename-project">Rename</a></li>
+            {% endif %}
+            {% if not id %}
                 <li role="presentation"><a role="menuitem" tabindex="-1" id="save-project">Save</a></li>
             {% endif %}
             <li role="presentation"><a role="menuitem" tabindex="-1" id="print-project">Print</a></li>
