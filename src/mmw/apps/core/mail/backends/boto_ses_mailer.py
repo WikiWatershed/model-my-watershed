@@ -11,16 +11,18 @@ import boto.ses
 
 from django.conf import settings
 from django.core.mail.backends.base import BaseEmailBackend
+from django.core.exceptions import ImproperlyConfigured
 
 from django_statsd.clients import statsd
 from email.mime.text import MIMEText
+from boto.util import get_instance_metadata
 
 logger = logging.getLogger(__name__)
 
 
 class EmailBackend(BaseEmailBackend):
 
-    def __init__(self, fail_silently=False, aws_region='us-east-1', *args,
+    def __init__(self, fail_silently=False, aws_region=None, *args,
                  **kwargs):
         super(EmailBackend, self).__init__(fail_silently=fail_silently)
         self.mailer = BotoMailer(aws_region)
@@ -87,6 +89,15 @@ class SESQuotaException(Exception):
 class BotoMailer():
 
     def __init__(self, aws_region):
+        if not aws_region:
+            instance_metadata = get_instance_metadata(timeout=5)
+            if not instance_metadata:
+                raise ImproperlyConfigured('Failed to get instance metadata')
+            aws_region = instance_metadata['placement']['availability-zone']
+            # The AWS Region will return as `us-east-1a` but we want
+            # `us-east-1` so we trim the trailing character.
+            aws_region = aws_region[:-1]
+
         self.aws_region = aws_region
 
     def send_plain_text_message(self, text, subject, from_email, to):
