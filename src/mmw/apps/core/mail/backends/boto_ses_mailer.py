@@ -15,7 +15,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from django_statsd.clients import statsd
 from email.mime.text import MIMEText
-from boto.util import get_instance_metadata
+from boto.utils import get_instance_metadata
 
 logger = logging.getLogger(__name__)
 
