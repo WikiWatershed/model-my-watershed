@@ -92,6 +92,7 @@ var ModalBaseView = Marionette.ItemView.extend({
             'client_errors': null,
             'server_errors': server_errors
         });
+        this.onValidationError();
     },
 
     // Dismiss Action can be "cancel" or "continue as guest". Noop by default.
