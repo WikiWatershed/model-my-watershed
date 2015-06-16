@@ -151,20 +151,20 @@ def make_gt_service_call_task(model_input):
 
 
 def format_quality(model_output):
-    metrics = ['Biochemical Oxygen Demand',
-               'Total Suspended Solids',
-               'Total Nitrogen',
-               'Total Phosphorus']
+    measures = ['Biochemical Oxygen Demand',
+                'Total Suspended Solids',
+                'Total Nitrogen',
+                'Total Phosphorus']
     codes = ['bod', 'tss', 'tn', 'tp']
 
     def fn(input):
-        metric, code = input
+        measure, code = input
         return {
-            'metric': metric,
-            'pounds': model_output['modified'][code]
+            'measure': measure,
+            'load': model_output['modified'][code]
         }
 
-    return map(fn, zip(metrics, codes))
+    return map(fn, zip(measures, codes))
 
 
 @shared_task

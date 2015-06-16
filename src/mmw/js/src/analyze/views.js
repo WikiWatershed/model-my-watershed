@@ -165,17 +165,17 @@ var TabContentView = Marionette.LayoutView.extend({
         chartRegion: '.analyze-chart-region'
     },
     onShow: function() {
-        var categories = new models.LayerCategoryCollection(
+        var dataCollection = new coreModels.DataCollection(
             this.model.get('categories')
         );
 
         this.tableRegion.show(new TableView({
-            collection: categories
+            collection: dataCollection
         }));
 
         this.chartRegion.show(new ChartView({
             model: this.model,
-            collection: categories
+            collection: dataCollection
         }));
     }
 });

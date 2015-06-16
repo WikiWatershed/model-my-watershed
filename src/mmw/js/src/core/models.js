@@ -150,6 +150,9 @@ var TaskModel = Backbone.Model.extend({
     }
 });
 
+// A collection of data points, useful for tables.
+var DataCollection = Backbone.Collection.extend({});
+
 var GeoModel = Backbone.Model.extend({
     M_IN_KM: 1000000,
 
@@ -189,6 +192,7 @@ var AreaOfInterestModel = GeoModel.extend({
 module.exports = {
     MapModel: MapModel,
     TaskModel: TaskModel,
+    DataCollection: DataCollection,
     GeoModel: GeoModel,
     AreaOfInterestModel: AreaOfInterestModel
 };
