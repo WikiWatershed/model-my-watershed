@@ -150,6 +150,23 @@ def make_gt_service_call_task(model_input):
     return census
 
 
+def format_quality(model_output):
+    metrics = ['Biochemical Oxygen Demand',
+               'Total Suspended Solids',
+               'Total Nitrogen',
+               'Total Phosphorus']
+    codes = ['bod', 'tss', 'tn', 'tp']
+
+    def fn(input):
+        metric, code = input
+        return {
+            'metric': metric,
+            'pounds': model_output['modified'][code]
+        }
+
+    return map(fn, zip(metrics, codes))
+
+
 @shared_task
 def run_tr55(census, model_input):
     """
@@ -164,4 +181,8 @@ def run_tr55(census, model_input):
         et = et_max * lookup_ki(land_use)
         return simulate_cell_day((precip, et), cell, cell_count)
 
-    return {'runoff': simulate_modifications(census, fn=simulate_day)}
+    model_output = simulate_modifications(census, fn=simulate_day)
+    return {
+        'runoff': model_output,
+        'quality': format_quality(model_output)
+    }
