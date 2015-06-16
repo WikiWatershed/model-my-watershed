@@ -34,8 +34,9 @@ ALLOWED_HOSTS.append(instance_metadata['local-ipv4'])
 
 
 # EMAIL CONFIGURATION
-EMAIL_BACKEND = 'apps.core.mail.backends.boto.EmailBackend'
+EMAIL_BACKEND = 'apps.core.mail.backends.boto_ses_mailer.EmailBackend'
 EMAIL_BOTO_CHECK_QUOTA = False
+DEFAULT_FROM_EMAIL = 'noreply@mmw.azavea.com'
 # END EMAIL CONFIGURATION
 
 
