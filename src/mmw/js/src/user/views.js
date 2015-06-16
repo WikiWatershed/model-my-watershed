@@ -27,23 +27,26 @@ var ModalBaseView = Marionette.ItemView.extend({
         'click @ui.dismiss_button': 'dismissAction'
     },
 
-    modalViewOptions: ['app'],
+    // Initialize common routines and handlers.
+    initialize: function(options) {
+        this.mergeOptions(options, ['app']);
 
-    // Combine base and child `ui` and `event` hashes,
-    // import `app` if specified,
-    // initialize common routines and handlers.
-    initialize: function(child, options) {
-        child.ui = _.extend(child.ui, this.ui);
-        child.events = _.extend(child.events, this.events);
+        this.listenTo(this.model, 'change', this.render);
+        this.$el.on('shown.bs.modal', _.bind(this.onModalShown, this));
+        this.$el.on('hidden.bs.modal', _.bind(this.onModalHidden, this));
+    },
 
-        child.mergeOptions(options, child.modalViewOptions);
-
-        child.listenTo(child.model, 'change', child.render);
-        child.$el.on('hidden.bs.modal', _.bind(this.onModalHidden, child));
+    onModalShown: function() {
+        // Not implemented.
     },
 
     onModalHidden: function() {
         this.destroy();
+    },
+
+    // Invoked after ENTER key is pressed if the model is invalid.
+    onValidationError: function() {
+        // Not implemented.
     },
 
     onRender: function() {
@@ -89,18 +92,26 @@ var ModalBaseView = Marionette.ItemView.extend({
             'client_errors': null,
             'server_errors': server_errors
         });
+        this.onValidationError();
     },
 
     // Dismiss Action can be "cancel" or "continue as guest". Noop by default.
     // Override if other behavior is required.
-    dismissAction: function() { },
+    dismissAction: function() {
+        // Not implemented.
+    },
+
+    setFields: function() {
+        throw 'Not implemented';
+    },
 
     // Performs Primary Action if model is in valid state.
-    // `setFields` must be defined on child.
     validate: function() {
         this.setFields();
         if (this.model.isValid()) {
             this.primaryAction();
+        } else {
+            this.onValidationError();
         }
     }
 });
@@ -108,20 +119,24 @@ var ModalBaseView = Marionette.ItemView.extend({
 var LoginModalView = ModalBaseView.extend({
     template: loginModalTmpl,
 
-    ui: {
+    ui: _.defaults({
         username: '#username',
         password: '#password',
-        signUp:   '.sign-up',
-        forgot:   '.forgot'
-    },
+        signUp: '.sign-up',
+        forgot: '.forgot'
+    }, ModalBaseView.prototype.ui),
 
-    events: {
+    events: _.defaults({
         'click @ui.signUp': 'signUp',
         'click @ui.forgot': 'forgot'
+    }, ModalBaseView.prototype.events),
+
+    onModalShown: function() {
+        this.ui.username.focus();
     },
 
-    initialize: function(options) {
-        ModalBaseView.prototype.initialize(this, options);
+    onValidationError: function() {
+        this.ui.username.focus();
     },
 
     setFields: function() {
@@ -180,21 +195,27 @@ var LoginModalView = ModalBaseView.extend({
 var SignUpModalView = ModalBaseView.extend({
     template: signUpModalTmpl,
 
-    ui: {
+    ui: _.defaults({
         'username': '#username',
         'email': '#email',
         'password1': '#password1',
         'password2': '#password2',
         'agreed': '#agreed'
+    }, ModalBaseView.prototype.ui),
+
+    onModalShown: function() {
+        this.ui.username.focus();
     },
 
-    initialize: function(options) {
-        ModalBaseView.prototype.initialize(this, options);
-        this.$el.on('hidden.bs.modal', function() {
-            if (Backbone.history.getFragment() === 'sign-up') {
-                router.navigate('', { trigger: true });
-            }
-        });
+    onModalHidden: function() {
+        ModalBaseView.prototype.onModalHidden.apply(this, arguments);
+        if (Backbone.history.getFragment() === 'sign-up') {
+            router.navigate('', { trigger: true });
+        }
+    },
+
+    onValidationError: function() {
+        this.ui.username.focus();
     },
 
     setFields: function() {
@@ -215,14 +236,18 @@ var SignUpModalView = ModalBaseView.extend({
 var ForgotModalView = ModalBaseView.extend({
     template: forgotModalTmpl,
 
-    ui: {
+    ui: _.defaults({
         'email': '#email',
         'username': '#username',
         'password': '#password'
+    }, ModalBaseView.prototype.ui),
+
+    onModalShown: function() {
+        this.ui.email.focus();
     },
 
-    initialize: function(options) {
-        ModalBaseView.prototype.initialize(this, options);
+    onValidationError: function() {
+        this.ui.email.focus();
     },
 
     setFields: function() {
@@ -237,18 +262,24 @@ var ForgotModalView = ModalBaseView.extend({
 var ItsiSignUpModalView = ModalBaseView.extend({
     template: itsiSignUpModalTmpl,
 
-    ui: {
+    ui: _.defaults({
         'username': '#username',
         'first_name': '#first_name',
         'last_name': '#last_name',
         'agreed': '#agreed'
+    }, ModalBaseView.prototype.ui),
+
+    onModalShown: function() {
+        this.ui.username.focus();
     },
 
-    initialize: function(options) {
-        ModalBaseView.prototype.initialize(this, options);
-        this.$el.on('hidden.bs.modal', function() {
-            router.navigate('', { trigger: true });
-        });
+    onModalHidden: function() {
+        ModalBaseView.prototype.onModalHidden.apply(this, arguments);
+        router.navigate('', { trigger: true });
+    },
+
+    onValidationError: function() {
+        this.ui.username.focus();
     },
 
     setFields: function() {
