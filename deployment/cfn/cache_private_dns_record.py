@@ -34,7 +34,7 @@ class CachePrivateDNSRecord(CustomActionNode):
     def get_cache_cluster_endpoint(self, cache_cluster_id):
         """Get the first cache cluster node endpoint"""
         elasticache_conn = ec.connect_to_region(self.region,
-                                                         profile_name=self.aws_profile)  # NOQA
+                                                profile_name=self.aws_profile)
         cache_clusters = elasticache_conn.describe_cache_clusters(
             cache_cluster_id=cache_cluster_id,
             show_cache_node_info=True)['DescribeCacheClustersResponse']['DescribeCacheClustersResult']['CacheClusters']  # NOQA

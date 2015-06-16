@@ -6,6 +6,7 @@ from private_hosted_zone import PrivateHostedZone
 from data_plane import DataPlane
 from cache_private_dns_record import CachePrivateDNSRecord
 from application import Application
+from tiler import Tiler
 
 import ConfigParser
 
@@ -45,17 +46,19 @@ def build_graph(mmw_config, aws_profile, **kwargs):
         PrivateHostedZone=private_hosted_zone, DataPlane=data_plane,
         aws_profile=aws_profile
     )
+    tiler = Tiler(globalconfig=global_config, VPC=vpc, aws_profile=aws_profile)
     application = Application(globalconfig=global_config, VPC=vpc,
                               aws_profile=aws_profile)
 
-    return s3_vpc_endpoint, cache_private_dns_record, application
+    return s3_vpc_endpoint, cache_private_dns_record, tiler, application
 
 
 def build_stacks(mmw_config, aws_profile, **kwargs):
     """Trigger actual building of graphs"""
     s3_vpc_endpoint_graph, cache_private_dns_record_graph, \
-        application_graph = build_graph(mmw_config,
-                                        aws_profile)
+        application_graph, tiler_graph = build_graph(mmw_config,
+                                                     aws_profile)
     s3_vpc_endpoint_graph.go()
     cache_private_dns_record_graph.go()
+    tiler_graph.go()
     application_graph.go()
