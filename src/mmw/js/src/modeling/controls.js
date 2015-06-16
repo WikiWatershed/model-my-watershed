@@ -103,7 +103,7 @@ var PrecipitationView = ControlView.extend({
     },
 
     getDisplayValue: function(value) {
-        return value === 0 ? '' : value.toFixed(1) + '"';
+        return value.toFixed(1) + '"';
     },
 
     onSliderDragged: function() {

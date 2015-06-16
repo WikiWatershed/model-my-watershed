@@ -9,6 +9,14 @@ var Backbone = require('../../shim/backbone'),
 var ModelPackageControlModel = Backbone.Model.extend({
     defaults: {
         name: ''
+    },
+
+    // Return true if this is an input control and false if it is a
+    // modification control.
+    isInputControl: function() {
+        return _.contains([
+            'precipitation'
+        ], this.get('name'));
     }
 });
 
