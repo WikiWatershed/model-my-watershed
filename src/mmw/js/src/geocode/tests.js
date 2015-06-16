@@ -12,6 +12,9 @@ var _ = require('lodash'),
     models = require('./models');
 
 describe('Geocoder', function() {
+    var MSG_EMPTY = 'No results found.',
+        MSG_ERROR = 'Oops! Something went wrong.';
+
     before(function() {
         if ($('#sandbox').length === 0) {
             $('<div>', {id: 'sandbox'}).appendTo('body');
@@ -33,12 +36,6 @@ describe('Geocoder', function() {
     });
 
     describe('SearchBoxView', function() {
-        it('renders no list items if there no suggestions', function(done) {
-            this.server.respondWith([200, { 'Content-Type': 'application/json' }, '[]']);
-
-            testNumberOfResults(0, done);
-        });
-
         it('renders one list item if there is one suggestion', function(done) {
             var testData = getTestSuggestions(1),
                 responseData = JSON.stringify({ suggestions: testData });
@@ -57,13 +54,24 @@ describe('Geocoder', function() {
             testNumberOfResults(testData.length, done);
         });
 
+        it('renders no list items and an error message if there are no suggestions', function(done) {
+            this.server.respondWith([200, { 'Content-Type': 'application/json' }, '[]']);
+            var view = createView();
+
+            view.handleSearch('a query').then(function() {
+                assert.equal($('#sandbox li').length, 0);
+                assert.include($('.message').text().trim(), MSG_EMPTY);
+                done();
+            }());
+        });
+
         it('renders an error message if there was a problem getting suggestions', function(done) {
             this.server.respondWith([500, { 'Content-Type': 'application/json' }, '[]']);
             var view = createView();
 
             view.handleSearch('a query').then(function() {
                 assert.equal($('#sandbox li').length, 0);
-                assert.include($('.message').text(), 'error');
+                assert.include($('.message').text().trim(), MSG_ERROR);
                 done();
             }());
         });
@@ -81,7 +89,7 @@ describe('Geocoder', function() {
 
                 view.selectFirst().done(function() {
                     assert.equal($('#sandbox li').length, 0);
-                    assert.include($('.message').text(), 'error');
+                    assert.include($('.message').text().trim(), MSG_ERROR);
                     done();
                 }());
             }());

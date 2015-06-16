@@ -6,10 +6,19 @@ var _ = require('underscore'),
     models = require('./models'),
     geocoderTmpl = require('./templates/geocoder.html'),
     searchTmpl = require('./templates/search.html'),
-    suggestionTmpl = require('./templates/suggestion.html'),
-    noResultsTmpl = require('./templates/noResults.html');
+    suggestionTmpl = require('./templates/suggestion.html');
 
 var ENTER_KEYCODE = 13;
+
+var ICON_BASE = 'search-icon fa ',
+    ICON_DEFAULT = 'fa-search',
+    ICON_WORKING = 'fa-circle-o-notch fa-spin',
+    ICON_EMPTY   = 'fa-exclamation-triangle empty',
+    ICON_ERROR   = 'fa-exclamation-triangle error';
+
+var MSG_DEFAULT = '',
+    MSG_EMPTY   = 'No results found.',
+    MSG_ERROR   = 'Oops! Something went wrong.';
 
 var GeocoderView = Marionette.LayoutView.extend({
     template: geocoderTmpl,
@@ -33,30 +42,31 @@ var SearchBoxView = Marionette.LayoutView.extend({
 
     ui: {
         'searchBox': '#geocoder-search',
+        'searchIcon': '.search-icon',
         'message': '.message',
+        'messageDismiss': '.dismiss',
         'resultsRegion': '#geocode-search-results-region'
     },
 
     events: {
         'keyup @ui.searchBox': 'processSearchInputEvent',
+        'click @ui.messageDismiss': 'dismissAction',
     },
 
     modelEvents: {
-        'change:message': 'renderMessage',
         'change:query': 'render'
     },
 
     childEvents: {
         'suggestion:select:in-progress': function() {
-            this.model.set('message', 'Loading...');
+            this.setStateWorking();
         },
         'suggestion:select:success': function() {
             this.reset();
-            this.clearMessage();
+            this.setStateDefault();
         },
         'suggestion:select:failure': function() {
-            this.getRegion('resultsRegion').empty();
-            this.setErrorMessage();
+            this.setStateError();
         }
     },
 
@@ -64,15 +74,45 @@ var SearchBoxView = Marionette.LayoutView.extend({
         'resultsRegion': '#geocode-search-results-region'
     },
 
-    renderMessage: function() {
-        this.ui.message.html(this.model.get('message'));
+    setIcon: function(icon) {
+        this.ui.searchIcon.prop('class', ICON_BASE + icon);
+    },
+
+    setMessage: function(message) {
+        this.ui.message.find('span').html(message);
+        if (message && message !== '') {
+            this.ui.message.removeClass('hidden');
+        } else {
+            this.ui.message.addClass('hidden');
+        }
+    },
+
+    setStateDefault: function() {
+        this.setIcon(ICON_DEFAULT);
+        this.setMessage(MSG_DEFAULT);
+    },
+
+    setStateWorking: function() {
+        this.setIcon(ICON_WORKING);
+    },
+
+    setStateEmpty: function() {
+        this.emptyResultsRegion();
+        this.setIcon(ICON_EMPTY);
+        this.setMessage(MSG_EMPTY);
+    },
+
+    setStateError: function() {
+        this.emptyResultsRegion();
+        this.setIcon(ICON_ERROR);
+        this.setMessage(MSG_ERROR);
     },
 
     processSearchInputEvent: function(e) {
         var query = $(e.target).val().trim();
 
         if (query === '') {
-            this.clearMessage();
+            this.setStateDefault();
             this.emptyResultsRegion();
             return false;
         }
@@ -83,7 +123,7 @@ var SearchBoxView = Marionette.LayoutView.extend({
             }
         } else if (query !== this.model.get('query')) {
             this.model.set('query', query, { silent: true });
-            this.model.set('message', 'Searching...');
+            this.setStateWorking();
             this.makeThrottledSearch(query);
         }
     },
@@ -96,9 +136,9 @@ var SearchBoxView = Marionette.LayoutView.extend({
         var defer = $.Deferred();
 
         this.search(query)
-            .then(_.bind(this.clearMessage, this))
+            .then(_.bind(this.setStateDefault, this))
             .done(_.bind(this.showResultsRegion, this))
-            .fail(_.bind(this.setErrorMessage, this));
+            .fail(_.bind(this.setStateError, this));
 
         return defer.promise();
     },
@@ -114,30 +154,27 @@ var SearchBoxView = Marionette.LayoutView.extend({
         var self = this,
             defer = $.Deferred();
 
-        this.model.set('message', 'Loading...');
+        this.setStateWorking();
 
         this.collection
             .first()
             .select()
                 .done(function() {
-                    self.clearMessage();
+                    self.setStateDefault();
                     self.collection.first().setMapViewToLocation();
                 })
-                .fail(_.bind(this.setErrorMessage, this))
+                .fail(_.bind(this.setStateError, this))
                 .always(_.bind(this.reset, this));
 
         return defer.promise();
     },
 
-    clearMessage: function() {
-        this.model.set('message', '');
-    },
-
-    setErrorMessage: function() {
-        this.model.set('message', 'Sorry, an error occured while searching.');
-    },
-
     showResultsRegion: function() {
+        if (this.collection.isEmpty()) {
+            this.setStateEmpty();
+            return false;
+        }
+
         this.getRegion('resultsRegion').show(
             new SuggestionsView({
                 collection: this.collection
@@ -152,6 +189,11 @@ var SearchBoxView = Marionette.LayoutView.extend({
     reset: function() {
         this.model.set('query', '');
         this.emptyResultsRegion();
+    },
+
+    dismissAction: function() {
+        this.reset();
+        this.setStateDefault();
     }
 });
 
@@ -186,14 +228,9 @@ var SuggestionView = Marionette.ItemView.extend({
     }
 });
 
-var NoResultsView = Marionette.ItemView.extend({
-    template: noResultsTmpl
-});
-
 var SuggestionsView = Marionette.CollectionView.extend({
     tagName: 'ul',
-    childView: SuggestionView,
-    emptyView: NoResultsView
+    childView: SuggestionView
 });
 
 module.exports = {
