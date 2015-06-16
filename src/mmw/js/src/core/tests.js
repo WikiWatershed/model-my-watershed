@@ -424,7 +424,7 @@ describe('Core', function() {
             }
         });
 
-        it('doesn\'t attach CSRF tokens to external requests', function() {
+        it('doesn\'t attach CSRF tokens to external requests over HTTP', function() {
             var requestMethods = [
                 'GET',
                 'HEAD',
@@ -440,6 +440,34 @@ describe('Core', function() {
                 $.ajax({
                     method: method,
                     url: 'http://www.example.com',
+                    success: function(data) {
+                        sinon.spy(null, data);
+                    }
+                });
+            });
+
+            for(var i=0; i<this.requests.length; i++) {
+                assert.notProperty(this.requests[i].requestHeaders, 'X-Requested-With');
+                assert.notProperty(this.requests[i].requestHeaders, 'X-CSRFToken');
+            }
+        });
+
+        it('doesn\'t attach CSRF tokens to external requests over HTTPS', function() {
+            var requestMethods = [
+                'GET',
+                'HEAD',
+                'OPTIONS',
+                'TRACE',
+                'POST',
+                'PUT',
+                'DELETE',
+                'PATCH'
+            ];
+
+            _.each(requestMethods, function(method) {
+                $.ajax({
+                    method: method,
+                    url: 'https://www.secure-example.com',
                     success: function(data) {
                         sinon.spy(null, data);
                     }
