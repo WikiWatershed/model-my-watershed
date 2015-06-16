@@ -105,7 +105,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         return {
-            editable: App.user.userMatch(this.model.get('user_id'))
+            editable: isEditable(this.model)
         };
     },
 
@@ -216,10 +216,11 @@ var ScenariosView = Marionette.LayoutView.extend({
     template: scenariosBarTmpl,
 
     templateHelpers: function() {
+        // Check the first scenario in the collection as a proxy for the
+        // entire collection.
+        var scenario = this.collection.first();
         return {
-            // Check the first scenario in the collection as a proxy for the
-            // entire collection.
-            editable: App.user.userMatch(this.collection.first().get('user_id'))
+            editable: isEditable(scenario)
         };
     },
 
@@ -276,7 +277,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     templateHelpers: function() {
         return {
             cid: this.model.cid,
-            editable: App.user.userMatch(this.model.get('user_id'))
+            editable: isEditable(this.model)
         };
     },
 
@@ -445,14 +446,14 @@ var ScenarioDropDownMenuView = Marionette.CompositeView.extend({
 var ToolbarTabContentView = Marionette.CompositeView.extend({
     model: models.ScenarioModel,
     template: scenarioToolbarTabContentTmpl,
-    collection: models.ModificationsCollection,
+    collection: models.ModelPackageControlsCollection,
     childViewContainer: '.controls',
 
     tagName: 'div',
     className: 'tab-pane',
 
-    childViewOptions: function(model) {
-        var modificationModel = this.getModificationForInputControl(model),
+    childViewOptions: function(inputControlModel) {
+        var modificationModel = this.getModificationForInputControl(inputControlModel),
             addModification = _.bind(this.model.addModification, this.model),
             addOrReplaceModification = _.bind(this.model.addOrReplaceModification, this.model);
         return {
@@ -497,8 +498,15 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
             });
         return {
             shapes: shapes,
-            groupedShapes: groupedShapes
+            groupedShapes: groupedShapes,
+            editable: isEditable(this.model)
         };
+    },
+
+    // Only display modification controls if scenario is editable.
+    // Input controls should always be shown.
+    filter: function(inputControlModel) {
+        return isEditable(this.model) || inputControlModel.isInputControl();
     },
 
     onRender: function() {
@@ -521,14 +529,15 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
         modificationsColl.remove(modification);
     },
 
-    getChildView: function(model) {
-        var controlName = model.get('name');
+    getChildView: function(inputControlModel) {
+        var controlName = inputControlModel.get('name');
         return controls.getControlView(controlName);
     },
 
-    getModificationForInputControl: function(model) {
+    // Return first modification for an input control.
+    getModificationForInputControl: function(inputControlModel) {
         var modificationsColl = this.model.get('modifications'),
-            controlName = model.get('name');
+            controlName = inputControlModel.get('name');
         return modificationsColl.findWhere({ name: controlName });
     }
 });
@@ -769,6 +778,10 @@ var ResultsTabContentsView = Marionette.CollectionView.extend({
         this.$el.find('.tab-pane:first').addClass('active');
     }
 });
+
+function isEditable(scenario) {
+    return App.user.userMatch(scenario.get('user_id'));
+}
 
 module.exports = {
     ModelingResultsWindow: ModelingResultsWindow,
