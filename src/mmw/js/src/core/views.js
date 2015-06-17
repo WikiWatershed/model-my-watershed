@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     L = require('leaflet'),
+    leafletLocate = require('leaflet.locatecontrol'),
     _ = require('lodash'),
     router = require('../router.js').router,
     Marionette = require('../../shim/backbone.marionette'),
@@ -83,6 +84,33 @@ var HeaderView = Marionette.ItemView.extend({
 
 });
 
+// Init the locate plugin button and add it to the map.
+function addLocateMeButton(map, maxZoom, maxAge) {
+    var locateOptions = {
+        position: 'topright',
+        metric: false,
+        drawCircle: false,
+        showPopup: false,
+        follow: true,
+        markerClass: L.marker,
+        markerStyle: {
+            opacity: 0.0,
+            clickable: false,
+            keyboard: false
+        },
+        locateOptions: {
+            maxZoom: maxZoom,
+            // Cache location response, in ms
+            maximumAge: maxAge
+        },
+        strings: {
+            title: 'Zoom to your location.'
+        }
+    };
+
+    L.control.locate(locateOptions).addTo(map);
+}
+
 // This view houses a Leaflet instance. The map container element must exist
 // in the DOM before initializing.
 var MapView = Marionette.ItemView.extend({
@@ -116,13 +144,16 @@ var MapView = Marionette.ItemView.extend({
                 maxZoom: 18
             }),
             areaOfInterestLayer = new L.FeatureGroup(),
-            modificationsLayer = new L.FeatureGroup();
+            modificationsLayer = new L.FeatureGroup(),
+            maxZoom = 10,
+            maxAge = 60000;
 
         map.addControl(new L.Control.Zoom({position: 'topright'}));
-        map.setView([40.1, -75.7], 10);
+        addLocateMeButton(map, maxZoom, maxAge);
         map.addLayer(tileLayer);
         map.addLayer(areaOfInterestLayer);
         map.addLayer(modificationsLayer);
+        map.setView([40.1, -75.7], maxZoom); // center the map
 
         // Keep the map model up-to-date with the position of the map
         this.listenTo(map, 'moveend', this.updateMapModelPosition);
@@ -131,6 +162,28 @@ var MapView = Marionette.ItemView.extend({
         this._leafletMap = map;
         this._areaOfInterestLayer = areaOfInterestLayer;
         this._modificationsLayer = modificationsLayer;
+
+        // Geolocation success handler
+        function geolocation_success(position) {
+            var lng = position.coords.longitude,
+                lat = position.coords.latitude;
+            map.setView([lat, lng], maxZoom);
+        }
+
+        // Attempt to Geolocate.  If geolocation fails or is not
+        // supported, nothing more needs to be done since the map has
+        // already been centered.
+        if (navigator.geolocation) {
+            var options = {
+                enableHighAccuracy: true,
+                maximumAge : maxAge,
+                timeout : 27000
+            };
+            navigator.geolocation.getCurrentPosition(
+                geolocation_success,
+                _.noop,
+                options);
+        }
     },
 
     // Override the default render method because we manually update
