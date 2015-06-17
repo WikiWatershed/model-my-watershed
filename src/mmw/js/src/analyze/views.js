@@ -165,17 +165,17 @@ var TabContentView = Marionette.LayoutView.extend({
         chartRegion: '.analyze-chart-region'
     },
     onShow: function() {
-        var categories = new models.LayerCategoryCollection(
-                this.model.get('categories')
-            );
+        var dataCollection = new coreModels.DataCollection(
+            this.model.get('categories')
+        );
 
         this.tableRegion.show(new TableView({
-            collection: categories
+            collection: dataCollection
         }));
 
         this.chartRegion.show(new ChartView({
             model: this.model,
-            collection: categories
+            collection: dataCollection
         }));
     }
 });
@@ -211,10 +211,10 @@ var ChartView = Marionette.ItemView.extend({
     },
 
     addChart: function() {
-        var chartData = this.collection.map(function(model) {
-            return model.attributes;
-        }),
-            selector = '#' + this.id() + ' .bar-chart',
+        var selector = '#' + this.id() + ' .bar-chart',
+            chartData = this.collection.map(function(model) {
+                return model.attributes;
+            }),
             chartOptions = {
                 isPercentage: true,
                 depAxisLabel: 'Coverage'
@@ -227,7 +227,6 @@ var ChartView = Marionette.ItemView.extend({
         }
         chart.makeBarChart(selector, chartData, indVar, depVars, chartOptions);
     }
-
 });
 
 module.exports = {

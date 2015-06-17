@@ -20,8 +20,8 @@
     scenarioMenuItemTmpl = require('./templates/scenarioMenuItem.html'),
     projectMenuTmpl = require('./templates/projectMenu.html'),
     scenarioToolbarTabContentTmpl = require('./templates/scenarioToolbarTabContent.html'),
-    chart = require('../core/chart.js'),
-    barChartTmpl = require('../core/templates/barChart.html');
+    tr55RunoffViews = require('./tr55/runoff/views.js'),
+    tr55QualityViews = require('./tr55/quality/views.js');
 
 var ENTER_KEYCODE = 13,
     ESCAPE_KEYCODE = 27;
@@ -694,7 +694,8 @@ var ResultsTabPanelsView = Marionette.CollectionView.extend({
     }
 });
 
-// Model result contents (i.e. charts and graphs)
+// Creates the appropriate view to visualize a result based
+// on project.get('model_package') and resultModel.get('name').
 var ResultsTabContentView = Marionette.LayoutView.extend({
     template: resultsTabContentTmpl,
 
@@ -707,7 +708,7 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
     },
 
     regions: {
-        barChartRegion: '.bar-chart-region'
+        resultRegion: '.result-region'
     },
 
     id: function() {
@@ -715,69 +716,27 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        this.barChartRegion.show(new BarChartView({
-            model: this.model
-        }));
-    }
-});
-
-var BarChartView = Marionette.ItemView.extend({
-    template: barChartTmpl,
-    id: function() {
-        return 'bar-chart-' + this.model.get('name');
-    },
-    className: 'chart-container',
-
-    ui: {
-        barChart: '.bar-chart'
-    },
-
-    initialize: function() {
-        this.listenTo(this.model, 'change', this.addChart);
-    },
-
-    onAttach: function() {
-        this.addChart();
-    },
-
-    addChart: function() {
-        var selector = '#' + this.id() + ' .bar-chart';
-        this.clearView();
-        var result = this.model.get('result');
-        if (result) {
-            var indVar = 'type',
-                depVars = ['inf', 'runoff', 'et'],
-                data = [
-                    {
-                        type: 'Original',
-                        inf: result['unmodified']['inf'],
-                        runoff: result['unmodified']['runoff'],
-                        et: result['unmodified']['et']
-                    },
-                    {
-                        type: 'Modified',
-                        inf: result['modified']['inf'],
-                        runoff: result['modified']['runoff'],
-                        et: result['modified']['et']
-                    }
-                ],
-                options = {
-                    barColors: ['#329b9c', '#4aeab3', '#4ebaea'],
-                    depAxisLabel: 'Level',
-                    depDisplayNames: ['Infiltration', 'Runoff', 'Evapotranspiration']
-                };
-            chart.makeBarChart(selector, data, indVar, depVars, options);
-        }
-    },
-
-    // Clear view if polling just ended.
-    clearView: function() {
-        var prevAttrs = this.model.previousAttributes(),
-            wasPolling = prevAttrs.polling,
-            isPolling = this.model.get('polling'),
-            pollingJustEnded = wasPolling && !isPolling;
-        if (pollingJustEnded) {
-            this.ui.barChart.empty();
+        var modelPackage = App.currProject.get('model_package'),
+            resultName = this.model.get('name');
+        switch (modelPackage) {
+            case 'tr-55':
+                switch(resultName) {
+                    case 'runoff':
+                        this.resultRegion.show(new tr55RunoffViews.ResultView({
+                            model: this.model
+                        }));
+                        break;
+                    case 'quality':
+                        this.resultRegion.show(new tr55QualityViews.ResultView({
+                            model: this.model
+                        }));
+                        break;
+                    default:
+                        console.log('Result not supported.');
+                }
+                break;
+            default:
+                console.log('Model package ' + modelPackage + ' not supported.');
         }
     }
 });
