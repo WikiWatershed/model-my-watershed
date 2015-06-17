@@ -26,19 +26,12 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// Source: http://stackoverflow.com/questions/6238351/fastest-way-to-detect-external-urls
-var isExternal = (function(){
-    var domainRe = /https?:\/\/((?:[\w\d]+\.)+[\w\d]{2,})/i;
+// Internal requests are relative.
+function isExternal(url) {
+    var domainRegExp = /^http/i;
 
-    return function(url) {
-        function domain(url) {
-          var result = domainRe.exec(url) !== null ? domainRe.exec(url)[1] : null;
-          return result;
-        }
-
-        return domain(location.href) !== domain(url);
-    };
-})();
+    return domainRegExp.exec(url) !== null;
+}
 
 exports.jqueryAjaxSetupOptions = {
     beforeSend: function(xhr, settings) {
