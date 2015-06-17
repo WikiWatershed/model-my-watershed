@@ -728,6 +728,10 @@ var BarChartView = Marionette.ItemView.extend({
     },
     className: 'chart-container',
 
+    ui: {
+        barChart: '.bar-chart'
+    },
+
     initialize: function() {
         this.listenTo(this.model, 'change', this.addChart);
     },
@@ -738,7 +742,7 @@ var BarChartView = Marionette.ItemView.extend({
 
     addChart: function() {
         var selector = '#' + this.id() + ' .bar-chart';
-        $(selector).empty();
+        this.clearView();
         var result = this.model.get('result');
         if (result) {
             var indVar = 'type',
@@ -763,6 +767,17 @@ var BarChartView = Marionette.ItemView.extend({
                     depDisplayNames: ['Infiltration', 'Runoff', 'Evapotranspiration']
                 };
             chart.makeBarChart(selector, data, indVar, depVars, options);
+        }
+    },
+
+    // Clear view if polling just ended.
+    clearView: function() {
+        var prevAttrs = this.model.previousAttributes(),
+            wasPolling = prevAttrs.polling,
+            isPolling = this.model.get('polling'),
+            pollingJustEnded = wasPolling && !isPolling;
+        if (pollingJustEnded) {
+            this.ui.barChart.empty();
         }
     }
 });

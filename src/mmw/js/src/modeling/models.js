@@ -38,6 +38,9 @@ var Tr55TaskModel = coreModels.TaskModel.extend({
 
 var ResultModel = Backbone.Model.extend({
     defaults: {
+        name: '',
+        displayName: '',
+        result: null,
         polling: false
     }
 });
