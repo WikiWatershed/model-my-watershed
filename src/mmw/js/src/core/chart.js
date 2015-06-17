@@ -47,6 +47,16 @@ function makeBarChart(selector, data, indVar, depVars, options) {
         bars,
         legend;
 
+    /**
+     * Drawing constants. AXIS_OFFSET provides a forced px value offset to
+     * prevent the charts from sitting on top of the axis labels.
+     * CHART_CONTAINER_PERCENTAGE sets the actual bar chart area width to a
+     * percentage of the overall svg width. This helps ensure the chart doesn't
+     * take over the whole container, leaving room for the legend.
+     */
+    var AXIS_OFFSET = 20,
+        CHART_CONTAINER_PERCENTAGE = 0.8;
+
     // Set the upper and lower bounds of each bar chart element.
     _.forEach(data, function(datum) {
         var depLower = 0;
@@ -85,7 +95,8 @@ function makeBarChart(selector, data, indVar, depVars, options) {
         // look reasonable.
         var topMargin = isVertical ? vertMargin.top : horizMargin.top;
         legend = svg.selectAll('.legend')
-            .data(data[0].depVals)
+            // loop over data in reverse order to match the bar chart rendering but do not alter the original data.
+            .data(data[0].depVals.slice().reverse())
             .enter().append('g')
             .attr('class', 'legend')
             .attr('transform', function(d, i) { return 'translate(0,' + (topMargin + i * 10) + ')'; });
@@ -117,7 +128,7 @@ function makeBarChart(selector, data, indVar, depVars, options) {
         computeSizes(vertMargin);
 
         x = d3.scale.ordinal()
-            .rangeRoundBands([0, width], 0.1);
+            .rangeRoundBands([0, width * CHART_CONTAINER_PERCENTAGE], 0.1);
 
         y = d3.scale.linear()
             .rangeRound([height, 0]);
@@ -140,6 +151,7 @@ function makeBarChart(selector, data, indVar, depVars, options) {
             .attr('height', containerHeight);
 
         chartGroup = svg.append('g')
+            .attr('class', 'chart-group')
             .attr('transform', 'translate(' + vertMargin.left + ',' + vertMargin.top + ')');
 
         x.domain(data.map(function(d) { return d[indVar]; }));
@@ -147,7 +159,7 @@ function makeBarChart(selector, data, indVar, depVars, options) {
 
         xAxisGroup = chartGroup.append('g')
             .attr('class', 'x axis')
-            .attr('transform', 'translate(0,' + height + ')')
+            .attr('transform', 'translate(' + AXIS_OFFSET + ',' + height + ')')
             .call(xAxis);
 
         yAxisGroup = chartGroup.append('g')
@@ -167,9 +179,9 @@ function makeBarChart(selector, data, indVar, depVars, options) {
         barGroups = chartGroup.selectAll('.bar')
             .data(data)
             .enter().append('g')
-            .attr('class', 'g')
+            .classed({'g': true, 'bar-container': true })
             .attr('transform', function(d) {
-                return 'translate(' + x(d[indVar]) + ',0)';
+                return 'translate(' + (AXIS_OFFSET + x(d[indVar])) + ',0)';
             });
 
         bars = barGroups.selectAll('rect')
@@ -195,9 +207,9 @@ function makeBarChart(selector, data, indVar, depVars, options) {
         if ($(selector).length > 0) {
             computeSizes(vertMargin);
 
-            x.rangeRoundBands([0, width], 0.1);
+            x.rangeRoundBands([0, width * CHART_CONTAINER_PERCENTAGE], 0.1);
             xAxis.scale(x);
-            xAxisGroup.attr('transform', 'translate(0,' + height + ')')
+            xAxisGroup.attr('transform', 'translate(' + AXIS_OFFSET + ',' + height + ')')
                 .call(xAxis);
 
             y.range([height, 0]);
@@ -205,7 +217,7 @@ function makeBarChart(selector, data, indVar, depVars, options) {
             yAxisGroup.call(yAxis);
 
             barGroups.attr('transform', function(d) {
-                return 'translate(' + x(d[indVar]) + ',0)';
+                return 'translate(' + (AXIS_OFFSET + x(d[indVar])) + ',0)';
             });
 
             bars.attr('width', x.rangeBand())
