@@ -257,7 +257,7 @@ var ScenarioModel = Backbone.Model.extend({
         this.get('modifications').on('add remove', this.attemptSave, this);
 
         var debouncedGetResults = _.debounce(_.bind(this.getResults, this), 500);
-        this.get('modifications').on('add change', debouncedGetResults);
+        this.get('modifications').on('add change remove', debouncedGetResults);
         this.set('taskModel', $.extend(true, {}, App.currProject.get('taskModel')));
 
         var resultCollection;
