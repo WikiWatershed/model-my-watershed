@@ -11,6 +11,10 @@ var colors = {
     'grassland'  : '#54d2d0',
     'row_crop'   : '#52c6dd',
     'wetland'    : '#4ebaea',
+    'chaparral'  : '#16161d',
+    'desert'     : '#16161d',
+    'sg_prairie' : '#16161d',
+    'tg_prairie' : '#16161d',
 
     // Conservation Practice
     'rain_garden'        : '#51dec2',
