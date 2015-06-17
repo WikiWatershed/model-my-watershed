@@ -2,7 +2,6 @@
 django_settings_module: "mmw.settings.production"
 
 postgresql_username: "modelmywatershed"
-postgresql_password: "{{ lookup('env', 'MMW_DB_PASSWORD') | default('modelmywatershed', true) }}"
 postgresql_database: "modelmywatershed"
 
 ntp_servers:
@@ -19,4 +18,3 @@ statsite_host: "monitoring.service.mmw.internal"
 tiler_host: "d3lwucvii61yzl.cloudfront.net"
 
 itsi_base_url: "https://learn.staging.concord.org/"
-itsi_secret_key: "{{ lookup('env', 'MMW_ITSI_SECRET_KEY') }}"
