@@ -16,10 +16,7 @@ def launch_stacks(mmw_config, aws_profile, **kwargs):
 
 
 def create_ami(mmw_config, aws_profile, machine_type, **kwargs):
-    run_packer(machine_type,
-               aws_profile=aws_profile,
-               region=mmw_config['Region'],
-               stack_type=mmw_config['StackType'])
+    run_packer(mmw_config, machine_type, aws_profile=aws_profile)
 
 
 def main():
