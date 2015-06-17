@@ -50,6 +50,7 @@ var ModelingController = {
                 scenarios: new models.ScenariosCollection()
             });
 
+            // TODO evalutate if we can remove this global by reworking this code.
             App.currProject = project;
 
             project.get('scenarios').add([
@@ -61,7 +62,12 @@ var ModelingController = {
                     name: 'New Scenario',
                     active: true
                 })
-            ]);
+                // Silent is set to true because we don't actually want to save the
+                // project without some user interaction. This initialization
+                // should set the stage but we should wait for something else to
+                // happen to save. Ideally we will move this into the project
+                // creation when we get rid of the global.
+            ], { silent: true });
 
             project.on('change:id', function() {
                 router.navigate(project.getReferenceUrl());
