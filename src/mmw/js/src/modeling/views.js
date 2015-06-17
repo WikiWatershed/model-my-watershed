@@ -612,6 +612,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
                 .find('i')
                     .removeClass('fa-angle-up')
                     .addClass('fa-angle-down');
+            self.detailsRegion.currentView.triggerBarChartRefresh();
         });
     },
 
@@ -659,6 +660,10 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         this.contentRegion.show(new ResultsTabContentsView({
             collection: this.collection
         }));
+    },
+
+    triggerBarChartRefresh: function() {
+        this.panelsRegion.currentView.triggerBarChartRefresh();
     }
 });
 
