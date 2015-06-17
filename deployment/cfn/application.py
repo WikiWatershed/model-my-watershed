@@ -4,6 +4,9 @@ from troposphere import (
     Output,
     Tags,
     GetAtt,
+    Base64,
+    Join,
+    Equals,
     cloudwatch as cw,
     ec2,
     elasticloadbalancing as elb,
@@ -34,6 +37,7 @@ class Application(StackNode):
         'Tags': ['global:Tags'],
         'Region': ['global:Region'],
         'StackType': ['global:StackType'],
+        'StackColor': ['global:StackColor'],
         'KeyName': ['global:KeyName'],
         'AvailabilityZones': ['global:AvailabilityZones',
                               'VPC:AvailabilityZones'],
@@ -48,12 +52,19 @@ class Application(StackNode):
         'PrivateSubnets': ['global:PrivateSubnets', 'VPC:PrivateSubnets'],
         'VpcId': ['global:VpcId', 'VPC:VpcId'],
         'GlobalNotificationsARN': ['global:GlobalNotificationsARN'],
+        'BlueTileServerDistributionEndpoint':
+        ['global:BlueTileServerDistributionEndpoint',
+            'TileDeliveryNetwork:BlueTileServerDistributionEndpoint'],
+        'GreenTileServerDistributionEndpoint':
+        ['global:GreenTileServerDistributionEndpoint',
+            'TileDeliveryNetwork:GreenTileServerDistributionEndpoint'],
     }
 
     DEFAULTS = {
         'Tags': {},
         'Region': 'us-east-1',
         'StackType': 'Staging',
+        'StackColor': 'Green',
         'KeyName': 'mmw-stg',
         'AppServerInstanceType': 't2.micro',
         'AppServerInstanceProfile': 'AppServerInstanceProfile',
@@ -62,7 +73,10 @@ class Application(StackNode):
         'AppServerAutoScalingMax': '1',
     }
 
-    ATTRIBUTES = {'StackType': 'StackType'}
+    ATTRIBUTES = {
+        'StackType': 'StackType',
+        'StackColor': 'StackColor',
+    }
 
     def set_up_stack(self):
         super(Application, self).set_up_stack()
@@ -76,6 +90,11 @@ class Application(StackNode):
         self.add_description('Application server stack for MMW')
 
         # Parameters
+        self.color = self.add_parameter(Parameter(
+            'StackColor', Type='String',
+            Description='Stack color', AllowedValues=['Blue', 'Green']
+        ), 'StackColor')
+
         self.keyname = self.add_parameter(Parameter(
             'KeyName', Type='String',
             Description='Name of an existing EC2 key pair'
@@ -144,6 +163,16 @@ class Application(StackNode):
             'GlobalNotificationsARN', Type='String',
             Description='ARN for an SNS topic to broadcast notifications'
         ), 'GlobalNotificationsARN')
+
+        self.blue_tile_distribution_endpoint = self.add_parameter(Parameter(
+            'BlueTileServerDistributionEndpoint', Type='String',
+            Description='Endpoint for blue tile CloudFront distribution'
+        ), 'BlueTileServerDistributionEndpoint')
+
+        self.green_tile_distribution_endpoint = self.add_parameter(Parameter(
+            'GreenTileServerDistributionEndpoint', Type='String',
+            Description='Endpoint for green tile CloudFront distribution'
+        ), 'GreenTileServerDistributionEndpoint')
 
         app_server_lb_security_group, \
             app_server_security_group = self.create_security_groups()
@@ -270,29 +299,33 @@ class Application(StackNode):
 
     def create_auto_scaling_resources(self, app_server_security_group,
                                       app_server_lb):
-        app_server_launch_config_name = 'lcAppServer'
+        self.add_condition('BlueCondition', Equals('Blue', Ref(self.color)))
+        self.add_condition('GreenCondition', Equals('Green', Ref(self.color)))
 
-        app_server_launch_config = self.add_resource(
+        blue_app_server_launch_config = self.add_resource(
             asg.LaunchConfiguration(
-                app_server_launch_config_name,
+                'lcAppServerBlue',
+                Condition='BlueCondition',
                 ImageId=Ref(self.app_server_ami),
                 IamInstanceProfile=Ref(self.app_server_instance_profile),
                 InstanceType=Ref(self.app_server_instance_type),
                 KeyName=Ref(self.keyname),
-                SecurityGroups=[Ref(app_server_security_group)]
+                SecurityGroups=[Ref(app_server_security_group)],
+                UserData=Base64(
+                    Join('', self.get_cloud_config(
+                        self.blue_tile_distribution_endpoint)))
             ))
-
-        app_server_auto_scaling_group_name = 'asgAppServer'
 
         self.add_resource(
             asg.AutoScalingGroup(
-                app_server_auto_scaling_group_name,
+                'asgAppServerBlue',
                 AvailabilityZones=Ref(self.availability_zones),
+                Condition='BlueCondition',
                 Cooldown=300,
                 DesiredCapacity=Ref(self.app_server_auto_scaling_desired),
                 HealthCheckGracePeriod=600,
                 HealthCheckType='ELB',
-                LaunchConfigurationName=Ref(app_server_launch_config),
+                LaunchConfigurationName=Ref(blue_app_server_launch_config),
                 LoadBalancerNames=[Ref(app_server_lb)],
                 MaxSize=Ref(self.app_server_auto_scaling_max),
                 MinSize=Ref(self.app_server_auto_scaling_min),
@@ -308,9 +341,59 @@ class Application(StackNode):
                     )
                 ],
                 VPCZoneIdentifier=Ref(self.private_subnets),
-                Tags=[asg.Tag('Name', 'AppServer', True)]
-            )
+                Tags=[asg.Tag('Name', 'AppServer', True)])
         )
+
+        green_app_server_launch_config = self.add_resource(
+            asg.LaunchConfiguration(
+                'lcAppServerGreen',
+                Condition='GreenCondition',
+                ImageId=Ref(self.app_server_ami),
+                IamInstanceProfile=Ref(self.app_server_instance_profile),
+                InstanceType=Ref(self.app_server_instance_type),
+                KeyName=Ref(self.keyname),
+                SecurityGroups=[Ref(app_server_security_group)],
+                UserData=Base64(
+                    Join('', self.get_cloud_config(
+                        self.green_tile_distribution_endpoint)))
+            ))
+
+        self.add_resource(
+            asg.AutoScalingGroup(
+                'asgAppServerGreen',
+                AvailabilityZones=Ref(self.availability_zones),
+                Condition='GreenCondition',
+                Cooldown=300,
+                DesiredCapacity=Ref(self.app_server_auto_scaling_desired),
+                HealthCheckGracePeriod=600,
+                HealthCheckType='ELB',
+                LaunchConfigurationName=Ref(green_app_server_launch_config),
+                LoadBalancerNames=[Ref(app_server_lb)],
+                MaxSize=Ref(self.app_server_auto_scaling_max),
+                MinSize=Ref(self.app_server_auto_scaling_min),
+                NotificationConfigurations=[
+                    asg.NotificationConfigurations(
+                        TopicARN=Ref(self.notification_topic_arn),
+                        NotificationTypes=[
+                            asg.EC2_INSTANCE_LAUNCH,
+                            asg.EC2_INSTANCE_LAUNCH_ERROR,
+                            asg.EC2_INSTANCE_TERMINATE,
+                            asg.EC2_INSTANCE_TERMINATE_ERROR
+                        ]
+                    )
+                ],
+                VPCZoneIdentifier=Ref(self.private_subnets),
+                Tags=[asg.Tag('Name', 'AppServer', True)])
+        )
+
+    def get_cloud_config(self, tile_distribution_endpoint):
+        return ['#cloud-config\n',
+                '\n',
+                'write_files:\n',
+                '  - path: /etc/mmw.d/env/MMW_TILER_HOST\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(tile_distribution_endpoint)]
 
     def create_cloud_watch_resources(self, app_server_lb):
         self.add_resource(cw.Alarm(

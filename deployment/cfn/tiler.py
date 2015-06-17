@@ -5,11 +5,12 @@ from troposphere import (
     Tags,
     GetAtt,
     Join,
+    Equals,
     cloudwatch as cw,
     ec2,
     elasticloadbalancing as elb,
     autoscaling as asg,
-    cloudfront as cf
+    route53 as r53
 )
 
 from utils.cfn import get_recent_ami
@@ -36,6 +37,7 @@ class Tiler(StackNode):
         'Tags': ['global:Tags'],
         'Region': ['global:Region'],
         'StackType': ['global:StackType'],
+        'StackColor': ['global:StackColor'],
         'KeyName': ['global:KeyName'],
         'AvailabilityZones': ['global:AvailabilityZones',
                               'VPC:AvailabilityZones'],
@@ -56,6 +58,7 @@ class Tiler(StackNode):
         'Tags': {},
         'Region': 'us-east-1',
         'StackType': 'Staging',
+        'StackColor': 'Green',
         'KeyName': 'mmw-stg',
         'TileServerInstanceType': 't2.micro',
         'TileServerInstanceProfile': 'TileServerInstanceProfile',
@@ -64,7 +67,10 @@ class Tiler(StackNode):
         'TileServerAutoScalingMax': '1',
     }
 
-    ATTRIBUTES = {'StackType': 'StackType'}
+    ATTRIBUTES = {
+        'StackType': 'StackType',
+        'StackColor': 'StackColor',
+    }
 
     def set_up_stack(self):
         super(Tiler, self).set_up_stack()
@@ -78,6 +84,11 @@ class Tiler(StackNode):
         self.add_description('Tile server stack for MMW')
 
         # Parameters
+        self.color = self.add_parameter(Parameter(
+            'StackColor', Type='String',
+            Description='Stack color', AllowedValues=['Blue', 'Green']
+        ), 'StackColor')
+
         self.keyname = self.add_parameter(Parameter(
             'KeyName', Type='String',
             Description='Name of an existing EC2 key pair'
@@ -157,16 +168,13 @@ class Tiler(StackNode):
 
         self.create_cloud_watch_resources(tile_server_lb)
 
-        tile_server_distribution = self.create_cloudfront_distribution()
+        self.create_dns_records(tile_server_lb)
 
         self.add_output(Output('TileServerLoadBalancerEndpoint',
                                Value=GetAtt(tile_server_lb, 'DNSName')))
         self.add_output(Output('TileServerLoadBalancerHostedZoneNameID',
                                Value=GetAtt(tile_server_lb,
                                             'CanonicalHostedZoneNameID')))
-        self.add_output(Output('TileServerDistributionEndpoint',
-                               Value=GetAtt(tile_server_distribution,
-                                            'DomainName')))
 
     def get_recent_tile_server_ami(self):
         try:
@@ -356,28 +364,46 @@ class Tiler(StackNode):
             ],
         ))
 
-    def create_cloudfront_distribution(self):
-        return self.add_resource(cf.Distribution(
-            'tileDistribution',
-            DistributionConfig=cf.DistributionConfig(
-                Origins=[
-                    cf.Origin(
-                        Id='tileOriginId',
-                        DomainName=Join('.',
-                                        ['tiles',
-                                         Ref(self.public_hosted_zone_name)]),
-                        CustomOriginConfig=cf.CustomOrigin(
-                            OriginProtocolPolicy='http-only'
-                        )
-                    )
-                ],
-                DefaultCacheBehavior=cf.DefaultCacheBehavior(
-                    ForwardedValues=cf.ForwardedValues(QueryString=True),
-                    TargetOriginId='tileOriginId',
-                    ViewerProtocolPolicy='allow-all'
-                ),
-                Enabled=True
-            )
+    def create_dns_records(self, tile_server_lb):
+        self.add_condition('BlueCondition', Equals('Blue', Ref(self.color)))
+        self.add_condition('GreenCondition', Equals('Green', Ref(self.color)))
+
+        self.add_resource(r53.RecordSetGroup(
+            'dnsPublicRecordsBlue',
+            Condition='BlueCondition',
+            HostedZoneName=Join('', [Ref(self.public_hosted_zone_name), '.']),
+            RecordSets=[
+                r53.RecordSet(
+                    'dnsTileServersBlue',
+                    AliasTarget=r53.AliasTarget(
+                        GetAtt(tile_server_lb, 'CanonicalHostedZoneNameID'),
+                        GetAtt(tile_server_lb, 'DNSName'),
+                        True
+                    ),
+                    Name=Join('', ['blue-tiles.',
+                                   Ref(self.public_hosted_zone_name), '.']),
+                    Type='A'
+                )
+            ]
+        ))
+
+        self.add_resource(r53.RecordSetGroup(
+            'dnsPublicRecordsGreen',
+            Condition='GreenCondition',
+            HostedZoneName=Join('', [Ref(self.public_hosted_zone_name), '.']),
+            RecordSets=[
+                r53.RecordSet(
+                    'dnsTileServersGreen',
+                    AliasTarget=r53.AliasTarget(
+                        GetAtt(tile_server_lb, 'CanonicalHostedZoneNameID'),
+                        GetAtt(tile_server_lb, 'DNSName'),
+                        True
+                    ),
+                    Name=Join('', ['green-tiles.',
+                                   Ref(self.public_hosted_zone_name), '.']),
+                    Type='A'
+                )
+            ]
         ))
 
     def get_tags(self, **kwargs):

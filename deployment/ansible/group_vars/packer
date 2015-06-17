@@ -15,6 +15,5 @@ postgresql_host: "database.service.mmw.internal"
 relp_host: "monitoring.service.mmw.internal"
 graphite_host: "monitoring.service.mmw.internal"
 statsite_host: "monitoring.service.mmw.internal"
-tiler_host: "d3lwucvii61yzl.cloudfront.net"
 
 itsi_base_url: "https://learn.staging.concord.org/"

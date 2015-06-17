@@ -30,6 +30,7 @@ class Worker(StackNode):
         'Tags': ['global:Tags'],
         'Region': ['global:Region'],
         'StackType': ['global:StackType'],
+        'StackColor': ['global:StackColor'],
         'KeyName': ['global:KeyName'],
         'AvailabilityZones': ['global:AvailabilityZones',
                               'VPC:AvailabilityZones'],
@@ -49,6 +50,7 @@ class Worker(StackNode):
         'Tags': {},
         'Region': 'us-east-1',
         'StackType': 'Staging',
+        'StackColor': 'Green',
         'KeyName': 'mmw-stg',
         'WorkerInstanceType': 't2.micro',
         'WorkerInstanceProfile': 'WorkerInstanceProfile',
@@ -57,7 +59,10 @@ class Worker(StackNode):
         'WorkerAutoScalingMax': '1',
     }
 
-    ATTRIBUTES = {'StackType': 'StackType'}
+    ATTRIBUTES = {
+        'StackType': 'StackType',
+        'StackColor': 'StackColor',
+    }
 
     def set_up_stack(self):
         super(Worker, self).set_up_stack()
@@ -71,6 +76,11 @@ class Worker(StackNode):
         self.add_description('Worker stack for MMW')
 
         # Parameters
+        self.color = self.add_parameter(Parameter(
+            'StackColor', Type='String',
+            Description='Stack color', AllowedValues=['Blue', 'Green']
+        ), 'StackColor')
+
         self.keyname = self.add_parameter(Parameter(
             'KeyName', Type='String',
             Description='Name of an existing EC2 key pair'
