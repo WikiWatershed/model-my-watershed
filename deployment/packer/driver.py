@@ -110,9 +110,14 @@ def run_packer(machine_type, aws_profile, region, stack_type):
                                                          get_git_branch())),
                       '-var', 'aws_region={}'.format(region),
                       '-var', 'aws_ubuntu_ami={}'.format(aws_ubuntu_ami),
-                      '-var', 'stack_type={}'.format(stack_type),
-                      '-only', machine_type,
-                      packer_template_path]
+                      '-var', 'stack_type={}'.format(stack_type)]
+
+    if machine_type is not None:
+        packer_command.extend(['-only', machine_type])
+    else:
+        packer_command.extend(['-except', 'mmw-monitoring'])
+
+    packer_command.append(packer_template_path)
 
     LOGGER.debug('Running Packer Command: %s', ' '.join(packer_command))
 
