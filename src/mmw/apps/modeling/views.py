@@ -21,7 +21,7 @@ from celery import chain
 from urlparse import urljoin
 
 from apps.core.models import Job
-from apps.core.task_helpers import save_job_error, save_job_result
+from apps.core.tasks import save_job_error, save_job_result
 from apps.modeling import tasks
 from apps.modeling.models import Project, Scenario
 from apps.modeling.serializers import (ProjectSerializer,
