@@ -52,12 +52,16 @@ var ModelingController = {
 
             App.currProject = project;
 
-            var currentConditionsScenario = new models.ScenarioModel({
-                name: 'Current Conditions',
-                is_current_conditions: true,
-                active: true
-            });
-            project.get('scenarios').add(currentConditionsScenario);
+            project.get('scenarios').add([
+                new models.ScenarioModel({
+                    name: 'Current Conditions',
+                    is_current_conditions: true
+                }),
+                new models.ScenarioModel({
+                    name: 'New Scenario',
+                    active: true
+                })
+            ]);
 
             project.on('change:id', function() {
                 router.navigate(project.getReferenceUrl());
