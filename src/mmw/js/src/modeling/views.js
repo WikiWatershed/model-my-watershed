@@ -581,7 +581,8 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
     },
 
     initialize: function() {
-        this.listenTo(this.model.get('scenarios'), 'change:active', this.showDetailsRegion);
+        var scenarios = this.model.get('scenarios');
+        this.listenTo(scenarios, 'change:active', this.showDetailsRegion);
     },
 
     onShow: function() {
@@ -589,8 +590,8 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
     },
 
     showDetailsRegion: function() {
-        var scenario = this.model.get('scenarios').findWhere({ active: true });
-
+        var scenarios = this.model.get('scenarios'),
+            scenario = scenarios.getActiveScenario();
         if (scenario) {
             this.detailsRegion.show(new ResultsDetailsView({
                 collection: scenario.get('results')
@@ -604,7 +605,6 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
 
     animateIn: function() {
         var self = this;
-
         this.$el.animate({ height: '55%', 'min-height': '300px' }, 200, function() {
             self.trigger('animateIn');
             App.map.set('halfSize', true);
@@ -621,6 +621,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         // Change map to full size first so there isn't empty space when
         // results window animates out
         App.map.set('halfSize', false);
+
         this.$el.animate({ height: '0%', 'min-height': '50px' }, 200, function() {
             self.trigger('animateOut');
             $(self.ui.toggle.selector).blur()
@@ -642,6 +643,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
 // Tab panels and tab contents which contain charts
 // and graphs for the modeling results.
 var ResultsDetailsView = Marionette.LayoutView.extend({
+    collection: models.ResultCollection,
     template: resultsDetailsTmpl,
 
     regions: {
@@ -662,6 +664,7 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
 
 // A model result tab
 var ResultsTabPanelView = Marionette.ItemView.extend({
+    model: models.ResultModel,
     tagName: 'li',
     template: resultsTabPanelTmpl,
     attributes: {
@@ -674,6 +677,7 @@ var ResultsTabPanelView = Marionette.ItemView.extend({
 
 // Tabs used to cycle through model results
 var ResultsTabPanelsView = Marionette.CollectionView.extend({
+    collection: models.ResultCollection,
     tagName: 'ul',
     className: 'nav nav-tabs',
     attributes: {
@@ -697,6 +701,7 @@ var ResultsTabPanelsView = Marionette.CollectionView.extend({
 // Creates the appropriate view to visualize a result based
 // on project.get('model_package') and resultModel.get('name').
 var ResultsTabContentView = Marionette.LayoutView.extend({
+    model: models.ResultModel,
     template: resultsTabContentTmpl,
 
     tagName: 'div',
@@ -743,6 +748,7 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
 
 // Collection of model result tab contents
 var ResultsTabContentsView = Marionette.CollectionView.extend({
+    collection: models.ResultCollection,
     tagName: 'div',
     className: 'tab-content',
     childView: ResultsTabContentView,

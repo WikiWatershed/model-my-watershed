@@ -242,7 +242,7 @@ var ScenarioModel = Backbone.Model.extend({
         modifications: null, // ModificationsCollection
         active: false,
         job_id: null,
-        results: null
+        results: null // ResultCollection
     },
 
     initialize: function(attrs) {
