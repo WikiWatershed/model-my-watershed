@@ -13,6 +13,7 @@ var $ = require('jquery'),
     modalConfirmTmpl = require('./templates/confirmModal.html'),
     modalInputTmpl = require('./templates/inputModal.html'),
     modalShareTmpl = require('./templates/shareModal.html'),
+    modificationPopupTmpl = require('./templates/modificationPopup.html'),
     areaOfInterestTmpl = require('../core/templates/areaOfInterestHeader.html'),
 
     BASIC_MODAL_CLASS = 'modal modal-basic fade';
@@ -170,7 +171,6 @@ var MapView = Marionette.ItemView.extend({
         }, { silent: true });
     },
 
-
     toggleMask: function() {
         var aoi = this.model.get('areaOfInterest');
         if (!aoi) {
@@ -219,8 +219,14 @@ var MapView = Marionette.ItemView.extend({
 
         var layers = modificationsColl.reduce(function(acc, model) {
                 try {
-                    var opts = patterns.getDrawOpts(model.get('value'));
-                    return acc.concat(new L.GeoJSON(model.get('shape'), opts));
+                    var style = patterns.getDrawOpts(model.get('value'));
+                    return acc.concat(new L.GeoJSON(model.get('shape'), {
+                            style: style,
+                            onEachFeature: function(feature, layer) {
+                                var popupContent = new ModificationPopupView({ model: model }).render().el;
+                                layer.bindPopup(popupContent);
+                            }
+                    }));
                 } catch (ex) {
                     console.log('Error creating Leaflet layer (invalid GeoJSON object)');
                 }
@@ -257,7 +263,8 @@ function applyMask(featureGroup, shapeLayer) {
             stroke: false,
             fill: true,
             fillColor: '#000',
-            fillOpacity: 0.5
+            fillOpacity: 0.5,
+            clickable: false
         },
 
         // Should be a 2D array of latlngs where the first array contains
@@ -299,6 +306,29 @@ function getLatLngs(boundsOrShape) {
 
     throw 'Unable to extract latlngs from boundsOrShape argument';
 }
+
+var ModificationPopupView = Marionette.ItemView.extend({
+    template: modificationPopupTmpl,
+
+    ui: {
+        'delete': '.delete-modification'
+    },
+
+    events: {
+        'click @ui.delete': 'deleteModification'
+    },
+
+    templateHelpers: function() {
+        return {
+            label: this.model.label(this.model.get('value'))
+        };
+    },
+
+    deleteModification: function() {
+        this.model.destroy();
+        this.destroy();
+    }
+});
 
 var BaseModal = Marionette.ItemView.extend({
     initialize: function() {
@@ -421,5 +451,6 @@ module.exports = {
     ConfirmModal: ConfirmModal,
     InputModal: InputModal,
     ShareModal: ShareModal,
-    AreaOfInterestView: AreaOfInterestView
+    AreaOfInterestView: AreaOfInterestView,
+    ModificationPopupView: ModificationPopupView
 };

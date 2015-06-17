@@ -25,7 +25,6 @@ var getDrawOpts = function(pattern) {
     if (!pattern || !colors[pattern]) {
         // Unknown pattern, return generic grey
         return {
-            clickable: false,
             color: '#888',
             opacity: 1,
             weight: 3,
@@ -34,7 +33,6 @@ var getDrawOpts = function(pattern) {
         };
     } else {
         return {
-            clickable: false,
             color: colors[pattern],
             opacity: 1,
             weight: 3,
