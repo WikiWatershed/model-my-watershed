@@ -8,20 +8,33 @@ var $ = require('jquery'),
     coreViews = require('../core/views'),
     chart = require('../core/chart'),
     windowTmpl = require('./templates/window.html'),
+    messageTmpl = require('./templates/message.html'),
     detailsTmpl = require('./templates/details.html'),
     tableTmpl = require('./templates/table.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
     tabPanelTmpl = require('./templates/tabPanel.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
-    barChartTmpl = require('../core/templates/barChart.html');
+    barChartTmpl = require('../core/templates/barChart.html'),
+    TransitionRegion = require('../../shim/marionette.transition-region');
 
 var AnalyzeWindow = Marionette.LayoutView.extend({
     id: 'analyze-output-wrapper',
     template: windowTmpl,
 
-    initialize: function() {
+    regions: {
+        headerRegion: '#analyze-header-region',
+        detailsRegion: {
+            regionClass: TransitionRegion,
+            el: '#analyze-details-region'
+        }
+    },
+
+    onShow: function() {
+        this.showHeaderRegion();
+        this.showAnalyzingMessage();
 
         var self = this;
+
         if (!this.model.get('result')) {
             var taskHelper = {
                 pollSuccess: function() {
@@ -29,11 +42,11 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
                 },
 
                 pollFailure: function() {
-                    console.log('Failed to get analyze results');
+                    self.showErrorMessage();
                 },
 
                 startFailure: function() {
-                    console.log('Failed to start analyze job');
+                    self.showErrorMessage();
                 }
             };
             this.model.start(taskHelper);
@@ -45,17 +58,6 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
         }
     },
 
-    regions: {
-        headerRegion: '#analyze-header-region',
-        detailsRegion: '#analyze-details-region'
-    },
-
-    onShow: function() {
-        this.showHeaderRegion();
-        // TODO: Show loading spinner until
-        // model.pollForResults is finished
-    },
-
     showHeaderRegion: function() {
         this.headerRegion.show(new coreViews.AreaOfInterestView({
             App: App,
@@ -65,6 +67,22 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
                 next_label: 'Model',
                 url: 'model'
             })
+        }));
+    },
+
+    showAnalyzingMessage: function() {
+        var messageModel = new models.AnalyzeMessageModel();
+        messageModel.setAnalyzing();
+        this.detailsRegion.show(new MessageView({
+            model: messageModel
+        }));
+    },
+
+    showErrorMessage: function() {
+        var messageModel = new models.AnalyzeMessageModel();
+        messageModel.setError();
+        this.detailsRegion.show(new MessageView({
+            model: messageModel
         }));
     },
 
@@ -102,6 +120,11 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
             self.trigger('animateOut');
         });
     }
+});
+
+var MessageView = Marionette.ItemView.extend({
+    template: messageTmpl,
+    className: 'analyze-message-region'
 });
 
 var DetailsView = Marionette.LayoutView.extend({
@@ -230,5 +253,6 @@ var ChartView = Marionette.ItemView.extend({
 });
 
 module.exports = {
-    AnalyzeWindow: AnalyzeWindow
+    AnalyzeWindow: AnalyzeWindow,
+    DetailsView: DetailsView
 };
