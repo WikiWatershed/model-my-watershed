@@ -27,6 +27,12 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
         }
     },
 
+    initialize: function() {
+        this.listenTo(this, 'animateIn', function() {
+            $('#analyze-output-wrapper .bar-chart').trigger('bar-chart:refresh');
+        });
+    },
+
     onShow: function() {
         this.showHeaderRegion();
         this.showAnalyzingMessage();
