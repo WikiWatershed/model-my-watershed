@@ -14,8 +14,7 @@ var $ = require('jquery'),
     tableRowTmpl = require('./templates/tableRow.html'),
     tabPanelTmpl = require('./templates/tabPanel.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
-    barChartTmpl = require('../core/templates/barChart.html'),
-    TransitionRegion = require('../../shim/marionette.transition-region');
+    barChartTmpl = require('../core/templates/barChart.html');
 
 var AnalyzeWindow = Marionette.LayoutView.extend({
     id: 'analyze-output-wrapper',
@@ -24,7 +23,6 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     regions: {
         headerRegion: '#analyze-header-region',
         detailsRegion: {
-            regionClass: TransitionRegion,
             el: '#analyze-details-region'
         }
     },
