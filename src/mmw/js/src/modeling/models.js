@@ -374,7 +374,6 @@ var ScenarioModel = Backbone.Model.extend({
                 },
 
                 onStart: function() {
-                    results.setNullResults();
                     results.setPolling(true);
                 },
 
