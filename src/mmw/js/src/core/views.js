@@ -2,7 +2,6 @@
 
 var $ = require('jquery'),
     L = require('leaflet'),
-    leafletLocate = require('leaflet.locatecontrol'),
     _ = require('lodash'),
     router = require('../router.js').router,
     Marionette = require('../../shim/backbone.marionette'),
@@ -18,6 +17,8 @@ var $ = require('jquery'),
     areaOfInterestTmpl = require('../core/templates/areaOfInterestHeader.html'),
 
     BASIC_MODAL_CLASS = 'modal modal-basic fade';
+
+require('leaflet.locatecontrol');
 
 /**
  * A basic view for showing a static message.
