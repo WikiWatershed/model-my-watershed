@@ -5,6 +5,7 @@ import argparse
 import os
 
 from cfn.stacks import build_stacks, get_config
+from ec2.amis import prune
 from packer.driver import run_packer
 
 
@@ -17,6 +18,10 @@ def launch_stacks(mmw_config, aws_profile, **kwargs):
 
 def create_ami(mmw_config, aws_profile, machine_type, **kwargs):
     run_packer(mmw_config, machine_type, aws_profile=aws_profile)
+
+
+def prune_amis(mmw_config, aws_profile, machine_type, keep, **kwargs):
+    prune(mmw_config, machine_type, keep, aws_profile=aws_profile)
 
 
 def main():
@@ -53,11 +58,21 @@ def main():
     mmw_ami.add_argument('--machine-type', type=str,
                          choices=['mmw-app', 'mmw-tiler', 'mmw-worker',
                                   'mmw-monitoring'],
-                         default=None,
-                         help='One of "mmw-app", "mmw-tiler", "mmw-worker",'
-                         '"mmw-monitoring"')
-
+                         default=None, help='Machine type to create AMI')
     mmw_ami.set_defaults(func=create_ami)
+
+    mmw_prune_ami = subparsers.add_parser('prune-ami',
+                                          help='Prune stale Model My '
+                                               'Watershed AMIs',
+                                          parents=[common_parser])
+    mmw_prune_ami.add_argument('--machine-type', type=str, required=True,
+                               choices=['mmw-app', 'mmw-tiler', 'mmw-worker',
+                                        'mmw-monitoring'],
+                               help='AMI type to prune')
+    mmw_prune_ami.add_argument('--keep', type=int, default=10,
+                               help='Number of AMIs to keep')
+
+    mmw_prune_ami.set_defaults(func=prune_amis)
 
     args = parser.parse_args()
     mmw_config = get_config(args.mmw_config_path, args.mmw_profile)
