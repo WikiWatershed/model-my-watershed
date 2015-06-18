@@ -40,12 +40,23 @@ def main():
     mmw_stacks = subparsers.add_parser('launch-stacks',
                                        help='Launch MMW Stack',
                                        parents=[common_parser])
+    mmw_stacks.add_argument('--stack-color', type=str,
+                            choices=['green', 'blue'],
+                            default=None,
+                            help='One of "green", "blue"')
+
     mmw_stacks.set_defaults(func=launch_stacks)
 
     mmw_ami = subparsers.add_parser('create-ami', help='Create AMI for Model '
                                                        'My Watershed Stack',
                                     parents=[common_parser])
-    mmw_ami.add_argument('--machine-type', help='Type of AMI to build')
+    mmw_ami.add_argument('--machine-type', type=str,
+                         choices=['mmw-app', 'mmw-tiler', 'mmw-worker',
+                                  'mmw-monitoring'],
+                         default=None,
+                         help='One of "mmw-app", "mmw-tiler", "mmw-worker",'
+                         '"mmw-monitoring"')
+
     mmw_ami.set_defaults(func=create_ami)
 
     args = parser.parse_args()
