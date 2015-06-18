@@ -108,16 +108,23 @@ var ProjectModel = Backbone.Model.extend({
         this.set('name', newName);
     },
 
+    // Flag to prevent double POSTing of a project.
+    saveCalled: false,
+
     saveProjectAndScenarios: function() {
         if (!App.user.loggedInUserMatch(this.get('user_id'))) {
+            // Fail fast if the user can't save the project.
             return;
         }
 
-        if (!this.get('id')) {
+        if (this.isNew() && this.saveCalled) {
+            // Fail fast if we are in the middle of our first save.
+            return;
+        } else if (this.isNew() && !this.saveCalled) {
             // We haven't saved the project before, save the project and then
-            // set the project ID on each scenario, then reattach the senarios
-            // to the project.
+            // set the project ID on each scenario.
             var self = this;
+            this.saveCalled = true;
             this.save()
                 .done(function() {
                     self.updateProjectScenarios(self.get('id'), self.get('scenarios'));
@@ -280,6 +287,11 @@ var ScenarioModel = Backbone.Model.extend({
 
     attemptSave: function() {
         if (!App.user.loggedInUserMatch(this.get('user_id'))) {
+            return;
+        }
+        if (!this.get('project')) {
+            // TODO replace this with radio/wreqr or something less problematic than the global.
+            App.currProject.saveProjectAndScenarios();
             return;
         }
         this.save().fail(function() {
