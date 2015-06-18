@@ -125,10 +125,10 @@ def make_gt_service_call_task(model_input):
 
     # TODO actually call geotrellis with model_input
     census = {
-        'cell_count': 8,
+        'cell_count': 100,
         'distribution': {
-            'c:commercial': {'cell_count': 5},
-            'a:deciduous_forest': {'cell_count': 3}
+            'c:commercial': {'cell_count': 70},
+            'a:deciduous_forest': {'cell_count': 30}
         },
         'modifications': [
             {
@@ -176,13 +176,49 @@ def run_tr55(census, model_input):
     et_max = 0.207
     precip = model_input['precip']
 
+    # TODO: These next two lines are just for
+    # demonstration purposes.
+    modifications = get_census_modifications(model_input)
+    census['modifications'] = modifications
+    print(census)
+
     def simulate_day(cell, cell_count):
         soil_type, land_use = cell.lower().split(':')
         et = et_max * lookup_ki(land_use)
         return simulate_cell_day((precip, et), cell, cell_count)
 
     model_output = simulate_modifications(census, fn=simulate_day)
+
     return {
         'runoff': model_output,
         'quality': format_quality(model_output)
     }
+
+
+# TODO: For demonstration purposes.
+def get_census_modifications(model_input):
+    """
+    For each modification that was drawn, replace
+    a cell of commercial with a cell of
+    chaparral. This has the effect of improving
+    infiltration and evapotranspiration.
+    """
+    multiplier = 4
+    count = len(model_input['modifications'])
+    modifications = []
+
+    # Percipiation is in modifications, so even if
+    # there are no modifications, there will be one element
+    # for percipitation.
+    if count > 1:
+        modifications = [
+            {
+                'reclassification': 'a:chaparral',
+                'cell_count': count * multiplier,
+                'distribution': {
+                    'c:commercial': {'cell_count': count * multiplier},
+                }
+            }
+        ]
+
+    return modifications
