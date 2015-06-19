@@ -5,7 +5,8 @@ from troposphere import (
     Tags,
     GetAtt,
     Join,
-    cloudfront as cf
+    cloudfront as cf,
+    cloudwatch as cw
 )
 
 from majorkirby import StackNode
@@ -20,6 +21,7 @@ class TileDeliveryNetwork(StackNode):
         'PrivateHostedZoneId': ['global:PrivateHostedZoneId',
                                 'PrivateHostedZone:PrivateHostedZoneId'],
         'PrivateHostedZoneName': ['global:PrivateHostedZoneName'],
+        'GlobalNotificationsARN': ['global:GlobalNotificationsARN'],
     }
 
     DEFAULTS = {
@@ -57,6 +59,11 @@ class TileDeliveryNetwork(StackNode):
             Description='Route 53 private hosted zone name'
         ), 'PrivateHostedZoneName')
 
+        self.notification_topic_arn = self.add_parameter(Parameter(
+            'GlobalNotificationsARN', Type='String',
+            Description='ARN for an SNS topic to broadcast notifications'
+        ), 'GlobalNotificationsARN')
+
         blue_tile_distribution, \
             green_tile_distribution = self.create_cloudfront_distributions()
 
@@ -91,6 +98,56 @@ class TileDeliveryNetwork(StackNode):
             )
         ))
 
+        self.add_resource(cw.Alarm(
+            'alarmTileDistributionBlueOrigin4XX',
+            AlarmDescription='Tile distribution origin 4XXs',
+            AlarmActions=[Ref(self.notification_topic_arn)],
+            Statistic='Average',
+            Period=300,
+            Threshold='20',
+            EvaluationPeriods=1,
+            ComparisonOperator='GreaterThanThreshold',
+            MetricName='4xxErrorRate',
+            Namespace='AWS/CloudFront',
+            Dimensions=[
+                cw.MetricDimension(
+                    'metricDistributionId',
+                    Name='DistributionId',
+                    Value=Ref(blue_tile_distribution)
+                ),
+                cw.MetricDimension(
+                    'metricRegion',
+                    Name='Region',
+                    Value='Global'
+                )
+            ]
+        ))
+
+        self.add_resource(cw.Alarm(
+            'alarmTileDistributionBlueOrigin5XX',
+            AlarmDescription='Tile distribution origin 5XXs',
+            AlarmActions=[Ref(self.notification_topic_arn)],
+            Statistic='Average',
+            Period=60,
+            Threshold='0',
+            EvaluationPeriods=1,
+            ComparisonOperator='GreaterThanThreshold',
+            MetricName='5xxErrorRate',
+            Namespace='AWS/CloudFront',
+            Dimensions=[
+                cw.MetricDimension(
+                    'metricDistributionId',
+                    Name='DistributionId',
+                    Value=Ref(blue_tile_distribution)
+                ),
+                cw.MetricDimension(
+                    'metricRegion',
+                    Name='Region',
+                    Value='Global'
+                )
+            ]
+        ))
+
         green_tile_distribution = self.add_resource(cf.Distribution(
             'tileDistributionGreen',
             DistributionConfig=cf.DistributionConfig(
@@ -114,7 +171,55 @@ class TileDeliveryNetwork(StackNode):
             )
         ))
 
-        # TODO: Add CloudWatch 4XX and 5XX alarms
+        self.add_resource(cw.Alarm(
+            'alarmTileDistributionGreenOrigin4XX',
+            AlarmDescription='Tile distribution origin 4XXs',
+            AlarmActions=[Ref(self.notification_topic_arn)],
+            Statistic='Average',
+            Period=300,
+            Threshold='20',
+            EvaluationPeriods=1,
+            ComparisonOperator='GreaterThanThreshold',
+            MetricName='4xxErrorRate',
+            Namespace='AWS/CloudFront',
+            Dimensions=[
+                cw.MetricDimension(
+                    'metricDistributionId',
+                    Name='DistributionId',
+                    Value=Ref(green_tile_distribution)
+                ),
+                cw.MetricDimension(
+                    'metricRegion',
+                    Name='Region',
+                    Value='Global'
+                )
+            ]
+        ))
+
+        self.add_resource(cw.Alarm(
+            'alarmTileDistributionGreenOrigin5XX',
+            AlarmDescription='Tile distribution origin 5XXs',
+            AlarmActions=[Ref(self.notification_topic_arn)],
+            Statistic='Average',
+            Period=60,
+            Threshold='0',
+            EvaluationPeriods=1,
+            ComparisonOperator='GreaterThanThreshold',
+            MetricName='5xxErrorRate',
+            Namespace='AWS/CloudFront',
+            Dimensions=[
+                cw.MetricDimension(
+                    'metricDistributionId',
+                    Name='DistributionId',
+                    Value=Ref(green_tile_distribution)
+                ),
+                cw.MetricDimension(
+                    'metricRegion',
+                    Name='Region',
+                    Value='Global'
+                )
+            ]
+        ))
 
         return blue_tile_distribution, green_tile_distribution
 
