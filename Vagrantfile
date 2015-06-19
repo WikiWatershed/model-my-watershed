@@ -141,6 +141,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     app.ssh.forward_x11 = true
 
+    app.vm.provider "virtualbox" do |v|
+      v.memory = 1024
+    end
+
     app.vm.provision "ansible" do |ansible|
       ansible.playbook = "deployment/ansible/app-servers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
@@ -165,6 +169,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       guest: 80,
       host: 4000
     }.merge(VAGRANT_NETWORK_OPTIONS)
+
+    tiler.vm.provider "virtualbox" do |v|
+      v.memory = 1024
+    end
 
     tiler.vm.provision "ansible" do |ansible|
       ansible.playbook = "deployment/ansible/tile-servers.yml"
