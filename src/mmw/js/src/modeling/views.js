@@ -594,7 +594,8 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
             scenario = scenarios.getActiveScenario();
         if (scenario) {
             this.detailsRegion.show(new ResultsDetailsView({
-                collection: scenario.get('results')
+                collection: scenario.get('results'),
+                scenario: scenario
             }));
         }
     },
@@ -647,6 +648,10 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
     collection: models.ResultCollection,
     template: resultsDetailsTmpl,
 
+    initialize: function(options) {
+        this.scenario = options.scenario;
+    },
+
     regions: {
         panelsRegion: '.tab-panels-region',
         contentRegion: '.tab-contents-region'
@@ -658,7 +663,8 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         }));
 
         this.contentRegion.show(new ResultsTabContentsView({
-            collection: this.collection
+            collection: this.collection,
+            scenario: this.scenario
         }));
     },
 
@@ -725,6 +731,10 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
         return this.model.get('name');
     },
 
+    initialize: function(options) {
+        this.scenario = options.scenario;
+    },
+
     onShow: function() {
         var modelPackage = App.currProject.get('model_package'),
             resultName = this.model.get('name');
@@ -733,7 +743,8 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
                 switch(resultName) {
                     case 'runoff':
                         this.resultRegion.show(new tr55RunoffViews.ResultView({
-                            model: this.model
+                            model: this.model,
+                            scenario: this.scenario
                         }));
                         break;
                     case 'quality':
@@ -757,6 +768,12 @@ var ResultsTabContentsView = Marionette.CollectionView.extend({
     tagName: 'div',
     className: 'tab-content',
     childView: ResultsTabContentView,
+    childViewOptions: function() {
+        return {scenario: this.scenario};
+    },
+    initialize: function(options) {
+        this.scenario = options.scenario;
+    },
     onRender: function() {
         this.$el.find('.tab-pane:first').addClass('active');
     }
