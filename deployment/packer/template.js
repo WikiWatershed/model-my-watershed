@@ -105,7 +105,8 @@
                 "sleep 5",
                 "sudo apt-get update -qq",
                 "sudo apt-get install python-pip python-dev -y",
-                "sudo pip install ansible==1.9.0.1"
+                "sudo pip install ansible==1.9.0.1",
+                "sudo /bin/sh -c 'echo {{user `version`}} > /srv/version.txt'"
             ]
         },
         {
