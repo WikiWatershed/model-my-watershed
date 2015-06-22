@@ -28,7 +28,6 @@
                 "Service": "Application",
                 "Environment": "{{user `stack_type`}}"
             },
-            "subnet_id": "subnet-3781f46e",
             "associate_public_ip_address": true
         },
         {
@@ -50,7 +49,6 @@
                 "Service": "Tiler",
                 "Environment": "{{user `stack_type`}}"
             },
-            "subnet_id": "subnet-3781f46e",
             "associate_public_ip_address": true
         },
         {
@@ -72,7 +70,6 @@
                 "Service": "Worker",
                 "Environment": "{{user `stack_type`}}"
             },
-            "subnet_id": "subnet-3781f46e",
             "associate_public_ip_address": true
         },
         {
@@ -94,7 +91,6 @@
                 "Service": "Monitoring",
                 "Environment": "{{user `stack_type`}}"
             },
-            "subnet_id": "subnet-3781f46e",
             "associate_public_ip_address": true
         }
     ],
