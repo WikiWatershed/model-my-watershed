@@ -4,6 +4,6 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.contrib import admin
-from apps.core.models import Job
+from apps.user.models import ItsiUser
 
-admin.site.register(Job)
+admin.site.register(ItsiUser)
