@@ -11,7 +11,8 @@ var MapModel = Backbone.Model.extend({
         lng: 0,
         zoom: 0,
         areaOfInterest: null,           // GeoJSON
-        halfSize: false
+        halfSize: false,
+        geolocationEnabled: true
     },
 
     revertMaskLayer: function() {

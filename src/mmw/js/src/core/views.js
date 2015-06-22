@@ -147,7 +147,9 @@ var MapView = Marionette.ItemView.extend({
             areaOfInterestLayer = new L.FeatureGroup(),
             modificationsLayer = new L.FeatureGroup(),
             maxZoom = 10,
-            maxAge = 60000;
+            maxAge = 60000,
+            timeout = 30000,
+            self = this;
 
         map.addControl(new L.Control.Zoom({position: 'topright'}));
         addLocateMeButton(map, maxZoom, maxAge);
@@ -166,9 +168,11 @@ var MapView = Marionette.ItemView.extend({
 
         // Geolocation success handler
         function geolocation_success(position) {
-            var lng = position.coords.longitude,
-                lat = position.coords.latitude;
-            map.setView([lat, lng], maxZoom);
+            if (self.model.get('geolocationEnabled')) {
+                var lng = position.coords.longitude,
+                    lat = position.coords.latitude;
+                map.setView([lat, lng], maxZoom);
+            }
         }
 
         // Attempt to Geolocate.  If geolocation fails or is not
@@ -178,13 +182,20 @@ var MapView = Marionette.ItemView.extend({
             var options = {
                 enableHighAccuracy: true,
                 maximumAge : maxAge,
-                timeout : 27000
+                timeout : timeout
             };
             navigator.geolocation.getCurrentPosition(
                 geolocation_success,
                 _.noop,
                 options);
         }
+    },
+
+    // Call this so that the geolocation callback will not
+    // reposition the map. Should be called after the map has been repositioned
+    // by the user or from a saved model.
+    disableGeolocation: function() {
+        this.model.set('geolocationEnabled', false);
     },
 
     // Override the default render method because we manually update
@@ -209,6 +220,7 @@ var MapView = Marionette.ItemView.extend({
     // of the map. Do it silently so that we don't
     // get stuck in an update -> set -> update loop.
     updateMapModelPosition: function() {
+        this.disableGeolocation();
         var center = this._leafletMap.getCenter();
 
         this.model.set({
@@ -242,6 +254,7 @@ var MapView = Marionette.ItemView.extend({
 
     // Add a GeoJSON layer if `areaOfInterest` is set.
     updateAreaOfInterest: function() {
+        this.disableGeolocation();
         this.model.restructureAoI();
         var areaOfInterest = this.model.get('areaOfInterest');
         if (!areaOfInterest) {
