@@ -1,0 +1,13 @@
+{% extends './baseModal.html' %}
+
+{% block form %}
+    {{ field(username, 'username', 'Username') }}
+    {{ field(first_name, 'first_name', 'First Name') }}
+    {{ field(last_name, 'last_name', 'Last Name') }}
+    {{ checkbox(agreed, 'agreed', 'I agree to something') }}
+{% endblock %}
+
+{% block footer %}
+    <button type="button" class="btn btn-lg btn-block btn-active margin-bottom-sm" id="primary-button">Sign Up with ITSI</button>
+    <button type="button" class="btn btn-lg btn-block btn-primary" data-dismiss="modal" id="dismiss-button">Continue As Guest</button>
+{% endblock %}

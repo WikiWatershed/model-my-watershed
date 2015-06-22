@@ -1,0 +1,26 @@
+<div class="back">
+    <a data-url="/analyze" class="btn btn-md btn-icon light"><i class="fa fa-arrow-left"></i></a>
+</div>
+<div class="project-title">
+    <h3 class="light">{{ name }}</h3>
+    <div id="project-settings" class="dropdown pull-right">
+        <button class="btn btn-sm btn-icon light dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
+        <i class="fa fa-caret-down"></i>
+        </button>
+        <ul class="dropdown-menu menu-right" role="menu">
+            {% if id and editable %}
+                <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="share-project">Share</a></li>
+                <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="project-privacy">{% if is_private %}Make Public{% else %}Make Private{% endif %}</a></li>
+                <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="delete-project">Delete</a></li>
+                <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="add-tag">Add Tags</a></li>
+            {% endif %}
+            {% if editable %}
+                <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="rename-project">Rename</a></li>
+            {% endif %}
+            {% if not id %}
+                <li role="presentation"><a role="menuitem" tabindex="-1" id="save-project">Save</a></li>
+            {% endif %}
+            <li role="presentation"><a role="menuitem" tabindex="-1" id="print-project">Print</a></li>
+        </ul>
+    </div>
+</div>

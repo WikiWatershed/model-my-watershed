@@ -1,0 +1,21 @@
+{% extends './baseModal.html' %}
+
+{% block form %}
+    {% if success %}
+        Sign up was successful! Please check your email to active your account.
+    {% else %}
+        {{ field(username, 'username', 'Username') }}
+        {{ field(email, 'email', 'Email') }}
+        {{ field(password1, 'password1', 'Password', 'password') }}
+        {{ field(password2, 'password2', 'Repeat Password', 'password') }}
+        {{ checkbox(agreed, 'agreed', 'I agree to something') }}
+    {% endif %}
+{% endblock %}
+
+{% block footer %}
+    {% if success %}
+        <button type="button" class="btn btn-lg btn-block btn-active" id="dismiss-button" data-dismiss="modal">Login</button>
+    {% else %}
+        <button type="button" class="btn btn-lg btn-block btn-active" id="primary-button">Sign Up</button>
+    {% endif %}
+{% endblock %}

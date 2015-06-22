@@ -1,0 +1,32 @@
+{% import './utils.html' as utils %}
+
+<div id="land-cover-tools" class="dropdown"> <!-- Landcover Tools -->
+    <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
+    <i class="fa fa-plus-circle"></i> Land Cover
+    </button>
+    <div id="land-tools" class="dropdown-menu menu-left" role="menu"> <!-- Dropdown -->
+        <div class="pad-1"> <!-- Dropdown Content -->
+            <ul class="row">
+                {{ utils.thumb(label, 'lir') }}
+                {{ utils.thumb(label, 'hir') }}
+                {{ utils.thumb(label, 'commercial') }}
+            </ul>
+            <ul class="row">
+                {{ utils.thumb(label, 'forest') }}
+                {{ utils.thumb(label, 'turf_grass') }}
+                {{ utils.thumb(label, 'pasture') }}
+            </ul>
+            <ul class="row">
+                {{ utils.thumb(label, 'grassland') }}
+                {{ utils.thumb(label, 'row_crop') }}
+                {{ utils.thumb(label, 'wetland') }}
+            </ul>
+        </div> <!-- End Dropdown Content -->
+
+        <div class="dropdown-footer pad-1"> <!-- Dropdown Footer -->
+            <h2 class="dark">Grassland</h2>
+            <br>
+            <span>Grassland is lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat</span>
+        </div> <!-- End Dropdown Footer -->
+    </div> <!-- End Dropdown -->
+</div> <!-- End Land Cover Tools -->

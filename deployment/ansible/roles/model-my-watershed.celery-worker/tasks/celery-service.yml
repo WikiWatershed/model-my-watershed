@@ -1,0 +1,20 @@
+---
+- name: Configure Celery service definition
+  template: src=celeryd.j2
+            dest=/etc/init.d/celeryd
+            mode=0755
+  notify:
+    - Restart Celery
+
+- name: Configure Celery service definition defaults
+  template: src=celeryd-defaults.j2 dest=/etc/default/celeryd
+  notify:
+    - Restart Celery
+
+- name: Configure udev rules to wait for Vagrant mount
+  template: src=50-vagrant-mount.rules.j2
+            dest=/etc/udev/rules.d/50-vagrant-mount.rules
+  when: "['development', 'test'] | some_are_in(group_names)"
+
+- name: Enable Celery service
+  service: name=celeryd enabled=yes state=started

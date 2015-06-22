@@ -1,0 +1,6 @@
+---
+- name: Configure service definition
+  template: src=upstart-mmw-tiler.conf.j2
+            dest=/etc/init/mmw-tiler.conf
+  notify:
+    - Restart mmw-tiler

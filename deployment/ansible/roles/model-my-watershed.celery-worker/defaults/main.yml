@@ -1,0 +1,20 @@
+---
+app_home: /opt/app
+app_deploy_branch: "master"
+
+app_config:
+  DJANGO_TEST_DB_NAME: "{{ django_test_database }}"
+  DJANGO_SETTINGS_MODULE: "{{ django_settings_module }}"
+  DJANGO_STATIC_ROOT: "/tmp"
+  DJANGO_MEDIA_ROOT: "/tmp"
+  DJANGO_POSTGIS_VERSION: "{{ app_postgis_version }}"
+  DJANGO_SECRET_KEY: "{{ app_secret_key }}"
+
+app_postgis_version: 2.1.3
+app_secret_key: "{{ postgresql_password | md5 }}"
+
+celery_pid_files: "/var/run/celery/%n.pid"
+celery_logs: "/var/log/celery/%n.log"
+celery_number_of_workers: 2
+celery_processes_per_worker: 1
+celery_log_level: "INFO"

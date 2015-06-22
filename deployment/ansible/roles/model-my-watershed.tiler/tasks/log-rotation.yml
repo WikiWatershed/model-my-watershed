@@ -1,0 +1,10 @@
+---
+- name: Touch log file if it does not exist
+  command: touch {{ tiler_log }}
+           creates={{ tiler_log }}
+
+- name: Set log file permissions
+  file: path={{ tiler_log }} owner=mmw group=mmw mode=0644
+
+- name: Configure Tiler log rotation
+  template: src=logrotate-mmw-tiler.j2 dest=/etc/logrotate.d/mmw-tiler

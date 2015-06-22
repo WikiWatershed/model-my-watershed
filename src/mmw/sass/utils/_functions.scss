@@ -1,0 +1,6 @@
+/// rem to pixel font-size fallback
+/// Used in _mixins.scss > @mixin font-size
+@function calculateRem($size) {
+  $remSize: $size / 16px;
+  @return $remSize * 1rem;
+}

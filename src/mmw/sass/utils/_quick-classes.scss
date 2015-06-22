@@ -1,0 +1,59 @@
+//Quick Classes
+.ui-light{
+  background-color: $ui-light;
+}
+
+.pad-1{
+  padding: 1rem;
+}
+
+.brd-bottom{
+  border-bottom: solid 1px $black-12;
+}
+
+.flex-1{
+    flex: 1;
+}
+.flex-2{
+    flex: 2;
+}
+.flex-3{
+    flex: 3;
+}
+.flex-4{
+    flex: 4;
+}
+.flex-5{
+    flex: 5;
+}
+.flex-6{
+    flex: 6;
+}
+
+.margin-bottom-sm{
+    margin-bottom: 8px;
+}
+
+.margin-bottom-md{
+    margin-bottom: 12px;
+}
+.menu-right{
+  right: 0;
+  left: inherit;
+}
+
+.bdr-bottom{
+  border-bottom: solid 1px $black-12;
+}
+
+.pad-sm{
+  padding: 1rem;
+}
+
+.pad-md{
+  padding: 2rem;
+}
+
+.pad-lg{
+  padding: 3rem;
+}

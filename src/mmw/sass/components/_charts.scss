@@ -1,0 +1,49 @@
+// The height and width must be set to 100%
+// so that the actual height and width of the
+// enclosing element will get propagated down to the
+// bar-chart elements.
+.chart-container{
+  width: 100%;
+  height: 100%;
+}
+
+.bar-chart{
+  width: 100%;
+  display: block;
+  height: 100%;
+  min-height: 200px;
+  vertical-align: baseline;
+  vertical-align: bottom;
+
+  .bar{
+    margin: 0 2%;
+    display: inline-block;
+    fill: $brand-primary;
+    border-radius: $radius-sm!important;
+    vertical-align: bottom;
+
+    &:hover{
+      fill: lighten($brand-primary, 10%);
+    }
+  }
+
+  .axis {
+    color: $black-54;
+    font-size: 0.5rem;
+    white-space: normal;
+
+    line, path {
+      fill: none;
+      stroke: $black-12;
+      shape-rendering: crispEdges;
+    }
+
+    text{
+      color: $black-54;
+    }
+  }
+
+  .x.axis line, .x.axis path {
+    display: none;
+  }
+}

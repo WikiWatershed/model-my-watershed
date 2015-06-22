@@ -1,0 +1,59 @@
+{% macro field(value, name, label='', type='text') %}
+    <div class="custom-input-group">
+        <input name="{{ name }}" type="{{ type }}" id="{{ name }}" required value="{{ value }}">
+        <span class="highlight"></span>
+        <span class="bar"></span>
+        <label>{{ label }}</label>
+    </div>
+{% endmacro %}
+
+{% macro checkbox(value, name, label='') %}
+    <div class="checkbox">
+        <label>
+            <input name="{{ name }}" type="checkbox" id="{{ name }}" {{ "checked" if value else "" }}>
+            {{ label }}
+        </label>
+    </div>
+{% endmacro %}
+
+<div class="modal-dialog modal-dialog-sm">
+    <div class="modal-content">
+        <div class="modal-header">
+            {% block header %}
+                <h2 class="light">Model My Watershed</h2>
+            {% endblock %}
+        </div>
+
+        <div class="modal-body">
+            {% block preamble %}
+            {% endblock %}
+
+            {% block errors %}
+                {% if client_errors %}
+                    <ul>
+                        {% for error in client_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {% if server_errors %}
+                    <ul>
+                        {% for error in server_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endblock %}
+
+            <form>
+                {% block form %}
+                {% endblock %}
+            </form>
+        </div>
+
+        <div class="modal-footer">
+            {% block footer %}
+            {% endblock %}
+        </div>
+    </div>
+</div>

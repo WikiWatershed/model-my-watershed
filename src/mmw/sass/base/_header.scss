@@ -1,0 +1,275 @@
+//Search Screen Header
+
+header{
+  width: 100%;
+  position: absolute;
+  top: 0;
+  z-index: 500;
+}
+
+//Standard Header
+#app-header{
+  background-color: $ui-primary;
+  height: $height-lg;
+  box-shadow: 0 0 4px $black-54;
+  padding: 0 1rem;
+
+  .brand{
+    a{
+      float: left;
+      line-height: $height-lg;
+      font-size: 0.7rem;
+      font-weight: 400;
+      color: $paper;
+
+      &:hover{
+        color: $paper-54;
+        text-decoration: none;
+        cursor: pointer;
+      }
+    }
+  }
+
+  .navigation{
+    float: right;
+    display: inline-block;
+
+    .main{
+      list-style-type: none;
+      display: inline-block;
+
+      li.header-link {
+        line-height: $height-lg !important;
+        font-size: 0.7rem;
+        font-weight: 300;
+        margin-left: 1rem;
+        display: inline-block;
+        float: left;
+
+        .dropdown-menu a {
+          color: $ui-secondary;
+        }
+
+        a{
+          color: $paper-54;
+          text-decoration: none!important;
+
+          &:hover, &:active{
+            color: $paper;
+            text-decoration: none!important;
+            cursor: pointer;
+          }
+        }
+      }
+    }
+  }
+
+  .toolbar{
+    position: absolute;
+    top: $height-lg;
+    left: 0;
+    right: 0;
+    padding: 0.7rem;
+    background-color: $paper;
+    height: 60px;
+
+    #modification-btn-wrapper{
+      float: right;
+    }
+
+    #advanced{
+      position: absolute;
+      top: 0;
+      right: 0;
+    }
+  }
+}
+
+//Model Header
+#model-header{
+  background-color: $ui-secondary;
+  height: 104px;
+  box-shadow: 0 0 4px $black-54;
+
+  .top{
+    height: $height-lg;
+
+    .project{
+      width: 240px;
+      background-color: $ui-primary;
+      height: 100%;
+
+      .project-title{
+        display: inline-block;
+        position: relative;
+        width: 180px;
+
+        h3{
+          margin: 0;
+          line-height: $height-lg;
+        }
+
+        #project-settings{
+          position: absolute;
+          top: 10px;
+          right: 0;
+          z-index: 200;
+          text-transform: uppercase;
+        }
+      }
+    }
+
+    .top-bar{
+      position: absolute;
+      top: 0;
+      left: 240px;
+      right: 0;
+      padding: 8px 0 8px 8px;
+      height: inherit;
+
+      .tab-controls{
+        position: absolute;
+        top: 0;
+        left: 0;
+        padding: 7px;
+      }
+
+      .scenario-tabs-wrapper{
+        position: absolute;
+        top: 0;
+        left: 70px;
+        height: $height-lg;
+        width: 5000px;
+
+        .nav-tabs a.tab-name[contenteditable=true] span{
+            border: 1px solid maroon;
+        }
+
+        .scenario-btn-dropdown{
+          position: absolute;
+          top: 0.5rem;
+          right: 0;
+          z-index: 200;
+        }
+      }
+
+      .fade-tabs{
+        position: absolute;
+        top: 0;
+        right: 85px;
+        height: $height-lg;
+        width: 10px;
+        z-index: 200;
+        background: linear-gradient(90deg,rgba(0,0,0,0),$ui-secondary);
+      }
+
+      .compare-top-btn{
+        position: absolute;
+        top: 0;
+        right: 0;
+        display: block;
+        z-index: 200;
+      }
+    }
+  }
+
+  .toolbar{
+    position: absolute;
+    top: $height-lg;
+    left: 0;
+    right: 0;
+    padding: 0.7rem;
+    background-color: $paper;
+    height: 60px;
+
+    #modification-btn-wrapper{
+      float: right;
+    }
+
+    .inline {
+      display: inline-block;
+      margin-right: 5px;
+    }
+
+    .controls {
+      // Precipitation slider
+      .precipitation {
+        // Undo bootstrap input[type="range"] syling
+        input {
+          display: inline-block;
+          width: auto;
+        }
+      }
+    }
+  }
+}
+
+//Compare Header
+#compare-header{
+  background-color: $ui-secondary;
+  box-shadow: 0 0 4px $black-54;
+
+  .top{
+    height: $height-lg;
+
+    .project{
+      width: 240px;
+      background-color: $ui-primary;
+      height: 100%;
+
+      .project-title{
+        display: inline-block;
+        position: relative;
+        width: 180px;
+
+        h3{
+          margin: 0;
+          line-height: $height-lg;
+        }
+      }
+    }
+
+    .top-bar{
+      position: absolute;
+      top: 0;
+      left: 240px;
+      right: 0;
+      padding: 8px 0 8px 8px;
+      height: inherit;
+
+      .tab-controls{
+        position: absolute;
+        top: 0;
+        left: 0;
+        padding: 7px;
+      }
+
+      .scenario-tabs-wrapper{
+        position: absolute;
+        top: 0;
+        left: 45px;
+        height: $height-lg;
+        width: 5000px;
+      }
+
+      .fade-tabs{
+        position: absolute;
+        top: 0;
+        right: 85px;
+        height: $height-lg;
+        width: 10px;
+        z-index: 200;
+        background: linear-gradient(90deg,rgba(0,0,0,0),$ui-secondary);
+      }
+    }
+  }
+}
+
+//Shared Elements
+.back{
+  line-height: $height-lg;
+  height: 100%;
+  display: inline-block;
+  position: relative;
+  vertical-align: top;
+}

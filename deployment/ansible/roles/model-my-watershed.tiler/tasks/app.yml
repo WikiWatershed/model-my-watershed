@@ -1,0 +1,24 @@
+---
+- name: Ensure that source directories exist
+  file: path="{{ item }}"
+        owner="{{ ansible_ssh_user }}"
+        group=mmw
+        mode=0755
+        state=directory
+  with_items:
+    - "{{ tiler_home }}"
+    - "/opt/model-my-watershed"
+
+- name: Clone application source
+  git: repo=https://github.com/WikiWatershed/model-my-watershed.git
+       dest=/opt/model-my-watershed
+       version="{{ tiler_deploy_branch }}"
+
+- name: Synchronize tiler code into into tiler_home
+  synchronize: archive=no
+               checksum=yes
+               compress=no
+               recursive=yes
+               set_remote_user=no
+               src=/opt/model-my-watershed/src/tiler/
+               dest="{{ tiler_home }}/"

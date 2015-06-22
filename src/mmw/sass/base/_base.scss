@@ -1,0 +1,102 @@
+html {
+  font-size: 18px;
+}
+
+@media (max-width: 400px) {
+  html { font-size: 16px; }
+}
+
+@media (max-width: 900px) {
+  html { font-size: 18px; }
+}
+
+@media(min-width: 1280px){
+  html {font-size: 20px;}
+}
+
+body{
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: 'Roboto', sans-serif;
+  font-size: 1rem;
+  font-smoothing: subpixel-antialiased;
+  -webkit-font-smoothing: subpixel-antialiased;
+}
+
+a{
+  transition: all 0.2s ease-out;
+}
+
+.row{
+  margin: 0!important;
+}
+
+.container-fluid{
+  margin: 0!important;
+  padding: 0!important;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right:0;
+  overflow: hidden;
+  z-index: 1;
+
+  &.top-nav{
+    margin-top: 44px!important;
+  }
+
+  &.model-nav{
+    margin-top: 103px!important;
+  }
+
+  .title-row{
+    padding: 0.7rem;
+    display: block;
+    width: 100%;
+  }
+}
+
+#geocode-search-region {
+    display: inline-block;
+
+    #search-results-container {
+        position: absolute;
+    }
+}
+
+#draw-tools-region,
+.draw-tools-container div{
+    display: inline-block;
+}
+
+//Title Row
+.aoi-header-wrapper.title-row{
+    background-color: $ui-primary;
+    height: 68px;
+    padding: 0.7rem;
+
+    .title{
+        display: inline-block;
+        position: relative;
+
+      h2{
+          margin-top: 0.4rem!important;
+          line-height: 0.4rem;
+        }
+    }
+
+    .cta-wrapper{
+        position: relative;
+        float: right;
+        margin-right: 1rem;
+        margin-top: -40px;
+
+        @media(min-width: 768px){
+            margin-right: 56px;
+        }
+    }
+}
+

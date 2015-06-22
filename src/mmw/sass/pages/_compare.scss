@@ -1,0 +1,20 @@
+#compare-output-wrapper{
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 300px;
+  height: 55%;
+  background-color: $paper;
+  z-index: 100;
+  box-shadow: 0 0 4px $black-54;
+
+  .left{
+
+  }
+
+  .right{
+
+  }
+
+}

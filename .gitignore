@@ -52,3 +52,22 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Ansible
+deployment/ansible/roles/azavea.*
+
+# CloudFormation
+deployment/default.yml
+
+# Vagrant
+.vagrant
+
+# NodeJS / Browserify stuff
+node_modules/
+npm-debug.log
+
+# Emacs
+*~
+
+# MacOS
+.DS_Store

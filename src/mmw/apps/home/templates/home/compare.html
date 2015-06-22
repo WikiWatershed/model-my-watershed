@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<header id="compare-header"> <!-- Model Header -->
+
+     <div class="top"> <!-- Top Bar -->
+
+        <div class="project"> <!-- Project -->
+            <div class="back"> <!-- Back -->
+                <a href="model" class="btn btn-md btn-icon light"><i class="fa fa-arrow-left"></i></a>
+            </div> <!-- End Back -->
+            <div class="project-title"> <!-- Project Name -->
+                <h3 class="light">Compare Mode</h3>
+            </div> <!-- End Project Name -->
+        </div> <!-- End Project -->
+
+        <div class="top-bar"> <!-- Top Bar -->
+            <div class="tab-controls"> <!-- Tab Control Buttons -->
+                <div class="dropdown"> <!-- Tab List -->
+                    <button class="btn btn btn-tab dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
+                    <i class="fa fa-bars"></i>
+                    </button>
+                    <ul class="dropdown-menu menu-left" role="menu" aria-labelledby="select-area">
+                        <li role="presentation"><a href="#current" data-toggle="tab">Current</a></li>
+                        <li role="presentation"><a href="#scenario1" data-toggle="tab">Scenario 1</a></li>
+                        <li role="presentation"><a href="#scenario1" data-toggle="tab">Scenario 2</a></li>
+                    </ul>
+                </div> <!-- End Tab List -->
+            </div> <!-- End Tab Control Buttons -->
+            <div id="compare-wrapper" class="scenario-tabs-wrapper"> <!-- Scenario Tab Wrapper -->
+                <div role="tabpanel"> <!-- Scenario Tabs -->
+                    <ul id="compare-tab" class="nav nav-tabs" role="tablist">
+                        <li role="presentation">
+                            <a href="#" aria-controls="home" role="tab" data-toggle="tab">Current</a>
+                        </li>
+                        <li role="presentation" class="active">
+                            <a href="#scenario1" aria-controls="profile" role="tab" data-toggle="tab">Scenario 1 </a>
+                        </li>
+                        <li role="presentation">
+                            <a href="#scenario2" aria-controls="profile" role="tab" data-toggle="tab">Scenario 2 </a>
+                        </li>
+                    </ul>
+                </div> <!-- End Scenario Tabs -->
+            </div> <!-- End Scenario Tab Wrapper -->
+            <div class="fade-tabs"></div> <!-- Fade Tabs -->
+        </div> <!-- End Top Bar -->
+
+    </div> <!-- End Top -->
+
+</header>
+{% endblock header %}
+
+{% block content %}
+<div class="container-fluid top-nav"> <!-- Leaflet Map Container -->
+    <div class="map-half"> <!-- Leaflet Map -->
+        <div id="map"></div>
+    </div> <!-- End Leaflet Map -->
+    <div id="compare-output-wrapper">
+        <div class="tab-content"> <!-- Tab Content -->
+            <div role="tabpanel" class="tab-pane active" id="scenario1"> <!-- Land Data -->
+                <div class="row">
+                    <div class="left">
+                        Scenario 1 Output
+                    </div>
+                    <div class="right">
+
+                    </div>
+                </div>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="scenario2"> <!-- Land Data -->
+                Scenario 2 Output
+            </div>
+        </div>
+    </div>
+
+    </div> <!-- End Output Wrapper -->
+</div> <!-- End Leaflet Map Container -->
+{% endblock content %}
+
+{% block footer %}
+{% endblock footer %}

@@ -1,0 +1,19 @@
+{% extends './baseModal.html' %}
+
+{% block form %}
+    {% if success %}
+        Please check your email to reset your account.
+    {% else %}
+        {{ field(email, 'email', 'Email', 'email') }}
+        {{ checkbox(username, 'username', 'Forgot Username') }}
+        {{ checkbox(password, 'password', 'Forgot Password') }}
+    {% endif %}
+{% endblock %}
+
+{% block footer %}
+    {% if success %}
+        <button type="button" class="btn btn-lg btn-block btn-active" data-dismiss="modal">Continue As Guest</button>
+    {% else %}
+        <button type="button" class="btn btn-lg btn-block btn-active" id="primary-button">Retrieve</button>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block header %}
+{% endblock header %}
+
+{% block content %}
+<div class="container-fluid"> <!-- Container -->
+
+    <div class="map-half"><div id="map"></div></div> <!-- Leaflet Map -->
+
+    <div id="analyze-output-wrapper"> <!-- Analyze Data -->
+
+        <div class="title-row"> <!-- Area Titile -->
+            <div class="back">
+                <a href="/" class="btn btn-lg btn-icon light"><i class="fa fa-arrow-left"></i></a>
+            </div>
+            <div class="title">
+                <h2 class="light">Chester County, PA</h2>
+                <label class="light">30 Acres</label>
+            </div>
+            <div class="cta-wrapper">
+                <a href="model" class="btn btn-lg btn-cta"><i class="fa fa-arrow-right"></i></a>
+                <label class="paper center-block text-center">Model</label>
+            </div>
+        </div> <!-- End Area Titile -->
+
+        <div id="analyze-data"> <!-- Tabs Wrapper -->
+
+            <div role="tabpanel"> <!-- Tabs -->
+                <ul id="analyze-tab" class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active"><a href="#land" aria-controls="home" role="tab" data-toggle="tab">Land</a></li>
+                    <li role="presentation"><a href="#soil" aria-controls="profile" role="tab" data-toggle="tab">Soil</a></li>
+                    <li role="presentation"><a href="#topography" aria-controls="messages" role="tab" data-toggle="tab">Topography</a></li>
+                </ul>
+            </div> <!-- End Tabs -->
+
+            <div class="tab-content"> <!-- Tab Content -->
+                <div role="tabpanel" class="tab-pane active" id="land"> <!-- Land Data -->
+                    <div class="left"> <!-- Land Left -->
+                        <table id="land-cover" class="table custom-hover">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th class="text-right">Area</th>
+                                    <th class="text-right">Coverage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Water</td>
+                                    <td class="strong text-right">21</td>
+                                    <td class="strong text-right">0.1%</td>
+                                </tr>
+                                <tr>
+                                    <td>Developed: Open</td>
+                                    <td class="strong text-right">5,041</td>
+                                    <td class="strong text-right">26.3%</td>
+                                </tr>
+                                <tr>
+                                    <td>Developed: Low</td>
+                                    <td class="strong text-right">5,181</td>
+                                    <td class="strong text-right">27.1%</td>
+                                </tr>
+                                <tr>
+                                    <td>Developed: Medium</td>
+                                    <td class="strong text-right">3,344</td>
+                                    <td class="strong text-right">17.5%</td>
+                                </tr>
+                                <tr>
+                                    <td>Developed: High</td>
+                                    <td class="strong text-right">1,103</td>
+                                    <td class="strong text-right">5.8%</td>
+                                </tr>
+                                <tr>
+                                    <td>Bare Soil</td>
+                                    <td class="strong text-right">19</td>
+                                    <td class="strong text-right">0.1%</td>
+                                </tr>
+                                <tr>
+                                    <td>Forest</td>
+                                    <td class="strong text-right">1,804</td>
+                                    <td class="strong text-right">9.4</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div> <!-- End Land Left -->
+                    <div class="right ui-light"> <!-- Land Right -->
+                        <div class="bar-chart">
+                            <span class="bar half"><label>Water</label></span>
+                            <span class="bar full"><label>Developed: Open</label></span>
+                            <span class="bar half"><label>Developed: Low</label></span>
+                            <span class="bar full"><label>Developed: Medium</label></span>
+                            <span class="bar half"><label>Developed: High</label></span>
+                            <span class="bar full"><label>Bare Soil</label></span>
+                            <span class="bar half"><label>Forest</label></span>
+                        </div>
+                    </div> <!-- End Land Right -->
+                </div><!-- End Land Data -->
+
+                <div role="tabpanel" class="tab-pane" id="soil"> <!-- Soil Data -->
+                    <div class="left"> <!-- Soil Left -->
+                        <table id="soil" class="table custom-hover">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th class="text-right">Area</th>
+                                    <th class="text-right">Coverage</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Clay</td>
+                                    <td class="strong text-right">21</td>
+                                    <td class="strong text-right">0.1%</td>
+                                </tr>
+                                <tr>
+                                    <td>Silt</td>
+                                    <td class="strong text-right">5,041</td>
+                                    <td class="strong text-right">26.3%</td>
+                                </tr>
+                                <tr>
+                                    <td>Sand</td>
+                                    <td class="strong text-right">5,181</td>
+                                    <td class="strong text-right">27.1%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div> <!-- End Soil Left -->
+                    <div class="right ui-light"> <!-- Soil Right -->
+                        <div class="bar-chart">
+                            <span class="bar half"><label>Clay</label></span>
+                            <span class="bar full"><label>Silt</label></span>
+                            <span class="bar half"><label>Sand</label></span>
+                        </div>
+                    </div> <!-- End Soil Right -->
+                </div> <!-- End Soil Data -->
+                <div role="tabpanel" class="tab-pane" id="topography"> <!-- Topography Data -->
+                    <div class="left">Table</div>
+                    <div class="right ui-light">Chart</div>
+                </div> <!-- End Topography Data -->
+
+            </div> <!-- End Tab Content -->
+
+        </div> <!-- End Tabs Wrapper -->
+
+    </div> <!-- End Analyze Data -->
+
+</div> <!-- End Container -->
+{% endblock content %}
+
+{% block footer %}
+{% endblock footer %}

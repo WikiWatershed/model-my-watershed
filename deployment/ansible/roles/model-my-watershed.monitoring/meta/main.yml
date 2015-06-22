@@ -1,0 +1,5 @@
+---
+dependencies:
+  - { role: "azavea.relp" }
+  - { role: "model-my-watershed.collectd" }
+  - { role: "model-my-watershed.beaver" }

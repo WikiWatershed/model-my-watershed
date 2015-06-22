@@ -1,0 +1,104 @@
+//General Styling
+.dropdown{
+  display: inline-block;
+  line-height: 1!important;
+
+  .dropdown-menu{
+    border-radius: $radius-sm!important;
+    border: 1px solid $black-12;
+    box-shadow: 0 0 6px $black-24;
+
+    .divider{
+      margin: 0!important;
+    }
+
+    &.menu-left{
+      left: 0;
+    }
+
+    &.menu-right{
+      right: 0;
+      left: inherit;
+    }
+
+    li{
+
+      a{
+        color: $black-74;
+        line-height: $height-md;
+        padding: 0 0.5rem;
+        cursor: pointer!important;
+        font-size: 0.7rem;
+        text-transform: capitalize!important;
+
+        &:hover, &:focus{
+          color: $black-74;
+          background-color: $ui-light;
+        }
+
+        i{
+          color: $black-54;
+          margin-right: 6px;
+        }
+      }
+    }
+
+    .dropdown-footer{
+      background-color: $ui-light;
+      min-height: 100px;
+
+      span{
+        color: $black-54;
+      }
+    }
+  }
+}
+
+//Drawing Tools Dropdown
+#land-tools, #conserve-tools{
+  padding: 0!important;
+  min-width: 200px;
+
+  ul{
+    list-style-type: none;
+    -webkit-padding-start: 0!important;
+    -moz-padding-start: 0!important;
+    display: flex;
+    flex-direction: row;
+
+    li{
+      float: left;
+      display: block;
+      width: 60px;
+      height: 90px;
+      margin-bottom: 0.2rem;
+      transition: all 0.4s ease-out;
+      margin-right: 1rem;
+      text-align: center;
+      white-space: normal;
+
+      &:last-child{
+        margin-right: 0!important;
+      }
+
+      .thumb{
+        height: 60px;
+        border: solid 2px transparent;
+        background-color: $ui-light;
+        margin-bottom: 0.2rem;
+        display: block;
+
+        &:hover{
+          border-color: $ui-primary;
+          cursor: pointer;
+        }
+      }
+    }
+  }
+}
+
+//Modification Dropdown
+#modifications{
+  max-height: 400px;
+  overflow-y: auto;
+}

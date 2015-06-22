@@ -1,0 +1,22 @@
+<nav id="app-header" class="navbar-watershed">
+    <div class="brand"><a href="#">Model My Watershed</a></div>
+    <div class="navigation">
+        <ul class="main">
+            <li class="header-link"><a href="#">Community</a></li>
+            {% if guest %}
+                <li class="header-link"><a class="show-login" href="javascript:void(0);">Login</a></li>
+            {% else %}
+                <li class="dropdown header-link">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="javascript:void(0);">
+                        {{ username }}
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">Profile</a></li>
+                        <li><a href="/user/logout" class="user-logout">Logout</a></li>
+                    </ul>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>

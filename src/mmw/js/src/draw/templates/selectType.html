@@ -1,0 +1,12 @@
+<div id="predefined-shape" class="dropdown">
+  <button class="btn btn-md btn-search-tool dropdown-toggle {{ 'disabled' if not toolsEnabled }}"
+      type="button" data-toggle="dropdown" aria-expanded="true">
+    Select by Boundary
+    <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu menu-left" role="menu" id="wrapper">
+  {% for item in predefinedShapeTypes %}
+      <li role="presentation"><a role="menuitem" tabindex="-1" href="#" data-endpoint="{{ item.endpoint }}" data-tableid="{{ item.tableId }}">{{ item.display }}</a></li>
+  {% endfor %}
+  </ul>
+</div>
