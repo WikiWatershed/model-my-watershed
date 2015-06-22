@@ -226,6 +226,7 @@ class Application(StackNode):
 
         app_server_security_group = self.add_resource(ec2.SecurityGroup(
             app_server_security_group_name,
+            DependsOn='sgAppServerLoadBalancer',
             GroupDescription='Enables access to application servers',
             VpcId=Ref(self.vpc_id),
             SecurityGroupIngress=[
