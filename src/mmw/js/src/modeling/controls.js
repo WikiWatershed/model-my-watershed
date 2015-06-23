@@ -1,6 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
+    _ = require('underscore'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     drawUtils = require('../draw/utils'),
@@ -8,10 +9,11 @@ var $ = require('jquery'),
     models = require('./models'),
     landCoverTmpl = require('./templates/controls/landCover.html'),
     conservationPracticeTmpl = require('./templates/controls/conservationPractice.html'),
-    precipitationTmpl = require('./templates/controls/precipitation.html');
+    precipitationTmpl = require('./templates/controls/precipitation.html'),
+    summaryTmpl = require('./templates/controls/summary.html');
 
 // Simulation input controls base class.
-var ControlView = Marionette.ItemView.extend({
+var ControlView = Marionette.LayoutView.extend({
     model: models.ModelPackageControlModel,
 
     className: function() {
@@ -57,28 +59,69 @@ var DrawControlView = ControlView.extend({
     }
 });
 
-var LandCoverView = DrawControlView.extend({
-    template: landCoverTmpl,
+var SummaryView = Marionette.ItemView.extend({
+    template: summaryTmpl,
+
+    modelEvents: {
+        'change:thumbValue': 'render'
+    },
 
     templateHelpers: function() {
+        var thumbValue = this.model.get('thumbValue'),
+            label = '',
+            summary = '';
+        if (thumbValue) {
+            label = models.getHumanReadableLabel(thumbValue);
+            summary = models.getHumanReadableSummary(thumbValue);
+        }
         return {
-            label: models.getHumanReadableLabel
+            label: label,
+            summary: summary
         };
+    }
+});
+
+var ModificationsView = DrawControlView.extend({
+    ui: _.defaults({
+        thumb: '.thumb'
+    }, DrawControlView.prototype.ui),
+
+    regions: {
+        summaryRegion: '.summary-region'
     },
+
+    events: _.defaults({
+        'mouseenter @ui.thumb': 'setThumbValue',
+        'mouseleave @ui.thumb': 'clearThumbValue'
+    }, DrawControlView.prototype.events),
+
+    templateHelpers: {
+        labelFn: models.getHumanReadableLabel
+    },
+
+    setThumbValue: function(event) {
+        this.model.set('thumbValue', $(event.currentTarget).data('value'));
+    },
+
+    clearThumbValue: function(event) {
+        this.model.set('thumbValue', null);
+    },
+
+    onShow: function() {
+        this.showChildView('summaryRegion', new SummaryView({model: this.model}));
+    }
+});
+
+var LandCoverView = ModificationsView.extend({
+    template: landCoverTmpl,
 
     getControlName: function() {
         return 'landcover';
     }
 });
 
-var ConservationPracticeView = DrawControlView.extend({
+var ConservationPracticeView = ModificationsView.extend({
     template: conservationPracticeTmpl,
-
-    templateHelpers: function() {
-        return {
-            label: models.getHumanReadableLabel
-        };
-    },
 
     getControlName: function() {
         return 'conservation_practice';
