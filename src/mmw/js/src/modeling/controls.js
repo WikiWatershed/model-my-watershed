@@ -103,7 +103,7 @@ var ModificationsView = DrawControlView.extend({
         this.model.set('thumbValue', $(event.currentTarget).data('value'));
     },
 
-    clearThumbValue: function(event) {
+    clearThumbValue: function() {
         this.model.set('thumbValue', null);
     },
 

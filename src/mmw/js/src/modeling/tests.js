@@ -119,41 +119,34 @@ describe('Modeling', function() {
         });
 
         describe('ToolbarTabContentView', function() {
+            beforeEach(function() {
+                this.modsCollection = new models.ModificationsCollection();
+                this.model = new models.ScenarioModel({
+                    name: 'New Scenario',
+                    modifications: this.modsCollection
+                });
+                this.view = new views.ToolbarTabContentView({
+                    model: this.model,
+                    collection: models.getControlsForModelPackage('tr-55')
+                });
+                this.modsModel1 = new models.ModificationModel(modificationsSample1);
+                this.modsModel2 = new models.ModificationModel(modificationsSample2);
+                $('#sandbox').html(this.view.render().el);
+            });
+
+            afterEach(function() {
+                this.view.remove();
+            });
+
             it('updates the modification count when there is a change to a scenario\'s modifications', function() {
-                var modsCollection = new models.ModificationsCollection(),
-                    model = new models.ScenarioModel({
-                        name: 'New Scenario',
-                        modifications: modsCollection
-                    }),
-                    view = new views.ToolbarTabContentView({
-                        model: model,
-                        collection: models.getControlsForModelPackage('tr-55')
-                    }),
-                    modsModel1 = new models.ModificationModel(modificationsSample1),
-                    modsModel2 = new models.ModificationModel(modificationsSample2);
-
-                $('#sandbox').html(view.render().el);
                 assert.equal($('#sandbox #modification-number').text(), '0');
-
-                model.get('modifications').add([modsModel1, modsModel2]);
+                this.model.get('modifications').add([this.modsModel1, this.modsModel2]);
                 assert.equal($('#sandbox #modification-number').text(), '2');
             });
 
             it('lists all of the modifications and their area', function() {
-                var modsModel1 = new models.ModificationModel(modificationsSample1),
-                    modsModel2 = new models.ModificationModel(modificationsSample2),
-                    modsCollection = new models.ModificationsCollection([ modsModel1, modsModel2 ]),
-                    model = new models.ScenarioModel({
-                        name: 'New Scenario',
-                        modifications: modsCollection
-                    }),
-                    view = new views.ToolbarTabContentView({
-                        model: model,
-                        collection: models.getControlsForModelPackage('tr-55')
-                    });
-
-                $('#sandbox').html(view.render().el);
-                assert.equal($('#sandbox #mod-landcover tr td:first-child').text(), 'LIR');
+                this.model.get('modifications').add([this.modsModel1, this.modsModel2]);
+                assert.equal($('#sandbox #mod-landcover tr td:first-child').text(), 'Low Intensity Residential');
                 assert.equal($('#sandbox #mod-landcover tr td:nth-child(2)').text(), '44.4 km2');
                 assert.equal($('#sandbox #mod-conservationpractice tr td:first-child').text(), 'Rain Garden');
                 assert.equal($('#sandbox #mod-conservationpractice tr td:nth-child(2)').text(), '106.4 km2');
