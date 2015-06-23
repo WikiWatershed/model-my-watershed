@@ -3,7 +3,8 @@ from troposphere import (
     Ref,
     Tags,
     ec2,
-    autoscaling as asg
+    autoscaling as asg,
+    cloudwatch as cw
 )
 
 from utils.cfn import get_recent_ami
@@ -147,9 +148,9 @@ class Worker(StackNode):
 
         worker_security_group = self.create_security_groups()
 
-        self.create_auto_scaling_resources(worker_security_group)
+        worker_auto_scaling_group = self.create_auto_scaling_resources(worker_security_group)
 
-        self.create_cloud_watch_resources()
+        self.create_cloud_watch_resources(worker_auto_scaling_group)
 
     def get_recent_worker_ami(self):
         try:
@@ -209,7 +210,7 @@ class Worker(StackNode):
 
         worker_auto_scaling_group_name = 'asgWorker'
 
-        self.add_resource(
+        return self.add_resource(
             asg.AutoScalingGroup(
                 worker_auto_scaling_group_name,
                 AvailabilityZones=Ref(self.availability_zones),
@@ -236,9 +237,26 @@ class Worker(StackNode):
             )
         )
 
-    def create_cloud_watch_resources(self):
-        # TODO: Determine good metrics to alert on for workers.
-        pass
+    def create_cloud_watch_resources(self, worker_auto_scaling_group):
+        self.add_resource(cw.Alarm(
+            'alarmWorkerCPU',
+            AlarmDescription='Worker scaling group high CPU',
+            AlarmActions=[Ref(self.notification_topic_arn)],
+            Statistic='Average',
+            Period=300,
+            Threshold='50',
+            EvaluationPeriods=1,
+            ComparisonOperator='GreaterThanThreshold',
+            MetricName='CPUUtilization',
+            Namespace='AWS/EC2',
+            Dimensions=[
+                cw.MetricDimension(
+                    'metricAutoScalingGroupName',
+                    Name='AutoScalingGroupName',
+                    Value=Ref(worker_auto_scaling_group)
+                )
+            ]
+        ))
 
     def get_tags(self, **kwargs):
         """Helper method to return Troposphere tags + default tags
