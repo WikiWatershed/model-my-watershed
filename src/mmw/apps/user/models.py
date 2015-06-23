@@ -14,3 +14,6 @@ class ItsiUser(models.Model):
     itsi_id = models.IntegerField()
 
     objects = ItsiUserManager()
+
+    def __unicode__(self):
+        return unicode(self.user.username)
