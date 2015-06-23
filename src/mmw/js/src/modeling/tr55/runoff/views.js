@@ -7,10 +7,15 @@ var $ = require('jquery'),
 
 var ResultView = Marionette.ItemView.extend({
     template: barChartTmpl,
+
     className: 'chart-container runoff-chart-container',
 
     modelEvents: {
         'change': 'addChart'
+    },
+
+    initialize: function(options) {
+        this.scenario = options.scenario;
     },
 
     onAttach: function() {
@@ -33,15 +38,24 @@ var ResultView = Marionette.ItemView.extend({
         if (result) {
             var indVar = 'type',
                 depVars = ['inf', 'runoff', 'et'],
-                data = [
-                    getBarData('Original', 'unmodified'),
-                    getBarData('Modified', 'modified')
-                ],
+                data,
                 options = {
                     barColors: ['#329b9c', '#4aeab3', '#4ebaea'],
                     depAxisLabel: 'Level',
                     depDisplayNames: ['Infiltration', 'Runoff', 'Evaporation']
                 };
+
+            if (this.scenario.get('is_current_conditions')) {
+                data = [
+                    getBarData('', 'unmodified'),
+                ];
+                this.$el.addClass('current-conditions');
+            } else {
+                data = [
+                    getBarData('Original', 'unmodified'),
+                    getBarData('Modified', 'modified')
+                ];
+            }
             chart.makeBarChart(selector, data, indVar, depVars, options);
         }
     }
