@@ -4,7 +4,8 @@ var Backbone = require('../../shim/backbone'),
     _ = require('underscore'),
     $ = require('jquery'),
     App = require('../app'),
-    coreModels = require('../core/models');
+    coreModels = require('../core/models'),
+    modificationDescriptions = require('./modificationDescriptions.json');
 
 var ModelPackageControlModel = Backbone.Model.extend({
     defaults: {
@@ -521,31 +522,16 @@ function getControlsForModelPackage(modelPackageName, options) {
 }
 
 function getHumanReadableLabel(value) {
-    var mapping = {
-        'chaparral': 'Chaparral',
-        'commercial': 'Commercial',
-        'desert': 'Desert',
-        'forest': 'Forest',
-        'grassland': 'Grassland',
-        'hir': 'HIR',
-        'lir': 'LIR',
-        'pasture': 'Pasture',
-        'row_crop': 'Row Crop',
-        'sg_prairie': 'Short Grass Prairie',
-        'tg_prairie': 'Tall Grass Prairie',
-        'turf_grass': 'Turf Grass',
-        'wetland': 'Wetland',
+    if (modificationDescriptions[value]) {
+        return modificationDescriptions[value].name;
+    } else {
+        throw 'Unknown Land Cover or Conservation Practice: ' + value;
+    }
+}
 
-        'cluster_housing': 'Cluster Housing',
-        'green_roof': 'Green Roof',
-        'no_till_agriculture': 'No-Till Agriculture',
-        'porous_paving': 'Porous Paving',
-        'rain_garden': 'Rain Garden',
-        'veg_infil_basin': 'Veg Infil Basin'
-    };
-
-    if (mapping[value]) {
-        return mapping[value];
+function getHumanReadableSummary(value) {
+    if (modificationDescriptions[value]) {
+        return modificationDescriptions[value].summary || '';
     } else {
         throw 'Unknown Land Cover or Conservation Practice: ' + value;
     }
@@ -564,5 +550,6 @@ module.exports = {
     ModificationsCollection: ModificationsCollection,
     ScenarioModel: ScenarioModel,
     ScenariosCollection: ScenariosCollection,
-    getHumanReadableLabel: getHumanReadableLabel
+    getHumanReadableLabel: getHumanReadableLabel,
+    getHumanReadableSummary: getHumanReadableSummary
 };
