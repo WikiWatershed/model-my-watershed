@@ -1,7 +1,7 @@
 {% macro thumb(label, value, size=56) %}
     <li>
         <div class="thumb" data-value="{{ value }}">
-            <svg>
+            <svg height="{{ size }}" width="{{ size }}">
                 <rect height="{{ size }}" width="{{ size }}" fill="url(#fill-{{ value }})"></rect>
             </svg>
         </div>
