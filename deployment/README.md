@@ -15,7 +15,7 @@ Next, install [Packer](https://packer.io/) using the steps detailed on Packer's 
 
 ## Create Identity and Access Management (IAM) roles
 
-TBD
+See [Create an IAM Instance Profile for Your Amazon EC2 Instances](http://docs.aws.amazon.com/codedeploy/latest/userguide/how-to-create-iam-instance-profile.html).
 
 ## Configure an AWS Profile using the AWS CLI
 
@@ -39,10 +39,18 @@ Stack launching is managed with `mmw_stack.py`. This command provides an interfa
 
 Before launching the Model My Watershed stack, AMIs for each service need to be generated:
 
-
 ```bash
 $ ./mmw_stack.py create-ami --aws-profile mmw-stg --mmw-profile staging \
                             --machine-type mmw-{app,monitoring,tiler,worker}
+```
+
+### Pruning AMIs
+
+After creating several AMIs, older ones become stale and are no longer needed. To prune them use:
+
+```bash
+$ ./mmw_stack.py prune-ami --aws-profile mmw-stg --mmw-profile staging \
+                           --keep 5 --machine-type mmw-{app,monitoring,tiler,worker}
 ```
 
 ### Launching Stacks
