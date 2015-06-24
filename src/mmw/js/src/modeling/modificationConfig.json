@@ -26,11 +26,13 @@
     },
     "hir": {
         "name": "High Intensity Residential",
+        "shortName": "HIR",
         "summary": "This category includes areas with apartment complexes or row houses. The amount of area that is covered by hard surfaces like roads, driveways and roofs is between 80% and 100%. No more than 20% of the area is covered with vegetation.",
         "color": "#39afa1"
     },
     "lir": {
         "name": "Low Intensity Residential",
+        "shortName": "LIR",
         "summary": "This category includes areas with single-family houses on single lots. The amount of area that is covered by hard surfaces like roads, driveways, and roofs, is between 30% and 80% of the land surface. The remaining 20% to 80% is covered with vegetation.",
         "color": "#329b9c"
     },
@@ -46,11 +48,13 @@
     },
     "sg_prairie": {
         "name": "Short Grass Prairie",
+        "shortName": "Short Prairie",
         "summary": "This category includes areas of grasses, legumes, or grass-legume mixtures planted for livestock grazing or the production of seed or hay crops, typically on a perennial cycle. Pasture/hay vegetation accounts for greater than 20% of total vegetation.",
         "color": "#4aeab3"
     },
     "tg_prairie": {
         "name": "Tall Grass Prairie",
+        "shortName": "Tall Prairie",
         "summary": "This category includes areas with a mixture of some constructed materials, but mostly vegetation in the form of lawn grasses. Impervious surfaces account for less than 20% of total cover. These areas most commonly include large-lot single-family housing units, parks, golf courses, and vegetation planted in developed settings for recreation, erosion control, or aesthetic purposes.",
         "color": "#39afa1"
     },
@@ -75,6 +79,7 @@
     },
     "no_till_agriculture": {
         "name": "No-Till Agriculture",
+        "shortName": "No-Till Ag",
         "color": "#53e9b4"
     },
     "porous_paving": {
@@ -86,7 +91,8 @@
         "color": "#51dec2"
     },
     "veg_infil_basin": {
-        "name": "Veg Infil Basin",
+        "name": "Vegetation Infiltration Basin",
+        "shortName": "Veg Basin",
         "color": "#52c6dd"
     }
 }

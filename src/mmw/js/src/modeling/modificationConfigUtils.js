@@ -1,10 +1,23 @@
 "use strict";
 
-var modificationConfig = require('./modificationConfig');
+var modificationConfig = require('./modificationConfig.json');
 
-function getHumanReadableLabel(value) {
+function getHumanReadableName(value) {
     if (modificationConfig[value]) {
         return modificationConfig[value].name;
+    } else {
+        throw 'Unknown Land Cover or Conservation Practice: ' + value;
+    }
+}
+
+// If no shortName, just use name.
+function getHumanReadableShortName(value) {
+    if (modificationConfig[value]) {
+        if (modificationConfig[value].shortName) {
+            return modificationConfig[value].shortName;
+        } else {
+            return modificationConfig[value].name;
+        }
     } else {
         throw 'Unknown Land Cover or Conservation Practice: ' + value;
     }
@@ -40,7 +53,8 @@ var getDrawOpts = function(pattern) {
 };
 
 module.exports = {
-    getHumanReadableLabel: getHumanReadableLabel,
+    getHumanReadableName: getHumanReadableName,
+    getHumanReadableShortName: getHumanReadableShortName,
     getHumanReadableSummary: getHumanReadableSummary,
     getDrawOpts: getDrawOpts
 };

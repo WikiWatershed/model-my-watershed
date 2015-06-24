@@ -71,7 +71,7 @@ var SummaryView = Marionette.ItemView.extend({
             label = '',
             summary = '';
         if (thumbValue) {
-            label = modificationConfigUtils.getHumanReadableLabel(thumbValue);
+            label = modificationConfigUtils.getHumanReadableName(thumbValue);
             summary = modificationConfigUtils.getHumanReadableSummary(thumbValue);
         }
         return {
@@ -97,7 +97,7 @@ var ModificationsView = DrawControlView.extend({
     }, DrawControlView.prototype.events),
 
     templateHelpers: {
-        labelFn: modificationConfigUtils.getHumanReadableLabel
+        labelFn: modificationConfigUtils.getHumanReadableShortName
     },
 
     setThumbValue: function(event) {

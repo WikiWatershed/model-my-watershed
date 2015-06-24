@@ -216,7 +216,7 @@ var ModificationModel = coreModels.GeoModel.extend({
     )
 });
 
-ModificationModel.prototype.label = modificationConfigUtils.getHumanReadableLabel;
+ModificationModel.prototype.label = modificationConfigUtils.getHumanReadableName;
 
 var ModificationsCollection = Backbone.Collection.extend({
     model: ModificationModel
