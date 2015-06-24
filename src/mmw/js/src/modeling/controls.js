@@ -100,8 +100,8 @@ var ModificationsView = DrawControlView.extend({
         labelFn: modificationConfigUtils.getHumanReadableShortName
     },
 
-    setThumbValue: function(event) {
-        this.model.setThumbValue($(event.currentTarget).data('value'));
+    setThumbValue: function(e) {
+        this.model.setThumbValue($(e.currentTarget).data('value'));
     },
 
     clearThumbValue: function() {
