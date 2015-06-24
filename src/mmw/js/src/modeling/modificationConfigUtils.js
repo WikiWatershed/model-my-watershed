@@ -2,46 +2,47 @@
 
 var modificationConfig = require('./modificationConfig.json');
 
-function getHumanReadableName(value) {
-    if (modificationConfig[value]) {
-        return modificationConfig[value].name;
+// modKey should be a key in modificationsConfig (eg. 'turf_grass').
+function getHumanReadableName(modKey) {
+    if (modificationConfig[modKey]) {
+        return modificationConfig[modKey].name;
     } else {
-        throw 'Unknown Land Cover or Conservation Practice: ' + value;
+        throw 'Unknown Land Cover or Conservation Practice: ' + modKey;
     }
 }
 
 // If no shortName, just use name.
-function getHumanReadableShortName(value) {
-    if (modificationConfig[value]) {
-        if (modificationConfig[value].shortName) {
-            return modificationConfig[value].shortName;
+function getHumanReadableShortName(modKey) {
+    if (modificationConfig[modKey]) {
+        if (modificationConfig[modKey].shortName) {
+            return modificationConfig[modKey].shortName;
         } else {
-            return modificationConfig[value].name;
+            return modificationConfig[modKey].name;
         }
     } else {
-        throw 'Unknown Land Cover or Conservation Practice: ' + value;
+        throw 'Unknown Land Cover or Conservation Practice: ' + modKey;
     }
 }
 
-function getHumanReadableSummary(value) {
-    if (modificationConfig[value]) {
-        return modificationConfig[value].summary || '';
+function getHumanReadableSummary(modKey) {
+    if (modificationConfig[modKey]) {
+        return modificationConfig[modKey].summary || '';
     } else {
-        throw 'Unknown Land Cover or Conservation Practice: ' + value;
+        throw 'Unknown Land Cover or Conservation Practice: ' + modKey;
     }
 }
 
-var getDrawOpts = function(pattern) {
-    if (pattern && modificationConfig[pattern] && modificationConfig[pattern].color) {
+var getDrawOpts = function(modKey) {
+    if (modKey && modificationConfig[modKey] && modificationConfig[modKey].color) {
         return {
-            color: modificationConfig[pattern].color,
+            color: modificationConfig[modKey].color,
             opacity: 1,
             weight: 3,
-            fillColor: 'url(#fill-' + pattern + ')',
+            fillColor: 'url(#fill-' + modKey + ')',
             fillOpacity: 0.74
         };
     } else {
-        // Unknown pattern, return generic grey
+        // Unknown modKey, return generic grey
         return {
             color: '#888',
             opacity: 1,

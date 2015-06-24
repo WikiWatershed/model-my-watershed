@@ -7,11 +7,10 @@ var _ = require('lodash'),
     Backbone = require('backbone'),
     assert = require('chai').assert,
     sinon = require('sinon'),
-    patterns = require('../core/patterns'),
     models = require('./models'),
     views = require('./views'),
-    App = require('../app.js');
-
+    App = require('../app.js'),
+    modificationConfigUtils = require('./modificationConfigUtils');
 
 describe('Modeling', function() {
     before(function() {
@@ -160,10 +159,10 @@ describe('Modeling', function() {
             });
 
             it('ensures each modification has draw options', function() {
-                var unknownDrawOpts = patterns.getDrawOpts('');
+                var unknownDrawOpts = modificationConfigUtils.getDrawOpts('');
 
                 $('.inline.controls .thumb').each(function() {
-                    var thisDrawOpts = patterns.getDrawOpts($(this).data('value'));
+                    var thisDrawOpts = modificationConfigUtils.getDrawOpts($(this).data('value'));
                     assert.notEqual(thisDrawOpts, unknownDrawOpts);
                 });
             });
