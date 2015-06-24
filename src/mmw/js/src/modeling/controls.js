@@ -83,7 +83,8 @@ var SummaryView = Marionette.ItemView.extend({
 
 var ModificationsView = DrawControlView.extend({
     ui: _.defaults({
-        thumb: '.thumb'
+        thumb: '.thumb',
+        button: 'button'
     }, DrawControlView.prototype.ui),
 
     regions: {
@@ -92,7 +93,7 @@ var ModificationsView = DrawControlView.extend({
 
     events: _.defaults({
         'mouseenter @ui.thumb': 'setThumbValue',
-        'mouseleave @ui.thumb': 'clearThumbValue'
+        'click @ui.button': 'clearThumbValue'
     }, DrawControlView.prototype.events),
 
     templateHelpers: {
