@@ -1,3 +1,4 @@
 ---
 celery_version: 3.1.18
 djcelery_version: 3.1.16
+flower_version: 0.8.2

@@ -18,3 +18,7 @@ celery_logs: "/var/log/celery/%n.log"
 celery_number_of_workers: 2
 celery_processes_per_worker: 1
 celery_log_level: "INFO"
+
+flower_log: "/var/log/celery/flower.log"
+flower_log_rotate_count: 5
+flower_log_rotate_interval: daily

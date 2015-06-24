@@ -1,0 +1,10 @@
+{{ flower_log }} {
+  rotate {{ flower_log_rotate_count }}
+  {{ flower_log_rotate_interval }}
+  compress
+  missingok
+  postrotate
+    restart flower
+  endscript
+  notifempty
+}

@@ -1,0 +1,33 @@
+---
+- name: Configure Flower service definition
+  template: src=upstart-flower.conf.j2
+            dest=/etc/init/flower.conf
+  notify:
+    - Restart Flower
+
+- name: Configure Nginx site
+  template: src=nginx-flower.conf.j2
+            dest=/etc/nginx/sites-available/flower.conf
+  notify:
+    - Restart Nginx
+
+- name: Enable Nginx site
+  file: src=/etc/nginx/sites-available/flower.conf
+        dest=/etc/nginx/sites-enabled/flower
+        state=link
+  notify:
+    - Restart Nginx
+
+- name: Touch Flower log file if it does not exist
+  command: touch {{ flower_log }}
+           creates={{ flower_log }}
+
+- name: Set Flower log file permissions
+  file: path={{ flower_log }}
+        owner=celery
+        group=celery
+        mode=0664
+
+- name: Configure Flower log rotation
+  template: src=logrotate-flower.j2
+            dest=/etc/logrotate.d/flower

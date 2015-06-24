@@ -27,6 +27,7 @@ The `app` virtual machine contains an instance of the Django application, `servi
 `worker` contains:
 
 - Celery
+- Flower
 
 ### Getting Started
 
@@ -95,6 +96,7 @@ pgweb                  | 5433 | [http://localhost:5433](http://localhost:5433)
 Redis                  | 6379 | `redis-cli -h localhost 6379`
 Testem                 | 7357 | [http://localhost:7357](http://localhost:7357)
 Tiler                  | 4000 | [http://localhost:4000](http://localhost:4000)
+Flower                 | 5555 | [http://localhost:5555](http://localhost:5555)
 
 ### Caching
 
