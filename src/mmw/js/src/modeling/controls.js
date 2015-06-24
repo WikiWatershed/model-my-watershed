@@ -5,8 +5,8 @@ var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     drawUtils = require('../draw/utils'),
-    patterns = require('../core/patterns'),
     models = require('./models'),
+    modificationConfigUtils = require('./modificationConfigUtils'),
     landCoverTmpl = require('./templates/controls/landCover.html'),
     conservationPracticeTmpl = require('./templates/controls/conservationPractice.html'),
     precipitationTmpl = require('./templates/controls/precipitation.html'),
@@ -49,7 +49,7 @@ var DrawControlView = ControlView.extend({
             controlName = this.getControlName(),
             controlValue = $el.data('value'),
             map = App.getLeafletMap();
-        drawUtils.drawPolygon(map, patterns.getDrawOpts(controlValue)).then(function(geojson) {
+        drawUtils.drawPolygon(map, modificationConfigUtils.getDrawOpts(controlValue)).then(function(geojson) {
             self.addModification(new models.ModificationModel({
                 name: controlName,
                 value: controlValue,
@@ -71,8 +71,8 @@ var SummaryView = Marionette.ItemView.extend({
             label = '',
             summary = '';
         if (thumbValue) {
-            label = models.getHumanReadableLabel(thumbValue);
-            summary = models.getHumanReadableSummary(thumbValue);
+            label = modificationConfigUtils.getHumanReadableLabel(thumbValue);
+            summary = modificationConfigUtils.getHumanReadableSummary(thumbValue);
         }
         return {
             label: label,
@@ -97,7 +97,7 @@ var ModificationsView = DrawControlView.extend({
     }, DrawControlView.prototype.events),
 
     templateHelpers: {
-        labelFn: models.getHumanReadableLabel
+        labelFn: modificationConfigUtils.getHumanReadableLabel
     },
 
     setThumbValue: function(event) {

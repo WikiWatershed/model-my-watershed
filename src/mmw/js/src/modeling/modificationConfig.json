@@ -1,0 +1,92 @@
+{
+    "chaparral": {
+        "name": "Chaparral",
+        "summary": "This category includes areas dominated by shrubs; less than 5 meters tall with shrub canopy typically greater than 20% of total vegetation. This class includes true shrubs, young trees in an early successional stage or trees stunted from environmental conditions.",
+        "color": "#e2d9b5"
+    },
+    "commercial": {
+        "name": "Commercial",
+        "summary": "This category includes any area that is entirely paved and is not residential. It includes roads, railroads, shopping centers, and factories.",
+        "color": "#40c2a8"
+    },
+    "desert": {
+        "name": "Desert",
+        "summary": "This category includes areas of bedrock, desert pavement, scarps, talus, slides, volcanic material, glacial debris, sand dunes, strip mines, gravel pits and other accumulations of earthen material. Generally, vegetation accounts for less than 15% of total cover.",
+        "color": "#f1edd9"
+    },
+    "forest": {
+        "name": "Forest",
+        "summary": "This category includes areas that are covered by vegetation with more than 20% of the land surface covered by trees that are taller than 5 meters.",
+        "color": "#53e9b4"
+    },
+    "grassland": {
+        "name": "Grassland",
+        "summary": "This category includes areas where grasses and weedy (herbaceous) plants cover more than 80% of the ground area. These areas are not intensively managed but may be used for grazing animals.",
+        "color": "#54d2d0"
+    },
+    "hir": {
+        "name": "High Intensity Residential",
+        "summary": "This category includes areas with apartment complexes or row houses. The amount of area that is covered by hard surfaces like roads, driveways and roofs is between 80% and 100%. No more than 20% of the area is covered with vegetation.",
+        "color": "#39afa1"
+    },
+    "lir": {
+        "name": "Low Intensity Residential",
+        "summary": "This category includes areas with single-family houses on single lots. The amount of area that is covered by hard surfaces like roads, driveways, and roofs, is between 30% and 80% of the land surface. The remaining 20% to 80% is covered with vegetation.",
+        "color": "#329b9c"
+    },
+    "pasture": {
+        "name": "Pasture",
+        "summary": "This category includes vegetation such as grasses with clover or other vegetation that is planted for grazing cattle, horses or other farm animals or to provide hay or feed for grazing animals.",
+        "color": "#51dec2"
+    },
+    "row_crop": {
+        "name": "Row Crop",
+        "summary": "This category includes areas that are planted for annual crops such as corn, soybeans, vegetables and cotton. It also includes orchards and vineyards and actively tilled (plowed) land.",
+        "color": "#52c6dd"
+    },
+    "sg_prairie": {
+        "name": "Short Grass Prairie",
+        "summary": "This category includes areas of grasses, legumes, or grass-legume mixtures planted for livestock grazing or the production of seed or hay crops, typically on a perennial cycle. Pasture/hay vegetation accounts for greater than 20% of total vegetation.",
+        "color": "#4aeab3"
+    },
+    "tg_prairie": {
+        "name": "Tall Grass Prairie",
+        "summary": "This category includes areas with a mixture of some constructed materials, but mostly vegetation in the form of lawn grasses. Impervious surfaces account for less than 20% of total cover. These areas most commonly include large-lot single-family housing units, parks, golf courses, and vegetation planted in developed settings for recreation, erosion control, or aesthetic purposes.",
+        "color": "#39afa1"
+    },
+    "turf_grass": {
+        "name": "Turf Grass",
+        "summary": "This category includes areas that are primarily lawn grasses planted and maintained for recreation, aesthetic purposes and erosion control. Examples include parks, lawns, golf courses, and grassy areas in developments.",
+        "color": "#4aeab3"
+    },
+    "wetland": {
+        "name": "Wetland",
+        "summary": "This category includes areas where forest or shrubland vegetation accounts for greater than 20% of vegetative cover and the soil or substrate is periodically saturated with or covered with water.",
+        "color": "#4ebaea"
+    },
+    "cluster_housing": {
+        "name": "Cluster Housing",
+        "color": "#4aeab3"
+    },
+    "green_roof": {
+        "name": "Green Roof",
+        "summary": "Green Roof Summary...",
+        "color": "#4ebaea"
+    },
+    "no_till_agriculture": {
+        "name": "No-Till Agriculture",
+        "color": "#53e9b4"
+    },
+    "porous_paving": {
+        "name": "Porous Paving",
+        "color": "#54d2d0"
+    },
+    "rain_garden": {
+        "name": "Rain Garden",
+        "color": "#51dec2"
+    },
+    "veg_infil_basin": {
+        "name": "Veg Infil Basin",
+        "color": "#52c6dd"
+    }
+}

@@ -5,7 +5,7 @@ var Backbone = require('../../shim/backbone'),
     $ = require('jquery'),
     App = require('../app'),
     coreModels = require('../core/models'),
-    modificationDescriptions = require('./modificationDescriptions.json');
+    modificationConfigUtils = require('./modificationConfigUtils');
 
 var ModelPackageControlModel = Backbone.Model.extend({
     defaults: {
@@ -216,7 +216,7 @@ var ModificationModel = coreModels.GeoModel.extend({
     )
 });
 
-ModificationModel.prototype.label = getHumanReadableLabel;
+ModificationModel.prototype.label = modificationConfigUtils.getHumanReadableLabel;
 
 var ModificationsCollection = Backbone.Collection.extend({
     model: ModificationModel
@@ -521,22 +521,6 @@ function getControlsForModelPackage(modelPackageName, options) {
     throw 'Model package not supported ' + modelPackageName;
 }
 
-function getHumanReadableLabel(value) {
-    if (modificationDescriptions[value]) {
-        return modificationDescriptions[value].name;
-    } else {
-        throw 'Unknown Land Cover or Conservation Practice: ' + value;
-    }
-}
-
-function getHumanReadableSummary(value) {
-    if (modificationDescriptions[value]) {
-        return modificationDescriptions[value].summary || '';
-    } else {
-        throw 'Unknown Land Cover or Conservation Practice: ' + value;
-    }
-}
-
 module.exports = {
     getControlsForModelPackage: getControlsForModelPackage,
     ResultModel: ResultModel,
@@ -549,7 +533,5 @@ module.exports = {
     ModificationModel: ModificationModel,
     ModificationsCollection: ModificationsCollection,
     ScenarioModel: ScenarioModel,
-    ScenariosCollection: ScenariosCollection,
-    getHumanReadableLabel: getHumanReadableLabel,
-    getHumanReadableSummary: getHumanReadableSummary
+    ScenariosCollection: ScenariosCollection
 };
