@@ -9,7 +9,8 @@ var Backbone = require('../../shim/backbone'),
 
 var ModelPackageControlModel = Backbone.Model.extend({
     defaults: {
-        name: ''
+        name: '',
+        thumbValue: null
     },
 
     // Return true if this is an input control and false if it is a
@@ -18,6 +19,37 @@ var ModelPackageControlModel = Backbone.Model.extend({
         return _.contains([
             'precipitation'
         ], this.get('name'));
+    },
+
+    getThumbValue: function() {
+        return this.get('thumbValue');
+    },
+
+    setThumbValue: function(value) {
+        this.set('thumbValue', value);
+    },
+
+    clearThumbValue: function() {
+        this.setThumbValue(null);
+    }
+});
+
+// This model is used for the controls that contain
+// a set of thumbnails that can be selected.
+var ThumbModelPackageControlModel = ModelPackageControlModel.extend({
+    defaults: _.defaults({
+        thumbValue: null
+    }, ModelPackageControlModel.prototype.defaults),
+
+    // thumbValue is the data-value attribute of
+    // the .thumb that is currently being hovered over
+    // or null if none.
+    getThumbValue: function() {
+        return this.get('thumbValue');
+    },
+
+    setThumbValue: function(value) {
+        this.set('thumbValue', value);
     }
 });
 
@@ -512,8 +544,8 @@ function getControlsForModelPackage(modelPackageName, options) {
             ]);
         } else {
             return new ModelPackageControlsCollection([
-                new ModelPackageControlModel({ name: 'landcover' }),
-                new ModelPackageControlModel({ name: 'conservation_practice' }),
+                new ThumbModelPackageControlModel({ name: 'landcover' }),
+                new ThumbModelPackageControlModel({ name: 'conservation_practice' }),
                 new ModelPackageControlModel({ name: 'precipitation' })
             ]);
         }
