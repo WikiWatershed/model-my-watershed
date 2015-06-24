@@ -30,7 +30,7 @@ from apps.modeling.serializers import (ProjectSerializer,
 
 
 @decorators.api_view(['GET', 'POST'])
-@decorators.permission_classes((IsAuthenticatedOrReadOnly, ))
+@decorators.permission_classes((IsAuthenticated, ))
 def projects(request):
     """Get a list of all projects with embedded scenarios available for
        the logged in user.  POST to create a new project associated with the
