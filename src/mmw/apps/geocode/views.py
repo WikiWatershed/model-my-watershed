@@ -18,11 +18,12 @@ geocoder = Geocoder(sources=settings.OMGEO_SETTINGS)
 @decorators.permission_classes((AllowAny, ))
 def geocode(request, format=None):
     query = request.REQUEST.get('search', None)
+    key = request.REQUEST.get('key', None)
     if (not query):
         response = Response(data={'error': 'Search parameter is required.'},
                             status=400)
         return response
-    pq = PlaceQuery(query=query, country='US')
+    pq = PlaceQuery(query=query, country='US', key=key)
     result = geocoder.geocode(pq)
     candidates = result['candidates']
     candidates = [_omgeo_candidate_to_dict(c) for c in candidates]
