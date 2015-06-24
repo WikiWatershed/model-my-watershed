@@ -2,7 +2,6 @@
 
 var Backbone = require('../../shim/backbone'),
     _ = require('lodash'),
-    App = require('../app'),
     coreModels = require('../core/models');
 
 var LayerModel = Backbone.Model.extend({});
@@ -27,9 +26,25 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
     )
 });
 
+var AnalyzeMessageModel = Backbone.Model.extend({
+    message: null,
+    iconClass: null,
+
+    setError: function() {
+        this.set('message', 'Error');
+        this.set('iconClasses', 'fa fa-exclamation-triangle');
+    },
+
+    setAnalyzing: function() {
+        this.set('message', 'Analyzing');
+        this.set('iconClasses', 'fa fa-circle-o-notch fa-spin');
+    }
+});
+
 module.exports = {
     AnalyzeTaskModel: AnalyzeTaskModel,
     LayerModel: LayerModel,
     LayerCollection: LayerCollection,
-    LayerCategoryCollection: LayerCategoryCollection
+    LayerCategoryCollection: LayerCategoryCollection,
+    AnalyzeMessageModel: AnalyzeMessageModel
 };

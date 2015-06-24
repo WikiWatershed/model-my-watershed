@@ -6,7 +6,6 @@ var _ = require('lodash'),
     $ = require('jquery'),
     Backbone = require('backbone'),
     assert = require('chai').assert,
-    Marionette = require('../../shim/backbone.marionette'),
     sinon = require('sinon'),
     patterns = require('../core/patterns'),
     models = require('./models'),
@@ -294,7 +293,6 @@ describe('Modeling', function() {
                             [ 200, { 'Content-Type': 'application/json' }, scenarioResponse ]);
 
                     var project = getTestProject(),
-                        projectSpy = sinon.spy(project, 'save'),
                         scenario1Spy = sinon.spy(project.get('scenarios').at(0), 'save'),
                         scenario2Spy = sinon.spy(project.get('scenarios').at(1), 'save');
 
@@ -317,7 +315,7 @@ describe('Modeling', function() {
                     var project = new models.ProjectModel({ id: 22 });
 
                     project.fetch()
-                            .done(function(data) {
+                            .done(function() {
                                 var scenarios = project.get('scenarios');
 
                                 assert.isTrue(scenarios instanceof Backbone.Collection);
@@ -537,7 +535,7 @@ describe('Modeling', function() {
     });
 });
 
-var lessThanOneAcrePolygon = { "type": "Feature", "properties": {}, "geometry": { "type": "Polygon", "coordinates": [ [ [ -75.17049014568327, 39.95056149048882 ], [ -75.17032116651535, 39.950538872524845 ], [ -75.17038553953171, 39.9502037145458 ], [ -75.17057061195372, 39.95022633262059 ], [ -75.17049014568327, 39.95056149048882 ] ] ] } };
+// var lessThanOneAcrePolygon = { "type": "Feature", "properties": {}, "geometry": { "type": "Polygon", "coordinates": [ [ [ -75.17049014568327, 39.95056149048882 ], [ -75.17032116651535, 39.950538872524845 ], [ -75.17038553953171, 39.9502037145458 ], [ -75.17057061195372, 39.95022633262059 ], [ -75.17049014568327, 39.95056149048882 ] ] ] } };
 
 var greaterThanOneAcrePolygon = { "type": "FeatureCollection", "features": [ { "type": "Feature", "properties": {}, "geometry": { "type": "Polygon", "coordinates": [ [ [ -75.17273247241974, 39.950349703806005 ], [ -75.1707261800766, 39.95009473644421 ], [ -75.17104804515839, 39.94857313726802 ], [ -75.17302215099335, 39.94882399784062 ], [ -75.17273247241974, 39.950349703806005 ] ] ] } } ] };
 

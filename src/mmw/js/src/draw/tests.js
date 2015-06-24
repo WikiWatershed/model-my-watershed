@@ -2,8 +2,7 @@
 
 require('../core/setup');
 
-var _ = require('lodash'),
-    $ = require('jquery'),
+var $ = require('jquery'),
     L = require('leaflet'),
     assert = require('chai').assert,
     sinon = require('sinon'),

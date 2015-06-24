@@ -69,14 +69,17 @@ def get_git_branch():
     return subprocess.check_output(git_command).rstrip()
 
 
-def run_packer(machine_type, aws_profile, region, stack_type):
+def run_packer(mmw_config, machine_type, aws_profile):
     """Function to run packer
 
     Args:
+      mmw_config (dict): Dict of configuration settings
       machine_type (str): type of machine to build
       aws_profile (str): aws profile name to use for authentication
-      stack_type (str): type of stack this machine is for
     """
+
+    region = mmw_config['Region']
+    stack_type = mmw_config['StackType']
 
     # Get AWS credentials based on profile
     aws_dir = os.path.expanduser('~/.aws')
@@ -111,8 +114,15 @@ def run_packer(machine_type, aws_profile, region, stack_type):
                       '-var', 'aws_region={}'.format(region),
                       '-var', 'aws_ubuntu_ami={}'.format(aws_ubuntu_ami),
                       '-var', 'stack_type={}'.format(stack_type),
-                      '-only', machine_type,
-                      packer_template_path]
+                      '-var', 'postgresql_password={}'.format(mmw_config['RDSPassword']),  # NOQA
+                      '-var', 'itsi_secret_key={}'.format(mmw_config['ITSISecretKey'])]  # NOQA
+
+    if machine_type is not None:
+        packer_command.extend(['-only', machine_type])
+    else:
+        packer_command.extend(['-except', 'mmw-monitoring'])
+
+    packer_command.append(packer_template_path)
 
     LOGGER.debug('Running Packer Command: %s', ' '.join(packer_command))
 

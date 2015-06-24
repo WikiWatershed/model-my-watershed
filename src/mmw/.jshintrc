@@ -1,7 +1,11 @@
 {
-    "indent": 4,
+    "strict": true,
     "globalstrict": true,
+    "sub": true,
+    "unused": true,
     "browser": true,
+    "curly": true,
+    "eqeqeq": true,
     "globals": {
         "require": false,
         "module": true,

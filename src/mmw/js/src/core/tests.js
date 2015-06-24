@@ -33,10 +33,6 @@ var chartData = [{x: 'a', y: 1},
     sandboxWidth = '700',
     sandboxSelector = '#display-sandbox';
 
-var SandboxRegion = Marionette.Region.extend({
-    el: '#display-sandbox'
-});
-
 describe('Core', function() {
     before(function() {
         if ($('#sandbox').length === 0) {
@@ -184,6 +180,30 @@ describe('Core', function() {
                 assert.isFalse($('#map').hasClass('half'));
 
                 view._leafletMap.remove();
+            });
+        });
+
+        describe('ModificationPopupView', function() {
+            it('deletes the modification it is associated with when the delete button is clicked', function() {
+                var model = new Backbone.Model({
+                        value: 'lir',
+                        shape: {},
+                        area: 100,
+                        units: 'm<sup>2</sup>',
+                    }),
+                    view = new views.ModificationPopupView({ model: model });
+
+                // ModificationModel has a static method
+                // for getting the label.
+                model.label = function() {
+                    return 'Modification Label';
+                };
+
+                var spy = sinon.spy(model, 'destroy');
+
+                $('#sandbox').html(view.render().el);
+                $('#sandbox .delete-modification').click();
+                assert.equal(spy.callCount, 1);
             });
         });
     });
@@ -428,7 +448,7 @@ describe('Core', function() {
             }
         });
 
-        it('doesn\'t attach CSRF tokens to external requests', function() {
+        it('doesn\'t attach CSRF tokens to external requests over HTTP', function() {
             var requestMethods = [
                 'GET',
                 'HEAD',
@@ -444,6 +464,34 @@ describe('Core', function() {
                 $.ajax({
                     method: method,
                     url: 'http://www.example.com',
+                    success: function(data) {
+                        sinon.spy(null, data);
+                    }
+                });
+            });
+
+            for(var i=0; i<this.requests.length; i++) {
+                assert.notProperty(this.requests[i].requestHeaders, 'X-Requested-With');
+                assert.notProperty(this.requests[i].requestHeaders, 'X-CSRFToken');
+            }
+        });
+
+        it('doesn\'t attach CSRF tokens to external requests over HTTPS', function() {
+            var requestMethods = [
+                'GET',
+                'HEAD',
+                'OPTIONS',
+                'TRACE',
+                'POST',
+                'PUT',
+                'DELETE',
+                'PATCH'
+            ];
+
+            _.each(requestMethods, function(method) {
+                $.ajax({
+                    method: method,
+                    url: 'https://www.secure-example.com',
                     success: function(data) {
                         sinon.spy(null, data);
                     }

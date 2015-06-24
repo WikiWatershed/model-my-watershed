@@ -201,6 +201,33 @@
       width: 100%;
       height: 200px;
     }
+
+    .left, .right{
+      padding: 1rem;
+      position: relative;
+      width: 100%;
+
+      @media(min-width:768px){
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        overflow-y: auto;
+      }
+    }
+
+    .left{
+      @media(min-width:768px){
+        left: 0;
+        width: 50%;
+      }
+    }
+
+    .right{
+      @media(min-width:768px){
+        right: 0;
+        width: 50%;
+      }
+    }
   }
 }
 

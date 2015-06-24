@@ -9,17 +9,14 @@ var _ = require('lodash'),
     sinon = require('sinon'),
     models = require('./models'),
     views = require('./views'),
-    chart = require('../core/chart'),
     sandboxTemplate = require('../core/templates/sandbox.html');
 
 var sandboxHeight = '500',
-    sandboxWidth = '700',
-    sandboxSelector = '#display-sandbox';
+    sandboxWidth = '700';
 
 var SandboxRegion = Marionette.Region.extend({
     el: '#display-sandbox'
 });
-
 
 describe('Analyze', function() {
     beforeEach(function() {
@@ -32,7 +29,7 @@ describe('Analyze', function() {
         $('#display-sandbox').remove();
     });
 
-    describe('AnalyzeView', function() {
+    describe('DetailsView', function() {
         beforeEach(function() {
             this.server = sinon.fakeServer.create();
             this.server.respondImmediately = true;
@@ -45,46 +42,33 @@ describe('Analyze', function() {
 
         var analyzeDataSets = getTestAnalyzeData();
 
-        for (var dataSetInd = 0; dataSetInd < analyzeDataSets.length; dataSetInd++) {
+        function testDataSet(dataSetInd) {
             var dataSet = analyzeDataSets[dataSetInd];
-
-            it('renders tables that match the data when there are ' + dataSetInd + ' categories in the dataset', function() {
-                var view = setupAnalyzeView(analyzeDataSets[dataSetInd], this.server);
-                view.listenTo(view, 'show', function() {
-                    checkTable(dataSet);
-                });
+            it('renders tables that match the data when there are ' + dataSetInd + ' categories in the dataset', function(done) {
+                setupViewAndTest(dataSet, checkTable, done);
             });
 
-            it('renders charts that match the data when there are ' + dataSetInd + ' categories in the dataset', function() {
-                var view = setupAnalyzeView(analyzeDataSets[dataSetInd], this.server);
-                view.listenTo(view, 'show', function() {
-                    checkChart(dataSet);
-                });
+            it('renders charts that match the data when there are ' + dataSetInd + ' categories in the dataset', function(done) {
+                setupViewAndTest(dataSet, checkChart, done);
             });
         }
+
+        _.forEach(_.range(3), function(dataSetInd) {
+            testDataSet(dataSetInd);
+        });
     });
 });
 
-function setupAnalyzeView(data, server) {
+function setupViewAndTest(dataSet, testFn, done) {
     var sandbox = new SandboxRegion(),
-        view = new views.AnalyzeWindow({
-            id: 'analyze-output-wrapper',
-            model: new models.AnalyzeTaskModel()
-        }),
-        jobId = "abc",
-        startResponse = JSON.stringify({
-            "status": "started",
-            "job": jobId
-        }),
-        endResponse = JSON.stringify({
-            "status": "complete",
-            "result": data
+        view = new views.DetailsView({
+            collection: new models.LayerCollection(dataSet)
         });
-
-    server.respondWith('/api/modeling/start/analyze', startResponse);
-    server.respondWith('/api/modeling/job/' + jobId, endResponse);
+    view.listenTo(view, 'show', function() {
+        testFn(dataSet);
+        done();
+    });
     sandbox.show(view);
-    return view;
 }
 
 function checkTable(data) {
@@ -128,7 +112,7 @@ function checkTableBody(subData) {
 function checkChart(data) {
     _.each(data, function(subData) {
         var expectedAxisLabels = _.pluck(subData.categories, 'type');
-        var axisLabels = $('#' + subData.name + ' .x.axis text').map(function() {
+        var axisLabels = $('#' + subData.name + ' .x.axis .tick text').map(function() {
             return $(this).text();
         }).get();
         assert.deepEqual(expectedAxisLabels, axisLabels);

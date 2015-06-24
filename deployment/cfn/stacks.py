@@ -7,6 +7,7 @@ from data_plane import DataPlane
 from cache_private_dns_record import CachePrivateDNSRecord
 from application import Application
 from tiler import Tiler
+from tile_delivery_network import TileDeliveryNetwork
 from worker import Worker
 
 import ConfigParser
@@ -33,6 +34,10 @@ def build_graph(mmw_config, aws_profile, **kwargs):
       mmw_config (dict): dictionary representation of `default.yml`
       aws_profile (str): name of AWS profile to use for authentication
     """
+
+    if kwargs['stack_color'] is not None:
+        mmw_config['StackColor'] = kwargs['stack_color'].capitalize()
+
     global_config = GlobalConfigNode(**mmw_config)
     vpc = VPC(globalconfig=global_config, aws_profile=aws_profile)
     s3_vpc_endpoint = S3VPCEndpoint(globalconfig=global_config, VPC=vpc,
@@ -47,8 +52,14 @@ def build_graph(mmw_config, aws_profile, **kwargs):
         PrivateHostedZone=private_hosted_zone, DataPlane=data_plane,
         aws_profile=aws_profile
     )
+
     tiler = Tiler(globalconfig=global_config, VPC=vpc, aws_profile=aws_profile)
+    tile_delivery_network = TileDeliveryNetwork(globalconfig=global_config,
+                                                VPC=vpc,
+                                                PrivateHostedZone=private_hosted_zone,  # NOQA
+                                                aws_profile=aws_profile)
     application = Application(globalconfig=global_config, VPC=vpc,
+                              TileDeliveryNetwork=tile_delivery_network,
                               aws_profile=aws_profile)
     worker = Worker(globalconfig=global_config, VPC=vpc,
                     aws_profile=aws_profile)
@@ -59,12 +70,13 @@ def build_graph(mmw_config, aws_profile, **kwargs):
 
 def build_stacks(mmw_config, aws_profile, **kwargs):
     """Trigger actual building of graphs"""
-    s3_vpc_endpoint_graph, cache_private_dns_record_graph, \
-        tiler_graph, application_graph, worker_graph = build_graph(mmw_config,
-                                                                   aws_profile)
+    s3_vpc_endpoint_graph, cache_private_dns_record_graph, tiler_graph, \
+        application_graph, worker_graph = build_graph(mmw_config, aws_profile,
+                                                      **kwargs)
     s3_vpc_endpoint_graph.go()
     cache_private_dns_record_graph.go()
-    tiler_graph.go()
-    application_graph.go()
-    tiler_graph.go()
-    worker_graph.go()
+
+    if kwargs['stack_color'] is not None:
+        tiler_graph.go()
+        application_graph.go()
+        worker_graph.go()

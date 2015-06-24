@@ -21,7 +21,7 @@ from celery import chain
 from urlparse import urljoin
 
 from apps.core.models import Job
-from apps.core.task_helpers import save_job_error, save_job_result
+from apps.core.tasks import save_job_error, save_job_result
 from apps.modeling import tasks
 from apps.modeling.models import Project, Scenario
 from apps.modeling.serializers import (ProjectSerializer,
@@ -30,7 +30,7 @@ from apps.modeling.serializers import (ProjectSerializer,
 
 
 @decorators.api_view(['GET', 'POST'])
-@decorators.permission_classes((IsAuthenticatedOrReadOnly, ))
+@decorators.permission_classes((IsAuthenticated, ))
 def projects(request):
     """Get a list of all projects with embedded scenarios available for
        the logged in user.  POST to create a new project associated with the

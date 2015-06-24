@@ -1,8 +1,6 @@
 "use strict";
 
-var $ = require('jquery'),
-    _ = require('underscore'),
-    L = require('leaflet'),
+var _ = require('underscore'),
     App = require('../app'),
     router = require('../router').router,
     views = require('./views'),

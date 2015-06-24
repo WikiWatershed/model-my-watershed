@@ -1,15 +1,13 @@
 "use strict";
 
-var _ = require('lodash'),
+    var _ = require('lodash'),
     $ = require('jquery'),
-    L = require('leaflet'),
     Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
     controls = require('./controls'),
     coreViews = require('../core/views'),
-    filters = require('../filters'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultsDetailsTmpl = require('./templates/resultsDetails.html'),
     resultsTabPanelTmpl = require('./templates/resultsTabPanel.html'),
@@ -22,8 +20,8 @@ var _ = require('lodash'),
     scenarioMenuItemTmpl = require('./templates/scenarioMenuItem.html'),
     projectMenuTmpl = require('./templates/projectMenu.html'),
     scenarioToolbarTabContentTmpl = require('./templates/scenarioToolbarTabContent.html'),
-    chart = require('../core/chart.js'),
-    barChartTmpl = require('../core/templates/barChart.html');
+    tr55RunoffViews = require('./tr55/runoff/views.js'),
+    tr55QualityViews = require('./tr55/quality/views.js');
 
 var ENTER_KEYCODE = 13,
     ESCAPE_KEYCODE = 27;
@@ -105,7 +103,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         return {
-            editable: App.user.userMatch(this.model.get('user_id'))
+            editable: isEditable(this.model)
         };
     },
 
@@ -216,10 +214,11 @@ var ScenariosView = Marionette.LayoutView.extend({
     template: scenariosBarTmpl,
 
     templateHelpers: function() {
+        // Check the first scenario in the collection as a proxy for the
+        // entire collection.
+        var scenario = this.collection.first();
         return {
-            // Check the first scenario in the collection as a proxy for the
-            // entire collection.
-            editable: App.user.userMatch(this.collection.first().get('user_id'))
+            editable: isEditable(scenario)
         };
     },
 
@@ -276,7 +275,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     templateHelpers: function() {
         return {
             cid: this.model.cid,
-            editable: App.user.userMatch(this.model.get('user_id'))
+            editable: isEditable(this.model)
         };
     },
 
@@ -317,7 +316,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
 
         this.ui.nameField.on('keypress', function(e) {
             var keycode = (e.keyCode ? e.keyCode : e.which);
-            if (keycode == ENTER_KEYCODE) {
+            if (keycode === ENTER_KEYCODE) {
                 // Don't add line returns to the text.
                 e.preventDefault();
 
@@ -329,7 +328,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
             }
         });
 
-        this.ui.nameField.on('blur', function(e) {
+        this.ui.nameField.on('blur', function() {
             self.model.collection.updateScenarioName(self.model, $(this).text());
         });
     },
@@ -445,14 +444,14 @@ var ScenarioDropDownMenuView = Marionette.CompositeView.extend({
 var ToolbarTabContentView = Marionette.CompositeView.extend({
     model: models.ScenarioModel,
     template: scenarioToolbarTabContentTmpl,
-    collection: models.ModificationsCollection,
+    collection: models.ModelPackageControlsCollection,
     childViewContainer: '.controls',
 
     tagName: 'div',
     className: 'tab-pane',
 
-    childViewOptions: function(model) {
-        var modificationModel = this.getModificationForInputControl(model),
+    childViewOptions: function(inputControlModel) {
+        var modificationModel = this.getModificationForInputControl(inputControlModel),
             addModification = _.bind(this.model.addModification, this.model),
             addOrReplaceModification = _.bind(this.model.addOrReplaceModification, this.model);
         return {
@@ -497,8 +496,15 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
             });
         return {
             shapes: shapes,
-            groupedShapes: groupedShapes
+            groupedShapes: groupedShapes,
+            editable: isEditable(this.model)
         };
+    },
+
+    // Only display modification controls if scenario is editable.
+    // Input controls should always be shown.
+    filter: function(inputControlModel) {
+        return isEditable(this.model) || inputControlModel.isInputControl();
     },
 
     onRender: function() {
@@ -521,14 +527,15 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
         modificationsColl.remove(modification);
     },
 
-    getChildView: function(model) {
-        var controlName = model.get('name');
+    getChildView: function(inputControlModel) {
+        var controlName = inputControlModel.get('name');
         return controls.getControlView(controlName);
     },
 
-    getModificationForInputControl: function(model) {
+    // Return first modification for an input control.
+    getModificationForInputControl: function(inputControlModel) {
         var modificationsColl = this.model.get('modifications'),
-            controlName = model.get('name');
+            controlName = inputControlModel.get('name');
         return modificationsColl.findWhere({ name: controlName });
     }
 });
@@ -574,7 +581,8 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
     },
 
     initialize: function() {
-        this.listenTo(this.model.get('scenarios'), 'change:active', this.showDetailsRegion);
+        var scenarios = this.model.get('scenarios');
+        this.listenTo(scenarios, 'change:active', this.showDetailsRegion);
     },
 
     onShow: function() {
@@ -582,11 +590,12 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
     },
 
     showDetailsRegion: function() {
-        var scenario = this.model.get('scenarios').findWhere({ active: true });
-
+        var scenarios = this.model.get('scenarios'),
+            scenario = scenarios.getActiveScenario();
         if (scenario) {
             this.detailsRegion.show(new ResultsDetailsView({
-                collection: scenario.get('results')
+                collection: scenario.get('results'),
+                scenario: scenario
             }));
         }
     },
@@ -597,7 +606,6 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
 
     animateIn: function() {
         var self = this;
-
         this.$el.animate({ height: '55%', 'min-height': '300px' }, 200, function() {
             self.trigger('animateIn');
             App.map.set('halfSize', true);
@@ -605,6 +613,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
                 .find('i')
                     .removeClass('fa-angle-up')
                     .addClass('fa-angle-down');
+            self.detailsRegion.currentView.triggerBarChartRefresh();
         });
     },
 
@@ -614,6 +623,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         // Change map to full size first so there isn't empty space when
         // results window animates out
         App.map.set('halfSize', false);
+
         this.$el.animate({ height: '0%', 'min-height': '50px' }, 200, function() {
             self.trigger('animateOut');
             $(self.ui.toggle.selector).blur()
@@ -635,7 +645,12 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
 // Tab panels and tab contents which contain charts
 // and graphs for the modeling results.
 var ResultsDetailsView = Marionette.LayoutView.extend({
+    collection: models.ResultCollection,
     template: resultsDetailsTmpl,
+
+    initialize: function(options) {
+        this.scenario = options.scenario;
+    },
 
     regions: {
         panelsRegion: '.tab-panels-region',
@@ -648,13 +663,19 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         }));
 
         this.contentRegion.show(new ResultsTabContentsView({
-            collection: this.collection
+            collection: this.collection,
+            scenario: this.scenario
         }));
+    },
+
+    triggerBarChartRefresh: function() {
+        this.panelsRegion.currentView.triggerBarChartRefresh();
     }
 });
 
 // A model result tab
 var ResultsTabPanelView = Marionette.ItemView.extend({
+    model: models.ResultModel,
     tagName: 'li',
     template: resultsTabPanelTmpl,
     attributes: {
@@ -667,6 +688,7 @@ var ResultsTabPanelView = Marionette.ItemView.extend({
 
 // Tabs used to cycle through model results
 var ResultsTabPanelsView = Marionette.CollectionView.extend({
+    collection: models.ResultCollection,
     tagName: 'ul',
     className: 'nav nav-tabs',
     attributes: {
@@ -687,8 +709,10 @@ var ResultsTabPanelsView = Marionette.CollectionView.extend({
     }
 });
 
-// Model result contents (i.e. charts and graphs)
+// Creates the appropriate view to visualize a result based
+// on project.get('model_package') and resultModel.get('name').
 var ResultsTabContentView = Marionette.LayoutView.extend({
+    model: models.ResultModel,
     template: resultsTabContentTmpl,
 
     tagName: 'div',
@@ -700,75 +724,64 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
     },
 
     regions: {
-        barChartRegion: '.bar-chart-region'
+        resultRegion: '.result-region'
     },
 
     id: function() {
         return this.model.get('name');
     },
 
+    initialize: function(options) {
+        this.scenario = options.scenario;
+    },
+
     onShow: function() {
-        this.barChartRegion.show(new BarChartView({
-            model: this.model
-        }));
-    }
-});
-
-var BarChartView = Marionette.ItemView.extend({
-    template: barChartTmpl,
-    id: function() {
-        return 'bar-chart-' + this.model.get('name');
-    },
-    className: 'chart-container',
-
-    initialize: function() {
-        this.listenTo(this.model, 'change', this.addChart);
-    },
-
-    onAttach: function() {
-        this.addChart();
-    },
-
-    addChart: function() {
-        var selector = '#' + this.id() + ' .bar-chart';
-        $(selector).empty();
-        var result = this.model.get('result');
-        if (result) {
-            var indVar = 'type',
-                depVars = ['inf', 'runoff', 'et'],
-                data = [
-                    {
-                        type: 'Original',
-                        inf: result['unmodified']['inf'],
-                        runoff: result['unmodified']['runoff'],
-                        et: result['unmodified']['et']
-                    },
-                    {
-                        type: 'Modified',
-                        inf: result['modified']['inf'],
-                        runoff: result['modified']['runoff'],
-                        et: result['modified']['et']
-                    }
-                ],
-                options = {
-                    barColors: ['#329b9c', '#4aeab3', '#4ebaea'],
-                    depAxisLabel: 'Level',
-                    depDisplayNames: ['Infiltration', 'Runoff', 'Evapotranspiration']
-                };
-            chart.makeBarChart(selector, data, indVar, depVars, options);
+        var modelPackage = App.currProject.get('model_package'),
+            resultName = this.model.get('name');
+        switch (modelPackage) {
+            case 'tr-55':
+                switch(resultName) {
+                    case 'runoff':
+                        this.resultRegion.show(new tr55RunoffViews.ResultView({
+                            model: this.model,
+                            scenario: this.scenario
+                        }));
+                        break;
+                    case 'quality':
+                        this.resultRegion.show(new tr55QualityViews.ResultView({
+                            model: this.model
+                        }));
+                        break;
+                    default:
+                        console.log('Result not supported.');
+                }
+                break;
+            default:
+                console.log('Model package ' + modelPackage + ' not supported.');
         }
     }
 });
 
 // Collection of model result tab contents
 var ResultsTabContentsView = Marionette.CollectionView.extend({
+    collection: models.ResultCollection,
     tagName: 'div',
     className: 'tab-content',
     childView: ResultsTabContentView,
+    childViewOptions: function() {
+        return {scenario: this.scenario};
+    },
+    initialize: function(options) {
+        this.scenario = options.scenario;
+    },
     onRender: function() {
         this.$el.find('.tab-pane:first').addClass('active');
     }
 });
+
+function isEditable(scenario) {
+    return App.user.userMatch(scenario.get('user_id'));
+}
 
 module.exports = {
     ModelingResultsWindow: ModelingResultsWindow,

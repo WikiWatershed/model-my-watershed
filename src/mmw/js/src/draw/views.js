@@ -1,15 +1,12 @@
 "use strict";
 
-var _ = require('lodash'),
-    $ = require('jquery'),
+var $ = require('jquery'),
     L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
     turfRandom = require('turf-random'),
     turfBuffer = require('turf-buffer'),
     router = require('../router').router,
     App = require('../app'),
-    models = require('./models'),
-    filters = require('../filters'),
     utils = require('./utils'),
     toolbarTmpl = require('./templates/toolbar.html'),
     loadingTmpl = require('./templates/loading.html'),
@@ -90,8 +87,7 @@ var SelectAreaView = Marionette.ItemView.extend({
     },
 
     onItemClicked: function(e) {
-        var self = this,
-            $el = $(e.target),
+        var $el = $(e.target),
             endpoint = $el.data('endpoint'),
             tableId = $el.data('tableid');
 
@@ -154,10 +150,8 @@ var PlaceMarkerView = Marionette.ItemView.extend({
         'change:toolsEnabled': 'render'
     },
 
-    onItemClicked: function(e) {
+    onItemClicked: function() {
         var self = this,
-            $el = $(e.target),
-            shapeType = $el.data('shape-type'),
             map = App.getLeafletMap(),
             revertLayer = clearAoiLayer();
 
@@ -208,8 +202,7 @@ var ResetDrawView = Marionette.ItemView.extend({
 });
 
 function changeOutlineLayer(endpoint, tableId, model) {
-    var map = App.getLeafletMap(),
-        ofg = model.get('outlineFeatureGroup');
+    var ofg = model.get('outlineFeatureGroup');
 
     // Go about the business of adding the ouline and UTFgrid layers.
     if (endpoint && tableId !== undefined) {

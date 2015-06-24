@@ -16,6 +16,13 @@
     chdir: "{{ app_home }}"
   sudo: False
 
+- name: Check for lint
+  command: "npm run lint"
+  args:
+    chdir: "{{ app_home }}"
+  sudo: False
+  ignore_errors: True
+
 - name: Create JS bundles (staging/production)
   command: "./bundle.sh --vendor --tests"
   args:

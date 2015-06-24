@@ -9,6 +9,14 @@ var Backbone = require('../../shim/backbone'),
 var ModelPackageControlModel = Backbone.Model.extend({
     defaults: {
         name: ''
+    },
+
+    // Return true if this is an input control and false if it is a
+    // modification control.
+    isInputControl: function() {
+        return _.contains([
+            'precipitation'
+        ], this.get('name'));
     }
 });
 
@@ -30,6 +38,9 @@ var Tr55TaskModel = coreModels.TaskModel.extend({
 
 var ResultModel = Backbone.Model.extend({
     defaults: {
+        name: '',
+        displayName: '',
+        result: null,
         polling: false
     }
 });
@@ -97,16 +108,23 @@ var ProjectModel = Backbone.Model.extend({
         this.set('name', newName);
     },
 
+    // Flag to prevent double POSTing of a project.
+    saveCalled: false,
+
     saveProjectAndScenarios: function() {
         if (!App.user.loggedInUserMatch(this.get('user_id'))) {
+            // Fail fast if the user can't save the project.
             return;
         }
 
-        if (!this.get('id')) {
+        if (this.isNew() && this.saveCalled) {
+            // Fail fast if we are in the middle of our first save.
+            return;
+        } else if (this.isNew() && !this.saveCalled) {
             // We haven't saved the project before, save the project and then
-            // set the project ID on each scenario, then reattach the senarios
-            // to the project.
+            // set the project ID on each scenario.
             var self = this;
+            this.saveCalled = true;
             this.save()
                 .done(function() {
                     self.updateProjectScenarios(self.get('id'), self.get('scenarios'));
@@ -139,7 +157,7 @@ var ProjectModel = Backbone.Model.extend({
         });
     },
 
-    parse: function(response, options) {
+    parse: function(response) {
         if (response.scenarios) {
             // If we returned scenarios (probably from a GET) then set them.
             var user_id = response.user.id,
@@ -224,10 +242,10 @@ var ScenarioModel = Backbone.Model.extend({
         modifications: null, // ModificationsCollection
         active: false,
         job_id: null,
-        results: null
+        results: null // ResultCollection
     },
 
-    initialize: function(attrs, options) {
+    initialize: function(attrs) {
         Backbone.Model.prototype.initialize.apply(this, arguments);
         this.set('user_id', App.user.get('id'));
 
@@ -246,11 +264,11 @@ var ScenarioModel = Backbone.Model.extend({
         this.get('modifications').on('add remove', this.attemptSave, this);
 
         var debouncedGetResults = _.debounce(_.bind(this.getResults, this), 500);
-        this.get('modifications').on('add change', debouncedGetResults);
+        this.get('modifications').on('add change remove', debouncedGetResults);
         this.set('taskModel', $.extend(true, {}, App.currProject.get('taskModel')));
 
         var resultCollection;
-        if (App.currProject.get('model_package') == 'tr-55') {
+        if (App.currProject.get('model_package') === 'tr-55') {
             resultCollection = new ResultCollection([
                 {
                     name: 'runoff',
@@ -269,6 +287,11 @@ var ScenarioModel = Backbone.Model.extend({
 
     attemptSave: function() {
         if (!App.user.loggedInUserMatch(this.get('user_id'))) {
+            return;
+        }
+        if (!this.get('project')) {
+            // TODO replace this with radio/wreqr or something less problematic than the global.
+            App.currProject.saveProjectAndScenarios();
             return;
         }
         this.save().fail(function() {
@@ -297,7 +320,7 @@ var ScenarioModel = Backbone.Model.extend({
         modificationsColl.add(modification);
     },
 
-    parse: function(response, options) {
+    parse: function(response) {
         // Modifications are essentially write only. So if we have them on our
         // model, we shouldn't reset them from the server. Pull them off of
         // the response to prevent overwriting them.
@@ -327,7 +350,7 @@ var ScenarioModel = Backbone.Model.extend({
             taskModel = this.get('taskModel'),
             setResults = function() {
                 var rawServerResults = taskModel.get('result');
-                if (rawServerResults == "" || rawServerResults == null) {
+                if (rawServerResults === "" || rawServerResults === null) {
                     results.setNullResults();
                 } else {
                     var serverResults = JSON.parse(rawServerResults);
@@ -351,7 +374,6 @@ var ScenarioModel = Backbone.Model.extend({
                 },
 
                 onStart: function() {
-                    results.setNullResults();
                     results.setPolling(true);
                 },
 
@@ -359,7 +381,7 @@ var ScenarioModel = Backbone.Model.extend({
                     setResults();
                 },
 
-                pollFailure: function(response) {
+                pollFailure: function() {
                     console.log('Failed to get TR55 results.');
                     results.setNullResults();
                     results.setPolling(false);
@@ -469,7 +491,9 @@ var ScenariosCollection = Backbone.Collection.extend({
             return baseName;
         }
 
-        for (var i=1; _.contains(existingNames, baseName + ' ' + i); i++);
+        for (var i = 1; _.contains(existingNames, baseName + ' ' + i); i++) {
+            continue;
+        }
 
         return baseName + ' ' + i;
     },
@@ -480,7 +504,7 @@ var ScenariosCollection = Backbone.Collection.extend({
 });
 
 function getControlsForModelPackage(modelPackageName, options) {
-    if (modelPackageName == 'tr-55') {
+    if (modelPackageName === 'tr-55') {
         if (options && options.is_current_conditions) {
             return new ModelPackageControlsCollection([
                 new ModelPackageControlModel({ name: 'precipitation' })
@@ -498,15 +522,20 @@ function getControlsForModelPackage(modelPackageName, options) {
 
 function getHumanReadableLabel(value) {
     var mapping = {
+        'chaparral': 'Chaparral',
         'commercial': 'Commercial',
+        'desert': 'Desert',
         'forest': 'Forest',
         'grassland': 'Grassland',
         'hir': 'HIR',
         'lir': 'LIR',
         'pasture': 'Pasture',
         'row_crop': 'Row Crop',
+        'sg_prairie': 'Short Grass Prairie',
+        'tg_prairie': 'Tall Grass Prairie',
         'turf_grass': 'Turf Grass',
         'wetland': 'Wetland',
+
         'cluster_housing': 'Cluster Housing',
         'green_roof': 'Green Roof',
         'no_till_agriculture': 'No-Till Agriculture',

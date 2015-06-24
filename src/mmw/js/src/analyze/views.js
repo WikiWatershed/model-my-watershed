@@ -1,16 +1,14 @@
 "use strict";
 
-var _ = require('lodash'),
-    $ = require('jquery'),
-    L = require('leaflet'),
+var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
     chart = require('../core/chart'),
-    filters = require('../filters'),
     windowTmpl = require('./templates/window.html'),
+    messageTmpl = require('./templates/message.html'),
     detailsTmpl = require('./templates/details.html'),
     tableTmpl = require('./templates/table.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
@@ -22,9 +20,25 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     id: 'analyze-output-wrapper',
     template: windowTmpl,
 
+    regions: {
+        headerRegion: '#analyze-header-region',
+        detailsRegion: {
+            el: '#analyze-details-region'
+        }
+    },
+
     initialize: function() {
+        this.listenTo(this, 'animateIn', function() {
+            $('#analyze-output-wrapper .bar-chart').trigger('bar-chart:refresh');
+        });
+    },
+
+    onShow: function() {
+        this.showHeaderRegion();
+        this.showAnalyzingMessage();
 
         var self = this;
+
         if (!this.model.get('result')) {
             var taskHelper = {
                 pollSuccess: function() {
@@ -32,11 +46,11 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
                 },
 
                 pollFailure: function() {
-                    console.log('Failed to get analyze results');
+                    self.showErrorMessage();
                 },
 
                 startFailure: function() {
-                    console.log('Failed to start analyze job');
+                    self.showErrorMessage();
                 }
             };
             this.model.start(taskHelper);
@@ -48,17 +62,6 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
         }
     },
 
-    regions: {
-        headerRegion: '#analyze-header-region',
-        detailsRegion: '#analyze-details-region'
-    },
-
-    onShow: function() {
-        this.showHeaderRegion();
-        // TODO: Show loading spinner until
-        // model.pollForResults is finished
-    },
-
     showHeaderRegion: function() {
         this.headerRegion.show(new coreViews.AreaOfInterestView({
             App: App,
@@ -68,6 +71,22 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
                 next_label: 'Model',
                 url: 'model'
             })
+        }));
+    },
+
+    showAnalyzingMessage: function() {
+        var messageModel = new models.AnalyzeMessageModel();
+        messageModel.setAnalyzing();
+        this.detailsRegion.show(new MessageView({
+            model: messageModel
+        }));
+    },
+
+    showErrorMessage: function() {
+        var messageModel = new models.AnalyzeMessageModel();
+        messageModel.setError();
+        this.detailsRegion.show(new MessageView({
+            model: messageModel
         }));
     },
 
@@ -105,6 +124,11 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
             self.trigger('animateOut');
         });
     }
+});
+
+var MessageView = Marionette.ItemView.extend({
+    template: messageTmpl,
+    className: 'analyze-message-region'
 });
 
 var DetailsView = Marionette.LayoutView.extend({
@@ -168,17 +192,17 @@ var TabContentView = Marionette.LayoutView.extend({
         chartRegion: '.analyze-chart-region'
     },
     onShow: function() {
-        var categories = new models.LayerCategoryCollection(
-                this.model.get('categories')
-            );
+        var dataCollection = new coreModels.DataCollection(
+            this.model.get('categories')
+        );
 
         this.tableRegion.show(new TableView({
-            collection: categories
+            collection: dataCollection
         }));
 
         this.chartRegion.show(new ChartView({
             model: this.model,
-            collection: categories
+            collection: dataCollection
         }));
     }
 });
@@ -214,10 +238,10 @@ var ChartView = Marionette.ItemView.extend({
     },
 
     addChart: function() {
-        var chartData = this.collection.map(function(model) {
-            return model.attributes;
-        }),
-            selector = '#' + this.id() + ' .bar-chart',
+        var selector = '#' + this.id() + ' .bar-chart',
+            chartData = this.collection.map(function(model) {
+                return model.attributes;
+            }),
             chartOptions = {
                 isPercentage: true,
                 depAxisLabel: 'Coverage'
@@ -230,9 +254,9 @@ var ChartView = Marionette.ItemView.extend({
         }
         chart.makeBarChart(selector, chartData, indVar, depVars, chartOptions);
     }
-
 });
 
 module.exports = {
-    AnalyzeWindow: AnalyzeWindow
+    AnalyzeWindow: AnalyzeWindow,
+    DetailsView: DetailsView
 };

@@ -1,5 +1,4 @@
 -r base.txt
 
 boto==2.34.0
-dnspython>=1.12.0
 django-storages-redux==1.2.2

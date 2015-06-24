@@ -4,7 +4,9 @@
         "branch": "",
         "aws_region": "",
         "aws_ubuntu_ami": "",
-        "stack_type": ""
+        "stack_type": "",
+        "postgresql_password": "",
+        "itsi_secret_key": ""
     },
     "builders": [
         {
@@ -12,7 +14,7 @@
             "type": "amazon-ebs",
             "region": "{{user `aws_region`}}",
             "source_ami": "{{user `aws_ubuntu_ami`}}",
-            "instance_type": "m3.large",
+            "instance_type": "t2.large",
             "ssh_username": "ubuntu",
             "ami_name": "mmw-app-{{timestamp}}-{{user `version`}}",
             "run_tags": {
@@ -26,7 +28,6 @@
                 "Service": "Application",
                 "Environment": "{{user `stack_type`}}"
             },
-            "subnet_id": "subnet-3781f46e",
             "associate_public_ip_address": true
         },
         {
@@ -34,7 +35,7 @@
             "type": "amazon-ebs",
             "region": "{{user `aws_region`}}",
             "source_ami": "{{user `aws_ubuntu_ami`}}",
-            "instance_type": "m3.large",
+            "instance_type": "t2.large",
             "ssh_username": "ubuntu",
             "ami_name": "mmw-tiler-{{timestamp}}-{{user `version`}}",
             "run_tags": {
@@ -48,7 +49,6 @@
                 "Service": "Tiler",
                 "Environment": "{{user `stack_type`}}"
             },
-            "subnet_id": "subnet-3781f46e",
             "associate_public_ip_address": true
         },
         {
@@ -56,7 +56,7 @@
             "type": "amazon-ebs",
             "region": "{{user `aws_region`}}",
             "source_ami": "{{user `aws_ubuntu_ami`}}",
-            "instance_type": "m3.large",
+            "instance_type": "t2.large",
             "ssh_username": "ubuntu",
             "ami_name": "mmw-worker-{{timestamp}}-{{user `version`}}",
             "run_tags": {
@@ -70,7 +70,6 @@
                 "Service": "Worker",
                 "Environment": "{{user `stack_type`}}"
             },
-            "subnet_id": "subnet-3781f46e",
             "associate_public_ip_address": true
         },
         {
@@ -78,7 +77,7 @@
             "type": "amazon-ebs",
             "region": "{{user `aws_region`}}",
             "source_ami": "{{user `aws_ubuntu_ami`}}",
-            "instance_type": "m3.large",
+            "instance_type": "t2.large",
             "ssh_username": "ubuntu",
             "ami_name": "mmw-monitoring-{{timestamp}}-{{user `version`}}",
             "run_tags": {
@@ -92,7 +91,6 @@
                 "Service": "Monitoring",
                 "Environment": "{{user `stack_type`}}"
             },
-            "subnet_id": "subnet-3781f46e",
             "associate_public_ip_address": true
         }
     ],
@@ -103,7 +101,8 @@
                 "sleep 5",
                 "sudo apt-get update -qq",
                 "sudo apt-get install python-pip python-dev -y",
-                "sudo pip install ansible==1.9.0.1"
+                "sudo pip install ansible==1.9.0.1",
+                "sudo /bin/sh -c 'echo {{user `version`}} > /srv/version.txt'"
             ]
         },
         {
@@ -112,7 +111,7 @@
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-app-server",
             "extra_arguments": [
-                "--extra-vars 'app_deploy_branch={{user `version`}}'"
+                "--extra-vars 'app_deploy_branch={{user `version`}} postgresql_password={{user `postgresql_password`}} itsi_secret_key={{user `itsi_secret_key`}}'"
             ],
             "only": [
                 "mmw-app"
@@ -124,7 +123,7 @@
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-tile-server",
             "extra_arguments": [
-                "--extra-vars 'tiler_deploy_branch={{user `version`}}'"
+                "--extra-vars 'tiler_deploy_branch={{user `version`}} postgresql_password={{user `postgresql_password`}}'"
             ],
             "only": [
                 "mmw-tiler"
@@ -136,7 +135,7 @@
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-worker-server",
             "extra_arguments": [
-                "--extra-vars 'app_deploy_branch={{user `version`}}'"
+                "--extra-vars 'app_deploy_branch={{user `version`}} postgresql_password={{user `postgresql_password`}}'"
             ],
             "only": [
                 "mmw-worker"

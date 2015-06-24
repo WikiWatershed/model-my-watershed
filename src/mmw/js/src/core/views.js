@@ -9,14 +9,16 @@ var $ = require('jquery'),
     ZeroClipboard = require('zeroclipboard'),
     drawUtils = require('../draw/utils'),
     headerTmpl = require('./templates/header.html'),
-    filters = require('../filters'),
     patterns = require('./patterns'),
     modalConfirmTmpl = require('./templates/confirmModal.html'),
     modalInputTmpl = require('./templates/inputModal.html'),
     modalShareTmpl = require('./templates/shareModal.html'),
+    modificationPopupTmpl = require('./templates/modificationPopup.html'),
     areaOfInterestTmpl = require('../core/templates/areaOfInterestHeader.html'),
 
     BASIC_MODAL_CLASS = 'modal modal-basic fade';
+
+require('leaflet.locatecontrol');
 
 /**
  * A basic view for showing a static message.
@@ -83,6 +85,33 @@ var HeaderView = Marionette.ItemView.extend({
 
 });
 
+// Init the locate plugin button and add it to the map.
+function addLocateMeButton(map, maxZoom, maxAge) {
+    var locateOptions = {
+        position: 'topright',
+        metric: false,
+        drawCircle: false,
+        showPopup: false,
+        follow: true,
+        markerClass: L.marker,
+        markerStyle: {
+            opacity: 0.0,
+            clickable: false,
+            keyboard: false
+        },
+        locateOptions: {
+            maxZoom: maxZoom,
+            // Cache location response, in ms
+            maximumAge: maxAge
+        },
+        strings: {
+            title: 'Zoom to your location.'
+        }
+    };
+
+    L.control.locate(locateOptions).addTo(map);
+}
+
 // This view houses a Leaflet instance. The map container element must exist
 // in the DOM before initializing.
 var MapView = Marionette.ItemView.extend({
@@ -116,13 +145,18 @@ var MapView = Marionette.ItemView.extend({
                 maxZoom: 18
             }),
             areaOfInterestLayer = new L.FeatureGroup(),
-            modificationsLayer = new L.FeatureGroup();
+            modificationsLayer = new L.FeatureGroup(),
+            maxZoom = 10,
+            maxAge = 60000,
+            timeout = 30000,
+            self = this;
 
         map.addControl(new L.Control.Zoom({position: 'topright'}));
-        map.setView([40.1, -75.7], 10);
+        addLocateMeButton(map, maxZoom, maxAge);
         map.addLayer(tileLayer);
         map.addLayer(areaOfInterestLayer);
         map.addLayer(modificationsLayer);
+        map.setView([40.1, -75.7], maxZoom); // center the map
 
         // Keep the map model up-to-date with the position of the map
         this.listenTo(map, 'moveend', this.updateMapModelPosition);
@@ -131,6 +165,37 @@ var MapView = Marionette.ItemView.extend({
         this._leafletMap = map;
         this._areaOfInterestLayer = areaOfInterestLayer;
         this._modificationsLayer = modificationsLayer;
+
+        // Geolocation success handler
+        function geolocation_success(position) {
+            if (self.model.get('geolocationEnabled')) {
+                var lng = position.coords.longitude,
+                    lat = position.coords.latitude;
+                map.setView([lat, lng], maxZoom);
+            }
+        }
+
+        // Attempt to Geolocate.  If geolocation fails or is not
+        // supported, nothing more needs to be done since the map has
+        // already been centered.
+        if (navigator.geolocation) {
+            var options = {
+                enableHighAccuracy: true,
+                maximumAge : maxAge,
+                timeout : timeout
+            };
+            navigator.geolocation.getCurrentPosition(
+                geolocation_success,
+                _.noop,
+                options);
+        }
+    },
+
+    // Call this so that the geolocation callback will not
+    // reposition the map. Should be called after the map has been repositioned
+    // by the user or from a saved model.
+    disableGeolocation: function() {
+        this.model.set('geolocationEnabled', false);
     },
 
     // Override the default render method because we manually update
@@ -155,6 +220,7 @@ var MapView = Marionette.ItemView.extend({
     // of the map. Do it silently so that we don't
     // get stuck in an update -> set -> update loop.
     updateMapModelPosition: function() {
+        this.disableGeolocation();
         var center = this._leafletMap.getCenter();
 
         this.model.set({
@@ -170,7 +236,6 @@ var MapView = Marionette.ItemView.extend({
             zoom: zoom
         }, { silent: true });
     },
-
 
     toggleMask: function() {
         var aoi = this.model.get('areaOfInterest');
@@ -189,6 +254,7 @@ var MapView = Marionette.ItemView.extend({
 
     // Add a GeoJSON layer if `areaOfInterest` is set.
     updateAreaOfInterest: function() {
+        this.disableGeolocation();
         this.model.restructureAoI();
         var areaOfInterest = this.model.get('areaOfInterest');
         if (!areaOfInterest) {
@@ -220,8 +286,14 @@ var MapView = Marionette.ItemView.extend({
 
         var layers = modificationsColl.reduce(function(acc, model) {
                 try {
-                    var opts = patterns.getDrawOpts(model.get('value'));
-                    return acc.concat(new L.GeoJSON(model.get('shape'), opts));
+                    var style = patterns.getDrawOpts(model.get('value'));
+                    return acc.concat(new L.GeoJSON(model.get('shape'), {
+                            style: style,
+                            onEachFeature: function(feature, layer) {
+                                var popupContent = new ModificationPopupView({ model: model }).render().el;
+                                layer.bindPopup(popupContent);
+                            }
+                    }));
                 } catch (ex) {
                     console.log('Error creating Leaflet layer (invalid GeoJSON object)');
                 }
@@ -258,7 +330,8 @@ function applyMask(featureGroup, shapeLayer) {
             stroke: false,
             fill: true,
             fillColor: '#000',
-            fillOpacity: 0.5
+            fillOpacity: 0.5,
+            clickable: false
         },
 
         // Should be a 2D array of latlngs where the first array contains
@@ -301,8 +374,31 @@ function getLatLngs(boundsOrShape) {
     throw 'Unable to extract latlngs from boundsOrShape argument';
 }
 
+var ModificationPopupView = Marionette.ItemView.extend({
+    template: modificationPopupTmpl,
+
+    ui: {
+        'delete': '.delete-modification'
+    },
+
+    events: {
+        'click @ui.delete': 'deleteModification'
+    },
+
+    templateHelpers: function() {
+        return {
+            label: this.model.label(this.model.get('value'))
+        };
+    },
+
+    deleteModification: function() {
+        this.model.destroy();
+        this.destroy();
+    }
+});
+
 var BaseModal = Marionette.ItemView.extend({
-    initialize: function(options) {
+    initialize: function() {
         var self = this;
         this.$el.on('hide.bs.modal', function() {
             self.destroy();
@@ -351,7 +447,7 @@ var InputModal = BaseModal.extend({
         'click @ui.save': 'updateFromInput'
     },
 
-    updateFromInput: function(e) {
+    updateFromInput: function() {
         var val = this.ui.input.val().trim();
         if (val) {
             this.triggerMethod('update', val);
@@ -422,5 +518,6 @@ module.exports = {
     ConfirmModal: ConfirmModal,
     InputModal: InputModal,
     ShareModal: ShareModal,
-    AreaOfInterestView: AreaOfInterestView
+    AreaOfInterestView: AreaOfInterestView,
+    ModificationPopupView: ModificationPopupView
 };

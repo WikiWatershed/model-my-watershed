@@ -1,8 +1,6 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('lodash'),
-    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     drawUtils = require('../draw/utils'),
@@ -105,10 +103,10 @@ var PrecipitationView = ControlView.extend({
     },
 
     getDisplayValue: function(value) {
-        return value === 0 ? '' : value.toFixed(1) + '"';
+        return value.toFixed(1) + '"';
     },
 
-    onSliderDragged: function(e) {
+    onSliderDragged: function() {
         // Preview slider value while dragging.
         var value = parseFloat(this.ui.slider.val());
         this.ui.displayValue.text(this.getDisplayValue(value));

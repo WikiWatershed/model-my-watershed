@@ -1,7 +1,6 @@
 "use strict";
 
 var Backbone = require('../../shim/backbone'),
-    Marionette = require('../../shim/backbone.marionette'),
     $ = require('jquery'),
     _ = require('lodash'),
     turfArea = require('turf-area');
@@ -12,7 +11,8 @@ var MapModel = Backbone.Model.extend({
         lng: 0,
         zoom: 0,
         areaOfInterest: null,           // GeoJSON
-        halfSize: false
+        halfSize: false,
+        geolocationEnabled: true
     },
 
     revertMaskLayer: function() {
@@ -128,7 +128,7 @@ var TaskModel = Backbone.Model.extend({
             }
 
             // If job was cancelled.
-            if (expectedJob != self.get('job')) {
+            if (expectedJob !== self.get('job')) {
                 defer.reject({cancelledJob: expectedJob});
                 return;
             }
@@ -150,6 +150,9 @@ var TaskModel = Backbone.Model.extend({
         return defer.promise();
     }
 });
+
+// A collection of data points, useful for tables.
+var DataCollection = Backbone.Collection.extend({});
 
 var GeoModel = Backbone.Model.extend({
     M_IN_KM: 1000000,
@@ -190,6 +193,7 @@ var AreaOfInterestModel = GeoModel.extend({
 module.exports = {
     MapModel: MapModel,
     TaskModel: TaskModel,
+    DataCollection: DataCollection,
     GeoModel: GeoModel,
     AreaOfInterestModel: AreaOfInterestModel
 };

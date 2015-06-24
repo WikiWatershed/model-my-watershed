@@ -4,19 +4,10 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.http import Http404
-from django.contrib.auth.models import User
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template.context_processors import csrf
-from rest_framework import viewsets
 
 from apps.modeling.models import Project
-from apps.user.serializers import UserSerializer
-
-
-# ViewSets define the view behavior.
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
 
 
 def home_page(request):

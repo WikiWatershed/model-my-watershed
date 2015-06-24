@@ -18,3 +18,6 @@ class Job(models.Model):
     error = models.TextField()
     traceback = models.TextField()
     status = models.CharField(max_length=255)
+
+    def __unicode__(self):
+        return unicode(self.uuid)

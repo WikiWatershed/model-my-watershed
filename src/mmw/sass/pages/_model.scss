@@ -25,9 +25,19 @@
     }
   }
 
-  .bar-chart-region{
+  .result-region{
     height: 100%;
-    width: 30%;
+    width: 100%;
+
+    .runoff-chart-container{
+      height: 100%;
+      width: 50%
+    }
+
+    .runoff-chart-container.current-conditions{
+      height: 100%;
+      width: 29%
+    }
   }
 
   .tab-content{

@@ -4,7 +4,8 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.contrib import admin
-from apps.modeling.models import Project, Scenario
+from apps.modeling.models import Project, Scenario, District
 
+admin.site.register(District)
 admin.site.register(Project)
 admin.site.register(Scenario)

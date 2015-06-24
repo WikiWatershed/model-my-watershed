@@ -6,7 +6,7 @@ var router = require('../../router').router,
 var ErrorHandlers = {
     itsi: function() {
         router.navigate('');
-        alert("We're sorry, but there was an error logging you in with your" +
+        window.alert("We're sorry, but there was an error logging you in with your" +
             " ITSI credentials. Please log in using another method or" +
             " continue as a guest."
         );
@@ -15,7 +15,7 @@ var ErrorHandlers = {
 
     generic: function(type) {
         router.navigate('');
-        alert("We're sorry, but an error occurred in the application.");
+        window.alert("We're sorry, but an error occurred in the application.");
         console.log("[MMW] An unknown error occurred: " + type);
     }
 };
