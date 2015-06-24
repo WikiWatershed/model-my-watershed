@@ -4,11 +4,13 @@ var Backbone = require('../../shim/backbone'),
     _ = require('underscore'),
     $ = require('jquery'),
     App = require('../app'),
-    coreModels = require('../core/models');
+    coreModels = require('../core/models'),
+    modificationConfigUtils = require('./modificationConfigUtils');
 
 var ModelPackageControlModel = Backbone.Model.extend({
     defaults: {
-        name: ''
+        name: '',
+        thumbValue: null
     },
 
     // Return true if this is an input control and false if it is a
@@ -17,6 +19,37 @@ var ModelPackageControlModel = Backbone.Model.extend({
         return _.contains([
             'precipitation'
         ], this.get('name'));
+    },
+
+    getThumbValue: function() {
+        return this.get('thumbValue');
+    },
+
+    setThumbValue: function(value) {
+        this.set('thumbValue', value);
+    },
+
+    clearThumbValue: function() {
+        this.setThumbValue(null);
+    }
+});
+
+// This model is used for the controls that contain
+// a set of thumbnails that can be selected.
+var ThumbModelPackageControlModel = ModelPackageControlModel.extend({
+    defaults: _.defaults({
+        thumbValue: null
+    }, ModelPackageControlModel.prototype.defaults),
+
+    // thumbValue is the data-value attribute of
+    // the .thumb that is currently being hovered over
+    // or null if none.
+    getThumbValue: function() {
+        return this.get('thumbValue');
+    },
+
+    setThumbValue: function(value) {
+        this.set('thumbValue', value);
     }
 });
 
@@ -215,7 +248,7 @@ var ModificationModel = coreModels.GeoModel.extend({
     )
 });
 
-ModificationModel.prototype.label = getHumanReadableLabel;
+ModificationModel.prototype.label = modificationConfigUtils.getHumanReadableName;
 
 var ModificationsCollection = Backbone.Collection.extend({
     model: ModificationModel
@@ -511,44 +544,13 @@ function getControlsForModelPackage(modelPackageName, options) {
             ]);
         } else {
             return new ModelPackageControlsCollection([
-                new ModelPackageControlModel({ name: 'landcover' }),
-                new ModelPackageControlModel({ name: 'conservation_practice' }),
+                new ThumbModelPackageControlModel({ name: 'landcover' }),
+                new ThumbModelPackageControlModel({ name: 'conservation_practice' }),
                 new ModelPackageControlModel({ name: 'precipitation' })
             ]);
         }
     }
     throw 'Model package not supported ' + modelPackageName;
-}
-
-function getHumanReadableLabel(value) {
-    var mapping = {
-        'chaparral': 'Chaparral',
-        'commercial': 'Commercial',
-        'desert': 'Desert',
-        'forest': 'Forest',
-        'grassland': 'Grassland',
-        'hir': 'HIR',
-        'lir': 'LIR',
-        'pasture': 'Pasture',
-        'row_crop': 'Row Crop',
-        'sg_prairie': 'Short Grass Prairie',
-        'tg_prairie': 'Tall Grass Prairie',
-        'turf_grass': 'Turf Grass',
-        'wetland': 'Wetland',
-
-        'cluster_housing': 'Cluster Housing',
-        'green_roof': 'Green Roof',
-        'no_till_agriculture': 'No-Till Agriculture',
-        'porous_paving': 'Porous Paving',
-        'rain_garden': 'Rain Garden',
-        'veg_infil_basin': 'Veg Infil Basin'
-    };
-
-    if (mapping[value]) {
-        return mapping[value];
-    } else {
-        throw 'Unknown Land Cover or Conservation Practice: ' + value;
-    }
 }
 
 module.exports = {
@@ -563,6 +565,5 @@ module.exports = {
     ModificationModel: ModificationModel,
     ModificationsCollection: ModificationsCollection,
     ScenarioModel: ScenarioModel,
-    ScenariosCollection: ScenariosCollection,
-    getHumanReadableLabel: getHumanReadableLabel
+    ScenariosCollection: ScenariosCollection
 };

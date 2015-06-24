@@ -8,8 +8,8 @@ var $ = require('jquery'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
     ZeroClipboard = require('zeroclipboard'),
     drawUtils = require('../draw/utils'),
+    modificationConfigUtils = require('../modeling/modificationConfigUtils'),
     headerTmpl = require('./templates/header.html'),
-    patterns = require('./patterns'),
     modalConfirmTmpl = require('./templates/confirmModal.html'),
     modalInputTmpl = require('./templates/inputModal.html'),
     modalShareTmpl = require('./templates/shareModal.html'),
@@ -286,7 +286,7 @@ var MapView = Marionette.ItemView.extend({
 
         var layers = modificationsColl.reduce(function(acc, model) {
                 try {
-                    var style = patterns.getDrawOpts(model.get('value'));
+                    var style = modificationConfigUtils.getDrawOpts(model.get('value'));
                     return acc.concat(new L.GeoJSON(model.get('shape'), {
                             style: style,
                             onEachFeature: function(feature, layer) {
@@ -508,7 +508,6 @@ var AreaOfInterestView = Marionette.ItemView.extend({
         this.model.set('shape', this.map.get('areaOfInterest'));
     }
 });
-
 
 module.exports = {
     HeaderView: HeaderView,
