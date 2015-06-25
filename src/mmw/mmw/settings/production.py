@@ -39,6 +39,12 @@ EMAIL_BOTO_CHECK_QUOTA = False
 DEFAULT_FROM_EMAIL = 'noreply@mmw.azavea.com'
 # END EMAIL CONFIGURATION
 
+# Turn off DRF GUI
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    )
+}
 
 # Django Storages CONFIGURATION
 mac_metadata = instance_metadata['network']['interfaces']['macs']

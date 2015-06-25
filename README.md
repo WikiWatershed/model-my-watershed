@@ -102,6 +102,10 @@ Flower                 | 5555 | [http://localhost:5555](http://localhost:5555)
 
 In order to speed up things up, you may want to consider leveraging the `vagrant-cachier` plugin. If installed, it is automatically used by Vagrant.
 
+### Test Mode
+
+In order to run the app in test mode, which simulates the production static asset bundle, reprovision with `VAGRANT_ENV=TEST vagrant provision`.
+
 ### Testing
 
 Run all the tests:
