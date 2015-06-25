@@ -5,3 +5,4 @@ dependencies:
   - { role: "azavea.pip" }
   - { role: "model-my-watershed.monitoring", collectd_prefix: "collectd.worker.", when: "['test'] | is_not_in(group_names)" }
   - { role: "model-my-watershed.celery" }
+  - { role: "model-my-watershed.nginx" }

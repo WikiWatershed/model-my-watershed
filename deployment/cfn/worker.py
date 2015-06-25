@@ -1,10 +1,16 @@
 from troposphere import (
     Parameter,
     Ref,
+    Output,
     Tags,
+    GetAtt,
+    Join,
+    Equals,
+    cloudwatch as cw,
     ec2,
+    elasticloadbalancing as elb,
     autoscaling as asg,
-    cloudwatch as cw
+    route53 as r53
 )
 
 from utils.cfn import get_recent_ami
@@ -33,6 +39,7 @@ class Worker(StackNode):
         'StackType': ['global:StackType'],
         'StackColor': ['global:StackColor'],
         'KeyName': ['global:KeyName'],
+        'IPAccess': ['global:IPAccess'],
         'AvailabilityZones': ['global:AvailabilityZones',
                               'VPC:AvailabilityZones'],
         'WorkerInstanceType': ['global:WorkerInstanceType'],
@@ -43,6 +50,7 @@ class Worker(StackNode):
         'WorkerAutoScalingMax': ['global:WorkerAutoScalingMax'],
         'PublicSubnets': ['global:PublicSubnets', 'VPC:PublicSubnets'],
         'PrivateSubnets': ['global:PrivateSubnets', 'VPC:PrivateSubnets'],
+        'PublicHostedZoneName': ['global:PublicHostedZoneName'],
         'VpcId': ['global:VpcId', 'VPC:VpcId'],
         'GlobalNotificationsARN': ['global:GlobalNotificationsARN'],
     }
@@ -53,6 +61,7 @@ class Worker(StackNode):
         'StackType': 'Staging',
         'StackColor': 'Green',
         'KeyName': 'mmw-stg',
+        'IPAccess': ALLOW_ALL_CIDR,
         'WorkerInstanceType': 't2.micro',
         'WorkerInstanceProfile': 'WorkerInstanceProfile',
         'WorkerAutoScalingDesired': '1',
@@ -86,6 +95,11 @@ class Worker(StackNode):
             'KeyName', Type='String',
             Description='Name of an existing EC2 key pair'
         ), 'KeyName')
+
+        self.ip_access = self.add_parameter(Parameter(
+            'IPAccess', Type='String', Default=self.get_input('IPAccess'),
+            Description='CIDR for allowing SSH access'
+        ), 'IPAccess')
 
         self.availability_zones = self.add_parameter(Parameter(
             'AvailabilityZones', Type='CommaDelimitedList',
@@ -136,6 +150,11 @@ class Worker(StackNode):
             Description='A list of private subnets'
         ), 'PrivateSubnets')
 
+        self.public_hosted_zone_name = self.add_parameter(Parameter(
+            'PublicHostedZoneName', Type='String',
+            Description='Route 53 public hosted zone name'
+        ), 'PublicHostedZoneName')
+
         self.vpc_id = self.add_parameter(Parameter(
             'VpcId', Type='String',
             Description='VPC ID'
@@ -146,11 +165,23 @@ class Worker(StackNode):
             Description='ARN for an SNS topic to broadcast notifications'
         ), 'GlobalNotificationsARN')
 
-        worker_security_group = self.create_security_groups()
+        worker_lb_security_group, \
+            worker_security_group = self.create_security_groups()
+        worker_lb = self.create_load_balancer(worker_lb_security_group)
 
-        worker_auto_scaling_group = self.create_auto_scaling_resources(worker_security_group)
+        worker_auto_scaling_group = self.create_auto_scaling_resources(
+            worker_security_group,
+            worker_lb)
 
         self.create_cloud_watch_resources(worker_auto_scaling_group)
+
+        self.create_dns_records(worker_lb)
+
+        self.add_output(Output('WorkerLoadBalancerEndpoint',
+                               Value=GetAtt(worker_lb, 'DNSName')))
+        self.add_output(Output('WorkerLoadBalancerHostedZoneNameID',
+                               Value=GetAtt(worker_lb,
+                                            'CanonicalHostedZoneNameID')))
 
     def get_recent_worker_ami(self):
         try:
@@ -163,9 +194,31 @@ class Worker(StackNode):
         return worker_ami_id
 
     def create_security_groups(self):
+        worker_lb_security_group_name = 'sgWorkerLoadBalancer'
+
+        worker_lb_security_group = self.add_resource(ec2.SecurityGroup(
+            worker_lb_security_group_name,
+            GroupDescription='Enables access to workers via a load balancer',
+            VpcId=Ref(self.vpc_id),
+            SecurityGroupIngress=[
+                ec2.SecurityGroupRule(
+                    IpProtocol='tcp', CidrIp=Ref(self.ip_access), FromPort=p,
+                    ToPort=p
+                )
+                for p in [HTTP]
+            ],
+            SecurityGroupEgress=[
+                ec2.SecurityGroupRule(
+                    IpProtocol='tcp', CidrIp=VPC_CIDR, FromPort=p, ToPort=p
+                )
+                for p in [HTTP]
+            ],
+            Tags=self.get_tags(Name=worker_lb_security_group_name)
+        ))
+
         worker_security_group_name = 'sgWorker'
 
-        return self.add_resource(ec2.SecurityGroup(
+        worker_security_group = self.add_resource(ec2.SecurityGroup(
             worker_security_group_name,
             GroupDescription='Enables access to workers',
             VpcId=Ref(self.vpc_id),
@@ -173,7 +226,13 @@ class Worker(StackNode):
                 ec2.SecurityGroupRule(
                     IpProtocol='tcp', CidrIp=VPC_CIDR, FromPort=p, ToPort=p
                 )
-                for p in [SSH]
+                for p in [SSH, HTTP]
+            ] + [
+                ec2.SecurityGroupRule(
+                    IpProtocol='tcp', SourceSecurityGroupId=Ref(sg),
+                    FromPort=HTTP, ToPort=HTTP
+                )
+                for sg in [worker_lb_security_group]
             ],
             SecurityGroupEgress=[
                 ec2.SecurityGroupRule(
@@ -195,7 +254,38 @@ class Worker(StackNode):
             Tags=self.get_tags(Name=worker_security_group_name)
         ))
 
-    def create_auto_scaling_resources(self, worker_security_group):
+        return worker_lb_security_group, worker_security_group
+
+    def create_load_balancer(self, worker_lb_security_group):
+        worker_lb_name = 'elbWorker'
+
+        return self.add_resource(elb.LoadBalancer(
+            worker_lb_name,
+            ConnectionDrainingPolicy=elb.ConnectionDrainingPolicy(
+                Enabled=True,
+                Timeout=300,
+            ),
+            CrossZone=True,
+            SecurityGroups=[Ref(worker_lb_security_group)],
+            Listeners=[
+                elb.Listener(
+                    LoadBalancerPort='80',
+                    InstancePort='80',
+                    Protocol='HTTP',
+                )
+            ],
+            HealthCheck=elb.HealthCheck(
+                Target='HTTP:80/health-check/?refresh=1',
+                HealthyThreshold='3',
+                UnhealthyThreshold='2',
+                Interval='60',
+                Timeout='10',
+            ),
+            Subnets=Ref(self.public_subnets),
+            Tags=self.get_tags(Name=worker_lb_name)
+        ))
+
+    def create_auto_scaling_resources(self, worker_security_group, worker_lb):
         worker_launch_config_name = 'lcWorker'
 
         worker_launch_config = self.add_resource(
@@ -217,8 +307,9 @@ class Worker(StackNode):
                 Cooldown=300,
                 DesiredCapacity=Ref(self.worker_auto_scaling_desired),
                 HealthCheckGracePeriod=600,
-                HealthCheckType='EC2',
+                HealthCheckType='ELB',
                 LaunchConfigurationName=Ref(worker_launch_config),
+                LoadBalancerNames=[Ref(worker_lb)],
                 MaxSize=Ref(self.worker_auto_scaling_max),
                 MinSize=Ref(self.worker_auto_scaling_min),
                 NotificationConfigurations=[
@@ -254,6 +345,48 @@ class Worker(StackNode):
                     'metricAutoScalingGroupName',
                     Name='AutoScalingGroupName',
                     Value=Ref(worker_auto_scaling_group)
+                )
+            ]
+        ))
+
+    def create_dns_records(self, worker_lb):
+        self.add_condition('BlueCondition', Equals('Blue', Ref(self.color)))
+        self.add_condition('GreenCondition', Equals('Green', Ref(self.color)))
+
+        self.add_resource(r53.RecordSetGroup(
+            'dnsPublicRecordsBlue',
+            Condition='BlueCondition',
+            HostedZoneName=Join('', [Ref(self.public_hosted_zone_name), '.']),
+            RecordSets=[
+                r53.RecordSet(
+                    'dnsTileServersBlue',
+                    AliasTarget=r53.AliasTarget(
+                        GetAtt(worker_lb, 'CanonicalHostedZoneNameID'),
+                        GetAtt(worker_lb, 'DNSName'),
+                        True
+                    ),
+                    Name=Join('', ['blue-workers.',
+                                   Ref(self.public_hosted_zone_name), '.']),
+                    Type='A'
+                )
+            ]
+        ))
+
+        self.add_resource(r53.RecordSetGroup(
+            'dnsPublicRecordsGreen',
+            Condition='GreenCondition',
+            HostedZoneName=Join('', [Ref(self.public_hosted_zone_name), '.']),
+            RecordSets=[
+                r53.RecordSet(
+                    'dnsTileServersGreen',
+                    AliasTarget=r53.AliasTarget(
+                        GetAtt(worker_lb, 'CanonicalHostedZoneNameID'),
+                        GetAtt(worker_lb, 'DNSName'),
+                        True
+                    ),
+                    Name=Join('', ['green-workers.',
+                                   Ref(self.public_hosted_zone_name), '.']),
+                    Type='A'
                 )
             ]
         ))

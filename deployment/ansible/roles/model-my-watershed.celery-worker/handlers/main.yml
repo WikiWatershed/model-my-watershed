@@ -1,3 +1,6 @@
 ---
 - name: Restart Celery
   service: name=celeryd state=restarted
+
+- name: Restart Flower
+  service: name=flower state=restarted

@@ -4,3 +4,4 @@
 - { include: dependencies.yml }
 - { include: celery-user.yml }
 - { include: celery-service.yml }
+- { include: flower.yml }

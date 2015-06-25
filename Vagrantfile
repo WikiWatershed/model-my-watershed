@@ -99,6 +99,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       worker.vm.synced_folder "src/mmw", "/opt/app/"
     end
 
+    # Flower
+    worker.vm.network "forwarded_port", {
+      guest: 80,
+      host: 5555
+    }.merge(VAGRANT_NETWORK_OPTIONS)
+
     worker.vm.provider "virtualbox" do |v|
       v.memory = 1024
     end

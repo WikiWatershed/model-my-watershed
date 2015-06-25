@@ -54,7 +54,8 @@ def get_git_sha():
                    'describe',
                    '--tags',
                    '--always',
-                   '--dirty']
+                   '--dirty',
+                   '--abbrev=40']
 
     return subprocess.check_output(git_command).rstrip()
 
