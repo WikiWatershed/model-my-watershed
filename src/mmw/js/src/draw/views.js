@@ -29,10 +29,6 @@ var ToolbarView = Marionette.LayoutView.extend({
         resetRegion: '#reset-draw-region'
     },
 
-    modelEvents: {
-        'change:toolsEnabled': 'manageOutlineLayer'
-    },
-
     initialize: function() {
         var map = App.getLeafletMap(),
             ofg = L.featureGroup();
@@ -60,16 +56,7 @@ var ToolbarView = Marionette.LayoutView.extend({
         this.resetRegion.show(new ResetDrawView({
             model: this.model
         }));
-    },
-
-    manageOutlineLayer: function() {
-        var enabled = this.model.get('toolsEnabled');
-
-        if (!enabled) {
-            clearBoundaryLayer(this.model);
-        }
     }
-
 });
 
 var SelectAreaView = Marionette.ItemView.extend({
@@ -201,38 +188,84 @@ var ResetDrawView = Marionette.ItemView.extend({
     }
 });
 
+function getShapeAndAnalyze(e, model, ofg, grid, tableId) {
+    console.log('clicked');
+    // The shapeId might not be available at the time of the click
+    // because the UTF Grid layer might not be loaded yet, so
+    // we poll for it.
+    var pollInterval = 200,
+        maxPolls = 2,
+        pollCount = 0,
+        deferred = $.Deferred(),
+        shapeId = e.data ? e.data.id : null;
+
+        if (shapeId) {
+            _getShapeAndAnalyze();
+        } else {
+            pollForShapeId();
+        }
+
+    function _getShapeAndAnalyze() {
+        App.restApi.getPolygon({
+            tableId: tableId,
+            shapeId: shapeId
+        }).done(function(shape) {
+            addLayer(shape);
+            ofg.clearLayers();
+            navigateToAnalyze();
+            deferred.resolve();
+        }).fail(function() {
+            console.log('Shape endpoint failed');
+            deferred.reject();
+        }).always(function() {
+            model.enableTools();
+        });
+    }
+
+    function pollForShapeId() {
+        console.log('Shape ID not available yet.');
+        if (pollCount < maxPolls) {
+            var shapeData = grid._objectForEvent(e).data;
+            if (shapeData && shapeData.id) {
+                shapeId = shapeData.id;
+                _getShapeAndAnalyze();
+            } else {
+                window.setTimeout(pollForShapeId, pollInterval);
+                pollCount++;
+            }
+        } else {
+            L.popup()
+                .setLatLng(e.latlng)
+                .setContent('The region was not available. Please try clicking again.')
+                .openOn(App.getLeafletMap());
+            console.log('Failed to get shape ID within time limit.');
+            model.enableTools();
+            deferred.reject();
+        }
+    }
+
+    return deferred;
+}
+
 function changeOutlineLayer(endpoint, tableId, model) {
     var ofg = model.get('outlineFeatureGroup');
 
     // Go about the business of adding the ouline and UTFgrid layers.
     if (endpoint && tableId !== undefined) {
         var ol = new L.TileLayer(endpoint + '.png'),
-            grid = new L.UtfGrid(endpoint + '.grid.json?callback={cb}', { resolution: 4 });
+            grid = new L.UtfGrid(endpoint + '.grid.json?callback={cb}',
+                                 {
+                                     resolution: 4,
+                                     maxRequests: 8
+                                 });
+        grid.on('click', function(e) {
+            getShapeAndAnalyze(e, model, ofg, grid, tableId);
+        });
 
+        console.log('click listener ready');
         ofg.clearLayers();
         ofg.addLayer(ol);
         ofg.addLayer(grid);
-
-        grid.on('click', function (e) {
-            var shapeId = e.data ? e.data.id : null,
-                revertLayer = clearAoiLayer();
-
-            if (model) {
-                model.disableTools();
-            }
-            App.restApi.getPolygon({
-                tableId: tableId,
-                shapeId: shapeId
-            }).then(function(shape) {
-                addLayer(shape);
-                navigateToAnalyze();
-            }).fail(function() {
-                revertLayer();
-            }).always(function() {
-                model.enableTools();
-                ofg.clearLayers();
-            });
-        });
     }
 }
 
@@ -260,5 +293,7 @@ function navigateToAnalyze() {
 }
 
 module.exports = {
-    ToolbarView: ToolbarView
+    ToolbarView: ToolbarView,
+    changeOutlineLayer: changeOutlineLayer,
+    getShapeAndAnalyze: getShapeAndAnalyze
 };
