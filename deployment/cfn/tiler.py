@@ -214,6 +214,7 @@ class Tiler(StackNode):
 
         tile_server_security_group = self.add_resource(ec2.SecurityGroup(
             tile_server_security_group_name,
+            DependsOn='sgTileServerLoadBalancer',
             GroupDescription='Enables access to tile servers',
             VpcId=Ref(self.vpc_id),
             SecurityGroupIngress=[

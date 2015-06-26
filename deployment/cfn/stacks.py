@@ -9,8 +9,12 @@ from application import Application
 from tiler import Tiler
 from tile_delivery_network import TileDeliveryNetwork
 from worker import Worker
+from public_hosted_zone import PublicHostedZone
+
+from boto import cloudformation as cfn
 
 import ConfigParser
+import sys
 
 
 def get_config(mmw_config_path, profile):
@@ -24,7 +28,15 @@ def get_config(mmw_config_path, profile):
     mmw_config.optionxform = str
     mmw_config.read(mmw_config_path)
 
-    return {k: v.strip('"').strip("'") for k, v in mmw_config.items(profile)}
+    try:
+        section = mmw_config.items(profile)
+    except ConfigParser.NoSectionError:
+        sys.stderr.write('There is no section [{}] in the configuration '
+                         'file\n'.format(profile))
+        sys.stderr.write('you specified. Did you specify the correct file?')
+        sys.exit(1)
+
+    return {k: v.strip('"').strip("'") for k, v in section}
 
 
 def build_graph(mmw_config, aws_profile, **kwargs):
@@ -63,16 +75,20 @@ def build_graph(mmw_config, aws_profile, **kwargs):
                               aws_profile=aws_profile)
     worker = Worker(globalconfig=global_config, VPC=vpc,
                     aws_profile=aws_profile)
+    public_hosted_zone = PublicHostedZone(globalconfig=global_config,
+                                          Application=application,
+                                          aws_profile=aws_profile)
 
     return s3_vpc_endpoint, cache_private_dns_record, tiler, application, \
-        worker
+        worker, public_hosted_zone
 
 
 def build_stacks(mmw_config, aws_profile, **kwargs):
     """Trigger actual building of graphs"""
     s3_vpc_endpoint_graph, cache_private_dns_record_graph, tiler_graph, \
-        application_graph, worker_graph = build_graph(mmw_config, aws_profile,
-                                                      **kwargs)
+        application_graph, worker_graph, \
+        public_hosted_zone_graph = build_graph(mmw_config, aws_profile,
+                                               **kwargs)
     s3_vpc_endpoint_graph.go()
     cache_private_dns_record_graph.go()
 
@@ -80,3 +96,18 @@ def build_stacks(mmw_config, aws_profile, **kwargs):
         tiler_graph.go()
         application_graph.go()
         worker_graph.go()
+
+    if kwargs['activate_dns']:
+        public_hosted_zone_graph.go()
+
+
+def destroy_stacks(mmw_config, aws_profile, **kwargs):
+    """Destroy stacks that are associated with stack_color"""
+    region = mmw_config['Region']
+    stack_color = kwargs['stack_color']
+
+    cfn_conn = cfn.connect_to_region(region, profile_name=aws_profile)
+    color_tag = ('StackColor', stack_color.capitalize())
+
+    [stack.delete() for stack in cfn_conn.describe_stacks()
+        if color_tag in stack.tags.items()]
