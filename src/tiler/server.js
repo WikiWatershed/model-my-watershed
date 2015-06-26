@@ -1,4 +1,5 @@
 var Windshaft = require('windshaft'),
+    healthCheck = require('./healthCheck'),
     fs = require('fs'),
     styles = fs.readFileSync('styles.mss', { encoding: 'utf8' });
 
@@ -22,6 +23,7 @@ var config = {
     base_url_notable: '/:tableId',
     grainstore: {
         datasource: {
+            dbname: dbName,
             user: dbUser,
             host: dbHost,
             port: dbPort,
@@ -69,5 +71,6 @@ var config = {
 
 // Initialize tile server on port 4000
 var ws = new Windshaft.Server(config);
+ws.get('/health-check', healthCheck(config));
 ws.listen(4000);
 console.log('Starting MMW Windshaft tiler on http://localhost:4000' + config.base_url + '/:z/:x/:y.*');
