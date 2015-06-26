@@ -70,12 +70,12 @@ def get_git_branch():
     return subprocess.check_output(git_command).rstrip()
 
 
-def run_packer(mmw_config, machine_type, aws_profile):
+def run_packer(mmw_config, machine_types, aws_profile):
     """Function to run packer
 
     Args:
       mmw_config (dict): Dict of configuration settings
-      machine_type (str): type of machine to build
+      machine_types (list): list of machine types to build
       aws_profile (str): aws profile name to use for authentication
     """
 
@@ -105,7 +105,7 @@ def run_packer(mmw_config, machine_type, aws_profile):
         os.path.dirname(os.path.realpath(__file__)),
         'template.js')
 
-    LOGGER.info('Creating %s AMI in %s region', machine_type, region)
+    LOGGER.info('Creating %s AMI in %s region', machine_types, region)
 
     packer_command = ['packer', 'build',
                       '-var', 'version={}'.format(env.get('GIT_COMMIT',
@@ -118,8 +118,8 @@ def run_packer(mmw_config, machine_type, aws_profile):
                       '-var', 'postgresql_password={}'.format(mmw_config['RDSPassword']),  # NOQA
                       '-var', 'itsi_secret_key={}'.format(mmw_config['ITSISecretKey'])]  # NOQA
 
-    if machine_type is not None:
-        packer_command.extend(['-only', machine_type])
+    if machine_types is not None:
+        packer_command.extend(['-only', ','.join(machine_types)])
     else:
         packer_command.extend(['-except', 'mmw-monitoring'])
 
