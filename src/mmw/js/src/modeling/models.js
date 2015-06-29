@@ -332,14 +332,6 @@ var ScenarioModel = Backbone.Model.extend({
         });
     },
 
-    getSlug: function() {
-        var slug = this.get('name')
-                       .toLowerCase()
-                       .replace(/ /g, '-') // Spaces to hyphens
-                       .replace(/[^\w-]/g, ''); // Remove non-alphanumeric characters
-        return slug;
-    },
-
     addModification: function(modification) {
         this.get('modifications').add(modification);
     },
