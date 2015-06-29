@@ -122,7 +122,7 @@ var MapView = Marionette.ItemView.extend({
     modelEvents: {
         'change': 'updateView',
         'change:areaOfInterest': 'updateAreaOfInterest',
-        'change:halfSize': 'toggleMapSize',
+        'change:size': 'toggleMapSize',
         'change:maskLayerApplied': 'toggleMask'
     },
 
@@ -305,7 +305,8 @@ var MapView = Marionette.ItemView.extend({
     },
 
     toggleMapSize: function() {
-        if (this.model.get('halfSize')) {
+        var size = this.model.get('size');
+        if (size.half) {
             $(this.ui.map).addClass('half');
         } else {
             $(this.ui.map).removeClass('half');
@@ -313,12 +314,19 @@ var MapView = Marionette.ItemView.extend({
 
         this._leafletMap.invalidateSize();
 
+        if (size.fit) {
+            this.fitToAoi();
+        }
+    },
+
+    fitToAoi: function() {
         var areaOfInterest = this.model.get('areaOfInterest');
         if (areaOfInterest) {
             var layer = new L.GeoJSON(areaOfInterest);
             this._leafletMap.fitBounds(layer.getBounds(), { reset: true });
         }
     }
+
 });
 
 // Apply a mask over the entire map excluding bounds/shape specified.
