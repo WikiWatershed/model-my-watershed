@@ -7,14 +7,14 @@ var App = require('../app'),
     models = require('./models');
 
 var ModelingController = {
-    modelPrepare: function(projectId) {
+    projectPrepare: function(projectId) {
         if (!projectId && !App.map.get('areaOfInterest')) {
             router.navigate('', { trigger: true });
             return false;
         }
     },
 
-    model: function(projectId, scenarioParam) {
+    project: function(projectId, scenarioParam) {
         var project;
 
         if (projectId) {
@@ -80,7 +80,7 @@ var ModelingController = {
         }
     },
 
-    modelCleanUp: function() {
+    projectCleanUp: function() {
         App.getMapView().updateModifications(null);
         App.rootView.subHeaderRegion.empty();
         App.rootView.footerRegion.empty();

@@ -37,20 +37,20 @@ class RouteAccessTestCase(TestCase):
         self.c.login(username='test', password='test')
 
     def test_any_user_can_get_model_route_without_project_id(self):
-        response = self.c.get('/model/')
+        response = self.c.get('/project/')
 
         self.assertEqual(response.status_code, 200)
 
         self.c.logout()
 
-        response = self.c.get('/model/')
+        response = self.c.get('/project/')
 
         self.assertEqual(response.status_code, 200)
 
     def test_project_owner_can_get_model_route_with_project_id(self):
         project_id = self.create_private_project()
 
-        response = self.c.get('/model/' + project_id + '/')
+        response = self.c.get('/project/' + project_id + '/')
 
         self.assertEqual(response.status_code, 200)
 
@@ -60,7 +60,7 @@ class RouteAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.get('/model/' + project_id + '/')
+        response = self.c.get('/project/' + project_id + '/')
 
         self.assertEqual(response.status_code, 200)
 
@@ -70,7 +70,7 @@ class RouteAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.get('/model/' + project_id + '/')
+        response = self.c.get('/project/' + project_id + '/')
 
         self.assertEqual(response.status_code, 404)
 
@@ -79,7 +79,7 @@ class RouteAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.get('/model/' + project_id + '/')
+        response = self.c.get('/project/' + project_id + '/')
 
         self.assertEqual(response.status_code, 200)
 
@@ -88,7 +88,7 @@ class RouteAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.get('/model/' + project_id + '/')
+        response = self.c.get('/project/' + project_id + '/')
 
         self.assertEqual(response.status_code, 404)
 

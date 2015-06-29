@@ -318,7 +318,7 @@ describe('Modeling', function() {
             });
 
             describe('#getReferenceUrl', function() {
-                var base = '/model/';
+                var base = '/project/';
 
                 it('generates no url fragment for unsaved projects', function() {
                     var project = new models.ProjectModel({ id: null });

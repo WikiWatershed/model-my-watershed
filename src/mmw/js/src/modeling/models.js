@@ -222,8 +222,8 @@ var ProjectModel = Backbone.Model.extend({
 
     getReferenceUrl: function() {
         // Return a url fragment that can access this project at its
-        // current state /model/<id>/scenario/<id>
-        var root = '/model/';
+        // current state /project/<id>/scenario/<id>
+        var root = '/project/';
 
         if (this.get('id')) {
             var modelPart = this.id,

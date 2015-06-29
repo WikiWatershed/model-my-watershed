@@ -17,7 +17,7 @@ def home_page(request):
     return render_to_response('home/home.html', csrf_token)
 
 
-def model(request, proj_id=None, scenario_id=None):
+def project(request, proj_id=None, scenario_id=None):
     """
     If proj_id was specified, check that the user owns
     the project or if the project is public.

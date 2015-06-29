@@ -11,10 +11,10 @@ var router = require('./router').router,
 
 router.addRoute(/^/, DrawController, 'draw');
 router.addRoute(/^analyze/, AnalyzeController, 'analyze');
-router.addRoute(/^model/, ModelingController, 'model');
-router.addRoute('model/:projectId', ModelingController, 'model');
-router.addRoute('model/:projectId/', ModelingController, 'model');
-router.addRoute('model/:projectId/scenario/:scenarioId/', ModelingController, 'model');
+router.addRoute(/^project/, ModelingController, 'project');
+router.addRoute('project/:projectId', ModelingController, 'project');
+router.addRoute('project/:projectId/', ModelingController, 'project');
+router.addRoute('project/:projectId/scenario/:scenarioId/', ModelingController, 'project');
 router.addRoute(/^compare/, AppController, 'compare');
 router.addRoute('error(/)(:type)', ErrorController, 'error');
 router.addRoute('sign-up(/)', SignUpController, 'signUp');
