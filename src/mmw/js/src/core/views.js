@@ -327,7 +327,10 @@ function applyMask(featureGroup, shapeLayer) {
         outerRing = getLatLngs(worldBounds),
         innerRings = getLatLngs(shapeLayer),
         polygonOptions = {
-            stroke: false,
+            stroke: true,
+            color: '#fff',
+            weight: 3.5,
+            opacity: 1,
             fill: true,
             fillColor: '#000',
             fillOpacity: 0.5,
