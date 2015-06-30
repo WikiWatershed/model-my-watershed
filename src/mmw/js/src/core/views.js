@@ -399,6 +399,8 @@ var ModificationPopupView = Marionette.ItemView.extend({
 });
 
 var BaseModal = Marionette.ItemView.extend({
+    className: BASIC_MODAL_CLASS,
+
     attributes: {
         'tabindex': '-1'
     },
@@ -437,7 +439,7 @@ var BaseModal = Marionette.ItemView.extend({
 });
 
 var ConfirmModal = BaseModal.extend({
-    className: BASIC_MODAL_CLASS,
+    template: modalConfirmTmpl,
 
     ui: {
         confirmation: '.confirm'
@@ -447,8 +449,6 @@ var ConfirmModal = BaseModal.extend({
         'click @ui.confirmation': 'primaryAction'
     }, BaseModal.prototype.events),
 
-    template: modalConfirmTmpl,
-
     primaryAction: function() {
         this.triggerMethod('confirmation');
         this.hide();
@@ -456,8 +456,6 @@ var ConfirmModal = BaseModal.extend({
 });
 
 var InputModal = BaseModal.extend({
-    className: BASIC_MODAL_CLASS,
-
     template: modalInputTmpl,
 
     ui: {
@@ -486,8 +484,6 @@ var InputModal = BaseModal.extend({
 });
 
 var ShareModal = BaseModal.extend({
-    className: BASIC_MODAL_CLASS,
-
     template: modalShareTmpl,
 
     ui: {
