@@ -356,25 +356,7 @@ describe('Modeling', function() {
         });
 
         describe('ScenarioModel', function() {
-            describe('#getSlug', function() {
-                it('creates a slug with spaces converted to hyphens', function() {
-                    var model = new models.ScenarioModel({ name: 'test model name' });
-
-                    assert.equal(model.getSlug(), 'test-model-name');
-                });
-
-                it('creates a slug with only alphanumeric characters', function() {
-                    var model = new models.ScenarioModel({ name: 'test-model#$%*()(%^%' });
-
-                    assert.equal(model.getSlug(), 'test-model');
-                });
-
-                it('creates a slug with only lowercase characters', function() {
-                    var model = new models.ScenarioModel({ name: 'TEST_MODEL' });
-
-                    assert.equal(model.getSlug(), 'test_model');
-                });
-            });
+            // TODO: Add tests for existing methods.
         });
 
         describe('ScenarioCollection', function() {
