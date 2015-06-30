@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     _ = require('underscore'),
+    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     drawUtils = require('../draw/utils'),
@@ -75,24 +76,16 @@ var ModificationsView = DrawControlView.extend({
     },
 
     events: _.defaults({
-        'mouseenter @ui.thumb': 'setThumbValue',
-        'click @ui.button': 'clearThumbValue'
+        'mouseenter @ui.thumb': 'onMouseHover'
     }, DrawControlView.prototype.events),
 
-    templateHelpers: {
-        labelFn: modificationConfigUtils.getHumanReadableShortName
-    },
-
-    setThumbValue: function(e) {
-        this.model.setThumbValue($(e.currentTarget).data('value'));
-    },
-
-    clearThumbValue: function() {
-        this.model.clearThumbValue();
-    },
-
-    onShow: function() {
-        this.showChildView('summaryRegion', new SummaryView({model: this.model}));
+    onMouseHover: function(e) {
+        var value = $(e.currentTarget).data('value');
+        this.summaryRegion.show(new SummaryView({
+            model: new Backbone.Model({
+                value: value
+            })
+        }));
     }
 });
 
