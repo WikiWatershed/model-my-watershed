@@ -197,24 +197,16 @@ def start_tr55(request, format=None):
     created = now()
 
     model_input = json.loads(request.POST['model_input'])
-    if 'modifications' in model_input:
-        precips = filter(lambda mod: mod['name'] == 'precipitation',
-                         model_input['modifications'])
-        if len(precips) == 1 and ('value' in precips[0]):
-            model_input['precip'] = precips[0]['value']
-            job = Job.objects.create(created_at=created, result='', error='',
-                                     traceback='', user=user, status='started')
-            task_list = _initiate_tr55_job_chain(model_input, job.id)
-            job.uuid = task_list.id
-            job.save()
+    job = Job.objects.create(created_at=created, result='', error='',
+                             traceback='', user=user, status='started')
+    task_list = _initiate_tr55_job_chain(model_input, job.id)
+    job.uuid = task_list.id
+    job.save()
 
-            return Response({
-                'job': task_list.id,
-                'status': 'started',
-            })
-
-    return Response({'error': 'Missing single precipitation modification.'},
-                    status=status.HTTP_400_BAD_REQUEST)
+    return Response({
+        'job': task_list.id,
+        'status': 'started',
+    })
 
 
 def _initiate_tr55_job_chain(model_input, job_id):
