@@ -48,8 +48,9 @@ var DrawControlView = ControlView.extend({
             $el = $(e.currentTarget),
             controlName = this.getControlName(),
             controlValue = $el.data('value'),
-            map = App.getLeafletMap();
-        drawUtils.drawPolygon(map, modificationConfigUtils.getDrawOpts(controlValue)).then(function(geojson) {
+            map = App.getLeafletMap(),
+            drawOpts = modificationConfigUtils.getDrawOpts(controlValue);
+        drawUtils.drawPolygon(map, drawOpts).then(function(geojson) {
             self.addModification(new models.ModificationModel({
                 name: controlName,
                 value: controlValue,
