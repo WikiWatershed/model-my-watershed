@@ -11,10 +11,5 @@
   notify:
     - Restart Celery
 
-- name: Configure udev rules to wait for Vagrant mount
-  template: src=50-vagrant-mount.rules.j2
-            dest=/etc/udev/rules.d/50-vagrant-mount.rules
-  when: "['development', 'test'] | some_are_in(group_names)"
-
 - name: Enable Celery service
   service: name=celeryd enabled=yes state=started
