@@ -69,7 +69,7 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
                 shape: this.model.get('area_of_interest'),
                 can_go_back: true,
                 next_label: 'Model',
-                url: 'model'
+                url: 'project'
             })
         }));
     },
