@@ -608,7 +608,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         var self = this;
         this.$el.animate({ height: '55%', 'min-height': '300px' }, 200, function() {
             self.trigger('animateIn');
-            App.map.set('halfSize', true);
+            App.map.setHalfSize(false);
             $(self.ui.toggle.selector).blur()
                 .find('i')
                     .removeClass('fa-angle-up')
@@ -617,12 +617,13 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         });
     },
 
-    animateOut: function() {
-        var self = this;
+    animateOut: function(fitToBounds) {
+        var self = this,
+            fit = _.isUndefined(fitToBounds) ? true : fitToBounds;
 
         // Change map to full size first so there isn't empty space when
         // results window animates out
-        App.map.set('halfSize', false);
+        App.map.setFullSize(fit);
 
         this.$el.animate({ height: '0%', 'min-height': '50px' }, 200, function() {
             self.trigger('animateOut');
@@ -637,7 +638,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         if (this.$el.css('height') === '50px') {
             this.animateIn();
         } else {
-            this.animateOut();
+            this.animateOut(false);
         }
     }
 });

@@ -44,7 +44,16 @@ var MapModel = Backbone.Model.extend({
 
             this.set('areaOfInterest', aoi);
         }
-    }
+    },
+
+    setHalfSize: function(fit) {
+        this.set('size', { half: true, fit: !!fit });
+    },
+
+    setFullSize: function(fit) {
+        this.set('size', { half: false, fit: !!fit });
+    },
+
 });
 
 var TaskModel = Backbone.Model.extend({

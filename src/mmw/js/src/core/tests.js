@@ -163,7 +163,7 @@ describe('Core', function() {
                         model: model
                     });
 
-                model.set('halfSize', true);
+                model.setHalfSize();
                 assert.isTrue($('#map').hasClass('half'));
 
                 view._leafletMap.remove();
@@ -176,7 +176,7 @@ describe('Core', function() {
                         model: model
                     });
 
-                model.set('halfSize', false);
+                model.setFullSize();
                 assert.isFalse($('#map').hasClass('half'));
 
                 view._leafletMap.remove();
