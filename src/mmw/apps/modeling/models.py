@@ -80,10 +80,12 @@ class Scenario(models.Model):
     is_current_conditions = models.BooleanField(
         default=False,
         help_text='A special type of scenario without modification abilities')
+    inputs = models.TextField(
+        null=True,
+        help_text='Serialized JSON representation of scenario inputs')
     modifications = models.TextField(
         null=True,
-        help_text='Serialized JSON representation of this scenarios ' +
-                  'applied modification, with respect to the model package')
+        help_text='Serialized JSON representation of scenarios modifications ')
     modification_hash = models.CharField(
         max_length=255,
         null=True,

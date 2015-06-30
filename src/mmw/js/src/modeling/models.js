@@ -272,6 +272,7 @@ var ScenarioModel = Backbone.Model.extend({
         name: '',
         is_current_conditions: false,
         user_id: 0, // User that created the project
+        inputs: null, // ModificationsCollection
         modifications: null, // ModificationsCollection
         active: false,
         job_id: null,
@@ -285,19 +286,25 @@ var ScenarioModel = Backbone.Model.extend({
         // TODO The default modifications might be a function
         // of the model_package in the future.
         _.defaults(attrs, {
-            modifications: [
+            inputs: [
                 {
                     name: 'precipitation',
                     value: 1.0
                 }
-            ]});
-        this.set('modifications', ModificationsCollection.create(attrs.modifications));
+            ]
+        });
+
+        this.set('inputs', new ModificationsCollection(attrs.inputs));
+        this.set('modifications', new ModificationsCollection(attrs.modifications));
 
         this.on('change:project change:name', this.attemptSave, this);
+        this.get('inputs').on('add', this.attemptSave, this);
         this.get('modifications').on('add remove', this.attemptSave, this);
 
         var debouncedGetResults = _.debounce(_.bind(this.getResults, this), 500);
-        this.get('modifications').on('add change remove', debouncedGetResults);
+        this.get('inputs').on('add', debouncedGetResults);
+        this.get('modifications').on('add remove', debouncedGetResults);
+
         this.set('taskModel', $.extend(true, {}, App.currProject.get('taskModel')));
 
         var resultCollection;
@@ -336,20 +343,21 @@ var ScenarioModel = Backbone.Model.extend({
         this.get('modifications').add(modification);
     },
 
-    addOrReplaceModification: function(modification) {
-        var modificationsColl = this.get('modifications'),
-            existing = modificationsColl.findWhere({ name: modification.get('name') });
+    addOrReplaceInput: function(input) {
+        var inputsColl = this.get('inputs'),
+            existing = inputsColl.findWhere({ name: input.get('name') });
         if (existing) {
-            modificationsColl.remove(existing);
+            inputsColl.remove(existing);
         }
-        modificationsColl.add(modification);
+        inputsColl.add(input);
     },
 
     parse: function(response) {
-        // Modifications are essentially write only. So if we have them on our
-        // model, we shouldn't reset them from the server. Pull them off of
-        // the response to prevent overwriting them.
+        this.get('modifications').reset(response.modifications);
         delete response.modifications;
+
+        this.get('inputs').reset(response.inputs);
+        delete response.inputs;
 
         // TODO We don't want to set the results until a future
         // PR when we intentionally cache results.
@@ -393,6 +401,7 @@ var ScenarioModel = Backbone.Model.extend({
             taskHelper = {
                 postData: {
                     model_input: JSON.stringify({
+                        inputs: self.get('inputs').toJSON(),
                         modifications: self.get('modifications').toJSON(),
                         area_of_interest: App.currProject.get('area_of_interest')
                     })
@@ -493,11 +502,11 @@ var ScenariosCollection = Backbone.Collection.extend({
 
     duplicateScenario: function(cid) {
         var source = this.get(cid),
-            sourceMods = source.get('modifications').models,
             newModel = new ScenarioModel({
                 is_current_conditions: false,
                 name: this.makeNewScenarioName('Copy of ' + source.get('name')),
-                modifications: new ModificationsCollection(sourceMods)
+                inputs: source.get('inputs').toJSON(),
+                modifications: source.get('modifications').toJSON()
             });
 
         this.add(newModel);

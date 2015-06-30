@@ -19,13 +19,13 @@ class TaskRunnerTestCase(TestCase):
     @override_settings(CELERY_ALWAYS_EAGER=True)
     def test_tr55_job_runs_in_chain(self):
         model_input = {
-            'modifications': [
+            'inputs': [
                 {
                     'name': 'precipitation',
                     'value': 1.2
                 }
             ],
-            'precip': 1.0
+            'modifications': []
         }
 
         created = now()
@@ -67,6 +67,7 @@ class APIAccessTestCase(TestCase):
         self.scenario = {
             "name": "Current Conditions",
             "is_current_conditions": True,
+            "inputs": "[]",
             "modifications": "[]"
         }
 

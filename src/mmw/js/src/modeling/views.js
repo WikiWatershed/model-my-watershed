@@ -450,14 +450,14 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
     tagName: 'div',
     className: 'tab-pane',
 
-    childViewOptions: function(inputControlModel) {
-        var modificationModel = this.getModificationForInputControl(inputControlModel),
+    childViewOptions: function(modelPackageControl) {
+        var controlModel = this.getInputControlModel(modelPackageControl),
             addModification = _.bind(this.model.addModification, this.model),
-            addOrReplaceModification = _.bind(this.model.addOrReplaceModification, this.model);
+            addOrReplaceInput = _.bind(this.model.addOrReplaceInput, this.model);
         return {
-            modificationModel: modificationModel,
+            controlModel: controlModel,
             addModification: addModification,
-            addOrReplaceModification: addOrReplaceModification
+            addOrReplaceInput: addOrReplaceInput
         };
     },
 
@@ -483,17 +483,12 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
 
     initialize: function() {
         var modificationsColl = this.model.get('modifications');
-        this.listenTo(modificationsColl, 'add remove', this.render);
+        this.listenTo(modificationsColl, 'add remove reset', this.render);
     },
 
     templateHelpers: function() {
-        var modificationsColl = this.model.get('modifications'),
-            shapes = modificationsColl.filter(function(model) {
-                return model.get('shape') !== null;
-            }),
-            groupedShapes = _.groupBy(shapes, function(model) {
-                return model.get('name');
-            });
+        var shapes = this.model.get('modifications'),
+            groupedShapes = shapes.groupBy('name');
         return {
             shapes: shapes,
             groupedShapes: groupedShapes,
@@ -503,8 +498,8 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
 
     // Only display modification controls if scenario is editable.
     // Input controls should always be shown.
-    filter: function(inputControlModel) {
-        return isEditable(this.model) || inputControlModel.isInputControl();
+    filter: function(modelPackageControl) {
+        return isEditable(this.model) || modelPackageControl.isInputControl();
     },
 
     onRender: function() {
@@ -527,16 +522,17 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
         modificationsColl.remove(modification);
     },
 
-    getChildView: function(inputControlModel) {
-        var controlName = inputControlModel.get('name');
+    getChildView: function(modelPackageControl) {
+        var controlName = modelPackageControl.get('name');
         return controls.getControlView(controlName);
     },
 
-    // Return first modification for an input control.
-    getModificationForInputControl: function(inputControlModel) {
-        var modificationsColl = this.model.get('modifications'),
-            controlName = inputControlModel.get('name');
-        return modificationsColl.findWhere({ name: controlName });
+    // For a given ModelPackageControlModel (ex. Precipitation), return
+    // the instance of that control model from this scenario inputs.
+    getInputControlModel: function(modelPackageControl) {
+        return this.model.get('inputs').findWhere({
+            name: modelPackageControl.get('name')
+        });
     }
 });
 

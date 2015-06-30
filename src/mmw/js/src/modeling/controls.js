@@ -22,9 +22,9 @@ var ControlView = Marionette.LayoutView.extend({
 
     initialize: function(options) {
         this.mergeOptions(options, [
-            'modificationModel',
+            'controlModel',
             'addModification',
-            'addOrReplaceModification'
+            'addOrReplaceInput'
         ]);
     },
 
@@ -163,11 +163,11 @@ var PrecipitationView = ControlView.extend({
                 name: this.getControlName(),
                 value: value
             });
-        this.addOrReplaceModification(modification);
+        this.addOrReplaceInput(modification);
     },
 
     onRender: function() {
-        var model = this.modificationModel,
+        var model = this.controlModel,
             value = model && model.get('value') || 0;
 
         this.ui.slider.val(value);
