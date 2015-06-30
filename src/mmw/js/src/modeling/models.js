@@ -254,17 +254,6 @@ var ModificationsCollection = Backbone.Collection.extend({
     model: ModificationModel
 });
 
-// Static method to create an instance of this collection.
-// This lets us create a collection from an array of raw objects (web app)
-// or from an array of models (unit tests).
-ModificationsCollection.create = function(data) {
-    if (data instanceof ModificationsCollection) {
-        return data;
-    } else {
-        return new ModificationsCollection(data);
-    }
-};
-
 var ScenarioModel = Backbone.Model.extend({
     urlRoot: '/api/modeling/scenarios/',
 
