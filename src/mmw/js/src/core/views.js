@@ -16,6 +16,7 @@ var $ = require('jquery'),
     modificationPopupTmpl = require('./templates/modificationPopup.html'),
     areaOfInterestTmpl = require('../core/templates/areaOfInterestHeader.html'),
 
+    ENTER_KEYCODE = 13,
     BASIC_MODAL_CLASS = 'modal modal-basic fade';
 
 require('leaflet.locatecontrol');
@@ -398,15 +399,36 @@ var ModificationPopupView = Marionette.ItemView.extend({
 });
 
 var BaseModal = Marionette.ItemView.extend({
-    initialize: function() {
-        var self = this;
-        this.$el.on('hide.bs.modal', function() {
-            self.destroy();
-        });
+    attributes: {
+        'tabindex': '-1'
+    },
+
+    events: {
+        'shown.bs.modal': 'onModalShown',
+        'keyup': 'onKeyUp',
+        'hidden.bs.modal': 'onModalHidden'
     },
 
     onRender: function() {
         this.$el.modal('show');
+    },
+
+    onModalShown: function() {
+        // Not implemented.
+    },
+
+    onKeyUp: function(e) {
+        if (e.keyCode === ENTER_KEYCODE) {
+            this.primaryAction();
+        }
+    },
+
+    primaryAction: function() {
+        // Not implemented.
+    },
+
+    onModalHidden: function() {
+        this.destroy();
     },
 
     hide: function() {
@@ -421,14 +443,15 @@ var ConfirmModal = BaseModal.extend({
         confirmation: '.confirm'
     },
 
-    events: {
-        'click @ui.confirmation': 'triggerConfirmation'
-    },
+    events: _.defaults({
+        'click @ui.confirmation': 'primaryAction'
+    }, BaseModal.prototype.events),
 
     template: modalConfirmTmpl,
 
-    triggerConfirmation: function() {
+    primaryAction: function() {
         this.triggerMethod('confirmation');
+        this.hide();
     }
 });
 
@@ -443,11 +466,15 @@ var InputModal = BaseModal.extend({
         error: '.error'
     },
 
-    events: {
-        'click @ui.save': 'updateFromInput'
+    events: _.defaults({
+        'click @ui.save': 'primaryAction'
+    }, BaseModal.prototype.events),
+
+    onModalShown: function() {
+        this.ui.input.focus().select();
     },
 
-    updateFromInput: function() {
+    primaryAction: function() {
         var val = this.ui.input.val().trim();
         if (val) {
             this.triggerMethod('update', val);
@@ -469,13 +496,11 @@ var ShareModal = BaseModal.extend({
         'input': 'input'
     },
 
-    events: {
+    events: _.defaults({
         'click @ui.signin': 'signIn'
-    },
+    }, BaseModal.prototype.events),
 
-    // Override to initialize ZeroClipboard
     initialize: function() {
-        BaseModal.prototype.initialize.call(this);
         this.zc = new ZeroClipboard();
     },
 
@@ -487,6 +512,10 @@ var ShareModal = BaseModal.extend({
         });
 
         this.$el.modal('show');
+    },
+
+    onModalShown: function() {
+        this.ui.input.focus().select();
     },
 
     signIn: function() {
