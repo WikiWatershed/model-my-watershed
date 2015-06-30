@@ -9,7 +9,7 @@ RDS_INSTANCE_TYPES = [
 ]
 
 ELASTICACHE_INSTANCE_TYPES = [
-    'cache.t2.micro'
+    'cache.m1.small'
 ]
 
 ALLOW_ALL_CIDR = '0.0.0.0/0'
