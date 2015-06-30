@@ -8,6 +8,7 @@ var _ = require('underscore'),
     models = require('./models'),
     loginModalTmpl = require('./templates/loginModal.html'),
     signUpModalTmpl = require('./templates/signUpModal.html'),
+    resendModalTmpl = require('./templates/resendModal.html'),
     forgotModalTmpl = require('./templates/forgotModal.html'),
     itsiSignUpModalTmpl = require('./templates/itsiSignUpModal.html');
 
@@ -23,6 +24,7 @@ var ModalBaseView = Marionette.ItemView.extend({
 
     events: {
         'keyup input': 'handleKeyUpEvent',
+        'keydown input': 'handleKeyDownEvent',
         'click @ui.primary_button': 'validate',
         'click @ui.dismiss_button': 'dismissAction'
     },
@@ -55,7 +57,15 @@ var ModalBaseView = Marionette.ItemView.extend({
 
     handleKeyUpEvent: function(e) {
         if (e.keyCode === ENTER_KEYCODE) {
+            e.preventDefault();
             this.validate();
+        }
+    },
+
+    handleKeyDownEvent: function(e) {
+        // Needed to prevent form from being posted when pressing enter.
+        if (e.keyCode === ENTER_KEYCODE) {
+            e.preventDefault();
         }
     },
 
@@ -123,11 +133,13 @@ var LoginModalView = ModalBaseView.extend({
         username: '#username',
         password: '#password',
         signUp: '.sign-up',
+        resend: '.resend',
         forgot: '.forgot'
     }, ModalBaseView.prototype.ui),
 
     events: _.defaults({
         'click @ui.signUp': 'signUp',
+        'click @ui.resend': 'resend',
         'click @ui.forgot': 'forgot'
     }, ModalBaseView.prototype.events),
 
@@ -181,6 +193,18 @@ var LoginModalView = ModalBaseView.extend({
         });
     },
 
+    // Resend activation email
+    resend: function() {
+        this.$el.modal('hide');
+        var self = this;
+        this.$el.on('hidden.bs.modal', function() {
+            new ResendModalView({
+                app: self.app,
+                model: new models.ResendFormModel({})
+            }).render();
+        });
+    },
+
     // Forgot
     forgot: function() {
         this.$el.modal('hide');
@@ -230,6 +254,44 @@ var SignUpModalView = ModalBaseView.extend({
 
     dismissAction: function() {
         this.app.showLoginModal();
+    }
+});
+
+var ResendModalView = ModalBaseView.extend({
+    template: resendModalTmpl,
+
+    ui: _.defaults({
+        'email': '#email',
+        'login': '#login'
+    }, LoginModalView.prototype.ui),
+
+    events: _.defaults({
+        'click @ui.login': 'login'
+    }, ModalBaseView.prototype.events),
+
+    onModalShown: function() {
+        this.ui.email.focus();
+    },
+
+    onValidationError: function() {
+        this.ui.email.focus();
+    },
+
+    setFields: function() {
+        this.model.set({
+            email: $(this.ui.email.selector).val()
+        }, { silent: true });
+    },
+
+    login: function() {
+        this.$el.modal('hide');
+        var self = this;
+        this.$el.on('hidden.bs.modal', function() {
+            new LoginModalView({
+                app: self.app,
+                model: new models.LoginFormModel()
+            }).render();
+        });
     }
 });
 
@@ -317,6 +379,7 @@ var ItsiSignUpModalView = ModalBaseView.extend({
 module.exports = {
     LoginModalView: LoginModalView,
     SignUpModalView: SignUpModalView,
+    ResendModalView: ResendModalView,
     ForgotModalView: ForgotModalView,
     ItsiSignUpModalView: ItsiSignUpModalView
 };
