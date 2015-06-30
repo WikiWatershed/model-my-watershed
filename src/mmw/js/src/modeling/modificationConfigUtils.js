@@ -6,9 +6,9 @@ var modificationConfig = require('./modificationConfig.json');
 function getHumanReadableName(modKey) {
     if (modificationConfig[modKey]) {
         return modificationConfig[modKey].name;
-    } else {
-        throw 'Unknown Land Cover or Conservation Practice: ' + modKey;
     }
+    console.warn('Unknown Land Cover or Conservation Practice: ' + modKey);
+    return '';
 }
 
 // If no shortName, just use name.
@@ -19,17 +19,17 @@ function getHumanReadableShortName(modKey) {
         } else {
             return modificationConfig[modKey].name;
         }
-    } else {
-        throw 'Unknown Land Cover or Conservation Practice: ' + modKey;
     }
+    console.warn('Unknown Land Cover or Conservation Practice: ' + modKey);
+    return '';
 }
 
 function getHumanReadableSummary(modKey) {
     if (modificationConfig[modKey]) {
         return modificationConfig[modKey].summary || '';
-    } else {
-        throw 'Unknown Land Cover or Conservation Practice: ' + modKey;
     }
+    console.warn('Unknown Land Cover or Conservation Practice: ' + modKey);
+    return '';
 }
 
 var getDrawOpts = function(modKey) {
