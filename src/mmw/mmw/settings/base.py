@@ -233,6 +233,7 @@ TEMPLATE_DIRS = (
 MIDDLEWARE_CLASSES = (
     # Default Django middleware.
     'django.middleware.common.CommonMiddleware',
+    'mmw.middleware.BypassMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -277,18 +278,10 @@ DJANGO_APPS = (
 
 THIRD_PARTY_APPS = (
     'rest_framework',
-    'watchman',
     'registration',
 )
 
 # THIRD-PARTY CONFIGURATION
-
-# watchman
-# Disable Storage checking, to avoid creating files on S3 on every health check
-WATCHMAN_CHECKS = (
-    'watchman.checks.caches',
-    'watchman.checks.databases',
-)
 
 # rest_framework
 REST_FRAMEWORK = {
