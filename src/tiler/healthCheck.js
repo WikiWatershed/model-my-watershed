@@ -117,7 +117,7 @@ module.exports = function createHealthCheckHandler(config) {
         response.databases = [{'default': buildPayload(databaseError)}];
         response.caches = [{'default': buildPayload(cacheError)}];
 
-        if (databaseError && cacheError) {
+        if (!databaseError && !cacheError) {
           statusCode = 200;
         }
 
