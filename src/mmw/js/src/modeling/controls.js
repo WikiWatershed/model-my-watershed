@@ -61,25 +61,7 @@ var DrawControlView = ControlView.extend({
 });
 
 var SummaryView = Marionette.ItemView.extend({
-    template: summaryTmpl,
-
-    modelEvents: {
-        'change:thumbValue': 'render'
-    },
-
-    templateHelpers: function() {
-        var thumbValue = this.model.get('thumbValue'),
-            label = '',
-            summary = '';
-        if (thumbValue) {
-            label = modificationConfigUtils.getHumanReadableName(thumbValue);
-            summary = modificationConfigUtils.getHumanReadableSummary(thumbValue);
-        }
-        return {
-            label: label,
-            summary: summary
-        };
-    }
+    template: summaryTmpl
 });
 
 var ModificationsView = DrawControlView.extend({

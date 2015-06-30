@@ -4,8 +4,7 @@ var Backbone = require('../../shim/backbone'),
     _ = require('underscore'),
     $ = require('jquery'),
     App = require('../app'),
-    coreModels = require('../core/models'),
-    modificationConfigUtils = require('./modificationConfigUtils');
+    coreModels = require('../core/models');
 
 var ModelPackageControlModel = Backbone.Model.extend({
     defaults: {
@@ -247,8 +246,6 @@ var ModificationModel = coreModels.GeoModel.extend({
         }, coreModels.GeoModel.prototype.defaults
     )
 });
-
-ModificationModel.prototype.label = modificationConfigUtils.getHumanReadableName;
 
 var ModificationsCollection = Backbone.Collection.extend({
     model: ModificationModel

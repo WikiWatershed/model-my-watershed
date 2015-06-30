@@ -388,12 +388,6 @@ var ModificationPopupView = Marionette.ItemView.extend({
         'click @ui.delete': 'deleteModification'
     },
 
-    templateHelpers: function() {
-        return {
-            label: this.model.label(this.model.get('value'))
-        };
-    },
-
     deleteModification: function() {
         this.model.destroy();
         this.destroy();
