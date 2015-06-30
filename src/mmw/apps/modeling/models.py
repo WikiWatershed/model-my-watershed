@@ -70,6 +70,7 @@ class Project(models.Model):
 
 
 class Scenario(models.Model):
+
     class Meta:
         unique_together = ('name', 'project')
 

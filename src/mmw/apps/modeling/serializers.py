@@ -21,6 +21,7 @@ class ModificationsField(serializers.BaseSerializer):
 
 
 class ScenarioSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Scenario
 
@@ -28,6 +29,7 @@ class ScenarioSerializer(serializers.ModelSerializer):
 
 
 class ProjectSerializer(gis_serializers.GeoModelSerializer):
+
     class Meta:
         model = Project
         depth = 1
@@ -38,6 +40,7 @@ class ProjectSerializer(gis_serializers.GeoModelSerializer):
 
 
 class ProjectUpdateSerializer(gis_serializers.GeoModelSerializer):
+
     class Meta:
         model = Project
         depth = 1

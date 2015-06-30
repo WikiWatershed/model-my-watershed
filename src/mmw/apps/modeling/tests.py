@@ -15,6 +15,7 @@ from rest_framework.test import APIClient
 
 
 class TaskRunnerTestCase(TestCase):
+
     @override_settings(CELERY_ALWAYS_EAGER=True)
     def test_tr55_job_runs_in_chain(self):
         model_input = {
@@ -46,6 +47,7 @@ class TaskRunnerTestCase(TestCase):
 
 
 class APIAccessTestCase(TestCase):
+
     def setUp(self):
         self.c = APIClient()
         self.test_user = User.objects.create_user(username='test',
