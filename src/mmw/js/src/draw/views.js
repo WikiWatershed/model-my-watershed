@@ -189,12 +189,11 @@ var ResetDrawView = Marionette.ItemView.extend({
 });
 
 function getShapeAndAnalyze(e, model, ofg, grid, tableId) {
-    console.log('clicked');
     // The shapeId might not be available at the time of the click
     // because the UTF Grid layer might not be loaded yet, so
     // we poll for it.
     var pollInterval = 200,
-        maxPolls = 2,
+        maxPolls = 5,
         pollCount = 0,
         deferred = $.Deferred(),
         shapeId = e.data ? e.data.id : null;
@@ -223,7 +222,6 @@ function getShapeAndAnalyze(e, model, ofg, grid, tableId) {
     }
 
     function pollForShapeId() {
-        console.log('Shape ID not available yet.');
         if (pollCount < maxPolls) {
             var shapeData = grid._objectForEvent(e).data;
             if (shapeData && shapeData.id) {
@@ -238,7 +236,6 @@ function getShapeAndAnalyze(e, model, ofg, grid, tableId) {
                 .setLatLng(e.latlng)
                 .setContent('The region was not available. Please try clicking again.')
                 .openOn(App.getLeafletMap());
-            console.log('Failed to get shape ID within time limit.');
             model.enableTools();
             deferred.reject();
         }
@@ -262,7 +259,6 @@ function changeOutlineLayer(endpoint, tableId, model) {
             getShapeAndAnalyze(e, model, ofg, grid, tableId);
         });
 
-        console.log('click listener ready');
         ofg.clearLayers();
         ofg.addLayer(ol);
         ofg.addLayer(grid);
