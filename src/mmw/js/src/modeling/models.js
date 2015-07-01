@@ -2,15 +2,12 @@
 
 var Backbone = require('../../shim/backbone'),
     _ = require('underscore'),
-    $ = require('jquery'),
     App = require('../app'),
-    coreModels = require('../core/models'),
-    modificationConfigUtils = require('./modificationConfigUtils');
+    coreModels = require('../core/models');
 
 var ModelPackageControlModel = Backbone.Model.extend({
     defaults: {
-        name: '',
-        thumbValue: null
+        name: ''
     },
 
     // Return true if this is an input control and false if it is a
@@ -19,37 +16,6 @@ var ModelPackageControlModel = Backbone.Model.extend({
         return _.contains([
             'precipitation'
         ], this.get('name'));
-    },
-
-    getThumbValue: function() {
-        return this.get('thumbValue');
-    },
-
-    setThumbValue: function(value) {
-        this.set('thumbValue', value);
-    },
-
-    clearThumbValue: function() {
-        this.setThumbValue(null);
-    }
-});
-
-// This model is used for the controls that contain
-// a set of thumbnails that can be selected.
-var ThumbModelPackageControlModel = ModelPackageControlModel.extend({
-    defaults: _.defaults({
-        thumbValue: null
-    }, ModelPackageControlModel.prototype.defaults),
-
-    // thumbValue is the data-value attribute of
-    // the .thumb that is currently being hovered over
-    // or null if none.
-    getThumbValue: function() {
-        return this.get('thumbValue');
-    },
-
-    setThumbValue: function(value) {
-        this.set('thumbValue', value);
     }
 });
 
@@ -102,7 +68,6 @@ var ProjectModel = Backbone.Model.extend({
         created_at: null,          // Date
         area_of_interest: null,    // GeoJSON
         model_package: '',         // Package name
-        taskModel: null,           // TaskModel
         scenarios: null,           // ScenariosCollection
         user_id: 0                 // User that created the project
     },
@@ -118,12 +83,40 @@ var ProjectModel = Backbone.Model.extend({
         // now, the only option is TR55, so it is
         // hard-coded here.
         this.set('model_package', 'tr-55');
-        this.set('taskModel', new Tr55TaskModel());
 
         this.set('user_id', App.user.get('id'));
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
         this.on('change:name', this.saveProjectAndScenarios, this);
+    },
+
+    createTaskModel: function() {
+        var packageName = this.get('model_package');
+        switch (packageName) {
+            case 'tr-55':
+                return new Tr55TaskModel();
+        }
+        throw 'Model package not supported: ' + packageName;
+    },
+
+    createTaskResultCollection: function() {
+        var packageName = this.get('model_package');
+        switch (packageName) {
+            case 'tr-55':
+                return new ResultCollection([
+                    {
+                        name: 'runoff',
+                        displayName: 'Runoff',
+                        result: null
+                    },
+                    {
+                        name: 'quality',
+                        displayName: 'Water Quality',
+                        result: null
+                    }
+                ]);
+        }
+        throw 'Model package not supported: ' + packageName;
     },
 
     getResultsIfNeeded: function() {
@@ -199,7 +192,6 @@ var ProjectModel = Backbone.Model.extend({
                     // TODO We don't want to set the results until a future
                     // PR when we intentionally cache results.
                     delete scenario.results;
-                    scenario.taskModel = new Tr55TaskModel();
 
                     var scenarioModel = new ScenarioModel(scenario);
                     scenarioModel.set('user_id', user_id);
@@ -213,9 +205,6 @@ var ProjectModel = Backbone.Model.extend({
 
             delete response.scenarios;
         }
-
-        // TODO: Does this hurt anything if we always set.
-        response.taskModel = new Tr55TaskModel();
 
         return response;
     },
@@ -248,22 +237,9 @@ var ModificationModel = coreModels.GeoModel.extend({
     )
 });
 
-ModificationModel.prototype.label = modificationConfigUtils.getHumanReadableName;
-
 var ModificationsCollection = Backbone.Collection.extend({
     model: ModificationModel
 });
-
-// Static method to create an instance of this collection.
-// This lets us create a collection from an array of raw objects (web app)
-// or from an array of models (unit tests).
-ModificationsCollection.create = function(data) {
-    if (data instanceof ModificationsCollection) {
-        return data;
-    } else {
-        return new ModificationsCollection(data);
-    }
-};
 
 var ScenarioModel = Backbone.Model.extend({
     urlRoot: '/api/modeling/scenarios/',
@@ -272,6 +248,7 @@ var ScenarioModel = Backbone.Model.extend({
         name: '',
         is_current_conditions: false,
         user_id: 0, // User that created the project
+        inputs: null, // ModificationsCollection
         modifications: null, // ModificationsCollection
         active: false,
         job_id: null,
@@ -285,37 +262,27 @@ var ScenarioModel = Backbone.Model.extend({
         // TODO The default modifications might be a function
         // of the model_package in the future.
         _.defaults(attrs, {
-            modifications: [
+            inputs: [
                 {
                     name: 'precipitation',
                     value: 1.0
                 }
-            ]});
-        this.set('modifications', ModificationsCollection.create(attrs.modifications));
+            ]
+        });
+
+        this.set('inputs', new ModificationsCollection(attrs.inputs));
+        this.set('modifications', new ModificationsCollection(attrs.modifications));
 
         this.on('change:project change:name', this.attemptSave, this);
+        this.get('inputs').on('add', this.attemptSave, this);
         this.get('modifications').on('add remove', this.attemptSave, this);
 
         var debouncedGetResults = _.debounce(_.bind(this.getResults, this), 500);
-        this.get('modifications').on('add change remove', debouncedGetResults);
-        this.set('taskModel', $.extend(true, {}, App.currProject.get('taskModel')));
+        this.get('inputs').on('add', debouncedGetResults);
+        this.get('modifications').on('add remove', debouncedGetResults);
 
-        var resultCollection;
-        if (App.currProject.get('model_package') === 'tr-55') {
-            resultCollection = new ResultCollection([
-                {
-                    name: 'runoff',
-                    displayName: 'Runoff',
-                    result: null
-                },
-	            {
-                    name: 'quality',
-                    displayName: 'Water Quality',
-                    result: null
-                }
-            ]);
-        }
-        this.set('results', resultCollection);
+        this.set('taskModel', App.currProject.createTaskModel());
+        this.set('results', App.currProject.createTaskResultCollection());
     },
 
     attemptSave: function() {
@@ -336,20 +303,21 @@ var ScenarioModel = Backbone.Model.extend({
         this.get('modifications').add(modification);
     },
 
-    addOrReplaceModification: function(modification) {
-        var modificationsColl = this.get('modifications'),
-            existing = modificationsColl.findWhere({ name: modification.get('name') });
+    addOrReplaceInput: function(input) {
+        var inputsColl = this.get('inputs'),
+            existing = inputsColl.findWhere({ name: input.get('name') });
         if (existing) {
-            modificationsColl.remove(existing);
+            inputsColl.remove(existing);
         }
-        modificationsColl.add(modification);
+        inputsColl.add(input);
     },
 
     parse: function(response) {
-        // Modifications are essentially write only. So if we have them on our
-        // model, we shouldn't reset them from the server. Pull them off of
-        // the response to prevent overwriting them.
+        this.get('modifications').reset(response.modifications);
         delete response.modifications;
+
+        this.get('inputs').reset(response.inputs);
+        delete response.inputs;
 
         // TODO We don't want to set the results until a future
         // PR when we intentionally cache results.
@@ -393,6 +361,7 @@ var ScenarioModel = Backbone.Model.extend({
             taskHelper = {
                 postData: {
                     model_input: JSON.stringify({
+                        inputs: self.get('inputs').toJSON(),
                         modifications: self.get('modifications').toJSON(),
                         area_of_interest: App.currProject.get('area_of_interest')
                     })
@@ -463,8 +432,7 @@ var ScenariosCollection = Backbone.Collection.extend({
 
     createNewScenario: function() {
         var scenario = new ScenarioModel({
-            name: this.makeNewScenarioName('New Scenario'),
-            taskModel: $.extend(true, {}, App.currProject.get('taskModel'))
+            name: this.makeNewScenarioName('New Scenario')
         });
 
         this.add(scenario);
@@ -493,11 +461,11 @@ var ScenariosCollection = Backbone.Collection.extend({
 
     duplicateScenario: function(cid) {
         var source = this.get(cid),
-            sourceMods = source.get('modifications').models,
             newModel = new ScenarioModel({
                 is_current_conditions: false,
                 name: this.makeNewScenarioName('Copy of ' + source.get('name')),
-                modifications: new ModificationsCollection(sourceMods)
+                inputs: source.get('inputs').toJSON(),
+                modifications: source.get('modifications').toJSON()
             });
 
         this.add(newModel);
@@ -536,8 +504,8 @@ function getControlsForModelPackage(modelPackageName, options) {
             ]);
         } else {
             return new ModelPackageControlsCollection([
-                new ThumbModelPackageControlModel({ name: 'landcover' }),
-                new ThumbModelPackageControlModel({ name: 'conservation_practice' }),
+                new ModelPackageControlModel({ name: 'landcover' }),
+                new ModelPackageControlModel({ name: 'conservation_practice' }),
                 new ModelPackageControlModel({ name: 'precipitation' })
             ]);
         }

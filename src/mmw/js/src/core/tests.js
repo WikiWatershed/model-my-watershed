@@ -193,12 +193,6 @@ describe('Core', function() {
                     }),
                     view = new views.ModificationPopupView({ model: model });
 
-                // ModificationModel has a static method
-                // for getting the label.
-                model.label = function() {
-                    return 'Modification Label';
-                };
-
                 var spy = sinon.spy(model, 'destroy');
 
                 $('#sandbox').html(view.render().el);

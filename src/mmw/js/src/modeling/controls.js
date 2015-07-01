@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     _ = require('underscore'),
+    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     drawUtils = require('../draw/utils'),
@@ -22,9 +23,9 @@ var ControlView = Marionette.LayoutView.extend({
 
     initialize: function(options) {
         this.mergeOptions(options, [
-            'modificationModel',
+            'controlModel',
             'addModification',
-            'addOrReplaceModification'
+            'addOrReplaceInput'
         ]);
     },
 
@@ -48,8 +49,9 @@ var DrawControlView = ControlView.extend({
             $el = $(e.currentTarget),
             controlName = this.getControlName(),
             controlValue = $el.data('value'),
-            map = App.getLeafletMap();
-        drawUtils.drawPolygon(map, modificationConfigUtils.getDrawOpts(controlValue)).then(function(geojson) {
+            map = App.getLeafletMap(),
+            drawOpts = modificationConfigUtils.getDrawOpts(controlValue);
+        drawUtils.drawPolygon(map, drawOpts).then(function(geojson) {
             self.addModification(new models.ModificationModel({
                 name: controlName,
                 value: controlValue,
@@ -60,25 +62,7 @@ var DrawControlView = ControlView.extend({
 });
 
 var SummaryView = Marionette.ItemView.extend({
-    template: summaryTmpl,
-
-    modelEvents: {
-        'change:thumbValue': 'render'
-    },
-
-    templateHelpers: function() {
-        var thumbValue = this.model.get('thumbValue'),
-            label = '',
-            summary = '';
-        if (thumbValue) {
-            label = modificationConfigUtils.getHumanReadableName(thumbValue);
-            summary = modificationConfigUtils.getHumanReadableSummary(thumbValue);
-        }
-        return {
-            label: label,
-            summary: summary
-        };
-    }
+    template: summaryTmpl
 });
 
 var ModificationsView = DrawControlView.extend({
@@ -92,24 +76,16 @@ var ModificationsView = DrawControlView.extend({
     },
 
     events: _.defaults({
-        'mouseenter @ui.thumb': 'setThumbValue',
-        'click @ui.button': 'clearThumbValue'
+        'mouseenter @ui.thumb': 'onMouseHover'
     }, DrawControlView.prototype.events),
 
-    templateHelpers: {
-        labelFn: modificationConfigUtils.getHumanReadableShortName
-    },
-
-    setThumbValue: function(e) {
-        this.model.setThumbValue($(e.currentTarget).data('value'));
-    },
-
-    clearThumbValue: function() {
-        this.model.clearThumbValue();
-    },
-
-    onShow: function() {
-        this.showChildView('summaryRegion', new SummaryView({model: this.model}));
+    onMouseHover: function(e) {
+        var value = $(e.currentTarget).data('value');
+        this.summaryRegion.show(new SummaryView({
+            model: new Backbone.Model({
+                value: value
+            })
+        }));
     }
 });
 
@@ -162,11 +138,11 @@ var PrecipitationView = ControlView.extend({
                 name: this.getControlName(),
                 value: value
             });
-        this.addOrReplaceModification(modification);
+        this.addOrReplaceInput(modification);
     },
 
     onRender: function() {
-        var model = this.modificationModel,
+        var model = this.controlModel,
             value = model && model.get('value') || 0;
 
         this.ui.slider.val(value);

@@ -174,7 +174,12 @@ def run_tr55(census, model_input):
     """
 
     et_max = 0.207
-    precip = model_input['precip']
+    precip = _get_precip_value(model_input)
+
+    if precip is None:
+        return {
+            'error': 'No precipitation value defined'
+        }
 
     # TODO: These next two lines are just for
     # demonstration purposes.
@@ -193,6 +198,15 @@ def run_tr55(census, model_input):
         'runoff': model_output,
         'quality': format_quality(model_output)
     }
+
+
+def _get_precip_value(model_input):
+    try:
+        precips = [item for item in model_input['inputs']
+                   if item['name'] == 'precipitation']
+        return precips[0]['value']
+    except Exception:
+        return None
 
 
 # TODO: For demonstration purposes.

@@ -15,16 +15,17 @@ from rest_framework.test import APIClient
 
 
 class TaskRunnerTestCase(TestCase):
+
     @override_settings(CELERY_ALWAYS_EAGER=True)
     def test_tr55_job_runs_in_chain(self):
         model_input = {
-            'modifications': [
+            'inputs': [
                 {
                     'name': 'precipitation',
                     'value': 1.2
                 }
             ],
-            'precip': 1.0
+            'modifications': []
         }
 
         created = now()
@@ -46,6 +47,7 @@ class TaskRunnerTestCase(TestCase):
 
 
 class APIAccessTestCase(TestCase):
+
     def setUp(self):
         self.c = APIClient()
         self.test_user = User.objects.create_user(username='test',
@@ -65,6 +67,7 @@ class APIAccessTestCase(TestCase):
         self.scenario = {
             "name": "Current Conditions",
             "is_current_conditions": True,
+            "inputs": "[]",
             "modifications": "[]"
         }
 

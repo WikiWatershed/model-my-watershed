@@ -119,10 +119,9 @@ describe('Modeling', function() {
 
         describe('ToolbarTabContentView', function() {
             beforeEach(function() {
-                this.modsCollection = new models.ModificationsCollection();
                 this.model = new models.ScenarioModel({
                     name: 'New Scenario',
-                    modifications: this.modsCollection
+                    modifications: []
                 });
                 this.view = new views.ToolbarTabContentView({
                     model: this.model,
@@ -537,12 +536,12 @@ function getTestScenarioCollection() {
             }),
             new models.ScenarioModel({
                 name: 'New Scenario 1',
-                modifications: new models.ModificationsCollection([
-                    new models.ModificationModel({
+                modifications: [
+                    {
                         name: 'Mod 1',
                         shape: _.cloneDeep(greaterThanOneAcrePolygon)
-                    })
-                ]),
+                    }
+                ],
                 active: true
             }),
             new models.ScenarioModel({
