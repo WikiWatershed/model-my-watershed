@@ -2,7 +2,6 @@
 
 var Backbone = require('../../shim/backbone'),
     _ = require('underscore'),
-    $ = require('jquery'),
     App = require('../app'),
     coreModels = require('../core/models');
 
