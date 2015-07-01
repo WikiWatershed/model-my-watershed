@@ -202,8 +202,8 @@ def run_tr55(census, model_input):
 
 def _get_precip_value(model_input):
     try:
-        precips = [mod for mod in model_input['inputs']
-                   if mod['name'] == 'precipitation']
+        precips = [item for item in model_input['inputs']
+                   if item['name'] == 'precipitation']
         return precips[0]['value']
     except Exception:
         return None
