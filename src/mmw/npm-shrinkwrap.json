@@ -1534,8 +1534,8 @@
     },
     "leaflet-draw": {
       "version": "0.2.3",
-      "from": "leaflet-draw@0.2.3",
-      "resolved": "https://registry.npmjs.org/leaflet-draw/-/leaflet-draw-0.2.3.tgz"
+      "from": "git://github.com/michaelguild13/Leaflet.draw.git#e2fe3a4",
+      "resolved": "git://github.com/michaelguild13/Leaflet.draw.git#e2fe3a4c176979235845e8fbb1c5017414035765"
     },
     "leaflet.locatecontrol": {
       "version": "0.43.0",
