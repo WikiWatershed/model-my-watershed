@@ -69,7 +69,6 @@ var ProjectModel = Backbone.Model.extend({
         created_at: null,          // Date
         area_of_interest: null,    // GeoJSON
         model_package: '',         // Package name
-        taskModel: null,           // TaskModel
         scenarios: null,           // ScenariosCollection
         user_id: 0                 // User that created the project
     },
@@ -85,12 +84,40 @@ var ProjectModel = Backbone.Model.extend({
         // now, the only option is TR55, so it is
         // hard-coded here.
         this.set('model_package', 'tr-55');
-        this.set('taskModel', new Tr55TaskModel());
 
         this.set('user_id', App.user.get('id'));
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
         this.on('change:name', this.saveProjectAndScenarios, this);
+    },
+
+    createTaskModel: function() {
+        var packageName = this.get('model_package');
+        switch (packageName) {
+            case 'tr-55':
+                return new Tr55TaskModel();
+        }
+        throw 'Model package not supported: ' + packageName;
+    },
+
+    createTaskResultCollection: function() {
+        var packageName = this.get('model_package');
+        switch (packageName) {
+            case 'tr-55':
+                return new ResultCollection([
+                    {
+                        name: 'runoff',
+                        displayName: 'Runoff',
+                        result: null
+                    },
+                    {
+                        name: 'quality',
+                        displayName: 'Water Quality',
+                        result: null
+                    }
+                ]);
+        }
+        throw 'Model package not supported: ' + packageName;
     },
 
     getResultsIfNeeded: function() {
@@ -166,7 +193,6 @@ var ProjectModel = Backbone.Model.extend({
                     // TODO We don't want to set the results until a future
                     // PR when we intentionally cache results.
                     delete scenario.results;
-                    scenario.taskModel = new Tr55TaskModel();
 
                     var scenarioModel = new ScenarioModel(scenario);
                     scenarioModel.set('user_id', user_id);
@@ -180,9 +206,6 @@ var ProjectModel = Backbone.Model.extend({
 
             delete response.scenarios;
         }
-
-        // TODO: Does this hurt anything if we always set.
-        response.taskModel = new Tr55TaskModel();
 
         return response;
     },
@@ -259,24 +282,8 @@ var ScenarioModel = Backbone.Model.extend({
         this.get('inputs').on('add', debouncedGetResults);
         this.get('modifications').on('add remove', debouncedGetResults);
 
-        this.set('taskModel', $.extend(true, {}, App.currProject.get('taskModel')));
-
-        var resultCollection;
-        if (App.currProject.get('model_package') === 'tr-55') {
-            resultCollection = new ResultCollection([
-                {
-                    name: 'runoff',
-                    displayName: 'Runoff',
-                    result: null
-                },
-	            {
-                    name: 'quality',
-                    displayName: 'Water Quality',
-                    result: null
-                }
-            ]);
-        }
-        this.set('results', resultCollection);
+        this.set('taskModel', App.currProject.createTaskModel());
+        this.set('results', App.currProject.createTaskResultCollection());
     },
 
     attemptSave: function() {
@@ -426,8 +433,7 @@ var ScenariosCollection = Backbone.Collection.extend({
 
     createNewScenario: function() {
         var scenario = new ScenarioModel({
-            name: this.makeNewScenarioName('New Scenario'),
-            taskModel: $.extend(true, {}, App.currProject.get('taskModel'))
+            name: this.makeNewScenarioName('New Scenario')
         });
 
         this.add(scenario);
