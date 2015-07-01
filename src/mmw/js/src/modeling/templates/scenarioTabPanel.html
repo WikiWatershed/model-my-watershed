@@ -6,7 +6,7 @@
             <i class="fa fa-caret-down"></i>
             </button>
             <ul class="dropdown-menu menu-right" role="menu">
-                {% if editable %}
+                {% if editable and not is_new %}
                     <li role="presentation"><a role="menuitem" tabindex="-1" data-action="share">Share</a></li>
                 {% endif %}
                 <li role="presentation"><a role="menuitem" tabindex="-1" data-action="print">Print</a></li>
