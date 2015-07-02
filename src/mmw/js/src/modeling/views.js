@@ -103,7 +103,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         return {
-            editable: isEditable(this.model)
+            editable: isEditable(this.model),
+            is_new: this.model.isNew()
         };
     },
 
@@ -275,7 +276,8 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     templateHelpers: function() {
         return {
             cid: this.model.cid,
-            editable: isEditable(this.model)
+            editable: isEditable(this.model),
+            is_new: this.model.isNew()
         };
     },
 

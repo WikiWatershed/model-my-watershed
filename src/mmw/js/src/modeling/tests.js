@@ -90,6 +90,14 @@ describe('Modeling', function() {
                 assert.equal($('#sandbox ul.nav.nav-tabs > li').length, 3);
             });
 
+            function checkMenuItemsMatch(expectedItems) {
+                var $menuItems = $('#sandbox ul.nav.nav-tabs li.active ul.dropdown-menu li'),
+                    menuItems = $menuItems.map(function() {
+                        return $(this).text();
+                    }).get();
+                assert.deepEqual(menuItems, expectedItems);
+            }
+
             it('renders tab dropdowns for editing if the user owns the project', function() {
                 App.user.set('id', 1);
                 var project = getTestProject();
@@ -99,8 +107,7 @@ describe('Modeling', function() {
                 var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
 
                 $('#sandbox').html(view.render().el);
-                // Get dropdown items in the tab. (share, print, rename, duplicate, delete).
-                assert.equal($('#sandbox ul.nav.nav-tabs li.active ul.dropdown-menu li').length, 5);
+                checkMenuItemsMatch(['Print', 'Rename', 'Duplicate', 'Delete']);
             });
 
             it('renders appropriate tab dropdowns if the user does not own the project', function() {
@@ -112,8 +119,20 @@ describe('Modeling', function() {
                 var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
 
                 $('#sandbox').html(view.render().el);
-                // Get dropdown items in the tab. (print).
-                assert.equal($('#sandbox ul.nav.nav-tabs li.active ul.dropdown-menu li').length, 1);
+                checkMenuItemsMatch(['Print']);
+            });
+
+            it('renders tab dropdown for sharing if the scenario is saved', function() {
+                App.user.set('id', 1);
+                var project = getTestProject();
+
+                // Simulate scenario that has been saved.
+                project.get('scenarios').invoke('set', 'id', 1);
+
+                var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
+
+                $('#sandbox').html(view.render().el);
+                checkMenuItemsMatch(['Share', 'Print', 'Rename', 'Duplicate', 'Delete']);
             });
         });
 
