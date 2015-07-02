@@ -183,6 +183,35 @@ var ForgotFormModel = ModalBaseModel.extend({
     }
 });
 
+var ResendFormModel = ModalBaseModel.extend({
+    defaults: {
+        email: null
+    },
+
+    url: '/user/resend',
+
+    validate: function(attrs) {
+        var errors = [];
+
+        if (!attrs.email) {
+            errors.push('Please enter an email address');
+        }
+
+        if (errors.length) {
+            this.set({
+                'client_errors': errors,
+                'server_errors': null
+            });
+            return errors;
+        } else {
+            this.set({
+                'client_errors': null,
+                'server_errors': null
+            });
+        }
+    }
+});
+
 var ItsiSignUpFormModel = ModalBaseModel.extend({
     defaults: {
         username: null,
@@ -231,6 +260,7 @@ module.exports = {
     UserModel: UserModel,
     LoginFormModel: LoginFormModel,
     SignUpFormModel: SignUpFormModel,
+    ResendFormModel: ResendFormModel,
     ForgotFormModel: ForgotFormModel,
     ItsiSignUpFormModel: ItsiSignUpFormModel
 };
