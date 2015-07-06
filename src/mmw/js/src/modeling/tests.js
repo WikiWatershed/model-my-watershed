@@ -375,6 +375,46 @@ describe('Modeling', function() {
 
         describe('ScenarioModel', function() {
             // TODO: Add tests for existing methods.
+
+            describe('#updateModificationHash', function() {
+                it('generates and sets modification_hash based on the scenario\'s modifications', function() {
+                    var model = new models.ScenarioModel({
+                            modifications: [modificationsSample1]
+                        });
+
+                    model.updateModificationHash();
+                    assert.equal(model.get('modification_hash'), 'b0eb4af3250d9c1320d659805afaf049');
+
+                    var mod = new models.ModificationModel(modificationsSample2);
+                    model.get('modifications').add(mod);
+                    assert.equal(model.get('modification_hash'), '07fb74f0e09eb1c31f3db8c78219758f');
+
+                    model.get('modifications').remove(mod);
+                    assert.equal(model.get('modification_hash'), 'b0eb4af3250d9c1320d659805afaf049');
+                });
+
+                it('is called when the modifications for a scenario changes', function() {
+                    var spy = sinon.spy(models.ScenarioModel.prototype, 'updateModificationHash'),
+                        model = new models.ScenarioModel({});
+
+                    model.get('modifications').add(new models.ModificationModel(modificationsSample1));
+                    assert.isTrue(spy.calledOnce);
+
+                    models.ScenarioModel.prototype.updateModificationHash.restore();
+                });
+
+                it('is called before model#attemptSave when the modifications change', function() {
+                    var modSpy = sinon.spy(models.ScenarioModel.prototype, 'updateModificationHash'),
+                        saveSpy = sinon.spy(models.ScenarioModel.prototype, 'attemptSave'),
+                        model = new models.ScenarioModel({});
+
+                    model.addModification(new models.ModificationModel(modificationsSample1));
+                    assert.isTrue(modSpy.calledBefore(saveSpy));
+
+                    models.ScenarioModel.prototype.updateModificationHash.restore();
+                    models.ScenarioModel.prototype.attemptSave.restore();
+                });
+            });
         });
 
         describe('ScenarioCollection', function() {

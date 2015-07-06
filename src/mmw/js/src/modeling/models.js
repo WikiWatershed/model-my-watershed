@@ -2,6 +2,7 @@
 
 var Backbone = require('../../shim/backbone'),
     _ = require('underscore'),
+    md5 = require('blueimp-md5').md5,
     App = require('../app'),
     coreModels = require('../core/models');
 
@@ -250,6 +251,7 @@ var ScenarioModel = Backbone.Model.extend({
         user_id: 0, // User that created the project
         inputs: null, // ModificationsCollection
         modifications: null, // ModificationsCollection
+        modification_hash: null, // MD5 string
         active: false,
         job_id: null,
         results: null // ResultCollection
@@ -275,6 +277,7 @@ var ScenarioModel = Backbone.Model.extend({
 
         this.on('change:project change:name', this.attemptSave, this);
         this.get('inputs').on('add', this.attemptSave, this);
+        this.get('modifications').on('add remove change', this.updateModificationHash, this);
         this.get('modifications').on('add remove', this.attemptSave, this);
 
         var debouncedGetResults = _.debounce(_.bind(this.getResults, this), 500);
@@ -392,6 +395,12 @@ var ScenarioModel = Backbone.Model.extend({
             };
 
         taskModel.start(taskHelper);
+    },
+
+    updateModificationHash: function() {
+        var hash = md5(JSON.stringify(this.get('modifications')));
+
+        this.set('modification_hash', hash);
     }
 });
 
