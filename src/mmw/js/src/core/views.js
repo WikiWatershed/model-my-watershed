@@ -93,7 +93,7 @@ function addLocateMeButton(map, maxZoom, maxAge) {
         metric: false,
         drawCircle: false,
         showPopup: false,
-        follow: true,
+        follow: false,
         markerClass: L.marker,
         markerStyle: {
             opacity: 0.0,
@@ -181,7 +181,6 @@ var MapView = Marionette.ItemView.extend({
         // already been centered.
         if (navigator.geolocation) {
             var options = {
-                enableHighAccuracy: true,
                 maximumAge : maxAge,
                 timeout : timeout
             };
