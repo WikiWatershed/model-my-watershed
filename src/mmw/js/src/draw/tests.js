@@ -75,7 +75,8 @@ describe('Draw', function() {
         });
 
         it('fails to add AOI when shape id cannot be retrieved by getShapeAndAnalyze', function(done) {
-            var successCount = 10,
+            // Set successCount high enough so that the polling will fail.
+            var successCount = 6,
                 deferred = setupGetShapeAndAnalyze(successCount),
                 success;
 
@@ -87,6 +88,8 @@ describe('Draw', function() {
                     success = false;
                 }).
                 always(function() {
+                    App.getLeafletMap().closePopup();
+                    App.getLeafletMap()._panAnim = false;
                     assert.equal(success, false);
                     done();
                 });
