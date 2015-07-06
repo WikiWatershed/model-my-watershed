@@ -107,7 +107,7 @@ JS_DEPS=(jquery backbone backbone.marionette \
          leaflet leaflet-draw leaflet.locatecontrol \
          lodash underscore \
          d3 nunjucks turf-area turf-buffer turf-random \
-         zeroclipboard)
+         zeroclipboard blueimp-md5)
 BROWSERIFY_EXT=""
 BROWSERIFY_REQ=""
 for DEP in "${JS_DEPS[@]}"

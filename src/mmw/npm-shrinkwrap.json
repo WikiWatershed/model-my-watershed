@@ -29,6 +29,11 @@
         }
       }
     },
+    "blueimp-md5": {
+      "version": "1.1.0",
+      "from": "blueimp-md5@*",
+      "resolved": "https://registry.npmjs.org/blueimp-md5/-/blueimp-md5-1.1.0.tgz"
+    },
     "bootstrap": {
       "version": "3.3.4",
       "from": "bootstrap@3.3.4",
