@@ -57,6 +57,13 @@ DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 # END FILE STORAGE CONFIGURATION
 
 
+# STATSD CONFIGURATION
+STATSD_CLIENT = 'django_statsd.clients.normal'
+STATSD_PREFIX = 'django'
+STATSD_HOST = environ.get('MMW_STATSD_HOST', 'localhost')
+# END STATSD CONFIGURATION
+
+
 # CACHE CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#caches
 CACHES = {
