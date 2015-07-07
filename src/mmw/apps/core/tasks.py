@@ -44,6 +44,9 @@ def save_job_error(self, uuid, job_id):
     A handler task attached to the Celery chain. Any exception thrown along the
     chain will trigger this task, which logs the failure to the Job row so that
     the poling client will know that the run failed.
+
+    To see failing task in Flower, follow instructions here:
+    https://github.com/WikiWatershed/model-my-watershed/pull/551#issuecomment-119333146
     """
     result = self.app.AsyncResult(uuid)
     error_message = 'Task {0} run from job {1} raised exception: {2}\n{3}'
