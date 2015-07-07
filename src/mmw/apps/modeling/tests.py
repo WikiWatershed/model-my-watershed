@@ -45,6 +45,26 @@ class TaskRunnerTestCase(TestCase):
                          'complete',
                          'Job found but incomplete.')
 
+    @override_settings(CELERY_ALWAYS_EAGER=True)
+    def test_tr55_job_error_in_chain(self):
+        model_input = {
+            'inputs': [],
+            'modifications': []
+        }
+
+        created = now()
+        job = Job.objects.create(created_at=created, result='', error='',
+                                 traceback='', user=None, status='started')
+
+        job.save()
+
+        with self.assertRaises(Exception) as context:
+            views._initiate_tr55_job_chain(model_input, job.id)
+
+        self.assertEqual(str(context.exception),
+                         'No precipitation value defined',
+                         'Unexpected exception occurred')
+
 
 class APIAccessTestCase(TestCase):
 

@@ -177,9 +177,7 @@ def run_tr55(census, model_input):
     precip = _get_precip_value(model_input)
 
     if precip is None:
-        return {
-            'error': 'No precipitation value defined'
-        }
+        raise Exception('No precipitation value defined')
 
     # TODO: These next two lines are just for
     # demonstration purposes.
