@@ -1,12 +1,12 @@
 'use strict';
 
 var router = require('./router').router,
-    ErrorController = require('./core/error/controllers').ErrorController,
-    SignUpController = require('./user/controllers').SignUpController,
     DrawController = require('./draw/controllers').DrawController,
+    AnalyzeController = require('./analyze/controllers').AnalyzeController,
     ModelingController = require('./modeling/controllers').ModelingController,
     CompareController = require('./compare/controllers').CompareController,
-    AnalyzeController = require('./analyze/controllers').AnalyzeController;
+    ErrorController = require('./core/error/controllers').ErrorController,
+    SignUpController = require('./user/controllers').SignUpController;
 
 router.addRoute(/^/, DrawController, 'draw');
 router.addRoute(/^analyze/, AnalyzeController, 'analyze');
