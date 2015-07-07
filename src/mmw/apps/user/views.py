@@ -3,7 +3,7 @@ from django.contrib.auth import (authenticate,
                                  login as auth_login)
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from django.shortcuts import redirect, render_to_response
+from django.shortcuts import redirect
 from django.contrib.auth.forms import PasswordResetForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.sites.shortcuts import get_current_site
@@ -78,7 +78,7 @@ def logout(request):
         }
         return Response(data=response_data)
     else:
-        return render_to_response('user/logout.html')
+        return redirect('/')
 
 itsi = ItsiService()
 
