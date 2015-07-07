@@ -254,7 +254,8 @@ var ScenarioModel = Backbone.Model.extend({
         modification_hash: null, // MD5 string
         active: false,
         job_id: null,
-        results: null // ResultCollection
+        results: null, // ResultCollection
+        census: null // JSON blob
     },
 
     initialize: function(attrs) {
@@ -275,7 +276,7 @@ var ScenarioModel = Backbone.Model.extend({
         this.set('inputs', new ModificationsCollection(attrs.inputs));
         this.set('modifications', new ModificationsCollection(attrs.modifications));
 
-        this.on('change:project change:name', this.attemptSave, this);
+        this.on('change:project change:name change:census', this.attemptSave, this);
         this.get('inputs').on('add', this.attemptSave, this);
         this.get('modifications').on('add remove change', this.updateModificationHash, this);
         this.get('modifications').on('add remove', this.attemptSave, this);
@@ -358,7 +359,10 @@ var ScenarioModel = Backbone.Model.extend({
                             console.log('Response is missing ' + resultName + '.');
                         }
                     });
+
+                    self.set('census', serverResults.census);
                 }
+
                 results.setPolling(false);
             },
             taskHelper = {
@@ -366,7 +370,9 @@ var ScenarioModel = Backbone.Model.extend({
                     model_input: JSON.stringify({
                         inputs: self.get('inputs').toJSON(),
                         modifications: self.get('modifications').toJSON(),
-                        area_of_interest: App.currProject.get('area_of_interest')
+                        area_of_interest: App.currProject.get('area_of_interest'),
+                        census: self.get('census'),
+                        modification_hash: self.get('modification_hash')
                     })
                 },
 

@@ -210,10 +210,22 @@ def start_tr55(request, format=None):
 
 
 def _initiate_tr55_job_chain(model_input, job_id):
-    return chain(tasks.make_gt_service_call_task.s(model_input),
-                 tasks.run_tr55.s(model_input),
-                 save_job_result.s(job_id, model_input)) \
-        .apply_async(link_error=save_job_error.s(job_id))
+    current_hash = model_input['modification_hash']
+    census = model_input.get('census')
+    census_hash = None
+
+    if census is not None:
+        census_hash = model_input['census'].get('modification_hash')
+
+    if census is None or current_hash != census_hash:
+        return chain(tasks.prepare_census.s(model_input),
+                     tasks.run_tr55.s(model_input),
+                     save_job_result.s(job_id, model_input)) \
+            .apply_async(link_error=save_job_error.s(job_id))
+    else:
+        return chain(tasks.run_tr55.s(census, model_input),
+                     save_job_result.s(job_id, model_input)) \
+            .apply_async(link_error=save_job_error.s(job_id))
 
 
 @decorators.api_view(['GET'])
