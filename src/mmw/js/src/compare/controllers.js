@@ -2,7 +2,7 @@
 
 var $ = require('jquery');
 
-var AppController = {
+var CompareController = {
     compare: function() {
         // TODO: Move to view
         $('#compare-tab a').click(function (e) {
@@ -24,5 +24,5 @@ var AppController = {
 };
 
 module.exports = {
-    AppController: AppController
+    CompareController: CompareController
 };
