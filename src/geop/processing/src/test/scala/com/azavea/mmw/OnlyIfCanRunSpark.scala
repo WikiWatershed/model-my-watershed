@@ -24,11 +24,11 @@ trait OnlyIfCanRunSpark extends FunSpec with BeforeAndAfterAll {
   import OnlyIfCanRunSpark._
 
   implicit def sc: SparkContext = _sc.get
-  
-  def ifCanRunSpark(f: => Unit): Unit = {    
+
+  def ifCanRunSpark(f: => Unit): Unit = {
      _sc match {
-      case Success(sc) => f
+      case Success(_) => f
       case Failure(error) => ignore(error.getMessage) {}
-    }    
-  }  
+    }
+  }
 }
