@@ -2,6 +2,7 @@
 
 var Backbone = require('../../shim/backbone'),
     _ = require('underscore'),
+    md5 = require('blueimp-md5').md5,
     App = require('../app'),
     coreModels = require('../core/models');
 
@@ -250,9 +251,11 @@ var ScenarioModel = Backbone.Model.extend({
         user_id: 0, // User that created the project
         inputs: null, // ModificationsCollection
         modifications: null, // ModificationsCollection
+        modification_hash: null, // MD5 string
         active: false,
         job_id: null,
-        results: null // ResultCollection
+        results: null, // ResultCollection
+        census: null // JSON blob
     },
 
     initialize: function(attrs) {
@@ -273,8 +276,9 @@ var ScenarioModel = Backbone.Model.extend({
         this.set('inputs', new ModificationsCollection(attrs.inputs));
         this.set('modifications', new ModificationsCollection(attrs.modifications));
 
-        this.on('change:project change:name', this.attemptSave, this);
+        this.on('change:project change:name change:census', this.attemptSave, this);
         this.get('inputs').on('add', this.attemptSave, this);
+        this.get('modifications').on('add remove change', this.updateModificationHash, this);
         this.get('modifications').on('add remove', this.attemptSave, this);
 
         var debouncedGetResults = _.debounce(_.bind(this.getResults, this), 500);
@@ -355,7 +359,10 @@ var ScenarioModel = Backbone.Model.extend({
                             console.log('Response is missing ' + resultName + '.');
                         }
                     });
+
+                    self.set('census', serverResults.census);
                 }
+
                 results.setPolling(false);
             },
             taskHelper = {
@@ -363,7 +370,9 @@ var ScenarioModel = Backbone.Model.extend({
                     model_input: JSON.stringify({
                         inputs: self.get('inputs').toJSON(),
                         modifications: self.get('modifications').toJSON(),
-                        area_of_interest: App.currProject.get('area_of_interest')
+                        area_of_interest: App.currProject.get('area_of_interest'),
+                        census: self.get('census'),
+                        modification_hash: self.get('modification_hash')
                     })
                 },
 
@@ -392,6 +401,12 @@ var ScenarioModel = Backbone.Model.extend({
             };
 
         taskModel.start(taskHelper);
+    },
+
+    updateModificationHash: function() {
+        var hash = md5(JSON.stringify(this.get('modifications')));
+
+        this.set('modification_hash', hash);
     }
 });
 

@@ -92,6 +92,9 @@ class Scenario(models.Model):
         help_text='A hash of the values for modifications & inputs to ' +
                   'compare to the existing model results, to determine if ' +
                   'the persisted result apply to the current values')
+    census = models.TextField(
+        null=True,
+        help_text='Serialized JSON representation of geoprocessing results')
     results = models.TextField(
         null=True,
         help_text='Serialized JSON representation of the model results')

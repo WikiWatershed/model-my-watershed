@@ -118,7 +118,7 @@ def run_analyze(area_of_interest):
 
 
 @shared_task
-def make_gt_service_call_task(model_input):
+def prepare_census(model_input):
     """
     Call geotrellis and calculate the tile data for use in the TR55 model.
     """
@@ -145,8 +145,10 @@ def make_gt_service_call_task(model_input):
                     'a:deciduous_forest': {'cell_count': 1}
                 }
             }
-        ]
+        ],
+        'modification_hash': model_input['modification_hash']
     }
+
     return census
 
 
@@ -183,7 +185,6 @@ def run_tr55(census, model_input):
     # demonstration purposes.
     modifications = get_census_modifications(model_input)
     census['modifications'] = modifications
-    print(census)
 
     def simulate_day(cell, cell_count):
         soil_type, land_use = cell.lower().split(':')
@@ -193,6 +194,7 @@ def run_tr55(census, model_input):
     model_output = simulate_modifications(census, fn=simulate_day)
 
     return {
+        'census': census,
         'runoff': model_output,
         'quality': format_quality(model_output)
     }

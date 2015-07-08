@@ -125,8 +125,10 @@ $ ./scripts/manage.sh test
 Or just for a specific app:
 
 ```bash
-$ ./scripts/manage.sh test appname
+$ ./scripts/manage.sh test apps.app_name.tests
 ```
+
+More info [here](https://docs.djangoproject.com/en/1.8/topics/testing/).
 
 ##### JavaScript
 

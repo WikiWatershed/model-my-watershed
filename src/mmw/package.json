@@ -20,6 +20,7 @@
   "dependencies": {
     "backbone": "1.1.2",
     "backbone.marionette": "2.4.1",
+    "blueimp-md5": "1.1.0",
     "bootstrap": "3.3.4",
     "bootstrap-select": "git://github.com/azavea/bootstrap-select",
     "browserify": "9.0.3",
