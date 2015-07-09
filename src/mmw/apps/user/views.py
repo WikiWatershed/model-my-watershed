@@ -179,7 +179,7 @@ def sign_up(request):
     form = RegistrationFormUniqueEmail(request.POST)
 
     if form.is_valid():
-        user = view.register(request, **form.cleaned_data)
+        user = view.register(request, form)
         response_data = {'result': 'success',
                          'username': user.username,
                          'guest': False}
