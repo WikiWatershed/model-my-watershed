@@ -262,6 +262,8 @@ function changeOutlineLayer(endpoint, tableId, model) {
         ofg.clearLayers();
         ofg.addLayer(ol);
         ofg.addLayer(grid);
+
+        ol.bringToFront();
     }
 }
 

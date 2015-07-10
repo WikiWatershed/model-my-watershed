@@ -2,7 +2,7 @@
 
 var $ = require('jquery'),
     L = require('leaflet'),
-    _ = require('lodash'),
+    _ = require('underscore'),
     router = require('../router.js').router,
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
@@ -15,7 +15,7 @@ var $ = require('jquery'),
     modalShareTmpl = require('./templates/shareModal.html'),
     modificationPopupTmpl = require('./templates/modificationPopup.html'),
     areaOfInterestTmpl = require('../core/templates/areaOfInterestHeader.html'),
-
+    settings = require('./settings'),
     ENTER_KEYCODE = 13,
     BASIC_MODAL_CLASS = 'modal modal-basic fade';
 
@@ -140,11 +140,6 @@ var MapView = Marionette.ItemView.extend({
 
     initialize: function() {
         var map = new L.Map('map', { zoomControl: false }),
-            // TODO: Replace tile layer, eventually.
-            tileLayer = new L.TileLayer('https://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png', {
-                attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-                maxZoom: 18
-            }),
             areaOfInterestLayer = new L.FeatureGroup(),
             modificationsLayer = new L.FeatureGroup(),
             maxZoom = 10,
@@ -154,9 +149,27 @@ var MapView = Marionette.ItemView.extend({
 
         map.addControl(new L.Control.Zoom({position: 'topright'}));
         addLocateMeButton(map, maxZoom, maxAge);
-        map.addLayer(tileLayer);
+
+        var baseLayers = _.mapObject(settings.getSettings().base_layers, function(layerData) {
+            return new L.TileLayer(layerData.url, {
+                attribution: layerData.attribution || '',
+                maxZoom: layerData.maxZoom || 18
+            });
+        }),
+            defaultLayerName = _.findKey(settings.getSettings().base_layers, function(layerData) {
+                return layerData.default;
+            }),
+            defaultLayer = baseLayers[defaultLayerName];
+
+        L.control.layers(baseLayers, {}, {autoZIndex:false}).addTo(map);
+
+        if (defaultLayer) {
+            map.addLayer(defaultLayer);
+        }
+
         map.addLayer(areaOfInterestLayer);
         map.addLayer(modificationsLayer);
+
         map.setView([40.1, -75.7], maxZoom); // center the map
 
         // Keep the map model up-to-date with the position of the map
