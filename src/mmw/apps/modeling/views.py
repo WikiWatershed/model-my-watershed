@@ -210,6 +210,14 @@ def start_tr55(request, format=None):
 
 
 def _initiate_tr55_job_chain(model_input, job_id):
+    job_chain = _construct_tr55_job_chain(model_input, job_id)
+
+    return chain(job_chain).apply_async(link_error=save_job_error.s(job_id))
+
+
+def _construct_tr55_job_chain(model_input, job_id):
+    job_chain = []
+
     current_hash = model_input['modification_hash']
     census = model_input.get('census')
     census_hash = None
@@ -218,14 +226,14 @@ def _initiate_tr55_job_chain(model_input, job_id):
         census_hash = model_input['census'].get('modification_hash')
 
     if census is None or current_hash != census_hash:
-        return chain(tasks.prepare_census.s(model_input),
-                     tasks.run_tr55.s(model_input),
-                     save_job_result.s(job_id, model_input)) \
-            .apply_async(link_error=save_job_error.s(job_id))
+        job_chain.append(tasks.prepare_census.s(model_input))
+        job_chain.append(tasks.run_tr55.s(model_input))
     else:
-        return chain(tasks.run_tr55.s(census, model_input),
-                     save_job_result.s(job_id, model_input)) \
-            .apply_async(link_error=save_job_error.s(job_id))
+        job_chain.append(tasks.run_tr55.s(census, model_input))
+
+    job_chain.append(save_job_result.s(job_id, model_input))
+
+    return job_chain
 
 
 @decorators.api_view(['GET'])
