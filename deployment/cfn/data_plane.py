@@ -315,8 +315,8 @@ class DataPlane(StackNode):
             MasterUsername=Ref(self.rds_username),
             MasterUserPassword=Ref(self.rds_password),
             MultiAZ=True,
-            PreferredBackupWindow='01:00-01:30',  # 9:00-9:30PM ET
-            PreferredMaintenanceWindow='mon:01:30-mon:02:30',  # 9:30PM-10:30PM ET
+            PreferredBackupWindow='04:00-04:30',  # 12:00AM-12:30AM ET
+            PreferredMaintenanceWindow='sun:04:30-sun:05:30',  # SUN 12:30AM-01:30AM ET
             StorageType='gp2',
             VPCSecurityGroups=[Ref(rds_security_group)],
             Tags=self.get_tags(Name=rds_database_name)
@@ -449,7 +449,7 @@ class DataPlane(StackNode):
             EngineVersion='2.8.19',
             NotificationTopicArn=Ref(self.notification_topic_arn),
             NumCacheNodes=1,
-            PreferredMaintenanceWindow='mon:01:30-mon:02:30',  # 9:30PM-10:30PM ET
+            PreferredMaintenanceWindow='sun:04:30-sun:05:30',  # SUN 12:30AM-01:30AM ET
             VpcSecurityGroupIds=[Ref(elasticache_security_group)]
         ))
 
