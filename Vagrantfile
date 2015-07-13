@@ -115,7 +115,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ansible.raw_arguments = ["--timeout=60"]
     end
 
-    worker.vm.provision "shell", inline: "service celeryd restart > /dev/null", run: "always"
+    worker.vm.provision "shell", inline: "service celeryd restart >> /dev/null 2>&1", run: "always"
   end
 
   config.vm.define "app" do |app|
