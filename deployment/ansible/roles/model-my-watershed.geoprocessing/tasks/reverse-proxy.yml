@@ -1,0 +1,13 @@
+---
+- name: Configure Nginx site
+  template: src=nginx-mmw-geoprocessing.conf.j2
+            dest=/etc/nginx/sites-available/mmw-geoprocessing.conf
+  notify:
+    - Restart Nginx
+
+- name: Enable Nginx site
+  file: src=/etc/nginx/sites-available/mmw-geoprocessing.conf
+        dest=/etc/nginx/sites-enabled/mmw-geoprocessing
+        state=link
+  notify:
+    - Restart Nginx
