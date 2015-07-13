@@ -26,6 +26,6 @@ postgis_package_version: "2.1.*.pgdg14.04+1"
 
 elasticsearch_cluster_name: "logstash"
 
-nodejs_npm_version: 2.1.14
+nodejs_npm_version: 2.1.17
 
 java_version: "7u79-*"
