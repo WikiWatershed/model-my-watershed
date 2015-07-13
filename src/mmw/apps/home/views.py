@@ -52,4 +52,4 @@ def project(request, proj_id=None, scenario_id=None):
 
 
 def compare(request):
-    return render_to_response('home/compare.html')
+    return render_to_response('home/compare.html', get_context(request))
