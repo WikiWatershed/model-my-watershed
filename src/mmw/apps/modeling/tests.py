@@ -114,12 +114,11 @@ class TaskRunnerTestCase(TestCase):
             }]
         }
 
-        task_list = views._initiate_tr55_job_chain(self.model_input,
-                                                   self.job.id)
+        job_chain = views._construct_tr55_job_chain(self.model_input,
+                                                    self.job.id)
 
-        task_count = len(list(task_list._parents()))
-        self.assertEqual(task_count, 1,
-                         'Task list contains the wrong number of tasks')
+        self.assertFalse('tasks.prepare_census' in str(job_chain),
+                         'Census preparation should be skipped')
 
     @override_settings(CELERY_ALWAYS_EAGER=True)
     def test_tr55_chain_generates_census_if_census_is_stale(self):
@@ -144,21 +143,19 @@ class TaskRunnerTestCase(TestCase):
             }]
         }
 
-        task_list = views._initiate_tr55_job_chain(self.model_input,
-                                                   self.job.id)
+        job_chain = views._construct_tr55_job_chain(self.model_input,
+                                                    self.job.id)
 
-        task_count = len(list(task_list._parents()))
-        self.assertEqual(task_count, 2,
-                         'Task list contains the wrong number of tasks')
+        self.assertTrue('tasks.prepare_census' in str(job_chain),
+                        'Census preparation should not be skipped')
 
     @override_settings(CELERY_ALWAYS_EAGER=True)
     def test_tr55_chain_generates_census_if_census_does_not_exist(self):
-        task_list = views._initiate_tr55_job_chain(self.model_input,
-                                                   self.job.id)
+        job_chain = views._construct_tr55_job_chain(self.model_input,
+                                                    self.job.id)
 
-        task_count = len(list(task_list._parents()))
-        self.assertEqual(task_count, 2,
-                         'Task list contains the wrong number of tasks')
+        self.assertTrue('tasks.prepare_census' in str(job_chain),
+                        'Census preparation should not be skipped')
 
 
 class APIAccessTestCase(TestCase):
