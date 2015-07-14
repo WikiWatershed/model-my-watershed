@@ -268,6 +268,25 @@ BOUNDARY_LAYERS = {
     '0': {'display': 'Congressional Districts',
           'table_name': 'modeling_district'}
 }
+
+STREAM_LAYERS = [
+    {
+        'code': 'stream-low',
+        'display': 'Low-Res',
+        'table_name': 'deldem4net100r',
+    },
+    {
+        'code': 'stream-medium',
+        'display': 'Medium-Res',
+        'table_name': 'deldem4net50r',
+    },
+    {
+        'code': 'stream-high',
+        'display': 'High-Res',
+        'table_name': 'deldem4net20r',
+    },
+]
+
 # END TILER CONFIGURATION
 
 # APP CONFIGURATION

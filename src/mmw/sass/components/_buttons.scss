@@ -178,6 +178,12 @@
   }
 }
 
+.btn-stream-slider{
+  width: 300px;
+  border-radius: 2px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.74);
+}
+
 //Dropdown Button Classes
 .open > .btn-primary.dropdown-toggle{
   background-color: darken($ui-light, 5%);

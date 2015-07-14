@@ -1,7 +1,8 @@
 "use strict";
 
 var defaultSettings = {
-    base_layers: {}
+    base_layers: {},
+    stream_layers: {}
 };
 
 function setSettings(key, value) {
