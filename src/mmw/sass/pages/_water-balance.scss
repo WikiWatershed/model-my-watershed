@@ -333,16 +333,15 @@
 
 .popover{
   border-radius: 0;
-  border: 0;
+  border: solid 1px $black-12;
   padding: 0px;
 
   .popover-title{
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     color: $paper;
-    line-height: 1.6;
     padding: 1rem;
     border: 0;
-    background-color: $brand-primary;
+    background-color: $active;
     border-radius: 0;
   }
 
