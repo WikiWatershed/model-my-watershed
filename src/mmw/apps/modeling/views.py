@@ -239,29 +239,38 @@ def _construct_tr55_job_chain(model_input, job_id):
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
 def boundary_layers(request, table_id=None, obj_id=None):
+    layer_list = settings.BOUNDARY_LAYERS
+    layer_ids = [layer['code'] for layer in layer_list]
+
     if not table_id and not obj_id:
         tiler_prefix = '//'
         tiler_host = settings.TILER_HOST
         tiler_postfix = '/{z}/{x}/{y}'
         tiler_base = '%s%s' % (tiler_prefix, tiler_host)
 
-        def augment(index, dictionary):
-            retval = {}
-            retval['display'] = dictionary['display']
-            retval['tableId'] = index
-            retval['endpoint'] = urljoin(tiler_base, index + tiler_postfix)
-            return retval
+        def augment(dictionary):
+            code = dictionary['code']
+            return {
+                'display': dictionary['display'],
+                'tableId': code,
+                'endpoint': urljoin(tiler_base, code + tiler_postfix)
+            }
 
-        layers = [augment(i, d)
-                  for i, d in settings.BOUNDARY_LAYERS.items()]
+        layers = [augment(layer) for layer in layer_list]
         return Response(layers)
-    elif table_id in settings.BOUNDARY_LAYERS and obj_id:
-        # obj_id = str(int(obj_id))
-        table_name = settings.BOUNDARY_LAYERS[table_id]['table_name']
+
+    elif table_id in layer_ids and obj_id:
+        layers = filter(lambda l: l['code'] == table_id, layer_list)
+        table_name = layers[0]['table_name']
+        json_field = layers[0].get('json_field', 'geom')
+
+        query = 'SELECT {field} FROM {table} WHERE id = %s'.format(
+                field=json_field, table=table_name)
+
         cursor = connection.cursor()
-        query = 'SELECT geom FROM ' + table_name + ' WHERE id = %s'
         cursor.execute(query, [int(obj_id)])
         row = cursor.fetchone()
+
         if row:
             geojson = json.loads(GEOSGeometry(row[0]).geojson)
             return Response(geojson)

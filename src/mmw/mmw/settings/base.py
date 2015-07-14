@@ -263,11 +263,31 @@ TILER_HOST = environ.get('MMW_TILER_HOST', 'localhost')
 
 
 # N. B. This must be kept in sync with src/tiler/server.js.  In the
-# dictionary below, the keys are the table ids.
-BOUNDARY_LAYERS = {
-    '0': {'display': 'Congressional Districts',
-          'table_name': 'modeling_district'}
-}
+# dictionary below, the keys are the table ids.  If `json_field` is provided
+# that column will be used for feature lookups, but default to 'geom' if not.
+BOUNDARY_LAYERS = [
+    {
+        'code': 'district',
+        'display': 'Congressional Districts',
+        'table_name': 'modeling_district'
+    },
+    {
+        'code': 'huc8',
+        'display': 'USGS Subbasin unit (HUC-8)',
+        'table_name': 'boundary_huc08'
+    },
+    {
+        'code': 'huc10',
+        'display': 'USGS Watershed unit (HUC-10)',
+        'table_name': 'boundary_huc10'
+    },
+    {
+        'code': 'huc12',
+        'display': 'USGS Subwatershed unit (HUC-12)',
+        'table_name': 'boundary_huc12',
+        'json_field': 'geom_detailed'
+    }
+]
 
 STREAM_LAYERS = [
     {
