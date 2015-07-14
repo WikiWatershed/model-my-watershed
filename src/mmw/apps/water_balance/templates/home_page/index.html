@@ -199,7 +199,7 @@
 
                     <li id="thumb-lir" class="active"> <!-- LIR Thumb -->
                         <a href="#land-lir" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_lir.png' %}" alt="Low Intensity Residential">
+                            <img src="{% static 'images/water_balance/thumb_lir.png' %}" alt="Low Intensity Residential" data-container="body" data-toggle="popover" data-placement="left" data-title="Low Intensity Residential" data-content="Areas with a mixture of constructed materials and vegetation. Impervious surfaces account for 20% to 49% percent of total cover. These areas most commonly include single-family housing units.">
                         </a>
                         <label>LIR</label>
                     </li>
@@ -292,7 +292,7 @@
 
                     <li id="thumb-sand" class="active"> <!-- Sand Thumb -->
                         <a href="#soil-sand" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_sand.png' %}" alt="Sand">
+                            <img src="{% static 'images/water_balance/thumb_sand.png' %}" alt="Sand" >
                         </a>
                         <label>Sand</label>
                     </li>
@@ -313,9 +313,10 @@
 
                     <li id="thumb-clayLoam"> <!-- Clay Loam Thumb -->
                         <a href="#soil-clayLoam" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_clayLoam.png' %}" alt="Clay Loam">
+                            <img src="{% static 'images/water_balance/thumb_clayLoam.png' %}" alt="Clay Loam" data-container="body" data-toggle="popover" data-placement="left" data-title="Clay Loam" data-content="Needs Description">
                         </a>
-                        <label>Clay Laom</label>
+                        <label>Clay Loam</label>
+
                     </li>
 
                 </ul> <!-- End Soil Thumbs-->
@@ -329,4 +330,9 @@
 {% block javascript %}
     <script type="text/javascript" src="{% static 'js/vendor_water_balance.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/main_water_balance.js' %}"></script>
+    <script type="text/javascript">
+        $(function () {
+          $('[data-toggle="popover"]').popover()
+        })
+    </script>
 {% endblock javascript %}

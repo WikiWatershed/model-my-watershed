@@ -329,3 +329,24 @@
   }
 }
 
+//Popover Descriptions ================================
+
+.popover{
+  border-radius: 0;
+  border: 0;
+  padding: 0px;
+
+  .popover-title{
+    font-size: 0.7rem;
+    color: $paper;
+    line-height: 1.6;
+    padding: 1rem;
+    border: 0;
+    background-color: $brand-primary;
+    border-radius: 0;
+  }
+
+  .popover-content{
+    padding: 1rem;
+  }
+}
