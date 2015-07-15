@@ -1,6 +1,10 @@
 #compare-container{
-  overflow-x: scroll;
-  height: 100%;
+  overflow-x: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 50px;
 
   table{
     height: 100%;
@@ -10,12 +14,26 @@
         height: 100%;
         td{
           .compare-column{
-            width: 300px;
+            position: relative;
+            z-index: 50;
+            width: 48vw;
             height: 100%;
             overflow: hidden;
             display: inline-block;
             float: left;
             border-right: solid 1px $black-12;
+
+            @media(min-width: 768px){
+              width: 32.5vw;
+            }
+
+            @media(min-width: 1024px){
+              width: 24.5vw;
+            }
+
+            @media(min-width: 1280px){
+              width: 19.5vw;
+            }
           }
 
           h3{
@@ -37,6 +55,10 @@
               width: 100%;
               position: relative;
               z-index: 1;
+
+              .leaflet-control-container{
+                display: none;
+              }
             }
 
             .scenario-title{
@@ -78,5 +100,48 @@
         }
       }
     }
+  }
+
+  #edge-fade{
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    z-index: 100;
+    height: 100%;
+    background: rgba(255,255,255,.4);
+    width: 4vw; // these widths correspond to compare-column width
+
+    @media(min-width: 768px){
+      width: 2.5vw; // these widths correspond to compare-column width
+    }
+
+    @media(min-width: 1024px){
+      width: 2vw; // these widths correspond to compare-column width
+    }
+
+    @media(min-width: 1280px){
+      width: 2.5vw; // these widths correspond to compare-column width
+    }
+  }
+} //End Container
+
+// Footer Controls
+#compare-footer{
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background-color: $ui-light;
+
+  #slide-controls{
+    float: right;
+    padding: 8px;
+  }
+
+  h3{
+    display: inline-block;
+    padding: 1rem;
   }
 }
