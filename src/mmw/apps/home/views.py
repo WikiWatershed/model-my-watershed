@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import json
+from urlparse import urljoin
 
 from django.http import Http404
 from django.shortcuts import render_to_response, get_object_or_404
@@ -13,10 +14,27 @@ from django.conf import settings
 from apps.modeling.models import Project
 
 
+def get_stream_layers():
+    tiler_prefix = '//'
+    tiler_host = settings.TILER_HOST
+    tiler_postfix = '/{z}/{x}/{y}'
+    tiler_base = '%s%s' % (tiler_prefix, tiler_host)
+
+    stream_layers = []
+    for layer in settings.STREAM_LAYERS:
+        stream_layers.append({
+            'display': layer['display'],
+            'endpoint': urljoin(tiler_base, layer['code'] + tiler_postfix)
+        })
+
+    return stream_layers
+
+
 def get_client_settings():
     client_settings = {
         'client_settings': json.dumps({
-            'base_layers': settings.BASE_LAYERS
+            'base_layers': settings.BASE_LAYERS,
+            'stream_layers': get_stream_layers()
         })
     }
     return client_settings

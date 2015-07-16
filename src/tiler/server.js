@@ -16,9 +16,15 @@ var dbUser = process.env.MMW_DB_USER,
 // keys (e.g. 0 for 'modeling_district') should be given
 // sequentially).
 var interactivity = {'modeling_district': 'state_short,id'},
-    tables = {0: 'modeling_district'};
+    tables = {
+        0: 'modeling_district',
+        'stream-low': 'deldem4net100r',
+        'stream-medium': 'deldem4net50r',
+        'stream-high': 'deldem4net20r'
+    };
 
 var config = {
+    useProfiler: true,
     base_url: '/:tableId',
     base_url_notable: '/:tableId',
     grainstore: {
