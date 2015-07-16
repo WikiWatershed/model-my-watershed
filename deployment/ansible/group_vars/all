@@ -31,3 +31,6 @@ elasticsearch_cluster_name: "logstash"
 nodejs_npm_version: 2.1.14
 
 java_version: "7u79-*"
+
+spark_version: "1.4.0-bin-hadoop2.6"
+scala_version: "2.10.5"

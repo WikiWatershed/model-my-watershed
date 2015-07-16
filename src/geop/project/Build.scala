@@ -24,8 +24,8 @@ object MMWBuild extends Build {
     "Typesafe Repo"           at "http://repo.typesafe.com/typesafe/releases/",
     "spray repo"              at "http://repo.spray.io/",
     "snapshots"               at "https://oss.sonatype.org/content/repositories/snapshots",
-    "OpenGeo"                 at "http://repo.boundlessgeo.com/main",
-    "Scalaz Bintray Repo"     at "https://dl.bintray.com/scalaz/releases"
+    "Scalaz Bintray Repo"     at "https://dl.bintray.com/scalaz/releases",
+    "OpenGeo"                 at "http://repo.boundlessgeo.com/main"
   )
 
   // Default settings

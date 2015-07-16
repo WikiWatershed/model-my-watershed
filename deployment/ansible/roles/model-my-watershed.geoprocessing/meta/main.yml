@@ -1,0 +1,9 @@
+---
+dependencies:
+  - { role: "model-my-watershed.base" }
+  - { role: "azavea.git" }
+  - { role: "azavea.spark" }
+  - { role: "azavea.scala" }
+  - { role: "azavea.libgdal-java" }
+  - { role: "model-my-watershed.monitoring", collectd_prefix: "collectd.geoprocessing", when: "['test'] | is_not_in(group_names)" }
+  - { role: "model-my-watershed.nginx" }

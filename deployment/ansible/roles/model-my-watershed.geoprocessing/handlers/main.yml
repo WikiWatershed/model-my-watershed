@@ -1,0 +1,3 @@
+---
+- name: Restart Geoprocessing
+  service: name=mmw-geoprocessing state=restarted
