@@ -1,4 +1,7 @@
-#modeling_district {
+#modeling_district,
+#boundary_huc08,
+#boundary_huc10,
+#boundary_huc12 {
   polygon-fill: #FF0000;
   polygon-opacity: 0.0;
   line-color: #000;
