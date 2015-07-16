@@ -4,6 +4,7 @@ from troposphere import (
     Output,
     Tags,
     GetAtt,
+    Base64,
     Join,
     Equals,
     cloudwatch as cw,
@@ -295,7 +296,9 @@ class Worker(StackNode):
                 IamInstanceProfile=Ref(self.worker_instance_profile),
                 InstanceType=Ref(self.worker_instance_type),
                 KeyName=Ref(self.keyname),
-                SecurityGroups=[Ref(worker_security_group)]
+                SecurityGroups=[Ref(worker_security_group)],
+                UserData=Base64(
+                    Join('', self.get_cloud_config()))
             ))
 
         worker_auto_scaling_group_name = 'asgWorker'
@@ -327,6 +330,15 @@ class Worker(StackNode):
                 Tags=[asg.Tag('Name', 'Worker', True)]
             )
         )
+
+    def get_cloud_config(self):
+        return ['#cloud-config\n',
+                '\n',
+                'write_files:\n',
+                '  - path: /etc/mmw.d/env/MMW_STACK_COLOR\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.color)]
 
     def create_cloud_watch_resources(self, worker_auto_scaling_group):
         self.add_resource(cw.Alarm(

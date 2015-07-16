@@ -10,6 +10,8 @@ statsite_port: 8125
 apache_port: 8080
 graphite_web_port: "{{ apache_port }}"
 
+stack_color: "Black"
+
 itsi_client_id: "model-my-watershed"
 
 postgresql_username: mmw

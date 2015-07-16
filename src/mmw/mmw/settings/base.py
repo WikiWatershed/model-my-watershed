@@ -116,6 +116,8 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'djcelery.backends.cache:CacheBackend'
 STATSD_CELERY_SIGNALS = True
+CELERY_DEFAULT_QUEUE = environ.get('MMW_STACK_COLOR', 'Black').lower()
+CELERY_DEFAULT_ROUTING_KEY = 'task.%s' % environ.get('MMW_STACK_COLOR', 'Black').lower()
 # END CELERY CONFIGURATION
 
 

@@ -13,3 +13,4 @@ envdir_config:
   MMW_ITSI_CLIENT_ID: "{{ itsi_client_id }}"
   MMW_ITSI_SECRET_KEY: "{{ itsi_secret_key }}"
   MMW_ITSI_BASE_URL: "{{ itsi_base_url }}"
+  MMW_STACK_COLOR: "{{ stack_color }}"

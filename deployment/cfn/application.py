@@ -394,7 +394,11 @@ class Application(StackNode):
                 '  - path: /etc/mmw.d/env/MMW_TILER_HOST\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
-                '    content: ', Ref(tile_distribution_endpoint)]
+                '    content: ', Ref(tile_distribution_endpoint), '\n',
+                '  - path: /etc/mmw.d/env/MMW_STACK_COLOR\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.color)]
 
     def create_cloud_watch_resources(self, app_server_lb):
         self.add_resource(cw.Alarm(
