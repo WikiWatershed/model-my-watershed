@@ -258,6 +258,7 @@ function changeStreamLayer(endpoint, model) {
         sl = new L.TileLayer(endpoint + '.png');
 
     sfg.addLayer(sl);
+    sl.bringToFront();
 }
 
 function getShapeAndAnalyze(e, model, ofg, grid, tableId) {
