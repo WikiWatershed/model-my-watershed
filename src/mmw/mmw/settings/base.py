@@ -247,6 +247,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django_statsd.middleware.GraphiteRequestTimingMiddleware',
     'django_statsd.middleware.GraphiteMiddleware',
+    'apps.user.middleware.ItsiAuthenticationMiddleware',
 )
 # END MIDDLEWARE CONFIGURATION
 
@@ -358,6 +359,7 @@ ITSI = {
     'authorize_url': 'auth/concord_id/authorize',
     'access_token_url': 'auth/concord_id/access_token',
     'user_json_url': 'auth/concord_id/user.json',
+    'embed_flag': 'itsi_embed',
 }
 
 BASE_LAYERS = {
