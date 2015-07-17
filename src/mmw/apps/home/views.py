@@ -68,7 +68,3 @@ def project(request, proj_id=None, scenario_id=None):
             raise Http404
 
     return render_to_response('home/home.html', get_context(request))
-
-
-def compare(request):
-    return render_to_response('home/compare.html', get_context(request))
