@@ -34,7 +34,8 @@ def get_client_settings():
     client_settings = {
         'client_settings': json.dumps({
             'base_layers': settings.BASE_LAYERS,
-            'stream_layers': get_stream_layers()
+            'stream_layers': get_stream_layers(),
+            'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY
         })
     }
     return client_settings

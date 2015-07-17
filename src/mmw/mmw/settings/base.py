@@ -402,7 +402,7 @@ ITSI = {
 }
 
 BASE_LAYERS = {
-    'Default': {
+    'Mapbox Roads': {
         'url': 'https://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png',
         'attribution': 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery &copy; <a href="http://mapbox.com">Mapbox</a>',
         'maxZoom': 18,
@@ -411,5 +411,8 @@ BASE_LAYERS = {
     'ESRI World Imagery': {
         'url': 'https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         'attribution': 'Map data from <a href="http://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9">ESRI</a>',
+    },
+    'Google Hybrid': {
+        'googleType': 'HYBRID' # can be one of SATELLITE, ROADMAP, HYBRID, TERRAIN
     },
 }
