@@ -23,9 +23,9 @@ var interactivity = {
         huc8: 'boundary_huc08',
         huc10: 'boundary_huc10',
         huc12: 'boundary_huc12',
-        'stream-low': 'deldem4net100r',
-        'stream-medium': 'deldem4net50r',
-        'stream-high': 'deldem4net20r'
+        'stream-low': 'drb_stream_network_100',
+        'stream-medium': 'drb_stream_network_50',
+        'stream-high': 'drb_stream_network_20'
     };
 
 var config = {
