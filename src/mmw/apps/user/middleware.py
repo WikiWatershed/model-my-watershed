@@ -19,7 +19,8 @@ class ItsiAuthenticationMiddleware(object):
     def process_request(self, request):
         """
         Check if ITSI EMBED FLAG is set, and if so attempt to log
-        the user in with their ITSI credentials
+        the user in with their ITSI credentials and redirect them
+        to current page.
         """
 
         # If flag is not set then return None so Django can proceed
@@ -28,6 +29,6 @@ class ItsiAuthenticationMiddleware(object):
             return None
 
         # Flag is set. Assume user is not logged in. Set session flag and
-        # Redirect them to ITSI LOGIN URL
+        # Redirect them to ITSI LOGIN URL, with the current URL to return to
         request.session[EMBED_FLAG] = True
-        return redirect(LOGIN_URL)
+        return redirect('{0}?next={1}'.format(LOGIN_URL, request.path))
