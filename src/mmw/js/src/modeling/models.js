@@ -298,6 +298,12 @@ var ScenarioModel = Backbone.Model.extend({
             App.currProject.saveProjectAndScenarios();
             return;
         }
+        if (this.isNew() && this.saveCalled) {
+            return;
+        } else if (this.isNew() && !this.saveCalled) {
+            // Makeshift locking mechanism to prevent double saves.
+            this.saveCalled = true;
+        }
         this.save().fail(function() {
             console.log('Failed to save scenario');
         });
