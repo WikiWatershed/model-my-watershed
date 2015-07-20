@@ -1,6 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
+    _ = require('lodash'),
     L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
     turfRandom = require('turf-random'),
@@ -72,9 +73,11 @@ var ToolbarView = Marionette.LayoutView.extend({
 });
 
 var SelectAreaView = Marionette.ItemView.extend({
+    $label: $('#boundary-label'),
+
     ui: {
         'items': '[data-endpoint]',
-        'button': '#predefined-shape'
+        'button': '#predefined-shape',
     },
 
     events: {
@@ -82,7 +85,13 @@ var SelectAreaView = Marionette.ItemView.extend({
     },
 
     modelEvents: {
-        'change': 'render'
+        'change': 'render',
+        'change:toolsEnabled': 'removeBoundaryLayer'
+    },
+
+    initialize: function() {
+        var ofg = this.model.get('outlineFeatureGroup');
+        ofg.on('layerremove', _.bind(this.clearLabel, this));
     },
 
     onItemClicked: function(e) {
@@ -91,13 +100,68 @@ var SelectAreaView = Marionette.ItemView.extend({
             tableId = $el.data('tableid');
 
         clearAoiLayer();
-        changeOutlineLayer(endpoint, tableId, this.model);
+        this.changeOutlineLayer(endpoint, tableId);
         e.preventDefault();
     },
 
     getTemplate: function() {
         var types = this.model.get('predefinedShapeTypes');
         return !types ? loadingTmpl : selectTypeTmpl;
+    },
+
+    changeOutlineLayer: function(endpoint, tableId) {
+        var self = this,
+            ofg = self.model.get('outlineFeatureGroup');
+
+        // Go about the business of adding the ouline and UTFgrid layers.
+        if (endpoint && tableId !== undefined) {
+            var ol = new L.TileLayer(endpoint + '.png'),
+                grid = new L.UtfGrid(endpoint + '.grid.json?callback={cb}',
+                                     {
+                                         resolution: 4,
+                                         maxRequests: 8
+                                     });
+            grid.on('click', function(e) {
+                getShapeAndAnalyze(e, self.model, ofg, grid, tableId);
+            });
+
+            grid.on('mousemove', function(e) {
+                self.updateDisplayLabel(e.latlng, e.data.name);
+            });
+
+            clearBoundaryLayer(self.model);
+            ofg.addLayer(ol);
+            ofg.addLayer(grid);
+
+            ol.bringToFront();
+        }
+    },
+
+    removeBoundaryLayer: function() {
+        clearBoundaryLayer(this.model);
+    },
+
+    updateDisplayLabel: function(latLng, text) {
+        var pos = App.getLeafletMap().latLngToContainerPoint(latLng),
+            bufferDist = 10,
+            buffer = function(cursorPos) {
+                var newPt = _.clone(cursorPos);
+                _.forEach(newPt, function(val, key, pt) {
+                    pt[key] = val + bufferDist;
+                });
+
+                return newPt;
+            },
+            placement = buffer(pos);
+
+        this.$label
+            .text(text)
+            .css({ top: placement.y, left: placement.x})
+            .show();
+    },
+
+    clearLabel: function() {
+        this.$label.hide();
     }
 });
 
@@ -283,7 +347,7 @@ function getShapeAndAnalyze(e, model, ofg, grid, tableId) {
             shapeId: shapeId
         }).done(function(shape) {
             addLayer(shape);
-            ofg.clearLayers();
+            clearBoundaryLayer(model);
             navigateToAnalyze();
             deferred.resolve();
         }).fail(function() {
@@ -317,28 +381,6 @@ function getShapeAndAnalyze(e, model, ofg, grid, tableId) {
     return deferred;
 }
 
-function changeOutlineLayer(endpoint, tableId, model) {
-    var ofg = model.get('outlineFeatureGroup');
-
-    // Go about the business of adding the ouline and UTFgrid layers.
-    if (endpoint && tableId !== undefined) {
-        var ol = new L.TileLayer(endpoint + '.png'),
-            grid = new L.UtfGrid(endpoint + '.grid.json?callback={cb}',
-                                 {
-                                     resolution: 4,
-                                     maxRequests: 8
-                                 });
-        grid.on('click', function(e) {
-            getShapeAndAnalyze(e, model, ofg, grid, tableId);
-        });
-
-        ofg.clearLayers();
-        ofg.addLayer(ol);
-        ofg.addLayer(grid);
-
-        ol.bringToFront();
-    }
-}
 
 function clearAoiLayer() {
     App.map.set('areaOfInterest', null);
@@ -365,6 +407,5 @@ function navigateToAnalyze() {
 
 module.exports = {
     ToolbarView: ToolbarView,
-    changeOutlineLayer: changeOutlineLayer,
     getShapeAndAnalyze: getShapeAndAnalyze
 };
