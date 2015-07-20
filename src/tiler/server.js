@@ -12,13 +12,24 @@ var dbUser = process.env.MMW_DB_USER,
     redisPort = process.env.MMW_CACHE_PORT;
 
 // N. B. These must be kept in sync with src/mmw/mmw/settings/base.py
-// and there must be a style in styles.mss for every table.  The table
-// keys (e.g. 0 for 'modeling_district') should be given
-// sequentially).
-var interactivity = {'modeling_district': 'state_short,id'},
-    tables = {0: 'modeling_district'};
+var interactivity = {
+        'modeling_district': 'state_short,id',
+        'boundary_huc08': 'name,id',
+        'boundary_huc10': 'name,id',
+        'boundary_huc12': 'name,id'
+    },
+    tables = {
+        district: 'modeling_district',
+        huc8: 'boundary_huc08',
+        huc10: 'boundary_huc10',
+        huc12: 'boundary_huc12',
+        'stream-low': 'deldem4net100r',
+        'stream-medium': 'deldem4net50r',
+        'stream-high': 'deldem4net20r'
+    };
 
 var config = {
+    useProfiler: true,
     base_url: '/:tableId',
     base_url_notable: '/:tableId',
     grainstore: {

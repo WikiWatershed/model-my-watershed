@@ -1,0 +1,10 @@
+---
+- name: Touch log file if it does not exist
+  command: touch {{ geoprocessing_log }}
+           creates={{ geoprocessing_log }}
+
+- name: Set log file permissions
+  file: path={{ geoprocessing_log }} owner=mmw group=mmw mode=0644
+
+- name: Configure Tiler log rotation
+  template: src=logrotate-mmw-geoprocessing.j2 dest=/etc/logrotate.d/mmw-geoprocessing

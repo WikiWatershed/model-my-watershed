@@ -1,7 +1,6 @@
 from troposphere import (
     Parameter,
     Ref,
-    Output,
     Tags,
     Join,
     GetAtt,
@@ -43,6 +42,8 @@ class DataPlane(StackNode):
         'StackType': ['global:StackType'],
         'KeyName': ['global:KeyName'],
         'IPAccess': ['global:IPAccess'],
+        'AvailabilityZones': ['global:AvailabilityZones',
+                              'VPC:AvailabilityZones'],
         'BastionHostInstanceType': ['global:BastionHostInstanceType'],
         'BastionHostAMI': ['global:BastionHostAMI'],
         'RDSInstanceType': ['global:RDSInstanceType'],
@@ -71,7 +72,7 @@ class DataPlane(StackNode):
         'RDSDbName': 'modelmywatershed',
         'RDSUsername': 'modelmywatershed',
         'RDSPassword': 'modelmywatershed',
-        'ECInstanceType': 'cache.t2.micro',
+        'ECInstanceType': 'cache.m1.small',
     }
 
     ATTRIBUTES = {'StackType': 'StackType'}
@@ -97,6 +98,11 @@ class DataPlane(StackNode):
             'IPAccess', Type='String', Default=self.get_input('IPAccess'),
             Description='CIDR for allowing SSH access'
         ), 'IPAccess')
+
+        self.availability_zones = self.add_parameter(Parameter(
+            'AvailabilityZones', Type='CommaDelimitedList',
+            Description='Comma delimited list of availability zones'
+        ), 'AvailabilityZones')
 
         self.bastion_instance_type = self.add_parameter(Parameter(
             'BastionHostInstanceType', Type='String', Default='t2.medium',
@@ -131,7 +137,7 @@ class DataPlane(StackNode):
         ), 'RDSPassword')
 
         self.elasticache_instance_type = self.add_parameter(Parameter(
-            'ECInstanceType', Type='String', Default='cache.t2.micro',
+            'ECInstanceType', Type='String', Default='cache.m1.small',
             Description='ElastiCache instance type',
             AllowedValues=ELASTICACHE_INSTANCE_TYPES,
             ConstraintDescription='must be a valid ElastiCache instance type.'
@@ -177,13 +183,10 @@ class DataPlane(StackNode):
         rds_database = self.create_rds_instance()
         self.create_rds_cloudwatch_alarms(rds_database)
 
-        elasticache_cache_cluster = self.create_elasticache_instance()
-        self.create_elasticache_cloudwatch_alarms(elasticache_cache_cluster)
+        elasticache_group = self.create_elasticache_replication_group()
+        self.create_elasticache_cloudwatch_alarms(elasticache_group)
 
-        self.create_dns_records(bastion_host, rds_database)
-
-        self.add_output(Output('CacheCluster',
-                               Value=Ref(elasticache_cache_cluster)))
+        self.create_dns_records(bastion_host, rds_database, elasticache_group)
 
     def get_recent_monitoring_ami(self):
         try:
@@ -403,7 +406,7 @@ class DataPlane(StackNode):
                 ],
             ))
 
-    def create_elasticache_instance(self):
+    def create_elasticache_replication_group(self):
         elasticache_security_group_name = 'sgCacheCluster'
 
         elasticache_security_group = self.add_resource(ec2.SecurityGroup(
@@ -431,70 +434,72 @@ class DataPlane(StackNode):
             SubnetIds=Ref(self.private_subnets)
         ))
 
-        elasticache_parameter_group = self.add_resource(
-            ec.ParameterGroup(
-                'ecpgCacheCluster',
-                CacheParameterGroupFamily='redis2.8',
-                Description='Parameter group for the ElastiCache instances',
-                Properties={'appendonly': 'yes'})
-        )
-
-        return self.add_resource(ec.CacheCluster(
-            'CacheCluster',
+        return self.add_resource(ec.ReplicationGroup(
+            'CacheReplicationGroup',
+            AutomaticFailoverEnabled=True,
             AutoMinorVersionUpgrade=True,
             CacheNodeType=Ref(self.elasticache_instance_type),
-            CacheParameterGroupName=Ref(elasticache_parameter_group),
             CacheSubnetGroupName=Ref(elasticache_subnet_group),
             Engine='redis',
             EngineVersion='2.8.19',
             NotificationTopicArn=Ref(self.notification_topic_arn),
-            NumCacheNodes=1,
-            PreferredMaintenanceWindow='sun:04:30-sun:05:30',  # SUN 12:30AM-01:30AM ET
-            VpcSecurityGroupIds=[Ref(elasticache_security_group)]
+            NumCacheClusters=2,
+            PreferredCacheClusterAZs=Ref(self.availability_zones),
+            PreferredMaintenanceWindow='sun:05:00-sun:06:00',  # SUN 01:00AM-02:00AM ET
+            ReplicationGroupDescription='Redis replication group',
+            SecurityGroupIds=[Ref(elasticache_security_group)],
+            SnapshotRetentionLimit=30,
+            SnapshotWindow='04:00-05:00'  # 12:00AM-01:00AM ET
         ))
 
     def create_elasticache_cloudwatch_alarms(self, elasticache_cache_cluster):
-        self.add_resource(cloudwatch.Alarm(
-            'alarmCacheClusterCPUUtilization',
-            AlarmDescription='Cache cluster CPU utilization',
-            AlarmActions=[Ref(self.notification_topic_arn)],
-            Statistic='Average',
-            Period=300,
-            Threshold='75',
-            EvaluationPeriods=1,
-            ComparisonOperator='GreaterThanThreshold',
-            MetricName='CPUUtilization',
-            Namespace='AWS/ElastiCache',
-            Dimensions=[
-                cloudwatch.MetricDimension(
-                    'metricCacheClusterName',
-                    Name='CacheClusterId',
-                    Value=Ref(elasticache_cache_cluster)
+        for index in [1, 2]:
+            self.add_resource(cloudwatch.Alarm(
+                'alarmCacheCluster{0:0>3}CPUUtilization'.format(index),
+                AlarmDescription='Cache cluster CPU utilization',
+                AlarmActions=[Ref(self.notification_topic_arn)],
+                Statistic='Average',
+                Period=300,
+                Threshold='75',
+                EvaluationPeriods=1,
+                ComparisonOperator='GreaterThanThreshold',
+                MetricName='CPUUtilization',
+                Namespace='AWS/ElastiCache',
+                Dimensions=[
+                    cloudwatch.MetricDimension(
+                        'metricCacheClusterName',
+                        Name='CacheClusterId',
+                        Value=Join('-',
+                                   [Ref(elasticache_cache_cluster),
+                                    '{0:0>3}'.format(index)])
                     )
                 ],
             ))
 
-        self.add_resource(cloudwatch.Alarm(
-            'alarmCacheClusterFreeableMemory',
-            AlarmDescription='Cache cluster freeable memory',
-            AlarmActions=[Ref(self.notification_topic_arn)],
-            Statistic='Average',
-            Period=60,
-            Threshold=str(int(5e+06)),  # 5MB in bytes
-            EvaluationPeriods=1,
-            ComparisonOperator='LessThanThreshold',
-            MetricName='FreeableMemory',
-            Namespace='AWS/ElastiCache',
-            Dimensions=[
-                cloudwatch.MetricDimension(
-                    'metricCacheClusterName',
-                    Name='CacheClusterId',
-                    Value=Ref(elasticache_cache_cluster)
+            self.add_resource(cloudwatch.Alarm(
+                'alarmCacheCluster{0:0>3}FreeableMemory'.format(index),
+                AlarmDescription='Cache cluster freeable memory',
+                AlarmActions=[Ref(self.notification_topic_arn)],
+                Statistic='Average',
+                Period=60,
+                Threshold=str(int(5e+06)),  # 5MB in bytes
+                EvaluationPeriods=1,
+                ComparisonOperator='LessThanThreshold',
+                MetricName='FreeableMemory',
+                Namespace='AWS/ElastiCache',
+                Dimensions=[
+                    cloudwatch.MetricDimension(
+                        'metricCacheClusterName',
+                        Name='CacheClusterId',
+                        Value=Join('-',
+                                   [Ref(elasticache_cache_cluster),
+                                    '{0:0>3}'.format(index)])
                     )
                 ],
             ))
 
-    def create_dns_records(self, bastion_host, rds_database):
+    def create_dns_records(self, bastion_host, rds_database,
+                           elasticache_group):
         self.add_resource(r53.RecordSetGroup(
             'dnsPublicRecords',
             HostedZoneName=Join('', [Ref(self.public_hosted_zone_name), '.']),
@@ -530,6 +535,16 @@ class DataPlane(StackNode):
                     TTL='10',
                     ResourceRecords=[
                         GetAtt(rds_database, 'Endpoint.Address')
+                    ]
+                ),
+                r53.RecordSet(
+                    'dnsCacheServer',
+                    Name=Join('', ['cache.service.',
+                              Ref(self.private_hosted_zone_name), '.']),
+                    Type='CNAME',
+                    TTL='10',
+                    ResourceRecords=[
+                        GetAtt(elasticache_group, 'PrimaryEndPoint.Address')
                     ]
                 )
             ]

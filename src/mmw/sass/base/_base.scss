@@ -60,16 +60,23 @@ a{
 }
 
 #geocode-search-region {
-    display: inline-block;
+  display: inline-block;
 
-    #search-results-container {
-        position: absolute;
-    }
+  #search-results-container {
+    position: absolute;
+  }
 }
 
 #draw-tools-region,
 .draw-tools-container div{
+  display: inline-block;
+
+  // Undo bootstrap input[type="range"] syling
+  #stream-slider {
     display: inline-block;
+    width: auto;
+    vertical-align: bottom;
+  }
 }
 
 //Title Row
@@ -99,4 +106,3 @@ a{
         }
     }
 }
-

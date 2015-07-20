@@ -116,6 +116,8 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'djcelery.backends.cache:CacheBackend'
 STATSD_CELERY_SIGNALS = True
+CELERY_DEFAULT_QUEUE = environ.get('MMW_STACK_COLOR', 'Black').lower()
+CELERY_DEFAULT_ROUTING_KEY = 'task.%s' % environ.get('MMW_STACK_COLOR', 'Black').lower()
 # END CELERY CONFIGURATION
 
 
@@ -263,11 +265,50 @@ TILER_HOST = environ.get('MMW_TILER_HOST', 'localhost')
 
 
 # N. B. This must be kept in sync with src/tiler/server.js.  In the
-# dictionary below, the keys are the table ids.
-BOUNDARY_LAYERS = {
-    '0': {'display': 'Congressional Districts',
-          'table_name': 'modeling_district'}
-}
+# dictionary below, the keys are the table ids.  If `json_field` is provided
+# that column will be used for feature lookups, but default to 'geom' if not.
+BOUNDARY_LAYERS = [
+    {
+        'code': 'district',
+        'display': 'Congressional Districts',
+        'table_name': 'modeling_district'
+    },
+    {
+        'code': 'huc8',
+        'display': 'USGS Subbasin unit (HUC-8)',
+        'table_name': 'boundary_huc08'
+    },
+    {
+        'code': 'huc10',
+        'display': 'USGS Watershed unit (HUC-10)',
+        'table_name': 'boundary_huc10'
+    },
+    {
+        'code': 'huc12',
+        'display': 'USGS Subwatershed unit (HUC-12)',
+        'table_name': 'boundary_huc12',
+        'json_field': 'geom_detailed'
+    }
+]
+
+STREAM_LAYERS = [
+    {
+        'code': 'stream-low',
+        'display': 'Low-Res',
+        'table_name': 'deldem4net100r',
+    },
+    {
+        'code': 'stream-medium',
+        'display': 'Medium-Res',
+        'table_name': 'deldem4net50r',
+    },
+    {
+        'code': 'stream-high',
+        'display': 'High-Res',
+        'table_name': 'deldem4net20r',
+    },
+]
+
 # END TILER CONFIGURATION
 
 # APP CONFIGURATION
@@ -361,7 +402,7 @@ ITSI = {
 }
 
 BASE_LAYERS = {
-    'Default': {
+    'Mapbox Roads': {
         'url': 'https://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png',
         'attribution': 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery &copy; <a href="http://mapbox.com">Mapbox</a>',
         'maxZoom': 18,
@@ -370,5 +411,8 @@ BASE_LAYERS = {
     'ESRI World Imagery': {
         'url': 'https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         'attribution': 'Map data from <a href="http://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9">ESRI</a>',
+    },
+    'Google Hybrid': {
+        'googleType': 'HYBRID' # can be one of SATELLITE, ROADMAP, HYBRID, TERRAIN
     },
 }

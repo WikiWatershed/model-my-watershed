@@ -20,6 +20,7 @@ var $ = require('jquery'),
     BASIC_MODAL_CLASS = 'modal modal-basic fade';
 
 require('leaflet.locatecontrol');
+require('leaflet-plugins/layer/tile/Google');
 
 /**
  * A basic view for showing a static message.
@@ -151,10 +152,14 @@ var MapView = Marionette.ItemView.extend({
         addLocateMeButton(map, maxZoom, maxAge);
 
         var baseLayers = _.mapObject(settings.getSettings().base_layers, function(layerData) {
-            return new L.TileLayer(layerData.url, {
-                attribution: layerData.attribution || '',
-                maxZoom: layerData.maxZoom || 18
-            });
+            if (layerData.googleType) {
+                return new L.Google(layerData.googleType);
+            } else {
+                return new L.TileLayer(layerData.url, {
+                    attribution: layerData.attribution || '',
+                    maxZoom: layerData.maxZoom || 18
+                });
+            }
         }),
             defaultLayerName = _.findKey(settings.getSettings().base_layers, function(layerData) {
                 return layerData.default;

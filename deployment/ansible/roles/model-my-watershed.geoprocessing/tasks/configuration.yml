@@ -1,0 +1,16 @@
+---
+- name: Configure Variables
+  copy: content="{{ item.value }}"
+        dest="{{ envdir_home }}/{{ item.key }}"
+        owner=root
+        group=mmw
+        mode=0750
+  with_dict: app_config
+  notify:
+    - Restart Geoprocessing
+
+- name: Configure service definition
+  template: src=upstart-mmw-geoprocessing.conf.j2
+            dest=/etc/init/mmw-geoprocessing.conf
+  notify:
+    - Restart Geoprocessing
