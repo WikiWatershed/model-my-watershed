@@ -40,6 +40,7 @@ var ResultModel = Backbone.Model.extend({
     defaults: {
         name: '',
         displayName: '',
+        inputmod_hash: null,
         result: null,
         polling: false
     }
@@ -250,6 +251,7 @@ var ScenarioModel = Backbone.Model.extend({
         is_current_conditions: false,
         user_id: 0, // User that created the project
         inputs: null, // ModificationsCollection
+        inputmod_hash: null, // MD5 string
         modifications: null, // ModificationsCollection
         modification_hash: null, // MD5 string
         active: false,
@@ -360,7 +362,10 @@ var ScenarioModel = Backbone.Model.extend({
                     results.forEach(function(resultModel) {
                         var resultName = resultModel.get('name');
                         if (serverResults[resultName]) {
-                            resultModel.set('result', serverResults[resultName]);
+                            resultModel.set({
+                                'result': serverResults[resultName],
+                                'inputmod_hash': serverResults.inputmod_hash
+                            });
                         } else {
                             console.log('Response is missing ' + resultName + '.');
                         }
@@ -378,6 +383,7 @@ var ScenarioModel = Backbone.Model.extend({
                         modifications: self.get('modifications').toJSON(),
                         area_of_interest: App.currProject.get('area_of_interest'),
                         census: self.get('census'),
+                        inputmod_hash: self.get('inputmod_hash'),
                         modification_hash: self.get('modification_hash')
                     })
                 },
