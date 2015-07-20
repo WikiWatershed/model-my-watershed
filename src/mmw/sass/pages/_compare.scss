@@ -1,4 +1,4 @@
-#compare-container{
+.compare-scenarios-container{
   overflow-x: hidden;
   position: absolute;
   top: 0;
@@ -7,6 +7,7 @@
   bottom: 50px;
   z-index: 100;
   background-color: $ui-light;
+  transition: 0.3s ease left, 0.3s ease right;
 
   table{
     height: 100%;
@@ -47,52 +48,73 @@
             opacity: 54%!important;
           }
 
-          .map-container{
-            position: relative;
-            width: 100%;
+          .map-region{
             height: 20%;
+            width: 100%;
 
-            .map{
-              height: 200px;
-              width: 100%;
+            .map-container{
               position: relative;
-              z-index: 1;
-
-              .leaflet-control-container{
-                display: none;
-              }
-            }
-
-            .scenario-title{
-              position: absolute;
-              z-index: 50;
               width: 100%;
               height: 100%;
-              background-color: $black-74;
-              vertical-align: bottom;
-              padding: 1rem;
 
-              h3{
+              .map{
+                height: 100%;
+                width: 100%;
+                position: relative;
+                z-index: 1;
+
+                .leaflet-control-container{
+                  display: none;
+                }
+              }
+
+              .scenario-title{
                 position: absolute;
-                bottom: 1rem;
-                left: 1rem;
+                z-index: 50;
+                width: 100%;
+                height: 100%;
+                background-color: $black-74;
+                vertical-align: bottom;
+                padding: 1rem;
+
+                h3{
+                  position: absolute;
+                  bottom: 1rem;
+                  left: 1rem;
+                }
               }
             }
           }
 
-          .chart-container{
-            position: relative;
-            width: auto;
-            height: 40%;
-            padding: 1rem;
+          .chart-region{
+            width: 100%;
+            height: 37%;
+
+            .chart-container{
+              position: relative;
+              width: auto;
+              height: 100%;
+              padding: 1rem;
+            }
           }
 
-          .modification-list{
-            position: relative;
-            width: auto;
-            height: 40%;
-            padding: 1rem;
-            overflow-y: auto;
+
+          .modifications-region{
+            width: 100%;
+            height: 37%;
+
+            .modifications-container{
+              width: 100%;
+              height: 100%;
+
+              .modifications-list{
+                position: relative;
+                width: auto;
+                height: 100%;
+                padding: 1rem;
+                overflow-y: auto;
+              }
+            }
           }
 
           .compare-section-collapse{

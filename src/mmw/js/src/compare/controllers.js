@@ -56,7 +56,7 @@ var CompareController = {
         App.rootView.footerRegion.show(compareWindow);
     },
 
-    analyzeCleanUp: function() {
+    compareCleanUp: function() {
         App.rootView.footerRegion.empty();
     }
 

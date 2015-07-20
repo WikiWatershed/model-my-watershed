@@ -19,7 +19,7 @@ var CompareWindow = Marionette.LayoutView.extend({
     id: 'compare-window',
 
     regions: {
-        containerRegion: '#compare-container'
+        containerRegion: '#compare-scenarios-region'
     },
 
     ui: {
@@ -58,7 +58,7 @@ var CompareWindow = Marionette.LayoutView.extend({
 
     updateContainerPos: function() {
         var left = -1 * this.slideInd * this.getColumnWidth();
-        $('#compare-container').css('left', left + 'px');
+        $('.compare-scenarios-container').css('left', left + 'px');
     },
 
     slideLeft: function() {
@@ -94,10 +94,10 @@ var CompareScenarioView = Marionette.LayoutView.extend({
     template: compareScenarioTmpl,
 
     regions: {
-        mapRegion: '.map-container',
-        chartRegion: '.chart-container',
-        precipitationRegion: '.precipitation-container',
-        modificationsRegion: '.modifications-container'
+        mapRegion: '.map-region',
+        chartRegion: '.chart-region',
+        precipitationRegion: '.precipitation-region',
+        modificationsRegion: '.modifications-region'
     },
 
     onShow: function() {
@@ -119,6 +119,8 @@ var CompareScenariosView = Marionette.CompositeView.extend({
     //model: modelingModels.ProjectModel,
     //collection: modelingModels.ScenariosCollection,
 
+    className: 'compare-scenarios-container',
+
     template: compareScenariosTmpl,
 
     childViewContainer: '#compare-row',
@@ -129,6 +131,8 @@ var CompareMapView = Marionette.LayoutView.extend({
     //model: modelingModels.ScenarioModel,
 
     template: compareMapTmpl,
+
+    className: 'map-container',
 
     onShow: function() {
         var mapEl = $(this.el).find('.map').get(0),
@@ -143,7 +147,9 @@ var CompareMapView = Marionette.LayoutView.extend({
 });
 
 var CompareChartView = Marionette.ItemView.extend({
-    template: compareChartTmpl
+    template: compareChartTmpl,
+
+    className: 'chart-container'
     // TODO pick appropriate chart based on model_pacakage
     // this should be similar to code in modeling/views.js
 });
@@ -152,6 +158,8 @@ var CompareChartView = Marionette.ItemView.extend({
 var CompareModificationsView = Marionette.ItemView.extend({
     //model: modelingModels.ModificationsCollection,
     template: compareModificationsTmpl,
+
+    className: 'modifications-container',
 
     // TODO split modifications into Land Cover and Conservation Practices
     // TODO style this view
