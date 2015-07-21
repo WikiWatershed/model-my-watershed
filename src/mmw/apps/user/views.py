@@ -84,7 +84,10 @@ itsi = ItsiService()
 
 
 def itsi_login(request):
-    redirect_uri = request.build_absolute_uri(reverse('itsi_auth'))
+    redirect_uri = '{0}?next={1}'.format(
+        request.build_absolute_uri(reverse(itsi_auth)),
+        request.GET.get('next', '/')
+    )
     params = {'redirect_uri': redirect_uri}
     auth_url = itsi.get_authorize_url(**params)
 
@@ -108,12 +111,14 @@ def itsi_auth(request):
     user = authenticate(itsi_id=itsi_user['id'])
     if user is not None and user.is_active:
         auth_login(request, user)
-        return redirect('/')
+        return redirect(request.GET.get('next', '/'))
     else:
-        # User did not authenticate. Save their ITSI ID and send to /register
+        # User did not authenticate. Save their ITSI ID and send to /sign-up
         request.session['itsi_id'] = itsi_user['id']
         return redirect(
-            '/sign-up/itsi/{username}/{first_name}/{last_name}'.format(
+            '/sign-up/itsi/{username}/{first_name}/{last_name}?next={0}'
+            .format(
+                request.GET.get('next', '/'),
                 **itsi_user['extra']
             )
         )
