@@ -6,115 +6,41 @@ from __future__ import absolute_import
 from celery import shared_task
 import logging
 
-# TODO Remove this when stub task is deleted.
-import time
+from apps.modeling.geoprocessing import geojson_to_survey
 
 from tr55.model import simulate_modifications, simulate_cell_day
 from tr55.tablelookup import lookup_ki
 
 logger = logging.getLogger(__name__)
 
+FE_BE_MAP = {
+    'lir':                 'li_residential',
+    'hir':                 'hi_residential',
+    'commercial':          'commercial',
+    'forest':              'mixed_forest',
+    'turf_grass':          'urban_grass',
+    'pasture':             'pasture',
+    'grassland':           'grassland',
+    'row_crop':            'row_crop',
+    'chaparral':           'chaparral',
+    'tg_prairie':          'tall_grass_prairie',
+    'sg_prairie':          'short_grass_prairie',
+    'desert':              'desert',
+    'rain_garden':         'rain_garden',
+    'veg_infil_basin':     'infiltration_trench',
+    'porous_paving':       'porous_paving',
+    'green_roof':          'green_roof',
+    'no_till_agriculture': 'no_till',
+    'cluster_housing':     'cluster_housing'
+}
+
 
 @shared_task
 def run_analyze(area_of_interest):
-    time.sleep(3)
-
-    results = [
-        {
-            "name": "land",
-            "displayName": "Land",
-            "categories": [
-                {
-                    "type": "Water",
-                    "area": 21,
-                    "coverage": 0.01
-                },
-                {
-                    "type": "Developed: Open",
-                    "area": 5041,
-                    "coverage": .263
-                },
-                {
-                    "type": "Developed: Low",
-                    "area": 5181,
-                    "coverage": .271
-                },
-                {
-                    "type": "Developed: Medium",
-                    "area": 3344,
-                    "coverage": .175
-                },
-                {
-                    "type": "Developed: High",
-                    "area": 1103,
-                    "coverage": .058
-                },
-                {
-                    "type": "Bare Soil",
-                    "area": 19,
-                    "coverage": .001
-                },
-                {
-                    "type": "Forest",
-                    "area": 1804,
-                    "coverage": .094
-                },
-                {
-                    "type": "Deciduous Forest",
-                    "area": 1103,
-                    "coverage": .058
-                },
-                {
-                    "type": "Evergreen Forest",
-                    "area": 19,
-                    "coverage": .001
-                },
-                {
-                    "type": "Mixed Forest",
-                    "area": 1804,
-                    "coverage": .094
-                },
-                {
-                    "type": "Dwarf Scrub",
-                    "area": 1103,
-                    "coverage": .058
-                },
-                {
-                    "type": "Moss",
-                    "area": 19,
-                    "coverage": .001
-                },
-                {
-                    "type": "Pasture",
-                    "area": 1804,
-                    "coverage": .094
-                }
-            ]
-        },
-        {
-            "name": "soil",
-            "displayName": "Soil",
-            "categories": [
-                {
-                    "type": "Clay",
-                    "area": 21,
-                    "coverage": 0.01
-                },
-                {
-                    "type": "Silt",
-                    "area": 5041,
-                    "coverage": .263
-                },
-                {
-                    "type": "Sand",
-                    "area": 21,
-                    "coverage": .271
-                },
-            ]
-        }
-    ]
-
-    return results
+    """
+    Call geotrellis and return a survey of the area of interest.
+    """
+    return geojson_to_survey(area_of_interest)
 
 
 @shared_task
