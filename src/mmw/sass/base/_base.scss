@@ -106,3 +106,14 @@ a{
         }
     }
 }
+
+#boundary-label{
+    display: none;
+    padding: 5px;
+    background-color: $ui-secondary;
+    color: $paper;
+    position: absolute;
+    z-index: 1;
+    opacity: 0.8;
+}
+
