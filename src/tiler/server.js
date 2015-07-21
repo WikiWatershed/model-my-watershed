@@ -13,13 +13,13 @@ var dbUser = process.env.MMW_DB_USER,
 
 // N. B. These must be kept in sync with src/mmw/mmw/settings/base.py
 var interactivity = {
-        'modeling_district': 'state_short,id',
+        'boundary_district': 'name,id',
         'boundary_huc08': 'name,id',
         'boundary_huc10': 'name,id',
         'boundary_huc12': 'name,id'
     },
     tables = {
-        district: 'modeling_district',
+        district: 'boundary_district',
         huc8: 'boundary_huc08',
         huc10: 'boundary_huc10',
         huc12: 'boundary_huc12',

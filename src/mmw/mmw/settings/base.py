@@ -272,7 +272,7 @@ BOUNDARY_LAYERS = [
     {
         'code': 'district',
         'display': 'Congressional Districts',
-        'table_name': 'modeling_district'
+        'table_name': 'boundary_district'
     },
     {
         'code': 'huc8',
