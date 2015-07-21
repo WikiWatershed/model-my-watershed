@@ -199,13 +199,12 @@ var ProjectModel = Backbone.Model.extend({
             var user_id = response.user.id,
                 scenariosCollection = this.get('scenarios'),
                 scenarios = _.map(response.scenarios, function(scenario) {
-                    // TODO We don't want to set the results until a future
-                    // PR when we intentionally cache results.
-                    delete scenario.results;
-
                     var scenarioModel = new ScenarioModel(scenario);
                     scenarioModel.set('user_id', user_id);
                     scenarioModel.get('modifications').reset(scenario.modifications);
+                    if (!_.isEmpty(scenario.results)) {
+                        scenarioModel.get('results').reset(scenario.results);
+                    }
 
                     return scenarioModel;
                 });
@@ -295,13 +294,11 @@ var ScenarioModel = Backbone.Model.extend({
         this.set('inputs', new ModificationsCollection(attrs.inputs));
         this.set('modifications', new ModificationsCollection(attrs.modifications));
 
-        this.on('change:project change:name change:census', this.attemptSave, this);
-        this.get('inputs').on('add', this.attemptSave, this);
         this.updateModificationHash();
         this.updateInputModHash();
 
+        this.on('change:project change:name', this.attemptSave, this);
         this.get('modifications').on('add remove change', this.updateModificationHash, this);
-        this.get('modifications').on('add remove', this.attemptSave, this);
 
         var debouncedGetResults = _.debounce(_.bind(this.getResults, this), 500);
         this.get('inputs').on('add', debouncedGetResults);
@@ -351,17 +348,23 @@ var ScenarioModel = Backbone.Model.extend({
         this.get('inputs').reset(response.inputs);
         delete response.inputs;
 
-        // TODO We don't want to set the results until a future
-        // PR when we intentionally cache results.
+        if (!_.isEmpty(response.results)) {
+            this.get('results').reset(response.results);
+        }
         delete response.results;
 
         return response;
     },
 
     getResultsIfNeeded: function() {
-        var needsResults = this.get('results').some(function(resultModel) {
-            return !resultModel.get('result');
-        });
+        var inputmod_hash = this.get('inputmod_hash'),
+            needsResults = this.get('results').some(function(resultModel) {
+                var emptyResults = !resultModel.get('result'),
+                    staleResults = inputmod_hash !== resultModel.get('inputmod_hash');
+
+                return emptyResults || staleResults;
+            });
+
         if (needsResults) {
             this.getResults();
         }
@@ -371,6 +374,7 @@ var ScenarioModel = Backbone.Model.extend({
     // If not successful, the results collection is reset to be empty.
     getResults: function() {
         this.updateInputModHash();
+        this.attemptSave();
 
         var self = this,
             results = this.get('results'),
@@ -395,8 +399,6 @@ var ScenarioModel = Backbone.Model.extend({
 
                     self.set('census', serverResults.census);
                 }
-
-                results.setPolling(false);
             },
             taskHelper = {
                 postData: {
@@ -421,7 +423,11 @@ var ScenarioModel = Backbone.Model.extend({
                 pollFailure: function() {
                     console.log('Failed to get TR55 results.');
                     results.setNullResults();
+                },
+
+                pollEnd: function() {
                     results.setPolling(false);
+                    self.attemptSave();
                 },
 
                 startFailure: function(response) {

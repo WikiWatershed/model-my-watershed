@@ -399,6 +399,20 @@ describe('Modeling', function() {
         describe('ScenarioModel', function() {
             // TODO: Add tests for existing methods.
 
+            var modSpy, saveSpy, resultSpy;
+
+            beforeEach(function() {
+                modSpy = sinon.spy(models.ScenarioModel.prototype, 'updateModificationHash');
+                saveSpy = sinon.spy(models.ScenarioModel.prototype, 'attemptSave');
+                resultSpy = sinon.spy(models.ScenarioModel.prototype, 'getResults');
+            });
+
+            afterEach(function() {
+                models.ScenarioModel.prototype.updateModificationHash.restore();
+                models.ScenarioModel.prototype.attemptSave.restore();
+                models.ScenarioModel.prototype.getResults.restore();
+            });
+
             describe('#getCollectionHash', function() {
                 it('generates the same hash when given two collections in different order', function() {
                     var modificationsOne = new models.ModificationsCollection(),
@@ -444,25 +458,61 @@ describe('Modeling', function() {
                 });
 
                 it('is called when the modifications for a scenario changes', function() {
-                    var spy = sinon.spy(models.ScenarioModel.prototype, 'updateModificationHash'),
-                        model = new models.ScenarioModel({});
+                    var model = new models.ScenarioModel({});
 
-                    model.get('modifications').add(new models.ModificationModel(modificationsSample1));
-                    assert.isTrue(spy.calledOnce);
-
-                    models.ScenarioModel.prototype.updateModificationHash.restore();
+                    model.get('modifications').add(new models.ModificationModel(mocks.modifications.sample1));
+                    assert.isTrue(modSpy.called);
                 });
 
                 it('is called before model#attemptSave when the modifications change', function() {
-                    var modSpy = sinon.spy(models.ScenarioModel.prototype, 'updateModificationHash'),
-                        saveSpy = sinon.spy(models.ScenarioModel.prototype, 'attemptSave'),
-                        model = new models.ScenarioModel({});
+                    var model = new models.ScenarioModel({});
 
-                    model.addModification(new models.ModificationModel(modificationsSample1));
+                    model.addModification(new models.ModificationModel(mocks.modifications.sample1));
                     assert.isTrue(modSpy.calledBefore(saveSpy));
+                });
+            });
 
-                    models.ScenarioModel.prototype.updateModificationHash.restore();
-                    models.ScenarioModel.prototype.attemptSave.restore();
+            describe('#scenarioPolling', function() {
+                it('saves after polling finishes successfully', function(done) {
+                    var model = getTestScenarioModel(),
+                        delayedAssert = function() {
+                            assert.isTrue(resultSpy.called, 'getResults should have been called');
+                            assert.isTrue(saveSpy.called, 'attemptSave should have been called');
+                            assert.isTrue(resultSpy.calledBefore(saveSpy));
+
+                            done();
+                        };
+
+                    this.server.respondWith('POST', '/api/modeling/start/tr55/',
+                        [200, { 'Content-Type': 'application/json' }, mocks.polling.getTR55Started]);
+                    this.server.respondWith('GET', '/api/modeling/jobs/8aef636e-2079-4f87-98dc-471d090141ad/',
+                        [200, { 'Content-Type': 'application/json' }, mocks.polling.getJobSuccess]);
+
+                    model.addModification(new models.ModificationModel(mocks.modifications.sample1));
+
+                    // TODO: Refactor to use callbacks instead of delays
+                    setTimeout(delayedAssert, 1100);
+                });
+
+                it('saves after polling fails', function(done) {
+                    var model = getTestScenarioModel(),
+                        delayedAssert = function() {
+                            assert.isTrue(resultSpy.called, 'getResults should have been called');
+                            assert.isTrue(saveSpy.called, 'attemptSave should have been called');
+                            assert.isTrue(resultSpy.calledBefore(saveSpy));
+
+                            done();
+                        };
+
+                    this.server.respondWith('POST', '/api/modeling/start/tr55/',
+                        [200, { 'Content-Type': 'application/json' }, mocks.polling.getTR55Started]);
+                    this.server.respondWith('GET', '/api/modeling/jobs/8aef636e-2079-4f87-98dc-471d090141ad/',
+                        [400, { 'Content-Type': 'application/json' }, mocks.polling.getJobFailure]);
+
+                    model.addModification(new models.ModificationModel(mocks.modifications.sample1));
+
+                    // TODO: Refactor to use callbacks instead of delays
+                    setTimeout(delayedAssert, 1100);
                 });
             });
         });
