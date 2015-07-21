@@ -611,7 +611,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
                 .find('i')
                     .removeClass('fa-angle-up')
                     .addClass('fa-angle-down');
-            self.detailsRegion.currentView.triggerBarChartRefresh();
+            triggerBarChartRefresh();
         });
     },
 
@@ -665,10 +665,6 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
             collection: this.collection,
             scenario: this.scenario
         }));
-    },
-
-    triggerBarChartRefresh: function() {
-        this.panelsRegion.currentView.triggerBarChartRefresh();
     }
 });
 
@@ -703,9 +699,7 @@ var ResultsTabPanelsView = Marionette.CollectionView.extend({
         this.$el.find('li:first').addClass('active');
     },
 
-    triggerBarChartRefresh: function() {
-        $('#model-output-wrapper .bar-chart').trigger('bar-chart:refresh');
-    }
+    triggerBarChartRefresh: triggerBarChartRefresh
 });
 
 // Creates the appropriate view to visualize a result based
@@ -775,11 +769,16 @@ var ResultsTabContentsView = Marionette.CollectionView.extend({
     },
     onRender: function() {
         this.$el.find('.tab-pane:first').addClass('active');
+        triggerBarChartRefresh();
     }
 });
 
 function isEditable(scenario) {
     return App.user.userMatch(scenario.get('user_id'));
+}
+
+function triggerBarChartRefresh() {
+    $('#model-output-wrapper .bar-chart').trigger('bar-chart:refresh');
 }
 
 module.exports = {
