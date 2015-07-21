@@ -2,7 +2,7 @@
 
 var Backbone = require('../../shim/backbone'),
     _ = require('underscore'),
-    md5 = require('blueimp-md5').md5,
+    utils = require('../core/utils'),
     App = require('../app'),
     coreModels = require('../core/models');
 
@@ -21,7 +21,11 @@ var ModelPackageControlModel = Backbone.Model.extend({
 });
 
 var ModelPackageControlsCollection = Backbone.Collection.extend({
-    model: ModelPackageControlModel
+    model: ModelPackageControlModel,
+
+    comparator: function(model) {
+        return model.get('name');
+    }
 });
 
 var ModelPackageModel = Backbone.Model.extend();
@@ -48,6 +52,10 @@ var ResultModel = Backbone.Model.extend({
 
 var ResultCollection = Backbone.Collection.extend({
     model: ResultModel,
+
+    comparator: function(model) {
+        return model.get('name');
+    },
 
     setPolling: function(polling) {
         this.forEach(function(resultModel) {
@@ -240,7 +248,16 @@ var ModificationModel = coreModels.GeoModel.extend({
 });
 
 var ModificationsCollection = Backbone.Collection.extend({
-    model: ModificationModel
+    model: ModificationModel,
+
+    comparator: function(model) {
+        // Even though model.get('area') is a numeric value, passing it
+        // along with the others here causes a string comparison. But that's
+        // alright, because we only want to sort consistently, not actually
+        // by area, and it serves as a tie-breaker when the other values are
+        // identical.
+        return [model.get('name'), model.get('value'), model.get('area')];
+    }
 });
 
 var ScenarioModel = Backbone.Model.extend({
@@ -280,6 +297,9 @@ var ScenarioModel = Backbone.Model.extend({
 
         this.on('change:project change:name change:census', this.attemptSave, this);
         this.get('inputs').on('add', this.attemptSave, this);
+        this.updateModificationHash();
+        this.updateInputModHash();
+
         this.get('modifications').on('add remove change', this.updateModificationHash, this);
         this.get('modifications').on('add remove', this.attemptSave, this);
 
@@ -350,6 +370,8 @@ var ScenarioModel = Backbone.Model.extend({
     // Poll the taskModel for results and reset the results collection when done.
     // If not successful, the results collection is reset to be empty.
     getResults: function() {
+        this.updateInputModHash();
+
         var self = this,
             results = this.get('results'),
             taskModel = this.get('taskModel'),
@@ -415,8 +437,18 @@ var ScenarioModel = Backbone.Model.extend({
         taskModel.start(taskHelper);
     },
 
+    updateInputModHash: function() {
+        var hash = utils.getCollectionHash(this.get('inputs'));
+
+        if (this.get('modification_hash')) {
+            hash += this.get('modification_hash');
+        }
+
+        this.set('inputmod_hash', hash);
+    },
+
     updateModificationHash: function() {
-        var hash = md5(JSON.stringify(this.get('modifications')));
+        var hash = utils.getCollectionHash(this.get('modifications'));
 
         this.set('modification_hash', hash);
     }

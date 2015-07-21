@@ -1,6 +1,7 @@
 "use strict";
 
-var _ = require('underscore');
+var _ = require('underscore'),
+    md5 = require('blueimp-md5').md5;
 
 var utils = {
     // Parse query strings for Backbone
@@ -28,6 +29,40 @@ var utils = {
             );
         }
         return params;
+    },
+
+    // Convert a backbone collection into a canonical MD5 hash
+    getCollectionHash: function(collection) {
+        // JSON objects are not guaranteed consistent order in string
+        // representation, so we convert to sorted array which can be
+        // stringified reliably.
+
+        // Converts an object with JSON representation:
+        //     {name: 'abc', type: 'xyz', shape: [...]}
+        // to:
+        //     [{name: 'abc'}, {shape: [...]}, {type: 'xyz'}]
+        var objectToSortedArray = function(object) {
+                var sorted = [];
+                Object.keys(object).sort().forEach(function(key) {
+                    var kvPair = {},
+                        value = object[key];
+                    // Recursively sort nested objects
+                    if (_.isObject(value) && value !== null && !_.isArray(value)) {
+                        value = objectToSortedArray(value);
+                    }
+                    kvPair[key] = value;
+                    sorted.push(kvPair);
+                });
+
+                return sorted;
+            },
+            // Sort the collection by given sortKey and convert
+            // each model to a sorted array
+            sortedCollection = collection.sort().map(function(model) {
+                return objectToSortedArray(model.toJSON());
+            });
+
+        return md5(JSON.stringify(sortedCollection));
     }
 };
 
