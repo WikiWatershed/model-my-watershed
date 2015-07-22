@@ -35,6 +35,8 @@ def login(request):
                 auth_login(request, user)
                 response_data['result'] = 'success'
                 response_data['username'] = user.username
+                response_data['itsi'] = \
+                    ItsiUser.objects.filter(user_id=user.id).exists()
                 response_data['guest'] = False
                 response_data['id'] = user.id
             else:
@@ -53,6 +55,8 @@ def login(request):
 
         if user.is_authenticated() and user.is_active:
             response_data['username'] = user.username
+            response_data['itsi'] = \
+                ItsiUser.objects.filter(user_id=user.id).exists()
             response_data['guest'] = False
             response_data['id'] = user.id
         else:
@@ -72,6 +76,7 @@ def logout(request):
 
     if request.is_ajax():
         response_data = {
+            'itsi': False,
             'guest': True,
             'result': 'success',
             'id': 0
@@ -170,9 +175,13 @@ def itsi_sign_up(request):
     user = authenticate(itsi_id=itsi_id)
     auth_login(request, user)
 
-    response_data = {'result': 'success',
-                     'username': user.username,
-                     'guest': False}
+    response_data = {
+        'result': 'success',
+        'username': user.username,
+        'itsi': True,
+        'guest': False,
+        'id': user.id
+    }
     return Response(data=response_data,
                     status=status.HTTP_200_OK)
 

@@ -269,6 +269,38 @@ describe('Modeling', function() {
 
                 assert.equal($('#sandbox #project-privacy').text(), 'Make Private');
             });
+
+            it('shows "Embed in ITSI" link only for ITSI users', function() {
+                App.user.set({
+                    id: 1,
+                    itsi: true
+                });
+
+                var project = getTestProject(),
+                    view = new views.ProjectMenuView({ model: project }),
+                    projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[],"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}',
+                    postSaveMenuItems = [
+                        'Share',
+                        'Make Public',
+                        'Delete',
+                        'Add Tags',
+                        'Rename',
+                        'Print',
+                        'Embed in ITSI'
+                    ];
+
+                this.server.respondWith('POST', '/api/modeling/projects/',
+                            [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
+
+                project.save();
+
+                $('#sandbox').html(view.render().el);
+
+                assert.equal($('#sandbox li').length, 7);
+                $('#sandbox li').each(function() {
+                    assert.include(postSaveMenuItems, $(this).text());
+                });
+            });
         });
     });
 
