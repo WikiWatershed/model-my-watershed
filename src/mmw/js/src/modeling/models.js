@@ -1,7 +1,7 @@
 "use strict";
 
 var Backbone = require('../../shim/backbone'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     utils = require('../core/utils'),
     App = require('../app'),
     coreModels = require('../core/models');

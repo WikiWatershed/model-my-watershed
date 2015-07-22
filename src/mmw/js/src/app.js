@@ -15,17 +15,22 @@ var App = new Marionette.Application({
 
         // This view is intentionally not attached to any region.
         this._mapView = new views.MapView({
-            model: this.map
+            model: this.map,
+            el: '#map'
         });
 
         this.rootView = new views.RootView();
         this.user = new userModels.UserModel({});
 
-        var header = new views.HeaderView({
+        this.header = new views.HeaderView({
             el: 'header',
             model: this.user
         });
-        header.render();
+        this.header.render();
+
+        // Not set until modeling/controllers.js creates a
+        // new project.
+        this.currProject = null;
     },
 
     load: function(data) {

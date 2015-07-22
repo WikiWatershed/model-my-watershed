@@ -15,6 +15,7 @@ var $ = require('jquery'),
     AppRouter = require('../router').AppRouter,
     chart = require('./chart'),
     settings = require('./settings'),
+    testUtils = require('./testUtils'),
     sandboxTemplate = require('./templates/sandbox.html');
 
 var TEST_SHAPE = {
@@ -30,51 +31,58 @@ var chartData = [{x: 'a', y: 1},
                 {x: 'c', y: 3}],
     xValue = 'x',
     yValue = 'y',
-    sandboxHeight = '500',
-    sandboxWidth = '700',
-    sandboxSelector = '#display-sandbox';
+    displaySandboxHeight = '500',
+    displaySandboxWidth = '700',
+    displaySandboxSelector = '#display-sandbox',
+    sandboxId = 'sandbox',
+    sandboxSelector = '#' + sandboxId;
 
 describe('Core', function() {
     before(function() {
-        if ($('#sandbox').length === 0) {
-            $('<div>', {id: 'sandbox'}).appendTo('body');
+        if ($(sandboxSelector).length === 0) {
+            $('<div>', {id: sandboxId}).appendTo('body');
         }
     });
 
     beforeEach(function() {
-        $('#display-sandbox').remove();
+        $(displaySandboxSelector).remove();
         // Use a special sandbox so that we can test responsiveness of chart.
-        $('body').append(sandboxTemplate.render({height: sandboxHeight, width: sandboxWidth}));
+        $('body').append(sandboxTemplate.render({
+            height: displaySandboxHeight,
+            width: displaySandboxWidth
+        }));
     });
 
     afterEach(function() {
-        $('#sandbox').empty();
-        $('#display-sandbox').remove();
+        $(sandboxSelector).remove();
+        $('<div>', {id: sandboxId}).appendTo('body');
+        $(displaySandboxSelector).remove();
         // App adds a LoginModalView to the body
         // so we need to remove it.
         $('.modal').remove();
         window.location.hash = '';
         Backbone.history.stop();
+        testUtils.resetApp(App);
     });
 
     after(function() {
-        $('#sandbox').remove();
+        $(sandboxSelector).remove();
     });
 
     describe('Chart', function() {
         it('changes size when the browser is resized and height and width are not provided', function() {
-            chart.makeBarChart(sandboxSelector, chartData, xValue, yValue);
-            var $svg = $(sandboxSelector).children('svg');
+            chart.makeBarChart(displaySandboxSelector, chartData, xValue, yValue);
+            var $svg = $(displaySandboxSelector).children('svg');
 
             var beforeHeight = $svg.attr('height');
             var beforeWidth = $svg.attr('width');
-            assert.equal(sandboxHeight, beforeHeight);
-            assert.equal(sandboxWidth, beforeWidth);
+            assert.equal(displaySandboxHeight, beforeHeight);
+            assert.equal(displaySandboxWidth, beforeWidth);
 
             var afterSandboxHeight = 300;
             var afterSandboxWidth = 400;
-            $(sandboxSelector).css('height', afterSandboxHeight);
-            $(sandboxSelector).css('width', afterSandboxWidth);
+            $(displaySandboxSelector).css('height', afterSandboxHeight);
+            $(displaySandboxSelector).css('width', afterSandboxWidth);
             $(window).trigger('resize');
             var afterHeight = $svg.attr('height');
             var afterWidth = $svg.attr('width');
@@ -87,8 +95,8 @@ describe('Core', function() {
                 height: 400,
                 width: 600
             };
-            chart.makeBarChart(sandboxSelector, chartData, xValue, yValue, options);
-            var $svg = $(sandboxSelector).children('svg');
+            chart.makeBarChart(displaySandboxSelector, chartData, xValue, yValue, options);
+            var $svg = $(displaySandboxSelector).children('svg');
 
             var beforeHeight = $svg.attr('height');
             var beforeWidth = $svg.attr('width');
@@ -97,8 +105,8 @@ describe('Core', function() {
 
             var afterSandboxHeight = 300;
             var afterSandboxWidth = 400;
-            $(sandboxSelector).css('height', afterSandboxHeight);
-            $(sandboxSelector).css('width', afterSandboxWidth);
+            $(displaySandboxSelector).css('height', afterSandboxHeight);
+            $(displaySandboxSelector).css('width', afterSandboxWidth);
             $(window).trigger('resize');
             var afterHeight = $svg.attr('height');
             var afterWidth = $svg.attr('width');
@@ -110,22 +118,27 @@ describe('Core', function() {
     describe('Views', function() {
         describe('MapView', function() {
             it('adds layers to the map when the map model attribute areaOfInterest is set', function() {
-                var mapView = App._mapView,
-                    featureGroup = mapView._areaOfInterestLayer;
+                var model = new models.MapModel(),
+                    view = new views.MapView({
+                        model: model,
+                        el: sandboxSelector
+                    }),
+                    featureGroup = view._areaOfInterestLayer;
 
                 assert.equal(featureGroup.getLayers().length, 0);
-                App.map.set('areaOfInterest', TEST_SHAPE);
+                model.set('areaOfInterest', TEST_SHAPE);
                 assert.equal(featureGroup.getLayers().length, 1);
-                App.map.set('areaOfInterest', null);
+                model.set('areaOfInterest', null);
                 assert.equal(featureGroup.getLayers().length, 0);
 
-                App._mapView._leafletMap.remove();
+                view.destroy();
             });
 
             it('updates the position of the map when the map model location attributes are set', function() {
                 var model = new models.MapModel(),
                     view = new views.MapView({
-                        model: model
+                        model: model,
+                        el: sandboxSelector
                     }),
                     latLng = [40, -75],
                     zoom = 18;
@@ -138,13 +151,14 @@ describe('Core', function() {
                 assert.equal(view._leafletMap.getCenter().lng, latLng[1]);
                 assert.equal(view._leafletMap.getZoom(), zoom);
 
-                view._leafletMap.remove();
+                view.destroy();
             });
 
             it('silently sets the map model location attributes when the map position is updated', function() {
                 var model = new models.MapModel(),
                     view = new views.MapView({
-                        model: model
+                        model: model,
+                        el: sandboxSelector
                     }),
                     latLng = [40, -75],
                     zoom = 18;
@@ -155,32 +169,33 @@ describe('Core', function() {
                 assert.equal(model.get('lng'), -75);
                 assert.equal(model.get('zoom'), zoom);
 
-                view._leafletMap.remove();
+                view.destroy();
             });
 
             it('adds the class "half" to the map view when the map model attribute halfSize is set to true', function(){
                 var model = new models.MapModel(),
                     view = new views.MapView({
-                        model: model
+                        model: model,
+                        el: sandboxSelector
                     });
 
                 model.setHalfSize();
-                assert.isTrue($('#map').hasClass('half'));
+                assert.isTrue($(sandboxSelector).hasClass('half'));
 
-                view._leafletMap.remove();
-                $('#map').removeClass('half');
+                view.destroy();
             });
 
             it('removes the class "half" to the map view when the map model attribute halfSize is set to false', function(){
                 var model = new models.MapModel(),
                     view = new views.MapView({
-                        model: model
+                        model: model,
+                        el: sandboxSelector
                     });
 
                 model.setFullSize();
-                assert.isFalse($('#map').hasClass('half'));
+                assert.isFalse($(sandboxSelector).hasClass('half'));
 
-                view._leafletMap.remove();
+                view.destroy();
             });
 
 
@@ -198,17 +213,18 @@ describe('Core', function() {
 
                 var model = new models.MapModel(),
                     view = new views.MapView({
-                        model: model
+                        model: model,
+                        el: sandboxSelector
                     }),
                     $layers = $('.leaflet-control-layers-base'),
                     layerNames = $layers.find('span').map(function() {
                         return $(this).text().trim();
                     }).get();
 
-                assert.equal($layers.length, 1, 'Did not add layer selector');
+                assert.equal($layers.length, 2, 'Did not add layer selector');
                 assert.deepEqual(layerNames, _.keys(baseLayers));
 
-                view._leafletMap.remove();
+                view.destroy();
             });
         });
 
@@ -224,9 +240,11 @@ describe('Core', function() {
 
                 var spy = sinon.spy(model, 'destroy');
 
-                $('#sandbox').html(view.render().el);
-                $('#sandbox .delete-modification').click();
+                $(sandboxSelector).html(view.render().el);
+                $(sandboxSelector + ' .delete-modification').click();
                 assert.equal(spy.callCount, 1);
+
+                view.destroy();
             });
         });
     });
@@ -262,6 +280,7 @@ describe('Core', function() {
 
                 views.testSubView.on('animateIn', function() {
                     assert.equal($('.test-subview').height(), 50);
+                    views.destroy();
                     done();
                 });
 
@@ -273,6 +292,7 @@ describe('Core', function() {
 
                 views.testSubView.on('animateOut', function() {
                     assert.equal($('.test-subview').height(), 0);
+                    views.destroy();
                     done();
                 });
 
@@ -531,11 +551,11 @@ describe('Core', function() {
 
 function createTransitionRegionWithAnimatedHeightView(displayHeight, hiddenHeight) {
     var TestParentView = Marionette.LayoutView.extend({
-            el: 'body',
+            el: sandboxId,
             regions: {
                 testRegion: {
                     regionClass: TransitionRegion,
-                    selector: '#sandbox'
+                    selector: sandboxSelector
                 }
             }
         }),
@@ -543,7 +563,7 @@ function createTransitionRegionWithAnimatedHeightView(displayHeight, hiddenHeigh
             template: false,
             className: 'test-subview',
             transitionInCss: {
-                height: hiddenHeight,
+                height: hiddenHeight
             },
 
             animateIn: function() {
@@ -562,6 +582,10 @@ function createTransitionRegionWithAnimatedHeightView(displayHeight, hiddenHeigh
         testSubView = new TestSubView({});
 
     return {
+        destroy: function() {
+            testSubView.destroy();
+            testParentView.destroy();
+        },
         testParentView: testParentView,
         testSubView: testSubView
     };

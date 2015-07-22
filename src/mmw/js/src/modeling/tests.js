@@ -12,31 +12,45 @@ var _ = require('lodash'),
     models = require('./models'),
     views = require('./views'),
     App = require('../app.js'),
+    testUtils = require('../core/testUtils'),
     modificationConfigUtils = require('./modificationConfigUtils');
+
+var sandboxId = 'sandbox',
+    sandboxSelector = '#' + sandboxId;
 
 describe('Modeling', function() {
     before(function() {
-        if ($('#sandbox').length === 0) {
-            $('<div>', {id: 'sandbox'}).appendTo('body');
+        if ($(sandboxSelector).length === 0) {
+            $('<div>', {id: sandboxId}).appendTo('body');
         }
+    });
 
+    beforeEach(function() {
         // ScenarioModel.initialize() expects
         // App.currProject to be set, and uses it to determine the
         // taskModel and modelPackage to use.
         App.currProject = new models.ProjectModel();
-    });
 
-    beforeEach(function() {
         this.server = sinon.fakeServer.create();
         this.server.respondImmediately = true;
+
+        // Using debounce causes adding modifications to become asynchronous
+        // due to using setTimeout, which makes it more difficult to test.
+        // Using the fake timer in sinon does not help because lodash has its own
+        // cached copy of the setTimeout function. So, we mock debounce.
+        this.origDebounce = _.debounce;
+        _.debounce = _.identity;
     });
 
     afterEach(function() {
-        $('#sandbox').empty();
+        $(sandboxSelector).empty();
+        testUtils.resetApp(App);
+
+        _.debounce = this.origDebounce;
     });
 
     after(function() {
-        $('#sandbox').remove();
+        $(sandboxSelector).remove();
     });
 
     describe('Views', function() {
@@ -45,7 +59,7 @@ describe('Modeling', function() {
                 var collection = getTestScenarioCollection(),
                     view = new views.ScenariosView({ collection: collection });
 
-                $('#sandbox').html(view.render().el);
+                $(sandboxSelector).html(view.render().el);
 
                 assert.equal(collection.length, 3);
                 $('#sandbox #add-scenario').click();
@@ -58,7 +72,7 @@ describe('Modeling', function() {
                 var collection = getTestScenarioCollection(),
                     view = new views.ScenarioDropDownMenuView({ collection: collection });
 
-                $('#sandbox').html(view.render().el);
+                $(sandboxSelector).html(view.render().el);
                 $('#sandbox .dropdown-menu li:nth-child(2) a').click();
 
                 assert.isTrue(collection.at(1).get('active'));
@@ -70,7 +84,7 @@ describe('Modeling', function() {
                 var collection = new models.ScenariosCollection([]),
                     view = new views.ScenarioTabPanelsView({ collection: collection });
 
-                $('#sandbox').html(view.render().el);
+                $(sandboxSelector).html(view.render().el);
                 assert.equal($('#sandbox ul.nav.nav-tabs > li').length, 0);
             });
 
@@ -80,7 +94,7 @@ describe('Modeling', function() {
                     ]),
                     view = new views.ScenarioTabPanelsView({ collection: collection });
 
-                $('#sandbox').html(view.render().el);
+                $(sandboxSelector).html(view.render().el);
                 assert.equal($('#sandbox ul.nav.nav-tabs > li').length, 1);
             });
 
@@ -88,7 +102,7 @@ describe('Modeling', function() {
                 var collection = getTestScenarioCollection(),
                     view = new views.ScenarioTabPanelsView({ collection: collection });
 
-                $('#sandbox').html(view.render().el);
+                $(sandboxSelector).html(view.render().el);
                 assert.equal($('#sandbox ul.nav.nav-tabs > li').length, 3);
             });
 
@@ -108,7 +122,7 @@ describe('Modeling', function() {
 
                 var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
 
-                $('#sandbox').html(view.render().el);
+                $(sandboxSelector).html(view.render().el);
                 checkMenuItemsMatch(['Print', 'Rename', 'Duplicate', 'Delete']);
             });
 
@@ -120,7 +134,7 @@ describe('Modeling', function() {
 
                 var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
 
-                $('#sandbox').html(view.render().el);
+                $(sandboxSelector).html(view.render().el);
                 checkMenuItemsMatch(['Print']);
             });
 
@@ -133,7 +147,7 @@ describe('Modeling', function() {
 
                 var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
 
-                $('#sandbox').html(view.render().el);
+                $(sandboxSelector).html(view.render().el);
                 checkMenuItemsMatch(['Share', 'Print', 'Rename', 'Duplicate', 'Delete']);
             });
         });
@@ -150,7 +164,7 @@ describe('Modeling', function() {
                 });
                 this.modsModel1 = new models.ModificationModel(mocks.modifications.sample1);
                 this.modsModel2 = new models.ModificationModel(mocks.modifications.sample2);
-                $('#sandbox').html(this.view.render().el);
+                $(sandboxSelector).html(this.view.render().el);
             });
 
             afterEach(function() {
@@ -190,6 +204,9 @@ describe('Modeling', function() {
 
         describe('ProjectMenuView', function() {
             it('displays a limited list of options in the drop down menu until the project is saved', function() {
+                // Make user id same as one on project, so it is considered editable.
+                App.user.set('id', 1);
+
                 var project = getTestProject(),
                     view = new views.ProjectMenuView({ model: project }),
                     preSaveMenuItems = [
@@ -198,7 +215,7 @@ describe('Modeling', function() {
                         'Print'
                     ];
 
-                $('#sandbox').html(view.render().el);
+                $(sandboxSelector).html(view.render().el);
 
                 assert.equal($('#sandbox li').length, preSaveMenuItems.length);
                 $('#sandbox li').each(function() {
@@ -226,7 +243,7 @@ describe('Modeling', function() {
 
                 project.save();
 
-                $('#sandbox').html(view.render().el);
+                $(sandboxSelector).html(view.render().el);
 
                 assert.equal($('#sandbox li').length, postSaveMenuItems.length);
                 $('#sandbox li').each(function() {
@@ -246,26 +263,30 @@ describe('Modeling', function() {
 
                 project.save();
 
-                $('#sandbox').html(view.render().el);
+                $(sandboxSelector).html(view.render().el);
                 // Print is the only option for non project owners.
                 assert.equal($('#sandbox li').length, 1);
             });
 
             it('changes the privacy menu item depending on the is_private attribute of the project', function() {
+                // Make user id same as one on project, so it is considered editable.
+                App.user.set('id', 1);
+
                 var project = getTestProject(),
                     view = new views.ProjectMenuView({ model: project });
 
+                // Set id attribute so project.isNew() is false.
                 project.set({
-                    id: 1,
+                    id: 5,
                     is_private: true
                 });
 
-                $('#sandbox').html(view.render().el);
+                $(sandboxSelector).html(view.render().el);
 
                 assert.equal($('#sandbox #project-privacy').text(), 'Make Public');
 
                 project.set('is_private', false);
-                $('#sandbox').html(view.render().el);
+                $(sandboxSelector).html(view.render().el);
 
                 assert.equal($('#sandbox #project-privacy').text(), 'Make Private');
             });
@@ -307,13 +328,17 @@ describe('Modeling', function() {
     describe('Models', function() {
         describe('ProjectModel', function() {
             describe('#saveProjectAndScenarios', function() {
-                it('calls #save on the project and sets the id on every scenario that\'s part of the project', function() {
-                    // Let the application know which user we are.
+                beforeEach(function() {
                     App.user.set('id', 1);
+                });
 
+                /*
+                 TODO: fix this test as part of https://github.com/WikiWatershed/model-my-watershed/issues/393
+
+                it('calls #save on the project and sets the id on every scenario that\'s part of the project', function() {
                     var projectResponse = '{"id":57,"user":{"id":1,"username":"test","email":"test@azavea.com"},"name":"My Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}';
                     this.server.respondWith('POST', '/api/modeling/projects/',
-                            [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
+                                            [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
 
                     var project = getTestProject(),
                         projectSpy = sinon.spy(project, 'save'),
@@ -326,26 +351,23 @@ describe('Modeling', function() {
                     assert.isTrue(scenario1Spy.calledOnce, 'Scenario1 was not saved once.');
                     assert.isTrue(scenario2Spy.calledOnce, 'Scenario2 was not saved once.');
                 });
+                 */
 
                 it('properly associates scenarios with the project when initially saving the project', function() {
                     var projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}',
                         scenarioResponse = '{"id":32,"name":"Current Conditions","is_current_conditions":true,"modifications":"[]","modification_hash":null,"results":null,"created_at":"2015-06-03T20:09:12.161075Z","modified_at":"2015-06-03T20:09:12.161117Z","project":21}';
 
                     this.server.respondWith('POST', '/api/modeling/projects/',
-                            [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
+                                            [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
                     this.server.respondWith('POST', '/api/modeling/scenarios/',
-                            [ 200, { 'Content-Type': 'application/json' }, scenarioResponse ]);
+                                            [ 200, { 'Content-Type': 'application/json' }, scenarioResponse ]);
 
-                    var project = getTestProject(),
-                        scenario1Spy = sinon.spy(project.get('scenarios').at(0), 'save'),
-                        scenario2Spy = sinon.spy(project.get('scenarios').at(1), 'save');
+                    var project = getTestProject();
 
                     project.saveProjectAndScenarios();
 
-                    // spy.thisValues[0] == `this` when function being spied on
-                    // was first called.
-                    assert.equal(scenario1Spy.thisValues[0].get('project'), 21);
-                    assert.equal(scenario2Spy.thisValues[0].get('project'), 21);
+                    assert.equal(project.get('scenarios').at(0).get('project'), 21);
+                    assert.equal(project.get('scenarios').at(1).get('project'), 21);
                 });
             });
 
@@ -475,8 +497,8 @@ describe('Modeling', function() {
 
                 it('generates and sets modification_hash based on the scenario\'s modifications', function() {
                     var model = new models.ScenarioModel({
-                            modifications: [mocks.modifications.sample1]
-                        });
+                        modifications: [mocks.modifications.sample1]
+                    });
 
                     model.updateModificationHash();
                     assert.equal(model.get('modification_hash'), '40c4fdd89b06a0e9b7e1c3c5c2bd1f17');
@@ -505,15 +527,14 @@ describe('Modeling', function() {
             });
 
             describe('#scenarioPolling', function() {
-                it('saves after polling finishes successfully', function(done) {
-                    var model = getTestScenarioModel(),
-                        delayedAssert = function() {
-                            assert.isTrue(resultSpy.called, 'getResults should have been called');
-                            assert.isTrue(saveSpy.called, 'attemptSave should have been called');
-                            assert.isTrue(resultSpy.calledBefore(saveSpy));
+                it('saves after polling finishes successfully', function() {
+                    // Putting useFakeTimers in beforeEach
+                    // and restore in afterEach makes more sense,
+                    // but it causes testem to stall when in headless-mode
+                    // for reasons I can't figure out.
+                    this.clock = sinon.useFakeTimers();
 
-                            done();
-                        };
+                    var model = getTestScenarioModel();
 
                     this.server.respondWith('POST', '/api/modeling/start/tr55/',
                         [200, { 'Content-Type': 'application/json' }, mocks.polling.getTR55Started]);
@@ -522,19 +543,19 @@ describe('Modeling', function() {
 
                     model.addModification(new models.ModificationModel(mocks.modifications.sample1));
 
-                    // TODO: Refactor to use callbacks instead of delays
-                    setTimeout(delayedAssert, 1100);
+                    this.clock.tick(1000);
+
+                    assert.isTrue(resultSpy.called, 'getResults should have been called');
+                    assert.isTrue(saveSpy.called, 'attemptSave should have been called');
+                    assert.isTrue(resultSpy.calledBefore(saveSpy));
+
+                    this.clock.restore();
                 });
 
-                it('saves after polling fails', function(done) {
-                    var model = getTestScenarioModel(),
-                        delayedAssert = function() {
-                            assert.isTrue(resultSpy.called, 'getResults should have been called');
-                            assert.isTrue(saveSpy.called, 'attemptSave should have been called');
-                            assert.isTrue(resultSpy.calledBefore(saveSpy));
+                it('saves after polling fails', function() {
+                    this.clock = sinon.useFakeTimers();
 
-                            done();
-                        };
+                    var model = getTestScenarioModel();
 
                     this.server.respondWith('POST', '/api/modeling/start/tr55/',
                         [200, { 'Content-Type': 'application/json' }, mocks.polling.getTR55Started]);
@@ -543,8 +564,13 @@ describe('Modeling', function() {
 
                     model.addModification(new models.ModificationModel(mocks.modifications.sample1));
 
-                    // TODO: Refactor to use callbacks instead of delays
-                    setTimeout(delayedAssert, 1100);
+                    this.clock.tick(1000);
+
+                    assert.isTrue(resultSpy.called, 'getResults should have been called');
+                    assert.isTrue(saveSpy.called, 'attemptSave should have been called');
+                    assert.isTrue(resultSpy.calledBefore(saveSpy));
+
+                    this.clock.restore();
                 });
             });
         });
@@ -698,8 +724,6 @@ describe('Modeling', function() {
         });
     });
 });
-
-// var lessThanOneAcrePolygon = { "type": "Feature", "properties": {}, "geometry": { "type": "Polygon", "coordinates": [ [ [ -75.17049014568327, 39.95056149048882 ], [ -75.17032116651535, 39.950538872524845 ], [ -75.17038553953171, 39.9502037145458 ], [ -75.17057061195372, 39.95022633262059 ], [ -75.17049014568327, 39.95056149048882 ] ] ] } };
 
 function getTestScenarioModel() {
     return new models.ScenarioModel(mocks.scenarios.sample);
