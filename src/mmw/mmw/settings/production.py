@@ -73,6 +73,5 @@ PRIVATE_AWS_STORAGE_URL_PROTOCOL = 'https:'
 
 # END Django Storages CONFIGURATION
 
-# API key for testing/development
-# TODO replace with production key. Chip is going to ask Stroud for it.
-GOOGLE_MAPS_API_KEY = 'AIzaSyB0D5gjoIHpmy-xdP2cr_0I-E7K6s_L0k4'
+# Google API key for production deployment
+GOOGLE_MAPS_API_KEY = 'AIzaSyCXdkywU7rps_i1CeKqWxlBi97vyGeXsqk'
