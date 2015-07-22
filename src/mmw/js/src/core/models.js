@@ -88,6 +88,7 @@ var TaskModel = Backbone.Model.extend({
             onStart: _.noop,
             pollSuccess: _.noop,
             pollFailure: _.noop,
+            pollEnd: _.noop,
             startFailure: _.noop
         });
 
@@ -111,7 +112,8 @@ var TaskModel = Backbone.Model.extend({
                         } else {
                             taskHelper.pollFailure();
                         }
-                    });
+                    })
+                    .always(taskHelper.pollEnd);
             })
             .fail(taskHelper.startFailure);
     },

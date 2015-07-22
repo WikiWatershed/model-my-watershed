@@ -194,6 +194,7 @@ def run_tr55(census, model_input):
     model_output = simulate_modifications(census, fn=simulate_day)
 
     return {
+        'inputmod_hash': model_input['inputmod_hash'],
         'census': census,
         'runoff': model_output,
         'quality': format_quality(model_output)

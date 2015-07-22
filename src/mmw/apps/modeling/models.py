@@ -46,13 +46,19 @@ class Scenario(models.Model):
     inputs = models.TextField(
         null=True,
         help_text='Serialized JSON representation of scenario inputs')
+    inputmod_hash = models.CharField(
+        max_length=255,
+        null=True,
+        help_text='A hash of the values for inputs & modifications to ' +
+                  'compare to the existing model results, to determine if ' +
+                  'the persisted result apply to the current values')
     modifications = models.TextField(
         null=True,
         help_text='Serialized JSON representation of scenarios modifications ')
     modification_hash = models.CharField(
         max_length=255,
         null=True,
-        help_text='A hash of the values for modifications & inputs to ' +
+        help_text='A hash of the values for modifications to ' +
                   'compare to the existing model results, to determine if ' +
                   'the persisted result apply to the current values')
     census = models.TextField(

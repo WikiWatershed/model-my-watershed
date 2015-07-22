@@ -23,6 +23,7 @@ class TaskRunnerTestCase(TestCase):
                     'value': 1.2
                 }
             ],
+            'inputmod_hash': '9780bd0887ab5008620efd25bd2eec3f',
             'modifications': [{
                 'name': 'conservation_practice',
                 'area': 15.683767964377065,
