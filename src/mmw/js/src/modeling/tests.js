@@ -200,7 +200,7 @@ describe('Modeling', function() {
 
                 $('#sandbox').html(view.render().el);
 
-                assert.equal($('#sandbox li').length, 3);
+                assert.equal($('#sandbox li').length, preSaveMenuItems.length);
                 $('#sandbox li').each(function() {
                     assert.include(preSaveMenuItems, $(this).text());
                 });
@@ -228,7 +228,7 @@ describe('Modeling', function() {
 
                 $('#sandbox').html(view.render().el);
 
-                assert.equal($('#sandbox li').length, 6);
+                assert.equal($('#sandbox li').length, postSaveMenuItems.length);
                 $('#sandbox li').each(function() {
                     assert.include(postSaveMenuItems, $(this).text());
                 });
@@ -296,7 +296,7 @@ describe('Modeling', function() {
 
                 $('#sandbox').html(view.render().el);
 
-                assert.equal($('#sandbox li').length, 7);
+                assert.equal($('#sandbox li').length, postSaveMenuItems.length);
                 $('#sandbox li').each(function() {
                     assert.include(postSaveMenuItems, $(this).text());
                 });

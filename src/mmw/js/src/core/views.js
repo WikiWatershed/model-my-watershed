@@ -527,7 +527,7 @@ var ShareModal = BaseModal.extend({
     onRender: function() {
         var self = this;
         this.$el.on('shown.bs.modal', function() {
-            self.zc.clip(self.$el.find(self.ui.copy.selector));
+            self.zc.clip(self.ui.copy);
         });
 
         if (this.model.get('is_private')) {
