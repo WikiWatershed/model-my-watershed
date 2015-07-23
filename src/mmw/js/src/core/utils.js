@@ -8,22 +8,22 @@ var utils = {
     // Takes queryString of format "key1=value1&key2=value2"
     // Returns object of format {key1: value1, key2: value2}
     // From http://stackoverflow.com/a/11671457/2053314
-    parseQueryString: function (queryString){
+    parseQueryString: function(queryString) {
         var params = {};
-        if(queryString){
+        if (queryString) {
             _.each(
-                _.map(decodeURI(queryString).split(/&/g),function(el){
+                _.map(decodeURI(queryString).split(/&/g), function(el) {
                     var aux = el.split('='), o = {};
-                    if(aux.length >= 1){
+                    if (aux.length >= 1) {
                         var val;
-                        if(aux.length === 2) {
+                        if (aux.length === 2) {
                             val = aux[1];
                         }
                         o[aux[0]] = val;
                     }
                     return o;
                 }),
-                function(o){
+                function(o) {
                     _.extend(params,o);
                 }
             );
