@@ -4,6 +4,7 @@ var Backbone = require('../../shim/backbone');
 
 var UserModel = Backbone.Model.extend({
     defaults: {
+        itsi: false,
         guest: true
     },
 

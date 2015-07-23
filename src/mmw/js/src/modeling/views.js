@@ -87,7 +87,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
         remove: '#delete-project',
         print: '#print-project',
         save: '#save-project',
-        privacy: '#project-privacy'
+        privacy: '#project-privacy',
+        itsiClone: '#itsi-clone'
     },
 
     events: {
@@ -96,13 +97,15 @@ var ProjectMenuView = Marionette.ItemView.extend({
         'click @ui.share': 'shareProject',
         'click @ui.print': 'printProject',
         'click @ui.save': 'saveProjectOrLoginUser',
-        'click @ui.privacy': 'setProjectPrivacy'
+        'click @ui.privacy': 'setProjectPrivacy',
+        'click @ui.itsiClone': 'getItsiEmbedLink'
     },
 
     template: projectMenuTmpl,
 
     templateHelpers: function() {
         return {
+            itsi: App.user.get('itsi'),
             editable: isEditable(this.model),
             is_new: this.model.isNew()
         };
@@ -132,7 +135,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
                 model: new Backbone.Model({
                     text: 'Project',
                     url: window.location.href,
-                    guest: App.user.get('guest')
+                    guest: App.user.get('guest'),
+                    is_private: this.model.get('is_private')
                 }),
                 app: App
             });
@@ -204,6 +208,23 @@ var ProjectMenuView = Marionette.ItemView.extend({
             self.model.set('is_private', !self.model.get('is_private'));
             self.model.saveProjectAndScenarios();
         });
+    },
+
+    getItsiEmbedLink: function() {
+        var self = this,
+            embedLink = window.location.origin +
+                '/project/' + App.currProject.id + '/clone?itsi_embed=true',
+            modal = new coreViews.ShareModal({
+                model: new Backbone.Model({
+                    text: 'Embed Link',
+                    url: embedLink,
+                    guest: App.user.get('guest'),
+                    is_private: self.model.get('is_private')
+                }),
+                app: App
+            });
+
+        modal.render();
     }
 });
 

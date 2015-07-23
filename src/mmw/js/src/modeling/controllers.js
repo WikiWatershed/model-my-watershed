@@ -84,6 +84,13 @@ var ModelingController = {
         App.getMapView().updateModifications(null);
         App.rootView.subHeaderRegion.empty();
         App.rootView.footerRegion.empty();
+    },
+
+    // Since we handle redirects after ITSI sign-up within Backbone,
+    // but project cloning is done only on server side, we redirect
+    // the project cloning route back to the server.
+    projectClone: function() {
+        window.location.replace(window.location.href);
     }
 };
 

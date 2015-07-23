@@ -4,6 +4,7 @@ var $ = require('jquery'),
     L = require('leaflet'),
     _ = require('underscore'),
     router = require('../router.js').router,
+    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
     ZeroClipboard = require('zeroclipboard'),
@@ -526,10 +527,32 @@ var ShareModal = BaseModal.extend({
     onRender: function() {
         var self = this;
         this.$el.on('shown.bs.modal', function() {
-            self.zc.clip(self.$el.find(self.ui.copy.selector));
+            self.zc.clip(self.ui.copy);
         });
 
-        this.$el.modal('show');
+        if (this.model.get('is_private')) {
+            var question = 'This project is currently private. ' +
+                    'You must make it public before it can be shared with others. ' +
+                    'Once public, anyone with the URL can access it.',
+                confirm = new ConfirmModal({
+                    model: new Backbone.Model({
+                        question: question,
+                        confirmLabel: 'Make Public',
+                        cancelLabel: 'Cancel'
+                    })
+                });
+
+            confirm.render();
+            confirm.on('confirmation', function() {
+                var project = self.options.app.currProject;
+                project.set('is_private', false);
+                project.saveProjectAndScenarios();
+
+                self.$el.modal('show');
+            });
+        } else {
+            this.$el.modal('show');
+        }
     },
 
     onModalShown: function() {
