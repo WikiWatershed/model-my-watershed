@@ -14,6 +14,7 @@ router.addRoute(/^project/, ModelingController, 'project');
 router.addRoute('project/:projectId', ModelingController, 'project');
 router.addRoute('project/:projectId/', ModelingController, 'project');
 router.addRoute('project/:projectId/scenario/:scenarioId/', ModelingController, 'project');
+//TODO Add route for /project/XX/scenario/compare
 router.addRoute(/^compare/, CompareController, 'compare');
 router.addRoute('error(/)(:type)', ErrorController, 'error');
 router.addRoute('sign-up(/)', SignUpController, 'signUp');
