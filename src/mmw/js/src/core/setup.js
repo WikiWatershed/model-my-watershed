@@ -16,7 +16,8 @@ require('../../shim/backbone');
 require('../../shim/backbone.marionette');
 
 // Include template filters.
-require('../filters');
+require('./filters');
+require('../modeling/filters');
 
 require('bootstrap');
 require('bootstrap-select');

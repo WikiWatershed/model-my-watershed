@@ -11,7 +11,7 @@ from apps.user.serializers import UserSerializer
 import json
 
 
-class ModificationsField(serializers.BaseSerializer):
+class JsonField(serializers.BaseSerializer):
 
     def to_representation(self, obj):
         return json.loads(obj)
@@ -21,13 +21,17 @@ class ModificationsField(serializers.BaseSerializer):
 
 
 class ScenarioSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Scenario
 
-    modifications = ModificationsField()
+    inputs = JsonField()
+    modifications = JsonField()
+    census = JsonField(required=False, allow_null=True)
 
 
 class ProjectSerializer(gis_serializers.GeoModelSerializer):
+
     class Meta:
         model = Project
         depth = 1
@@ -38,6 +42,7 @@ class ProjectSerializer(gis_serializers.GeoModelSerializer):
 
 
 class ProjectUpdateSerializer(gis_serializers.GeoModelSerializer):
+
     class Meta:
         model = Project
         depth = 1

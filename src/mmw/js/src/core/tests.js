@@ -14,6 +14,7 @@ var $ = require('jquery'),
     models = require('./models'),
     AppRouter = require('../router').AppRouter,
     chart = require('./chart'),
+    settings = require('./settings'),
     sandboxTemplate = require('./templates/sandbox.html');
 
 var TEST_SHAPE = {
@@ -163,7 +164,7 @@ describe('Core', function() {
                         model: model
                     });
 
-                model.set('halfSize', true);
+                model.setHalfSize();
                 assert.isTrue($('#map').hasClass('half'));
 
                 view._leafletMap.remove();
@@ -176,8 +177,36 @@ describe('Core', function() {
                         model: model
                     });
 
-                model.set('halfSize', false);
+                model.setFullSize();
                 assert.isFalse($('#map').hasClass('half'));
+
+                view._leafletMap.remove();
+            });
+
+
+            it('creates a layer selector with the correct items', function() {
+                var baseLayers = {
+                    'A': {
+                        'url': 'https://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png',
+                        'default': true
+                    },
+                    'B': {
+                        'url': 'https://{s}.tiles.mapbox.com/v3/examples.map-i86nkdio/{z}/{x}/{y}.png'
+                    }
+                };
+                settings.setSettings('base_layers', baseLayers);
+
+                var model = new models.MapModel(),
+                    view = new views.MapView({
+                        model: model
+                    }),
+                    $layers = $('.leaflet-control-layers-base'),
+                    layerNames = $layers.find('span').map(function() {
+                        return $(this).text().trim();
+                    }).get();
+
+                assert.equal($layers.length, 1, 'Did not add layer selector');
+                assert.deepEqual(layerNames, _.keys(baseLayers));
 
                 view._leafletMap.remove();
             });
@@ -192,12 +221,6 @@ describe('Core', function() {
                         units: 'm<sup>2</sup>',
                     }),
                     view = new views.ModificationPopupView({ model: model });
-
-                // ModificationModel has a static method
-                // for getting the label.
-                model.label = function() {
-                    return 'Modification Label';
-                };
 
                 var spy = sinon.spy(model, 'destroy');
 

@@ -15,24 +15,57 @@ from rest_framework.test import APIClient
 
 
 class TaskRunnerTestCase(TestCase):
-    @override_settings(CELERY_ALWAYS_EAGER=True)
-    def test_tr55_job_runs_in_chain(self):
-        model_input = {
-            'modifications': [
+    def setUp(self):
+        self.model_input = {
+            'inputs': [
                 {
                     'name': 'precipitation',
                     'value': 1.2
                 }
             ],
-            'precip': 1.0
+            'modifications': [{
+                'name': 'conservation_practice',
+                'area': 15.683767964377065,
+                'value': 'rain_garden',
+                'shape': {
+                    'geometry': {
+                        'type': 'Polygon',
+                        'coordinates': [[
+                            [-75.09326934814453, 40.10092245173233],
+                            [-75.13343811035156, 40.060731050581396],
+                            [-75.0637435913086, 40.065460682065535],
+                            [-75.0692367553711, 40.095670021782404],
+                            [-75.09326934814453, 40.10092245173233]
+                        ]]
+                    },
+                    'type': 'Feature',
+                    'properties': {}
+                },
+                'units': 'km<sup>2</sup>',
+                'type': ''
+            }],
+            'area_of_interest': {
+                'type': 'MultiPolygon',
+                'coordinates': [[
+                    [[-75.06271362304688, 40.15893480687665],
+                     [-75.2728271484375, 39.97185812402586],
+                     [-74.99130249023438, 40.10958807474143],
+                     [-75.06271362304688, 40.15893480687665]]
+                ]]
+            },
+            'modification_hash': '39f488abec2de49f17652631ae843946'
         }
 
         created = now()
-        job = Job.objects.create(created_at=created, result='', error='',
-                                 traceback='', user=None, status='started')
-        job.save()
+        self.job = Job.objects.create(created_at=created, result='', error='',
+                                      traceback='', user=None,
+                                      status='started')
+        self.job.save()
 
-        task_list = views._initiate_tr55_job_chain(model_input, job.id)
+    @override_settings(CELERY_ALWAYS_EAGER=True)
+    def test_tr55_job_runs_in_chain(self):
+        task_list = views._initiate_tr55_job_chain(self.model_input,
+                                                   self.job.id)
 
         found_job = Job.objects.get(uuid=task_list.id)
 
@@ -44,8 +77,89 @@ class TaskRunnerTestCase(TestCase):
                          'complete',
                          'Job found but incomplete.')
 
+    @override_settings(CELERY_ALWAYS_EAGER=True)
+    def test_tr55_job_error_in_chain(self):
+        model_input = {
+            'inputs': [],
+            'modifications': [],
+            'modification_hash': 'j39fj9fg7yshb399h4nsdhf'
+        }
+
+        with self.assertRaises(Exception) as context:
+            views._initiate_tr55_job_chain(model_input, self.job.id)
+
+        self.assertEqual(str(context.exception),
+                         'No precipitation value defined',
+                         'Unexpected exception occurred')
+
+    def test_tr55_chain_skips_census_if_census_is_up_to_date(self):
+        # Census with current modification_hash
+        self.model_input['census'] = {
+            'cell_count': 100,
+            'distribution': {
+                'c:commercial': {
+                    'cell_count': 70
+                },
+                'a:deciduous_forest': {
+                    'cell_count': 30
+                }
+            },
+            'modification_hash': '39f488abec2de49f17652631ae843946',
+            'modifications': [{
+                'bmp': 'no_till',
+                'cell_count': 1,
+                'distribution': {
+                    'a:deciduous_forest': {'cell_count': 1},
+                }
+            }]
+        }
+
+        job_chain = views._construct_tr55_job_chain(self.model_input,
+                                                    self.job.id)
+
+        self.assertFalse('tasks.prepare_census' in str(job_chain),
+                         'Census preparation should be skipped')
+
+    @override_settings(CELERY_ALWAYS_EAGER=True)
+    def test_tr55_chain_generates_census_if_census_is_stale(self):
+        # Census with stale modification_hash
+        self.model_input['census'] = {
+            'cell_count': 100,
+            'distribution': {
+                'c:commercial': {
+                    'cell_count': 70
+                },
+                'a:deciduous_forest': {
+                    'cell_count': 30
+                }
+            },
+            'modification_hash': 'j3jk3jk3jn3knm3nmn39usd',
+            'modifications': [{
+                'bmp': 'no_till',
+                'cell_count': 1,
+                'distribution': {
+                    'a:deciduous_forest': {'cell_count': 1},
+                }
+            }]
+        }
+
+        job_chain = views._construct_tr55_job_chain(self.model_input,
+                                                    self.job.id)
+
+        self.assertTrue('tasks.prepare_census' in str(job_chain),
+                        'Census preparation should not be skipped')
+
+    @override_settings(CELERY_ALWAYS_EAGER=True)
+    def test_tr55_chain_generates_census_if_census_does_not_exist(self):
+        job_chain = views._construct_tr55_job_chain(self.model_input,
+                                                    self.job.id)
+
+        self.assertTrue('tasks.prepare_census' in str(job_chain),
+                        'Census preparation should not be skipped')
+
 
 class APIAccessTestCase(TestCase):
+
     def setUp(self):
         self.c = APIClient()
         self.test_user = User.objects.create_user(username='test',
@@ -65,6 +179,7 @@ class APIAccessTestCase(TestCase):
         self.scenario = {
             "name": "Current Conditions",
             "is_current_conditions": True,
+            "inputs": "[]",
             "modifications": "[]"
         }
 

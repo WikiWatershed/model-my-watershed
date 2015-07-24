@@ -1,0 +1,6 @@
+<h3>Modifications</h3>
+<ul class="modifications-list">
+    {% for modification in modifications %}
+        <li>{{ modification.name }}:{{ modification.value }}, Area: {{modification.area}}</li>
+    {% endfor %}
+</ul>

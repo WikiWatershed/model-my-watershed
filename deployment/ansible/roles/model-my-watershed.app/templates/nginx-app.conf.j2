@@ -12,6 +12,10 @@ server {
   }
   {% endif %}
 
+  location /favicon.ico {
+    alias {{ app_static_root }}favicon.png;
+  }
+
   location /static/ {
     {% if ['packer'] | is_in(group_names) -%}
     etag on;

@@ -8,6 +8,7 @@ from django.conf.urls import patterns, url
 from apps.user.views import (login,
                              sign_up,
                              forgot,
+                             resend,
                              logout,
                              itsi_login,
                              itsi_auth,
@@ -21,5 +22,6 @@ urlpatterns = patterns(
     url(r'^itsi/sign_up', itsi_sign_up, name='itsi_sign_up'),
     url(r'^login$', login, name='login'),
     url(r'^sign_up$', sign_up, name='sign_up'),
+    url(r'^resend$', resend, name='resend'),
     url(r'^forgot$', forgot, name='forgot')
 )

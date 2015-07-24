@@ -39,6 +39,12 @@ EMAIL_BOTO_CHECK_QUOTA = False
 DEFAULT_FROM_EMAIL = 'noreply@mmw.azavea.com'
 # END EMAIL CONFIGURATION
 
+# Turn off DRF GUI
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    )
+}
 
 # Django Storages CONFIGURATION
 mac_metadata = instance_metadata['network']['interfaces']['macs']
@@ -66,3 +72,7 @@ PRIVATE_AWS_STORAGE_URL_PROTOCOL = 'https:'
 # They are pulled from the instance metadata by Boto
 
 # END Django Storages CONFIGURATION
+
+# API key for testing/development
+# TODO replace with production key. Chip is going to ask Stroud for it.
+GOOGLE_MAPS_API_KEY = 'AIzaSyB0D5gjoIHpmy-xdP2cr_0I-E7K6s_L0k4'

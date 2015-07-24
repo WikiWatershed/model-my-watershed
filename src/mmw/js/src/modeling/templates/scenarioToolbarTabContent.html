@@ -2,9 +2,15 @@
 
 <div id="modification-btn-wrapper"> <!-- Modifications Dropdown -->
     <div class="dropdown"> <!-- Dropdown Button -->
-        <button class="btn btn-sm btn-default inverted" type="button" data-toggle="dropdown" aria-expanded="true">
-        <span id="modification-number"><strong>{{ shapes|length }}</strong></span> Modifications
-        </button>
+        {% if not is_current_conditions %}
+            {% if shapes|length == 0 %}
+                <button class="btn btn-sm btn-default inverted" type="button" disabled="true">
+            {% else %}
+                <button class="btn btn-sm btn-default inverted" type="button" data-toggle="dropdown" aria-expanded="true">
+            {% endif %}
+                    <span id="modification-number"><strong>{{ shapes|length }}</strong></span> Modifications
+                </button>
+        {% endif %}
         <div id="modifications" class="dropdown-menu menu-right" role="menu"> <!-- DropdownContent -->
         {% for controlName, models in groupedShapes %}
             <div class="pad-1 brd-bottom">
@@ -18,7 +24,7 @@
                 <table id="mod-{{ controlName|lower|replace(' ', '') }}" class="table modifications custom-hover">
                 {% for model in models %}
                     <tr>
-                        <td>{{ model.label(model.get('value')) }}</td>
+                        <td>{{ model.get('value')|tr55Name }}</td>
                         <td class="strong text-right">{{ model.get('area')|round(1)|toLocaleString }} {{ model.get('units') }}</td>
                         {% if editable %}
                         <td class="text-right"><button class="btn btn-sm btn-icon dark" type="button" data-delete="{{ model.cid }}">

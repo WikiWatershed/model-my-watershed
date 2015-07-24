@@ -4,7 +4,7 @@
 import argparse
 import os
 
-from cfn.stacks import build_stacks, get_config
+from cfn.stacks import build_stacks, destroy_stacks, get_config
 from ec2.amis import prune
 from packer.driver import run_packer
 
@@ -14,6 +14,10 @@ current_file_dir = os.path.dirname(os.path.realpath(__file__))
 
 def launch_stacks(mmw_config, aws_profile, **kwargs):
     build_stacks(mmw_config, aws_profile, **kwargs)
+
+
+def remove_stacks(mmw_config, aws_profile, **kwargs):
+    destroy_stacks(mmw_config, aws_profile, **kwargs)
 
 
 def create_ami(mmw_config, aws_profile, machine_type, **kwargs):
@@ -49,13 +53,25 @@ def main():
                             choices=['green', 'blue'],
                             default=None,
                             help='One of "green", "blue"')
-
+    mmw_stacks.add_argument('--activate-dns', action='store_true',
+                            default=False,
+                            help='Activate DNS for current stack color')
     mmw_stacks.set_defaults(func=launch_stacks)
+
+    mmw_remove_stacks = subparsers.add_parser('remove-stacks',
+                                              help='Remove MMW Stack',
+                                              parents=[common_parser])
+    mmw_remove_stacks.add_argument('--stack-color', type=str,
+                                   choices=['green', 'blue'],
+                                   required=True,
+                                   help='One of "green", "blue"')
+    mmw_remove_stacks.set_defaults(func=remove_stacks)
 
     mmw_ami = subparsers.add_parser('create-ami', help='Create AMI for Model '
                                                        'My Watershed Stack',
                                     parents=[common_parser])
     mmw_ami.add_argument('--machine-type', type=str,
+                         nargs=argparse.ONE_OR_MORE,
                          choices=['mmw-app', 'mmw-tiler', 'mmw-worker',
                                   'mmw-monitoring'],
                          default=None, help='Machine type to create AMI')
@@ -66,12 +82,12 @@ def main():
                                                'Watershed AMIs',
                                           parents=[common_parser])
     mmw_prune_ami.add_argument('--machine-type', type=str, required=True,
+                               nargs=argparse.ONE_OR_MORE,
                                choices=['mmw-app', 'mmw-tiler', 'mmw-worker',
                                         'mmw-monitoring'],
                                help='AMI type to prune')
     mmw_prune_ami.add_argument('--keep', type=int, default=10,
                                help='Number of AMIs to keep')
-
     mmw_prune_ami.set_defaults(func=prune_amis)
 
     args = parser.parse_args()

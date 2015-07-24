@@ -197,59 +197,80 @@ def start_tr55(request, format=None):
     created = now()
 
     model_input = json.loads(request.POST['model_input'])
-    if 'modifications' in model_input:
-        precips = filter(lambda mod: mod['name'] == 'precipitation',
-                         model_input['modifications'])
-        if len(precips) == 1 and ('value' in precips[0]):
-            model_input['precip'] = precips[0]['value']
-            job = Job.objects.create(created_at=created, result='', error='',
-                                     traceback='', user=user, status='started')
-            task_list = _initiate_tr55_job_chain(model_input, job.id)
-            job.uuid = task_list.id
-            job.save()
+    job = Job.objects.create(created_at=created, result='', error='',
+                             traceback='', user=user, status='started')
+    task_list = _initiate_tr55_job_chain(model_input, job.id)
+    job.uuid = task_list.id
+    job.save()
 
-            return Response({
-                'job': task_list.id,
-                'status': 'started',
-            })
-
-    return Response({'error': 'Missing single precipitation modification.'},
-                    status=status.HTTP_400_BAD_REQUEST)
+    return Response({
+        'job': task_list.id,
+        'status': 'started',
+    })
 
 
 def _initiate_tr55_job_chain(model_input, job_id):
-    return chain(tasks.make_gt_service_call_task.s(model_input),
-                 tasks.run_tr55.s(model_input),
-                 save_job_result.s(job_id, model_input)) \
-        .apply_async(link_error=save_job_error.s(job_id))
+    job_chain = _construct_tr55_job_chain(model_input, job_id)
+
+    return chain(job_chain).apply_async(link_error=save_job_error.s(job_id))
+
+
+def _construct_tr55_job_chain(model_input, job_id):
+    job_chain = []
+
+    current_hash = model_input['modification_hash']
+    census = model_input.get('census')
+    census_hash = None
+
+    if census is not None:
+        census_hash = model_input['census'].get('modification_hash')
+
+    if census is None or current_hash != census_hash:
+        job_chain.append(tasks.prepare_census.s(model_input))
+        job_chain.append(tasks.run_tr55.s(model_input))
+    else:
+        job_chain.append(tasks.run_tr55.s(census, model_input))
+
+    job_chain.append(save_job_result.s(job_id, model_input))
+
+    return job_chain
 
 
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
 def boundary_layers(request, table_id=None, obj_id=None):
+    layer_list = settings.BOUNDARY_LAYERS
+    layer_ids = [layer['code'] for layer in layer_list]
+
     if not table_id and not obj_id:
         tiler_prefix = '//'
         tiler_host = settings.TILER_HOST
         tiler_postfix = '/{z}/{x}/{y}'
         tiler_base = '%s%s' % (tiler_prefix, tiler_host)
 
-        def augment(index, dictionary):
-            retval = {}
-            retval['display'] = dictionary['display']
-            retval['tableId'] = index
-            retval['endpoint'] = urljoin(tiler_base, index + tiler_postfix)
-            return retval
+        def augment(dictionary):
+            code = dictionary['code']
+            return {
+                'display': dictionary['display'],
+                'tableId': code,
+                'endpoint': urljoin(tiler_base, code + tiler_postfix)
+            }
 
-        layers = [augment(i, d)
-                  for i, d in settings.BOUNDARY_LAYERS.items()]
+        layers = [augment(layer) for layer in layer_list]
         return Response(layers)
-    elif table_id in settings.BOUNDARY_LAYERS and obj_id:
-        # obj_id = str(int(obj_id))
-        table_name = settings.BOUNDARY_LAYERS[table_id]['table_name']
+
+    elif table_id in layer_ids and obj_id:
+        layers = filter(lambda l: l['code'] == table_id, layer_list)
+        table_name = layers[0]['table_name']
+        json_field = layers[0].get('json_field', 'geom')
+
+        query = 'SELECT {field} FROM {table} WHERE id = %s'.format(
+                field=json_field, table=table_name)
+
         cursor = connection.cursor()
-        query = 'SELECT geom FROM ' + table_name + ' WHERE id = %s'
         cursor.execute(query, [int(obj_id)])
         row = cursor.fetchone()
+
         if row:
             geojson = json.loads(GEOSGeometry(row[0]).geojson)
             return Response(geojson)

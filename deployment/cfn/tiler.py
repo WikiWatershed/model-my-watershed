@@ -4,6 +4,7 @@ from troposphere import (
     Output,
     Tags,
     GetAtt,
+    Base64,
     Join,
     Equals,
     cloudwatch as cw,
@@ -214,6 +215,7 @@ class Tiler(StackNode):
 
         tile_server_security_group = self.add_resource(ec2.SecurityGroup(
             tile_server_security_group_name,
+            DependsOn='sgTileServerLoadBalancer',
             GroupDescription='Enables access to tile servers',
             VpcId=Ref(self.vpc_id),
             SecurityGroupIngress=[
@@ -269,7 +271,7 @@ class Tiler(StackNode):
                 )
             ],
             HealthCheck=elb.HealthCheck(
-                Target='HTTP:80/',
+                Target='HTTP:80/health-check/',
                 HealthyThreshold='3',
                 UnhealthyThreshold='2',
                 Interval='30',
@@ -290,7 +292,9 @@ class Tiler(StackNode):
                 IamInstanceProfile=Ref(self.tile_server_instance_profile),
                 InstanceType=Ref(self.tile_server_instance_type),
                 KeyName=Ref(self.keyname),
-                SecurityGroups=[Ref(tile_server_security_group)]
+                SecurityGroups=[Ref(tile_server_security_group)],
+                UserData=Base64(
+                    Join('', self.get_cloud_config()))
             ))
 
         tile_server_auto_scaling_group_name = 'asgTileServer'
@@ -322,6 +326,15 @@ class Tiler(StackNode):
                 Tags=[asg.Tag('Name', 'TileServer', True)]
             )
         )
+
+    def get_cloud_config(self):
+        return ['#cloud-config\n',
+                '\n',
+                'write_files:\n',
+                '  - path: /etc/mmw.d/env/MMW_STACK_COLOR\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.color)]
 
     def create_cloud_watch_resources(self, tile_server_lb):
         self.add_resource(cw.Alarm(

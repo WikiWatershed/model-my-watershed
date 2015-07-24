@@ -57,6 +57,13 @@ DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 # END FILE STORAGE CONFIGURATION
 
 
+# STATSD CONFIGURATION
+STATSD_CLIENT = 'django_statsd.clients.normal'
+STATSD_PREFIX = 'django'
+STATSD_HOST = environ.get('MMW_STATSD_HOST', 'localhost')
+# END STATSD CONFIGURATION
+
+
 # CACHE CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#caches
 CACHES = {
@@ -109,6 +116,8 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'djcelery.backends.cache:CacheBackend'
 STATSD_CELERY_SIGNALS = True
+CELERY_DEFAULT_QUEUE = environ.get('MMW_STACK_COLOR', 'Black').lower()
+CELERY_DEFAULT_ROUTING_KEY = 'task.%s' % environ.get('MMW_STACK_COLOR', 'Black').lower()
 # END CELERY CONFIGURATION
 
 
@@ -233,6 +242,7 @@ TEMPLATE_DIRS = (
 MIDDLEWARE_CLASSES = (
     # Default Django middleware.
     'django.middleware.common.CommonMiddleware',
+    'mmw.middleware.BypassMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -255,11 +265,50 @@ TILER_HOST = environ.get('MMW_TILER_HOST', 'localhost')
 
 
 # N. B. This must be kept in sync with src/tiler/server.js.  In the
-# dictionary below, the keys are the table ids.
-BOUNDARY_LAYERS = {
-    '0': {'display': 'Congressional Districts',
-          'table_name': 'modeling_district'}
-}
+# dictionary below, the keys are the table ids.  If `json_field` is provided
+# that column will be used for feature lookups, but default to 'geom' if not.
+BOUNDARY_LAYERS = [
+    {
+        'code': 'district',
+        'display': 'Congressional Districts',
+        'table_name': 'modeling_district'
+    },
+    {
+        'code': 'huc8',
+        'display': 'USGS Subbasin unit (HUC-8)',
+        'table_name': 'boundary_huc08'
+    },
+    {
+        'code': 'huc10',
+        'display': 'USGS Watershed unit (HUC-10)',
+        'table_name': 'boundary_huc10'
+    },
+    {
+        'code': 'huc12',
+        'display': 'USGS Subwatershed unit (HUC-12)',
+        'table_name': 'boundary_huc12',
+        'json_field': 'geom_detailed'
+    }
+]
+
+STREAM_LAYERS = [
+    {
+        'code': 'stream-low',
+        'display': 'Low-Res',
+        'table_name': 'deldem4net100r',
+    },
+    {
+        'code': 'stream-medium',
+        'display': 'Medium-Res',
+        'table_name': 'deldem4net50r',
+    },
+    {
+        'code': 'stream-high',
+        'display': 'High-Res',
+        'table_name': 'deldem4net20r',
+    },
+]
+
 # END TILER CONFIGURATION
 
 # APP CONFIGURATION
@@ -277,18 +326,10 @@ DJANGO_APPS = (
 
 THIRD_PARTY_APPS = (
     'rest_framework',
-    'watchman',
     'registration',
 )
 
 # THIRD-PARTY CONFIGURATION
-
-# watchman
-# Disable Storage checking, to avoid creating files on S3 on every health check
-WATCHMAN_CHECKS = (
-    'watchman.checks.caches',
-    'watchman.checks.databases',
-)
 
 # rest_framework
 REST_FRAMEWORK = {
@@ -330,15 +371,6 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 WSGI_APPLICATION = '%s.wsgi.application' % SITE_NAME
 # END WSGI CONFIGURATION
 
-# Work-around to get django-registration-redux to work with Django 1.8.
-# Source: https://github.com/evonove/django-oauth-toolkit/issues/204
-REGISTRATION_MANAGER_MODEL = 'registration.RegistrationManager'
-REGISTRATION_PROFILE_MODEL = 'registration.RegistrationProfile'
-
-MIGRATION_MODULES = {
-    'registration': 'mmw.migrations.registration',
-}
-
 OMGEO_SETTINGS = [[
     'omgeo.services.EsriWGSSSL',
     {
@@ -367,4 +399,20 @@ ITSI = {
     'authorize_url': 'auth/concord_id/authorize',
     'access_token_url': 'auth/concord_id/access_token',
     'user_json_url': 'auth/concord_id/user.json',
+}
+
+BASE_LAYERS = {
+    'Mapbox Roads': {
+        'url': 'https://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png',
+        'attribution': 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery &copy; <a href="http://mapbox.com">Mapbox</a>',
+        'maxZoom': 18,
+        'default': True,
+    },
+    'ESRI World Imagery': {
+        'url': 'https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        'attribution': 'Map data from <a href="http://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9">ESRI</a>',
+    },
+    'Google Hybrid': {
+        'googleType': 'HYBRID' # can be one of SATELLITE, ROADMAP, HYBRID, TERRAIN
+    },
 }

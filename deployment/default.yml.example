@@ -14,7 +14,7 @@ RDSInstanceType: 'db.t2.micro'
 RDSDbName: 'modelmywatershed'
 RDSUsername: 'modelmywatershed'
 RDSPassword: 'modelmywatershed'
-ECInstanceType: 'cache.t2.micro'
+ECInstanceType: 'cache.m1.small'
 GlobalNotificationsARN: 'arn:aws:sns:...'
 AppServerInstanceType: 't2.micro'
 # Leaving this commented dynamically looks up the

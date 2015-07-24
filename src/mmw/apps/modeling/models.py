@@ -70,6 +70,7 @@ class Project(models.Model):
 
 
 class Scenario(models.Model):
+
     class Meta:
         unique_together = ('name', 'project')
 
@@ -79,16 +80,21 @@ class Scenario(models.Model):
     is_current_conditions = models.BooleanField(
         default=False,
         help_text='A special type of scenario without modification abilities')
+    inputs = models.TextField(
+        null=True,
+        help_text='Serialized JSON representation of scenario inputs')
     modifications = models.TextField(
         null=True,
-        help_text='Serialized JSON representation of this scenarios ' +
-                  'applied modification, with respect to the model package')
+        help_text='Serialized JSON representation of scenarios modifications ')
     modification_hash = models.CharField(
         max_length=255,
         null=True,
         help_text='A hash of the values for modifications & inputs to ' +
                   'compare to the existing model results, to determine if ' +
                   'the persisted result apply to the current values')
+    census = models.TextField(
+        null=True,
+        help_text='Serialized JSON representation of geoprocessing results')
     results = models.TextField(
         null=True,
         help_text='Serialized JSON representation of the model results')

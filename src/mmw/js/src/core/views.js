@@ -2,23 +2,25 @@
 
 var $ = require('jquery'),
     L = require('leaflet'),
-    _ = require('lodash'),
+    _ = require('underscore'),
     router = require('../router.js').router,
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
     ZeroClipboard = require('zeroclipboard'),
     drawUtils = require('../draw/utils'),
+    modificationConfigUtils = require('../modeling/modificationConfigUtils'),
     headerTmpl = require('./templates/header.html'),
-    patterns = require('./patterns'),
     modalConfirmTmpl = require('./templates/confirmModal.html'),
     modalInputTmpl = require('./templates/inputModal.html'),
     modalShareTmpl = require('./templates/shareModal.html'),
     modificationPopupTmpl = require('./templates/modificationPopup.html'),
     areaOfInterestTmpl = require('../core/templates/areaOfInterestHeader.html'),
-
+    settings = require('./settings'),
+    ENTER_KEYCODE = 13,
     BASIC_MODAL_CLASS = 'modal modal-basic fade';
 
 require('leaflet.locatecontrol');
+require('leaflet-plugins/layer/tile/Google');
 
 /**
  * A basic view for showing a static message.
@@ -92,7 +94,7 @@ function addLocateMeButton(map, maxZoom, maxAge) {
         metric: false,
         drawCircle: false,
         showPopup: false,
-        follow: true,
+        follow: false,
         markerClass: L.marker,
         markerStyle: {
             opacity: 0.0,
@@ -122,7 +124,7 @@ var MapView = Marionette.ItemView.extend({
     modelEvents: {
         'change': 'updateView',
         'change:areaOfInterest': 'updateAreaOfInterest',
-        'change:halfSize': 'toggleMapSize',
+        'change:size': 'toggleMapSize',
         'change:maskLayerApplied': 'toggleMask'
     },
 
@@ -139,11 +141,6 @@ var MapView = Marionette.ItemView.extend({
 
     initialize: function() {
         var map = new L.Map('map', { zoomControl: false }),
-            // TODO: Replace tile layer, eventually.
-            tileLayer = new L.TileLayer('https://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png', {
-                attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
-                maxZoom: 18
-            }),
             areaOfInterestLayer = new L.FeatureGroup(),
             modificationsLayer = new L.FeatureGroup(),
             maxZoom = 10,
@@ -153,9 +150,31 @@ var MapView = Marionette.ItemView.extend({
 
         map.addControl(new L.Control.Zoom({position: 'topright'}));
         addLocateMeButton(map, maxZoom, maxAge);
-        map.addLayer(tileLayer);
+
+        var baseLayers = _.mapObject(settings.getSettings().base_layers, function(layerData) {
+            if (layerData.googleType) {
+                return new L.Google(layerData.googleType);
+            } else {
+                return new L.TileLayer(layerData.url, {
+                    attribution: layerData.attribution || '',
+                    maxZoom: layerData.maxZoom || 18
+                });
+            }
+        }),
+            defaultLayerName = _.findKey(settings.getSettings().base_layers, function(layerData) {
+                return layerData.default;
+            }),
+            defaultLayer = baseLayers[defaultLayerName];
+
+        L.control.layers(baseLayers, {}, {autoZIndex:false}).addTo(map);
+
+        if (defaultLayer) {
+            map.addLayer(defaultLayer);
+        }
+
         map.addLayer(areaOfInterestLayer);
         map.addLayer(modificationsLayer);
+
         map.setView([40.1, -75.7], maxZoom); // center the map
 
         // Keep the map model up-to-date with the position of the map
@@ -180,7 +199,6 @@ var MapView = Marionette.ItemView.extend({
         // already been centered.
         if (navigator.geolocation) {
             var options = {
-                enableHighAccuracy: true,
                 maximumAge : maxAge,
                 timeout : timeout
             };
@@ -286,7 +304,7 @@ var MapView = Marionette.ItemView.extend({
 
         var layers = modificationsColl.reduce(function(acc, model) {
                 try {
-                    var style = patterns.getDrawOpts(model.get('value'));
+                    var style = modificationConfigUtils.getDrawOpts(model.get('value'));
                     return acc.concat(new L.GeoJSON(model.get('shape'), {
                             style: style,
                             onEachFeature: function(feature, layer) {
@@ -305,7 +323,8 @@ var MapView = Marionette.ItemView.extend({
     },
 
     toggleMapSize: function() {
-        if (this.model.get('halfSize')) {
+        var size = this.model.get('size');
+        if (size.half) {
             $(this.ui.map).addClass('half');
         } else {
             $(this.ui.map).removeClass('half');
@@ -313,12 +332,19 @@ var MapView = Marionette.ItemView.extend({
 
         this._leafletMap.invalidateSize();
 
+        if (size.fit) {
+            this.fitToAoi();
+        }
+    },
+
+    fitToAoi: function() {
         var areaOfInterest = this.model.get('areaOfInterest');
         if (areaOfInterest) {
             var layer = new L.GeoJSON(areaOfInterest);
             this._leafletMap.fitBounds(layer.getBounds(), { reset: true });
         }
     }
+
 });
 
 // Apply a mask over the entire map excluding bounds/shape specified.
@@ -327,7 +353,10 @@ function applyMask(featureGroup, shapeLayer) {
         outerRing = getLatLngs(worldBounds),
         innerRings = getLatLngs(shapeLayer),
         polygonOptions = {
-            stroke: false,
+            stroke: true,
+            color: '#fff',
+            weight: 3.5,
+            opacity: 1,
             fill: true,
             fillColor: '#000',
             fillOpacity: 0.5,
@@ -385,12 +414,6 @@ var ModificationPopupView = Marionette.ItemView.extend({
         'click @ui.delete': 'deleteModification'
     },
 
-    templateHelpers: function() {
-        return {
-            label: this.model.label(this.model.get('value'))
-        };
-    },
-
     deleteModification: function() {
         this.model.destroy();
         this.destroy();
@@ -398,15 +421,38 @@ var ModificationPopupView = Marionette.ItemView.extend({
 });
 
 var BaseModal = Marionette.ItemView.extend({
-    initialize: function() {
-        var self = this;
-        this.$el.on('hide.bs.modal', function() {
-            self.destroy();
-        });
+    className: BASIC_MODAL_CLASS,
+
+    attributes: {
+        'tabindex': '-1'
+    },
+
+    events: {
+        'shown.bs.modal': 'onModalShown',
+        'keyup': 'onKeyUp',
+        'hidden.bs.modal': 'onModalHidden'
     },
 
     onRender: function() {
         this.$el.modal('show');
+    },
+
+    onModalShown: function() {
+        // Not implemented.
+    },
+
+    onKeyUp: function(e) {
+        if (e.keyCode === ENTER_KEYCODE) {
+            this.primaryAction();
+        }
+    },
+
+    primaryAction: function() {
+        // Not implemented.
+    },
+
+    onModalHidden: function() {
+        this.destroy();
     },
 
     hide: function() {
@@ -415,26 +461,23 @@ var BaseModal = Marionette.ItemView.extend({
 });
 
 var ConfirmModal = BaseModal.extend({
-    className: BASIC_MODAL_CLASS,
+    template: modalConfirmTmpl,
 
     ui: {
         confirmation: '.confirm'
     },
 
-    events: {
-        'click @ui.confirmation': 'triggerConfirmation'
-    },
+    events: _.defaults({
+        'click @ui.confirmation': 'primaryAction'
+    }, BaseModal.prototype.events),
 
-    template: modalConfirmTmpl,
-
-    triggerConfirmation: function() {
+    primaryAction: function() {
         this.triggerMethod('confirmation');
+        this.hide();
     }
 });
 
 var InputModal = BaseModal.extend({
-    className: BASIC_MODAL_CLASS,
-
     template: modalInputTmpl,
 
     ui: {
@@ -443,11 +486,15 @@ var InputModal = BaseModal.extend({
         error: '.error'
     },
 
-    events: {
-        'click @ui.save': 'updateFromInput'
+    events: _.defaults({
+        'click @ui.save': 'primaryAction'
+    }, BaseModal.prototype.events),
+
+    onModalShown: function() {
+        this.ui.input.focus().select();
     },
 
-    updateFromInput: function() {
+    primaryAction: function() {
         var val = this.ui.input.val().trim();
         if (val) {
             this.triggerMethod('update', val);
@@ -459,8 +506,6 @@ var InputModal = BaseModal.extend({
 });
 
 var ShareModal = BaseModal.extend({
-    className: BASIC_MODAL_CLASS,
-
     template: modalShareTmpl,
 
     ui: {
@@ -469,13 +514,11 @@ var ShareModal = BaseModal.extend({
         'input': 'input'
     },
 
-    events: {
+    events: _.defaults({
         'click @ui.signin': 'signIn'
-    },
+    }, BaseModal.prototype.events),
 
-    // Override to initialize ZeroClipboard
     initialize: function() {
-        BaseModal.prototype.initialize.call(this);
         this.zc = new ZeroClipboard();
     },
 
@@ -487,6 +530,10 @@ var ShareModal = BaseModal.extend({
         });
 
         this.$el.modal('show');
+    },
+
+    onModalShown: function() {
+        this.ui.input.focus().select();
     },
 
     signIn: function() {
@@ -508,7 +555,6 @@ var AreaOfInterestView = Marionette.ItemView.extend({
         this.model.set('shape', this.map.get('areaOfInterest'));
     }
 });
-
 
 module.exports = {
     HeaderView: HeaderView,

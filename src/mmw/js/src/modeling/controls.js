@@ -1,17 +1,20 @@
 "use strict";
 
 var $ = require('jquery'),
+    _ = require('underscore'),
+    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     drawUtils = require('../draw/utils'),
-    patterns = require('../core/patterns'),
     models = require('./models'),
+    modificationConfigUtils = require('./modificationConfigUtils'),
     landCoverTmpl = require('./templates/controls/landCover.html'),
     conservationPracticeTmpl = require('./templates/controls/conservationPractice.html'),
-    precipitationTmpl = require('./templates/controls/precipitation.html');
+    precipitationTmpl = require('./templates/controls/precipitation.html'),
+    summaryTmpl = require('./templates/controls/summary.html');
 
 // Simulation input controls base class.
-var ControlView = Marionette.ItemView.extend({
+var ControlView = Marionette.LayoutView.extend({
     model: models.ModelPackageControlModel,
 
     className: function() {
@@ -20,9 +23,9 @@ var ControlView = Marionette.ItemView.extend({
 
     initialize: function(options) {
         this.mergeOptions(options, [
-            'modificationModel',
+            'controlModel',
             'addModification',
-            'addOrReplaceModification'
+            'addOrReplaceInput'
         ]);
     },
 
@@ -46,8 +49,9 @@ var DrawControlView = ControlView.extend({
             $el = $(e.currentTarget),
             controlName = this.getControlName(),
             controlValue = $el.data('value'),
-            map = App.getLeafletMap();
-        drawUtils.drawPolygon(map, patterns.getDrawOpts(controlValue)).then(function(geojson) {
+            map = App.getLeafletMap(),
+            drawOpts = modificationConfigUtils.getDrawOpts(controlValue);
+        drawUtils.drawPolygon(map, drawOpts).then(function(geojson) {
             self.addModification(new models.ModificationModel({
                 name: controlName,
                 value: controlValue,
@@ -57,28 +61,44 @@ var DrawControlView = ControlView.extend({
     }
 });
 
-var LandCoverView = DrawControlView.extend({
-    template: landCoverTmpl,
+var SummaryView = Marionette.ItemView.extend({
+    template: summaryTmpl
+});
 
-    templateHelpers: function() {
-        return {
-            label: models.getHumanReadableLabel
-        };
+var ModificationsView = DrawControlView.extend({
+    ui: _.defaults({
+        thumb: '.thumb',
+        button: 'button'
+    }, DrawControlView.prototype.ui),
+
+    regions: {
+        summaryRegion: '.summary-region'
     },
+
+    events: _.defaults({
+        'mouseenter @ui.thumb': 'onMouseHover'
+    }, DrawControlView.prototype.events),
+
+    onMouseHover: function(e) {
+        var value = $(e.currentTarget).data('value');
+        this.summaryRegion.show(new SummaryView({
+            model: new Backbone.Model({
+                value: value
+            })
+        }));
+    }
+});
+
+var LandCoverView = ModificationsView.extend({
+    template: landCoverTmpl,
 
     getControlName: function() {
         return 'landcover';
     }
 });
 
-var ConservationPracticeView = DrawControlView.extend({
+var ConservationPracticeView = ModificationsView.extend({
     template: conservationPracticeTmpl,
-
-    templateHelpers: function() {
-        return {
-            label: models.getHumanReadableLabel
-        };
-    },
 
     getControlName: function() {
         return 'conservation_practice';
@@ -118,11 +138,11 @@ var PrecipitationView = ControlView.extend({
                 name: this.getControlName(),
                 value: value
             });
-        this.addOrReplaceModification(modification);
+        this.addOrReplaceInput(modification);
     },
 
     onRender: function() {
-        var model = this.modificationModel,
+        var model = this.controlModel,
             value = model && model.get('value') || 0;
 
         this.ui.slider.val(value);

@@ -7,11 +7,10 @@ var _ = require('lodash'),
     Backbone = require('backbone'),
     assert = require('chai').assert,
     sinon = require('sinon'),
-    patterns = require('../core/patterns'),
     models = require('./models'),
     views = require('./views'),
-    App = require('../app.js');
-
+    App = require('../app.js'),
+    modificationConfigUtils = require('./modificationConfigUtils');
 
 describe('Modeling', function() {
     before(function() {
@@ -91,6 +90,14 @@ describe('Modeling', function() {
                 assert.equal($('#sandbox ul.nav.nav-tabs > li').length, 3);
             });
 
+            function checkMenuItemsMatch(expectedItems) {
+                var $menuItems = $('#sandbox ul.nav.nav-tabs li.active ul.dropdown-menu li'),
+                    menuItems = $menuItems.map(function() {
+                        return $(this).text();
+                    }).get();
+                assert.deepEqual(menuItems, expectedItems);
+            }
+
             it('renders tab dropdowns for editing if the user owns the project', function() {
                 App.user.set('id', 1);
                 var project = getTestProject();
@@ -100,8 +107,7 @@ describe('Modeling', function() {
                 var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
 
                 $('#sandbox').html(view.render().el);
-                // Get dropdown items in the tab. (share, print, rename, duplicate, delete).
-                assert.equal($('#sandbox ul.nav.nav-tabs li.active ul.dropdown-menu li').length, 5);
+                checkMenuItemsMatch(['Print', 'Rename', 'Duplicate', 'Delete']);
             });
 
             it('renders appropriate tab dropdowns if the user does not own the project', function() {
@@ -113,47 +119,51 @@ describe('Modeling', function() {
                 var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
 
                 $('#sandbox').html(view.render().el);
-                // Get dropdown items in the tab. (print).
-                assert.equal($('#sandbox ul.nav.nav-tabs li.active ul.dropdown-menu li').length, 1);
+                checkMenuItemsMatch(['Print']);
+            });
+
+            it('renders tab dropdown for sharing if the scenario is saved', function() {
+                App.user.set('id', 1);
+                var project = getTestProject();
+
+                // Simulate scenario that has been saved.
+                project.get('scenarios').invoke('set', 'id', 1);
+
+                var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
+
+                $('#sandbox').html(view.render().el);
+                checkMenuItemsMatch(['Share', 'Print', 'Rename', 'Duplicate', 'Delete']);
             });
         });
 
         describe('ToolbarTabContentView', function() {
+            beforeEach(function() {
+                this.model = new models.ScenarioModel({
+                    name: 'New Scenario',
+                    modifications: []
+                });
+                this.view = new views.ToolbarTabContentView({
+                    model: this.model,
+                    collection: models.getControlsForModelPackage('tr-55')
+                });
+                this.modsModel1 = new models.ModificationModel(modificationsSample1);
+                this.modsModel2 = new models.ModificationModel(modificationsSample2);
+                $('#sandbox').html(this.view.render().el);
+            });
+
+            afterEach(function() {
+                this.view.remove();
+            });
+
             it('updates the modification count when there is a change to a scenario\'s modifications', function() {
-                var modsCollection = new models.ModificationsCollection(),
-                    model = new models.ScenarioModel({
-                        name: 'New Scenario',
-                        modifications: modsCollection
-                    }),
-                    view = new views.ToolbarTabContentView({
-                        model: model,
-                        collection: models.getControlsForModelPackage('tr-55')
-                    }),
-                    modsModel1 = new models.ModificationModel(modificationsSample1),
-                    modsModel2 = new models.ModificationModel(modificationsSample2);
-
-                $('#sandbox').html(view.render().el);
                 assert.equal($('#sandbox #modification-number').text(), '0');
-
-                model.get('modifications').add([modsModel1, modsModel2]);
+                this.model.get('modifications').add([this.modsModel1, this.modsModel2]);
                 assert.equal($('#sandbox #modification-number').text(), '2');
             });
 
             it('lists all of the modifications and their area', function() {
-                var modsModel1 = new models.ModificationModel(modificationsSample1),
-                    modsModel2 = new models.ModificationModel(modificationsSample2),
-                    modsCollection = new models.ModificationsCollection([ modsModel1, modsModel2 ]),
-                    model = new models.ScenarioModel({
-                        name: 'New Scenario',
-                        modifications: modsCollection
-                    }),
-                    view = new views.ToolbarTabContentView({
-                        model: model,
-                        collection: models.getControlsForModelPackage('tr-55')
-                    });
-
-                $('#sandbox').html(view.render().el);
-                assert.equal($('#sandbox #mod-landcover tr td:first-child').text(), 'LIR');
+                this.model.get('modifications').add([this.modsModel1, this.modsModel2]);
+                assert.equal($('#sandbox #mod-landcover tr td:first-child').text(), 'Low Intensity Residential');
                 assert.equal($('#sandbox #mod-landcover tr td:nth-child(2)').text(), '44.4 km2');
                 assert.equal($('#sandbox #mod-conservationpractice tr td:first-child').text(), 'Rain Garden');
                 assert.equal($('#sandbox #mod-conservationpractice tr td:nth-child(2)').text(), '106.4 km2');
@@ -167,10 +177,10 @@ describe('Modeling', function() {
             });
 
             it('ensures each modification has draw options', function() {
-                var unknownDrawOpts = patterns.getDrawOpts('');
+                var unknownDrawOpts = modificationConfigUtils.getDrawOpts('');
 
                 $('.inline.controls .thumb').each(function() {
-                    var thisDrawOpts = patterns.getDrawOpts($(this).data('value'));
+                    var thisDrawOpts = modificationConfigUtils.getDrawOpts($(this).data('value'));
                     assert.notEqual(thisDrawOpts, unknownDrawOpts);
                 });
             });
@@ -326,7 +336,7 @@ describe('Modeling', function() {
             });
 
             describe('#getReferenceUrl', function() {
-                var base = '/model/';
+                var base = '/project/';
 
                 it('generates no url fragment for unsaved projects', function() {
                     var project = new models.ProjectModel({ id: null });
@@ -364,23 +374,45 @@ describe('Modeling', function() {
         });
 
         describe('ScenarioModel', function() {
-            describe('#getSlug', function() {
-                it('creates a slug with spaces converted to hyphens', function() {
-                    var model = new models.ScenarioModel({ name: 'test model name' });
+            // TODO: Add tests for existing methods.
 
-                    assert.equal(model.getSlug(), 'test-model-name');
+            describe('#updateModificationHash', function() {
+                it('generates and sets modification_hash based on the scenario\'s modifications', function() {
+                    var model = new models.ScenarioModel({
+                            modifications: [modificationsSample1]
+                        });
+
+                    model.updateModificationHash();
+                    assert.equal(model.get('modification_hash'), 'b0eb4af3250d9c1320d659805afaf049');
+
+                    var mod = new models.ModificationModel(modificationsSample2);
+                    model.get('modifications').add(mod);
+                    assert.equal(model.get('modification_hash'), '07fb74f0e09eb1c31f3db8c78219758f');
+
+                    model.get('modifications').remove(mod);
+                    assert.equal(model.get('modification_hash'), 'b0eb4af3250d9c1320d659805afaf049');
                 });
 
-                it('creates a slug with only alphanumeric characters', function() {
-                    var model = new models.ScenarioModel({ name: 'test-model#$%*()(%^%' });
+                it('is called when the modifications for a scenario changes', function() {
+                    var spy = sinon.spy(models.ScenarioModel.prototype, 'updateModificationHash'),
+                        model = new models.ScenarioModel({});
 
-                    assert.equal(model.getSlug(), 'test-model');
+                    model.get('modifications').add(new models.ModificationModel(modificationsSample1));
+                    assert.isTrue(spy.calledOnce);
+
+                    models.ScenarioModel.prototype.updateModificationHash.restore();
                 });
 
-                it('creates a slug with only lowercase characters', function() {
-                    var model = new models.ScenarioModel({ name: 'TEST_MODEL' });
+                it('is called before model#attemptSave when the modifications change', function() {
+                    var modSpy = sinon.spy(models.ScenarioModel.prototype, 'updateModificationHash'),
+                        saveSpy = sinon.spy(models.ScenarioModel.prototype, 'attemptSave'),
+                        model = new models.ScenarioModel({});
 
-                    assert.equal(model.getSlug(), 'test_model');
+                    model.addModification(new models.ModificationModel(modificationsSample1));
+                    assert.isTrue(modSpy.calledBefore(saveSpy));
+
+                    models.ScenarioModel.prototype.updateModificationHash.restore();
+                    models.ScenarioModel.prototype.attemptSave.restore();
                 });
             });
         });
@@ -563,12 +595,12 @@ function getTestScenarioCollection() {
             }),
             new models.ScenarioModel({
                 name: 'New Scenario 1',
-                modifications: new models.ModificationsCollection([
-                    new models.ModificationModel({
+                modifications: [
+                    {
                         name: 'Mod 1',
                         shape: _.cloneDeep(greaterThanOneAcrePolygon)
-                    })
-                ]),
+                    }
+                ],
                 active: true
             }),
             new models.ScenarioModel({

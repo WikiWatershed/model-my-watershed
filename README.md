@@ -27,6 +27,7 @@ The `app` virtual machine contains an instance of the Django application, `servi
 `worker` contains:
 
 - Celery
+- Flower
 
 ### Getting Started
 
@@ -95,10 +96,15 @@ pgweb                  | 5433 | [http://localhost:5433](http://localhost:5433)
 Redis                  | 6379 | `redis-cli -h localhost 6379`
 Testem                 | 7357 | [http://localhost:7357](http://localhost:7357)
 Tiler                  | 4000 | [http://localhost:4000](http://localhost:4000)
+Flower                 | 5555 | [http://localhost:5555](http://localhost:5555)
 
 ### Caching
 
 In order to speed up things up, you may want to consider leveraging the `vagrant-cachier` plugin. If installed, it is automatically used by Vagrant.
+
+### Test Mode
+
+In order to run the app in test mode, which simulates the production static asset bundle, reprovision with `VAGRANT_ENV=TEST vagrant provision`.
 
 ### Testing
 
@@ -119,8 +125,10 @@ $ ./scripts/manage.sh test
 Or just for a specific app:
 
 ```bash
-$ ./scripts/manage.sh test appname
+$ ./scripts/manage.sh test apps.app_name.tests
 ```
+
+More info [here](https://docs.djangoproject.com/en/1.8/topics/testing/).
 
 ##### JavaScript
 
@@ -173,3 +181,10 @@ This flag is for troubleshooting purposes only.
       --list       List browserify dependencies
       --vendor     Generate vendor bundle and copy assets
       -h, --help   Display this help text
+
+#### Adding JS dependencies
+
+To add a new JS depenency, update the `JS_DEPS` array in `bundle.sh`, and `package.json` accordingly.
+Because our dependencies are shrinkwrapped, follow the [instructions](https://docs.npmjs.com/cli/shrinkwrap#building-shrinkwrapped-packages) for adding a dependency to a shrinkwrapped package.
+Rebuild the vendor bundle using `./scripts/bundle.sh --vendor`.
+`npm` commands can be run using `./scripts/npm.sh`.

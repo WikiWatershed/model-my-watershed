@@ -69,7 +69,7 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
                 shape: this.model.get('area_of_interest'),
                 can_go_back: true,
                 next_label: 'Model',
-                url: 'model'
+                url: 'project'
             })
         }));
     },
@@ -109,7 +109,7 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
 
         this.$el.animate({ height: '55%' }, 200, function() {
             self.trigger('animateIn');
-            App.map.set('halfSize', true);
+            App.map.setHalfSize(true);
         });
         if (this.lock !== undefined) {
             this.lock.resolve();
@@ -119,7 +119,7 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     animateOut: function() {
         var self = this;
 
-        App.map.set('halfSize', false);
+        App.map.setFullSize(true);
         this.$el.animate({ height: '0%' }, 200, function() {
             self.trigger('animateOut');
         });

@@ -3,9 +3,12 @@ from django.contrib.auth import (authenticate,
                                  login as auth_login)
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from django.shortcuts import redirect, render_to_response
+from django.shortcuts import redirect
 from django.contrib.auth.forms import PasswordResetForm
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.sites.shortcuts import get_current_site
 
+from registration.models import RegistrationProfile
 from registration.forms import RegistrationFormUniqueEmail
 from registration.backends.default.views import RegistrationView
 
@@ -75,7 +78,7 @@ def logout(request):
         }
         return Response(data=response_data)
     else:
-        return render_to_response('user/logout.html')
+        return redirect('/')
 
 itsi = ItsiService()
 
@@ -176,7 +179,7 @@ def sign_up(request):
     form = RegistrationFormUniqueEmail(request.POST)
 
     if form.is_valid():
-        user = view.register(request, **form.cleaned_data)
+        user = view.register(request, form)
         response_data = {'result': 'success',
                          'username': user.username,
                          'guest': False}
@@ -200,6 +203,34 @@ def sign_up(request):
         response_data = {"errors": errors}
         return Response(data=response_data,
                         status=status.HTTP_400_BAD_REQUEST)
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((AllowAny, ))
+def resend(request):
+    # Resend activation email if the key hasn't expired.
+    form = PasswordResetForm(request.POST)
+    if form.is_valid():
+        email = form.cleaned_data['email']
+        try:
+            registration_profile = RegistrationProfile.objects.get(
+                user__email=email)
+            if registration_profile.activation_key_expired():
+                response_data = {'errors': ["Activation key expired"]}
+                status_code = status.HTTP_400_BAD_REQUEST
+            else:
+                registration_profile.send_activation_email(
+                    get_current_site(request))
+                response_data = {'result': 'success'}
+                status_code = status.HTTP_200_OK
+        except ObjectDoesNotExist:
+            response_data = {'errors': ["Email cannot be found"]}
+            status_code = status.HTTP_400_BAD_REQUEST
+    else:
+        response_data = {'errors': ["Email is invalid"]}
+        status_code = status.HTTP_400_BAD_REQUEST
+
+    return Response(data=response_data, status=status_code)
 
 
 @decorators.api_view(['POST'])

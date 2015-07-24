@@ -103,7 +103,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         return {
-            editable: isEditable(this.model)
+            editable: isEditable(this.model),
+            is_new: this.model.isNew()
         };
     },
 
@@ -275,7 +276,8 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     templateHelpers: function() {
         return {
             cid: this.model.cid,
-            editable: isEditable(this.model)
+            editable: isEditable(this.model),
+            is_new: this.model.isNew()
         };
     },
 
@@ -450,14 +452,14 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
     tagName: 'div',
     className: 'tab-pane',
 
-    childViewOptions: function(inputControlModel) {
-        var modificationModel = this.getModificationForInputControl(inputControlModel),
+    childViewOptions: function(modelPackageControl) {
+        var controlModel = this.getInputControlModel(modelPackageControl),
             addModification = _.bind(this.model.addModification, this.model),
-            addOrReplaceModification = _.bind(this.model.addOrReplaceModification, this.model);
+            addOrReplaceInput = _.bind(this.model.addOrReplaceInput, this.model);
         return {
-            modificationModel: modificationModel,
+            controlModel: controlModel,
             addModification: addModification,
-            addOrReplaceModification: addOrReplaceModification
+            addOrReplaceInput: addOrReplaceInput
         };
     },
 
@@ -483,17 +485,12 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
 
     initialize: function() {
         var modificationsColl = this.model.get('modifications');
-        this.listenTo(modificationsColl, 'add remove', this.render);
+        this.listenTo(modificationsColl, 'add remove reset', this.render);
     },
 
     templateHelpers: function() {
-        var modificationsColl = this.model.get('modifications'),
-            shapes = modificationsColl.filter(function(model) {
-                return model.get('shape') !== null;
-            }),
-            groupedShapes = _.groupBy(shapes, function(model) {
-                return model.get('name');
-            });
+        var shapes = this.model.get('modifications'),
+            groupedShapes = shapes.groupBy('name');
         return {
             shapes: shapes,
             groupedShapes: groupedShapes,
@@ -503,8 +500,8 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
 
     // Only display modification controls if scenario is editable.
     // Input controls should always be shown.
-    filter: function(inputControlModel) {
-        return isEditable(this.model) || inputControlModel.isInputControl();
+    filter: function(modelPackageControl) {
+        return isEditable(this.model) || modelPackageControl.isInputControl();
     },
 
     onRender: function() {
@@ -527,16 +524,17 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
         modificationsColl.remove(modification);
     },
 
-    getChildView: function(inputControlModel) {
-        var controlName = inputControlModel.get('name');
+    getChildView: function(modelPackageControl) {
+        var controlName = modelPackageControl.get('name');
         return controls.getControlView(controlName);
     },
 
-    // Return first modification for an input control.
-    getModificationForInputControl: function(inputControlModel) {
-        var modificationsColl = this.model.get('modifications'),
-            controlName = inputControlModel.get('name');
-        return modificationsColl.findWhere({ name: controlName });
+    // For a given ModelPackageControlModel (ex. Precipitation), return
+    // the instance of that control model from this scenario inputs.
+    getInputControlModel: function(modelPackageControl) {
+        return this.model.get('inputs').findWhere({
+            name: modelPackageControl.get('name')
+        });
     }
 });
 
@@ -608,7 +606,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         var self = this;
         this.$el.animate({ height: '55%', 'min-height': '300px' }, 200, function() {
             self.trigger('animateIn');
-            App.map.set('halfSize', true);
+            App.map.setHalfSize(false);
             $(self.ui.toggle.selector).blur()
                 .find('i')
                     .removeClass('fa-angle-up')
@@ -617,12 +615,13 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         });
     },
 
-    animateOut: function() {
-        var self = this;
+    animateOut: function(fitToBounds) {
+        var self = this,
+            fit = _.isUndefined(fitToBounds) ? true : fitToBounds;
 
         // Change map to full size first so there isn't empty space when
         // results window animates out
-        App.map.set('halfSize', false);
+        App.map.setFullSize(fit);
 
         this.$el.animate({ height: '0%', 'min-height': '50px' }, 200, function() {
             self.trigger('animateOut');
@@ -637,7 +636,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         if (this.$el.css('height') === '50px') {
             this.animateIn();
         } else {
-            this.animateOut();
+            this.animateOut(false);
         }
     }
 });

@@ -55,30 +55,44 @@ describe('Draw', function() {
             assert.equal($el.find('.disabled').size(), 0);
         });
 
-        // Simulate clicking on an item under the "Select by Boundary"
-        // control. That should make it possible to select an area of
-        // interest by clicking on the map.
-        it('adds a layer to the map when an area of interest is chosen by clicking on the map', function() {
-            var sandbox = new SandboxRegion(),
-                $el = sandbox.$el,
-                model = new models.ToolbarModel(),
-                view = new views.ToolbarView({
-                    model: model
+        it('adds an AOI to the map after calling getShapeAndAnalyze', function(done) {
+            var successCount = 2,
+                deferred = setupGetShapeAndAnalyze(successCount),
+                success;
+
+            deferred.
+                done(function() {
+                    assert.equal(App.map.get('areaOfInterest'), TEST_SHAPE);
+                    success = true;
+                }).
+                fail(function() {
+                    success = false;
+                }).
+                always(function() {
+                    assert.equal(success, true);
+                    done();
                 });
+        });
 
-            sandbox.show(view);
-            populateSelectAreaDropdown($el, model);
+        it('fails to add AOI when shape id cannot be retrieved by getShapeAndAnalyze', function(done) {
+            // Set successCount high enough so that the polling will fail.
+            var successCount = 6,
+                deferred = setupGetShapeAndAnalyze(successCount),
+                success;
 
-            App.restApi = {
-                getPolygon: function() {
-                    return $.Deferred().resolve(TEST_SHAPE).promise();
-                }
-            };
-
-            var $li = $($el.find('#select-area-region li a').get(0));
-            $li.trigger('click');
-            App.getLeafletMap().fireEvent('click', {'latlng': [29.979, 31.134]});
-            assert.equal(App.map.get('areaOfInterest'), TEST_SHAPE);
+            deferred.
+                done(function() {
+                    success = true;
+                }).
+                fail(function() {
+                    success = false;
+                }).
+                always(function() {
+                    App.getLeafletMap().closePopup();
+                    App.getLeafletMap()._panAnim = false;
+                    assert.equal(success, false);
+                    done();
+                });
         });
 
         it('resets the current area of interest on Reset', function() {
@@ -88,7 +102,7 @@ describe('Draw', function() {
             setup.resetRegion.currentView.resetDrawingState();
 
             assert.isNull(App.map.get('areaOfInterest',
-                    'Area of Interest was not removed on reset from the map'));
+                                      'Area of Interest was not removed on reset from the map'));
 
         });
 
@@ -109,12 +123,12 @@ describe('Draw', function() {
             setup.model.set('outlineFeatureGroup', ofg);
             setup.resetRegion.currentView.resetDrawingState();
             assert.equal(ofg.getLayers().length, 0,
-                'Boundary Layer should have been removed from layer group');
+                         'Boundary Layer should have been removed from layer group');
         });
 
         it('removes in progress drawing on Reset', function() {
             var setup = setupResetTestObject(),
-                 spy = sinon.spy(utils, 'cancelDrawing');
+                spy = sinon.spy(utils, 'cancelDrawing');
 
             utils.drawPolygon(setup.map);
             setup.resetRegion.currentView.resetDrawingState();
@@ -124,6 +138,37 @@ describe('Draw', function() {
     });
 });
 
+function setupGetShapeAndAnalyze(successCount) {
+    var sandbox = new SandboxRegion(),
+        model = new models.ToolbarModel(),
+        view = new views.ToolbarView({
+            model: model
+        }),
+        shapeId = 1,
+        e = {latlng: L.latLng(50.5, 30.5)},
+        ofg = model.get('outlineFeatureGroup'),
+        grid = {
+            callCount: 0,
+            _objectForEvent: function() { //mock grid returns shapeId on second call
+                this.callCount++;
+                if (this.callCount >= successCount) {
+                    return {data: {id: shapeId}};
+                } else {
+                    return {};
+                }
+            }
+        },
+        tableId = 2;
+
+    sandbox.show(view);
+    App.restApi = {
+        getPolygon: function() {
+            return $.Deferred().resolve(TEST_SHAPE).promise();
+        }
+    };
+
+    return views.getShapeAndAnalyze(e, model, ofg, grid, tableId);
+}
 
 function setupResetTestObject() {
 

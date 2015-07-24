@@ -13,7 +13,9 @@ var $ = require('jquery'),
     selectTypeTmpl = require('./templates/selectType.html'),
     drawAreaTmpl = require('./templates/drawArea.html'),
     resetDrawTmpl = require('./templates/reset.html'),
-    placeMarkerTmpl = require('./templates/placeMarker.html');
+    streamSliderTmpl = require('./templates/streamSlider.html'),
+    placeMarkerTmpl = require('./templates/placeMarker.html'),
+    settings = require('../core/settings');
 
 // Responsible for loading and displaying tools for selecting and drawing
 // shapes on the map.
@@ -26,25 +28,28 @@ var ToolbarView = Marionette.LayoutView.extend({
         selectTypeRegion: '#select-area-region',
         drawAreaRegion: '#draw-area-region',
         placeMarkerRegion: '#place-marker-region',
-        resetRegion: '#reset-draw-region'
-    },
-
-    modelEvents: {
-        'change:toolsEnabled': 'manageOutlineLayer'
+        resetRegion: '#reset-draw-region',
+        streamRegion: '#stream-slider-region'
     },
 
     initialize: function() {
         var map = App.getLeafletMap(),
-            ofg = L.featureGroup();
+            ofg = L.featureGroup(),
+            sfg = L.featureGroup();
         this.model.set('outlineFeatureGroup', ofg);
+        this.model.set('streamFeatureGroup', sfg);
         map.addLayer(ofg);
+        map.addLayer(sfg);
     },
 
     onDestroy: function() {
         var map = App.getLeafletMap(),
-            ofg = this.model.get('outlineFeatureGroup');
+            ofg = this.model.get('outlineFeatureGroup'),
+            sfg = this.model.get('streamFeatureGroup');
         map.removeLayer(ofg);
+        map.removeLayer(sfg);
         this.model.set('outlineFeatureGroup', null);
+        this.model.set('streamFeatureGroup', null);
     },
 
     onShow: function() {
@@ -60,16 +65,10 @@ var ToolbarView = Marionette.LayoutView.extend({
         this.resetRegion.show(new ResetDrawView({
             model: this.model
         }));
-    },
-
-    manageOutlineLayer: function() {
-        var enabled = this.model.get('toolsEnabled');
-
-        if (!enabled) {
-            clearBoundaryLayer(this.model);
-        }
+        this.streamRegion.show(new StreamSliderView({
+            model: this.model
+        }));
     }
-
 });
 
 var SelectAreaView = Marionette.ItemView.extend({
@@ -201,38 +200,143 @@ var ResetDrawView = Marionette.ItemView.extend({
     }
 });
 
+var StreamSliderView = Marionette.ItemView.extend({
+    template: streamSliderTmpl,
+
+    ui: {
+        slider: '#stream-slider',
+        displayValue: '#stream-value'
+    },
+
+    events: {
+        'input @ui.slider': 'onSliderDragged',
+        'change @ui.slider': 'onSliderChanged'
+    },
+
+    initialize: function() {
+        this.streamLayers = settings.getSettings().stream_layers;
+    },
+
+    onShow: function() {
+        this.onSliderDragged();
+    },
+
+    getSliderIndex: function() {
+        return parseInt(this.ui.slider.val());
+    },
+
+    getSliderDisplay: function() {
+        var ind = this.getSliderIndex();
+        if (ind === 0) {
+            return 'Off';
+        } else {
+            return this.streamLayers[ind-1].display;
+        }
+    },
+
+    onSliderDragged: function() {
+        // Preview slider value while dragging.
+        this.ui.displayValue.text(this.getSliderDisplay());
+    },
+
+    onSliderChanged: function() {
+        var ind = this.getSliderIndex();
+        clearStreamLayer(this.model);
+        if (ind > 0) {
+            var streamLayer = this.streamLayers[ind-1];
+            changeStreamLayer(streamLayer.endpoint, this.model);
+        }
+    }
+});
+
+function clearStreamLayer(model) {
+    model.get('streamFeatureGroup').clearLayers();
+}
+
+function changeStreamLayer(endpoint, model) {
+    var sfg = model.get('streamFeatureGroup'),
+        sl = new L.TileLayer(endpoint + '.png');
+
+    sfg.addLayer(sl);
+    sl.bringToFront();
+}
+
+function getShapeAndAnalyze(e, model, ofg, grid, tableId) {
+    // The shapeId might not be available at the time of the click
+    // because the UTF Grid layer might not be loaded yet, so
+    // we poll for it.
+    var pollInterval = 200,
+        maxPolls = 5,
+        pollCount = 0,
+        deferred = $.Deferred(),
+        shapeId = e.data ? e.data.id : null;
+
+        if (shapeId) {
+            _getShapeAndAnalyze();
+        } else {
+            pollForShapeId();
+        }
+
+    function _getShapeAndAnalyze() {
+        App.restApi.getPolygon({
+            tableId: tableId,
+            shapeId: shapeId
+        }).done(function(shape) {
+            addLayer(shape);
+            ofg.clearLayers();
+            navigateToAnalyze();
+            deferred.resolve();
+        }).fail(function() {
+            console.log('Shape endpoint failed');
+            deferred.reject();
+        }).always(function() {
+            model.enableTools();
+        });
+    }
+
+    function pollForShapeId() {
+        if (pollCount < maxPolls) {
+            var shapeData = grid._objectForEvent(e).data;
+            if (shapeData && shapeData.id) {
+                shapeId = shapeData.id;
+                _getShapeAndAnalyze();
+            } else {
+                window.setTimeout(pollForShapeId, pollInterval);
+                pollCount++;
+            }
+        } else {
+            L.popup()
+                .setLatLng(e.latlng)
+                .setContent('The region was not available. Please try clicking again.')
+                .openOn(App.getLeafletMap());
+            model.enableTools();
+            deferred.reject();
+        }
+    }
+
+    return deferred;
+}
+
 function changeOutlineLayer(endpoint, tableId, model) {
     var ofg = model.get('outlineFeatureGroup');
 
     // Go about the business of adding the ouline and UTFgrid layers.
     if (endpoint && tableId !== undefined) {
         var ol = new L.TileLayer(endpoint + '.png'),
-            grid = new L.UtfGrid(endpoint + '.grid.json?callback={cb}', { resolution: 4 });
+            grid = new L.UtfGrid(endpoint + '.grid.json?callback={cb}',
+                                 {
+                                     resolution: 4,
+                                     maxRequests: 8
+                                 });
+        grid.on('click', function(e) {
+            getShapeAndAnalyze(e, model, ofg, grid, tableId);
+        });
 
         ofg.clearLayers();
         ofg.addLayer(ol);
         ofg.addLayer(grid);
 
-        grid.on('click', function (e) {
-            var shapeId = e.data ? e.data.id : null,
-                revertLayer = clearAoiLayer();
-
-            if (model) {
-                model.disableTools();
-            }
-            App.restApi.getPolygon({
-                tableId: tableId,
-                shapeId: shapeId
-            }).then(function(shape) {
-                addLayer(shape);
-                navigateToAnalyze();
-            }).fail(function() {
-                revertLayer();
-            }).always(function() {
-                model.enableTools();
-                ofg.clearLayers();
-            });
-        });
+        ol.bringToFront();
     }
 }
 
@@ -260,5 +364,7 @@ function navigateToAnalyze() {
 }
 
 module.exports = {
-    ToolbarView: ToolbarView
+    ToolbarView: ToolbarView,
+    changeOutlineLayer: changeOutlineLayer,
+    getShapeAndAnalyze: getShapeAndAnalyze
 };

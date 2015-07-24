@@ -4,3 +4,4 @@
   with_items:
     - { name: "celery[redis]", version: "{{ celery_version }}" }
     - { name: "django-celery", version: "{{ djcelery_version }}" }
+    - { name: "flower", version: "{{ flower_version }}" }

@@ -1,0 +1,17 @@
+{% extends './baseModal.html' %}
+
+{% block form %}
+    {% if success %}
+        Please check your email to activate your account.
+    {% else %}
+        {{ field(email, 'email', 'Email', 'email') }}
+    {% endif %}
+{% endblock %}
+
+{% block footer %}
+    {% if success %}
+        <button id="login" type="button" class="btn btn-lg btn-block btn-active">Login</button>
+    {% else %}
+        <button type="button" class="btn btn-lg btn-block btn-active" id="primary-button">Send Activation Email</button>
+    {% endif %}
+{% endblock %}

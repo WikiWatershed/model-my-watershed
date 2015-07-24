@@ -10,6 +10,8 @@ statsite_port: 8125
 apache_port: 8080
 graphite_web_port: "{{ apache_port }}"
 
+stack_color: "Black"
+
 itsi_client_id: "model-my-watershed"
 
 postgresql_username: mmw
@@ -26,6 +28,9 @@ postgis_package_version: "2.1.*.pgdg14.04+1"
 
 elasticsearch_cluster_name: "logstash"
 
-nodejs_npm_version: 2.1.14
+nodejs_npm_version: 2.1.17
 
 java_version: "7u79-*"
+
+spark_version: "1.4.0-bin-hadoop2.6"
+scala_version: "2.10.5"
