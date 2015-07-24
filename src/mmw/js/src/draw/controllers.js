@@ -4,7 +4,9 @@ var App = require('../app'),
     geocoder = require('../geocode/views'),
     views = require('./views'),
     coreModels = require('../core/models'),
+    coreUtils = require('../core/utils'),
     coreViews = require('../core/views'),
+    modelingModels = require('../modeling/models'),
     models = require('./models');
 
 
@@ -26,6 +28,8 @@ var DrawController = {
 
         App.rootView.geocodeSearchRegion.show(geocodeSearch);
         App.rootView.drawToolsRegion.show(toolbarView);
+
+        enableSingleProjectMode();
 
         if (App.map.get('areaOfInterest')) {
             var aoiView = new coreViews.AreaOfInterestView({
@@ -50,6 +54,28 @@ var DrawController = {
         App.rootView.footerRegion.empty();
     }
 };
+
+/**
+ * If itsi flag is set, prepare a project immedialty upon visiting the page.
+ * This will be the only project the user can save during this session.
+ */
+function enableSingleProjectMode() {
+    if (coreUtils.getParameterByName('initialize_itsi') === 'true') {
+
+        App.singleProjectMode = true;
+
+        if (!App.currProject) {
+            var project = new modelingModels.ProjectModel({
+                name: 'New Activity',
+                created_at: Date.now(),
+                area_of_interest: null,
+                scenarios: new modelingModels.ScenariosCollection()
+            });
+            project.save();
+            App.currProject = project;
+        }
+    }
+}
 
 module.exports = {
     DrawController: DrawController

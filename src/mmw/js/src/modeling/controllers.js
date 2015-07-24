@@ -1,7 +1,8 @@
-
 "use strict";
 
-var App = require('../app'),
+var $ = require('jquery'),
+    _ = require('lodash'),
+    App = require('../app'),
     router = require('../router').router,
     views = require('./views'),
     models = require('./models');
@@ -43,40 +44,65 @@ var ModelingController = {
                     project.getResultsIfNeeded();
                 });
         } else {
-            project = new models.ProjectModel({
-                name: 'Untitled Project',
-                created_at: Date.now(),
-                area_of_interest: App.map.get('areaOfInterest'),
-                scenarios: new models.ScenariosCollection()
-            });
+            if (App.currProject && App.singleProjectMode) {
+                project = App.currProject;
+                project.set('user_id', App.user.get('id'));
+                project.set('area_of_interest', App.map.get('areaOfInterest'));
 
-            // TODO evalutate if we can remove this global by reworking this code.
-            App.currProject = project;
+                // Clear current scenarios and start over.
+                // Must convert to an array first to avoid conflicts with
+                // collection events that are disassociating the model during
+                // the loop.
+                var locks = [];
+                _.each(project.get('scenarios').toArray(), function(model) {
+                    var $lock = $.Deferred();
+                    locks.push($lock);
+                    model.destroy({
+                        success: function() {
+                            $lock.resolve();
+                        }
+                    });
+                });
 
-            project.get('scenarios').add([
-                new models.ScenarioModel({
-                    name: 'Current Conditions',
-                    is_current_conditions: true
-                }),
-                new models.ScenarioModel({
-                    name: 'New Scenario',
-                    active: true
-                })
-                // Silent is set to true because we don't actually want to save the
-                // project without some user interaction. This initialization
-                // should set the stage but we should wait for something else to
-                // happen to save. Ideally we will move this into the project
-                // creation when we get rid of the global.
-            ], { silent: true });
+                // When all models have been deleted...
+                $.when.apply($, locks).then(function() {
+                    setupNewProjectScenarios(project);
 
-            project.on('change:id', function() {
-                router.navigate(project.getReferenceUrl());
-            });
+                    // Don't reinitialize scenario events.
+                    if (!project.get('scenarios_events_initialized')) {
+                        initScenarioEvents(project);
+                        project.set('scenarios_events_initialized', true);
+                    }
+                    // Make sure to save the new project id onto scenarios.
+                    project.addIdsToScenarios();
+                    // Save to ensure we capture AOI.
+                    project.save();
 
-            initScenarioEvents(project);
-            initViews(project);
+                    // Now render.
+                    initViews(project);
+                    project.getResultsIfNeeded();
+                });
+            } else {
+                project = new models.ProjectModel({
+                    name: 'Untitled Project',
+                    created_at: Date.now(),
+                    area_of_interest: App.map.get('areaOfInterest'),
+                    scenarios: new models.ScenariosCollection()
+                });
 
-            project.getResultsIfNeeded();
+                // TODO evalutate if we can remove this global by reworking this
+                // code.
+                App.currProject = project;
+                setupNewProjectScenarios(project);
+                project.on('change:id', function() {
+                    router.navigate(project.getReferenceUrl());
+                });
+
+                initScenarioEvents(project);
+                initViews(project);
+
+                project.getResultsIfNeeded();
+            }
         }
     },
 
@@ -102,6 +128,24 @@ function initScenarioEvents(project) {
         mapView.updateModifications(scenario.get('modifications'));
         router.navigate(project.getReferenceUrl());
     });
+}
+
+function setupNewProjectScenarios(project) {
+    project.get('scenarios').add([
+        new models.ScenarioModel({
+            name: 'Current Conditions',
+            is_current_conditions: true
+        }),
+        new models.ScenarioModel({
+            name: 'New Scenario',
+            active: true
+        })
+        // Silent is set to true because we don't actually want to save the
+        // project without some user interaction. This initialization
+        // should set the stage but we should wait for something else to
+        // happen to save. Ideally we will move this into the project
+        // creation when we get rid of the global.
+    ], { silent: true });
 }
 
 function initViews(project) {
