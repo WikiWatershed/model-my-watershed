@@ -31,6 +31,17 @@ var utils = {
         return params;
     },
 
+    /**
+     * Returns the value of a query param from the URL if it exists or null:
+     * https://stackoverflow.com/questions/901115
+     */
+    getParameterByName: function(name) {
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)'),
+            results = regex.exec(location.search);
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    },
+
     // Convert a backbone collection into a canonical MD5 hash
     getCollectionHash: function(collection) {
         // JSON objects are not guaranteed consistent order in string
