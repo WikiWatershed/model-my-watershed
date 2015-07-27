@@ -28,6 +28,9 @@ class Project(models.Model):
         auto_now_add=True)
     modified_at = models.DateTimeField(
         auto_now=True)
+    is_activity = models.BooleanField(
+        default=False,
+        help_text='Projects with special properties')
 
     def __unicode__(self):
         return self.name
