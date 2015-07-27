@@ -79,7 +79,8 @@ var ProjectModel = Backbone.Model.extend({
         area_of_interest: null,    // GeoJSON
         model_package: '',         // Package name
         scenarios: null,           // ScenariosCollection
-        user_id: 0                 // User that created the project
+        user_id: 0,                // User that created the project
+        is_activity: false         // Project that persists across routes
     },
 
     initialize: function() {
