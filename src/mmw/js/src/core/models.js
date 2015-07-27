@@ -12,7 +12,8 @@ var MapModel = Backbone.Model.extend({
         zoom: 0,
         areaOfInterest: null,           // GeoJSON
         halfSize: false,
-        geolocationEnabled: true
+        geolocationEnabled: true,
+        previousAreaOfInterest: null
     },
 
     revertMaskLayer: function() {
@@ -44,6 +45,18 @@ var MapModel = Backbone.Model.extend({
 
             this.set('areaOfInterest', aoi);
         }
+    },
+
+    stashAOI: function() {
+        // Since we oscillate between an area of interest and a blank map, stash
+        // non-null AOI.
+        if (!_.isNull(this.get('areaOfInterest'))) {
+            this.set('previousAreaOfInterest', _.clone(this.get('areaOfInterest')));
+        }
+    },
+
+    revertAOI: function() {
+        this.set('areaOfInterest', _.clone(this.get('previousAreaOfInterest')));
     },
 
     setHalfSize: function(fit) {
