@@ -68,7 +68,8 @@ function enableSingleProjectModeIfActivity() {
                 created_at: Date.now(),
                 area_of_interest: null,
                 scenarios: new modelingModels.ScenariosCollection(),
-                is_activity: true
+                is_activity: true,
+                needs_reset: true
             });
             project.save();
             App.currProject = project;

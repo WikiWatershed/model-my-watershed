@@ -42,46 +42,59 @@ var ModelingController = {
                         project.get('scenarios').makeFirstScenarioActive();
                     }
                     project.getResultsIfNeeded();
+
+                    // If this project is an activity then the application's behaior changes.
+                    if (project.get('is_activity')) {
+                        App.activityMode = true;
+                    }
                 });
         } else {
-            if (App.currProject && App.singleProjectMode) {
+            if (App.currProject && App.activityMode) {
                 project = App.currProject;
-                project.set('user_id', App.user.get('id'));
-                project.set('area_of_interest', App.map.get('areaOfInterest'));
+                // Reset flag is set so clear off old project data.
+                if (project.get('needs_reset')) {
+                    project.set('user_id', App.user.get('id'));
+                    project.set('area_of_interest', App.map.get('areaOfInterest'));
+                    project.set('needs_reset', false);
 
-                // Clear current scenarios and start over.
-                // Must convert to an array first to avoid conflicts with
-                // collection events that are disassociating the model during
-                // the loop.
-                var locks = [];
-                _.each(project.get('scenarios').toArray(), function(model) {
-                    var $lock = $.Deferred();
-                    locks.push($lock);
-                    model.destroy({
-                        success: function() {
-                            $lock.resolve();
-                        }
+                    // Clear current scenarios and start over.
+                    // Must convert to an array first to avoid conflicts with
+                    // collection events that are disassociating the model during
+                    // the loop.
+                    var locks = [];
+                    _.each(project.get('scenarios').toArray(), function(model) {
+                        var $lock = $.Deferred();
+                        locks.push($lock);
+                        model.destroy({
+                            success: function() {
+                                $lock.resolve();
+                            }
+                        });
                     });
-                });
 
-                // When all models have been deleted...
-                $.when.apply($, locks).then(function() {
-                    setupNewProjectScenarios(project);
+                    // When all models have been deleted...
+                    $.when.apply($, locks).then(function() {
+                        setupNewProjectScenarios(project);
 
-                    // Don't reinitialize scenario events.
-                    if (!project.get('scenarios_events_initialized')) {
-                        initScenarioEvents(project);
-                        project.set('scenarios_events_initialized', true);
-                    }
-                    // Make sure to save the new project id onto scenarios.
-                    project.addIdsToScenarios();
-                    // Save to ensure we capture AOI.
-                    project.save();
+                        // Don't reinitialize scenario events.
+                        if (!project.get('scenarios_events_initialized')) {
+                            initScenarioEvents(project);
+                            project.set('scenarios_events_initialized', true);
+                        }
+                        // Make sure to save the new project id onto scenarios.
+                        project.addIdsToScenarios();
+                        // Save to ensure we capture AOI.
+                        project.save();
 
-                    // Now render.
+                        // Now render.
+                        initViews(project);
+                        project.getResultsIfNeeded();
+                    });
+                } else {
                     initViews(project);
                     project.getResultsIfNeeded();
-                });
+                    router.navigate(project.getReferenceUrl());
+                }
             } else {
                 project = new models.ProjectModel({
                     name: 'Untitled Project',

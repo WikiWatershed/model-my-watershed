@@ -23,6 +23,10 @@ var App = new Marionette.Application({
             el: '#map'
         });
 
+        this._mapView.on('change:needs_reset', function(needs) {
+            App.currProject.set('needs_reset', needs);
+        });
+
         this.rootView = new views.RootView();
         this.user = new userModels.UserModel({});
 

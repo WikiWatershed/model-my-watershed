@@ -80,7 +80,8 @@ var ProjectModel = Backbone.Model.extend({
         model_package: '',         // Package name
         scenarios: null,           // ScenariosCollection
         user_id: 0,                // User that created the project
-        is_activity: false         // Project that persists across routes
+        is_activity: false,        // Project that persists across routes
+        needs_reset: false         // Should we overwrite project data on next save?
     },
 
     initialize: function() {
@@ -96,6 +97,10 @@ var ProjectModel = Backbone.Model.extend({
         this.set('model_package', 'tr-55');
 
         this.set('user_id', App.user.get('id'));
+
+        // If activity mode is enabled make sure to initialize the project as
+        // an activity.
+        this.set('is_activity', App.activityMode);
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
         this.on('change:name', this.saveProjectAndScenarios, this);

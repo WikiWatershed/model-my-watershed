@@ -231,10 +231,12 @@ var MapView = Marionette.ItemView.extend({
             clearProject.on('confirmation', function() {
                 self._didRevert = false;
                 self._areaOfInterestSet = false;
+                self.trigger('change:needs_reset', true);
             });
             clearProject.on('deny', function() {
                 var map = self._leafletMap;
                 self._didRevert = true;
+                self.trigger('change:needs_reset', false);
                 self.model.revertAOI();
                 self.updateAreaOfInterest();
                 drawUtils.cancelDrawing(map);
