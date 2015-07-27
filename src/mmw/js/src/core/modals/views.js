@@ -55,16 +55,22 @@ var ConfirmView = ModalBaseView.extend({
     template: modalConfirmTmpl,
 
     ui: {
-        confirmation: '.confirm'
+        confirmation: '.confirm',
+        deny: '.btn-default'
     },
 
     events: _.defaults({
-        'click @ui.confirmation': 'primaryAction'
+        'click @ui.confirmation': 'primaryAction',
+        'click @ui.deny': 'dismissAction'
     }, ModalBaseView.prototype.events),
 
     primaryAction: function() {
         this.triggerMethod('confirmation');
         this.hide();
+    },
+
+    dismissAction: function() {
+        this.triggerMethod('deny');
     }
 });
 
