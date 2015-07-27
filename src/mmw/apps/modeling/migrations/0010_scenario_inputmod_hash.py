@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='scenario',
             name='inputmod_hash',
-            field=models.CharField(help_text='A hash of the values for inputs to compare to the existing model results, to determine if the persisted result apply to the current values', max_length=255, null=True),
+            field=models.CharField(help_text='A hash of the values for inputs & modifications to compare to the existing model results, to determine if the persisted result apply to the current values', max_length=255, null=True),
         ),
         migrations.AlterField(
             model_name='scenario',
