@@ -5,6 +5,7 @@ var App = require('../app'),
     views = require('./views'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
+    settings = require('../core/settings'),
     modelingModels = require('../modeling/models'),
     models = require('./models');
 
@@ -61,7 +62,7 @@ var DrawController = {
  * save during this session.
  */
 function enableSingleProjectModeIfActivity() {
-    if (App.activityMode) {
+    if (settings.get('activityMode')) {
         if (!App.currProject) {
             var project = new modelingModels.ProjectModel({
                 name: 'New Activity',

@@ -146,7 +146,7 @@ var MapView = Marionette.ItemView.extend({
         map.addControl(new L.Control.Zoom({position: 'topright'}));
         addLocateMeButton(map, maxZoom, maxAge);
 
-        var baseLayers = _.mapObject(settings.getSettings().base_layers, function(layerData) {
+        var baseLayers = _.mapObject(settings.get('base_layers'), function(layerData) {
             if (layerData.googleType) {
                 return new L.Google(layerData.googleType);
             } else {
@@ -156,7 +156,7 @@ var MapView = Marionette.ItemView.extend({
                 });
             }
         }),
-            defaultLayerName = _.findKey(settings.getSettings().base_layers, function(layerData) {
+            defaultLayerName = _.findKey(settings.get('base_layers'), function(layerData) {
                 return layerData.default;
             }),
             defaultLayer = baseLayers[defaultLayerName];
@@ -211,7 +211,9 @@ var MapView = Marionette.ItemView.extend({
     },
 
     aoiChangeWarning: _.debounce(function() {
-        if (this._didRevert) {
+        var activityMode = settings.get('activityMode');
+        // Fail fast.
+        if (this._didRevert || !activityMode) {
             this._didRevert = false;
             return;
         }

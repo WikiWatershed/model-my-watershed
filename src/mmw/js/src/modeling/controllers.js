@@ -3,6 +3,7 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     App = require('../app'),
+    settings = require('../core/settings'),
     router = require('../router').router,
     views = require('./views'),
     models = require('./models');
@@ -45,11 +46,11 @@ var ModelingController = {
 
                     // If this project is an activity then the application's behaior changes.
                     if (project.get('is_activity')) {
-                        App.activityMode = true;
+                        settings.set('activityMode', true);
                     }
                 });
         } else {
-            if (App.currProject && App.activityMode) {
+            if (App.currProject && settings.get('activityMode')) {
                 project = App.currProject;
                 // Reset flag is set so clear off old project data.
                 if (project.get('needs_reset')) {

@@ -15,7 +15,8 @@ var App = new Marionette.Application({
         this.map = new models.MapModel();
 
         // If in embed mode we are by default in activity mode.
-        this.activityMode = settings.getSettings().itsi_embed;
+        var activityMode = settings.get('itsi_embed');
+        settings.set('activityMode', activityMode);
 
         // This view is intentionally not attached to any region.
         this._mapView = new views.MapView({

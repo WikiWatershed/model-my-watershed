@@ -3,6 +3,7 @@
 var Backbone = require('../../shim/backbone'),
     _ = require('lodash'),
     utils = require('../core/utils'),
+    settings = require('../core/settings'),
     App = require('../app'),
     coreModels = require('../core/models');
 
@@ -100,7 +101,7 @@ var ProjectModel = Backbone.Model.extend({
 
         // If activity mode is enabled make sure to initialize the project as
         // an activity.
-        this.set('is_activity', App.activityMode);
+        this.set('is_activity', settings.get('activityMode'));
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
         this.on('change:name', this.saveProjectAndScenarios, this);
