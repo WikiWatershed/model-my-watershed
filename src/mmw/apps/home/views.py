@@ -30,9 +30,11 @@ def get_stream_layers():
     return stream_layers
 
 
-def get_client_settings():
+def get_client_settings(request):
+    EMBED_FLAG = settings.ITSI['embed_flag']
     client_settings = {
         'client_settings': json.dumps({
+            EMBED_FLAG: request.session.get(EMBED_FLAG, False),
             'base_layers': settings.BASE_LAYERS,
             'stream_layers': get_stream_layers(),
             'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY
@@ -44,7 +46,7 @@ def get_client_settings():
 def get_context(request):
     context = {}
     context.update(csrf(request))
-    context.update(get_client_settings())
+    context.update(get_client_settings(request))
     return context
 
 
