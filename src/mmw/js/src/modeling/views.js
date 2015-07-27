@@ -2,12 +2,12 @@
 
     var _ = require('lodash'),
     $ = require('jquery'),
-    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
     controls = require('./controls'),
-    coreViews = require('../core/views'),
+    modalModels = require('../core/modals/models'),
+    modalViews = require('../core/modals/views'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultsDetailsTmpl = require('./templates/resultsDetails.html'),
     resultsTabPanelTmpl = require('./templates/resultsTabPanel.html'),
@@ -117,8 +117,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
     renameProject: function() {
         var self = this,
-            rename = new coreViews.InputModal({
-            model: new Backbone.Model({
+            rename = new modalViews.InputView({
+            model: new modalModels.InputModel({
                 initial: this.model.get('name'),
                 title: 'Rename Project',
                 fieldLabel: 'Project Name'
@@ -131,8 +131,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
     },
 
     shareProject: function() {
-        var share = new coreViews.ShareModal({
-                model: new Backbone.Model({
+        var share = new modalViews.ShareView({
+                model: new modalModels.ShareModel({
                     text: 'Project',
                     url: window.location.href,
                     guest: App.user.get('guest'),
@@ -147,8 +147,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
     deleteProject: function() {
         var self = this,
-            del = new coreViews.ConfirmModal({
-                model: new Backbone.Model({
+            del = new modalViews.ConfirmView({
+                model: new modalModels.ConfirmModel({
                     question: 'Are you sure you want to delete this Project?',
                     confirmLabel: 'Delete',
                     cancelLabel: 'Cancel'
@@ -195,8 +195,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
                     'Anyone with the URL will be able to access it.' :
                     'Only you will be able to access it.',
             question = primaryText + additionalText,
-            modal = new coreViews.ConfirmModal({
-                model: new Backbone.Model({
+            modal = new modalViews.ConfirmView({
+                model: new modalModels.ConfirmModel({
                     question: question,
                     confirmLabel: 'Confirm',
                     cancelLabel: 'Cancel'
@@ -214,8 +214,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
         var self = this,
             embedLink = window.location.origin +
                 '/project/' + App.currProject.id + '/clone?itsi_embed=true',
-            modal = new coreViews.ShareModal({
-                model: new Backbone.Model({
+            modal = new modalViews.ShareView({
+                model: new modalModels.ShareModel({
                     text: 'Embed Link',
                     url: embedLink,
                     guest: App.user.get('guest'),
@@ -358,8 +358,8 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
 
     destroyConfirm: function() {
         var self = this,
-            del = new coreViews.ConfirmModal({
-                model: new Backbone.Model({
+            del = new modalViews.ConfirmView({
+                model: new modalModels.ConfirmModel({
                     question: 'Are you sure you want to delete this scenario?',
                     confirmLabel: 'Delete',
                     cancelLabel: 'Cancel'
@@ -374,11 +374,12 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     },
 
     showShareModal: function() {
-        var share = new coreViews.ShareModal({
-                model: new Backbone.Model({
+        var share = new modalViews.ShareView({
+                model: new modalModels.ShareModel({
                     text: 'Scenario',
                     url: window.location.href,
-                    guest: App.user.get('guest')
+                    guest: App.user.get('guest'),
+                    is_private: App.currProject.get('is_private')
                 }),
                 app: App
             });
