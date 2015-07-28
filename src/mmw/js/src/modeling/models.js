@@ -5,7 +5,10 @@ var Backbone = require('../../shim/backbone'),
     utils = require('../core/utils'),
     settings = require('../core/settings'),
     App = require('../app'),
-    coreModels = require('../core/models');
+    coreModels = require('../core/models'),
+    turfArea = require('turf-area'),
+    turfErase = require('turf-erase'),
+    turfIntersect = require('turf-intersect');
 
 var ModelPackageControlModel = Backbone.Model.extend({
     defaults: {
@@ -237,6 +240,123 @@ var ProjectModel = Backbone.Model.extend({
     }
 });
 
+/**
+ * A predicate for a filter function used in the _modifyModifications.
+ * Returns true if piece has a valid shape with non-zero area, and
+ * false otherwise.
+ */
+function validShape(piece) {
+    return (piece.shape !== undefined) && (turfArea(piece.shape) > 0.33);
+}
+
+/**
+ * This function takes a collection of modifications as drawn on
+ * screen and returns an array that has the following property: no
+ * point on the map is covered by more than one 'BMP' or more than one
+ * 'reclassification'.
+ */
+function _modifyModifications(rawModifications) {
+    var pieces = [],
+        reclass = 'landcover',
+        bmp = 'conservation_practice',
+        both = 'both',
+        n = rawModifications.size(),
+        n2 = n * n;
+
+    for (var i = 0; i < n; ++i) {
+        var rawModification = rawModifications.at(i),
+            newPiece = {
+                name: rawModification.get('name'),
+                shape: rawModification.get('shape'),
+                value: rawModification.get('value')
+            };
+
+        for (var j = 0; (j < pieces.length) && (newPiece.shape !== undefined) && (j < n2); ++j) {
+            var oldPiece = pieces[j];
+
+            /* If the new piece and the old piece are both BMPs or
+             * both are reclassifications, then simply subtract the
+             * shape of the new piece from that of the old piece to
+             * enforce the invariant. */
+            if (oldPiece.name === newPiece.name) {
+                try {
+                    oldPiece.shape = turfErase(oldPiece.shape, newPiece.shape);
+                } catch(e) {
+                    /* This "can only happen" if oldPiece.shape is
+                     * undefined (that is, the empty set), but that is
+                     * explicitly codified here. */
+                    oldPiece.shape = undefined;
+                }
+            }
+            /* If the new piece and the old piece are not both BMPs or
+             * not both reclassifications, then there are a number of
+             * possible scenarios: the old piece might be a BMP, might
+             * be a reclassification, or might represent an area where
+             * BMPs and reclassification overlap. */
+            else {
+                var newOldIntersection;
+
+                try {
+                    newOldIntersection = turfIntersect(oldPiece.shape, newPiece.shape);
+                } catch(e) {
+                    /* Once again, this "can only happen" if
+                     * oldPiece.shape is undefined, but make it
+                     * explicit. */
+                    oldPiece.shape = undefined;
+                    newOldIntersection = undefined;
+                }
+
+                /* New overlap pieces are born here. */
+                if ((newOldIntersection !== undefined) && (turfArea(newOldIntersection) > 0.33)) {
+                    var oldPieceShape = oldPiece.shape, // save a copy, need this for later
+                        overlapPiece = {
+                            name: both,
+                            shape: newOldIntersection,
+                            value: {}
+                        };
+
+                    /* compute overlap piece and add to array */
+                    if ((oldPiece.name === both) && (newPiece.name === reclass)) {
+                        overlapPiece.value.bmp = oldPiece.value.bmp;
+                        overlapPiece.value.reclass = newPiece.value;
+                    } else if ((oldPiece.name === both) && (newPiece.name === bmp)) {
+                        overlapPiece.value.bmp = newPiece.value;
+                        overlapPiece.value.reclass = oldPiece.value.reclass;
+                    } else if (oldPiece.name === reclass) {
+                        overlapPiece.value.bmp = newPiece.value;
+                        overlapPiece.value.reclass = oldPiece.value;
+                    } else {
+                        overlapPiece.value.bmp = oldPiece.value;
+                        overlapPiece.value.reclass = newPiece.value;
+                    }
+                    pieces.push(overlapPiece);
+
+                    /* remove the overlapping portion from both parents */
+                    try {
+                        oldPiece.shape = turfErase(oldPiece.shape, newPiece.shape);
+                    } catch(e) {
+                        /* Once again, should only happen if
+                         * oldPiece.shape is already undefined. */
+                        oldPiece.shape = undefined;
+                    }
+                    try {
+                        newPiece.shape = turfErase(newPiece.shape, oldPieceShape);
+                    } catch(e) {
+                        /* This can (should) never happen. */
+                    }
+                }
+            }
+        }
+
+        pieces.push(newPiece);
+        pieces = _.filter(pieces, validShape);
+    }
+
+    return pieces;
+}
+
+var modifyModifications = _.memoize(_modifyModifications, function(_, hash) {return hash;});
+
 var ModificationModel = coreModels.GeoModel.extend({
     defaults: _.extend({
             name: '',
@@ -396,6 +516,7 @@ var ScenarioModel = Backbone.Model.extend({
                     model_input: JSON.stringify({
                         inputs: self.get('inputs').toJSON(),
                         modifications: self.get('modifications').toJSON(),
+                        modification_pieces: modifyModifications(self.get('modifications'), self.get('modification_hash')),
                         area_of_interest: App.currProject.get('area_of_interest'),
                         census: self.get('census'),
                         inputmod_hash: self.get('inputmod_hash'),
