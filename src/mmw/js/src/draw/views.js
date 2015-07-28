@@ -213,9 +213,10 @@ var PlaceMarkerView = Marionette.ItemView.extend({
         'change:toolsEnabled': 'render'
     },
 
-    onItemClicked: function() {
+    onItemClicked: function(e) {
         var self = this,
             map = App.getLeafletMap(),
+            itemName = $(e.target).text(),
             revertLayer = clearAoiLayer();
 
         this.model.disableTools();
@@ -240,7 +241,7 @@ var PlaceMarkerView = Marionette.ItemView.extend({
                     max_radial_length: 0.25
                 });
 
-            addLayer(shape);
+            addLayer(shape, itemName);
             navigateToAnalyze();
         }).fail(function() {
             revertLayer();
