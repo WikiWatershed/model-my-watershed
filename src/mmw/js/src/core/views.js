@@ -224,8 +224,9 @@ var MapView = Marionette.ItemView.extend({
                     model: new modalModels.ConfirmModel({
                         question: 'If you change the selected area you will lose your current work.',
                         confirmLabel: 'Make Changes',
-                        cancelLabel: 'Cancel'
-                    })
+                        cancelLabel: 'Cancel',
+                        feedbackRequired: true
+                    }),
                 });
 
             clearProject.render();
