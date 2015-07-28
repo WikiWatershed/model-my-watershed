@@ -67,6 +67,7 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
             App: App,
             model: new coreModels.AreaOfInterestModel({
                 shape: this.model.get('area_of_interest'),
+                place: App.map.get('areaOfInterestName'),
                 can_go_back: true,
                 next_label: 'Model',
                 url: 'project'

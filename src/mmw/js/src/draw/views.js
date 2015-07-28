@@ -333,6 +333,7 @@ function getShapeAndAnalyze(e, model, ofg, grid, tableId) {
         maxPolls = 5,
         pollCount = 0,
         deferred = $.Deferred(),
+        shapeName = e.data && e.data.name ? e.data.name : null,
         shapeId = e.data ? e.data.id : null;
 
         if (shapeId) {
@@ -346,7 +347,7 @@ function getShapeAndAnalyze(e, model, ofg, grid, tableId) {
             tableId: tableId,
             shapeId: shapeId
         }).done(function(shape) {
-            addLayer(shape);
+            addLayer(shape, shapeName);
             clearBoundaryLayer(model);
             navigateToAnalyze();
             deferred.resolve();
@@ -397,8 +398,13 @@ function clearBoundaryLayer(model) {
     }
 }
 
-function addLayer(shape) {
+function addLayer(shape, name) {
+    if (!name) {
+        name = 'Selected Area';
+    }
+
     App.map.set('areaOfInterest', shape);
+    App.map.set('areaOfInterestName', name);
 }
 
 function navigateToAnalyze() {
