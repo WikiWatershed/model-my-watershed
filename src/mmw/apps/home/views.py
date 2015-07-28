@@ -7,11 +7,11 @@ import json
 from urlparse import urljoin
 
 from django.http import Http404
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.conf import settings
 
-from apps.modeling.models import Project
+from apps.modeling.models import Project, Scenario
 
 
 def get_stream_layers():
@@ -68,3 +68,34 @@ def project(request, proj_id=None, scenario_id=None):
             raise Http404
 
     return render_to_response('home/home.html', get_context(request))
+
+
+def project_clone(request, proj_id=None):
+    """
+    If proj_id was specified, check that the user owns
+    the project or if the project is public.
+    If not, return a 404. Otherwise, create a new
+    project and scenarios from the old one, assign to
+    current user, and redirect to it.
+    """
+
+    if not proj_id or not request.user.is_authenticated():
+        raise Http404
+
+    project = get_object_or_404(Project, id=proj_id)
+
+    if project.user != request.user and project.is_private:
+        raise Http404
+
+    project.pk = None
+    project.user = request.user
+    project.save()
+
+    for scenario in Scenario.objects    \
+            .filter(project_id=proj_id) \
+            .order_by('created_at'):
+        scenario.pk = None
+        scenario.project = project
+        scenario.save()
+
+    return redirect('/project/{0}'.format(project.id))

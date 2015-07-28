@@ -7,6 +7,8 @@ var _ = require('lodash'),
     Backbone = require('backbone'),
     assert = require('chai').assert,
     sinon = require('sinon'),
+    mocks = require('./mocks'),
+    utils = require('../core/utils'),
     models = require('./models'),
     views = require('./views'),
     App = require('../app.js'),
@@ -146,8 +148,8 @@ describe('Modeling', function() {
                     model: this.model,
                     collection: models.getControlsForModelPackage('tr-55')
                 });
-                this.modsModel1 = new models.ModificationModel(modificationsSample1);
-                this.modsModel2 = new models.ModificationModel(modificationsSample2);
+                this.modsModel1 = new models.ModificationModel(mocks.modifications.sample1);
+                this.modsModel2 = new models.ModificationModel(mocks.modifications.sample2);
                 $('#sandbox').html(this.view.render().el);
             });
 
@@ -198,7 +200,7 @@ describe('Modeling', function() {
 
                 $('#sandbox').html(view.render().el);
 
-                assert.equal($('#sandbox li').length, 3);
+                assert.equal($('#sandbox li').length, preSaveMenuItems.length);
                 $('#sandbox li').each(function() {
                     assert.include(preSaveMenuItems, $(this).text());
                 });
@@ -226,7 +228,7 @@ describe('Modeling', function() {
 
                 $('#sandbox').html(view.render().el);
 
-                assert.equal($('#sandbox li').length, 6);
+                assert.equal($('#sandbox li').length, postSaveMenuItems.length);
                 $('#sandbox li').each(function() {
                     assert.include(postSaveMenuItems, $(this).text());
                 });
@@ -266,6 +268,38 @@ describe('Modeling', function() {
                 $('#sandbox').html(view.render().el);
 
                 assert.equal($('#sandbox #project-privacy').text(), 'Make Private');
+            });
+
+            it('shows "Embed in ITSI" link only for ITSI users', function() {
+                App.user.set({
+                    id: 1,
+                    itsi: true
+                });
+
+                var project = getTestProject(),
+                    view = new views.ProjectMenuView({ model: project }),
+                    projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[],"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}',
+                    postSaveMenuItems = [
+                        'Share',
+                        'Make Public',
+                        'Delete',
+                        'Add Tags',
+                        'Rename',
+                        'Print',
+                        'Embed in ITSI'
+                    ];
+
+                this.server.respondWith('POST', '/api/modeling/projects/',
+                            [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
+
+                project.save();
+
+                $('#sandbox').html(view.render().el);
+
+                assert.equal($('#sandbox li').length, postSaveMenuItems.length);
+                $('#sandbox li').each(function() {
+                    assert.include(postSaveMenuItems, $(this).text());
+                });
             });
         });
     });
@@ -364,7 +398,7 @@ describe('Modeling', function() {
             });
         });
 
-        describe('ModificatioModel', function() {
+        describe('ModificationModel', function() {
             it('inherits defaults from coreModels.GeoModel', function() {
                 var model = new models.ModificationModel({});
 
@@ -373,46 +407,144 @@ describe('Modeling', function() {
             });
         });
 
+        describe('ModificationCollection', function() {
+            it('sorts modifications correctly', function() {
+                var collection = new models.ModificationsCollection();
+
+                collection.add(mocks.modifications.sample1);
+                collection.add(mocks.modifications.sample2);
+                collection.add(mocks.modifications.sample3);
+
+                var collectionOrder = collection.pluck('area'),
+                    knownOrder = [
+                        (new models.ModificationModel(mocks.modifications.sample2)).get('area'),
+                        (new models.ModificationModel(mocks.modifications.sample1)).get('area'),
+                        (new models.ModificationModel(mocks.modifications.sample3)).get('area')
+                    ];
+
+                assert.deepEqual(collectionOrder, knownOrder,
+                    'Collection was not sorted correctly'
+                );
+            });
+        });
+
         describe('ScenarioModel', function() {
             // TODO: Add tests for existing methods.
 
+            var modSpy, saveSpy, resultSpy;
+
+            beforeEach(function() {
+                modSpy = sinon.spy(models.ScenarioModel.prototype, 'updateModificationHash');
+                saveSpy = sinon.spy(models.ScenarioModel.prototype, 'attemptSave');
+                resultSpy = sinon.spy(models.ScenarioModel.prototype, 'getResults');
+            });
+
+            afterEach(function() {
+                models.ScenarioModel.prototype.updateModificationHash.restore();
+                models.ScenarioModel.prototype.attemptSave.restore();
+                models.ScenarioModel.prototype.getResults.restore();
+            });
+
+            describe('#getCollectionHash', function() {
+                it('generates the same hash when given two collections in different order', function() {
+                    var modificationsOne = new models.ModificationsCollection(),
+                        modificationsTwo = new models.ModificationsCollection();
+
+                    modificationsOne.add(new models.ModificationModel(mocks.modifications.sample1));
+                    modificationsOne.add(new models.ModificationModel(mocks.modifications.sample2));
+
+                    modificationsTwo.add(new models.ModificationModel(mocks.modifications.sample2));
+                    modificationsTwo.add(new models.ModificationModel(mocks.modifications.sample1OutOfOrder));
+
+                    var hashOne = utils.getCollectionHash(modificationsOne),
+                        hashTwo = utils.getCollectionHash(modificationsTwo);
+
+                    assert.equal(hashOne, hashTwo);
+                });
+            });
+
             describe('#updateModificationHash', function() {
+                it('initializes modification and inputmod hashes', function() {
+                    var model = getTestScenarioModel(),
+                        modification_hash = utils.getCollectionHash(model.get('modifications')),
+                        inputmod_hash = utils.getCollectionHash(model.get('inputs')) + modification_hash;
+
+                    assert.equal(model.get('modification_hash'), modification_hash);
+                    assert.equal(model.get('inputmod_hash'), inputmod_hash);
+                });
+
                 it('generates and sets modification_hash based on the scenario\'s modifications', function() {
                     var model = new models.ScenarioModel({
-                            modifications: [modificationsSample1]
+                            modifications: [mocks.modifications.sample1]
                         });
 
                     model.updateModificationHash();
-                    assert.equal(model.get('modification_hash'), 'b0eb4af3250d9c1320d659805afaf049');
+                    assert.equal(model.get('modification_hash'), '40c4fdd89b06a0e9b7e1c3c5c2bd1f17');
 
-                    var mod = new models.ModificationModel(modificationsSample2);
+                    var mod = new models.ModificationModel(mocks.modifications.sample2);
                     model.get('modifications').add(mod);
-                    assert.equal(model.get('modification_hash'), '07fb74f0e09eb1c31f3db8c78219758f');
+                    assert.equal(model.get('modification_hash'), 'dcda6a697d33a3bc95c95cc401e774bb');
 
                     model.get('modifications').remove(mod);
-                    assert.equal(model.get('modification_hash'), 'b0eb4af3250d9c1320d659805afaf049');
+                    assert.equal(model.get('modification_hash'), '40c4fdd89b06a0e9b7e1c3c5c2bd1f17');
                 });
 
                 it('is called when the modifications for a scenario changes', function() {
-                    var spy = sinon.spy(models.ScenarioModel.prototype, 'updateModificationHash'),
-                        model = new models.ScenarioModel({});
+                    var model = new models.ScenarioModel({});
 
-                    model.get('modifications').add(new models.ModificationModel(modificationsSample1));
-                    assert.isTrue(spy.calledOnce);
-
-                    models.ScenarioModel.prototype.updateModificationHash.restore();
+                    model.get('modifications').add(new models.ModificationModel(mocks.modifications.sample1));
+                    assert.isTrue(modSpy.called);
                 });
 
                 it('is called before model#attemptSave when the modifications change', function() {
-                    var modSpy = sinon.spy(models.ScenarioModel.prototype, 'updateModificationHash'),
-                        saveSpy = sinon.spy(models.ScenarioModel.prototype, 'attemptSave'),
-                        model = new models.ScenarioModel({});
+                    var model = new models.ScenarioModel({});
 
-                    model.addModification(new models.ModificationModel(modificationsSample1));
+                    model.addModification(new models.ModificationModel(mocks.modifications.sample1));
                     assert.isTrue(modSpy.calledBefore(saveSpy));
+                });
+            });
 
-                    models.ScenarioModel.prototype.updateModificationHash.restore();
-                    models.ScenarioModel.prototype.attemptSave.restore();
+            describe('#scenarioPolling', function() {
+                it('saves after polling finishes successfully', function(done) {
+                    var model = getTestScenarioModel(),
+                        delayedAssert = function() {
+                            assert.isTrue(resultSpy.called, 'getResults should have been called');
+                            assert.isTrue(saveSpy.called, 'attemptSave should have been called');
+                            assert.isTrue(resultSpy.calledBefore(saveSpy));
+
+                            done();
+                        };
+
+                    this.server.respondWith('POST', '/api/modeling/start/tr55/',
+                        [200, { 'Content-Type': 'application/json' }, mocks.polling.getTR55Started]);
+                    this.server.respondWith('GET', '/api/modeling/jobs/8aef636e-2079-4f87-98dc-471d090141ad/',
+                        [200, { 'Content-Type': 'application/json' }, mocks.polling.getJobSuccess]);
+
+                    model.addModification(new models.ModificationModel(mocks.modifications.sample1));
+
+                    // TODO: Refactor to use callbacks instead of delays
+                    setTimeout(delayedAssert, 1100);
+                });
+
+                it('saves after polling fails', function(done) {
+                    var model = getTestScenarioModel(),
+                        delayedAssert = function() {
+                            assert.isTrue(resultSpy.called, 'getResults should have been called');
+                            assert.isTrue(saveSpy.called, 'attemptSave should have been called');
+                            assert.isTrue(resultSpy.calledBefore(saveSpy));
+
+                            done();
+                        };
+
+                    this.server.respondWith('POST', '/api/modeling/start/tr55/',
+                        [200, { 'Content-Type': 'application/json' }, mocks.polling.getTR55Started]);
+                    this.server.respondWith('GET', '/api/modeling/jobs/8aef636e-2079-4f87-98dc-471d090141ad/',
+                        [400, { 'Content-Type': 'application/json' }, mocks.polling.getJobFailure]);
+
+                    model.addModification(new models.ModificationModel(mocks.modifications.sample1));
+
+                    // TODO: Refactor to use callbacks instead of delays
+                    setTimeout(delayedAssert, 1100);
                 });
             });
         });
@@ -569,23 +701,9 @@ describe('Modeling', function() {
 
 // var lessThanOneAcrePolygon = { "type": "Feature", "properties": {}, "geometry": { "type": "Polygon", "coordinates": [ [ [ -75.17049014568327, 39.95056149048882 ], [ -75.17032116651535, 39.950538872524845 ], [ -75.17038553953171, 39.9502037145458 ], [ -75.17057061195372, 39.95022633262059 ], [ -75.17049014568327, 39.95056149048882 ] ] ] } };
 
-var greaterThanOneAcrePolygon = { "type": "FeatureCollection", "features": [ { "type": "Feature", "properties": {}, "geometry": { "type": "Polygon", "coordinates": [ [ [ -75.17273247241974, 39.950349703806005 ], [ -75.1707261800766, 39.95009473644421 ], [ -75.17104804515839, 39.94857313726802 ], [ -75.17302215099335, 39.94882399784062 ], [ -75.17273247241974, 39.950349703806005 ] ] ] } } ] };
-
-var modificationsSample1 = {
-    "name":"Land Cover",
-    "value":"lir",
-    "shape":{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[-76.00479125976562,40.19251207621169],[-76.04324340820312,40.13794057716276],[-75.95260620117188,40.136890695345905],[-75.93338012695312,40.182020964319086],[-75.96221923828125,40.199854889057676],[-76.00479125976562,40.19251207621169]]]}},
-    "area":10977.041602204828,
-    "units":"acres"
-};
-
-var modificationsSample2  = {
-    "name":"Conservation Practice",
-    "value":"rain_garden",
-    "shape":{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[-75.53237915039062,40.18307014852534],[-75.66009521484375,40.107487419012415],[-75.50491333007812,40.10118506258701],[-75.43350219726561,40.13899044275822],[-75.42800903320312,40.1673306817866],[-75.53237915039062,40.18307014852534]]]}},
-    "area":26292.18855342856,
-    "units":"acres"
-};
+function getTestScenarioModel() {
+    return new models.ScenarioModel(mocks.scenarios.sample);
+}
 
 function getTestScenarioCollection() {
     var collection = new models.ScenariosCollection([
@@ -598,7 +716,7 @@ function getTestScenarioCollection() {
                 modifications: [
                     {
                         name: 'Mod 1',
-                        shape: _.cloneDeep(greaterThanOneAcrePolygon)
+                        shape: _.cloneDeep(mocks.polygons.greaterThanOneAcre)
                     }
                 ],
                 active: true

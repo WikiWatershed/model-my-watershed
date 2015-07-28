@@ -6,18 +6,12 @@ var $ = require('jquery'),
     router = require('../router.js').router,
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
-    ZeroClipboard = require('zeroclipboard'),
     drawUtils = require('../draw/utils'),
     modificationConfigUtils = require('../modeling/modificationConfigUtils'),
     headerTmpl = require('./templates/header.html'),
-    modalConfirmTmpl = require('./templates/confirmModal.html'),
-    modalInputTmpl = require('./templates/inputModal.html'),
-    modalShareTmpl = require('./templates/shareModal.html'),
     modificationPopupTmpl = require('./templates/modificationPopup.html'),
     areaOfInterestTmpl = require('../core/templates/areaOfInterestHeader.html'),
-    settings = require('./settings'),
-    ENTER_KEYCODE = 13,
-    BASIC_MODAL_CLASS = 'modal modal-basic fade';
+    settings = require('./settings');
 
 require('leaflet.locatecontrol');
 require('leaflet-plugins/layer/tile/Google');
@@ -420,128 +414,6 @@ var ModificationPopupView = Marionette.ItemView.extend({
     }
 });
 
-var BaseModal = Marionette.ItemView.extend({
-    className: BASIC_MODAL_CLASS,
-
-    attributes: {
-        'tabindex': '-1'
-    },
-
-    events: {
-        'shown.bs.modal': 'onModalShown',
-        'keyup': 'onKeyUp',
-        'hidden.bs.modal': 'onModalHidden'
-    },
-
-    onRender: function() {
-        this.$el.modal('show');
-    },
-
-    onModalShown: function() {
-        // Not implemented.
-    },
-
-    onKeyUp: function(e) {
-        if (e.keyCode === ENTER_KEYCODE) {
-            this.primaryAction();
-        }
-    },
-
-    primaryAction: function() {
-        // Not implemented.
-    },
-
-    onModalHidden: function() {
-        this.destroy();
-    },
-
-    hide: function() {
-        this.$el.modal('hide');
-    }
-});
-
-var ConfirmModal = BaseModal.extend({
-    template: modalConfirmTmpl,
-
-    ui: {
-        confirmation: '.confirm'
-    },
-
-    events: _.defaults({
-        'click @ui.confirmation': 'primaryAction'
-    }, BaseModal.prototype.events),
-
-    primaryAction: function() {
-        this.triggerMethod('confirmation');
-        this.hide();
-    }
-});
-
-var InputModal = BaseModal.extend({
-    template: modalInputTmpl,
-
-    ui: {
-        save: '.save',
-        input: 'input',
-        error: '.error'
-    },
-
-    events: _.defaults({
-        'click @ui.save': 'primaryAction'
-    }, BaseModal.prototype.events),
-
-    onModalShown: function() {
-        this.ui.input.focus().select();
-    },
-
-    primaryAction: function() {
-        var val = this.ui.input.val().trim();
-        if (val) {
-            this.triggerMethod('update', val);
-            this.hide();
-        } else {
-            this.ui.error.text('Please enter a valid project name');
-        }
-    }
-});
-
-var ShareModal = BaseModal.extend({
-    template: modalShareTmpl,
-
-    ui: {
-        'signin': '.signin',
-        'copy': '.copy',
-        'input': 'input'
-    },
-
-    events: _.defaults({
-        'click @ui.signin': 'signIn'
-    }, BaseModal.prototype.events),
-
-    initialize: function() {
-        this.zc = new ZeroClipboard();
-    },
-
-    // Override to attach ZeroClipboard to ui.copy button
-    onRender: function() {
-        var self = this;
-        this.$el.on('shown.bs.modal', function() {
-            self.zc.clip(self.$el.find(self.ui.copy.selector));
-        });
-
-        this.$el.modal('show');
-    },
-
-    onModalShown: function() {
-        this.ui.input.focus().select();
-    },
-
-    signIn: function() {
-        this.options.app.getUserOrShowLogin();
-    }
-
-});
-
 var AreaOfInterestView = Marionette.ItemView.extend({
     template: areaOfInterestTmpl,
     initialize: function() {
@@ -561,9 +433,6 @@ module.exports = {
     MapView: MapView,
     RootView: RootView,
     StaticView: StaticView,
-    ConfirmModal: ConfirmModal,
-    InputModal: InputModal,
-    ShareModal: ShareModal,
     AreaOfInterestView: AreaOfInterestView,
     ModificationPopupView: ModificationPopupView
 };

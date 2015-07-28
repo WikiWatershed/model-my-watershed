@@ -1,4 +1,4 @@
-#modeling_district,
+#boundary_district,
 #boundary_huc08,
 #boundary_huc10,
 #boundary_huc12 {
@@ -10,9 +10,9 @@
 
 @zoomBase: 0.3;
 
-#deldem4net20r,
-#deldem4net50r,
-#deldem4net100r,
+#drb_stream_network_20,
+#drb_stream_network_50,
+#drb_stream_network_100
 {
   line-color: #78CAE6;
   [zoom<=10] { line-width: 1.0 * @zoomBase; }

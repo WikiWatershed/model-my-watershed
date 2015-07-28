@@ -134,13 +134,15 @@ var LoginModalView = ModalBaseView.extend({
         password: '#password',
         signUp: '.sign-up',
         resend: '.resend',
-        forgot: '.forgot'
+        forgot: '.forgot',
+        itsiLogin: '.itsi-login'
     }, ModalBaseView.prototype.ui),
 
     events: _.defaults({
         'click @ui.signUp': 'signUp',
         'click @ui.resend': 'resend',
-        'click @ui.forgot': 'forgot'
+        'click @ui.forgot': 'forgot',
+        'click @ui.itsiLogin': 'itsiLogin'
     }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
@@ -213,6 +215,12 @@ var LoginModalView = ModalBaseView.extend({
                 model: new models.ForgotFormModel({})
             }).render();
         });
+    },
+
+    // Login with ITSI
+    itsiLogin: function() {
+        var loginURL = '/user/itsi/login?next=/' + Backbone.history.getFragment();
+        window.location.href = loginURL;
     }
 });
 
@@ -335,11 +343,6 @@ var ItsiSignUpModalView = ModalBaseView.extend({
         this.ui.username.focus();
     },
 
-    onModalHidden: function() {
-        ModalBaseView.prototype.onModalHidden.apply(this, arguments);
-        router.navigate('', { trigger: true });
-    },
-
     onValidationError: function() {
         this.ui.username.focus();
     },
@@ -373,6 +376,20 @@ var ItsiSignUpModalView = ModalBaseView.extend({
             'username': response.username,
             'guest': false
         });
+
+        var next = this.model.get('next');
+        if (next !== '/') {
+            // Must remove leading slash, add trailing slash
+            // otherwise Backbone.router.navigate does not function properly
+            if (next[0] === "/") {
+                next = next.substring(1);
+            }
+            if (next[next.length - 1] !== "/") {
+                next = next + "/";
+            }
+        }
+
+        router.navigate(next, { trigger: true });
     }
 });
 

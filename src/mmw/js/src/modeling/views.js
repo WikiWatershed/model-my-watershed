@@ -2,12 +2,12 @@
 
     var _ = require('lodash'),
     $ = require('jquery'),
-    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
     controls = require('./controls'),
-    coreViews = require('../core/views'),
+    modalModels = require('../core/modals/models'),
+    modalViews = require('../core/modals/views'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultsDetailsTmpl = require('./templates/resultsDetails.html'),
     resultsTabPanelTmpl = require('./templates/resultsTabPanel.html'),
@@ -87,7 +87,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
         remove: '#delete-project',
         print: '#print-project',
         save: '#save-project',
-        privacy: '#project-privacy'
+        privacy: '#project-privacy',
+        itsiClone: '#itsi-clone'
     },
 
     events: {
@@ -96,13 +97,15 @@ var ProjectMenuView = Marionette.ItemView.extend({
         'click @ui.share': 'shareProject',
         'click @ui.print': 'printProject',
         'click @ui.save': 'saveProjectOrLoginUser',
-        'click @ui.privacy': 'setProjectPrivacy'
+        'click @ui.privacy': 'setProjectPrivacy',
+        'click @ui.itsiClone': 'getItsiEmbedLink'
     },
 
     template: projectMenuTmpl,
 
     templateHelpers: function() {
         return {
+            itsi: App.user.get('itsi'),
             editable: isEditable(this.model),
             is_new: this.model.isNew()
         };
@@ -114,8 +117,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
     renameProject: function() {
         var self = this,
-            rename = new coreViews.InputModal({
-            model: new Backbone.Model({
+            rename = new modalViews.InputView({
+            model: new modalModels.InputModel({
                 initial: this.model.get('name'),
                 title: 'Rename Project',
                 fieldLabel: 'Project Name'
@@ -128,11 +131,12 @@ var ProjectMenuView = Marionette.ItemView.extend({
     },
 
     shareProject: function() {
-        var share = new coreViews.ShareModal({
-                model: new Backbone.Model({
+        var share = new modalViews.ShareView({
+                model: new modalModels.ShareModel({
                     text: 'Project',
                     url: window.location.href,
-                    guest: App.user.get('guest')
+                    guest: App.user.get('guest'),
+                    is_private: this.model.get('is_private')
                 }),
                 app: App
             });
@@ -143,8 +147,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
     deleteProject: function() {
         var self = this,
-            del = new coreViews.ConfirmModal({
-                model: new Backbone.Model({
+            del = new modalViews.ConfirmView({
+                model: new modalModels.ConfirmModel({
                     question: 'Are you sure you want to delete this Project?',
                     confirmLabel: 'Delete',
                     cancelLabel: 'Cancel'
@@ -191,8 +195,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
                     'Anyone with the URL will be able to access it.' :
                     'Only you will be able to access it.',
             question = primaryText + additionalText,
-            modal = new coreViews.ConfirmModal({
-                model: new Backbone.Model({
+            modal = new modalViews.ConfirmView({
+                model: new modalModels.ConfirmModel({
                     question: question,
                     confirmLabel: 'Confirm',
                     cancelLabel: 'Cancel'
@@ -204,6 +208,23 @@ var ProjectMenuView = Marionette.ItemView.extend({
             self.model.set('is_private', !self.model.get('is_private'));
             self.model.saveProjectAndScenarios();
         });
+    },
+
+    getItsiEmbedLink: function() {
+        var self = this,
+            embedLink = window.location.origin +
+                '/project/' + App.currProject.id + '/clone?itsi_embed=true',
+            modal = new modalViews.ShareView({
+                model: new modalModels.ShareModel({
+                    text: 'Embed Link',
+                    url: embedLink,
+                    guest: App.user.get('guest'),
+                    is_private: self.model.get('is_private')
+                }),
+                app: App
+            });
+
+        modal.render();
     }
 });
 
@@ -337,8 +358,8 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
 
     destroyConfirm: function() {
         var self = this,
-            del = new coreViews.ConfirmModal({
-                model: new Backbone.Model({
+            del = new modalViews.ConfirmView({
+                model: new modalModels.ConfirmModel({
                     question: 'Are you sure you want to delete this scenario?',
                     confirmLabel: 'Delete',
                     cancelLabel: 'Cancel'
@@ -353,11 +374,12 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     },
 
     showShareModal: function() {
-        var share = new coreViews.ShareModal({
-                model: new Backbone.Model({
+        var share = new modalViews.ShareView({
+                model: new modalModels.ShareModel({
                     text: 'Scenario',
                     url: window.location.href,
-                    guest: App.user.get('guest')
+                    guest: App.user.get('guest'),
+                    is_private: App.currProject.get('is_private')
                 }),
                 app: App
             });
@@ -611,7 +633,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
                 .find('i')
                     .removeClass('fa-angle-up')
                     .addClass('fa-angle-down');
-            self.detailsRegion.currentView.triggerBarChartRefresh();
+            triggerBarChartRefresh();
         });
     },
 
@@ -665,10 +687,6 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
             collection: this.collection,
             scenario: this.scenario
         }));
-    },
-
-    triggerBarChartRefresh: function() {
-        this.panelsRegion.currentView.triggerBarChartRefresh();
     }
 });
 
@@ -703,9 +721,7 @@ var ResultsTabPanelsView = Marionette.CollectionView.extend({
         this.$el.find('li:first').addClass('active');
     },
 
-    triggerBarChartRefresh: function() {
-        $('#model-output-wrapper .bar-chart').trigger('bar-chart:refresh');
-    }
+    triggerBarChartRefresh: triggerBarChartRefresh
 });
 
 // Creates the appropriate view to visualize a result based
@@ -775,11 +791,16 @@ var ResultsTabContentsView = Marionette.CollectionView.extend({
     },
     onRender: function() {
         this.$el.find('.tab-pane:first').addClass('active');
+        triggerBarChartRefresh();
     }
 });
 
 function isEditable(scenario) {
     return App.user.userMatch(scenario.get('user_id'));
+}
+
+function triggerBarChartRefresh() {
+    $('#model-output-wrapper .bar-chart').trigger('bar-chart:refresh');
 }
 
 module.exports = {

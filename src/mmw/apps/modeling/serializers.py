@@ -28,6 +28,7 @@ class ScenarioSerializer(serializers.ModelSerializer):
     inputs = JsonField()
     modifications = JsonField()
     census = JsonField(required=False, allow_null=True)
+    results = JsonField(required=False, allow_null=True)
 
 
 class ProjectSerializer(gis_serializers.GeoModelSerializer):

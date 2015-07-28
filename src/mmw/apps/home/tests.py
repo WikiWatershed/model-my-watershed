@@ -92,6 +92,56 @@ class RouteAccessTestCase(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
+    def test_anon_user_cant_clone_public_project(self):
+        project_id = self.create_public_project()
+
+        self.c.logout()
+
+        response = self.c.get('/project/' + project_id + '/clone')
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_logged_in_user_cant_clone_private_project(self):
+        project_id = self.create_private_project()
+
+        self.c.logout()
+        self.c.login(username='foo', password='bar')
+
+        response = self.c.get('/project/' + project_id + '/clone')
+        self.assertEqual(response.status_code, 404)
+
+    def test_logged_in_user_can_clone_public_project(self):
+        project_id = self.create_public_project()
+
+        self.c.logout()
+        self.c.login(username='foo', password='bar')
+
+        response = self.c.get('/project/' + project_id + '/clone')
+
+        self.assertEqual(response.status_code, 302)
+        cloned_project_id = response.url.rsplit('/', 1)[1]
+
+        clone_response = self.c.get('/api/modeling/projects/' +
+                                    cloned_project_id, format='json')
+
+        self.assertEqual(clone_response.status_code, 200)
+        self.assertEqual(clone_response.data['user']['id'],
+                         self.another_user.id)
+
+    def test_logged_in_user_can_clone_own_project(self):
+        project_id = self.create_private_project()
+
+        response = self.c.get('/project/' + project_id + '/clone')
+
+        self.assertEqual(response.status_code, 302)
+        cloned_project_id = response.url.rsplit('/', 1)[1]
+
+        clone_response = self.c.get('/api/modeling/projects/' +
+                                    cloned_project_id, format='json')
+
+        self.assertEqual(clone_response.status_code, 200)
+        self.assertEqual(clone_response.data['user']['id'], self.test_user.id)
+
     def create_public_project(self):
         self.project['is_private'] = False
         response = self.c.post('/api/modeling/projects/', self.project,

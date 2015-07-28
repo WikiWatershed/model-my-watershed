@@ -33,33 +33,46 @@ def login(request):
         if user is not None:
             if user.is_active:
                 auth_login(request, user)
-                response_data['result'] = 'success'
-                response_data['username'] = user.username
-                response_data['guest'] = False
-                response_data['id'] = user.id
+                response_data = {
+                    'result': 'success',
+                    'username': user.username,
+                    'itsi': ItsiUser.objects.filter(user_id=user.id).exists(),
+                    'guest': False,
+                    'id': user.id
+                }
             else:
-                response_data['errors'] = ['Please activate your account']
-                response_data['guest'] = True
-                response_data['id'] = 0
+                response_data = {
+                    'errors': ['Please activate your account'],
+                    'guest': True,
+                    'id': 0
+                }
                 status_code = status.HTTP_400_BAD_REQUEST
         else:
-            response_data['errors'] = ['Invalid username or password']
-            response_data['guest'] = True
-            response_data['id'] = 0
+            response_data = {
+                'errors': ['Invalid username or password'],
+                'guest': True,
+                'id': 0
+            }
             status_code = status.HTTP_400_BAD_REQUEST
 
     elif request.method == 'GET':
         user = request.user
 
         if user.is_authenticated() and user.is_active:
-            response_data['username'] = user.username
-            response_data['guest'] = False
-            response_data['id'] = user.id
+            response_data = {
+                'result': 'success',
+                'username': user.username,
+                'itsi': ItsiUser.objects.filter(user_id=user.id).exists(),
+                'guest': False,
+                'id': user.id
+            }
         else:
-            response_data['guest'] = True
-            response_data['id'] = 0
+            response_data = {
+                'result': 'success',
+                'guest': True,
+                'id': 0
+            }
 
-        response_data['result'] = 'success'
         status_code = status.HTTP_200_OK
 
     return Response(data=response_data, status=status_code)
@@ -72,8 +85,9 @@ def logout(request):
 
     if request.is_ajax():
         response_data = {
-            'guest': True,
             'result': 'success',
+            'itsi': False,
+            'guest': True,
             'id': 0
         }
         return Response(data=response_data)
@@ -84,7 +98,10 @@ itsi = ItsiService()
 
 
 def itsi_login(request):
-    redirect_uri = request.build_absolute_uri(reverse('itsi_auth'))
+    redirect_uri = '{0}?next={1}'.format(
+        request.build_absolute_uri(reverse(itsi_auth)),
+        request.GET.get('next', '/')
+    )
     params = {'redirect_uri': redirect_uri}
     auth_url = itsi.get_authorize_url(**params)
 
@@ -108,12 +125,14 @@ def itsi_auth(request):
     user = authenticate(itsi_id=itsi_user['id'])
     if user is not None and user.is_active:
         auth_login(request, user)
-        return redirect('/')
+        return redirect(request.GET.get('next', '/'))
     else:
-        # User did not authenticate. Save their ITSI ID and send to /register
+        # User did not authenticate. Save their ITSI ID and send to /sign-up
         request.session['itsi_id'] = itsi_user['id']
         return redirect(
-            '/sign-up/itsi/{username}/{first_name}/{last_name}'.format(
+            '/sign-up/itsi/{username}/{first_name}/{last_name}?next={0}'
+            .format(
+                request.GET.get('next', '/'),
                 **itsi_user['extra']
             )
         )
@@ -165,9 +184,13 @@ def itsi_sign_up(request):
     user = authenticate(itsi_id=itsi_id)
     auth_login(request, user)
 
-    response_data = {'result': 'success',
-                     'username': user.username,
-                     'guest': False}
+    response_data = {
+        'result': 'success',
+        'username': user.username,
+        'itsi': True,
+        'guest': False,
+        'id': user.id
+    }
     return Response(data=response_data,
                     status=status.HTTP_200_OK)
 
