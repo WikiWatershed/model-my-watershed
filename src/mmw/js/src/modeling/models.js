@@ -499,7 +499,7 @@ var ScenariosCollection = Backbone.Collection.extend({
 
         // Bail early if the name actually didn't change.
         if (model.get('name') === newName) {
-            return;
+            return false;
         }
 
         var match = this.find(function(model) {
@@ -507,10 +507,13 @@ var ScenariosCollection = Backbone.Collection.extend({
         });
 
         if (match) {
+            window.alert("There is another scenario with the same name. " +
+                    "Please choose a unique name for this scenario."
+            );
             console.log('This name is already in use.');
-            return;
+            return false;
         } else if (model.get('name') !== newName) {
-            model.set('name', newName);
+            return model.set('name', newName);
         }
     },
 

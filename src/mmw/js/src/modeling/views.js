@@ -326,7 +326,12 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     },
 
     renameScenario: function() {
-        var self = this;
+        var self = this,
+            setScenarioName = function(name) {
+                if (!self.model.collection.updateScenarioName(self.model, name)) {
+                    self.render();
+                }
+            };
 
         this.ui.nameField.attr('contenteditable', true).focus();
 
@@ -343,16 +348,12 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
                 // Don't add line returns to the text.
                 e.preventDefault();
 
-                if (self.model.get('name') !== $(this).text() && $(this).text() !== '') {
-                    self.model.collection.updateScenarioName(self.model, $(this).text());
-                } else {
-                    self.render();
-                }
+                setScenarioName($(this).text());
             }
         });
 
         this.ui.nameField.on('blur', function() {
-            self.model.collection.updateScenarioName(self.model, $(this).text());
+            setScenarioName($(this).text());
         });
     },
 
