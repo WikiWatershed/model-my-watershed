@@ -5,15 +5,24 @@ var defaultSettings = {
     stream_layers: {}
 };
 
-function setSettings(key, value) {
-    defaultSettings[key] = value;
+var settings = (function() {
+    return window.clientSettings ? window.clientSettings : defaultSettings;
+})();
+
+function set(key, value) {
+    settings[key] = value;
+    return value;
 }
 
-function getSettings() {
-    return window.clientSettings ? window.clientSettings : defaultSettings;
+function get(key) {
+    try {
+        return settings[key];
+    } catch (exc) {
+        return undefined;
+    }
 }
 
 module.exports = {
-    getSettings: getSettings,
-    setSettings: setSettings
+    get: get,
+    set: set
 };

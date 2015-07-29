@@ -14,8 +14,18 @@ var _ = require('underscore'),
 var ModalBaseView = Marionette.ItemView.extend({
     className: BASIC_MODAL_CLASS,
 
-    attributes: {
-        'tabindex': '-1'
+    attributes: function() {
+        var defaults = { 'tabindex': '-1' },
+            feedbackRequired = {
+                'data-backdrop': 'static',
+                'data-keyboard': 'false'
+            };
+
+        // If feedback is required, we don't allow the user to get away from
+        // the modal without clicking confirm or deny. This way we ensure we
+        // get an event one way or another.
+        // http://getbootstrap.com/javascript/#modals-options
+        return this.model.get('feedbackRequired') ? _.extend(defaults, feedbackRequired) : defaults;
     },
 
     events: {
@@ -55,16 +65,22 @@ var ConfirmView = ModalBaseView.extend({
     template: modalConfirmTmpl,
 
     ui: {
-        confirmation: '.confirm'
+        confirmation: '.confirm',
+        deny: '.btn-default'
     },
 
     events: _.defaults({
-        'click @ui.confirmation': 'primaryAction'
+        'click @ui.confirmation': 'primaryAction',
+        'click @ui.deny': 'dismissAction'
     }, ModalBaseView.prototype.events),
 
     primaryAction: function() {
         this.triggerMethod('confirmation');
         this.hide();
+    },
+
+    dismissAction: function() {
+        this.triggerMethod('deny');
     }
 });
 

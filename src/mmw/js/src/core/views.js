@@ -9,7 +9,9 @@ var L = require('leaflet'),
     modificationConfigUtils = require('../modeling/modificationConfigUtils'),
     headerTmpl = require('./templates/header.html'),
     modificationPopupTmpl = require('./templates/modificationPopup.html'),
-    areaOfInterestTmpl = require('../core/templates/areaOfInterestHeader.html'),
+    areaOfInterestTmpl = require('./templates/areaOfInterestHeader.html'),
+    modalModels = require('./modals/models'),
+    modalViews = require('./modals/views'),
     settings = require('./settings');
 
 require('leaflet.locatecontrol');
@@ -128,6 +130,10 @@ var MapView = Marionette.ItemView.extend({
     // L.FeatureGroup instance.
     _modificationsLayer: null,
 
+    // Flag used to determine if AOI change should trigger a prompt.
+    _areaOfInterestSet: false,
+    _didRevert: false,
+
     initialize: function() {
         var map = new L.Map(this.el, { zoomControl: false }),
             areaOfInterestLayer = new L.FeatureGroup(),
@@ -140,7 +146,7 @@ var MapView = Marionette.ItemView.extend({
         map.addControl(new L.Control.Zoom({position: 'topright'}));
         addLocateMeButton(map, maxZoom, maxAge);
 
-        var baseLayers = _.mapObject(settings.getSettings().base_layers, function(layerData) {
+        var baseLayers = _.mapObject(settings.get('base_layers'), function(layerData) {
             if (layerData.googleType) {
                 return new L.Google(layerData.googleType);
             } else {
@@ -150,7 +156,7 @@ var MapView = Marionette.ItemView.extend({
                 });
             }
         }),
-            defaultLayerName = _.findKey(settings.getSettings().base_layers, function(layerData) {
+            defaultLayerName = _.findKey(settings.get('base_layers'), function(layerData) {
                 return layerData.default;
             }),
             defaultLayer = baseLayers[defaultLayerName];
@@ -169,6 +175,7 @@ var MapView = Marionette.ItemView.extend({
         // Keep the map model up-to-date with the position of the map
         this.listenTo(map, 'moveend', this.updateMapModelPosition);
         this.listenTo(map, 'zoomend', this.updateMapModelZoom);
+        this.listenTo(this.model, 'change:areaOfInterest', this.aoiChangeWarning);
 
         this._leafletMap = map;
         this._areaOfInterestLayer = areaOfInterestLayer;
@@ -202,6 +209,46 @@ var MapView = Marionette.ItemView.extend({
     onBeforeDestroy: function() {
         this._leafletMap.remove();
     },
+
+    aoiChangeWarning: _.debounce(function() {
+        var activityMode = settings.get('activityMode');
+        // Fail fast.
+        if (this._didRevert || !activityMode) {
+            this._didRevert = false;
+            return;
+        }
+
+        if (this._areaOfInterestSet) {
+            var self = this,
+                clearProject = new modalViews.ConfirmView({
+                    model: new modalModels.ConfirmModel({
+                        question: 'If you change the selected area you will lose your current work.',
+                        confirmLabel: 'Make Changes',
+                        cancelLabel: 'Cancel',
+                        feedbackRequired: true
+                    }),
+                });
+
+            clearProject.render();
+
+            clearProject.on('confirmation', function() {
+                self._didRevert = false;
+                self._areaOfInterestSet = false;
+                self.trigger('change:needs_reset', true);
+            });
+            clearProject.on('deny', function() {
+                var map = self._leafletMap;
+                self._didRevert = true;
+                self.trigger('change:needs_reset', false);
+                self.model.revertAOI();
+                self.updateAreaOfInterest();
+                drawUtils.cancelDrawing(map);
+            });
+        }
+
+        this.model.stashAOI();
+        this._areaOfInterestSet = true;
+    }, 100, { leading: false, trailing: true }),
 
     // Call this so that the geolocation callback will not
     // reposition the map. Should be called after the map has been repositioned

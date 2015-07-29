@@ -209,7 +209,7 @@ describe('Core', function() {
                         'url': 'https://{s}.tiles.mapbox.com/v3/examples.map-i86nkdio/{z}/{x}/{y}.png'
                     }
                 };
-                settings.setSettings('base_layers', baseLayers);
+                settings.set('base_layers', baseLayers);
 
                 var model = new models.MapModel(),
                     view = new views.MapView({
