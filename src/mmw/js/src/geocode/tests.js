@@ -9,15 +9,19 @@ var _ = require('lodash'),
     sinon = require('sinon'),
     App = require('../app'),
     views = require('./views'),
-    models = require('./models');
+    models = require('./models'),
+    testUtils = require('../core/testUtils');
+
+var sandboxId = 'sandbox',
+    sandboxSelector = '#' + sandboxId;
 
 describe('Geocoder', function() {
     var MSG_EMPTY = 'No results found.',
         MSG_ERROR = 'Oops! Something went wrong.';
 
     before(function() {
-        if ($('#sandbox').length === 0) {
-            $('<div>', {id: 'sandbox'}).appendTo('body');
+        if ($(sandboxSelector).length === 0) {
+            $('<div>', {id: sandboxId}).appendTo('body');
         }
     });
 
@@ -27,12 +31,13 @@ describe('Geocoder', function() {
     });
 
     afterEach(function() {
-        $('#sandbox').empty();
+        $(sandboxSelector).empty();
         this.server.restore();
+        testUtils.resetApp(App);
     });
 
     after(function() {
-        $('#sandbox').remove();
+        $(sandboxSelector).remove();
     });
 
     describe('SearchBoxView', function() {
@@ -220,7 +225,7 @@ function createView() {
             collection: new models.SuggestionsCollection()
         });
 
-    $('#sandbox').html(view.render().el);
+    $(sandboxSelector).html(view.render().el);
 
     return view;
 }

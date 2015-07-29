@@ -9,18 +9,20 @@ var _ = require('lodash'),
     App = require('../app'),
     views = require('./views'),
     models = require('./models'),
-    coreViews = require('../core/views');
+    coreViews = require('../core/views'),
+    testUtils = require('../core/testUtils');
 
-var ENTER_KEYCODE = 13;
-
+var ENTER_KEYCODE = 13,
+    sandboxId = 'sandbox',
+    sandboxSelector = '#' + sandboxId;
 
 describe('User', function() {
     before(function() {
     });
 
     beforeEach(function() {
-        $('#sandbox').remove();
-        $('<div>', {id: 'sandbox'}).appendTo('body');
+        $(sandboxSelector).remove();
+        $('<div>', {id: sandboxId}).appendTo('body');
 
         this.server = sinon.fakeServer.create();
         this.server.respondImmediately = true;
@@ -28,16 +30,17 @@ describe('User', function() {
 
     afterEach(function() {
         this.server.restore();
+        testUtils.resetApp(App);
     });
 
     after(function() {
-        $('#sandbox').remove();
+        $(sandboxSelector).remove();
     });
 
     describe('LoginView', function() {
         it('creates an error when there is no username', function() {
             var loginView = new views.LoginModalView({
-                el: '#sandbox',
+                el: sandboxSelector,
                 model: new models.LoginFormModel({}),
                 app: App
             }).render();
@@ -51,7 +54,7 @@ describe('User', function() {
 
         it('creates an error when there is no password', function() {
             var loginView = new views.LoginModalView({
-                el: '#sandbox',
+                el: sandboxSelector,
                 model: new models.LoginFormModel({}),
                 app: App
             }).render();
@@ -66,7 +69,7 @@ describe('User', function() {
         it('creates an error when trying to fetch a user with bad credentials', function() {
             this.server.respondWith([400, { 'Content-Type': 'application/json' }, '{"errors": ["Invalid username or password"], "guest": true}']);
             var loginView = new views.LoginModalView({
-                el: '#sandbox',
+                el: sandboxSelector,
                 model: new models.LoginFormModel({}),
                 app: App
             }).render();
@@ -82,7 +85,7 @@ describe('User', function() {
         it ('creates an error when failing to communicate with server', function() {
             this.server.respondWith([500, {}, '']);
             var loginView = new views.LoginModalView({
-                el: '#sandbox',
+                el: sandboxSelector,
                 model: new models.LoginFormModel({}),
                 app: App
             }).render();
@@ -99,7 +102,7 @@ describe('User', function() {
             var username = 'bob';
             this.server.respondWith([200, { 'Content-Type': 'application/json' }, '{"result": "success", "username": "bob" }']);
             var loginView = new views.LoginModalView({
-                el: '#sandbox',
+                el: sandboxSelector,
                 model: new models.LoginFormModel({}),
                 app: App
             }).render();
@@ -119,7 +122,7 @@ describe('User', function() {
             var username = 'john';
             this.server.respondWith([200, { 'Content-Type': 'application/json' }, '{"result": "success", "username": "' + username + '" }']);
             var loginView = new views.LoginModalView({
-                el: '#sandbox',
+                el: sandboxSelector,
                 model: new models.LoginFormModel({}),
                 app: App
             }).render();
@@ -150,7 +153,7 @@ describe('User', function() {
 
         it('should not dismiss the modal form if a non-enter key is pressed', function() {
             var loginView = new views.LoginModalView({
-                el: '#sandbox',
+                el: sandboxSelector,
                 model: new models.LoginFormModel({}),
                 app: App
             }).render();

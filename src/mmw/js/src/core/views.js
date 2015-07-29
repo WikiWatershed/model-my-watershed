@@ -1,7 +1,6 @@
 "use strict";
 
-var $ = require('jquery'),
-    L = require('leaflet'),
+var L = require('leaflet'),
     _ = require('underscore'),
     router = require('../router.js').router,
     Marionette = require('../../shim/backbone.marionette'),
@@ -111,10 +110,6 @@ function addLocateMeButton(map, maxZoom, maxAge) {
 // This view houses a Leaflet instance. The map container element must exist
 // in the DOM before initializing.
 var MapView = Marionette.ItemView.extend({
-    ui: {
-        map: '#map'
-    },
-
     modelEvents: {
         'change': 'updateView',
         'change:areaOfInterest': 'updateAreaOfInterest',
@@ -134,7 +129,7 @@ var MapView = Marionette.ItemView.extend({
     _modificationsLayer: null,
 
     initialize: function() {
-        var map = new L.Map('map', { zoomControl: false }),
+        var map = new L.Map(this.el, { zoomControl: false }),
             areaOfInterestLayer = new L.FeatureGroup(),
             modificationsLayer = new L.FeatureGroup(),
             maxZoom = 10,
@@ -192,15 +187,20 @@ var MapView = Marionette.ItemView.extend({
         // supported, nothing more needs to be done since the map has
         // already been centered.
         if (navigator.geolocation) {
-            var options = {
+            var geolocationOptions = {
                 maximumAge : maxAge,
                 timeout : timeout
             };
             navigator.geolocation.getCurrentPosition(
                 geolocation_success,
                 _.noop,
-                options);
+                geolocationOptions
+            );
         }
+    },
+
+    onBeforeDestroy: function() {
+        this._leafletMap.remove();
     },
 
     // Call this so that the geolocation callback will not
@@ -319,9 +319,9 @@ var MapView = Marionette.ItemView.extend({
     toggleMapSize: function() {
         var size = this.model.get('size');
         if (size.half) {
-            $(this.ui.map).addClass('half');
+            this.$el.addClass('half');
         } else {
-            $(this.ui.map).removeClass('half');
+            this.$el.removeClass('half');
         }
 
         this._leafletMap.invalidateSize();
