@@ -429,27 +429,6 @@ describe('Modeling', function() {
             });
         });
 
-        describe('ModificationCollection', function() {
-            it('sorts modifications correctly', function() {
-                var collection = new models.ModificationsCollection();
-
-                collection.add(mocks.modifications.sample1);
-                collection.add(mocks.modifications.sample2);
-                collection.add(mocks.modifications.sample3);
-
-                var collectionOrder = collection.pluck('area'),
-                    knownOrder = [
-                        (new models.ModificationModel(mocks.modifications.sample2)).get('area'),
-                        (new models.ModificationModel(mocks.modifications.sample1)).get('area'),
-                        (new models.ModificationModel(mocks.modifications.sample3)).get('area')
-                    ];
-
-                assert.deepEqual(collectionOrder, knownOrder,
-                    'Collection was not sorted correctly'
-                );
-            });
-        });
-
         describe('ScenarioModel', function() {
             // TODO: Add tests for existing methods.
 
@@ -475,8 +454,8 @@ describe('Modeling', function() {
                     modificationsOne.add(new models.ModificationModel(mocks.modifications.sample1));
                     modificationsOne.add(new models.ModificationModel(mocks.modifications.sample2));
 
-                    modificationsTwo.add(new models.ModificationModel(mocks.modifications.sample2));
                     modificationsTwo.add(new models.ModificationModel(mocks.modifications.sample1OutOfOrder));
+                    modificationsTwo.add(new models.ModificationModel(mocks.modifications.sample2));
 
                     var hashOne = utils.getCollectionHash(modificationsOne),
                         hashTwo = utils.getCollectionHash(modificationsTwo);
@@ -505,7 +484,7 @@ describe('Modeling', function() {
 
                     var mod = new models.ModificationModel(mocks.modifications.sample2);
                     model.get('modifications').add(mod);
-                    assert.equal(model.get('modification_hash'), 'dcda6a697d33a3bc95c95cc401e774bb');
+                    assert.equal(model.get('modification_hash'), 'a862ae12206d895501bb85c3edcdb467');
 
                     model.get('modifications').remove(mod);
                     assert.equal(model.get('modification_hash'), '40c4fdd89b06a0e9b7e1c3c5c2bd1f17');

@@ -22,11 +22,7 @@ var ModelPackageControlModel = Backbone.Model.extend({
 });
 
 var ModelPackageControlsCollection = Backbone.Collection.extend({
-    model: ModelPackageControlModel,
-
-    comparator: function(model) {
-        return model.get('name');
-    }
+    model: ModelPackageControlModel
 });
 
 var ModelPackageModel = Backbone.Model.extend();
@@ -53,10 +49,6 @@ var ResultModel = Backbone.Model.extend({
 
 var ResultCollection = Backbone.Collection.extend({
     model: ResultModel,
-
-    comparator: function(model) {
-        return model.get('name');
-    },
 
     setPolling: function(polling) {
         this.forEach(function(resultModel) {
@@ -254,16 +246,7 @@ var ModificationModel = coreModels.GeoModel.extend({
 });
 
 var ModificationsCollection = Backbone.Collection.extend({
-    model: ModificationModel,
-
-    comparator: function(model) {
-        // Even though model.get('area') is a numeric value, passing it
-        // along with the others here causes a string comparison. But that's
-        // alright, because we only want to sort consistently, not actually
-        // by area, and it serves as a tie-breaker when the other values are
-        // identical.
-        return [model.get('name'), model.get('value'), model.get('area')];
-    }
+    model: ModificationModel
 });
 
 var ScenarioModel = Backbone.Model.extend({

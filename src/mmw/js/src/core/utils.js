@@ -67,9 +67,8 @@ var utils = {
 
                 return sorted;
             },
-            // Sort the collection by given sortKey and convert
-            // each model to a sorted array
-            sortedCollection = collection.sort().map(function(model) {
+            // Convert each model to a sorted array
+            sortedCollection = collection.map(function(model) {
                 return objectToSortedArray(model.toJSON());
             });
 
