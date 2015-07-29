@@ -128,12 +128,12 @@ var ProjectModel = Backbone.Model.extend({
         throw 'Model package not supported: ' + packageName;
     },
 
-    getResultsIfNeeded: function() {
+    fetchResultsIfNeeded: function() {
         this.get('scenarios').forEach(function(scenario) {
-            scenario.getResultsIfNeeded();
+            scenario.fetchResultsIfNeeded();
         });
         this.get('scenarios').on('add', function(scenario) {
-            scenario.getResultsIfNeeded();
+            scenario.fetchResultsIfNeeded();
         });
     },
 
@@ -290,9 +290,9 @@ var ScenarioModel = Backbone.Model.extend({
         this.on('change:project change:name', this.attemptSave, this);
         this.get('modifications').on('add remove change', this.updateModificationHash, this);
 
-        var debouncedGetResults = _.debounce(_.bind(this.getResults, this), 500);
-        this.get('inputs').on('add', debouncedGetResults);
-        this.get('modifications').on('add remove', debouncedGetResults);
+        var debouncedFetchResults = _.debounce(_.bind(this.fetchResults, this), 500);
+        this.get('inputs').on('add', debouncedFetchResults);
+        this.get('modifications').on('add remove', debouncedFetchResults);
 
         this.set('taskModel', App.currProject.createTaskModel());
         this.set('results', App.currProject.createTaskResultCollection());
@@ -346,7 +346,7 @@ var ScenarioModel = Backbone.Model.extend({
         return response;
     },
 
-    getResultsIfNeeded: function() {
+    fetchResultsIfNeeded: function() {
         var inputmod_hash = this.get('inputmod_hash'),
             needsResults = this.get('results').some(function(resultModel) {
                 var emptyResults = !resultModel.get('result'),
@@ -356,7 +356,7 @@ var ScenarioModel = Backbone.Model.extend({
             });
 
         if (needsResults) {
-            this.getResults();
+            this.fetchResults();
         }
     },
 
@@ -384,7 +384,7 @@ var ScenarioModel = Backbone.Model.extend({
 
     // Poll the taskModel for results and reset the results collection when done.
     // If not successful, the results collection is reset to be empty.
-    getResults: function() {
+    fetchResults: function() {
         this.updateInputModHash();
         this.attemptSave();
 

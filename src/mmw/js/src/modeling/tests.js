@@ -13,7 +13,7 @@ var _ = require('lodash'),
     views = require('./views'),
     App = require('../app.js'),
     testUtils = require('../core/testUtils'),
-    modificationConfigUtils = require('./modificationConfigUtils');
+    modConfigUtils = require('./modificationConfigUtils');
 
 var sandboxId = 'sandbox',
     sandboxSelector = '#' + sandboxId;
@@ -90,8 +90,8 @@ describe('Modeling', function() {
 
             it('renders one tab if there is one scenario', function() {
                 var collection = new models.ScenariosCollection([
-                        new models.ScenarioModel({ name: 'Current Conditions' })
-                    ]),
+                    new models.ScenarioModel({ name: 'Current Conditions' })
+                ]),
                     view = new views.ScenarioTabPanelsView({ collection: collection });
 
                 $(sandboxSelector).html(view.render().el);
@@ -154,6 +154,8 @@ describe('Modeling', function() {
 
         describe('ToolbarTabContentView', function() {
             beforeEach(function() {
+                this.userId = 1;
+                App.user.id = this.userId;
                 this.model = new models.ScenarioModel({
                     name: 'New Scenario',
                     modifications: []
@@ -193,12 +195,35 @@ describe('Modeling', function() {
             });
 
             it('ensures each modification has draw options', function() {
-                var unknownDrawOpts = modificationConfigUtils.getDrawOpts('');
+                var unknownDrawOpts = modConfigUtils.getDrawOpts('');
 
                 $('.inline.controls .thumb').each(function() {
-                    var thisDrawOpts = modificationConfigUtils.getDrawOpts($(this).data('value'));
+                    var thisDrawOpts = modConfigUtils.getDrawOpts($(this).data('value'));
                     assert.notEqual(thisDrawOpts, unknownDrawOpts);
                 });
+            });
+
+            it('shows modification and input controls if user owns project', function() {
+                this.model.set('user_id', this.userId);
+                this.view.render();
+                assert.equal($('#sandbox .controls .landcover').length, 1,
+                               'Should have shown landcover control');
+                assert.equal($('#sandbox .controls .conservation_practice').length, 1,
+                               'Should have shown conservation practices control');
+                assert.equal($('#sandbox .controls .precipitation').length, 1,
+                               'Should have shown precipitation control');
+            });
+
+            it('only shows input tools if user does not own project', function() {
+                this.model.set('user_id', this.userId + 1);
+                this.view.render();
+
+                assert.equal($('#sandbox .controls .landcover').length, 0,
+                               'Should not have shown landcover control');
+                assert.equal($('#sandbox .controls .conservation_practice').length, 0,
+                               'Should not have shown conservation practices control');
+                assert.equal($('#sandbox .controls .precipitation').length, 1,
+                               'Should have shown precipitation control');
             });
         });
 
@@ -239,7 +264,7 @@ describe('Modeling', function() {
                     ];
 
                 this.server.respondWith('POST', '/api/modeling/projects/',
-                            [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
+                                        [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
 
                 project.save();
 
@@ -259,7 +284,7 @@ describe('Modeling', function() {
                     projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[],"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}';
 
                 this.server.respondWith('POST', '/api/modeling/projects/',
-                            [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
+                                        [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
 
                 project.save();
 
@@ -325,15 +350,119 @@ describe('Modeling', function() {
         });
     });
 
+    describe('modificationConfigUtils', function() {
+        beforeEach(function() {
+            this.config = {
+                key1: {
+                    name: 'name1'
+                },
+                key2: {
+                    name: 'name2',
+                    shortName: 'shortName2',
+                    summary: 'summary2',
+                    color: '#000'
+                }
+            };
+            modConfigUtils.setConfig(this.config);
+        });
+
+        afterEach(function() {
+            modConfigUtils.resetConfig();
+        });
+
+        describe('#getHumanReadableName', function() {
+            it('returns the provided name when modKey exists', function() {
+                assert.equal(modConfigUtils.getHumanReadableName('key1'), 'name1');
+            });
+
+            it('returns the default name when modKey does not exist', function() {
+                assert.equal(modConfigUtils.getHumanReadableName('key3'), '');
+            });
+        });
+
+        describe('#getHumanReadableShortName', function() {
+            it('returns the name when the short name is not provided', function() {
+                assert.equal(modConfigUtils.getHumanReadableShortName('key1'), 'name1');
+            });
+
+            it('returns the provided short name', function() {
+                assert.equal(modConfigUtils.getHumanReadableShortName('key2'), 'shortName2');
+            });
+
+            it('returns the default short name when modKey does not exist', function() {
+                assert.equal(modConfigUtils.getHumanReadableShortName('key3'), '');
+            });
+        });
+
+        describe('#getHumanReadableSummary', function() {
+            it('returns the default summary when one is not provided', function() {
+                assert.equal(modConfigUtils.getHumanReadableSummary('key1'), '');
+            });
+
+            it('returns the provided summary', function() {
+                assert.equal(modConfigUtils.getHumanReadableSummary('key2'), 'summary2');
+            });
+
+            it('returns the default summary when modKey does not exist', function() {
+                assert.equal(modConfigUtils.getHumanReadableSummary('key3'), '');
+            });
+        });
+
+        describe('#getDrawOpts', function() {
+            it('returns the default colors when one is not provided', function() {
+                assert.equal(modConfigUtils.getDrawOpts('key1').color, '#888');
+                assert.equal(modConfigUtils.getDrawOpts('key1').fillColor, '#888');
+            });
+
+            it('returns the provided colors', function() {
+                assert.equal(modConfigUtils.getDrawOpts('key2').color, '#000');
+                assert.equal(modConfigUtils.getDrawOpts('key2').fillColor, 'url(#fill-key2)');
+            });
+
+            it('returns the default colors when modKey does not exist', function() {
+                assert.equal(modConfigUtils.getDrawOpts('key3').color, '#888');
+                assert.equal(modConfigUtils.getDrawOpts('key3').fillColor, '#888');
+            });
+        });
+    });
+
     describe('Models', function() {
+        describe('ResultCollection', function() {
+            beforeEach(function() {
+                this.results = new models.ResultCollection([
+                    {
+                        polling: false,
+                        result: 1
+                    },
+                ]);
+            });
+
+            describe('#setPolling', function() {
+                it('sets polling for each result', function() {
+                    this.results.setPolling(true);
+                    assert(this.results.length === 1);
+                    this.results.forEach(function(result) {
+                        assert(result.get('polling'), 'Should have set polling to true');
+                    });
+                });
+            });
+
+            describe('#setNullResults', function() {
+                it('sets each result to null', function() {
+                    this.results.setNullResults();
+                    assert(this.results.length === 1);
+                    this.results.forEach(function(result) {
+                        assert.isNull(result.get('result'), 'Should have set result to null');
+                    });
+                });
+            });
+        });
+
         describe('ProjectModel', function() {
             describe('#saveProjectAndScenarios', function() {
                 beforeEach(function() {
                     App.user.set('id', 1);
                 });
-
-                /*
-                 TODO: fix this test as part of https://github.com/WikiWatershed/model-my-watershed/issues/393
 
                 it('calls #save on the project and sets the id on every scenario that\'s part of the project', function() {
                     var projectResponse = '{"id":57,"user":{"id":1,"username":"test","email":"test@azavea.com"},"name":"My Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}';
@@ -351,7 +480,6 @@ describe('Modeling', function() {
                     assert.isTrue(scenario1Spy.calledOnce, 'Scenario1 was not saved once.');
                     assert.isTrue(scenario2Spy.calledOnce, 'Scenario2 was not saved once.');
                 });
-                 */
 
                 it('properly associates scenarios with the project when initially saving the project', function() {
                     var projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}',
@@ -376,18 +504,18 @@ describe('Modeling', function() {
                     var projectResponse = '{"id":22,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[{"id":28,"name":"Current Conditions","is_current_conditions":true,"modifications":"[]","modification_hash":null,"results":null,"created_at":"2015-06-01T20:23:37.689469Z","modified_at":"2015-06-03T19:09:17.795635Z","project":22},{"id":30,"name":"New Scenario 1","is_current_conditions":false,"modifications":"[]","modification_hash":null,"results":null,"created_at":"2015-06-03T15:46:46.794796Z","modified_at":"2015-06-03T19:09:17.902091Z","project":22},{"id":31,"name":"New Scenario","is_current_conditions":false,"modifications":"[]","modification_hash":null,"results":null,"created_at":"2015-06-03T19:09:17.983346Z","modified_at":"2015-06-03T19:09:17.983386Z","project":22}],"name":"real deal","area_of_interest":{"type":"MultiPolygon","coordinates":[[[[-76.28631591796875,40.32037295438762],[-76.28219604492188,39.97817244470628],[-75.15609741210938,39.9602803542957],[-75.1519775390625,40.31827882257792],[-76.28631591796875,40.32037295438762]]]]},"is_private":true,"model_package":"tr-55","created_at":"2015-06-01T20:23:37.535349Z","modified_at":"2015-06-03T19:09:17.670821Z"}';
 
                     this.server.respondWith('GET', '/api/modeling/projects/22',
-                            [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
+                                            [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
 
                     var project = new models.ProjectModel({ id: 22 });
 
                     project.fetch()
-                            .done(function() {
-                                var scenarios = project.get('scenarios');
+                           .done(function() {
+                               var scenarios = project.get('scenarios');
 
-                                assert.isTrue(scenarios instanceof Backbone.Collection);
-                                assert.equal(scenarios.length, 3);
-                                done();
-                            });
+                               assert.isTrue(scenarios instanceof Backbone.Collection);
+                               assert.equal(scenarios.length, 3);
+                               done();
+                           });
                 });
             });
 
@@ -430,20 +558,53 @@ describe('Modeling', function() {
         });
 
         describe('ScenarioModel', function() {
-            // TODO: Add tests for existing methods.
-
-            var modSpy, saveSpy, resultSpy;
+            var modSpy, inputModSpy, saveSpy, resultSpy;
 
             beforeEach(function() {
+                // These spies are attached to prototypes so that they can be attached before
+                // the initialize method is called.
                 modSpy = sinon.spy(models.ScenarioModel.prototype, 'updateModificationHash');
+                inputModSpy = sinon.spy(models.ScenarioModel.prototype, 'updateInputModHash');
                 saveSpy = sinon.spy(models.ScenarioModel.prototype, 'attemptSave');
-                resultSpy = sinon.spy(models.ScenarioModel.prototype, 'getResults');
+                resultSpy = sinon.spy(models.ScenarioModel.prototype, 'fetchResults');
             });
 
             afterEach(function() {
                 models.ScenarioModel.prototype.updateModificationHash.restore();
+                models.ScenarioModel.prototype.updateInputModHash.restore();
                 models.ScenarioModel.prototype.attemptSave.restore();
-                models.ScenarioModel.prototype.getResults.restore();
+                models.ScenarioModel.prototype.fetchResults.restore();
+            });
+
+            describe('#initialize', function() {
+                beforeEach(function() {
+                    this.model = new models.ScenarioModel({
+                        modifications: mocks.scenarios.sample.modifications
+                    });
+                });
+
+                it('it sets attributes correctly', function() {
+                    assert.equal(this.model.get('user_id'), App.user.get('id'),
+                                 'user_id should equal the one in App');
+                    assert.equal(this.model.get('inputs').at(0).get('name'),
+                                 'precipitation', 'First input should be precipitation');
+                    assert.deepEqual(this.model.get('modifications').toJSON(),
+                                     new models.ModificationsCollection(mocks.scenarios.sample.modifications).toJSON(),
+                                     'Should set modifications from argument to initialize');
+                    assert.deepEqual(this.model.get('taskModel').toJSON(),
+                                     App.currProject.createTaskModel().toJSON(),
+                                     'Should have set taskModel from App.currProject');
+                    assert.deepEqual(this.model.get('results').toJSON(),
+                                     App.currProject.createTaskResultCollection().toJSON(),
+                                     'Should have set results from App.currProject');
+                });
+
+                it('sets hashes', function() {
+                    assert(modSpy.called, 'Should have called updateModificationHash');
+                    assert(inputModSpy.called, 'Should have called updateInputModHash');
+                    assert(modSpy.calledBefore(inputModSpy),
+                           'Should have called updateInputModHash before updateModificationHash');
+                });
             });
 
             describe('#getCollectionHash', function() {
@@ -463,6 +624,7 @@ describe('Modeling', function() {
                     assert.equal(hashOne, hashTwo);
                 });
             });
+
 
             describe('#updateModificationHash', function() {
                 it('initializes modification and inputmod hashes', function() {
@@ -506,6 +668,12 @@ describe('Modeling', function() {
             });
 
             describe('#scenarioPolling', function() {
+                function makeAssertions() {
+                    assert.isTrue(resultSpy.called, 'fetchResults should have been called');
+                    assert.isTrue(saveSpy.called, 'attemptSave should have been called');
+                    assert.isTrue(resultSpy.calledBefore(saveSpy));
+                }
+
                 it('saves after polling finishes successfully', function() {
                     // Putting useFakeTimers in beforeEach
                     // and restore in afterEach makes more sense,
@@ -514,20 +682,14 @@ describe('Modeling', function() {
                     this.clock = sinon.useFakeTimers();
 
                     var model = getTestScenarioModel();
-
                     this.server.respondWith('POST', '/api/modeling/start/tr55/',
-                        [200, { 'Content-Type': 'application/json' }, mocks.polling.getTR55Started]);
+                                            [200, { 'Content-Type': 'application/json' }, mocks.polling.getTR55Started]);
                     this.server.respondWith('GET', '/api/modeling/jobs/8aef636e-2079-4f87-98dc-471d090141ad/',
-                        [200, { 'Content-Type': 'application/json' }, mocks.polling.getJobSuccess]);
-
+                                            [200, { 'Content-Type': 'application/json' }, mocks.polling.getJobSuccess]);
                     model.addModification(new models.ModificationModel(mocks.modifications.sample1));
 
                     this.clock.tick(1000);
-
-                    assert.isTrue(resultSpy.called, 'getResults should have been called');
-                    assert.isTrue(saveSpy.called, 'attemptSave should have been called');
-                    assert.isTrue(resultSpy.calledBefore(saveSpy));
-
+                    makeAssertions();
                     this.clock.restore();
                 });
 
@@ -535,21 +697,92 @@ describe('Modeling', function() {
                     this.clock = sinon.useFakeTimers();
 
                     var model = getTestScenarioModel();
-
                     this.server.respondWith('POST', '/api/modeling/start/tr55/',
-                        [200, { 'Content-Type': 'application/json' }, mocks.polling.getTR55Started]);
+                                            [200, { 'Content-Type': 'application/json' }, mocks.polling.getTR55Started]);
                     this.server.respondWith('GET', '/api/modeling/jobs/8aef636e-2079-4f87-98dc-471d090141ad/',
-                        [400, { 'Content-Type': 'application/json' }, mocks.polling.getJobFailure]);
+                                            [400, { 'Content-Type': 'application/json' }, mocks.polling.getJobFailure]);
 
                     model.addModification(new models.ModificationModel(mocks.modifications.sample1));
 
                     this.clock.tick(1000);
-
-                    assert.isTrue(resultSpy.called, 'getResults should have been called');
-                    assert.isTrue(saveSpy.called, 'attemptSave should have been called');
-                    assert.isTrue(resultSpy.calledBefore(saveSpy));
-
+                    makeAssertions();
                     this.clock.restore();
+                });
+            });
+
+            describe('#fetchResults', function() {
+                beforeEach(function() {
+                    this.results = new models.ResultCollection();
+                    this.setPollingSpy = sinon.spy(this.results, 'setPolling');
+                    this.setNullResultsSpy = sinon.spy(this.results, 'setNullResults');
+                    this.scenarioModel = new models.ScenarioModel({});
+                    this.setResultsSpy = new sinon.spy(this.scenarioModel, 'setResults');
+                    this.scenarioModel.set('results', this.results);
+                    this.server = sinon.fakeServer.create();
+                    this.server.respondImmediately = true;
+                    this.startJob = '1';
+                    this.startResponse = {
+                        job: this.startJob
+                    };
+                    this.server.respondWith('POST', '/api/modeling/start/tr55/',
+                                            [ 200,
+                                              { 'Content-Type': 'application/json' },
+                                              JSON.stringify(this.startResponse) ]);
+                    this.pollingResponse = mocks.polling.getJobSuccess;
+                    this.server.respondWith('GET', '/api/modeling/jobs/1/',
+                                            [ 200,
+                                              { 'Content-Type': 'application/json' },
+                                              this.pollingResponse ]);
+                });
+
+                function fetchResultsAssertions(self) {
+                    assert(inputModSpy.calledTwice, 'updateInputModHash should have been called twice');
+                    assert(self.setPollingSpy.calledTwice, 'setPolling should have been called twice');
+                    assert(self.setPollingSpy.getCall(0).args[0], 'should have initially called setPolling(true)');
+                    assert.isFalse(self.setPollingSpy.getCall(1).args[0], 'should have subsequently called setPolling(false)');
+                }
+
+                it('sets results to null on start failure', function(done) {
+                    var self = this;
+                    self.server.respondWith('POST', '/api/modeling/start/tr55/',
+                                            [ 400, // Make request fail.
+                                              { 'Content-Type': 'application/json' },
+                                              JSON.stringify(self.startResponse) ]);
+
+                    self.scenarioModel.fetchResults().startPromise.always(function() {
+                        assert(self.setNullResultsSpy.calledOnce, 'setNullResults should have been called once');
+                        assert.isFalse(self.setResultsSpy.called, 'setResults should not have been called');
+                        assert(saveSpy.calledOnce, 'attemptSave should have been called once');
+                        fetchResultsAssertions(self);
+                        done();
+                    });
+                });
+
+                it('sets results to null on polling failure', function(done) {
+                    var self = this;
+                    this.server.respondWith('GET', '/api/modeling/jobs/1/',
+                                            [ 400, // Make request fail.
+                                              { 'Content-Type': 'application/json' },
+                                              JSON.stringify(this.pollingResponse) ]);
+
+                    self.scenarioModel.fetchResults().pollingPromise.always(function() {
+                        assert(self.setNullResultsSpy.calledOnce, 'setNullResults should have been called once');
+                        assert.isFalse(self.setResultsSpy.called, 'setResults should not have been called');
+                        assert(saveSpy.calledTwice, 'attemptSave should have been called twice');
+                        fetchResultsAssertions(self);
+                        done();
+                    });
+                });
+
+                it('sets results on success', function(done) {
+                    var self = this;
+                    self.scenarioModel.fetchResults().pollingPromise.always(function() {
+                        assert(self.setResultsSpy.calledOnce, 'setResults should have been called');
+                        assert.isFalse(self.setNullResultsSpy.called, 'setNullResults should not have been called');
+                        assert(saveSpy.calledTwice, 'attemptSave should have been called twice');
+                        fetchResultsAssertions(self);
+                        done();
+                    });
                 });
             });
         });
@@ -710,46 +943,46 @@ function getTestScenarioModel() {
 
 function getTestScenarioCollection() {
     var collection = new models.ScenariosCollection([
-            new models.ScenarioModel({
-                name: 'Current Conditions',
-                is_current_conditions: true
-            }),
-            new models.ScenarioModel({
-                name: 'New Scenario 1',
-                modifications: [
-                    {
-                        name: 'Mod 1',
-                        shape: _.cloneDeep(mocks.polygons.greaterThanOneAcre)
-                    }
-                ],
-                active: true
-            }),
-            new models.ScenarioModel({
-                name: 'Flood Scenario'
-            })
-        ]);
+        new models.ScenarioModel({
+            name: 'Current Conditions',
+            is_current_conditions: true
+        }),
+        new models.ScenarioModel({
+            name: 'New Scenario 1',
+            modifications: [
+                {
+                    name: 'Mod 1',
+                    shape: _.cloneDeep(mocks.polygons.greaterThanOneAcre)
+                }
+            ],
+            active: true
+        }),
+        new models.ScenarioModel({
+            name: 'Flood Scenario'
+        })
+    ]);
 
     return collection;
 }
 
 function getTestProject() {
     var project = new models.ProjectModel({
-            name: 'My Project',
-            created_at: Date.now(),
-            area_of_interest: '[]',
-            user_id: 1,
-            scenarios: new models.ScenariosCollection([
-                new models.ScenarioModel({
-                    name: 'Current Conditions',
-                    is_current_conditions: true
-                }),
-                new models.ScenarioModel({
-                    name: 'New Scenario',
-                    is_current_conditions: false,
-                    active: true
-                })
-            ])
-        });
+        name: 'My Project',
+        created_at: Date.now(),
+        area_of_interest: '[]',
+        user_id: 1,
+        scenarios: new models.ScenariosCollection([
+            new models.ScenarioModel({
+                name: 'Current Conditions',
+                is_current_conditions: true
+            }),
+            new models.ScenarioModel({
+                name: 'New Scenario',
+                is_current_conditions: false,
+                active: true
+            })
+        ])
+    });
 
     return project;
 }

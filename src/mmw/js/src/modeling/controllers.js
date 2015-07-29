@@ -42,7 +42,7 @@ var ModelingController = {
                     } else {
                         project.get('scenarios').makeFirstScenarioActive();
                     }
-                    project.getResultsIfNeeded();
+                    project.fetchResultsIfNeeded();
 
                     // If this project is an activity then the application's behaior changes.
                     if (project.get('is_activity')) {
@@ -89,11 +89,11 @@ var ModelingController = {
 
                         // Now render.
                         initViews(project);
-                        project.getResultsIfNeeded();
+                        project.fetchResultsIfNeeded();
                     });
                 } else {
                     initViews(project);
-                    project.getResultsIfNeeded();
+                    project.fetchResultsIfNeeded();
                     router.navigate(project.getReferenceUrl());
                 }
             } else {
@@ -115,7 +115,7 @@ var ModelingController = {
                 initScenarioEvents(project);
                 initViews(project);
 
-                project.getResultsIfNeeded();
+                project.fetchResultsIfNeeded();
             }
         }
     },
