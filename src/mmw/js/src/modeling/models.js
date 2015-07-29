@@ -360,6 +360,28 @@ var ScenarioModel = Backbone.Model.extend({
         }
     },
 
+    setResults: function() {
+        var rawServerResults = this.get('taskModel').get('result');
+        if (rawServerResults === "" || rawServerResults === null) {
+            this.get('results').setNullResults();
+        } else {
+            var serverResults = JSON.parse(rawServerResults);
+            this.get('results').forEach(function(resultModel) {
+                var resultName = resultModel.get('name');
+                if (serverResults[resultName]) {
+                    resultModel.set({
+                        'result': serverResults[resultName],
+                        'inputmod_hash': serverResults.inputmod_hash
+                    });
+                } else {
+                    console.log('Response is missing ' + resultName + '.');
+                }
+            });
+
+            this.set('census', serverResults.census);
+        }
+    },
+
     // Poll the taskModel for results and reset the results collection when done.
     // If not successful, the results collection is reset to be empty.
     getResults: function() {
@@ -369,27 +391,6 @@ var ScenarioModel = Backbone.Model.extend({
         var self = this,
             results = this.get('results'),
             taskModel = this.get('taskModel'),
-            setResults = function() {
-                var rawServerResults = taskModel.get('result');
-                if (rawServerResults === "" || rawServerResults === null) {
-                    results.setNullResults();
-                } else {
-                    var serverResults = JSON.parse(rawServerResults);
-                    results.forEach(function(resultModel) {
-                        var resultName = resultModel.get('name');
-                        if (serverResults[resultName]) {
-                            resultModel.set({
-                                'result': serverResults[resultName],
-                                'inputmod_hash': serverResults.inputmod_hash
-                            });
-                        } else {
-                            console.log('Response is missing ' + resultName + '.');
-                        }
-                    });
-
-                    self.set('census', serverResults.census);
-                }
-            },
             taskHelper = {
                 postData: {
                     model_input: JSON.stringify({
@@ -407,11 +408,11 @@ var ScenarioModel = Backbone.Model.extend({
                 },
 
                 pollSuccess: function() {
-                    setResults();
+                    self.setResults();
                 },
 
                 pollFailure: function() {
-                    console.log('Failed to get TR55 results.');
+                    console.log('Failed to get modeling results.');
                     results.setNullResults();
                 },
 
@@ -421,7 +422,7 @@ var ScenarioModel = Backbone.Model.extend({
                 },
 
                 startFailure: function(response) {
-                    console.log('Failed to start TR55 job.');
+                    console.log('Failed to start modeling job.');
                     if (response.responseJSON && response.responseJSON.error) {
                         console.log(response.responseJSON.error);
                     }
@@ -430,7 +431,7 @@ var ScenarioModel = Backbone.Model.extend({
                 }
             };
 
-        taskModel.start(taskHelper);
+        return taskModel.start(taskHelper);
     },
 
     updateInputModHash: function() {
