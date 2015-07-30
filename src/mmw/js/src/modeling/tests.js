@@ -619,11 +619,29 @@ describe('Modeling', function() {
             });
 
             describe('#updateScenarioName', function() {
+                var realAlert, spyAlert;
+
+                // Swap out window.alert so that testing can complete
+                // automatically without the user being prompted that the
+                // scenario name must be unique.
+                before(function() {
+                    realAlert = window.alert;
+                });
+
+                after(function() {
+                    window.alert = realAlert;
+                });
+
+                beforeEach(function() {
+                    window.alert = spyAlert = sinon.spy();
+                });
+
                 it('trims whitespace from the provided new name', function() {
                     var collection = getTestScenarioCollection();
 
                     collection.updateScenarioName(collection.at(0), 'New Name       ');
 
+                    assert.isFalse(spyAlert.called);
                     assert.equal(collection.at(0).get('name'), 'New Name');
                 });
 
@@ -633,6 +651,7 @@ describe('Modeling', function() {
                     // There's already a scenario with the name "New Scenario 1"
                     collection.updateScenarioName(collection.at(0), 'NEW scenArio 1');
 
+                    assert.isTrue(spyAlert.calledOnce);
                     assert.equal(collection.at(0).get('name'), 'Current Conditions');
                 });
 
@@ -642,6 +661,7 @@ describe('Modeling', function() {
                     // There's already a scenario with the name "Current Conditions"
                     collection.updateScenarioName(collection.at(1), 'Current Conditions');
 
+                    assert.isTrue(spyAlert.calledOnce);
                     assert.equal(collection.at(1).get('name'), 'New Scenario 1');
                 });
             });
