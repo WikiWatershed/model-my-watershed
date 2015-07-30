@@ -2,6 +2,15 @@
 
 var modificationConfig = require('./modificationConfig.json');
 
+// Useful for testing.
+function setConfig(config) {
+    modificationConfig = config;
+}
+
+function resetConfig() {
+    modificationConfig = require('./modificationConfig.json');
+}
+
 // modKey should be a key in modificationsConfig (eg. 'turf_grass').
 function getHumanReadableName(modKey) {
     if (modificationConfig[modKey]) {
@@ -57,5 +66,7 @@ module.exports = {
     getHumanReadableName: getHumanReadableName,
     getHumanReadableShortName: getHumanReadableShortName,
     getHumanReadableSummary: getHumanReadableSummary,
-    getDrawOpts: getDrawOpts
+    getDrawOpts: getDrawOpts,
+    setConfig: setConfig,
+    resetConfig: resetConfig
 };
