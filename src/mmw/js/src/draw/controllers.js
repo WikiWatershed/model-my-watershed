@@ -39,7 +39,8 @@ var DrawController = {
                         can_go_back: false,
                         next_label: 'Analyze',
                         url: 'analyze',
-                        shape: App.map.get('areaOfInterest')
+                        shape: App.map.get('areaOfInterest'),
+                        place: App.map.get('areaOfInterestName')
                     })
             });
 
