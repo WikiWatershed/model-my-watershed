@@ -10,7 +10,7 @@ object Version {
   def either(environmentVariable: String, default: String): String =
     Properties.envOrElse(environmentVariable, default)
 
-  val geotrellis  = "0.10.0-SNAPSHOT"
+  val geotrellis  = "0.10.0-M1"
   val scala       = "2.10.5"
   val spray       = "1.3.1"
   val akka        = "2.3.9"
