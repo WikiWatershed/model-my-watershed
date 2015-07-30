@@ -4,6 +4,7 @@ var _ = require('lodash'),
     $ = require('jquery'),
     L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
+    modConfigUtils = require('../modeling/modificationConfigUtils'),
     compareWindowTmpl = require('./templates/compareWindow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
@@ -161,12 +162,15 @@ var CompareModificationsView = Marionette.ItemView.extend({
 
     className: 'modifications-container',
 
-    // TODO split modifications into Land Cover and Conservation Practices
-    // TODO style this view
-
     templateHelpers: function() {
         return {
-            modifications: this.model.toJSON()
+            conservationPractices: this.model.filter(function(modification) {
+                return modification.get('name') === 'conservation_practice';
+            }),
+            landCovers: this.model.filter(function(modification) {
+                return modification.get('name') === 'landcover';
+            }),
+            modConfigUtils: modConfigUtils
         };
     }
 });

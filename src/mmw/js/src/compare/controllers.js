@@ -35,8 +35,10 @@ function makeTestProject() {
             'type': '',
             'area':3.361859935949525,
             'units':'km<sup>2</sup>'
-        }],
-        scenarios = new modelingModels.ScenariosCollection(
+        }];
+    modifications = modifications.concat(modifications);
+    modifications = modifications.concat(modifications);
+    var scenarios = new modelingModels.ScenariosCollection(
             _.map(_.range(0,7), function(scenarioInd) {
                 return new modelingModels.ScenarioModel({
                     name: 'Scenario ' + scenarioInd,
