@@ -2,6 +2,8 @@ package com.azavea.mmw
 
 import geotrellis.vector._
 import geotrellis.vector.io.json._
+import geotrellis.vector.reproject._
+import geotrellis.proj4._
 import geotrellis.raster._
 import geotrellis.raster.histogram._
 import geotrellis.raster.rasterize.{Rasterizer, Callback}
@@ -26,8 +28,8 @@ object Histogram {
         val localHistogram = mutable.Map[(Int, Int), Int]()
 
         clipped match {
-          case PolygonResult(p) =>
-            Rasterizer.foreachCellByPolygon(p, rasterExtent)(
+          case PolygonResult(pr) =>
+            Rasterizer.foreachCellByPolygon(pr, rasterExtent)(
               new Callback {
                 def apply(col: Int, row: Int): Unit = {
                   val nlcdType = nlcdTile.get(col,row)
