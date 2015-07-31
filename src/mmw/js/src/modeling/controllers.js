@@ -148,11 +148,11 @@ function setupNewProjectScenarios(project) {
     project.get('scenarios').add([
         new models.ScenarioModel({
             name: 'Current Conditions',
-            is_current_conditions: true
+            is_current_conditions: true,
+            active: true
         }),
         new models.ScenarioModel({
-            name: 'New Scenario',
-            active: true
+            name: 'New Scenario'
         })
         // Silent is set to true because we don't actually want to save the
         // project without some user interaction. This initialization
