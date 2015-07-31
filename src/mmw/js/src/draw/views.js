@@ -13,6 +13,7 @@ var $ = require('jquery'),
     loadingTmpl = require('./templates/loading.html'),
     selectTypeTmpl = require('./templates/selectType.html'),
     drawAreaTmpl = require('./templates/drawArea.html'),
+    stampTemplate = require('./templates/kmStamp.html'),
     resetDrawTmpl = require('./templates/reset.html'),
     streamSliderTmpl = require('./templates/streamSlider.html'),
     placeMarkerTmpl = require('./templates/placeMarker.html'),
@@ -30,7 +31,8 @@ var ToolbarView = Marionette.LayoutView.extend({
         drawAreaRegion: '#draw-area-region',
         placeMarkerRegion: '#place-marker-region',
         resetRegion: '#reset-draw-region',
-        streamRegion: '#stream-slider-region'
+        streamRegion: '#stream-slider-region',
+        stampRegion: '#one-km-stamp-region'
     },
 
     initialize: function() {
@@ -67,6 +69,9 @@ var ToolbarView = Marionette.LayoutView.extend({
             model: this.model
         }));
         this.streamRegion.show(new StreamSliderView({
+            model: this.model
+        }));
+        this.stampRegion.show(new OneKmStampView({
             model: this.model
         }));
     }
@@ -311,6 +316,21 @@ var StreamSliderView = Marionette.ItemView.extend({
             var streamLayer = this.streamLayers[ind-1];
             changeStreamLayer(streamLayer.endpoint, this.model);
         }
+    }
+});
+
+var OneKmStampView = Marionette.ItemView.extend({
+    template: stampTemplate,
+
+    ui: {
+        stampButton: '#one-km-stamp',
+    },
+
+    events: {
+        'click @ui.stampButton': 'enableStampTool'
+    },
+
+    enableStampTool: function(evnt) {
     }
 });
 
