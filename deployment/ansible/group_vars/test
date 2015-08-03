@@ -16,6 +16,8 @@ graphite_host: "{{ services_ip }}"
 statsite_host: "{{ services_ip }}"
 tiler_host: "{{ lookup('env', 'MMW_TILER_IP') | default('33.33.34.35', true) }}"
 
+geop_host: "{{ lookup('env', 'MMW_GEOPROCESSING_IP') | default('33.33.34.48', true) }}"
+
 celery_number_of_workers: 2
 celery_processes_per_worker: 1
 
