@@ -207,12 +207,7 @@ var DrawView = Marionette.ItemView.extend({
 
         this.model.disableTools();
         utils.placeMarker(map).then(function(latlng) {
-            var point = {
-                  "type": "Feature", "properties": {}, "geometry": {
-                    "type": "Point",
-                    "coordinates": [latlng.lng, latlng.lat]
-                  }
-                },
+            var point = L.marker(latlng).toGeoJSON(),
                 halfKmbufferPoints = _.map([-180, -90, 0, 90], function(bearing) {
                     var p = turfDestination(point, 0.5, bearing, 'kilometers');
                     return L.latLng(p.geometry.coordinates[1], p.geometry.coordinates[0]);
@@ -267,12 +262,7 @@ var PlaceMarkerView = Marionette.ItemView.extend({
             // TODO: This is temporary until we have
             // endpoints that can actually delienate
             // watersheds.
-            var point = {
-                  "type": "Feature", "properties": {}, "geometry": {
-                    "type": "Point",
-                    "coordinates": [latlng.lng, latlng.lat]
-                  }
-                },
+            var point = L.marker(latlng).toGeoJSON(),
                 buffered = turfBuffer(point, 5000, 'meters'),
                 bounds = L.geoJson(buffered).getBounds(),
                 shape = turfRandom('polygons', 1, {
