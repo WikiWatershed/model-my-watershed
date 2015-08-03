@@ -6,6 +6,8 @@ var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     turfRandom = require('turf-random'),
     turfBuffer = require('turf-buffer'),
+    turfBboxPolygon = require('turf-bbox-polygon'),
+    turfDestination = require('turf-destination'),
     router = require('../router').router,
     App = require('../app'),
     utils = require('./utils'),
@@ -330,7 +332,49 @@ var OneKmStampView = Marionette.ItemView.extend({
         'click @ui.stampButton': 'enableStampTool'
     },
 
-    enableStampTool: function(evnt) {
+    enableStampTool: function() {
+        var self = this,
+            map = App.getLeafletMap(),
+            revertLayer = clearAoiLayer();
+
+        this.model.disableTools();
+        utils.placeMarker(map).then(function(latlng) {
+            var point = {
+                  "type": "Feature", "properties": {}, "geometry": {
+                    "type": "Point",
+                    "coordinates": [latlng.lng, latlng.lat]
+                  }
+                },
+                halfKmbufferPoints = _.map([-180, -90, 0, 90], function(bearing) {
+                    var p = turfDestination(point, 0.5, bearing, 'kilometers');
+                    return L.latLng(p.geometry.coordinates[1], p.geometry.coordinates[0]);
+                }),
+                // Convert the four points into two SW and NE for the bounding
+                // box. Do this by splitting the array into two arrays of two
+                // points. Then map each array of two to a single point by
+                // taking the lat from one and lng from the other.
+                swNe = _.map(_.toArray(_.groupBy(halfKmbufferPoints, function(p, i) {
+                    // split the array of four in half.
+                    return i < 2;
+                })), function(pointGroup) {
+                    return L.latLng(pointGroup[0].lat, pointGroup[1].lng);
+                }),
+                bounds = L.latLngBounds(swNe),
+                bbox = [
+                    bounds.getSouthWest().lng,
+                    bounds.getSouthWest().lat,
+                    bounds.getNorthEast().lng,
+                    bounds.getNorthEast().lat
+                ],
+                box = turfBboxPolygon(bbox);
+
+            addLayer(box, '1 Square Km');
+            navigateToAnalyze();
+        }).fail(function() {
+            revertLayer();
+        }).always(function() {
+            self.model.enableTools();
+        });
     }
 });
 
