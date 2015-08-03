@@ -14,8 +14,7 @@ var $ = require('jquery'),
     toolbarTmpl = require('./templates/toolbar.html'),
     loadingTmpl = require('./templates/loading.html'),
     selectTypeTmpl = require('./templates/selectType.html'),
-    drawAreaTmpl = require('./templates/drawArea.html'),
-    stampTemplate = require('./templates/kmStamp.html'),
+    drawTmpl = require('./templates/draw.html'),
     resetDrawTmpl = require('./templates/reset.html'),
     streamSliderTmpl = require('./templates/streamSlider.html'),
     placeMarkerTmpl = require('./templates/placeMarker.html'),
@@ -30,11 +29,10 @@ var ToolbarView = Marionette.LayoutView.extend({
 
     regions: {
         selectTypeRegion: '#select-area-region',
-        drawAreaRegion: '#draw-area-region',
+        drawRegion: '#draw-region',
         placeMarkerRegion: '#place-marker-region',
         resetRegion: '#reset-draw-region',
-        streamRegion: '#stream-slider-region',
-        stampRegion: '#one-km-stamp-region'
+        streamRegion: '#stream-slider-region'
     },
 
     initialize: function() {
@@ -61,7 +59,7 @@ var ToolbarView = Marionette.LayoutView.extend({
         this.selectTypeRegion.show(new SelectAreaView({
             model: this.model
         }));
-        this.drawAreaRegion.show(new DrawAreaView({
+        this.drawRegion.show(new DrawView({
             model: this.model
         }));
         this.placeMarkerRegion.show(new PlaceMarkerView({
@@ -71,9 +69,6 @@ var ToolbarView = Marionette.LayoutView.extend({
             model: this.model
         }));
         this.streamRegion.show(new StreamSliderView({
-            model: this.model
-        }));
-        this.stampRegion.show(new OneKmStampView({
             model: this.model
         }));
     }
@@ -172,22 +167,24 @@ var SelectAreaView = Marionette.ItemView.extend({
     }
 });
 
-var DrawAreaView = Marionette.ItemView.extend({
-    template: drawAreaTmpl,
+var DrawView = Marionette.ItemView.extend({
+    template: drawTmpl,
 
     ui: {
-        'button': '#custom-shape',
+        drawArea: '#custom-shape',
+        drawStamp: '#one-km-stamp'
     },
 
     events: {
-        'click @ui.button': 'onButtonPressed',
+        'click @ui.drawArea': 'enableDrawArea',
+        'click @ui.drawStamp': 'enableStampTool'
     },
 
     modelEvents: {
         'change:toolsEnabled': 'render'
     },
 
-    onButtonPressed: function() {
+    enableDrawArea: function() {
         var self = this,
             map = App.getLeafletMap(),
             revertLayer = clearAoiLayer();
@@ -195,6 +192,51 @@ var DrawAreaView = Marionette.ItemView.extend({
         this.model.disableTools();
         utils.drawPolygon(map).then(function(shape) {
             addLayer(shape);
+            navigateToAnalyze();
+        }).fail(function() {
+            revertLayer();
+        }).always(function() {
+            self.model.enableTools();
+        });
+    },
+
+    enableStampTool: function() {
+        var self = this,
+            map = App.getLeafletMap(),
+            revertLayer = clearAoiLayer();
+
+        this.model.disableTools();
+        utils.placeMarker(map).then(function(latlng) {
+            var point = {
+                  "type": "Feature", "properties": {}, "geometry": {
+                    "type": "Point",
+                    "coordinates": [latlng.lng, latlng.lat]
+                  }
+                },
+                halfKmbufferPoints = _.map([-180, -90, 0, 90], function(bearing) {
+                    var p = turfDestination(point, 0.5, bearing, 'kilometers');
+                    return L.latLng(p.geometry.coordinates[1], p.geometry.coordinates[0]);
+                }),
+                // Convert the four points into two SW and NE for the bounding
+                // box. Do this by splitting the array into two arrays of two
+                // points. Then map each array of two to a single point by
+                // taking the lat from one and lng from the other.
+                swNe = _.map(_.toArray(_.groupBy(halfKmbufferPoints, function(p, i) {
+                    // split the array of four in half.
+                    return i < 2;
+                })), function(pointGroup) {
+                    return L.latLng(pointGroup[0].lat, pointGroup[1].lng);
+                }),
+                bounds = L.latLngBounds(swNe),
+                bbox = [
+                    bounds.getSouthWest().lng,
+                    bounds.getSouthWest().lat,
+                    bounds.getNorthEast().lng,
+                    bounds.getNorthEast().lat
+                ],
+                box = turfBboxPolygon(bbox);
+
+            addLayer(box, '1 Square Km');
             navigateToAnalyze();
         }).fail(function() {
             revertLayer();
@@ -318,63 +360,6 @@ var StreamSliderView = Marionette.ItemView.extend({
             var streamLayer = this.streamLayers[ind-1];
             changeStreamLayer(streamLayer.endpoint, this.model);
         }
-    }
-});
-
-var OneKmStampView = Marionette.ItemView.extend({
-    template: stampTemplate,
-
-    ui: {
-        stampButton: '#one-km-stamp',
-    },
-
-    events: {
-        'click @ui.stampButton': 'enableStampTool'
-    },
-
-    enableStampTool: function() {
-        var self = this,
-            map = App.getLeafletMap(),
-            revertLayer = clearAoiLayer();
-
-        this.model.disableTools();
-        utils.placeMarker(map).then(function(latlng) {
-            var point = {
-                  "type": "Feature", "properties": {}, "geometry": {
-                    "type": "Point",
-                    "coordinates": [latlng.lng, latlng.lat]
-                  }
-                },
-                halfKmbufferPoints = _.map([-180, -90, 0, 90], function(bearing) {
-                    var p = turfDestination(point, 0.5, bearing, 'kilometers');
-                    return L.latLng(p.geometry.coordinates[1], p.geometry.coordinates[0]);
-                }),
-                // Convert the four points into two SW and NE for the bounding
-                // box. Do this by splitting the array into two arrays of two
-                // points. Then map each array of two to a single point by
-                // taking the lat from one and lng from the other.
-                swNe = _.map(_.toArray(_.groupBy(halfKmbufferPoints, function(p, i) {
-                    // split the array of four in half.
-                    return i < 2;
-                })), function(pointGroup) {
-                    return L.latLng(pointGroup[0].lat, pointGroup[1].lng);
-                }),
-                bounds = L.latLngBounds(swNe),
-                bbox = [
-                    bounds.getSouthWest().lng,
-                    bounds.getSouthWest().lat,
-                    bounds.getNorthEast().lng,
-                    bounds.getNorthEast().lat
-                ],
-                box = turfBboxPolygon(bbox);
-
-            addLayer(box, '1 Square Km');
-            navigateToAnalyze();
-        }).fail(function() {
-            revertLayer();
-        }).always(function() {
-            self.model.enableTools();
-        });
     }
 });
 
