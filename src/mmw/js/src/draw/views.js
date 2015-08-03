@@ -228,13 +228,7 @@ var DrawView = Marionette.ItemView.extend({
                     return L.latLng(pointGroup[0].lat, pointGroup[1].lng);
                 }),
                 bounds = L.latLngBounds(swNe),
-                bbox = [
-                    bounds.getSouthWest().lng,
-                    bounds.getSouthWest().lat,
-                    bounds.getNorthEast().lng,
-                    bounds.getNorthEast().lat
-                ],
-                box = turfBboxPolygon(bbox);
+                box = turfBboxPolygon(bounds.toBBoxString().split(','));
 
             addLayer(box, '1 Square Km');
             navigateToAnalyze();
