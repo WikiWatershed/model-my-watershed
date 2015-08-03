@@ -1,6 +1,7 @@
 "use strict";
 
 var L = require('leaflet'),
+    $ = require('jquery'),
     _ = require('underscore'),
     router = require('../router.js').router,
     Marionette = require('../../shim/backbone.marionette'),
@@ -54,12 +55,14 @@ var HeaderView = Marionette.ItemView.extend({
 
     ui: {
         login: '.show-login',
-        logout: '.user-logout'
+        logout: '.user-logout',
+        cloneProject: '.clone-project'
     },
 
     events: {
         'click @ui.login': 'showLogin',
-        'click @ui.logout': 'userLogout'
+        'click @ui.logout': 'userLogout',
+        'click @ui.cloneProject': 'cloneProject'
     },
 
     modelEvents: {
@@ -78,6 +81,35 @@ var HeaderView = Marionette.ItemView.extend({
         this.model.logout().done(function() {
             router.navigate('', {trigger: true});
         });
+    },
+
+    cloneProject: function() {
+        event.preventDefault();
+        var view = new modalViews.InputView({
+            model: new modalModels.InputModel({
+                title: 'Clone Project',
+                fieldLabel: 'Project ID'
+            })
+        });
+
+        view.on('update', function(projectId) {
+            var cloneUrlFragment = '/project/' + projectId + '/clone',
+                cloneUrl = window.location.origin + cloneUrlFragment,
+                testUrl = '/api/modeling/projects/' + projectId;
+
+            $.ajax(testUrl)
+                .done(function() {
+                    window.location.replace(cloneUrl);
+                })
+                .fail(function() {
+                    window.alert(
+                        'There was an error trying to clone that project. ' +
+                        'Please ensure that the project ID is valid and ' +
+                        'that you have permission to view the project.'
+                    );
+                });
+        });
+        view.render();
     }
 
 });
