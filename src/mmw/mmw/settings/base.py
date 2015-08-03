@@ -403,6 +403,11 @@ ITSI = {
     'embed_flag': 'itsi_embed',
 }
 
+# Geoprocessing Settings
+GEOP = {
+    'host': environ.get('MMW_GEOPROCESSING_HOST', 'localhost')
+}
+
 BASE_LAYERS = {
     'Mapbox Roads': {
         'url': 'https://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png',
