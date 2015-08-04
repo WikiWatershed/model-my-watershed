@@ -40,19 +40,22 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
         var self = this;
 
         if (!this.model.get('result')) {
-            var taskHelper = {
-                pollSuccess: function() {
-                    self.showDetailsRegion();
-                },
+            var aoi = JSON.stringify(this.model.get('area_of_interest')),
+                taskHelper = {
+                    pollSuccess: function() {
+                        self.showDetailsRegion();
+                    },
 
-                pollFailure: function() {
-                    self.showErrorMessage();
-                },
+                    pollFailure: function() {
+                        self.showErrorMessage();
+                    },
 
-                startFailure: function() {
-                    self.showErrorMessage();
-                }
-            };
+                    startFailure: function() {
+                        self.showErrorMessage();
+                    },
+
+                    postData: {'area_of_interest': aoi}
+                };
             this.model.start(taskHelper);
         } else {
             this.lock = $.Deferred();
