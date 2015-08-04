@@ -97,22 +97,44 @@
 
   #effect-evapo{
     position: absolute;
-    top: 90px;
-    right: 0;
+    bottom: 180px;
+    left: 290px;
+    width: 84px;
+    height: 140px;
     z-index: 100;
+
+    .scale-wrapper{
+      width: auto;
+      height: 100%;  //Animate this value for scale
+    }
   }
 
    #effect-runoff{
     position: absolute;
-    bottom: 40px;
+    top: 60px;
+    right: 270px;
+    width: 127px;
+    height: 120px;
     z-index: 100;
+
+    .scale-wrapper{
+      width: auto;
+      height: 100%;  //Animate this value for scale
+    }
   }
 
   #effect-infiltration{
     position: absolute;
-    bottom: 30px;
-    right: 0;
+    top: 40px;
+    left: 290px;
+    width: 98px;
+    height: 140px;
     z-index: 100;
+
+    .scale-wrapper{
+      width: auto;
+      height: 100%; //Animate this value for scale
+    }
   }
 
 

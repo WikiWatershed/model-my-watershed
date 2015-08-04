@@ -71,7 +71,11 @@
                     </div>
 
                     <div id="effect-evapo" class="animated fadeInUp">
-                        <img src="{% static 'images/water_balance/art_evapo.png' %}" alt="evapotranspiration">
+                        <div class="scale-wrapper">
+                            <svg width="100%" height="100%">
+                                <image xlink:href="{% static 'images/water_balance/art_evapo.svg' %}" src="{% static 'images/water_balance/art_evapo.png' %}" width="100%" height="100%"></image>
+                            </svg>
+                        </div>
                     </div>
 
                     <!-- Land Cover -->
@@ -133,11 +137,19 @@
                     <!-- Effects -->
 
                     <div id="effect-runoff" class="animated fadeInRight">
-                        <img src="{% static 'images/water_balance/art_runoff.png' %}" alt="runoff">
+                        <div class="scale-wrapper">
+                            <svg width="100%" height="100%">
+                                <image xlink:href="{% static 'images/water_balance/art_runoff.svg' %}" src="{% static 'images/water_balance/art_runoff.png' %}" width="100%" height="100%"></image>
+                            </svg>
+                        </div>
                     </div>
 
                     <div id="effect-infiltration" class="animated fadeInDown">
-                        <img src="{% static 'images/water_balance/art_infiltration.png' %}" alt="infiltration">
+                        <div class="scale-wrapper">
+                            <svg width="100%" height="100%">
+                                <image xlink:href="{% static 'images/water_balance/art_infiltration.svg' %}" src="{% static 'images/water_balance/art_infiltration.png' %}" width="100%" height="100%"></image>
+                            </svg>
+                        </div>
                     </div>
 
                     <!-- Land Cover -->
