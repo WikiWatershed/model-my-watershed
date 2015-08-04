@@ -147,15 +147,15 @@ var MapView = Marionette.ItemView.extend({
         addLocateMeButton(map, maxZoom, maxAge);
 
         var baseLayers = _.mapObject(settings.get('base_layers'), function(layerData) {
-            if (layerData.googleType) {
-                return new L.Google(layerData.googleType);
-            } else {
-                return new L.TileLayer(layerData.url, {
-                    attribution: layerData.attribution || '',
-                    maxZoom: layerData.maxZoom || 18
-                });
-            }
-        }),
+                if (layerData.googleType) {
+                    return new L.Google(layerData.googleType);
+                } else {
+                    return new L.TileLayer(layerData.url, {
+                        attribution: layerData.attribution || '',
+                        maxZoom: layerData.maxZoom || 18
+                    });
+                }
+            }),
             defaultLayerName = _.findKey(settings.get('base_layers'), function(layerData) {
                 return layerData.default;
             }),
@@ -306,7 +306,10 @@ var MapView = Marionette.ItemView.extend({
             this.updateAreaOfInterest();
         } else {
             this._areaOfInterestLayer.clearLayers();
-            var layer = new L.GeoJSON(aoi);
+            var layer = new L.GeoJSON(aoi, {
+                style: function() {
+                    return drawUtils.polygonDefaults;
+                }});
             this._areaOfInterestLayer.addLayer(layer);
         }
     },
