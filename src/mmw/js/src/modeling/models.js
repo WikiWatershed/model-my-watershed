@@ -276,7 +276,7 @@ var ScenarioModel = Backbone.Model.extend({
             inputs: [
                 {
                     name: 'precipitation',
-                    value: 1.0
+                    value: 0.984252 // equal to 2.5 cm.
                 }
             ]
         });

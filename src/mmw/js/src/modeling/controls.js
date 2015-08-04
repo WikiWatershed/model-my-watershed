@@ -6,6 +6,7 @@ var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     drawUtils = require('../draw/utils'),
+    coreUtils = require('../core/utils'),
     models = require('./models'),
     modificationConfigUtils = require('./modificationConfigUtils'),
     landCoverTmpl = require('./templates/controls/landCover.html'),
@@ -134,9 +135,11 @@ var PrecipitationView = ControlView.extend({
 
     onSliderChanged: function() {
         var value = parseFloat(this.ui.slider.val()),
+            // Model expects Imperial inputs.
+            imperialValue = coreUtils.convertToImperial(value, 'cm'),
             modification = new models.ModificationModel({
                 name: this.getControlName(),
-                value: value
+                value: imperialValue
             });
         this.addOrReplaceInput(modification);
     },
@@ -145,6 +148,9 @@ var PrecipitationView = ControlView.extend({
         var model = this.controlModel,
             value = model && model.get('value') || 0;
 
+        // Model values are stored in Imperial and need to be displayed as
+        // metric.
+        value = coreUtils.convertToMetric(value, 'in');
         this.ui.slider.val(value);
         this.ui.displayValue.text(this.getDisplayValue(value));
     }
