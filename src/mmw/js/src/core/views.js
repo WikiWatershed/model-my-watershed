@@ -306,7 +306,10 @@ var MapView = Marionette.ItemView.extend({
             this.updateAreaOfInterest();
         } else {
             this._areaOfInterestLayer.clearLayers();
-            var layer = new L.GeoJSON(aoi);
+            var layer = new L.GeoJSON(aoi, {
+                style: function() {
+                    return drawUtils.polygonDefaults;
+                }});
             this._areaOfInterestLayer.addLayer(layer);
         }
     },
