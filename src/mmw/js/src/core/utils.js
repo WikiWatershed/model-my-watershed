@@ -73,6 +73,54 @@ var utils = {
             });
 
         return md5(JSON.stringify(sortedCollection));
+    },
+
+    convertToMetric: function(value, fromUnit) {
+        fromUnit = fromUnit.toLowerCase();
+        switch (fromUnit) {
+            case 'in':
+                // return cm.
+                return value * 2.54;
+
+            case 'ft':
+                // return meters.
+                return value * 0.3048;
+
+            case 'mi':
+                // return Km.
+                return value * 1.60934;
+
+            case 'lb':
+                // return Kg.
+                return value * 0.453592;
+
+            default:
+                throw 'Conversion not implemented.';
+        }
+    },
+
+    convertToImperial: function(value, fromUnit) {
+        fromUnit = fromUnit.toLowerCase();
+        switch (fromUnit) {
+            case 'cm':
+                // return in.
+                return value * 0.393701;
+
+            case 'm':
+                // return feet.
+                return value * 3.28084;
+
+            case 'km':
+                // return miles.
+                return value * 0.621371;
+
+            case 'kg':
+                // return Lbs.
+                return value * 2.20462;
+
+            default:
+                throw 'Conversion not implemented.';
+        }
     }
 };
 
