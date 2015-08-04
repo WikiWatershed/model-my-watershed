@@ -39,10 +39,10 @@ var initialize = function(model) {
 
         var result = model[soil][land][precip];
 
-        $precipText.text(precip + '"');
-        $evapoText.text(result.et + '"');
-        $runoffText.text(result.r + '"');
-        $infilText.text(result.i + '"');
+        $precipText.text(convertToMetric(precip) + 'cm');
+        $evapoText.text(convertToMetric(result.et) + 'cm');
+        $runoffText.text(convertToMetric(result.r) + 'cm');
+        $infilText.text(convertToMetric(result.i) + 'cm');
 
         var total = parseFloat(result.et) + parseFloat(result.r) + parseFloat(result.i);
         $et.css('height', (100 * result.et / total) + '%');
@@ -61,6 +61,11 @@ var initialize = function(model) {
             'border-bottom-left-radius': bottomRadius,
             'border-bottom-right-radius': bottomRadius
         });
+    };
+
+    var convertToMetric = function(value) {
+        // 2.54 cm per inch.
+        return (value * 2.54).toFixed(1);
     };
 
     // Wire up events
