@@ -76,7 +76,7 @@ var ChartView = Marionette.ItemView.extend({
             }),
             chartOptions = {
                 isPercentage: false,
-                depAxisLabel: 'Load (lbs)',
+                depAxisLabel: 'Load (Kg)',
                 useHorizBars: true,
                 horizMargin: {top: 20, right: 80, bottom: 40, left: 150}
             },
