@@ -3966,6 +3966,18 @@
         }
       }
     },
+    "turf-bbox-polygon": {
+      "version": "1.0.1",
+      "from": "turf-bbox-polygon@*",
+      "resolved": "https://registry.npmjs.org/turf-bbox-polygon/-/turf-bbox-polygon-1.0.1.tgz",
+      "dependencies": {
+        "turf-polygon": {
+          "version": "1.0.3",
+          "from": "turf-polygon@>=1.0.2 <2.0.0",
+          "resolved": "https://registry.npmjs.org/turf-polygon/-/turf-polygon-1.0.3.tgz"
+        }
+      }
+    },
     "turf-buffer": {
       "version": "1.0.4",
       "from": "https://registry.npmjs.org/turf-buffer/-/turf-buffer-1.0.4.tgz",
@@ -4002,6 +4014,25 @@
           "version": "1.0.3",
           "from": "https://registry.npmjs.org/turf-polygon/-/turf-polygon-1.0.3.tgz",
           "resolved": "https://registry.npmjs.org/turf-polygon/-/turf-polygon-1.0.3.tgz"
+        }
+      }
+    },
+    "turf-destination": {
+      "version": "1.2.1",
+      "from": "turf-destination@*",
+      "resolved": "https://registry.npmjs.org/turf-destination/-/turf-destination-1.2.1.tgz",
+      "dependencies": {
+        "turf-point": {
+          "version": "2.0.1",
+          "from": "turf-point@>=2.0.0 <3.0.0",
+          "resolved": "https://registry.npmjs.org/turf-point/-/turf-point-2.0.1.tgz",
+          "dependencies": {
+            "minimist": {
+              "version": "1.1.2",
+              "from": "minimist@>=1.1.0 <2.0.0",
+              "resolved": "https://registry.npmjs.org/minimist/-/minimist-1.1.2.tgz"
+            }
+          }
         }
       }
     },

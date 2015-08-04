@@ -6,13 +6,15 @@ var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     turfRandom = require('turf-random'),
     turfBuffer = require('turf-buffer'),
+    turfBboxPolygon = require('turf-bbox-polygon'),
+    turfDestination = require('turf-destination'),
     router = require('../router').router,
     App = require('../app'),
     utils = require('./utils'),
     toolbarTmpl = require('./templates/toolbar.html'),
     loadingTmpl = require('./templates/loading.html'),
     selectTypeTmpl = require('./templates/selectType.html'),
-    drawAreaTmpl = require('./templates/drawArea.html'),
+    drawTmpl = require('./templates/draw.html'),
     resetDrawTmpl = require('./templates/reset.html'),
     streamSliderTmpl = require('./templates/streamSlider.html'),
     placeMarkerTmpl = require('./templates/placeMarker.html'),
@@ -27,7 +29,7 @@ var ToolbarView = Marionette.LayoutView.extend({
 
     regions: {
         selectTypeRegion: '#select-area-region',
-        drawAreaRegion: '#draw-area-region',
+        drawRegion: '#draw-region',
         placeMarkerRegion: '#place-marker-region',
         resetRegion: '#reset-draw-region',
         streamRegion: '#stream-slider-region'
@@ -57,7 +59,7 @@ var ToolbarView = Marionette.LayoutView.extend({
         this.selectTypeRegion.show(new SelectAreaView({
             model: this.model
         }));
-        this.drawAreaRegion.show(new DrawAreaView({
+        this.drawRegion.show(new DrawView({
             model: this.model
         }));
         this.placeMarkerRegion.show(new PlaceMarkerView({
@@ -165,22 +167,24 @@ var SelectAreaView = Marionette.ItemView.extend({
     }
 });
 
-var DrawAreaView = Marionette.ItemView.extend({
-    template: drawAreaTmpl,
+var DrawView = Marionette.ItemView.extend({
+    template: drawTmpl,
 
     ui: {
-        'button': '#custom-shape',
+        drawArea: '#custom-shape',
+        drawStamp: '#one-km-stamp'
     },
 
     events: {
-        'click @ui.button': 'onButtonPressed',
+        'click @ui.drawArea': 'enableDrawArea',
+        'click @ui.drawStamp': 'enableStampTool'
     },
 
     modelEvents: {
         'change:toolsEnabled': 'render'
     },
 
-    onButtonPressed: function() {
+    enableDrawArea: function() {
         var self = this,
             map = App.getLeafletMap(),
             revertLayer = clearAoiLayer();
@@ -188,6 +192,40 @@ var DrawAreaView = Marionette.ItemView.extend({
         this.model.disableTools();
         utils.drawPolygon(map).then(function(shape) {
             addLayer(shape);
+            navigateToAnalyze();
+        }).fail(function() {
+            revertLayer();
+        }).always(function() {
+            self.model.enableTools();
+        });
+    },
+
+    enableStampTool: function() {
+        var self = this,
+            map = App.getLeafletMap(),
+            revertLayer = clearAoiLayer();
+
+        this.model.disableTools();
+        utils.placeMarker(map).then(function(latlng) {
+            var point = L.marker(latlng).toGeoJSON(),
+                halfKmbufferPoints = _.map([-180, -90, 0, 90], function(bearing) {
+                    var p = turfDestination(point, 0.5, bearing, 'kilometers');
+                    return L.latLng(p.geometry.coordinates[1], p.geometry.coordinates[0]);
+                }),
+                // Convert the four points into two SW and NE for the bounding
+                // box. Do this by splitting the array into two arrays of two
+                // points. Then map each array of two to a single point by
+                // taking the lat from one and lng from the other.
+                swNe = _.map(_.toArray(_.groupBy(halfKmbufferPoints, function(p, i) {
+                    // split the array of four in half.
+                    return i < 2;
+                })), function(pointGroup) {
+                    return L.latLng(pointGroup[0].lat, pointGroup[1].lng);
+                }),
+                bounds = L.latLngBounds(swNe),
+                box = turfBboxPolygon(bounds.toBBoxString().split(','));
+
+            addLayer(box, '1 Square Km');
             navigateToAnalyze();
         }).fail(function() {
             revertLayer();
@@ -224,12 +262,7 @@ var PlaceMarkerView = Marionette.ItemView.extend({
             // TODO: This is temporary until we have
             // endpoints that can actually delienate
             // watersheds.
-            var point = {
-                  "type": "Feature", "properties": {}, "geometry": {
-                    "type": "Point",
-                    "coordinates": [latlng.lng, latlng.lat]
-                  }
-                },
+            var point = L.marker(latlng).toGeoJSON(),
                 buffered = turfBuffer(point, 5000, 'meters'),
                 bounds = L.geoJson(buffered).getBounds(),
                 shape = turfRandom('polygons', 1, {
