@@ -225,7 +225,12 @@ var DrawView = Marionette.ItemView.extend({
                 bounds = L.latLngBounds(swNe),
                 box = turfBboxPolygon(bounds.toBBoxString().split(','));
 
-            addLayer(box, '1 Square km');
+            // Convert coordinates from using strings to floats so that backend can parse them.
+            box.geometry.coordinates[0] = _.map(box.geometry.coordinates[0], function(coord) {
+                return [parseFloat(coord[0]), parseFloat(coord[1])];
+            });
+
+            addLayer(box, '1 Square Km');
             navigateToAnalyze();
         }).fail(function() {
             revertLayer();

@@ -16,8 +16,9 @@ urlpatterns = patterns(
         project_clone, name='project_clone'),
     url(r'^project/(?P<proj_id>[0-9]+)/scenario/(?P<scenario_id>[0-9]+)/$',
         project, name='project'),
+    url(r'^project/compare/$', project, name='project'),
+    url(r'^project/(?P<proj_id>[0-9]+)/compare/$', project, name='project'),
     url(r'^analyze$', home_page, name='analyze'),
-    url(r'^compare$', home_page, name='compare'),
     url(r'^error', home_page, name='error'),
     url(r'^sign-up', home_page, name='sign_up'),
 )

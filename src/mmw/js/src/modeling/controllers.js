@@ -99,30 +99,27 @@ var ModelingController = {
                 } else {
                     initViews(project);
                     project.fetchResultsIfNeeded();
-                    router.navigate(project.getReferenceUrl());
-                    if (settings.get('itsi_embed')) {
-                        App.itsi.setLearnerUrl(window.location.href);
-                    }
+                    updateUrl();
                 }
             } else {
-                project = new models.ProjectModel({
-                    name: 'Untitled Project',
-                    created_at: Date.now(),
-                    area_of_interest: App.map.get('areaOfInterest'),
-                    scenarios: new models.ScenariosCollection()
-                });
+                if (!App.currProject) {
+                    // Only make new project if this is the first time
+                    // hitting the modeling views.
+                    project = new models.ProjectModel({
+                        name: 'Untitled Project',
+                        created_at: Date.now(),
+                        area_of_interest: App.map.get('areaOfInterest'),
+                        scenarios: new models.ScenariosCollection()
+                    });
 
-                // TODO evalutate if we can remove this global by reworking this
-                // code.
-                App.currProject = project;
-                setupNewProjectScenarios(project);
-                project.on('change:id', function() {
-                    router.navigate(project.getReferenceUrl());
-                    if (settings.get('itsi_embed')) {
-                        App.itsi.setLearnerUrl(window.location.href);
-                    }
-                });
+                    App.currProject = project;
+                    setupNewProjectScenarios(project);
+                } else {
+                    project = App.currProject;
+                    updateUrl();
+                }
 
+                project.on('change:id', updateUrl);
                 initScenarioEvents(project);
                 initViews(project);
 
@@ -132,6 +129,8 @@ var ModelingController = {
     },
 
     projectCleanUp: function() {
+        App.currProject.off('change:id', updateUrl);
+        App.currProject.get('scenarios').off('change:activeScenario change:id', updateScenario);
         App.getMapView().updateModifications(null);
         App.rootView.subHeaderRegion.empty();
         App.rootView.footerRegion.empty();
@@ -145,17 +144,21 @@ var ModelingController = {
     }
 };
 
-function initScenarioEvents(project) {
-    var scenariosColl = project.get('scenarios'),
-        mapView = App.getMapView();
+function updateUrl() {
+    // Use replace: true, so that the back button will work as expected.
+    router.navigate(App.currProject.getReferenceUrl(), { replace: true });
+    if (settings.get('itsi_embed')) {
+        App.itsi.setLearnerUrl(window.location.href);
+    }
+}
 
-    scenariosColl.on('change:activeScenario change:id', function(scenario) {
-        mapView.updateModifications(scenario.get('modifications'));
-        router.navigate(project.getReferenceUrl());
-        if (settings.get('itsi_embed')) {
-            App.itsi.setLearnerUrl(window.location.href);
-        }
-    });
+function updateScenario(scenario) {
+    App.getMapView().updateModifications(scenario.get('modifications'));
+    updateUrl();
+}
+
+function initScenarioEvents(project) {
+    project.get('scenarios').on('change:activeScenario change:id', updateScenario);
 }
 
 function setupNewProjectScenarios(project) {

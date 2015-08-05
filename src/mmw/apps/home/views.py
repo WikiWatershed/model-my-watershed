@@ -61,6 +61,8 @@ def project(request, proj_id=None, scenario_id=None):
     If not, return a 404. Otherwise, just load the index
     template and the let the front-end handle the route
     and request the project through the API.
+
+    If proj_id is not specified, then throw a 404 error.
     """
 
     if proj_id:
@@ -69,7 +71,9 @@ def project(request, proj_id=None, scenario_id=None):
         if project.user != request.user and project.is_private:
             raise Http404
 
-    return render_to_response('home/home.html', get_context(request))
+        return render_to_response('home/home.html', get_context(request))
+    else:
+        raise Http404
 
 
 def project_clone(request, proj_id=None):

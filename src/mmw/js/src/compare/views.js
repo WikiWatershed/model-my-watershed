@@ -2,13 +2,14 @@
 
 var _ = require('lodash'),
     $ = require('jquery'),
-    L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
+    App = require('../app'),
+    coreModels = require('../core/models'),
+    coreViews = require('../core/views'),
     modConfigUtils = require('../modeling/modificationConfigUtils'),
     compareWindowTmpl = require('./templates/compareWindow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
-    compareMapTmpl = require('./templates/compareMap.html'),
     compareChartTmpl = require('./templates/compareChart.html'),
     compareModificationsTmpl = require('./templates/compareModifications.html');
 
@@ -41,6 +42,18 @@ var CompareWindow = Marionette.LayoutView.extend({
         // so the offset of the container needs to be
         // recomputed.
         $(window).bind('resize.app', _.debounce(_.bind(this.updateContainerPos, this)));
+        this.listenTo(App.user, 'change:guest', this.saveAfterLogin);
+    },
+
+    saveAfterLogin: function(user, guest) {
+        if (!guest && this.model.isNew()) {
+            var user_id = user.get('id');
+            this.model.set('user_id', user_id);
+            this.model.get('scenarios').each(function(scenario) {
+                scenario.set('user_id', user_id);
+            });
+            this.model.saveProjectAndScenarios();
+        }
     },
 
     destroy: function() {
@@ -101,10 +114,28 @@ var CompareScenarioView = Marionette.LayoutView.extend({
         modificationsRegion: '.modifications-region'
     },
 
+    initialize: function(options) {
+        this.projectModel = options.projectModel;
+    },
+
     onShow: function() {
-        this.mapRegion.show(new CompareMapView({
-            model: this.model
-        }));
+        this.mapModel = new coreModels.MapModel({});
+        this.mapModel.set('areaOfInterest', this.projectModel.get('area_of_interest'));
+        this.mapView = new coreViews.MapView({
+            model: this.mapModel,
+            el: $(this.el).find('.map-container').get(),
+            addZoomControl: false,
+            addLocateMeButton: false,
+            addLayerSelector: false,
+            showLayerAttribution: false,
+            initialLayerName: App.getMapView().getActiveBaseLayerName()
+        });
+
+
+        this.mapView.fitToAoi();
+        this.mapView.updateAreaOfInterest();
+        this.mapView.updateModifications(this.model.get('modifications'));
+        this.mapRegion.show(this.mapView);
         this.chartRegion.show(new CompareChartView({
             model: this.model
         }));
@@ -125,25 +156,11 @@ var CompareScenariosView = Marionette.CompositeView.extend({
     template: compareScenariosTmpl,
 
     childViewContainer: '#compare-row',
-    childView: CompareScenarioView
-});
-
-var CompareMapView = Marionette.LayoutView.extend({
-    //model: modelingModels.ScenarioModel,
-
-    template: compareMapTmpl,
-
-    className: 'map-container',
-
-    onShow: function() {
-        var mapEl = $(this.el).find('.map').get(0),
-            map = new L.Map(mapEl, { zoomControl: false });
-
-        map.setView([40.1, -75.7], 10);
-        map.addLayer(new L.TileLayer('https://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png'));
-
-        // TODO put appropriate base layer on map and set view
-        // TODO show area of interest on map
+    childView: CompareScenarioView,
+    childViewOptions: function() {
+        return {
+            projectModel: this.model
+        };
     }
 });
 
