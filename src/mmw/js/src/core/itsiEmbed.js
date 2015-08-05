@@ -18,9 +18,21 @@ var ItsiEmbed = function() {
             this.url = url + (url.indexOf('?') > 0 ? '&' : '?') + QUERY_SUFFIX;
             this.interactiveState = { url: this.url };
         }
+        
+        this.sendLearnerUrl();
+    };
 
+    this.sendLearnerUrl = function() {
         this.phone.post('setLearnerUrl', this.url);
         this.phone.post('interactiveState', this.interactiveState);
+    };
+
+    this.sendLearnerUrlOnlyFromProjectView = function() {
+        var projectRegex = /project\/\d+/;
+
+        if (projectRegex.test(this.url)) {
+            this.sendLearnerUrl();
+        }
     };
 
     this.loadInteractive = function(interactiveState) {
@@ -45,8 +57,8 @@ var ItsiEmbed = function() {
         }
     };
 
-    this.phone.addListener('getLearnerUrl', _.bind(this.setLearnerUrl, this));
-    this.phone.addListener('getInteractiveState', _.bind(this.setLearnerUrl, this));
+    this.phone.addListener('getLearnerUrl', _.bind(this.sendLearnerUrlOnlyFromProjectView, this));
+    this.phone.addListener('getInteractiveState', _.bind(this.sendLearnerUrlOnlyFromProjectView, this));
     this.phone.addListener('loadInteractive', _.bind(this.loadInteractive, this));
     this.phone.initialize();
 };
