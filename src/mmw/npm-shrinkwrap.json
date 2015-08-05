@@ -1052,6 +1052,11 @@
       "from": "https://registry.npmjs.org/font-awesome/-/font-awesome-4.3.0.tgz",
       "resolved": "https://registry.npmjs.org/font-awesome/-/font-awesome-4.3.0.tgz"
     },
+    "iframe-phone": {
+      "version": "1.1.3",
+      "from": "git://github.com/concord-consortium/iframe-phone#v1.1.3",
+      "resolved": "git://github.com/concord-consortium/iframe-phone#200f47f43ee32d640868072c17de4a675e16d96a"
+    },
     "jquery": {
       "version": "2.1.3",
       "from": "https://registry.npmjs.org/jquery/-/jquery-2.1.3.tgz",

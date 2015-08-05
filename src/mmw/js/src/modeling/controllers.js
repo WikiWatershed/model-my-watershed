@@ -44,9 +44,14 @@ var ModelingController = {
                     }
                     project.fetchResultsIfNeeded();
 
-                    // If this project is an activity then the application's behaior changes.
+                    // If this project is an activity then the application's behavior changes.
                     if (project.get('is_activity')) {
                         settings.set('activityMode', true);
+                    }
+
+                    // Send URL to parent if in embed mode
+                    if (settings.get('itsi_embed')) {
+                        App.itsi.setLearnerUrl(window.location.href);
                     }
                 });
         } else {
@@ -95,6 +100,9 @@ var ModelingController = {
                     initViews(project);
                     project.fetchResultsIfNeeded();
                     router.navigate(project.getReferenceUrl());
+                    if (settings.get('itsi_embed')) {
+                        App.itsi.setLearnerUrl(window.location.href);
+                    }
                 }
             } else {
                 project = new models.ProjectModel({
@@ -110,6 +118,9 @@ var ModelingController = {
                 setupNewProjectScenarios(project);
                 project.on('change:id', function() {
                     router.navigate(project.getReferenceUrl());
+                    if (settings.get('itsi_embed')) {
+                        App.itsi.setLearnerUrl(window.location.href);
+                    }
                 });
 
                 initScenarioEvents(project);
@@ -141,6 +152,9 @@ function initScenarioEvents(project) {
     scenariosColl.on('change:activeScenario change:id', function(scenario) {
         mapView.updateModifications(scenario.get('modifications'));
         router.navigate(project.getReferenceUrl());
+        if (settings.get('itsi_embed')) {
+            App.itsi.setLearnerUrl(window.location.href);
+        }
     });
 }
 

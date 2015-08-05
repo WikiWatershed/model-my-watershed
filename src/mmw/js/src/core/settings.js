@@ -1,6 +1,7 @@
 "use strict";
 
 var defaultSettings = {
+    itsi_embed: false,
     base_layers: {},
     stream_layers: {}
 };
