@@ -221,7 +221,14 @@ var TabContentsView = Marionette.CollectionView.extend({
 
 var TableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
-    template: tableRowTmpl
+    template: tableRowTmpl,
+        templateHelpers: function() {
+        return {
+            // Convert coverage to percentage for display.
+            coveragePct: (this.model.get('coverage') * 100).toFixed(1),
+            areaTrimmed: this.model.get('area').toFixed(1)
+        };
+    }
 });
 
 var TableView = Marionette.CompositeView.extend({
