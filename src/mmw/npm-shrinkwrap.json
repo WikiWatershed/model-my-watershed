@@ -41,7 +41,7 @@
     },
     "bootstrap-select": {
       "version": "1.6.4",
-      "from": "../../tmp/npm-31030-7f32f0c4/1436971651298-0.12548802117817104/f1755efa102a41e43fc367ba36ce905b8f2b90e1",
+      "from": "bootstrap-select@git://github.com/azavea/bootstrap-select",
       "resolved": "git://github.com/azavea/bootstrap-select#f1755efa102a41e43fc367ba36ce905b8f2b90e1"
     },
     "browserify": {
@@ -1502,7 +1502,7 @@
     },
     "leaflet-draw": {
       "version": "0.2.3",
-      "from": "../../tmp/npm-31030-7f32f0c4/1436971651262-0.632644888246432/e2fe3a4c176979235845e8fbb1c5017414035765",
+      "from": "git://github.com/michaelguild13/Leaflet.draw.git#e2fe3a4",
       "resolved": "git://github.com/michaelguild13/Leaflet.draw#e2fe3a4c176979235845e8fbb1c5017414035765"
     },
     "leaflet-plugins": {
@@ -3323,7 +3323,7 @@
     },
     "retina.js": {
       "version": "1.3.0",
-      "from": "../../tmp/npm-31030-7f32f0c4/1436971651112-0.5243154705967754/a70e73639817473bad7bbb33f866b8e060e5f5a7",
+      "from": "retina.js@git://github.com/imulus/retinajs#1.3.0",
       "resolved": "git://github.com/imulus/retinajs#a70e73639817473bad7bbb33f866b8e060e5f5a7"
     },
     "sinon": {
