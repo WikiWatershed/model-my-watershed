@@ -87,11 +87,11 @@ var utils = {
                 return value * 0.3048;
 
             case 'mi':
-                // return Km.
+                // return km.
                 return value * 1.60934;
 
             case 'lb':
-                // return Kg.
+                // return kg.
                 return value * 0.453592;
 
             default:

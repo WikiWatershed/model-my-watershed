@@ -225,7 +225,7 @@ var DrawView = Marionette.ItemView.extend({
                 bounds = L.latLngBounds(swNe),
                 box = turfBboxPolygon(bounds.toBBoxString().split(','));
 
-            addLayer(box, '1 Square Km');
+            addLayer(box, '1 Square km');
             navigateToAnalyze();
         }).fail(function() {
             revertLayer();

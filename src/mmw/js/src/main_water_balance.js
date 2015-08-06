@@ -39,10 +39,10 @@ var initialize = function(model) {
 
         var result = model[soil][land][precip];
 
-        $precipText.text(convertToMetric(precip) + 'cm');
-        $evapoText.text(convertToMetric(result.et) + 'cm');
-        $runoffText.text(convertToMetric(result.r) + 'cm');
-        $infilText.text(convertToMetric(result.i) + 'cm');
+        $precipText.text(convertToMetric(precip) + ' cm');
+        $evapoText.text(convertToMetric(result.et) + ' cm');
+        $runoffText.text(convertToMetric(result.r) + ' cm');
+        $infilText.text(convertToMetric(result.i) + ' cm');
 
         var total = parseFloat(result.et) + parseFloat(result.r) + parseFloat(result.i);
         $et.css('height', (100 * result.et / total) + '%');
