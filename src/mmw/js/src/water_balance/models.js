@@ -2,16 +2,18 @@
 
 var WaterBalanceModel = {
     landMap: {
-        '21': ['turfGrass', 'tallGrass'],
-        '22': ['lir'],
-        '23': ['hir'],
-        '24': ['commercial'],
-        '31': ['desert'],
-        '41': ['forest'],
-        '52': ['chaparral'],
-        '71': ['grassland'],
-        '81': ['pasture', 'shortGrass'],
-        '82': ['rowCrops']
+        'urban_grass': ['turfGrass'],
+        'tall_grass_prairie': ['tallGrass'],
+        'li_residential': ['lir'],
+        'hi_residential': ['hir'],
+        'commercial': ['commercial'],
+        'desert': ['desert'],
+        'deciduous_forest': ['forest'],
+        'chaparral': ['chaparral'],
+        'grassland': ['grassland'],
+        'pasture': ['pasture'],
+        'short_grass_prairie': ['shortGrass'],
+        'row_crop': ['rowCrops']
     },
 
     soilMap: [
@@ -25,6 +27,10 @@ var WaterBalanceModel = {
         var model = {};
         var lines = data.split(/\n/);
 
+        function round(x) {
+            return Math.round(parseFloat(x) * 10) / 10;
+        }
+
         function processLine(soil, lands, precip) {
             if (!model[soil]) {
                 model[soil] = {};
@@ -34,9 +40,9 @@ var WaterBalanceModel = {
                     model[soil][land] = {};
                 }
                 model[soil][land][precip] = {
-                    'et': line[3],
-                    'i' : line[4],
-                    'r' : line[5]
+                    'et': round(line[3]),
+                    'i' : round(line[4]),
+                    'r' : round(line[5])
                 };
             });
         }
