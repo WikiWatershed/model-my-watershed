@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    Backbone = require('../../shim/backbone'),
     App = require('../app'),
     settings = require('../core/settings'),
     router = require('../router').router,
@@ -50,9 +51,7 @@ var ModelingController = {
                     }
 
                     // Send URL to parent if in embed mode
-                    if (settings.get('itsi_embed')) {
-                        App.itsi.setLearnerUrl(window.location.href);
-                    }
+                    updateItsiFromEmbedMode();
                 });
         } else {
             if (App.currProject && settings.get('activityMode')) {
@@ -144,12 +143,16 @@ var ModelingController = {
     }
 };
 
+function updateItsiFromEmbedMode() {
+    if (settings.get('itsi_embed')) {
+        App.itsi.setLearnerUrl(Backbone.history.getFragment());
+    }
+}
+
 function updateUrl() {
     // Use replace: true, so that the back button will work as expected.
     router.navigate(App.currProject.getReferenceUrl(), { replace: true });
-    if (settings.get('itsi_embed')) {
-        App.itsi.setLearnerUrl(window.location.href);
-    }
+    updateItsiFromEmbedMode();
 }
 
 function updateScenario(scenario) {

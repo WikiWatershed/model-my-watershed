@@ -21,7 +21,7 @@ var App = new Marionette.Application({
 
         // Initialize embed interface if in activity mode
         if (activityMode) {
-            this.itsi = new itsi.ItsiEmbed();
+            this.itsi = new itsi.ItsiEmbed(this);
         }
 
         // This view is intentionally not attached to any region.

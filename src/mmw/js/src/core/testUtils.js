@@ -28,6 +28,10 @@ function resetApp(app) {
         app.currProject = null;
     }
 
+    if (app.itsi) {
+        app.itsi = null;
+    }
+
     app.initialize();
 }
 

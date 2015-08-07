@@ -1,22 +1,23 @@
 "use strict";
 
 var _ = require('lodash'),
+    Backbone = require('../../shim/backbone'),
     iframePhone = require('iframe-phone'),
-    App = require('../app.js'),
+    router = require('../router.js').router,
     EMBED_FLAG = 'itsi_embed',
     QUERY_SUFFIX = EMBED_FLAG + '=true';
 
-var ItsiEmbed = function() {
+var ItsiEmbed = function(App) {
     this.phone = new iframePhone.getIFrameEndpoint();
 
     this.url = window.location.href + '?' + QUERY_SUFFIX;
 
-    this.interactiveState = { url: this.url };
+    this.interactiveState = { route: '/' };
 
-    this.setLearnerUrl = function(url) {
-        if (url) {
-            this.url = url + (url.indexOf('?') > 0 ? '&' : '?') + QUERY_SUFFIX;
-            this.interactiveState = { url: this.url };
+    this.setLearnerUrl = function(route) {
+        if (route) {
+            this.url = window.location.origin + '/' + route + '?' + QUERY_SUFFIX;
+            this.interactiveState = { route: route };
         }
         
         this.sendLearnerUrl();
@@ -36,9 +37,10 @@ var ItsiEmbed = function() {
     };
 
     this.loadInteractive = function(interactiveState) {
-        if (interactiveState && interactiveState.url) {
-            // Only redirect if different URL
-            if (window.location.href !== interactiveState.url) {
+        if (interactiveState) {
+            // Only redirect if route specified and different
+            if (interactiveState.route &&
+                interactiveState.route !== Backbone.history.getFragment()) {
                 if (App.currProject &&
                     !App.currProject.isNew() &&
                     !App.currProject.get('area_of_interest')) {
@@ -47,11 +49,11 @@ var ItsiEmbed = function() {
                         .destroy()
                         .always(function() {
                             // Redirect after deletion
-                            window.location.href = interactiveState.url;
+                            router.navigate(interactiveState.route, { trigger: true });
                         });
                 } else {
                     // No current project, just redirect
-                    window.location.href = interactiveState.url;
+                    router.navigate(interactiveState.route, { trigger: true });
                 }
             }
         }
