@@ -143,7 +143,7 @@ def scenario(request, scen_id):
 def start_analyze(request, format=None):
     user = request.user if request.user.is_authenticated() else None
     created = now()
-    area_of_interest = request.POST
+    area_of_interest = request.POST['area_of_interest']
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
 

@@ -84,7 +84,7 @@ function checkTable(data) {
 }
 
 function checkTableHeader(name) {
-    var expectedHeaderLabels = ['Type', 'Area', 'Coverage'];
+    var expectedHeaderLabels = ['Type', 'Area (m2)', 'Coverage (%)'];
     var headerLabels = $('#' + name + ' table thead tr th').map(function() {
         return $(this).text();
     }).get();
@@ -99,8 +99,8 @@ function checkTableBody(subData) {
         // displayed.
         var expectedRowVals = [
             subData.categories[trInd].type,
-            subData.categories[trInd].area,
-            subData.categories[trInd].coverage
+            (subData.categories[trInd].area).toFixed(1),
+            (subData.categories[trInd].coverage * 100).toFixed(1)
         ];
         expectedRowVals = _.map(expectedRowVals, function(val) {
             return String(val);

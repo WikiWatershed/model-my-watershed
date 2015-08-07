@@ -40,19 +40,22 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
         var self = this;
 
         if (!this.model.get('result')) {
-            var taskHelper = {
-                pollSuccess: function() {
-                    self.showDetailsRegion();
-                },
+            var aoi = JSON.stringify(this.model.get('area_of_interest')),
+                taskHelper = {
+                    pollSuccess: function() {
+                        self.showDetailsRegion();
+                    },
 
-                pollFailure: function() {
-                    self.showErrorMessage();
-                },
+                    pollFailure: function() {
+                        self.showErrorMessage();
+                    },
 
-                startFailure: function() {
-                    self.showErrorMessage();
-                }
-            };
+                    startFailure: function() {
+                        self.showErrorMessage();
+                    },
+
+                    postData: {'area_of_interest': aoi}
+                };
             this.model.start(taskHelper);
         } else {
             this.lock = $.Deferred();
@@ -218,7 +221,14 @@ var TabContentsView = Marionette.CollectionView.extend({
 
 var TableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
-    template: tableRowTmpl
+    template: tableRowTmpl,
+        templateHelpers: function() {
+        return {
+            // Convert coverage to percentage for display.
+            coveragePct: (this.model.get('coverage') * 100).toFixed(1),
+            areaTrimmed: this.model.get('area').toFixed(1)
+        };
+    }
 });
 
 var TableView = Marionette.CompositeView.extend({
