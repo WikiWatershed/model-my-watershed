@@ -97,15 +97,16 @@
 
   #effect-evapo{
     position: absolute;
-    bottom: 180px;
+    bottom: 120px;
     left: 290px;
     width: 84px;
     height: 140px;
     z-index: 100;
 
-    .scale-wrapper{
+    svg {
       width: auto;
       height: 100%;  //Animate this value for scale
+      transition: height 0.3s ease;
     }
   }
 
@@ -117,9 +118,10 @@
     height: 120px;
     z-index: 100;
 
-    .scale-wrapper{
+    svg {
       width: auto;
       height: 100%;  //Animate this value for scale
+      transition: height 0.3s ease;
     }
   }
 
@@ -131,9 +133,10 @@
     height: 140px;
     z-index: 100;
 
-    .scale-wrapper{
+    svg {
       width: auto;
       height: 100%; //Animate this value for scale
+      transition: height 0.3s ease;
     }
   }
 
