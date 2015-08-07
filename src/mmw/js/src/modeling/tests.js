@@ -184,7 +184,7 @@ describe('Modeling', function() {
 
             it('lists all of the modifications and their area', function() {
                 this.model.get('modifications').add([this.modsModel1, this.modsModel2]);
-                assert.equal($('#sandbox #mod-landcover tr td:first-child').text(), 'Low Intensity Residential');
+                assert.equal($('#sandbox #mod-landcover tr td:first-child').text(), 'Low-Intensity Residential');
                 assert.equal($('#sandbox #mod-landcover tr td:nth-child(2)').text(), '44.4 km2');
                 assert.equal($('#sandbox #mod-conservationpractice tr td:first-child').text(), 'Rain Garden');
                 assert.equal($('#sandbox #mod-conservationpractice tr td:nth-child(2)').text(), '106.4 km2');
@@ -645,14 +645,14 @@ describe('Modeling', function() {
                     });
 
                     model.updateModificationHash();
-                    assert.equal(model.get('modification_hash'), '40c4fdd89b06a0e9b7e1c3c5c2bd1f17');
+                    assert.equal(model.get('modification_hash'), '5e02dc1cf4b55bdb209683473f6dac45');
 
                     var mod = new models.ModificationModel(mocks.modifications.sample2);
                     model.get('modifications').add(mod);
-                    assert.equal(model.get('modification_hash'), 'a862ae12206d895501bb85c3edcdb467');
+                    assert.equal(model.get('modification_hash'), '3f9403253db86e2ceff2291e04044d3d');
 
                     model.get('modifications').remove(mod);
-                    assert.equal(model.get('modification_hash'), '40c4fdd89b06a0e9b7e1c3c5c2bd1f17');
+                    assert.equal(model.get('modification_hash'), '5e02dc1cf4b55bdb209683473f6dac45');
                 });
 
                 it('is called when the modifications for a scenario changes', function() {

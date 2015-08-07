@@ -231,7 +231,7 @@ describe('Core', function() {
         describe('ModificationPopupView', function() {
             it('deletes the modification it is associated with when the delete button is clicked', function() {
                 var model = new Backbone.Model({
-                        value: 'lir',
+                        value: 'li_residential',
                         shape: {},
                         area: 100,
                         units: 'm<sup>2</sup>',

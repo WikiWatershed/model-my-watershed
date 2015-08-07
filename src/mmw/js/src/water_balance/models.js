@@ -2,18 +2,18 @@
 
 var WaterBalanceModel = {
     landMap: {
-        'urban_grass': ['turfGrass'],
-        'tall_grass_prairie': ['tallGrass'],
-        'li_residential': ['lir'],
-        'hi_residential': ['hir'],
+        'urban_grass': ['urban_grass'],
+        'tall_grass_prairie': ['tall_grass_prairie'],
+        'li_residential': ['li_residential'],
+        'hi_residential': ['hi_residential'],
         'commercial': ['commercial'],
         'desert': ['desert'],
-        'deciduous_forest': ['forest'],
+        'deciduous_forest': ['deciduous_forest'],
         'chaparral': ['chaparral'],
         'grassland': ['grassland'],
         'pasture': ['pasture'],
-        'short_grass_prairie': ['shortGrass'],
-        'row_crop': ['rowCrops']
+        'short_grass_prairie': ['short_grass_prairie'],
+        'row_crop': ['row_crop']
     },
 
     soilMap: [
