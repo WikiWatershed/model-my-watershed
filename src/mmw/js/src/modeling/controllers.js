@@ -31,6 +31,7 @@ var ModelingController = {
                 .fetch()
                 .done(function() {
                     App.map.set('areaOfInterest', project.get('area_of_interest'));
+                    App.map.set('areaOfInterestName', project.get('area_of_interest_name'));
                     initScenarioEvents(project);
                     initViews(project);
                     if (scenarioParam) {
@@ -60,6 +61,7 @@ var ModelingController = {
                 if (project.get('needs_reset')) {
                     project.set('user_id', App.user.get('id'));
                     project.set('area_of_interest', App.map.get('areaOfInterest'));
+                    project.set('area_of_interest', App.map.get('areaOfInterestName'));
                     project.set('needs_reset', false);
 
                     // Clear current scenarios and start over.
@@ -108,6 +110,7 @@ var ModelingController = {
                         name: 'Untitled Project',
                         created_at: Date.now(),
                         area_of_interest: App.map.get('areaOfInterest'),
+                        area_of_interest_name: App.map.get('areaOfInterestName'),
                         scenarios: new models.ScenariosCollection()
                     });
 
