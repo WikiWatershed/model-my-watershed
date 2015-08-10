@@ -57,7 +57,10 @@ describe('Modeling', function() {
         describe('ScenariosView', function() {
             it('adds a new scenario when the plus button is clicked', function() {
                 var collection = getTestScenarioCollection(),
-                    view = new views.ScenariosView({ collection: collection });
+                    view = new views.ScenariosView({
+                        collection: collection,
+                        projectModel: new models.ProjectModel()
+                    });
 
                 $(sandboxSelector).html(view.render().el);
 

@@ -237,6 +237,18 @@ var ProjectModel = Backbone.Model.extend({
             return root + modelPart + scenarioPart;
         }
         return root;
+    },
+
+    getCompareUrl: function() {
+        // Return a url fragment that can access the compare view.
+        var root = '/project/',
+            id = this.get('id'),
+            url = root + 'compare';
+
+        if (id) {
+            url = root + id + '/compare';
+        }
+        return url;
     }
 });
 

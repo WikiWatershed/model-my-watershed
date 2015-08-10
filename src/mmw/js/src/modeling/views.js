@@ -41,6 +41,7 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         // If the user changes, we should refresh all the views because they
         // have user contextual controls.
         this.listenTo(App.user, 'change', this.reRender);
+        this.listenTo(this.model, 'change:id', this.reRender);
         this.listenTo(App.user, 'change:guest', this.saveAfterLogin);
     },
 
@@ -52,7 +53,8 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
 
         this.scenariosRegion.empty();
         this.scenariosRegion.show(new ScenariosView({
-            collection: this.model.get('scenarios')
+            collection: this.model.get('scenarios'),
+            projectModel: this.model
         }));
 
         this.toolbarRegion.empty();
@@ -235,12 +237,19 @@ var ScenariosView = Marionette.LayoutView.extend({
     collection: models.ScenariosCollection,
     template: scenariosBarTmpl,
 
+    initialize: function(options) {
+        this.projectModel = options.projectModel;
+    },
+
     templateHelpers: function() {
         // Check the first scenario in the collection as a proxy for the
         // entire collection.
-        var scenario = this.collection.first();
+        var scenario = this.collection.first(),
+            compareUrl = this.projectModel.getCompareUrl();
+
         return {
-            editable: isEditable(scenario)
+            editable: isEditable(scenario),
+            compareUrl: compareUrl
         };
     },
 

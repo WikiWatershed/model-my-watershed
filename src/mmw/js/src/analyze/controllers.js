@@ -4,7 +4,8 @@ var _ = require('underscore'),
     App = require('../app'),
     router = require('../router').router,
     views = require('./views'),
-    models = require('./models');
+    models = require('./models'),
+    settings = require('../core/settings');
 
 var AnalyzeController = {
     analyzePrepare: function() {
@@ -17,6 +18,10 @@ var AnalyzeController = {
         // analyze mode
         if (!App.map.get('maskLayerApplied')) {
             App.map.set('maskLayerApplied', true);
+        }
+
+        if (!settings.get('activityMode')) {
+            App.currProject = null;
         }
     },
 

@@ -166,8 +166,23 @@ var MapView = Marionette.ItemView.extend({
     _areaOfInterestSet: false,
     _didRevert: false,
 
-    initialize: function() {
-        var map = new L.Map(this.el, { zoomControl: false }),
+    initialize: function(options) {
+        var defaultLayerName = _.findKey(settings.get('base_layers'), function(layerData) {
+            return layerData.default;
+        });
+
+        _.defaults(options, {
+            addZoomControl: true,
+            addLocateMeButton: true,
+            addLayerSelector: true,
+            showLayerAttribution: true,
+            initialLayerName: defaultLayerName
+        });
+
+        var map = new L.Map(this.el, {
+                zoomControl: false,
+                attributionControl: options.showLayerAttribution
+            }),
             areaOfInterestLayer = new L.FeatureGroup(),
             modificationsLayer = new L.FeatureGroup(),
             maxZoom = 10,
@@ -175,30 +190,33 @@ var MapView = Marionette.ItemView.extend({
             timeout = 30000,
             self = this;
 
-        map.addControl(new L.Control.Zoom({position: 'topright'}));
-        addLocateMeButton(map, maxZoom, maxAge);
-
-        var baseLayers = _.mapObject(settings.get('base_layers'), function(layerData) {
-                if (layerData.googleType) {
-                    return new L.Google(layerData.googleType);
-                } else {
-                    return new L.TileLayer(layerData.url, {
-                        attribution: layerData.attribution || '',
-                        maxZoom: layerData.maxZoom || 18
-                    });
-                }
-            }),
-            defaultLayerName = _.findKey(settings.get('base_layers'), function(layerData) {
-                return layerData.default;
-            }),
-            defaultLayer = baseLayers[defaultLayerName];
-
-        L.control.layers(baseLayers, {}, {autoZIndex:false}).addTo(map);
-
-        if (defaultLayer) {
-            map.addLayer(defaultLayer);
+        if (options.addZoomControl) {
+            map.addControl(new L.Control.Zoom({position: 'topright'}));
+        }
+        if (options.addLocateMeButton) {
+            addLocateMeButton(map, maxZoom, maxAge);
         }
 
+        this.baseLayers = _.mapObject(settings.get('base_layers'), function(layerData) {
+            if (layerData.googleType) {
+                return new L.Google(layerData.googleType);
+            } else {
+                return new L.TileLayer(layerData.url, {
+                    attribution: layerData.attribution || '',
+                    maxZoom: layerData.maxZoom || 18
+                });
+            }
+        });
+
+        if (options.addLayerSelector) {
+            this.layerControl = L.control.layers(this.baseLayers, {}, {autoZIndex:false}).addTo(map);
+        }
+
+        var initialLayer = this.baseLayers[options.initialLayerName] ||
+                           this.baseLayers[defaultLayerName];
+        if (initialLayer) {
+            map.addLayer(initialLayer);
+        }
         map.addLayer(areaOfInterestLayer);
         map.addLayer(modificationsLayer);
 
@@ -236,6 +254,15 @@ var MapView = Marionette.ItemView.extend({
                 geolocationOptions
             );
         }
+    },
+
+    getActiveBaseLayerName: function() {
+        var activeBaseLayerName,
+            self = this;
+        activeBaseLayerName = _.findKey(self.baseLayers, function(layer) {
+            return self._leafletMap.hasLayer(layer);
+        });
+        return activeBaseLayerName;
     },
 
     onBeforeDestroy: function() {

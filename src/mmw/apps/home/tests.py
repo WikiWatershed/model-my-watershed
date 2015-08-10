@@ -36,16 +36,16 @@ class RouteAccessTestCase(TestCase):
 
         self.c.login(username='test', password='test')
 
-    def test_any_user_can_get_model_route_without_project_id(self):
+    def test_any_user_cannot_get_model_route_without_project_id(self):
         response = self.c.get('/project/')
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 404)
 
         self.c.logout()
 
         response = self.c.get('/project/')
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 404)
 
     def test_project_owner_can_get_model_route_with_project_id(self):
         project_id = self.create_private_project()

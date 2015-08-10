@@ -12,8 +12,8 @@ router.addRoute(/^/, DrawController, 'draw');
 router.addRoute(/^analyze/, AnalyzeController, 'analyze');
 router.addRoute('project(/:projectId)(/scenario/:scenarioId)(/)', ModelingController, 'project');
 router.addRoute('project/:projectId/clone(/)', ModelingController, 'projectClone');
-//TODO Add route for /project/XX/scenario/compare
-router.addRoute(/^compare/, CompareController, 'compare');
+router.addRoute('project(/:projectId)(/scenario/:scenarioId)(/)', ModelingController, 'project');
+router.addRoute('project(/:projectId)/compare(/)', CompareController, 'compare');
 router.addRoute('error(/:type)(/)', ErrorController, 'error');
 router.addRoute('sign-up(/)', SignUpController, 'signUp');
 router.addRoute('sign-up/itsi(/:username)(/:first_name)(/:last_name)(/)', SignUpController, 'itsiSignUp');
