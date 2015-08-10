@@ -121,6 +121,7 @@ var CompareScenarioView = Marionette.LayoutView.extend({
     onShow: function() {
         this.mapModel = new coreModels.MapModel({});
         this.mapModel.set('areaOfInterest', this.projectModel.get('area_of_interest'));
+        this.mapModel.set('areaOfInterestName', this.projectModel.get('area_of_interest_name'));
         this.mapView = new coreViews.MapView({
             model: this.mapModel,
             el: $(this.el).find('.map-container').get(),
