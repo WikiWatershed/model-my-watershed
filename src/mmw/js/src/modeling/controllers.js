@@ -140,6 +140,37 @@ var ModelingController = {
     // the project cloning route back to the server.
     projectClone: function() {
         window.location.replace(window.location.href);
+    },
+
+    // Load the project's area of interest, and move to Draw view
+    projectDraw: function(projectId) {
+        var project = new models.ProjectModel({
+            id: projectId
+        });
+
+        App.currProject = project;
+
+        project
+            .fetch()
+            .done(function() {
+                App.map.set('areaOfInterest', project.get('area_of_interest'));
+                if (project.get('scenarios').isEmpty()) {
+                    // No scenarios available. Set the `needs_reset` flag so
+                    // that this project is properly initialized by the
+                    // modeling controller.
+                    project.set('needs_reset', true);
+                }
+
+                if (project.get('is_activity')) {
+                    settings.set('activityMode', true);
+                }
+            })
+            .fail(function() {
+                App.currProject = null;
+            })
+            .always(function() {
+                router.navigate('/', { trigger: true });
+            });
     }
 };
 
