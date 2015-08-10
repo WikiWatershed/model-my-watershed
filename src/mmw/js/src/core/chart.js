@@ -9,6 +9,7 @@ var d3 = require('d3'),
 // by Mike Bostock http://bost.ocks.org/mike/chart/
 // and http://bl.ocks.org/mbostock/3885304
 
+// el is the DOM element where the chart should be inserted.
 // indVar and depVars represent the independent and dependent variables which are displayed
 // on the x or y axes depending on the orientation of the chart.
 // In general, an independent variable is one that is directly controlled by an experimenter
@@ -18,13 +19,14 @@ var d3 = require('d3'),
 // The optional parameter options has optional properties: horizMargin, vertMargin, useHorizBars,
 // height, width, numYTicks, isPercentage, depAxisLabel, depDisplayNames, and barColors.
 // If height and/or width aren't specified, then they are responsive (ie. set automatically according to the
-// size of the element selected by selector).
+// size of the el).
 // depDisplayNames is the human readable counterpart to depVars.
 // If barColors is supplied, a legend will be drawn using the colors.
-function makeBarChart(selector, data, indVar, depVars, options) {
+function makeBarChart(el, data, indVar, depVars, options) {
     options = options || {};
 
-    var numYTicks = options.numYTicks || 10,
+    var $el = $(el),
+        numYTicks = options.numYTicks || 10,
         hiddenSize = 100,
         horizMargin = options.horizMargin || {top: 20, right: 80, bottom: 40, left: 120},
         vertMargin = options.vertMargin || {top: 20, right: 80, bottom: 30, left: 40},
@@ -81,9 +83,9 @@ function makeBarChart(selector, data, indVar, depVars, options) {
     var computeSizes = function(margin) {
         // containerWidth will be 0 if the chart is in a
         // tab that is currently hidden.
-        containerWidth = options.width || $(selector).get(0).offsetWidth;
+        containerWidth = options.width || el.offsetWidth;
         width = containerWidth - margin.left - margin.right;
-        containerHeight = options.height || $(selector).get(0).offsetHeight;
+        containerHeight = options.height || el.offsetHeight;
         height = containerHeight - margin.top - margin.bottom;
         // Set to legal dummy value if it's non-positive because
         // the container is hidden and containerWidth == 0.
@@ -147,7 +149,7 @@ function makeBarChart(selector, data, indVar, depVars, options) {
             yAxis.ticks(numYTicks);
         }
 
-        svg = d3.select(selector).append('svg')
+        svg = d3.select(el).append('svg')
             .attr('width', containerWidth)
             .attr('height', containerHeight);
 
@@ -205,7 +207,7 @@ function makeBarChart(selector, data, indVar, depVars, options) {
     // Ideas for making d3 charts responsive from
     // http://eyeseast.github.io/visible-data/2013/08/28/responsive-charts-with-d3/
     var resizeVertical = function() {
-        if ($(selector).length > 0) {
+        if ($el.length > 0) {
             computeSizes(vertMargin);
 
             x.rangeRoundBands([0, width * CHART_CONTAINER_PERCENTAGE], 0.1);
@@ -261,7 +263,7 @@ function makeBarChart(selector, data, indVar, depVars, options) {
             .scale(y)
             .orient('left');
 
-        svg = d3.select(selector).append('svg')
+        svg = d3.select(el).append('svg')
             .attr('width', containerWidth)
             .attr('height', containerHeight);
 
@@ -314,7 +316,7 @@ function makeBarChart(selector, data, indVar, depVars, options) {
     };
 
     var resizeHorizontal = function() {
-        if ($(selector).length > 0) {
+        if ($el.length > 0) {
             computeSizes(horizMargin);
 
             x.range([0, width]);
@@ -354,11 +356,11 @@ function makeBarChart(selector, data, indVar, depVars, options) {
         // bar-chart-refresh events occur when a tab in the Analyze view is selected.
         // We need to listen for them since the chart might have been hidden when the last
         // resize occured, in which case the size would have been set to the default.
-        $(selector).on('bar-chart:refresh', resizeHorizontal);
+        $el.on('bar-chart:refresh', resizeHorizontal);
     } else {
         renderVertical();
         $(window).on('resize', resizeVertical);
-        $(selector).on('bar-chart:refresh', resizeVertical);
+        $el.on('bar-chart:refresh', resizeVertical);
     }
 }
 

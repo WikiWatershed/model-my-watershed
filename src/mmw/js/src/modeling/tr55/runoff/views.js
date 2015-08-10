@@ -32,9 +32,9 @@ var ResultView = Marionette.ItemView.extend({
             };
         }
 
-        var selector = '.runoff-chart-container ' + '.bar-chart';
-        $(selector).empty();
-        var result = this.model.get('result');
+        var chartEl = this.$el.find('.bar-chart').get(0),
+            result = this.model.get('result');
+        $(chartEl).empty();
         if (result) {
             var indVar = 'type',
                 depVars = ['inf', 'runoff', 'et'],
@@ -56,7 +56,7 @@ var ResultView = Marionette.ItemView.extend({
                     getBarData('Modified', 'modified')
                 ];
             }
-            chart.makeBarChart(selector, data, indVar, depVars, options);
+            chart.makeBarChart(chartEl, data, indVar, depVars, options);
         }
     }
 });

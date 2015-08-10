@@ -51,6 +51,7 @@ describe('Core', function() {
             height: displaySandboxHeight,
             width: displaySandboxWidth
         }));
+        this.el = $(displaySandboxSelector).get(0);
     });
 
     afterEach(function() {
@@ -71,7 +72,7 @@ describe('Core', function() {
 
     describe('Chart', function() {
         it('changes size when the browser is resized and height and width are not provided', function() {
-            chart.makeBarChart(displaySandboxSelector, chartData, xValue, yValue);
+            chart.makeBarChart(this.el, chartData, xValue, yValue);
             var $svg = $(displaySandboxSelector).children('svg');
 
             var beforeHeight = $svg.attr('height');
@@ -95,7 +96,7 @@ describe('Core', function() {
                 height: 400,
                 width: 600
             };
-            chart.makeBarChart(displaySandboxSelector, chartData, xValue, yValue, options);
+            chart.makeBarChart(this.el, chartData, xValue, yValue, options);
             var $svg = $(displaySandboxSelector).children('svg');
 
             var beforeHeight = $svg.attr('height');

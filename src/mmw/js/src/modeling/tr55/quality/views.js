@@ -70,7 +70,7 @@ var ChartView = Marionette.ItemView.extend({
     },
 
     addChart: function() {
-        var selector = '.quality-chart-container .bar-chart',
+        var chartEl = this.$el.find('.bar-chart').get(0),
             chartData = this.collection.map(function(model) {
                 return model.attributes;
             }),
@@ -83,7 +83,7 @@ var ChartView = Marionette.ItemView.extend({
             depVars = ['load'],
             indVar = 'measure';
 
-        chart.makeBarChart(selector, chartData, indVar, depVars, chartOptions);
+        chart.makeBarChart(chartEl, chartData, indVar, depVars, chartOptions);
     }
 });
 
