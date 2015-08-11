@@ -193,8 +193,7 @@ class Application(StackNode):
         try:
             app_server_ami_id = self.get_input('AppServerAMI')
         except MKUnresolvableInputError:
-            app_server_ami_id = get_recent_ami(self.aws_profile, 'mmw-app-*',
-                                               owner='self')
+            app_server_ami_id = get_recent_ami(self.aws_profile, 'mmw-app-*')
 
         return app_server_ami_id
 

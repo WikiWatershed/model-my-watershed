@@ -189,8 +189,7 @@ class Worker(StackNode):
             worker_ami_id = self.get_input('WorkerAMI')
         except MKUnresolvableInputError:
             worker_ami_id = get_recent_ami(self.aws_profile,
-                                           'mmw-worker-*',
-                                           owner='self')
+                                           'mmw-worker-*')
 
         return worker_ami_id
 
