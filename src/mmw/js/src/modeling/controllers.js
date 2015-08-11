@@ -30,8 +30,10 @@ var ModelingController = {
             project
                 .fetch()
                 .done(function() {
-                    App.map.set('areaOfInterest', project.get('area_of_interest'));
-                    App.map.set('areaOfInterestName', project.get('area_of_interest_name'));
+                    App.map.set({
+                        'areaOfInterest': project.get('area_of_interest'),
+                        'areaOfInterestName': project.get('area_of_interest_name')
+                    });
                     initScenarioEvents(project);
                     initViews(project);
                     if (scenarioParam) {
@@ -59,10 +61,12 @@ var ModelingController = {
                 project = App.currProject;
                 // Reset flag is set so clear off old project data.
                 if (project.get('needs_reset')) {
-                    project.set('user_id', App.user.get('id'));
-                    project.set('area_of_interest', App.map.get('areaOfInterest'));
-                    project.set('area_of_interest', App.map.get('areaOfInterestName'));
-                    project.set('needs_reset', false);
+                    project.set({
+                        'user_id': App.user.get('id'),
+                        'area_of_interest': App.map.get('areaOfInterest'),
+                        'area_of_interest_name': App.map.get('areaOfInterestName'),
+                        'needs_reset': false
+                    });
 
                     // Clear current scenarios and start over.
                     // Must convert to an array first to avoid conflicts with
