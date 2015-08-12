@@ -77,7 +77,8 @@ var ProjectModel = Backbone.Model.extend({
         scenarios: null,           // ScenariosCollection
         user_id: 0,                // User that created the project
         is_activity: false,        // Project that persists across routes
-        needs_reset: false         // Should we overwrite project data on next save?
+        needs_reset: false,        // Should we overwrite project data on next save?
+        allow_save: true           // Is allowed to save to the server - false in compare mode
     },
 
     initialize: function() {
@@ -150,7 +151,7 @@ var ProjectModel = Backbone.Model.extend({
     saveCalled: false,
 
     saveProjectAndScenarios: function() {
-        if (!App.user.loggedInUserMatch(this.get('user_id'))) {
+        if (!this.get('allow_save') || !App.user.loggedInUserMatch(this.get('user_id'))) {
             // Fail fast if the user can't save the project.
             return;
         }
@@ -418,7 +419,8 @@ var ScenarioModel = Backbone.Model.extend({
         active: false,
         job_id: null,
         results: null, // ResultCollection
-        census: null // JSON blob
+        census: null, // JSON blob
+        allow_save: true // Is allowed to save to the server - false in compare mode
     },
 
     initialize: function(attrs) {
@@ -460,7 +462,8 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     attemptSave: function() {
-        if (!App.user.loggedInUserMatch(this.get('user_id'))) {
+        if (!this.get('allow_save') || !App.user.loggedInUserMatch(this.get('user_id'))) {
+            // Fail fast if the user can't save the project.
             return;
         }
         if (!this.get('project')) {
