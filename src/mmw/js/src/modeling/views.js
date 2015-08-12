@@ -515,7 +515,8 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
         'click @ui.deleteModification': 'deleteModification'
     },
 
-    initialize: function() {
+    initialize: function(options) {
+        this.compareMode = options.compareMode;
         var modificationsColl = this.model.get('modifications');
         this.listenTo(modificationsColl, 'add remove reset', this.render);
     },
@@ -524,6 +525,7 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
         var shapes = this.model.get('modifications'),
             groupedShapes = shapes.groupBy('name');
         return {
+            compareMode: this.compareMode,
             shapes: shapes,
             groupedShapes: groupedShapes,
             editable: isEditable(this.model)
@@ -762,28 +764,13 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
 
     onShow: function() {
         var modelPackage = App.currProject.get('model_package'),
-            resultName = this.model.get('name');
-        switch (modelPackage) {
-            case 'tr-55':
-                switch(resultName) {
-                    case 'runoff':
-                        this.resultRegion.show(new tr55RunoffViews.ResultView({
-                            model: this.model,
-                            scenario: this.scenario
-                        }));
-                        break;
-                    case 'quality':
-                        this.resultRegion.show(new tr55QualityViews.ResultView({
-                            model: this.model
-                        }));
-                        break;
-                    default:
-                        console.log('Result not supported.');
-                }
-                break;
-            default:
-                console.log('Model package ' + modelPackage + ' not supported.');
-        }
+            resultName = this.model.get('name'),
+            ResultView = getResultView(modelPackage, resultName);
+
+        this.resultRegion.show(new ResultView({
+            model: this.model,
+            scenario: this.scenario
+        }));
     }
 });
 
@@ -813,6 +800,23 @@ function triggerBarChartRefresh() {
     $('#model-output-wrapper .bar-chart').trigger('bar-chart:refresh');
 }
 
+function getResultView(modelPackage, resultName) {
+    switch (modelPackage) {
+        case 'tr-55':
+            switch(resultName) {
+                case 'runoff':
+                    return tr55RunoffViews.ResultView;
+                case 'quality':
+                    return tr55QualityViews.ResultView;
+                default:
+                    console.log('Result not supported.');
+            }
+            break;
+        default:
+            console.log('Model package ' + modelPackage + ' not supported.');
+    }
+}
+
 module.exports = {
     ModelingResultsWindow: ModelingResultsWindow,
     ModelingHeaderView: ModelingHeaderView,
@@ -820,5 +824,6 @@ module.exports = {
     ScenarioTabPanelsView: ScenarioTabPanelsView,
     ScenarioDropDownMenuView: ScenarioDropDownMenuView,
     ToolbarTabContentView: ToolbarTabContentView,
-    ProjectMenuView: ProjectMenuView
+    ProjectMenuView: ProjectMenuView,
+    getResultView: getResultView
 };

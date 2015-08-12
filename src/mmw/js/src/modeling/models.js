@@ -42,11 +42,12 @@ var Tr55TaskModel = coreModels.TaskModel.extend({
 
 var ResultModel = Backbone.Model.extend({
     defaults: {
-        name: '',
-        displayName: '',
-        inputmod_hash: null,
-        result: null,
-        polling: false
+        name: '', // Code name for type of result, eg. runoff
+        displayName: '', // Human-readable name for type of result, eg. Runoff
+        inputmod_hash: null, // MD5 string generated from result
+        result: null, // The actual result object
+        polling: false, // True if currently polling
+        active: false // True if currently selected in Compare UI
     }
 });
 
@@ -63,6 +64,24 @@ var ResultCollection = Backbone.Collection.extend({
         this.forEach(function(resultModel) {
             resultModel.set('result', null);
         });
+    },
+
+    getResult: function(name) {
+        return this.findWhere({name: name});
+    },
+
+    setActive: function(name) {
+        this.invoke('set', 'active', false);
+        this.getResult(name).set('active', true);
+        this.trigger('change:active');
+    },
+
+    getActive: function() {
+        return this.findWhere({active: true});
+    },
+
+    makeFirstActive: function() {
+        this.setActive(this.at(0).get('name'));
     }
 });
 
@@ -722,7 +741,8 @@ var ScenariosCollection = Backbone.Collection.extend({
 
 function getControlsForModelPackage(modelPackageName, options) {
     if (modelPackageName === 'tr-55') {
-        if (options && options.is_current_conditions) {
+        if (options && (options.compareMode ||
+                        options.is_current_conditions)) {
             return new ModelPackageControlsCollection([
                 new ModelPackageControlModel({ name: 'precipitation' })
             ]);

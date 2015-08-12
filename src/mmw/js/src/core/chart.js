@@ -17,7 +17,7 @@ var d3 = require('d3'),
 // a function of the independent variable and is usually represented on the y-axis.
 // If depVars contains > 1 variable, then the function will create a stacked bar chart.
 // The optional parameter options has optional properties: horizMargin, vertMargin, useHorizBars,
-// height, width, numYTicks, isPercentage, depAxisLabel, depDisplayNames, and barColors.
+// height, width, numDepTicks, isPercentage, depAxisLabel, depDisplayNames, and barColors.
 // If height and/or width aren't specified, then they are responsive (ie. set automatically according to the
 // size of the el).
 // depDisplayNames is the human readable counterpart to depVars.
@@ -26,7 +26,7 @@ function makeBarChart(el, data, indVar, depVars, options) {
     options = options || {};
 
     var $el = $(el),
-        numYTicks = options.numYTicks || 10,
+        numDepTicks = options.numDepTicks || 10,
         hiddenSize = 100,
         horizMargin = options.horizMargin || {top: 20, right: 80, bottom: 40, left: 120},
         vertMargin = options.vertMargin || {top: 20, right: 80, bottom: 30, left: 40},
@@ -144,9 +144,9 @@ function makeBarChart(el, data, indVar, depVars, options) {
             .scale(y)
             .orient('left');
         if (options.isPercentage) {
-            yAxis.ticks(numYTicks, '%');
+            yAxis.ticks(numDepTicks, '%');
         } else {
-            yAxis.ticks(numYTicks);
+            yAxis.ticks(numDepTicks);
         }
 
         svg = d3.select(el).append('svg')
@@ -254,9 +254,9 @@ function makeBarChart(el, data, indVar, depVars, options) {
             .orient('bottom')
             .scale(x);
         if (options.isPercentage) {
-            xAxis.ticks(numYTicks, '%');
+            xAxis.ticks(numDepTicks, '%');
         } else {
-            xAxis.ticks(numYTicks);
+            xAxis.ticks(numDepTicks);
         }
 
         yAxis = d3.svg.axis()
