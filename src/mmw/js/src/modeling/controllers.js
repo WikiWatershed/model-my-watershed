@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    Backbone = require('../../shim/backbone'),
     App = require('../app'),
     settings = require('../core/settings'),
     router = require('../router').router,
@@ -50,9 +51,7 @@ var ModelingController = {
                     }
 
                     // Send URL to parent if in embed mode
-                    if (settings.get('itsi_embed')) {
-                        App.itsi.setLearnerUrl(window.location.href);
-                    }
+                    updateItsiFromEmbedMode();
                 });
         } else {
             if (App.currProject && settings.get('activityMode')) {
@@ -141,15 +140,50 @@ var ModelingController = {
     // the project cloning route back to the server.
     projectClone: function() {
         window.location.replace(window.location.href);
+    },
+
+    // Load the project's area of interest, and move to Draw view
+    projectDraw: function(projectId) {
+        var project = new models.ProjectModel({
+            id: projectId
+        });
+
+        App.currProject = project;
+
+        project
+            .fetch()
+            .done(function() {
+                App.map.set('areaOfInterest', project.get('area_of_interest'));
+                if (project.get('scenarios').isEmpty()) {
+                    // No scenarios available. Set the `needs_reset` flag so
+                    // that this project is properly initialized by the
+                    // modeling controller.
+                    project.set('needs_reset', true);
+                }
+
+                if (project.get('is_activity')) {
+                    settings.set('activityMode', true);
+                }
+            })
+            .fail(function() {
+                App.currProject = null;
+            })
+            .always(function() {
+                router.navigate('/', { trigger: true });
+            });
     }
 };
+
+function updateItsiFromEmbedMode() {
+    if (settings.get('itsi_embed')) {
+        App.itsi.setLearnerUrl(Backbone.history.getFragment());
+    }
+}
 
 function updateUrl() {
     // Use replace: true, so that the back button will work as expected.
     router.navigate(App.currProject.getReferenceUrl(), { replace: true });
-    if (settings.get('itsi_embed')) {
-        App.itsi.setLearnerUrl(window.location.href);
-    }
+    updateItsiFromEmbedMode();
 }
 
 function updateScenario(scenario) {

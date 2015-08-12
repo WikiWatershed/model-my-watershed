@@ -50,6 +50,7 @@ var DrawController = {
     },
 
     drawCleanUp: function() {
+        App.map.off('change:areaOfInterest', saveProjectOnAoIUpdate);
         App.rootView.geocodeSearchRegion.empty();
         App.rootView.drawToolsRegion.empty();
         App.rootView.footerRegion.empty();
@@ -75,6 +76,21 @@ function enableSingleProjectModeIfActivity() {
             });
             project.save();
             App.currProject = project;
+        }
+
+        App.map.on('change:areaOfInterest', saveProjectOnAoIUpdate);
+    }
+}
+
+function saveProjectOnAoIUpdate(map) {
+    var project = App.currProject;
+
+    if (project && project.get('scenarios').isEmpty()) {
+        project.set('area_of_interest', map.get('areaOfInterest'));
+        project.save();
+
+        if (settings.get('itsi_embed')) {
+            App.itsi.setLearnerUrl('project/' + project.id + '/draw');
         }
     }
 }
