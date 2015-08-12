@@ -381,6 +381,29 @@ var ModificationsCollection = Backbone.Collection.extend({
     model: ModificationModel
 });
 
+/**
+ * A function to allow scenarios created with the old names to
+ * continue to function.  This can perhaps be removed after a period
+ * of time.
+*/
+function oldToNewName(modKey) {
+    var translationMatrix = {
+        'lir': 'li_residential',
+        'hir': 'hi_residential',
+        'forest': 'deciduous_forest',
+        'turf_grass': 'urban_grass',
+        'tg_prairie': 'tall_grass_prairie',
+        'sg_prairie': 'short_grass_prairie',
+        'veg_infil_basin': 'infiltration_trench',
+        'no_till_agriculture': 'no_till'
+    };
+    if (modKey in translationMatrix) {
+        return translationMatrix[modKey];
+    } else {
+        return modKey;
+    }
+}
+
 var ScenarioModel = Backbone.Model.extend({
     urlRoot: '/api/modeling/scenarios/',
 
@@ -411,6 +434,12 @@ var ScenarioModel = Backbone.Model.extend({
                     value: 0.984252 // equal to 2.5 cm.
                 }
             ]
+        });
+
+        // Change old names to new ones.  This could eventually be
+        // removed when enough of old scenarios have been upgraded.
+        _.forEach(attrs.modifications, function(m) {
+            m.value = oldToNewName(m.value);
         });
 
         this.set('inputs', new ModificationsCollection(attrs.inputs));

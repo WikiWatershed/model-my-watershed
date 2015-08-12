@@ -78,12 +78,12 @@
 
                     <!-- Land Cover -->
 
-                    <div id="land-lir" role="tabpanel" class="tab-pane active land"> <!-- LIR -->
-                        <img src="{% static 'images/water_balance/art_land_lir.png' %}" alt="low intensity residential">
+                    <div id="land-li_residential" role="tabpanel" class="tab-pane active land"> <!-- LIR -->
+                        <img src="{% static 'images/water_balance/art_land_lir.png' %}" alt="Low-Intensity Residential">
                     </div>
 
-                    <div id="land-hir" role="tabpanel" class="tab-pane land"> <!-- HIR -->
-                        <img src="{% static 'images/water_balance/art_land_hir.png' %}" alt="high intensity residential">
+                    <div id="land-hi_residential" role="tabpanel" class="tab-pane land"> <!-- HIR -->
+                        <img src="{% static 'images/water_balance/art_land_hir.png' %}" alt="High-Intensity Residential">
                     </div>
 
                     <div id="land-commercial" role="tabpanel" class="tab-pane land"> <!-- commercial -->
@@ -94,11 +94,11 @@
                         <img src="{% static 'images/water_balance/art_land_grassland.png' %}" alt="grassland">
                     </div>
 
-                    <div id="land-forest" role="tabpanel" class="tab-pane land"> <!-- forest -->
-                        <img src="{% static 'images/water_balance/art_land_forest.png' %}" alt="forest">
+                    <div id="land-deciduous_forest" role="tabpanel" class="tab-pane land"> <!-- forest -->
+                        <img src="{% static 'images/water_balance/art_land_forest.png' %}" alt="Deciduous Forest">
                     </div>
 
-                    <div id="land-turfGrass" role="tabpanel" class="tab-pane land"> <!-- turfGrass -->
+                    <div id="land-urban_grass" role="tabpanel" class="tab-pane land"> <!-- urban grass -->
                         <img src="{% static 'images/water_balance/art_land_turfGrass.png' %}" alt="Turf Grass">
                     </div>
 
@@ -106,7 +106,7 @@
                         <img src="{% static 'images/water_balance/art_land_pasture.png' %}" alt="pasture">
                     </div>
 
-                    <div id="land-rowCrops" role="tabpanel" class="tab-pane land"> <!-- rowCrops -->
+                    <div id="land-row_crop" role="tabpanel" class="tab-pane land"> <!-- Row Crops -->
                         <img src="{% static 'images/water_balance/art_land_rowCrops.png' %}" alt="Row Crops">
                     </div>
 
@@ -114,11 +114,11 @@
                         <img src="{% static 'images/water_balance/art_land_chaparral.png' %}" alt="chaparral">
                     </div>
 
-                    <div id="land-tallGrass" role="tabpanel" class="tab-pane land"> <!-- tallGrass -->
+                    <div id="land-tall_grass_prairie" role="tabpanel" class="tab-pane land"> <!-- Tall-Grass Prairie -->
                         <img src="{% static 'images/water_balance/art_land_tallGrass.png' %}" alt="Tall Grass Prairie">
                     </div>
 
-                    <div id="land-shortGrass" role="tabpanel" class="tab-pane land"> <!-- shortGrass -->
+                    <div id="land-short_grass_prairie" role="tabpanel" class="tab-pane land"> <!-- Short-Grass Prairie -->
                         <img src="{% static 'images/water_balance/art_land_shortGrass.png' %}" alt="Short Grass Prairie">
                     </div>
 
@@ -203,16 +203,16 @@
 
                 <ul id="thumbs-land" class="nav" role="tablist"> <!-- Landcover Thumbs -->
 
-                    <li id="thumb-lir" class="active"> <!-- LIR Thumb -->
-                        <a href="#land-lir" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_lir.png' %}" alt="Low Intensity Residential" data-container="body" data-toggle="popover" data-placement="left" data-title="Low Intensity Residential" data-content="Areas with a mixture of constructed materials and vegetation. Impervious surfaces account for 20% to 49% percent of total cover. These areas most commonly include single-family housing units.">
+                    <li id="thumb-li_residential" class="active"> <!-- LIR Thumb -->
+                        <a href="#land-li_residential" aria-controls="filter-tab" role="tab" data-toggle="tab">
+                            <img src="{% static 'images/water_balance/thumb_lir.png' %}" alt="Low-Intensity Residential" data-container="body" data-toggle="popover" data-placement="left" data-title="Low Intensity Residential" data-content="Areas with a mixture of constructed materials and vegetation. Impervious surfaces account for 20% to 49% percent of total cover. These areas most commonly include single-family housing units.">
                         </a>
                         <label>LIR</label>
                     </li>
 
-                    <li id="thumb-hir"> <!-- HIR Thumb -->
-                        <a href="#land-hir" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_hir.png' %}" alt="High Intensity Residential" data-container="body" data-toggle="popover" data-placement="left" data-title="High Intensity Residential" data-content="Areas with a mixture of constructed materials and vegetation. Impervious surfaces account for 50% to 79% of the total cover. These areas most commonly include single-family housing units.">
+                    <li id="thumb-hi_residential"> <!-- HIR Thumb -->
+                        <a href="#land-hi_residential" aria-controls="filter-tab" role="tab" data-toggle="tab">
+                            <img src="{% static 'images/water_balance/thumb_hir.png' %}" alt="High-Intensity Residential" data-container="body" data-toggle="popover" data-placement="left" data-title="High Intensity Residential" data-content="Areas with a mixture of constructed materials and vegetation. Impervious surfaces account for 50% to 79% of the total cover. These areas most commonly include single-family housing units.">
                         </a>
                         <label>HIR</label>
                     </li>
@@ -231,15 +231,15 @@
                         <label>Grassland</label>
                     </li>
 
-                    <li id="thumb-forest"> <!-- Forest Thumb -->
-                        <a href="#land-forest" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_forest.png' %}" alt="Forest" data-container="body" data-toggle="popover" data-placement="left" data-title="Forest" data-content="Areas dominated by trees generally greater than 5 meters tall, and greater than 20% of total vegetation cover. Neither deciduous nor evergreen species are greater than 75% of total tree cover.">
+                    <li id="thumb-deciduous_forest"> <!-- Deciduous Forest Thumb -->
+                        <a href="#land-deciduous_forest" aria-controls="filter-tab" role="tab" data-toggle="tab">
+                            <img src="{% static 'images/water_balance/thumb_forest.png' %}" alt="Deciduous Forest" data-container="body" data-toggle="popover" data-placement="left" data-title="Forest" data-content="Areas dominated by trees generally greater than 5 meters tall, and greater than 20% of total vegetation cover. Neither deciduous nor evergreen species are greater than 75% of total tree cover.">
                         </a>
                         <label>Forest</label>
                     </li>
 
-                    <li id="thumb-turfGrass"> <!-- TurfGrass Thumb -->
-                        <a href="#land-turfGrass" aria-controls="filter-tab" role="tab" data-toggle="tab">
+                    <li id="thumb-urban_grass"> <!-- Urban Grass Thumb -->
+                        <a href="#land-urban_grass" aria-controls="filter-tab" role="tab" data-toggle="tab">
                             <img src="{% static 'images/water_balance/thumb_turfGrass.png' %}" alt="Turf Grass" data-container="body" data-toggle="popover" data-placement="left" data-title="Turf Grass" data-content="Areas with a mixture of some constructed materials, but mostly vegetation in the form of lawn grasses. Impervious surfaces account for less than 20% of total cover. These areas most commonly include large-lot single-family housing units, parks, golf courses, and vegetation planted in developed settings for recreation, erosion control, or aesthetic purposes.">
                         </a>
                         <label>Turf Grass</label>
@@ -252,8 +252,8 @@
                         <label>Pasture</label>
                     </li>
 
-                    <li id="thumb-rowCrops"> <!-- Row Crops Thumb -->
-                        <a href="#land-rowCrops" aria-controls="filter-tab" role="tab" data-toggle="tab">
+                    <li id="thumb-row_crop"> <!-- Row Crops Thumb -->
+                        <a href="#land-row_crop" aria-controls="filter-tab" role="tab" data-toggle="tab">
                             <img src="{% static 'images/water_balance/thumb_rowCrops.png' %}" alt="Row Crops" data-container="body" data-toggle="popover" data-placement="left" data-title="Row Crops" data-content="Areas used for the production of annual crops, such as corn, soybeans, vegetables, tobacco, and cotton, and also perennial woody crops such as orchards and vineyards. Crop vegetation accounts for greater than 20% of total vegetation. This class also includes all land being actively tilled.">
                         </a>
                         <label>Row Crops</label>
@@ -266,15 +266,15 @@
                         <label>Chaparral</label>
                     </li>
 
-                    <li id="thumb-tallGrass"> <!-- TallGrass Thumb -->
-                        <a href="#land-tallGrass" aria-controls="filter-tab" role="tab" data-toggle="tab">
+                    <li id="thumb-tall_grass_prairie"> <!-- Tall-Grass Thumb -->
+                        <a href="#land-tall_grass_prairie" aria-controls="filter-tab" role="tab" data-toggle="tab">
                             <img src="{% static 'images/water_balance/thumb_tallGrass.png' %}" alt="Tall Grass Prairie" data-container="body" data-toggle="popover" data-placement="left" data-title="Tall Grass Prairie" data-content="Areas dominated by shrubs; less than 5 meters tall with shrub canopy typically greater than 20% of total vegetation. This class includes true shrubs, young trees in an early successional stage or trees stunted from environmental conditions.">
                         </a>
                         <label>Tall Grass Prairie</label>
                     </li>
 
-                    <li id="thumb-shortGrass"> <!-- ShortGrass Thumb -->
-                        <a href="#land-shortGrass" aria-controls="filter-tab" role="tab" data-toggle="tab">
+                    <li id="thumb-short_grass_prairie"> <!-- Short-Grass Thumb -->
+                        <a href="#land-short_grass_prairie" aria-controls="filter-tab" role="tab" data-toggle="tab">
                             <img src="{% static 'images/water_balance/thumb_shortGrass.png' %}" alt="Short Grass Prairie" data-container="body" data-toggle="popover" data-placement="left" data-title="Short Grass Prairie" data-content="Areas dominated by shrubs less than 20 centimeters tall with shrub canopy typically greater than 20% of total vegetation. This type is often co-associated with grasses, sedges, herbs, and non-vascular vegetation.">
                         </a>
                         <label>Short Grass Prairie</label>
