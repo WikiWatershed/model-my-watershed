@@ -17,6 +17,10 @@ class Project(models.Model):
     area_of_interest = models.MultiPolygonField(
         null=True,
         help_text='Base geometry for all scenarios of project')
+    area_of_interest_name = models.CharField(
+        null=True,
+        max_length=255,
+        help_text='A human name for the area of interest')
     is_private = models.BooleanField(
         default=True)
     model_package = models.CharField(

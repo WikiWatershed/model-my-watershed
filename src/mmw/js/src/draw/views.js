@@ -442,8 +442,10 @@ function addLayer(shape, name) {
         name = 'Selected Area';
     }
 
-    App.map.set('areaOfInterest', shape);
-    App.map.set('areaOfInterestName', name);
+    App.map.set({
+        'areaOfInterest': shape,
+        'areaOfInterestName': name
+    });
 }
 
 function navigateToAnalyze() {

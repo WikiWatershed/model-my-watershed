@@ -71,13 +71,14 @@ var ProjectModel = Backbone.Model.extend({
 
     defaults: {
         name: '',
-        created_at: null,          // Date
-        area_of_interest: null,    // GeoJSON
-        model_package: '',         // Package name
-        scenarios: null,           // ScenariosCollection
-        user_id: 0,                // User that created the project
-        is_activity: false,        // Project that persists across routes
-        needs_reset: false         // Should we overwrite project data on next save?
+        created_at: null,            // Date
+        area_of_interest: null,      // GeoJSON
+        area_of_interest_name: null, // Human readable string for AOI.
+        model_package: '',           // Package name
+        scenarios: null,             // ScenariosCollection
+        user_id: 0,                  // User that created the project
+        is_activity: false,          // Project that persists across routes
+        needs_reset: false           // Should we overwrite project data on next save?
     },
 
     initialize: function() {
@@ -523,7 +524,7 @@ var ScenarioModel = Backbone.Model.extend({
 
     setResults: function() {
         var rawServerResults = this.get('taskModel').get('result');
-        if (rawServerResults === "" || rawServerResults === null) {
+        if (rawServerResults === '' || rawServerResults === null) {
             this.get('results').setNullResults();
         } else {
             var serverResults = JSON.parse(rawServerResults);
