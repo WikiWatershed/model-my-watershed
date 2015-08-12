@@ -160,7 +160,10 @@ var ModelingController = {
         project
             .fetch()
             .done(function() {
-                App.map.set('areaOfInterest', project.get('area_of_interest'));
+                App.map.set({
+                    'areaOfInterest': project.get('area_of_interest'),
+                    'areaOfInterestName': project.get('area_of_interest_name')
+                });
                 if (project.get('scenarios').isEmpty()) {
                     // No scenarios available. Set the `needs_reset` flag so
                     // that this project is properly initialized by the

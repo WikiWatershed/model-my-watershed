@@ -37,25 +37,13 @@ var ItsiEmbed = function(App) {
     };
 
     this.loadInteractive = function(interactiveState) {
-        if (interactiveState) {
-            // Only redirect if route specified and different
-            if (interactiveState.route &&
-                interactiveState.route !== Backbone.history.getFragment()) {
-                if (App.currProject &&
-                    !App.currProject.isNew() &&
-                    !App.currProject.get('area_of_interest')) {
-                    // Delete automatically created new project
-                    App.currProject
-                        .destroy()
-                        .always(function() {
-                            // Redirect after deletion
-                            router.navigate(interactiveState.route, { trigger: true });
-                        });
-                } else {
-                    // No current project, just redirect
-                    router.navigate(interactiveState.route, { trigger: true });
-                }
-            }
+        // Only redirect if route specified and different
+        if (interactiveState &&
+            interactiveState.route &&
+            interactiveState.route !== Backbone.history.getFragment()) {
+
+            App.currProject = null;
+            router.navigate(interactiveState.route, { trigger: true });
         }
     };
 
