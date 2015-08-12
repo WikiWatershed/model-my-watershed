@@ -23,6 +23,7 @@ if not instance_metadata:
 # See: https://docs.djangoproject.com/en/1.5/releases/1.5/#allowed-hosts-required-in-production  # NOQA
 ALLOWED_HOSTS = [
     'mmw.azavea.com',
+    'mmw-dev.azavea.com',
     '.elb.amazonaws.com',
     'localhost'
 ]
