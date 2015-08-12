@@ -42,11 +42,12 @@ var Tr55TaskModel = coreModels.TaskModel.extend({
 
 var ResultModel = Backbone.Model.extend({
     defaults: {
-        name: '',
-        displayName: '',
-        inputmod_hash: null,
-        result: null,
-        polling: false
+        name: '', // Code name for type of result, eg. runoff
+        displayName: '', // Human-readable name for type of result, eg. Runoff
+        inputmod_hash: null, // MD5 string generated from result
+        result: null, // The actual result object
+        polling: false, // True if currently polling
+        active: false // True if currently selected in Compare UI
     }
 });
 
@@ -63,6 +64,24 @@ var ResultCollection = Backbone.Collection.extend({
         this.forEach(function(resultModel) {
             resultModel.set('result', null);
         });
+    },
+
+    getResult: function(name) {
+        return this.findWhere({name: name});
+    },
+
+    setActive: function(name) {
+        this.invoke('set', 'active', false);
+        this.getResult(name).set('active', true);
+        this.trigger('change:active');
+    },
+
+    getActive: function() {
+        return this.findWhere({active: true});
+    },
+
+    makeFirstActive: function() {
+        this.setActive(this.at(0).get('name'));
     }
 });
 
@@ -77,7 +96,8 @@ var ProjectModel = Backbone.Model.extend({
         scenarios: null,           // ScenariosCollection
         user_id: 0,                // User that created the project
         is_activity: false,        // Project that persists across routes
-        needs_reset: false         // Should we overwrite project data on next save?
+        needs_reset: false,        // Should we overwrite project data on next save?
+        allow_save: true           // Is allowed to save to the server - false in compare mode
     },
 
     initialize: function() {
@@ -150,7 +170,7 @@ var ProjectModel = Backbone.Model.extend({
     saveCalled: false,
 
     saveProjectAndScenarios: function() {
-        if (!App.user.loggedInUserMatch(this.get('user_id'))) {
+        if (!this.get('allow_save') || !App.user.loggedInUserMatch(this.get('user_id'))) {
             // Fail fast if the user can't save the project.
             return;
         }
@@ -418,7 +438,8 @@ var ScenarioModel = Backbone.Model.extend({
         active: false,
         job_id: null,
         results: null, // ResultCollection
-        census: null // JSON blob
+        census: null, // JSON blob
+        allow_save: true // Is allowed to save to the server - false in compare mode
     },
 
     initialize: function(attrs) {
@@ -460,7 +481,8 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     attemptSave: function() {
-        if (!App.user.loggedInUserMatch(this.get('user_id'))) {
+        if (!this.get('allow_save') || !App.user.loggedInUserMatch(this.get('user_id'))) {
+            // Fail fast if the user can't save the project.
             return;
         }
         if (!this.get('project')) {
@@ -719,7 +741,8 @@ var ScenariosCollection = Backbone.Collection.extend({
 
 function getControlsForModelPackage(modelPackageName, options) {
     if (modelPackageName === 'tr-55') {
-        if (options && options.is_current_conditions) {
+        if (options && (options.compareMode ||
+                        options.is_current_conditions)) {
             return new ModelPackageControlsCollection([
                 new ModelPackageControlModel({ name: 'precipitation' })
             ]);

@@ -6,11 +6,13 @@ var _ = require('lodash'),
     App = require('../app'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
+    modelingModels = require('../modeling/models'),
+    modelingViews = require('../modeling/views'),
     modConfigUtils = require('../modeling/modificationConfigUtils'),
     compareWindowTmpl = require('./templates/compareWindow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
-    compareChartTmpl = require('./templates/compareChart.html'),
+    compareModelingTmpl = require('./templates/compareModeling.html'),
     compareModificationsTmpl = require('./templates/compareModifications.html');
 
 var CompareWindow = Marionette.LayoutView.extend({
@@ -42,18 +44,6 @@ var CompareWindow = Marionette.LayoutView.extend({
         // so the offset of the container needs to be
         // recomputed.
         $(window).bind('resize.app', _.debounce(_.bind(this.updateContainerPos, this)));
-        this.listenTo(App.user, 'change:guest', this.saveAfterLogin);
-    },
-
-    saveAfterLogin: function(user, guest) {
-        if (!guest && this.model.isNew()) {
-            var user_id = user.get('id');
-            this.model.set('user_id', user_id);
-            this.model.get('scenarios').each(function(scenario) {
-                scenario.set('user_id', user_id);
-            });
-            this.model.saveProjectAndScenarios();
-        }
     },
 
     destroy: function() {
@@ -109,8 +99,7 @@ var CompareScenarioView = Marionette.LayoutView.extend({
 
     regions: {
         mapRegion: '.map-region',
-        chartRegion: '.chart-region',
-        precipitationRegion: '.precipitation-region',
+        modelingRegion: '.modeling-region',
         modificationsRegion: '.modifications-region'
     },
 
@@ -128,19 +117,19 @@ var CompareScenarioView = Marionette.LayoutView.extend({
             addLocateMeButton: false,
             addLayerSelector: false,
             showLayerAttribution: false,
-            initialLayerName: App.getMapView().getActiveBaseLayerName()
+            initialLayerName: App.getMapView().getActiveBaseLayerName(),
+            interactiveMode: false
         });
-
 
         this.mapView.fitToAoi();
         this.mapView.updateAreaOfInterest();
         this.mapView.updateModifications(this.model.get('modifications'));
         this.mapRegion.show(this.mapView);
-        this.chartRegion.show(new CompareChartView({
+        this.modelingRegion.show(new CompareModelingView({
+            projectModel: this.projectModel,
             model: this.model
         }));
-        // TODO put in precipitation slider that will trigger model
-        // simulations, but doesn't save input or results
+
         this.modificationsRegion.show(new CompareModificationsView({
             model: this.model.get('modifications')
         }));
@@ -164,14 +153,77 @@ var CompareScenariosView = Marionette.CompositeView.extend({
     }
 });
 
-var CompareChartView = Marionette.ItemView.extend({
-    template: compareChartTmpl,
+var CompareModelingView = Marionette.LayoutView.extend({
+    //model: modelingModels.ScenarioModel
 
-    className: 'chart-container'
-    // TODO pick appropriate chart based on model_pacakage
-    // this should be similar to code in modeling/views.js
+    template: compareModelingTmpl,
+
+    className: 'modeling-container',
+
+    regions: {
+        resultRegion: '.result-region',
+        controlsRegion: '.controls-region'
+    },
+
+    ui: {
+        resultSelector: 'select'
+    },
+
+    events: {
+        'change @ui.resultSelector': 'updateResult'
+    },
+
+    initialize: function(options) {
+        this.projectModel = options.projectModel;
+        this.model.get('results').makeFirstActive();
+        this.listenTo(this.model.get('results').at(0), 'change:polling', function() {
+            this.render();
+            this.onShow();
+        });
+    },
+
+    templateHelpers: function() {
+        return {
+            polling: this.model.get('results').at(0).get('polling'),
+            results: this.model.get('results').toJSON()
+        };
+    },
+
+    updateResult: function() {
+        this.model.get('results').setActive(this.ui.resultSelector.val());
+        this.showResult();
+    },
+
+    showResult: function() {
+        var modelPackage = App.currProject.get('model_package'),
+            resultModel = this.model.get('results').getActive(),
+            ResultView = modelingViews.getResultView(modelPackage, resultModel.get('name'));
+
+        this.resultRegion.show(new ResultView({
+            model: resultModel,
+            scenario: this.model,
+            compareMode: true
+        }));
+    },
+
+    showControls: function() {
+        var controls = modelingModels.getControlsForModelPackage(
+            this.projectModel.get('model_package'),
+            {compareMode: true}
+        );
+
+        this.controlsRegion.show(new modelingViews.ToolbarTabContentView({
+            model: this.model,
+            collection: controls,
+            compareMode: true
+        }));
+    },
+
+    onShow: function() {
+        this.showResult();
+        this.showControls();
+    }
 });
-
 
 var CompareModificationsView = Marionette.ItemView.extend({
     //model: modelingModels.ModificationsCollection,

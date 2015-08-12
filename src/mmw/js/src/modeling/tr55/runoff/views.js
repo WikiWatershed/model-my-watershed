@@ -15,6 +15,7 @@ var ResultView = Marionette.ItemView.extend({
     },
 
     initialize: function(options) {
+        this.compareMode = options.compareMode;
         this.scenario = options.scenario;
     },
 
@@ -32,9 +33,9 @@ var ResultView = Marionette.ItemView.extend({
             };
         }
 
-        var selector = '.runoff-chart-container ' + '.bar-chart';
-        $(selector).empty();
-        var result = this.model.get('result');
+        var chartEl = this.$el.find('.bar-chart').get(0),
+            result = this.model.get('result');
+        $(chartEl).empty();
         if (result) {
             var indVar = 'type',
                 depVars = ['inf', 'runoff', 'et'],
@@ -45,10 +46,14 @@ var ResultView = Marionette.ItemView.extend({
                     depDisplayNames: ['Infiltration', 'Runoff', 'Evaporation']
                 };
 
-            if (this.scenario.get('is_current_conditions')) {
+            if (this.scenario.get('is_current_conditions') || this.compareMode) {
+                // Use the modified results since they are the same as the unmodified results
+                // in Current Conditions, and they are the results we want to show
+                // in compareMode for other scenarios.
                 data = [
-                    getBarData('', 'unmodified'),
+                    getBarData('', 'modified'),
                 ];
+
                 this.$el.addClass('current-conditions');
             } else {
                 data = [
@@ -56,7 +61,7 @@ var ResultView = Marionette.ItemView.extend({
                     getBarData('Modified', 'modified')
                 ];
             }
-            chart.makeBarChart(selector, data, indVar, depVars, options);
+            chart.makeBarChart(chartEl, data, indVar, depVars, options);
         }
     }
 });

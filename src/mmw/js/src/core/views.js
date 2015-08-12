@@ -176,7 +176,8 @@ var MapView = Marionette.ItemView.extend({
             addLocateMeButton: true,
             addLayerSelector: true,
             showLayerAttribution: true,
-            initialLayerName: defaultLayerName
+            initialLayerName: defaultLayerName,
+            interactiveMode: true // True if clicking on map does stuff
         });
 
         var map = new L.Map(this.el, {
@@ -189,6 +190,22 @@ var MapView = Marionette.ItemView.extend({
             maxAge = 60000,
             timeout = 30000,
             self = this;
+
+        this.interactiveMode = options.interactiveMode;
+        if (!options.interactiveMode) {
+            // Disable panning and zooming.
+            // http://gis.stackexchange.com/questions/54454/disable-leaflet-interaction-temporary
+            map.dragging.disable();
+            map.touchZoom.disable();
+            map.doubleClickZoom.disable();
+            map.scrollWheelZoom.disable();
+            map.boxZoom.disable();
+            map.keyboard.disable();
+            if (map.tap) {
+                map.tap.disable();
+            }
+            document.getElementById('map').style.cursor='default';
+        }
 
         if (options.addZoomControl) {
             map.addControl(new L.Control.Zoom({position: 'topright'}));
@@ -411,8 +428,10 @@ var MapView = Marionette.ItemView.extend({
                     return acc.concat(new L.GeoJSON(model.get('shape'), {
                             style: style,
                             onEachFeature: function(feature, layer) {
-                                var popupContent = new ModificationPopupView({ model: model }).render().el;
-                                layer.bindPopup(popupContent);
+                                if (self.interactiveMode) {
+                                    var popupContent = new ModificationPopupView({ model: model }).render().el;
+                                    layer.bindPopup(popupContent);
+                                }
                             }
                     }));
                 } catch (ex) {

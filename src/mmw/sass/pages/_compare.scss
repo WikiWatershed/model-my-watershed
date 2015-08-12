@@ -49,7 +49,7 @@
           }
 
           .map-region{
-            height: 20%;
+            height: 18vh;
             width: 100%;
 
             .map-container{
@@ -86,21 +86,65 @@
             }
           }
 
-          .chart-region{
+          .modeling-region{
             width: 100%;
-            height: 45%;
+            height: 44vh;
 
-            .chart-container{
+            .modeling-container{
               position: relative;
               width: auto;
               height: 100%;
               padding: 1rem;
+
+              .fa-spin{
+                margin-left: 8px;
+                font-size: 14px;
+                color: rgba(0, 0, 0, 0.54);
+              }
+
+              .result-region{
+                height: 85%;
+
+                .tab-pane{
+                  height: 100%;
+                  .quality-chart-region{
+                    height: 100%;
+                  }
+                }
+              }
+
+              .controls-region{
+                .controls {
+                  .precipitation {
+                    .btn-primary {
+                      padding: 0;
+
+                      label{
+                        display: table;
+                        width: 100%;
+
+                        span{
+                          display: table-cell;
+                          width: 10%;
+                          white-space: nowrap;
+                          padding: 5px;
+                        }
+                        input{
+                          display: table-cell;
+                          width: 100%;
+                          vertical-align: bottom;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
 
           .modifications-region{
             width: 100%;
-            height: 30%;
+            height: 25vh;
 
             .modifications-container{
               position: relative;
