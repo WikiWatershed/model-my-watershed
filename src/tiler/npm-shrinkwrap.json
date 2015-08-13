@@ -2,6 +2,28 @@
   "name": "mmw_tiler",
   "version": "1.0.0",
   "dependencies": {
+    "aws-sdk": {
+      "version": "2.1.45",
+      "from": "aws-sdk@2.1.45",
+      "resolved": "https://registry.npmjs.org/aws-sdk/-/aws-sdk-2.1.45.tgz",
+      "dependencies": {
+        "sax": {
+          "version": "0.5.3",
+          "from": "sax@0.5.3",
+          "resolved": "https://registry.npmjs.org/sax/-/sax-0.5.3.tgz"
+        },
+        "xml2js": {
+          "version": "0.2.8",
+          "from": "xml2js@0.2.8",
+          "resolved": "https://registry.npmjs.org/xml2js/-/xml2js-0.2.8.tgz"
+        },
+        "xmlbuilder": {
+          "version": "0.4.2",
+          "from": "xmlbuilder@0.4.2",
+          "resolved": "https://registry.npmjs.org/xmlbuilder/-/xmlbuilder-0.4.2.tgz"
+        }
+      }
+    },
     "windshaft": {
       "version": "0.36.0",
       "from": "windshaft@0.36.0",

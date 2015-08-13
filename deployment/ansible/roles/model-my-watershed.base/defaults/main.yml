@@ -14,3 +14,4 @@ envdir_config:
   MMW_ITSI_SECRET_KEY: "{{ itsi_secret_key }}"
   MMW_ITSI_BASE_URL: "{{ itsi_base_url }}"
   MMW_STACK_COLOR: "{{ stack_color }}"
+  MMW_TILECACHE_BUCKET: "{{ tilecache_bucket_name }}"

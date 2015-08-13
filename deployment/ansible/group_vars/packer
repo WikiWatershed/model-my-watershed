@@ -17,3 +17,4 @@ graphite_host: "monitoring.service.mmw.internal"
 statsite_host: "monitoring.service.mmw.internal"
 
 itsi_base_url: "https://learn.staging.concord.org/"
+tilecache_bucket_name: ""
