@@ -17,7 +17,7 @@ var initialize = function(model) {
     var $etColumn = $('#column-et');
     var $rColumn  = $('#column-r');
     var $iColumn  = $('#column-i');
-    
+
     var $etArrow = $('#effect-evapo svg');
     var $rArrow = $('#effect-runoff svg');
     var $iArrow = $('#effect-infiltration svg');
@@ -30,6 +30,8 @@ var initialize = function(model) {
     var $etText = $('#well-evapo > h1');
     var $rText = $('#well-runoff > h1');
     var $iText = $('#well-infil > h1');
+
+    var $runOffAlert = $('#alert');
 
     var getType = function($el) {
         // Return thumb type, after the 'thumb-' part of id
@@ -52,7 +54,17 @@ var initialize = function(model) {
         $arrow.css('height', (100 * scale) + '%');
     };
 
+    var showRunoffAlert = function() {
+        $runOffAlert.show();
+    };
+
+    var hideRunoffAlert = function() {
+        $runOffAlert.hide();
+    };
+
     var recalculate = function() {
+        hideRunoffAlert();
+
         var soil = getType($thumbsSoil.children('.active'));
         var land = getType($thumbsLand.children('.active'));
         var precip = precipKey[$precipSlider.val()];
@@ -78,6 +90,10 @@ var initialize = function(model) {
         // but not when it is in the middle
         var topRadius = (parseFloat(result.et) === 0) ? '0.3rem' : '0';
         var bottomRadius = (parseFloat(result.i) === 0) ? '0.3rem' : '0';
+
+        if(result.r >= 2) {
+            showRunoffAlert();
+        }
 
         $rColumn.css({
             'border-top-left-radius': topRadius,
