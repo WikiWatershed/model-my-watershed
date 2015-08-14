@@ -78,6 +78,7 @@ var HeaderView = Marionette.ItemView.extend({
 
     userLogout: function(event) {
         event.preventDefault();
+
         this.model.logout().done(function() {
             router.navigate('', {trigger: true});
         });
@@ -85,6 +86,7 @@ var HeaderView = Marionette.ItemView.extend({
 
     cloneProject: function() {
         event.preventDefault();
+
         var view = new modalViews.InputView({
             model: new modalModels.InputModel({
                 title: 'Clone Project',
@@ -111,7 +113,6 @@ var HeaderView = Marionette.ItemView.extend({
         });
         view.render();
     }
-
 });
 
 // Init the locate plugin button and add it to the map.
@@ -192,6 +193,7 @@ var MapView = Marionette.ItemView.extend({
             self = this;
 
         this.interactiveMode = options.interactiveMode;
+
         if (!options.interactiveMode) {
             // Disable panning and zooming.
             // http://gis.stackexchange.com/questions/54454/disable-leaflet-interaction-temporary
@@ -201,15 +203,18 @@ var MapView = Marionette.ItemView.extend({
             map.scrollWheelZoom.disable();
             map.boxZoom.disable();
             map.keyboard.disable();
+
             if (map.tap) {
                 map.tap.disable();
             }
+
             document.getElementById('map').style.cursor='default';
         }
 
         if (options.addZoomControl) {
             map.addControl(new L.Control.Zoom({position: 'topright'}));
         }
+
         if (options.addLocateMeButton) {
             addLocateMeButton(map, maxZoom, maxAge);
         }
@@ -231,9 +236,11 @@ var MapView = Marionette.ItemView.extend({
 
         var initialLayer = this.baseLayers[options.initialLayerName] ||
                            this.baseLayers[defaultLayerName];
+
         if (initialLayer) {
             map.addLayer(initialLayer);
         }
+
         map.addLayer(areaOfInterestLayer);
         map.addLayer(modificationsLayer);
 
@@ -282,9 +289,11 @@ var MapView = Marionette.ItemView.extend({
     getActiveBaseLayerName: function() {
         var activeBaseLayerName,
             self = this;
+
         activeBaseLayerName = _.findKey(self.baseLayers, function(layer) {
             return self._leafletMap.hasLayer(layer);
         });
+
         return activeBaseLayerName;
     },
 
@@ -294,6 +303,7 @@ var MapView = Marionette.ItemView.extend({
 
     aoiChangeWarning: _.debounce(function() {
         var activityMode = settings.get('activityMode');
+
         // Fail fast.
         if (this._didRevert || !activityMode) {
             this._didRevert = false;
@@ -318,6 +328,7 @@ var MapView = Marionette.ItemView.extend({
                 self._areaOfInterestSet = false;
                 self.trigger('change:needs_reset', true);
             });
+
             clearProject.on('deny', function() {
                 var map = self._leafletMap;
                 self._didRevert = true;
@@ -380,6 +391,7 @@ var MapView = Marionette.ItemView.extend({
 
     toggleMask: function() {
         var aoi = this.model.get('areaOfInterest');
+
         if (!aoi) {
             return;
         }
@@ -401,6 +413,7 @@ var MapView = Marionette.ItemView.extend({
         this.disableGeolocation();
         this.model.restructureAoI();
         var areaOfInterest = this.model.get('areaOfInterest');
+
         if (!areaOfInterest) {
             this._areaOfInterestLayer.clearLayers();
         } else {
@@ -452,6 +465,7 @@ var MapView = Marionette.ItemView.extend({
 
     toggleMapSize: function() {
         var size = this.model.get('size');
+
         if (size.half) {
             this.$el.addClass('half');
         } else {
@@ -467,12 +481,12 @@ var MapView = Marionette.ItemView.extend({
 
     fitToAoi: function() {
         var areaOfInterest = this.model.get('areaOfInterest');
+
         if (areaOfInterest) {
             var layer = new L.GeoJSON(areaOfInterest);
             this._leafletMap.fitBounds(layer.getBounds(), { reset: true });
         }
     }
-
 });
 
 // Apply a mask over the entire map excluding bounds/shape specified.
