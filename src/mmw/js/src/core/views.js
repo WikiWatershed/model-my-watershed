@@ -18,24 +18,6 @@ var L = require('leaflet'),
 require('leaflet.locatecontrol');
 require('leaflet-plugins/layer/tile/Google');
 
-/**
- * A basic view for showing a static message.
- */
-var StaticView = Marionette.ItemView.extend({
-    initialize: function(options) {
-        if (options.message) {
-            this.message = options.message;
-        }
-    },
-    template: function(model) {
-        return model.message;
-    },
-    templateHelpers: function() {
-        return { message: this.message };
-    },
-    message: ''
-});
-
 var RootView = Marionette.LayoutView.extend({
     el: 'body',
     regions: {
@@ -580,7 +562,6 @@ module.exports = {
     HeaderView: HeaderView,
     MapView: MapView,
     RootView: RootView,
-    StaticView: StaticView,
     AreaOfInterestView: AreaOfInterestView,
     ModificationPopupView: ModificationPopupView
 };
