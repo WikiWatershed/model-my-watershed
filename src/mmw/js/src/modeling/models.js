@@ -647,9 +647,23 @@ var ScenariosCollection = Backbone.Collection.extend({
     makeFirstScenarioActive: function() {
         var first = this.first();
 
-        if (first) {
-            this.setActiveScenarioByCid(first.cid);
+        if (!first) {
+            // Empty collection, fail fast
+            return;
         }
+
+        if (!first.get('is_current_conditions')) {
+            // First item is not Current Conditions. Find Current Conditions
+            // scenario and make it the first.
+            var currentConditions = this.findWhere({ 'is_current_conditions': true });
+
+            this.remove(currentConditions);
+            this.add(currentConditions, { at: 0 });
+
+            first = currentConditions;
+        }
+
+        this.setActiveScenarioByCid(first.cid);
     },
 
     setActiveScenario: function(scenario) {
