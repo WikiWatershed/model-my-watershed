@@ -801,6 +801,22 @@ describe('Modeling', function() {
 
                     assert.isTrue(collection.first().get('active'));
                 });
+
+                it ('sets Current Conditions as the first scenario and activates it', function() {
+                    var collection = getTestScenarioCollection(),
+                        cc = collection.findWhere({ 'is_current_conditions': true });
+
+                    // Set Current Conditions to be the second item
+                    collection.remove(cc);
+                    collection.add(cc, { at: 1 });
+
+                    assert.isFalse(collection.first().get('is_current_conditions'));
+
+                    collection.makeFirstScenarioActive();
+
+                    assert.isTrue(collection.first().get('is_current_conditions'));
+                    assert.isTrue(collection.first().get('active'));
+                });
             });
 
             describe('#setActiveScenario', function() {
