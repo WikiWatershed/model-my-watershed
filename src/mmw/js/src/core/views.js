@@ -169,7 +169,6 @@ var MapView = Marionette.ItemView.extend({
             }),
             areaOfInterestLayer = new L.FeatureGroup(),
             modificationsLayer = new L.FeatureGroup(),
-            maxZoom = 10,
             maxAge = 60000,
             timeout = 30000,
             self = this;
@@ -198,16 +197,18 @@ var MapView = Marionette.ItemView.extend({
         }
 
         if (options.addLocateMeButton) {
-            addLocateMeButton(map, maxZoom, maxAge);
+            addLocateMeButton(map, maxAge);
         }
 
         this.baseLayers = _.mapObject(settings.get('base_layers'), function(layerData) {
-            if (layerData.googleType) {
-                return new L.Google(layerData.googleType);
+            if (layerData.type === 'google') {
+                return new L.Google(layerData.googleType, {
+                    maxZoom: layerData.maxZoom
+                });
             } else {
                 return new L.TileLayer(layerData.url, {
                     attribution: layerData.attribution || '',
-                    maxZoom: layerData.maxZoom || 18
+                    maxZoom: layerData.maxZoom
                 });
             }
         });
@@ -226,12 +227,15 @@ var MapView = Marionette.ItemView.extend({
         map.addLayer(areaOfInterestLayer);
         map.addLayer(modificationsLayer);
 
-        map.setView([40.1, -75.7], maxZoom); // center the map
+        map.setView([40.1, -75.7], 10); // center the map
 
         // Keep the map model up-to-date with the position of the map
         this.listenTo(map, 'moveend', this.updateMapModelPosition);
         this.listenTo(map, 'zoomend', this.updateMapModelZoom);
         this.listenTo(this.model, 'change:areaOfInterest', this.aoiChangeWarning);
+
+        // The max available zoom level changes based on the active base layer
+        map.on('baselayerchange', this.updateCurrentZoomLevel);
 
         this._leafletMap = map;
         this._areaOfInterestLayer = areaOfInterestLayer;
@@ -241,7 +245,9 @@ var MapView = Marionette.ItemView.extend({
         function geolocation_success(position) {
             if (self.model.get('geolocationEnabled')) {
                 var lng = position.coords.longitude,
-                    lat = position.coords.latitude;
+                    lat = position.coords.latitude,
+                    maxZoom = initialLayer.options.maxZoom || 18;
+
                 map.setView([lat, lng], maxZoom);
             }
         }
@@ -468,6 +474,24 @@ var MapView = Marionette.ItemView.extend({
             var layer = new L.GeoJSON(areaOfInterest);
             this._leafletMap.fitBounds(layer.getBounds(), { reset: true });
         }
+    },
+
+    updateCurrentZoomLevel: function(e) {
+        var layerMaxZoom = e.layer.options.maxZoom,
+            map = this,
+            currentZoom = map.getZoom();
+
+        // Zoom the user out to the maximum zoom of the new layer
+        // so that they don't see gray tiles.
+        if (layerMaxZoom < currentZoom) {
+            // TODO: There is no event we can consistently listen for
+            // to know when we can call this successfully.
+            // This is fixed in Leaflet 1.0 by using map.setMaxZoom
+            window.setTimeout(function() {
+                map.setZoom(layerMaxZoom);
+            }, 100);
+        }
+    }
     }
 });
 

@@ -403,18 +403,24 @@ ITSI = {
     'embed_flag': 'itsi_embed',
 }
 
+# Layers must have a maxZoom defined
 BASE_LAYERS = {
     'Mapbox Roads': {
+        'type': 'mapbox',
         'url': 'https://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png',
         'attribution': 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery &copy; <a href="http://mapbox.com">Mapbox</a>',
         'maxZoom': 18,
         'default': True,
     },
     'ESRI World Imagery': {
+        'type': 'esri',
         'url': 'https://server.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         'attribution': 'Map data from <a href="http://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9">ESRI</a>',
+        'maxZoom': 19
     },
     'Google Hybrid': {
-        'googleType': 'HYBRID' # can be one of SATELLITE, ROADMAP, HYBRID, TERRAIN
+        'type': 'google',
+        'googleType': 'HYBRID', # can be one of SATELLITE, ROADMAP, HYBRID, TERRAIN,
+        'maxZoom': 18 # Max zoom changes based on available imagery, but this is a safe default
     },
 }
