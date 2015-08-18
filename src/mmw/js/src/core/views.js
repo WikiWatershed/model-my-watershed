@@ -149,6 +149,9 @@ var MapView = Marionette.ItemView.extend({
     _areaOfInterestSet: false,
     _didRevert: false,
 
+    // Google Maps API library is loaded asynchronously via an inline script tag
+    _googleMaps: (window.google ? window.google.maps : null),
+
     initialize: function(options) {
         var defaultLayerName = _.findKey(settings.get('base_layers'), function(layerData) {
             return layerData.default;
@@ -236,6 +239,22 @@ var MapView = Marionette.ItemView.extend({
 
         // The max available zoom level changes based on the active base layer
         map.on('baselayerchange', this.updateCurrentZoomLevel);
+
+        // Some Google layers have a dynamic max zoom that we need to handle.
+        // Check that Google Maps API library is available before implementing
+        // this special handling.
+        if (this._googleMaps) {
+            this._googleMaxZoomService = new this._googleMaps.MaxZoomService();
+
+            // TODO: Because the max zoom level is only read when a layer is selected
+            // in the basemap control, updates to the maximum zoom level won't
+            // be used until a user reselects a google base map. This can
+            // be better implemented in Leaflet 1.0 which has map.setMaxZoom
+            map.on('moveend', _.bind(this.updateGoogleMaxZoom, this));
+
+            // Get the maximum zoom level for the initial location
+            this.updateGoogleMaxZoom({ target: map });
+        }
 
         this._leafletMap = map;
         this._areaOfInterestLayer = areaOfInterestLayer;
@@ -491,7 +510,29 @@ var MapView = Marionette.ItemView.extend({
                 map.setZoom(layerMaxZoom);
             }, 100);
         }
-    }
+    },
+
+    // The max zoom for a Google layer that uses satellite imagery
+    // changes based on the location.
+    updateGoogleMaxZoom: function(e) {
+        var self = this,
+            map = e.target,
+            center = map.getCenter(),
+            latLng = { lat: center.lat, lng: center.lng }; // Google LatLng literal
+
+        this._googleMaxZoomService.getMaxZoomAtLatLng(latLng, function(response) {
+            if (response.status !== self._googleMaps.MaxZoomStatus.OK) {
+                // Leave the max layer zoom as is
+                return;
+            } else {
+                // Set layer zoom level to the max for the current area
+                _.each(self.baseLayers, function(layer) {
+                    if (layer._type === 'HYBRID' || layer._type === 'SATELLITE') {
+                        layer.options.maxZoom = response.zoom;
+                    }
+                });
+            }
+        });
     }
 });
 
