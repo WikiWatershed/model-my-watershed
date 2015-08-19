@@ -72,29 +72,29 @@
     },
     "cluster_housing": {
         "name": "Cluster Housing",
-        "color": "#4aeab3"
+        "color": "#777777"
     },
     "green_roof": {
         "name": "Green Roof",
         "summary": "Green Roof Summary...",
-        "color": "#4ebaea"
+        "color": "#9ABD52"
     },
     "no_till": {
         "name": "No-Till Agriculture",
         "shortName": "No-Till Ag",
-        "color": "#53e9b4"
+        "color": "#CDCD00"
     },
     "porous_paving": {
         "name": "Porous Paving",
-        "color": "#54d2d0"
+        "color": "#D3D3D3"
     },
     "rain_garden": {
         "name": "Rain Garden",
-        "color": "#51dec2"
+        "color": "#2364AA"
     },
     "infiltration_trench": {
         "name": "Vegetation Infiltration Basin",
         "shortName": "Veg Basin",
-        "color": "#52c6dd"
+        "color": "#B1C4A1"
     }
 }
