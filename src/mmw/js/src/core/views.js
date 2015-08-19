@@ -265,11 +265,17 @@ var MapView = Marionette.ItemView.extend({
                 maximumAge : maxAge,
                 timeout : timeout
             };
-            navigator.geolocation.getCurrentPosition(
-                geolocation_success,
-                _.noop,
-                geolocationOptions
-            );
+
+            // Wait a bit and then get the location. Suppresses issues on Safari
+            // in which immediately requesting the location results in an
+            // infinite request loop for geolocation permissions.
+            setTimeout(function() {
+                navigator.geolocation.getCurrentPosition(
+                    geolocation_success,
+                    _.noop,
+                    geolocationOptions
+                );
+            }, 500);
         }
     },
 
