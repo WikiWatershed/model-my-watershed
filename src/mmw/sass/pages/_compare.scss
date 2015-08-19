@@ -1,5 +1,5 @@
 .compare-scenarios-container{
-  overflow-x: hidden;
+  overflow: hidden;
   position: absolute;
   top: 0;
   left: 0;
@@ -102,8 +102,16 @@
                 color: rgba(0, 0, 0, 0.54);
               }
 
+              .header{
+                height: 12%;
+              }
+
+              .disclaimer{
+                font-size: 12px;
+              }
+
               .result-region{
-                height: 85%;
+                height: 95%;
 
                 .tab-pane{
                   height: 100%;
@@ -117,7 +125,9 @@
                 .controls {
                   .precipitation {
                     .btn-primary {
+                      z-index: 10;
                       padding: 0;
+                      margin-top: 10px;
 
                       label{
                         display: table;
@@ -145,6 +155,7 @@
           .modifications-region{
             width: 100%;
             height: 25vh;
+            margin-top: 30px;
 
             .modifications-container{
               position: relative;
