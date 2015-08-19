@@ -230,7 +230,11 @@ var MapView = Marionette.ItemView.extend({
         map.addLayer(areaOfInterestLayer);
         map.addLayer(modificationsLayer);
 
-        map.setView([40.1, -75.7], 10); // center the map
+        // Center the map on the U.S.
+        map.fitBounds([
+            [24.2, -126.4],
+            [49.8, -66.0]
+        ]);
 
         // Keep the map model up-to-date with the position of the map
         this.listenTo(map, 'moveend', this.updateMapModelPosition);
@@ -265,9 +269,9 @@ var MapView = Marionette.ItemView.extend({
             if (self.model.get('geolocationEnabled')) {
                 var lng = position.coords.longitude,
                     lat = position.coords.latitude,
-                    maxZoom = initialLayer.options.maxZoom || 18;
+                    zoom = 12; // Regional zoom level
 
-                map.setView([lat, lng], maxZoom);
+                map.setView([lat, lng], zoom);
             }
         }
 
