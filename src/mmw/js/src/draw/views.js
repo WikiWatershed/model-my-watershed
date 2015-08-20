@@ -99,10 +99,11 @@ var SelectAreaView = Marionette.ItemView.extend({
     onItemClicked: function(e) {
         var $el = $(e.target),
             endpoint = $el.data('endpoint'),
-            tableId = $el.data('tableid');
+            tableId = $el.data('tableid'),
+            shortDisplay = $el.data('short-display');
 
         clearAoiLayer();
-        this.changeOutlineLayer(endpoint, tableId);
+        this.changeOutlineLayer(endpoint, tableId, shortDisplay);
         e.preventDefault();
     },
 
@@ -111,7 +112,7 @@ var SelectAreaView = Marionette.ItemView.extend({
         return !types ? loadingTmpl : selectTypeTmpl;
     },
 
-    changeOutlineLayer: function(endpoint, tableId) {
+    changeOutlineLayer: function(endpoint, tableId, shortDisplay) {
         var self = this,
             ofg = self.model.get('outlineFeatureGroup');
 
@@ -124,7 +125,7 @@ var SelectAreaView = Marionette.ItemView.extend({
                                          maxRequests: 8
                                      });
             grid.on('click', function(e) {
-                getShapeAndAnalyze(e, self.model, ofg, grid, tableId);
+                getShapeAndAnalyze(e, self.model, ofg, grid, tableId, shortDisplay);
             });
 
             grid.on('mousemove', function(e) {
@@ -364,7 +365,7 @@ function changeStreamLayer(endpoint, model) {
     sl.bringToFront();
 }
 
-function getShapeAndAnalyze(e, model, ofg, grid, tableId) {
+function getShapeAndAnalyze(e, model, ofg, grid, tableId, layerName) {
     // The shapeId might not be available at the time of the click
     // because the UTF Grid layer might not be loaded yet, so
     // we poll for it.
@@ -386,7 +387,7 @@ function getShapeAndAnalyze(e, model, ofg, grid, tableId) {
             tableId: tableId,
             shapeId: shapeId
         }).done(function(shape) {
-            addLayer(shape, shapeName);
+            addLayer(shape, shapeName, layerName);
             clearBoundaryLayer(model);
             navigateToAnalyze();
             deferred.resolve();
@@ -437,14 +438,16 @@ function clearBoundaryLayer(model) {
     }
 }
 
-function addLayer(shape, name) {
+function addLayer(shape, name, label) {
     if (!name) {
         name = 'Selected Area';
     }
 
+    var displayName = (label ? label+=': ' : '') + name;
+
     App.map.set({
         'areaOfInterest': shape,
-        'areaOfInterestName': name
+        'areaOfInterestName': displayName
     });
 }
 
