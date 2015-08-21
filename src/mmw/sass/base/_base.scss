@@ -79,6 +79,39 @@ a{
   }
 }
 
+.draw-tools-container{
+  .dropdown-menu{
+    li{
+      a{
+        position: relative;
+        span{
+          display:inline-block;
+        }
+
+        i.split{
+          display:inline-block;
+          position: absolute;
+          right: 5%;
+          top:30%;
+        }
+        span.helptext-popup{
+          position: absolute;
+          top: -30px;
+          left: 40px;
+          padding: 30px;
+          border-radius: 5px;
+          border: 2px solid silver;
+          background-color: rgba(255, 255, 255, 0.75);
+          display: block;
+          width: 250px;
+          white-space: initial;
+          line-height: 200%;
+        }
+      }
+    }
+  }
+}
+
 //Title Row
 .aoi-header-wrapper.title-row{
     background-color: $ui-primary;

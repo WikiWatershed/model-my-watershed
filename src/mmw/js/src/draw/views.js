@@ -74,16 +74,51 @@ var ToolbarView = Marionette.LayoutView.extend({
     }
 });
 
-var SelectAreaView = Marionette.ItemView.extend({
+var PopupView = Marionette.ItemView.extend({
+    ui: {
+        'helpTrigger': 'i.split'
+    },
+
+    events: {
+        'mouseover @ui.helpTrigger': 'showHelpTextPopup',
+        'mouseout @ui.helpTrigger': 'removeTimer'
+    },
+
+    tooltipTimer: null,
+
+    showHelpTextPopup: function(e) {
+        this.tooltipTimer = setTimeout(function() {
+            var $el = $(e.target),
+                helptext = $el.data('helptext');
+            var popup = $('<span>', {
+                'class': 'helptext-popup',
+                'text': helptext
+            });
+            $el.append(popup);
+            $el.on('mouseout', function() {
+                popup.remove();
+            });
+        }, 300);
+    },
+
+    removeTimer: function() {
+        clearTimeout(this.tooltipTimer);
+    }
+});
+
+var SelectAreaView = PopupView.extend({
     $label: $('#boundary-label'),
 
     ui: {
         'items': '[data-endpoint]',
         'button': '#predefined-shape',
+        'helpTrigger': 'i.split'
     },
 
     events: {
-        'click @ui.items': 'onItemClicked'
+        'click @ui.items': 'onItemClicked',
+        'mouseover @ui.helpTrigger': 'showHelpTextPopup',
+        'mouseout @ui.helpTrigger': 'removeTimer'
     },
 
     modelEvents: {
@@ -168,17 +203,20 @@ var SelectAreaView = Marionette.ItemView.extend({
     }
 });
 
-var DrawView = Marionette.ItemView.extend({
+var DrawView = PopupView.extend({
     template: drawTmpl,
 
     ui: {
         drawArea: '#custom-shape',
-        drawStamp: '#one-km-stamp'
+        drawStamp: '#one-km-stamp',
+        'helpTrigger': 'i.split'
     },
 
     events: {
         'click @ui.drawArea': 'enableDrawArea',
-        'click @ui.drawStamp': 'enableStampTool'
+        'click @ui.drawStamp': 'enableStampTool',
+        'mouseover @ui.helpTrigger': 'showHelpTextPopup',
+        'mouseout @ui.helpTrigger': 'removeTimer'
     },
 
     modelEvents: {
@@ -241,16 +279,19 @@ var DrawView = Marionette.ItemView.extend({
     }
 });
 
-var PlaceMarkerView = Marionette.ItemView.extend({
+var PlaceMarkerView = PopupView.extend({
     template: placeMarkerTmpl,
 
     ui: {
         'items': '[data-shape-type]',
         'button': '#delineate-shape',
+        'helpTrigger': 'i.split'
     },
 
     events: {
         'click @ui.items': 'onItemClicked',
+        'mouseover @ui.helpTrigger': 'showHelpTextPopup',
+        'mouseout @ui.helpTrigger': 'removeTimer'
     },
 
     modelEvents: {

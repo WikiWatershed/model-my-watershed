@@ -7,11 +7,12 @@
   <ul class="dropdown-menu menu-left" role="menu" id="wrapper">
   {% for item in predefinedShapeTypes %}
       <li role="presentation">
-        <a role="menuitem" tabindex="-1" href="#" 
-           data-endpoint="{{ item.endpoint }}" 
+        <a role="menuitem" tabindex="-1" href="#"
+           data-endpoint="{{ item.endpoint }}"
            data-tableid="{{ item.tableId }}"
            data-short-display="{{ item.short_display }}">
-           {{ item.display }}
+          <span>{{ item.display }}</span> <i class="split fa fa-question-circle"
+                                             data-helptext="{{ item.helptext }}"></i>
         </a>
       </li>
   {% endfor %}
