@@ -363,7 +363,7 @@ describe('Modeling', function() {
                     name: 'name2',
                     shortName: 'shortName2',
                     summary: 'summary2',
-                    color: '#000'
+                    strokeColor: '#000'
                 }
             };
             modConfigUtils.setConfig(this.config);

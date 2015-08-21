@@ -42,9 +42,9 @@ function getHumanReadableSummary(modKey) {
 }
 
 var getDrawOpts = function(modKey) {
-    if (modKey && modificationConfig[modKey] && modificationConfig[modKey].color) {
+    if (modKey && modificationConfig[modKey] && modificationConfig[modKey].strokeColor) {
         return {
-            color: modificationConfig[modKey].color,
+            color: modificationConfig[modKey].strokeColor,
             opacity: 1,
             weight: 3,
             fillColor: 'url(#fill-' + modKey + ')',
