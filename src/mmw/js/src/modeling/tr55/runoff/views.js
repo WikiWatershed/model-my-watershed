@@ -41,9 +41,9 @@ var ResultView = Marionette.ItemView.extend({
                 depVars = ['inf', 'runoff', 'et'],
                 data,
                 options = {
-                    barColors: ['#329b9c', '#4aeab3', '#4ebaea'],
+                    barColors: ['#F8AA00', '#CF4300', '#C2D33C'],
                     depAxisLabel: 'Level',
-                    depDisplayNames: ['Infiltration', 'Runoff', 'Evaporation']
+                    depDisplayNames: ['Infiltration', 'Runoff', 'Evapotranspiration']
                 };
 
             if (this.scenario.get('is_current_conditions') || this.compareMode) {
