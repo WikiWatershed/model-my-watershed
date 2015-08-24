@@ -99,7 +99,7 @@ function checkTableBody(subData) {
         // displayed.
         var expectedRowVals = [
             subData.categories[trInd].type,
-            (subData.categories[trInd].area).toFixed(1),
+            subData.categories[trInd].area.toLocaleString('en'),
             (subData.categories[trInd].coverage * 100).toFixed(1)
         ];
         expectedRowVals = _.map(expectedRowVals, function(val) {

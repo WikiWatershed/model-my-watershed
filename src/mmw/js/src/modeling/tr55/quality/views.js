@@ -63,13 +63,7 @@ var ResultView = Marionette.LayoutView.extend({
 
 var TableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
-    template: tableRowTmpl,
-
-    templateHelpers: function() {
-        return {
-            roundedLoad: this.model.get('load').toFixed(3)
-        };
-    }
+    template: tableRowTmpl
 });
 
 var TableView = Marionette.CompositeView.extend({
