@@ -94,17 +94,9 @@ a{
           right: 5%;
           top:30%;
         }
-        span.helptext-popup{
-          position: absolute;
-          top: -30px;
-          left: 40px;
-          padding: 30px;
-          border-radius: 5px;
-          border: 2px solid silver;
-          background-color: rgba(255, 255, 255, 0.75);
-          display: block;
-          width: 250px;
-          white-space: initial;
+        .popover{
+          min-width: 400px;
+          max-width: 450px;
           line-height: 200%;
         }
       }

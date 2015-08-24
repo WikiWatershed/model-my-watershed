@@ -74,51 +74,17 @@ var ToolbarView = Marionette.LayoutView.extend({
     }
 });
 
-var PopupView = Marionette.ItemView.extend({
-    ui: {
-        'helpTrigger': 'i.split'
-    },
-
-    events: {
-        'mouseover @ui.helpTrigger': 'showHelpTextPopup',
-        'mouseout @ui.helpTrigger': 'removeTimer'
-    },
-
-    tooltipTimer: null,
-
-    showHelpTextPopup: function(e) {
-        this.tooltipTimer = setTimeout(function() {
-            var $el = $(e.target),
-                helptext = $el.data('helptext');
-            var popup = $('<span>', {
-                'class': 'helptext-popup',
-                'text': helptext
-            });
-            $el.append(popup);
-            $el.on('mouseout', function() {
-                popup.remove();
-            });
-        }, 300);
-    },
-
-    removeTimer: function() {
-        clearTimeout(this.tooltipTimer);
-    }
-});
-
-var SelectAreaView = PopupView.extend({
+var SelectAreaView = Marionette.ItemView.extend({
     $label: $('#boundary-label'),
 
     ui: {
-        'items': '[data-endpoint]',
-        'button': '#predefined-shape',
-        'helpTrigger': 'i.split'
+        items: '[data-endpoint]',
+        button: '#predefined-shape',
+        helptextIcon: 'i.split'
     },
 
     events: {
-        'click @ui.items': 'onItemClicked',
-        'mouseover @ui.helpTrigger': 'showHelpTextPopup',
-        'mouseout @ui.helpTrigger': 'removeTimer'
+        'click @ui.items': 'onItemClicked'
     },
 
     modelEvents: {
@@ -129,6 +95,10 @@ var SelectAreaView = PopupView.extend({
     initialize: function() {
         var ofg = this.model.get('outlineFeatureGroup');
         ofg.on('layerremove', _.bind(this.clearLabel, this));
+    },
+
+    onRender: function() {
+        this.ui.helptextIcon.popover({ trigger: 'hover' });
     },
 
     onItemClicked: function(e) {
@@ -203,20 +173,18 @@ var SelectAreaView = PopupView.extend({
     }
 });
 
-var DrawView = PopupView.extend({
+var DrawView = Marionette.ItemView.extend({
     template: drawTmpl,
 
     ui: {
         drawArea: '#custom-shape',
         drawStamp: '#one-km-stamp',
-        'helpTrigger': 'i.split'
+        helptextIcon: 'i.split'
     },
 
     events: {
         'click @ui.drawArea': 'enableDrawArea',
-        'click @ui.drawStamp': 'enableStampTool',
-        'mouseover @ui.helpTrigger': 'showHelpTextPopup',
-        'mouseout @ui.helpTrigger': 'removeTimer'
+        'click @ui.drawStamp': 'enableStampTool'
     },
 
     modelEvents: {
@@ -237,6 +205,10 @@ var DrawView = PopupView.extend({
         }).always(function() {
             self.model.enableTools();
         });
+    },
+
+    onShow: function() {
+        this.ui.helptextIcon.popover({ trigger: 'hover' });
     },
 
     enableStampTool: function() {
@@ -279,19 +251,25 @@ var DrawView = PopupView.extend({
     }
 });
 
-var PlaceMarkerView = PopupView.extend({
+var PlaceMarkerView = Marionette.ItemView.extend({
     template: placeMarkerTmpl,
 
     ui: {
-        'items': '[data-shape-type]',
-        'button': '#delineate-shape',
-        'helpTrigger': 'i.split'
+        items: '[data-shape-type]',
+        button: '#delineate-shape',
+        helptextIcon: 'i.split'
     },
 
     events: {
-        'click @ui.items': 'onItemClicked',
-        'mouseover @ui.helpTrigger': 'showHelpTextPopup',
-        'mouseout @ui.helpTrigger': 'removeTimer'
+        'click @ui.items': 'onItemClicked'
+    },
+
+    onShow: function() {
+        // TODO: the viewport setting doesn't appear to be working.
+        this.ui.helptextIcon.popover({
+            trigger: 'hover',
+            viewport: '.container-fluid.top-nav'
+        });
     },
 
     modelEvents: {
