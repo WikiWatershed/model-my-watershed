@@ -272,21 +272,25 @@ BOUNDARY_LAYERS = [
     {
         'code': 'district',
         'display': 'Congressional Districts',
+        'short_display': 'Congressional District',
         'table_name': 'boundary_district'
     },
     {
         'code': 'huc8',
         'display': 'USGS Subbasin unit (HUC-8)',
+        'short_display': 'Subbasin',
         'table_name': 'boundary_huc08'
     },
     {
         'code': 'huc10',
         'display': 'USGS Watershed unit (HUC-10)',
+        'short_display': 'Watershed',
         'table_name': 'boundary_huc10'
     },
     {
         'code': 'huc12',
         'display': 'USGS Subwatershed unit (HUC-12)',
+        'short_display': 'Subwatershed',
         'table_name': 'boundary_huc12',
         'json_field': 'geom_detailed'
     }

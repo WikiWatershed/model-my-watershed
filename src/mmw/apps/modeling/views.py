@@ -253,7 +253,8 @@ def boundary_layers(request, table_id=None, obj_id=None):
             return {
                 'display': dictionary['display'],
                 'tableId': code,
-                'endpoint': urljoin(tiler_base, code + tiler_postfix)
+                'endpoint': urljoin(tiler_base, code + tiler_postfix),
+                'short_display': layer['short_display']
             }
 
         layers = [augment(layer) for layer in layer_list]

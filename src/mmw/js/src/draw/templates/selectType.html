@@ -6,7 +6,14 @@
   </button>
   <ul class="dropdown-menu menu-left" role="menu" id="wrapper">
   {% for item in predefinedShapeTypes %}
-      <li role="presentation"><a role="menuitem" tabindex="-1" href="#" data-endpoint="{{ item.endpoint }}" data-tableid="{{ item.tableId }}">{{ item.display }}</a></li>
+      <li role="presentation">
+        <a role="menuitem" tabindex="-1" href="#" 
+           data-endpoint="{{ item.endpoint }}" 
+           data-tableid="{{ item.tableId }}"
+           data-short-display="{{ item.short_display }}">
+           {{ item.display }}
+        </a>
+      </li>
   {% endfor %}
   </ul>
 </div>
