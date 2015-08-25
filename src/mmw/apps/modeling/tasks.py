@@ -12,7 +12,6 @@ import math
 import time
 
 from tr55.model import simulate_day
-from tr55.tablelookup import lookup_ki
 
 logger = logging.getLogger(__name__)
 
@@ -211,7 +210,6 @@ def run_tr55(census, model_input):
     A thin Celery wrapper around our TR55 implementation.
     """
 
-    et_max = 0.207
     precip = _get_precip_value(model_input)
 
     if precip is None:
@@ -223,6 +221,9 @@ def run_tr55(census, model_input):
     census['modifications'] = modifications
 
     model_output = simulate_day(census, precip)
+    precolumbian_output = simulate_day(census, precip, precolumbian=True)
+    model_output['pc_unmodified'] = precolumbian_output['unmodified']
+    model_output['pc_modified'] = precolumbian_output['modified']
 
     return {
         'inputmod_hash': model_input['inputmod_hash'],

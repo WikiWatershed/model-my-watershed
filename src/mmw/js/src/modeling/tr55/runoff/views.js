@@ -46,16 +46,24 @@ var ResultView = Marionette.ItemView.extend({
                     depDisplayNames: ['Infiltration', 'Runoff', 'Evapotranspiration']
                 };
 
-            if (this.scenario.get('is_current_conditions') || this.compareMode) {
+            if (this.compareMode) {
                 // Use the modified results since they are the same as the unmodified results
                 // in Current Conditions, and they are the results we want to show
                 // in compareMode for other scenarios.
                 data = [
-                    getBarData('', 'modified'),
+                    getBarData('', 'modified')
                 ];
-
                 this.$el.addClass('current-conditions');
+            } else if (this.scenario.get('is_current_conditions')) {
+                // Show the unmodified results and the unmodified
+                // Pre-Columbian results.
+                data = [
+                    getBarData('Current Conditions', 'unmodified'),
+                    getBarData('Pre-Columbian', 'pc_unmodified')
+                ];
             } else {
+                // Show the unmodified results and the modified
+                // results.
                 data = [
                     getBarData('Original', 'unmodified'),
                     getBarData('Modified', 'modified')
