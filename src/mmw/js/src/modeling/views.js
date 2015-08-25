@@ -41,6 +41,7 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         // If the user changes, we should refresh all the views because they
         // have user contextual controls.
         this.listenTo(App.user, 'change', this.reRender);
+        this.listenTo(this.model, 'change:id', this.reRender);
         this.listenTo(App.user, 'change:guest', this.saveAfterLogin);
     },
 
@@ -52,7 +53,8 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
 
         this.scenariosRegion.empty();
         this.scenariosRegion.show(new ScenariosView({
-            collection: this.model.get('scenarios')
+            collection: this.model.get('scenarios'),
+            projectModel: this.model
         }));
 
         this.toolbarRegion.empty();
@@ -235,12 +237,19 @@ var ScenariosView = Marionette.LayoutView.extend({
     collection: models.ScenariosCollection,
     template: scenariosBarTmpl,
 
+    initialize: function(options) {
+        this.projectModel = options.projectModel;
+    },
+
     templateHelpers: function() {
         // Check the first scenario in the collection as a proxy for the
         // entire collection.
-        var scenario = this.collection.first();
+        var scenario = this.collection.first(),
+            compareUrl = this.projectModel.getCompareUrl();
+
         return {
-            editable: isEditable(scenario)
+            editable: isEditable(scenario),
+            compareUrl: compareUrl
         };
     },
 
@@ -326,7 +335,12 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     },
 
     renameScenario: function() {
-        var self = this;
+        var self = this,
+            setScenarioName = function(name) {
+                if (!self.model.collection.updateScenarioName(self.model, name)) {
+                    self.render();
+                }
+            };
 
         this.ui.nameField.attr('contenteditable', true).focus();
 
@@ -343,16 +357,12 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
                 // Don't add line returns to the text.
                 e.preventDefault();
 
-                if (self.model.get('name') !== $(this).text() && $(this).text() !== '') {
-                    self.model.collection.updateScenarioName(self.model, $(this).text());
-                } else {
-                    self.render();
-                }
+                setScenarioName($(this).text());
             }
         });
 
         this.ui.nameField.on('blur', function() {
-            self.model.collection.updateScenarioName(self.model, $(this).text());
+            setScenarioName($(this).text());
         });
     },
 
@@ -505,7 +515,8 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
         'click @ui.deleteModification': 'deleteModification'
     },
 
-    initialize: function() {
+    initialize: function(options) {
+        this.compareMode = options.compareMode;
         var modificationsColl = this.model.get('modifications');
         this.listenTo(modificationsColl, 'add remove reset', this.render);
     },
@@ -514,6 +525,7 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
         var shapes = this.model.get('modifications'),
             groupedShapes = shapes.groupBy('name');
         return {
+            compareMode: this.compareMode,
             shapes: shapes,
             groupedShapes: groupedShapes,
             editable: isEditable(this.model)
@@ -752,28 +764,13 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
 
     onShow: function() {
         var modelPackage = App.currProject.get('model_package'),
-            resultName = this.model.get('name');
-        switch (modelPackage) {
-            case 'tr-55':
-                switch(resultName) {
-                    case 'runoff':
-                        this.resultRegion.show(new tr55RunoffViews.ResultView({
-                            model: this.model,
-                            scenario: this.scenario
-                        }));
-                        break;
-                    case 'quality':
-                        this.resultRegion.show(new tr55QualityViews.ResultView({
-                            model: this.model
-                        }));
-                        break;
-                    default:
-                        console.log('Result not supported.');
-                }
-                break;
-            default:
-                console.log('Model package ' + modelPackage + ' not supported.');
-        }
+            resultName = this.model.get('name'),
+            ResultView = getResultView(modelPackage, resultName);
+
+        this.resultRegion.show(new ResultView({
+            model: this.model,
+            scenario: this.scenario
+        }));
     }
 });
 
@@ -803,6 +800,23 @@ function triggerBarChartRefresh() {
     $('#model-output-wrapper .bar-chart').trigger('bar-chart:refresh');
 }
 
+function getResultView(modelPackage, resultName) {
+    switch (modelPackage) {
+        case 'tr-55':
+            switch(resultName) {
+                case 'runoff':
+                    return tr55RunoffViews.ResultView;
+                case 'quality':
+                    return tr55QualityViews.ResultView;
+                default:
+                    console.log('Result not supported.');
+            }
+            break;
+        default:
+            console.log('Model package ' + modelPackage + ' not supported.');
+    }
+}
+
 module.exports = {
     ModelingResultsWindow: ModelingResultsWindow,
     ModelingHeaderView: ModelingHeaderView,
@@ -810,5 +824,6 @@ module.exports = {
     ScenarioTabPanelsView: ScenarioTabPanelsView,
     ScenarioDropDownMenuView: ScenarioDropDownMenuView,
     ToolbarTabContentView: ToolbarTabContentView,
-    ProjectMenuView: ProjectMenuView
+    ProjectMenuView: ProjectMenuView,
+    getResultView: getResultView
 };

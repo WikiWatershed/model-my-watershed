@@ -1,0 +1,19 @@
+<div id="draw-shape" class="dropdown menu-left">
+  <button class="btn btn-md btn-search-tool dropdown-toggle {{ 'disabled' if not toolsEnabled }}"
+      {{ 'disabled' if not toolsEnabled }} type="button" data-toggle="dropdown" aria-expanded="true">
+      Draw Area
+    <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu menu-left" role="menu">
+    <li role="presentation">
+      <a role="menuitem" tabindex="-1" href="#" id="custom-shape">
+        <span>Draw Area</span> <i class="split fa fa-question-circle" data-content="Draw a custom area on which you want to perform perform water quality analysis."></i>
+      </a>
+    </li>
+    <li role="presentation">
+      <a role="menuitem" tabindex="-1" href="#" id="one-km-stamp">
+        <span>Draw Square Km</span> <i class="split fa fa-question-circle" data-content="Draw a predefined one kilometer square with a center at the point you choose."></i>
+      </a>
+    </li>
+  </ul>
+</div>

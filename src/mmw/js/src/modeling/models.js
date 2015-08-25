@@ -1,10 +1,14 @@
 "use strict";
 
 var Backbone = require('../../shim/backbone'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     utils = require('../core/utils'),
+    settings = require('../core/settings'),
     App = require('../app'),
-    coreModels = require('../core/models');
+    coreModels = require('../core/models'),
+    turfArea = require('turf-area'),
+    turfErase = require('turf-erase'),
+    turfIntersect = require('turf-intersect');
 
 var ModelPackageControlModel = Backbone.Model.extend({
     defaults: {
@@ -21,11 +25,7 @@ var ModelPackageControlModel = Backbone.Model.extend({
 });
 
 var ModelPackageControlsCollection = Backbone.Collection.extend({
-    model: ModelPackageControlModel,
-
-    comparator: function(model) {
-        return model.get('name');
-    }
+    model: ModelPackageControlModel
 });
 
 var ModelPackageModel = Backbone.Model.extend();
@@ -42,20 +42,17 @@ var Tr55TaskModel = coreModels.TaskModel.extend({
 
 var ResultModel = Backbone.Model.extend({
     defaults: {
-        name: '',
-        displayName: '',
-        inputmod_hash: null,
-        result: null,
-        polling: false
+        name: '', // Code name for type of result, eg. runoff
+        displayName: '', // Human-readable name for type of result, eg. Runoff
+        inputmod_hash: null, // MD5 string generated from result
+        result: null, // The actual result object
+        polling: false, // True if currently polling
+        active: false // True if currently selected in Compare UI
     }
 });
 
 var ResultCollection = Backbone.Collection.extend({
     model: ResultModel,
-
-    comparator: function(model) {
-        return model.get('name');
-    },
 
     setPolling: function(polling) {
         this.forEach(function(resultModel) {
@@ -67,6 +64,24 @@ var ResultCollection = Backbone.Collection.extend({
         this.forEach(function(resultModel) {
             resultModel.set('result', null);
         });
+    },
+
+    getResult: function(name) {
+        return this.findWhere({name: name});
+    },
+
+    setActive: function(name) {
+        this.invoke('set', 'active', false);
+        this.getResult(name).set('active', true);
+        this.trigger('change:active');
+    },
+
+    getActive: function() {
+        return this.findWhere({active: true});
+    },
+
+    makeFirstActive: function() {
+        this.setActive(this.at(0).get('name'));
     }
 });
 
@@ -75,11 +90,15 @@ var ProjectModel = Backbone.Model.extend({
 
     defaults: {
         name: '',
-        created_at: null,          // Date
-        area_of_interest: null,    // GeoJSON
-        model_package: '',         // Package name
-        scenarios: null,           // ScenariosCollection
-        user_id: 0                 // User that created the project
+        created_at: null,               // Date
+        area_of_interest: null,         // GeoJSON
+        area_of_interest_name: null,    // Human readable string for AOI.
+        model_package: '',              // Package name
+        scenarios: null,                // ScenariosCollection
+        user_id: 0,                     // User that created the project
+        is_activity: false,             // Project that persists across routes
+        needs_reset: false,             // Should we overwrite project data on next save?
+        allow_save: true                // Is allowed to save to the server - false in compare mode
     },
 
     initialize: function() {
@@ -95,6 +114,10 @@ var ProjectModel = Backbone.Model.extend({
         this.set('model_package', 'tr-55');
 
         this.set('user_id', App.user.get('id'));
+
+        // If activity mode is enabled make sure to initialize the project as
+        // an activity.
+        this.set('is_activity', settings.get('activityMode'));
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
         this.on('change:name', this.saveProjectAndScenarios, this);
@@ -129,12 +152,12 @@ var ProjectModel = Backbone.Model.extend({
         throw 'Model package not supported: ' + packageName;
     },
 
-    getResultsIfNeeded: function() {
+    fetchResultsIfNeeded: function() {
         this.get('scenarios').forEach(function(scenario) {
-            scenario.getResultsIfNeeded();
+            scenario.fetchResultsIfNeeded();
         });
         this.get('scenarios').on('add', function(scenario) {
-            scenario.getResultsIfNeeded();
+            scenario.fetchResultsIfNeeded();
         });
     },
 
@@ -148,7 +171,7 @@ var ProjectModel = Backbone.Model.extend({
     saveCalled: false,
 
     saveProjectAndScenarios: function() {
-        if (!App.user.loggedInUserMatch(this.get('user_id'))) {
+        if (!this.get('allow_save') || !App.user.loggedInUserMatch(this.get('user_id'))) {
             // Fail fast if the user can't save the project.
             return;
         }
@@ -235,8 +258,137 @@ var ProjectModel = Backbone.Model.extend({
             return root + modelPart + scenarioPart;
         }
         return root;
+    },
+
+    getCompareUrl: function() {
+        // Return a url fragment that can access the compare view.
+        var root = '/project/',
+            id = this.get('id'),
+            url = root + 'compare';
+
+        if (id) {
+            url = root + id + '/compare';
+        }
+        return url;
     }
 });
+
+/**
+ * A predicate for a filter function used in the _modifyModifications.
+ * Returns true if piece has a valid shape with non-zero area, and
+ * false otherwise.
+ */
+function validShape(piece) {
+    return (piece.shape !== undefined) && (turfArea(piece.shape) > 0.33);
+}
+
+/**
+ * This function takes a collection of modifications as drawn on
+ * screen and returns an array that has the following property: no
+ * point on the map is covered by more than one 'BMP' or more than one
+ * 'reclassification'.
+ */
+function _modifyModifications(rawModifications) {
+    var pieces = [],
+        reclass = 'landcover',
+        bmp = 'conservation_practice',
+        both = 'both',
+        n = rawModifications.size(),
+        n2 = n * n;
+
+    for (var i = 0; i < n; ++i) {
+        var rawModification = rawModifications.at(i),
+            newPiece = {
+                name: rawModification.get('name'),
+                shape: rawModification.get('shape'),
+                value: rawModification.get('value')
+            };
+
+        for (var j = 0; (j < pieces.length) && (newPiece.shape !== undefined) && (j < n2); ++j) {
+            var oldPiece = pieces[j];
+
+            /* If the new piece and the old piece are both BMPs or
+             * both are reclassifications, then simply subtract the
+             * shape of the new piece from that of the old piece to
+             * enforce the invariant. */
+            if (oldPiece.name === newPiece.name) {
+                try {
+                    oldPiece.shape = turfErase(oldPiece.shape, newPiece.shape);
+                } catch(e) {
+                    /* This "can only happen" if oldPiece.shape is
+                     * undefined (that is, the empty set), but that is
+                     * explicitly codified here. */
+                    oldPiece.shape = undefined;
+                }
+            }
+            /* If the new piece and the old piece are not both BMPs or
+             * not both reclassifications, then there are a number of
+             * possible scenarios: the old piece might be a BMP, might
+             * be a reclassification, or might represent an area where
+             * BMPs and reclassification overlap. */
+            else {
+                var newOldIntersection;
+
+                try {
+                    newOldIntersection = turfIntersect(oldPiece.shape, newPiece.shape);
+                } catch(e) {
+                    /* Once again, this "can only happen" if
+                     * oldPiece.shape is undefined, but make it
+                     * explicit. */
+                    oldPiece.shape = undefined;
+                    newOldIntersection = undefined;
+                }
+
+                /* New overlap pieces are born here. */
+                if ((newOldIntersection !== undefined) && (turfArea(newOldIntersection) > 0.33)) {
+                    var oldPieceShape = oldPiece.shape, // save a copy, need this for later
+                        overlapPiece = {
+                            name: both,
+                            shape: newOldIntersection,
+                            value: {}
+                        };
+
+                    /* compute overlap piece and add to array */
+                    if ((oldPiece.name === both) && (newPiece.name === reclass)) {
+                        overlapPiece.value.bmp = oldPiece.value.bmp;
+                        overlapPiece.value.reclass = newPiece.value;
+                    } else if ((oldPiece.name === both) && (newPiece.name === bmp)) {
+                        overlapPiece.value.bmp = newPiece.value;
+                        overlapPiece.value.reclass = oldPiece.value.reclass;
+                    } else if (oldPiece.name === reclass) {
+                        overlapPiece.value.bmp = newPiece.value;
+                        overlapPiece.value.reclass = oldPiece.value;
+                    } else {
+                        overlapPiece.value.bmp = oldPiece.value;
+                        overlapPiece.value.reclass = newPiece.value;
+                    }
+                    pieces.push(overlapPiece);
+
+                    /* remove the overlapping portion from both parents */
+                    try {
+                        oldPiece.shape = turfErase(oldPiece.shape, newPiece.shape);
+                    } catch(e) {
+                        /* Once again, should only happen if
+                         * oldPiece.shape is already undefined. */
+                        oldPiece.shape = undefined;
+                    }
+                    try {
+                        newPiece.shape = turfErase(newPiece.shape, oldPieceShape);
+                    } catch(e) {
+                        /* This can (should) never happen. */
+                    }
+                }
+            }
+        }
+
+        pieces.push(newPiece);
+        pieces = _.filter(pieces, validShape);
+    }
+
+    return pieces;
+}
+
+var modifyModifications = _.memoize(_modifyModifications, function(_, hash) {return hash;});
 
 var ModificationModel = coreModels.GeoModel.extend({
     defaults: _.extend({
@@ -247,17 +399,31 @@ var ModificationModel = coreModels.GeoModel.extend({
 });
 
 var ModificationsCollection = Backbone.Collection.extend({
-    model: ModificationModel,
-
-    comparator: function(model) {
-        // Even though model.get('area') is a numeric value, passing it
-        // along with the others here causes a string comparison. But that's
-        // alright, because we only want to sort consistently, not actually
-        // by area, and it serves as a tie-breaker when the other values are
-        // identical.
-        return [model.get('name'), model.get('value'), model.get('area')];
-    }
+    model: ModificationModel
 });
+
+/**
+ * A function to allow scenarios created with the old names to
+ * continue to function.  This can perhaps be removed after a period
+ * of time.
+*/
+function oldToNewName(modKey) {
+    var translationMatrix = {
+        'lir': 'li_residential',
+        'hir': 'hi_residential',
+        'forest': 'deciduous_forest',
+        'turf_grass': 'urban_grass',
+        'tg_prairie': 'tall_grass_prairie',
+        'sg_prairie': 'short_grass_prairie',
+        'veg_infil_basin': 'infiltration_trench',
+        'no_till_agriculture': 'no_till'
+    };
+    if (modKey in translationMatrix) {
+        return translationMatrix[modKey];
+    } else {
+        return modKey;
+    }
+}
 
 var ScenarioModel = Backbone.Model.extend({
     urlRoot: '/api/modeling/scenarios/',
@@ -273,7 +439,8 @@ var ScenarioModel = Backbone.Model.extend({
         active: false,
         job_id: null,
         results: null, // ResultCollection
-        census: null // JSON blob
+        census: null, // JSON blob
+        allow_save: true // Is allowed to save to the server - false in compare mode
     },
 
     initialize: function(attrs) {
@@ -286,9 +453,15 @@ var ScenarioModel = Backbone.Model.extend({
             inputs: [
                 {
                     name: 'precipitation',
-                    value: 1.0
+                    value: 0.984252 // equal to 2.5 cm.
                 }
             ]
+        });
+
+        // Change old names to new ones.  This could eventually be
+        // removed when enough of old scenarios have been upgraded.
+        _.forEach(attrs.modifications, function(m) {
+            m.value = oldToNewName(m.value);
         });
 
         this.set('inputs', new ModificationsCollection(attrs.inputs));
@@ -300,16 +473,17 @@ var ScenarioModel = Backbone.Model.extend({
         this.on('change:project change:name', this.attemptSave, this);
         this.get('modifications').on('add remove change', this.updateModificationHash, this);
 
-        var debouncedGetResults = _.debounce(_.bind(this.getResults, this), 500);
-        this.get('inputs').on('add', debouncedGetResults);
-        this.get('modifications').on('add remove', debouncedGetResults);
+        var debouncedFetchResults = _.debounce(_.bind(this.fetchResults, this), 500);
+        this.get('inputs').on('add', debouncedFetchResults);
+        this.get('modifications').on('add remove', debouncedFetchResults);
 
         this.set('taskModel', App.currProject.createTaskModel());
         this.set('results', App.currProject.createTaskResultCollection());
     },
 
     attemptSave: function() {
-        if (!App.user.loggedInUserMatch(this.get('user_id'))) {
+        if (!this.get('allow_save') || !App.user.loggedInUserMatch(this.get('user_id'))) {
+            // Fail fast if the user can't save the project.
             return;
         }
         if (!this.get('project')) {
@@ -356,7 +530,7 @@ var ScenarioModel = Backbone.Model.extend({
         return response;
     },
 
-    getResultsIfNeeded: function() {
+    fetchResultsIfNeeded: function() {
         var inputmod_hash = this.get('inputmod_hash'),
             needsResults = this.get('results').some(function(resultModel) {
                 var emptyResults = !resultModel.get('result'),
@@ -366,45 +540,47 @@ var ScenarioModel = Backbone.Model.extend({
             });
 
         if (needsResults) {
-            this.getResults();
+            this.fetchResults();
+        }
+    },
+
+    setResults: function() {
+        var rawServerResults = this.get('taskModel').get('result');
+        if (rawServerResults === '' || rawServerResults === null) {
+            this.get('results').setNullResults();
+        } else {
+            var serverResults = JSON.parse(rawServerResults);
+            this.get('results').forEach(function(resultModel) {
+                var resultName = resultModel.get('name');
+                if (serverResults[resultName]) {
+                    resultModel.set({
+                        'result': serverResults[resultName],
+                        'inputmod_hash': serverResults.inputmod_hash
+                    });
+                } else {
+                    console.log('Response is missing ' + resultName + '.');
+                }
+            });
+
+            this.set('census', serverResults.census);
         }
     },
 
     // Poll the taskModel for results and reset the results collection when done.
     // If not successful, the results collection is reset to be empty.
-    getResults: function() {
+    fetchResults: function() {
         this.updateInputModHash();
         this.attemptSave();
 
         var self = this,
             results = this.get('results'),
             taskModel = this.get('taskModel'),
-            setResults = function() {
-                var rawServerResults = taskModel.get('result');
-                if (rawServerResults === "" || rawServerResults === null) {
-                    results.setNullResults();
-                } else {
-                    var serverResults = JSON.parse(rawServerResults);
-                    results.forEach(function(resultModel) {
-                        var resultName = resultModel.get('name');
-                        if (serverResults[resultName]) {
-                            resultModel.set({
-                                'result': serverResults[resultName],
-                                'inputmod_hash': serverResults.inputmod_hash
-                            });
-                        } else {
-                            console.log('Response is missing ' + resultName + '.');
-                        }
-                    });
-
-                    self.set('census', serverResults.census);
-                }
-            },
             taskHelper = {
                 postData: {
                     model_input: JSON.stringify({
                         inputs: self.get('inputs').toJSON(),
                         modifications: self.get('modifications').toJSON(),
+                        modification_pieces: modifyModifications(self.get('modifications'), self.get('modification_hash')),
                         area_of_interest: App.currProject.get('area_of_interest'),
                         census: self.get('census'),
                         inputmod_hash: self.get('inputmod_hash'),
@@ -417,11 +593,11 @@ var ScenarioModel = Backbone.Model.extend({
                 },
 
                 pollSuccess: function() {
-                    setResults();
+                    self.setResults();
                 },
 
                 pollFailure: function() {
-                    console.log('Failed to get TR55 results.');
+                    console.log('Failed to get modeling results.');
                     results.setNullResults();
                 },
 
@@ -431,7 +607,7 @@ var ScenarioModel = Backbone.Model.extend({
                 },
 
                 startFailure: function(response) {
-                    console.log('Failed to start TR55 job.');
+                    console.log('Failed to start modeling job.');
                     if (response.responseJSON && response.responseJSON.error) {
                         console.log(response.responseJSON.error);
                     }
@@ -440,7 +616,7 @@ var ScenarioModel = Backbone.Model.extend({
                 }
             };
 
-        taskModel.start(taskHelper);
+        return taskModel.start(taskHelper);
     },
 
     updateInputModHash: function() {
@@ -471,9 +647,23 @@ var ScenariosCollection = Backbone.Collection.extend({
     makeFirstScenarioActive: function() {
         var first = this.first();
 
-        if (first) {
-            this.setActiveScenarioByCid(first.cid);
+        if (!first) {
+            // Empty collection, fail fast
+            return;
         }
+
+        if (!first.get('is_current_conditions')) {
+            // First item is not Current Conditions. Find Current Conditions
+            // scenario and make it the first.
+            var currentConditions = this.findWhere({ 'is_current_conditions': true });
+
+            this.remove(currentConditions);
+            this.add(currentConditions, { at: 0 });
+
+            first = currentConditions;
+        }
+
+        this.setActiveScenarioByCid(first.cid);
     },
 
     setActiveScenario: function(scenario) {
@@ -509,7 +699,7 @@ var ScenariosCollection = Backbone.Collection.extend({
 
         // Bail early if the name actually didn't change.
         if (model.get('name') === newName) {
-            return;
+            return false;
         }
 
         var match = this.find(function(model) {
@@ -517,10 +707,13 @@ var ScenariosCollection = Backbone.Collection.extend({
         });
 
         if (match) {
+            window.alert("There is another scenario with the same name. " +
+                    "Please choose a unique name for this scenario."
+            );
             console.log('This name is already in use.');
-            return;
+            return false;
         } else if (model.get('name') !== newName) {
-            model.set('name', newName);
+            return model.set('name', newName);
         }
     },
 
@@ -563,7 +756,8 @@ var ScenariosCollection = Backbone.Collection.extend({
 
 function getControlsForModelPackage(modelPackageName, options) {
     if (modelPackageName === 'tr-55') {
-        if (options && options.is_current_conditions) {
+        if (options && (options.compareMode ||
+                        options.is_current_conditions)) {
             return new ModelPackageControlsCollection([
                 new ModelPackageControlModel({ name: 'precipitation' })
             ]);

@@ -2,7 +2,16 @@
 
 var modificationConfig = require('./modificationConfig.json');
 
-// modKey should be a key in modificationsConfig (eg. 'turf_grass').
+// Useful for testing.
+function setConfig(config) {
+    modificationConfig = config;
+}
+
+function resetConfig() {
+    modificationConfig = require('./modificationConfig.json');
+}
+
+// modKey should be a key in modificationsConfig (eg. 'urban_grass').
 function getHumanReadableName(modKey) {
     if (modificationConfig[modKey]) {
         return modificationConfig[modKey].name;
@@ -33,9 +42,9 @@ function getHumanReadableSummary(modKey) {
 }
 
 var getDrawOpts = function(modKey) {
-    if (modKey && modificationConfig[modKey] && modificationConfig[modKey].color) {
+    if (modKey && modificationConfig[modKey] && modificationConfig[modKey].strokeColor) {
         return {
-            color: modificationConfig[modKey].color,
+            color: modificationConfig[modKey].strokeColor,
             opacity: 1,
             weight: 3,
             fillColor: 'url(#fill-' + modKey + ')',
@@ -57,5 +66,7 @@ module.exports = {
     getHumanReadableName: getHumanReadableName,
     getHumanReadableShortName: getHumanReadableShortName,
     getHumanReadableSummary: getHumanReadableSummary,
-    getDrawOpts: getDrawOpts
+    getDrawOpts: getDrawOpts,
+    setConfig: setConfig,
+    resetConfig: resetConfig
 };

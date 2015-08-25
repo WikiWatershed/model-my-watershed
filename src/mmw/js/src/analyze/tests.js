@@ -9,24 +9,29 @@ var _ = require('lodash'),
     sinon = require('sinon'),
     models = require('./models'),
     views = require('./views'),
+    App = require('../app'),
+    testUtils = require('../core/testUtils'),
     sandboxTemplate = require('../core/templates/sandbox.html');
 
 var sandboxHeight = '500',
-    sandboxWidth = '700';
+    sandboxWidth = '700',
+    displaySandboxId = 'display-sandbox',
+    displaySandboxSelector = '#' + displaySandboxId;
 
 var SandboxRegion = Marionette.Region.extend({
-    el: '#display-sandbox'
+    el: displaySandboxSelector
 });
 
 describe('Analyze', function() {
     beforeEach(function() {
-        $('#display-sandbox').remove();
+        $(displaySandboxSelector).remove();
         // Use a special sandbox so that we can test responsiveness of chart.
         $('body').append(sandboxTemplate.render({height: sandboxHeight, width: sandboxWidth}));
     });
 
     afterEach(function() {
-        $('#display-sandbox').remove();
+        testUtils.resetApp(App);
+        $(displaySandboxSelector).remove();
     });
 
     describe('DetailsView', function() {
@@ -36,7 +41,6 @@ describe('Analyze', function() {
         });
 
         afterEach(function() {
-            $('#display-sandbox').empty();
             this.server.restore();
         });
 
@@ -66,6 +70,7 @@ function setupViewAndTest(dataSet, testFn, done) {
         });
     view.listenTo(view, 'show', function() {
         testFn(dataSet);
+        view.destroy();
         done();
     });
     sandbox.show(view);
@@ -79,7 +84,7 @@ function checkTable(data) {
 }
 
 function checkTableHeader(name) {
-    var expectedHeaderLabels = ['Type', 'Area', 'Coverage'];
+    var expectedHeaderLabels = ['Type', 'Area (m2)', 'Coverage (%)'];
     var headerLabels = $('#' + name + ' table thead tr th').map(function() {
         return $(this).text();
     }).get();
@@ -94,8 +99,8 @@ function checkTableBody(subData) {
         // displayed.
         var expectedRowVals = [
             subData.categories[trInd].type,
-            subData.categories[trInd].area,
-            subData.categories[trInd].coverage
+            subData.categories[trInd].area.toLocaleString('en'),
+            (subData.categories[trInd].coverage * 100).toFixed(1)
         ];
         expectedRowVals = _.map(expectedRowVals, function(val) {
             return String(val);

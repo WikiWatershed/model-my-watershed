@@ -15,7 +15,12 @@ class Project(models.Model):
     name = models.CharField(
         max_length=255)
     area_of_interest = models.MultiPolygonField(
+        null=True,
         help_text='Base geometry for all scenarios of project')
+    area_of_interest_name = models.CharField(
+        null=True,
+        max_length=255,
+        help_text='A human name for the area of interest')
     is_private = models.BooleanField(
         default=True)
     model_package = models.CharField(
@@ -27,6 +32,9 @@ class Project(models.Model):
         auto_now_add=True)
     modified_at = models.DateTimeField(
         auto_now=True)
+    is_activity = models.BooleanField(
+        default=False,
+        help_text='Projects with special properties')
 
     def __unicode__(self):
         return self.name

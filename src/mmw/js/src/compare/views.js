@@ -2,13 +2,17 @@
 
 var _ = require('lodash'),
     $ = require('jquery'),
-    L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
+    App = require('../app'),
+    coreModels = require('../core/models'),
+    coreViews = require('../core/views'),
+    modelingModels = require('../modeling/models'),
+    modelingViews = require('../modeling/views'),
+    modConfigUtils = require('../modeling/modificationConfigUtils'),
     compareWindowTmpl = require('./templates/compareWindow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
-    compareMapTmpl = require('./templates/compareMap.html'),
-    compareChartTmpl = require('./templates/compareChart.html'),
+    compareModelingTmpl = require('./templates/compareModeling.html'),
     compareModificationsTmpl = require('./templates/compareModifications.html');
 
 var CompareWindow = Marionette.LayoutView.extend({
@@ -95,20 +99,40 @@ var CompareScenarioView = Marionette.LayoutView.extend({
 
     regions: {
         mapRegion: '.map-region',
-        chartRegion: '.chart-region',
-        precipitationRegion: '.precipitation-region',
+        modelingRegion: '.modeling-region',
         modificationsRegion: '.modifications-region'
     },
 
+    initialize: function(options) {
+        this.projectModel = options.projectModel;
+    },
+
     onShow: function() {
-        this.mapRegion.show(new CompareMapView({
+        this.mapModel = new coreModels.MapModel({});
+        this.mapModel.set({
+            'areaOfInterest': this.projectModel.get('area_of_interest'),
+            'areaOfInterestName': this.projectModel.get('area_of_interest_name')
+        });
+        this.mapView = new coreViews.MapView({
+            model: this.mapModel,
+            el: $(this.el).find('.map-container').get(),
+            addZoomControl: false,
+            addLocateMeButton: false,
+            addLayerSelector: false,
+            showLayerAttribution: false,
+            initialLayerName: App.getMapView().getActiveBaseLayerName(),
+            interactiveMode: false
+        });
+
+        this.mapView.fitToAoi();
+        this.mapView.updateAreaOfInterest();
+        this.mapView.updateModifications(this.model.get('modifications'));
+        this.mapRegion.show(this.mapView);
+        this.modelingRegion.show(new CompareModelingView({
+            projectModel: this.projectModel,
             model: this.model
         }));
-        this.chartRegion.show(new CompareChartView({
-            model: this.model
-        }));
-        // TODO put in precipitation slider that will trigger model
-        // simulations, but doesn't save input or results
+
         this.modificationsRegion.show(new CompareModificationsView({
             model: this.model.get('modifications')
         }));
@@ -124,36 +148,85 @@ var CompareScenariosView = Marionette.CompositeView.extend({
     template: compareScenariosTmpl,
 
     childViewContainer: '#compare-row',
-    childView: CompareScenarioView
-});
-
-var CompareMapView = Marionette.LayoutView.extend({
-    //model: modelingModels.ScenarioModel,
-
-    template: compareMapTmpl,
-
-    className: 'map-container',
-
-    onShow: function() {
-        var mapEl = $(this.el).find('.map').get(0),
-            map = new L.Map(mapEl, { zoomControl: false });
-
-        map.setView([40.1, -75.7], 10);
-        map.addLayer(new L.TileLayer('https://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png'));
-
-        // TODO put appropriate base layer on map and set view
-        // TODO show area of interest on map
+    childView: CompareScenarioView,
+    childViewOptions: function() {
+        return {
+            projectModel: this.model
+        };
     }
 });
 
-var CompareChartView = Marionette.ItemView.extend({
-    template: compareChartTmpl,
+var CompareModelingView = Marionette.LayoutView.extend({
+    //model: modelingModels.ScenarioModel
 
-    className: 'chart-container'
-    // TODO pick appropriate chart based on model_pacakage
-    // this should be similar to code in modeling/views.js
+    template: compareModelingTmpl,
+
+    className: 'modeling-container',
+
+    regions: {
+        resultRegion: '.result-region',
+        controlsRegion: '.controls-region'
+    },
+
+    ui: {
+        resultSelector: 'select'
+    },
+
+    events: {
+        'change @ui.resultSelector': 'updateResult'
+    },
+
+    initialize: function(options) {
+        this.projectModel = options.projectModel;
+        this.model.get('results').makeFirstActive();
+        this.listenTo(this.model.get('results').at(0), 'change:polling', function() {
+            this.render();
+            this.onShow();
+        });
+    },
+
+    templateHelpers: function() {
+        return {
+            polling: this.model.get('results').at(0).get('polling'),
+            results: this.model.get('results').toJSON()
+        };
+    },
+
+    updateResult: function() {
+        this.model.get('results').setActive(this.ui.resultSelector.val());
+        this.showResult();
+    },
+
+    showResult: function() {
+        var modelPackage = App.currProject.get('model_package'),
+            resultModel = this.model.get('results').getActive(),
+            ResultView = modelingViews.getResultView(modelPackage, resultModel.get('name'));
+
+        this.resultRegion.show(new ResultView({
+            model: resultModel,
+            scenario: this.model,
+            compareMode: true
+        }));
+    },
+
+    showControls: function() {
+        var controls = modelingModels.getControlsForModelPackage(
+            this.projectModel.get('model_package'),
+            {compareMode: true}
+        );
+
+        this.controlsRegion.show(new modelingViews.ToolbarTabContentView({
+            model: this.model,
+            collection: controls,
+            compareMode: true
+        }));
+    },
+
+    onShow: function() {
+        this.showResult();
+        this.showControls();
+    }
 });
-
 
 var CompareModificationsView = Marionette.ItemView.extend({
     //model: modelingModels.ModificationsCollection,
@@ -161,12 +234,15 @@ var CompareModificationsView = Marionette.ItemView.extend({
 
     className: 'modifications-container',
 
-    // TODO split modifications into Land Cover and Conservation Practices
-    // TODO style this view
-
     templateHelpers: function() {
         return {
-            modifications: this.model.toJSON()
+            conservationPractices: this.model.filter(function(modification) {
+                return modification.get('name') === 'conservation_practice';
+            }),
+            landCovers: this.model.filter(function(modification) {
+                return modification.get('name') === 'landcover';
+            }),
+            modConfigUtils: modConfigUtils
         };
     }
 });

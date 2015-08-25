@@ -51,11 +51,17 @@ def get_subnet_cidr_block():
         current += 1
 
 
-def get_recent_ami(aws_profile, ami_name, owner="self"):
+def get_recent_ami(aws_profile, ami_name, owner="self", executable_by="self"):
     conn = boto.connect_ec2(profile_name=aws_profile)
-    images = conn.get_all_images(owners=owner, filters={
-        'name': ami_name
-    })
+    filters = {'name': ami_name}
+
+    # Filter images by owned by self first.
+    images = conn.get_all_images(owners=owner, filters=filters)
+
+    # If no images are owned by self, look for images self can execute.
+    if not images:
+        images = conn.get_all_images(executable_by=executable_by,
+                                     filters=filters)
 
     return sorted(filter(lambda i: True if 'beta' not in i.name else False,
                          images),

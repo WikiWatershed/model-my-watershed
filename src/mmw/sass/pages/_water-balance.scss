@@ -97,24 +97,58 @@
 
   #effect-evapo{
     position: absolute;
-    top: 90px;
-    right: 0;
+    bottom: 120px;
+    left: 290px;
+    width: 84px;
+    height: 140px;
     z-index: 100;
+
+    svg {
+      width: auto;
+      height: 100%;  //Animate this value for scale
+      transition: height 0.3s ease;
+    }
   }
 
    #effect-runoff{
     position: absolute;
-    bottom: 40px;
+    top: 60px;
+    right: 270px;
+    width: 127px;
+    height: 120px;
     z-index: 100;
+
+    svg {
+      width: auto;
+      height: 100%;  //Animate this value for scale
+      transition: height 0.3s ease;
+    }
   }
 
   #effect-infiltration{
     position: absolute;
-    bottom: 30px;
-    right: 0;
+    top: 40px;
+    left: 290px;
+    width: 98px;
+    height: 140px;
     z-index: 100;
+
+    svg {
+      width: auto;
+      height: 100%; //Animate this value for scale
+      transition: height 0.3s ease;
+    }
   }
 
+  #alert{
+    position: absolute;
+    z-index: 1000;
+    top: 0;
+    left: 2px;
+    -webkit-animation: breathing 7s ease-out infinite normal;
+    animation: breathing 7s ease-out infinite normal;
+    display: none;
+  }
 
   //Water Column =====================================
 
@@ -349,3 +383,52 @@
     padding: 1rem;
   }
 }
+
+@-webkit-keyframes breathing {
+  0% {
+    -webkit-transform: scale(0.9);
+    transform: scale(0.9);
+  }
+
+  25% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+
+  60% {
+    -webkit-transform: scale(0.9);
+    transform: scale(0.9);
+  }
+
+  100% {
+    -webkit-transform: scale(0.9);
+    transform: scale(0.9);
+  }
+}
+
+@keyframes breathing {
+  0% {
+    -webkit-transform: scale(0.9);
+    -ms-transform: scale(0.9);
+    transform: scale(0.9);
+  }
+
+  25% {
+    -webkit-transform: scale(1);
+    -ms-transform: scale(1);
+    transform: scale(1);
+  }
+
+  60% {
+    -webkit-transform: scale(0.9);
+    -ms-transform: scale(0.9);
+    transform: scale(0.9);
+  }
+
+  100% {
+    -webkit-transform: scale(0.9);
+    -ms-transform: scale(0.9);
+    transform: scale(0.9);
+  }
+}
+

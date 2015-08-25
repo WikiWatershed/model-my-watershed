@@ -4,13 +4,7 @@ import akka.actor.Actor
 import spray.routing._
 import spray.http._
 
-/**
- * This loader will shortly be replaced by one that loads from S3
- * catalogues instead of small, local test files.  This entire object
- * will probably go away, with the possible exception of
- * jsonHistogram.
- */
-object Loader {
+object S3Loader {
   import geotrellis.raster.io.geotiff.reader._
   import geotrellis.raster._
   import geotrellis.raster.reproject._
@@ -22,6 +16,8 @@ object Loader {
   import geotrellis.spark.tiling._
   import geotrellis.raster.mosaic._
   import geotrellis.proj4._
+  import geotrellis.spark.io.s3._
+  import geotrellis.spark.op.local._
 
   import org.apache.spark._
   import org.apache.spark.{SparkConf, SparkContext}
@@ -32,23 +28,57 @@ object Loader {
 
   import scala.util._
 
-  import DataFiles._
   import Histogram._
 
+  val bucket = "com.azavea.datahub"
+  val prefix = "catalog"
+  val layerName = "nlcd-tms"
+  val layerZoom = 13
+
   implicit val sc: SparkContext = SparkUtils.createSparkContext("Geoprocessing", new SparkConf())
-  val nlcd = DataFiles.delawareNLCD
-  val soil = DataFiles.delawareSoil
+  val catalogue = S3RasterCatalog(bucket, prefix)
+
+  def getGeometry(str: String) : Geometry = {
+    str.parseJson.convertTo[Geometry] match {
+      case p: Polygon => p.reproject(LatLng, WebMercator)
+      case mp: MultiPolygon => mp.reproject(LatLng, WebMercator)
+      case gc: GeometryCollection => gc.reproject(LatLng, WebMercator)
+    }
+  }
+
+  def getExtent(geometry: Geometry) : Extent = {
+    geometry match {
+      case p: Polygon => p.envelope
+      case mp: MultiPolygon => mp.envelope
+      case gc: GeometryCollection => gc.envelope
+    }
+  }
 
   def jsonHistogram(str: String) : String = {
-    val geometry = str.parseJson.convertTo[Geometry]
+    val geometry: Geometry = getGeometry(str)
+    val extent: Extent = getExtent(geometry)
+    val nlcd = catalogue.query[SpatialKey]((layerName, layerZoom))
+      .where(Intersects(extent))
+      .toRDD
+      .localMap { z: Int => z }
+    val soil = catalogue.query[SpatialKey]((layerName, layerZoom))
+      .where(Intersects(extent))
+      .toRDD
+      .localMap { z: Int => {
+        val a = 8121
+        val c = 28411
+        val m = 134456
+        ((a * z * z + c) % m) % 5
+      }
+    }
+
     geometry match {
       case p: Polygon => Histogram.gtHistogram(nlcd, soil, MultiPolygon(p)).toList.toJson.prettyPrint
       case mp: MultiPolygon => Histogram.gtHistogram(nlcd, soil, mp).toList.toJson.prettyPrint
-      case col: GeometryCollection => {
-        val polygons = col.polygons.map { p => MultiPolygon(p) } ++ col.multiPolygons
+      case gc: GeometryCollection => {
+        val polygons = gc.polygons.map { p => MultiPolygon(p) } ++ gc.multiPolygons
         polygons.map { p => Histogram.gtHistogram(nlcd, soil, p).toList }.toList.toJson.prettyPrint
       }
-      case g: Geometry => ""
     }
   }
 }
@@ -62,7 +92,7 @@ trait GeopService extends HttpService {
   import scala.util._
 
   import MediaTypes._
-  import Loader._
+  import S3Loader._
 
   val myRoute =
     path("") {
@@ -70,7 +100,7 @@ trait GeopService extends HttpService {
         respondWithMediaType(`application/json`) {
           entity(as[String]) {
             str => {
-              Try { Loader.jsonHistogram(str) } match {
+              Try { S3Loader.jsonHistogram(str) } match {
                 case Success(output) => {
                   if (output.length > 0) {
                     complete(output)

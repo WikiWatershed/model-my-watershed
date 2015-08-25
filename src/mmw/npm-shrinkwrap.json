@@ -41,7 +41,7 @@
     },
     "bootstrap-select": {
       "version": "1.6.4",
-      "from": "../../tmp/npm-31030-7f32f0c4/1436971651298-0.12548802117817104/f1755efa102a41e43fc367ba36ce905b8f2b90e1",
+      "from": "bootstrap-select@git://github.com/azavea/bootstrap-select",
       "resolved": "git://github.com/azavea/bootstrap-select#f1755efa102a41e43fc367ba36ce905b8f2b90e1"
     },
     "browserify": {
@@ -1052,6 +1052,11 @@
       "from": "https://registry.npmjs.org/font-awesome/-/font-awesome-4.3.0.tgz",
       "resolved": "https://registry.npmjs.org/font-awesome/-/font-awesome-4.3.0.tgz"
     },
+    "iframe-phone": {
+      "version": "1.1.3",
+      "from": "git://github.com/concord-consortium/iframe-phone#v1.1.3",
+      "resolved": "git://github.com/concord-consortium/iframe-phone#200f47f43ee32d640868072c17de4a675e16d96a"
+    },
     "jquery": {
       "version": "2.1.3",
       "from": "https://registry.npmjs.org/jquery/-/jquery-2.1.3.tgz",
@@ -1497,8 +1502,8 @@
     },
     "leaflet-draw": {
       "version": "0.2.3",
-      "from": "../../tmp/npm-31030-7f32f0c4/1436971651262-0.632644888246432/e2fe3a4c176979235845e8fbb1c5017414035765",
-      "resolved": "git://github.com/michaelguild13/Leaflet.draw#e2fe3a4c176979235845e8fbb1c5017414035765"
+      "from": "git://github.com/michaelguild13/Leaflet.draw.git#e753b7d",
+      "resolved": "git://github.com/michaelguild13/Leaflet.draw#e753b7d0eb9d1de8864ca85d5dafbf9ac955759c"
     },
     "leaflet-plugins": {
       "version": "1.3.8",
@@ -3318,7 +3323,7 @@
     },
     "retina.js": {
       "version": "1.3.0",
-      "from": "../../tmp/npm-31030-7f32f0c4/1436971651112-0.5243154705967754/a70e73639817473bad7bbb33f866b8e060e5f5a7",
+      "from": "retina.js@git://github.com/imulus/retinajs#1.3.0",
       "resolved": "git://github.com/imulus/retinajs#a70e73639817473bad7bbb33f866b8e060e5f5a7"
     },
     "sinon": {
@@ -3966,6 +3971,18 @@
         }
       }
     },
+    "turf-bbox-polygon": {
+      "version": "1.0.1",
+      "from": "turf-bbox-polygon@*",
+      "resolved": "https://registry.npmjs.org/turf-bbox-polygon/-/turf-bbox-polygon-1.0.1.tgz",
+      "dependencies": {
+        "turf-polygon": {
+          "version": "1.0.3",
+          "from": "turf-polygon@>=1.0.2 <2.0.0",
+          "resolved": "https://registry.npmjs.org/turf-polygon/-/turf-polygon-1.0.3.tgz"
+        }
+      }
+    },
     "turf-buffer": {
       "version": "1.0.4",
       "from": "https://registry.npmjs.org/turf-buffer/-/turf-buffer-1.0.4.tgz",
@@ -4004,6 +4021,65 @@
           "resolved": "https://registry.npmjs.org/turf-polygon/-/turf-polygon-1.0.3.tgz"
         }
       }
+    },
+    "turf-destination": {
+      "version": "1.2.1",
+      "from": "turf-destination@*",
+      "resolved": "https://registry.npmjs.org/turf-destination/-/turf-destination-1.2.1.tgz",
+      "dependencies": {
+        "turf-point": {
+          "version": "2.0.1",
+          "from": "turf-point@>=2.0.0 <3.0.0",
+          "resolved": "https://registry.npmjs.org/turf-point/-/turf-point-2.0.1.tgz",
+          "dependencies": {
+            "minimist": {
+              "version": "1.1.2",
+              "from": "minimist@>=1.1.0 <2.0.0",
+              "resolved": "https://registry.npmjs.org/minimist/-/minimist-1.1.2.tgz"
+            }
+          }
+        }
+      }
+    },
+    "turf-erase": {
+        "version": "1.3.2",
+        "from": "turf-erase@",
+        "dependencies": {
+            "jsts": {
+                "version": "0.15.0",
+                "from": "https://registry.npmjs.org/jsts/-/jsts-0.15.0.tgz",
+                "resolved": "https://registry.npmjs.org/jsts/-/jsts-0.15.0.tgz",
+                "dependencies": {
+                    "javascript.util": {
+                        "version": "0.12.5",
+                        "from": "https://registry.npmjs.org/javascript.util/-/javascript.util-0.12.5.tgz",
+                        "resolved": "https://registry.npmjs.org/javascript.util/-/javascript.util-0.12.5.tgz"
+                    }
+                }
+            },
+            "turf-featurecollection": {
+                "version": "1.0.1",
+                "from": "turf-featurecollection@1.0.1"
+            }
+        }
+    },
+    "turf-intersect": {
+        "version": "1.4.2",
+        "from": "turf-intersect@",
+        "dependencies": {
+            "jsts": {
+                "version": "0.15.0",
+                "from": "https://registry.npmjs.org/jsts/-/jsts-0.15.0.tgz",
+                "resolved": "https://registry.npmjs.org/jsts/-/jsts-0.15.0.tgz",
+                "dependencies": {
+                    "javascript.util": {
+                        "version": "0.12.5",
+                        "from": "https://registry.npmjs.org/javascript.util/-/javascript.util-0.12.5.tgz",
+                        "resolved": "https://registry.npmjs.org/javascript.util/-/javascript.util-0.12.5.tgz"
+                    }
+                }
+            }
+        }
     },
     "turf-random": {
       "version": "1.0.2",

@@ -1,0 +1,17 @@
+<div class="header">
+    <h3>Model Output</h3>
+    {% if polling %}
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+    {% endif %}
+    <div class="pull-right">
+        <select class="form-control btn btn-small btn-primary">
+            {% for result in results %}
+                <option value="{{ result.name }}" {{ "selected" if result.active }}>
+                    {{ result.displayName }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+<div class="result-region"></div>
+<div class="controls-region"></div>

@@ -6,13 +6,15 @@ var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     turfRandom = require('turf-random'),
     turfBuffer = require('turf-buffer'),
+    turfBboxPolygon = require('turf-bbox-polygon'),
+    turfDestination = require('turf-destination'),
     router = require('../router').router,
     App = require('../app'),
     utils = require('./utils'),
     toolbarTmpl = require('./templates/toolbar.html'),
     loadingTmpl = require('./templates/loading.html'),
     selectTypeTmpl = require('./templates/selectType.html'),
-    drawAreaTmpl = require('./templates/drawArea.html'),
+    drawTmpl = require('./templates/draw.html'),
     resetDrawTmpl = require('./templates/reset.html'),
     streamSliderTmpl = require('./templates/streamSlider.html'),
     placeMarkerTmpl = require('./templates/placeMarker.html'),
@@ -27,7 +29,7 @@ var ToolbarView = Marionette.LayoutView.extend({
 
     regions: {
         selectTypeRegion: '#select-area-region',
-        drawAreaRegion: '#draw-area-region',
+        drawRegion: '#draw-region',
         placeMarkerRegion: '#place-marker-region',
         resetRegion: '#reset-draw-region',
         streamRegion: '#stream-slider-region'
@@ -57,7 +59,7 @@ var ToolbarView = Marionette.LayoutView.extend({
         this.selectTypeRegion.show(new SelectAreaView({
             model: this.model
         }));
-        this.drawAreaRegion.show(new DrawAreaView({
+        this.drawRegion.show(new DrawView({
             model: this.model
         }));
         this.placeMarkerRegion.show(new PlaceMarkerView({
@@ -76,8 +78,9 @@ var SelectAreaView = Marionette.ItemView.extend({
     $label: $('#boundary-label'),
 
     ui: {
-        'items': '[data-endpoint]',
-        'button': '#predefined-shape',
+        items: '[data-endpoint]',
+        button: '#predefined-shape',
+        helptextIcon: 'i.split'
     },
 
     events: {
@@ -94,13 +97,18 @@ var SelectAreaView = Marionette.ItemView.extend({
         ofg.on('layerremove', _.bind(this.clearLabel, this));
     },
 
+    onRender: function() {
+        this.ui.helptextIcon.popover({ trigger: 'hover' });
+    },
+
     onItemClicked: function(e) {
         var $el = $(e.target),
             endpoint = $el.data('endpoint'),
-            tableId = $el.data('tableid');
+            tableId = $el.data('tableid'),
+            shortDisplay = $el.data('short-display');
 
         clearAoiLayer();
-        this.changeOutlineLayer(endpoint, tableId);
+        this.changeOutlineLayer(endpoint, tableId, shortDisplay);
         e.preventDefault();
     },
 
@@ -109,7 +117,7 @@ var SelectAreaView = Marionette.ItemView.extend({
         return !types ? loadingTmpl : selectTypeTmpl;
     },
 
-    changeOutlineLayer: function(endpoint, tableId) {
+    changeOutlineLayer: function(endpoint, tableId, shortDisplay) {
         var self = this,
             ofg = self.model.get('outlineFeatureGroup');
 
@@ -122,7 +130,7 @@ var SelectAreaView = Marionette.ItemView.extend({
                                          maxRequests: 8
                                      });
             grid.on('click', function(e) {
-                getShapeAndAnalyze(e, self.model, ofg, grid, tableId);
+                getShapeAndAnalyze(e, self.model, ofg, grid, tableId, shortDisplay);
             });
 
             grid.on('mousemove', function(e) {
@@ -165,22 +173,25 @@ var SelectAreaView = Marionette.ItemView.extend({
     }
 });
 
-var DrawAreaView = Marionette.ItemView.extend({
-    template: drawAreaTmpl,
+var DrawView = Marionette.ItemView.extend({
+    template: drawTmpl,
 
     ui: {
-        'button': '#custom-shape',
+        drawArea: '#custom-shape',
+        drawStamp: '#one-km-stamp',
+        helptextIcon: 'i.split'
     },
 
     events: {
-        'click @ui.button': 'onButtonPressed',
+        'click @ui.drawArea': 'enableDrawArea',
+        'click @ui.drawStamp': 'enableStampTool'
     },
 
     modelEvents: {
         'change:toolsEnabled': 'render'
     },
 
-    onButtonPressed: function() {
+    enableDrawArea: function() {
         var self = this,
             map = App.getLeafletMap(),
             revertLayer = clearAoiLayer();
@@ -194,6 +205,49 @@ var DrawAreaView = Marionette.ItemView.extend({
         }).always(function() {
             self.model.enableTools();
         });
+    },
+
+    onShow: function() {
+        this.ui.helptextIcon.popover({ trigger: 'hover' });
+    },
+
+    enableStampTool: function() {
+        var self = this,
+            map = App.getLeafletMap(),
+            revertLayer = clearAoiLayer();
+
+        this.model.disableTools();
+        utils.placeMarker(map).then(function(latlng) {
+            var point = L.marker(latlng).toGeoJSON(),
+                halfKmbufferPoints = _.map([-180, -90, 0, 90], function(bearing) {
+                    var p = turfDestination(point, 0.5, bearing, 'kilometers');
+                    return L.latLng(p.geometry.coordinates[1], p.geometry.coordinates[0]);
+                }),
+                // Convert the four points into two SW and NE for the bounding
+                // box. Do this by splitting the array into two arrays of two
+                // points. Then map each array of two to a single point by
+                // taking the lat from one and lng from the other.
+                swNe = _.map(_.toArray(_.groupBy(halfKmbufferPoints, function(p, i) {
+                    // split the array of four in half.
+                    return i < 2;
+                })), function(pointGroup) {
+                    return L.latLng(pointGroup[0].lat, pointGroup[1].lng);
+                }),
+                bounds = L.latLngBounds(swNe),
+                box = turfBboxPolygon(bounds.toBBoxString().split(','));
+
+            // Convert coordinates from using strings to floats so that backend can parse them.
+            box.geometry.coordinates[0] = _.map(box.geometry.coordinates[0], function(coord) {
+                return [parseFloat(coord[0]), parseFloat(coord[1])];
+            });
+
+            addLayer(box, '1 Square Km');
+            navigateToAnalyze();
+        }).fail(function() {
+            revertLayer();
+        }).always(function() {
+            self.model.enableTools();
+        });
     }
 });
 
@@ -201,21 +255,31 @@ var PlaceMarkerView = Marionette.ItemView.extend({
     template: placeMarkerTmpl,
 
     ui: {
-        'items': '[data-shape-type]',
-        'button': '#delineate-shape',
+        items: '[data-shape-type]',
+        button: '#delineate-shape',
+        helptextIcon: 'i.split'
     },
 
     events: {
-        'click @ui.items': 'onItemClicked',
+        'click @ui.items': 'onItemClicked'
+    },
+
+    onShow: function() {
+        // TODO: the viewport setting doesn't appear to be working.
+        this.ui.helptextIcon.popover({
+            trigger: 'hover',
+            viewport: '.container-fluid.top-nav'
+        });
     },
 
     modelEvents: {
         'change:toolsEnabled': 'render'
     },
 
-    onItemClicked: function() {
+    onItemClicked: function(e) {
         var self = this,
             map = App.getLeafletMap(),
+            itemName = $(e.target).text(),
             revertLayer = clearAoiLayer();
 
         this.model.disableTools();
@@ -223,12 +287,7 @@ var PlaceMarkerView = Marionette.ItemView.extend({
             // TODO: This is temporary until we have
             // endpoints that can actually delienate
             // watersheds.
-            var point = {
-                  "type": "Feature", "properties": {}, "geometry": {
-                    "type": "Point",
-                    "coordinates": [latlng.lng, latlng.lat]
-                  }
-                },
+            var point = L.marker(latlng).toGeoJSON(),
                 buffered = turfBuffer(point, 5000, 'meters'),
                 bounds = L.geoJson(buffered).getBounds(),
                 shape = turfRandom('polygons', 1, {
@@ -240,7 +299,7 @@ var PlaceMarkerView = Marionette.ItemView.extend({
                     max_radial_length: 0.25
                 });
 
-            addLayer(shape);
+            addLayer(shape, itemName);
             navigateToAnalyze();
         }).fail(function() {
             revertLayer();
@@ -278,7 +337,7 @@ var StreamSliderView = Marionette.ItemView.extend({
     },
 
     initialize: function() {
-        this.streamLayers = settings.getSettings().stream_layers;
+        this.streamLayers = settings.get('stream_layers');
     },
 
     onShow: function() {
@@ -325,7 +384,7 @@ function changeStreamLayer(endpoint, model) {
     sl.bringToFront();
 }
 
-function getShapeAndAnalyze(e, model, ofg, grid, tableId) {
+function getShapeAndAnalyze(e, model, ofg, grid, tableId, layerName) {
     // The shapeId might not be available at the time of the click
     // because the UTF Grid layer might not be loaded yet, so
     // we poll for it.
@@ -333,6 +392,7 @@ function getShapeAndAnalyze(e, model, ofg, grid, tableId) {
         maxPolls = 5,
         pollCount = 0,
         deferred = $.Deferred(),
+        shapeName = e.data && e.data.name ? e.data.name : null,
         shapeId = e.data ? e.data.id : null;
 
         if (shapeId) {
@@ -346,7 +406,7 @@ function getShapeAndAnalyze(e, model, ofg, grid, tableId) {
             tableId: tableId,
             shapeId: shapeId
         }).done(function(shape) {
-            addLayer(shape);
+            addLayer(shape, shapeName, layerName);
             clearBoundaryLayer(model);
             navigateToAnalyze();
             deferred.resolve();
@@ -397,8 +457,17 @@ function clearBoundaryLayer(model) {
     }
 }
 
-function addLayer(shape) {
-    App.map.set('areaOfInterest', shape);
+function addLayer(shape, name, label) {
+    if (!name) {
+        name = 'Selected Area';
+    }
+
+    var displayName = (label ? label+=': ' : '') + name;
+
+    App.map.set({
+        'areaOfInterest': shape,
+        'areaOfInterestName': displayName
+    });
 }
 
 function navigateToAnalyze() {

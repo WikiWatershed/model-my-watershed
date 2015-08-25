@@ -143,7 +143,7 @@ def scenario(request, scen_id):
 def start_analyze(request, format=None):
     user = request.user if request.user.is_authenticated() else None
     created = now()
-    area_of_interest = request.POST
+    area_of_interest = request.POST['area_of_interest']
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
 
@@ -253,7 +253,9 @@ def boundary_layers(request, table_id=None, obj_id=None):
             return {
                 'display': dictionary['display'],
                 'tableId': code,
-                'endpoint': urljoin(tiler_base, code + tiler_postfix)
+                'endpoint': urljoin(tiler_base, code + tiler_postfix),
+                'short_display': layer['short_display'],
+                'helptext': dictionary['helptext']
             }
 
         layers = [augment(layer) for layer in layer_list]

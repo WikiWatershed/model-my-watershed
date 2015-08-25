@@ -1,11 +1,19 @@
 "use strict";
 
 var $ = require('jquery'),
-    L = require('leaflet');
+    L = require('leaflet'),
+    _ = require('lodash');
+
+var polygonDefaults = {
+        fillColor: '#E77471',
+        color: '#E77471'
+    };
 
 function drawPolygon(map, drawOpts) {
     var defer = $.Deferred(),
-        tool = new L.Draw.Polygon(map, { shapeOptions: drawOpts || {}}),
+        tool = new L.Draw.Polygon(map, {
+            shapeOptions: _.defaults(drawOpts || {}, polygonDefaults)
+        }),
         clearEvents = function() {
             map.off('draw:created');
             map.off('draw:drawstop');
@@ -66,5 +74,6 @@ function cancelDrawing(map) {
 module.exports = {
     drawPolygon: drawPolygon,
     placeMarker: placeMarker,
-    cancelDrawing: cancelDrawing
+    cancelDrawing: cancelDrawing,
+    polygonDefaults: polygonDefaults
 };

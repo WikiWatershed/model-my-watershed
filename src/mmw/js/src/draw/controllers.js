@@ -5,6 +5,8 @@ var App = require('../app'),
     views = require('./views'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
+    settings = require('../core/settings'),
+    modelingModels = require('../modeling/models'),
     models = require('./models');
 
 
@@ -27,6 +29,8 @@ var DrawController = {
         App.rootView.geocodeSearchRegion.show(geocodeSearch);
         App.rootView.drawToolsRegion.show(toolbarView);
 
+        enableSingleProjectModeIfActivity();
+
         if (App.map.get('areaOfInterest')) {
             var aoiView = new coreViews.AreaOfInterestView({
                     id: 'aoi-header-wrapper',
@@ -35,7 +39,8 @@ var DrawController = {
                         can_go_back: false,
                         next_label: 'Analyze',
                         url: 'analyze',
-                        shape: App.map.get('areaOfInterest')
+                        shape: App.map.get('areaOfInterest'),
+                        place: App.map.get('areaOfInterestName')
                     })
             });
 
@@ -50,6 +55,28 @@ var DrawController = {
         App.rootView.footerRegion.empty();
     }
 };
+
+/**
+ * If we are in embed mode then the project is an activity and we want to keep
+ * the same project reguardless of changes to the AOI. This prepares a project
+ * immedialty upon visiting the page and will be the only project the user can
+ * save during this session.
+ */
+function enableSingleProjectModeIfActivity() {
+    if (settings.get('activityMode')) {
+        if (!App.currProject) {
+            var project = new modelingModels.ProjectModel({
+                name: 'New Activity',
+                created_at: Date.now(),
+                area_of_interest: null,
+                scenarios: new modelingModels.ScenariosCollection(),
+                is_activity: true,
+                needs_reset: true
+            });
+            App.currProject = project;
+        }
+    }
+}
 
 module.exports = {
     DrawController: DrawController

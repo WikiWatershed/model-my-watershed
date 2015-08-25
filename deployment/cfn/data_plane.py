@@ -193,8 +193,7 @@ class DataPlane(StackNode):
             monitoring_ami_id = self.get_input('BastionHostAMI')
         except MKUnresolvableInputError:
             monitoring_ami_id = get_recent_ami(self.aws_profile,
-                                               'mmw-monitoring-*',
-                                               owner='self')
+                                               'mmw-monitoring-*')
 
         return monitoring_ami_id
 

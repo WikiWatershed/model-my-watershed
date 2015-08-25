@@ -8,27 +8,38 @@ var utils = {
     // Takes queryString of format "key1=value1&key2=value2"
     // Returns object of format {key1: value1, key2: value2}
     // From http://stackoverflow.com/a/11671457/2053314
-    parseQueryString: function (queryString){
+    parseQueryString: function(queryString) {
         var params = {};
-        if(queryString){
+        if (queryString) {
             _.each(
-                _.map(decodeURI(queryString).split(/&/g),function(el){
+                _.map(decodeURI(queryString).split(/&/g), function(el) {
                     var aux = el.split('='), o = {};
-                    if(aux.length >= 1){
+                    if (aux.length >= 1) {
                         var val;
-                        if(aux.length === 2) {
+                        if (aux.length === 2) {
                             val = aux[1];
                         }
                         o[aux[0]] = val;
                     }
                     return o;
                 }),
-                function(o){
+                function(o) {
                     _.extend(params,o);
                 }
             );
         }
         return params;
+    },
+
+    /**
+     * Returns the value of a query param from the URL if it exists or null:
+     * https://stackoverflow.com/questions/901115
+     */
+    getParameterByName: function(name) {
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)'),
+            results = regex.exec(location.search);
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
     },
 
     // Convert a backbone collection into a canonical MD5 hash
@@ -56,13 +67,60 @@ var utils = {
 
                 return sorted;
             },
-            // Sort the collection by given sortKey and convert
-            // each model to a sorted array
-            sortedCollection = collection.sort().map(function(model) {
+            // Convert each model to a sorted array
+            sortedCollection = collection.map(function(model) {
                 return objectToSortedArray(model.toJSON());
             });
 
         return md5(JSON.stringify(sortedCollection));
+    },
+
+    convertToMetric: function(value, fromUnit) {
+        fromUnit = fromUnit.toLowerCase();
+        switch (fromUnit) {
+            case 'in':
+                // return cm.
+                return value * 2.54;
+
+            case 'ft':
+                // return meters.
+                return value * 0.3048;
+
+            case 'mi':
+                // return km.
+                return value * 1.60934;
+
+            case 'lb':
+                // return kg.
+                return value * 0.453592;
+
+            default:
+                throw 'Conversion not implemented.';
+        }
+    },
+
+    convertToImperial: function(value, fromUnit) {
+        fromUnit = fromUnit.toLowerCase();
+        switch (fromUnit) {
+            case 'cm':
+                // return in.
+                return value * 0.393701;
+
+            case 'm':
+                // return feet.
+                return value * 3.28084;
+
+            case 'km':
+                // return miles.
+                return value * 0.621371;
+
+            case 'kg':
+                // return Lbs.
+                return value * 2.20462;
+
+            default:
+                throw 'Conversion not implemented.';
+        }
     }
 };
 

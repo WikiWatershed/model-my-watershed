@@ -10,15 +10,18 @@ var $ = require('jquery'),
     App = require('../app'),
     models = require('./models'),
     utils = require('./utils'),
-    views = require('./views');
+    views = require('./views'),
+    testUtils = require('../core/testUtils');
 
-var TEST_SHAPE = {
-    'type': 'MultiPolygon',
-    'coordinates': [[[-5e6, -1e6], [-4e6, 1e6], [-3e6, -1e6]]]
-};
+var sandboxId = 'sandbox',
+    sandboxSelector = '#' + sandboxId,
+    TEST_SHAPE = {
+        'type': 'MultiPolygon',
+        'coordinates': [[[-5e6, -1e6], [-4e6, 1e6], [-3e6, -1e6]]]
+    };
 
 var SandboxRegion = Marionette.Region.extend({
-    el: '#sandbox'
+    el: sandboxSelector
 });
 
 describe('Draw', function() {
@@ -27,8 +30,9 @@ describe('Draw', function() {
     });
 
     afterEach(function() {
-        $('#sandbox').remove();
+        $(sandboxSelector).remove();
         window.location.hash = '';
+        testUtils.resetApp(App);
     });
 
     describe('ToolbarView', function() {
@@ -88,8 +92,6 @@ describe('Draw', function() {
                     success = false;
                 }).
                 always(function() {
-                    App.getLeafletMap().closePopup();
-                    App.getLeafletMap()._panAnim = false;
                     assert.equal(success, false);
                     done();
                 });

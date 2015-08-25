@@ -18,7 +18,6 @@ azavea.elasticsearch,0.2.0
 azavea.logstash,0.1.0
 azavea.kibana,0.3.1
 azavea.collectd,0.2.0
-azavea.java,0.1.1
 azavea.build-essential,0.1.0
 azavea.mapnik,0.1.0
 azavea.beaver,0.1.3

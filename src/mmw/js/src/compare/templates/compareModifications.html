@@ -1,6 +1,20 @@
-<h3>Modifications</h3>
-<ul class="modifications-list">
-    {% for modification in modifications %}
-        <li>{{ modification.name }}:{{ modification.value }}, Area: {{modification.area}}</li>
-    {% endfor %}
-</ul>
+{% macro modificationsTable(caption, modifications) %}
+<table class="modifications-table">
+    <caption>{{ caption }}</caption>
+    <tbody>
+        {% for mod in modifications %}
+            <tr>
+                <td class="modification-value">
+                    {{ modConfigUtils.getHumanReadableShortName(mod.get('value')) }}
+                </td>
+                <td class="modification-area">
+                    +{{ mod.get('area').toFixed(1) }} {{ mod.get('units') }}
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endmacro %}
+
+{{ modificationsTable('Land Cover', landCovers) }}
+{{ modificationsTable('Conservation Practices', conservationPractices) }}

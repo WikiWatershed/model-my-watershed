@@ -1,5 +1,5 @@
 .compare-scenarios-container{
-  overflow-x: hidden;
+  overflow: hidden;
   position: absolute;
   top: 0;
   left: 0;
@@ -9,7 +9,7 @@
   background-color: $ui-light;
   transition: 0.3s ease left, 0.3s ease right;
 
-  table{
+  .compare-table{
     height: 100%;
 
     tbody{
@@ -49,7 +49,7 @@
           }
 
           .map-region{
-            height: 20%;
+            height: 18vh;
             width: 100%;
 
             .map-container{
@@ -86,33 +86,94 @@
             }
           }
 
-          .chart-region{
+          .modeling-region{
             width: 100%;
-            height: 37%;
+            height: 44vh;
 
-            .chart-container{
+            .modeling-container{
               position: relative;
               width: auto;
               height: 100%;
               padding: 1rem;
+
+              .fa-spin{
+                margin-left: 8px;
+                font-size: 14px;
+                color: rgba(0, 0, 0, 0.54);
+              }
+
+              .header{
+                height: 12%;
+              }
+
+              .disclaimer{
+                font-size: 12px;
+              }
+
+              .result-region{
+                height: 95%;
+
+                .tab-pane{
+                  height: 100%;
+                  .quality-chart-region{
+                    height: 100%;
+                  }
+                }
+              }
+
+              .controls-region{
+                .controls {
+                  .precipitation {
+                    .btn-primary {
+                      z-index: 10;
+                      padding: 0;
+                      margin-top: 10px;
+
+                      label{
+                        display: table;
+                        width: 100%;
+
+                        span{
+                          display: table-cell;
+                          width: 10%;
+                          white-space: nowrap;
+                          padding: 5px;
+                        }
+                        input{
+                          display: table-cell;
+                          width: 100%;
+                          vertical-align: bottom;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
 
-
           .modifications-region{
             width: 100%;
-            height: 37%;
+            height: 25vh;
+            margin-top: 30px;
 
             .modifications-container{
+              position: relative;
               width: 100%;
               height: 100%;
+              padding: 1rem;
+              overflow-y: auto;
 
-              .modifications-list{
-                position: relative;
-                width: auto;
-                height: 100%;
-                padding: 1rem;
-                overflow-y: auto;
+              .modifications-table{
+                font-size: 0.6rem;
+                width: 100%;
+                td{
+                  padding: 8px;
+                }
+                .modification-area{
+                  color: $brand-primary;
+                  text-align: right;
+                }
               }
             }
           }

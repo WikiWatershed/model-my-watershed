@@ -11,8 +11,10 @@ var MapModel = Backbone.Model.extend({
         lng: 0,
         zoom: 0,
         areaOfInterest: null,           // GeoJSON
+        areaOfInterestName: '',
         halfSize: false,
-        geolocationEnabled: true
+        geolocationEnabled: true,
+        previousAreaOfInterest: null
     },
 
     revertMaskLayer: function() {
@@ -44,6 +46,18 @@ var MapModel = Backbone.Model.extend({
 
             this.set('areaOfInterest', aoi);
         }
+    },
+
+    stashAOI: function() {
+        // Since we oscillate between an area of interest and a blank map, stash
+        // non-null AOI.
+        if (!_.isNull(this.get('areaOfInterest'))) {
+            this.set('previousAreaOfInterest', _.clone(this.get('areaOfInterest')));
+        }
+    },
+
+    revertAOI: function() {
+        this.set('areaOfInterest', _.clone(this.get('previousAreaOfInterest')));
     },
 
     setHalfSize: function(fit) {
@@ -96,15 +110,15 @@ var TaskModel = Backbone.Model.extend({
         if (taskHelper.onStart) {
             taskHelper.onStart();
         }
-        var self = this;
-
-        self
-            .fetch({
+        var self = this,
+            startDefer = self.fetch({
                 method: 'POST',
                 data: taskHelper.postData
-            })
-            .done(function() {
-                self.pollForResults()
+            }),
+            pollingDefer = $.Deferred();
+
+            startDefer.done(function() {
+                self.pollForResults(pollingDefer)
                     .done(taskHelper.pollSuccess)
                     .fail(function(error) {
                         if (error && error.cancelledJob) {
@@ -116,31 +130,35 @@ var TaskModel = Backbone.Model.extend({
                     .always(taskHelper.pollEnd);
             })
             .fail(taskHelper.startFailure);
+
+        return {
+            startPromise: startDefer.promise(),
+            pollingPromise: pollingDefer.promise()
+        };
     },
 
-    pollForResults: function() {
-        // expectedJob is the value of this.get('job')
+    pollForResults: function(defer) {
+        // startJob is the value of this.get('job')
         // associated with a single call to start(). If start()
         // is called again, the values of this.get('job') and
-        // expectedJob will diverge.
-        var defer = $.Deferred(),
-            duration = 0,
+        // startJob will diverge.
+        var elapsed = 0,
             self = this,
-            expectedJob = self.get('job');
+            startJob = self.get('job');
 
         // Check the task endpoint to see if the job is
         // completed. If it is, return the results of
         // the job. If not, check again after
         // pollInterval has elapsed.
         var getResults = function() {
-            if (duration >= self.get('timeout')) {
+            if (elapsed >= self.get('timeout')) {
                 defer.reject();
                 return;
             }
 
             // If job was cancelled.
-            if (expectedJob !== self.get('job')) {
-                defer.reject({cancelledJob: expectedJob});
+            if (startJob !== self.get('job')) {
+                defer.reject({cancelledJob: startJob});
                 return;
             }
 
@@ -148,7 +166,7 @@ var TaskModel = Backbone.Model.extend({
                 .done(function(response) {
                     console.log('Polling ' + self.url());
                     if (response.status !== 'complete') {
-                        duration = duration + self.get('pollInterval');
+                        elapsed = elapsed + self.get('pollInterval');
                         window.setTimeout(getResults, self.get('pollInterval'));
                     } else {
                         defer.resolve(response);
