@@ -11,8 +11,7 @@ import math
 # TODO Remove this when stub task is deleted.
 import time
 
-from tr55.model import simulate_modifications, simulate_cell_day
-from tr55.tablelookup import lookup_ki
+from tr55.model import simulate_day
 
 logger = logging.getLogger(__name__)
 
@@ -150,14 +149,14 @@ def prepare_census(model_input):
         },
         'modifications': [
             {
-                'bmp': 'no_till',
+                'change': '::no_till',
                 'cell_count': 1,
                 'distribution': {
                     'a:deciduous_forest': {'cell_count': 1},
                 }
             },
             {
-                'reclassification': 'd:rock',
+                'change': 'd:rock:',
                 'cell_count': 1,
                 'distribution': {
                     'a:deciduous_forest': {'cell_count': 1}
@@ -211,7 +210,6 @@ def run_tr55(census, model_input):
     A thin Celery wrapper around our TR55 implementation.
     """
 
-    et_max = 0.207
     precip = _get_precip_value(model_input)
 
     if precip is None:
@@ -222,12 +220,10 @@ def run_tr55(census, model_input):
     modifications = get_census_modifications(model_input)
     census['modifications'] = modifications
 
-    def simulate_day(cell, cell_count):
-        soil_type, land_use = cell.lower().split(':')
-        et = et_max * lookup_ki(land_use)
-        return simulate_cell_day((precip, et), cell, cell_count)
-
-    model_output = simulate_modifications(census, fn=simulate_day)
+    model_output = simulate_day(census, precip)
+    precolumbian_output = simulate_day(census, precip, precolumbian=True)
+    model_output['pc_unmodified'] = precolumbian_output['unmodified']
+    model_output['pc_modified'] = precolumbian_output['modified']
 
     return {
         'inputmod_hash': model_input['inputmod_hash'],
@@ -276,7 +272,7 @@ def get_census_modifications(model_input):
     if count > 1:
         modifications = [
             {
-                'reclassification': 'a:chaparral',
+                'change': 'a:chaparral:',
                 'cell_count': count * multiplier,
                 'distribution': {
                     'c:commercial': {'cell_count': count * multiplier},
