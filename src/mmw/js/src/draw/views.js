@@ -78,8 +78,9 @@ var SelectAreaView = Marionette.ItemView.extend({
     $label: $('#boundary-label'),
 
     ui: {
-        'items': '[data-endpoint]',
-        'button': '#predefined-shape',
+        items: '[data-endpoint]',
+        button: '#predefined-shape',
+        helptextIcon: 'i.split'
     },
 
     events: {
@@ -94,6 +95,10 @@ var SelectAreaView = Marionette.ItemView.extend({
     initialize: function() {
         var ofg = this.model.get('outlineFeatureGroup');
         ofg.on('layerremove', _.bind(this.clearLabel, this));
+    },
+
+    onRender: function() {
+        this.ui.helptextIcon.popover({ trigger: 'hover' });
     },
 
     onItemClicked: function(e) {
@@ -173,7 +178,8 @@ var DrawView = Marionette.ItemView.extend({
 
     ui: {
         drawArea: '#custom-shape',
-        drawStamp: '#one-km-stamp'
+        drawStamp: '#one-km-stamp',
+        helptextIcon: 'i.split'
     },
 
     events: {
@@ -199,6 +205,10 @@ var DrawView = Marionette.ItemView.extend({
         }).always(function() {
             self.model.enableTools();
         });
+    },
+
+    onShow: function() {
+        this.ui.helptextIcon.popover({ trigger: 'hover' });
     },
 
     enableStampTool: function() {
@@ -245,12 +255,21 @@ var PlaceMarkerView = Marionette.ItemView.extend({
     template: placeMarkerTmpl,
 
     ui: {
-        'items': '[data-shape-type]',
-        'button': '#delineate-shape',
+        items: '[data-shape-type]',
+        button: '#delineate-shape',
+        helptextIcon: 'i.split'
     },
 
     events: {
-        'click @ui.items': 'onItemClicked',
+        'click @ui.items': 'onItemClicked'
+    },
+
+    onShow: function() {
+        // TODO: the viewport setting doesn't appear to be working.
+        this.ui.helptextIcon.popover({
+            trigger: 'hover',
+            viewport: '.container-fluid.top-nav'
+        });
     },
 
     modelEvents: {
