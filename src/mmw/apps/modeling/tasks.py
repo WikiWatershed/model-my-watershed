@@ -8,8 +8,8 @@ import json
 import logging
 import math
 
-# TODO Remove this when stub task is deleted.
-import time
+from apps.modeling.geoprocessing import geojson_to_survey, \
+    geojson_to_census, geojson_to_censuses
 
 from tr55.model import simulate_day
 
@@ -19,118 +19,28 @@ KG_PER_POUND = 0.453592
 CM_PER_INCH = 2.54
 
 
-@shared_task
-def run_analyze(area_of_interest):
-
+def aoi_resolution(area_of_interest):
     # Find the width in meters of a pixel at the average lat of the shape.
-    pairs = json.loads(area_of_interest)['coordinates'][0][0]
+    pairs = area_of_interest['coordinates'][0][0]
     average_lat = reduce(lambda total, p: total+p[1], pairs, 0) / len(pairs)
 
     # Zoom level is a hard coded value in the geoprocessing library.
-    zoom = 13
+    # TMS zoom levels are relative to tiles, not pixels.  The dataset
+    # that we are using on S3 has tiles of size 768x768 (instead of
+    # the more typical 256x256) and is at zoom level 11.  This
+    # corresponds roughly to zoom level 13 with 256x256 tiles.
+    zoom = 11
+    tile_width = 768
     # See https://msdn.microsoft.com/en-us/library/bb259689.aspx
-    pixel_width = (math.cos(average_lat * math.pi / 180) * 2 * math.pi *
-                   6378137) / (256 * math.pow(2, zoom))
+    return (math.cos(average_lat * math.pi / 180) * 2 * math.pi *
+            6378137) / (tile_width * math.pow(2, zoom))
 
-    time.sleep(3)
 
-    results = [
-        {
-            "name": "land",
-            "displayName": "Land",
-            "categories": [
-                {
-                    "type": "Water",
-                    "area": 21,
-                    "coverage": 0.01
-                },
-                {
-                    "type": "Developed: Open",
-                    "area": 5041,
-                    "coverage": .263
-                },
-                {
-                    "type": "Developed: Low",
-                    "area": 5181,
-                    "coverage": .271
-                },
-                {
-                    "type": "Developed: Medium",
-                    "area": 3344,
-                    "coverage": .175
-                },
-                {
-                    "type": "Developed: High",
-                    "area": 1103,
-                    "coverage": .058
-                },
-                {
-                    "type": "Bare Soil",
-                    "area": 19,
-                    "coverage": .001
-                },
-                {
-                    "type": "Forest",
-                    "area": 1804,
-                    "coverage": .094
-                },
-                {
-                    "type": "Deciduous Forest",
-                    "area": 1103,
-                    "coverage": .058
-                },
-                {
-                    "type": "Evergreen Forest",
-                    "area": 19,
-                    "coverage": .001
-                },
-                {
-                    "type": "Mixed Forest",
-                    "area": 1804,
-                    "coverage": .094
-                },
-                {
-                    "type": "Dwarf Scrub",
-                    "area": 1103,
-                    "coverage": .058
-                },
-                {
-                    "type": "Moss",
-                    "area": 19,
-                    "coverage": .001
-                },
-                {
-                    "type": "Pasture",
-                    "area": 1804,
-                    "coverage": .094
-                }
-            ]
-        },
-        {
-            "name": "soil",
-            "displayName": "Soil",
-            "categories": [
-                {
-                    "type": "Clay",
-                    "area": 21,
-                    "coverage": 0.01
-                },
-                {
-                    "type": "Silt",
-                    "area": 5041,
-                    "coverage": .263
-                },
-                {
-                    "type": "Sand",
-                    "area": 21,
-                    "coverage": .271
-                },
-            ]
-        }
-    ]
-
+@shared_task
+def run_analyze(area_of_interest):
+    pixel_width = aoi_resolution(json.loads(area_of_interest))
+    results = geojson_to_survey(area_of_interest)
     convert_result_areas(pixel_width, results)
-
     return results
 
 
@@ -139,34 +49,10 @@ def prepare_census(model_input):
     """
     Call geotrellis and calculate the tile data for use in the TR55 model.
     """
-
-    # TODO actually call geotrellis with model_input
-    census = {
-        'cell_count': 100,
-        'distribution': {
-            'c:commercial': {'cell_count': 70},
-            'a:deciduous_forest': {'cell_count': 30}
-        },
-        'modifications': [
-            {
-                'change': '::no_till',
-                'cell_count': 1,
-                'distribution': {
-                    'a:deciduous_forest': {'cell_count': 1},
-                }
-            },
-            {
-                'change': 'd:rock:',
-                'cell_count': 1,
-                'distribution': {
-                    'a:deciduous_forest': {'cell_count': 1}
-                }
-            }
-        ],
-        'modification_hash': model_input['modification_hash']
-    }
-
-    return census
+    if 'area_of_interest' in model_input:
+        return geojson_to_census(model_input['area_of_interest'])
+    else:
+        raise Exception('No Area of Interest')
 
 
 def format_quality(model_output):
@@ -209,19 +95,19 @@ def run_tr55(census, model_input):
     """
     A thin Celery wrapper around our TR55 implementation.
     """
-
-    precip = _get_precip_value(model_input)
+    precip = get_precip(model_input)
+    width = aoi_resolution(model_input['area_of_interest'])
+    res = width * width
 
     if precip is None:
         raise Exception('No precipitation value defined')
 
-    # TODO: These next two lines are just for
-    # demonstration purposes.
     modifications = get_census_modifications(model_input)
     census['modifications'] = modifications
 
-    model_output = simulate_day(census, precip)
-    precolumbian_output = simulate_day(census, precip, precolumbian=True)
+    model_output = simulate_day(census, precip, cell_res=res)
+    precolumbian_output = simulate_day(census, precip,
+                                       cell_res=res, precolumbian=True)
     model_output['pc_unmodified'] = precolumbian_output['unmodified']
     model_output['pc_modified'] = precolumbian_output['modified']
 
@@ -233,7 +119,7 @@ def run_tr55(census, model_input):
     }
 
 
-def _get_precip_value(model_input):
+def get_precip(model_input):
     try:
         precips = [item for item in model_input['inputs']
                    if item['name'] == 'precipitation']
@@ -254,30 +140,29 @@ def convert_result_areas(pixel_width, results):
                                      pixel_width)
 
 
-# TODO: For demonstration purposes.
 def get_census_modifications(model_input):
-    """
-    For each modification that was drawn, replace
-    a cell of commercial with a cell of
-    chaparral. This has the effect of improving
-    infiltration and evapotranspiration.
-    """
-    multiplier = 4
-    count = len(model_input['modifications'])
-    modifications = []
+    def change_key(modification):
+        name = modification['name']
+        value = modification['value']
 
-    # Percipiation is in modifications, so even if
-    # there are no modifications, there will be one element
-    # for percipitation.
-    if count > 1:
-        modifications = [
-            {
-                'change': 'a:chaparral:',
-                'cell_count': count * multiplier,
-                'distribution': {
-                    'c:commercial': {'cell_count': count * multiplier},
-                }
-            }
-        ]
+        if name == 'landcover':
+            return {'change': ':%s:' % value}
+        elif name == 'conservation_practice':
+            return {'change': '::%s' % value}
+        elif name == 'both':
+            return {'change': ':%s:%s' % (value['reclass'], value['bmp'])}
+
+    if 'modification_pieces' in model_input:
+        raw_mods = model_input['modification_pieces']
+    else:
+        raw_mods = []
+
+    changes = [change_key(m) for m in raw_mods]
+
+    polygons = [m['shape']['geometry'] for m in raw_mods]
+    modifications = geojson_to_censuses(polygons)
+
+    for (m, c) in zip(modifications, changes):
+        m.update(c)
 
     return modifications

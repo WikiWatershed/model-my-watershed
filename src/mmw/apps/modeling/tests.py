@@ -82,6 +82,15 @@ class TaskRunnerTestCase(TestCase):
     def test_tr55_job_error_in_chain(self):
         model_input = {
             'inputs': [],
+            'area_of_interest': {
+                'type': 'MultiPolygon',
+                'coordinates': [[
+                    [[-75.06271362304688, 40.15893480687665],
+                     [-75.2728271484375, 39.97185812402586],
+                     [-74.99130249023438, 40.10958807474143],
+                     [-75.06271362304688, 40.15893480687665]]
+                ]]
+            },
             'modifications': [],
             'modification_hash': 'j39fj9fg7yshb399h4nsdhf'
         }
