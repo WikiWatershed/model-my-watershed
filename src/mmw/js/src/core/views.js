@@ -204,7 +204,10 @@ var MapView = Marionette.ItemView.extend({
         }
 
         this.baseLayers = _.mapObject(settings.get('base_layers'), function(layerData) {
-            if (layerData.type === 'google') {
+
+            // Check to see if the google api service has been loaded
+            // before creating a google layer
+            if (self._googleMaps && layerData.type === 'google') {
                 return new L.Google(layerData.googleType, {
                     maxZoom: layerData.maxZoom
                 });

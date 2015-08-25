@@ -225,8 +225,7 @@ var TableRowView = Marionette.ItemView.extend({
         templateHelpers: function() {
         return {
             // Convert coverage to percentage for display.
-            coveragePct: (this.model.get('coverage') * 100).toFixed(1),
-            areaTrimmed: this.model.get('area').toFixed(1)
+            coveragePct: (this.model.get('coverage') * 100).toFixed(1)
         };
     }
 });
