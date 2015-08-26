@@ -98,11 +98,14 @@ var SelectAreaView = Marionette.ItemView.extend({
     },
 
     onRender: function() {
-        this.ui.helptextIcon.popover({ trigger: 'hover' });
+        this.ui.helptextIcon.popover({
+            trigger: 'hover',
+            viewport: '.container-fluid.top-nav'
+        });
     },
 
     onItemClicked: function(e) {
-        var $el = $(e.target),
+        var $el = $(e.currentTarget),
             endpoint = $el.data('endpoint'),
             tableId = $el.data('tableid'),
             shortDisplay = $el.data('short-display');
@@ -208,7 +211,10 @@ var DrawView = Marionette.ItemView.extend({
     },
 
     onShow: function() {
-        this.ui.helptextIcon.popover({ trigger: 'hover' });
+        this.ui.helptextIcon.popover({
+            trigger: 'hover',
+            viewport: '.container-fluid.top-nav'
+        });
     },
 
     enableStampTool: function() {
@@ -265,7 +271,6 @@ var PlaceMarkerView = Marionette.ItemView.extend({
     },
 
     onShow: function() {
-        // TODO: the viewport setting doesn't appear to be working.
         this.ui.helptextIcon.popover({
             trigger: 'hover',
             viewport: '.container-fluid.top-nav'
