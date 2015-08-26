@@ -22,7 +22,4 @@ azavea.build-essential,0.1.0
 azavea.mapnik,0.1.0
 azavea.beaver,0.1.3
 azavea.java,0.2.1
-azavea.git,0.1.0
-azavea.spark,1.0.0
-azavea.scala,0.1.0
-azavea.libgdal-java,0.1.0
+azavea.docker,1.0.0

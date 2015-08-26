@@ -13,7 +13,6 @@ ANSIBLE_GROUPS = {
   "app-servers" => [ "app" ],
   "services" => [ "services" ],
   "workers" => [ "worker" ],
-  "geoprocessing" => [ "geoprocessing" ],
   "monitoring-servers" => [ "services" ],
   "tile-servers" => [ "tiler" ]
 }
@@ -21,14 +20,14 @@ ANSIBLE_GROUPS = {
 if !ENV["VAGRANT_ENV"].nil? && ENV["VAGRANT_ENV"] == "TEST"
   ANSIBLE_ENV_GROUPS = {
     "test:children" => [
-      "app-servers", "services", "workers", "tile-servers", "geoprocessing"
+      "app-servers", "services", "workers", "tile-servers"
     ]
   }
   VAGRANT_NETWORK_OPTIONS = { auto_correct: true }
 else
   ANSIBLE_ENV_GROUPS = {
     "development:children" => [
-      "app-servers", "services", "monitoring-servers", "workers", "tile-servers", "geoprocessing"
+      "app-servers", "services", "monitoring-servers", "workers", "tile-servers"
     ]
   }
   VAGRANT_NETWORK_OPTIONS = { auto_correct: false }
@@ -105,9 +104,19 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       guest: 80,
       host: 5555
     }.merge(VAGRANT_NETWORK_OPTIONS)
+    # Docker
+    worker.vm.network "forwarded_port", {
+      guest: 2375,
+      host: 2375
+    }.merge(VAGRANT_NETWORK_OPTIONS)
+    # SJS
+    worker.vm.network "forwarded_port", {
+      guest: 8090,
+      host: 8090
+    }.merge(VAGRANT_NETWORK_OPTIONS)
 
     worker.vm.provider "virtualbox" do |v|
-      v.memory = 1024
+      v.memory = 2048
     end
 
     worker.vm.provision "ansible" do |ansible|
@@ -117,35 +126,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
 
     worker.vm.provision "shell", inline: "service celeryd restart >> /dev/null 2>&1", run: "always"
-  end
-
-  config.vm.define "geoprocessing" do |geop|
-    geop.vm.hostname = "geoprocessing"
-    geop.vm.network "private_network", ip: ENV.fetch("MMW_GEOPROCESSING_IP", "33.33.34.48")
-
-    geop.vm.synced_folder ".", "/vagrant", disabled: true
-
-    if Vagrant::Util::Platform.windows? || Vagrant::Util::Platform.cygwin?
-      geop.vm.synced_folder "src/geop", "/opt/geop/", type: "rsync", rsync__exclude: ["node_modules/"]
-    else
-      geop.vm.synced_folder "src/geop", "/opt/geop/"
-    end
-
-    geop.vm.provider "virtualbox" do |v|
-      v.memory = 3096
-    end
-
-    # Geoprocessing endpoint via Nginx
-    geop.vm.network "forwarded_port", {
-      guest: 80,
-      host: 8081
-    }.merge(VAGRANT_NETWORK_OPTIONS)
-
-    geop.vm.provision "ansible" do |ansible|
-      ansible.playbook = "deployment/ansible/geoprocessing.yml"
-      ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
-      ansible.raw_arguments = ["--timeout=60"]
-    end
   end
 
   config.vm.define "app" do |app|

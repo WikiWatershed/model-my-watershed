@@ -1,0 +1,29 @@
+###################
+# spark-jobserver #
+###################
+
+spark.jobserver {
+  port = 8090
+  jar-store-rootdir = {{ sjs_jars_dir }}
+  filedao.rootdir = {{ sjs_filedao_dir }}
+}
+
+#########
+# spark #
+#########
+
+spark {
+  home = "/opt/spark"
+  master = "local[*]"
+
+  content-settings.passthrough.spark {
+    serializer = "org.apache.spark.serializer.KryoSerializer"
+    kryo.registrator = "geotrellis.spark.io.hadoop.KryoRegistrator"
+  }
+}
+
+#########
+# spray #
+#########
+
+spray.can.server.parsing.max-content-length = 250m

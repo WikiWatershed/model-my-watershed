@@ -28,3 +28,5 @@ itsi_base_url: "https://learn.staging.concord.org/"
 itsi_secret_key: "{{ lookup('env', 'MMW_ITSI_SECRET_KEY') }}"
 
 tilecache_bucket_name: "{{ lookup('env', 'MMW_TILECACHE_BUCKET') | default('', true) }}"
+
+docker_options: "-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock --storage-driver=aufs"

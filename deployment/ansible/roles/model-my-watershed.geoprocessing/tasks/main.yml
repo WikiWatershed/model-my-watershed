@@ -1,6 +1,2 @@
 ---
-- { include: app.yml, when: "['packer'] | is_in(group_names)" }
-- { include: compile.yml }
-- { include: configuration.yml }
-- { include: reverse-proxy.yml }
-- { include: log-rotation.yml }
+# Download SJS job JAR

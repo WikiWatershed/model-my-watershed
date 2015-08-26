@@ -32,5 +32,6 @@ nodejs_npm_version: 2.1.17
 
 java_version: "7u79-*"
 
-spark_version: "1.4.0-bin-hadoop2.6"
-scala_version: "2.10.5"
+docker_version: "1.8.*"
+docker_py_version: "1.2.3"
+docker_options: "--storage-driver=aufs"

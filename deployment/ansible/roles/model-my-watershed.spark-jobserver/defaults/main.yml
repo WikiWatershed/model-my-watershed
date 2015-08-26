@@ -1,0 +1,4 @@
+---
+sjs_home: "/opt/spark-jobserver"
+sjs_jars_dir: "/opt/spark-jobserver/jars"
+sjs_filedao_dir: "/opt/spark-jobserver/filedao/data"

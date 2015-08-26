@@ -1,0 +1,21 @@
+---
+- name: Create SJS directories
+  file: path="{{ item }}"
+        recurse=yes
+        state=directory
+  with_items:
+    - "{{ sjs_home }}"
+    - "{{ sjs_jars_dir }}"
+    - "{{ sjs_filedao_dir }}"
+
+- name: Configure SJS
+  template: src=spark-jobserver.conf.j2
+            dest=/opt/spark-jobserver/spark-jobserver.conf
+  notify:
+    - Restart Spark Job Server
+
+- name: Configure SJS service definition
+  template: src=upstart-spark-jobserver.conf.j2
+            dest=/etc/init/spark-jobserver.conf
+  notify:
+    - Restart Spark Job Server
