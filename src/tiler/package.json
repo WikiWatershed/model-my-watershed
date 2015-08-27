@@ -4,7 +4,8 @@
   "description": "",
   "main": "server.js",
   "dependencies": {
-    "windshaft": "0.36.0"
+    "windshaft": "0.36.0",
+    "aws-sdk": "2.1.45"
   },
   "devDependencies": {
     "supervisor": "^0.6.0"

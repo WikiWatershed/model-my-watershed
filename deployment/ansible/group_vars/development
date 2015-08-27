@@ -24,3 +24,5 @@ celery_processes_per_worker: 1
 
 itsi_base_url: "https://learn.staging.concord.org/"
 itsi_secret_key: "{{ lookup('env', 'MMW_ITSI_SECRET_KEY') }}"
+
+tilecache_bucket_name: "{{ lookup('env', 'MMW_TILECACHE_BUCKET') | default('', true) }}"

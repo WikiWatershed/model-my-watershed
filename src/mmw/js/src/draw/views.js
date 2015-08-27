@@ -127,8 +127,9 @@ var SelectAreaView = Marionette.ItemView.extend({
         // Go about the business of adding the ouline and UTFgrid layers.
         if (endpoint && tableId !== undefined) {
             var ol = new L.TileLayer(endpoint + '.png'),
-                grid = new L.UtfGrid(endpoint + '.grid.json?callback={cb}',
+                grid = new L.UtfGrid(endpoint + '.grid.json',
                                      {
+                                         useJsonP: false,
                                          resolution: 4,
                                          maxRequests: 8
                                      });

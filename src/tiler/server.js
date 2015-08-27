@@ -1,6 +1,8 @@
-var Windshaft = require('windshaft'),
+var aws = require('aws-sdk'),
+    Windshaft = require('windshaft'),
     healthCheck = require('./healthCheck'),
     fs = require('fs'),
+    stream = require('stream'),
     styles = fs.readFileSync('styles.mss', { encoding: 'utf8' });
 
 var dbUser = process.env.MMW_DB_USER,
@@ -9,7 +11,8 @@ var dbUser = process.env.MMW_DB_USER,
     dbName = process.env.MMW_DB_NAME,
     dbPort = process.env.MMW_DB_PORT,
     redisHost = process.env.MMW_CACHE_HOST,
-    redisPort = process.env.MMW_CACHE_PORT;
+    redisPort = process.env.MMW_CACHE_PORT,
+    tileCacheBucket = process.env.MMW_TILECACHE_BUCKET;
 
 // N. B. These must be kept in sync with src/mmw/mmw/settings/base.py
 var interactivity = {
@@ -26,6 +29,11 @@ var interactivity = {
         'stream-low': 'drb_stream_network_100',
         'stream-medium': 'drb_stream_network_50',
         'stream-high': 'drb_stream_network_20'
+    },
+    shouldCacheRequest = function(req) {
+        // Caching can happen if the bucket to write to is defined
+        // and the request is not coming from localhost.
+        return req.headers.host!== 'localhost' && tileCacheBucket;
     };
 
 var config = {
@@ -56,12 +64,40 @@ var config = {
     },
     log_format: '{ "timestamp": ":date[iso]", "@fields": { "remote_addr": ":remote-addr", "body_bytes_sent": ":res[content-length]", "request_time": ":response-time", "status": ":status", "request": ":method :url HTTP/:http-version", "request_method": ":method", "http_referrer": ":referrer", "http_user_agent": ":user-agent" } }',
 
+    enable_cors: true,
+
     beforeTileRender: function(req, res, callback) {
         callback(null);
     },
 
     afterTileRender: function(req, res, tile, headers, callback) {
+
+        // Complete render pipline first, add cache header for
+        // 30 days
+        headers['Cache-Control'] = 'max-age=2592000';
         callback(null, tile, headers);
+
+        // Check if the environment is set up to cache tiles
+        if (!shouldCacheRequest(req)) { return; }
+
+        var cleanUrl = req.url[0] === '/' ? req.url.substr(1) : req.url,
+            s3Obj = new aws.S3({params: {Bucket: tileCacheBucket, Key: cleanUrl}}),
+            body;
+
+        if (Buffer.isBuffer(tile)) {
+            body = new stream.PassThrough();
+            body.end(tile);
+        } else {
+            body = JSON.stringify(tile);
+        }
+
+        if (body) {
+            s3Obj
+                .upload({Body: body})
+                .send(function(err, data) {
+                    if (err) { console.log(err); }
+                });
+        }
     },
 
     req2params: function(req, callback) {
