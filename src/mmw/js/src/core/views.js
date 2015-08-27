@@ -153,9 +153,10 @@ var MapView = Marionette.ItemView.extend({
     _googleMaps: (window.google ? window.google.maps : null),
 
     initialize: function(options) {
-        var defaultLayerName = _.findKey(settings.get('base_layers'), function(layerData) {
-            return layerData.default;
-        });
+        var defaultLayer = _.findWhere(settings.get('base_layers'), function(layer) {
+                return layer.default === true;
+            }),
+            defaultLayerName = defaultLayer ? defaultLayer['display'] : 'Streets';
 
         _.defaults(options, {
             addZoomControl: true,
@@ -170,6 +171,12 @@ var MapView = Marionette.ItemView.extend({
                 zoomControl: false,
                 attributionControl: options.showLayerAttribution
             });
+
+        // Center the map on the U.S.
+        map.fitBounds([
+            [24.2, -126.4],
+            [49.8, -66.0]
+        ]);
 
         this._leafletMap = map;
         this._areaOfInterestLayer = new L.FeatureGroup();
@@ -205,12 +212,6 @@ var MapView = Marionette.ItemView.extend({
 
         map.addLayer(this._areaOfInterestLayer);
         map.addLayer(this._modificationsLayer);
-
-        // Center the map on the U.S.
-        map.fitBounds([
-            [24.2, -126.4],
-            [49.8, -66.0]
-        ]);
     },
 
     setupGeoLocation: function(maxAge) {
@@ -295,20 +296,26 @@ var MapView = Marionette.ItemView.extend({
 
     getBaseLayers: function() {
         var self = this,
-            baseLayers = _.mapObject(settings.get('base_layers'), function(layerData) {
-            // Check to see if the google api service has been loaded
-            // before creating a google layer
-            if (self._googleMaps && layerData.type === 'google') {
-                return new L.Google(layerData.googleType, {
-                    maxZoom: layerData.maxZoom
-                });
-            } else {
-                return new L.TileLayer(layerData.url, {
-                    attribution: layerData.attribution || '',
-                    maxZoom: layerData.maxZoom
-                });
-            }
-        });
+            baseLayers = {};
+
+            _.each(settings.get('base_layers'), function(layer) {
+                var leafletLayer;
+
+                // Check to see if the google api service has been loaded
+                // before creating a google layer
+                if (self._googleMaps && layer.type === 'google') {
+                    leafletLayer = new L.Google(layer.googleType, {
+                        maxZoom: layer.maxZoom
+                    });
+                } else {
+                    leafletLayer = new L.TileLayer(layer.url, {
+                        attribution: layer.attribution || '',
+                        maxZoom: layer.maxZoom
+                    });
+                }
+
+                baseLayers[layer['display']] = leafletLayer;
+            });
 
         return baseLayers;
     },

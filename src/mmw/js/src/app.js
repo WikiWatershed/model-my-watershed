@@ -1,7 +1,6 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('lodash'),
     Marionette = require('../shim/backbone.marionette'),
     views = require('./core/views'),
     models = require('./core/models'),
@@ -85,15 +84,8 @@ var App = new Marionette.Application({
 
 function RestAPI() {
     return {
-        getPredefinedShapeTypes: _.memoize(function() {
-            return $.ajax({
-                'url': '/api/modeling/boundary-layers/',
-                'type': 'GET'
-            });
-        }),
-
         getPolygon: function(args) {
-            var url = '/api/modeling/boundary-layers/' + args.tableId + '/' + args.shapeId;
+            var url = '/api/modeling/boundary-layers/' + args.layerCode + '/' + args.shapeId;
             return $.ajax({
                 'url': url,
                 'type': 'GET'

@@ -18,8 +18,6 @@ from django.contrib.gis.geos import GEOSGeometry
 
 from celery import chain
 
-from urlparse import urljoin
-
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
 from apps.modeling import tasks
@@ -238,38 +236,16 @@ def _construct_tr55_job_chain(model_input, job_id):
 
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
-def boundary_layers(request, table_id=None, obj_id=None):
-    layer_list = settings.BOUNDARY_LAYERS
-    layer_ids = [layer['code'] for layer in layer_list]
+def boundary_layer_detail(request, table_code, obj_id):
+    layers = [layer for layer in settings.LAYERS
+              if layer.get('code') == table_code]
+    table_name = layers[0]['table_name']
+    json_field = layers[0].get('json_field', 'geom')
 
-    if not table_id and not obj_id:
-        tiler_prefix = '//'
-        tiler_host = settings.TILER_HOST
-        tiler_postfix = '/{z}/{x}/{y}'
-        tiler_base = '%s%s' % (tiler_prefix, tiler_host)
+    query = 'SELECT {field} FROM {table} WHERE id = %s'.format(
+            field=json_field, table=table_name)
 
-        def augment(dictionary):
-            code = dictionary['code']
-            return {
-                'display': dictionary['display'],
-                'tableId': code,
-                'endpoint': urljoin(tiler_base, code + tiler_postfix),
-                'short_display': layer['short_display'],
-                'helptext': dictionary['helptext']
-            }
-
-        layers = [augment(layer) for layer in layer_list]
-        return Response(layers)
-
-    elif table_id in layer_ids and obj_id:
-        layers = filter(lambda l: l['code'] == table_id, layer_list)
-        table_name = layers[0]['table_name']
-        json_field = layers[0].get('json_field', 'geom')
-
-        query = 'SELECT {field} FROM {table} WHERE id = %s'.format(
-                field=json_field, table=table_name)
-
-        cursor = connection.cursor()
+    with connection.cursor() as cursor:
         cursor.execute(query, [int(obj_id)])
         row = cursor.fetchone()
 
@@ -278,5 +254,3 @@ def boundary_layers(request, table_id=None, obj_id=None):
             return Response(geojson)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-    else:
-        return Response(status=status.HTTP_400_BAD_REQUEST)

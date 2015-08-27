@@ -22,9 +22,7 @@ var DrawController = {
                 model: toolbarModel
             });
 
-        App.restApi.getPredefinedShapeTypes().then(function(data) {
-            toolbarModel.set('predefinedShapeTypes', data);
-        });
+        toolbarModel.set('predefinedShapeTypes', settings.get('boundary_layers'));
 
         App.rootView.geocodeSearchRegion.show(geocodeSearch);
         App.rootView.drawToolsRegion.show(toolbarView);
