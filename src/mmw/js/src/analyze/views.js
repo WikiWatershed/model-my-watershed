@@ -1,12 +1,14 @@
 "use strict";
 
 var $ = require('jquery'),
+    _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
     chart = require('../core/chart'),
+    utils = require('../core/utils'),
     windowTmpl = require('./templates/window.html'),
     messageTmpl = require('./templates/message.html'),
     detailsTmpl = require('./templates/details.html'),
@@ -196,11 +198,14 @@ var TabContentView = Marionette.LayoutView.extend({
         chartRegion: '.analyze-chart-region'
     },
     onShow: function() {
-        var dataCollection = new coreModels.DataCollection(
-            this.model.get('categories')
-        );
+        var categories = this.model.get('categories'),
+            largestArea = _.max(_.pluck(categories, 'area')),
+            units = utils.magnitudeOfArea(largestArea),
+            dataCollection = new coreModels.DataCollection(categories);
 
         this.tableRegion.show(new TableView({
+            units: units,
+            model: new coreModels.GeoModel({units: (units === 'km2') ? 'km<sup>2</sup>' : 'm<sup>2</sup>'}),
             collection: dataCollection
         }));
 
@@ -222,16 +227,26 @@ var TabContentsView = Marionette.CollectionView.extend({
 var TableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
     template: tableRowTmpl,
-        templateHelpers: function() {
+    templateHelpers: function() {
+        var area = this.model.get('area'),
+            units = this.options.units;
+
         return {
             // Convert coverage to percentage for display.
-            coveragePct: (this.model.get('coverage') * 100).toFixed(1)
+            coveragePct: (this.model.get('coverage') * 100),
+            // Scale the area to display units.
+            scaledArea: utils.changeOfAreaUnits(area, 'm2', units)
         };
     }
 });
 
 var TableView = Marionette.CompositeView.extend({
     childView: TableRowView,
+    childViewOptions: function() {
+        return {
+            units: this.options.units
+        };
+    },
     childViewContainer: 'tbody',
     template: tableTmpl
 });
