@@ -105,6 +105,7 @@ var CompareScenarioView = Marionette.LayoutView.extend({
 
     initialize: function(options) {
         this.projectModel = options.projectModel;
+        this.scenariosView = options.scenariosView;
     },
 
     onShow: function() {
@@ -130,6 +131,7 @@ var CompareScenarioView = Marionette.LayoutView.extend({
         this.mapRegion.show(this.mapView);
         this.modelingRegion.show(new CompareModelingView({
             projectModel: this.projectModel,
+            scenariosView: this.scenariosView,
             model: this.model
         }));
 
@@ -151,8 +153,13 @@ var CompareScenariosView = Marionette.CompositeView.extend({
     childView: CompareScenarioView,
     childViewOptions: function() {
         return {
+            scenariosView: this,
             projectModel: this.model
         };
+    },
+
+    initialize: function() {
+        this.modelingViews = [];
     }
 });
 
@@ -183,6 +190,8 @@ var CompareModelingView = Marionette.LayoutView.extend({
             this.render();
             this.onShow();
         });
+        this.scenariosView = options.scenariosView;
+        this.scenariosView.modelingViews.push(this);
     },
 
     templateHelpers: function() {
@@ -193,8 +202,21 @@ var CompareModelingView = Marionette.LayoutView.extend({
     },
 
     updateResult: function() {
-        this.model.get('results').setActive(this.ui.resultSelector.val());
+        var selection = this.ui.resultSelector.val();
+
+        this.model.get('results').setActive(selection);
         this.showResult();
+
+        _.forEach(this.scenariosView.modelingViews, function(sibling) {
+            if (sibling.ui.resultSelector.val() === selection) {
+                return;
+            } else {
+                sibling.ui.resultSelector.val(selection);
+                sibling.model.get('results').setActive(selection);
+                sibling.showResult();
+            }
+        });
+
     },
 
     showResult: function() {
