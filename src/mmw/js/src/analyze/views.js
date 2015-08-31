@@ -248,7 +248,11 @@ var TableView = Marionette.CompositeView.extend({
         };
     },
     childViewContainer: 'tbody',
-    template: tableTmpl
+    template: tableTmpl,
+
+    onAttach: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    }
 });
 
 var ChartView = Marionette.ItemView.extend({

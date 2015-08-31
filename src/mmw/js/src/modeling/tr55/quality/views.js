@@ -69,7 +69,11 @@ var TableRowView = Marionette.ItemView.extend({
 var TableView = Marionette.CompositeView.extend({
     childView: TableRowView,
     childViewContainer: 'tbody',
-    template: tableTmpl
+    template: tableTmpl,
+
+    onAttach: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    }
 });
 
 var ChartView = Marionette.ItemView.extend({
