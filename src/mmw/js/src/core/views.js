@@ -13,7 +13,8 @@ var L = require('leaflet'),
     areaOfInterestTmpl = require('./templates/areaOfInterestHeader.html'),
     modalModels = require('./modals/models'),
     modalViews = require('./modals/views'),
-    settings = require('./settings');
+    settings = require('./settings'),
+    LayerControl = require('./layerControl');
 
 require('leaflet.locatecontrol');
 require('leaflet-plugins/layer/tile/Google');
@@ -181,14 +182,19 @@ var MapView = Marionette.ItemView.extend({
         this._leafletMap = map;
         this._areaOfInterestLayer = new L.FeatureGroup();
         this._modificationsLayer = new L.FeatureGroup();
-        this.baseLayers = this.getBaseLayers();
+        this.baseLayers = this.buildLayers(settings.get('base_layers'));
+        this.overlayLayers = this.buildLayers(settings.get('overlay_layers'));
 
         if (!options.interactiveMode) {
             this.setMapToNonInteractive();
         }
 
         if (options.addLayerSelector) {
-            this.layerControl = L.control.layers(this.baseLayers, {}, {autoZIndex:false}).addTo(map);
+            this.layerControl = new LayerControl(this.baseLayers, this.overlayLayers, {
+                autoZIndex: false,
+                position: 'bottomright',
+                collapsed: false
+            }).addTo(map);
         }
 
         if (options.addZoomControl) {
@@ -294,11 +300,11 @@ var MapView = Marionette.ItemView.extend({
         }
     },
 
-    getBaseLayers: function() {
+    buildLayers: function(layerConfig) {
         var self = this,
-            baseLayers = {};
+            layers = {};
 
-            _.each(settings.get('base_layers'), function(layer) {
+            _.each(layerConfig, function(layer) {
                 var leafletLayer;
 
                 // Check to see if the google api service has been loaded
@@ -308,16 +314,19 @@ var MapView = Marionette.ItemView.extend({
                         maxZoom: layer.maxZoom
                     });
                 } else {
-                    leafletLayer = new L.TileLayer(layer.url, {
+                    var tileUrl = (layer.url.match(/png/) === null ?
+                                    layer.url + '.png' : layer.url);
+
+                    leafletLayer = new L.TileLayer(tileUrl, {
                         attribution: layer.attribution || '',
                         maxZoom: layer.maxZoom
                     });
                 }
 
-                baseLayers[layer['display']] = leafletLayer;
+                layers[layer['display']] = leafletLayer;
             });
 
-        return baseLayers;
+        return layers;
     },
 
     getActiveBaseLayerName: function() {

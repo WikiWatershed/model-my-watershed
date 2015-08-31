@@ -25,6 +25,7 @@ LAYERS = [
                     'a congressional district on which to perform water '
                     'quality analysis.',
         'boundary': True,
+        'overlay': True,
     },
     {
         'code': 'huc8',
@@ -39,6 +40,7 @@ LAYERS = [
                     'nationwide. This tool allows you to pick a predefined '
                     'HUC-8 to analyze.',
         'boundary': True,
+        'overlay': True,
     },
     {
         'code': 'huc10',
@@ -53,6 +55,7 @@ LAYERS = [
                     'nationwide. This tool allows you to pick a predefined '
                     'HUC-10 to analyze.',
         'boundary': True,
+        'overlay': True,
     },
     {
         'code': 'huc12',
@@ -69,6 +72,7 @@ LAYERS = [
                     'HUC-12 to analyze.',
         'aoi': True,
         'boundary': True,
+        'overlay': True,
     },
     {
         'code': 'stream-low',
