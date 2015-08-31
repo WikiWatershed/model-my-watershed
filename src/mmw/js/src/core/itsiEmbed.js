@@ -3,6 +3,7 @@
 var _ = require('lodash'),
     Backbone = require('../../shim/backbone'),
     iframePhone = require('iframe-phone'),
+    shutterbug = require('../../shim/shutterbug'),
     router = require('../router.js').router,
     EMBED_FLAG = 'itsi_embed',
     QUERY_SUFFIX = EMBED_FLAG + '=true';
@@ -51,6 +52,9 @@ var ItsiEmbed = function(App) {
     this.phone.addListener('getInteractiveState', _.bind(this.sendLearnerUrlOnlyFromProjectView, this));
     this.phone.addListener('loadInteractive', _.bind(this.loadInteractive, this));
     this.phone.initialize();
+
+    // Enable screenshot functionality
+    shutterbug.enable('body');
 };
 
 module.exports = {
