@@ -70,8 +70,15 @@ LAYERS = [
                     'that captures tributary systems. There are about 90,000 '
                     'nationwide. This tool allows you to pick a predefined '
                     'HUC-12 to analyze.',
-        'aoi': True,
         'boundary': True,
+        'overlay': True,
+    },
+    {
+        'code': 'school',
+        'display': 'School Districts',
+        'short_display': 'School Districts',
+        'table_name': 'boundary_school_district',
+        'helptext': 'U.S. school district boundaries.',
         'overlay': True,
     },
     {
