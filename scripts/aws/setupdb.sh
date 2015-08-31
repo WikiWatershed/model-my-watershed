@@ -9,32 +9,33 @@ usage="$(basename "$0") [-h] [-b] [-s] \n
 where: \n
     -h  show this help text\n
     -b  load/reload boundary data\n
+    -f  load a named boundary sql.gz\n
     -s  load/reload stream data\n
 "
 
 # HTTP accessible storage for initial app data
 FILE_HOST="https://s3.amazonaws.com/data.mmw.azavea.com"
 load_boundary=false
+file_to_load=
 load_stream=false
 
-while getopts ":hbs" opt; do
+while getopts ":hbsf:" opt; do
     case $opt in
         h)
             echo -e $usage
-            exit
-            ;;
+            exit ;;
         b)
-            load_boundary=true
-            ;;
+            load_boundary=true ;;
         s)
-            load_stream=true
-            ;;
+            load_stream=true ;;
+        f)
+            file_to_load=$OPTARG ;;
         \?)
             echo "invalid option: -$OPTARG"
-            exit
-            ;;
+            exit ;;
     esac
 done
+
 # Export settings required to run psql non-interactively
 export PGHOST=$(cat /etc/mmw.d/env/MMW_DB_HOST)
 export PGDATABASE=$(cat /etc/mmw.d/env/MMW_DB_NAME)
@@ -53,9 +54,14 @@ function download_and_load {
     done
 }
 
+if [ ! -z "$file_to_load" ] ; then
+    FILES=("$file_to_load")
+    download_and_load $FILES
+fi
+
 if [ "$load_boundary" = "true" ] ; then
     # Fetch boundary layer sql files
-    FILES=("boundary_district.sql.gz" "boundary_huc12.sql.gz" "boundary_huc10.sql.gz" "boundary_huc08.sql.gz")
+    FILES=("boundary_school_districts.sql.gz", "boundary_district.sql.gz" "boundary_huc12.sql.gz" "boundary_huc10.sql.gz" "boundary_huc08.sql.gz")
 
     download_and_load $FILES
 fi
