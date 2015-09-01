@@ -3,6 +3,8 @@
 var _ = require('underscore'),
     md5 = require('blueimp-md5').md5;
 
+var M2_IN_KM2 = 1000000;
+
 var utils = {
     // Parse query strings for Backbone
     // Takes queryString of format "key1=value1&key2=value2"
@@ -73,6 +75,27 @@ var utils = {
             });
 
         return md5(JSON.stringify(sortedCollection));
+    },
+
+    magnitudeOfArea: function(value) {
+        if (value >= M2_IN_KM2) {
+            return 'km2';
+        } else {
+            return 'm2';
+        }
+    },
+
+    changeOfAreaUnits: function(value, fromUnit, toUnit) {
+        var fromTo = (fromUnit + ':' + toUnit).toLowerCase();
+
+        switch (fromTo) {
+            case 'm2:km2':
+                 return value / M2_IN_KM2;
+            case 'm2:m2':
+                 return value;
+            default:
+                 throw 'Conversion not implemented.';
+        }
     },
 
     convertToMetric: function(value, fromUnit) {
