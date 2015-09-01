@@ -497,9 +497,11 @@ var ScenarioModel = Backbone.Model.extend({
             // Makeshift locking mechanism to prevent double saves.
             this.saveCalled = true;
         }
-        this.save().fail(function() {
-            console.log('Failed to save scenario');
-        });
+        // Save silently so server values don't trigger reload
+        this.save(null, { silent: true })
+            .fail(function() {
+                console.log('Failed to save scenario');
+            });
     },
 
     addModification: function(modification) {
@@ -515,7 +517,12 @@ var ScenarioModel = Backbone.Model.extend({
         inputsColl.add(input);
     },
 
-    parse: function(response) {
+    parse: function(response, options) {
+        if (options.silent) {
+            // Don't reload server values
+            return this.attributes;
+        }
+
         this.get('modifications').reset(response.modifications);
         delete response.modifications;
 
