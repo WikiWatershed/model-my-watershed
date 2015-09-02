@@ -23,6 +23,7 @@
     "blueimp-md5": "1.1.0",
     "bootstrap": "3.3.4",
     "bootstrap-select": "git://github.com/azavea/bootstrap-select",
+    "bootstrap-table": "1.8.1",
     "browserify": "9.0.3",
     "chai": "1.10.0",
     "d3": "3.5.5",

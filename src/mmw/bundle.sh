@@ -100,6 +100,7 @@ CONCAT_VENDOR_CSS_COMMAND="cat \
     ./node_modules/leaflet/dist/leaflet.css \
     ./node_modules/leaflet-draw/dist/leaflet.draw.css \
     ./node_modules/font-awesome/css/font-awesome.min.css \
+    ./node_modules/bootstrap-table/dist/bootstrap-table.min.css \
     > $VENDOR_CSS_FILE"
 
 JS_DEPS=(jquery backbone backbone.marionette bootstrap bootstrap-select \
