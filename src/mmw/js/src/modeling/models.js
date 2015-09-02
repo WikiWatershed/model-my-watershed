@@ -477,8 +477,8 @@ var ScenarioModel = Backbone.Model.extend({
         this.get('inputs').on('add', debouncedFetchResults);
         this.get('modifications').on('add remove', debouncedFetchResults);
 
-        this.set('taskModel', App.currProject.createTaskModel());
-        this.set('results', App.currProject.createTaskResultCollection());
+        this.set('taskModel', App.currentProject.createTaskModel());
+        this.set('results', App.currentProject.createTaskResultCollection());
     },
 
     attemptSave: function() {
@@ -488,7 +488,7 @@ var ScenarioModel = Backbone.Model.extend({
         }
         if (!this.get('project')) {
             // TODO replace this with radio/wreqr or something less problematic than the global.
-            App.currProject.saveProjectAndScenarios();
+            App.currentProject.saveProjectAndScenarios();
             return;
         }
         if (this.isNew() && this.saveCalled) {
@@ -588,7 +588,7 @@ var ScenarioModel = Backbone.Model.extend({
                         inputs: self.get('inputs').toJSON(),
                         modifications: self.get('modifications').toJSON(),
                         modification_pieces: modifyModifications(self.get('modifications'), self.get('modification_hash')),
-                        area_of_interest: App.currProject.get('area_of_interest'),
+                        area_of_interest: App.currentProject.get('area_of_interest'),
                         census: self.get('census'),
                         inputmod_hash: self.get('inputmod_hash'),
                         modification_hash: self.get('modification_hash')

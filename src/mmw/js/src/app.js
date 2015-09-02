@@ -30,7 +30,7 @@ var App = new Marionette.Application({
         });
 
         this._mapView.on('change:needs_reset', function(needs) {
-            App.currProject.set('needs_reset', needs);
+            App.currentProject.set('needs_reset', needs);
         });
 
         this.rootView = new views.RootView();
@@ -44,7 +44,7 @@ var App = new Marionette.Application({
 
         // Not set until modeling/controllers.js creates a
         // new project.
-        this.currProject = null;
+        this.currentProject = null;
     },
 
     load: function(data) {

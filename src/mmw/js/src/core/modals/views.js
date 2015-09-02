@@ -150,7 +150,7 @@ var ShareView = ModalBaseView.extend({
 
             confirm.render();
             confirm.on('confirmation', function() {
-                var project = self.options.app.currProject;
+                var project = self.options.app.currentProject;
                 project.set('is_private', false);
                 project.saveProjectAndScenarios();
 

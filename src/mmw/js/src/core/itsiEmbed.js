@@ -43,7 +43,7 @@ var ItsiEmbed = function(App) {
             interactiveState.route &&
             interactiveState.route !== Backbone.history.getFragment()) {
 
-            App.currProject = null;
+            App.currentProject = null;
             router.navigate(interactiveState.route, { trigger: true });
         }
     };

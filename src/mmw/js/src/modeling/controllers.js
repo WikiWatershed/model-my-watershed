@@ -25,7 +25,7 @@ var ModelingController = {
                 id: projectId
             });
 
-            App.currProject = project;
+            App.currentProject = project;
 
             project
                 .fetch()
@@ -57,8 +57,8 @@ var ModelingController = {
                     updateItsiFromEmbedMode();
                 });
         } else {
-            if (App.currProject && settings.get('activityMode')) {
-                project = App.currProject;
+            if (App.currentProject && settings.get('activityMode')) {
+                project = App.currentProject;
                 // Reset flag is set so clear off old project data.
                 if (project.get('needs_reset')) {
                     project.set({
@@ -107,7 +107,7 @@ var ModelingController = {
                     updateUrl();
                 }
             } else {
-                if (!App.currProject) {
+                if (!App.currentProject) {
                     // Only make new project if this is the first time
                     // hitting the modeling views.
                     project = new models.ProjectModel({
@@ -118,10 +118,10 @@ var ModelingController = {
                         scenarios: new models.ScenariosCollection()
                     });
 
-                    App.currProject = project;
+                    App.currentProject = project;
                     setupNewProjectScenarios(project);
                 } else {
-                    project = App.currProject;
+                    project = App.currentProject;
                     updateUrl();
                 }
 
@@ -135,8 +135,8 @@ var ModelingController = {
     },
 
     projectCleanUp: function() {
-        App.currProject.off('change:id', updateUrl);
-        App.currProject.get('scenarios').off('change:activeScenario change:id', updateScenario);
+        App.currentProject.off('change:id', updateUrl);
+        App.currentProject.get('scenarios').off('change:activeScenario change:id', updateScenario);
         App.getMapView().updateModifications(null);
         App.rootView.subHeaderRegion.empty();
         App.rootView.footerRegion.empty();
@@ -155,7 +155,7 @@ var ModelingController = {
             id: projectId
         });
 
-        App.currProject = project;
+        App.currentProject = project;
 
         project
             .fetch()
@@ -176,7 +176,7 @@ var ModelingController = {
                 }
             })
             .fail(function() {
-                App.currProject = null;
+                App.currentProject = null;
             })
             .always(function() {
                 router.navigate('/', { trigger: true });
@@ -192,7 +192,7 @@ function updateItsiFromEmbedMode() {
 
 function updateUrl() {
     // Use replace: true, so that the back button will work as expected.
-    router.navigate(App.currProject.getReferenceUrl(), { replace: true });
+    router.navigate(App.currentProject.getReferenceUrl(), { replace: true });
     updateItsiFromEmbedMode();
 }
 

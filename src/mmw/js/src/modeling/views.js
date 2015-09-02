@@ -215,7 +215,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
     getItsiEmbedLink: function() {
         var self = this,
             embedLink = window.location.origin +
-                '/project/' + App.currProject.id + '/clone?itsi_embed=true',
+                '/project/' + App.currentProject.id + '/clone?itsi_embed=true',
             modal = new modalViews.ShareView({
                 model: new modalModels.ShareModel({
                     text: 'Embed Link',
@@ -389,7 +389,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
                     text: 'Scenario',
                     url: window.location.href,
                     guest: App.user.get('guest'),
-                    is_private: App.currProject.get('is_private')
+                    is_private: App.currentProject.get('is_private')
                 }),
                 app: App
             });
@@ -763,7 +763,7 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        var modelPackage = App.currProject.get('model_package'),
+        var modelPackage = App.currentProject.get('model_package'),
             resultName = this.model.get('name'),
             ResultView = getResultView(modelPackage, resultName);
 

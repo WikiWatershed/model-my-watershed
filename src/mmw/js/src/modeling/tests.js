@@ -27,9 +27,9 @@ describe('Modeling', function() {
 
     beforeEach(function() {
         // ScenarioModel.initialize() expects
-        // App.currProject to be set, and uses it to determine the
+        // App.currentProject to be set, and uses it to determine the
         // taskModel and modelPackage to use.
-        App.currProject = new models.ProjectModel();
+        App.currentProject = new models.ProjectModel();
 
         this.server = sinon.fakeServer.create();
         this.server.respondImmediately = true;
@@ -595,11 +595,11 @@ describe('Modeling', function() {
                                      new models.ModificationsCollection(mocks.scenarios.sample.modifications).toJSON(),
                                      'Should set modifications from argument to initialize');
                     assert.deepEqual(this.model.get('taskModel').toJSON(),
-                                     App.currProject.createTaskModel().toJSON(),
-                                     'Should have set taskModel from App.currProject');
+                                     App.currentProject.createTaskModel().toJSON(),
+                                     'Should have set taskModel from App.currentProject');
                     assert.deepEqual(this.model.get('results').toJSON(),
-                                     App.currProject.createTaskResultCollection().toJSON(),
-                                     'Should have set results from App.currProject');
+                                     App.currentProject.createTaskResultCollection().toJSON(),
+                                     'Should have set results from App.currentProject');
                 });
 
                 it('sets hashes', function() {

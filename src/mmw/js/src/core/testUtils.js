@@ -23,9 +23,9 @@ function resetApp(app) {
 
     app.header.destroy();
 
-    if (app.currProject) {
-        app.currProject.off();
-        app.currProject = null;
+    if (app.currentProject) {
+        app.currentProject.off();
+        app.currentProject = null;
     }
 
     if (app.itsi) {
