@@ -201,15 +201,19 @@ describe('Core', function() {
 
 
             it('creates a layer selector with the correct items', function() {
-                var baseLayers = {
-                    'A': {
+                var baseLayers = [
+                    {
                         'url': 'https://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png',
-                        'default': true
+                        'default': true,
+                        'display': 'A',
+                        'basemap': true
                     },
-                    'B': {
-                        'url': 'https://{s}.tiles.mapbox.com/v3/examples.map-i86nkdio/{z}/{x}/{y}.png'
+                    {
+                        'url': 'https://{s}.tiles.mapbox.com/v3/examples.map-i86nkdio/{z}/{x}/{y}.png',
+                        'display': 'B',
+                        'basemap': true
                     }
-                };
+                ];
                 settings.set('base_layers', baseLayers);
 
                 var model = new models.MapModel(),
@@ -223,7 +227,7 @@ describe('Core', function() {
                     }).get();
 
                 assert.equal($layers.length, 2, 'Did not add layer selector');
-                assert.deepEqual(layerNames, _.keys(baseLayers));
+                assert.deepEqual(layerNames, _.pluck(baseLayers, 'display'));
 
                 view.destroy();
             });

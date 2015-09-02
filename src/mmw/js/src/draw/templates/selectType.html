@@ -8,8 +8,8 @@
   {% for item in predefinedShapeTypes %}
       <li role="presentation">
         <a role="menuitem" tabindex="-1" href="#"
-           data-endpoint="{{ item.endpoint }}"
-           data-tableid="{{ item.tableId }}"
+           data-tile-url="{{ item.url }}"
+           data-layer-code="{{ item.code }}"
            data-short-display="{{ item.short_display }}">
           <span>{{ item.display }}</span> <i class="split fa fa-question-circle"
                                              data-content="{{ item.helptext }}"></i>

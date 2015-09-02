@@ -78,7 +78,7 @@ var SelectAreaView = Marionette.ItemView.extend({
     $label: $('#boundary-label'),
 
     ui: {
-        items: '[data-endpoint]',
+        items: '[data-tile-url]',
         button: '#predefined-shape',
         helptextIcon: 'i.split'
     },
@@ -106,12 +106,12 @@ var SelectAreaView = Marionette.ItemView.extend({
 
     onItemClicked: function(e) {
         var $el = $(e.currentTarget),
-            endpoint = $el.data('endpoint'),
-            tableId = $el.data('tableid'),
+            tileUrl = $el.data('tile-url'),
+            layerCode = $el.data('layer-code'),
             shortDisplay = $el.data('short-display');
 
         clearAoiLayer();
-        this.changeOutlineLayer(endpoint, tableId, shortDisplay);
+        this.changeOutlineLayer(tileUrl, layerCode, shortDisplay);
         e.preventDefault();
     },
 
@@ -120,21 +120,22 @@ var SelectAreaView = Marionette.ItemView.extend({
         return !types ? loadingTmpl : selectTypeTmpl;
     },
 
-    changeOutlineLayer: function(endpoint, tableId, shortDisplay) {
+    changeOutlineLayer: function(tileUrl, layerCode, shortDisplay) {
         var self = this,
             ofg = self.model.get('outlineFeatureGroup');
 
-        // Go about the business of adding the ouline and UTFgrid layers.
-        if (endpoint && tableId !== undefined) {
-            var ol = new L.TileLayer(endpoint + '.png'),
-                grid = new L.UtfGrid(endpoint + '.grid.json',
+        // Go about the business of adding the outline and UTFgrid layers.
+        if (tileUrl && layerCode !== undefined) {
+            var ol = new L.TileLayer(tileUrl + '.png'),
+                grid = new L.UtfGrid(tileUrl + '.grid.json',
                                      {
                                          useJsonP: false,
                                          resolution: 4,
                                          maxRequests: 8
                                      });
+
             grid.on('click', function(e) {
-                getShapeAndAnalyze(e, self.model, ofg, grid, tableId, shortDisplay);
+                getShapeAndAnalyze(e, self.model, ofg, grid, layerCode, shortDisplay);
             });
 
             grid.on('mousemove', function(e) {
@@ -390,7 +391,7 @@ function changeStreamLayer(endpoint, model) {
     sl.bringToFront();
 }
 
-function getShapeAndAnalyze(e, model, ofg, grid, tableId, layerName) {
+function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
     // The shapeId might not be available at the time of the click
     // because the UTF Grid layer might not be loaded yet, so
     // we poll for it.
@@ -409,7 +410,7 @@ function getShapeAndAnalyze(e, model, ofg, grid, tableId, layerName) {
 
     function _getShapeAndAnalyze() {
         App.restApi.getPolygon({
-            tableId: tableId,
+            layerCode: layerCode,
             shapeId: shapeId
         }).done(function(shape) {
             addLayer(shape, shapeName, layerName);
@@ -446,7 +447,6 @@ function getShapeAndAnalyze(e, model, ofg, grid, tableId, layerName) {
 
     return deferred;
 }
-
 
 function clearAoiLayer() {
     App.map.set('areaOfInterest', null);
