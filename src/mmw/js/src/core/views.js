@@ -490,7 +490,7 @@ var MapView = Marionette.ItemView.extend({
                     return acc.concat(new L.GeoJSON(model.get('shape'), {
                             style: style,
                             onEachFeature: function(feature, layer) {
-                                if (self.interactiveMode) {
+                                if (self.options.interactiveMode) {
                                     var popupContent = new ModificationPopupView({ model: model }).render().el;
                                     layer.bindPopup(popupContent);
                                 }
