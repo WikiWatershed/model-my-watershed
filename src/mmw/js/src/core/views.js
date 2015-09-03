@@ -315,11 +315,13 @@ var MapView = Marionette.ItemView.extend({
                     });
                 } else {
                     var tileUrl = (layer.url.match(/png/) === null ?
-                                    layer.url + '.png' : layer.url);
+                                    layer.url + '.png' : layer.url),
+                        zIndex = layer.overlay ? 1 : 0;
 
                     leafletLayer = new L.TileLayer(tileUrl, {
                         attribution: layer.attribution || '',
-                        maxZoom: layer.maxZoom
+                        maxZoom: layer.maxZoom,
+                        zIndex: zIndex
                     });
                 }
 
