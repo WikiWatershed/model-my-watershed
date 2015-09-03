@@ -82,6 +82,15 @@ LAYERS = [
         'overlay': True,
     },
     {
+        'display': 'National Land Cover Database',
+        'short_display': 'NLCD',
+        'helptext': 'National Land Cover Database defines'
+                    'land use across the U.S.',
+        'url': 'https://s3.amazonaws.com/com.azavea.datahub.tms/'
+               'nlcd/{z}/{x}/{y}.png',
+        'overlay': True,
+    },
+    {
         'code': 'stream-low',
         'display': 'Low-Res',
         'table_name': 'deldem4net100r',
