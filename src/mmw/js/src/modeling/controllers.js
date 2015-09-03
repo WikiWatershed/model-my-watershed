@@ -9,6 +9,34 @@ var $ = require('jquery'),
     views = require('./views'),
     models = require('./models');
 
+function makeProject(lock) {
+    var project = new models.ProjectModel({
+        name: 'Untitled Project',
+        created_at: Date.now(),
+        area_of_interest: App.map.get('areaOfInterest'),
+        area_of_interest_name: App.map.get('areaOfInterestName'),
+        scenarios: new models.ScenariosCollection()
+    });
+    lock.resolve();
+    return project;
+}
+
+function reinstateProject(number, lock) {
+    var project = new models.ProjectModel({id: App.projectNumber});
+
+    project
+        .fetch()
+        .done(function() {
+            App.map.set({
+                'areaOfInterest': project.get('area_of_interest'),
+                'areaOfInterestName': project.get('area_of_interest_name')
+            });
+            lock.resolve();
+        });
+
+    return project;
+}
+
 var ModelingController = {
     projectPrepare: function(projectId) {
         if (!projectId && !App.map.get('areaOfInterest')) {
@@ -107,36 +135,50 @@ var ModelingController = {
                     updateUrl();
                 }
             } else {
+                var lock = $.Deferred();
+
                 if (!App.currentProject) {
                     // Only make new project if this is the first time
                     // hitting the modeling views.
-                    project = new models.ProjectModel({
-                        name: 'Untitled Project',
-                        created_at: Date.now(),
-                        area_of_interest: App.map.get('areaOfInterest'),
-                        area_of_interest_name: App.map.get('areaOfInterestName'),
-                        scenarios: new models.ScenariosCollection()
-                    });
+                    if (!App.projectNumber) {
+                        project = makeProject(lock);
+                    } else {
+                        project = reinstateProject(App.projectNumber, lock);
+                    }
 
                     App.currentProject = project;
-                    setupNewProjectScenarios(project);
+                    if (!App.projectNumber) {
+                        setupNewProjectScenarios(project);
+                    }
                 } else {
                     project = App.currentProject;
                     updateUrl();
+                    lock.resolve();
                 }
 
-                project.on('change:id', updateUrl);
-                initScenarioEvents(project);
-                initViews(project);
-
-                project.fetchResultsIfNeeded();
+                lock.done(function() {
+                    project.on('change:id', updateUrl);
+                    initScenarioEvents(project);
+                    initViews(project);
+                    project.fetchResultsIfNeeded();
+                    if (App.projectNumber) {
+                        updateUrl();
+                    }
+                });
             }
         }
     },
 
     projectCleanUp: function() {
+        var scenarios = App.currentProject.get('scenarios');
+
         App.currentProject.off('change:id', updateUrl);
-        App.currentProject.get('scenarios').off('change:activeScenario change:id', updateScenario);
+        scenarios.off('change:activeScenario change:id', updateScenario);
+        // App.projectNumber holds the number of the project that was
+        // in use when the user left the `/project` page.  The intent
+        // is to allow the same project to be returned-to via the UI
+        // arrow buttons (see issue #690).
+        App.projectNumber = scenarios.at(0).get('project');
         App.getMapView().updateModifications(null);
         App.rootView.subHeaderRegion.empty();
         App.rootView.footerRegion.empty();
@@ -226,7 +268,7 @@ function setupNewProjectScenarios(project) {
 function initViews(project) {
     var modelingResultsWindow = new views.ModelingResultsWindow({
             model: project
-        }),
+    }),
         modelingHeader = new views.ModelingHeaderView({
             model: project
         });
