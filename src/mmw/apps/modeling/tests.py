@@ -5,6 +5,7 @@ from __future__ import division
 
 from apps.core.models import Job
 from apps.modeling import views
+from apps.modeling import geoprocessing
 from django.contrib.auth.models import User
 
 from django.test import TestCase
@@ -12,6 +13,289 @@ from django.test.utils import override_settings
 from django.utils.timezone import now
 
 from rest_framework.test import APIClient
+
+
+class ExerciseGeoprocessing(TestCase):
+    def setUp(self):
+        self.histogram = [
+            ((11, 1), 434),
+            ((82, 4), 202),
+            ((23, 4), 1957),
+            ((22, 1), 12977),
+            ((90, 2), 1090),
+            ((81, 2), 1716),
+            ((52, 2), 1090),
+            ((90, 1), 2190),
+            ((43, 4), 745),
+            ((11, 2), 162),
+            ((24, 4), 320),
+            ((71, 1), 91),
+            ((81, 4), 1717),
+            ((41, 1), 13731),
+            ((22, 4), 6470),
+            ((82, 1), 392),
+            ((21, 4), 12472),
+            ((31, 4), 20),
+            ((82, 2), 197),
+            ((24, 2), 352),
+            ((22, 2), 6484),
+            ((41, 2), 7140),
+            ((52, 1), 2103),
+            ((21, 2), 12763),
+            ((42, 4), 675),
+            ((21, 1), 24709),
+            ((71, 2), 54),
+            ((42, 1), 1406),
+            ((23, 2), 2026),
+            ((41, 4), 7231),
+            ((24, 1), 640),
+            ((52, 4), 1022),
+            ((71, 4), 46),
+            ((23, 1), 3886),
+            ((43, 1), 1490),
+            ((81, 1), 3298),
+            ((90, 4), 1093),
+            ((42, 2), 715),
+            ((11, 4), 132),
+            ((31, 2), 25),
+            ((31, 1), 37),
+            ((43, 2), 800)
+        ]
+
+    def test_census(self):
+        expected = {
+            "distribution": {
+                "a:desert": {
+                    "cell_count": 37
+                },
+                "b:deciduous_forest": {
+                    "cell_count": 7140
+                },
+                "a:chaparral": {
+                    "cell_count": 2103
+                },
+                "b:mixed_forest": {
+                    "cell_count": 800
+                },
+                "a:urban_grass": {
+                    "cell_count": 24709
+                },
+                "b:grassland": {
+                    "cell_count": 54
+                },
+                "b:water": {
+                    "cell_count": 162
+                },
+                "d:water": {
+                    "cell_count": 132
+                },
+                "a:deciduous_forest": {
+                    "cell_count": 13731
+                },
+                "a:industrial": {
+                    "cell_count": 640
+                },
+                "b:evergreen_forest": {
+                    "cell_count": 715
+                },
+                "d:urban_grass": {
+                    "cell_count": 12472
+                },
+                "a:li_residential": {
+                    "cell_count": 12977
+                },
+                "a:row_crop": {
+                    "cell_count": 392
+                },
+                "d:industrial": {
+                    "cell_count": 320
+                },
+                "b:woody_wetland": {
+                    "cell_count": 1090
+                },
+                "b:hi_residential": {
+                    "cell_count": 2026
+                },
+                "d:grassland": {
+                    "cell_count": 46
+                },
+                "d:li_residential": {
+                    "cell_count": 6470
+                },
+                "d:row_crop": {
+                    "cell_count": 202
+                },
+                "b:pasture": {
+                    "cell_count": 1716
+                },
+                "a:evergreen_forest": {
+                    "cell_count": 1406
+                },
+                "d:pasture": {
+                    "cell_count": 1717
+                },
+                "a:water": {
+                    "cell_count": 434
+                },
+                "b:row_crop": {
+                    "cell_count": 197
+                },
+                "a:mixed_forest": {
+                    "cell_count": 1490
+                },
+                "d:desert": {
+                    "cell_count": 20
+                },
+                "d:woody_wetland": {
+                    "cell_count": 1093
+                },
+                "b:desert": {
+                    "cell_count": 25
+                },
+                "d:chaparral": {
+                    "cell_count": 1022
+                },
+                "b:urban_grass": {
+                    "cell_count": 12763
+                },
+                "b:li_residential": {
+                    "cell_count": 6484
+                },
+                "d:mixed_forest": {
+                    "cell_count": 745
+                },
+                "a:hi_residential": {
+                    "cell_count": 3886
+                },
+                "d:hi_residential": {
+                    "cell_count": 1957
+                },
+                "d:deciduous_forest": {
+                    "cell_count": 7231
+                },
+                "a:pasture": {
+                    "cell_count": 3298
+                },
+                "b:industrial": {
+                    "cell_count": 352
+                },
+                "a:grassland": {
+                    "cell_count": 91
+                },
+                "a:woody_wetland": {
+                    "cell_count": 2190
+                },
+                "b:chaparral": {
+                    "cell_count": 1090
+                },
+                "d:evergreen_forest": {
+                    "cell_count": 675
+                }
+            },
+            "cell_count": 136100
+        }
+        actual = geoprocessing.data_to_census(self.histogram)
+        self.assertEqual(actual, expected)
+
+    def test_survey(self):
+        expected = [
+            {
+                "displayName": "Land",
+                "name": "land",
+                "categories": [
+                    {
+                        "type": "Urban- or Tall-Grass",
+                        "coverage": 0.3669654665686995,
+                        "area": 49944
+                    },
+                    {
+                        "type": "Low-Intensity Res.",
+                        "coverage": 0.19052902277736958,
+                        "area": 25931
+                    },
+                    {
+                        "type": "Deciduous Forest",
+                        "coverage": 0.20648052902277736,
+                        "area": 28102
+                    },
+                    {
+                        "type": "Mixed Forest",
+                        "coverage": 0.022299779573842764,
+                        "area": 3035
+                    },
+                    {
+                        "type": "Industrial &c.",
+                        "coverage": 0.009639970609845701,
+                        "area": 1312
+                    },
+                    {
+                        "type": "Water",
+                        "coverage": 0.005349008082292432,
+                        "area": 728
+                    },
+                    {
+                        "type": "Desert &c.",
+                        "coverage": 0.0006024981631153563,
+                        "area": 82
+                    },
+                    {
+                        "type": "Woody Wetland",
+                        "coverage": 0.03213078618662748,
+                        "area": 4373
+                    },
+                    {
+                        "type": "High-Intensity Res.",
+                        "coverage": 0.057817781043350475,
+                        "area": 7869
+                    },
+                    {
+                        "type": "Pasture &c.",
+                        "coverage": 0.04945628214548126,
+                        "area": 6731
+                    },
+                    {
+                        "type": "Grassland",
+                        "coverage": 0.0014033798677443056,
+                        "area": 191
+                    },
+                    {
+                        "type": "Evergreen Forest",
+                        "coverage": 0.020543717854518737,
+                        "area": 2796
+                    },
+                    {
+                        "type": "Chaparral",
+                        "coverage": 0.03096987509184423,
+                        "area": 4215
+                    },
+                    {
+                        "type": "Row Crop",
+                        "coverage": 0.005811903012490816,
+                        "area": 791
+                    }]
+            },
+            {
+                "displayName": "Soil",
+                "name": "soil",
+                "categories": [
+                    {
+                        "type": "Clay Loam",
+                        "coverage": 0.2505657604702425,
+                        "area": 34102
+                    },
+                    {
+                        "type": "Sand",
+                        "coverage": 0.49510653930933135,
+                        "area": 67384
+                    },
+                    {
+                        "type": "Loam",
+                        "coverage": 0.25432770022042617,
+                        "area": 34614
+                    }]
+            }]
+        actual = geoprocessing.data_to_survey(self.histogram)
+        self.assertEqual(actual, expected)
 
 
 class TaskRunnerTestCase(TestCase):

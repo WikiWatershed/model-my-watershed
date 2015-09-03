@@ -147,10 +147,9 @@ def geojson_to_censuses(polygons):
     return [data_to_census(subdata) for subdata in data]
 
 
-def geojson_to_survey(polygon):
+def data_to_survey(data):
     """
-    Similar to the `census` function above, but produces a survey of
-    the type expected by the `/analyze` page.
+    Turn raw data from Geotrellis into a survey.
     """
     def update_category(string, count, categories):
         if string in categories:
@@ -199,5 +198,14 @@ def geojson_to_survey(polygon):
         }
     ]
 
-    data = histogram([json_polygon(polygon)])[0]  # one-and-only-one AOI
     return histogram_to_x(data, nucleus, update_rule, after_rule)
+
+
+def geojson_to_survey(polygon):
+    """
+    Similar to the `census` function above, but produces a survey of
+    the type expected by the `/analyze` page.
+    """
+
+    data = histogram([json_polygon(polygon)])[0]  # one-and-only-one AOI
+    return data_to_survey(data)
