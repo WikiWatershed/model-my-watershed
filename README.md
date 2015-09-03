@@ -28,10 +28,18 @@ The `app` virtual machine contains an instance of the Django application, `servi
 
 - Celery
 - Flower
+- Docker
+- Spark Job Server (container)
 
 ### Getting Started
 
-Use the following command to bring up a local development environment:
+First, ensure that you have a set of Amazon Web Services (AWS) credentials with access to Azavea's pre-processed NLCD data set. This setup generally needs to happen on the virtual machine host using the [AWS CLI](https://aws.amazon.com/cli/):
+
+```bash
+$ aws configure --profile mmw-stg
+```
+
+Next, use the following command to bring up a local development environment:
 
 ```bash
 $ MMW_ITSI_SECRET_KEY="***" vagrant up
@@ -39,7 +47,7 @@ $ MMW_ITSI_SECRET_KEY="***" vagrant up
 
 The application will now be running at [http://localhost:8000](http://localhost:8000).
 
-After pulling in new commits, you may need to run the following two commands:
+After significant changes, you may need to run the following two commands to apply database migrations and rebuild JavaScript assets:
 
 ```bash
 $ ./scripts/manage.sh migrate
@@ -47,17 +55,18 @@ $ ./scripts/bundle.sh
 ```
 
 To load or reload boundary data, from an `app` server, run (`scripts` is not mounted by default to the VM, you may need to copy the file over):
+
 ```bash
 $ ./scripts/setupdb.sh -b
 ```
 
 The same script can be used to load the stream network data:
+
 ```bash
 $ ./scripts/setupdb.sh -s
 ```
 
 Note that if you receive out of memory errors while loading the data, you may want to increase the RAM on your `services` VM (1512 MB may be all that is necessary).
-
 
 See debug messages from the web app server:
 
@@ -81,11 +90,10 @@ If changes were made to the one of the VM's configuration or requirements since 
 $ vagrant provision <VM name>
 ```
 
-After provisioning is complete, you can login to the application server and execute Django management commands:
+After provisioning is complete, you can execute Django management commands with:
 
 ```bash
-$ vagrant ssh app
-vagrant@app:~$ envdir /etc/mmw.d/env /opt/app/manage.py test
+$ ./scripts/manage.sh test
 ```
 
 **Note**: If you get an error that resembles the following, try logging into the `app` virtual machine again for the group permissions changes to take effect:
@@ -109,6 +117,7 @@ Redis                  | 6379 | `redis-cli -h localhost 6379`
 Testem                 | 7357 | [http://localhost:7357](http://localhost:7357)
 Tiler                  | 4000 | [http://localhost:4000](http://localhost:4000)
 Flower                 | 5555 | [http://localhost:5555](http://localhost:5555)
+Spark Job Server       | 8090 | [http://localhost:8090](http://localhost:8090)
 
 ### Caching
 

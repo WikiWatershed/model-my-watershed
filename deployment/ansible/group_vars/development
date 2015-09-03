@@ -18,8 +18,6 @@ graphite_host: "{{ services_ip }}"
 statsite_host: "{{ services_ip }}"
 tiler_host: "{{ lookup('env', 'MMW_TILER_IP') | default('33.33.34.35', true) }}"
 
-geop_host: "{{ lookup('env', 'MMW_GEOPROCESSING_IP') | default('33.33.34.48', true) }}"
-
 celery_log_level: "DEBUG"
 celery_number_of_workers: 2
 celery_processes_per_worker: 1
@@ -30,3 +28,5 @@ itsi_secret_key: "{{ lookup('env', 'MMW_ITSI_SECRET_KEY') }}"
 tilecache_bucket_name: "{{ lookup('env', 'MMW_TILECACHE_BUCKET') | default('', true) }}"
 
 docker_options: "-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock --storage-driver=aufs"
+
+aws_profile: "mmw-stg"

@@ -16,8 +16,6 @@ graphite_host: "{{ services_ip }}"
 statsite_host: "{{ services_ip }}"
 tiler_host: "{{ lookup('env', 'MMW_TILER_IP') | default('33.33.34.35', true) }}"
 
-geop_host: "{{ lookup('env', 'MMW_GEOPROCESSING_IP') | default('33.33.34.48', true) }}"
-
 celery_number_of_workers: 2
 celery_processes_per_worker: 1
 
@@ -25,3 +23,5 @@ itsi_base_url: "https://learn.staging.concord.org/"
 itsi_secret_key: "{{ lookup('env', 'MMW_ITSI_SECRET_KEY') }}"
 
 tilecache_bucket_name: "tilecache.mmw-dev.azavea.com"
+
+aws_profile: "mmw-stg"

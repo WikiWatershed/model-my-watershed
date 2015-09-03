@@ -8,6 +8,10 @@ spark.jobserver {
   filedao.rootdir = {{ sjs_filedao_dir }}
 }
 
+spark.contexts {
+  geoprocessing {}
+}
+
 #########
 # spark #
 #########
@@ -16,10 +20,8 @@ spark {
   home = "/opt/spark"
   master = "local[*]"
 
-  content-settings.passthrough.spark {
-    serializer = "org.apache.spark.serializer.KryoSerializer"
-    kryo.registrator = "geotrellis.spark.io.hadoop.KryoRegistrator"
-  }
+  context-settings.passthrough.spark.serializer = "org.apache.spark.serializer.KryoSerializer"
+  context-settings.passthrough.spark.kryo.registrator = "geotrellis.spark.io.hadoop.KryoRegistrator"
 }
 
 #########

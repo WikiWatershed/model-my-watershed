@@ -91,13 +91,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     worker.vm.network "private_network", ip: ENV.fetch("MMW_WORKER_IP", "33.33.34.20")
 
     worker.vm.synced_folder ".", "/vagrant", disabled: true
-
-    if Vagrant::Util::Platform.windows? || Vagrant::Util::Platform.cygwin?
-      worker.vm.synced_folder "src/mmw", "/opt/app/", type: "rsync", rsync__exclude: ["node_modules/", "apps/"]
-      worker.vm.synced_folder "src/mmw/apps", "/opt/app/apps"
-    else
-      worker.vm.synced_folder "src/mmw", "/opt/app/"
-    end
+    worker.vm.synced_folder "src/mmw", "/opt/app/"
 
     # Flower
     worker.vm.network "forwarded_port", {

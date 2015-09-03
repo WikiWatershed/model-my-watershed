@@ -1,2 +1,3 @@
 ---
-geop_jar_url: ""
+geop_home: "/opt/geoprocessing"
+geop_jar_url: "https://github.com/WikiWatershed/mmw-geoprocessing/releases/download/{{ geop_version }}/mmw-geoprocessing-assembly-{{ geop_version }}.jar"

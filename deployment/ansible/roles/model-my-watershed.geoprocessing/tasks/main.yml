@@ -1,2 +1,15 @@
 ---
-# Download SJS job JAR
+- name: Create geoprocessing directory
+  file: path="{{ geop_home }}"
+        state=directory
+
+- name: Download Spark Job Server geoprocessing JAR
+  get_url: url="{{ geop_jar_url }}"
+           dest="{{ geop_home }}/mmw-geoprocessing-{{ geop_version }}.jar"
+
+- name: Configure geoprocessing service definition
+  template: src=upstart-geoprocessing.conf.j2
+            dest=/etc/init/mmw-geoprocessing.conf
+
+- name: Ensure geoprocessing service was started
+  service: name=mmw-geoprocessing state=started
