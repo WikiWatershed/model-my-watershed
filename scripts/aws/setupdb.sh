@@ -61,7 +61,7 @@ fi
 
 if [ "$load_boundary" = "true" ] ; then
     # Fetch boundary layer sql files
-    FILES=("boundary_school_districts.sql.gz", "boundary_district.sql.gz" "boundary_huc12.sql.gz" "boundary_huc10.sql.gz" "boundary_huc08.sql.gz")
+    FILES=("boundary_school_district.sql.gz" "boundary_district.sql.gz" "boundary_huc12.sql.gz" "boundary_huc10.sql.gz" "boundary_huc08.sql.gz")
 
     download_and_load $FILES
 fi
