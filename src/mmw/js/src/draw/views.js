@@ -374,7 +374,7 @@ var StreamSliderView = Marionette.ItemView.extend({
         clearStreamLayer(this.model);
         if (ind > 0) {
             var streamLayer = this.streamLayers[ind-1];
-            changeStreamLayer(streamLayer.endpoint, this.model);
+            changeStreamLayer(streamLayer.url, this.model);
         }
     }
 });
@@ -383,9 +383,9 @@ function clearStreamLayer(model) {
     model.get('streamFeatureGroup').clearLayers();
 }
 
-function changeStreamLayer(endpoint, model) {
+function changeStreamLayer(url, model) {
     var sfg = model.get('streamFeatureGroup'),
-        sl = new L.TileLayer(endpoint + '.png');
+        sl = new L.TileLayer(url + '.png');
 
     sfg.addLayer(sl);
     sl.bringToFront();
