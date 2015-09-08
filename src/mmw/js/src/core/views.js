@@ -14,7 +14,8 @@ var L = require('leaflet'),
     modalModels = require('./modals/models'),
     modalViews = require('./modals/views'),
     settings = require('./settings'),
-    LayerControl = require('./layerControl');
+    LayerControl = require('./layerControl'),
+    StreamSliderControl = require('./streamSliderControl');
 
 require('leaflet.locatecontrol');
 require('leaflet-plugins/layer/tile/Google');
@@ -163,6 +164,7 @@ var MapView = Marionette.ItemView.extend({
             addZoomControl: true,
             addLocateMeButton: true,
             addLayerSelector: true,
+            addStreamControl: true,
             showLayerAttribution: true,
             initialLayerName: defaultLayerName,
             interactiveMode: true // True if clicking on map does stuff
@@ -191,6 +193,14 @@ var MapView = Marionette.ItemView.extend({
 
         if (options.addLayerSelector) {
             this.layerControl = new LayerControl(this.baseLayers, this.overlayLayers, {
+                autoZIndex: false,
+                position: 'bottomright',
+                collapsed: false
+            }).addTo(map);
+        }
+
+        if (options.addStreamControl) {
+            this.layerControl = new StreamSliderControl({
                 autoZIndex: false,
                 position: 'bottomright',
                 collapsed: false

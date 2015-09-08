@@ -75,3 +75,30 @@
     }
   }
 }
+
+.leaflet-control-stream {
+  min-width: 220px;
+  min-height: 100px;
+  margin-right: 50px;
+  background-color: #fff;
+  display: none;
+
+  .modal-header {
+    background-color: $ui-primary;
+    color: $paper;
+
+    .modal-title {
+      font-size: 14px;
+     }
+  }
+
+  form {
+    padding: 15px;
+  }
+
+  .close {
+    text-shadow: none;
+    color: $paper;
+    font-size: 18px;
+  }
+}
