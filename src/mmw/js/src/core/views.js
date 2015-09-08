@@ -328,11 +328,8 @@ var MapView = Marionette.ItemView.extend({
                                     layer.url + '.png' : layer.url),
                         zIndex = layer.overlay ? 1 : 0;
 
-                    leafletLayer = new L.TileLayer(tileUrl, {
-                        attribution: layer.attribution || '',
-                        maxZoom: layer.maxZoom,
-                        zIndex: zIndex
-                    });
+                    _.defaults(layer, {zIndex: zIndex, attribution: ''});
+                    leafletLayer = new L.TileLayer(tileUrl, layer);
                 }
 
                 layers[layer['display']] = leafletLayer;
