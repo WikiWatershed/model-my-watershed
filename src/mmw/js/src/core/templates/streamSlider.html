@@ -1,17 +1,15 @@
-<div>
-    <div class="leaflet-control-stream-container leaflet-control leaflet-bar">
-        <a class="leaflet-bar-part leaflet-bar-part-single" href="#" title="Show stream control">
-            <span class="fa fa-random"></span>
-        </a>
+<div class="leaflet-control-stream-container leaflet-control leaflet-bar">
+    <a class="leaflet-bar-part leaflet-bar-part-single" href="#" title="Show stream control">
+        <span class="fa fa-random"></span>
+    </a>
+</div>
+<div class="leaflet-control-stream">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Streams</h4>
     </div>
-    <div class="leaflet-control-stream">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title">Streams</h4>
-        </div>
-        <form>
-            <input id="stream-slider" type="range" min="0" max="3" step="1" value="0">
-            <span id="stream-value">Off</span>
-        </form>
-    </div>
+    <form>
+        <input id="stream-slider" type="range" min="0" max="3" step="1" value="0">
+        <span id="stream-value">Off</span>
+    </form>
 </div>

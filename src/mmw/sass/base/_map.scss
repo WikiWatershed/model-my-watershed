@@ -40,48 +40,23 @@
 .leaflet-control-layers-expanded {
   padding: 0;
   background-color: transparent;
+}
 
-  .layer-control-button-container {
-    position: absolute;
-    bottom: 0px;
-    right: 0px;
-    margin-bottom: 0;
-    margin-right: 0;
-  }
-
+.leaflet-control {
   .leaflet-control-layers {
     min-width: 220px;
     min-height: 230px;
     margin-right: 50px;
     display: none;
-
-    .modal-header {
-      background-color: $ui-primary;
-      color: $paper;
-
-      .modal-title {
-        font-size: 14px;
-       }
-    }
-
-    form {
-      padding: 15px;
-    }
-
-    .close {
-      text-shadow: none;
-      color: $paper;
-      font-size: 18px;
-    }
   }
-}
 
-.leaflet-control-stream {
-  min-width: 220px;
-  min-height: 100px;
-  margin-right: 50px;
-  background-color: #fff;
-  display: none;
+  .leaflet-control-stream {
+    min-width: 220px;
+    min-height: 100px;
+    margin-right: 50px;
+    background-color: #fff;
+    display: none;
+  }
 
   .modal-header {
     background-color: $ui-primary;
