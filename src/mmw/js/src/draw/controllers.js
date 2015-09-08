@@ -62,7 +62,7 @@ var DrawController = {
  */
 function enableSingleProjectModeIfActivity() {
     if (settings.get('activityMode')) {
-        if (!App.currProject) {
+        if (!App.currentProject) {
             var project = new modelingModels.ProjectModel({
                 name: 'New Activity',
                 created_at: Date.now(),
@@ -71,7 +71,7 @@ function enableSingleProjectModeIfActivity() {
                 is_activity: true,
                 needs_reset: true
             });
-            App.currProject = project;
+            App.currentProject = project;
         }
     }
 }

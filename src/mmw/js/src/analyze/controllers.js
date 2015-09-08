@@ -23,7 +23,7 @@ var AnalyzeController = {
         if (settings.get('activityMode')) {
             // Only one project allowed in Activity Mode. Save current project
             // and if in embedded mode, update interactive state for container.
-            var project = App.currProject,
+            var project = App.currentProject,
                 map = App.map;
 
             if (project && project.get('scenarios').isEmpty()) {
@@ -43,7 +43,7 @@ var AnalyzeController = {
             // Multiple projects allowed in Regular Mode. Nullify current
             // project since a new one will be created and saved by the
             // Modelling Controller.
-            App.currProject = null;
+            App.currentProject = null;
         }
     },
 

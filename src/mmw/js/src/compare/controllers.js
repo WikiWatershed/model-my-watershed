@@ -8,14 +8,14 @@ var _ = require('lodash'),
 
 var CompareController = {
     compare: function(projectId) {
-        if (App.currProject) {
+        if (App.currentProject) {
             setupProjectCopy();
             showCompareWindow();
         } else if (projectId) {
-            App.currProject = new modelingModels.ProjectModel({
+            App.currentProject = new modelingModels.ProjectModel({
                 id: projectId
             });
-            App.currProject
+            App.currentProject
                 .fetch()
                 .done(function() {
                     setupProjectCopy();
@@ -30,8 +30,8 @@ var CompareController = {
         App.origProject.off('change:id', updateUrl);
 
         // Switch back to the origProject so any changes are discarded.
-        App.currProject.off();
-        App.currProject = App.origProject;
+        App.currentProject.off();
+        App.currentProject = App.origProject;
 
         App.rootView.footerRegion.empty();
     }
@@ -43,7 +43,7 @@ function setupProjectCopy() {
       -Changes to the results and inputs are not saved to the server
       -Changes to the results and inputs are not present after hitting the back button (and project is unsaved).
        When the user is logged in as a guest, the only copy of the original inputs and results
-       are in App.currProject, and modifying these values in the compare views will result in those new
+       are in App.currentProject, and modifying these values in the compare views will result in those new
        values being back in the modeling views, which is not what we want.
       -The original project (without changes) is saved when logging in. If the user is a guest,
        goes into the compare views, and then logs in, the project should be saved with the inputs
@@ -51,8 +51,8 @@ function setupProjectCopy() {
        constraint that inputs and results entered in the compare views should never be saved.
        Without holding onto the original copies of these values, it's not possible to do this.
      */
-    App.origProject = App.currProject;
-    App.currProject = copyProject(App.origProject);
+    App.origProject = App.currentProject;
+    App.currentProject = copyProject(App.origProject);
 
     App.user.on('change:guest', saveAfterLogin);
     App.origProject.on('change:id', updateUrl);
@@ -93,7 +93,7 @@ function saveAfterLogin(user, guest) {
         App.origProject.get('scenarios').each(function(scenario) {
             scenario.set('user_id', user_id);
         });
-        // Save the origProject (as opposed to the currProject)
+        // Save the origProject (as opposed to the currentProject)
         // to not include changes to inputs and results.
         App.origProject.saveProjectAndScenarios();
     }
@@ -106,7 +106,7 @@ function updateUrl() {
 
 function showCompareWindow() {
     var compareWindow = new views.CompareWindow({
-            model: App.currProject
+            model: App.currentProject
         });
     App.rootView.footerRegion.show(compareWindow);
 }

@@ -220,7 +220,7 @@ var CompareModelingView = Marionette.LayoutView.extend({
     },
 
     showResult: function() {
-        var modelPackage = App.currProject.get('model_package'),
+        var modelPackage = App.currentProject.get('model_package'),
             resultModel = this.model.get('results').getActive(),
             ResultView = modelingViews.getResultView(modelPackage, resultModel.get('name'));
 

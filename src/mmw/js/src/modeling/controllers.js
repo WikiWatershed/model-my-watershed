@@ -9,6 +9,34 @@ var $ = require('jquery'),
     views = require('./views'),
     models = require('./models');
 
+function makeProject(lock) {
+    var project = new models.ProjectModel({
+        name: 'Untitled Project',
+        created_at: Date.now(),
+        area_of_interest: App.map.get('areaOfInterest'),
+        area_of_interest_name: App.map.get('areaOfInterestName'),
+        scenarios: new models.ScenariosCollection()
+    });
+    lock.resolve();
+    return project;
+}
+
+function reinstateProject(number, lock) {
+    var project = new models.ProjectModel({id: App.projectNumber});
+
+    project
+        .fetch()
+        .done(function() {
+            App.map.set({
+                'areaOfInterest': project.get('area_of_interest'),
+                'areaOfInterestName': project.get('area_of_interest_name')
+            });
+            lock.resolve();
+        });
+
+    return project;
+}
+
 var ModelingController = {
     projectPrepare: function(projectId) {
         if (!projectId && !App.map.get('areaOfInterest')) {
@@ -25,7 +53,7 @@ var ModelingController = {
                 id: projectId
             });
 
-            App.currProject = project;
+            App.currentProject = project;
 
             project
                 .fetch()
@@ -57,8 +85,8 @@ var ModelingController = {
                     updateItsiFromEmbedMode();
                 });
         } else {
-            if (App.currProject && settings.get('activityMode')) {
-                project = App.currProject;
+            if (App.currentProject && settings.get('activityMode')) {
+                project = App.currentProject;
                 // Reset flag is set so clear off old project data.
                 if (project.get('needs_reset')) {
                     project.set({
@@ -107,36 +135,50 @@ var ModelingController = {
                     updateUrl();
                 }
             } else {
-                if (!App.currProject) {
+                var lock = $.Deferred();
+
+                if (!App.currentProject) {
                     // Only make new project if this is the first time
                     // hitting the modeling views.
-                    project = new models.ProjectModel({
-                        name: 'Untitled Project',
-                        created_at: Date.now(),
-                        area_of_interest: App.map.get('areaOfInterest'),
-                        area_of_interest_name: App.map.get('areaOfInterestName'),
-                        scenarios: new models.ScenariosCollection()
-                    });
+                    if (!App.projectNumber) {
+                        project = makeProject(lock);
+                    } else {
+                        project = reinstateProject(App.projectNumber, lock);
+                    }
 
-                    App.currProject = project;
-                    setupNewProjectScenarios(project);
+                    App.currentProject = project;
+                    if (!App.projectNumber) {
+                        setupNewProjectScenarios(project);
+                    }
                 } else {
-                    project = App.currProject;
+                    project = App.currentProject;
                     updateUrl();
+                    lock.resolve();
                 }
 
-                project.on('change:id', updateUrl);
-                initScenarioEvents(project);
-                initViews(project);
-
-                project.fetchResultsIfNeeded();
+                lock.done(function() {
+                    project.on('change:id', updateUrl);
+                    initScenarioEvents(project);
+                    initViews(project);
+                    project.fetchResultsIfNeeded();
+                    if (App.projectNumber) {
+                        updateUrl();
+                    }
+                });
             }
         }
     },
 
     projectCleanUp: function() {
-        App.currProject.off('change:id', updateUrl);
-        App.currProject.get('scenarios').off('change:activeScenario change:id', updateScenario);
+        var scenarios = App.currentProject.get('scenarios');
+
+        App.currentProject.off('change:id', updateUrl);
+        scenarios.off('change:activeScenario change:id', updateScenario);
+        // App.projectNumber holds the number of the project that was
+        // in use when the user left the `/project` page.  The intent
+        // is to allow the same project to be returned-to via the UI
+        // arrow buttons (see issue #690).
+        App.projectNumber = scenarios.at(0).get('project');
         App.getMapView().updateModifications(null);
         App.rootView.subHeaderRegion.empty();
         App.rootView.footerRegion.empty();
@@ -155,7 +197,7 @@ var ModelingController = {
             id: projectId
         });
 
-        App.currProject = project;
+        App.currentProject = project;
 
         project
             .fetch()
@@ -176,7 +218,7 @@ var ModelingController = {
                 }
             })
             .fail(function() {
-                App.currProject = null;
+                App.currentProject = null;
             })
             .always(function() {
                 router.navigate('/', { trigger: true });
@@ -192,7 +234,7 @@ function updateItsiFromEmbedMode() {
 
 function updateUrl() {
     // Use replace: true, so that the back button will work as expected.
-    router.navigate(App.currProject.getReferenceUrl(), { replace: true });
+    router.navigate(App.currentProject.getReferenceUrl(), { replace: true });
     updateItsiFromEmbedMode();
 }
 
@@ -226,7 +268,7 @@ function setupNewProjectScenarios(project) {
 function initViews(project) {
     var modelingResultsWindow = new views.ModelingResultsWindow({
             model: project
-        }),
+    }),
         modelingHeader = new views.ModelingHeaderView({
             model: project
         });

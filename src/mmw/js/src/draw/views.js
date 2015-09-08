@@ -449,10 +449,15 @@ function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
 }
 
 function clearAoiLayer() {
+    var projectNumber = App.projectNumber;
+
     App.map.set('areaOfInterest', null);
+    App.projectNumber = undefined;
+
     return function revertLayer() {
         var previousShape = App.map.previous('areaOfInterest');
         App.map.set('areaOfInterest', previousShape);
+        App.projectNumber = projectNumber;
     };
 }
 
