@@ -9,34 +9,6 @@ var $ = require('jquery'),
     views = require('./views'),
     models = require('./models');
 
-function makeProject(lock) {
-    var project = new models.ProjectModel({
-        name: 'Untitled Project',
-        created_at: Date.now(),
-        area_of_interest: App.map.get('areaOfInterest'),
-        area_of_interest_name: App.map.get('areaOfInterestName'),
-        scenarios: new models.ScenariosCollection()
-    });
-    lock.resolve();
-    return project;
-}
-
-function reinstateProject(number, lock) {
-    var project = new models.ProjectModel({id: App.projectNumber});
-
-    project
-        .fetch()
-        .done(function() {
-            App.map.set({
-                'areaOfInterest': project.get('area_of_interest'),
-                'areaOfInterestName': project.get('area_of_interest_name')
-            });
-            lock.resolve();
-        });
-
-    return project;
-}
-
 var ModelingController = {
     projectPrepare: function(projectId) {
         if (!projectId && !App.map.get('areaOfInterest')) {
@@ -276,6 +248,35 @@ function initViews(project) {
     App.rootView.subHeaderRegion.show(modelingHeader);
     App.rootView.footerRegion.show(modelingResultsWindow);
 }
+
+function makeProject(lock) {
+    var project = new models.ProjectModel({
+        name: 'Untitled Project',
+        created_at: Date.now(),
+        area_of_interest: App.map.get('areaOfInterest'),
+        area_of_interest_name: App.map.get('areaOfInterestName'),
+        scenarios: new models.ScenariosCollection()
+    });
+    lock.resolve();
+    return project;
+}
+
+function reinstateProject(number, lock) {
+    var project = new models.ProjectModel({id: App.projectNumber});
+
+    project
+        .fetch()
+        .done(function() {
+            App.map.set({
+                'areaOfInterest': project.get('area_of_interest'),
+                'areaOfInterestName': project.get('area_of_interest_name')
+            });
+            lock.resolve();
+        });
+
+    return project;
+}
+
 
 module.exports = {
     ModelingController: ModelingController
