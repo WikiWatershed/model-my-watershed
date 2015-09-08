@@ -74,3 +74,6 @@ DEBUG_TOOLBAR_CONFIG = {
 
 # API key for testing/development
 GOOGLE_MAPS_API_KEY = 'AIzaSyB0D5gjoIHpmy-xdP2cr_0I-E7K6s_L0k4'
+
+# azaveadev@azavea.com account
+GOOGLE_ANALYTICS_ACCOUNT = 'UA-67319750-1'
