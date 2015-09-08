@@ -54,6 +54,8 @@ var AnalyzeController = {
                 model: createTaskModel(aoi)
             });
 
+        App.state.set('current_page_title', 'Geospatial Analysis');
+
         App.rootView.footerRegion.show(analyzeWindow);
     },
 

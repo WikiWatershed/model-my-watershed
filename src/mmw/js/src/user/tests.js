@@ -127,7 +127,8 @@ describe('User', function() {
                 app: App
             }).render();
             var header = new coreViews.HeaderView({
-                model: App.user
+                model: App.user,
+                appState: App.state
             }).render();
 
             // Activate modal and make sure it is visible.

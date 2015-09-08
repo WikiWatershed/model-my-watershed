@@ -139,6 +139,8 @@ var ModelingController = {
                 });
             }
         }
+
+        App.state.set('current_page_title', 'Model');
     },
 
     projectCleanUp: function() {
