@@ -56,16 +56,16 @@ var ResultView = Marionette.ItemView.extend({
                 this.$el.addClass('current-conditions');
             } else if (this.scenario.get('is_current_conditions')) {
                 // Show the unmodified results and the unmodified
-                // Pre-Columbian results.
+                // Pre-Columbian (a.k.a. "100% Forest") results.
                 data = [
                     getBarData('Current Conditions', 'unmodified'),
-                    getBarData('Pre-Columbian', 'pc_unmodified')
+                    getBarData('100% Forest', 'pc_unmodified')
                 ];
             } else {
                 // Show the unmodified results and the modified
                 // results.
                 data = [
-                    getBarData('Original', 'unmodified'),
+                    getBarData('Current Conditions', 'unmodified'),
                     getBarData('Modified', 'modified')
                 ];
             }
