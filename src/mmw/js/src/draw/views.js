@@ -16,9 +16,7 @@ var $ = require('jquery'),
     selectTypeTmpl = require('./templates/selectType.html'),
     drawTmpl = require('./templates/draw.html'),
     resetDrawTmpl = require('./templates/reset.html'),
-    streamSliderTmpl = require('./templates/streamSlider.html'),
-    placeMarkerTmpl = require('./templates/placeMarker.html'),
-    settings = require('../core/settings');
+    placeMarkerTmpl = require('./templates/placeMarker.html');
 
 // Responsible for loading and displaying tools for selecting and drawing
 // shapes on the map.
@@ -66,9 +64,6 @@ var ToolbarView = Marionette.LayoutView.extend({
             model: this.model
         }));
         this.resetRegion.show(new ResetDrawView({
-            model: this.model
-        }));
-        this.streamRegion.show(new StreamSliderView({
             model: this.model
         }));
     }
@@ -329,67 +324,6 @@ var ResetDrawView = Marionette.ItemView.extend({
         clearBoundaryLayer(this.model);
     }
 });
-
-var StreamSliderView = Marionette.ItemView.extend({
-    template: streamSliderTmpl,
-
-    ui: {
-        slider: '#stream-slider',
-        displayValue: '#stream-value'
-    },
-
-    events: {
-        'input @ui.slider': 'onSliderDragged',
-        'change @ui.slider': 'onSliderChanged'
-    },
-
-    initialize: function() {
-        this.streamLayers = settings.get('stream_layers');
-    },
-
-    onShow: function() {
-        this.onSliderDragged();
-    },
-
-    getSliderIndex: function() {
-        return parseInt(this.ui.slider.val());
-    },
-
-    getSliderDisplay: function() {
-        var ind = this.getSliderIndex();
-        if (ind === 0) {
-            return 'Off';
-        } else {
-            return this.streamLayers[ind-1].display;
-        }
-    },
-
-    onSliderDragged: function() {
-        // Preview slider value while dragging.
-        this.ui.displayValue.text(this.getSliderDisplay());
-    },
-
-    onSliderChanged: function() {
-        var ind = this.getSliderIndex();
-        clearStreamLayer(this.model);
-        if (ind > 0) {
-            var streamLayer = this.streamLayers[ind-1];
-            changeStreamLayer(streamLayer.endpoint, this.model);
-        }
-    }
-});
-
-function clearStreamLayer(model) {
-    model.get('streamFeatureGroup').clearLayers();
-}
-
-function changeStreamLayer(endpoint, model) {
-    var sfg = model.get('streamFeatureGroup'),
-        sl = new L.TileLayer(endpoint + '.png');
-
-    sfg.addLayer(sl);
-    sl.bringToFront();
-}
 
 function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
     // The shapeId might not be available at the time of the click
