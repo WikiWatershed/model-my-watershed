@@ -97,6 +97,12 @@ var CompareScenarioView = Marionette.LayoutView.extend({
 
     template: compareScenarioTmpl,
 
+    templateHelpers: function() {
+        return {
+            scenarioName: this.model.get('name')
+        };
+    },
+
     regions: {
         mapRegion: '.map-region',
         modelingRegion: '.modeling-region',

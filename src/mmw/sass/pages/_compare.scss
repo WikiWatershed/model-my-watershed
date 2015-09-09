@@ -12,6 +12,25 @@
   .compare-table{
     height: 100%;
 
+    .scenario-overlay{
+      position: absolute;
+      z-index: 100;
+      height: 18vh;
+      width: 100%;
+      background-color: black;
+      opacity: 0.25;
+    }
+
+    .scenario-title{
+        text-shadow: 0px 0px 5px black;
+        position: absolute;
+        top: 140px;
+        z-index: 101;
+        left: 15px;
+        opacity: 1;
+        color: white;
+    }
+
     tbody{
       tr{
         height: 100%;

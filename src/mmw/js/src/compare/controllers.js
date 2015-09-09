@@ -66,6 +66,7 @@ function copyProject(project) {
     project.get('scenarios').forEach(function(scenario) {
         var scenarioCopy = new modelingModels.ScenarioModel({});
         scenarioCopy.set({
+            name: scenario.get('name'),
             is_current_conditions: scenario.get('is_current_conditions'),
             modifications: scenario.get('modifications'),
             modification_hash: scenario.get('modification_hash'),
