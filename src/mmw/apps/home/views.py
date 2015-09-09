@@ -8,6 +8,7 @@ from urlparse import urljoin
 
 from django.http import Http404
 from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.template import RequestContext
 from django.template.context_processors import csrf
 from django.conf import settings
 
@@ -123,7 +124,7 @@ def get_client_settings(request):
 
 
 def get_context(request):
-    context = {}
+    context = RequestContext(request)
     context.update(csrf(request))
     context.update(get_client_settings(request))
 
