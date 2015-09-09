@@ -107,6 +107,7 @@ LAYERS = [
         'maxNativeZoom': 13,
         'maxZoom': 18,
         'opacity': 0.618,
+        'has_opacity_slider': True
     },
     {
         'code': 'stream-low',

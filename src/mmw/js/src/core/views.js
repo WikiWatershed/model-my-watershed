@@ -15,7 +15,8 @@ var L = require('leaflet'),
     modalViews = require('./modals/views'),
     settings = require('./settings'),
     LayerControl = require('./layerControl'),
-    StreamSliderControl = require('./streamSliderControl');
+    StreamSliderControl = require('./streamSliderControl'),
+    OpacityControl = require('./opacityControl');
 
 require('leaflet.locatecontrol');
 require('leaflet-plugins/layer/tile/Google');
@@ -330,6 +331,12 @@ var MapView = Marionette.ItemView.extend({
 
                     _.defaults(layer, {zIndex: zIndex, attribution: ''});
                     leafletLayer = new L.TileLayer(tileUrl, layer);
+                    if (layer.has_opacity_slider) {
+                        var slider = new OpacityControl();
+
+                        slider.setOpacityLayer(leafletLayer);
+                        leafletLayer.slider = slider;
+                    }
                 }
 
                 layers[layer['display']] = leafletLayer;
