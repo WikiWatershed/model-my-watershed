@@ -12,6 +12,21 @@ For basemaps, maxZoom must be defined.
 
 LAYERS = [
     {
+        'code': 'county',
+        'display': 'US Counties',
+        'short_display': 'County',
+        'table_name': 'boundary_county',
+        'helptext': 'Counties in U.S. states are administrative divisions '
+                    'of the state in which their boundaries are drawn. 3,144 '
+                    'counties and county equivalents carve up the United '
+                    'States, ranging in quantity from 3 for Delaware to 254 '
+                    'for Texas. Where they exist, they are the intermediate '
+                    'tier of state government, between the statewide tier '
+                    'and the immediately local government tier',
+        'boundary': False,
+        'overlay': True,
+    },
+    {
         'code': 'district',
         'display': 'Congressional Districts',
         'short_display': 'Congressional District',
