@@ -159,14 +159,15 @@ var MapView = Marionette.ItemView.extend({
         var defaultLayer = _.findWhere(settings.get('base_layers'), function(layer) {
                 return layer.default === true;
             }),
-            defaultLayerName = defaultLayer ? defaultLayer['display'] : 'Streets';
+            defaultLayerName = defaultLayer ? defaultLayer['display'] : 'Streets',
+            map_controls = settings.get('map_controls');
 
         _.defaults(options, {
-            addZoomControl: true,
-            addLocateMeButton: true,
-            addLayerSelector: true,
-            addStreamControl: true,
-            showLayerAttribution: true,
+            addZoomControl: _.contains(map_controls, 'ZoomControl'),
+            addLocateMeButton: _.contains(map_controls, 'LocateMeButton'),
+            addLayerSelector: _.contains(map_controls, 'LayerSelector'),
+            addStreamControl: _.contains(map_controls, 'StreamControl'),
+            showLayerAttribution: _.contains(map_controls, 'LayerAttribution'),
             initialLayerName: defaultLayerName,
             interactiveMode: true // True if clicking on map does stuff
         });
