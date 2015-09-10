@@ -358,3 +358,22 @@ ITSI = {
 # TILER CONFIGURATION
 TILER_HOST = environ.get('MMW_TILER_HOST', 'localhost')
 # END TILER CONFIGURATION
+
+# UI CONFIGURATION
+
+DRAW_TOOLS = [
+    'SelectArea',   # Boundary Selector
+    'Draw',         # Custom Area or 1 Sq Km stamp
+    'PlaceMarker',  # Delineate Watershed
+    'ResetDraw',
+]
+
+MAP_CONTROLS = [
+    'LayerAttribution',
+    'LayerSelector',
+    'LocateMeButton',
+    'StreamControl',
+    'ZoomControl',
+]
+
+# END UI CONFIGURATION

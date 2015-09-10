@@ -116,6 +116,8 @@ def get_client_settings(request):
             'stream_layers': get_layer_config('stream'),
             'boundary_layers': get_layer_config('boundary'),
             'overlay_layers': get_layer_config('overlay'),
+            'draw_tools': settings.DRAW_TOOLS,
+            'map_controls': settings.MAP_CONTROLS,
             'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY
         })
     }

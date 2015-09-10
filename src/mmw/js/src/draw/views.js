@@ -16,7 +16,8 @@ var $ = require('jquery'),
     selectTypeTmpl = require('./templates/selectType.html'),
     drawTmpl = require('./templates/draw.html'),
     resetDrawTmpl = require('./templates/reset.html'),
-    placeMarkerTmpl = require('./templates/placeMarker.html');
+    placeMarkerTmpl = require('./templates/placeMarker.html'),
+    settings = require('../core/settings');
 
 // Responsible for loading and displaying tools for selecting and drawing
 // shapes on the map.
@@ -54,18 +55,27 @@ var ToolbarView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        this.selectTypeRegion.show(new SelectAreaView({
-            model: this.model
-        }));
-        this.drawRegion.show(new DrawView({
-            model: this.model
-        }));
-        this.placeMarkerRegion.show(new PlaceMarkerView({
-            model: this.model
-        }));
-        this.resetRegion.show(new ResetDrawView({
-            model: this.model
-        }));
+        var draw_tools = settings.get('draw_tools');
+        if (_.contains(draw_tools, 'SelectArea')) {
+            this.selectTypeRegion.show(new SelectAreaView({
+                model: this.model
+            }));
+        }
+        if (_.contains(draw_tools, 'Draw')) {
+            this.drawRegion.show(new DrawView({
+                model: this.model
+            }));
+        }
+        if (_.contains(draw_tools, 'PlaceMarker')) {
+            this.placeMarkerRegion.show(new PlaceMarkerView({
+                model: this.model
+            }));
+        }
+        if (_.contains(draw_tools, 'ResetDraw')) {
+            this.resetRegion.show(new ResetDrawView({
+                model: this.model
+            }));
+        }
     }
 });
 

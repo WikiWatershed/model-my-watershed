@@ -118,6 +118,18 @@ describe('Core', function() {
 
     describe('Views', function() {
         describe('MapView', function() {
+            before(function() {
+                // Ensure that map controls are enabled before testing
+
+                settings.set('map_controls', [
+                    'LayerAttribution',
+                    'LayerSelector',
+                    'LocateMeButton',
+                    'StreamControl',
+                    'ZoomControl',
+                ]);
+            });
+
             it('adds layers to the map when the map model attribute areaOfInterest is set', function() {
                 var model = new models.MapModel(),
                     view = new views.MapView({

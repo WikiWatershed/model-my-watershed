@@ -11,6 +11,7 @@ var $ = require('jquery'),
     models = require('./models'),
     utils = require('./utils'),
     views = require('./views'),
+    settings = require('../core/settings'),
     testUtils = require('../core/testUtils');
 
 var sandboxId = 'sandbox',
@@ -25,6 +26,17 @@ var SandboxRegion = Marionette.Region.extend({
 });
 
 describe('Draw', function() {
+    before(function() {
+        // Ensure that draw tools are enabled before testing
+
+        settings.set('draw_tools', [
+            'SelectArea',   // Boundary Selector
+            'Draw',         // Custom Area or 1 Sq Km stamp
+            'PlaceMarker',  // Delineate Watershed
+            'ResetDraw',
+        ]);
+    });
+
     beforeEach(function() {
         $('body').append('<div id="sandbox">');
     });
