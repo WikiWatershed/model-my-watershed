@@ -125,6 +125,7 @@ var CompareScenarioView = Marionette.LayoutView.extend({
             el: $(this.el).find('.map-container').get(),
             addZoomControl: false,
             addLocateMeButton: false,
+            addStreamControl: false,
             addLayerSelector: false,
             showLayerAttribution: false,
             initialLayerName: App.getMapView().getActiveBaseLayerName(),
