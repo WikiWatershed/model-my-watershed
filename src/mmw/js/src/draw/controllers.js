@@ -45,6 +45,7 @@ var DrawController = {
             App.rootView.footerRegion.show(aoiView);
         }
 
+        App.state.set('current_page_title', 'Choose Area of Interest');
     },
 
     drawCleanUp: function() {

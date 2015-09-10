@@ -23,6 +23,8 @@ var CompareController = {
                 });
         }
         // else -- this case is caught by the backend and raises a 404
+
+        App.state.set('current_page_title', 'Compare');
     },
 
     compareCleanUp: function() {

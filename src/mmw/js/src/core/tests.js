@@ -252,6 +252,20 @@ describe('Core', function() {
                 view.destroy();
             });
         });
+
+        describe('HeaderView', function() {
+            it('shows the current page', function() {
+                var appState = new models.AppStateModel({
+                        current_page_title: 'Test Page'
+                    }),
+                    header = new views.HeaderView({
+                        model: App.user,
+                        appState: appState
+                    }).render();
+
+                assert.include(header.$el.find('.brand').text(), 'Test Page');
+            });
+        });
     });
 
     describe('Models', function() {

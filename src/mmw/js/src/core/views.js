@@ -55,6 +55,19 @@ var HeaderView = Marionette.ItemView.extend({
         'change': 'render'
     },
 
+    initialize: function() {
+        this.appState = this.options.appState;
+        this.listenTo(this.appState, 'change', this.render);
+    },
+
+    templateHelpers: function() {
+        var self = this;
+
+        return {
+            'current_page_title': self.appState.get('current_page_title')
+        };
+    },
+
     showLogin: function() {
         // Defer requiring app until needed as it is not defined when
         // core.views are initialized (they are required in app.js)

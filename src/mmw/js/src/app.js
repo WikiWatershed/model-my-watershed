@@ -13,6 +13,7 @@ var App = new Marionette.Application({
     initialize: function() {
         this.restApi = new RestAPI();
         this.map = new models.MapModel();
+        this.state = new models.AppStateModel();
 
         // If in embed mode we are by default in activity mode.
         var activityMode = settings.get('itsi_embed');
@@ -38,8 +39,10 @@ var App = new Marionette.Application({
 
         this.header = new views.HeaderView({
             el: 'header',
-            model: this.user
+            model: this.user,
+            appState: this.state
         });
+
         this.header.render();
 
         // Not set until modeling/controllers.js creates a
