@@ -15,7 +15,7 @@ module.exports = L.Control.Layers.extend({
         this._form = $(container).find('form').get(0);
 
         // Copied directly from the parent class.
-        // makes this work on IE touch devices by stopping it 
+        // makes this work on IE touch devices by stopping it
         // from firing a mouseout event when the touch is released
         container.setAttribute('aria-haspopup', true);
 
@@ -49,6 +49,53 @@ module.exports = L.Control.Layers.extend({
         var container = new LayerControlView({}).render().el;
 
         return container;
+    },
+
+    // Copied verbatim from
+    // https://github.com/Leaflet/Leaflet/blob/master/src/control/Control.Layers.js
+    // except for the two if clauses to (respectively) remove and add
+    // the opacity slider.
+    _onInputClick: function () {
+        var inputs = this._form.getElementsByTagName('input'),
+            input, layer, hasLayer,
+            addedLayers = [],
+            removedLayers = [];
+
+        this._handlingClick = true;
+
+        for (var i = inputs.length - 1; i >= 0; i--) {
+            input = inputs[i];
+            layer = this._layers[input.layerId].layer;
+            hasLayer = this._map.hasLayer(layer);
+
+            if (input.checked && !hasLayer) {
+                addedLayers.push(layer);
+            } else if (!input.checked && hasLayer) {
+                removedLayers.push(layer);
+            }
+        }
+
+        // Bugfix issue 2318: Should remove all old layers before readding new ones
+        for (i = 0; i < removedLayers.length; i++) {
+            var removedLayer = removedLayers[i],
+                removedSlider = removedLayer.slider;
+            this._map.removeLayer(removedLayer);
+            if (removedSlider) {
+                this._map.removeControl(removedSlider);
+            }
+        }
+        for (i = 0; i < addedLayers.length; i++) {
+            var addedLayer = addedLayers[i],
+                addedSlider = addedLayer.slider;
+            this._map.addLayer(addedLayer);
+            if (addedSlider) {
+                this._map.addControl(addedSlider);
+            }
+        }
+
+        this._handlingClick = false;
+
+        this._refocusOnMap();
     }
 });
 
