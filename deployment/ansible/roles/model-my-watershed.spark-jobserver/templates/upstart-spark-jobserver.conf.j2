@@ -1,0 +1,38 @@
+description "Spark Job Server"
+
+start on (filesystem and started docker)
+stop on stopping docker
+
+kill timeout 20
+kill signal CONT
+respawn
+
+pre-start script
+  /usr/bin/docker kill spark-jobserver || true
+  /usr/bin/docker rm spark-jobserver || true
+end script
+
+exec /usr/bin/docker run \
+  --name spark-jobserver \
+  --publish {{ sjs_port }}:{{ sjs_port }} \
+  {% if ['development', 'test'] | some_are_in(group_names) -%}
+  --volume /aws:/root/.aws \
+  --env AWS_PROFILE={{ aws_profile }} \
+  {% endif -%}
+  --volume {{ sjs_home }}/spark-jobserver.conf:{{ sjs_home }}/spark-jobserver.conf \
+  --volume {{ sjs_jars_dir }}:{{ sjs_jars_dir }} \
+  --volume {{ sjs_filedao_dir }}:{{ sjs_filedao_dir }} \
+  {% for k,v in app_config.items() -%}
+  --env {{ k }}={{ v }} \
+  {% endfor -%}
+  --log-driver syslog \
+  quay.io/azavea/spark-jobserver:latest --driver-memory {{ sjs_driver_memory }}
+
+post-start script
+  while ! nc -w0 {{ sjs_host }} {{ sjs_port }}; do sleep 1; done
+end script
+
+post-stop script
+  /usr/bin/docker kill spark-jobserver
+  /usr/bin/docker rm spark-jobserver
+end script

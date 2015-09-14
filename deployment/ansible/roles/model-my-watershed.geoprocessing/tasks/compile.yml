@@ -1,6 +1,0 @@
----
-- name: Compile the scala code
-  command: "sbt 'project services' compile assembly"
-  args:
-    chdir: "{{ geop_home }}"
-    creates: "{{ geop_home }}/services/target/scala-2.10/mmw-services-assembly-0.0.1.jar"

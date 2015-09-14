@@ -7,4 +7,5 @@
       apt: update_cache=yes cache_valid_time=3600
 
   roles:
+    - { role: "model-my-watershed.geoprocessing" }
     - { role: "model-my-watershed.celery-worker" }
