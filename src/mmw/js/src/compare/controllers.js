@@ -4,9 +4,15 @@ var _ = require('lodash'),
     App = require('../app'),
     router = require('../router').router,
     views = require('./views'),
-    modelingModels = require('../modeling/models.js');
+    modelingModels = require('../modeling/models.js'),
+    modelingControls = require('../modeling/controls'),
+    synchronizer = modelingControls.PrecipitationSynchronizer;
 
 var CompareController = {
+    comparePrepare: function() {
+        synchronizer.on();
+    },
+
     compare: function(projectId) {
         if (App.currentProject) {
             setupProjectCopy();
@@ -28,6 +34,7 @@ var CompareController = {
     },
 
     compareCleanUp: function() {
+        synchronizer.off();
         App.user.off('change:guest', saveAfterLogin);
         App.origProject.off('change:id', updateUrl);
 
