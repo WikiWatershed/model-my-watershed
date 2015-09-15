@@ -57,6 +57,7 @@ module.exports = L.Control.extend({
     onAdd: function (map) {
         var opacity_slider_div = L.DomUtil.create('div', 'opacity_slider_control'),
             opacityLayer = this.opacityLayer,
+            initial_value = opacityLayer.options.opacity * 100,
             view = new SliderView().render().el;
 
         $(view).on('mousedown', function() {
@@ -67,12 +68,16 @@ module.exports = L.Control.extend({
         });
 
         $(view).on('mouseup', function(e) {
-            var slider_value = $(e.toElement).val();
+            var el = $(e.toElement),
+                slider_value = el.val();
             opacityLayer.setOpacity(slider_value / 100);
+            el.attr('value', slider_value);
         });
 
         $(opacity_slider_div).append(view);
-        $(view).find('input').val(opacityLayer.options.opacity * 100);
+        $(view).find('input')
+            .val(initial_value)
+            .attr('value', initial_value);
 
         return opacity_slider_div;
     }

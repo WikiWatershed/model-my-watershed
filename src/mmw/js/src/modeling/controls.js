@@ -130,6 +130,7 @@ var PrecipitationView = ControlView.extend({
     onSliderDragged: function() {
         // Preview slider value while dragging.
         var value = parseFloat(this.ui.slider.val());
+        this.ui.slider.attr('value', value);
         this.ui.displayValue.text(this.getDisplayValue(value));
     },
 
@@ -152,6 +153,7 @@ var PrecipitationView = ControlView.extend({
         // metric.
         value = coreUtils.convertToMetric(value, 'in');
         this.ui.slider.val(value);
+        this.ui.slider.attr('value', value);
         this.ui.displayValue.text(this.getDisplayValue(value));
     }
 });
