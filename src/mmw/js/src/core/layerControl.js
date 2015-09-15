@@ -80,6 +80,11 @@ module.exports = L.Control.Layers.extend({
         holder.appendChild(input);
         holder.appendChild(name);
 
+        if (obj.empty) {
+            name.innerHTML = ' None';
+            input.checked = true;
+        }
+
         var container = obj.overlay ? this._overlaysList : this._baseLayersList;
         var subcontainer;
         if (obj.overlayType) {
@@ -111,7 +116,8 @@ module.exports = L.Control.Layers.extend({
         this._layers[id] = {
             layer: layer,
             name: name,
-            overlay: overlay
+            overlay: overlay,
+            empty: layer.options.empty
         };
 
         if (overlay) {

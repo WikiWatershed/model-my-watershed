@@ -189,7 +189,19 @@ var MapView = Marionette.ItemView.extend({
                 zoomControl: false,
                 attributionControl: options.showLayerAttribution
             }),
-            overlayLayers = settings.get('vector_layers').concat(settings.get('raster_layers'))
+            nullVectorLayer = {
+                display: 'nullVector',
+                vector: true,
+                empty: true
+            },
+            nullRasterLayer = {
+                display: 'nullRaster',
+                raster: true,
+                empty: true
+            },
+            vectorLayers = [nullVectorLayer].concat(settings.get('vector_layers')),
+            rasterLayers = [nullRasterLayer].concat(settings.get('raster_layers')),
+            overlayLayers = vectorLayers.concat(rasterLayers);
 
         // Center the map on the U.S.
         map.fitBounds([
@@ -339,7 +351,7 @@ var MapView = Marionette.ItemView.extend({
                     leafletLayer = new L.Google(layer.googleType, {
                         maxZoom: layer.maxZoom
                     });
-                } else {
+                } else if (!layer.empty) {
                     var tileUrl = (layer.url.match(/png/) === null ?
                                     layer.url + '.png' : layer.url),
                         zIndex = layer.overlay ? 1 : 0;
@@ -352,6 +364,8 @@ var MapView = Marionette.ItemView.extend({
                         slider.setOpacityLayer(leafletLayer);
                         leafletLayer.slider = slider;
                     }
+                } else {
+                    leafletLayer = new L.TileLayer('', layer);
                 }
 
                 layers[layer['display']] = leafletLayer;
