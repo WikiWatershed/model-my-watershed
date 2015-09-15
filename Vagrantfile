@@ -93,11 +93,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     worker.vm.synced_folder ".", "/vagrant", disabled: true
     worker.vm.synced_folder "src/mmw", "/opt/app/"
 
-    # Flower
-    worker.vm.network "forwarded_port", {
-      guest: 80,
-      host: 5555
-    }.merge(VAGRANT_NETWORK_OPTIONS)
     # Docker
     worker.vm.network "forwarded_port", {
       guest: 2375,
