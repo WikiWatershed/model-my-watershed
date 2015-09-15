@@ -269,7 +269,13 @@ var ChartView = Marionette.ItemView.extend({
     addChart: function() {
         var chartEl = this.$el.find('.bar-chart').get(0),
             chartData = this.collection.map(function(model) {
-                return model.attributes;
+                var attrs = model.attributes;
+                return {
+                    area: attrs.area,
+                    coverage: attrs.coverage,
+                    type: attrs.type,
+                    className: attrs.nlcd ? 'nlcd-' + attrs.nlcd : null
+                };
             }),
             chartOptions = {
                 isPercentage: true,

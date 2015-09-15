@@ -294,7 +294,10 @@ function makeBarChart(el, data, indVar, depVars, options) {
         barGroups = chartGroup.selectAll('.bar')
                 .data(data)
                 .enter().append('g')
-                .attr('class', 'g')
+                .attr('class', function(d) { 
+                    return d.className ? d.className : ''; 
+                })
+                .classed('g', true)
                 .attr('transform', function(d) {
                     return 'translate(0,' + y(d[indVar]) + ')';
                 });
