@@ -20,6 +20,19 @@
   notify:
     - Restart Spark Job Server
 
+- name: Configure Nginx site
+  template: src=nginx-spark-jobserver.conf.j2
+            dest=/etc/nginx/sites-available/spark-jobserver.conf
+  notify:
+    - Restart Nginx
+
+- name: Enable Nginx site
+  file: src=/etc/nginx/sites-available/spark-jobserver.conf
+        dest=/etc/nginx/sites-enabled/spark-jobserver
+        state=link
+  notify:
+    - Restart Nginx
+
 - name: Pull Spark Job Server container image
   command: /usr/bin/docker pull quay.io/azavea/spark-jobserver:latest
 
