@@ -188,7 +188,8 @@ var MapView = Marionette.ItemView.extend({
         var map = new L.Map(this.el, {
                 zoomControl: false,
                 attributionControl: options.showLayerAttribution
-            });
+            }),
+            overlayLayers = settings.get('vector_layers').concat(settings.get('raster_layers'))
 
         // Center the map on the U.S.
         map.fitBounds([
@@ -200,7 +201,7 @@ var MapView = Marionette.ItemView.extend({
         this._areaOfInterestLayer = new L.FeatureGroup();
         this._modificationsLayer = new L.FeatureGroup();
         this.baseLayers = this.buildLayers(settings.get('base_layers'));
-        this.overlayLayers = this.buildLayers(settings.get('overlay_layers'));
+        this.overlayLayers = this.buildLayers(overlayLayers);
 
         if (!options.interactiveMode) {
             this.setMapToNonInteractive();
