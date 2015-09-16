@@ -78,6 +78,14 @@
 
                     <!-- Land Cover -->
 
+                    <div id="land-water" role="tabpanel" class="tab-pane water"> <!-- Open Water -->
+                        <img src="" style="background-color: gray;" alt="Open Water">
+                    </div>
+
+                    <div id="land-wetland" role="tabpanel" class="tab-pane wetland"> <!-- Wetlands -->
+                        <img src="" style="background-color: gray;" alt="Wetlands">
+                    </div>
+
                     <div id="land-li_residential" role="tabpanel" class="tab-pane active land"> <!-- LIR -->
                         <img src="{% static 'images/water_balance/art_land_lir.png' %}" alt="Low-Intensity Residential">
                     </div>
@@ -208,88 +216,88 @@
 
                 <ul id="thumbs-land" class="nav" role="tablist"> <!-- Landcover Thumbs -->
 
-                    <li id="thumb-li_residential" class="active"> <!-- LIR Thumb -->
+                    <li id="thumb-water">
+                        <a href="#land-water" aria-controls="filter-tab" role="tab" data-toggle="tab">
+                            <img src="" style="background-color: gray;" alt="Open Water" data-container="body" data-toggle="popover" data-placement="left" data-title="Open Water" data-content="Areas of open water, generally with less than 25% cover of vegetation or soil.">
+                        </a>
+                        <label>Water</label>
+                    </li>
+
+                    <li id="thumb-urban_grass">
+                        <a href="#land-urban_grass" aria-controls="filter-tab" role="tab" data-toggle="tab">
+                            <img src="{% static 'images/water_balance/thumb_turfGrass.png' %}" alt="Developed, Open Space" data-container="body" data-toggle="popover" data-placement="left" data-title="Developed, Open Space" data-content="Areas with a mixture of some constructed materials, but mostly vegetation in the form of lawn grasses. Impervious surfaces account for less than 20% of total cover. These areas most commonly include large-lot single-family housing units, parks, golf courses, and vegetation planted in developed settings for recreation, erosion control, or aesthetic purposes.">
+                        </a>
+                        <label>Developed, Open Space</label>
+                    </li>
+
+                    <li id="thumb-li_residential" class="active">
                         <a href="#land-li_residential" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_lir.png' %}" alt="Low-Intensity Residential" data-container="body" data-toggle="popover" data-placement="left" data-title="Low Intensity Residential" data-content="Areas with a mixture of constructed materials and vegetation. Impervious surfaces account for 20% to 49% percent of total cover. These areas most commonly include single-family housing units.">
+                            <img src="{% static 'images/water_balance/thumb_lir.png' %}" alt="Developed, Low Intensity" data-container="body" data-toggle="popover" data-placement="left" data-title="Developed, Low Intensity" data-content="Areas with a mixture of constructed materials and vegetation. Impervious surfaces account for 20% to 49% percent of total cover. These areas most commonly include single-family housing units.">
                         </a>
-                        <label>LIR</label>
+                        <label>Developed-Low</label>
                     </li>
 
-                    <li id="thumb-hi_residential"> <!-- HIR Thumb -->
+                    <li id="thumb-hi_residential">
                         <a href="#land-hi_residential" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_hir.png' %}" alt="High-Intensity Residential" data-container="body" data-toggle="popover" data-placement="left" data-title="High Intensity Residential" data-content="Areas with a mixture of constructed materials and vegetation. Impervious surfaces account for 50% to 79% of the total cover. These areas most commonly include single-family housing units.">
+                            <img src="{% static 'images/water_balance/thumb_hir.png' %}" alt="Developed, Medium Intensity" data-container="body" data-toggle="popover" data-placement="left" data-title="Developed, Medium Intensity" data-content="Areas with a mixture of constructed materials and vegetation. Impervious surfaces account for 50% to 79% of the total cover. These areas most commonly include single-family housing units.">
                         </a>
-                        <label>HIR</label>
+                        <label>Developed-Med</label>
                     </li>
 
-                    <li id="thumb-commercial"> <!-- Commercial Thumb -->
+                    <li id="thumb-commercial">
                         <a href="#land-commercial" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_commercial.png' %}" alt="Commercial" data-container="body" data-toggle="popover" data-placement="left" data-title="Commercial" data-content="Highly developed areas where people reside or work in high numbers. Examples include apartment complexes, row houses and commercial/industrial. Impervious surfaces account for 80% to 100% of the total cover.">
+                            <img src="{% static 'images/water_balance/thumb_commercial.png' %}" alt="Developed High Intensity" data-container="body" data-toggle="popover" data-placement="left" data-title="Developed High Intensity" data-content="Highly developed areas where people reside or work in high numbers. Examples include apartment complexes, row houses and commercial/industrial. Impervious surfaces account for 80% to 100% of the total cover.">
                         </a>
-                        <label>Commercial</label>
+                        <label>Developed-High</label>
                     </li>
 
-                    <li id="thumb-grassland"> <!-- Grassland Thumb -->
-                        <a href="#land-grassland" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_grassland.png' %}" alt="Grassland" data-container="body" data-toggle="popover" data-placement="left" data-title="Grassland" data-content="Areas dominated by gramanoid or herbaceous vegetation, generally greater than 80% of total vegetation. These areas are not subject to intensive management such as tilling, but can be utilized for grazing.">
+                    <li id="thumb-desert">
+                        <a href="#land-desert" aria-controls="filter-tab" role="tab" data-toggle="tab">
+                            <img src="{% static 'images/water_balance/thumb_desert.png' %}" alt="Barren Land (Rock/Sand/Clay)" data-container="body" data-toggle="popover" data-placement="left" data-title="Barren Land (Rock/Sand/Clay)" data-content="(Including desert). Areas of bedrock, desert pavement, scarps, talus, slides, volcanic material, glacial debris, sand dunes, strip mines, gravel pits and other accumulations of earthen material. Generally, vegetation accounts for less than 15% of total cover.">
                         </a>
-                        <label>Grassland</label>
+                        <label>Barren Land</label>
                     </li>
 
-                    <li id="thumb-deciduous_forest"> <!-- Deciduous Forest Thumb -->
+                    <li id="thumb-deciduous_forest">
                         <a href="#land-deciduous_forest" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_forest.png' %}" alt="Deciduous Forest" data-container="body" data-toggle="popover" data-placement="left" data-title="Forest" data-content="Areas dominated by trees generally greater than 5 meters tall, and greater than 20% of total vegetation cover. Neither deciduous nor evergreen species are greater than 75% of total tree cover.">
+                            <img src="{% static 'images/water_balance/thumb_forest.png' %}" alt="Forest" data-container="body" data-toggle="popover" data-placement="left" data-title="Forest" data-content="(Including deciduous, evergreen and mixed forest). Areas dominated by trees generally greater than 5 meters tall, and greater than 20% of total vegetation cover. Neither deciduous nor evergreen species are greater than 75% of total tree cover.">
                         </a>
                         <label>Forest</label>
                     </li>
 
-                    <li id="thumb-urban_grass"> <!-- Urban Grass Thumb -->
-                        <a href="#land-urban_grass" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_turfGrass.png' %}" alt="Turf Grass" data-container="body" data-toggle="popover" data-placement="left" data-title="Turf Grass" data-content="Areas with a mixture of some constructed materials, but mostly vegetation in the form of lawn grasses. Impervious surfaces account for less than 20% of total cover. These areas most commonly include large-lot single-family housing units, parks, golf courses, and vegetation planted in developed settings for recreation, erosion control, or aesthetic purposes.">
-                        </a>
-                        <label>Turf Grass</label>
-                    </li>
-
-                    <li id="thumb-pasture"> <!-- Pasture Thumb -->
-                        <a href="#land-pasture" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_pasture.png' %}" alt="Pasture" data-container="body" data-toggle="popover" data-placement="left" data-title="Pasture" data-content="Areas of grasses, legumes, or grass-legume mixtures planted for livestock grazing or the production of seed or hay crops, typically on a perennial cycle. Pasture/hay vegetation accounts for greater than 20% of total vegetation.">
-                        </a>
-                        <label>Pasture</label>
-                    </li>
-
-                    <li id="thumb-row_crop"> <!-- Row Crops Thumb -->
-                        <a href="#land-row_crop" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_rowCrops.png' %}" alt="Row Crops" data-container="body" data-toggle="popover" data-placement="left" data-title="Row Crops" data-content="Areas used for the production of annual crops, such as corn, soybeans, vegetables, tobacco, and cotton, and also perennial woody crops such as orchards and vineyards. Crop vegetation accounts for greater than 20% of total vegetation. This class also includes all land being actively tilled.">
-                        </a>
-                        <label>Row Crops</label>
-                    </li>
-
-                    <li id="thumb-chaparral"> <!-- chaparral Thumb -->
+                    <li id="thumb-chaparral">
                         <a href="#land-chaparral" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_chaparral.png' %}" alt="Chaparral" data-container="body" data-toggle="popover" data-placement="left" data-title="Chaparral" data-content="Areas dominated by shrubs; less than 5 meters tall with shrub canopy typically greater than 20% of total vegetation. This class includes true shrubs, young trees in an early successional stage or trees stunted from environmental conditions.">
+                            <img src="{% static 'images/water_balance/thumb_chaparral.png' %}" alt="Shrub/Scrub" data-container="body" data-toggle="popover" data-placement="left" data-title="Shrub/Scrub" data-content="(Including chaparral). Areas dominated by shrubs; less than 5 meters tall with shrub canopy typically greater than 20% of total vegetation. This class includes true shrubs, young trees in an early successional stage or trees stunted from environmental conditions.">
                         </a>
-                        <label>Chaparral</label>
+                        <label>Shrub/Scrub</label>
                     </li>
 
-                    <li id="thumb-tall_grass_prairie"> <!-- Tall-Grass Thumb -->
-                        <a href="#land-tall_grass_prairie" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_tallGrass.png' %}" alt="Tall Grass Prairie" data-container="body" data-toggle="popover" data-placement="left" data-title="Tall Grass Prairie" data-content="Areas dominated by shrubs; less than 5 meters tall with shrub canopy typically greater than 20% of total vegetation. This class includes true shrubs, young trees in an early successional stage or trees stunted from environmental conditions.">
+                    <li id="thumb-grassland">
+                        <a href="#land-grassland" aria-controls="filter-tab" role="tab" data-toggle="tab">
+                            <img src="{% static 'images/water_balance/thumb_grassland.png' %}" alt="Grassland/Herbaceous" data-container="body" data-toggle="popover" data-placement="left" data-title="Grassland/Herbaceous" data-content="Areas dominated by gramanoid or herbaceous vegetation, generally greater than 80% of total vegetation. These areas are not subject to intensive management such as tilling, but can be utilized for grazing.">
                         </a>
-                        <label>Tall Grass Prairie</label>
+                        <label>Grassland</label>
                     </li>
 
-                    <li id="thumb-short_grass_prairie"> <!-- Short-Grass Thumb -->
-                        <a href="#land-short_grass_prairie" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_shortGrass.png' %}" alt="Short Grass Prairie" data-container="body" data-toggle="popover" data-placement="left" data-title="Short Grass Prairie" data-content="Areas dominated by shrubs less than 20 centimeters tall with shrub canopy typically greater than 20% of total vegetation. This type is often co-associated with grasses, sedges, herbs, and non-vascular vegetation.">
+                    <li id="thumb-pasture">
+                        <a href="#land-pasture" aria-controls="filter-tab" role="tab" data-toggle="tab">
+                            <img src="{% static 'images/water_balance/thumb_pasture.png' %}" alt="Pasture/Hay" data-container="body" data-toggle="popover" data-placement="left" data-title="Pasture/Hay" data-content="Areas of grasses, legumes, or grass-legume mixtures planted for livestock grazing or the production of seed or hay crops, typically on a perennial cycle. Pasture/hay vegetation accounts for greater than 20% of total vegetation.">
                         </a>
-                        <label>Short Grass Prairie</label>
+                        <label>Pasture/Hay</label>
                     </li>
 
-                    <li id="thumb-desert"> <!-- Desert Thumb -->
-                        <a href="#land-desert" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_desert.png' %}" alt="Desert" data-container="body" data-toggle="popover" data-placement="left" data-title="Desert" data-content="Areas of bedrock, desert pavement, scarps, talus, slides, volcanic material, glacial debris, sand dunes, strip mines, gravel pits and other accumulations of earthen material. Generally, vegetation accounts for less than 15% of total cover.">
+                    <li id="thumb-row_crop">
+                        <a href="#land-row_crop" aria-controls="filter-tab" role="tab" data-toggle="tab">
+                            <img src="{% static 'images/water_balance/thumb_rowCrops.png' %}" alt="Cultivated Crops" data-container="body" data-toggle="popover" data-placement="left" data-title="Cultivated Crops" data-content="Areas used for the production of annual crops, such as corn, soybeans, vegetables, tobacco, and cotton, and also perennial woody crops such as orchards and vineyards. Crop vegetation accounts for greater than 20% of total vegetation. This class also includes all land being actively tilled.">
                         </a>
-                        <label>Desert</label>
+                        <label>Crops</label>
+                    </li>
+
+                    <li id="thumb-woody_wetland">
+                        <a href="#land-wetland" aria-controls="filter-tab" role="tab" data-toggle="tab">
+                            <img src="" style="background-color: gray;" alt="Wetlands" data-container="body" data-toggle="popover" data-placement="left" data-title="Dwarf Scrub" data-content="(Including wooded wetland, herbaceous wetland, marsh, bog). Areas where forest or shrubland vegetation accounts for greater than 20% of vegetative cover and the soil or substrate is periodically saturated with or covered with water.">
+                        </a>
+                        <label>Wetlands</label>
                     </li>
 
                 </ul> <!-- End Landcover Thumbs-->
