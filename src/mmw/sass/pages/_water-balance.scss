@@ -144,10 +144,11 @@
     position: absolute;
     z-index: 1000;
     top: 0;
-    left: 2px;
-    -webkit-animation: breathing 7s ease-out infinite normal;
-    animation: breathing 7s ease-out infinite normal;
+    left: 0;
     display: none;
+    margin-top: -27px;
+    width: 100%;
+    text-align: center;
   }
 
   //Water Column =====================================
