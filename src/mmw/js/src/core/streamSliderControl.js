@@ -10,7 +10,7 @@ module.exports = L.Control.extend({
         position: 'bottomright'
     },
 
-    initialize: function (foo, options) {
+    initialize: function (options) {
         L.Util.setOptions(this, options);
         this.streamFeatures = L.featureGroup();
     },
