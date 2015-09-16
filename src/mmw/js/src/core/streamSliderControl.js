@@ -97,6 +97,7 @@ var StreamSliderView = Marionette.ItemView.extend({
             var streamLayer = this.streamLayers[ind-1];
             changeStreamLayer(streamLayer.url, this.streamFeatures);
         }
+        this.ui.slider.attr('value', ind);
     }
 });
 
