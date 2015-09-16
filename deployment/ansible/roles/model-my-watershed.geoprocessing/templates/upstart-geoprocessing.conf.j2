@@ -10,6 +10,8 @@ script
   set -e
   set -x
 
+  sleep 1
+
   if ! curl --silent --retry 3 "http://{{ sjs_host }}:{{ sjs_port }}/jars" | grep -q "geoprocessing-${GEOPROCESSING_JAR_VERSION}";
   then
     curl --silent \
