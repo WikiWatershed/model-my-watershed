@@ -353,34 +353,34 @@ var MapView = Marionette.ItemView.extend({
         var self = this,
             layers = {};
 
-            _.each(layerConfig, function(layer) {
-                var leafletLayer;
+        _.each(layerConfig, function(layer) {
+            var leafletLayer;
 
-                // Check to see if the google api service has been loaded
-                // before creating a google layer
-                if (self._googleMaps && layer.type === 'google') {
-                    leafletLayer = new L.Google(layer.googleType, {
-                        maxZoom: layer.maxZoom
-                    });
-                } else if (!layer.empty) {
-                    var tileUrl = (layer.url.match(/png/) === null ?
-                                    layer.url + '.png' : layer.url),
-                        zIndex = layer.overlay ? 1 : 0;
+            // Check to see if the google api service has been loaded
+            // before creating a google layer
+            if (self._googleMaps && layer.type === 'google') {
+                leafletLayer = new L.Google(layer.googleType, {
+                    maxZoom: layer.maxZoom
+                });
+            } else if (!layer.empty) {
+                var tileUrl = (layer.url.match(/png/) === null ?
+                                layer.url + '.png' : layer.url),
+                    zIndex = layer.overlay ? 1 : 0;
 
-                    _.defaults(layer, {zIndex: zIndex, attribution: ''});
-                    leafletLayer = new L.TileLayer(tileUrl, layer);
-                    if (layer.has_opacity_slider) {
-                        var slider = new OpacityControl();
+                _.defaults(layer, {zIndex: zIndex, attribution: ''});
+                leafletLayer = new L.TileLayer(tileUrl, layer);
+                if (layer.has_opacity_slider) {
+                    var slider = new OpacityControl();
 
-                        slider.setOpacityLayer(leafletLayer);
-                        leafletLayer.slider = slider;
-                    }
-                } else {
-                    leafletLayer = new L.TileLayer('', layer);
+                    slider.setOpacityLayer(leafletLayer);
+                    leafletLayer.slider = slider;
                 }
+            } else {
+                leafletLayer = new L.TileLayer('', layer);
+            }
 
-                layers[layer['display']] = leafletLayer;
-            });
+            layers[layer['display']] = leafletLayer;
+        });
 
         return layers;
     },
