@@ -8,12 +8,14 @@ var _ = require('lodash'),
     coreViews = require('../core/views'),
     modelingModels = require('../modeling/models'),
     modelingViews = require('../modeling/views'),
+    modelingControls = require('../modeling/controls'),
     modConfigUtils = require('../modeling/modificationConfigUtils'),
     compareWindowTmpl = require('./templates/compareWindow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
     compareModelingTmpl = require('./templates/compareModeling.html'),
-    compareModificationsTmpl = require('./templates/compareModifications.html');
+    compareModificationsTmpl = require('./templates/compareModifications.html'),
+    synchronizer = modelingControls.PrecipitationSynchronizer;
 
 var CompareWindow = Marionette.LayoutView.extend({
     //model: modelingModels.ProjectModel,
@@ -87,6 +89,7 @@ var CompareWindow = Marionette.LayoutView.extend({
             model: this.model,
             collection: this.model.get('scenarios')
          }));
+        synchronizer.sync();
     }
 });
 
