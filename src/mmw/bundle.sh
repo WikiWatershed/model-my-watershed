@@ -108,13 +108,18 @@ JS_DEPS=(backbone
          blueimp-md5
          bootstrap
          bootstrap-select
+         bootstrap-table/dist/bootstrap-table.js
          d3
          iframe-phone
+         ./js/shim/leaflet.utfgrid.js
+         ./js/shim/marionette.transition-region.js
+         ./js/shim/shutterbug.js
          jquery
          leaflet
          leaflet-draw
          leaflet.locatecontrol
          leaflet-plugins
+         leaflet-plugins/layer/tile/Google
          lodash
          nunjucks
          turf-area
