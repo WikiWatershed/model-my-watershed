@@ -189,19 +189,7 @@ var MapView = Marionette.ItemView.extend({
                 zoomControl: false,
                 attributionControl: options.showLayerAttribution
             }),
-            nullVectorLayer = {
-                display: 'nullVector',
-                vector: true,
-                empty: true
-            },
-            nullRasterLayer = {
-                display: 'nullRaster',
-                raster: true,
-                empty: true
-            },
-            vectorLayers = [nullVectorLayer].concat(settings.get('vector_layers')),
-            rasterLayers = [nullRasterLayer].concat(settings.get('raster_layers')),
-            overlayLayers = vectorLayers.concat(rasterLayers);
+            overlayLayers = this.prepareOverlayLayers();
 
         // Center the map on the U.S.
         map.fitBounds([
@@ -256,6 +244,29 @@ var MapView = Marionette.ItemView.extend({
 
         map.addLayer(this._areaOfInterestLayer);
         map.addLayer(this._modificationsLayer);
+    },
+
+    prepareOverlayLayers: function() {
+        var nullVectorLayer = {
+                display: 'nullVector',
+                vector: true,
+                empty: true
+            },
+            nullRasterLayer = {
+                display: 'nullRaster',
+                raster: true,
+                empty: true
+            },
+            vectorOverlayLayers = settings.get('vector_layers'),
+            rasterOverlayLayers = settings.get('raster_layers');
+
+        vectorOverlayLayers = !_.isEmpty(vectorOverlayLayers) ?
+                                [nullVectorLayer].concat(vectorOverlayLayers) : [];
+
+        rasterOverlayLayers = !_.isEmpty(rasterOverlayLayers) ?
+                                [nullRasterLayer].concat(rasterOverlayLayers) : [];
+
+        return vectorOverlayLayers.concat(rasterOverlayLayers);
     },
 
     setupGeoLocation: function(maxAge) {
