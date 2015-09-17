@@ -11,7 +11,7 @@ function resetConfig() {
     modificationConfig = require('./modificationConfig.json');
 }
 
-// modKey should be a key in modificationsConfig (eg. 'urban_grass').
+// modKey should be a key in modificationsConfig (eg. 'open_water').
 function getHumanReadableName(modKey) {
     if (modificationConfig[modKey]) {
         return modificationConfig[modKey].name;

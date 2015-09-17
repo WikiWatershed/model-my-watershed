@@ -65,64 +65,64 @@ class ExerciseGeoprocessing(TestCase):
     def test_census(self):
         expected = {
             "distribution": {
-                "a:desert": {
+                "a:barren_land": {
                     "cell_count": 37
                 },
                 "b:deciduous_forest": {
                     "cell_count": 7140
                 },
-                "a:chaparral": {
+                "a:shrub": {
                     "cell_count": 2103
                 },
                 "b:mixed_forest": {
                     "cell_count": 800
                 },
-                "a:urban_grass": {
+                "a:developed_open": {
                     "cell_count": 24709
                 },
                 "b:grassland": {
                     "cell_count": 54
                 },
-                "b:water": {
+                "b:open_water": {
                     "cell_count": 162
                 },
-                "d:water": {
+                "d:open_water": {
                     "cell_count": 132
                 },
                 "a:deciduous_forest": {
                     "cell_count": 13731
                 },
-                "a:industrial": {
+                "a:developed_high": {
                     "cell_count": 640
                 },
                 "b:evergreen_forest": {
                     "cell_count": 715
                 },
-                "d:urban_grass": {
+                "d:developed_open": {
                     "cell_count": 12472
                 },
-                "a:li_residential": {
+                "a:developed_low": {
                     "cell_count": 12977
                 },
-                "a:row_crop": {
+                "a:cultivated_crops": {
                     "cell_count": 392
                 },
-                "d:industrial": {
+                "d:developed_high": {
                     "cell_count": 320
                 },
-                "b:woody_wetland": {
+                "b:woody_wetlands": {
                     "cell_count": 1090
                 },
-                "b:hi_residential": {
+                "b:developed_med": {
                     "cell_count": 2026
                 },
                 "d:grassland": {
                     "cell_count": 46
                 },
-                "d:li_residential": {
+                "d:developed_low": {
                     "cell_count": 6470
                 },
-                "d:row_crop": {
+                "d:cultivated_crops": {
                     "cell_count": 202
                 },
                 "b:pasture": {
@@ -134,40 +134,40 @@ class ExerciseGeoprocessing(TestCase):
                 "d:pasture": {
                     "cell_count": 1717
                 },
-                "a:water": {
+                "a:open_water": {
                     "cell_count": 434
                 },
-                "b:row_crop": {
+                "b:cultivated_crops": {
                     "cell_count": 197
                 },
                 "a:mixed_forest": {
                     "cell_count": 1490
                 },
-                "d:desert": {
+                "d:barren_land": {
                     "cell_count": 20
                 },
-                "d:woody_wetland": {
+                "d:woody_wetlands": {
                     "cell_count": 1093
                 },
-                "b:desert": {
+                "b:barren_land": {
                     "cell_count": 25
                 },
-                "d:chaparral": {
+                "d:shrub": {
                     "cell_count": 1022
                 },
-                "b:urban_grass": {
+                "b:developed_open": {
                     "cell_count": 12763
                 },
-                "b:li_residential": {
+                "b:developed_low": {
                     "cell_count": 6484
                 },
                 "d:mixed_forest": {
                     "cell_count": 745
                 },
-                "a:hi_residential": {
+                "a:developed_med": {
                     "cell_count": 3886
                 },
-                "d:hi_residential": {
+                "d:developed_med": {
                     "cell_count": 1957
                 },
                 "d:deciduous_forest": {
@@ -176,16 +176,16 @@ class ExerciseGeoprocessing(TestCase):
                 "a:pasture": {
                     "cell_count": 3298
                 },
-                "b:industrial": {
+                "b:developed_high": {
                     "cell_count": 352
                 },
                 "a:grassland": {
                     "cell_count": 91
                 },
-                "a:woody_wetland": {
+                "a:woody_wetlands": {
                     "cell_count": 2190
                 },
-                "b:chaparral": {
+                "b:shrub": {
                     "cell_count": 1090
                 },
                 "d:evergreen_forest": {
@@ -401,7 +401,7 @@ class TaskRunnerTestCase(TestCase):
         self.model_input['census'] = {
             'cell_count': 100,
             'distribution': {
-                'c:commercial': {
+                'c:developed_high': {
                     'cell_count': 70
                 },
                 'a:deciduous_forest': {
@@ -430,7 +430,7 @@ class TaskRunnerTestCase(TestCase):
         self.model_input['census'] = {
             'cell_count': 100,
             'distribution': {
-                'c:commercial': {
+                'c:developed_high': {
                     'cell_count': 70
                 },
                 'a:deciduous_forest': {
