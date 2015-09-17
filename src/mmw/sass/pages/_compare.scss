@@ -24,7 +24,7 @@
     .scenario-title{
         text-shadow: 0px 0px 5px black;
         position: absolute;
-        top: 140px;
+        top: 5px;
         z-index: 101;
         left: 15px;
         opacity: 1;
@@ -64,7 +64,7 @@
           }
 
           .fa-minus-square{
-            opacity: 54%!important;
+            opacity: 0.54 !important;
           }
 
           .map-region{
