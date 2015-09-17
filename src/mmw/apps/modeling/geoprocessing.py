@@ -181,8 +181,20 @@ def data_to_survey(data):
             update_category('?', count, soilCategories)
 
     def after_rule(count, survey):
+        nlcd_names = [v[1] for v in NLCD_MAPPING.values()]
+        used_nlcd_names = [k for k in survey[0]['categories'].keys()]
+
+        for i in nlcd_names:
+            if (i not in used_nlcd_names):
+                survey[0]['categories'][i] = {
+                    'type': i,
+                    'coverage': None,
+                    'area': 0
+                }
+
         land = survey[0]['categories'].iteritems()
         soil = survey[1]['categories'].iteritems()
+
         survey[0]['categories'] = [update_pcts(v, count) for k, v in land]
         survey[1]['categories'] = [update_pcts(v, count) for k, v in soil]
 
