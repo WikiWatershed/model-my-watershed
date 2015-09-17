@@ -184,7 +184,7 @@ describe('Modeling', function() {
 
             it('lists all of the modifications and their area', function() {
                 this.model.get('modifications').add([this.modsModel1, this.modsModel2]);
-                assert.equal($('#sandbox #mod-landcover tr td:first-child').text(), 'Low-Intensity Residential');
+                assert.equal($('#sandbox #mod-landcover tr td:first-child').text(), 'Developed, Low Intensity');
                 assert.equal($('#sandbox #mod-landcover tr td:nth-child(2)').text(), '44.4 km2');
                 assert.equal($('#sandbox #mod-conservationpractice tr td:first-child').text(), 'Rain Garden');
                 assert.equal($('#sandbox #mod-conservationpractice tr td:nth-child(2)').text(), '106.4 km2');
