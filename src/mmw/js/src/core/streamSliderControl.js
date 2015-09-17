@@ -17,6 +17,7 @@ module.exports = L.Control.extend({
 
     onAdd: function(map) {
         var container = this.createContainer();
+
         // Copied directly from the parent class.
         if (!L.Browser.touch) {
             L.DomEvent
@@ -31,7 +32,7 @@ module.exports = L.Control.extend({
 
     createContainer: function() {
         var container = new StreamSliderView({
-            streamFeatures: this.streamFeatures 
+            streamFeatures: this.streamFeatures
         }).render().el;
         return container;
     }
@@ -76,7 +77,7 @@ var StreamSliderView = Marionette.ItemView.extend({
             return this.streamLayers[ind-1].display;
         }
     },
-    
+
     close: function() {
         this.$el.find(this.ui.streamControl).hide();
     },

@@ -206,22 +206,6 @@ var MapView = Marionette.ItemView.extend({
             this.setMapToNonInteractive();
         }
 
-        if (options.addLayerSelector) {
-            this.layerControl = new LayerControl(this.baseLayers, this.overlayLayers, {
-                autoZIndex: false,
-                position: 'bottomright',
-                collapsed: false
-            }).addTo(map);
-        }
-
-        if (options.addStreamControl) {
-            this.layerControl = new StreamSliderControl({
-                autoZIndex: false,
-                position: 'bottomright',
-                collapsed: false
-            }).addTo(map);
-        }
-
         if (options.addZoomControl) {
             map.addControl(new L.Control.Zoom({position: 'topright'}));
         }
@@ -229,6 +213,22 @@ var MapView = Marionette.ItemView.extend({
         var maxGeolocationAge = 60000;
         if (options.addLocateMeButton) {
             addLocateMeButton(map, maxGeolocationAge);
+        }
+
+        if (options.addLayerSelector) {
+            this.layerControl = new LayerControl(this.baseLayers, this.overlayLayers, {
+                autoZIndex: false,
+                position: 'topright',
+                collapsed: false
+            }).addTo(map);
+        }
+
+        if (options.addStreamControl) {
+            this.layerControl = new StreamSliderControl({
+                autoZIndex: false,
+                position: 'topright',
+                collapsed: false
+            }).addTo(map);
         }
 
         this.setMapEvents();

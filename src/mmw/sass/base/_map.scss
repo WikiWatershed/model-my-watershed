@@ -37,6 +37,10 @@
   background-image: url('../images/layers-2x.png');
 }
 
+.layer-control-button-container a {
+    float: right;
+}
+
 .leaflet-control-layers-expanded {
   padding: 0;
   background-color: transparent;
