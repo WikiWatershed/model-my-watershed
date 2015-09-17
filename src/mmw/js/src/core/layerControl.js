@@ -45,6 +45,91 @@ module.exports = L.Control.Layers.extend({
                 $(container).find("#overlays-layer-list").get(0));
     },
 
+    // Overrides the parent class and allows separation of overlay layers
+    // by type.
+    _addItem: function (obj) {
+        var label = document.createElement('label'),
+            checked = this._map.hasLayer(obj.layer),
+            input,
+            controlName = 'leaflet-overlay-layers';
+
+        if (obj.overlay && !obj.overlayType) {
+            input = document.createElement('input');
+            input.type = 'checkbox';
+            input.className = 'leaflet-control-layers-selector';
+            input.defaultChecked = checked;
+        } else if (obj.overlay) {
+            controlName += obj.overlayType;
+            input = this._createRadioElement(controlName, checked, obj.overlayType);
+        } else {
+            input = this._createRadioElement(controlName, checked);
+        }
+
+        input.layerId = L.stamp(obj.layer);
+
+        L.DomEvent.on(input, 'click', this._onInputClick, this);
+
+        var name = document.createElement('span');
+        name.innerHTML = ' ' + obj.name;
+
+        // Helps from preventing layer control flicker when checkboxes are disabled
+        // https://github.com/Leaflet/Leaflet/issues/2771
+        var holder = document.createElement('div');
+
+        label.appendChild(holder);
+        holder.appendChild(input);
+        holder.appendChild(name);
+
+        if (obj.empty) {
+            name.innerHTML = ' None';
+            input.checked = true;
+        }
+
+        var container = obj.overlay ? this._overlaysList : this._baseLayersList;
+        var subcontainer;
+        if (obj.overlayType) {
+             subcontainer = document.getElementById('overlay-subclass-' + obj.overlayType);
+             if (subcontainer === null) {
+                 subcontainer = document.createElement('div');
+                 subcontainer.id = 'overlay-subclass-' + obj.overlayType;
+                 container.appendChild(subcontainer);
+
+                 var title = obj.overlayType === 'vector' ? 'Boundary' : 'Coverage';
+                 var textNode = document.createElement('h4');
+                 textNode.innerHTML = title;
+                 subcontainer.appendChild(textNode);
+             }
+             subcontainer.appendChild(label);
+        } else {
+            container.appendChild(label);
+        }
+
+        return label;
+    },
+
+    // Override the parent class and adds new overlayType data.
+    _addLayer: function (layer, name, overlay) {
+        layer.on('add remove', this._onLayerChange, this);
+
+        var id = L.stamp(layer);
+
+        this._layers[id] = {
+            layer: layer,
+            name: name,
+            overlay: overlay,
+            empty: layer.options.empty
+        };
+
+        if (overlay) {
+             this._layers[id].overlayType = layer.options.vector ? 'vector' : 'raster';
+        }
+
+        if (this.options.autoZIndex && layer.setZIndex) {
+            this._lastZIndex++;
+            layer.setZIndex(this._lastZIndex);
+        }
+    },
+
     _createContainer: function() {
         var container = new LayerControlView({}).render().el;
 

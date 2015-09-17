@@ -115,7 +115,8 @@ def get_client_settings(request):
             'base_layers': get_layer_config('basemap'),
             'stream_layers': get_layer_config('stream'),
             'boundary_layers': get_layer_config('boundary'),
-            'overlay_layers': get_layer_config('overlay'),
+            'vector_layers': get_layer_config('vector'),
+            'raster_layers': get_layer_config('raster'),
             'draw_tools': settings.DRAW_TOOLS,
             'map_controls': settings.MAP_CONTROLS,
             'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY

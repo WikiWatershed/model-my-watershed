@@ -24,7 +24,7 @@ LAYERS = [
                     'tier of state government, between the statewide tier '
                     'and the immediately local government tier',
         'boundary': False,
-        'overlay': True,
+        'vector': True,
     },
     {
         'code': 'district',
@@ -40,7 +40,7 @@ LAYERS = [
                     'a congressional district on which to perform water '
                     'quality analysis.',
         'boundary': True,
-        'overlay': True,
+        'vector': True,
     },
     {
         'code': 'huc8',
@@ -55,7 +55,7 @@ LAYERS = [
                     'nationwide. This tool allows you to pick a predefined '
                     'HUC-8 to analyze.',
         'boundary': True,
-        'overlay': True,
+        'vector': True,
     },
     {
         'code': 'huc10',
@@ -70,7 +70,7 @@ LAYERS = [
                     'nationwide. This tool allows you to pick a predefined '
                     'HUC-10 to analyze.',
         'boundary': True,
-        'overlay': True,
+        'vector': True,
     },
     {
         'code': 'huc12',
@@ -86,7 +86,7 @@ LAYERS = [
                     'nationwide. This tool allows you to pick a predefined '
                     'HUC-12 to analyze.',
         'boundary': True,
-        'overlay': True,
+        'vector': True,
     },
     {
         'code': 'school',
@@ -94,7 +94,7 @@ LAYERS = [
         'short_display': 'School Districts',
         'table_name': 'boundary_school_district',
         'helptext': 'U.S. school district boundaries.',
-        'overlay': True,
+        'vector': True,
     },
     {
         'display': 'National Land Cover Database',
@@ -103,7 +103,7 @@ LAYERS = [
                     'land use across the U.S.',
         'url': 'https://s3.amazonaws.com/com.azavea.datahub.tms/'
                'nlcd/{z}/{x}/{y}.png',
-        'overlay': True,
+        'raster': True,
         'maxNativeZoom': 13,
         'maxZoom': 18,
         'opacity': 0.618,

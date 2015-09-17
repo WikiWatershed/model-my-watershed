@@ -188,7 +188,8 @@ var MapView = Marionette.ItemView.extend({
         var map = new L.Map(this.el, {
                 zoomControl: false,
                 attributionControl: options.showLayerAttribution
-            });
+            }),
+            overlayLayers = this.prepareOverlayLayers();
 
         // Center the map on the U.S.
         map.fitBounds([
@@ -200,7 +201,7 @@ var MapView = Marionette.ItemView.extend({
         this._areaOfInterestLayer = new L.FeatureGroup();
         this._modificationsLayer = new L.FeatureGroup();
         this.baseLayers = this.buildLayers(settings.get('base_layers'));
-        this.overlayLayers = this.buildLayers(settings.get('overlay_layers'));
+        this.overlayLayers = this.buildLayers(overlayLayers);
 
         if (!options.interactiveMode) {
             this.setMapToNonInteractive();
@@ -243,6 +244,29 @@ var MapView = Marionette.ItemView.extend({
 
         map.addLayer(this._areaOfInterestLayer);
         map.addLayer(this._modificationsLayer);
+    },
+
+    prepareOverlayLayers: function() {
+        var nullVectorLayer = {
+                display: 'nullVector',
+                vector: true,
+                empty: true
+            },
+            nullRasterLayer = {
+                display: 'nullRaster',
+                raster: true,
+                empty: true
+            },
+            vectorOverlayLayers = settings.get('vector_layers'),
+            rasterOverlayLayers = settings.get('raster_layers');
+
+        vectorOverlayLayers = !_.isEmpty(vectorOverlayLayers) ?
+                                [nullVectorLayer].concat(vectorOverlayLayers) : [];
+
+        rasterOverlayLayers = !_.isEmpty(rasterOverlayLayers) ?
+                                [nullRasterLayer].concat(rasterOverlayLayers) : [];
+
+        return vectorOverlayLayers.concat(rasterOverlayLayers);
     },
 
     setupGeoLocation: function(maxAge) {
@@ -329,32 +353,34 @@ var MapView = Marionette.ItemView.extend({
         var self = this,
             layers = {};
 
-            _.each(layerConfig, function(layer) {
-                var leafletLayer;
+        _.each(layerConfig, function(layer) {
+            var leafletLayer;
 
-                // Check to see if the google api service has been loaded
-                // before creating a google layer
-                if (self._googleMaps && layer.type === 'google') {
-                    leafletLayer = new L.Google(layer.googleType, {
-                        maxZoom: layer.maxZoom
-                    });
-                } else {
-                    var tileUrl = (layer.url.match(/png/) === null ?
-                                    layer.url + '.png' : layer.url),
-                        zIndex = layer.overlay ? 1 : 0;
+            // Check to see if the google api service has been loaded
+            // before creating a google layer
+            if (self._googleMaps && layer.type === 'google') {
+                leafletLayer = new L.Google(layer.googleType, {
+                    maxZoom: layer.maxZoom
+                });
+            } else if (!layer.empty) {
+                var tileUrl = (layer.url.match(/png/) === null ?
+                                layer.url + '.png' : layer.url),
+                    zIndex = layer.overlay ? 1 : 0;
 
-                    _.defaults(layer, {zIndex: zIndex, attribution: ''});
-                    leafletLayer = new L.TileLayer(tileUrl, layer);
-                    if (layer.has_opacity_slider) {
-                        var slider = new OpacityControl();
+                _.defaults(layer, {zIndex: zIndex, attribution: ''});
+                leafletLayer = new L.TileLayer(tileUrl, layer);
+                if (layer.has_opacity_slider) {
+                    var slider = new OpacityControl();
 
-                        slider.setOpacityLayer(leafletLayer);
-                        leafletLayer.slider = slider;
-                    }
+                    slider.setOpacityLayer(leafletLayer);
+                    leafletLayer.slider = slider;
                 }
+            } else {
+                leafletLayer = new L.TileLayer('', layer);
+            }
 
-                layers[layer['display']] = leafletLayer;
-            });
+            layers[layer['display']] = leafletLayer;
+        });
 
         return layers;
     },
