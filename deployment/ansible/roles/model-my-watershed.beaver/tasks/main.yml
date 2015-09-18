@@ -3,11 +3,13 @@
   template: src="{{ item }}.conf.j2"
             dest="{{ beaver_conf_dir }}/conf.d/{{ item }}"
   with_items:
-    - nginx
-    - django
-    - gunicorn
-    - windshaft
     - celery
+    - django
+    - docker
+    - gunicorn
+    - nginx
+    - spark-jobserver
+    - windshaft
   notify:
     - Restart Beaver
 
