@@ -1,13 +1,14 @@
 "use strict";
 
+var $ = require('jquery'),
+    R = require('retina.js'),
+    shutterbug = require('../shim/shutterbug'),
+    wbm = require('./water_balance/models');
+
 // Global jQuery needed for Bootstrap plugins.
-var $ = require('jquery');
 window.jQuery = window.$ = $;
 require('bootstrap');
 require('bootstrap-select');
-var R = require('retina.js');
-
-var wbm = require('./water_balance/models');
 
 var initialize = function(model) {
     // Used to convert slider values into data keys
@@ -129,4 +130,7 @@ $(function() {
             initialize(model);
         }
     });
+
+    // Enable screenshot functionality
+    shutterbug.enable('body');
 });
