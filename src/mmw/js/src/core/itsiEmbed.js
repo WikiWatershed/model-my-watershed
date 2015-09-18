@@ -15,6 +15,8 @@ var ItsiEmbed = function(App) {
 
     this.interactiveState = { route: '/' };
 
+    this.extendedSupport = { reset: false };
+
     this.setLearnerUrl = function(route) {
         if (route) {
             this.url = window.location.origin + '/' + route + '?' + QUERY_SUFFIX;
@@ -48,6 +50,11 @@ var ItsiEmbed = function(App) {
         }
     };
 
+    this.getExtendedSupport = function() {
+        this.phone.post('extendedSupport', this.extendedSupport);
+    };
+
+    this.phone.addListener('getExtendedSupport', _.bind(this.getExtendedSupport, this));
     this.phone.addListener('getLearnerUrl', _.bind(this.sendLearnerUrlOnlyFromProjectView, this));
     this.phone.addListener('getInteractiveState', _.bind(this.sendLearnerUrlOnlyFromProjectView, this));
     this.phone.addListener('loadInteractive', _.bind(this.loadInteractive, this));
