@@ -100,6 +100,8 @@ var ModelingController = {
                         // Now render.
                         initViews(project);
                         project.fetchResultsIfNeeded();
+
+                        updateUrl();
                     });
                 } else {
                     initViews(project);
