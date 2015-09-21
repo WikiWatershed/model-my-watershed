@@ -204,14 +204,29 @@ class ExerciseGeoprocessing(TestCase):
                 "name": "land",
                 "categories": [
                     {
-                        "type": "Urban- or Tall-Grass",
-                        "coverage": 0.3669654665686995,
-                        "area": 49944
+                        "type": "Woody Wetlands",
+                        "coverage": 0.03213078618662748,
+                        "area": 4373
                     },
                     {
-                        "type": "Low-Intensity Res.",
+                        "type": "Developed, Medium Intensity",
+                        "coverage": 0.057817781043350475,
+                        "area": 7869
+                    },
+                    {
+                        "type": "Barren Land (Rock/Sand/Clay)",
+                        "coverage": 0.0006024981631153563,
+                        "area": 82
+                    },
+                    {
+                        "type": "Developed, Low Intensity",
                         "coverage": 0.19052902277736958,
                         "area": 25931
+                    },
+                    {
+                        'type': 'Emergent Herbaceous Wetlands',
+                        'coverage': 0.0,
+                        'area': 0
                     },
                     {
                         "type": "Deciduous Forest",
@@ -219,42 +234,37 @@ class ExerciseGeoprocessing(TestCase):
                         "area": 28102
                     },
                     {
+                        "type": "Open Water",
+                        "coverage": 0.005349008082292432,
+                        "area": 728
+                    },
+                    {
                         "type": "Mixed Forest",
                         "coverage": 0.022299779573842764,
                         "area": 3035
                     },
                     {
-                        "type": "Industrial &c.",
+                        'type': 'Perennial Ice/Snow',
+                        'coverage': 0.0,
+                        'area': 0
+                    },
+                    {
+                        "type": "Developed, High Intensity",
                         "coverage": 0.009639970609845701,
                         "area": 1312
                     },
                     {
-                        "type": "Water",
-                        "coverage": 0.005349008082292432,
-                        "area": 728
+                        "type": "Shrub/Scrub",
+                        "coverage": 0.03096987509184423,
+                        "area": 4215
                     },
                     {
-                        "type": "Desert &c.",
-                        "coverage": 0.0006024981631153563,
-                        "area": 82
+                        "type": "Cultivated Crops",
+                        "coverage": 0.005811903012490816,
+                        "area": 791
                     },
                     {
-                        "type": "Woody Wetland",
-                        "coverage": 0.03213078618662748,
-                        "area": 4373
-                    },
-                    {
-                        "type": "High-Intensity Res.",
-                        "coverage": 0.057817781043350475,
-                        "area": 7869
-                    },
-                    {
-                        "type": "Pasture &c.",
-                        "coverage": 0.04945628214548126,
-                        "area": 6731
-                    },
-                    {
-                        "type": "Grassland",
+                        "type": "Grassland/Herbaceous",
                         "coverage": 0.0014033798677443056,
                         "area": 191
                     },
@@ -264,14 +274,14 @@ class ExerciseGeoprocessing(TestCase):
                         "area": 2796
                     },
                     {
-                        "type": "Chaparral",
-                        "coverage": 0.03096987509184423,
-                        "area": 4215
+                        "type": "Developed, Open Space",
+                        "coverage": 0.3669654665686995,
+                        "area": 49944
                     },
                     {
-                        "type": "Row Crop",
-                        "coverage": 0.005811903012490816,
-                        "area": 791
+                        "type": "Pasture/Hay",
+                        "coverage": 0.04945628214548126,
+                        "area": 6731
                     }]
             },
             {
