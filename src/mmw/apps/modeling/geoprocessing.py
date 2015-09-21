@@ -15,21 +15,22 @@ import re
 # The first element of each array is the name of the NLCD category in
 # the TR-55 code.  The second string is a short, human-readable name.
 NLCD_MAPPING = {
-    11: ['water', 'Water'],
-    21: ['urban_grass', 'Urban- or Tall-Grass'],
-    22: ['li_residential', 'Low-Intensity Res.'],
-    23: ['hi_residential', 'High-Intensity Res.'],
-    24: ['industrial', 'Industrial &c.'],
-    31: ['desert', 'Desert &c.'],
+    11: ['open_water', 'Open Water'],
+    12: ['perennial_ice', 'Perennial Ice/Snow'],
+    21: ['developed_open', 'Developed, Open Space'],
+    22: ['developed_low', 'Developed, Low Intensity'],
+    23: ['developed_med', 'Developed, Medium Intensity'],
+    24: ['developed_high', 'Developed, High Intensity'],
+    31: ['barren_land', 'Barren Land (Rock/Sand/Clay)'],
     41: ['deciduous_forest', 'Deciduous Forest'],
     42: ['evergreen_forest', 'Evergreen Forest'],
     43: ['mixed_forest', 'Mixed Forest'],
-    52: ['chaparral', 'Chaparral'],
-    71: ['grassland', 'Grassland'],
-    81: ['pasture', 'Pasture &c.'],
-    82: ['row_crop', 'Row Crop'],
-    90: ['woody_wetland', 'Woody Wetland'],
-    95: ['herbaceous_wetland', 'Herbaceous Wetland']
+    52: ['shrub', 'Shrub/Scrub'],
+    71: ['grassland', 'Grassland/Herbaceous'],
+    81: ['pasture', 'Pasture/Hay'],
+    82: ['cultivated_crops', 'Cultivated Crops'],
+    90: ['woody_wetlands', 'Woody Wetlands'],
+    95: ['herbaceous_wetlands', 'Emergent Herbaceous Wetlands']
 }
 
 # The soil rasters contain the numbers 1 through 4 (the keys of this
@@ -180,8 +181,20 @@ def data_to_survey(data):
             update_category('?', count, soilCategories)
 
     def after_rule(count, survey):
+        nlcd_names = [v[1] for v in NLCD_MAPPING.values()]
+        used_nlcd_names = [k for k in survey[0]['categories'].keys()]
+
+        for i in nlcd_names:
+            if (i not in used_nlcd_names):
+                survey[0]['categories'][i] = {
+                    'type': i,
+                    'coverage': None,
+                    'area': 0
+                }
+
         land = survey[0]['categories'].iteritems()
         soil = survey[1]['categories'].iteritems()
+
         survey[0]['categories'] = [update_pcts(v, count) for k, v in land]
         survey[1]['categories'] = [update_pcts(v, count) for k, v in soil]
 
