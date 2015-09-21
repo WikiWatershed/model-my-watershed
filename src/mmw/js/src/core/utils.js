@@ -6,6 +6,20 @@ var _ = require('underscore'),
 var M2_IN_KM2 = 1000000;
 
 var utils = {
+    // A numeric comparator for strings.
+    numericSort: function(_x, _y) {
+        var x = parseFloat(_x.toString().replace(/[^0-9.]/g, '')),
+            y = parseFloat(_y.toString().replace(/[^0-9.]/g, ''));
+
+        if (x < y) {
+            return -1;
+        } else if (x === y) {
+            return 0;
+        } else {
+            return 1;
+        }
+    },
+
     // Parse query strings for Backbone
     // Takes queryString of format "key1=value1&key2=value2"
     // Returns object of format {key1: value1, key2: value2}
