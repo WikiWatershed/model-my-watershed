@@ -171,10 +171,12 @@ def data_to_survey(data):
     def update_rule(nlcd, soil, count, survey):
         landCategories = survey[0]['categories']
         soilCategories = survey[1]['categories']
+
         if nlcd in NLCD_MAPPING:
             update_category(NLCD_MAPPING[nlcd][1], count, landCategories)
         else:
             update_category('?', count, landCategories)
+
         if soil in SOIL_MAPPING:
             update_category(SOIL_MAPPING[soil][1], count, soilCategories)
         else:
@@ -182,15 +184,21 @@ def data_to_survey(data):
 
     def after_rule(count, survey):
         nlcd_names = [v[1] for v in NLCD_MAPPING.values()]
+        nlcd_keys = NLCD_MAPPING.keys()
         used_nlcd_names = [k for k in survey[0]['categories'].keys()]
 
-        for i in nlcd_names:
-            if (i not in used_nlcd_names):
-                survey[0]['categories'][i] = {
-                    'type': i,
+        for index, name in enumerate(nlcd_names):
+            nlcd = nlcd_keys[index]
+
+            if (name not in used_nlcd_names):
+                survey[0]['categories'][name] = {
+                    'type': name,
                     'coverage': None,
-                    'area': 0
+                    'area': 0,
+                    'nlcd': nlcd
                 }
+            else:
+                survey[0]['categories'][name]['nlcd'] = nlcd
 
         land = survey[0]['categories'].iteritems()
         soil = survey[1]['categories'].iteritems()
