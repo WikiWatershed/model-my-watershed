@@ -27,12 +27,12 @@
     }
   }
 
-  .axis  {
+  .axis {
     color: $black-54;
     font-size: 0.5rem;
     white-space: normal;
 
-    line, path  {
+    line, path {
       fill: none;
       stroke: $black-12;
       shape-rendering: crispEdges;
@@ -43,21 +43,21 @@
     }
   }
 
-  .x.axis line, .x.axis path  {
+  .x.axis line, .x.axis path {
     display: none;
   }
 }
 
 // Official NLCD legend colors for classes selected for display
-.nlcd-11 .bar  { fill: #5475A8; }
-.nlcd-21 .bar  { fill: #E8D1D1; }
-.nlcd-22 .bar  { fill: #E29E8C; }
-.nlcd-23 .bar  { fill: #ff0000; }
-.nlcd-24 .bar  { fill: #B50000; }
-.nlcd-31 .bar  { fill: #D2CDC0; }
-.nlcd-41 .bar  { fill: #85C77E; }
-.nlcd-52 .bar  { fill: #DCCA8F; }
-.nlcd-71 .bar  { fill: #FDE9AA; }
-.nlcd-81 .bar  { fill: #FBF65D; }
-.nlcd-82 .bar  { fill: #CA9146; }
-.nlcd-90 .bar  { fill: #C8E6F8; }
+.nlcd-11 .bar { fill: #5475A8; }
+.nlcd-21 .bar { fill: #E8D1D1; }
+.nlcd-22 .bar { fill: #E29E8C; }
+.nlcd-23 .bar { fill: #ff0000; }
+.nlcd-24 .bar { fill: #B50000; }
+.nlcd-31 .bar { fill: #D2CDC0; }
+.nlcd-41 .bar { fill: #85C77E; }
+.nlcd-52 .bar { fill: #DCCA8F; }
+.nlcd-71 .bar { fill: #FDE9AA; }
+.nlcd-81 .bar { fill: #FBF65D; }
+.nlcd-82 .bar { fill: #CA9146; }
+.nlcd-90 .bar { fill: #C8E6F8; }
