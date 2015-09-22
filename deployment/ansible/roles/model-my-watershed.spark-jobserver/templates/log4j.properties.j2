@@ -1,0 +1,17 @@
+log4j.rootLogger=INFO,console
+
+log4j.appender.console=org.apache.log4j.ConsoleAppender
+
+{% if ['development', 'test'] | some_are_in(group_names) -%}
+log4j.appender.console.Threshold=DEBUG
+log4j.logger.com.amazonaws=DEBUG
+{% else %}
+log4j.appender.console.Threshold=INFO
+log4j.logger.com.amazonaws=WARN
+{% endif %}
+
+log4j.appender.console.layout=org.apache.log4j.PatternLayout
+log4j.appender.console.layout.ConversionPattern=%d [%t] %-5p %c -  %m%n
+
+log4j.logger.org.apache.spark.scheduler.TaskSetManager=WARN
+log4j.logger.org.apache.spark.scheduler.DAGScheduler=WARN
