@@ -165,11 +165,13 @@ var TaskModel = Backbone.Model.extend({
             self.fetch()
                 .done(function(response) {
                     console.log('Polling ' + self.url());
-                    if (response.status !== 'complete') {
+                    if (response.status === 'started') {
                         elapsed = elapsed + self.get('pollInterval');
                         window.setTimeout(getResults, self.get('pollInterval'));
-                    } else {
+                    } else if (response.status === 'complete') {
                         defer.resolve(response);
+                    } else { // Captures 'failed' and anything else
+                        defer.reject(response);
                     }
                 })
                 .fail(defer.reject);
