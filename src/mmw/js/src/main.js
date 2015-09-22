@@ -1,5 +1,7 @@
 "use strict";
 
+var utils = require('./core/utils');
+
 require('./core/setup');
 require('./routes');
 
@@ -28,6 +30,10 @@ App.on('start', function() {
 });
 
 App.start();
+
+// This numeric comparator needs to be attached to window so that it
+// is available for use in templates.
+window.numericSort = utils.numericSort;
 
 //
 // Expose application so we can interact with it via JS console.
