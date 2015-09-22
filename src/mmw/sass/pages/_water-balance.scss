@@ -1,5 +1,5 @@
 //Home
-#water-balance{
+#water-balance {
 
   h1 {
     font-weight: 900;
@@ -7,7 +7,7 @@
 
   //Layout =====================================
 
-  &.container-fluid{
+  &.container-fluid {
     background-color: $sky-blue;
     background-image: url('../images/water_balance/art_clouds.png');
     background-position: top center;
@@ -22,7 +22,7 @@
     }
   }
 
-  .canvas{
+  .canvas {
     position: absolute;
     top: 0;
     left: 0;
@@ -35,7 +35,7 @@
 
   //Model Output =====================================
 
-  .model-container{
+  .model-container {
     position: absolute;
     display: block;
     width: 400px;
@@ -46,7 +46,7 @@
     right: 100px;
     bottom: 0;
 
-    .land-container{
+    .land-container {
       width: 100%;
       height: auto;
       position: absolute;
@@ -55,10 +55,10 @@
       margin: 0 auto;
       z-index: 200;
 
-      .land{
+      .land {
         width: 100%;
 
-        img{
+        img {
           width: 100%;
           max-width: 500px;
           height: auto;
@@ -66,7 +66,7 @@
       }
     }
 
-    .soil-container{
+    .soil-container {
       width: 100%;
       height: auto;
       position: absolute;
@@ -75,10 +75,10 @@
       margin: 0 auto;
       z-index: 200;
 
-      .soil{
+      .soil {
         width: 100%;
 
-        img{
+        img {
           width: 100%;
           max-width: 500px;
           height: auto;
@@ -89,13 +89,13 @@
 
   //Effects ==========================================
 
-  #effect-precip{
+  #effect-precip {
     position: absolute;
     top: 90px;
     z-index: 100;
   }
 
-  #effect-evapo{
+  #effect-evapo {
     position: absolute;
     bottom: 120px;
     left: 290px;
@@ -110,7 +110,7 @@
     }
   }
 
-   #effect-runoff{
+   #effect-runoff {
     position: absolute;
     top: 60px;
     right: 270px;
@@ -125,7 +125,7 @@
     }
   }
 
-  #effect-infiltration{
+  #effect-infiltration {
     position: absolute;
     top: 40px;
     left: 290px;
@@ -140,7 +140,7 @@
     }
   }
 
-  #alert{
+  #alert {
     position: absolute;
     z-index: 1000;
     top: 0;
@@ -153,7 +153,7 @@
 
   //Water Column =====================================
 
-  #water-column-container{
+  #water-column-container {
     position: absolute;
     display: block;
     width: 84px;
@@ -164,40 +164,40 @@
     padding-bottom: 48px;
     white-space: normal;
 
-    .column{
+    .column {
       position: relative;
       display: block;
       width: 100%;
       text-align: right;
       transition: height 0.3s ease;
 
-      label{
+      label {
         color: $paper;
         padding: 0.4rem;
         text-align: right;
       }
     }
 
-    #column-et{
+    #column-et {
       height: 30%;
       background-color: $et;
       border-top-left-radius: 0.3rem;
       border-top-right-radius: 0.3rem;
     }
 
-    #column-r{
+    #column-r {
       height: 40%;
       background-color: $r;
     }
 
-    #column-i{
+    #column-i {
       height: 30%;
       background-color: $i;
       border-bottom-left-radius: 0.3rem;
       border-bottom-right-radius: 0.3rem;
     }
 
-    #column-overlay{
+    #column-overlay {
       position: absolute;
       top: 0;
       bottom: 0;
@@ -218,59 +218,59 @@
 
   //Wells =================================================
 
-  #well-precip{
+  #well-precip {
     position: absolute;
     left: 0;
     top: 30px;
     min-width: 116px;
   }
 
-  #well-evapo{
+  #well-evapo {
     position: absolute;
     right: 0;
     top: 30px;
     min-width: 116px;
   }
 
-  #well-runoff{
+  #well-runoff {
     position: absolute;
     left: 0;
     bottom: 30px;
     min-width: 116px;
   }
 
-  #well-infil{
+  #well-infil {
     position: absolute;
     right: 0;
     bottom: 30px;
     min-width: 116px;
   }
 
-  .well-custom{
+  .well-custom {
     background-color: $paper;
     border-radius: 0.3rem;
     padding: 16px;
 
-    label{
+    label {
       padding-top: 4px;
     }
   }
 
-  .well-precip{
+  .well-precip {
     background-color: $sky-blue;
     border-radius: 0.3rem;
     padding: 10px 6px;
     margin: 8px 8px 0 8px!important;
     height: 42px;
 
-    label{
+    label {
       display: inline-block!important;
     }
   }
 
   //Sidebar =================================================
 
-  .sidebar{
+  .sidebar {
     position: absolute;
     top: 0;
     right: 0;
@@ -280,21 +280,21 @@
     box-shadow: 0 0 6px rgba(0, 0, 0, 0.74);
     overflow-y: auto;
 
-    .slider-wrapper{
+    .slider-wrapper {
       display: inline-block;
     }
 
-    p{
+    p {
       margin: 0 0 0 8px;
     }
 
-    ul{
+    ul {
       list-style-type: none;
       padding: 0;
       white-space: nowrap;
       float: left;
 
-      li{
+      li {
         display: inline-block;
         float: left;
         position: relative;
@@ -302,27 +302,27 @@
         width: 66px;
         white-space: normal;
 
-        a{
+        a {
           padding: 0;
           border: solid 3px transparent;
 
-          img{
+          img {
             width: 100%;
             height: auto;
           }
         }
 
-        label{
+        label {
           padding-bottom: 6px;
           display: block;
           text-align: center;
           font-size: 0.55rem;
         }
 
-        &.active a{
+        &.active a {
           border: solid 3px $active;
 
-          &:after{
+          &:after {
             position: absolute;
             top: -10px;
             right: -10px;
@@ -345,9 +345,9 @@
 
 .water-balance {
   //Info Dropdown =====================================
-  #info{
+  #info {
 
-    &.dropdown-menu{
+    &.dropdown-menu {
       border-radius: 2px;
       border: 0!important;
       box-shadow: 0 0 6px rgba(0, 0, 0, 0.74);
@@ -366,12 +366,12 @@
 
 //Popover Descriptions ================================
 
-.popover{
+.popover {
   border-radius: 0;
   border: solid 1px $black-12;
   padding: 0px;
 
-  .popover-title{
+  .popover-title {
     font-size: 0.8rem;
     color: $paper;
     padding: 1rem;
@@ -380,7 +380,7 @@
     border-radius: 0;
   }
 
-  .popover-content{
+  .popover-content {
     padding: 1rem;
   }
 }

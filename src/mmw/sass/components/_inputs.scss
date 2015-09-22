@@ -1,5 +1,5 @@
 //Search Input
-.search-input{
+.search-input {
   position: relative;
   display: inline-block;
   background-color: $paper;
@@ -15,7 +15,7 @@
   margin-right: 0.6rem;
 
 
-  &:hover{
+  &:hover {
     background-color: $ui-light;
     box-shadow: 0 0 8px $black-74;
     border: 0!important;
@@ -41,11 +41,11 @@
 }
 
 //Text Inputs
-.custom-input-group{
+.custom-input-group {
   position: relative;
   margin: 1rem 0;
 
-  input{
+  input {
     font-size: 0.9rem;
     padding: 10px 10px 10px 5px;
     display: block;
@@ -53,7 +53,7 @@
     border: none;
     border-bottom: 1px solid $black-24;
   }
-  input:focus{ outline:none; }
+  input:focus { outline:none; }
 
   /* LABEL ======================================= */
   label          {
@@ -77,7 +77,7 @@
   }
 
   /* BOTTOM BARS ================================= */
-  .bar{
+  .bar {
     position:relative;
     display:block;
     width:100%;
@@ -140,7 +140,7 @@
 }
 
 input[type=range][orient=vertical]
-{
+ {
     writing-mode: bt-lr; /* IE */
     -webkit-appearance: slider-vertical; /* WebKit */
     width: 8px;

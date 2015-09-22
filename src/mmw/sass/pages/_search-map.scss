@@ -1,16 +1,16 @@
 //Layout
-#search-map{
+#search-map {
   position: absolute;
   top: 0;
   left: 0;
   z-index: 100;
   padding: 1rem;
 
-  #geocode-search-results-region{
+  #geocode-search-results-region {
     position: absolute;
 
 
-    ul{
+    ul {
       list-style-type: none;
       position: absolute;
       border-radius: 2px;
@@ -22,16 +22,16 @@
       margin-top: 6px;
       min-width: 300px;
 
-      li{
+      li {
         cursor: pointer;
         padding: 0.5rem 1rem;
         border-bottom: solid 1px $black-12;
 
-        &:last-child{
+        &:last-child {
           border: none;
         }
 
-        &:hover{
+        &:hover {
           color: $ui-primary;
         }
       }
@@ -74,7 +74,7 @@
   }
 }
 
-#aoi-header-wrapper{
+#aoi-header-wrapper {
   position: absolute;
   left: 0;
   right: 0;
