@@ -15,8 +15,11 @@
     - Restart Spark Job Server
 
 - name: Configure Spark Job Server
-  template: src=spark-jobserver.conf.j2
-            dest=/opt/spark-jobserver/spark-jobserver.conf
+  template: src="{{ item }}.j2"
+            dest="/opt/spark-jobserver/{{ item }}"
+  with_items:
+    - spark-jobserver.conf
+    - log4j.properties
   notify:
     - Restart Spark Job Server
 
