@@ -204,81 +204,97 @@ class ExerciseGeoprocessing(TestCase):
                 "name": "land",
                 "categories": [
                     {
+                        "nlcd": 90,
                         "type": "Woody Wetlands",
                         "coverage": 0.03213078618662748,
                         "area": 4373
                     },
                     {
+                        "nlcd": 23,
                         "type": "Developed, Medium Intensity",
                         "coverage": 0.057817781043350475,
                         "area": 7869
                     },
                     {
+                        "nlcd": 31,
                         "type": "Barren Land (Rock/Sand/Clay)",
                         "coverage": 0.0006024981631153563,
                         "area": 82
                     },
                     {
+                        "nlcd": 22,
                         "type": "Developed, Low Intensity",
                         "coverage": 0.19052902277736958,
                         "area": 25931
                     },
                     {
+                        "nlcd": 95,
                         'type': 'Emergent Herbaceous Wetlands',
                         'coverage': 0.0,
                         'area': 0
                     },
                     {
+                        "nlcd": 41,
                         "type": "Deciduous Forest",
                         "coverage": 0.20648052902277736,
                         "area": 28102
                     },
                     {
+                        "nlcd": 11,
                         "type": "Open Water",
                         "coverage": 0.005349008082292432,
                         "area": 728
                     },
                     {
+                        "nlcd": 43,
                         "type": "Mixed Forest",
                         "coverage": 0.022299779573842764,
                         "area": 3035
                     },
                     {
+                        "nlcd": 12,
                         'type': 'Perennial Ice/Snow',
                         'coverage': 0.0,
                         'area': 0
                     },
                     {
+                        "nlcd": 24,
                         "type": "Developed, High Intensity",
                         "coverage": 0.009639970609845701,
                         "area": 1312
                     },
                     {
+                        "nlcd": 52,
                         "type": "Shrub/Scrub",
                         "coverage": 0.03096987509184423,
                         "area": 4215
                     },
                     {
+                        "nlcd": 82,
                         "type": "Cultivated Crops",
                         "coverage": 0.005811903012490816,
                         "area": 791
                     },
                     {
+                        "nlcd": 71,
                         "type": "Grassland/Herbaceous",
                         "coverage": 0.0014033798677443056,
                         "area": 191
                     },
                     {
+                        "nlcd": 42,
                         "type": "Evergreen Forest",
                         "coverage": 0.020543717854518737,
                         "area": 2796
                     },
                     {
+                        "nlcd": 21,
                         "type": "Developed, Open Space",
                         "coverage": 0.3669654665686995,
                         "area": 49944
                     },
                     {
+                        "nlcd": 81,
                         "type": "Pasture/Hay",
                         "coverage": 0.04945628214548126,
                         "area": 6731
