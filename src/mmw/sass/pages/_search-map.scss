@@ -6,38 +6,6 @@
   z-index: 100;
   padding: 1rem;
 
-  #geocode-search-results-region {
-    position: absolute;
-
-
-    ul {
-      list-style-type: none;
-      position: absolute;
-      border-radius: 2px;
-      box-shadow: 0 0 6px $black-74;
-      font-size: 0.8rem;
-      padding: 0.5rem 0;
-      color: $black-54;
-      background-color: $paper;
-      margin-top: 6px;
-      min-width: 300px;
-
-      li {
-        cursor: pointer;
-        padding: 0.5rem 1rem;
-        border-bottom: solid 1px $black-12;
-
-        &:last-child {
-          border: none;
-        }
-
-        &:hover {
-          color: $ui-primary;
-        }
-      }
-    }
-  }
-
   .search-icon {
     font-size: 0.8rem;
     color: $black-54;
@@ -65,7 +33,7 @@
     margin-top: 6px;
     width: 300px;
 
-    .dismiss {
+    &.dismiss {
       float: right;
       padding: 0;
       border: none;
@@ -82,4 +50,35 @@
   background-color: $paper;
   z-index: 100;
   width: 100%;
+}
+
+#geocode-search-results-region {
+  position: absolute;
+
+  ul {
+    list-style-type: none;
+    position: absolute;
+    border-radius: 2px;
+    box-shadow: 0 0 6px $black-74;
+    font-size: 0.8rem;
+    padding: 0.5rem 0;
+    color: $black-54;
+    background-color: $paper;
+    margin-top: 6px;
+    min-width: 300px;
+    & > li {
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      border-bottom: solid 1px $black-12;
+
+      &:last-child {
+        border: none;
+      }
+
+      &:hover {
+        color: $ui-primary;
+      }
+    }
+  }
+
 }

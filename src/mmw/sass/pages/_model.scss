@@ -14,7 +14,7 @@
     background-color: $ui-light;
     color: $ui-secondary;
 
-    .title {
+    &>.title {
       display: inline-block;
       position: relative;
 
@@ -25,23 +25,7 @@
     }
   }
 
-  .result-region {
-    height: 100%;
-    width: 100%;
-
-    .runoff-chart-container {
-      height: 100%;
-      width: 50%
-    }
-
-    .runoff-chart-container.current-conditions {
-      height: 100%;
-      width: 29%
-    }
-  }
-
   .tab-content {
-
     padding: 1rem;
 
     .row {
@@ -53,7 +37,20 @@
     position: absolute;
     margin: 0.5rem;
     right: 0.5rem;
-
     outline: none;
+  }
+}
+
+.result-region {
+  height: 100%;
+  width: 100%;
+}
+
+.runoff-chart-container {
+  height: 100%;
+  width: 50%;
+  &.current-conditions {
+    height: 100%;
+    width: 29%
   }
 }

@@ -61,7 +61,7 @@
       border: 0;
       background-color: $brand-primary;
 
-      h2 {
+      & > h2 {
         margin-bottom: 4px;
       }
 
@@ -98,7 +98,7 @@
       border: 0;
       background-color: $brand-primary;
 
-      h2 {
+      & > h2 {
         margin-bottom: 4px;
       }
 

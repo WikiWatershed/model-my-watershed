@@ -306,7 +306,7 @@
           padding: 0;
           border: solid 3px transparent;
 
-          img {
+          &img {
             width: 100%;
             height: auto;
           }
@@ -370,19 +370,19 @@
   border-radius: 0;
   border: solid 1px $black-12;
   padding: 0px;
+}
 
-  .popover-title {
-    font-size: 0.8rem;
-    color: $paper;
-    padding: 1rem;
-    border: 0;
-    background-color: $brand-primary;
-    border-radius: 0;
-  }
+.popover-title {
+  font-size: 0.8rem;
+  color: $paper;
+  padding: 1rem;
+  border: 0;
+  background-color: $brand-primary;
+  border-radius: 0;
+}
 
-  .popover-content {
-    padding: 1rem;
-  }
+.popover-content {
+  padding: 1rem;
 }
 
 @-webkit-keyframes breathing {
