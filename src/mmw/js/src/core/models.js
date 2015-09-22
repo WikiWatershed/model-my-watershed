@@ -73,7 +73,7 @@ var MapModel = Backbone.Model.extend({
 var TaskModel = Backbone.Model.extend({
     defaults: {
         pollInterval: 500,
-        timeout: 15000
+        timeout: 22000
     },
 
     url: function() {
