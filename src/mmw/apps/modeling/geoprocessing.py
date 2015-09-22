@@ -171,10 +171,12 @@ def data_to_survey(data):
     def update_rule(nlcd, soil, count, survey):
         landCategories = survey[0]['categories']
         soilCategories = survey[1]['categories']
+
         if nlcd in NLCD_MAPPING:
             update_category(NLCD_MAPPING[nlcd][1], count, landCategories)
         else:
             update_category('?', count, landCategories)
+
         if soil in SOIL_MAPPING:
             update_category(SOIL_MAPPING[soil][1], count, soilCategories)
         else:
