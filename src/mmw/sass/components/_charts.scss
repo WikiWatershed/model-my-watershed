@@ -2,12 +2,12 @@
 // so that the actual height and width of the
 // enclosing element will get propagated down to the
 // bar-chart elements.
-.chart-container{
+.chart-container {
   width: 100%;
   height: 100%;
 }
 
-.bar-chart{
+.bar-chart {
   width: 100%;
   display: block;
   height: 100%;
@@ -15,14 +15,14 @@
   vertical-align: baseline;
   vertical-align: bottom;
 
-  .bar{
+  .bar {
     margin: 0 2%;
     display: inline-block;
     fill: $brand-primary;
     border-radius: $radius-sm!important;
     vertical-align: bottom;
 
-    &:hover{
+    &:hover {
       fill: lighten($brand-primary, 10%);
     }
   }
@@ -38,7 +38,7 @@
       shape-rendering: crispEdges;
     }
 
-    text{
+    text {
       color: $black-54;
     }
   }

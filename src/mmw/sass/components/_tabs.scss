@@ -1,17 +1,17 @@
 //Analyze Tabs
-#analyze-details-region{
+#analyze-details-region {
   position: absolute;
   top: 68px;
   bottom: 0;
   width: 100%;
 
-  .nav-tabs{
+  .nav-tabs {
     font-weight: 500;
     font-size: 0.6rem;
     border-bottom: none!important;
     background-color: $ui-secondary;
 
-    li a{
+    li a {
       border-radius: 0!important;
       border-top: none!important;
       border-left: none!important;
@@ -20,18 +20,18 @@
       border-bottom: solid 4px transparent;
     }
 
-    li.active > a{
+    li.active > a {
       border-bottom: solid 4px $active;
       color: $paper;
       background: transparent!important;
     }
 
-    li > a{
+    li > a {
       color: $paper-54;
       padding: 0.8rem 0.8rem 0.6rem 0.8rem;
       margin: 0 0 1px 0;
 
-      &:hover{
+      &:hover {
         background: transparent!important;
         border-bottom: solid 4px $active;
         border-radius: 0!important;
@@ -40,27 +40,27 @@
     }
   }
 
-  .tab-content{
+  .tab-content {
     position: absolute;
     top: 45px;
     bottom: 0;
     width: 100%;
     overflow-y: auto;
 
-    @media(min-width: 768px){
+    @media(min-width: 768px) {
       overflow-y: hidden;
     }
 
-    @media(min-width: 1280px){
+    @media(min-width: 1280px) {
       top: 49px;
     }
 
-    .left, .right{
+    .left, .right {
       padding: 1rem;
       position: relative;
       width: 100%;
 
-      @media(min-width:768px){
+      @media(min-width:768px) {
         position: absolute;
         top: 0;
         bottom: 0;
@@ -68,17 +68,17 @@
       }
     }
 
-    .left{
+    .left {
 
-      @media(min-width:768px){
+      @media(min-width:768px) {
         left: 0;
         width: 50%;
       }
     }
 
-    .right{
+    .right {
 
-      @media(min-width:768px){
+      @media(min-width:768px) {
         right: 0;
         width: 50%;
       }
@@ -87,11 +87,11 @@
 }
 
 //Scenario Tabs
-#scenario-wrapper{
+#scenario-wrapper {
   position: relative;
   width: 100%;
 
-  .nav-tabs{
+  .nav-tabs {
     font-weight: 500;
     font-size: 0.6rem;
     border-bottom: none!important;
@@ -100,7 +100,7 @@
     position: absolute;
     left: 8px;
 
-    li a{
+    li a {
       border-radius: 0!important;
       border-top: none!important;
       border-left: none!important;
@@ -108,20 +108,20 @@
       text-transform: uppercase;
     }
 
-    li.active > a{
+    li.active > a {
       color: $ui-secondary;
       background-color: $paper;
 
     }
 
-    li > a{
+    li > a {
       color: $ui-secondary;
       padding: 0 1.8rem 0 0.8rem;
       line-height: $height-md;
       margin-right: 2px;
       background-color: $paper-54;
 
-      &:hover{
+      &:hover {
         background-color: $ui-light;
         border-radius: 0!important;
         color: $ui-secondary;
@@ -131,14 +131,14 @@
 }
 
 //Model Output Tabs
-#output-tabs-wrapper{
+#output-tabs-wrapper {
   position: absolute;
   left: 0;
   top: 0;
   right: 0;
   height: 100%;
 
-  .nav-tabs{
+  .nav-tabs {
     font-weight: 500;
     font-size: 0.6rem;
     border-bottom: none!important;
@@ -146,7 +146,7 @@
     position: absolute;
     left: 120px;
 
-    li a{
+    li a {
       border-radius: 0!important;
       border-top: none!important;
       border-left: none!important;
@@ -154,24 +154,24 @@
       text-transform: uppercase;
     }
 
-    li.active > a{
+    li.active > a {
       color: $ui-secondary;
       background-color: $paper;
     }
 
-    li > a{
+    li > a {
       color: $ui-secondary;
       padding: 0.5rem 1rem;
       line-height: $height-md;
       background-color: transparent;
       height: 60px;
 
-      i{
+      i {
         color: $black-54;
         margin-right: 8px;
       }
 
-      &:hover, &:focus{
+      &:hover, &:focus {
         background-color: $paper;
         border-radius: 0!important;
         color: $ui-secondary;
@@ -180,34 +180,34 @@
     }
   }
 
-  .tab-content{
+  .tab-content {
     position: absolute;
     top: 3rem;
     left: 0;
     right: 0;
     bottom: 0;
 
-    .tab-pane{
+    .tab-pane {
       height: 100%;
     }
 
-    .active{
+    .active {
       display: flex;
       flex-direction: row;
       height: 100%;
     }
 
-    img{
+    img {
       width: 100%;
       height: 200px;
     }
 
-    .left, .right{
+    .left, .right {
       padding: 1rem;
       position: relative;
       width: 100%;
 
-      @media(min-width:768px){
+      @media(min-width:768px) {
         position: absolute;
         top: 0;
         bottom: 0;
@@ -215,15 +215,15 @@
       }
     }
 
-    .left{
-      @media(min-width:768px){
+    .left {
+      @media(min-width:768px) {
         left: 0;
         width: 50%;
       }
     }
 
-    .right{
-      @media(min-width:768px){
+    .right {
+      @media(min-width:768px) {
         right: 0;
         width: 50%;
       }
@@ -232,17 +232,17 @@
 }
 
 //Compare Scenario Tabs
-#compare-wrapper{
+#compare-wrapper {
   position: relative;
   width: 100%;
 
-  .nav-tabs{
+  .nav-tabs {
     font-weight: 500;
     font-size: 0.6rem;
     border-bottom: none!important;
     background-color: $ui-secondary;
 
-    li a{
+    li a {
       border-radius: 0!important;
       border-top: none!important;
       border-left: none!important;
@@ -250,20 +250,20 @@
       text-transform: uppercase;
     }
 
-    li.active > a{
+    li.active > a {
       color: $paper;
       background-color: $paper-12;
 
     }
 
-    li > a{
+    li > a {
       color: $paper-54;
       padding: 0 1.2rem;
       line-height: $height-lg;
       margin-right: 2px;
       background-color: transparent;
 
-      &:hover{
+      &:hover {
         background-color: $paper-12;
         border-radius: 0!important;
         color: $paper;
