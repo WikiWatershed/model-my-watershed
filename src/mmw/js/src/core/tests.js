@@ -300,6 +300,18 @@ describe('Core', function() {
                     assert.equal(Math.round(model.get('area')), 7);
                     assert.equal(model.get('units'), 'km<sup>2</sup>');
                 });
+
+                it('sets the provided fields instead of the defaults if arguments are passed', function() {
+                    var model = new models.GeoModel({
+                        effectiveShape: polygon7Km,
+                        effectiveArea: 0,
+                        effectiveUnits: ''
+                    });
+
+                    model.setDisplayArea('effectiveShape', 'effectiveArea', 'effectiveUnits');
+                    assert.equal(Math.round(model.get('effectiveArea')), 7);
+                    assert.equal(model.get('effectiveUnits'), 'km<sup>2</sup>');
+                });
             });
         });
 

@@ -305,7 +305,7 @@ function _modifyModifications(rawModifications) {
         var rawModification = rawModifications.at(i),
             newPiece = {
                 name: rawModification.get('name'),
-                shape: rawModification.get('shape'),
+                shape: rawModification.get('effectiveShape') || rawModification.get('shape'),
                 value: rawModification.get('value')
             };
 
@@ -400,9 +400,39 @@ var modifyModifications = _.memoize(_modifyModifications, function(_, hash) {ret
 var ModificationModel = coreModels.GeoModel.extend({
     defaults: _.extend({
             name: '',
-            type: ''
+            type: '',
+            effectiveArea: null, // Area after being clip by AoI
+            effectiveUnits: null, // Units of effective area
+            effectiveShape: null, // GeoJSON after being clip by AoI,
         }, coreModels.GeoModel.prototype.defaults
-    )
+    ),
+
+    initialize: function() {
+        coreModels.GeoModel.prototype.initialize.apply(this, arguments);
+
+        if (this.get('effectiveArea') === null) {
+            this.setEffectiveArea();
+        }
+    },
+
+    setEffectiveArea: function() {
+        var aoi = App.map.get('areaOfInterest'),
+            shape = this.get('shape');
+
+        if (aoi && shape) {
+            this.clipToAoI(aoi, shape);
+        } else {
+            this.set('effectiveShape', shape);
+        }
+
+        this.setDisplayArea('effectiveShape', 'effectiveArea', 'effectiveUnits');
+    },
+
+    clipToAoI: function(aoi, shape) {
+        var effectiveShape = turfIntersect(shape, aoi);
+
+        this.set('effectiveShape', effectiveShape);
+    }
 });
 
 var ModificationsCollection = Backbone.Collection.extend({

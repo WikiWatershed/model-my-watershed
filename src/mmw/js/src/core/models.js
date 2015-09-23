@@ -199,17 +199,22 @@ var GeoModel = Backbone.Model.extend({
         this.setDisplayArea();
     },
 
-    setDisplayArea: function() {
-        if (!this.get('shape')) { return; }
+    setDisplayArea: function(shapeAttr, areaAttr, unitsAttr) {
+        var shape = shapeAttr || 'shape',
+            area = areaAttr || 'area',
+            units = unitsAttr || 'units';
 
-        var areaInMeters = turfArea(this.get('shape'));
+        if (!this.get(shape)) { return; }
+
+        var areaInMeters = turfArea(this.get(shape));
 
         // If the area is less than 1 km, use m
         if (areaInMeters < this.M_IN_KM) {
-            this.set('area', areaInMeters);
+            this.set(area, areaInMeters);
+            this.set(units, 'm<sup>2</sup>');
         } else {
-            this.set('area', areaInMeters / this.M_IN_KM);
-            this.set('units', 'km<sup>2</sup>');
+            this.set(area, areaInMeters / this.M_IN_KM);
+            this.set(units, 'km<sup>2</sup>');
         }
     }
 });

@@ -182,12 +182,12 @@ describe('Modeling', function() {
                 assert.equal($('#sandbox #modification-number').text(), '2');
             });
 
-            it('lists all of the modifications and their area', function() {
+            it('lists all of the modifications and their effective area', function() {
                 this.model.get('modifications').add([this.modsModel1, this.modsModel2]);
-                assert.equal($('#sandbox #mod-landcover tr td:first-child').text(), 'Developed, Low Intensity');
-                assert.equal($('#sandbox #mod-landcover tr td:nth-child(2)').text(), '44.4 km2');
-                assert.equal($('#sandbox #mod-conservationpractice tr td:first-child').text(), 'Rain Garden');
-                assert.equal($('#sandbox #mod-conservationpractice tr td:nth-child(2)').text(), '106.4 km2');
+                assert.equal($('#sandbox #mod-landcover tbody tr td:first-child').text(), 'Developed, Low Intensity');
+                assert.equal($('#sandbox #mod-landcover tbody tr td:nth-child(2)').text(), '44.42 km2');
+                assert.equal($('#sandbox #mod-conservationpractice tbody tr td:first-child').text(), 'Rain Garden');
+                assert.equal($('#sandbox #mod-conservationpractice tbody tr td:nth-child(2)').text(), '106.40 km2');
             });
 
             it('ensures each modification has a pattern', function() {
@@ -558,6 +558,35 @@ describe('Modeling', function() {
                 assert.equal(model.get('units'), 'm<sup>2</sup>');
                 assert.equal(model.get('area'), 0);
             });
+
+            it('has an effective shape and area, which is equal to the intersection of the shape and the AoI', function() {
+                var sqKm = {"type":"MultiPolygon","coordinates":[[[[-75.16779683695418,39.93578257350401],[-75.15607096089737,39.93578257350401],[-75.15607096089737,39.94477296727664],[-75.16779683695418,39.94477296727664],[-75.16779683695418,39.93578257350401]]]]},
+                    modificationData = {"name":"landcover","value":"open_water","shape":{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[-75.163414478302,39.94578893439719],[-75.16350030899046,39.94373258183417],[-75.16036748886108,39.94374903289991],[-75.16045331954956,39.94577248382194],[-75.163414478302,39.94578893439719]]]}},"type":""},
+                    effectiveShape = {"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[-75.16041092208279,39.94477296727664],[-75.16036748886108,39.94374903289991],[-75.16350030899046,39.94373258183417],[-75.16345688404456,39.94477296727664],[-75.16041092208279,39.94477296727664]]]}};
+
+                App.map.set('areaOfInterest', sqKm);
+
+                var modification = new models.ModificationModel(modificationData);
+
+                assert.equal(JSON.stringify(modification.get('effectiveShape')), JSON.stringify(effectiveShape));
+                assert.equal(Math.round(modification.get('effectiveArea')), 30295);
+                assert.equal(modification.get('effectiveUnits'), 'm<sup>2</sup>');
+            });
+
+            it('has an effective area which is equal to the total area if the modification is contained within the AoI', function() {
+                var sqKm = {"type":"MultiPolygon","coordinates":[[[[-82.09570407318586,39.905241037650875],[-82.08398342681413,39.905241037650875],[-82.08398342681413,39.91423143142352],[-82.09570407318586,39.91423143142352],[-82.09570407318586,39.905241037650875]]]]},
+                    modificationData = {"name":"conservation_practice","value":"rain_garden","shape":{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[-82.08992958068848,39.91008187768712],[-82.09115266799927,39.909012024186794],[-82.08769798278809,39.90864991614042],[-82.08767652511597,39.91026292816486],[-82.08954334259033,39.91095420740544],[-82.08992958068848,39.91008187768712]]]}},"type":""};
+
+                App.map.set('areaOfInterest', sqKm);
+
+                var modification = new models.ModificationModel(modificationData);
+
+                console.log(modification.get('effectiveShape'), modification.get('shape'));
+
+                // Shapes are not tested because they will never exactly match due to rounding and math in turf intersect function
+                assert.equal(Math.round(modification.get('effectiveArea')), Math.round(modification.get('area')));
+                assert.equal(modification.get('effectiveUnits'), modification.get('units'));
+            });
         });
 
         describe('ScenarioModel', function() {
@@ -645,14 +674,14 @@ describe('Modeling', function() {
                     });
 
                     model.updateModificationHash();
-                    assert.equal(model.get('modification_hash'), '2b0a8dbef6e2136e91f60b2224528770');
+                    assert.equal(model.get('modification_hash'), '65af065d7205cd998aeb0bf15c41f256');
 
                     var mod = new models.ModificationModel(mocks.modifications.sample2);
                     model.get('modifications').add(mod);
-                    assert.equal(model.get('modification_hash'), '959e4726576fd19923af93bec3ce8076');
+                    assert.equal(model.get('modification_hash'), 'ae69e823f926824a2fc22d9a5f1ea62c');
 
                     model.get('modifications').remove(mod);
-                    assert.equal(model.get('modification_hash'), '2b0a8dbef6e2136e91f60b2224528770');
+                    assert.equal(model.get('modification_hash'), '65af065d7205cd998aeb0bf15c41f256');
                 });
 
                 it('is called when the modifications for a scenario changes', function() {

@@ -186,6 +186,16 @@ header {
       float: right;
     }
 
+    #modifications {
+      .modification-type {
+        min-width: 140px;
+      }
+
+      .message {
+        font-size: 13px;
+      }
+    }
+
     .inline {
       display: inline-block;
       margin-right: 5px;
