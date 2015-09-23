@@ -5,7 +5,7 @@
   right: 0;
   bottom: 0;
   min-height: 300px;
-  height: 55%;
+  height: $footer-height;
   background-color: $paper;
   z-index: 100;
   box-shadow: 0 0 4px $black-54;
@@ -14,7 +14,7 @@
     background-color: $ui-light;
     color: $ui-secondary;
 
-    &>.title {
+    .title {
       display: inline-block;
       position: relative;
 
@@ -22,6 +22,21 @@
         margin-top: 0.4rem!important;
         line-height: 0.4rem;
       }
+    }
+  }
+
+  .result-region {
+    height: 100%;
+    width: 100%;
+
+    .runoff-chart-container {
+      height: 100%;
+      width: 50%
+    }
+
+    .runoff-chart-container.current-conditions {
+      height: 100%;
+      width: 29%
     }
   }
 
@@ -38,19 +53,5 @@
     margin: 0.5rem;
     right: 0.5rem;
     outline: none;
-  }
-}
-
-.result-region {
-  height: 100%;
-  width: 100%;
-}
-
-.runoff-chart-container {
-  height: 100%;
-  width: 50%;
-  &.current-conditions {
-    height: 100%;
-    width: 29%
   }
 }

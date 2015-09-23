@@ -71,7 +71,7 @@ header {
     right: 0;
     padding: 0.7rem;
     background-color: $paper;
-    height: 60px;
+    height: $toolbar-height;
 
     #modification-btn-wrapper {
       float: right;
@@ -180,7 +180,7 @@ header {
     right: 0;
     padding: 0.7rem;
     background-color: $paper;
-    height: 60px;
+    height: $toolbar-height;
 
     #modification-btn-wrapper {
       float: right;
