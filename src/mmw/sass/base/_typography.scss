@@ -1,5 +1,5 @@
 //Paragraph Styles
-p{
+p {
   font-size: 1rem;
   font-weight: 300;
   color: $black-54;
@@ -8,72 +8,72 @@ p{
 }
 
 //Heading Styles
-h1, h2, h3{
+h1, h2, h3 {
   margin: 0;
 
-  &.light{
+  &.light {
     color: $paper;
   }
 
-  &.dark{
+  &.dark {
     color: $ui-primary;
   }
 }
 
-h1{
+h1 {
   font-size: 1.5rem;
   font-weight: 100;
 
-  &.precip{
+  &.precip {
     color: $water;
   }
 
-  &.evapo{
+  &.evapo {
     color: $et;
   }
 
-  &.runoff{
+  &.runoff {
     color: $r;
   }
 
-  &.infil{
+  &.infil {
     color: $i;
   }
 }
 
-h2{
+h2 {
   font-size: 1rem;
   font-weight: 100;
 }
 
-h3{
+h3 {
   font-size: 0.7rem;
   font-weight: 500;
 }
 
 //Label Styles
-label{
+label {
   font-weight: 500;
   font-size: 0.6rem;
   line-height: 1.2;
 
-  &.paper{
+  &.paper {
     color: $paper;
   }
 
-  &.light{
+  &.light {
     color: $paper-54;
   }
 
-  &.medium{
+  &.medium {
     color: $black-54;
   }
 
-  &.dark{
+  &.dark {
     color: $ui-secondary;
   }
 
-  &.small{
+  &.small {
     font-size: 0.5rem;
   }
 }

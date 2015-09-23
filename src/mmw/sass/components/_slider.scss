@@ -4,7 +4,7 @@
   display: inline-block!important;
   padding: 12px 0;
 
-  .dragger{
+  .dragger {
     background-color: $active;
     -webkit-border-radius: 12px;
     -moz-border-radius: 12px;
@@ -14,12 +14,12 @@
     height: 24px;
   }
 
-  .track, .highlight-track{
+  .track, .highlight-track {
     background-color: $black-12;
     height: 4px;
   }
 
-  .highlight-track{
+  .highlight-track {
     background-color: $water;
     height: 4px;
   }
