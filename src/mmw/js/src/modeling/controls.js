@@ -52,6 +52,7 @@ var DrawControlView = ControlView.extend({
             controlValue = $el.data('value'),
             map = App.getLeafletMap(),
             drawOpts = modificationConfigUtils.getDrawOpts(controlValue);
+
         drawUtils.drawPolygon(map, drawOpts).then(function(geojson) {
             self.addModification(new models.ModificationModel({
                 name: controlName,
@@ -82,6 +83,7 @@ var ModificationsView = DrawControlView.extend({
 
     onMouseHover: function(e) {
         var value = $(e.currentTarget).data('value');
+
         this.summaryRegion.show(new SummaryView({
             model: new Backbone.Model({
                 value: value
@@ -140,7 +142,9 @@ var PrecipitationSynchronizer = (function() {
     function syncTo(precipView) {
         if (isEnabled) {
             var value = precipView.ui.slider.val();
+
             isEnabled = false;
+
             precipViews.forEach(function(otherPrecipView) {
                 var otherValue = otherPrecipView.ui.slider.val();
                 if (otherValue !== value) {
@@ -148,6 +152,7 @@ var PrecipitationSynchronizer = (function() {
                     otherPrecipView.onSliderChanged();
                 }
             });
+
             isEnabled = true;
         }
     }
@@ -193,6 +198,7 @@ var PrecipitationView = ControlView.extend({
     onSliderDragged: function() {
         // Preview slider value while dragging.
         var value = parseFloat(this.ui.slider.val());
+
         this.ui.slider.attr('value', value);
         this.ui.displayValue.text(this.getDisplayValue(value));
     },
@@ -205,7 +211,9 @@ var PrecipitationView = ControlView.extend({
                 name: this.getControlName(),
                 value: imperialValue
             });
+
         PrecipitationSynchronizer.syncTo(this);
+
         this.addOrReplaceInput(modification);
     },
 

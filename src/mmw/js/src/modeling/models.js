@@ -156,6 +156,7 @@ var ProjectModel = Backbone.Model.extend({
         this.get('scenarios').forEach(function(scenario) {
             scenario.fetchResultsIfNeeded();
         });
+
         this.get('scenarios').on('add', function(scenario) {
             scenario.fetchResultsIfNeeded();
         });
@@ -184,6 +185,7 @@ var ProjectModel = Backbone.Model.extend({
             // set the project ID on each scenario.
             var self = this;
             this.saveCalled = true;
+
             this.save()
                 .done(function() {
                     self.updateProjectScenarios(self.get('id'), self.get('scenarios'));
@@ -201,6 +203,7 @@ var ProjectModel = Backbone.Model.extend({
 
     addIdsToScenarios: function() {
         var projectId = this.get('id');
+
         if (!projectId) {
             this.saveProjectAndScenarios();
         } else {
@@ -231,6 +234,7 @@ var ProjectModel = Backbone.Model.extend({
 
                     return scenarioModel;
                 });
+
             scenariosCollection.reset(scenarios);
             // Set the user_id to ensure controls are properly set.
             response.user_id = user_id;
@@ -269,6 +273,7 @@ var ProjectModel = Backbone.Model.extend({
         if (id) {
             url = root + id + '/compare';
         }
+
         return url;
     }
 });
@@ -362,6 +367,7 @@ function _modifyModifications(rawModifications) {
                         overlapPiece.value.bmp = oldPiece.value;
                         overlapPiece.value.reclass = newPiece.value;
                     }
+
                     pieces.push(overlapPiece);
 
                     /* remove the overlapping portion from both parents */
@@ -372,6 +378,7 @@ function _modifyModifications(rawModifications) {
                          * oldPiece.shape is already undefined. */
                         oldPiece.shape = undefined;
                     }
+
                     try {
                         newPiece.shape = turfErase(newPiece.shape, oldPieceShape);
                     } catch(e) {
@@ -457,17 +464,20 @@ var ScenarioModel = Backbone.Model.extend({
             // Fail fast if the user can't save the project.
             return;
         }
+
         if (!this.get('project')) {
             // TODO replace this with radio/wreqr or something less problematic than the global.
             App.currentProject.saveProjectAndScenarios();
             return;
         }
+
         if (this.isNew() && this.saveCalled) {
             return;
         } else if (this.isNew() && !this.saveCalled) {
             // Makeshift locking mechanism to prevent double saves.
             this.saveCalled = true;
         }
+
         // Save silently so server values don't trigger reload
         this.save(null, { silent: true })
             .fail(function() {
@@ -482,9 +492,11 @@ var ScenarioModel = Backbone.Model.extend({
     addOrReplaceInput: function(input) {
         var inputsColl = this.get('inputs'),
             existing = inputsColl.findWhere({ name: input.get('name') });
+
         if (existing) {
             inputsColl.remove(existing);
         }
+
         inputsColl.add(input);
     },
 
@@ -503,6 +515,7 @@ var ScenarioModel = Backbone.Model.extend({
         if (!_.isEmpty(response.results)) {
             this.get('results').reset(response.results);
         }
+
         delete response.results;
 
         return response;
@@ -524,12 +537,14 @@ var ScenarioModel = Backbone.Model.extend({
 
     setResults: function() {
         var rawServerResults = this.get('taskModel').get('result');
+
         if (rawServerResults === '' || rawServerResults === null) {
             this.get('results').setNullResults();
         } else {
             var serverResults = JSON.parse(rawServerResults);
             this.get('results').forEach(function(resultModel) {
                 var resultName = resultModel.get('name');
+
                 if (serverResults[resultName]) {
                     resultModel.set({
                         'result': serverResults[resultName],
@@ -586,9 +601,11 @@ var ScenarioModel = Backbone.Model.extend({
 
                 startFailure: function(response) {
                     console.log('Failed to start modeling job.');
+
                     if (response.responseJSON && response.responseJSON.error) {
                         console.log(response.responseJSON.error);
                     }
+
                     results.setNullResults();
                     results.setPolling(false);
                 }
@@ -686,9 +703,10 @@ var ScenariosCollection = Backbone.Collection.extend({
 
         if (match) {
             window.alert("There is another scenario with the same name. " +
-                    "Please choose a unique name for this scenario."
-            );
+                    "Please choose a unique name for this scenario.");
+
             console.log('This name is already in use.');
+
             return false;
         } else if (model.get('name') !== newName) {
             return model.set('name', newName);
@@ -747,6 +765,7 @@ function getControlsForModelPackage(modelPackageName, options) {
             ]);
         }
     }
+
     throw 'Model package not supported ' + modelPackageName;
 }
 

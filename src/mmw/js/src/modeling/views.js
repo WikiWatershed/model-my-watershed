@@ -126,7 +126,9 @@ var ProjectMenuView = Marionette.ItemView.extend({
                 fieldLabel: 'Project Name'
             })
         });
+
         rename.render();
+
         rename.on('update', function(val) {
             self.model.updateName(val);
         });
@@ -144,7 +146,6 @@ var ProjectMenuView = Marionette.ItemView.extend({
             });
 
         share.render();
-
     },
 
     deleteProject: function() {
@@ -156,7 +157,9 @@ var ProjectMenuView = Marionette.ItemView.extend({
                     cancelLabel: 'Cancel'
                 })
             });
+
         del.render();
+
         del.on('confirmation', function() {
             // TODO: our version of backbone returns false if model isNew and an
             // xhr otherwise.  Future versions will return just an xhr always at
@@ -206,6 +209,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
             });
 
         modal.render();
+
         modal.on('confirmation', function() {
             self.model.set('is_private', !self.model.get('is_private'));
             self.model.saveProjectAndScenarios();
@@ -377,6 +381,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
             });
 
         del.render();
+
         del.on('confirmation', function() {
             self.triggerMethod('tab:removed', self.model.cid);
             self.model.destroy();
@@ -524,6 +529,7 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
     templateHelpers: function() {
         var shapes = this.model.get('modifications'),
             groupedShapes = shapes.groupBy('name');
+
         return {
             compareMode: this.compareMode,
             shapes: shapes,
@@ -555,11 +561,13 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
             cid = $el.data('delete'),
             modificationsColl = this.model.get('modifications'),
             modification = modificationsColl.get(cid);
+
         modificationsColl.remove(modification);
     },
 
     getChildView: function(modelPackageControl) {
         var controlName = modelPackageControl.get('name');
+
         return controls.getControlView(controlName);
     },
 
@@ -583,6 +591,7 @@ var ToolbarTabContentsView = Marionette.CollectionView.extend({
             this.options.model_package,
             {is_current_conditions: model.get('is_current_conditions')}
         );
+
         return {
             collection: controls
         };
@@ -624,6 +633,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
     showDetailsRegion: function() {
         var scenarios = this.model.get('scenarios'),
             scenario = scenarios.getActiveScenario();
+
         if (scenario) {
             this.detailsRegion.show(new ResultsDetailsView({
                 collection: scenario.get('results'),
@@ -638,6 +648,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
 
     animateIn: function() {
         var self = this;
+
         this.$el.animate({ height: '55%', 'min-height': '300px' }, 200, function() {
             self.trigger('animateIn');
             App.map.setHalfSize(false);
