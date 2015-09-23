@@ -33,16 +33,7 @@ a {
   margin: 0!important;
 }
 
-.container-fluid {
-  margin: 0!important;
-  padding: 0!important;
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right:0;
-  overflow: hidden;
-  z-index: 1;
+#footer {
 
   &.top-nav {
     margin-top: 44px!important;
@@ -109,6 +100,7 @@ a {
   &.title-row {
     background-color: $ui-primary;
     height: 68px;
+    padding: 0.7rem;
 
     .title {
       display: inline-block;
