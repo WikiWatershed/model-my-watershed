@@ -1,5 +1,5 @@
 //Layout
-#model-output-wrapper {
+#model-output-wrapper{
   position: absolute;
   left: 0;
   right: 0;
@@ -10,25 +10,41 @@
   z-index: 100;
   box-shadow: 0 0 4px $black-54;
 
-  .title-row {
+  .title-row{
     background-color: $ui-light;
     color: $ui-secondary;
 
-    &>.title {
+    .title{
       display: inline-block;
       position: relative;
 
-      h2 {
+      h2{
         margin-top: 0.4rem!important;
         line-height: 0.4rem;
       }
     }
   }
 
-  .tab-content {
+  .result-region{
+    height: 100%;
+    width: 100%;
+
+    .runoff-chart-container{
+      height: 100%;
+      width: 50%
+    }
+
+    .runoff-chart-container.current-conditions{
+      height: 100%;
+      width: 29%
+    }
+  }
+
+  .tab-content{
+
     padding: 1rem;
 
-    .row {
+    .row{
       width: 100%;
     }
   }
@@ -37,20 +53,7 @@
     position: absolute;
     margin: 0.5rem;
     right: 0.5rem;
+
     outline: none;
-  }
-}
-
-.result-region {
-  height: 100%;
-  width: 100%;
-}
-
-.runoff-chart-container {
-  height: 100%;
-  width: 50%;
-  &.current-conditions {
-    height: 100%;
-    width: 29%
   }
 }
