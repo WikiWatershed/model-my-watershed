@@ -106,7 +106,7 @@ a {
 
 //Title Row
 .aoi-header-wrapper {
-  .title-row {
+  &.title-row {
     background-color: $ui-primary;
     height: 68px;
 
