@@ -155,8 +155,6 @@ def itsi_sign_up(request):
         errors.append("First name must be specified")
     if 'last_name' not in request.POST or not request.POST.get('last_name'):
         errors.append("Last name must be specified")
-    if 'agreed' not in request.POST or not request.POST.get('agreed'):
-        errors.append("You must agree to the terms")
 
     if len(errors) > 0:
         response_data = {"errors": errors}
