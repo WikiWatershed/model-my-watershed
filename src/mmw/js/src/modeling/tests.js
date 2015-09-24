@@ -126,10 +126,10 @@ describe('Modeling', function() {
                 var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
 
                 $(sandboxSelector).html(view.render().el);
-                checkMenuItemsMatch(['Print', 'Rename', 'Duplicate', 'Delete']);
+                checkMenuItemsMatch(['Rename', 'Duplicate', 'Delete']);
             });
 
-            it('renders appropriate tab dropdowns if the user does not own the project', function() {
+            it('renders no tab dropdowns if the user does not own the project', function() {
                 App.user.set('id', 8);
                 var project = getTestProject();
 
@@ -138,7 +138,7 @@ describe('Modeling', function() {
                 var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
 
                 $(sandboxSelector).html(view.render().el);
-                checkMenuItemsMatch(['Print']);
+                assert.isUndefined($(sandboxSelector + ' .scenario-btn-dropdown').el);
             });
 
             it('renders tab dropdown for sharing if the scenario is saved', function() {
@@ -151,7 +151,7 @@ describe('Modeling', function() {
                 var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
 
                 $(sandboxSelector).html(view.render().el);
-                checkMenuItemsMatch(['Share', 'Print', 'Rename', 'Duplicate', 'Delete']);
+                checkMenuItemsMatch(['Share', 'Rename', 'Duplicate', 'Delete']);
             });
         });
 
@@ -239,8 +239,7 @@ describe('Modeling', function() {
                     view = new views.ProjectMenuView({ model: project }),
                     preSaveMenuItems = [
                         'Rename',
-                        'Save',
-                        'Print'
+                        'Save'
                     ];
 
                 $(sandboxSelector).html(view.render().el);
@@ -261,9 +260,7 @@ describe('Modeling', function() {
                         'Share',
                         'Make Public',
                         'Delete',
-                        'Add Tags',
-                        'Rename',
-                        'Print'
+                        'Rename'
                     ];
 
                 this.server.respondWith('POST', '/api/modeling/projects/',
@@ -279,7 +276,7 @@ describe('Modeling', function() {
                 });
             });
 
-            it('displays limited options in the user does not own the project', function() {
+            it('displays no options if the user does not own the project', function() {
                 // Let the application know which user we are.
                 App.user.set('id', 8);
                 var project = getTestProject(),
@@ -292,8 +289,7 @@ describe('Modeling', function() {
                 project.save();
 
                 $(sandboxSelector).html(view.render().el);
-                // Print is the only option for non project owners.
-                assert.equal($('#sandbox li').length, 1);
+                assert.isUndefined($('#project-settings').el);
             });
 
             it('changes the privacy menu item depending on the is_private attribute of the project', function() {
@@ -332,9 +328,7 @@ describe('Modeling', function() {
                         'Share',
                         'Make Public',
                         'Delete',
-                        'Add Tags',
                         'Rename',
-                        'Print',
                         'Embed in ITSI'
                     ];
 
