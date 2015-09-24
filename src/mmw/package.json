@@ -5,7 +5,7 @@
   "scripts": {
     "test": "test",
     "lint": "node_modules/.bin/jshint $(find js -name *.js)",
-    "livereload": "node_modules/.bin/livereloadify /var/www/mmw/static --glob '**/*.*'"
+    "livereload": "./node_modules/.bin/livereload /var/www/mmw/static/css/ -i 200"
   },
   "repository": {
     "type": "git",
@@ -36,7 +36,7 @@
     "leaflet-draw": "git://github.com/michaelguild13/Leaflet.draw#e753b7d",
     "leaflet-plugins": "git://github.com/azavea/leaflet-plugins#feature/browserify",
     "leaflet.locatecontrol": "0.43.0",
-    "livereloadify": "2.0.0",
+    "livereload": "0.3.7",
     "lodash": "3.6.0",
     "minifyify": "7.0.0",
     "mocha": "2.0.1",
