@@ -14,6 +14,16 @@ from django.utils.timezone import now
 
 from rest_framework.test import APIClient
 
+from celery import chain, shared_task
+
+
+@shared_task
+def nothing_to_histogram():
+    return {
+        'pixel_width': 33,
+        'histogram': [[[[24, 2], 268], [[24, 4], 279], [[21, 4], 5], [[22, 4], 16], [[23, 4], 322], [[22, 2], 35], [[22, 1], 55], [[23, 2], 339], [[21, 1], 22], [[24, 1], 537], [[21, 2], 1], [[23, 1], 773]]]  # noqa
+    }
+
 
 class ExerciseGeoprocessing(TestCase):
     def setUp(self):
@@ -334,6 +344,7 @@ class TaskRunnerTestCase(TestCase):
                 }
             ],
             'inputmod_hash': '9780bd0887ab5008620efd25bd2eec3f',
+            'modification_pieces': [],
             'modifications': [{
                 'name': 'conservation_practice',
                 'area': 15.683767964377065,
@@ -375,8 +386,17 @@ class TaskRunnerTestCase(TestCase):
 
     @override_settings(CELERY_ALWAYS_EAGER=True)
     def test_tr55_job_runs_in_chain(self):
-        task_list = views._initiate_tr55_job_chain(self.model_input,
-                                                   self.job.id)
+        # Get the job chain
+        job_chain = views._construct_tr55_job_chain(self.model_input,
+                                                    self.job.id)
+
+        # Make sure the chain is well-formed
+        self.assertTrue('tasks.polygons_to_id' in str(job_chain[0]))
+        self.assertTrue('tasks.id_to_histogram' in str(job_chain[1]))
+
+        # Modify the chain to prevent it from trying to talk to endpoint
+        job_chain = [nothing_to_histogram.s()] + job_chain[2:]
+        task_list = chain(job_chain).apply_async()
 
         found_job = Job.objects.get(uuid=task_list.id)
 
@@ -401,12 +421,19 @@ class TaskRunnerTestCase(TestCase):
                      [-75.06271362304688, 40.15893480687665]]
                 ]]
             },
+            'modification_pieces': [],
             'modifications': [],
             'modification_hash': 'j39fj9fg7yshb399h4nsdhf'
         }
 
+        job_chain = views._construct_tr55_job_chain(model_input,
+                                                    self.job.id)
+        self.assertTrue('tasks.polygons_to_id' in str(job_chain[0]))
+        self.assertTrue('tasks.id_to_histogram' in str(job_chain[1]))
+        job_chain = [nothing_to_histogram.s()] + job_chain[2:]
+
         with self.assertRaises(Exception) as context:
-            views._initiate_tr55_job_chain(model_input, self.job.id)
+            chain(job_chain).apply_async()
 
         self.assertEqual(str(context.exception),
                          'No precipitation value defined',
@@ -466,7 +493,7 @@ class TaskRunnerTestCase(TestCase):
         job_chain = views._construct_tr55_job_chain(self.model_input,
                                                     self.job.id)
 
-        self.assertTrue('tasks.prepare_census' in str(job_chain),
+        self.assertTrue('tasks.histograms_to_censuses' in str(job_chain),
                         'Census preparation should not be skipped')
 
     @override_settings(CELERY_ALWAYS_EAGER=True)
@@ -474,7 +501,7 @@ class TaskRunnerTestCase(TestCase):
         job_chain = views._construct_tr55_job_chain(self.model_input,
                                                     self.job.id)
 
-        self.assertTrue('tasks.prepare_census' in str(job_chain),
+        self.assertTrue('tasks.histograms_to_censuses' in str(job_chain),
                         'Census preparation should not be skipped')
 
 
