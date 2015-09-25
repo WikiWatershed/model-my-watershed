@@ -337,6 +337,102 @@
             border-radius: 12px;
             text-align: center;
           }
+
+          &.nlcd-11 {
+            border-color: $nlcd-11;
+
+            &:after {
+              background-color: $nlcd-11;
+            }
+          }
+
+          &.nlcd-21 {
+            border-color: $nlcd-21;
+
+            &:after {
+              background-color: $nlcd-21;
+            }
+          }
+
+          &.nlcd-22 {
+            border-color: $nlcd-22;
+
+            &:after {
+              background-color: $nlcd-22;
+            }
+          }
+
+          &.nlcd-23 {
+            border-color: $nlcd-23;
+
+            &:after {
+              background-color: $nlcd-23;
+            }
+          }
+
+          &.nlcd-24 {
+            border-color: $nlcd-24;
+
+            &:after {
+              background-color: $nlcd-24;
+            }
+          }
+
+          &.nlcd-31 {
+            border-color: $nlcd-31;
+
+            &:after {
+              background-color: $nlcd-31;
+            }
+          }
+
+          &.nlcd-41 {
+            border-color: $nlcd-41;
+
+            &:after {
+              background-color: $nlcd-41;
+            }
+          }
+
+          &.nlcd-52 {
+            border-color: $nlcd-52;
+
+            &:after {
+              background-color: $nlcd-52;
+            }
+          }
+
+          &.nlcd-71 {
+            border-color: $nlcd-71;
+
+            &:after {
+              background-color: $nlcd-71;
+            }
+          }
+
+          &.nlcd-81 {
+            border-color: $nlcd-81;
+
+            &:after {
+              background-color: $nlcd-81;
+            }
+          }
+
+          &.nlcd-82 {
+            border-color: $nlcd-82;
+
+            &:after {
+              background-color: $nlcd-82;
+            }
+          }
+
+          &.nlcd-90 {
+            border-color: $nlcd-90;
+
+            &:after {
+              background-color: $nlcd-90;
+            }
+          }
         }
       }
     }
@@ -379,6 +475,57 @@
   border: 0;
   background-color: $brand-primary;
   border-radius: 0;
+
+  &.nlcd-11 {
+    background-color: $nlcd-11;
+  }
+
+  &.nlcd-21 {
+    background-color: $nlcd-21;
+  }
+
+  &.nlcd-22 {
+    background-color: $nlcd-22;
+  }
+
+  &.nlcd-23 {
+    background-color: $nlcd-23;
+  }
+
+  &.nlcd-24 {
+    background-color: $nlcd-24;
+  }
+
+  &.nlcd-31 {
+    background-color: $nlcd-31;
+  }
+
+  &.nlcd-41 {
+    background-color: $nlcd-41;
+  }
+
+  &.nlcd-52 {
+    background-color: $nlcd-52;
+  }
+
+  &.nlcd-71 {
+    background-color: $nlcd-71;
+    color: #333;
+  }
+
+  &.nlcd-81 {
+    background-color: $nlcd-81;
+    color: #333;
+  }
+
+  &.nlcd-82 {
+    background-color: $nlcd-82;
+  }
+
+  &.nlcd-90 {
+    background-color: $nlcd-90;
+    color: #333;
+  }
 }
 
 .popover-content {
@@ -432,4 +579,3 @@
     transform: scale(0.9);
   }
 }
-

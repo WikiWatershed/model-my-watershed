@@ -116,9 +116,37 @@ var initialize = function(model) {
     recalculate();
 };
 
+var initBootstrap = function() {
+    $('[data-toggle="tooltip"]').tooltip();
+
+    $('[data-toggle="popover"]').each(function(i, popover) {
+        var nlcd = $(popover).data('nlcd') || 'default',
+            template = '<div class="popover" role="tooltip">' +
+                '<div class="arrow"></div>' +
+                '<h3 class="popover-title ' + ' ' + nlcd + '"></h3>' +
+                '<div class="popover-content"></div></div>';
+
+        if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            $(popover).popover({
+                triggger:'click',
+                template: template
+            });
+
+            $(popover).click(function() {
+                $('[data-toggle="popover"]').not(this).popover('hide'); //all but this
+            });
+        } else {
+            $(popover).popover({
+                trigger: 'hover',
+                template: template
+            });
+        }
+    });
+};
+
 $(function() {
     R.Retina.init(window);
-    $('[data-toggle="tooltip"]').tooltip();
+    initBootstrap();
 
     $.ajax({
         type: 'GET',
