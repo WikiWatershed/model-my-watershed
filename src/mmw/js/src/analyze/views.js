@@ -268,13 +268,12 @@ var ChartView = Marionette.ItemView.extend({
 
     addChart: function() {
         var chartEl = this.$el.find('.bar-chart').get(0),
-            chartData = this.collection.map(function(model) {
-                var attrs = model.attributes;
+            chartData = _.map(this.collection.toJSON(), function(model) {
                 return {
-                    area: attrs.area,
-                    coverage: attrs.coverage,
-                    type: attrs.type,
-                    className: attrs.nlcd ? 'nlcd-' + attrs.nlcd : null
+                    area: model.area,
+                    coverage: model.coverage,
+                    type: model.type,
+                    className: model.nlcd ? 'nlcd-' + model.nlcd : null
                 };
             }),
             chartOptions = {
@@ -287,6 +286,7 @@ var ChartView = Marionette.ItemView.extend({
         if (this.model.get('name') === 'land') {
             chartOptions.useHorizBars = true;
         }
+
         chart.makeBarChart(chartEl, chartData, indVar, depVars, chartOptions);
     }
 });
