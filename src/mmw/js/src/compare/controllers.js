@@ -116,7 +116,7 @@ function addForestCoverScenario() {
         allow_save: false
     });
     forestCoverScenario.get('inputs').on('add', _.debounce(_.bind(forestCoverScenario.fetchResults, forestCoverScenario), 500));
-    project.get('scenarios').add(forestCoverScenario, { at: 1 });
+    project.get('scenarios').add(forestCoverScenario, { at: 0 });
 }
 
 function saveAfterLogin(user, guest) {
