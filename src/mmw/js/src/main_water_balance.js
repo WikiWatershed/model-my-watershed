@@ -15,24 +15,24 @@ var initialize = function(model) {
     var precipKey = ['0.5', '1.0', '2.0', '3.2', '8.0'];
 
     // Cache references to DOM elements so as not to query them each time
-    var $etColumn = $('#column-et');
-    var $rColumn  = $('#column-r');
-    var $iColumn  = $('#column-i');
+    var $etColumn = $('#column-et'),
+        $rColumn  = $('#column-r'),
+        $iColumn  = $('#column-i'),
 
-    var $etArrow = $('#effect-evapo svg');
-    var $rArrow = $('#effect-runoff svg');
-    var $iArrow = $('#effect-infiltration svg');
+        $etArrow = $('#effect-evapo svg'),
+        $rArrow = $('#effect-runoff svg'),
+        $iArrow = $('#effect-infiltration svg'),
 
-    var $thumbsLand = $('#thumbs-land');
-    var $thumbsSoil = $('#thumbs-soil');
-    var $precipSlider = $('#precip-slider');
+        $thumbsLand = $('#thumbs-land'),
+        $thumbsSoil = $('#thumbs-soil'),
+        $precipSlider = $('#precip-slider'),
 
-    var $precipText = $('#well-precip > h1');
-    var $etText = $('#well-evapo > h1');
-    var $rText = $('#well-runoff > h1');
-    var $iText = $('#well-infil > h1');
+        $precipText = $('#well-precip > h1'),
+        $etText = $('#well-evapo > h1'),
+        $rText = $('#well-runoff > h1'),
+        $iText = $('#well-infil > h1'),
 
-    var $runOffAlert = $('#alert');
+        $runOffAlert = $('#alert');
 
     var getType = function($el) {
         // Return thumb type, after the 'thumb-' part of id
@@ -66,11 +66,10 @@ var initialize = function(model) {
     var recalculate = function() {
         hideRunoffAlert();
 
-        var soil = getType($thumbsSoil.children('.active'));
-        var land = getType($thumbsLand.children('.active'));
-        var precip = precipKey[$precipSlider.val()];
-
-        var result = model[soil][land][precip];
+        var soil = getType($thumbsSoil.children('.active')),
+            land = getType($thumbsLand.children('.active')),
+            precip = precipKey[$precipSlider.val()],
+            result = model[soil][land][precip];
 
         $precipText.text(convertToMetric(precip) + ' cm');
         $etText.text(convertToMetric(result.et) + ' cm');
@@ -89,8 +88,8 @@ var initialize = function(model) {
         // Set border radius for middle Runoff div
         // which has rounded borders whenever it is on the edge
         // but not when it is in the middle
-        var topRadius = (parseFloat(result.et) === 0) ? '0.3rem' : '0';
-        var bottomRadius = (parseFloat(result.i) === 0) ? '0.3rem' : '0';
+        var topRadius = (parseFloat(result.et) === 0) ? '0.3rem' : '0',
+            bottomRadius = (parseFloat(result.i) === 0) ? '0.3rem' : '0';
 
         if(result.r >= 2) {
             showRunoffAlert();
