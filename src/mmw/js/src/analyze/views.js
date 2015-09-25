@@ -113,9 +113,10 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     animateIn: function() {
         var self = this;
 
+        App.map.setAnalyzeSize(true);
+
         this.$el.animate({ height: '55%' }, 200, function() {
             self.trigger('animateIn');
-            App.map.setHalfSize(true);
         });
         if (this.lock !== undefined) {
             this.lock.resolve();
@@ -125,7 +126,8 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     animateOut: function() {
         var self = this;
 
-        App.map.setFullSize(true);
+        App.map.setDoubleHeaderSmallFooterSize(true);
+       
         this.$el.animate({ height: '0%' }, 200, function() {
             self.trigger('animateOut');
         });

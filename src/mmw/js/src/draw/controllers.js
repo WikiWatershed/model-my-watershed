@@ -43,6 +43,7 @@ var DrawController = {
             });
 
             App.rootView.footerRegion.show(aoiView);
+            App.map.setDrawWithBarSize(true);
         }
 
         App.state.set('current_page_title', 'Choose Area of Interest');
