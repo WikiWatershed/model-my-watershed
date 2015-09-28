@@ -45,7 +45,7 @@ LAYERS = [
     {
         'code': 'huc8',
         'display': 'USGS Subbasin unit (HUC-8)',
-        'short_display': 'Subbasin',
+        'short_display': 'HUC-8 Subbasin',
         'table_name': 'boundary_huc08',
         'helptext': 'HUC stands for hydrologic unit code. The hydrologic '
                     'unit hierarchy is indicated by the number of digits in '
@@ -60,7 +60,7 @@ LAYERS = [
     {
         'code': 'huc10',
         'display': 'USGS Watershed unit (HUC-10)',
-        'short_display': 'Watershed',
+        'short_display': 'HUC-10 Watershed',
         'table_name': 'boundary_huc10',
         'helptext': 'HUC stands for hydrologic unit code. The hydrologic '
                     'unit hierarchy is indicated by the number of digits in '
@@ -75,7 +75,7 @@ LAYERS = [
     {
         'code': 'huc12',
         'display': 'USGS Subwatershed unit (HUC-12)',
-        'short_display': 'Subwatershed',
+        'short_display': 'HUC-12 Subwatershed',
         'table_name': 'boundary_huc12',
         'json_field': 'geom_detailed',
         'helptext': 'HUC stands for hydrologic unit code. The hydrologic '
