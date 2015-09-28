@@ -42,6 +42,7 @@ class Tiler(StackNode):
         'KeyName': ['global:KeyName'],
         'AvailabilityZones': ['global:AvailabilityZones',
                               'VPC:AvailabilityZones'],
+        'RDSPassword': ['global:RDSPassword', 'DataPlane:RDSPassword'],
         'TileServerInstanceType': ['global:TileServerInstanceType'],
         'TileServerAMI': ['global:TileServerAMI'],
         'TileServerInstanceProfile': ['global:TileServerInstanceProfile'],
@@ -99,6 +100,11 @@ class Tiler(StackNode):
             'AvailabilityZones', Type='CommaDelimitedList',
             Description='Comma delimited list of availability zones'
         ), 'AvailabilityZones')
+
+        self.rds_password = self.add_parameter(Parameter(
+            'RDSPassword', Type='String', NoEcho=True,
+            Description='Database password',
+        ), 'RDSPassword')
 
         self.tile_server_instance_type = self.add_parameter(Parameter(
             'TileServerInstanceType', Type='String', Default='t2.micro',
@@ -333,7 +339,11 @@ class Tiler(StackNode):
                 '  - path: /etc/mmw.d/env/MMW_STACK_COLOR\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
-                '    content: ', Ref(self.color)]
+                '    content: ', Ref(self.color), '\n',
+                '  - path: /etc/mmw.d/env/MMW_DB_PASSWORD\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.rds_password)]
 
     def create_cloud_watch_resources(self, tile_server_lb):
         self.add_resource(cw.Alarm(
