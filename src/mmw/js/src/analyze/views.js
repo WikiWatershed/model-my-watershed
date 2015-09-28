@@ -201,17 +201,17 @@ var TabContentView = Marionette.LayoutView.extend({
         var categories = this.model.get('categories'),
             largestArea = _.max(_.pluck(categories, 'area')),
             units = utils.magnitudeOfArea(largestArea),
-            dataCollection = new coreModels.DataCollection(categories);
+            census = new coreModels.LandUseCensusCollection(categories);
 
         this.tableRegion.show(new TableView({
             units: units,
             model: new coreModels.GeoModel({units: (units === 'km2') ? 'km<sup>2</sup>' : 'm<sup>2</sup>'}),
-            collection: dataCollection
+            collection: census
         }));
 
         this.chartRegion.show(new ChartView({
             model: this.model,
-            collection: dataCollection
+            collection: census
         }));
     }
 });
@@ -268,13 +268,12 @@ var ChartView = Marionette.ItemView.extend({
 
     addChart: function() {
         var chartEl = this.$el.find('.bar-chart').get(0),
-            chartData = this.collection.map(function(model) {
-                var attrs = model.attributes;
+            chartData = _.map(this.collection.toJSON(), function(model) {
                 return {
-                    area: attrs.area,
-                    coverage: attrs.coverage,
-                    type: attrs.type,
-                    className: attrs.nlcd ? 'nlcd-' + attrs.nlcd : null
+                    area: model.area,
+                    coverage: model.coverage,
+                    type: model.type,
+                    className: model.nlcd ? 'nlcd-' + model.nlcd : null
                 };
             }),
             chartOptions = {
@@ -287,6 +286,7 @@ var ChartView = Marionette.ItemView.extend({
         if (this.model.get('name') === 'land') {
             chartOptions.useHorizBars = true;
         }
+
         chart.makeBarChart(chartEl, chartData, indVar, depVars, chartOptions);
     }
 });
