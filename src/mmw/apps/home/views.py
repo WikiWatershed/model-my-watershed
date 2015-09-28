@@ -72,16 +72,16 @@ def project_clone(request, proj_id=None):
     return redirect('/project/{0}'.format(project.id))
 
 
-def get_layer_config(layerKey):
+def get_layer_config(layerKeys):
     """ Retrieves the configuration for the provided
-    layer type. layerKey is a string that should be a
-    key and set to True for each layer that should
-    be returned.
+    layer types. layerKeys is an array of strings that
+    contains keys. Layers with these keys set to True
+    will be returned.
     """
     selected_layers = []
 
     for layer in settings.LAYERS:
-        if layerKey in layer and layer[layerKey]:
+        if all(key in layer for key in layerKeys):
             # Populate the layer url for layers that we host
             if 'url' not in layer and 'table_name' in layer:
                 layer['url'] = get_layer_url(layer)
@@ -112,11 +112,11 @@ def get_client_settings(request):
     client_settings = {
         'client_settings': json.dumps({
             EMBED_FLAG: request.session.get(EMBED_FLAG, False),
-            'base_layers': get_layer_config('basemap'),
-            'stream_layers': get_layer_config('stream'),
-            'boundary_layers': get_layer_config('boundary'),
-            'vector_layers': get_layer_config('vector'),
-            'raster_layers': get_layer_config('raster'),
+            'base_layers': get_layer_config(['basemap']),
+            'stream_layers': get_layer_config(['stream']),
+            'boundary_layers': get_layer_config(['boundary']),
+            'vector_layers': get_layer_config(['vector', 'overlay']),
+            'raster_layers': get_layer_config(['raster', 'overlay']),
             'draw_tools': settings.DRAW_TOOLS,
             'map_controls': settings.MAP_CONTROLS,
             'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY
