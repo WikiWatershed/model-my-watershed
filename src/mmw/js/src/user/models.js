@@ -101,8 +101,7 @@ var SignUpFormModel = ModalBaseModel.extend({
         username: null,
         password1: null,
         password2: null,
-        email: null,
-        agreed: false
+        email: null
     },
 
     url: '/user/sign_up',
@@ -128,10 +127,6 @@ var SignUpFormModel = ModalBaseModel.extend({
 
         if (attrs.password1 !== attrs.password2) {
             errors.push('Passwords do not match');
-        }
-
-        if (!attrs.agreed) {
-            errors.push('Please check the agreement');
         }
 
         if (errors.length) {
@@ -218,7 +213,6 @@ var ItsiSignUpFormModel = ModalBaseModel.extend({
         username: null,
         first_name: null,
         last_name: null,
-        agreed: false,
         next: '/'
     },
 
@@ -237,10 +231,6 @@ var ItsiSignUpFormModel = ModalBaseModel.extend({
 
         if (!attrs.last_name) {
             errors.push('Please enter a last name');
-        }
-
-        if (!attrs.agreed) {
-            errors.push('Please check the agreement');
         }
 
         if (errors.length) {

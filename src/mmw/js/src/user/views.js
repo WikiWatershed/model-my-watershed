@@ -231,8 +231,7 @@ var SignUpModalView = ModalBaseView.extend({
         'username': '#username',
         'email': '#email',
         'password1': '#password1',
-        'password2': '#password2',
-        'agreed': '#agreed'
+        'password2': '#password2'
     }, ModalBaseView.prototype.ui),
 
     onModalShown: function() {
@@ -256,7 +255,6 @@ var SignUpModalView = ModalBaseView.extend({
             email: $(this.ui.email.selector).val(),
             password1: $(this.ui.password1.selector).val(),
             password2: $(this.ui.password2.selector).val(),
-            agreed: $(this.ui.agreed.selector).prop('checked')
         }, { silent: true });
     },
 
@@ -335,8 +333,7 @@ var ItsiSignUpModalView = ModalBaseView.extend({
     ui: _.defaults({
         'username': '#username',
         'first_name': '#first_name',
-        'last_name': '#last_name',
-        'agreed': '#agreed'
+        'last_name': '#last_name'
     }, ModalBaseView.prototype.ui),
 
     onModalShown: function() {
@@ -351,8 +348,7 @@ var ItsiSignUpModalView = ModalBaseView.extend({
         this.model.set({
             username: $(this.ui.username.selector).val(),
             first_name: $(this.ui.first_name.selector).val(),
-            last_name: $(this.ui.last_name.selector).val(),
-            agreed: $(this.ui.agreed.selector).prop('checked')
+            last_name: $(this.ui.last_name.selector).val()
         }, { silent: true });
     },
 
