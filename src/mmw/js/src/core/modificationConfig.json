@@ -1,0 +1,122 @@
+{
+    "shrub": {
+        "name": "Shrub/Scrub",
+        "summary": "NLCD Class 52:  Areas dominated by woody shrubs or small trees less than 5 meters tall with shrub canopy typically greater than 20% of total vegetation. This class includes true shrubs, young trees in an early successional stage or trees stunted from environmental conditions. Examples include chaparral, scrub oak woodland, subalpine krumholz forests, sagebrush steppe, and desert scrublands.",
+        "strokeColor": "#233570"
+    },
+    "barren_land": {
+        "name": "Barren Land",
+        "summary": "NLCD Class 31:  Areas of bedrock, desert pavement, scarps, talus, slides, volcanic material, glacial debris, sand dunes, strip mines, gravel pits and other accumulations of earthen material. Generally, vegetation accounts for less than 15% of total cover.",
+        "strokeColor": "#2D323F"
+    },
+    "deciduous_forest": {
+        "name": "Forest",
+        "shortName": "Forest",
+        "summary": "NLCD Classes 41, 42, and 43:  Areas dominated by trees generally greater than 5 meters tall and greater than 20% of total vegetation cover.  This includes deciduous, evergreen and mixed forests.",
+        "strokeColor": "#7A3881"
+    },
+    "grassland": {
+        "name": "Grassland/Herbaceous",
+        "shortName": "Grassland",
+        "summary": "NLCD Class 71:  Areas dominated by grass or herbaceous vegetation, generally greater than 80% of total vegetation. These areas are not subject to intensive management such as tilling, but can be utilized for grazing.  Examples include oak savanna, longleaf pine savanna, and tall and shortgrass prairies.",
+        "strokeColor": "#021655"
+    },
+    "developed_med": {
+        "name": "Developed, Medium Intensity",
+        "shortName": "Developed-Med",
+        "summary": "NLCD Class 23:  Areas with a mixture of constructed materials and vegetation. Impervious surfaces account for 50% to 79% of the total cover. These areas most commonly include small-lot single-family housing unit",
+        "strokeColor": "#00FFFF"
+    },
+    "developed_high": {
+        "name": "Developed, High Intensity",
+        "shortName": "Developed-High",
+        "summary": "NLCD Class 24:  Highly developed areas where people reside or work in high numbers.  Impervious surfaces account for 80% to 100% of the total cover. Examples include apartment complexes, row houses, town or city centers, and commercial/industrial spaces.",
+        "strokeColor": "#4AFFFF"
+    },
+    "developed_low": {
+        "name": "Developed, Low Intensity",
+        "shortName": "Developed-Low",
+        "summary": "NLCD Class 22:  Areas with a mixture of constructed materials and vegetation. Impervious surfaces account for 20% to 49% percent of total cover. These include low density single-family homes and well-designed cluster housing.",
+        "strokeColor": "#1D6173"
+    },
+    "pasture": {
+        "name": "Pasture/Hay",
+        "summary": "NLCD Class 81:  Areas of grasses, legumes, or grass-legume mixtures planted for livestock grazing or the production of seed or hay crops, typically on a perennial cycle. Pasture/hay vegetation accounts for greater than 20% of total vegetation",
+        "strokeColor": "#0409A2"
+    },
+    "cultivated_crops": {
+        "name": "Cultivated Crops",
+        "shortName": "Crops",
+        "summary": "NLCD Class 82:  Areas used for the production of annual crops, such as corn, soybeans, vegetables, tobacco, and cotton, and also perennial woody crops such as orchards and vineyards. Crop vegetation accounts for greater than 20% of total vegetation. This class also includes all land being actively tilled.",
+        "strokeColor": "#356EB9"
+    },
+    "developed_open": {
+        "name": "Turf Grass",
+        "summary": "NLCD Class 21: Areas with a mixture of some constructed materials, but mostly vegetation in the form of lawn grasses. Impervious surfaces account for less than 20% of total cover. These areas most commonly include large-lot single-family housing units, parks, playing fields, golf courses, and vegetation planted in developed settings for recreation, erosion control, or aesthetic purposes.",
+        "strokeColor": "#172E2E"
+    },
+    "woody_wetlands": {
+        "name": "Wetlands",
+        "shortName": "Wetlands",
+        "summary": "NLCD Classes 90 and 95:  Areas where the soil or substrate is periodically saturated with or covered with water.  This includes wooded wetlands, herbaceous wetlands, marshes, and bogs).",
+        "strokeColor": "#371907"
+    },
+    "open_water": {
+        "name": "Open Water",
+        "shortName": "Open Water",
+        "summary": "NLCD Class 11:  Areas of open water, generally with less than 25% cover of vegetation or soil.  These include lakes, ponds, reservoirs, estuaries, and stream channels.",
+        "strokeColor": "#0000ff"
+    },
+    "cluster_housing": {
+        "name": "Cluster Housing",
+        "summary": "Grouping of residential homes on a development site in order to use the extra land as open space, recreation or agriculture.",
+        "strokeColor": "#777777"
+    },
+    "green_roof": {
+        "name": "Green Roof",
+        "summary": "A roof of a building that is partially or completely covered with vegetation and a growing medium, planted over a waterproofing membrane.",
+        "strokeColor": "#9ABD52"
+    },
+    "no_till": {
+        "name": "No-Till Agriculture",
+        "shortName": "No-Till Ag",
+        "summary": "Growing crops or pasture from year to year without tilling or otherwise disturbing the soil, thereby increasing water infiltration, organic matter retention, and nutrient cycling in the soil.",
+        "strokeColor": "#CDCD00"
+    },
+    "porous_paving": {
+        "name": "Porous Paving",
+        "summary": "Paving stones, bricks or pavers or a special mix of concrete or asphalt that has pores for water to soak through the paving and infiltrate into the ground below.",
+        "strokeColor": "#D3D3D3"
+    },
+    "rain_garden": {
+        "name": "Rain Garden",
+        "summary": "A shallow depression that is planted with deep-rooted native plants and grasses to encourage infiltration and percolation.",
+        "strokeColor": "#2364AA"
+    },
+    "infiltration_trench": {
+        "name": "Vegetation Infiltration Basin",
+        "shortName": "Veg Basin",
+        "summary": "Constructed large depressions that receive runoff from storm drain sewers or directly from impervious surfaces.  The runoff is temporarily stored until it infiltrates into the ground.",
+        "strokeColor": "#B1C4A1"
+    },
+    "soil_a": {
+        "name": "A-High Infiltration",
+        "shortName": "A-High Infiltration",
+        "summary": "Group A soils have a high infiltration rate (low runoff potential) when thoroughly wet. These consist mainly of deep, well drained to excessively drained sands or gravelly sands. These soils have a high rate of water transmission (greater than 0.30 in/hr). Group A soils typically correspond to the following texture classes when not compacted: sand, loamy sand, or sandy loam"
+    },
+    "soil_b": {
+        "name": "B-Moderate Infiltration",
+        "shortName": "B-Moderate Infiltration",
+        "summary": "Group B Soils have a moderate infiltration rate when thoroughly wet. These consist chiefly of moderately deep or deep, moderately well drained or well drained soils that have moderately fine texture to moderately coarse texture. These soils have a moderate rate of water transmission (0.15-0.30 in/hr). Group B soils typically correspond to the following texture classes when not compacted: silt loam or loam."
+    },
+    "soil_c": {
+        "name": "C-Slow Infiltration",
+        "shortName": "C-Slow Infiltration",
+        "summary": "Group C soils have a slow infiltration rate when thoroughly wet. These consist chiefly of soils having a layer that impedes the downward movement of water or soils of moderately fine texture or fine texture. These soils have a slow rate of water transmission (0.05-0.15 in/hr). Group C soils typically correspond to the following texture classes when not compacted: sandy clay loam."
+    },
+    "soil_d": {
+        "name": "D-Very Slow Infiltration",
+        "shortName": "D-Very Slow Infiltration",
+        "summary": "Group D soils have a very slow infiltration rate (high runoff potential) when thoroughly wet. These consist chiefly of clays that have a high shrink-swell potential, soils that have a high water table, soils that have a clay layer at or near the surface, and soils that are shallow over nearly impervious material. These soils have a very slow rate of water transmission. (0-0.05 in/hr). Group D soils typically correspond to the following texture classes when not compacted:  clay loam, silty clay loam, sandy clay, silty clay, or clay."
+    }
+}
