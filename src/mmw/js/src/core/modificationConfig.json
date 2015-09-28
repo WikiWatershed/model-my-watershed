@@ -101,22 +101,37 @@
     },
     "soil_a": {
         "name": "A-High Infiltration",
-        "shortName": "A-High Infiltration",
+        "shortName": "A-High",
         "summary": "Group A soils have a high infiltration rate (low runoff potential) when thoroughly wet. These consist mainly of deep, well drained to excessively drained sands or gravelly sands. These soils have a high rate of water transmission (greater than 0.30 in/hr). Group A soils typically correspond to the following texture classes when not compacted: sand, loamy sand, or sandy loam"
     },
     "soil_b": {
         "name": "B-Moderate Infiltration",
-        "shortName": "B-Moderate Infiltration",
+        "shortName": "B-Moderate",
         "summary": "Group B Soils have a moderate infiltration rate when thoroughly wet. These consist chiefly of moderately deep or deep, moderately well drained or well drained soils that have moderately fine texture to moderately coarse texture. These soils have a moderate rate of water transmission (0.15-0.30 in/hr). Group B soils typically correspond to the following texture classes when not compacted: silt loam or loam."
     },
     "soil_c": {
         "name": "C-Slow Infiltration",
-        "shortName": "C-Slow Infiltration",
+        "shortName": "C-Slow",
         "summary": "Group C soils have a slow infiltration rate when thoroughly wet. These consist chiefly of soils having a layer that impedes the downward movement of water or soils of moderately fine texture or fine texture. These soils have a slow rate of water transmission (0.05-0.15 in/hr). Group C soils typically correspond to the following texture classes when not compacted: sandy clay loam."
     },
     "soil_d": {
         "name": "D-Very Slow Infiltration",
-        "shortName": "D-Very Slow Infiltration",
+        "shortName": "D-Very Slow",
         "summary": "Group D soils have a very slow infiltration rate (high runoff potential) when thoroughly wet. These consist chiefly of clays that have a high shrink-swell potential, soils that have a high water table, soils that have a clay layer at or near the surface, and soils that are shallow over nearly impervious material. These soils have a very slow rate of water transmission. (0-0.05 in/hr). Group D soils typically correspond to the following texture classes when not compacted:  clay loam, silty clay loam, sandy clay, silty clay, or clay."
+    },
+    "soil_ad": {
+        "name": "A/D - High/Very Slow Infiltration",
+        "shortName": "A/D - High/Very Slow",
+        "summary": "Group A/D soils have high infiltration rates where artificially drained but behave as Group D soils where undrained."
+    },
+    "soil_bd": {
+        "name": "B/D - Medium/Very Slow Infiltration",
+        "shortName": "B/D - Medium/Very Slow",
+        "summary": "Group B/D soils have moderate infiltration rates where artificially drained but behave as Group D soils where undrained."
+    },
+    "soil_cd": {
+        "name": "C/D - Medium/Very Slow Infiltration",
+        "shortName": "C/D - Medium/Very Slow",
+        "summary": "Group C/D soils have slow infiltration rates where artificially drained but behave as Group D soils where undrained."
     }
 }
