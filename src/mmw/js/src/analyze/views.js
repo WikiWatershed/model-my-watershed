@@ -201,17 +201,17 @@ var TabContentView = Marionette.LayoutView.extend({
         var categories = this.model.get('categories'),
             largestArea = _.max(_.pluck(categories, 'area')),
             units = utils.magnitudeOfArea(largestArea),
-            dataCollection = new coreModels.DataCollection(categories);
+            census = new coreModels.LandUseCensusCollection(categories);
 
         this.tableRegion.show(new TableView({
             units: units,
             model: new coreModels.GeoModel({units: (units === 'km2') ? 'km<sup>2</sup>' : 'm<sup>2</sup>'}),
-            collection: dataCollection
+            collection: census
         }));
 
         this.chartRegion.show(new ChartView({
             model: this.model,
-            collection: dataCollection
+            collection: census
         }));
     }
 });

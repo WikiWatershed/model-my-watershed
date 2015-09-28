@@ -1,8 +1,8 @@
 "use strict";
 
 var $ = require('jquery'),
+    Backbone = require('../../../../shim/backbone'),
     Marionette = require('../../../../shim/backbone.marionette'),
-    DataCollection = require('../../../core/models.js').DataCollection,
     chart = require('../../../core/chart.js'),
     barChartTmpl = require('../../../core/templates/barChart.html'),
     resultTmpl = require('./templates/result.html'),
@@ -44,7 +44,7 @@ var ResultView = Marionette.LayoutView.extend({
                     model: this.model
                 }));
             } else {
-                var dataCollection = new DataCollection(
+                var dataCollection = new Backbone.Collection(
                     this.model.get('result')
                 );
 
