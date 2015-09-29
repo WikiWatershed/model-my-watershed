@@ -1,24 +1,58 @@
-#map {
-  background-color: $black-12;
-  z-index: 1;
-  height: 100%;
-
-  &.full {
-    width: 100%;
-    height: 100%;
-    z-index: 1;
+.map-container {
+  position: absolute;
+  top: $height-lg;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  transition: all 200ms;
+  // Set top of map to height of initial header.
+  // Needs a more descriptive name.
+  &.map-container-top-1 {
+    top: $height-lg;
+  }
+  // Set top of map to combined height of initial header and toolbar.
+  // Needs a more descriptive name.
+  &.map-container-top-2 {
+    top: $height-lg * 2 + $toolbar-height;
+  }
+  // Set bottom of map to height of default view, which is 0px.
+  // Needs a more descriptive name.
+  &.map-container-bottom-1 {
+    bottom: 0;
+  }
+  // Set bottom of map to height of output toolbar.
+  // Needs a more descriptive name.
+  &.map-container-bottom-2 {
+    bottom: $output-height;
+  }
+  // Set bottom of map to location description toolbar.
+  // Needs a more descriptive name.
+  &.map-container-bottom-3 {
+    bottom: $location-description-height;
   }
 
-  &.half {
-    position: absolute;
+  // Set bottom of map to full standard footer height.
+  // Needs a more descriptive name.
+  &.map-container-bottom-4 {
+    bottom: $footer-height;
+  }
+
+
+  .compare-scenarios-container & {
     top: 0;
-    left: 0;
-    right: 0;
-    height: 45%;
-    z-index: 1;
   }
 }
 
+#map {
+  background-color: $black-12;
+  z-index: 1;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  height: 100%;
+}
 
 // Override default location of Leaflet spritesheet images.
 .leaflet-draw-toolbar a {

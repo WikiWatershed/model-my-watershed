@@ -563,19 +563,26 @@ var MapView = Marionette.ItemView.extend({
     },
 
     toggleMapSize: function() {
-        var size = this.model.get('size');
+        var self = this,
+            size = this.model.get('size'),
+            $container = this.$el.parent();
 
-        if (size.half) {
-            this.$el.addClass('half');
-        } else {
-            this.$el.removeClass('half');
-        }
+        $container.toggleClass('map-container-top-1', !!size.top.single);
+        $container.toggleClass('map-container-top-2', !!size.top.double);
 
-        this._leafletMap.invalidateSize();
+        $container.toggleClass('map-container-bottom-1', !!size.bottom.min);
+        $container.toggleClass('map-container-bottom-2', !!size.bottom.small);
+        $container.toggleClass('map-container-bottom-3', !!size.bottom.med);
+        $container.toggleClass('map-container-bottom-4', !!size.bottom.large);
 
-        if (size.fit) {
-            this.fitToAoi();
-        }
+
+        _.delay(function() {
+            self._leafletMap.invalidateSize();
+
+            if (size.fit) {
+                self.fitToAoi();
+            }
+        }, 300);
     },
 
     fitToAoi: function() {

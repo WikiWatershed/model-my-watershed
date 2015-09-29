@@ -5,7 +5,7 @@
   right: 0;
   bottom: 0;
   min-height: 300px;
-  height: 55%;
+  height: $footer-height;
   background-color: $paper;
   z-index: 100;
   box-shadow: 0 0 4px $black-54;
@@ -53,7 +53,6 @@
     position: absolute;
     margin: 0.5rem;
     right: 0.5rem;
-
     outline: none;
   }
 }
