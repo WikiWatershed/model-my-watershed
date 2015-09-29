@@ -12,37 +12,6 @@ For basemaps, maxZoom must be defined.
 
 LAYERS = [
     {
-        'code': 'county',
-        'display': 'US Counties',
-        'short_display': 'County',
-        'table_name': 'boundary_county',
-        'helptext': 'Counties in U.S. states are administrative divisions '
-                    'of the state in which their boundaries are drawn. 3,144 '
-                    'counties and county equivalents carve up the United '
-                    'States, ranging in quantity from 3 for Delaware to 254 '
-                    'for Texas. Where they exist, they are the intermediate '
-                    'tier of state government, between the statewide tier '
-                    'and the immediately local government tier',
-        'boundary': False,
-        'vector': True,
-    },
-    {
-        'code': 'district',
-        'display': 'Congressional Districts',
-        'short_display': 'Congressional District',
-        'table_name': 'boundary_district',
-        'helptext': 'There are 435 congressional districts in the United '
-                    'States House of Representatives, with each one '
-                    'representing approximately 700,000 people. In addition '
-                    'to the 435 congressional districts, the five inhabited '
-                    'U.S. territories and the federal district of Washington, '
-                    'D.C. This tool will allow you to select the boundary of '
-                    'a congressional district on which to perform water '
-                    'quality analysis.',
-        'boundary': True,
-        'vector': True,
-    },
-    {
         'code': 'huc8',
         'display': 'USGS Subbasin unit (HUC-8)',
         'short_display': 'HUC-8 Subbasin',
@@ -89,11 +58,43 @@ LAYERS = [
         'vector': True,
     },
     {
+        'code': 'county',
+        'display': 'County Lines',
+        'short_display': 'County',
+        'table_name': 'boundary_county',
+        'helptext': 'Counties in U.S. states are administrative divisions '
+                    'of the state in which their boundaries are drawn. 3,144 '
+                    'counties and county equivalents carve up the United '
+                    'States, ranging in quantity from 3 for Delaware to 254 '
+                    'for Texas. Where they exist, they are the intermediate '
+                    'tier of state government, between the statewide tier '
+                    'and the immediately local government tier',
+        'boundary': True,
+        'vector': True,
+    },
+    {
+        'code': 'district',
+        'display': 'Congressional Districts',
+        'short_display': 'Congressional District',
+        'table_name': 'boundary_district',
+        'helptext': 'There are 435 congressional districts in the United '
+                    'States House of Representatives, with each one '
+                    'representing approximately 700,000 people. In addition '
+                    'to the 435 congressional districts, the five inhabited '
+                    'U.S. territories and the federal district of Washington, '
+                    'D.C. This tool will allow you to select the boundary of '
+                    'a congressional district on which to perform water '
+                    'quality analysis.',
+        'boundary': True,
+        'vector': True,
+    },
+    {
         'code': 'school',
         'display': 'School Districts',
         'short_display': 'School Districts',
         'table_name': 'boundary_school_district',
         'helptext': 'U.S. school district boundaries.',
+        'boundary': True,
         'vector': True,
     },
     {
