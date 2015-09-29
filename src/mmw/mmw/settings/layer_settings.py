@@ -25,6 +25,7 @@ LAYERS = [
                     'HUC-8 to analyze.',
         'boundary': True,
         'vector': True,
+        'overlay': True,
     },
     {
         'code': 'huc10',
@@ -40,6 +41,7 @@ LAYERS = [
                     'HUC-10 to analyze.',
         'boundary': True,
         'vector': True,
+        'overlay': True,
     },
     {
         'code': 'huc12',
@@ -56,6 +58,7 @@ LAYERS = [
                     'HUC-12 to analyze.',
         'boundary': True,
         'vector': True,
+        'overlay': True,
     },
     {
         'code': 'county',
@@ -71,6 +74,7 @@ LAYERS = [
                     'and the immediately local government tier',
         'boundary': True,
         'vector': True,
+        'overlay': True,
     },
     {
         'code': 'district',
@@ -87,6 +91,7 @@ LAYERS = [
                     'quality analysis.',
         'boundary': True,
         'vector': True,
+        'overlay': True,
     },
     {
         'code': 'school',
@@ -96,6 +101,7 @@ LAYERS = [
         'helptext': 'U.S. school district boundaries.',
         'boundary': True,
         'vector': True,
+        'overlay': True,
     },
     {
         'display': 'National Land Cover Database',
