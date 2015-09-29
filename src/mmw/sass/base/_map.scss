@@ -81,11 +81,34 @@
 }
 
 .leaflet-control {
-  .leaflet-control-layers {
-    min-width: 220px;
-    min-height: 230px;
+  .leaflet-control-layers-list {
+    display: block;
+  }
+
+  &.leaflet-control-layers {
+    min-width: 246px;
     margin-right: 50px;
     display: none;
+    position: absolute;
+    top: 10px;
+    right: 0px;
+    // Be as tall as the map container,
+    // minus some space for the attribution
+    height: 83%;
+    max-height: 340px;
+
+    h4 {
+      font-size: 15px;
+      margin: 4px 0 4px 0;
+    }
+
+    form {
+      padding: 4px 10px;
+      // Be as tall as possible within the container,
+      // minus the height of the container headers.
+      height: calc(100% - 80px);
+      overflow-y: auto;
+    }
   }
 
   .leaflet-control-stream {
@@ -99,6 +122,7 @@
   .modal-header {
     background-color: $ui-primary;
     color: $paper;
+    padding: 5px 15px;
 
     .modal-title {
       font-size: 14px;
@@ -112,6 +136,6 @@
   .close {
     text-shadow: none;
     color: $paper;
-    font-size: 18px;
+    font-size: 24px;
   }
 }
