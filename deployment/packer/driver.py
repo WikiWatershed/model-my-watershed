@@ -114,9 +114,7 @@ def run_packer(mmw_config, machine_types, aws_profile):
                                                          get_git_branch())),
                       '-var', 'aws_region={}'.format(region),
                       '-var', 'aws_ubuntu_ami={}'.format(aws_ubuntu_ami),
-                      '-var', 'stack_type={}'.format(stack_type),
-                      '-var', 'postgresql_password={}'.format(mmw_config['RDSPassword']),  # NOQA
-                      '-var', 'itsi_secret_key={}'.format(mmw_config['ITSISecretKey'])]  # NOQA
+                      '-var', 'stack_type={}'.format(stack_type)]
 
     if machine_types is not None:
         packer_command.extend(['-only', ','.join(machine_types)])
