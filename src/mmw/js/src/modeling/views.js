@@ -621,13 +621,22 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         'click @ui.toggle': 'toggleResultsWindow'
     },
 
-    initialize: function() {
+    initialize: function(options) {
         var scenarios = this.model.get('scenarios');
         this.listenTo(scenarios, 'change:active', this.showDetailsRegion);
+        if (options.lock) {
+            this.lock = options.lock;
+        }
     },
 
     onShow: function() {
         this.showDetailsRegion();
+    },
+
+    onRender: function() {
+        if (this.lock) {
+            this.lock.resolve();
+        }
     },
 
     showDetailsRegion: function() {

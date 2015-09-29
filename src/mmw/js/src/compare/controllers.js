@@ -43,6 +43,9 @@ var CompareController = {
         // Switch back to the origProject so any changes are discarded.
         App.currentProject.off();
         App.currentProject = App.origProject;
+        if (!App.map.get('areaOfInterest')) {
+            App.map.set('areaOfInterest', App.currentProject.get('area_of_interest'));
+        }
 
         App.rootView.footerRegion.empty();
     }
