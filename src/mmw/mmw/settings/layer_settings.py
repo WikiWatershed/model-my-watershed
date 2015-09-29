@@ -59,7 +59,7 @@ LAYERS = [
     },
     {
         'code': 'county',
-        'display': 'US Counties',
+        'display': 'County Lines',
         'short_display': 'County',
         'table_name': 'boundary_county',
         'helptext': 'Counties in U.S. states are administrative divisions '
