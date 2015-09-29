@@ -28,14 +28,19 @@
     {% block header %}
     {% endblock header %}
 
-    <div class="container-fluid top-nav">
+    <div class="map-container">
+        {% block map %}
+        {% endblock map %}
+    </div>
+
+    <div class="container-fluid top-nav" style="display: none;">
         {% block content %}
         {% endblock content %}
+    </div>
 
-        <div id="footer">
-            {% block footer %}
-            {% endblock footer %}
-        </div>
+    <div id="footer">
+        {% block footer %}
+        {% endblock footer %}
     </div>
 
     {% block modals %}

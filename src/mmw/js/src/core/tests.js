@@ -185,28 +185,32 @@ describe('Core', function() {
                 view.destroy();
             });
 
-            it('adds the class "half" to the map view when the map model attribute halfSize is set to true', function(){
+            it('adds the map-container top & bottom classes to the map container for DoubleHeader and Small Footer', function(){
                 var model = new models.MapModel(),
                     view = new views.MapView({
                         model: model,
                         el: sandboxSelector
-                    });
+                    }),
+                    $container = $(sandboxSelector).parent();
 
-                model.setHalfSize();
-                assert.isTrue($(sandboxSelector).hasClass('half'));
+                model.setDoubleHeaderSmallFooterSize();
+                assert.isTrue($container.hasClass('map-container-top-2'));
+                assert.isTrue($container.hasClass('map-container-bottom-2'));
 
                 view.destroy();
             });
 
-            it('removes the class "half" to the map view when the map model attribute halfSize is set to false', function(){
+            it('adds the map-container top & bottom classes to the map container for Draw screen with AoI bar', function(){
                 var model = new models.MapModel(),
                     view = new views.MapView({
                         model: model,
                         el: sandboxSelector
-                    });
+                    }),
+                    $container = $(sandboxSelector).parent();
 
-                model.setFullSize();
-                assert.isFalse($(sandboxSelector).hasClass('half'));
+                model.setDrawWithBarSize();
+                assert.isTrue($container.hasClass('map-container-top-1'));
+                assert.isTrue($container.hasClass('map-container-bottom-3'));
 
                 view.destroy();
             });

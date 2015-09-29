@@ -60,13 +60,25 @@ var MapModel = Backbone.Model.extend({
         this.set('areaOfInterest', _.clone(this.get('previousAreaOfInterest')));
     },
 
-    setHalfSize: function(fit) {
-        this.set('size', { half: true, fit: !!fit });
+    setDoubleHeaderSmallFooterSize: function(fit) {
+        this._setSizeOptions({ double: true  }, { small: true }, fit);
     },
 
-    setFullSize: function(fit) {
-        this.set('size', { half: false, fit: !!fit });
+    setDoubleHeaderHalfFooterSize: function(fit) {
+        this._setSizeOptions({ double: true  }, { large: true }, fit);
     },
+
+    setDrawWithBarSize: function(fit) {
+        this._setSizeOptions({ single: true  }, { med: true }, fit);
+    },
+
+    setAnalyzeSize: function(fit) {
+        this._setSizeOptions({ single: true  }, { large: true }, fit);
+    },
+
+    _setSizeOptions: function(top, bottom, fit) {
+        this.set('size', { top: top, bottom: bottom, fit: !!fit });
+    }
 
 });
 
