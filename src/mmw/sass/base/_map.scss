@@ -13,7 +13,7 @@
   // Set top of map to combined height of initial header and toolbar.
   // Needs a more descriptive name.
   &.map-container-top-2 {
-    top: $height-lg + $toolbar-height;
+    top: $height-lg * 2 + $toolbar-height;
   }
   // Set bottom of map to height of default view, which is 0px.
   // Needs a more descriptive name.
