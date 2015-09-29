@@ -72,6 +72,10 @@ a {
 }
 
 .draw-tools-container {
+  @media(max-width: 1200px) {
+    margin-top: 10px;
+  }
+
   .dropdown-menu {
     li {
       a {

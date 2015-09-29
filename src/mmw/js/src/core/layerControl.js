@@ -3,16 +3,18 @@
 var L = require('leaflet'),
     $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
-    layerControlTmpl = require('./templates/layerControlContainer.html');
+    layerControlListTmpl = require('./templates/layerControlList.html'),
+    layerControlButtonTmpl = require('./templates/layerControlButton.html');
 
 module.exports = L.Control.Layers.extend({
     // Somewhat copied from https://github.com/Leaflet/Leaflet/blob/master/src/control/Control.Layers.js,
     // with modifications to use a customer container element and our own way to toggle visibility.
     _initLayout: function() {
         var className = 'leaflet-control-layers',
-            container = this._container = this._createContainer();
+            container = this._container = new LayerControlButtonView({}).render().el,
+            listContainer = this._listContainer = new LayerControlListView({}).render().el;
 
-        this._form = $(container).find('form').get(0);
+        this._form = $(listContainer).find('form').get(0);
 
         // Copied directly from the parent class.
         // makes this work on IE touch devices by stopping it
@@ -24,8 +26,13 @@ module.exports = L.Control.Layers.extend({
             L.DomEvent
                 .disableClickPropagation(container)
                 .disableScrollPropagation(container);
+
+            L.DomEvent
+                .disableClickPropagation(listContainer)
+                .disableScrollPropagation(listContainer);
         } else {
             L.DomEvent.on(container, 'click', L.DomEvent.stopPropagation);
+            L.DomEvent.on(listContainer, 'click', L.DomEvent.stopPropagation);
         }
 
         // Expand the layer control so that Leaflet
@@ -40,9 +47,14 @@ module.exports = L.Control.Layers.extend({
 
         // Add container element for each layer type
         this._baseLayersList = L.DomUtil.create('div', className + '-base',
-                $(container).find("#basemap-layer-list").get(0));
+                $(listContainer).find("#basemap-layer-list").get(0));
         this._overlaysList = L.DomUtil.create('div', className + '-overlay',
-                $(container).find("#overlays-layer-list").get(0));
+                $(listContainer).find("#overlays-layer-list").get(0));
+
+        // Add the layer control list as a sibling to the map.
+        // This lets us control the size of the list based
+        // on the height of the map.
+        $('#map').append(listContainer);
     },
 
     // Overrides the parent class and allows separation of overlay layers
@@ -130,10 +142,11 @@ module.exports = L.Control.Layers.extend({
         }
     },
 
+    // No op in case this function gets called by a Leaflet internal.
+    // Because our control consist of two separate containers, we
+    // create the containers in a different way than using this method.
     _createContainer: function() {
-        var container = new LayerControlView({}).render().el;
 
-        return container;
     },
 
     // Copied verbatim from
@@ -184,25 +197,36 @@ module.exports = L.Control.Layers.extend({
     }
 });
 
-var LayerControlView = Marionette.ItemView.extend({
-    template: layerControlTmpl,
+var LayerControlButtonView = Marionette.ItemView.extend({
+    template: layerControlButtonTmpl,
 
     ui: {
-        close: '.close',
         controlToggle: '.leaflet-bar-part',
-        layerControl: '.leaflet-control-layers'
+    },
+
+    events: {
+        'click @ui.controlToggle': 'toggle'
+    },
+
+    toggle: function() {
+        $('.leaflet-control-layers').toggle();
+    }
+});
+
+
+var LayerControlListView = Marionette.ItemView.extend({
+    template: layerControlListTmpl,
+    className: 'leaflet-control leaflet-control-layers',
+
+    ui: {
+        close: '.close'
     },
 
     events: {
         'click @ui.close': 'close',
-        'click @ui.controlToggle': 'toggle'
     },
 
     close: function() {
-        this.$el.find(this.ui.layerControl).hide();
-    },
-
-    toggle: function() {
-        this.$el.find(this.ui.layerControl).toggle();
+        (this.$el).hide();
     }
 });

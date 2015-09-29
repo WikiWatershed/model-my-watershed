@@ -6,6 +6,10 @@
   z-index: 100;
   padding: 1rem;
 
+  @media(max-width: 1200px) {
+    max-width: 595px;
+  }
+
   .search-icon {
     font-size: 0.8rem;
     color: $black-54;
