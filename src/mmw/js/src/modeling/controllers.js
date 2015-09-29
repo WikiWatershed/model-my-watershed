@@ -30,31 +30,36 @@ var ModelingController = {
             project
                 .fetch()
                 .done(function() {
+                    var lock = $.Deferred();
+
                     App.map.set({
                         'areaOfInterest': project.get('area_of_interest'),
                         'areaOfInterestName': project.get('area_of_interest_name')
                     });
                     initScenarioEvents(project);
-                    initViews(project);
-                    if (scenarioParam) {
-                        var scenarioId = parseInt(scenarioParam, 10),
-                            scenarios = project.get('scenarios');
+                    initViews(project, lock);
 
-                        if (!scenarios.setActiveScenarioById(scenarioId)) {
-                            scenarios.makeFirstScenarioActive();
+                    lock.done(function() {
+                        if (scenarioParam) {
+                            var scenarioId = parseInt(scenarioParam, 10),
+                                scenarios = project.get('scenarios');
+
+                            if (!scenarios.setActiveScenarioById(scenarioId)) {
+                                scenarios.makeFirstScenarioActive();
+                            }
+                        } else {
+                            project.get('scenarios').makeFirstScenarioActive();
                         }
-                    } else {
-                        project.get('scenarios').makeFirstScenarioActive();
-                    }
-                    project.fetchResultsIfNeeded();
+                        project.fetchResultsIfNeeded();
 
-                    // If this project is an activity then the application's behavior changes.
-                    if (project.get('is_activity')) {
-                        settings.set('activityMode', true);
-                    }
+                        // If this project is an activity then the application's behavior changes.
+                        if (project.get('is_activity')) {
+                            settings.set('activityMode', true);
+                        }
 
-                    // Send URL to parent if in embed mode
-                    updateItsiFromEmbedMode();
+                        // Send URL to parent if in embed mode
+                        updateItsiFromEmbedMode();
+                    });
                 });
         } else {
             if (App.currentProject && settings.get('activityMode')) {
@@ -241,10 +246,11 @@ function setupNewProjectScenarios(project) {
     ], { silent: true });
 }
 
-function initViews(project) {
+function initViews(project, lock) {
     var modelingResultsWindow = new views.ModelingResultsWindow({
-            model: project
-    }),
+            model: project,
+            lock: lock
+        }),
         modelingHeader = new views.ModelingHeaderView({
             model: project
         });
