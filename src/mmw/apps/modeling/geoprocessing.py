@@ -33,17 +33,20 @@ NLCD_MAPPING = {
     95: ['herbaceous_wetlands', 'Emergent Herbaceous Wetlands']
 }
 
-# The soil rasters contain the numbers 1 through 4 (the keys of this
+# The soil rasters contain the numbers 1 through 7 (the keys of this
 # dictionary).  The values of this dictionary are length-two arrays
 # containing two strings.  The first member of each array is the name
 # used for the corresponding soil-type in the TR-55 code.  The second
 # member of each array is a human-readable description of that
 # soil-type.
 SOIL_MAPPING = {
-    1: ['a', 'Sand'],
-    2: ['b', 'Loam'],
-    3: ['c', 'Sandy Clay'],
-    4: ['d', 'Clay Loam']
+    1: ['a', 'A - High Infiltration'],
+    2: ['b', 'B - Moderate Infiltration'],
+    3: ['c', 'C - Slow Infiltration'],
+    4: ['d', 'D - Very Slow Infiltration'],
+    5: ['ad', 'A/D - High/Very Slow Infiltration'],
+    6: ['bd', 'B/D - Medium/Very Slow Infiltration'],
+    7: ['cd', 'C/D - Medium/Very Slow Infiltration']
 }
 
 

@@ -198,6 +198,7 @@ class ExerciseGeoprocessing(TestCase):
         self.assertEqual(actual, expected)
 
     def test_survey(self):
+        self.maxDiff = None
         expected = [
             {
                 "displayName": "Land",
@@ -305,21 +306,23 @@ class ExerciseGeoprocessing(TestCase):
                 "name": "soil",
                 "categories": [
                     {
-                        "type": "Clay Loam",
-                        "coverage": 0.2505657604702425,
-                        "area": 34102
+                        "type": "B - Moderate Infiltration",
+                        "coverage": 0.25432770022042617,
+                        "area": 34614
                     },
                     {
-                        "type": "Sand",
+                        "type": "A - High Infiltration",
                         "coverage": 0.49510653930933135,
                         "area": 67384
                     },
                     {
-                        "type": "Loam",
-                        "coverage": 0.25432770022042617,
-                        "area": 34614
-                    }]
+                        "type": "D - Very Slow Infiltration",
+                        "coverage": 0.2505657604702425,
+                        "area": 34102
+                    }
+                ]
             }]
+
         actual = geoprocessing.data_to_survey(self.histogram)
         self.assertEqual(actual, expected)
 

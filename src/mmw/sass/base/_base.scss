@@ -70,6 +70,7 @@ a {
 #draw-tools-region,
 .draw-tools-container div {
   display: inline-block;
+  text-transform: none;
 
   // Undo bootstrap input[type="range"] syling
   #stream-slider {
