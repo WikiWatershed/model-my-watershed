@@ -8,8 +8,8 @@ import json
 import logging
 import math
 
-from apps.modeling.geoprocessing import geojson_to_survey, \
-    geojson_to_census, geojson_to_censuses
+from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
+    data_to_survey, data_to_censuses
 
 from tr55.model import simulate_day
 
@@ -17,6 +17,50 @@ logger = logging.getLogger(__name__)
 
 KG_PER_POUND = 0.453592
 CM_PER_INCH = 2.54
+
+
+@shared_task
+def polygon_to_id(json_polygon):
+    polygon = json.loads(json_polygon)
+    return {
+        'pixel_width': aoi_resolution(polygon),
+        'sjs_job_id': histogram_start([json_polygon])
+    }
+
+
+@shared_task
+def polygons_to_id(polygons):
+    json_polygons = [json.dumps(p) for p in polygons]
+    return {
+        'pixel_width': None,
+        'sjs_job_id': histogram_start(json_polygons)
+    }
+
+
+@shared_task(bind=True, default_retry_delay=1, max_retries=20)
+def id_to_histogram(self, incoming):
+    pixel_width = incoming['pixel_width']
+    histogram = histogram_finish(incoming['sjs_job_id'], self.retry)
+    return {
+        'pixel_width': pixel_width,
+        'histogram': histogram
+    }
+
+
+@shared_task
+def histogram_to_survey(incoming):
+    pixel_width = incoming['pixel_width']
+    data = incoming['histogram'][0]
+    results = data_to_survey(data)
+    convert_result_areas(pixel_width, results)
+    return results
+
+
+@shared_task
+def histograms_to_censuses(incoming):
+    data = incoming['histogram']
+    results = data_to_censuses(data)
+    return results
 
 
 def aoi_resolution(area_of_interest):
@@ -34,25 +78,6 @@ def aoi_resolution(area_of_interest):
     # See https://msdn.microsoft.com/en-us/library/bb259689.aspx
     return (math.cos(average_lat * math.pi / 180) * 2 * math.pi *
             6378137) / (tile_width * math.pow(2, zoom))
-
-
-@shared_task
-def run_analyze(area_of_interest):
-    pixel_width = aoi_resolution(json.loads(area_of_interest))
-    results = geojson_to_survey(area_of_interest)
-    convert_result_areas(pixel_width, results)
-    return results
-
-
-@shared_task
-def prepare_census(model_input):
-    """
-    Call geotrellis and calculate the tile data for use in the TR55 model.
-    """
-    if 'area_of_interest' in model_input:
-        return geojson_to_census(model_input['area_of_interest'])
-    else:
-        raise Exception('No Area of Interest')
 
 
 def format_quality(model_output):
@@ -91,29 +116,41 @@ def format_runoff(model_output):
 
 
 @shared_task
-def run_tr55(census, model_input):
+def run_tr55(censuses, model_input):
     """
-    A thin Celery wrapper around our TR55 implementation.
+    A Celery wrapper around our TR55 implementation.
     """
+
+    # Get precipitation and cell resolution
     precip = get_precip(model_input)
-    width = aoi_resolution(model_input['area_of_interest'])
-    res = width * width
+    width = aoi_resolution(model_input.get('area_of_interest'))
+    resolution = width * width
 
     if precip is None:
         raise Exception('No precipitation value defined')
 
-    modifications = get_census_modifications(model_input)
-    census['modifications'] = modifications
+    # Modification/BMP fragments and their censuses
+    pieces = model_input.get('modification_pieces')
+    piece_censuses = censuses[1:]
 
-    model_output = simulate_day(census, precip, cell_res=res)
-    precolumbian_output = simulate_day(census, precip,
-                                       cell_res=res, precolumbian=True)
+    # The area of interest census
+    aoi_census = censuses[0]
+    modifications = get_census_modifications(pieces, piece_censuses)
+    aoi_census['modifications'] = modifications
+
+    # Run the model under both current conditions and Pre-Columbian
+    # conditions.
+    model_output = simulate_day(aoi_census, precip, cell_res=resolution)
+    precolumbian_output = simulate_day(aoi_census, precip,
+                                       cell_res=resolution, precolumbian=True)
     model_output['pc_unmodified'] = precolumbian_output['unmodified']
     model_output['pc_modified'] = precolumbian_output['modified']
 
+    # Return all results
     return {
         'inputmod_hash': model_input['inputmod_hash'],
-        'census': census,
+        'census': aoi_census,
+        'piece_censuses': piece_censuses,
         'runoff': format_runoff(model_output),
         'quality': format_quality(model_output)
     }
@@ -140,7 +177,7 @@ def convert_result_areas(pixel_width, results):
                                      pixel_width)
 
 
-def get_census_modifications(model_input):
+def get_census_modifications(pieces, censuses):
     def change_key(modification):
         name = modification['name']
         value = modification['value']
@@ -152,17 +189,8 @@ def get_census_modifications(model_input):
         elif name == 'both':
             return {'change': ':%s:%s' % (value['reclass'], value['bmp'])}
 
-    if 'modification_pieces' in model_input:
-        raw_mods = model_input['modification_pieces']
-    else:
-        raw_mods = []
+    changes = [change_key(piece) for piece in pieces]
+    for (census, change) in zip(censuses, changes):
+        census.update(change)
 
-    changes = [change_key(m) for m in raw_mods]
-
-    polygons = [m['shape']['geometry'] for m in raw_mods]
-    modifications = geojson_to_censuses(polygons)
-
-    for (m, c) in zip(modifications, changes):
-        m.update(c)
-
-    return modifications
+    return censuses

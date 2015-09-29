@@ -4,8 +4,9 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 
 from django.conf import settings
+from celery.exceptions import MaxRetriesExceededError
 
-import httplib
+import requests
 import json
 import re
 
@@ -50,11 +51,37 @@ SOIL_MAPPING = {
 }
 
 
-def histogram(polygons):
+def histogram_start(polygons):
     """
-    Send a list of strings containing a GeoJSON Polygons and/or
-    MultiPolygons to the datahub code, and get back a histogram of
-    the NLCD x SOIL pairs present in that area.
+    Together, histogram_start and histogram_finish implement a
+    function which takes a list of polygons or multipolygons as input,
+    and returns histograms of the NLCD x soil pairs that occur in each
+    shape.
+
+    This is the top-half of the function.
+    """
+    host = settings.GEOP['host']
+    port = settings.GEOP['port']
+    path = settings.GEOP['path']
+    request = settings.GEOP['request'].copy()
+    request['input']['geometry'] = polygons
+    url = "http://%s:%s%s" % (host, port, path)
+
+    post = requests.post(url, data=json.dumps(request))
+    if post.ok:
+        data = post.json()
+    else:
+        raise Exception('Unable to communicate with SJS (top-half).')
+
+    if data['status'] == 'STARTED':
+        return data['result']['jobId']
+    else:
+        raise Exception('Job submission failed.')
+
+
+def histogram_finish(job_id, retry):
+    """
+    This is the bottom-half of the function.
     """
     def dict_to_array(d):
         result = []
@@ -65,24 +92,32 @@ def histogram(polygons):
 
     host = settings.GEOP['host']
     port = settings.GEOP['port']
-    path = settings.GEOP['path']
-    request = settings.GEOP['request'].copy()
-    request['input']['geometry'] = polygons
-    conn = httplib.HTTPConnection("%s:%s" % (host, port))
+    url = "http://%s:%s/jobs/%s" % (host, port, job_id)
 
-    try:
-        conn.request('POST', path, json.dumps(request))
-        data = json.loads(conn.getresponse().read())
-        if data['status'] == 'OK':
-            retval = [dict_to_array(d) for d in data['result']]
+    get = requests.get(url)
+    if get.ok:
+        data = get.json()
+    else:
+        raise Exception('Unable to communicate with SJS (bottom-half).')
+
+    if data['status'] == 'OK':
+        if requests.delete(url).ok:  # job complete, remove
+            return [dict_to_array(d) for d in data['result']]
         else:
-            retval = [[]]
-    except Exception:
-        retval = [[]]
-    finally:
-        conn.close()
-
-    return retval
+            raise Exception('Job completed, unable to delete.')
+    elif data['status'] == 'RUNNING':
+        try:
+            retry()
+        except MaxRetriesExceededError, X:  # job took too long, terminate
+            if requests.delete(url).ok:
+                raise X
+            else:
+                raise Exception('Job timed out, unable to delete.')
+    else:
+        if requests.delete(url).ok:  # job failed, terminate
+            raise Exception('Job failed, deleted.')
+        else:
+            raise Exception('Job failed, unable to delete.')
 
 
 def histogram_to_x(data, nucleus, update_rule, after_rule):
@@ -100,6 +135,10 @@ def histogram_to_x(data, nucleus, update_rule, after_rule):
     after_rule(total, retval)
 
     return retval
+
+
+def data_to_censuses(data):
+    return [data_to_census(subdata) for subdata in data]
 
 
 def data_to_census(data):
@@ -120,35 +159,6 @@ def data_to_census(data):
     nucleus = {'distribution': {}}
 
     return histogram_to_x(data, nucleus, update_rule, after_rule)
-
-
-def json_polygon(polygon):
-    """
-    Utility function whose output is a GeoJSON polygon in a string.
-    """
-    if not isinstance(polygon, (str, unicode)):
-        return json.dumps(polygon)
-    else:
-        return polygon
-
-
-def geojson_to_census(polygon):
-    """
-    Take a Polygon or MultiPolygon either as a string containing
-    GeoJSON or as a Python object -- preferably the former -- and
-    return a TR-55-compatible census.
-    """
-    data = histogram([json_polygon(polygon)])[0]  # one-and-only-one AOI
-    return data_to_census(data)
-
-
-def geojson_to_censuses(polygons):
-    """
-    Similar to the `geojson_to_census` function above, but accepts an
-    list of polygons and returns a list of censuses.
-    """
-    data = histogram([json_polygon(p) for p in polygons])
-    return [data_to_census(subdata) for subdata in data]
 
 
 def data_to_survey(data):
@@ -223,13 +233,3 @@ def data_to_survey(data):
     ]
 
     return histogram_to_x(data, nucleus, update_rule, after_rule)
-
-
-def geojson_to_survey(polygon):
-    """
-    Similar to the `census` function above, but produces a survey of
-    the type expected by the `/analyze` page.
-    """
-
-    data = histogram([json_polygon(polygon)])[0]  # one-and-only-one AOI
-    return data_to_survey(data)
