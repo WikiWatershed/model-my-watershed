@@ -111,6 +111,7 @@ LAYERS = [
         'url': 'https://s3.amazonaws.com/com.azavea.datahub.tms/'
                'nlcd/{z}/{x}/{y}.png',
         'raster': True,
+        'overlay': True,
         'maxNativeZoom': 13,
         'maxZoom': 18,
         'opacity': 0.618,
