@@ -74,5 +74,27 @@ PRIVATE_AWS_STORAGE_URL_PROTOCOL = 'https:'
 
 # END Django Storages CONFIGURATION
 
+# UI CONFIGURATION
+
+DRAW_TOOLS = [
+    'SelectArea',   # Boundary Selector
+    'Draw',         # Custom Area or 1 Sq Km stamp
+    # 'PlaceMarker',  # Delineate Watershed
+    'ResetDraw',
+]
+
+MAP_CONTROLS = [
+    'LayerAttribution',
+    'LayerSelector',
+    'LocateMeButton',
+    # 'StreamControl',
+    'ZoomControl',
+]
+
+# END UI CONFIGURATION
+
 # Google API key for production deployment
 GOOGLE_MAPS_API_KEY = 'AIzaSyCXdkywU7rps_i1CeKqWxlBi97vyGeXsqk'
+
+# Stroud account
+GOOGLE_ANALYTICS_ACCOUNT = 'UA-47047573-7'

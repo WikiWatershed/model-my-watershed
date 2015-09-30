@@ -8,12 +8,14 @@ var _ = require('lodash'),
     coreViews = require('../core/views'),
     modelingModels = require('../modeling/models'),
     modelingViews = require('../modeling/views'),
+    modelingControls = require('../modeling/controls'),
     modConfigUtils = require('../modeling/modificationConfigUtils'),
     compareWindowTmpl = require('./templates/compareWindow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
     compareModelingTmpl = require('./templates/compareModeling.html'),
-    compareModificationsTmpl = require('./templates/compareModifications.html');
+    compareModificationsTmpl = require('./templates/compareModifications.html'),
+    synchronizer = modelingControls.PrecipitationSynchronizer;
 
 var CompareWindow = Marionette.LayoutView.extend({
     //model: modelingModels.ProjectModel,
@@ -87,6 +89,7 @@ var CompareWindow = Marionette.LayoutView.extend({
             model: this.model,
             collection: this.model.get('scenarios')
          }));
+        synchronizer.sync();
     }
 });
 
@@ -97,6 +100,12 @@ var CompareScenarioView = Marionette.LayoutView.extend({
 
     template: compareScenarioTmpl,
 
+    templateHelpers: function() {
+        return {
+            scenarioName: this.model.get('name')
+        };
+    },
+
     regions: {
         mapRegion: '.map-region',
         modelingRegion: '.modeling-region',
@@ -105,6 +114,7 @@ var CompareScenarioView = Marionette.LayoutView.extend({
 
     initialize: function(options) {
         this.projectModel = options.projectModel;
+        this.scenariosView = options.scenariosView;
     },
 
     onShow: function() {
@@ -118,6 +128,7 @@ var CompareScenarioView = Marionette.LayoutView.extend({
             el: $(this.el).find('.map-container').get(),
             addZoomControl: false,
             addLocateMeButton: false,
+            addStreamControl: false,
             addLayerSelector: false,
             showLayerAttribution: false,
             initialLayerName: App.getMapView().getActiveBaseLayerName(),
@@ -130,6 +141,7 @@ var CompareScenarioView = Marionette.LayoutView.extend({
         this.mapRegion.show(this.mapView);
         this.modelingRegion.show(new CompareModelingView({
             projectModel: this.projectModel,
+            scenariosView: this.scenariosView,
             model: this.model
         }));
 
@@ -151,8 +163,13 @@ var CompareScenariosView = Marionette.CompositeView.extend({
     childView: CompareScenarioView,
     childViewOptions: function() {
         return {
+            scenariosView: this,
             projectModel: this.model
         };
+    },
+
+    initialize: function() {
+        this.modelingViews = [];
     }
 });
 
@@ -183,6 +200,8 @@ var CompareModelingView = Marionette.LayoutView.extend({
             this.render();
             this.onShow();
         });
+        this.scenariosView = options.scenariosView;
+        this.scenariosView.modelingViews.push(this);
     },
 
     templateHelpers: function() {
@@ -193,12 +212,25 @@ var CompareModelingView = Marionette.LayoutView.extend({
     },
 
     updateResult: function() {
-        this.model.get('results').setActive(this.ui.resultSelector.val());
+        var selection = this.ui.resultSelector.val();
+
+        this.model.get('results').setActive(selection);
         this.showResult();
+
+        _.forEach(this.scenariosView.modelingViews, function(sibling) {
+            if (sibling.ui.resultSelector.val() === selection) {
+                return;
+            } else {
+                sibling.ui.resultSelector.val(selection);
+                sibling.model.get('results').setActive(selection);
+                sibling.showResult();
+            }
+        });
+
     },
 
     showResult: function() {
-        var modelPackage = App.currProject.get('model_package'),
+        var modelPackage = App.currentProject.get('model_package'),
             resultModel = this.model.get('results').getActive(),
             ResultView = modelingViews.getResultView(modelPackage, resultModel.get('name'));
 

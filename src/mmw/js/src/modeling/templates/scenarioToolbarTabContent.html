@@ -15,18 +15,24 @@
             <div id="modifications" class="dropdown-menu menu-right" role="menu"> <!-- DropdownContent -->
                 {% for controlName, models in groupedShapes %}
                     <div class="pad-1 brd-bottom">
-                        <label class="medium">
-                            {% if controlName == 'landcover' %}
-                                Land Cover
-                            {% elif controlName == 'conservation_practice' %}
-                                Conservation Practice
-                            {% endif %}
-                        </label>
                         <table id="mod-{{ controlName|lower|replace(' ', '') }}" class="table modifications custom-hover">
+                            <thead>
+                                <tr>
+                                    <td class="text-left modification-type">
+                                        {% if controlName == 'landcover' %}
+                                            Land Cover
+                                        {% elif controlName == 'conservation_practice' %}
+                                            Conservation Practice
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-right">Effective Area</td>
+                                    <td></td>
+                                </tr>
+                            </thead>
                             {% for model in models %}
                                 <tr>
                                     <td>{{ model.get('value')|tr55Name }}</td>
-                                    <td class="strong text-right">{{ model.get('area')|round(1)|toLocaleString }} {{ model.get('units') }}</td>
+                                    <td class="strong text-right">{{ model.get('effectiveArea')|round(2)|toLocaleString(2) }} {{ model.get('effectiveUnits') }}</td>
                                     {% if editable %}
                                         <td class="text-right"><button class="btn btn-sm btn-icon dark" type="button" data-delete="{{ model.cid }}">
                                             <i class="fa fa-trash"></i>
@@ -37,6 +43,9 @@
                         </table>
                     </div>
                 {% endfor %}
+                <div class="pad-1">
+                    <p class="message">Effective area represents the area of a modification that is within the area of interest. The area of the modification is reduced further if there are overlapping modifications, with the modification on top taking precedent.</p>
+                </div>
             </div> <!-- End Dropdown Content -->
         </div> <!-- End Dropdown Button -->
     </div> <!-- Modifications Dropdown -->

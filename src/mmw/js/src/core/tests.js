@@ -118,6 +118,18 @@ describe('Core', function() {
 
     describe('Views', function() {
         describe('MapView', function() {
+            before(function() {
+                // Ensure that map controls are enabled before testing
+
+                settings.set('map_controls', [
+                    'LayerAttribution',
+                    'LayerSelector',
+                    'LocateMeButton',
+                    'StreamControl',
+                    'ZoomControl',
+                ]);
+            });
+
             it('adds layers to the map when the map model attribute areaOfInterest is set', function() {
                 var model = new models.MapModel(),
                     view = new views.MapView({
@@ -173,43 +185,51 @@ describe('Core', function() {
                 view.destroy();
             });
 
-            it('adds the class "half" to the map view when the map model attribute halfSize is set to true', function(){
+            it('adds the map-container top & bottom classes to the map container for DoubleHeader and Small Footer', function(){
                 var model = new models.MapModel(),
                     view = new views.MapView({
                         model: model,
                         el: sandboxSelector
-                    });
+                    }),
+                    $container = $(sandboxSelector).parent();
 
-                model.setHalfSize();
-                assert.isTrue($(sandboxSelector).hasClass('half'));
+                model.setDoubleHeaderSmallFooterSize();
+                assert.isTrue($container.hasClass('map-container-top-2'));
+                assert.isTrue($container.hasClass('map-container-bottom-2'));
 
                 view.destroy();
             });
 
-            it('removes the class "half" to the map view when the map model attribute halfSize is set to false', function(){
+            it('adds the map-container top & bottom classes to the map container for Draw screen with AoI bar', function(){
                 var model = new models.MapModel(),
                     view = new views.MapView({
                         model: model,
                         el: sandboxSelector
-                    });
+                    }),
+                    $container = $(sandboxSelector).parent();
 
-                model.setFullSize();
-                assert.isFalse($(sandboxSelector).hasClass('half'));
+                model.setDrawWithBarSize();
+                assert.isTrue($container.hasClass('map-container-top-1'));
+                assert.isTrue($container.hasClass('map-container-bottom-3'));
 
                 view.destroy();
             });
 
 
             it('creates a layer selector with the correct items', function() {
-                var baseLayers = {
-                    'A': {
+                var baseLayers = [
+                    {
                         'url': 'https://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png',
-                        'default': true
+                        'default': true,
+                        'display': 'A',
+                        'basemap': true
                     },
-                    'B': {
-                        'url': 'https://{s}.tiles.mapbox.com/v3/examples.map-i86nkdio/{z}/{x}/{y}.png'
+                    {
+                        'url': 'https://{s}.tiles.mapbox.com/v3/examples.map-i86nkdio/{z}/{x}/{y}.png',
+                        'display': 'B',
+                        'basemap': true
                     }
-                };
+                ];
                 settings.set('base_layers', baseLayers);
 
                 var model = new models.MapModel(),
@@ -223,7 +243,7 @@ describe('Core', function() {
                     }).get();
 
                 assert.equal($layers.length, 2, 'Did not add layer selector');
-                assert.deepEqual(layerNames, _.keys(baseLayers));
+                assert.deepEqual(layerNames, _.pluck(baseLayers, 'display'));
 
                 view.destroy();
             });
@@ -232,7 +252,7 @@ describe('Core', function() {
         describe('ModificationPopupView', function() {
             it('deletes the modification it is associated with when the delete button is clicked', function() {
                 var model = new Backbone.Model({
-                        value: 'li_residential',
+                        value: 'developed_low',
                         shape: {},
                         area: 100,
                         units: 'm<sup>2</sup>',
@@ -246,6 +266,20 @@ describe('Core', function() {
                 assert.equal(spy.callCount, 1);
 
                 view.destroy();
+            });
+        });
+
+        describe('HeaderView', function() {
+            it('shows the current page', function() {
+                var appState = new models.AppStateModel({
+                        current_page_title: 'Test Page'
+                    }),
+                    header = new views.HeaderView({
+                        model: App.user,
+                        appState: appState
+                    }).render();
+
+                assert.include(header.$el.find('.brand').text(), 'Test Page');
             });
         });
     });
@@ -269,6 +303,18 @@ describe('Core', function() {
 
                     assert.equal(Math.round(model.get('area')), 7);
                     assert.equal(model.get('units'), 'km<sup>2</sup>');
+                });
+
+                it('sets the provided fields instead of the defaults if arguments are passed', function() {
+                    var model = new models.GeoModel({
+                        effectiveShape: polygon7Km,
+                        effectiveArea: 0,
+                        effectiveUnits: ''
+                    });
+
+                    model.setDisplayArea('effectiveShape', 'effectiveArea', 'effectiveUnits');
+                    assert.equal(Math.round(model.get('effectiveArea')), 7);
+                    assert.equal(model.get('effectiveUnits'), 'km<sup>2</sup>');
                 });
             });
         });

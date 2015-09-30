@@ -1,0 +1,49 @@
+---
+- name: Create Spark Job Server directories
+  file: path="{{ item }}"
+        recurse=yes
+        state=directory
+  with_items:
+    - "{{ sjs_home }}"
+    - "{{ sjs_jars_dir }}"
+    - "{{ sjs_filedao_dir }}"
+
+- name: Copy AWS Crendentials
+  copy: src=~/.aws/ dest=/aws
+  when: "['development', 'test'] | some_are_in(group_names)"
+  notify:
+    - Restart Spark Job Server
+
+- name: Configure Spark Job Server
+  template: src="{{ item }}.j2"
+            dest="/opt/spark-jobserver/{{ item }}"
+  with_items:
+    - spark-jobserver.conf
+    - log4j.properties
+  notify:
+    - Restart Spark Job Server
+
+- name: Configure Nginx site
+  template: src=nginx-spark-jobserver.conf.j2
+            dest=/etc/nginx/sites-available/spark-jobserver.conf
+  notify:
+    - Restart Nginx
+
+- name: Enable Nginx site
+  file: src=/etc/nginx/sites-available/spark-jobserver.conf
+        dest=/etc/nginx/sites-enabled/spark-jobserver
+        state=link
+  notify:
+    - Restart Nginx
+
+- name: Pull Spark Job Server container image
+  command: /usr/bin/docker pull quay.io/azavea/spark-jobserver:latest
+
+- name: Configure Spark Job Server service definition
+  template: src=upstart-spark-jobserver.conf.j2
+            dest=/etc/init/spark-jobserver.conf
+  notify:
+    - Restart Spark Job Server
+
+- name: Ensure Spark Job Server is running
+  service: name=spark-jobserver state=started

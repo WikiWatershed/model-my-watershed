@@ -93,13 +93,20 @@ function checkTableHeader(name) {
 
 // Check that all elements in table match the dataset.
 function checkTableBody(subData) {
-    var $rows = $('#' + subData.name + ' table tbody tr');
+    var $rows = $('#' + subData.name + ' table tbody tr:not(.no-records-found)');
+
     $rows.each(function(trInd, tr) {
+        // The bootstrap-table plugin creates rows containing no data,
+        // which must be skipped.
+        if ($(tr).find('td').length === 0) {
+            return;
+        }
+
         // Get elements in dataset into the order in which they are
         // displayed.
         var expectedRowVals = [
             subData.categories[trInd].type,
-            subData.categories[trInd].area.toLocaleString('en'),
+            subData.categories[trInd].area.toLocaleString('en', {minimumFractionDigits: 2}),
             (subData.categories[trInd].coverage * 100).toFixed(1)
         ];
         expectedRowVals = _.map(expectedRowVals, function(val) {

@@ -1,7 +1,6 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('lodash'),
     Marionette = require('../shim/backbone.marionette'),
     views = require('./core/views'),
     models = require('./core/models'),
@@ -14,6 +13,7 @@ var App = new Marionette.Application({
     initialize: function() {
         this.restApi = new RestAPI();
         this.map = new models.MapModel();
+        this.state = new models.AppStateModel();
 
         // If in embed mode we are by default in activity mode.
         var activityMode = settings.get('itsi_embed');
@@ -31,7 +31,7 @@ var App = new Marionette.Application({
         });
 
         this._mapView.on('change:needs_reset', function(needs) {
-            App.currProject.set('needs_reset', needs);
+            App.currentProject.set('needs_reset', needs);
         });
 
         this.rootView = new views.RootView();
@@ -39,13 +39,15 @@ var App = new Marionette.Application({
 
         this.header = new views.HeaderView({
             el: 'header',
-            model: this.user
+            model: this.user,
+            appState: this.state
         });
+
         this.header.render();
 
         // Not set until modeling/controllers.js creates a
         // new project.
-        this.currProject = null;
+        this.currentProject = null;
     },
 
     load: function(data) {
@@ -85,15 +87,8 @@ var App = new Marionette.Application({
 
 function RestAPI() {
     return {
-        getPredefinedShapeTypes: _.memoize(function() {
-            return $.ajax({
-                'url': '/api/modeling/boundary-layers/',
-                'type': 'GET'
-            });
-        }),
-
         getPolygon: function(args) {
-            var url = '/api/modeling/boundary-layers/' + args.tableId + '/' + args.shapeId;
+            var url = '/api/modeling/boundary-layers/' + args.layerCode + '/' + args.shapeId;
             return $.ajax({
                 'url': url,
                 'type': 'GET'

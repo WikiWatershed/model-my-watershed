@@ -3,7 +3,10 @@
 var defaultSettings = {
     itsi_embed: false,
     base_layers: {},
-    stream_layers: {}
+    stream_layers: {},
+    boundary_layers: {},
+    draw_tools: [],
+    map_controls: [],
 };
 
 var settings = (function() {

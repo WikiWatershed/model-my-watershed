@@ -1,7 +1,7 @@
-.compare-scenarios-container{
+.compare-scenarios-container {
   overflow: hidden;
   position: absolute;
-  top: 0;
+  top: $height-lg;
   left: 0;
   right: 0;
   bottom: 50px;
@@ -9,14 +9,33 @@
   background-color: $ui-light;
   transition: 0.3s ease left, 0.3s ease right;
 
-  .compare-table{
+  .compare-table {
     height: 100%;
 
-    tbody{
-      tr{
+    .scenario-overlay {
+      position: absolute;
+      z-index: 100;
+      height: 22%;
+      width: 100%;
+      background-color: black;
+      opacity: 0.25;
+    }
+
+    .scenario-title {
+        text-shadow: 0px 0px 5px black;
+        position: absolute;
+        top: 5px;
+        z-index: 101;
+        left: 15px;
+        opacity: 1;
+        color: white;
+    }
+
+    tbody {
+      tr {
         height: 100%;
-        td{
-          .compare-column{
+        td {
+          .compare-column {
             position: relative;
             z-index: 50;
             width: 48vw;
@@ -26,49 +45,49 @@
             float: left;
             border-right: solid 1px $black-12;
 
-            @media(min-width: 768px){
+            @media(min-width: 768px) {
               width: 32.5vw;
             }
 
-            @media(min-width: 1024px){
+            @media(min-width: 1024px) {
               width: 24.5vw;
             }
 
-            @media(min-width: 1280px){
+            @media(min-width: 1280px) {
               width: 19.5vw;
             }
           }
 
-          h3{
+          h3 {
             text-transform: uppercase;
             display: inline-block;
           }
 
-          .fa-minus-square{
-            opacity: 54%!important;
+          .fa-minus-square {
+            opacity: 0.54 !important;
           }
 
-          .map-region{
-            height: 18vh;
+          .map-region {
+            height: 22%;
             width: 100%;
 
-            .map-container{
+            .map-container {
               position: relative;
               width: 100%;
               height: 100%;
 
-              .map{
+              .map {
                 height: 100%;
                 width: 100%;
                 position: relative;
                 z-index: 1;
 
-                .leaflet-control-container{
+                .leaflet-control-container {
                   display: none;
                 }
               }
 
-              .scenario-title{
+              .scenario-title {
                 position: absolute;
                 z-index: 50;
                 width: 100%;
@@ -77,7 +96,7 @@
                 vertical-align: bottom;
                 padding: 1rem;
 
-                h3{
+                h3 {
                   position: absolute;
                   bottom: 1rem;
                   left: 1rem;
@@ -86,42 +105,42 @@
             }
           }
 
-          .modeling-region{
+          .modeling-region {
             width: 100%;
             height: 44vh;
 
-            .modeling-container{
+            .modeling-container {
               position: relative;
               width: auto;
               height: 100%;
               padding: 1rem;
 
-              .fa-spin{
+              .fa-spin {
                 margin-left: 8px;
                 font-size: 14px;
                 color: rgba(0, 0, 0, 0.54);
               }
 
-              .header{
+              .header {
                 height: 12%;
               }
 
-              .disclaimer{
+              .disclaimer {
                 font-size: 12px;
               }
 
-              .result-region{
+              .result-region {
                 height: 95%;
 
-                .tab-pane{
+                .tab-pane {
                   height: 100%;
-                  .quality-chart-region{
+                  .quality-chart-region {
                     height: 100%;
                   }
                 }
               }
 
-              .controls-region{
+              .controls-region {
                 .controls {
                   .precipitation {
                     .btn-primary {
@@ -129,17 +148,17 @@
                       padding: 0;
                       margin-top: 10px;
 
-                      label{
+                      label {
                         display: table;
                         width: 100%;
 
-                        span{
+                        span {
                           display: table-cell;
                           width: 10%;
                           white-space: nowrap;
                           padding: 5px;
                         }
-                        input{
+                        input {
                           display: table-cell;
                           width: 100%;
                           vertical-align: bottom;
@@ -152,25 +171,25 @@
             }
           }
 
-          .modifications-region{
+          .modifications-region {
             width: 100%;
             height: 25vh;
             margin-top: 30px;
 
-            .modifications-container{
+            .modifications-container {
               position: relative;
               width: 100%;
               height: 100%;
               padding: 1rem;
               overflow-y: auto;
 
-              .modifications-table{
+              .modifications-table {
                 font-size: 0.6rem;
                 width: 100%;
-                td{
+                td {
                   padding: 8px;
                 }
-                .modification-area{
+                .modification-area {
                   color: $brand-primary;
                   text-align: right;
                 }
@@ -178,7 +197,7 @@
             }
           }
 
-          .compare-section-collapse{
+          .compare-section-collapse {
             height: 52px!important;
           }
 
@@ -187,7 +206,7 @@
     }
   }
 
-  #edge-fade{
+  #edge-fade {
     position: absolute;
     top: 0;
     bottom: 0;
@@ -197,22 +216,22 @@
     background: rgba(255,255,255,.4);
     width: 4vw; // these widths correspond to compare-column width
 
-    @media(min-width: 768px){
+    @media(min-width: 768px) {
       width: 2.5vw; // these widths correspond to compare-column width
     }
 
-    @media(min-width: 1024px){
+    @media(min-width: 1024px) {
       width: 2vw; // these widths correspond to compare-column width
     }
 
-    @media(min-width: 1280px){
+    @media(min-width: 1280px) {
       width: 2.5vw; // these widths correspond to compare-column width
     }
   }
 } //End Container
 
 // Footer Controls
-#compare-footer{
+#compare-footer {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -221,12 +240,12 @@
   background-color: $ui-light;
   z-index: 100;
 
-  #slide-controls{
+  #slide-controls {
     float: right;
     padding: 8px;
   }
 
-  h3{
+  h3 {
     display: inline-block;
     padding: 1rem;
   }

@@ -8,46 +8,11 @@ from urlparse import urljoin
 
 from django.http import Http404
 from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.template import RequestContext
 from django.template.context_processors import csrf
 from django.conf import settings
 
 from apps.modeling.models import Project, Scenario
-
-
-def get_stream_layers():
-    tiler_prefix = '//'
-    tiler_host = settings.TILER_HOST
-    tiler_postfix = '/{z}/{x}/{y}'
-    tiler_base = '%s%s' % (tiler_prefix, tiler_host)
-
-    stream_layers = []
-    for layer in settings.STREAM_LAYERS:
-        stream_layers.append({
-            'display': layer['display'],
-            'endpoint': urljoin(tiler_base, layer['code'] + tiler_postfix)
-        })
-
-    return stream_layers
-
-
-def get_client_settings(request):
-    EMBED_FLAG = settings.ITSI['embed_flag']
-    client_settings = {
-        'client_settings': json.dumps({
-            EMBED_FLAG: request.session.get(EMBED_FLAG, False),
-            'base_layers': settings.BASE_LAYERS,
-            'stream_layers': get_stream_layers(),
-            'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY
-        })
-    }
-    return client_settings
-
-
-def get_context(request):
-    context = {}
-    context.update(csrf(request))
-    context.update(get_client_settings(request))
-    return context
 
 
 def home_page(request):
@@ -105,3 +70,65 @@ def project_clone(request, proj_id=None):
         scenario.save()
 
     return redirect('/project/{0}'.format(project.id))
+
+
+def get_layer_config(layerKeys):
+    """ Retrieves the configuration for the provided
+    layer types. layerKeys is an array of strings that
+    contains keys. Layers with these keys set to True
+    will be returned.
+    """
+    selected_layers = []
+
+    for layer in settings.LAYERS:
+        if all(key in layer for key in layerKeys):
+            # Populate the layer url for layers that we host
+            if 'url' not in layer and 'table_name' in layer:
+                layer['url'] = get_layer_url(layer)
+
+            # Add only the layers we want based on layerKey
+            selected_layers.append(layer)
+
+    return selected_layers
+
+
+def get_layer_url(layer):
+    """ For layers that are served off our tile server,
+    the URL depends on the environment. Therefore, we
+    get it dynamically from the settings file and populate
+    the layer config with the endpoint.
+    """
+    tiler_prefix = '//'
+    tiler_host = settings.TILER_HOST
+    tiler_postfix = '/{z}/{x}/{y}'
+    tiler_base = '%s%s' % (tiler_prefix, tiler_host)
+
+    return urljoin(tiler_base, layer['code'] + tiler_postfix)
+
+
+def get_client_settings(request):
+    EMBED_FLAG = settings.ITSI['embed_flag']
+
+    client_settings = {
+        'client_settings': json.dumps({
+            EMBED_FLAG: request.session.get(EMBED_FLAG, False),
+            'base_layers': get_layer_config(['basemap']),
+            'stream_layers': get_layer_config(['stream']),
+            'boundary_layers': get_layer_config(['boundary']),
+            'vector_layers': get_layer_config(['vector', 'overlay']),
+            'raster_layers': get_layer_config(['raster', 'overlay']),
+            'draw_tools': settings.DRAW_TOOLS,
+            'map_controls': settings.MAP_CONTROLS,
+            'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY
+        })
+    }
+
+    return client_settings
+
+
+def get_context(request):
+    context = RequestContext(request)
+    context.update(csrf(request))
+    context.update(get_client_settings(request))
+
+    return context

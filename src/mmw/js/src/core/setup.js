@@ -18,9 +18,11 @@ require('../../shim/backbone.marionette');
 // Include template filters.
 require('./filters');
 require('../modeling/filters');
+require('../analyze/filters');
 
 require('bootstrap');
 require('bootstrap-select');
+require('bootstrap-table/dist/bootstrap-table.js');
 
 var L = require('leaflet');
 require('leaflet-draw');

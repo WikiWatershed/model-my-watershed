@@ -18,8 +18,6 @@ from django.contrib.gis.geos import GEOSGeometry
 
 from celery import chain
 
-from urlparse import urljoin
-
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
 from apps.modeling import tasks
@@ -184,8 +182,10 @@ def get_job(request, job_uuid, format=None):
     )
 
 
-def _initiate_analyze_job_chain(area_of_interest, job_id):
-    return chain(tasks.run_analyze.s(area_of_interest),
+def _initiate_analyze_job_chain(area_of_interest, job_id, testing=False):
+    return chain(tasks.polygon_to_id.s(area_of_interest),
+                 tasks.id_to_histogram.s(),
+                 tasks.histogram_to_survey.s(),
                  save_job_result.s(job_id, area_of_interest)) \
         .apply_async(link_error=save_job_error.s(job_id))
 
@@ -218,18 +218,15 @@ def _initiate_tr55_job_chain(model_input, job_id):
 def _construct_tr55_job_chain(model_input, job_id):
     job_chain = []
 
-    current_hash = model_input['modification_hash']
-    census = model_input.get('census')
-    census_hash = None
-
-    if census is not None:
-        census_hash = model_input['census'].get('modification_hash')
-
-    if census is None or current_hash != census_hash:
-        job_chain.append(tasks.prepare_census.s(model_input))
-        job_chain.append(tasks.run_tr55.s(model_input))
-    else:
-        job_chain.append(tasks.run_tr55.s(census, model_input))
+    # TODO put this into an if/else block and only do it if the
+    # censuses are not already cached.
+    aoi = model_input.get('area_of_interest')
+    pieces = model_input.get('modification_pieces')
+    polygons = [aoi] + [m['shape']['geometry'] for m in pieces]
+    job_chain.append(tasks.polygons_to_id.s(polygons))
+    job_chain.append(tasks.id_to_histogram.s())
+    job_chain.append(tasks.histograms_to_censuses.s())
+    job_chain.append(tasks.run_tr55.s(model_input))
 
     job_chain.append(save_job_result.s(job_id, model_input))
 
@@ -238,38 +235,16 @@ def _construct_tr55_job_chain(model_input, job_id):
 
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
-def boundary_layers(request, table_id=None, obj_id=None):
-    layer_list = settings.BOUNDARY_LAYERS
-    layer_ids = [layer['code'] for layer in layer_list]
+def boundary_layer_detail(request, table_code, obj_id):
+    layers = [layer for layer in settings.LAYERS
+              if layer.get('code') == table_code]
+    table_name = layers[0]['table_name']
+    json_field = layers[0].get('json_field', 'geom')
 
-    if not table_id and not obj_id:
-        tiler_prefix = '//'
-        tiler_host = settings.TILER_HOST
-        tiler_postfix = '/{z}/{x}/{y}'
-        tiler_base = '%s%s' % (tiler_prefix, tiler_host)
+    query = 'SELECT {field} FROM {table} WHERE id = %s'.format(
+            field=json_field, table=table_name)
 
-        def augment(dictionary):
-            code = dictionary['code']
-            return {
-                'display': dictionary['display'],
-                'tableId': code,
-                'endpoint': urljoin(tiler_base, code + tiler_postfix),
-                'short_display': layer['short_display'],
-                'helptext': dictionary['helptext']
-            }
-
-        layers = [augment(layer) for layer in layer_list]
-        return Response(layers)
-
-    elif table_id in layer_ids and obj_id:
-        layers = filter(lambda l: l['code'] == table_id, layer_list)
-        table_name = layers[0]['table_name']
-        json_field = layers[0].get('json_field', 'geom')
-
-        query = 'SELECT {field} FROM {table} WHERE id = %s'.format(
-                field=json_field, table=table_name)
-
-        cursor = connection.cursor()
+    with connection.cursor() as cursor:
         cursor.execute(query, [int(obj_id)])
         row = cursor.fetchone()
 
@@ -278,5 +253,3 @@ def boundary_layers(request, table_id=None, obj_id=None):
             return Response(geojson)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-    else:
-        return Response(status=status.HTTP_400_BAD_REQUEST)

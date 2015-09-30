@@ -59,15 +59,17 @@ def build_graph(mmw_config, aws_profile, **kwargs):
                            PrivateHostedZone=private_hosted_zone,
                            aws_profile=aws_profile)
 
-    tiler = Tiler(globalconfig=global_config, VPC=vpc, aws_profile=aws_profile)
+    tiler = Tiler(globalconfig=global_config, VPC=vpc, aws_profile=aws_profile,
+                  DataPlane=data_plane)
     tile_delivery_network = TileDeliveryNetwork(globalconfig=global_config,
                                                 VPC=vpc,
                                                 PrivateHostedZone=private_hosted_zone,  # NOQA
                                                 aws_profile=aws_profile)
     application = Application(globalconfig=global_config, VPC=vpc,
+                              DataPlane=data_plane,
                               TileDeliveryNetwork=tile_delivery_network,
                               aws_profile=aws_profile)
-    worker = Worker(globalconfig=global_config, VPC=vpc,
+    worker = Worker(globalconfig=global_config, VPC=vpc, DataPlane=data_plane,
                     aws_profile=aws_profile)
     public_hosted_zone = PublicHostedZone(globalconfig=global_config,
                                           Application=application,

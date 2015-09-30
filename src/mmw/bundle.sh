@@ -100,13 +100,38 @@ CONCAT_VENDOR_CSS_COMMAND="cat \
     ./node_modules/leaflet/dist/leaflet.css \
     ./node_modules/leaflet-draw/dist/leaflet.draw.css \
     ./node_modules/font-awesome/css/font-awesome.min.css \
+    ./node_modules/bootstrap-table/dist/bootstrap-table.min.css \
     > $VENDOR_CSS_FILE"
 
-JS_DEPS=(jquery backbone backbone.marionette bootstrap bootstrap-select \
-         leaflet leaflet-draw leaflet.locatecontrol leaflet-plugins lodash \
-         underscore d3 nunjucks turf-area turf-bbox-polygon turf-buffer \
-         turf-destination turf-erase turf-intersect turf-random zeroclipboard \
-	 blueimp-md5 iframe-phone)
+JS_DEPS=(backbone
+         backbone.marionette
+         blueimp-md5
+         bootstrap
+         bootstrap-select
+         bootstrap-table/dist/bootstrap-table.js
+         d3
+         iframe-phone
+         ./js/shim/leaflet.utfgrid.js
+         ./js/shim/marionette.transition-region.js
+         ./js/shim/shutterbug.js
+         jquery
+         leaflet
+         leaflet-draw
+         leaflet.locatecontrol
+         leaflet-plugins
+         leaflet-plugins/layer/tile/Google
+         lodash
+         nunjucks
+         turf-area
+         turf-bbox-polygon
+         turf-buffer
+         turf-destination
+         turf-erase
+         turf-intersect
+         turf-random
+         underscore
+         zeroclipboard)
+
 BROWSERIFY_EXT=""
 BROWSERIFY_REQ=""
 for DEP in "${JS_DEPS[@]}"
@@ -173,9 +198,8 @@ mkdir -p \
 echo "$VAGRANT_COMMAND"
 eval "$VAGRANT_COMMAND"
 
-# Wait for background jobs to finish if watch is not enabled.
 if [ -z "$ENABLE_WATCH" ]; then
-    echo "Waiting..."
+    echo "Waiting for background jobs to finish..."
     wait
     echo "Done"
 fi

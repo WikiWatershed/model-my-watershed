@@ -1,12 +1,14 @@
 "use strict";
 
 var $ = require('jquery'),
+    _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
     chart = require('../core/chart'),
+    utils = require('../core/utils'),
     windowTmpl = require('./templates/window.html'),
     messageTmpl = require('./templates/message.html'),
     detailsTmpl = require('./templates/details.html'),
@@ -111,9 +113,10 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     animateIn: function() {
         var self = this;
 
+        App.map.setAnalyzeSize(true);
+
         this.$el.animate({ height: '55%' }, 200, function() {
             self.trigger('animateIn');
-            App.map.setHalfSize(true);
         });
         if (this.lock !== undefined) {
             this.lock.resolve();
@@ -123,7 +126,8 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     animateOut: function() {
         var self = this;
 
-        App.map.setFullSize(true);
+        App.map.setDoubleHeaderSmallFooterSize(true);
+       
         this.$el.animate({ height: '0%' }, 200, function() {
             self.trigger('animateOut');
         });
@@ -196,17 +200,20 @@ var TabContentView = Marionette.LayoutView.extend({
         chartRegion: '.analyze-chart-region'
     },
     onShow: function() {
-        var dataCollection = new coreModels.DataCollection(
-            this.model.get('categories')
-        );
+        var categories = this.model.get('categories'),
+            largestArea = _.max(_.pluck(categories, 'area')),
+            units = utils.magnitudeOfArea(largestArea),
+            census = new coreModels.LandUseCensusCollection(categories);
 
         this.tableRegion.show(new TableView({
-            collection: dataCollection
+            units: units,
+            model: new coreModels.GeoModel({units: (units === 'km2') ? 'km<sup>2</sup>' : 'm<sup>2</sup>'}),
+            collection: census
         }));
 
         this.chartRegion.show(new ChartView({
             model: this.model,
-            collection: dataCollection
+            collection: census
         }));
     }
 });
@@ -222,18 +229,32 @@ var TabContentsView = Marionette.CollectionView.extend({
 var TableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
     template: tableRowTmpl,
-        templateHelpers: function() {
+    templateHelpers: function() {
+        var area = this.model.get('area'),
+            units = this.options.units;
+
         return {
             // Convert coverage to percentage for display.
-            coveragePct: (this.model.get('coverage') * 100).toFixed(1)
+            coveragePct: (this.model.get('coverage') * 100),
+            // Scale the area to display units.
+            scaledArea: utils.changeOfAreaUnits(area, 'm2', units)
         };
     }
 });
 
 var TableView = Marionette.CompositeView.extend({
     childView: TableRowView,
+    childViewOptions: function() {
+        return {
+            units: this.options.units
+        };
+    },
     childViewContainer: 'tbody',
-    template: tableTmpl
+    template: tableTmpl,
+
+    onAttach: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    }
 });
 
 var ChartView = Marionette.ItemView.extend({
@@ -249,8 +270,13 @@ var ChartView = Marionette.ItemView.extend({
 
     addChart: function() {
         var chartEl = this.$el.find('.bar-chart').get(0),
-            chartData = this.collection.map(function(model) {
-                return model.attributes;
+            chartData = _.map(this.collection.toJSON(), function(model) {
+                return {
+                    area: model.area,
+                    coverage: model.coverage,
+                    type: model.type,
+                    className: model.nlcd ? 'nlcd-' + model.nlcd : null
+                };
             }),
             chartOptions = {
                 isPercentage: true,
@@ -262,6 +288,7 @@ var ChartView = Marionette.ItemView.extend({
         if (this.model.get('name') === 'land') {
             chartOptions.useHorizBars = true;
         }
+
         chart.makeBarChart(chartEl, chartData, indVar, depVars, chartOptions);
     }
 });

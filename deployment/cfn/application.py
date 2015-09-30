@@ -41,6 +41,7 @@ class Application(StackNode):
         'KeyName': ['global:KeyName'],
         'AvailabilityZones': ['global:AvailabilityZones',
                               'VPC:AvailabilityZones'],
+        'RDSPassword': ['global:RDSPassword', 'DataPlane:RDSPassword'],
         'AppServerInstanceType': ['global:AppServerInstanceType'],
         'AppServerAMI': ['global:AppServerAMI'],
         'AppServerInstanceProfile': ['global:AppServerInstanceProfile'],
@@ -58,6 +59,8 @@ class Application(StackNode):
         'GreenTileServerDistributionEndpoint':
         ['global:GreenTileServerDistributionEndpoint',
             'TileDeliveryNetwork:GreenTileServerDistributionEndpoint'],
+        'ITSIBaseURL': ['global:ITSIBaseURL'],
+        'ITSISecretKey': ['global:ITSISecretKey'],
     }
 
     DEFAULTS = {
@@ -104,6 +107,11 @@ class Application(StackNode):
             'AvailabilityZones', Type='CommaDelimitedList',
             Description='Comma delimited list of availability zones'
         ), 'AvailabilityZones')
+
+        self.rds_password = self.add_parameter(Parameter(
+            'RDSPassword', Type='String', NoEcho=True,
+            Description='Database password',
+        ), 'RDSPassword')
 
         self.app_server_instance_type = self.add_parameter(Parameter(
             'AppServerInstanceType', Type='String', Default='t2.micro',
@@ -173,6 +181,16 @@ class Application(StackNode):
             'GreenTileServerDistributionEndpoint', Type='String',
             Description='Endpoint for green tile CloudFront distribution'
         ), 'GreenTileServerDistributionEndpoint')
+
+        self.itsi_base_url = self.add_parameter(Parameter(
+            'ITSIBaseURL', Type='String',
+            Description='Base URL for ITSI portal'
+        ), 'ITSIBaseURL')
+
+        self.itsi_secret_key = self.add_parameter(Parameter(
+            'ITSISecretKey', Type='String', NoEcho=True,
+            Description='Secret key for ITSI portal integration'
+        ), 'ITSISecretKey')
 
         app_server_lb_security_group, \
             app_server_security_group = self.create_security_groups()
@@ -390,14 +408,26 @@ class Application(StackNode):
         return ['#cloud-config\n',
                 '\n',
                 'write_files:\n',
+                '  - path: /etc/mmw.d/env/MMW_STACK_COLOR\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.color), '\n',
+                '  - path: /etc/mmw.d/env/MMW_DB_PASSWORD\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.rds_password), '\n',
                 '  - path: /etc/mmw.d/env/MMW_TILER_HOST\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
                 '    content: ', Ref(tile_distribution_endpoint), '\n',
-                '  - path: /etc/mmw.d/env/MMW_STACK_COLOR\n',
+                '  - path: /etc/mmw.d/env/MMW_ITSI_BASE_URL\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
-                '    content: ', Ref(self.color)]
+                '    content: ', Ref(self.itsi_base_url), '\n',
+                '  - path: /etc/mmw.d/env/MMW_ITSI_SECRET_KEY\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.itsi_secret_key)]
 
     def create_cloud_watch_resources(self, app_server_lb):
         self.add_resource(cw.Alarm(

@@ -1,4 +1,6 @@
+#boundary_county,
 #boundary_district,
+#boundary_school_district,
 #boundary_huc08,
 #boundary_huc10,
 #boundary_huc12 {

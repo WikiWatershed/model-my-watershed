@@ -103,6 +103,7 @@ var InputView = ModalBaseView.extend({
 
     primaryAction: function() {
         var val = this.ui.input.val().trim();
+
         if (val) {
             this.triggerMethod('update', val);
             this.hide();
@@ -132,6 +133,7 @@ var ShareView = ModalBaseView.extend({
     // Override to attach ZeroClipboard to ui.copy button
     onRender: function() {
         var self = this;
+
         this.$el.on('shown.bs.modal', function() {
             self.zc.clip(self.ui.copy);
         });
@@ -150,7 +152,8 @@ var ShareView = ModalBaseView.extend({
 
             confirm.render();
             confirm.on('confirmation', function() {
-                var project = self.options.app.currProject;
+                var project = self.options.app.currentProject;
+
                 project.set('is_private', false);
                 project.saveProjectAndScenarios();
 
@@ -168,7 +171,6 @@ var ShareView = ModalBaseView.extend({
     signIn: function() {
         this.options.app.getUserOrShowLogin();
     }
-
 });
 
 module.exports = {

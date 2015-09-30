@@ -1,0 +1,3 @@
+---
+- name: Restart Spark Job Server
+  service: name=spark-jobserver state=restarted

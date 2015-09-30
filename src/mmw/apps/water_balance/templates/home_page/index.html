@@ -31,7 +31,7 @@
     </header>
 {% endblock header %}
 
-{% block content %}
+{% block map %}
     <div id="water-balance" class="container-fluid"> <!-- Container -->
 
         <div class="canvas"> <!-- Canvas -->
@@ -78,52 +78,52 @@
 
                     <!-- Land Cover -->
 
-                    <div id="land-li_residential" role="tabpanel" class="tab-pane active land"> <!-- LIR -->
-                        <img src="{% static 'images/water_balance/art_land_lir.png' %}" alt="Low-Intensity Residential">
+                    <div id="land-open_water" role="tabpanel" class="tab-pane land">
+                        <img src="" style="background-color: gray;" alt="Open Water">
                     </div>
 
-                    <div id="land-hi_residential" role="tabpanel" class="tab-pane land"> <!-- HIR -->
-                        <img src="{% static 'images/water_balance/art_land_hir.png' %}" alt="High-Intensity Residential">
+                    <div id="land-woody_wetlands" role="tabpanel" class="tab-pane land">
+                        <img src="" style="background-color: gray;" alt="Wetlands">
                     </div>
 
-                    <div id="land-commercial" role="tabpanel" class="tab-pane land"> <!-- commercial -->
-                        <img src="{% static 'images/water_balance/art_land_commercial.png' %}" alt="commercial">
+                    <div id="land-developed_low" role="tabpanel" class="tab-pane active land">
+                        <img src="{% static 'images/water_balance/art_land_lir.png' %}" alt="Developed, Low Intensity">
                     </div>
 
-                    <div id="land-grassland" role="tabpanel" class="tab-pane land"> <!-- grassland -->
-                        <img src="{% static 'images/water_balance/art_land_grassland.png' %}" alt="grassland">
+                    <div id="land-developed_med" role="tabpanel" class="tab-pane land">
+                        <img src="{% static 'images/water_balance/art_land_hir.png' %}" alt="Developed, Medium Intensity">
                     </div>
 
-                    <div id="land-deciduous_forest" role="tabpanel" class="tab-pane land"> <!-- forest -->
+                    <div id="land-developed_high" role="tabpanel" class="tab-pane land">
+                        <img src="{% static 'images/water_balance/art_land_commercial.png' %}" alt="Developed, High Intensity">
+                    </div>
+
+                    <div id="land-grassland" role="tabpanel" class="tab-pane land">
+                        <img src="{% static 'images/water_balance/art_land_grassland.png' %}" alt="Grassland/Herbaceous">
+                    </div>
+
+                    <div id="land-deciduous_forest" role="tabpanel" class="tab-pane land">
                         <img src="{% static 'images/water_balance/art_land_forest.png' %}" alt="Deciduous Forest">
                     </div>
 
-                    <div id="land-urban_grass" role="tabpanel" class="tab-pane land"> <!-- urban grass -->
-                        <img src="{% static 'images/water_balance/art_land_turfGrass.png' %}" alt="Turf Grass">
+                    <div id="land-developed_open" role="tabpanel" class="tab-pane land">
+                        <img src="{% static 'images/water_balance/art_land_turfGrass.png' %}" alt="Developed, Open Space">
                     </div>
 
-                    <div id="land-pasture" role="tabpanel" class="tab-pane land"> <!-- pasture -->
-                        <img src="{% static 'images/water_balance/art_land_pasture.png' %}" alt="pasture">
+                    <div id="land-pasture" role="tabpanel" class="tab-pane land">
+                        <img src="{% static 'images/water_balance/art_land_pasture.png' %}" alt="Pasture/Hay">
                     </div>
 
-                    <div id="land-row_crop" role="tabpanel" class="tab-pane land"> <!-- Row Crops -->
-                        <img src="{% static 'images/water_balance/art_land_rowCrops.png' %}" alt="Row Crops">
+                    <div id="land-cultivated_crops" role="tabpanel" class="tab-pane land">
+                        <img src="{% static 'images/water_balance/art_land_rowCrops.png' %}" alt="Cultivated Crops">
                     </div>
 
-                    <div id="land-chaparral" role="tabpanel" class="tab-pane land"> <!-- chaparral -->
-                        <img src="{% static 'images/water_balance/art_land_chaparral.png' %}" alt="chaparral">
+                    <div id="land-shrub" role="tabpanel" class="tab-pane land">
+                        <img src="{% static 'images/water_balance/art_land_chaparral.png' %}" alt="Shrub/Scrub">
                     </div>
 
-                    <div id="land-tall_grass_prairie" role="tabpanel" class="tab-pane land"> <!-- Tall-Grass Prairie -->
-                        <img src="{% static 'images/water_balance/art_land_tallGrass.png' %}" alt="Tall Grass Prairie">
-                    </div>
-
-                    <div id="land-short_grass_prairie" role="tabpanel" class="tab-pane land"> <!-- Short-Grass Prairie -->
-                        <img src="{% static 'images/water_balance/art_land_shortGrass.png' %}" alt="Short Grass Prairie">
-                    </div>
-
-                    <div id="land-desert" role="tabpanel" class="tab-pane land"> <!-- desert -->
-                        <img src="{% static 'images/water_balance/art_land_desert.png' %}" alt="Desert">
+                    <div id="land-barren_land" role="tabpanel" class="tab-pane land">
+                        <img src="{% static 'images/water_balance/art_land_desert.png' %}" alt="Barren Land (Rock/Sand/Clay)">
                     </div>
 
                 </div> <!-- End Land Cover Type -->
@@ -169,8 +169,8 @@
 
             <div id="water-column-container" class="well-custom"> <!-- Water Column -->
                 <div id="alert">
-                    <svg class="ic_approach" width="80" height="80">
-                        <image xlink:href="{% static 'images/water_balance/art_alert.svg' %}" src="{% static 'images/water_balance/art_alert.svg' %}" width="80" height="80"></image>
+                    <svg class="ic_approach" width="40" height="40">
+                        <image xlink:href="{% static 'images/water_balance/art_alert.svg' %}" src="{% static 'images/water_balance/art_alert.svg' %}" width="40" height="40"></image>
                     </svg>
                 </div>
                 <div id="column-overlay"></div>
@@ -208,88 +208,88 @@
 
                 <ul id="thumbs-land" class="nav" role="tablist"> <!-- Landcover Thumbs -->
 
-                    <li id="thumb-li_residential" class="active"> <!-- LIR Thumb -->
-                        <a href="#land-li_residential" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_lir.png' %}" alt="Low-Intensity Residential" data-container="body" data-toggle="popover" data-placement="left" data-title="Low Intensity Residential" data-content="Areas with a mixture of constructed materials and vegetation. Impervious surfaces account for 20% to 49% percent of total cover. These areas most commonly include single-family housing units.">
+                    <li id="thumb-open_water">
+                        <a href="#land-open_water" aria-controls="filter-tab" role="tab" data-toggle="tab" class="nlcd-11">
+                            <img src="" style="background-color: gray;" alt="Open Water" data-name="open_water" data-container="body" data-toggle="popover" data-placement="left" data-nlcd="nlcd-11">
                         </a>
-                        <label>LIR</label>
+                        <label>Water</label>
                     </li>
 
-                    <li id="thumb-hi_residential"> <!-- HIR Thumb -->
-                        <a href="#land-hi_residential" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_hir.png' %}" alt="High-Intensity Residential" data-container="body" data-toggle="popover" data-placement="left" data-title="High Intensity Residential" data-content="Areas with a mixture of constructed materials and vegetation. Impervious surfaces account for 50% to 79% of the total cover. These areas most commonly include single-family housing units.">
+                    <li id="thumb-developed_open">
+                        <a href="#land-developed_open" aria-controls="filter-tab" role="tab" data-toggle="tab" class="nlcd-21">
+                            <img src="{% static 'images/water_balance/thumb_turfGrass.png' %}" alt="Developed, Open Space" data-name="developed_open" data-container="body" data-toggle="popover" data-placement="left" data-nlcd="nlcd-21" >
                         </a>
-                        <label>HIR</label>
+                        <label>Developed, Open Space</label>
                     </li>
 
-                    <li id="thumb-commercial"> <!-- Commercial Thumb -->
-                        <a href="#land-commercial" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_commercial.png' %}" alt="Commercial" data-container="body" data-toggle="popover" data-placement="left" data-title="Commercial" data-content="Highly developed areas where people reside or work in high numbers. Examples include apartment complexes, row houses and commercial/industrial. Impervious surfaces account for 80% to 100% of the total cover.">
+                    <li id="thumb-developed_low" class="active">
+                        <a href="#land-developed_low" aria-controls="filter-tab" role="tab" data-toggle="tab" class="nlcd-22">
+                            <img src="{% static 'images/water_balance/thumb_lir.png' %}" alt="Developed, Low Intensity" data-name="developed_low" data-container="body" data-toggle="popover" data-placement="left" data-nlcd="nlcd-22" >
                         </a>
-                        <label>Commercial</label>
+                        <label>Developed-Low</label>
                     </li>
 
-                    <li id="thumb-grassland"> <!-- Grassland Thumb -->
-                        <a href="#land-grassland" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_grassland.png' %}" alt="Grassland" data-container="body" data-toggle="popover" data-placement="left" data-title="Grassland" data-content="Areas dominated by gramanoid or herbaceous vegetation, generally greater than 80% of total vegetation. These areas are not subject to intensive management such as tilling, but can be utilized for grazing.">
+                    <li id="thumb-developed_med">
+                        <a href="#land-developed_med" aria-controls="filter-tab" role="tab" data-toggle="tab" class="nlcd-23">
+                            <img src="{% static 'images/water_balance/thumb_hir.png' %}" alt="Developed, Medium Intensity" data-name="developed_med" data-container="body" data-toggle="popover" data-placement="left" data-nlcd="nlcd-23" >
                         </a>
-                        <label>Grassland</label>
+                        <label>Developed-Med</label>
                     </li>
 
-                    <li id="thumb-deciduous_forest"> <!-- Deciduous Forest Thumb -->
-                        <a href="#land-deciduous_forest" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_forest.png' %}" alt="Deciduous Forest" data-container="body" data-toggle="popover" data-placement="left" data-title="Forest" data-content="Areas dominated by trees generally greater than 5 meters tall, and greater than 20% of total vegetation cover. Neither deciduous nor evergreen species are greater than 75% of total tree cover.">
+                    <li id="thumb-developed_high">
+                        <a href="#land-developed_high" aria-controls="filter-tab" role="tab" data-toggle="tab" class="nlcd-24">
+                            <img src="{% static 'images/water_balance/thumb_commercial.png' %}" alt="Developed High Intensity" data-name="developed_high" data-container="body" data-toggle="popover" data-placement="left" data-nlcd="nlcd-24" >
+                        </a>
+                        <label>Developed-High</label>
+                    </li>
+
+                    <li id="thumb-barren_land">
+                        <a href="#land-barren_land" aria-controls="filter-tab" role="tab" data-toggle="tab" class="nlcd-31">
+                            <img src="{% static 'images/water_balance/thumb_desert.png' %}" alt="Barren Land (Rock/Sand/Clay)" data-name="barren_land" data-container="body" data-toggle="popover" data-placement="left" data-nlcd="nlcd-31" >
+                        </a>
+                        <label>Barren Land</label>
+                    </li>
+
+                    <li id="thumb-deciduous_forest">
+                        <a href="#land-deciduous_forest" aria-controls="filter-tab" role="tab" data-toggle="tab" class="nlcd-41">
+                            <img src="{% static 'images/water_balance/thumb_forest.png' %}" alt="Forest" data-container="body" data-name="deciduous_forest" data-toggle="popover" data-placement="left" data-nlcd="nlcd-41" >
                         </a>
                         <label>Forest</label>
                     </li>
 
-                    <li id="thumb-urban_grass"> <!-- Urban Grass Thumb -->
-                        <a href="#land-urban_grass" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_turfGrass.png' %}" alt="Turf Grass" data-container="body" data-toggle="popover" data-placement="left" data-title="Turf Grass" data-content="Areas with a mixture of some constructed materials, but mostly vegetation in the form of lawn grasses. Impervious surfaces account for less than 20% of total cover. These areas most commonly include large-lot single-family housing units, parks, golf courses, and vegetation planted in developed settings for recreation, erosion control, or aesthetic purposes.">
+                    <li id="thumb-shrub">
+                        <a href="#land-shrub" aria-controls="filter-tab" role="tab" data-toggle="tab" class="nlcd-52">
+                            <img src="{% static 'images/water_balance/thumb_chaparral.png' %}" alt="Shrub/Scrub" data-name="shrub" data-container="body" data-toggle="popover" data-placement="left" data-nlcd="nlcd-52" >
                         </a>
-                        <label>Turf Grass</label>
+                        <label>Shrub/Scrub</label>
                     </li>
 
-                    <li id="thumb-pasture"> <!-- Pasture Thumb -->
-                        <a href="#land-pasture" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_pasture.png' %}" alt="Pasture" data-container="body" data-toggle="popover" data-placement="left" data-title="Pasture" data-content="Areas of grasses, legumes, or grass-legume mixtures planted for livestock grazing or the production of seed or hay crops, typically on a perennial cycle. Pasture/hay vegetation accounts for greater than 20% of total vegetation.">
+                    <li id="thumb-grassland">
+                        <a href="#land-grassland" aria-controls="filter-tab" role="tab" data-toggle="tab" class="nlcd-71">
+                            <img src="{% static 'images/water_balance/thumb_grassland.png' %}" alt="Grassland/Herbaceous" data-name="grassland" data-container="body" data-toggle="popover" data-placement="left" data-nlcd="nlcd-71" >
                         </a>
-                        <label>Pasture</label>
+                        <label>Grassland</label>
                     </li>
 
-                    <li id="thumb-row_crop"> <!-- Row Crops Thumb -->
-                        <a href="#land-row_crop" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_rowCrops.png' %}" alt="Row Crops" data-container="body" data-toggle="popover" data-placement="left" data-title="Row Crops" data-content="Areas used for the production of annual crops, such as corn, soybeans, vegetables, tobacco, and cotton, and also perennial woody crops such as orchards and vineyards. Crop vegetation accounts for greater than 20% of total vegetation. This class also includes all land being actively tilled.">
+                    <li id="thumb-pasture">
+                        <a href="#land-pasture" aria-controls="filter-tab" role="tab" data-toggle="tab" class="nlcd-81">
+                            <img src="{% static 'images/water_balance/thumb_pasture.png' %}" alt="Pasture/Hay" data-name="pasture" data-container="body" data-toggle="popover" data-placement="left" data-nlcd="nlcd-81" >
                         </a>
-                        <label>Row Crops</label>
+                        <label>Pasture/Hay</label>
                     </li>
 
-                    <li id="thumb-chaparral"> <!-- chaparral Thumb -->
-                        <a href="#land-chaparral" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_chaparral.png' %}" alt="Chaparral" data-container="body" data-toggle="popover" data-placement="left" data-title="Chaparral" data-content="Areas dominated by shrubs; less than 5 meters tall with shrub canopy typically greater than 20% of total vegetation. This class includes true shrubs, young trees in an early successional stage or trees stunted from environmental conditions.">
+                    <li id="thumb-cultivated_crops">
+                        <a href="#land-cultivated_crops" aria-controls="filter-tab" role="tab" data-toggle="tab" class="nlcd-82">
+                            <img src="{% static 'images/water_balance/thumb_rowCrops.png' %}" alt="Cultivated Crops" data-name="cultivated_crops" data-container="body" data-toggle="popover" data-placement="left" data-nlcd="nlcd-82" >
                         </a>
-                        <label>Chaparral</label>
+                        <label>Crops</label>
                     </li>
 
-                    <li id="thumb-tall_grass_prairie"> <!-- Tall-Grass Thumb -->
-                        <a href="#land-tall_grass_prairie" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_tallGrass.png' %}" alt="Tall Grass Prairie" data-container="body" data-toggle="popover" data-placement="left" data-title="Tall Grass Prairie" data-content="Areas dominated by shrubs; less than 5 meters tall with shrub canopy typically greater than 20% of total vegetation. This class includes true shrubs, young trees in an early successional stage or trees stunted from environmental conditions.">
+                    <li id="thumb-woody_wetlands">
+                        <a href="#land-woody_wetlands" aria-controls="filter-tab" role="tab" data-toggle="tab" class="nlcd-90">
+                            <img src="" style="background-color: gray;" alt="Wetlands" data-name="woody_wetlands" data-container="body" data-toggle="popover" data-placement="left" data-nlcd="nlcd-90" >
                         </a>
-                        <label>Tall Grass Prairie</label>
-                    </li>
-
-                    <li id="thumb-short_grass_prairie"> <!-- Short-Grass Thumb -->
-                        <a href="#land-short_grass_prairie" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_shortGrass.png' %}" alt="Short Grass Prairie" data-container="body" data-toggle="popover" data-placement="left" data-title="Short Grass Prairie" data-content="Areas dominated by shrubs less than 20 centimeters tall with shrub canopy typically greater than 20% of total vegetation. This type is often co-associated with grasses, sedges, herbs, and non-vascular vegetation.">
-                        </a>
-                        <label>Short Grass Prairie</label>
-                    </li>
-
-                    <li id="thumb-desert"> <!-- Desert Thumb -->
-                        <a href="#land-desert" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_desert.png' %}" alt="Desert" data-container="body" data-toggle="popover" data-placement="left" data-title="Desert" data-content="Areas of bedrock, desert pavement, scarps, talus, slides, volcanic material, glacial debris, sand dunes, strip mines, gravel pits and other accumulations of earthen material. Generally, vegetation accounts for less than 15% of total cover.">
-                        </a>
-                        <label>Desert</label>
+                        <label>Wetlands</label>
                     </li>
 
                 </ul> <!-- End Landcover Thumbs-->
@@ -297,36 +297,36 @@
             </div> <!-- End Land Cover -->
 
             <div class="row pad-sm"> <!-- SoilS -->
-                <div class="pull-left"><p>Soil</p></div>
+                <div class="pull-left"><p>Hydrologic Soil Group</p></div>
 
                 <ul id="thumbs-soil" class="nav" role="tablist"> <!-- Soil Thumbs -->
 
                     <li id="thumb-sand" class="active"> <!-- Sand Thumb -->
                         <a href="#soil-sand" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_sand.png' %}" alt="Sand" data-container="body" data-toggle="popover" data-placement="left" data-title="Sand" data-content="These soils have low runoff potential and high infiltration rates even when thoroughly wetted. They consist chiefly of deep, well to excessively drained sand or gravel and have a high rate of water transmission (greater than 0.30 in/hr).">
+                            <img src="{% static 'images/water_balance/thumb_sand.png' %}" alt="Sand" data-name="soil_a" data-container="body" data-toggle="popover" data-placement="left" >
                         </a>
-                        <label>Sand</label>
+                        <label>A - High Infiltration</label>
                     </li>
 
                     <li id="thumb-loam"> <!-- Loam Thumb -->
                         <a href="#soil-loam" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_loam.png' %}" alt="loam" data-container="body" data-toggle="popover" data-placement="left" data-title="Loam" data-content="These soils have moderate infiltration rates when thoroughly wetted and consist chiefly of moderately deep to deep, moderately well to well drained soils with moderately fine to moderately coarse textures. These soils have a moderate rate of water transmission (0.15-0.30 in/hr).">
+                            <img src="{% static 'images/water_balance/thumb_loam.png' %}" alt="loam" data-name="soil_b" data-container="body" data-toggle="popover" data-placement="left" >
                         </a>
-                        <label>Loam</label>
+                        <label>B - Moderate Infiltration</label>
                     </li>
 
                     <li id="thumb-sandyClay"> <!-- Sandy Clay Thumb -->
                         <a href="#soil-sandyClay" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_sandyClay.png' %}" alt="Sandy Clay" data-container="body" data-toggle="popover" data-placement="left" data-title="Sandy Clay" data-content="These soils have low infiltration rates when thoroughly wetted and consist chiefly of soils with a layer that impedes downward movement of water and soils with moderately fine to fine texture. These soils have a low rate of water transmission (0.05-0.15 in/hr).">
+                            <img src="{% static 'images/water_balance/thumb_sandyClay.png' %}" alt="Sandy Clay" data-name="soil_c" data-container="body" data-toggle="popover" data-placement="left" >
                         </a>
-                        <label>Sandy Clay</label>
+                        <label>C - Slow Infiltration</label>
                     </li>
 
                     <li id="thumb-clayLoam"> <!-- Clay Loam Thumb -->
                         <a href="#soil-clayLoam" aria-controls="filter-tab" role="tab" data-toggle="tab">
-                            <img src="{% static 'images/water_balance/thumb_clayLoam.png' %}" alt="Clay Loam" data-container="body" data-toggle="popover" data-placement="left" data-title="Clay Loam" data-content="These soils have high runoff potential. They have very low infiltration rates when thoroughly wetted and consist chiefly of clay soils with a high swelling potential, soils with a permanent high water table, soils with a claypan or clay layer at or near the surface, and shallow soils over nearly impervious material. These soils have a very low rate of water transmission (0-0.05 in/hr).">
+                            <img src="{% static 'images/water_balance/thumb_clayLoam.png' %}" alt="Clay Loam" data-name="soil_d" data-container="body" data-toggle="popover" data-placement="left" >
                         </a>
-                        <label>Clay Loam</label>
+                        <label>D - Very Slow Infiltration</label>
                     </li>
 
                 </ul> <!-- End Soil Thumbs-->
@@ -335,21 +335,9 @@
         </div>
 
     </div> <!-- End Container -->
-{% endblock content %}
+{% endblock map %}
 
 {% block javascript %}
     <script type="text/javascript" src="{% static 'js/vendor_water_balance.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/main_water_balance.js' %}"></script>
-    <script type="text/javascript">
-        if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
-                $('[data-toggle="popover"]').popover({triggger:'click'});
-                $('[data-toggle="popover"]').click(function(){
-                    $('[data-toggle="popover"]').not(this).popover('hide'); //all but this
-                });
-            } else {
-                $(function () {
-            $('[data-toggle="popover"]').popover({trigger:'hover'});
-        })
-            }
-    </script>
 {% endblock javascript %}

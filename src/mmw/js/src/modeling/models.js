@@ -156,6 +156,7 @@ var ProjectModel = Backbone.Model.extend({
         this.get('scenarios').forEach(function(scenario) {
             scenario.fetchResultsIfNeeded();
         });
+
         this.get('scenarios').on('add', function(scenario) {
             scenario.fetchResultsIfNeeded();
         });
@@ -184,6 +185,7 @@ var ProjectModel = Backbone.Model.extend({
             // set the project ID on each scenario.
             var self = this;
             this.saveCalled = true;
+
             this.save()
                 .done(function() {
                     self.updateProjectScenarios(self.get('id'), self.get('scenarios'));
@@ -201,6 +203,7 @@ var ProjectModel = Backbone.Model.extend({
 
     addIdsToScenarios: function() {
         var projectId = this.get('id');
+
         if (!projectId) {
             this.saveProjectAndScenarios();
         } else {
@@ -231,6 +234,7 @@ var ProjectModel = Backbone.Model.extend({
 
                     return scenarioModel;
                 });
+
             scenariosCollection.reset(scenarios);
             // Set the user_id to ensure controls are properly set.
             response.user_id = user_id;
@@ -269,6 +273,7 @@ var ProjectModel = Backbone.Model.extend({
         if (id) {
             url = root + id + '/compare';
         }
+
         return url;
     }
 });
@@ -300,7 +305,7 @@ function _modifyModifications(rawModifications) {
         var rawModification = rawModifications.at(i),
             newPiece = {
                 name: rawModification.get('name'),
-                shape: rawModification.get('shape'),
+                shape: rawModification.get('effectiveShape') || rawModification.get('shape'),
                 value: rawModification.get('value')
             };
 
@@ -362,6 +367,7 @@ function _modifyModifications(rawModifications) {
                         overlapPiece.value.bmp = oldPiece.value;
                         overlapPiece.value.reclass = newPiece.value;
                     }
+
                     pieces.push(overlapPiece);
 
                     /* remove the overlapping portion from both parents */
@@ -372,6 +378,7 @@ function _modifyModifications(rawModifications) {
                          * oldPiece.shape is already undefined. */
                         oldPiece.shape = undefined;
                     }
+
                     try {
                         newPiece.shape = turfErase(newPiece.shape, oldPieceShape);
                     } catch(e) {
@@ -393,37 +400,44 @@ var modifyModifications = _.memoize(_modifyModifications, function(_, hash) {ret
 var ModificationModel = coreModels.GeoModel.extend({
     defaults: _.extend({
             name: '',
-            type: ''
+            type: '',
+            effectiveArea: null, // Area after being clip by AoI
+            effectiveUnits: null, // Units of effective area
+            effectiveShape: null, // GeoJSON after being clip by AoI,
         }, coreModels.GeoModel.prototype.defaults
-    )
+    ),
+
+    initialize: function() {
+        coreModels.GeoModel.prototype.initialize.apply(this, arguments);
+
+        if (this.get('effectiveArea') === null) {
+            this.setEffectiveArea();
+        }
+    },
+
+    setEffectiveArea: function() {
+        var aoi = App.map.get('areaOfInterest'),
+            shape = this.get('shape');
+
+        if (aoi && shape) {
+            this.clipToAoI(aoi, shape);
+        } else {
+            this.set('effectiveShape', shape);
+        }
+
+        this.setDisplayArea('effectiveShape', 'effectiveArea', 'effectiveUnits');
+    },
+
+    clipToAoI: function(aoi, shape) {
+        var effectiveShape = turfIntersect(shape, aoi);
+
+        this.set('effectiveShape', effectiveShape);
+    }
 });
 
 var ModificationsCollection = Backbone.Collection.extend({
     model: ModificationModel
 });
-
-/**
- * A function to allow scenarios created with the old names to
- * continue to function.  This can perhaps be removed after a period
- * of time.
-*/
-function oldToNewName(modKey) {
-    var translationMatrix = {
-        'lir': 'li_residential',
-        'hir': 'hi_residential',
-        'forest': 'deciduous_forest',
-        'turf_grass': 'urban_grass',
-        'tg_prairie': 'tall_grass_prairie',
-        'sg_prairie': 'short_grass_prairie',
-        'veg_infil_basin': 'infiltration_trench',
-        'no_till_agriculture': 'no_till'
-    };
-    if (modKey in translationMatrix) {
-        return translationMatrix[modKey];
-    } else {
-        return modKey;
-    }
-}
 
 var ScenarioModel = Backbone.Model.extend({
     urlRoot: '/api/modeling/scenarios/',
@@ -458,12 +472,6 @@ var ScenarioModel = Backbone.Model.extend({
             ]
         });
 
-        // Change old names to new ones.  This could eventually be
-        // removed when enough of old scenarios have been upgraded.
-        _.forEach(attrs.modifications, function(m) {
-            m.value = oldToNewName(m.value);
-        });
-
         this.set('inputs', new ModificationsCollection(attrs.inputs));
         this.set('modifications', new ModificationsCollection(attrs.modifications));
 
@@ -477,8 +485,8 @@ var ScenarioModel = Backbone.Model.extend({
         this.get('inputs').on('add', debouncedFetchResults);
         this.get('modifications').on('add remove', debouncedFetchResults);
 
-        this.set('taskModel', App.currProject.createTaskModel());
-        this.set('results', App.currProject.createTaskResultCollection());
+        this.set('taskModel', App.currentProject.createTaskModel());
+        this.set('results', App.currentProject.createTaskResultCollection());
     },
 
     attemptSave: function() {
@@ -486,20 +494,26 @@ var ScenarioModel = Backbone.Model.extend({
             // Fail fast if the user can't save the project.
             return;
         }
+
         if (!this.get('project')) {
             // TODO replace this with radio/wreqr or something less problematic than the global.
-            App.currProject.saveProjectAndScenarios();
+            App.currentProject.saveProjectAndScenarios();
             return;
         }
+
         if (this.isNew() && this.saveCalled) {
             return;
         } else if (this.isNew() && !this.saveCalled) {
             // Makeshift locking mechanism to prevent double saves.
             this.saveCalled = true;
         }
-        this.save().fail(function() {
-            console.log('Failed to save scenario');
-        });
+
+        // Save silently so server values don't trigger reload
+        // except when this is a new scenario and there are no existing values
+        this.save(null, { silent: !this.isNew() })
+            .fail(function() {
+                console.log('Failed to save scenario');
+            });
     },
 
     addModification: function(modification) {
@@ -509,13 +523,20 @@ var ScenarioModel = Backbone.Model.extend({
     addOrReplaceInput: function(input) {
         var inputsColl = this.get('inputs'),
             existing = inputsColl.findWhere({ name: input.get('name') });
+
         if (existing) {
             inputsColl.remove(existing);
         }
+
         inputsColl.add(input);
     },
 
-    parse: function(response) {
+    parse: function(response, options) {
+        if (options.silent) {
+            // Don't reload server values
+            return this.attributes;
+        }
+
         this.get('modifications').reset(response.modifications);
         delete response.modifications;
 
@@ -525,6 +546,7 @@ var ScenarioModel = Backbone.Model.extend({
         if (!_.isEmpty(response.results)) {
             this.get('results').reset(response.results);
         }
+
         delete response.results;
 
         return response;
@@ -546,12 +568,14 @@ var ScenarioModel = Backbone.Model.extend({
 
     setResults: function() {
         var rawServerResults = this.get('taskModel').get('result');
+
         if (rawServerResults === '' || rawServerResults === null) {
             this.get('results').setNullResults();
         } else {
             var serverResults = JSON.parse(rawServerResults);
             this.get('results').forEach(function(resultModel) {
                 var resultName = resultModel.get('name');
+
                 if (serverResults[resultName]) {
                     resultModel.set({
                         'result': serverResults[resultName],
@@ -581,7 +605,7 @@ var ScenarioModel = Backbone.Model.extend({
                         inputs: self.get('inputs').toJSON(),
                         modifications: self.get('modifications').toJSON(),
                         modification_pieces: modifyModifications(self.get('modifications'), self.get('modification_hash')),
-                        area_of_interest: App.currProject.get('area_of_interest'),
+                        area_of_interest: App.currentProject.get('area_of_interest'),
                         census: self.get('census'),
                         inputmod_hash: self.get('inputmod_hash'),
                         modification_hash: self.get('modification_hash')
@@ -608,9 +632,11 @@ var ScenarioModel = Backbone.Model.extend({
 
                 startFailure: function(response) {
                     console.log('Failed to start modeling job.');
+
                     if (response.responseJSON && response.responseJSON.error) {
                         console.log(response.responseJSON.error);
                     }
+
                     results.setNullResults();
                     results.setPolling(false);
                 }
@@ -708,9 +734,10 @@ var ScenariosCollection = Backbone.Collection.extend({
 
         if (match) {
             window.alert("There is another scenario with the same name. " +
-                    "Please choose a unique name for this scenario."
-            );
+                    "Please choose a unique name for this scenario.");
+
             console.log('This name is already in use.');
+
             return false;
         } else if (model.get('name') !== newName) {
             return model.set('name', newName);
@@ -769,6 +796,7 @@ function getControlsForModelPackage(modelPackageName, options) {
             ]);
         }
     }
+
     throw 'Model package not supported ' + modelPackageName;
 }
 

@@ -1,83 +1,83 @@
 //General Styles
-.btn{
+.btn {
   display: inline-block;
   position: relative;
   transition: all 0.2s ease-out;
 }
 
-.btn-xs{
+.btn-xs {
   font-size: 0.5rem;
   padding: 0 0.3rem;
   line-height: $height-xs;
 }
 
-.btn-sm{
+.btn-sm {
   border-radius: $radius-sm;
   font-size: 0.6rem;
   padding: 0 0.7rem;
   line-height: $height-sm;
 }
 
-.btn-md{
+.btn-md {
   line-height: $height-md;
   border-radius: $radius-sm;
   font-size: 0.7rem;
   padding: 0 1rem;
 }
 
-.btn-lg{
+.btn-lg {
   line-height: $height-lg;
   border-radius: $radius-sm;
   font-size: 0.7rem;
   padding: 0 1rem;
 }
 
-.btn-default{
+.btn-default {
   color: $brand-primary;
   position: relative;
   display: inline-block;
   background-color: transparent;
   border: solid 1px transparent;
 
-  &:hover, &:focus, &.focus{
+  &:hover, &:focus, &.focus {
     color: $paper;
     background-color: $brand-primary;
     border: solid 1px transparent;
   }
 }
 
-.btn-primary{
+.btn-primary {
   color: $black-74;
   position: relative;
   display: inline-block;
   background-color: $ui-light;
   border: solid 1px darken($ui-light, 5%);
 
-  i{
+  i {
     color: $black-54;
   }
 
-  &:hover, &:focus{
+  &:hover, &:focus {
     color: $black-74;
     background-color: darken($ui-light, 5%);
     border: solid 1px darken($ui-light, 10%);
   }
 
   //For precip control
-  label{
+  label {
     color: $black-74;
     font-weight: 400;
   }
 }
 
-.btn-active{
+.btn-active {
   color: $paper !important;
   position: relative;
   display: inline-block;
   background-color: $brand-primary !important;
   border: darken($brand-primary, 5%);
 
-  &:hover, &:focus{
+  &:hover, &:focus {
     color: $paper!important;
     background-color: darken($brand-primary, 5%);
     border: darken($brand-primary, 10%);
@@ -85,7 +85,7 @@
 }
 
 //Specific Buttons
-.btn-cta{
+.btn-cta {
   color: $paper;
   text-align: center;
   background-color: $active;
@@ -96,13 +96,13 @@
   box-shadow: 0 3px 3px $black-54;
   margin-bottom: 0.5rem;
 
-  &:hover, &:focus{
+  &:hover, &:focus {
     color: $paper;
     background-color: darken($active, 10%);
   }
 }
 
-.btn-tab{
+.btn-tab {
   margin-right: 1px;
   width: 29px;
   height: 29px;
@@ -112,35 +112,35 @@
   padding: 4px;
   border-radius: 0!important;
 
-  &:hover, &:focus{
+  &:hover, &:focus {
     background-color: $paper-12;
     color: $paper;
   }
 }
 
-.btn-icon{
+.btn-icon {
   text-align: center;
   background-color: transparent;
   line-height: inherit!important;
 
-  &.light{
+  &.light {
     color: $paper-74;
 
-    &:hover, &:focus{
+    &:hover, &:focus {
       color: $paper;
     }
   }
 
-  &.dark{
+  &.dark {
     color: $black-54;
 
-    &:hover, &:focus{
+    &:hover, &:focus {
       color: $black-74;
     }
   }
 }
 
-.btn-compare{
+.btn-compare {
   color: $paper;
   background-color: $ui-secondary;
   font-size: 0.6rem;
@@ -148,22 +148,22 @@
   border-radius: 0!important;
   padding: 0.7rem;
 
-  i{
+  i {
     margin-right: 4px;
     color: $paper-54;
   }
 
-  &:hover{
+  &:hover {
     color: $paper;
     background-color: $brand-primary;
 
-    i{
+    i {
       color: $paper-54;
     }
   }
 }
 
-.btn-search-tool{
+.btn-search-tool {
   color: $ui-secondary;
   position: relative;
   display: inline-block;
@@ -171,21 +171,21 @@
   box-shadow: 0 0 6px $black-74;
   margin-right: 0.6rem;
 
-  &:hover{
+  &:hover {
     color: $ui-secondary;
     background-color: $ui-light;
     box-shadow: 0 0 8px $black-74;
   }
 }
 
-.btn-stream-slider{
+.btn-stream-slider {
   width: 300px;
   border-radius: 2px;
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.74);
 }
 
 //Dropdown Button Classes
-.open > .btn-primary.dropdown-toggle{
+.open > .btn-primary.dropdown-toggle {
   background-color: darken($ui-light, 5%);
   border: solid 1px darken($ui-light, 10%);
 }

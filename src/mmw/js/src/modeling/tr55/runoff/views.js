@@ -47,25 +47,27 @@ var ResultView = Marionette.ItemView.extend({
                 };
 
             if (this.compareMode) {
-                // Use the modified results since they are the same as the unmodified results
-                // in Current Conditions, and they are the results we want to show
-                // in compareMode for other scenarios.
+                var target_result = 'modified';
+                if (this.scenario.get('is_current_conditions')) {
+                    target_result = 'unmodified';
+                }
+                if (this.scenario.get('is_pre_columbian')) {
+                    target_result = 'pc_unmodified';
+                }
                 data = [
-                    getBarData('', 'modified')
+                    getBarData('', target_result)
                 ];
                 this.$el.addClass('current-conditions');
             } else if (this.scenario.get('is_current_conditions')) {
-                // Show the unmodified results and the unmodified
-                // Pre-Columbian results.
                 data = [
-                    getBarData('Current Conditions', 'unmodified'),
-                    getBarData('Pre-Columbian', 'pc_unmodified')
+                    getBarData('100% Forest', 'pc_unmodified'),
+                    getBarData('Current Conditions', 'unmodified')
                 ];
             } else {
                 // Show the unmodified results and the modified
                 // results.
                 data = [
-                    getBarData('Original', 'unmodified'),
+                    getBarData('Current Conditions', 'unmodified'),
                     getBarData('Modified', 'modified')
                 ];
             }

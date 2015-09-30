@@ -13,7 +13,10 @@ var L = require('leaflet'),
     areaOfInterestTmpl = require('./templates/areaOfInterestHeader.html'),
     modalModels = require('./modals/models'),
     modalViews = require('./modals/views'),
-    settings = require('./settings');
+    settings = require('./settings'),
+    LayerControl = require('./layerControl'),
+    StreamSliderControl = require('./streamSliderControl'),
+    OpacityControl = require('./opacityControl');
 
 require('leaflet.locatecontrol');
 require('leaflet-plugins/layer/tile/Google');
@@ -50,6 +53,19 @@ var HeaderView = Marionette.ItemView.extend({
     modelEvents: {
         'sync'  : 'render',
         'change': 'render'
+    },
+
+    initialize: function() {
+        this.appState = this.options.appState;
+        this.listenTo(this.appState, 'change', this.render);
+    },
+
+    templateHelpers: function() {
+        var self = this;
+
+        return {
+            'current_page_title': self.appState.get('current_page_title')
+        };
     },
 
     showLogin: function() {
@@ -153,15 +169,18 @@ var MapView = Marionette.ItemView.extend({
     _googleMaps: (window.google ? window.google.maps : null),
 
     initialize: function(options) {
-        var defaultLayerName = _.findKey(settings.get('base_layers'), function(layerData) {
-            return layerData.default;
-        });
+        var defaultLayer = _.findWhere(settings.get('base_layers'), function(layer) {
+                return layer.default === true;
+            }),
+            defaultLayerName = defaultLayer ? defaultLayer['display'] : 'Streets',
+            map_controls = settings.get('map_controls');
 
         _.defaults(options, {
-            addZoomControl: true,
-            addLocateMeButton: true,
-            addLayerSelector: true,
-            showLayerAttribution: true,
+            addZoomControl: _.contains(map_controls, 'ZoomControl'),
+            addLocateMeButton: _.contains(map_controls, 'LocateMeButton'),
+            addLayerSelector: _.contains(map_controls, 'LayerSelector'),
+            addStreamControl: _.contains(map_controls, 'StreamControl'),
+            showLayerAttribution: _.contains(map_controls, 'LayerAttribution'),
             initialLayerName: defaultLayerName,
             interactiveMode: true // True if clicking on map does stuff
         });
@@ -170,58 +189,51 @@ var MapView = Marionette.ItemView.extend({
                 zoomControl: false,
                 attributionControl: options.showLayerAttribution
             }),
-            areaOfInterestLayer = new L.FeatureGroup(),
-            modificationsLayer = new L.FeatureGroup(),
-            maxAge = 60000,
-            timeout = 30000,
-            self = this;
+            overlayLayers = this.prepareOverlayLayers();
 
-        this.interactiveMode = options.interactiveMode;
+        // Center the map on the U.S.
+        map.fitBounds([
+            [24.2, -126.4],
+            [49.8, -66.0]
+        ]);
+
+        this._leafletMap = map;
+        this._areaOfInterestLayer = new L.FeatureGroup();
+        this._modificationsLayer = new L.FeatureGroup();
+        this.baseLayers = this.buildLayers(settings.get('base_layers'));
+        this.overlayLayers = this.buildLayers(overlayLayers);
 
         if (!options.interactiveMode) {
-            // Disable panning and zooming.
-            // http://gis.stackexchange.com/questions/54454/disable-leaflet-interaction-temporary
-            map.dragging.disable();
-            map.touchZoom.disable();
-            map.doubleClickZoom.disable();
-            map.scrollWheelZoom.disable();
-            map.boxZoom.disable();
-            map.keyboard.disable();
-
-            if (map.tap) {
-                map.tap.disable();
-            }
-
-            document.getElementById('map').style.cursor='default';
+            this.setMapToNonInteractive();
         }
 
         if (options.addZoomControl) {
             map.addControl(new L.Control.Zoom({position: 'topright'}));
         }
 
+        var maxGeolocationAge = 60000;
         if (options.addLocateMeButton) {
-            addLocateMeButton(map, maxAge);
+            addLocateMeButton(map, maxGeolocationAge);
         }
-
-        this.baseLayers = _.mapObject(settings.get('base_layers'), function(layerData) {
-
-            // Check to see if the google api service has been loaded
-            // before creating a google layer
-            if (self._googleMaps && layerData.type === 'google') {
-                return new L.Google(layerData.googleType, {
-                    maxZoom: layerData.maxZoom
-                });
-            } else {
-                return new L.TileLayer(layerData.url, {
-                    attribution: layerData.attribution || '',
-                    maxZoom: layerData.maxZoom
-                });
-            }
-        });
 
         if (options.addLayerSelector) {
-            this.layerControl = L.control.layers(this.baseLayers, {}, {autoZIndex:false}).addTo(map);
+            this.layerControl = new LayerControl(this.baseLayers, this.overlayLayers, {
+                autoZIndex: false,
+                position: 'topright',
+                collapsed: false
+            }).addTo(map);
         }
+
+        if (options.addStreamControl) {
+            this.layerControl = new StreamSliderControl({
+                autoZIndex: false,
+                position: 'topright',
+                collapsed: false
+            }).addTo(map);
+        }
+
+        this.setMapEvents();
+        this.setupGeoLocation(maxGeolocationAge);
 
         var initialLayer = this.baseLayers[options.initialLayerName] ||
                            this.baseLayers[defaultLayerName];
@@ -230,42 +242,36 @@ var MapView = Marionette.ItemView.extend({
             map.addLayer(initialLayer);
         }
 
-        map.addLayer(areaOfInterestLayer);
-        map.addLayer(modificationsLayer);
+        map.addLayer(this._areaOfInterestLayer);
+        map.addLayer(this._modificationsLayer);
+    },
 
-        // Center the map on the U.S.
-        map.fitBounds([
-            [24.2, -126.4],
-            [49.8, -66.0]
-        ]);
+    prepareOverlayLayers: function() {
+        var nullVectorLayer = {
+                display: 'nullVector',
+                vector: true,
+                empty: true
+            },
+            nullRasterLayer = {
+                display: 'nullRaster',
+                raster: true,
+                empty: true
+            },
+            vectorOverlayLayers = settings.get('vector_layers'),
+            rasterOverlayLayers = settings.get('raster_layers');
 
-        // Keep the map model up-to-date with the position of the map
-        this.listenTo(map, 'moveend', this.updateMapModelPosition);
-        this.listenTo(map, 'zoomend', this.updateMapModelZoom);
-        this.listenTo(this.model, 'change:areaOfInterest', this.aoiChangeWarning);
+        vectorOverlayLayers = !_.isEmpty(vectorOverlayLayers) ?
+                                [nullVectorLayer].concat(vectorOverlayLayers) : [];
 
-        // The max available zoom level changes based on the active base layer
-        map.on('baselayerchange', this.updateCurrentZoomLevel);
+        rasterOverlayLayers = !_.isEmpty(rasterOverlayLayers) ?
+                                [nullRasterLayer].concat(rasterOverlayLayers) : [];
 
-        // Some Google layers have a dynamic max zoom that we need to handle.
-        // Check that Google Maps API library is available before implementing
-        // this special handling.
-        if (this._googleMaps) {
-            this._googleMaxZoomService = new this._googleMaps.MaxZoomService();
+        return vectorOverlayLayers.concat(rasterOverlayLayers);
+    },
 
-            // TODO: Because the max zoom level is only read when a layer is selected
-            // in the basemap control, updates to the maximum zoom level won't
-            // be used until a user reselects a google base map. This can
-            // be better implemented in Leaflet 1.0 which has map.setMaxZoom
-            map.on('moveend', _.bind(this.updateGoogleMaxZoom, this));
-
-            // Get the maximum zoom level for the initial location
-            this.updateGoogleMaxZoom({ target: map });
-        }
-
-        this._leafletMap = map;
-        this._areaOfInterestLayer = areaOfInterestLayer;
-        this._modificationsLayer = modificationsLayer;
+    setupGeoLocation: function(maxAge) {
+        var self = this,
+            timeout = 30000;
 
         // Geolocation success handler
         function geolocation_success(position) {
@@ -274,17 +280,17 @@ var MapView = Marionette.ItemView.extend({
                     lat = position.coords.latitude,
                     zoom = 12; // Regional zoom level
 
-                map.setView([lat, lng], zoom);
+                self._leafletMap.setView([lat, lng], zoom);
             }
         }
 
-        // Attempt to Geolocate.  If geolocation fails or is not
+        // Attempt to Geolocate. If geolocation fails or is not
         // supported, nothing more needs to be done since the map has
         // already been centered.
         if (navigator.geolocation) {
             var geolocationOptions = {
-                maximumAge : maxAge,
-                timeout : timeout
+                maximumAge: maxAge,
+                timeout: timeout
             };
 
             // Wait a bit and then get the location. Suppresses issues on Safari
@@ -298,6 +304,85 @@ var MapView = Marionette.ItemView.extend({
                 );
             }, 500);
         }
+    },
+
+    setMapToNonInteractive: function() {
+        // Disable panning and zooming.
+        // Source: http://gis.stackexchange.com/questions/54454
+        this._leafletMap.dragging.disable();
+        this._leafletMap.touchZoom.disable();
+        this._leafletMap.doubleClickZoom.disable();
+        this._leafletMap.scrollWheelZoom.disable();
+        this._leafletMap.boxZoom.disable();
+        this._leafletMap.keyboard.disable();
+
+        if (this._leafletMap.tap) {
+            this._leafletMap.tap.disable();
+        }
+
+        this.el.style.cursor = 'default';
+    },
+
+    setMapEvents: function() {
+        // Keep the map model up-to-date with the position of the map
+        this.listenTo(this._leafletMap, 'moveend', this.updateMapModelPosition);
+        this.listenTo(this._leafletMap, 'zoomend', this.updateMapModelZoom);
+        this.listenTo(this.model, 'change:areaOfInterest', this.aoiChangeWarning);
+
+        // The max available zoom level changes based on the active base layer
+        this._leafletMap.on('baselayerchange', this.updateCurrentZoomLevel);
+
+        // Some Google layers have a dynamic max zoom that we need to handle.
+        // Check that Google Maps API library is available before implementing
+        // this special handling.
+        if (this._googleMaps) {
+            this._googleMaxZoomService = new this._googleMaps.MaxZoomService();
+
+            // TODO: Because the max zoom level is only read when a layer is selected
+            // in the basemap control, updates to the maximum zoom level won't
+            // be used until a user reselects a google base map. This can
+            // be better implemented in Leaflet 1.0 which has map.setMaxZoom
+            this._leafletMap.on('moveend', _.bind(this.updateGoogleMaxZoom, this));
+
+            // Get the maximum zoom level for the initial location
+            this.updateGoogleMaxZoom({ target: this._leafletMap });
+        }
+    },
+
+    buildLayers: function(layerConfig) {
+        var self = this,
+            layers = {};
+
+        _.each(layerConfig, function(layer) {
+            var leafletLayer;
+
+            // Check to see if the google api service has been loaded
+            // before creating a google layer
+            if (self._googleMaps && layer.type === 'google') {
+                leafletLayer = new L.Google(layer.googleType, {
+                    maxZoom: layer.maxZoom
+                });
+            } else if (!layer.empty) {
+                var tileUrl = (layer.url.match(/png/) === null ?
+                                layer.url + '.png' : layer.url),
+                    zIndex = layer.overlay ? 1 : 0;
+
+                _.defaults(layer, {zIndex: zIndex, attribution: ''});
+                leafletLayer = new L.TileLayer(tileUrl, layer);
+                if (layer.has_opacity_slider) {
+                    var slider = new OpacityControl();
+
+                    slider.setOpacityLayer(leafletLayer);
+                    leafletLayer.slider = slider;
+                }
+            } else {
+                leafletLayer = new L.TileLayer('', layer);
+            }
+
+            layers[layer['display']] = leafletLayer;
+        });
+
+        return layers;
     },
 
     getActiveBaseLayerName: function() {
@@ -461,7 +546,7 @@ var MapView = Marionette.ItemView.extend({
                     return acc.concat(new L.GeoJSON(model.get('shape'), {
                             style: style,
                             onEachFeature: function(feature, layer) {
-                                if (self.interactiveMode) {
+                                if (self.options.interactiveMode) {
                                     var popupContent = new ModificationPopupView({ model: model }).render().el;
                                     layer.bindPopup(popupContent);
                                 }
@@ -478,19 +563,26 @@ var MapView = Marionette.ItemView.extend({
     },
 
     toggleMapSize: function() {
-        var size = this.model.get('size');
+        var self = this,
+            size = this.model.get('size'),
+            $container = this.$el.parent();
 
-        if (size.half) {
-            this.$el.addClass('half');
-        } else {
-            this.$el.removeClass('half');
-        }
+        $container.toggleClass('map-container-top-1', !!size.top.single);
+        $container.toggleClass('map-container-top-2', !!size.top.double);
 
-        this._leafletMap.invalidateSize();
+        $container.toggleClass('map-container-bottom-1', !!size.bottom.min);
+        $container.toggleClass('map-container-bottom-2', !!size.bottom.small);
+        $container.toggleClass('map-container-bottom-3', !!size.bottom.med);
+        $container.toggleClass('map-container-bottom-4', !!size.bottom.large);
 
-        if (size.fit) {
-            this.fitToAoi();
-        }
+
+        _.delay(function() {
+            self._leafletMap.invalidateSize();
+
+            if (size.fit) {
+                self.fitToAoi();
+            }
+        }, 300);
     },
 
     fitToAoi: function() {

@@ -3,6 +3,7 @@
 var _ = require('lodash'),
     Backbone = require('../../shim/backbone'),
     iframePhone = require('iframe-phone'),
+    shutterbug = require('../../shim/shutterbug'),
     router = require('../router.js').router,
     EMBED_FLAG = 'itsi_embed',
     QUERY_SUFFIX = EMBED_FLAG + '=true';
@@ -13,6 +14,8 @@ var ItsiEmbed = function(App) {
     this.url = window.location.href + '?' + QUERY_SUFFIX;
 
     this.interactiveState = { route: '/' };
+
+    this.extendedSupport = { reset: false };
 
     this.setLearnerUrl = function(route) {
         if (route) {
@@ -42,15 +45,23 @@ var ItsiEmbed = function(App) {
             interactiveState.route &&
             interactiveState.route !== Backbone.history.getFragment()) {
 
-            App.currProject = null;
+            App.currentProject = null;
             router.navigate(interactiveState.route, { trigger: true });
         }
     };
 
+    this.getExtendedSupport = function() {
+        this.phone.post('extendedSupport', this.extendedSupport);
+    };
+
+    this.phone.addListener('getExtendedSupport', _.bind(this.getExtendedSupport, this));
     this.phone.addListener('getLearnerUrl', _.bind(this.sendLearnerUrlOnlyFromProjectView, this));
     this.phone.addListener('getInteractiveState', _.bind(this.sendLearnerUrlOnlyFromProjectView, this));
     this.phone.addListener('loadInteractive', _.bind(this.loadInteractive, this));
     this.phone.initialize();
+
+    // Enable screenshot functionality
+    shutterbug.enable('body');
 };
 
 module.exports = {

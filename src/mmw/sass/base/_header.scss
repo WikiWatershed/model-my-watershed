@@ -1,28 +1,28 @@
 //Search Screen Header
 
-header{
+header {
   width: 100%;
-  position: absolute;
+  position: relative;
   top: 0;
   z-index: 500;
 }
 
 //Standard Header
-#app-header{
+#app-header {
   background-color: $ui-primary;
   height: $height-lg;
   box-shadow: 0 0 4px $black-54;
   padding: 0 1rem;
 
-  .brand{
-    a{
+  .brand {
+    a {
       float: left;
       line-height: $height-lg;
       font-size: 0.7rem;
       font-weight: 400;
       color: $paper;
 
-      &:hover{
+      &:hover {
         color: $paper-54;
         text-decoration: none;
         cursor: pointer;
@@ -30,11 +30,11 @@ header{
     }
   }
 
-  .navigation{
+  .navigation {
     float: right;
     display: inline-block;
 
-    .main{
+    .main {
       list-style-type: none;
       display: inline-block;
 
@@ -50,11 +50,11 @@ header{
           color: $ui-secondary;
         }
 
-        a{
+        a {
           color: $paper-54;
           text-decoration: none!important;
 
-          &:hover, &:active{
+          &:hover, &:active {
             color: $paper;
             text-decoration: none!important;
             cursor: pointer;
@@ -64,20 +64,20 @@ header{
     }
   }
 
-  .toolbar{
+  .toolbar {
     position: absolute;
     top: $height-lg;
     left: 0;
     right: 0;
     padding: 0.7rem;
     background-color: $paper;
-    height: 60px;
+    height: $toolbar-height;
 
-    #modification-btn-wrapper{
+    #modification-btn-wrapper {
       float: right;
     }
 
-    #advanced{
+    #advanced {
       position: absolute;
       top: 0;
       right: 0;
@@ -86,30 +86,30 @@ header{
 }
 
 //Model Header
-#model-header{
+#model-header {
   background-color: $ui-secondary;
   height: 104px;
   box-shadow: 0 0 4px $black-54;
 
-  .top{
+  .top {
     height: $height-lg;
 
-    .project{
+    .project {
       width: 240px;
       background-color: $ui-primary;
       height: 100%;
 
-      .project-title{
+      .project-title {
         display: inline-block;
         position: relative;
         width: 180px;
 
-        h3{
+        h3 {
           margin: 0;
           line-height: $height-lg;
         }
 
-        #project-settings{
+        #project-settings {
           position: absolute;
           top: 10px;
           right: 0;
@@ -119,7 +119,7 @@ header{
       }
     }
 
-    .top-bar{
+    .top-bar {
       position: absolute;
       top: 0;
       left: 240px;
@@ -127,25 +127,25 @@ header{
       padding: 8px 0 8px 8px;
       height: inherit;
 
-      .tab-controls{
+      .tab-controls {
         position: absolute;
         top: 0;
         left: 0;
         padding: 7px;
       }
 
-      .scenario-tabs-wrapper{
+      .scenario-tabs-wrapper {
         position: absolute;
         top: 0;
         left: 70px;
         height: $height-lg;
         width: 5000px;
 
-        .nav-tabs a.tab-name[contenteditable=true] span{
+        .nav-tabs a.tab-name[contenteditable=true] span {
             border: 1px solid maroon;
         }
 
-        .scenario-btn-dropdown{
+        .scenario-btn-dropdown {
           position: absolute;
           top: 0.5rem;
           right: 0;
@@ -153,7 +153,7 @@ header{
         }
       }
 
-      .fade-tabs{
+      .fade-tabs {
         position: absolute;
         top: 0;
         right: 85px;
@@ -163,7 +163,7 @@ header{
         background: linear-gradient(90deg,rgba(0,0,0,0),$ui-secondary);
       }
 
-      .compare-top-btn{
+      .compare-top-btn {
         position: absolute;
         top: 0;
         right: 0;
@@ -173,17 +173,27 @@ header{
     }
   }
 
-  .toolbar{
+  .toolbar {
     position: absolute;
     top: $height-lg;
     left: 0;
     right: 0;
     padding: 0.7rem;
     background-color: $paper;
-    height: 60px;
+    height: $toolbar-height;
 
-    #modification-btn-wrapper{
+    #modification-btn-wrapper {
       float: right;
+    }
+
+    #modifications {
+      .modification-type {
+        min-width: 140px;
+      }
+
+      .message {
+        font-size: 13px;
+      }
     }
 
     .inline {
@@ -206,31 +216,31 @@ header{
 }
 
 //Compare Header
-#compare-header{
+#compare-header {
   background-color: $ui-secondary;
   box-shadow: 0 0 4px $black-54;
 
-  .top{
+  .top {
     height: $height-lg;
 
-    .project{
+    .project {
       width: 240px;
       background-color: $ui-primary;
       height: 100%;
 
-      .project-title{
+      .project-title {
         display: inline-block;
         position: relative;
         width: 180px;
 
-        h3{
+        h3 {
           margin: 0;
           line-height: $height-lg;
         }
       }
     }
 
-    .top-bar{
+    .top-bar {
       position: absolute;
       top: 0;
       left: 240px;
@@ -238,14 +248,14 @@ header{
       padding: 8px 0 8px 8px;
       height: inherit;
 
-      .tab-controls{
+      .tab-controls {
         position: absolute;
         top: 0;
         left: 0;
         padding: 7px;
       }
 
-      .scenario-tabs-wrapper{
+      .scenario-tabs-wrapper {
         position: absolute;
         top: 0;
         left: 45px;
@@ -253,7 +263,7 @@ header{
         width: 5000px;
       }
 
-      .fade-tabs{
+      .fade-tabs {
         position: absolute;
         top: 0;
         right: 85px;
@@ -267,7 +277,7 @@ header{
 }
 
 //Shared Elements
-.back{
+.back {
   line-height: $height-lg;
   height: 100%;
   display: inline-block;

@@ -1,0 +1,22 @@
+description "mmw-geoprocessing"
+
+start on started spark-jobserver
+
+env GEOPROCESSING_JAR_VERSION="{{ geop_version }}"
+
+task
+
+script
+  set -e
+  set -x
+
+  sleep 1
+
+  if ! curl --silent --retry 3 "http://{{ sjs_host }}:{{ sjs_port }}/jars" | grep -q "geoprocessing-${GEOPROCESSING_JAR_VERSION}";
+  then
+    curl --silent \
+         --retry 3 \
+         --data-binary "@{{ geop_home }}/mmw-geoprocessing-${GEOPROCESSING_JAR_VERSION}.jar" \
+         "http://{{ sjs_host }}:{{ sjs_port }}/jars/geoprocessing-${GEOPROCESSING_JAR_VERSION}"
+  fi
+end script

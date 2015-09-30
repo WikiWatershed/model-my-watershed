@@ -126,7 +126,9 @@ var ProjectMenuView = Marionette.ItemView.extend({
                 fieldLabel: 'Project Name'
             })
         });
+
         rename.render();
+
         rename.on('update', function(val) {
             self.model.updateName(val);
         });
@@ -144,7 +146,6 @@ var ProjectMenuView = Marionette.ItemView.extend({
             });
 
         share.render();
-
     },
 
     deleteProject: function() {
@@ -156,7 +157,9 @@ var ProjectMenuView = Marionette.ItemView.extend({
                     cancelLabel: 'Cancel'
                 })
             });
+
         del.render();
+
         del.on('confirmation', function() {
             // TODO: our version of backbone returns false if model isNew and an
             // xhr otherwise.  Future versions will return just an xhr always at
@@ -206,6 +209,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
             });
 
         modal.render();
+
         modal.on('confirmation', function() {
             self.model.set('is_private', !self.model.get('is_private'));
             self.model.saveProjectAndScenarios();
@@ -215,7 +219,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
     getItsiEmbedLink: function() {
         var self = this,
             embedLink = window.location.origin +
-                '/project/' + App.currProject.id + '/clone?itsi_embed=true',
+                '/project/' + App.currentProject.id + '/clone?itsi_embed=true',
             modal = new modalViews.ShareView({
                 model: new modalModels.ShareModel({
                     text: 'Embed Link',
@@ -377,6 +381,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
             });
 
         del.render();
+
         del.on('confirmation', function() {
             self.triggerMethod('tab:removed', self.model.cid);
             self.model.destroy();
@@ -389,7 +394,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
                     text: 'Scenario',
                     url: window.location.href,
                     guest: App.user.get('guest'),
-                    is_private: App.currProject.get('is_private')
+                    is_private: App.currentProject.get('is_private')
                 }),
                 app: App
             });
@@ -524,6 +529,7 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
     templateHelpers: function() {
         var shapes = this.model.get('modifications'),
             groupedShapes = shapes.groupBy('name');
+
         return {
             compareMode: this.compareMode,
             shapes: shapes,
@@ -555,11 +561,13 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
             cid = $el.data('delete'),
             modificationsColl = this.model.get('modifications'),
             modification = modificationsColl.get(cid);
+
         modificationsColl.remove(modification);
     },
 
     getChildView: function(modelPackageControl) {
         var controlName = modelPackageControl.get('name');
+
         return controls.getControlView(controlName);
     },
 
@@ -583,6 +591,7 @@ var ToolbarTabContentsView = Marionette.CollectionView.extend({
             this.options.model_package,
             {is_current_conditions: model.get('is_current_conditions')}
         );
+
         return {
             collection: controls
         };
@@ -612,18 +621,28 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         'click @ui.toggle': 'toggleResultsWindow'
     },
 
-    initialize: function() {
+    initialize: function(options) {
         var scenarios = this.model.get('scenarios');
         this.listenTo(scenarios, 'change:active', this.showDetailsRegion);
+        if (options.lock) {
+            this.lock = options.lock;
+        }
     },
 
     onShow: function() {
         this.showDetailsRegion();
     },
 
+    onRender: function() {
+        if (this.lock) {
+            this.lock.resolve();
+        }
+    },
+
     showDetailsRegion: function() {
         var scenarios = this.model.get('scenarios'),
             scenario = scenarios.getActiveScenario();
+
         if (scenario) {
             this.detailsRegion.show(new ResultsDetailsView({
                 collection: scenario.get('results'),
@@ -636,11 +655,13 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         height: '0%'
     },
 
-    animateIn: function() {
-        var self = this;
+    animateIn: function(fitToBounds) {
+        var self = this,
+            fit = _.isUndefined(fitToBounds) ? true : fitToBounds;
+
         this.$el.animate({ height: '55%', 'min-height': '300px' }, 200, function() {
+            App.map.setDoubleHeaderHalfFooterSize(fit);
             self.trigger('animateIn');
-            App.map.setHalfSize(false);
             $(self.ui.toggle.selector).blur()
                 .find('i')
                     .removeClass('fa-angle-up')
@@ -655,7 +676,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
 
         // Change map to full size first so there isn't empty space when
         // results window animates out
-        App.map.setFullSize(fit);
+        App.map.setDoubleHeaderSmallFooterSize(fit);
 
         this.$el.animate({ height: '0%', 'min-height': '50px' }, 200, function() {
             self.trigger('animateOut');
@@ -668,7 +689,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
 
     toggleResultsWindow: function() {
         if (this.$el.css('height') === '50px') {
-            this.animateIn();
+            this.animateIn(false);
         } else {
             this.animateOut(false);
         }
@@ -763,7 +784,7 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        var modelPackage = App.currProject.get('model_package'),
+        var modelPackage = App.currentProject.get('model_package'),
             resultName = this.model.get('name'),
             ResultView = getResultView(modelPackage, resultName);
 

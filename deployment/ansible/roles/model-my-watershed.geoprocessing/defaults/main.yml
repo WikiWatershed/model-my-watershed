@@ -1,11 +1,3 @@
 ---
-geop_home: /opt/geop
-data_dir: "{{ geop_home }}/processing/src/test/data/"
-deploy_branch: "master"
-geoprocessing_log: /var/log/mmw-geoprocessing.log
-geoprocessing_log_rotate_count: 5
-geoprocessing_log_rotate_interval: daily
-
-
-app_config:
-  MMW_DATA: "{{ data_dir }}"
+geop_home: "/opt/geoprocessing"
+geop_jar_url: "https://github.com/WikiWatershed/mmw-geoprocessing/releases/download/{{ geop_version }}/mmw-geoprocessing-assembly-{{ geop_version }}.jar"

@@ -60,20 +60,32 @@ var MapModel = Backbone.Model.extend({
         this.set('areaOfInterest', _.clone(this.get('previousAreaOfInterest')));
     },
 
-    setHalfSize: function(fit) {
-        this.set('size', { half: true, fit: !!fit });
+    setDoubleHeaderSmallFooterSize: function(fit) {
+        this._setSizeOptions({ double: true  }, { small: true }, fit);
     },
 
-    setFullSize: function(fit) {
-        this.set('size', { half: false, fit: !!fit });
+    setDoubleHeaderHalfFooterSize: function(fit) {
+        this._setSizeOptions({ double: true  }, { large: true }, fit);
     },
+
+    setDrawWithBarSize: function(fit) {
+        this._setSizeOptions({ single: true  }, { med: true }, fit);
+    },
+
+    setAnalyzeSize: function(fit) {
+        this._setSizeOptions({ single: true  }, { large: true }, fit);
+    },
+
+    _setSizeOptions: function(top, bottom, fit) {
+        this.set('size', { top: top, bottom: bottom, fit: !!fit });
+    }
 
 });
 
 var TaskModel = Backbone.Model.extend({
     defaults: {
         pollInterval: 500,
-        timeout: 5000
+        timeout: 22000
     },
 
     url: function() {
@@ -165,11 +177,13 @@ var TaskModel = Backbone.Model.extend({
             self.fetch()
                 .done(function(response) {
                     console.log('Polling ' + self.url());
-                    if (response.status !== 'complete') {
+                    if (response.status === 'started') {
                         elapsed = elapsed + self.get('pollInterval');
                         window.setTimeout(getResults, self.get('pollInterval'));
-                    } else {
+                    } else if (response.status === 'complete') {
                         defer.resolve(response);
+                    } else { // Captures 'failed' and anything else
+                        defer.reject(response);
                     }
                 })
                 .fail(defer.reject);
@@ -181,7 +195,9 @@ var TaskModel = Backbone.Model.extend({
 });
 
 // A collection of data points, useful for tables.
-var DataCollection = Backbone.Collection.extend({});
+var LandUseCensusCollection = Backbone.Collection.extend({
+    comparator: 'nlcd'
+});
 
 var GeoModel = Backbone.Model.extend({
     M_IN_KM: 1000000,
@@ -197,17 +213,22 @@ var GeoModel = Backbone.Model.extend({
         this.setDisplayArea();
     },
 
-    setDisplayArea: function() {
-        if (!this.get('shape')) { return; }
+    setDisplayArea: function(shapeAttr, areaAttr, unitsAttr) {
+        var shape = shapeAttr || 'shape',
+            area = areaAttr || 'area',
+            units = unitsAttr || 'units';
 
-        var areaInMeters = turfArea(this.get('shape'));
+        if (!this.get(shape)) { return; }
+
+        var areaInMeters = turfArea(this.get(shape));
 
         // If the area is less than 1 km, use m
         if (areaInMeters < this.M_IN_KM) {
-            this.set('area', areaInMeters);
+            this.set(area, areaInMeters);
+            this.set(units, 'm<sup>2</sup>');
         } else {
-            this.set('area', areaInMeters / this.M_IN_KM);
-            this.set('units', 'km<sup>2</sup>');
+            this.set(area, areaInMeters / this.M_IN_KM);
+            this.set(units, 'km<sup>2</sup>');
         }
     }
 });
@@ -219,10 +240,17 @@ var AreaOfInterestModel = GeoModel.extend({
     }, GeoModel.prototype.defaults)
 });
 
+var AppStateModel = Backbone.Model.extend({
+    defaults: {
+        current_page_title: 'Select Area of Interest'
+    }
+});
+
 module.exports = {
     MapModel: MapModel,
     TaskModel: TaskModel,
-    DataCollection: DataCollection,
+    LandUseCensusCollection: LandUseCensusCollection,
     GeoModel: GeoModel,
-    AreaOfInterestModel: AreaOfInterestModel
+    AreaOfInterestModel: AreaOfInterestModel,
+    AppStateModel: AppStateModel
 };

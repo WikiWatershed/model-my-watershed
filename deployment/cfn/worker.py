@@ -43,6 +43,7 @@ class Worker(StackNode):
         'IPAccess': ['global:IPAccess'],
         'AvailabilityZones': ['global:AvailabilityZones',
                               'VPC:AvailabilityZones'],
+        'RDSPassword': ['global:RDSPassword', 'DataPlane:RDSPassword'],
         'WorkerInstanceType': ['global:WorkerInstanceType'],
         'WorkerAMI': ['global:WorkerAMI'],
         'WorkerInstanceProfile': ['global:WorkerInstanceProfile'],
@@ -106,6 +107,11 @@ class Worker(StackNode):
             'AvailabilityZones', Type='CommaDelimitedList',
             Description='Comma delimited list of availability zones'
         ), 'AvailabilityZones')
+
+        self.rds_password = self.add_parameter(Parameter(
+            'RDSPassword', Type='String', NoEcho=True,
+            Description='Database password',
+        ), 'RDSPassword')
 
         self.worker_instance_type = self.add_parameter(Parameter(
             'WorkerInstanceType', Type='String', Default='t2.micro',
@@ -275,7 +281,7 @@ class Worker(StackNode):
                 )
             ],
             HealthCheck=elb.HealthCheck(
-                Target='HTTP:80/health-check/?refresh=1',
+                Target='HTTP:80/',
                 HealthyThreshold='3',
                 UnhealthyThreshold='2',
                 Interval='60',
@@ -337,7 +343,11 @@ class Worker(StackNode):
                 '  - path: /etc/mmw.d/env/MMW_STACK_COLOR\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
-                '    content: ', Ref(self.color)]
+                '    content: ', Ref(self.color), '\n',
+                '  - path: /etc/mmw.d/env/MMW_DB_PASSWORD\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.rds_password)]
 
     def create_cloud_watch_resources(self, worker_auto_scaling_group):
         self.add_resource(cw.Alarm(

@@ -1,16 +1,16 @@
 //General Styling
-.table{
+.table {
   width: 100%;
   font-size: 0.7rem;
   color: $ui-primary;
 
-  .strong{
+  .strong {
     font-weight: 700;
     color: $brand-primary;
   }
 
-  th, td{
-    padding: 0.8rem 0.4rem!important;
+  th, td {
+    padding: 0.8rem 0.4rem;
     line-height: 1!important;
     vertical-align: middle!important;
     border-top: none!important;
@@ -18,29 +18,29 @@
 }
 
 //Hover Table
-.custom-hover{
+.custom-hover {
 
-  thead{
+  thead {
     border-bottom: solid 1px $black-12;
     font-weight: 500;
   }
 
-  tr{
+  tr {
 
-    &:hover{
+    &:hover {
       background-color: $ui-light;
     }
   }
 }
 
 //Modification Table
-.modifications{
+.modifications {
   margin-bottom: 1rem;
 
-  th, td{
+  th, td {
     white-space: nowrap;
 
-    &:last-child{
+    &:last-child {
       padding-right: 0;
     }
   }

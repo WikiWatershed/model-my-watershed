@@ -2,12 +2,12 @@
 // so that the actual height and width of the
 // enclosing element will get propagated down to the
 // bar-chart elements.
-.chart-container{
+.chart-container {
   width: 100%;
   height: 100%;
 }
 
-.bar-chart{
+.bar-chart {
   width: 100%;
   display: block;
   height: 100%;
@@ -15,14 +15,14 @@
   vertical-align: baseline;
   vertical-align: bottom;
 
-  .bar{
+  .bar {
     margin: 0 2%;
     display: inline-block;
     fill: $brand-primary;
     border-radius: $radius-sm!important;
     vertical-align: bottom;
 
-    &:hover{
+    &:hover {
       fill: lighten($brand-primary, 10%);
     }
   }
@@ -38,7 +38,7 @@
       shape-rendering: crispEdges;
     }
 
-    text{
+    text {
       color: $black-54;
     }
   }
@@ -47,3 +47,17 @@
     display: none;
   }
 }
+
+// Official NLCD legend colors for classes selected for display
+.nlcd-11 .bar { fill: $nlcd-11; }
+.nlcd-21 .bar { fill: $nlcd-21; }
+.nlcd-22 .bar { fill: $nlcd-22; }
+.nlcd-23 .bar { fill: $nlcd-23; }
+.nlcd-24 .bar { fill: $nlcd-24; }
+.nlcd-31 .bar { fill: $nlcd-31; }
+.nlcd-41 .bar { fill: $nlcd-41; }
+.nlcd-52 .bar { fill: $nlcd-52; }
+.nlcd-71 .bar { fill: $nlcd-71; }
+.nlcd-81 .bar { fill: $nlcd-81; }
+.nlcd-82 .bar { fill: $nlcd-82; }
+.nlcd-90 .bar { fill: $nlcd-90; }

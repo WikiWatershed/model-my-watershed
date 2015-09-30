@@ -5,6 +5,7 @@ from __future__ import division
 
 from apps.core.models import Job
 from apps.modeling import views
+from apps.modeling import geoprocessing
 from django.contrib.auth.models import User
 
 from django.test import TestCase
@@ -12,6 +13,328 @@ from django.test.utils import override_settings
 from django.utils.timezone import now
 
 from rest_framework.test import APIClient
+
+from celery import chain, shared_task
+
+
+@shared_task
+def nothing_to_histogram():
+    return {
+        'pixel_width': 33,
+        'histogram': [[[[24, 2], 268], [[24, 4], 279], [[21, 4], 5], [[22, 4], 16], [[23, 4], 322], [[22, 2], 35], [[22, 1], 55], [[23, 2], 339], [[21, 1], 22], [[24, 1], 537], [[21, 2], 1], [[23, 1], 773]]]  # noqa
+    }
+
+
+class ExerciseGeoprocessing(TestCase):
+    def setUp(self):
+        self.histogram = [
+            ((11, 1), 434),
+            ((82, 4), 202),
+            ((23, 4), 1957),
+            ((22, 1), 12977),
+            ((90, 2), 1090),
+            ((81, 2), 1716),
+            ((52, 2), 1090),
+            ((90, 1), 2190),
+            ((43, 4), 745),
+            ((11, 2), 162),
+            ((24, 4), 320),
+            ((71, 1), 91),
+            ((81, 4), 1717),
+            ((41, 1), 13731),
+            ((22, 4), 6470),
+            ((82, 1), 392),
+            ((21, 4), 12472),
+            ((31, 4), 20),
+            ((82, 2), 197),
+            ((24, 2), 352),
+            ((22, 2), 6484),
+            ((41, 2), 7140),
+            ((52, 1), 2103),
+            ((21, 2), 12763),
+            ((42, 4), 675),
+            ((21, 1), 24709),
+            ((71, 2), 54),
+            ((42, 1), 1406),
+            ((23, 2), 2026),
+            ((41, 4), 7231),
+            ((24, 1), 640),
+            ((52, 4), 1022),
+            ((71, 4), 46),
+            ((23, 1), 3886),
+            ((43, 1), 1490),
+            ((81, 1), 3298),
+            ((90, 4), 1093),
+            ((42, 2), 715),
+            ((11, 4), 132),
+            ((31, 2), 25),
+            ((31, 1), 37),
+            ((43, 2), 800)
+        ]
+
+    def test_census(self):
+        expected = {
+            "distribution": {
+                "a:barren_land": {
+                    "cell_count": 37
+                },
+                "b:deciduous_forest": {
+                    "cell_count": 7140
+                },
+                "a:shrub": {
+                    "cell_count": 2103
+                },
+                "b:mixed_forest": {
+                    "cell_count": 800
+                },
+                "a:developed_open": {
+                    "cell_count": 24709
+                },
+                "b:grassland": {
+                    "cell_count": 54
+                },
+                "b:open_water": {
+                    "cell_count": 162
+                },
+                "d:open_water": {
+                    "cell_count": 132
+                },
+                "a:deciduous_forest": {
+                    "cell_count": 13731
+                },
+                "a:developed_high": {
+                    "cell_count": 640
+                },
+                "b:evergreen_forest": {
+                    "cell_count": 715
+                },
+                "d:developed_open": {
+                    "cell_count": 12472
+                },
+                "a:developed_low": {
+                    "cell_count": 12977
+                },
+                "a:cultivated_crops": {
+                    "cell_count": 392
+                },
+                "d:developed_high": {
+                    "cell_count": 320
+                },
+                "b:woody_wetlands": {
+                    "cell_count": 1090
+                },
+                "b:developed_med": {
+                    "cell_count": 2026
+                },
+                "d:grassland": {
+                    "cell_count": 46
+                },
+                "d:developed_low": {
+                    "cell_count": 6470
+                },
+                "d:cultivated_crops": {
+                    "cell_count": 202
+                },
+                "b:pasture": {
+                    "cell_count": 1716
+                },
+                "a:evergreen_forest": {
+                    "cell_count": 1406
+                },
+                "d:pasture": {
+                    "cell_count": 1717
+                },
+                "a:open_water": {
+                    "cell_count": 434
+                },
+                "b:cultivated_crops": {
+                    "cell_count": 197
+                },
+                "a:mixed_forest": {
+                    "cell_count": 1490
+                },
+                "d:barren_land": {
+                    "cell_count": 20
+                },
+                "d:woody_wetlands": {
+                    "cell_count": 1093
+                },
+                "b:barren_land": {
+                    "cell_count": 25
+                },
+                "d:shrub": {
+                    "cell_count": 1022
+                },
+                "b:developed_open": {
+                    "cell_count": 12763
+                },
+                "b:developed_low": {
+                    "cell_count": 6484
+                },
+                "d:mixed_forest": {
+                    "cell_count": 745
+                },
+                "a:developed_med": {
+                    "cell_count": 3886
+                },
+                "d:developed_med": {
+                    "cell_count": 1957
+                },
+                "d:deciduous_forest": {
+                    "cell_count": 7231
+                },
+                "a:pasture": {
+                    "cell_count": 3298
+                },
+                "b:developed_high": {
+                    "cell_count": 352
+                },
+                "a:grassland": {
+                    "cell_count": 91
+                },
+                "a:woody_wetlands": {
+                    "cell_count": 2190
+                },
+                "b:shrub": {
+                    "cell_count": 1090
+                },
+                "d:evergreen_forest": {
+                    "cell_count": 675
+                }
+            },
+            "cell_count": 136100
+        }
+        actual = geoprocessing.data_to_census(self.histogram)
+        self.assertEqual(actual, expected)
+
+    def test_survey(self):
+        self.maxDiff = None
+        expected = [
+            {
+                "displayName": "Land",
+                "name": "land",
+                "categories": [
+                    {
+                        "nlcd": 90,
+                        "type": "Woody Wetlands",
+                        "coverage": 0.03213078618662748,
+                        "area": 4373
+                    },
+                    {
+                        "nlcd": 23,
+                        "type": "Developed, Medium Intensity",
+                        "coverage": 0.057817781043350475,
+                        "area": 7869
+                    },
+                    {
+                        "nlcd": 31,
+                        "type": "Barren Land (Rock/Sand/Clay)",
+                        "coverage": 0.0006024981631153563,
+                        "area": 82
+                    },
+                    {
+                        "nlcd": 22,
+                        "type": "Developed, Low Intensity",
+                        "coverage": 0.19052902277736958,
+                        "area": 25931
+                    },
+                    {
+                        "nlcd": 95,
+                        'type': 'Emergent Herbaceous Wetlands',
+                        'coverage': 0.0,
+                        'area': 0
+                    },
+                    {
+                        "nlcd": 41,
+                        "type": "Deciduous Forest",
+                        "coverage": 0.20648052902277736,
+                        "area": 28102
+                    },
+                    {
+                        "nlcd": 11,
+                        "type": "Open Water",
+                        "coverage": 0.005349008082292432,
+                        "area": 728
+                    },
+                    {
+                        "nlcd": 43,
+                        "type": "Mixed Forest",
+                        "coverage": 0.022299779573842764,
+                        "area": 3035
+                    },
+                    {
+                        "nlcd": 12,
+                        'type': 'Perennial Ice/Snow',
+                        'coverage': 0.0,
+                        'area': 0
+                    },
+                    {
+                        "nlcd": 24,
+                        "type": "Developed, High Intensity",
+                        "coverage": 0.009639970609845701,
+                        "area": 1312
+                    },
+                    {
+                        "nlcd": 52,
+                        "type": "Shrub/Scrub",
+                        "coverage": 0.03096987509184423,
+                        "area": 4215
+                    },
+                    {
+                        "nlcd": 82,
+                        "type": "Cultivated Crops",
+                        "coverage": 0.005811903012490816,
+                        "area": 791
+                    },
+                    {
+                        "nlcd": 71,
+                        "type": "Grassland/Herbaceous",
+                        "coverage": 0.0014033798677443056,
+                        "area": 191
+                    },
+                    {
+                        "nlcd": 42,
+                        "type": "Evergreen Forest",
+                        "coverage": 0.020543717854518737,
+                        "area": 2796
+                    },
+                    {
+                        "nlcd": 21,
+                        "type": "Developed, Open Space",
+                        "coverage": 0.3669654665686995,
+                        "area": 49944
+                    },
+                    {
+                        "nlcd": 81,
+                        "type": "Pasture/Hay",
+                        "coverage": 0.04945628214548126,
+                        "area": 6731
+                    }]
+            },
+            {
+                "displayName": "Soil",
+                "name": "soil",
+                "categories": [
+                    {
+                        "type": "B - Moderate Infiltration",
+                        "coverage": 0.25432770022042617,
+                        "area": 34614
+                    },
+                    {
+                        "type": "A - High Infiltration",
+                        "coverage": 0.49510653930933135,
+                        "area": 67384
+                    },
+                    {
+                        "type": "D - Very Slow Infiltration",
+                        "coverage": 0.2505657604702425,
+                        "area": 34102
+                    }
+                ]
+            }]
+
+        actual = geoprocessing.data_to_survey(self.histogram)
+        self.assertEqual(actual, expected)
 
 
 class TaskRunnerTestCase(TestCase):
@@ -24,6 +347,7 @@ class TaskRunnerTestCase(TestCase):
                 }
             ],
             'inputmod_hash': '9780bd0887ab5008620efd25bd2eec3f',
+            'modification_pieces': [],
             'modifications': [{
                 'name': 'conservation_practice',
                 'area': 15.683767964377065,
@@ -65,8 +389,17 @@ class TaskRunnerTestCase(TestCase):
 
     @override_settings(CELERY_ALWAYS_EAGER=True)
     def test_tr55_job_runs_in_chain(self):
-        task_list = views._initiate_tr55_job_chain(self.model_input,
-                                                   self.job.id)
+        # Get the job chain
+        job_chain = views._construct_tr55_job_chain(self.model_input,
+                                                    self.job.id)
+
+        # Make sure the chain is well-formed
+        self.assertTrue('tasks.polygons_to_id' in str(job_chain[0]))
+        self.assertTrue('tasks.id_to_histogram' in str(job_chain[1]))
+
+        # Modify the chain to prevent it from trying to talk to endpoint
+        job_chain = [nothing_to_histogram.s()] + job_chain[2:]
+        task_list = chain(job_chain).apply_async()
 
         found_job = Job.objects.get(uuid=task_list.id)
 
@@ -82,12 +415,28 @@ class TaskRunnerTestCase(TestCase):
     def test_tr55_job_error_in_chain(self):
         model_input = {
             'inputs': [],
+            'area_of_interest': {
+                'type': 'MultiPolygon',
+                'coordinates': [[
+                    [[-75.06271362304688, 40.15893480687665],
+                     [-75.2728271484375, 39.97185812402586],
+                     [-74.99130249023438, 40.10958807474143],
+                     [-75.06271362304688, 40.15893480687665]]
+                ]]
+            },
+            'modification_pieces': [],
             'modifications': [],
             'modification_hash': 'j39fj9fg7yshb399h4nsdhf'
         }
 
+        job_chain = views._construct_tr55_job_chain(model_input,
+                                                    self.job.id)
+        self.assertTrue('tasks.polygons_to_id' in str(job_chain[0]))
+        self.assertTrue('tasks.id_to_histogram' in str(job_chain[1]))
+        job_chain = [nothing_to_histogram.s()] + job_chain[2:]
+
         with self.assertRaises(Exception) as context:
-            views._initiate_tr55_job_chain(model_input, self.job.id)
+            chain(job_chain).apply_async()
 
         self.assertEqual(str(context.exception),
                          'No precipitation value defined',
@@ -98,7 +447,7 @@ class TaskRunnerTestCase(TestCase):
         self.model_input['census'] = {
             'cell_count': 100,
             'distribution': {
-                'c:commercial': {
+                'c:developed_high': {
                     'cell_count': 70
                 },
                 'a:deciduous_forest': {
@@ -127,7 +476,7 @@ class TaskRunnerTestCase(TestCase):
         self.model_input['census'] = {
             'cell_count': 100,
             'distribution': {
-                'c:commercial': {
+                'c:developed_high': {
                     'cell_count': 70
                 },
                 'a:deciduous_forest': {
@@ -147,7 +496,7 @@ class TaskRunnerTestCase(TestCase):
         job_chain = views._construct_tr55_job_chain(self.model_input,
                                                     self.job.id)
 
-        self.assertTrue('tasks.prepare_census' in str(job_chain),
+        self.assertTrue('tasks.histograms_to_censuses' in str(job_chain),
                         'Census preparation should not be skipped')
 
     @override_settings(CELERY_ALWAYS_EAGER=True)
@@ -155,7 +504,7 @@ class TaskRunnerTestCase(TestCase):
         job_chain = views._construct_tr55_job_chain(self.model_input,
                                                     self.job.id)
 
-        self.assertTrue('tasks.prepare_census' in str(job_chain),
+        self.assertTrue('tasks.histograms_to_censuses' in str(job_chain),
                         'Census preparation should not be skipped')
 
 

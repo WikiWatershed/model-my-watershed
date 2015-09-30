@@ -1,6 +1,6 @@
 "use strict";
 
-var modificationConfig = require('./modificationConfig.json');
+var modificationConfig = require('../core/modificationConfig.json');
 
 // Useful for testing.
 function setConfig(config) {
@@ -8,10 +8,10 @@ function setConfig(config) {
 }
 
 function resetConfig() {
-    modificationConfig = require('./modificationConfig.json');
+    modificationConfig = require('../core/modificationConfig.json');
 }
 
-// modKey should be a key in modificationsConfig (eg. 'urban_grass').
+// modKey should be a key in modificationsConfig (eg. 'open_water').
 function getHumanReadableName(modKey) {
     if (modificationConfig[modKey]) {
         return modificationConfig[modKey].name;

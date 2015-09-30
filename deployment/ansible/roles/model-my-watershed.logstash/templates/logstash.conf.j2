@@ -21,6 +21,16 @@ filter {
       match => [ "timestamp", "E, dd MMM yyyy HH:mm:ss z" ]
     }
   }
+
+  if [type] == "spark-jobserver" {
+    grok {
+      match => { "message" => "%{TIMESTAMP_ISO8601:timestamp}" }
+    }
+
+    date {
+      match => [ "timestamp", "yyyy-MM-dd HH:mm:ss,SSS" ]
+    }
+  }
 }
 
 output {
