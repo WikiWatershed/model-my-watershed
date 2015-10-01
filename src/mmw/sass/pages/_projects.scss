@@ -1,0 +1,11 @@
+#projects-container {
+  overflow: hidden;
+  position: absolute;
+  top: $height-lg;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  background-color: $ui-light;
+  transition: 0.3s ease left, 0.3s ease right;
+}
