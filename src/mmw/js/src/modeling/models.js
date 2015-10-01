@@ -279,7 +279,7 @@ var ProjectModel = Backbone.Model.extend({
 });
 
 /**
- * A predicate for a filter function used in the _modifyModifications.
+ * A predicate for a filter function used in the _alterModifications.
  * Returns true if piece has a valid shape with non-zero area, and
  * false otherwise.
  */
@@ -293,7 +293,7 @@ function validShape(piece) {
  * point on the map is covered by more than one 'BMP' or more than one
  * 'reclassification'.
  */
-function _modifyModifications(rawModifications) {
+function _alterModifications(rawModifications) {
     var pieces = [],
         reclass = 'landcover',
         bmp = 'conservation_practice',
@@ -395,7 +395,7 @@ function _modifyModifications(rawModifications) {
     return pieces;
 }
 
-var modifyModifications = _.memoize(_modifyModifications, function(_, hash) {return hash;});
+var alterModifications = _.memoize(_alterModifications, function(_, hash) {return hash;});
 
 var ModificationModel = coreModels.GeoModel.extend({
     defaults: _.extend({
@@ -586,7 +586,7 @@ var ScenarioModel = Backbone.Model.extend({
                 }
             });
 
-            this.set('census', serverResults.census);
+            this.set('census', serverResults.aoi_census);
         }
     },
 
@@ -603,8 +603,7 @@ var ScenarioModel = Backbone.Model.extend({
                 postData: {
                     model_input: JSON.stringify({
                         inputs: self.get('inputs').toJSON(),
-                        modifications: self.get('modifications').toJSON(),
-                        modification_pieces: modifyModifications(self.get('modifications'), self.get('modification_hash')),
+                        modification_pieces: alterModifications(self.get('modifications'), self.get('modification_hash')),
                         area_of_interest: App.currentProject.get('area_of_interest'),
                         census: self.get('census'),
                         inputmod_hash: self.get('inputmod_hash'),

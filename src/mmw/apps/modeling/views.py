@@ -183,8 +183,8 @@ def get_job(request, job_uuid, format=None):
 
 
 def _initiate_analyze_job_chain(area_of_interest, job_id, testing=False):
-    return chain(tasks.polygon_to_id.s(area_of_interest),
-                 tasks.id_to_histogram.s(),
+    return chain(tasks.start_histogram_job.s(area_of_interest),
+                 tasks.get_histogram_job_results.s(),
                  tasks.histogram_to_survey.s(),
                  save_job_result.s(job_id, area_of_interest)) \
         .apply_async(link_error=save_job_error.s(job_id))
@@ -220,11 +220,12 @@ def _construct_tr55_job_chain(model_input, job_id):
 
     # TODO put this into an if/else block and only do it if the
     # censuses are not already cached.
+
     aoi = model_input.get('area_of_interest')
     pieces = model_input.get('modification_pieces')
     polygons = [aoi] + [m['shape']['geometry'] for m in pieces]
-    job_chain.append(tasks.polygons_to_id.s(polygons))
-    job_chain.append(tasks.id_to_histogram.s())
+    job_chain.append(tasks.start_histograms_job.s(polygons))
+    job_chain.append(tasks.get_histogram_job_results.s())
     job_chain.append(tasks.histograms_to_censuses.s())
     job_chain.append(tasks.run_tr55.s(model_input))
 

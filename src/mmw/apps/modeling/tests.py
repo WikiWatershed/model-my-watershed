@@ -394,8 +394,8 @@ class TaskRunnerTestCase(TestCase):
                                                     self.job.id)
 
         # Make sure the chain is well-formed
-        self.assertTrue('tasks.polygons_to_id' in str(job_chain[0]))
-        self.assertTrue('tasks.id_to_histogram' in str(job_chain[1]))
+        self.assertTrue('tasks.start_histograms_job' in str(job_chain[0]))
+        self.assertTrue('tasks.get_histogram_job_results' in str(job_chain[1]))
 
         # Modify the chain to prevent it from trying to talk to endpoint
         job_chain = [nothing_to_histogram.s()] + job_chain[2:]
@@ -431,8 +431,8 @@ class TaskRunnerTestCase(TestCase):
 
         job_chain = views._construct_tr55_job_chain(model_input,
                                                     self.job.id)
-        self.assertTrue('tasks.polygons_to_id' in str(job_chain[0]))
-        self.assertTrue('tasks.id_to_histogram' in str(job_chain[1]))
+        self.assertTrue('tasks.start_histograms_job' in str(job_chain[0]))
+        self.assertTrue('tasks.get_histogram_job_results' in str(job_chain[1]))
         job_chain = [nothing_to_histogram.s()] + job_chain[2:]
 
         with self.assertRaises(Exception) as context:

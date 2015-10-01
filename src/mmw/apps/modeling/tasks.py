@@ -20,8 +20,17 @@ CM_PER_INCH = 2.54
 
 
 @shared_task
-def polygon_to_id(json_polygon):
+def start_histogram_job(json_polygon):
+    """ Calls the histogram_start function to
+    kick off the SJS job to generate a histogram
+    of the provided polygon (i.e. AoI).
+    Returns the id of the job so we can poll later
+    for the results, as well as the pixel width of
+    the polygon so that areas can be calculated from
+    the results.
+    """
     polygon = json.loads(json_polygon)
+
     return {
         'pixel_width': aoi_resolution(polygon),
         'sjs_job_id': histogram_start([json_polygon])
@@ -29,8 +38,18 @@ def polygon_to_id(json_polygon):
 
 
 @shared_task
-def polygons_to_id(polygons):
+def start_histograms_job(polygons):
+    """ Calls the histogram_start function to
+    kick off the SJS job to generate a histogram
+    of the provided polygons (i.e. AoI + modifications,
+    or just modifications).
+    Returns the id of the job so we can poll later
+    for the results. pixel_width is None because the
+    results are eventually provided to TR-55 and areas
+    do not need to be calculated.
+    """
     json_polygons = [json.dumps(p) for p in polygons]
+
     return {
         'pixel_width': None,
         'sjs_job_id': histogram_start(json_polygons)
@@ -38,9 +57,13 @@ def polygons_to_id(polygons):
 
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=20)
-def id_to_histogram(self, incoming):
+def get_histogram_job_results(self, incoming):
+    """ Calls a function that polls SJS for the results
+    of the given Job. Self here is Celery.
+    """
     pixel_width = incoming['pixel_width']
     histogram = histogram_finish(incoming['sjs_job_id'], self.retry)
+
     return {
         'pixel_width': pixel_width,
         'histogram': histogram
@@ -49,17 +72,26 @@ def id_to_histogram(self, incoming):
 
 @shared_task
 def histogram_to_survey(incoming):
+    """
+    Converts the histogram results (aka analyze results)
+    to a survey of land use, which are rendered in the UI.
+    """
     pixel_width = incoming['pixel_width']
     data = incoming['histogram'][0]
     results = data_to_survey(data)
     convert_result_areas(pixel_width, results)
+
     return results
 
 
 @shared_task
 def histograms_to_censuses(incoming):
+    """Converts the histogram results to censuses,
+    which are provided to TR-55.
+    """
     data = incoming['histogram']
     results = data_to_censuses(data)
+
     return results
 
 
@@ -130,12 +162,15 @@ def run_tr55(censuses, model_input):
         raise Exception('No precipitation value defined')
 
     # Modification/BMP fragments and their censuses
-    pieces = model_input.get('modification_pieces')
-    piece_censuses = censuses[1:]
+    # The original modifications are not POSTed. We only
+    # send the altered modifications/modification pieces.
+    modification_pieces = model_input.get('modification_pieces')
+    modification_censuses = censuses[1:]
 
     # The area of interest census
     aoi_census = censuses[0]
-    modifications = get_census_modifications(pieces, piece_censuses)
+    modifications = build_tr55_modification_input(modification_pieces,
+                                                  modification_censuses)
     aoi_census['modifications'] = modifications
 
     # Run the model under both current conditions and Pre-Columbian
@@ -149,8 +184,8 @@ def run_tr55(censuses, model_input):
     # Return all results
     return {
         'inputmod_hash': model_input['inputmod_hash'],
-        'census': aoi_census,
-        'piece_censuses': piece_censuses,
+        'aoi_census': aoi_census,
+        'modification_censuses': modification_censuses,
         'runoff': format_runoff(model_output),
         'quality': format_quality(model_output)
     }
@@ -177,7 +212,12 @@ def convert_result_areas(pixel_width, results):
                                      pixel_width)
 
 
-def get_census_modifications(pieces, censuses):
+def build_tr55_modification_input(pieces, censuses):
+    """ Applying modifications to the AoI census.
+    In other words, preparing part of the model input
+    for TR-55 that contains the "this area was converted
+    from developed to forest" directives, for example.
+    """
     def change_key(modification):
         name = modification['name']
         value = modification['value']
