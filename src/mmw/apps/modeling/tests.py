@@ -75,132 +75,48 @@ class ExerciseGeoprocessing(TestCase):
     def test_census(self):
         expected = {
             "distribution": {
-                "a:barren_land": {
-                    "cell_count": 37
-                },
-                "b:deciduous_forest": {
-                    "cell_count": 7140
-                },
-                "a:shrub": {
-                    "cell_count": 2103
-                },
-                "b:mixed_forest": {
-                    "cell_count": 800
-                },
-                "a:developed_open": {
-                    "cell_count": 24709
-                },
-                "b:grassland": {
-                    "cell_count": 54
-                },
-                "b:open_water": {
-                    "cell_count": 162
-                },
-                "d:open_water": {
-                    "cell_count": 132
-                },
-                "a:deciduous_forest": {
-                    "cell_count": 13731
-                },
-                "a:developed_high": {
-                    "cell_count": 640
-                },
-                "b:evergreen_forest": {
-                    "cell_count": 715
-                },
-                "d:developed_open": {
-                    "cell_count": 12472
-                },
-                "a:developed_low": {
-                    "cell_count": 12977
-                },
-                "a:cultivated_crops": {
-                    "cell_count": 392
-                },
-                "d:developed_high": {
-                    "cell_count": 320
-                },
-                "b:woody_wetlands": {
-                    "cell_count": 1090
-                },
-                "b:developed_med": {
-                    "cell_count": 2026
-                },
-                "d:grassland": {
-                    "cell_count": 46
-                },
-                "d:developed_low": {
-                    "cell_count": 6470
-                },
-                "d:cultivated_crops": {
-                    "cell_count": 202
-                },
-                "b:pasture": {
-                    "cell_count": 1716
-                },
-                "a:evergreen_forest": {
-                    "cell_count": 1406
-                },
-                "d:pasture": {
-                    "cell_count": 1717
-                },
-                "a:open_water": {
-                    "cell_count": 434
-                },
-                "b:cultivated_crops": {
-                    "cell_count": 197
-                },
-                "a:mixed_forest": {
-                    "cell_count": 1490
-                },
-                "d:barren_land": {
-                    "cell_count": 20
-                },
-                "d:woody_wetlands": {
-                    "cell_count": 1093
-                },
-                "b:barren_land": {
-                    "cell_count": 25
-                },
-                "d:shrub": {
-                    "cell_count": 1022
-                },
-                "b:developed_open": {
-                    "cell_count": 12763
-                },
-                "b:developed_low": {
-                    "cell_count": 6484
-                },
-                "d:mixed_forest": {
-                    "cell_count": 745
-                },
-                "a:developed_med": {
-                    "cell_count": 3886
-                },
-                "d:developed_med": {
-                    "cell_count": 1957
-                },
-                "d:deciduous_forest": {
-                    "cell_count": 7231
-                },
-                "a:pasture": {
-                    "cell_count": 3298
-                },
-                "b:developed_high": {
-                    "cell_count": 352
-                },
-                "a:grassland": {
-                    "cell_count": 91
-                },
-                "a:woody_wetlands": {
-                    "cell_count": 2190
-                },
-                "b:shrub": {
-                    "cell_count": 1090
-                },
-                "d:evergreen_forest": {
-                    "cell_count": 675
-                }
+                "a:barren_land": {"cell_count": 37},
+                "b:deciduous_forest": {"cell_count": 7140},
+                "a:shrub": {"cell_count": 2103},
+                "b:mixed_forest": {"cell_count": 800},
+                "a:developed_open": {"cell_count": 24709},
+                "b:grassland": {"cell_count": 54},
+                "b:open_water": {"cell_count": 162},
+                "d:open_water": {"cell_count": 132},
+                "a:deciduous_forest": {"cell_count": 13731},
+                "a:developed_high": {"cell_count": 640},
+                "b:evergreen_forest": {"cell_count": 715},
+                "d:developed_open": {"cell_count": 12472},
+                "a:developed_low": {"cell_count": 12977},
+                "a:cultivated_crops": {"cell_count": 392},
+                "d:developed_high": {"cell_count": 320},
+                "b:woody_wetlands": {"cell_count": 1090},
+                "b:developed_med": {"cell_count": 2026},
+                "d:grassland": {"cell_count": 46},
+                "d:developed_low": {"cell_count": 6470},
+                "d:cultivated_crops": {"cell_count": 202},
+                "b:pasture": {"cell_count": 1716},
+                "a:evergreen_forest": {"cell_count": 1406},
+                "d:pasture": {"cell_count": 1717},
+                "a:open_water": {"cell_count": 434},
+                "b:cultivated_crops": {"cell_count": 197},
+                "a:mixed_forest": {"cell_count": 1490},
+                "d:barren_land": {"cell_count": 20},
+                "d:woody_wetlands": {"cell_count": 1093},
+                "b:barren_land": {"cell_count": 25},
+                "d:shrub": {"cell_count": 1022},
+                "b:developed_open": {"cell_count": 12763},
+                "b:developed_low": {"cell_count": 6484},
+                "d:mixed_forest": {"cell_count": 745},
+                "a:developed_med": {"cell_count": 3886},
+                "d:developed_med": {"cell_count": 1957},
+                "d:deciduous_forest": {"cell_count": 7231},
+                "a:pasture": {"cell_count": 3298},
+                "b:developed_high": {"cell_count": 352},
+                "a:grassland": {"cell_count": 91},
+                "a:woody_wetlands": {"cell_count": 2190},
+                "b:shrub": {"cell_count": 1090},
+                "d:evergreen_forest": {"cell_count": 675}
             },
             "cell_count": 136100
         }
