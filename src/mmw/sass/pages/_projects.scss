@@ -1,6 +1,6 @@
 #projects-container {
   padding: $height-sm $height-lg;
-  overflow: hidden;
+  overflow: scroll;
   position: absolute;
   top: $height-lg;
   left: 0;
@@ -24,7 +24,7 @@
     }
   }
 
-  .projects-list-container {
+  .project-rows-container {
     margin-top: $height-lg;
 
     .project.row {
