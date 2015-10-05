@@ -148,9 +148,17 @@ def format_runoff(model_output):
 
 
 @shared_task
-def run_tr55(censuses, model_input):
+def run_tr55(censuses, model_input, cached_aoi_census=None):
     """
     A Celery wrapper around our TR55 implementation.
+    censuses is either output from previous tasks in the job
+    chain or are provided directly (in the case where the AoI
+    census and modification censuses are cached).
+    If cached_aoi_census is provided, censuses will only contain
+    the modification_censuses, which were generated in the
+    previous task. If cached_aoi_census isn't provided, the AoI
+    census will be the first census in censuses, and everything
+    else is a modification census.
     """
 
     # Get precipitation and cell resolution
@@ -165,10 +173,17 @@ def run_tr55(censuses, model_input):
     # The original modifications are not POSTed. We only
     # send the altered modifications/modification pieces.
     modification_pieces = model_input.get('modification_pieces')
-    modification_censuses = censuses[1:]
+    modification_censuses = (censuses[1:] if cached_aoi_census is None
+                             else censuses[0:])
 
     # The area of interest census
-    aoi_census = censuses[0]
+    aoi_census = cached_aoi_census if cached_aoi_census else censuses[0]
+
+    modifications = []
+    if ((modification_pieces and not modification_censuses) or
+       (modification_censuses and not modification_pieces)):
+            raise Exception('Missing pieces or censuses for modifications')
+
     modifications = build_tr55_modification_input(modification_pieces,
                                                   modification_censuses)
     aoi_census['modifications'] = modifications
@@ -178,12 +193,20 @@ def run_tr55(censuses, model_input):
     model_output = simulate_day(aoi_census, precip, cell_res=resolution)
     precolumbian_output = simulate_day(aoi_census, precip,
                                        cell_res=resolution, precolumbian=True)
+
     model_output['pc_unmodified'] = precolumbian_output['unmodified']
     model_output['pc_modified'] = precolumbian_output['modified']
+
+    # Modifications were added to aoi_census for TR-55, but we do
+    # not want to persist it since we have it stored seperately
+    # and it may cause problems when sharing the aoi_census
+    # for other model runs and scenarios.
+    aoi_census.pop('modifications', None)
 
     # Return all results
     return {
         'inputmod_hash': model_input['inputmod_hash'],
+        'modification_hash': model_input['modification_hash'],
         'aoi_census': aoi_census,
         'modification_censuses': modification_censuses,
         'runoff': format_runoff(model_output),

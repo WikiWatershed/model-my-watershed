@@ -218,16 +218,38 @@ def _initiate_tr55_job_chain(model_input, job_id):
 def _construct_tr55_job_chain(model_input, job_id):
     job_chain = []
 
-    # TODO put this into an if/else block and only do it if the
-    # censuses are not already cached.
-
     aoi = model_input.get('area_of_interest')
-    pieces = model_input.get('modification_pieces')
-    polygons = [aoi] + [m['shape']['geometry'] for m in pieces]
-    job_chain.append(tasks.start_histograms_job.s(polygons))
-    job_chain.append(tasks.get_histogram_job_results.s())
-    job_chain.append(tasks.histograms_to_censuses.s())
-    job_chain.append(tasks.run_tr55.s(model_input))
+    aoi_census = model_input.get('aoi_census')
+    modification_censuses = model_input.get('modification_censuses')
+    pieces = model_input.get('modification_pieces', [])
+    current_hash = model_input.get('modification_hash')
+    census_hash = None
+    modification_census_items = []
+
+    if modification_censuses:
+        census_hash = modification_censuses.get('modification_hash')
+        modification_census_items = modification_censuses.get('censuses')
+
+    if (aoi_census and ((modification_census_items and
+       census_hash == current_hash) or not pieces)):
+        censuses = [aoi_census] + modification_census_items
+
+        job_chain.append(tasks.run_tr55.s(censuses, model_input))
+    else:
+        job_chain.append(tasks.get_histogram_job_results.s())
+        job_chain.append(tasks.histograms_to_censuses.s())
+
+        if aoi_census and pieces:
+            polygons = [m['shape']['geometry'] for m in pieces]
+
+            job_chain.insert(0, tasks.start_histograms_job.s(polygons))
+            job_chain.insert(len(job_chain), tasks.run_tr55.s(model_input,
+                             cached_aoi_census=aoi_census))
+        else:
+            polygons = [aoi] + [m['shape']['geometry'] for m in pieces]
+
+            job_chain.insert(0, tasks.start_histograms_job.s(polygons))
+            job_chain.insert(len(job_chain), tasks.run_tr55.s(model_input))
 
     job_chain.append(save_job_result.s(job_id, model_input))
 

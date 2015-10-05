@@ -18,10 +18,23 @@ from celery import chain, shared_task
 
 
 @shared_task
-def nothing_to_histogram():
+def get_test_histogram():
     return {
         'pixel_width': 33,
-        'histogram': [[[[24, 2], 268], [[24, 4], 279], [[21, 4], 5], [[22, 4], 16], [[23, 4], 322], [[22, 2], 35], [[22, 1], 55], [[23, 2], 339], [[21, 1], 22], [[24, 1], 537], [[21, 2], 1], [[23, 1], 773]]]  # noqa
+        'histogram': [[
+            [[24, 2], 268],
+            [[24, 4], 279],
+            [[21, 4], 5],
+            [[22, 4], 16],
+            [[23, 4], 322],
+            [[22, 2], 35],
+            [[22, 1], 55],
+            [[23, 2], 339],
+            [[21, 1], 22],
+            [[24, 1], 537],
+            [[21, 2], 1],
+            [[23, 1], 773]]
+        ]
     }
 
 
@@ -262,8 +275,26 @@ class TaskRunnerTestCase(TestCase):
                     'value': 1.2
                 }
             ],
-            'inputmod_hash': '9780bd0887ab5008620efd25bd2eec3f',
-            'modification_pieces': [],
+            "inputmod_hash": "f70f743cb92e67cff0eb8f8faa9c0eb6d"
+                             "751713988987e9331980363e24189ce",
+            'modification_pieces': [{
+                'name': 'conservation_practice',
+                'shape': {
+                    'type': 'Feature',
+                    'properties': {},
+                    'geometry': {
+                        'type': 'Polygon',
+                        'coordinates': [[
+                            [-75.09326934814453, 40.10092245173233],
+                            [-75.13343811035156, 40.060731050581396],
+                            [-75.0637435913086, 40.065460682065535],
+                            [-75.0692367553711, 40.095670021782404],
+                            [-75.09326934814453, 40.10092245173233]
+                        ]]
+                    },
+                    'value': 'rain_garden'
+                }
+            }],
             'modifications': [{
                 'name': 'conservation_practice',
                 'area': 15.683767964377065,
@@ -294,7 +325,9 @@ class TaskRunnerTestCase(TestCase):
                      [-75.06271362304688, 40.15893480687665]]
                 ]]
             },
-            'modification_hash': '39f488abec2de49f17652631ae843946'
+            'aoi_census': None,
+            'modification_censuses': None,
+            'modification_hash': '4c23321de9e52f12e1b37460afc28db2',
         }
 
         created = now()
@@ -305,6 +338,9 @@ class TaskRunnerTestCase(TestCase):
 
     @override_settings(CELERY_ALWAYS_EAGER=True)
     def test_tr55_job_runs_in_chain(self):
+        # For the purposes of this test, there are no modifications
+        self.model_input['modification_pieces'] = []
+
         # Get the job chain
         job_chain = views._construct_tr55_job_chain(self.model_input,
                                                     self.job.id)
@@ -314,7 +350,7 @@ class TaskRunnerTestCase(TestCase):
         self.assertTrue('tasks.get_histogram_job_results' in str(job_chain[1]))
 
         # Modify the chain to prevent it from trying to talk to endpoint
-        job_chain = [nothing_to_histogram.s()] + job_chain[2:]
+        job_chain = [get_test_histogram.s()] + job_chain[2:]
         task_list = chain(job_chain).apply_async()
 
         found_job = Job.objects.get(uuid=task_list.id)
@@ -349,7 +385,7 @@ class TaskRunnerTestCase(TestCase):
                                                     self.job.id)
         self.assertTrue('tasks.start_histograms_job' in str(job_chain[0]))
         self.assertTrue('tasks.get_histogram_job_results' in str(job_chain[1]))
-        job_chain = [nothing_to_histogram.s()] + job_chain[2:]
+        job_chain = [get_test_histogram.s()] + job_chain[2:]
 
         with self.assertRaises(Exception) as context:
             chain(job_chain).apply_async()
@@ -358,70 +394,232 @@ class TaskRunnerTestCase(TestCase):
                          'No precipitation value defined',
                          'Unexpected exception occurred')
 
-    def test_tr55_chain_skips_census_if_census_is_up_to_date(self):
-        # Census with current modification_hash
-        self.model_input['census'] = {
-            'cell_count': 100,
-            'distribution': {
-                'c:developed_high': {
-                    'cell_count': 70
-                },
-                'a:deciduous_forest': {
-                    'cell_count': 30
-                }
+    def test_tr55_chain_doesnt_generate_censuses_if_they_exist(self):
+        """If the AoI census and modifications exist in the model input,
+        and the modification censuses are up-to-date (meaning the hash
+        stored with the census matches the model input hash, neither census
+        is generated and the censuses are passed directly to the model.
+        """
+        self.model_input['aoi_census'] = {
+            "distribution": {
+                "b:developed_med": {"cell_count": 155},
+                "a:developed_high": {"cell_count": 1044},
+                "b:developed_high": {"cell_count": 543},
+                "d:developed_high": {"cell_count": 503},
+                "d:developed_med": {"cell_count": 164},
+                "a:developed_med": {"cell_count": 295}
             },
-            'modification_hash': '39f488abec2de49f17652631ae843946',
-            'modifications': [{
-                'bmp': 'no_till',
-                'cell_count': 1,
-                'distribution': {
-                    'a:deciduous_forest': {'cell_count': 1},
+            "cell_count": 2704
+        }
+        self.model_input['modification_censuses'] = {
+            "modification_hash": "4c23321de9e52f12e1b37460afc28db2",
+            "censuses": [
+                {
+                    "distribution": {
+                        "b:developed_med": {"cell_count": 5},
+                        "a:developed_high": {"cell_count": 10},
+                        "b:developed_high": {"cell_count": 4},
+                        "d:developed_high": {"cell_count": 5},
+                        "d:developed_med": {"cell_count": 2},
+                        "a:developed_med": {"cell_count": 2}
+                    },
+                    "cell_count": 28,
+                    "change": ":deciduous_forest:"
                 }
-            }]
+            ]
         }
 
         job_chain = views._construct_tr55_job_chain(self.model_input,
                                                     self.job.id)
 
-        self.assertFalse('tasks.prepare_census' in str(job_chain),
-                         'Census preparation should be skipped')
+        skipped_tasks = [
+            'start_histograms_job',
+            'get_histogram_job_results',
+            'histograms_to_censuses'
+        ]
+
+        needed_tasks = [
+            'run_tr55'
+        ]
+
+        self.assertFalse(all([True if t in str(job_chain)
+                             else False for t in skipped_tasks]),
+                         'unnecessary job in chain')
+
+        self.assertTrue(all([True if t in str(job_chain)
+                            else False for t in needed_tasks]),
+                        'missing necessary job in chain')
+
+    def test_tr55_chain_doesnt_generate_aoi_census_if_it_exists_and_mods(self):
+        """If the AoI census exists in the model input, and there are modifications,
+        it should be provided to TR-55 and not generated.
+        """
+        self.model_input['aoi_census'] = {
+            "distribution": {
+                "b:developed_med": {"cell_count": 155},
+                "a:developed_high": {"cell_count": 1044},
+                "b:developed_high": {"cell_count": 543},
+                "d:developed_high": {"cell_count": 503},
+                "d:developed_med": {"cell_count": 164},
+                "a:developed_med": {"cell_count": 295}
+            },
+            "cell_count": 2704
+        }
+
+        skipped_tasks = []
+
+        # Job chain is the same as if no census exists because
+        # we still need to generate modification censuses
+        needed_tasks = [
+            'start_histograms_job',
+            'get_histogram_job_results',
+            'histograms_to_censuses',
+            'run_tr55'
+        ]
+
+        job_chain = views._construct_tr55_job_chain(self.model_input,
+                                                    self.job.id)
+
+        cached_argument = ("cached_aoi_census={u'distribution': "
+                           "{u'b:developed_med'"
+                           ": {u'cell_count': 155}, u'a:developed_high': "
+                           "{u'cell_count': 1044}, u'b:developed_high': "
+                           "{u'cell_count': 543}, u'd:developed_high': "
+                           "{u'cell_count': 503}, u'd:developed_med': "
+                           "{u'cell_count': 164}, u'a:developed_med': "
+                           "{u'cell_count': 295}}, u'cell_count': 2704})")
+
+        self.assertTrue(all([True if t in str(job_chain)
+                             else False for t in skipped_tasks]),
+                        'unnecessary job in chain')
+
+        self.assertTrue(all([True if t in str(job_chain)
+                            else False for t in needed_tasks]),
+                        'missing necessary job in chain')
+
+        self.assertTrue(cached_argument in str(job_chain[3]))
+
+    def test_tr55_chain_doesnt_generate_aoi_census_if_it_exists_and_no_mods(self):  # noqa
+        """If the AoI census exists in the model input, and there are no modifications,
+        it should be provided to TR-55 and not generated.
+        """
+        self.model_input['aoi_census'] = {
+            "distribution": {
+                "b:developed_med": {"cell_count": 155},
+                "a:developed_high": {"cell_count": 1044},
+                "b:developed_high": {"cell_count": 543},
+                "d:developed_high": {"cell_count": 503},
+                "d:developed_med": {"cell_count": 164},
+                "a:developed_med": {"cell_count": 295}
+            },
+            "cell_count": 2704
+        }
+        self.model_input['modification_censuses'] = None
+        self.model_input['modification_pieces'] = []
+
+        skipped_tasks = [
+            'start_histograms_job',
+            'get_histogram_job_results',
+            'histograms_to_censuses',
+        ]
+
+        needed_tasks = [
+            'run_tr55'
+        ]
+
+        job_chain = views._construct_tr55_job_chain(self.model_input,
+                                                    self.job.id)
+
+        self.assertFalse(all([True if t in str(job_chain)
+                             else False for t in skipped_tasks]),
+                         'unnecessary job in chain')
+
+        self.assertTrue(all([True if t in str(job_chain)
+                            else False for t in needed_tasks]),
+                        'missing necessary job in chain')
 
     @override_settings(CELERY_ALWAYS_EAGER=True)
-    def test_tr55_chain_generates_census_if_census_is_stale(self):
-        # Census with stale modification_hash
-        self.model_input['census'] = {
-            'cell_count': 100,
-            'distribution': {
-                'c:developed_high': {
-                    'cell_count': 70
-                },
-                'a:deciduous_forest': {
-                    'cell_count': 30
-                }
+    def test_tr55_chain_generates_modification_censuses_if_they_are_old(self):
+        """If they modification censuses exist in the model input, but the
+        hash stored with the censuses does not match the hash passed in
+        with the model input, the modification censuses are regenerated.
+        """
+        self.model_input['aoi_census'] = {
+            "distribution": {
+                "b:developed_med": {"cell_count": 155},
+                "a:developed_high": {"cell_count": 1044},
+                "b:developed_high": {"cell_count": 543},
+                "d:developed_high": {"cell_count": 503},
+                "d:developed_med": {"cell_count": 164},
+                "a:developed_med": {"cell_count": 295}
             },
-            'modification_hash': 'j3jk3jk3jn3knm3nmn39usd',
-            'modifications': [{
-                'bmp': 'no_till',
-                'cell_count': 1,
-                'distribution': {
-                    'a:deciduous_forest': {'cell_count': 1},
+            "cell_count": 2704
+        }
+        self.model_input['modification_censuses'] = {
+            "modification_hash": "out-of-date-3jk34n9j3knk3kv",
+            "censuses": [
+                {
+                    "distribution": {
+                        "b:developed_med": {"cell_count": 5},
+                        "a:developed_high": {"cell_count": 10},
+                        "b:developed_high": {"cell_count": 4},
+                        "d:developed_high": {"cell_count": 5},
+                        "d:developed_med": {"cell_count": 2},
+                        "a:developed_med": {"cell_count": 2}
+                    },
+                    "cell_count": 28,
+                    "change": ":deciduous_forest:"
                 }
-            }]
+            ]
         }
 
         job_chain = views._construct_tr55_job_chain(self.model_input,
                                                     self.job.id)
 
-        self.assertTrue('tasks.histograms_to_censuses' in str(job_chain),
-                        'Census preparation should not be skipped')
+        skipped_tasks = []
+
+        needed_tasks = [
+            'start_histograms_job',
+            'get_histogram_job_results',
+            'histograms_to_censuses',
+            'run_tr55'
+        ]
+
+        self.assertTrue(all([True if t in str(job_chain)
+                             else False for t in skipped_tasks]),
+                        'unnecessary job in chain')
+
+        self.assertTrue(all([True if t in str(job_chain)
+                            else False for t in needed_tasks]),
+                        'missing necessary job in chain')
 
     @override_settings(CELERY_ALWAYS_EAGER=True)
-    def test_tr55_chain_generates_census_if_census_does_not_exist(self):
+    def test_tr55_chain_generates_both_censuses_if_they_are_missing(self):
+        """If neither the AoI censuses or the modification censuses exist,
+        they are both generated.
+        """
+        self.model_input['aoi_census'] = None
+        self.model_input['modification_censuses'] = None
+
         job_chain = views._construct_tr55_job_chain(self.model_input,
                                                     self.job.id)
 
-        self.assertTrue('tasks.histograms_to_censuses' in str(job_chain),
-                        'Census preparation should not be skipped')
+        skipped_tasks = []
+
+        needed_tasks = [
+            'start_histograms_job',
+            'get_histogram_job_results',
+            'histograms_to_censuses',
+            'run_tr55'
+        ]
+
+        self.assertTrue(all([True if t in str(job_chain)
+                             else False for t in skipped_tasks]),
+                        'unnecessary job in chain')
+
+        self.assertTrue(all([True if t in str(job_chain)
+                            else False for t in needed_tasks]),
+                        'missing necessary job in chain')
 
 
 class APIAccessTestCase(TestCase):

@@ -454,6 +454,8 @@ var ScenarioModel = Backbone.Model.extend({
         job_id: null,
         results: null, // ResultCollection
         census: null, // JSON blob
+        aoi_census: null, // JSON blob
+        modification_censuses: null, // JSON blob
         allow_save: true // Is allowed to save to the server - false in compare mode
     },
 
@@ -586,7 +588,11 @@ var ScenarioModel = Backbone.Model.extend({
                 }
             });
 
-            this.set('census', serverResults.aoi_census);
+            this.set('aoi_census', serverResults.aoi_census);
+            this.set('modification_censuses', {
+                modification_hash: serverResults.modification_hash,
+                censuses: serverResults.modification_censuses
+            });
         }
     },
 
@@ -605,7 +611,8 @@ var ScenarioModel = Backbone.Model.extend({
                         inputs: self.get('inputs').toJSON(),
                         modification_pieces: alterModifications(self.get('modifications'), self.get('modification_hash')),
                         area_of_interest: App.currentProject.get('area_of_interest'),
-                        census: self.get('census'),
+                        aoi_census: self.get('aoi_census'),
+                        modification_censuses: self.get('modification_censuses'),
                         inputmod_hash: self.get('inputmod_hash'),
                         modification_hash: self.get('modification_hash')
                     })

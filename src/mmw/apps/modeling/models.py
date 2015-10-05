@@ -72,6 +72,14 @@ class Scenario(models.Model):
     census = models.TextField(
         null=True,
         help_text='Serialized JSON representation of geoprocessing results')
+    aoi_census = models.TextField(
+        null=True,
+        help_text='Serialized JSON representation of AoI census ' +
+                  'geoprocessing results')
+    modification_censuses = models.TextField(
+        null=True,
+        help_text='Serialized JSON representation of modification censuses ' +
+                  'geoprocessing results, with modification_hash')
     results = models.TextField(
         null=True,
         help_text='Serialized JSON representation of the model results')
