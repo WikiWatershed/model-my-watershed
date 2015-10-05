@@ -23,6 +23,7 @@ from apps.core.tasks import save_job_error, save_job_result
 from apps.modeling import tasks
 from apps.modeling.models import Project, Scenario
 from apps.modeling.serializers import (ProjectSerializer,
+                                       ProjectListingSerializer,
                                        ProjectUpdateSerializer,
                                        ScenarioSerializer)
 
@@ -35,7 +36,7 @@ def projects(request):
        logged in user."""
     if request.method == 'GET':
         projects = Project.objects.filter(user=request.user)
-        serializer = ProjectSerializer(projects, many=True)
+        serializer = ProjectListingSerializer(projects, many=True)
 
         return Response(serializer.data)
 

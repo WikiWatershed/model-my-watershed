@@ -42,6 +42,14 @@ class ProjectSerializer(gis_serializers.GeoModelSerializer):
     scenarios = ScenarioSerializer(many=True, read_only=True)
 
 
+class ProjectListingSerializer(gis_serializers.GeoModelSerializer):
+
+    class Meta:
+        model = Project
+        fields = ('id', 'name', 'area_of_interest_name', 'is_private',
+                  'model_package', 'created_at', 'modified_at', 'user')
+
+
 class ProjectUpdateSerializer(gis_serializers.GeoModelSerializer):
 
     class Meta:
