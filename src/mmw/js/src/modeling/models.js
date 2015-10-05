@@ -278,6 +278,12 @@ var ProjectModel = Backbone.Model.extend({
     }
 });
 
+var ProjectCollection = Backbone.Collection.extend({
+    url: '/api/modeling/projects/',
+
+    model: ProjectModel
+});
+
 /**
  * A predicate for a filter function used in the _modifyModifications.
  * Returns true if piece has a valid shape with non-zero area, and
@@ -809,6 +815,7 @@ module.exports = {
     ModelPackageControlModel: ModelPackageControlModel,
     Tr55TaskModel: Tr55TaskModel,
     ProjectModel: ProjectModel,
+    ProjectCollection: ProjectCollection,
     ModificationModel: ModificationModel,
     ModificationsCollection: ModificationsCollection,
     ScenarioModel: ScenarioModel,

@@ -1,6 +1,6 @@
 #projects-container {
   padding: $height-sm $height-lg;
-  overflow: hidden;
+  overflow: scroll;
   position: absolute;
   top: $height-lg;
   left: 0;
@@ -10,11 +10,6 @@
   background-color: $ui-light;
   transition: 0.3s ease left, 0.3s ease right;
   
-  .search-input {
-    height: $height-lg;
-    width: 100%;
-  }
-
   .new-project {
     height: $height-lg;
 
@@ -24,7 +19,7 @@
     }
   }
 
-  .projects-list-container {
+  .project-rows-container {
     margin-top: $height-lg;
 
     .project.row {
