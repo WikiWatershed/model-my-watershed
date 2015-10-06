@@ -63,12 +63,14 @@ var ProjectRowView = Marionette.ItemView.extend({
         rename: '.btn-rename',
         share: '.btn-share',
         privacy: '.btn-privacy',
+        remove: '.btn-delete'
     },
 
     events: {
         'click @ui.rename': 'renameProject',
         'click @ui.share': 'shareProject',
         'click @ui.privacy': 'setProjectPrivacy',
+        'click @ui.remove': 'deleteProject'
     },
 
     modelEvents: {
@@ -133,6 +135,27 @@ var ProjectRowView = Marionette.ItemView.extend({
             self.model.saveProjectListing();
         });
     },
+
+    deleteProject: function() {
+        var self = this,
+            del = new modalViews.ConfirmView({
+                model: new modalModels.ConfirmModel({
+                    question: 'Are you sure you want to delete this Project?',
+                    confirmLabel: 'Delete',
+                    cancelLabel: 'Cancel'
+                })
+            });
+
+        del.render();
+
+        del.on('confirmation', function() {
+            self.model
+                .destroy({ wait: true })
+                .fail(function() {
+                    window.alert('Could not delete this project.');
+                });
+        });
+    }
 });
 
 var ProjectRowsView = Marionette.CollectionView.extend({
