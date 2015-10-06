@@ -51,7 +51,7 @@ def projects(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@decorators.api_view(['DELETE', 'GET', 'PUT'])
+@decorators.api_view(['DELETE', 'GET', 'PUT', 'PATCH'])
 @decorators.permission_classes((IsAuthenticatedOrReadOnly, ))
 def project(request, proj_id):
     """Retrieve, update or delete a project"""
@@ -69,6 +69,18 @@ def project(request, proj_id):
             ctx = {'request': request}
             serializer = ProjectUpdateSerializer(project, data=request.data,
                                                  context=ctx)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        elif request.method == 'PATCH':
+            ctx = {'request': request}
+            serializer = ProjectListingSerializer(project, data=request.data,
+                                                  context=ctx)
 
             if serializer.is_valid():
                 serializer.save()

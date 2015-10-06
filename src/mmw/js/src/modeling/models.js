@@ -171,6 +171,16 @@ var ProjectModel = Backbone.Model.extend({
     // Flag to prevent double POSTing of a project.
     saveCalled: false,
 
+    saveProjectListing: function() {
+        var listingAttrs = [
+                'id', 'name', 'area_of_interest_name', 'is_private',
+                'model_package', 'created_at', 'modified_at', 'user'
+            ],
+            attrs = _.pick(this.toJSON(), listingAttrs);
+
+        this.save(attrs, { patch: true });
+    },
+
     saveProjectAndScenarios: function() {
         if (!this.get('allow_save') || !App.user.loggedInUserMatch(this.get('user_id'))) {
             // Fail fast if the user can't save the project.
