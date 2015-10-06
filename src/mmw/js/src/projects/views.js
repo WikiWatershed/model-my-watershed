@@ -61,10 +61,12 @@ var ProjectRowView = Marionette.ItemView.extend({
 
     ui: {
         rename: '.btn-rename',
+        share: '.btn-share',
     },
 
     events: {
         'click @ui.rename': 'renameProject',
+        'click @ui.share': 'shareProject',
     },
 
     modelEvents: {
@@ -87,6 +89,21 @@ var ProjectRowView = Marionette.ItemView.extend({
             self.model.updateName(val);
             self.model.saveProjectListing();
         });
+    },
+
+    shareProject: function() {
+        var share = new modalViews.ShareView({
+                model: new modalModels.ShareModel({
+                    text: 'Project',
+                    url: window.location.origin + this.model.getReferenceUrl(),
+                    guest: App.user.get('guest'),
+                    is_private: this.model.get('is_private')
+                }),
+                app: App,
+                project: this.model
+            });
+
+        share.render();
     },
 });
 

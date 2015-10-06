@@ -177,6 +177,11 @@ var ProjectModel = Backbone.Model.extend({
             ],
             attrs = _.pick(this.toJSON(), listingAttrs);
 
+        // Server expects user to be id, not object
+        if (attrs.user.id) {
+            attrs.user = attrs.user.id;
+        }
+
         this.save(attrs, { patch: true });
     },
 
