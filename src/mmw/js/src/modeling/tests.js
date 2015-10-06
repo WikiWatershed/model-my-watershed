@@ -260,7 +260,9 @@ describe('Modeling', function() {
                         'Share',
                         'Make Public',
                         'Delete',
-                        'Rename'
+                        'Rename',
+                        '',
+                        'My Projects'
                     ];
 
                 this.server.respondWith('POST', '/api/modeling/projects/',
@@ -329,7 +331,9 @@ describe('Modeling', function() {
                         'Make Public',
                         'Delete',
                         'Rename',
-                        'Embed in ITSI'
+                        'Embed in ITSI',
+                        '',
+                        'My Projects'
                     ];
 
                 this.server.respondWith('POST', '/api/modeling/projects/',

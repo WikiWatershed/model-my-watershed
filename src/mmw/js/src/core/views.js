@@ -64,6 +64,7 @@ var HeaderView = Marionette.ItemView.extend({
         var self = this;
 
         return {
+            'itsi_embed': settings.get('itsi_embed'),
             'current_page_title': self.appState.get('current_page_title')
         };
     },

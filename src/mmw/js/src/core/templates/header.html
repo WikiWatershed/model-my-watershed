@@ -15,7 +15,9 @@
                         {% if itsi %}
                             <li><a href="#" class="clone-project">Clone Project</a></li>
                         {% endif %}
-                        <li><a href="#">Profile</a></li>
+                        {% if not itsi_embed %}
+                            <li><a data-url="/projects/">My Projects</a></li>
+                        {% endif %}
                         <li><a href="/user/logout" class="user-logout">Logout</a></li>
                     </ul>
                 </li>

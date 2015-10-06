@@ -11,3 +11,7 @@ nunjucks.env.addFilter('toLocaleString', function(val, n) {
         return val.toLocaleString('en');
     }
 });
+
+nunjucks.env.addFilter('toFriendlyDate', function(date) {
+    return new Date(date).toLocaleString();
+});
