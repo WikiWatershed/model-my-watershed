@@ -68,6 +68,10 @@ var MapModel = Backbone.Model.extend({
         this._setSizeOptions({ double: true  }, { large: true }, fit);
     },
 
+    setDrawSize: function(fit) {
+        this._setSizeOptions({ single: true }, { min: true }, fit);
+    },
+
     setDrawWithBarSize: function(fit) {
         this._setSizeOptions({ single: true  }, { med: true }, fit);
     },

@@ -332,6 +332,7 @@ var ResetDrawView = Marionette.ItemView.extend({
         utils.cancelDrawing(App.getLeafletMap());
         clearAoiLayer();
         clearBoundaryLayer(this.model);
+        App.map.setDrawSize(true);
     }
 });
 
