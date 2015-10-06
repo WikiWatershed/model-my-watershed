@@ -79,11 +79,11 @@
                     <!-- Land Cover -->
 
                     <div id="land-open_water" role="tabpanel" class="tab-pane land">
-                        <img src="" style="background-color: gray;" alt="Open Water">
+                        <img src="{% static 'images/water_balance/art_land_openwater.png' %}" alt="Open Water">
                     </div>
 
                     <div id="land-woody_wetlands" role="tabpanel" class="tab-pane land">
-                        <img src="" style="background-color: gray;" alt="Wetlands">
+                        <img src="{% static 'images/water_balance/art_land_wetlands.png' %}" alt="Wetlands">
                     </div>
 
                     <div id="land-developed_low" role="tabpanel" class="tab-pane active land">
@@ -210,7 +210,7 @@
 
                     <li id="thumb-open_water">
                         <a href="#land-open_water" aria-controls="filter-tab" role="tab" data-toggle="tab" class="nlcd-11">
-                            <img src="" style="background-color: gray;" alt="Open Water" data-name="open_water" data-container="body" data-toggle="popover" data-placement="left" data-nlcd="nlcd-11">
+                            <img src="{% static 'images/water_balance/thumb_openwater.png' %}" alt="Open Water" data-name="open_water" data-container="body" data-toggle="popover" data-placement="left" data-nlcd="nlcd-11">
                         </a>
                         <label>Water</label>
                     </li>
@@ -287,7 +287,7 @@
 
                     <li id="thumb-woody_wetlands">
                         <a href="#land-woody_wetlands" aria-controls="filter-tab" role="tab" data-toggle="tab" class="nlcd-90">
-                            <img src="" style="background-color: gray;" alt="Wetlands" data-name="woody_wetlands" data-container="body" data-toggle="popover" data-placement="left" data-nlcd="nlcd-90" >
+                            <img src="{% static 'images/water_balance/thumb_wetlands.png' %}" alt="Wetlands" data-name="woody_wetlands" data-container="body" data-toggle="popover" data-placement="left" data-nlcd="nlcd-90" >
                         </a>
                         <label>Wetlands</label>
                     </li>
