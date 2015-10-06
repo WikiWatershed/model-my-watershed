@@ -133,6 +133,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
         rename.on('update', function(val) {
             self.model.updateName(val);
+            self.model.saveProjectAndScenarios();
         });
     },
 

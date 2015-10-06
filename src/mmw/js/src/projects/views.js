@@ -5,6 +5,8 @@ var Marionette = require('../../shim/backbone.marionette'),
     router = require('../router').router,
     utils = require('../core/utils'),
     models = require('../modeling/models'),
+    modalModels = require('../core/modals/models'),
+    modalViews = require('../core/modals/views'),
     containerTmpl = require('./templates/container.html'),
     rowTmpl = require('./templates/projectRow.html');
 
@@ -55,7 +57,37 @@ var ProjectsView = Marionette.LayoutView.extend({
 
 var ProjectRowView = Marionette.ItemView.extend({
     className: 'project row',
-    template: rowTmpl
+    template: rowTmpl,
+
+    ui: {
+        rename: '.btn-rename',
+    },
+
+    events: {
+        'click @ui.rename': 'renameProject',
+    },
+
+    modelEvents: {
+        'change': 'render'
+    },
+
+    renameProject: function() {
+        var self = this,
+            rename = new modalViews.InputView({
+                model: new modalModels.InputModel({
+                    initial: this.model.get('name'),
+                    title: 'Rename Project',
+                    fieldLabel: 'Project Name'
+                })
+            });
+
+        rename.render();
+
+        rename.on('update', function(val) {
+            self.model.updateName(val);
+            self.model.saveProjectListing();
+        });
+    },
 });
 
 var ProjectRowsView = Marionette.CollectionView.extend({

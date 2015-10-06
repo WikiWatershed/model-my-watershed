@@ -120,7 +120,6 @@ var ProjectModel = Backbone.Model.extend({
         this.set('is_activity', settings.get('activityMode'));
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
-        this.on('change:name', this.saveProjectAndScenarios, this);
     },
 
     createTaskModel: function() {
