@@ -1,6 +1,8 @@
 "use strict";
 
 var Marionette = require('../../shim/backbone.marionette'),
+    App = require('../app'),
+    router = require('../router').router,
     utils = require('../core/utils'),
     models = require('../modeling/models'),
     containerTmpl = require('./templates/container.html'),
@@ -8,6 +10,14 @@ var Marionette = require('../../shim/backbone.marionette'),
 
 var ProjectsView = Marionette.LayoutView.extend({
     template: containerTmpl,
+
+    ui: {
+        newProject: '.new-project'
+    },
+
+    events: {
+        'click @ui.newProject': 'newProject'
+    },
 
     regions: {
         rowContainer: '.project-rows-container'
@@ -29,6 +39,17 @@ var ProjectsView = Marionette.LayoutView.extend({
                     collection: projects
                 }));
             });
+    },
+
+    newProject: function() {
+        App.currentProject = null;
+        App.projectNumber = undefined;
+        App.map.set({
+            'areaOfInterest': null,
+            'areaOfInterestName': null
+        });
+
+        router.navigate('', { trigger: true });
     }
 });
 

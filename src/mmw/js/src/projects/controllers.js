@@ -10,6 +10,10 @@ var ProjectsController = {
         );
 
         App.state.set('current_page_title', 'Projects');
+    },
+
+    projectsCleanUp: function() {
+        App.rootView.footerRegion.empty();
     }
 };
 
