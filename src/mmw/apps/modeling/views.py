@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import json
+import random
 
 from rest_framework.response import Response
 from rest_framework import decorators, status
@@ -16,6 +17,7 @@ from django.conf import settings
 from django.db import connection
 from django.contrib.gis.geos import GEOSGeometry
 
+import celery
 from celery import chain
 
 from apps.core.models import Job
@@ -195,12 +197,20 @@ def get_job(request, job_uuid, format=None):
     )
 
 
+def choose_worker():
+    workers = celery.current_app.control.inspect().ping().keys()
+    index = random.randint(0, len(workers) - 1)
+    return workers[index]
+
+
 def _initiate_analyze_job_chain(area_of_interest, job_id, testing=False):
     return chain(tasks.start_histogram_job.s(area_of_interest),
                  tasks.get_histogram_job_results.s(),
                  tasks.histogram_to_survey.s(),
                  save_job_result.s(job_id, area_of_interest)) \
-        .apply_async(link_error=save_job_error.s(job_id))
+        .apply_async(link_error=save_job_error.s(job_id),
+                     exchange='C.dq',
+                     routing_key=choose_worker())
 
 
 @decorators.api_view(['POST'])
@@ -225,7 +235,9 @@ def start_tr55(request, format=None):
 def _initiate_tr55_job_chain(model_input, job_id):
     job_chain = _construct_tr55_job_chain(model_input, job_id)
 
-    return chain(job_chain).apply_async(link_error=save_job_error.s(job_id))
+    return chain(job_chain).apply_async(link_error=save_job_error.s(job_id),
+                                        exchange='C.dq',
+                                        routing_key=choose_worker())
 
 
 def _construct_tr55_job_chain(model_input, job_id):
