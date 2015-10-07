@@ -158,6 +158,24 @@ var utils = {
             default:
                 throw 'Conversion not implemented.';
         }
+    },
+
+    // Reverse sorting of a Backbone Collection.
+    // Taken from http://stackoverflow.com/a/12220415/2053314
+    reverseSortBy: function(sortByFunction) {
+        return function(left, right) {
+            var l = sortByFunction(left),
+                r = sortByFunction(right);
+
+            if (l === undefined) {
+                return -1;
+            }
+            if (r === undefined) {
+                return 0;
+            }
+
+            return l < r ? 1 : l > r ? -1 : 0;
+        };
     }
 };
 

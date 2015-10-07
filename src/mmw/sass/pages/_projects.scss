@@ -1,0 +1,60 @@
+#projects-container {
+  padding: $height-sm $height-lg;
+  overflow: scroll;
+  position: absolute;
+  top: $height-lg;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  background-color: $ui-light;
+  transition: 0.3s ease left, 0.3s ease right;
+  
+  .new-project {
+    height: $height-lg;
+
+    i {
+      font-size: 0.8em;
+      margin-right: 0.5em;
+    }
+  }
+
+  .project-rows-container {
+    margin-top: $height-lg;
+
+    .project.row {
+      background-color: $paper-74;
+      border-radius: $radius-sm;
+      box-shadow: 0 0 6px $black-12;
+      transition: 0.2s ease all;
+
+      padding: $height-xs;
+      margin-bottom: $height-xs !important;
+
+      &:hover {
+        box-shadow: 0 0 6px $black-24;
+      }
+
+      h2 .fa {
+        font-size: 0.8em;
+        color: $black-24;
+
+        &.fa-lock {
+          margin-right: 0.5em;
+        }
+
+        &.fa-globe {
+          margin-right: 0.3em;
+        }
+      }
+
+      p {
+        margin-left: 1.2em;
+      }
+
+      .btn {
+        height: $height-lg;
+      }
+    }
+  }
+}

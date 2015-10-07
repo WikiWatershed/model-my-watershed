@@ -120,7 +120,6 @@ var ProjectModel = Backbone.Model.extend({
         this.set('is_activity', settings.get('activityMode'));
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
-        this.on('change:name', this.saveProjectAndScenarios, this);
     },
 
     createTaskModel: function() {
@@ -170,6 +169,21 @@ var ProjectModel = Backbone.Model.extend({
 
     // Flag to prevent double POSTing of a project.
     saveCalled: false,
+
+    saveProjectListing: function() {
+        var listingAttrs = [
+                'id', 'name', 'area_of_interest_name', 'is_private',
+                'model_package', 'created_at', 'modified_at', 'user'
+            ],
+            attrs = _.pick(this.toJSON(), listingAttrs);
+
+        // Server expects user to be id, not object
+        if (attrs.user.id) {
+            attrs.user = attrs.user.id;
+        }
+
+        this.save(attrs, { patch: true });
+    },
 
     saveProjectAndScenarios: function() {
         if (!this.get('allow_save') || !App.user.loggedInUserMatch(this.get('user_id'))) {
@@ -276,6 +290,12 @@ var ProjectModel = Backbone.Model.extend({
 
         return url;
     }
+});
+
+var ProjectCollection = Backbone.Collection.extend({
+    url: '/api/modeling/projects/',
+
+    model: ProjectModel
 });
 
 /**
@@ -815,6 +835,7 @@ module.exports = {
     ModelPackageControlModel: ModelPackageControlModel,
     Tr55TaskModel: Tr55TaskModel,
     ProjectModel: ProjectModel,
+    ProjectCollection: ProjectCollection,
     ModificationModel: ModificationModel,
     ModificationsCollection: ModificationsCollection,
     ScenarioModel: ScenarioModel,
