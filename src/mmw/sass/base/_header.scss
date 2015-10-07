@@ -50,6 +50,10 @@ header {
           right: 0px;
           a {
             color: $ui-secondary;
+
+            &:hover, &:active {
+              color: $ui-secondary;
+            }
           }
         }
 
