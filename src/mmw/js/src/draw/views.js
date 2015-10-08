@@ -332,7 +332,6 @@ var ResetDrawView = Marionette.ItemView.extend({
         utils.cancelDrawing(App.getLeafletMap());
         clearAoiLayer();
         clearBoundaryLayer(this.model);
-        App.map.setDrawSize(true);
     }
 });
 
@@ -398,6 +397,7 @@ function clearAoiLayer() {
 
     App.map.set('areaOfInterest', null);
     App.projectNumber = undefined;
+    App.map.setDrawSize(false);
 
     return function revertLayer() {
         var previousShape = App.map.previous('areaOfInterest');
