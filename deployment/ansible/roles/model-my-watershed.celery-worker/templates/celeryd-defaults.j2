@@ -1,5 +1,5 @@
 # Names of nodes to start
-CELERYD_NODES="{% for id in range(0,celery_number_of_workers) %}worker{{ id }} {% endfor %}"
+CELERYD_NODES="{% for id in range(0,celery_number_of_workers) %}$(cat /etc/mmw.d/env/MMW_STACK_COLOR)-worker{{ id }} {% endfor %}"
 
 # Absolute or relative path to the 'celery' command:
 CELERY_BIN="envdir /etc/mmw.d/env /usr/local/bin/celery"

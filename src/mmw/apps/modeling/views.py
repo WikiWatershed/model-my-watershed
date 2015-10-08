@@ -198,19 +198,24 @@ def get_job(request, job_uuid, format=None):
 
 
 def choose_worker():
-    workers = celery.current_app.control.inspect().ping().keys()
-    index = random.randint(0, len(workers) - 1)
-    return workers[index]
+    workers = filter(lambda worker: settings.STACK_COLOR in worker,
+                     celery.current_app.control.inspect().ping().keys())
+    return random.choice(workers)
 
 
 def _initiate_analyze_job_chain(area_of_interest, job_id, testing=False):
-    return chain(tasks.start_histogram_job.s(area_of_interest),
-                 tasks.get_histogram_job_results.s(),
-                 tasks.histogram_to_survey.s(),
-                 save_job_result.s(job_id, area_of_interest)) \
-        .apply_async(link_error=save_job_error.s(job_id),
-                     exchange='C.dq',
-                     routing_key=choose_worker())
+    exchange = 'C.dq'
+    routing_key = choose_worker()
+
+    return chain(tasks.start_histogram_job.s(area_of_interest).set(
+                    exchange=exchange, routing_key=routing_key),
+                 tasks.get_histogram_job_results.s().set(
+                     exchange=exchange, routing_key=routing_key),
+                 tasks.histogram_to_survey.s().set(
+                     exchange=exchange, routing_key=routing_key),
+                 save_job_result.s(job_id, area_of_interest).set(
+                     exchange=exchange, routing_key=routing_key)) \
+        .apply_async(link_error=save_job_error.s(job_id))
 
 
 @decorators.api_view(['POST'])
@@ -235,12 +240,13 @@ def start_tr55(request, format=None):
 def _initiate_tr55_job_chain(model_input, job_id):
     job_chain = _construct_tr55_job_chain(model_input, job_id)
 
-    return chain(job_chain).apply_async(link_error=save_job_error.s(job_id),
-                                        exchange='C.dq',
-                                        routing_key=choose_worker())
+    return chain(job_chain).apply_async(link_error=save_job_error.s(job_id))
 
 
 def _construct_tr55_job_chain(model_input, job_id):
+    exchange = 'C.dq'
+    routing_key = choose_worker()
+
     job_chain = []
 
     aoi = model_input.get('area_of_interest')
@@ -263,24 +269,32 @@ def _construct_tr55_job_chain(model_input, job_id):
        census_hash == current_hash) or not pieces)):
         censuses = [aoi_census] + modification_census_items
 
-        job_chain.append(tasks.run_tr55.s(censuses, model_input))
+        job_chain.append(tasks.run_tr55.s(censuses, model_input).set(
+            exchange=exchange, routing_key=routing_key))
     else:
-        job_chain.append(tasks.get_histogram_job_results.s())
-        job_chain.append(tasks.histograms_to_censuses.s())
+        job_chain.append(tasks.get_histogram_job_results.s().set(
+            exchange=exchange, routing_key=routing_key))
+        job_chain.append(tasks.histograms_to_censuses.s().set(
+            exchange=exchange, routing_key=routing_key))
 
         if aoi_census and pieces:
             polygons = [m['shape']['geometry'] for m in pieces]
 
-            job_chain.insert(0, tasks.start_histograms_job.s(polygons))
+            job_chain.insert(0, tasks.start_histograms_job.s(polygons).set(
+                    exchange=exchange, routing_key=routing_key))
             job_chain.insert(len(job_chain), tasks.run_tr55.s(model_input,
-                             cached_aoi_census=aoi_census))
+                             cached_aoi_census=aoi_census).set(
+                                 exchange=exchange, routing_key=routing_key))
         else:
             polygons = [aoi] + [m['shape']['geometry'] for m in pieces]
 
-            job_chain.insert(0, tasks.start_histograms_job.s(polygons))
-            job_chain.insert(len(job_chain), tasks.run_tr55.s(model_input))
+            job_chain.insert(0, tasks.start_histograms_job.s(polygons).set(
+                exchange=exchange, routing_key=routing_key))
+            job_chain.insert(len(job_chain), tasks.run_tr55.s(model_input).set(
+                exchange=exchange, routing_key=routing_key))
 
-    job_chain.append(save_job_result.s(job_id, model_input))
+    job_chain.append(save_job_result.s(job_id, model_input).set(
+        exchange=exchange, routing_key=routing_key))
 
     return job_chain
 
