@@ -70,6 +70,7 @@
     background-color: $paper;
     margin-top: 6px;
     min-width: 300px;
+    z-index: 10;
     & > li {
       cursor: pointer;
       padding: 0.5rem 1rem;
