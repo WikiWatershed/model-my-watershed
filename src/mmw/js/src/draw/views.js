@@ -105,7 +105,7 @@ var SelectAreaView = Marionette.ItemView.extend({
     onRender: function() {
         this.ui.helptextIcon.popover({
             trigger: 'hover',
-            viewport: '.container-fluid.top-nav'
+            viewport: '.map-container'
         });
     },
 
@@ -220,7 +220,7 @@ var DrawView = Marionette.ItemView.extend({
     onShow: function() {
         this.ui.helptextIcon.popover({
             trigger: 'hover',
-            viewport: '.container-fluid.top-nav'
+            viewport: '.map-container'
         });
     },
 
@@ -280,7 +280,7 @@ var PlaceMarkerView = Marionette.ItemView.extend({
     onShow: function() {
         this.ui.helptextIcon.popover({
             trigger: 'hover',
-            viewport: '.container-fluid.top-nav'
+            viewport: '.map-container'
         });
     },
 
