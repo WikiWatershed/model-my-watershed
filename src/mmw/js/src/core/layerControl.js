@@ -78,6 +78,9 @@ module.exports = L.Control.Layers.extend({
         }
 
         input.layerId = L.stamp(obj.layer);
+        if (obj.overlay && obj.layer && obj.layer.options && obj.layer.options.code) {
+            $(input).attr('id', obj.layer.options.code);
+        }
 
         L.DomEvent.on(input, 'click', this._onInputClick, this);
 

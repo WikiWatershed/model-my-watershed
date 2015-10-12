@@ -26,6 +26,7 @@ LAYERS = [
         'boundary': True,
         'vector': True,
         'overlay': True,
+        'minZoom': 7,
     },
     {
         'code': 'huc10',
@@ -42,6 +43,7 @@ LAYERS = [
         'boundary': True,
         'vector': True,
         'overlay': True,
+        'minZoom': 8,
     },
     {
         'code': 'huc12',
@@ -59,6 +61,7 @@ LAYERS = [
         'boundary': True,
         'vector': True,
         'overlay': True,
+        'minZoom': 9,
     },
     {
         'code': 'county',
@@ -75,6 +78,7 @@ LAYERS = [
         'boundary': True,
         'vector': True,
         'overlay': True,
+        'minZoom': 9,
     },
     {
         'code': 'district',
@@ -92,6 +96,7 @@ LAYERS = [
         'boundary': True,
         'vector': True,
         'overlay': True,
+        'minZoom': 6,
     },
     {
         'code': 'school',
@@ -102,6 +107,7 @@ LAYERS = [
         'boundary': True,
         'vector': True,
         'overlay': True,
+        'minZoom': 9,
     },
     {
         'display': 'National Land Cover Database',
