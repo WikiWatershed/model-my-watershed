@@ -451,6 +451,12 @@ var ModificationModel = coreModels.GeoModel.extend({
     clipToAoI: function(aoi, shape) {
         var effectiveShape = turfIntersect(shape, aoi);
 
+        // Turf returns undefined if there is no intersection,
+        // so we set effectiveShape to an empty geometry.
+        if (effectiveShape === undefined) {
+            effectiveShape = {"type": "Polygon", "coordinates": []};
+        }
+
         this.set('effectiveShape', effectiveShape);
     }
 });
