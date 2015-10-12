@@ -14,7 +14,7 @@ require('bootstrap-select');
 
 var initialize = function(model) {
     // Used to convert slider values into data keys
-    var precipKey = ['0.5', '1.0', '2.0', '3.2', '8.0'];
+    var precipKey = ['1', '3', '5', '8', '21'];
 
     // Cache references to DOM elements so as not to query them each time
     var $etColumn = $('#column-et'),
@@ -73,10 +73,10 @@ var initialize = function(model) {
             precip = precipKey[$precipSlider.val()],
             result = model[soil][land][precip];
 
-        $precipText.text(convertToMetric(precip) + ' cm');
-        $etText.text(convertToMetric(result.et) + ' cm');
-        $rText.text(convertToMetric(result.r) + ' cm');
-        $iText.text(convertToMetric(result.i) + ' cm');
+        $precipText.text(tenthsPlace(precip) + ' cm');
+        $etText.text(tenthsPlace(result.et) + ' cm');
+        $rText.text(tenthsPlace(result.r) + ' cm');
+        $iText.text(tenthsPlace(result.i) + ' cm');
 
         var total = parseFloat(result.et) + parseFloat(result.r) + parseFloat(result.i);
         $etColumn.css('height', (100 * result.et / total) + '%');
@@ -105,10 +105,9 @@ var initialize = function(model) {
         });
     };
 
-    var convertToMetric = function(value) {
-        // 2.54 cm per inch.
-        return (value * 2.54).toFixed(1);
-    };
+    function tenthsPlace(x) {
+        return parseFloat(x).toFixed(1);
+    }
 
     // Wire up events
     $precipSlider.on('input', recalculate);
@@ -128,7 +127,7 @@ var initBootstrap = function() {
                 '<div class="arrow"></div>' +
                 '<h3 class="popover-title ' + ' ' + nlcd + '"></h3>' +
                 '<div class="popover-content"></div></div>',
-            entry = modificationConfig[$popover.data('name')], 
+            entry = modificationConfig[$popover.data('name')],
             options = {
                 content: entry.summary,
                 template: template,
