@@ -130,7 +130,7 @@ def itsi_auth(request):
         # User did not authenticate. Save their ITSI ID and send to /sign-up
         request.session['itsi_id'] = itsi_user['id']
         return redirect(
-            '/sign-up/itsi/{username}/{first_name}/{last_name}?next={0}'
+            '/sign-up/itsi/{username}.itsi/{first_name}/{last_name}?next={0}'
             .format(
                 request.GET.get('next', '/'),
                 **itsi_user['extra']
