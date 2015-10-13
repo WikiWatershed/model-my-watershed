@@ -286,7 +286,14 @@ var ScenariosView = Marionette.LayoutView.extend({
     },
 
     addScenario: function() {
-        this.collection.createNewScenario();
+        var first = this.collection.first();
+
+        if (first) {
+            var aoi_census = first.get('aoi_census');
+            this.collection.createNewScenario(aoi_census);
+        } else {
+            this.collection.createNewScenario();
+        }
     },
 
     onScenarioTabClicked: function(e) {

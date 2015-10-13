@@ -745,9 +745,10 @@ var ScenariosCollection = Backbone.Collection.extend({
         return this.setActiveScenario(this.get({ cid: cid }));
     },
 
-    createNewScenario: function() {
+    createNewScenario: function(aoi_census) {
         var scenario = new ScenarioModel({
-            name: this.makeNewScenarioName('New Scenario')
+            name: this.makeNewScenarioName('New Scenario'),
+            aoi_census: aoi_census
         });
 
         this.add(scenario);

@@ -234,11 +234,15 @@ def _construct_tr55_job_chain(model_input, job_id):
     aoi = model_input.get('area_of_interest')
     aoi_census = model_input.get('aoi_census')
     modification_censuses = model_input.get('modification_censuses')
+    # Non-overlapping polygons derived from the modifications
     pieces = model_input.get('modification_pieces', [])
+    # The hash of the current modifications
     current_hash = model_input.get('modification_hash')
-    census_hash = None
-    modification_census_items = []
 
+    # The hash of the modifications whose censuses we already have
+    census_hash = None
+    # The list of already-computed censuses of the modifications
+    modification_census_items = []
     if modification_censuses:
         census_hash = modification_censuses.get('modification_hash')
         modification_census_items = modification_censuses.get('censuses')

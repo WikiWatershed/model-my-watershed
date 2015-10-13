@@ -14,19 +14,33 @@ var CompareController = {
     },
 
     compare: function(projectId) {
+        var first = null,
+            aoi_census = null;
+
         if (App.currentProject) {
-            setupProjectCopy();
-            addForestCoverScenario();
+            first = App.currentProject.get('scenarios').first();
+            if (first) {
+                aoi_census = first.get('aoi_census');
+            }
+
+            setupProjectCopy(aoi_census);
+            addForestCoverScenario(aoi_census);
             showCompareWindow();
         } else if (projectId) {
             App.currentProject = new modelingModels.ProjectModel({
                 id: projectId
             });
+
+            first = App.currentProject.get('scenarios').first();
+            if (first) {
+                aoi_census = first.get('aoi_census');
+            }
+
             App.currentProject
                 .fetch()
                 .done(function() {
-                    setupProjectCopy();
-                    addForestCoverScenario();
+                    setupProjectCopy(aoi_census);
+                    addForestCoverScenario(aoi_census);
                     showCompareWindow();
                 });
         }
@@ -51,7 +65,7 @@ var CompareController = {
     }
 };
 
-function setupProjectCopy() {
+function setupProjectCopy(aoi_census) {
     /*
     Create a copy of the project so that:
       -Changes to the results and inputs are not saved to the server
@@ -66,7 +80,7 @@ function setupProjectCopy() {
        Without holding onto the original copies of these values, it's not possible to do this.
      */
     App.origProject = App.currentProject;
-    App.currentProject = copyProject(App.origProject);
+    App.currentProject = copyProject(App.origProject, aoi_census);
 
     App.user.on('change:guest', saveAfterLogin);
     App.origProject.on('change:id', updateUrl);
@@ -75,7 +89,7 @@ function setupProjectCopy() {
 // Creates a special-purpose copy of the project
 // for the compare views, since creating a true deep
 // clone is more difficult and unnecessary.
-function copyProject(project) {
+function copyProject(project, aoi_census) {
     var scenariosCopy = new modelingModels.ScenariosCollection();
     project.get('scenarios').forEach(function(scenario) {
         var scenarioCopy = new modelingModels.ScenarioModel({});
@@ -84,11 +98,15 @@ function copyProject(project) {
             is_current_conditions: scenario.get('is_current_conditions'),
             modifications: scenario.get('modifications'),
             modification_hash: scenario.get('modification_hash'),
+            modification_censuses: scenario.get('modification_censuses'),
             results: new modelingModels.ResultCollection(scenario.get('results').toJSON()),
             inputs: new modelingModels.ModificationsCollection(scenario.get('inputs').toJSON()),
             inputmod_hash: scenario.get('inputmod_hash'),
             allow_save: false
         });
+        if (aoi_census) {
+            scenarioCopy.set('aoi_census', aoi_census);
+        }
         scenarioCopy.get('inputs').on('add', _.debounce(_.bind(scenarioCopy.fetchResults, scenarioCopy), 500));
         scenariosCopy.add(scenarioCopy);
     });
@@ -102,7 +120,7 @@ function copyProject(project) {
 }
 
 // Adds special 100% Forest Cover Scenario for the Compare View
-function addForestCoverScenario() {
+function addForestCoverScenario(aoi_census) {
     var project = App.currentProject,
         forestCoverScenario = new modelingModels.ScenarioModel({}),
         currentConditions = project.get('scenarios').findWhere({ is_current_conditions: true });
@@ -118,6 +136,9 @@ function addForestCoverScenario() {
         inputmod_hash: currentConditions.get('inputmod_hash'),
         allow_save: false
     });
+    if (aoi_census) {
+        forestCoverScenario.set('aoi_census', aoi_census);
+    }
     forestCoverScenario.get('inputs').on('add', _.debounce(_.bind(forestCoverScenario.fetchResults, forestCoverScenario), 500));
     project.get('scenarios').add(forestCoverScenario, { at: 0 });
 }
