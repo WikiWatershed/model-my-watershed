@@ -27,7 +27,6 @@ class ScenarioSerializer(serializers.ModelSerializer):
 
     inputs = JsonField()
     modifications = JsonField()
-    census = JsonField(required=False, allow_null=True)
     aoi_census = JsonField(required=False, allow_null=True)
     modification_censuses = JsonField(required=False, allow_null=True)
     results = JsonField(required=False, allow_null=True)

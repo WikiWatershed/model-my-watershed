@@ -479,7 +479,6 @@ var ScenarioModel = Backbone.Model.extend({
         active: false,
         job_id: null,
         results: null, // ResultCollection
-        census: null, // JSON blob
         aoi_census: null, // JSON blob
         modification_censuses: null, // JSON blob
         allow_save: true // Is allowed to save to the server - false in compare mode
