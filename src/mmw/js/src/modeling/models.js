@@ -318,11 +318,11 @@ function _alterModifications(rawModifications) {
         reclass = 'landcover',
         bmp = 'conservation_practice',
         both = 'both',
-        n = rawModifications.size(),
+        n = rawModifications.length,
         n2 = n * n;
 
     for (var i = 0; i < n; ++i) {
-        var rawModification = rawModifications.at(i),
+        var rawModification = rawModifications[i],
             newPiece = {
                 name: rawModification.get('name'),
                 shape: rawModification.get('effectiveShape') || rawModification.get('shape'),
@@ -450,6 +450,12 @@ var ModificationModel = coreModels.GeoModel.extend({
 
     clipToAoI: function(aoi, shape) {
         var effectiveShape = turfIntersect(shape, aoi);
+
+        // Turf returns undefined if there is no intersection,
+        // so we set effectiveShape to an empty geometry.
+        if (effectiveShape === undefined) {
+            effectiveShape = {"type": "Polygon", "coordinates": []};
+        }
 
         this.set('effectiveShape', effectiveShape);
     }
@@ -625,11 +631,14 @@ var ScenarioModel = Backbone.Model.extend({
         var self = this,
             results = this.get('results'),
             taskModel = this.get('taskModel'),
+            nonZeroModifications = this.get('modifications').filter(function(mod) {
+                return mod.get('effectiveArea') > 0;
+            }),
             taskHelper = {
                 postData: {
                     model_input: JSON.stringify({
                         inputs: self.get('inputs').toJSON(),
-                        modification_pieces: alterModifications(self.get('modifications'), self.get('modification_hash')),
+                        modification_pieces: alterModifications(nonZeroModifications, self.get('modification_hash')),
                         area_of_interest: App.currentProject.get('area_of_interest'),
                         aoi_census: self.get('aoi_census'),
                         modification_censuses: self.get('modification_censuses'),
