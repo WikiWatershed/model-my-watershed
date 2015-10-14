@@ -1,9 +1,12 @@
-{% macro field(value, name, label='', type='text') %}
+{% macro field(value, name, label='', type='text', help='') %}
     <div class="custom-input-group">
         <input name="{{ name }}" type="{{ type }}" id="{{ name }}" required value="{{ value }}">
         <span class="highlight"></span>
         <span class="bar"></span>
         <label>{{ label }}</label>
+        {% if help %}
+            <p class="help-block small">{{ help }}</p>
+        {% endif %}
     </div>
 {% endmacro %}
 

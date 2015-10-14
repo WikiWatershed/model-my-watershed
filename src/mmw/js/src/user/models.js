@@ -213,6 +213,7 @@ var ItsiSignUpFormModel = ModalBaseModel.extend({
         username: null,
         first_name: null,
         last_name: null,
+        itsi_name: null,
         next: '/'
     },
 
