@@ -22,6 +22,25 @@ var $ = require('jquery'),
     settings = require('../core/settings');
 
 var MAX_AREA = 10000; // 10,000 km^2
+var codeToLayer = {}; // code to layer mapping
+
+function actOnUI(datum, bool) {
+    var code = datum.code,
+        $el = $('[data-layer-code="' + code + '"]');
+
+    if (bool) {
+        $el.addClass('disabled');
+    } else {
+        $el.removeClass('disabled');
+    }
+}
+
+function actOnLayer(datum) {
+    $('#boundary-label').hide();
+    if (datum.code && codeToLayer[datum.code]) {
+        codeToLayer[datum.code]._clearBgBuffer();
+    }
+}
 
 function validateShape(shape) {
     var area = coreUtils.changeOfAreaUnits(turfArea(shape), 'm2', 'km2'),
@@ -120,8 +139,12 @@ var SelectAreaView = Marionette.ItemView.extend({
     },
 
     initialize: function() {
-        var ofg = this.model.get('outlineFeatureGroup');
+        var map = App.getLeafletMap(),
+            ofg = this.model.get('outlineFeatureGroup'),
+            types = this.model.get('predefinedShapeTypes');
+
         ofg.on('layerremove', _.bind(this.clearLabel, this));
+        coreUtils.zoomToggle(map, types, actOnUI, actOnLayer);
     },
 
     onRender: function() {
@@ -135,11 +158,14 @@ var SelectAreaView = Marionette.ItemView.extend({
         var $el = $(e.currentTarget),
             tileUrl = $el.data('tile-url'),
             layerCode = $el.data('layer-code'),
-            shortDisplay = $el.data('short-display');
+            shortDisplay = $el.data('short-display'),
+            minZoom = $el.data('min-zoom');
 
-        clearAoiLayer();
-        this.changeOutlineLayer(tileUrl, layerCode, shortDisplay);
-        e.preventDefault();
+        if (!$el.hasClass('disabled')) {
+            clearAoiLayer();
+            this.changeOutlineLayer(tileUrl, layerCode, shortDisplay, minZoom);
+            e.preventDefault();
+        }
     },
 
     getTemplate: function() {
@@ -147,19 +173,22 @@ var SelectAreaView = Marionette.ItemView.extend({
         return !types ? loadingTmpl : selectTypeTmpl;
     },
 
-    changeOutlineLayer: function(tileUrl, layerCode, shortDisplay) {
+    changeOutlineLayer: function(tileUrl, layerCode, shortDisplay, minZoom) {
         var self = this,
             ofg = self.model.get('outlineFeatureGroup');
 
         // Go about the business of adding the outline and UTFgrid layers.
         if (tileUrl && layerCode !== undefined) {
-            var ol = new L.TileLayer(tileUrl + '.png'),
+            var ol = new L.TileLayer(tileUrl + '.png', {minZoom: minZoom || 0}),
                 grid = new L.UtfGrid(tileUrl + '.grid.json',
                                      {
+                                         minZoom: minZoom,
                                          useJsonP: false,
                                          resolution: 4,
                                          maxRequests: 8
                                      });
+
+            codeToLayer[layerCode] = ol;
 
             grid.on('click', function(e) {
                 getShapeAndAnalyze(e, self.model, ofg, grid, layerCode, shortDisplay);

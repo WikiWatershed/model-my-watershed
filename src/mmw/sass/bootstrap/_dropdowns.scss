@@ -74,8 +74,8 @@
 
 // Hover/Focus state
 .dropdown-menu > li > a {
-  &:hover,
-  &:focus {
+  &:hover:not(.disabled),
+  &:focus:not(.disabled) {
     text-decoration: none;
     color: $dropdown-link-hover-color;
     background-color: $dropdown-link-hover-bg;

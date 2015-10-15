@@ -7,6 +7,7 @@ var L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
     drawUtils = require('../draw/utils'),
+    coreUtils = require('./utils'),
     modificationConfigUtils = require('../modeling/modificationConfigUtils'),
     headerTmpl = require('./templates/header.html'),
     modificationPopupTmpl = require('./templates/modificationPopup.html'),
@@ -202,7 +203,7 @@ var MapView = Marionette.ItemView.extend({
         this._areaOfInterestLayer = new L.FeatureGroup();
         this._modificationsLayer = new L.FeatureGroup();
         this.baseLayers = this.buildLayers(settings.get('base_layers'));
-        this.overlayLayers = this.buildLayers(overlayLayers);
+        this.overlayLayers = this.buildLayers(overlayLayers, map);
 
         if (!options.interactiveMode) {
             this.setMapToNonInteractive();
@@ -350,7 +351,7 @@ var MapView = Marionette.ItemView.extend({
         }
     },
 
-    buildLayers: function(layerConfig) {
+    buildLayers: function(layerConfig, map) {
         var self = this,
             layers = {};
 
@@ -368,7 +369,10 @@ var MapView = Marionette.ItemView.extend({
                                 layer.url + '.png' : layer.url),
                     zIndex = layer.overlay ? 1 : 0;
 
-                _.defaults(layer, {zIndex: zIndex, attribution: ''});
+                _.defaults(layer, {
+                    zIndex: zIndex,
+                    attribution: '',
+                    minZoom: 0});
                 leafletLayer = new L.TileLayer(tileUrl, layer);
                 if (layer.has_opacity_slider) {
                     var slider = new OpacityControl();
@@ -382,6 +386,36 @@ var MapView = Marionette.ItemView.extend({
 
             layers[layer['display']] = leafletLayer;
         });
+
+        function actOnUI(datum, bool) {
+            var code = datum.code,
+                $el = $('#overlays-layer-list #' + code);
+            $el.attr('disabled', bool);
+            if (bool) {
+                $el.siblings('span').addClass('disabled');
+            } else {
+                $el.siblings('span').removeClass('disabled');
+            }
+        }
+
+        function actOnLayer(datum) {
+            var display = datum.display;
+            if (display) {
+                // Work-around to prevent after-image when zooming
+                // out.  Not worried about this when zooming in --
+                // actually it is desirable in that case.  Derived
+                // from https://github.com/Leaflet/Leaflet/issues/1905.
+                layers[display]._clearBgBuffer();
+            }
+        }
+
+        if (map) {
+            // Toggle UI entries in response to zoom changes and make
+            // sure that layers which are invisible due to their
+            // minZoom being larger than the current zoom level are
+            // cleared from the map.
+            coreUtils.zoomToggle(map, layerConfig, actOnUI, actOnLayer);
+        }
 
         return layers;
     },
