@@ -22,4 +22,4 @@ azavea.build-essential,0.1.0
 azavea.mapnik,0.1.0
 azavea.beaver,0.1.3
 azavea.java,0.2.1
-azavea.docker,1.0.1
+azavea.docker,1.0.2
