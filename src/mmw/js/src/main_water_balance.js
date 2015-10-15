@@ -103,6 +103,9 @@ var initialize = function(model) {
             'border-bottom-left-radius': bottomRadius,
             'border-bottom-right-radius': bottomRadius
         });
+
+        // Set slider value attribute for screenshots
+        $precipSlider.attr('value', $precipSlider.val());
     };
 
     function tenthsPlace(x) {
