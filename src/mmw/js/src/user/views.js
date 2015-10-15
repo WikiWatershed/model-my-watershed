@@ -372,6 +372,12 @@ var ItsiSignUpModalView = ModalBaseView.extend({
             'username': response.username,
             'guest': false
         });
+    },
+
+    // Override to always redirect to "next" query param if specified,
+    // or to home if not, after closing the modal.
+    onModalHidden: function() {
+        ModalBaseView.prototype.onModalHidden.apply(this, arguments);
 
         var next = this.model.get('next');
         if (next !== '/') {

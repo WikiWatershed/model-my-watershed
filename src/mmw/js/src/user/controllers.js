@@ -20,6 +20,7 @@ var SignUpController = {
                 username: username,
                 first_name: first_name,
                 last_name: last_name,
+                itsi_name: username.replace('.itsi', ''),
                 next: queryParams ? utils.parseQueryString(queryParams).next : '/'
             })
         }).render();

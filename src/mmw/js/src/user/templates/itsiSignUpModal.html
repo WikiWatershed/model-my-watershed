@@ -1,7 +1,13 @@
 {% extends './baseModal.html' %}
 
 {% block form %}
-    {{ field(username, 'username', 'Username') }}
+    <p class="small">
+        Please pick a username and sign up below.
+        Always select <strong>ITSI</strong> when logging in.
+    </p>
+
+    {{ field(username, 'username', 'Username', 'text',
+            'This will link to your <strong>' + itsi_name + '</strong> ITSI account') }}
     {{ field(first_name, 'first_name', 'First Name') }}
     {{ field(last_name, 'last_name', 'Last Name') }}
 {% endblock %}
