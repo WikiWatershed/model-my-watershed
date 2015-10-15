@@ -330,48 +330,10 @@ var ForgotModalView = ModalBaseView.extend({
 var ItsiSignUpModalView = ModalBaseView.extend({
     template: itsiSignUpModalTmpl,
 
-    ui: _.defaults({
-        'username': '#username',
-        'first_name': '#first_name',
-        'last_name': '#last_name'
-    }, ModalBaseView.prototype.ui),
+    ui: _.defaults({}, ModalBaseView.prototype.ui),
 
-    onModalShown: function() {
-        this.ui.username.focus();
-    },
-
-    onValidationError: function() {
-        this.ui.username.focus();
-    },
-
-    setFields: function() {
-        this.model.set({
-            username: $(this.ui.username.selector).val(),
-            first_name: $(this.ui.first_name.selector).val(),
-            last_name: $(this.ui.last_name.selector).val()
-        }, { silent: true });
-    },
-
-    // Override to provide custom success handler
-    primaryAction: function() {
-        var formData = this.$el.find('form').serialize();
-        this.model
-            .fetch({
-                method: 'POST',
-                data: formData
-            })
-            .done(_.bind(this.handleSuccess, this))
-            .fail(_.bind(this.handleServerFailure, this));
-    },
-
-    // User account has been created and user has been logged in.
-    // Dismiss modal and update App user state.
-    handleSuccess: function(response) {
-        this.$el.modal('hide');
-        this.app.user.set({
-            'username': response.username,
-            'guest': false
-        });
+    onModalHidden: function() {
+        ModalBaseView.prototype.onModalHidden.apply(this, arguments);
 
         var next = this.model.get('next');
         if (next !== '/') {

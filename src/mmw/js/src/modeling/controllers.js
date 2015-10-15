@@ -60,6 +60,12 @@ var ModelingController = {
                         // Send URL to parent if in embed mode
                         updateItsiFromEmbedMode();
                     });
+                })
+                .fail(function() {
+                    // TODO Make handling project load errors more robust
+
+                    console.log("[ERROR] Could not load project.");
+                    App.currentProject = null;
                 });
         } else {
             if (App.currentProject && settings.get('activityMode')) {
@@ -151,15 +157,18 @@ var ModelingController = {
     },
 
     projectCleanUp: function() {
-        var scenarios = App.currentProject.get('scenarios');
+        if (App.currentProject) {
+            var scenarios = App.currentProject.get('scenarios');
 
-        App.currentProject.off('change:id', updateUrl);
-        scenarios.off('change:activeScenario change:id', updateScenario);
-        // App.projectNumber holds the number of the project that was
-        // in use when the user left the `/project` page.  The intent
-        // is to allow the same project to be returned-to via the UI
-        // arrow buttons (see issue #690).
-        App.projectNumber = scenarios.at(0).get('project');
+            App.currentProject.off('change:id', updateUrl);
+            scenarios.off('change:activeScenario change:id', updateScenario);
+            // App.projectNumber holds the number of the project that was
+            // in use when the user left the `/project` page.  The intent
+            // is to allow the same project to be returned-to via the UI
+            // arrow buttons (see issue #690).
+            App.projectNumber = scenarios.at(0).get('project');
+        }
+
         App.getMapView().updateModifications(null);
         App.rootView.subHeaderRegion.empty();
         App.rootView.footerRegion.empty();
