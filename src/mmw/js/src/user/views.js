@@ -2,6 +2,7 @@
 
 var _ = require('underscore'),
     $ = require('jquery'),
+    coreUtils = require('../core/utils.js'),
     Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     router = require('../router').router,
@@ -69,11 +70,27 @@ var ModalBaseView = Marionette.ItemView.extend({
         }
     },
 
+    getDisabledState: function($el) {
+        var model = this.model;
+
+        if (coreUtils.modalButtonDisabled(model, $el)) {
+            return true;
+        } else {
+            coreUtils.modalButtonToggle(model, $el, false);
+            return false;
+        }
+    },
+
     // Primary Action might be "log in" or "sign up" or "reset password".
     // By default this serializes all form data and POSTs to child's `url`.
     // Override if other behavior is required.
     primaryAction: function() {
+        if (this.getDisabledState(this.ui.primary_button) === true) {
+            return;
+        }
+
         var formData = this.$el.find('form').serialize();
+
         this.model
             .fetch({
                 method: 'POST',
@@ -162,6 +179,10 @@ var LoginModalView = ModalBaseView.extend({
 
     // Login
     primaryAction: function() {
+        if (this.getDisabledState(this.ui.primary_button) === true) {
+            return;
+        }
+
         this.app.user
             .login(this.model.attributes)
             .done(_.bind(this.handleSuccess, this))
@@ -219,6 +240,10 @@ var LoginModalView = ModalBaseView.extend({
 
     // Login with ITSI
     itsiLogin: function() {
+        if (this.getDisabledState(this.ui.itsiLogin) === true) {
+            return;
+        }
+
         var loginURL = '/user/itsi/login?next=/' + Backbone.history.getFragment();
         window.location.href = loginURL;
     }

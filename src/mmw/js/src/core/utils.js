@@ -6,6 +6,23 @@ var _ = require('underscore'),
 var M2_IN_KM2 = 1000000;
 
 var utils = {
+    // A function for enabling/disabling modal buttons.  In additiion
+    // to adding the disabled class, it is also important to somehow
+    // note the fact that the button is disabled becaue there is an
+    // "enter key" listener which ignores the CSS class.
+    modalButtonToggle: function(model, $el, enabled) {
+        $el.attr('disabled', !enabled);
+        if (enabled === true) {
+            $el.removeClass('disabled');
+        } else if (enabled === false) {
+            $el.addClass('disabled');
+        }
+    },
+
+    modalButtonDisabled: function(model, $el) {
+        return $el.attr('disabled') ? true : false;
+    },
+
     // A function to enable/disable UI entries in response to zoom
     // level changes.
     zoomToggle: function(map, layerData, actOnUI, actOnLayer) {
