@@ -25,12 +25,32 @@ var ResultView = Marionette.ItemView.extend({
 
     addChart: function() {
         function getBarData(displayName, name) {
-            return {
-                type: displayName,
-                inf: result[name]['inf'],
-                runoff: result[name]['runoff'],
-                et: result[name]['et']
-            };
+            // If Pre-Columbian results are not there, use present day
+            // results.
+            if (name === 'pc_modified' && !result[name]) {
+                name = 'modified';
+            } else if (name === 'pc_unmodified' && !result[name]) {
+                name = 'unmodified';
+            }
+
+            // A recently created scenario (if the `name` variable was
+            // unchanged above), or scenario created prior to pull
+            // request 716 (if it was changed).
+            if (result[name]) {
+                return {
+                    type: displayName,
+                    inf: result[name]['inf'],
+                    runoff: result[name]['runoff'],
+                    et: result[name]['et']
+                };
+            } else { // An ancient scenario.
+                return {
+                    type: displayName,
+                    inf: result[name]['inf'] || 0.0,
+                    runoff: result[name]['runoff'] || 0.0,
+                    et: result[name]['et'] || 0.0
+                };
+            }
         }
 
         var chartEl = this.$el.find('.bar-chart').get(0),
