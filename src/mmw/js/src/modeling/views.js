@@ -4,6 +4,7 @@
     $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
+    settings = require('../core/settings'),
     models = require('./models'),
     controls = require('./controls'),
     modalModels = require('../core/modals/models'),
@@ -108,6 +109,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
     templateHelpers: function() {
         return {
             itsi: App.user.get('itsi'),
+            itsi_embed: settings.get('itsi_embed'),
             editable: isEditable(this.model),
             is_new: this.model.isNew()
         };
@@ -131,6 +133,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
         rename.on('update', function(val) {
             self.model.updateName(val);
+            self.model.saveProjectAndScenarios();
         });
     },
 
@@ -283,7 +286,14 @@ var ScenariosView = Marionette.LayoutView.extend({
     },
 
     addScenario: function() {
-        this.collection.createNewScenario();
+        var first = this.collection.first();
+
+        if (first) {
+            var aoi_census = first.get('aoi_census');
+            this.collection.createNewScenario(aoi_census);
+        } else {
+            this.collection.createNewScenario();
+        }
     },
 
     onScenarioTabClicked: function(e) {

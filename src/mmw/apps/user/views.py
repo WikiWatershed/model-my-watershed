@@ -129,48 +129,30 @@ def itsi_auth(request):
     else:
         # User did not authenticate. Save their ITSI ID and send to /sign-up
         request.session['itsi_id'] = itsi_user['id']
-        return redirect(
-            '/sign-up/itsi/{username}/{first_name}/{last_name}?next={0}'
-            .format(
-                request.GET.get('next', '/'),
-                **itsi_user['extra']
-            )
-        )
+        return itsi_create_user(request, itsi_user)
 
 
-@decorators.api_view(['POST'])
-@decorators.permission_classes((AllowAny, ))
-def itsi_sign_up(request):
-    # Validate request
-    errors = []
-    if 'itsi_id' not in request.session:
-        errors.append("There was an error in authenticating you with ITSI")
+def itsi_create_user(request, itsi_user):
+    itsi_id = itsi_user['id']
+    itsi_username = itsi_user['extra']['username']
+    first_name = itsi_user['extra']['first_name']
+    last_name = itsi_user['extra']['last_name']
 
-    if 'username' not in request.POST or not request.POST.get('username'):
-        errors.append("Username must be specified")
-    elif User.objects.filter(username=request.POST.get('username')).exists():
-        errors.append("Username already exists")
-
-    if 'first_name' not in request.POST or not request.POST.get('first_name'):
-        errors.append("First name must be specified")
-    if 'last_name' not in request.POST or not request.POST.get('last_name'):
-        errors.append("Last name must be specified")
-
-    if len(errors) > 0:
-        response_data = {"errors": errors}
-        return Response(data=response_data,
-                        status=status.HTTP_400_BAD_REQUEST)
-
-    itsi_id = request.session['itsi_id']
+    # If username already exists, append a number to it
+    suffix = 0
+    username = itsi_username + '.itsi'
+    while User.objects.filter(username=username).exists():
+        username = itsi_username + '.itsi' + suffix
+        suffix += 1
 
     # Create new user with given details and no email address or password
     # since they will be authenticated using ITSI credentials
     user = User.objects.create_user(
-        request.POST.get('username'),
+        username,
         email=None,
         password=None,
-        first_name=request.POST.get('first_name'),
-        last_name=request.POST.get('last_name'),
+        first_name=first_name,
+        last_name=last_name,
     )
     user.save()
 
@@ -182,15 +164,15 @@ def itsi_sign_up(request):
     user = authenticate(itsi_id=itsi_id)
     auth_login(request, user)
 
-    response_data = {
-        'result': 'success',
-        'username': user.username,
-        'itsi': True,
-        'guest': False,
-        'id': user.id
-    }
-    return Response(data=response_data,
-                    status=status.HTTP_200_OK)
+    return redirect(
+        '/sign-up/itsi/{0}/{1}/{2}?next={3}'
+        .format(
+            itsi_username,
+            first_name,
+            last_name,
+            request.GET.get('next', '/')
+        )
+    )
 
 
 @decorators.api_view(['POST'])

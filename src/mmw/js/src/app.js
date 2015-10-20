@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     Marionette = require('../shim/backbone.marionette'),
+    shutterbug = require('../shim/shutterbug'),
     views = require('./core/views'),
     models = require('./core/models'),
     settings = require('./core/settings'),
@@ -48,6 +49,9 @@ var App = new Marionette.Application({
         // Not set until modeling/controllers.js creates a
         // new project.
         this.currentProject = null;
+
+        // Enable screenshot functionality
+        shutterbug.enable('body');
     },
 
     load: function(data) {

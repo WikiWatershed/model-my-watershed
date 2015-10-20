@@ -68,7 +68,7 @@ module.exports = L.Control.extend({
         });
 
         $(view).on('mouseup', function(e) {
-            var el = $(e.toElement),
+            var el = $(e.target),
                 slider_value = el.val();
             opacityLayer.setOpacity(slider_value / 100);
             el.attr('value', slider_value);

@@ -4,7 +4,6 @@ header {
   width: 100%;
   position: relative;
   top: 0;
-  z-index: 500;
 }
 
 //Standard Header
@@ -46,8 +45,16 @@ header {
         display: inline-block;
         float: left;
 
-        .dropdown-menu a {
-          color: $ui-secondary;
+        .dropdown-menu {
+          left: auto;
+          right: 0px;
+          a {
+            color: $ui-secondary;
+
+            &:hover, &:active {
+              color: $ui-secondary;
+            }
+          }
         }
 
         a {
@@ -207,7 +214,9 @@ header {
         // Undo bootstrap input[type="range"] syling
         input {
           display: inline-block;
-          width: auto;
+          width: 120px;
+          margin: 0 0.7rem;
+          padding: 0;
           vertical-align: bottom;
         }
       }

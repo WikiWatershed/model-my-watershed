@@ -19,6 +19,13 @@ def home_page(request):
     return render_to_response('home/home.html', get_context(request))
 
 
+def projects(request):
+    if request.user.is_authenticated():
+        return render_to_response('home/home.html', get_context(request))
+    else:
+        return redirect('/')
+
+
 def project(request, proj_id=None, scenario_id=None):
     """
     If proj_id was specified, check that the user owns
@@ -38,7 +45,7 @@ def project(request, proj_id=None, scenario_id=None):
 
         return render_to_response('home/home.html', get_context(request))
     else:
-        raise Http404
+        return redirect('/projects/')
 
 
 def project_clone(request, proj_id=None):

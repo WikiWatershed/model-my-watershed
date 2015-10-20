@@ -180,9 +180,10 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
     aoi_census = cached_aoi_census if cached_aoi_census else censuses[0]
 
     modifications = []
-    if ((modification_pieces and not modification_censuses) or
-       (modification_censuses and not modification_pieces)):
-            raise Exception('Missing pieces or censuses for modifications')
+    if (modification_pieces and not modification_censuses):
+        raise Exception('Missing censuses for modifications')
+    elif (modification_censuses and not modification_pieces):
+        modification_censuses = []
 
     modifications = build_tr55_modification_input(modification_pieces,
                                                   modification_censuses)

@@ -23,6 +23,10 @@
                 {% if itsi %}
                     <li role="presentation"><a role="menuitem" tabindex="-1" id="itsi-clone">Embed in ITSI</a></li>
                 {% endif %}
+                {% if user and not itsi_embed %}
+                    <li role="separator" class="divider"></li>
+                    <li role="presentation"><a role="menuitem" tabindex="-1" data-url="/projects/">My Projects</a></li>
+                {% endif %}
             </ul>
         </div>
     {% endif %}

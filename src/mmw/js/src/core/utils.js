@@ -6,6 +6,22 @@ var _ = require('underscore'),
 var M2_IN_KM2 = 1000000;
 
 var utils = {
+    // A function to enable/disable UI entries in response to zoom
+    // level changes.
+    zoomToggle: function(map, layerData, actOnUI, actOnLayer) {
+        map.on('zoomend', function(e) {
+            var zoom = e.target.getZoom();
+            _.forEach(layerData, function(layerDatum) {
+                if (zoom < (layerDatum.minZoom || 0)) {
+                    actOnUI(layerDatum, true);
+                    actOnLayer(layerDatum);
+                } else if (zoom >= (layerDatum.minZoom || 0)) {
+                    actOnUI(layerDatum, false);
+                }
+            });
+        });
+    },
+
     // A numeric comparator for strings.
     numericSort: function(_x, _y) {
         var x = parseFloat(_x.toString().replace(/[^0-9.]/g, '')),
@@ -158,6 +174,24 @@ var utils = {
             default:
                 throw 'Conversion not implemented.';
         }
+    },
+
+    // Reverse sorting of a Backbone Collection.
+    // Taken from http://stackoverflow.com/a/12220415/2053314
+    reverseSortBy: function(sortByFunction) {
+        return function(left, right) {
+            var l = sortByFunction(left),
+                r = sortByFunction(right);
+
+            if (l === undefined) {
+                return -1;
+            }
+            if (r === undefined) {
+                return 0;
+            }
+
+            return l < r ? 1 : l > r ? -1 : 0;
+        };
     }
 };
 

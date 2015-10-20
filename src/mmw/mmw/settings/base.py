@@ -65,6 +65,9 @@ STATSD_PREFIX = 'django'
 STATSD_HOST = environ.get('MMW_STATSD_HOST', 'localhost')
 # END STATSD CONFIGURATION
 
+# STACK COLOR CONFIGURATION
+STACK_COLOR = environ.get('MMW_STACK_COLOR', 'Black')
+# END STACK COLOR CONFIGURATION
 
 # CACHE CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#caches
@@ -118,9 +121,8 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'djcelery.backends.cache:CacheBackend'
 STATSD_CELERY_SIGNALS = True
-CELERY_DEFAULT_QUEUE = environ.get('MMW_STACK_COLOR', 'Black').lower()
-CELERY_DEFAULT_ROUTING_KEY = ('task.%s' %
-                              environ.get('MMW_STACK_COLOR', 'Black').lower())
+CELERY_WORKER_DIRECT = True
+CELERY_CREATE_MISSING_QUEUES = True
 # END CELERY CONFIGURATION
 
 

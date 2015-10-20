@@ -1,0 +1,18 @@
+<div class="col-md-5">
+    <h2><i class="fa {{ "fa-lock" if is_private else "fa-globe" }}"></i> {{  name }}</h2>
+    <p>{{ area_of_interest_name }}</p>
+    <p><small>{{ created_at|toFriendlyDate }}</small></p>
+</div>
+<div class="col-md-offset-1 col-md-4">
+    <div class="btn-group">
+        <button class="btn btn-default btn-rename">Rename</button>
+        <button class="btn btn-default btn-share">Share</button>
+        <button class="btn btn-default btn-privacy">Make {{ "Public" if is_private else "Private" }}</button>
+        <button class="btn btn-default btn-delete">Delete</button>
+    </div>
+</div>
+<div class="col-md-2">
+    <button class="btn btn-block btn-active open-project" data-url="/project/{{ id }}">
+        Launch Project
+    </button>
+</div>

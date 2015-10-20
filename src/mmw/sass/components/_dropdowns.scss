@@ -27,13 +27,21 @@
         color: $black-74;
         line-height: $height-md;
         padding: 0 0.5rem;
-        cursor: pointer!important;
         font-size: 0.7rem;
         text-transform: capitalize!important;
 
-        &:hover, &:focus {
-          color: $black-74;
-          background-color: $ui-light;
+        &:not(.disabled) {
+          cursor: pointer;
+
+          &:hover, &:focus {
+            color: $black-74;
+            background-color: $ui-light;
+          }
+        }
+
+        &.disabled {
+            cursor: default!important;
+            color: $black-54;
         }
 
         i {

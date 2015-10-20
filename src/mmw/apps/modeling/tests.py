@@ -985,6 +985,12 @@ class APIAccessTestCase(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
+    def test_boundary_layer_details_returns_404_with_bad_table_code(self):
+        """Table code should match an item in layer_settings code field"""
+        response = self.c.put('/api/boundary-layers/foo/1234', format='json')
+
+        self.assertEqual(response.status_code, 404)
+
     def create_public_project(self):
         self.project['is_private'] = False
         response = self.c.post('/api/modeling/projects/', self.project,

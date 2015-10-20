@@ -120,7 +120,6 @@ var ProjectModel = Backbone.Model.extend({
         this.set('is_activity', settings.get('activityMode'));
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
-        this.on('change:name', this.saveProjectAndScenarios, this);
     },
 
     createTaskModel: function() {
@@ -170,6 +169,21 @@ var ProjectModel = Backbone.Model.extend({
 
     // Flag to prevent double POSTing of a project.
     saveCalled: false,
+
+    saveProjectListing: function() {
+        var listingAttrs = [
+                'id', 'name', 'area_of_interest_name', 'is_private',
+                'model_package', 'created_at', 'modified_at', 'user'
+            ],
+            attrs = _.pick(this.toJSON(), listingAttrs);
+
+        // Server expects user to be id, not object
+        if (attrs.user.id) {
+            attrs.user = attrs.user.id;
+        }
+
+        this.save(attrs, { patch: true });
+    },
 
     saveProjectAndScenarios: function() {
         if (!this.get('allow_save') || !App.user.loggedInUserMatch(this.get('user_id'))) {
@@ -278,6 +292,12 @@ var ProjectModel = Backbone.Model.extend({
     }
 });
 
+var ProjectCollection = Backbone.Collection.extend({
+    url: '/api/modeling/projects/',
+
+    model: ProjectModel
+});
+
 /**
  * A predicate for a filter function used in the _alterModifications.
  * Returns true if piece has a valid shape with non-zero area, and
@@ -298,11 +318,11 @@ function _alterModifications(rawModifications) {
         reclass = 'landcover',
         bmp = 'conservation_practice',
         both = 'both',
-        n = rawModifications.size(),
+        n = rawModifications.length,
         n2 = n * n;
 
     for (var i = 0; i < n; ++i) {
-        var rawModification = rawModifications.at(i),
+        var rawModification = rawModifications[i],
             newPiece = {
                 name: rawModification.get('name'),
                 shape: rawModification.get('effectiveShape') || rawModification.get('shape'),
@@ -431,6 +451,12 @@ var ModificationModel = coreModels.GeoModel.extend({
     clipToAoI: function(aoi, shape) {
         var effectiveShape = turfIntersect(shape, aoi);
 
+        // Turf returns undefined if there is no intersection,
+        // so we set effectiveShape to an empty geometry.
+        if (effectiveShape === undefined) {
+            effectiveShape = {"type": "Polygon", "coordinates": []};
+        }
+
         this.set('effectiveShape', effectiveShape);
     }
 });
@@ -453,7 +479,6 @@ var ScenarioModel = Backbone.Model.extend({
         active: false,
         job_id: null,
         results: null, // ResultCollection
-        census: null, // JSON blob
         aoi_census: null, // JSON blob
         modification_censuses: null, // JSON blob
         allow_save: true // Is allowed to save to the server - false in compare mode
@@ -605,11 +630,14 @@ var ScenarioModel = Backbone.Model.extend({
         var self = this,
             results = this.get('results'),
             taskModel = this.get('taskModel'),
+            nonZeroModifications = this.get('modifications').filter(function(mod) {
+                return mod.get('effectiveArea') > 0;
+            }),
             taskHelper = {
                 postData: {
                     model_input: JSON.stringify({
                         inputs: self.get('inputs').toJSON(),
-                        modification_pieces: alterModifications(self.get('modifications'), self.get('modification_hash')),
+                        modification_pieces: alterModifications(nonZeroModifications, self.get('modification_hash')),
                         area_of_interest: App.currentProject.get('area_of_interest'),
                         aoi_census: self.get('aoi_census'),
                         modification_censuses: self.get('modification_censuses'),
@@ -717,9 +745,10 @@ var ScenariosCollection = Backbone.Collection.extend({
         return this.setActiveScenario(this.get({ cid: cid }));
     },
 
-    createNewScenario: function() {
+    createNewScenario: function(aoi_census) {
         var scenario = new ScenarioModel({
-            name: this.makeNewScenarioName('New Scenario')
+            name: this.makeNewScenarioName('New Scenario'),
+            aoi_census: aoi_census
         });
 
         this.add(scenario);
@@ -815,6 +844,7 @@ module.exports = {
     ModelPackageControlModel: ModelPackageControlModel,
     Tr55TaskModel: Tr55TaskModel,
     ProjectModel: ProjectModel,
+    ProjectCollection: ProjectCollection,
     ModificationModel: ModificationModel,
     ModificationsCollection: ModificationsCollection,
     ScenarioModel: ScenarioModel,

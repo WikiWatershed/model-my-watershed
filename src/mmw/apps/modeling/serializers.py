@@ -27,7 +27,6 @@ class ScenarioSerializer(serializers.ModelSerializer):
 
     inputs = JsonField()
     modifications = JsonField()
-    census = JsonField(required=False, allow_null=True)
     aoi_census = JsonField(required=False, allow_null=True)
     modification_censuses = JsonField(required=False, allow_null=True)
     results = JsonField(required=False, allow_null=True)
@@ -42,6 +41,14 @@ class ProjectSerializer(gis_serializers.GeoModelSerializer):
 
     user = UserSerializer(default=serializers.CurrentUserDefault())
     scenarios = ScenarioSerializer(many=True, read_only=True)
+
+
+class ProjectListingSerializer(gis_serializers.GeoModelSerializer):
+
+    class Meta:
+        model = Project
+        fields = ('id', 'name', 'area_of_interest_name', 'is_private',
+                  'model_package', 'created_at', 'modified_at', 'user')
 
 
 class ProjectUpdateSerializer(gis_serializers.GeoModelSerializer):

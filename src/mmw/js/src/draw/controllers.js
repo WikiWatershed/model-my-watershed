@@ -13,6 +13,9 @@ var App = require('../app'),
 var DrawController = {
     drawPrepare: function() {
         App.map.revertMaskLayer();
+        if (!App.map.get('areaOfInterest')) {
+            App.map.setDrawSize(true);
+        }
     },
 
     draw: function() {

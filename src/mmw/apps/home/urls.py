@@ -4,12 +4,13 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.conf.urls import patterns, url
-from apps.home.views import home_page, project, project_clone
+from apps.home.views import home_page, projects, project, project_clone
 
 
 urlpatterns = patterns(
     '',
     url(r'^$', home_page, name='home_page'),
+    url(r'^projects/$', projects, name='projects'),
     url(r'^project/$', project, name='project'),
     url(r'^project/(?P<proj_id>[0-9]+)/$', project, name='project'),
     url(r'^project/(?P<proj_id>[0-9]+)/clone/?$',

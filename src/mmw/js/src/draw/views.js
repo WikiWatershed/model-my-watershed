@@ -4,13 +4,15 @@ var $ = require('jquery'),
     _ = require('lodash'),
     L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
-    turfRandom = require('turf-random'),
-    turfBuffer = require('turf-buffer'),
+    turfArea = require('turf-area'),
     turfBboxPolygon = require('turf-bbox-polygon'),
+    turfBuffer = require('turf-buffer'),
     turfDestination = require('turf-destination'),
+    turfRandom = require('turf-random'),
     router = require('../router').router,
     App = require('../app'),
     utils = require('./utils'),
+    coreUtils = require('../core/utils'),
     toolbarTmpl = require('./templates/toolbar.html'),
     loadingTmpl = require('./templates/loading.html'),
     selectTypeTmpl = require('./templates/selectType.html'),
@@ -18,6 +20,45 @@ var $ = require('jquery'),
     resetDrawTmpl = require('./templates/reset.html'),
     placeMarkerTmpl = require('./templates/placeMarker.html'),
     settings = require('../core/settings');
+
+var MAX_AREA = 10000; // 10,000 km^2
+var codeToLayer = {}; // code to layer mapping
+
+function actOnUI(datum, bool) {
+    var code = datum.code,
+        $el = $('[data-layer-code="' + code + '"]');
+
+    if (bool) {
+        $el.addClass('disabled');
+    } else {
+        $el.removeClass('disabled');
+    }
+}
+
+function actOnLayer(datum) {
+    $('#boundary-label').hide();
+    if (datum.code && codeToLayer[datum.code]) {
+        codeToLayer[datum.code]._clearBgBuffer();
+    }
+}
+
+function validateShape(shape) {
+    var area = coreUtils.changeOfAreaUnits(turfArea(shape), 'm2', 'km2'),
+        d = new $.Deferred();
+
+    if (area > MAX_AREA) {
+        var message = '';
+        message += 'Sorry, your Area of Interest is too large.\n\n';
+        message += Math.floor(area) + ' square km were selected, ';
+        message += 'but the maximum supported size is currently ';
+        message += MAX_AREA + ' square km.';
+        window.alert(message);
+        d.reject();
+    } else {
+        d.resolve(shape);
+    }
+    return d.promise();
+}
 
 // Responsible for loading and displaying tools for selecting and drawing
 // shapes on the map.
@@ -98,14 +139,18 @@ var SelectAreaView = Marionette.ItemView.extend({
     },
 
     initialize: function() {
-        var ofg = this.model.get('outlineFeatureGroup');
+        var map = App.getLeafletMap(),
+            ofg = this.model.get('outlineFeatureGroup'),
+            types = this.model.get('predefinedShapeTypes');
+
         ofg.on('layerremove', _.bind(this.clearLabel, this));
+        coreUtils.zoomToggle(map, types, actOnUI, actOnLayer);
     },
 
     onRender: function() {
         this.ui.helptextIcon.popover({
             trigger: 'hover',
-            viewport: '.container-fluid.top-nav'
+            viewport: '.map-container'
         });
     },
 
@@ -113,11 +158,14 @@ var SelectAreaView = Marionette.ItemView.extend({
         var $el = $(e.currentTarget),
             tileUrl = $el.data('tile-url'),
             layerCode = $el.data('layer-code'),
-            shortDisplay = $el.data('short-display');
+            shortDisplay = $el.data('short-display'),
+            minZoom = $el.data('min-zoom');
 
-        clearAoiLayer();
-        this.changeOutlineLayer(tileUrl, layerCode, shortDisplay);
-        e.preventDefault();
+        if (!$el.hasClass('disabled')) {
+            clearAoiLayer();
+            this.changeOutlineLayer(tileUrl, layerCode, shortDisplay, minZoom);
+            e.preventDefault();
+        }
     },
 
     getTemplate: function() {
@@ -125,19 +173,22 @@ var SelectAreaView = Marionette.ItemView.extend({
         return !types ? loadingTmpl : selectTypeTmpl;
     },
 
-    changeOutlineLayer: function(tileUrl, layerCode, shortDisplay) {
+    changeOutlineLayer: function(tileUrl, layerCode, shortDisplay, minZoom) {
         var self = this,
             ofg = self.model.get('outlineFeatureGroup');
 
         // Go about the business of adding the outline and UTFgrid layers.
         if (tileUrl && layerCode !== undefined) {
-            var ol = new L.TileLayer(tileUrl + '.png'),
+            var ol = new L.TileLayer(tileUrl + '.png', {minZoom: minZoom || 0}),
                 grid = new L.UtfGrid(tileUrl + '.grid.json',
                                      {
+                                         minZoom: minZoom,
                                          useJsonP: false,
                                          resolution: 4,
                                          maxRequests: 8
                                      });
+
+            codeToLayer[layerCode] = ol;
 
             grid.on('click', function(e) {
                 getShapeAndAnalyze(e, self.model, ofg, grid, layerCode, shortDisplay);
@@ -207,20 +258,22 @@ var DrawView = Marionette.ItemView.extend({
             revertLayer = clearAoiLayer();
 
         this.model.disableTools();
-        utils.drawPolygon(map).then(function(shape) {
-            addLayer(shape);
-            navigateToAnalyze();
-        }).fail(function() {
-            revertLayer();
-        }).always(function() {
-            self.model.enableTools();
-        });
+        utils.drawPolygon(map)
+            .then(validateShape)
+            .then(function(shape) {
+                addLayer(shape);
+                navigateToAnalyze();
+            }).fail(function() {
+                revertLayer();
+            }).always(function() {
+                self.model.enableTools();
+            });
     },
 
     onShow: function() {
         this.ui.helptextIcon.popover({
             trigger: 'hover',
-            viewport: '.container-fluid.top-nav'
+            viewport: '.map-container'
         });
     },
 
@@ -280,7 +333,7 @@ var PlaceMarkerView = Marionette.ItemView.extend({
     onShow: function() {
         this.ui.helptextIcon.popover({
             trigger: 'hover',
-            viewport: '.container-fluid.top-nav'
+            viewport: '.map-container'
         });
     },
 
@@ -295,29 +348,34 @@ var PlaceMarkerView = Marionette.ItemView.extend({
             revertLayer = clearAoiLayer();
 
         this.model.disableTools();
-        utils.placeMarker(map).then(function(latlng) {
-            // TODO: This is temporary until we have
-            // endpoints that can actually delienate
-            // watersheds.
-            var point = L.marker(latlng).toGeoJSON(),
-                buffered = turfBuffer(point, 5000, 'meters'),
-                bounds = L.geoJson(buffered).getBounds(),
-                shape = turfRandom('polygons', 1, {
-                    max_vertcies: 50,
-                    bbox: [
-                        bounds.getWest(), bounds.getSouth(),
-                        bounds.getEast(), bounds.getNorth()
-                    ],
-                    max_radial_length: 0.25
-                });
-
-            addLayer(shape, itemName);
-            navigateToAnalyze();
-        }).fail(function() {
-            revertLayer();
-        }).always(function() {
-            self.model.enableTools();
-        });
+        utils.placeMarker(map)
+            .then(function(latlng) {
+                // TODO: This is temporary until we have
+                // endpoints that can actually delienate
+                // watersheds.
+                var point = L.marker(latlng).toGeoJSON(),
+                    buffered = turfBuffer(point, 5000, 'meters'),
+                    bounds = L.geoJson(buffered).getBounds(),
+                    shape = turfRandom('polygons', 1, {
+                        max_vertcies: 50,
+                        bbox: [
+                            bounds.getWest(), bounds.getSouth(),
+                            bounds.getEast(), bounds.getNorth()
+                        ],
+                        max_radial_length: 0.25
+                    });
+                return $.Deferred().resolve(shape);
+            })
+            .then(validateShape)
+            .then(function(shape) {
+                addLayer(shape, itemName);
+                navigateToAnalyze();
+            })
+            .fail(function() {
+                revertLayer();
+            }).always(function() {
+                self.model.enableTools();
+            });
     }
 });
 
@@ -355,18 +413,19 @@ function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
     function _getShapeAndAnalyze() {
         App.restApi.getPolygon({
             layerCode: layerCode,
-            shapeId: shapeId
-        }).done(function(shape) {
-            addLayer(shape, shapeName, layerName);
-            clearBoundaryLayer(model);
-            navigateToAnalyze();
-            deferred.resolve();
-        }).fail(function() {
-            console.log('Shape endpoint failed');
-            deferred.reject();
-        }).always(function() {
-            model.enableTools();
-        });
+            shapeId: shapeId})
+            .then(validateShape)
+            .then(function(shape) {
+                addLayer(shape, shapeName, layerName);
+                clearBoundaryLayer(model);
+                navigateToAnalyze();
+                deferred.resolve();
+            }).fail(function() {
+                console.log('Shape endpoint failed');
+                deferred.reject();
+            }).always(function() {
+                model.enableTools();
+            });
     }
 
     function pollForShapeId() {
@@ -397,6 +456,7 @@ function clearAoiLayer() {
 
     App.map.set('areaOfInterest', null);
     App.projectNumber = undefined;
+    App.map.setDrawSize(false);
 
     return function revertLayer() {
         var previousShape = App.map.previous('areaOfInterest');
