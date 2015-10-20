@@ -1,6 +1,7 @@
 "use strict";
 
 var _ = require('underscore'),
+    coreUtils = require('../utils.js'),
     Marionette = require('../../../shim/backbone.marionette'),
     ZeroClipboard = require('zeroclipboard'),
     models = require('./models'),
@@ -48,6 +49,17 @@ var ModalBaseView = Marionette.ItemView.extend({
         }
     },
 
+    getDisabledState: function($el) {
+        var model = this.model;
+
+        if (coreUtils.modalButtonDisabled(model, $el)) {
+            return true;
+        } else {
+            coreUtils.modalButtonToggle(model, $el, false);
+            return false;
+        }
+    },
+
     primaryAction: function() {
         // Not implemented.
     },
@@ -75,6 +87,10 @@ var ConfirmView = ModalBaseView.extend({
     }, ModalBaseView.prototype.events),
 
     primaryAction: function() {
+        if (this.getDisabledState(this.ui.confirmation)) {
+            return;
+        }
+
         this.triggerMethod('confirmation');
         this.hide();
     },
@@ -102,6 +118,10 @@ var InputView = ModalBaseView.extend({
     },
 
     primaryAction: function() {
+        if (this.getDisabledState(this.ui.save) === true) {
+            return;
+        }
+
         var val = this.ui.input.val().trim();
 
         if (val) {
