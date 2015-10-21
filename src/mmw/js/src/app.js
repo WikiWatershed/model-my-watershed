@@ -51,7 +51,7 @@ var App = new Marionette.Application({
         this.currentProject = null;
 
         // Enable screenshot functionality
-        shutterbug.enable('body');
+        initializeShutterbug();
     },
 
     load: function(data) {
@@ -99,6 +99,24 @@ function RestAPI() {
             });
         }
     };
+}
+
+function initializeShutterbug() {
+    $(window)
+        .on('shutterbug-saycheese', function() {
+            // Set fixed width before screenshot to constrain width to viewport
+            $('#model-output-wrapper, .map-container').css({
+                'width': window.innerWidth
+            });
+        })
+        .on('shutterbug-asyouwere', function() {
+            // Reset after screenshot has been taken
+            $('#model-output-wrapper, .map-container').css({
+                'width': ''
+            });
+        });
+
+    shutterbug.enable('body');
 }
 
 module.exports = App;
