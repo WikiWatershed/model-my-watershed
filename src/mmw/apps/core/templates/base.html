@@ -52,6 +52,13 @@
         </script>
         <script type="text/javascript">
             window.clientSettings = {{ client_settings | safe }};
+
+            if (window.clientSettings.itsi_embed) {
+                // Instruct Leaflet to not use CSS 3D transforms in embed mode
+                // since they are not supported by PhantomJS which is used for
+                // taking screenshots.
+                window.L_DISABLE_3D = true;
+            }
         </script>
         <script type="text/javascript" src="{% static 'js/vendor.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/main.js' %}"></script>
