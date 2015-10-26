@@ -150,6 +150,12 @@ def data_to_census(data):
         if nlcd in NLCD_MAPPING and soil in SOIL_MAPPING:
             nlcd_str = NLCD_MAPPING[nlcd][0]
             soil_str = SOIL_MAPPING[soil][0]
+            if soil_str == 'ad':
+                soil_str = 'c'
+            elif soil_str == 'bd':
+                soil_str = 'c'
+            elif soil_str == 'cd':
+                soil_str = 'd'
             key_str = '%s:%s' % (soil_str, nlcd_str)
             dist[key_str] = {'cell_count': count}
 
