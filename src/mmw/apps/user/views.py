@@ -1,3 +1,5 @@
+from uuid import uuid1
+
 from django.contrib.auth import (authenticate,
                                  logout as auth_logout,
                                  login as auth_login)
@@ -135,14 +137,17 @@ def itsi_auth(request):
 def itsi_create_user(request, itsi_user):
     itsi_id = itsi_user['id']
     itsi_username = itsi_user['extra']['username']
-    first_name = itsi_user['extra']['first_name']
-    last_name = itsi_user['extra']['last_name']
+    # Truncate names to 30 characters max
+    first_name = itsi_user['extra']['first_name'][:29]
+    last_name = itsi_user['extra']['last_name'][:29]
 
-    # If username already exists, append a number to it
+    # If username already exists, append a number to it, and keep it below
+    # 31 characters
     suffix = 0
-    username = itsi_username + '.itsi'
+    midfix = '.itsi'
+    username = trim_to_valid_length(itsi_username, midfix)
     while User.objects.filter(username=username).exists():
-        username = itsi_username + '.itsi' + suffix
+        username = trim_to_valid_length(itsi_username,  midfix + suffix)
         suffix += 1
 
     # Create new user with given details and no email address or password
@@ -173,6 +178,26 @@ def itsi_create_user(request, itsi_user):
             request.GET.get('next', '/')
         )
     )
+
+
+def trim_to_valid_length(basename, suffix):
+    """Django auth model prevents usernames from being greater
+       than 30 chars. Take a chunk out of long names and make an
+       attempt at having the new name be unique
+    """
+
+    max_len = 30
+    unique_len = 7
+    username = basename + suffix
+
+    if len(username) > max_len:
+        unique = uuid1().hex[:unique_len]
+
+        # Strip out characters so that name + unique + suffix is <= max_len
+        diff = (len(username) - max_len) + unique_len
+        username = basename[:-diff] + unique + suffix
+
+    return username
 
 
 @decorators.api_view(['POST'])
