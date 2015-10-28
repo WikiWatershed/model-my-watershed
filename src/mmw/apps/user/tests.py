@@ -6,7 +6,9 @@ from __future__ import division
 import requests
 
 from django.test import LiveServerTestCase
+from django.test import TestCase
 from django.contrib.auth.models import User
+from apps.user.views import trim_to_valid_length
 
 
 class TaskRunnerTestCase(LiveServerTestCase):
@@ -97,3 +99,17 @@ class TaskRunnerTestCase(LiveServerTestCase):
         self.assertEqual(response.status_code, 400,
                          'Incorrect server response. Expected 400 found %s'
                          % response.status_code)
+
+
+class ItsiSignupTestCase(TestCase):
+
+    def test_small_name(self):
+        username = trim_to_valid_length('shortname', '.itsi')
+        self.assertLessEqual(len(username), 30)
+        self.assertEqual(username, 'shortname.itsi', 'The short name should ' +
+                         'be concatenated but otherwise unmodified')
+
+    def test_large_name(self):
+        username = trim_to_valid_length(
+            'thisisaverylongnamethatisinfacttoolong', '.itsi')
+        self.assertEqual(len(username), 30)
