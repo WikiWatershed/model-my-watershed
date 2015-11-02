@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from celery import shared_task
 import json
 import logging
-import math
+from math import sqrt
 
 from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
     data_to_survey, data_to_censuses
@@ -86,7 +86,8 @@ def histogram_to_survey(incoming):
 
 @shared_task
 def histograms_to_censuses(incoming):
-    """Converts the histogram results to censuses,
+    """
+    Converts the histogram results to censuses,
     which are provided to TR-55.
     """
     data = incoming['histogram']
@@ -96,20 +97,23 @@ def histograms_to_censuses(incoming):
 
 
 def aoi_resolution(area_of_interest):
-    # Find the width in meters of a pixel at the average lat of the shape.
     pairs = area_of_interest['coordinates'][0][0]
     average_lat = reduce(lambda total, p: total+p[1], pairs, 0) / len(pairs)
 
-    # Zoom level is a hard coded value in the geoprocessing library.
-    # TMS zoom levels are relative to tiles, not pixels.  The dataset
-    # that we are using on S3 has tiles of size 768x768 (instead of
-    # the more typical 256x256) and is at zoom level 11.  This
-    # corresponds roughly to zoom level 13 with 256x256 tiles.
-    zoom = 11
-    tile_width = 768
-    # See https://msdn.microsoft.com/en-us/library/bb259689.aspx
-    return (math.cos(average_lat * math.pi / 180) * 2 * math.pi *
-            6378137) / (tile_width * math.pow(2, zoom))
+    max_lat = 48.7
+    max_lat_count = 10025
+    min_lat = 25.2
+    min_lat_count = 9980
+
+    # Because the tile CRS is Conus Albers, the number of pixels per
+    # square kilometer is roughly (but no exactly) 10,000 everywhere
+    # in the CONUS.
+    x = (average_lat - min_lat) / (max_lat - min_lat)
+    x = min(max(x, 0.0), 1.0)
+    pixels_per_sq_kilometer = ((1 - x) * min_lat_count) + (x * max_lat_count)
+    pixels_per_sq_meter = pixels_per_sq_kilometer / 1000000
+
+    return 1.0/sqrt(pixels_per_sq_meter)
 
 
 def format_quality(model_output):
