@@ -365,11 +365,11 @@ GEOP = {
     'request': {
         'input': {
             'geometry': None,
-            'tileCRS': 'WebMercator',
+            'tileCRS': 'ConusAlbers',
             'polyCRS': 'LatLng',
-            'nlcdLayer': 'nlcd-wm-ext-tms',
-            'soilLayer': 'soil-fake',
-            'zoom': 11
+            'nlcdLayer': 'nlcd-10m-epsg5070',
+            'soilLayer': 'ssurgo-soil-groups-10m',
+            'zoom': 0
         }
     }
 }
