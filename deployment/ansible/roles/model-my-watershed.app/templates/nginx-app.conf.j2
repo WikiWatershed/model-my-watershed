@@ -1,3 +1,10 @@
+# Protects against scenarios where DNS records for the
+# site being proxied change.
+resolver 8.8.8.8 valid=300s;
+resolver_timeout 10s;
+
+proxy_cache_path {{ nginx_cache_dir }} levels=1:2 keys_zone=OBSERVATION:10m max_size=100m;
+
 server {
   listen *:80;
   server_name _;
@@ -57,4 +64,48 @@ server {
 
     proxy_pass http://127.0.0.1:8000;
   }
+
+  location /observation/ {
+
+    # Prevent us from reverse proxying anything other
+    # than GETs.
+    limit_except GET {
+      deny all;
+    }
+
+    proxy_cache OBSERVATION;
+
+    # Queues multiple requests for same resource until
+    # it exists in the cache.
+    proxy_cache_lock on;
+    proxy_redirect off;
+    proxy_cache_valid 200 24h;
+    proxy_cache_valid 403 15m;
+
+    # Ignore all of these headers coming back from the
+    # origin server that prevent us from caching.
+    proxy_ignore_headers "X-Accel-Redirect";
+    proxy_ignore_headers "X-Accel-Limit-Rate";
+    proxy_ignore_headers "X-Accel-Buffering";
+    proxy_ignore_headers "X-Accel-Charset";
+    proxy_ignore_headers "Expires";
+    proxy_ignore_headers "Cache-Control";
+    proxy_ignore_headers "Set-Cookie";
+    proxy_ignore_headers "Vary";
+
+    # Hide these headers from our clients.
+    proxy_hide_header "X-Powered-By";
+    proxy_hide_header "Pragma";
+    proxy_hide_header "Set-Cookie";
+
+    # Set header that allow us to determine a request's
+    # cached status.
+    add_header X-Proxy-Cache $upstream_cache_status;
+
+    # Set some caching headers for our clients.
+    expires 30m;
+
+    proxy_pass {{ observation_api_url }};
+  }
+
 }
