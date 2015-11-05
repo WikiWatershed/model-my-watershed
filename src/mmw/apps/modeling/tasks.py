@@ -195,12 +195,23 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
 
     # Run the model under both current conditions and Pre-Columbian
     # conditions.
-    model_output = simulate_day(aoi_census, precip, cell_res=resolution)
-    precolumbian_output = simulate_day(aoi_census, precip,
-                                       cell_res=resolution, precolumbian=True)
+    try:
+        model_output = simulate_day(aoi_census, precip, cell_res=resolution)
+        precolumbian_output = simulate_day(aoi_census,
+                                           precip,
+                                           cell_res=resolution,
+                                           precolumbian=True)
+        model_output['pc_unmodified'] = precolumbian_output['unmodified']
+        model_output['pc_modified'] = precolumbian_output['modified']
+        runoff = format_runoff(model_output)
+        quality = format_quality(model_output)
 
-    model_output['pc_unmodified'] = precolumbian_output['unmodified']
-    model_output['pc_modified'] = precolumbian_output['modified']
+    except KeyError as e:
+        model_output = None
+        precolumbian_output = None
+        runoff = {}
+        quality = []
+        logger.error('Bad input data to TR55: %s' % e)
 
     # Modifications were added to aoi_census for TR-55, but we do
     # not want to persist it since we have it stored seperately
@@ -214,8 +225,8 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
         'modification_hash': model_input['modification_hash'],
         'aoi_census': aoi_census,
         'modification_censuses': modification_censuses,
-        'runoff': format_runoff(model_output),
-        'quality': format_quality(model_output)
+        'runoff': runoff,
+        'quality': quality
     }
 
 
