@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 
 from django.conf import settings
+from django_statsd.clients import statsd
 from celery.exceptions import MaxRetriesExceededError
 
 import requests
@@ -51,6 +52,7 @@ SOIL_MAPPING = {
 }
 
 
+@statsd.timer(__name__ + '.histogram_start')
 def histogram_start(polygons):
     """
     Together, histogram_start and histogram_finish implement a
@@ -60,6 +62,10 @@ def histogram_start(polygons):
 
     This is the top-half of the function.
     """
+    @statsd.timer(__name__ + '.histogram_start.sjs_post')
+    def post(url, data):
+        return requests.post(url, data)
+
     host = settings.GEOP['host']
     port = settings.GEOP['port']
     path = settings.GEOP['path']
@@ -67,9 +73,9 @@ def histogram_start(polygons):
     request['input']['geometry'] = polygons
     url = "http://%s:%s%s" % (host, port, path)
 
-    post = requests.post(url, data=json.dumps(request))
-    if post.ok:
-        data = post.json()
+    response = post(url, data=json.dumps(request))
+    if response.ok:
+        data = response.json()
     else:
         raise Exception('Unable to communicate with SJS (top-half).')
 
@@ -79,6 +85,7 @@ def histogram_start(polygons):
         raise Exception('Job submission failed.')
 
 
+@statsd.timer(__name__ + '.histogram_finish')
 def histogram_finish(job_id, retry):
     """
     This is the bottom-half of the function.
@@ -90,18 +97,27 @@ def histogram_finish(job_id, retry):
             result.append(((k1, k2), v))
         return result
 
+    @statsd.timer(__name__ + '.histogram_finish.sjs_get')
+    def get(url):
+        return requests.get(url)
+
+    @statsd.timer(__name__ + '.histogram_finish.sjs_delete')
+    def delete(url):
+        response = requests.delete(url)
+        return response.ok
+
     host = settings.GEOP['host']
     port = settings.GEOP['port']
     url = "http://%s:%s/jobs/%s" % (host, port, job_id)
 
-    get = requests.get(url)
-    if get.ok:
-        data = get.json()
+    response = get(url)
+    if response.ok:
+        data = response.json()
     else:
         raise Exception('Unable to communicate with SJS (bottom-half).')
 
     if data['status'] == 'OK':
-        if requests.delete(url).ok:  # job complete, remove
+        if delete(url):  # job complete, remove
             return [dict_to_array(d) for d in data['result']]
         else:
             raise Exception('Job completed, unable to delete.')
@@ -109,12 +125,12 @@ def histogram_finish(job_id, retry):
         try:
             retry()
         except MaxRetriesExceededError, X:  # job took too long, terminate
-            if requests.delete(url).ok:
+            if delete(url):
                 raise X
             else:
                 raise Exception('Job timed out, unable to delete.')
     else:
-        if requests.delete(url).ok:  # job failed, terminate
+        if delete(url):  # job failed, terminate
             raise Exception('Job failed, deleted.')
         else:
             raise Exception('Job failed, unable to delete.')
@@ -137,6 +153,7 @@ def histogram_to_x(data, nucleus, update_rule, after_rule):
     return retval
 
 
+@statsd.timer(__name__ + '.data_to_censuses')
 def data_to_censuses(data):
     return [data_to_census(subdata) for subdata in data]
 
@@ -167,6 +184,7 @@ def data_to_census(data):
     return histogram_to_x(data, nucleus, update_rule, after_rule)
 
 
+@statsd.timer(__name__ + '.data_to_survey')
 def data_to_survey(data):
     """
     Turn raw data from Geotrellis into a survey.
