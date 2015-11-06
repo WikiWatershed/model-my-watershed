@@ -71,8 +71,7 @@ fi
 
 if [ -n "$ENABLE_DEBUG" ]; then
     BROWSERIFY="$BROWSERIFY --debug"
-    NODE_SASS="$NODE_SASS --source-map ${STATIC_CSS_DIR}main.css.map \
-        --source-map-contents"
+    NODE_SASS="$NODE_SASS --source-map true --source-map-embed"
 fi
 
 if [ -n "$ENABLE_MINIFY" ]; then
