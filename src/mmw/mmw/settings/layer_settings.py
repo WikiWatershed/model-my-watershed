@@ -181,3 +181,8 @@ LAYERS = [
         'basemap': True,
     }
 ]
+
+# Vizer observation meta data URL.  Happens to be proxied through a local app
+# server to avoid Cross Domain request errors
+VIZER_ROOT = '/observation/services/'
+VIZER_LAYER_URL = VIZER_ROOT + 'get_asset_info.php?opt=meta&asset_type=siso'
