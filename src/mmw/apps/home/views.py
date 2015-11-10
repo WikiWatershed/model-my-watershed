@@ -127,7 +127,7 @@ def get_client_settings(request):
             'draw_tools': settings.DRAW_TOOLS,
             'map_controls': settings.MAP_CONTROLS,
             'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
-            'vizer_layer_url': settings.VIZER_LAYER_URL
+            'vizer_urls': settings.VIZER_URLS
         })
     }
 
