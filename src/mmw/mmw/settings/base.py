@@ -12,7 +12,7 @@ from os import environ
 from os.path import abspath, basename, dirname, join, normpath
 from sys import path
 
-from layer_settings import LAYERS, VIZER_LAYER_URL  # NOQA
+from layer_settings import LAYERS, VIZER_URLS  # NOQA
 
 # Normally you should not import ANYTHING from Django directly
 # into your settings, but ImproperlyConfigured is an exception.

@@ -181,8 +181,15 @@ LAYERS = [
         'basemap': True,
     }
 ]
-
 # Vizer observation meta data URL.  Happens to be proxied through a local app
 # server to avoid Cross Domain request errors
-VIZER_ROOT = '/observation/services/'
-VIZER_LAYER_URL = VIZER_ROOT + 'get_asset_info.php?opt=meta&asset_type=siso'
+VIZER_ROOT = '/observation/services/get_asset_info.php?'
+# For requests that should use a daily cached backed proxy
+VIZER_CACHED_ROOT = '/cache' + VIZER_ROOT
+VIZER_TYPE_PARAM = '&asset_type=siso'
+
+VIZER_URLS = {
+    'layers': VIZER_CACHED_ROOT + 'opt=meta' + VIZER_TYPE_PARAM,
+    'variable': VIZER_ROOT + 'opt=data&asset_id={{asset_id}}&var_id={{var_id}}' + VIZER_TYPE_PARAM,  # NOQA
+    'recent_vals': VIZER_ROOT + 'opt=recent_values&asset_id={{asset_id}}&var_id=all' + VIZER_TYPE_PARAM  # NOQA
+}

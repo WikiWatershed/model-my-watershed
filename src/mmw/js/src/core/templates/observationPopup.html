@@ -1,0 +1,23 @@
+<h2> {{ platform_type }} - {{ name }} </h2>
+
+<div>
+    <ul class="observation-measurements">
+    {% for measurement in measurements %}
+        <li data-var-id="{{ measurement.var_id }}"> {{ measurement.name }} ({{ measurement.depth }})
+        {% if measurement.value %}
+        <span> {{ measurement.value }} {{ measurement.units }}</span>
+            {% if measurement.lastUpdated %}
+              <span>{{ measurement.lastUpdated|toLocaleString }} EST</span>
+            {% endif %}
+        {% else %}
+            <span> - </span>
+        {% endif %}
+        </li>
+    {% endfor %}
+    </ul>
+</div>
+
+<div>Data provided by <a href="{{ provider_url }}">{{ provider }}</a></div>
+{% if url %}
+<a href="{{ url }}">Original source data</a>
+{% endif %}

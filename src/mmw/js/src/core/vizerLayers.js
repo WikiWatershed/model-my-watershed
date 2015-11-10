@@ -2,7 +2,10 @@
 
 var $ = require('jquery'),
     _ = require('underscore'),
-    L = require('leaflet');
+    L = require('leaflet'),
+    Backbone = require('../../shim/backbone'),
+    Marionette = require('../../shim/backbone.marionette'),
+    popupTmpl = require('./templates/observationPopup.html');
 
 // These are likely temporary until we develop custom icons for each type
 var platformIcons = {
@@ -13,11 +16,11 @@ var platformIcons = {
         'Well': '#795548'
     };
 
-function VizerLayers(layerUrl) {
+function VizerLayers(vizerUrls) {
     var layersReady = $.Deferred();
 
     this.getLayers = function() {
-        $.getJSON(layerUrl, function(assets) {
+        $.getJSON(vizerUrls.layers, function(assets) {
             // A list of all assets (typically sensor devices) and the variables
             // they manage, along with various meta data grouped by the data
             // provider which acts as the "layer" which can be toggled on/off
@@ -39,7 +42,10 @@ function VizerLayers(layerUrl) {
                         });
                     });
 
-                return [label, L.featureGroup(markers)];
+                var layer = L.featureGroup(markers);
+                attachPopups(layer, vizerUrls.recent_vals);
+
+                return [label, layer];
             });
 
             // All layers are loaded have have markers created for all assets
@@ -54,5 +60,58 @@ function makeProviderLabel(provider, assets) {
     // Create a label for the layer selector.
     return provider + ' (' + assets.length + ')';
 }
+
+function attachPopups(featureGroup, recentValuesUrl) {
+    featureGroup.eachLayer(function(marker) {
+        var model = new Backbone.Model(marker.options.attributes),
+            view = new ObservationPopupView({model: model});
+
+        marker.bindPopup(view.render().el);
+        marker.on('popupopen', function(popupEvent) {
+            // When the popup is opened, fetch the recent values of
+            // this asset's measurements and update the Popup
+            var id = popupEvent.target.options.attributes.siso_id,
+                url = recentValuesUrl.replace(/{{asset_id}}/, id);
+
+            $.getJSON(url, _.partial(updatePopup, popupEvent.popup, model));
+        });
+    });
+}
+
+/* Update an existing popup with model values merged with a single measurement
+ * result for each category (variable) available in the asset */
+function updatePopup(popup, model, recentValues) {
+    var values = _.map(model.get('measurements'), function(category) {
+        var measurement = _.findWhere(recentValues.result, {var_id: category.var_id});
+
+        if (measurement) {
+            measurement.lastUpdated = new Date(measurement.time * 1000); // seconds -> ms
+        }
+
+        return _.extend(category, measurement);
+    });
+
+    model.set('measurements', values);
+
+    var view = new ObservationPopupView({model: model});
+    popup.setContent(view.render().el);
+    popup.update();
+}
+
+var ObservationPopupView = Marionette.ItemView.extend({
+    template: popupTmpl,
+
+    ui: {
+        'variable': '.observation-measurements li'
+    },
+
+    events: {
+        'click @ui.variable': 'loadVariablePlot'
+    },
+
+    loadVariablePlot: function(e) {
+        var varId = $(e.currentTarget).data('varId');
+    }
+});
 
 module.exports = VizerLayers;
