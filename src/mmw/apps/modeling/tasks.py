@@ -56,7 +56,7 @@ def start_histograms_job(polygons):
     }
 
 
-@shared_task(bind=True, default_retry_delay=1, max_retries=20)
+@shared_task(bind=True, default_retry_delay=1, max_retries=42)
 def get_histogram_job_results(self, incoming):
     """ Calls a function that polls SJS for the results
     of the given Job. Self here is Celery.
