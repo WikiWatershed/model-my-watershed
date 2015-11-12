@@ -3,7 +3,7 @@
 <div>
     <ul class="observation-measurements">
     {% for measurement in measurements %}
-        <li data-var-id="{{ measurement.var_id }}"> {{ measurement.name }} ({{ measurement.depth }})
+        <li data-var-id="{{ measurement.var_id }}" data-asset-id="{{ siso_id }}"> {{ measurement.name }} ({{ measurement.depth }})
         {% if measurement.value %}
         <span> {{ measurement.value }} {{ measurement.units }}</span>
             {% if measurement.lastUpdated %}
