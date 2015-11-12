@@ -43,6 +43,7 @@
     "node-sass": "3.3.2",
     "nunjucks": "1.3.4",
     "nunjucksify": "0.2.2",
+    "nvd3": "1.8.1",
     "retina.js": "git://github.com/imulus/retinajs#1.3.0",
     "sinon": "1.14.1",
     "testem": "0.5.15",
