@@ -43,9 +43,10 @@ describe('Modeling', function() {
     });
 
     afterEach(function() {
-        $(sandboxSelector).empty();
-        testUtils.resetApp(App);
+        $(sandboxSelector).remove();
+        $('<div>', {id: sandboxId}).appendTo('body');
 
+        testUtils.resetApp(App);
         _.debounce = this.origDebounce;
     });
 
