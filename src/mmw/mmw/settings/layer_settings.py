@@ -191,5 +191,5 @@ VIZER_TYPE_PARAM = '&asset_type=siso'
 VIZER_URLS = {
     'layers': VIZER_CACHED_ROOT + 'opt=meta' + VIZER_TYPE_PARAM,
     'variable': VIZER_ROOT + 'opt=data&asset_id={{asset_id}}&var_id={{var_id}}' + VIZER_TYPE_PARAM,  # NOQA
-    'recent_vals': VIZER_ROOT + 'opt=recent_values&asset_id={{asset_id}}&var_id=all' + VIZER_TYPE_PARAM  # NOQA
+    'recent': VIZER_ROOT + 'opt=recent_values&asset_id={{asset_id}}&var_id=all' + VIZER_TYPE_PARAM  # NOQA
 }

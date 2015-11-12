@@ -195,7 +195,7 @@ var MapView = Marionette.ItemView.extend({
                 attributionControl: options.showLayerAttribution
             }),
             overlayLayers = this.prepareOverlayLayers(),
-            vizer = new VizerLayers(settings.get('vizer_urls')),
+            vizer = new VizerLayers(),
             layersReadyDeferred = vizer.getLayers();
 
         // Center the map on the U.S.

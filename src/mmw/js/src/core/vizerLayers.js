@@ -5,7 +5,9 @@ var $ = require('jquery'),
     L = require('leaflet'),
     Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
-    popupTmpl = require('./templates/observationPopup.html');
+    PlotView = require('./modals/views').PlotView,
+    popupTmpl = require('./templates/observationPopup.html'),
+    vizerUrls = require('./settings').get('vizer_urls');
 
 // These are likely temporary until we develop custom icons for each type
 var platformIcons = {
@@ -16,7 +18,7 @@ var platformIcons = {
         'Well': '#795548'
     };
 
-function VizerLayers(vizerUrls) {
+function VizerLayers() {
     var layersReady = $.Deferred();
 
     this.getLayers = function() {
@@ -43,7 +45,7 @@ function VizerLayers(vizerUrls) {
                     });
 
                 var layer = L.featureGroup(markers);
-                attachPopups(layer, vizerUrls.recent_vals);
+                attachPopups(layer);
 
                 return [label, layer];
             });
@@ -61,7 +63,7 @@ function makeProviderLabel(provider, assets) {
     return provider + ' (' + assets.length + ')';
 }
 
-function attachPopups(featureGroup, recentValuesUrl) {
+function attachPopups(featureGroup) {
     featureGroup.eachLayer(function(marker) {
         var model = new Backbone.Model(marker.options.attributes),
             view = new ObservationPopupView({model: model});
@@ -71,7 +73,7 @@ function attachPopups(featureGroup, recentValuesUrl) {
             // When the popup is opened, fetch the recent values of
             // this asset's measurements and update the Popup
             var id = popupEvent.target.options.attributes.siso_id,
-                url = recentValuesUrl.replace(/{{asset_id}}/, id);
+                url =  vizerUrls.recent.replace(/{{asset_id}}/, id);
 
             $.getJSON(url, _.partial(updatePopup, popupEvent.popup, model));
         });
@@ -110,7 +112,38 @@ var ObservationPopupView = Marionette.ItemView.extend({
     },
 
     loadVariablePlot: function(e) {
-        var varId = $(e.currentTarget).data('varId');
+        var varId = $(e.currentTarget).data('varId'),
+            assetId = $(e.currentTarget).data('assetId'),
+            dataUrl = vizerUrls.variable
+                .replace(/{{var_id}}/, varId)
+                .replace(/{{asset_id}}/, assetId),
+            displayPlot = _.bind(this.displayPlot, this, varId);
+
+        this.loadPlotData(dataUrl).then(displayPlot);
+    },
+
+    loadPlotData: function(url) {
+        var loadedDeferred = $.Deferred();
+
+        $.getJSON(url, function(observation) {
+            var rawVizerSeries = _.first(observation.result).data,
+                series = _.map(rawVizerSeries, function(measurement) {
+                    return [measurement.time * 1000, measurement.value];
+                });
+
+            loadedDeferred.resolve(series);
+        });
+
+        return loadedDeferred;
+    },
+
+    displayPlot: function(varId, series) {
+        var plotModel = new Backbone.Model(_.extend(this.model.attributes, {
+            series: series,
+            varId: varId
+        }));
+
+        new PlotView({model: plotModel}).render();
     }
 });
 

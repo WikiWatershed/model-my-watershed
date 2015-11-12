@@ -2,11 +2,13 @@
 
 var _ = require('underscore'),
     coreUtils = require('../utils.js'),
+    HighstockChart = require('../../../shim/highstock'),
     Marionette = require('../../../shim/backbone.marionette'),
     ZeroClipboard = require('zeroclipboard'),
     models = require('./models'),
     modalConfirmTmpl = require('./templates/confirmModal.html'),
     modalInputTmpl = require('./templates/inputModal.html'),
+    modalPlotTmpl = require('./templates/plotModal.html'),
     modalShareTmpl = require('./templates/shareModal.html'),
 
     ENTER_KEYCODE = 13,
@@ -193,8 +195,59 @@ var ShareView = ModalBaseView.extend({
     }
 });
 
+var PlotView = ModalBaseView.extend({
+    template: modalPlotTmpl,
+
+    onModalShown: function() {
+        // Show a plot of the time series observations
+        var measurement = this.templateHelpers().measurement;
+        new HighstockChart({
+            chart : {
+                renderTo : 'observation-plot'
+            },
+
+            rangeSelector : {
+                selected : 1,
+                buttons: [
+                    { type: 'week', count: 1, text: '1w' },
+                    { type: 'week', count: 2, text: '2w' },
+                    { type: 'month', count: 1, text: '1m' },
+                    { type: 'month', count: 2, text: '2m' },
+                    { type: 'month', count: 3, text: '3m' },
+                    { type: 'all', text: 'All' }]
+            },
+
+            xAxis: { ordinal: false },
+
+            title : {
+                text : measurement.name + ' ' + measurement.units
+            },
+
+            series : [{
+                name : measurement.name,
+                data : this.model.get('series'),
+                tooltip: {
+                    valueDecimals: 2,
+                    valueSuffix: measurement.units
+                }
+            }]
+        });
+    },
+
+    templateHelpers: function() {
+        var measurement = _.findWhere(this.model.get('measurements'), {
+            var_id: this.model.get('varId')
+        });
+
+        return {
+            measurement: measurement
+        };
+    }
+});
+
 module.exports = {
     ShareView: ShareView,
     InputView: InputView,
-    ConfirmView: ConfirmView
+    ConfirmView: ConfirmView,
+    PlotView: PlotView
 };
