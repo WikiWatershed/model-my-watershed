@@ -126,12 +126,17 @@ var ObservationPopupView = Marionette.ItemView.extend({
         var loadedDeferred = $.Deferred();
 
         $.getJSON(url, function(observation) {
-            var rawVizerSeries = _.first(observation.result).data,
-                series = _.map(rawVizerSeries, function(measurement) {
-                    return [measurement.time * 1000, measurement.value];
-                });
+            // Handle cases where there is no data
+            if (!observation.success) {
+                loadedDeferred.resolve();
+            } else {
+                var rawVizerSeries = _.first(observation.result).data,
+                    series = _.map(rawVizerSeries, function(measurement) {
+                        return [measurement.time * 1000, measurement.value];
+                    });
 
-            loadedDeferred.resolve(series);
+                loadedDeferred.resolve(series);
+            }
         });
 
         return loadedDeferred;
