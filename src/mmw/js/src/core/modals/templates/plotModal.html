@@ -4,6 +4,9 @@
             <h3>{{ name }} - {{ measurement.name }}</h3>
         </div>
         <div class="modal-body">
+            {% if not series %}
+                <div>Unable to load {{ measurement.name }} data for {{ name }} at this time.</div>
+            {% endif %}
             <div id="observation-plot"></div>
         </div>
         <div class="modal-footer">

@@ -199,7 +199,11 @@ var PlotView = ModalBaseView.extend({
     template: modalPlotTmpl,
 
     onModalShown: function() {
-        // Show a plot of the time series observations
+        // Show a plot of the time series observations if data was supplied
+        if (!this.model.get('series')) {
+            return;
+        }
+
         var measurement = this.templateHelpers().measurement;
         new HighstockChart({
             chart : {
