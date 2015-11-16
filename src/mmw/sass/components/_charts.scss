@@ -11,53 +11,30 @@
   width: 100%;
   display: block;
   height: 100%;
-  min-height: 200px;
+  min-height: 300px;
   vertical-align: baseline;
   vertical-align: bottom;
 
-  .bar {
-    margin: 0 2%;
-    display: inline-block;
+  .nv-bar {
     fill: $brand-primary;
-    border-radius: $radius-sm!important;
-    vertical-align: bottom;
-
-    &:hover {
-      fill: lighten($brand-primary, 10%);
-    }
   }
 
-  .axis {
-    color: $black-54;
-    font-size: 0.5rem;
-    white-space: normal;
+  // Official NLCD legend colors for classes selected for display
+  .nlcd-11 { fill: $nlcd-11; }
+  .nlcd-21 { fill: $nlcd-21; }
+  .nlcd-22 { fill: $nlcd-22; }
+  .nlcd-23 { fill: $nlcd-23; }
+  .nlcd-24 { fill: $nlcd-24; }
+  .nlcd-31 { fill: $nlcd-31; }
+  .nlcd-41 { fill: $nlcd-41; }
+  .nlcd-52 { fill: $nlcd-52; }
+  .nlcd-71 { fill: $nlcd-71; }
+  .nlcd-81 { fill: $nlcd-81; }
+  .nlcd-82 { fill: $nlcd-82; }
+  .nlcd-90 { fill: $nlcd-90; }
 
-    line, path {
-      fill: none;
-      stroke: $black-12;
-      shape-rendering: crispEdges;
-    }
-
-    text {
-      color: $black-54;
-    }
-  }
-
-  .x.axis line, .x.axis path {
-    display: none;
+  svg {
+    width: 100%;
+    height: 100%;
   }
 }
-
-// Official NLCD legend colors for classes selected for display
-.nlcd-11 .bar { fill: $nlcd-11; }
-.nlcd-21 .bar { fill: $nlcd-21; }
-.nlcd-22 .bar { fill: $nlcd-22; }
-.nlcd-23 .bar { fill: $nlcd-23; }
-.nlcd-24 .bar { fill: $nlcd-24; }
-.nlcd-31 .bar { fill: $nlcd-31; }
-.nlcd-41 .bar { fill: $nlcd-41; }
-.nlcd-52 .bar { fill: $nlcd-52; }
-.nlcd-71 .bar { fill: $nlcd-71; }
-.nlcd-81 .bar { fill: $nlcd-81; }
-.nlcd-82 .bar { fill: $nlcd-82; }
-.nlcd-90 .bar { fill: $nlcd-90; }
