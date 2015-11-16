@@ -111,6 +111,8 @@ var ObservationPopupView = Marionette.ItemView.extend({
         'click @ui.variable': 'loadVariablePlot'
     },
 
+    detailModal: null,
+
     loadVariablePlot: function(e) {
         var varId = $(e.currentTarget).data('varId'),
             assetId = $(e.currentTarget).data('assetId'),
@@ -148,7 +150,11 @@ var ObservationPopupView = Marionette.ItemView.extend({
             varId: varId
         }));
 
-        new PlotView({model: plotModel}).render();
+        if (this.detailModal) {
+            this.detailModal.hide();
+        }
+
+        this.detailModal = new PlotView({model: plotModel}).render();
     }
 });
 
