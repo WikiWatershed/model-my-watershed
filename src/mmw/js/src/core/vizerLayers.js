@@ -22,6 +22,12 @@ function VizerLayers() {
     var layersReady = $.Deferred();
 
     this.getLayers = function() {
+        // If there are problems with the vizer URLs, don't hold up the creation
+        // of the layer selector
+        if (!vizerUrls.layers) {
+            layersReady.resolve();
+        }
+
         $.getJSON(vizerUrls.layers, function(assets) {
             // A list of all assets (typically sensor devices) and the variables
             // they manage, along with various meta data grouped by the data
