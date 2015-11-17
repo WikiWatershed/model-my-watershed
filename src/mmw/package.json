@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "test": "test",
-    "lint": "node_modules/.bin/jshint $(find js -name *.js)",
+    "lint": "node_modules/.bin/jshint $(find js -name *.js -not -path '*/shim/*')",
     "livereload": "./node_modules/.bin/livereload /var/www/mmw/static/css/ -i 200"
   },
   "repository": {
