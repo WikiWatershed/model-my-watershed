@@ -44,7 +44,7 @@ function getNumBars(data) {
     note that x corresponds to the vertical axis since this is a horizontal bar
     chart.
 
-    options includes: barClasses, margin, yAxisLabel, isPercentage,
+    options includes: barClasses, margin, yAxisLabel, isPercentage, maxBarHeight
     and abbreviateTicks
 */
 function renderHorizontalBarChart(chartEl, data, options) {
@@ -76,10 +76,25 @@ function renderHorizontalBarChart(chartEl, data, options) {
         });
     }
 
+    function setChartHeight() {
+        // Set chart height to ensure that bars (and their padding)
+        // are no taller than maxBarHeight.
+        var numBars = getNumBars(data),
+            maxHeight = options.margin.top + options.margin.bottom +
+                        numBars * options.maxBarHeight,
+            actualHeight = $(svg).height();
+
+        if (actualHeight > maxHeight) {
+            chart.height(maxHeight);
+        } else {
+            chart.height(actualHeight);
+        }
+    }
+
     function updateChart() {
-        // Throws error if updating a hidden svg.
         if($(svg).is(':visible')) {
-            chart.update();
+            setChartHeight();
+            chart.update(); // Throws error if updating a hidden svg.
             if (options.barClasses) {
                 addBarClasses();
             }
@@ -87,13 +102,18 @@ function renderHorizontalBarChart(chartEl, data, options) {
     }
 
     options = options || {};
+    _.defaults(options, {
+        margin: {top: 30, right: 30, bottom: 40, left: 200},
+        maxBarHeight: 150
+    });
 
     nv.addGraph(function() {
         chart.showLegend(false)
              .showControls(false)
              .duration(0)
-             .margin(options.margin || {top: 30, right: 30, bottom: 40, left: 200});
+             .margin(options.margin);
 
+        setChartHeight();
         chart.tooltip.enabled(false);
         chart.yAxis.ticks(5);
         handleCommonOptions(chart, options);
