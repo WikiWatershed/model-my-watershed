@@ -156,8 +156,8 @@ function renderHorizontalBarChart(chartEl, data, options) {
    where a series corresponds to a group of data that will be displayed with
    the same color/legend item. Eg. Runoff
 
-    options includes: margin, yAxisLabel, seriesColors, isPercentage, maxBarWidth
-    and abbreviateTicks
+    options includes: margin, yAxisLabel, yAxisUnit, seriesColors, isPercentage,
+    maxBarWidth and abbreviateTicks
 */
 function renderVerticalBarChart(chartEl, data, options) {
     var chart = nv.models.multiBarChart(),
@@ -205,10 +205,18 @@ function renderVerticalBarChart(chartEl, data, options) {
         chart.legend.rightAlign(false);
         chart.tooltip.enabled(true);
         chart.yAxis.ticks(5);
+
+        handleCommonOptions(chart, options);
+
+        if (options.yAxisUnit) {
+            chart.tooltip.valueFormatter(function(d) {
+                return chart.yAxis.tickFormat()(d) + ' ' + options.yAxisUnit;
+            });
+        }
         if (options.seriesColors) {
             chart.color(options.seriesColors);
         }
-        handleCommonOptions(chart, options);
+
 
         d3.select(svg)
             .datum(data)

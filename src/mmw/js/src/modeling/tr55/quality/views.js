@@ -154,6 +154,7 @@ var CompareChartView = Marionette.ItemView.extend({
             chartOptions = {
                 seriesColors: ['#1589ff', '#4aeab3', '#4ebaea', '#329b9c'],
                 yAxisLabel: 'Load (kg)',
+                yAxisUnit: 'kg',
                 margin: {top: 20, right: 0, bottom: 40, left: 60},
                 abbreviateTicks: true
             };
