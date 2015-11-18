@@ -77,8 +77,9 @@ var ResultView = Marionette.ItemView.extend({
                            labelNames, labelDisplayNames);
             chartOptions = {
                 seriesColors: ['#F8AA00', '#CF4300', '#C2D33C'],
-                yAxisLabel: 'Level',
-                margin: this.compareMode ? {top: 20, right: 0, bottom: 40, left: 60} : null
+                yAxisLabel: 'Level (cm)',
+                yAxisUnit: 'cm',
+                margin: this.compareMode ? {top: 20, right: 0, bottom: 40, left: 60} : undefined
             };
 
             chart.renderVerticalBarChart(chartEl, data, chartOptions);
