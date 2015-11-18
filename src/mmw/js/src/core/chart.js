@@ -203,7 +203,7 @@ function renderVerticalBarChart(chartEl, data, options) {
         setChartWidth();
         // Throws error if this is not set to false for unknown reasons.
         chart.legend.rightAlign(false);
-        chart.tooltip.enabled(false);
+        chart.tooltip.enabled(true);
         chart.yAxis.ticks(5);
         if (options.seriesColors) {
             chart.color(options.seriesColors);
