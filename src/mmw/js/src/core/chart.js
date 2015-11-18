@@ -26,6 +26,10 @@ function handleCommonOptions(chart, options) {
     }
 }
 
+function getNumBars(data) {
+    return data[0].values.length;
+}
+
 /*
     Renders a horizontal bar chart for a single series of data without a legend.
 
@@ -132,21 +136,40 @@ function renderHorizontalBarChart(chartEl, data, options) {
    where a series corresponds to a group of data that will be displayed with
    the same color/legend item. Eg. Runoff
 
-    options includes: margin, yAxisLabel, seriesColors, isPercentage,
+    options includes: margin, yAxisLabel, seriesColors, isPercentage, maxBarWidth
     and abbreviateTicks
 */
 function renderVerticalBarChart(chartEl, data, options) {
     var chart = nv.models.multiBarChart(),
         svg = makeSvg(chartEl);
 
+    function setChartWidth() {
+        // Set chart width to ensure that bars (and their padding)
+        // are no wider than maxBarWidth.
+        var numBars = getNumBars(data),
+            maxWidth = options.margin.left + options.margin.right +
+                       numBars * options.maxBarWidth,
+            actualWidth = $(svg).width();
+
+        if (actualWidth > maxWidth) {
+           chart.width(maxWidth);
+        } else {
+           chart.width(actualWidth);
+        }
+    }
+
     function updateChart() {
         if($(svg).is(':visible')) {
-            // Throws error if updating a hidden svg.
-            chart.update();
+            setChartWidth();
+            chart.update(); // Throws error if updating a hidden svg.
         }
     }
 
     options = options || {};
+    _.defaults(options, {
+        margin: {top: 20, right: 30, bottom: 40, left: 60},
+        maxBarWidth: 150
+    });
 
     nv.addGraph(function() {
         chart.showLegend(true)
@@ -155,8 +178,9 @@ function renderVerticalBarChart(chartEl, data, options) {
              .reduceXTicks(false)
              .staggerLabels(true)
              .duration(0)
-             .margin(options.margin || {top: 20, right: 30, bottom: 40, left: 60});
+             .margin(options.margin);
 
+        setChartWidth();
         // Throws error if this is not set to false for unknown reasons.
         chart.legend.rightAlign(false);
         chart.tooltip.enabled(false);
