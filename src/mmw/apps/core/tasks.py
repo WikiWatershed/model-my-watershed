@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
+from django_statsd.clients import statsd
 from django.utils.timezone import now
 from celery import shared_task
 from apps.core.models import Job
@@ -78,4 +79,6 @@ def save_job_result(self, result, id, model_input):
     job.uuid = self.request.id
     job.model_input = model_input
     job.status = 'complete'
+    time_diff = int((job.delivered_at - job.created_at).total_seconds())
+    statsd.timing(__name__ + '.job_run_timer', time_diff)
     job.save()

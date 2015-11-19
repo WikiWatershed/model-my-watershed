@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 
 from celery import shared_task
+import uuid
 import json
 import logging
 from math import sqrt
@@ -221,8 +222,8 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
 
     # Return all results
     return {
-        'inputmod_hash': model_input['inputmod_hash'],
-        'modification_hash': model_input['modification_hash'],
+        'inputmod_hash': str(uuid.uuid4()),
+        'modification_hash': str(uuid.uuid4()),
         'aoi_census': aoi_census,
         'modification_censuses': modification_censuses,
         'runoff': runoff,
