@@ -1,6 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
+    _ = require('underscore'),
     Backbone = require('../../../../shim/backbone'),
     Marionette = require('../../../../shim/backbone.marionette'),
     chart = require('../../../core/chart.js'),
@@ -90,19 +91,18 @@ var ChartView = Marionette.ItemView.extend({
 
     addChart: function() {
         var chartEl = this.$el.find('.bar-chart').get(0),
-            chartData = this.collection.map(function(model) {
-                return model.attributes;
+            data = this.collection.map(function(model) {
+                return {
+                    x: model.attributes.measure,
+                    y: model.attributes.load
+                };
             }),
             chartOptions = {
-                isPercentage: false,
-                depAxisLabel: 'Load (kg)',
-                useHorizBars: true,
-                horizMargin: {top: 20, right: 80, bottom: 40, left: 150}
-            },
-            depVars = ['load'],
-            indVar = 'measure';
+                yAxisLabel: 'Load (kg)',
+                abbreviateTicks: true
+            };
 
-        chart.makeBarChart(chartEl, chartData, indVar, depVars, chartOptions);
+        chart.renderHorizontalBarChart(chartEl, data, chartOptions);
     }
 });
 
@@ -124,32 +124,42 @@ var CompareChartView = Marionette.ItemView.extend({
     },
 
     addChart: function() {
-        function getBarData() {
-            return {
-                load: '',
-                oxygen: result[0].load,
-                solids: result[1].load,
-                nitrogen: result[2].load,
-                phosphorus: result[3].load
-            };
+        function getData(result, seriesDisplayNames) {
+            return _.map(seriesDisplayNames, function(seriesDisplayName, seriesInd) {
+                return {
+                    key: seriesDisplayName,
+                    values: [
+                        {
+                            x: '',
+                            y: result[seriesInd].load
+                        }
+                    ]
+                };
+            });
         }
 
         var chartEl = this.$el.find('.bar-chart').get(0),
-            result = this.model.get('result');
+            result = this.model.get('result'),
+            seriesDisplayNames = ['Oxygen Demand',
+                                  'Suspended Solids',
+                                  'Nitrogen',
+                                  'Phosphorus'],
+            data,
+            chartOptions;
+
         $(chartEl).empty();
+
         if (result) {
-            var indVar = 'load',
-                depVars = ['oxygen', 'solids', 'nitrogen', 'phosphorus'],
-                options = {
-                    barColors: ['#1589ff', '#4aeab3', '#4ebaea', '#329b9c'],
-                    depAxisLabel: 'Load',
-                    depDisplayNames: ['Oxygen Demand',
-                                      'Suspended Solids',
-                                      'Nitrogen',
-                                      'Phosphorus']
-                },
-                data = [getBarData()];
-            chart.makeBarChart(chartEl, data, indVar, depVars, options);
+            data = getData(result, seriesDisplayNames);
+            chartOptions = {
+                seriesColors: ['#1589ff', '#4aeab3', '#4ebaea', '#329b9c'],
+                yAxisLabel: 'Load (kg)',
+                yAxisUnit: 'kg',
+                margin: {top: 20, right: 0, bottom: 40, left: 60},
+                abbreviateTicks: true
+            };
+
+            chart.renderVerticalBarChart(chartEl, data, chartOptions);
         }
     }
 });

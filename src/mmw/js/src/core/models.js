@@ -89,7 +89,13 @@ var MapModel = Backbone.Model.extend({
 var TaskModel = Backbone.Model.extend({
     defaults: {
         pollInterval: 500,
-        timeout: 22000
+        /* The timeout is set to 45 seconds here, while in the
+           src/mmw/apps/modeling/tasks.py file it is set to 42
+           seconds.  That was done because the countdown starts in the
+           front-end before it does in the back-end and the we would
+           like them to finish at approximately the same time (with the
+           back-end finishing earlier if they are not synced). */
+        timeout: 45000
     },
 
     url: function() {

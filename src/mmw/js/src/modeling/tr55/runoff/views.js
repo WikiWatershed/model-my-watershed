@@ -1,6 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
+    _ = require('underscore'),
     Marionette = require('../../../../shim/backbone.marionette'),
     chart = require('../../../core/chart.js'),
     barChartTmpl = require('../../../core/templates/barChart.html');
@@ -24,28 +25,35 @@ var ResultView = Marionette.ItemView.extend({
     },
 
     addChart: function() {
-        function getBarData(displayName, name) {
-            return {
-                type: displayName,
-                inf: result[name]['inf'],
-                runoff: result[name]['runoff'],
-                et: result[name]['et']
-            };
+        function getData(result, seriesNames, seriesDisplayNames,
+                         labelNames, labelDisplayNames) {
+            return _.map(seriesNames, function(seriesName, seriesInd) {
+                var seriesDisplayName = seriesDisplayNames[seriesInd];
+                return {
+                    key: seriesDisplayName,
+                    values: _.map(labelNames, function(labelName, labelInd) {
+                        var labelDisplayName = labelDisplayNames[labelInd];
+                        return {
+                            x: labelDisplayName,
+                            y: result[labelName][seriesName]
+                        };
+                    })
+                };
+            });
         }
 
         var chartEl = this.$el.find('.bar-chart').get(0),
-            result = this.model.get('result');
-        $(chartEl).empty();
-        if (result) {
-            var indVar = 'type',
-                depVars = ['inf', 'runoff', 'et'],
-                data,
-                options = {
-                    barColors: ['#F8AA00', '#CF4300', '#C2D33C'],
-                    depAxisLabel: 'Level',
-                    depDisplayNames: ['Infiltration', 'Runoff', 'Evapotranspiration']
-                };
+            result = this.model.get('result'),
+            seriesNames = ['inf', 'runoff', 'et'],
+            seriesDisplayNames = ['Infiltration', 'Runoff', 'Evapotranspiration'],
+            labelNames,
+            labelDisplayNames,
+            data,
+            chartOptions;
 
+        $(chartEl).empty();
+
+        if (result) {
             if (this.compareMode) {
                 var target_result = 'modified';
                 if (this.scenario.get('is_current_conditions')) {
@@ -54,24 +62,27 @@ var ResultView = Marionette.ItemView.extend({
                 if (this.scenario.get('is_pre_columbian')) {
                     target_result = 'pc_unmodified';
                 }
-                data = [
-                    getBarData('', target_result)
-                ];
+                labelNames = [target_result];
+                labelDisplayNames = [''];
                 this.$el.addClass('current-conditions');
             } else if (this.scenario.get('is_current_conditions')) {
-                data = [
-                    getBarData('100% Forest', 'pc_unmodified'),
-                    getBarData('Current Conditions', 'unmodified')
-                ];
+                labelNames = ['pc_unmodified', 'unmodified'];
+                labelDisplayNames = ['100% Forest', 'Current Conditions'];
             } else {
-                // Show the unmodified results and the modified
-                // results.
-                data = [
-                    getBarData('Current Conditions', 'unmodified'),
-                    getBarData('Modified', 'modified')
-                ];
+                labelNames = ['unmodified', 'modified'];
+                labelDisplayNames = ['Current Conditions', 'Modified'];
             }
-            chart.makeBarChart(chartEl, data, indVar, depVars, options);
+
+            data = getData(result, seriesNames, seriesDisplayNames,
+                           labelNames, labelDisplayNames);
+            chartOptions = {
+                seriesColors: ['#F8AA00', '#CF4300', '#C2D33C'],
+                yAxisLabel: 'Level (cm)',
+                yAxisUnit: 'cm',
+                margin: this.compareMode ? {top: 20, right: 0, bottom: 40, left: 60} : undefined
+            };
+
+            chart.renderVerticalBarChart(chartEl, data, chartOptions);
         }
     }
 });

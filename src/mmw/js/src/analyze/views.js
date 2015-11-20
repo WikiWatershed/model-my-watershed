@@ -127,7 +127,7 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
         var self = this;
 
         App.map.setDoubleHeaderSmallFooterSize(true);
-       
+
         this.$el.animate({ height: '0%' }, 200, function() {
             self.trigger('animateOut');
         });
@@ -257,6 +257,7 @@ var TableView = Marionette.CompositeView.extend({
     }
 });
 
+
 var ChartView = Marionette.ItemView.extend({
     template: barChartTmpl,
     id: function() {
@@ -270,26 +271,27 @@ var ChartView = Marionette.ItemView.extend({
 
     addChart: function() {
         var chartEl = this.$el.find('.bar-chart').get(0),
-            chartData = _.map(this.collection.toJSON(), function(model) {
+            data = _.map(this.collection.toJSON(), function(model) {
                 return {
-                    area: model.area,
-                    coverage: model.coverage,
-                    type: model.type,
-                    className: model.nlcd ? 'nlcd-' + model.nlcd : null
+                    x: model.type,
+                    y: model.coverage,
+                    class: model.nlcd ? 'nlcd-' + model.nlcd : null
                 };
             }),
-            chartOptions = {
-                isPercentage: true,
-                depAxisLabel: 'Coverage'
-            },
-            depVars = ['coverage'],
-            indVar = 'type';
+            chartOptions,
+            barClasses = null;
 
         if (this.model.get('name') === 'land') {
-            chartOptions.useHorizBars = true;
+            barClasses = _.pluck(data, 'class');
         }
 
-        chart.makeBarChart(chartEl, chartData, indVar, depVars, chartOptions);
+        chartOptions = {
+           yAxisLabel: 'Coverage',
+           isPercentage: true,
+           barClasses: barClasses
+       };
+
+        chart.renderHorizontalBarChart(chartEl, data, chartOptions);
     }
 });
 

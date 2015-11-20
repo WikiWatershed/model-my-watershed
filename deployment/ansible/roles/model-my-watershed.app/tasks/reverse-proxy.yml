@@ -1,4 +1,12 @@
 ---
+- name: Ensure Nginx cache directory exists
+  file: path="{{ nginx_cache_dir }}"
+        state=directory
+        owner=www-data
+        group=www-data
+  notify:
+    - Restart Nginx
+
 - name: Configure Nginx site
   template: src=nginx-app.conf.j2
             dest=/etc/nginx/sites-available/mmw-app.conf

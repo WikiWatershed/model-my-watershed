@@ -536,8 +536,7 @@ var ScenarioModel = Backbone.Model.extend({
         }
 
         // Save silently so server values don't trigger reload
-        // except when this is a new scenario and there are no existing values
-        this.save(null, { silent: !this.isNew() })
+        this.save(null, { silent: true })
             .fail(function() {
                 console.log('Failed to save scenario');
             });
@@ -559,6 +558,13 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     parse: function(response, options) {
+        // In case of new scenarios, update with new server fields,
+        // but keep the values of existing fields as they are.
+        if (this.isNew()) {
+            var newServerFields = _.omit(response, _.keys(this.attributes));
+            this.set(newServerFields);
+        }
+
         if (options.silent) {
             // Don't reload server values
             return this.attributes;

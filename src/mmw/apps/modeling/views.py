@@ -202,7 +202,10 @@ def get_job(request, job_uuid, format=None):
 
 
 def choose_worker():
-    workers = filter(lambda worker: settings.STACK_COLOR in worker,
+    def predicate(worker_name):
+        return settings.STACK_COLOR in worker_name or 'debug' in worker_name
+
+    workers = filter(predicate,
                      celery.current_app.control.inspect().ping().keys())
     return random.choice(workers)
 

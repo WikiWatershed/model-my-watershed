@@ -159,7 +159,17 @@ var ProjectMenuView = Marionette.ItemView.extend({
                     confirmLabel: 'Delete',
                     cancelLabel: 'Cancel'
                 })
-            });
+            }),
+            navigateAfterDelete = function() {
+                App.currentProject = null;
+                App.projectNumber = undefined;
+                App.map.set({
+                    'areaOfInterest': null,
+                    'areaOfInterestName': null
+                });
+
+                router.navigate('projects/', { trigger: true });
+            };
 
         del.render();
 
@@ -169,14 +179,12 @@ var ProjectMenuView = Marionette.ItemView.extend({
             // which point this could get consolidated without a conditional.
             var xhr = self.model.destroy({wait: true});
             if (xhr) {
-                xhr.done(function() {
-                        router.navigate('/', {trigger: true});
-                    })
+                xhr.done(navigateAfterDelete)
                     .fail(function() {
                         window.alert('Could not delete this project.');
                     });
             } else {
-                router.navigate('/', {trigger: true});
+                navigateAfterDelete();
             }
         });
     },

@@ -13,10 +13,8 @@ var $ = require('jquery'),
     views = require('./views'),
     models = require('./models'),
     AppRouter = require('../router').AppRouter,
-    chart = require('./chart'),
     settings = require('./settings'),
-    testUtils = require('./testUtils'),
-    sandboxTemplate = require('./templates/sandbox.html');
+    testUtils = require('./testUtils');
 
 var TEST_SHAPE = {
     'type': 'Feature',
@@ -26,15 +24,7 @@ var TEST_SHAPE = {
     }
 };
 
-var chartData = [{x: 'a', y: 1},
-                {x: 'b', y: 2},
-                {x: 'c', y: 3}],
-    xValue = 'x',
-    yValue = 'y',
-    displaySandboxHeight = '500',
-    displaySandboxWidth = '700',
-    displaySandboxSelector = '#display-sandbox',
-    sandboxId = 'sandbox',
+var sandboxId = 'sandbox',
     sandboxSelector = '#' + sandboxId;
 
 describe('Core', function() {
@@ -45,19 +35,12 @@ describe('Core', function() {
     });
 
     beforeEach(function() {
-        $(displaySandboxSelector).remove();
-        // Use a special sandbox so that we can test responsiveness of chart.
-        $('body').append(sandboxTemplate.render({
-            height: displaySandboxHeight,
-            width: displaySandboxWidth
-        }));
-        this.el = $(displaySandboxSelector).get(0);
     });
 
     afterEach(function() {
         $(sandboxSelector).remove();
         $('<div>', {id: sandboxId}).appendTo('body');
-        $(displaySandboxSelector).remove();
+
         // App adds a LoginModalView to the body
         // so we need to remove it.
         $('.modal').remove();
@@ -68,52 +51,6 @@ describe('Core', function() {
 
     after(function() {
         $(sandboxSelector).remove();
-    });
-
-    describe('Chart', function() {
-        it('changes size when the browser is resized and height and width are not provided', function() {
-            chart.makeBarChart(this.el, chartData, xValue, yValue);
-            var $svg = $(displaySandboxSelector).children('svg');
-
-            var beforeHeight = $svg.attr('height');
-            var beforeWidth = $svg.attr('width');
-            assert.equal(displaySandboxHeight, beforeHeight);
-            assert.equal(displaySandboxWidth, beforeWidth);
-
-            var afterSandboxHeight = 300;
-            var afterSandboxWidth = 400;
-            $(displaySandboxSelector).css('height', afterSandboxHeight);
-            $(displaySandboxSelector).css('width', afterSandboxWidth);
-            $(window).trigger('resize');
-            var afterHeight = $svg.attr('height');
-            var afterWidth = $svg.attr('width');
-            assert.equal(afterSandboxHeight, afterHeight);
-            assert.equal(afterSandboxWidth, afterWidth);
-        });
-
-        it('stays the same size when the browser is resized and height and width are provided', function() {
-            var options = {
-                height: 400,
-                width: 600
-            };
-            chart.makeBarChart(this.el, chartData, xValue, yValue, options);
-            var $svg = $(displaySandboxSelector).children('svg');
-
-            var beforeHeight = $svg.attr('height');
-            var beforeWidth = $svg.attr('width');
-            assert.equal(options.height, beforeHeight);
-            assert.equal(options.width, beforeWidth);
-
-            var afterSandboxHeight = 300;
-            var afterSandboxWidth = 400;
-            $(displaySandboxSelector).css('height', afterSandboxHeight);
-            $(displaySandboxSelector).css('width', afterSandboxWidth);
-            $(window).trigger('resize');
-            var afterHeight = $svg.attr('height');
-            var afterWidth = $svg.attr('width');
-            assert.equal(options.height, afterHeight);
-            assert.equal(options.width, afterWidth);
-        });
     });
 
     describe('Views', function() {

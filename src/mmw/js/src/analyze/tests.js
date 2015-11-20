@@ -10,28 +10,29 @@ var _ = require('lodash'),
     models = require('./models'),
     views = require('./views'),
     App = require('../app'),
-    testUtils = require('../core/testUtils'),
-    sandboxTemplate = require('../core/templates/sandbox.html');
+    testUtils = require('../core/testUtils');
 
-var sandboxHeight = '500',
-    sandboxWidth = '700',
-    displaySandboxId = 'display-sandbox',
-    displaySandboxSelector = '#' + displaySandboxId;
-
-var SandboxRegion = Marionette.Region.extend({
-    el: displaySandboxSelector
-});
+var sandboxId = 'sandbox',
+    sandboxSelector = '#' + sandboxId,
+    SandboxRegion = Marionette.Region.extend({
+        el: sandboxSelector
+    });
 
 describe('Analyze', function() {
+    before(function() {
+        if ($(sandboxSelector).length === 0) {
+            $('<div>', {id: sandboxId}).appendTo('body');
+        }
+    });
+
     beforeEach(function() {
-        $(displaySandboxSelector).remove();
-        // Use a special sandbox so that we can test responsiveness of chart.
-        $('body').append(sandboxTemplate.render({height: sandboxHeight, width: sandboxWidth}));
+
     });
 
     afterEach(function() {
+        $(sandboxSelector).remove();
+        $('<div>', {id: sandboxId}).appendTo('body');
         testUtils.resetApp(App);
-        $(displaySandboxSelector).remove();
     });
 
     describe('DetailsView', function() {
@@ -50,10 +51,6 @@ describe('Analyze', function() {
             var dataSet = analyzeDataSets[dataSetInd];
             it('renders tables that match the data when there are ' + dataSetInd + ' categories in the dataset', function(done) {
                 setupViewAndTest(dataSet, checkTable, done);
-            });
-
-            it('renders charts that match the data when there are ' + dataSetInd + ' categories in the dataset', function(done) {
-                setupViewAndTest(dataSet, checkChart, done);
             });
         }
 
@@ -116,22 +113,6 @@ function checkTableBody(subData) {
             return $(td).text();
         }).get();
         assert.deepEqual(expectedRowVals, rowVals);
-    });
-}
-
-// Check that bar chart has correct number of bars and correct
-// x-axis labels.
-function checkChart(data) {
-    _.each(data, function(subData) {
-        var expectedAxisLabels = _.pluck(subData.categories, 'type');
-        var axisLabels = $('#' + subData.name + ' .x.axis .tick text').map(function() {
-            return $(this).text();
-        }).get();
-        assert.deepEqual(expectedAxisLabels, axisLabels);
-
-        var expectedNumBars = subData.categories.length;
-        var numBars = $('#' + subData.name + ' .bar').length;
-        assert.equal(expectedNumBars, numBars);
     });
 }
 
