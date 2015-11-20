@@ -26,6 +26,10 @@ function handleCommonOptions(chart, options) {
     }
 }
 
+function getNumBars(data) {
+    return data[0].values.length;
+}
+
 /*
     Renders a horizontal bar chart for a single series of data without a legend.
 
@@ -40,7 +44,7 @@ function handleCommonOptions(chart, options) {
     note that x corresponds to the vertical axis since this is a horizontal bar
     chart.
 
-    options includes: barClasses, margin, yAxisLabel, isPercentage,
+    options includes: barClasses, margin, yAxisLabel, isPercentage, maxBarHeight
     and abbreviateTicks
 */
 function renderHorizontalBarChart(chartEl, data, options) {
@@ -72,10 +76,25 @@ function renderHorizontalBarChart(chartEl, data, options) {
         });
     }
 
+    function setChartHeight() {
+        // Set chart height to ensure that bars (and their padding)
+        // are no taller than maxBarHeight.
+        var numBars = getNumBars(data),
+            maxHeight = options.margin.top + options.margin.bottom +
+                        numBars * options.maxBarHeight,
+            actualHeight = $(svg).height();
+
+        if (actualHeight > maxHeight) {
+            chart.height(maxHeight);
+        } else {
+            chart.height(actualHeight);
+        }
+    }
+
     function updateChart() {
-        // Throws error if updating a hidden svg.
         if($(svg).is(':visible')) {
-            chart.update();
+            setChartHeight();
+            chart.update(); // Throws error if updating a hidden svg.
             if (options.barClasses) {
                 addBarClasses();
             }
@@ -83,13 +102,18 @@ function renderHorizontalBarChart(chartEl, data, options) {
     }
 
     options = options || {};
+    _.defaults(options, {
+        margin: {top: 30, right: 30, bottom: 40, left: 200},
+        maxBarHeight: 150
+    });
 
     nv.addGraph(function() {
         chart.showLegend(false)
              .showControls(false)
              .duration(0)
-             .margin(options.margin || {top: 30, right: 30, bottom: 40, left: 200});
+             .margin(options.margin);
 
+        setChartHeight();
         chart.tooltip.enabled(false);
         chart.yAxis.ticks(5);
         handleCommonOptions(chart, options);
@@ -132,21 +156,40 @@ function renderHorizontalBarChart(chartEl, data, options) {
    where a series corresponds to a group of data that will be displayed with
    the same color/legend item. Eg. Runoff
 
-    options includes: margin, yAxisLabel, seriesColors, isPercentage,
-    and abbreviateTicks
+    options includes: margin, yAxisLabel, yAxisUnit, seriesColors, isPercentage,
+    maxBarWidth and abbreviateTicks
 */
 function renderVerticalBarChart(chartEl, data, options) {
     var chart = nv.models.multiBarChart(),
         svg = makeSvg(chartEl);
 
+    function setChartWidth() {
+        // Set chart width to ensure that bars (and their padding)
+        // are no wider than maxBarWidth.
+        var numBars = getNumBars(data),
+            maxWidth = options.margin.left + options.margin.right +
+                       numBars * options.maxBarWidth,
+            actualWidth = $(svg).width();
+
+        if (actualWidth > maxWidth) {
+           chart.width(maxWidth);
+        } else {
+           chart.width(actualWidth);
+        }
+    }
+
     function updateChart() {
         if($(svg).is(':visible')) {
-            // Throws error if updating a hidden svg.
-            chart.update();
+            setChartWidth();
+            chart.update(); // Throws error if updating a hidden svg.
         }
     }
 
     options = options || {};
+    _.defaults(options, {
+        margin: {top: 20, right: 30, bottom: 40, left: 60},
+        maxBarWidth: 150
+    });
 
     nv.addGraph(function() {
         chart.showLegend(true)
@@ -155,16 +198,25 @@ function renderVerticalBarChart(chartEl, data, options) {
              .reduceXTicks(false)
              .staggerLabels(true)
              .duration(0)
-             .margin(options.margin || {top: 20, right: 30, bottom: 40, left: 60});
+             .margin(options.margin);
 
+        setChartWidth();
         // Throws error if this is not set to false for unknown reasons.
         chart.legend.rightAlign(false);
-        chart.tooltip.enabled(false);
+        chart.tooltip.enabled(true);
         chart.yAxis.ticks(5);
+
+        handleCommonOptions(chart, options);
+
+        if (options.yAxisUnit) {
+            chart.tooltip.valueFormatter(function(d) {
+                return chart.yAxis.tickFormat()(d) + ' ' + options.yAxisUnit;
+            });
+        }
         if (options.seriesColors) {
             chart.color(options.seriesColors);
         }
-        handleCommonOptions(chart, options);
+
 
         d3.select(svg)
             .datum(data)
