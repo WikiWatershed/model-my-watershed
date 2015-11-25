@@ -122,6 +122,7 @@ JS_DEPS=(backbone
          leaflet-plugins
          leaflet-plugins/layer/tile/Google
          lodash
+         moment
          nunjucks
          nvd3
          turf-area
