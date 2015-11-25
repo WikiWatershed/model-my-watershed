@@ -6,6 +6,7 @@ var $ = require('jquery'),
     Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     PlotView = require('./modals/views').PlotView,
+    measurementTmpl = require('./templates/measurement.html'),
     popupTmpl = require('./templates/observationPopup.html'),
     vizerUrls = require('./settings').get('vizer_urls');
 
@@ -106,59 +107,75 @@ function updatePopup(popup, model, recentValues) {
     popup.update();
 }
 
-var ObservationPopupView = Marionette.ItemView.extend({
-    template: popupTmpl,
+var MeasurementView = Marionette.LayoutView.extend({
+    tagName: 'tr',
+
+    template: measurementTmpl,
+
+    initialize: function(options) {
+        this.options = options;
+        this.model.set('showDepth', false);
+    },
 
     ui: {
-        'variable': '.observation-measurements li'
+        'data': '.measurement-data'
     },
 
     events: {
-        'click @ui.variable': 'loadVariablePlot'
+        'click': 'showPlot'
     },
 
-    detailModal: null,
+    showPlot: function() {
+        this.options.showPlot(this.model.get('var_id'));
+    }
+});
 
-    loadVariablePlot: function(e) {
-        var varId = $(e.currentTarget).data('varId'),
-            assetId = $(e.currentTarget).data('assetId'),
-            dataUrl = vizerUrls.variable
-                .replace(/{{var_id}}/, varId)
-                .replace(/{{asset_id}}/, assetId),
-            displayPlot = _.bind(this.displayPlot, this, varId);
+var MeasurementsView = Marionette.CollectionView.extend({
+    tagName: 'table',
 
-        this.loadPlotData(dataUrl).then(displayPlot);
+    childView: MeasurementView,
+
+    initialize: function(options) {
+        this.options = options;
     },
 
-    loadPlotData: function(url) {
-        var loadedDeferred = $.Deferred();
+    childViewOptions: function() {
+        return this.options;
+    }
+});
 
-        $.getJSON(url, function(observation) {
-            // Handle cases where there is no data
-            if (!observation.success) {
-                loadedDeferred.resolve();
-            } else {
-                var rawVizerSeries = _.first(observation.result).data,
-                    series = _.map(rawVizerSeries, function(measurement) {
-                        return [measurement.time * 1000, measurement.value];
-                    });
+var ObservationPopupView = Marionette.LayoutView.extend({
+    template: popupTmpl,
 
-                loadedDeferred.resolve(series);
-            }
-        });
+    className: 'observation-popup',
 
-        return loadedDeferred;
+    ui: {
+        showPlotButton: 'button.show-plot'
     },
 
-    displayPlot: function(varId, series) {
-        var plotModel = new Backbone.Model(_.extend(this.model.attributes, {
-            series: series,
-            varId: varId
+    events: {
+        'click @ui.showPlotButton': 'showDefaultPlot'
+    },
+
+    regions: {
+        measurementsRegion: '.measurements-region'
+    },
+
+    onRender: function() {
+        this.measurementsRegion.show(new MeasurementsView({
+            collection: new Backbone.Collection(this.model.get('measurements')),
+            showPlot: _.bind(this.showPlot, this)
         }));
+    },
 
-        if (this.detailModal) {
-            this.detailModal.hide();
-        }
+    showDefaultPlot: function() {
+        this.showPlot(this.model.get('measurements')[0].var_id);
+    },
+
+    showPlot: function(varId) {
+        var plotModel = new Backbone.Model(_.extend(this.model.attributes, {
+            currVarId: varId
+        }));
 
         this.detailModal = new PlotView({model: plotModel}).render();
     }

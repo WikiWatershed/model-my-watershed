@@ -1,23 +1,16 @@
-<h2> {{ platform_type }} - {{ name }} </h2>
+<div class="measurements-platform"> {{ platform_type }} </div>
+<div class="measurements-name"> {{ name }} </div>
 
-<div>
-    <ul class="observation-measurements">
-    {% for measurement in measurements %}
-        <li data-var-id="{{ measurement.var_id }}" data-asset-id="{{ siso_id }}"> {{ measurement.name }} ({{ measurement.depth }})
-        {% if measurement.value %}
-        <span> {{ measurement.value }} {{ measurement.units }}</span>
-            {% if measurement.lastUpdated %}
-              <span>{{ measurement.lastUpdated|toLocaleString }} EST</span>
-            {% endif %}
-        {% else %}
-            <span> - </span>
-        {% endif %}
-        </li>
-    {% endfor %}
-    </ul>
-</div>
+{% if measurements.length == 0 %}
+    No measurements available.
+{% endif %}
+<div class="measurements-region"></div>
 
-<div>Data provided by <a href="{{ provider_url }}">{{ provider }}</a></div>
+<div>Data from <a href="{{ provider_url }}">{{ provider }}</a></div>
 {% if url %}
-<a href="{{ url }}">Original source data</a>
+    <a href="{{ url }}">Original source data</a>
+{% endif %}
+
+{% if measurements.length > 0 %}
+    <button class="show-plot btn btn-md">Historical Data</button>
 {% endif %}
