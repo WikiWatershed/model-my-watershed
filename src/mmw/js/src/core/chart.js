@@ -1,7 +1,7 @@
 "use strict";
 
 var d3 = require('d3'),
-    nv = require('nvd3'),
+    nv = require('../../shim/nv.d3.js'),
     $ = require('jquery'),
     _ = require('lodash');
 
