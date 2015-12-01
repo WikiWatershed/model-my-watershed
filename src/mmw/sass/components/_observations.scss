@@ -1,0 +1,23 @@
+.observation-popup {
+    .measurements-platform {
+    }
+
+    .measurements-name {
+    }
+
+    .measurement-name {
+        min-width: 100px;
+    }
+
+    .measurement-value, .measurement-depth {
+        text-align: right;
+        min-width: 75px;
+        color: $brand-primary;
+    }
+}
+
+.plot-modal {
+    .measurements-updated {
+        color: $ui-grey;
+    }
+}

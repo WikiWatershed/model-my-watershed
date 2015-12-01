@@ -65,7 +65,7 @@ server {
     proxy_pass http://127.0.0.1:8000;
   }
 
-  location /observation/ {
+  location /cache/observation/ {
 
     # Prevent us from reverse proxying anything other
     # than GETs.
@@ -108,4 +108,7 @@ server {
     proxy_pass {{ observation_api_url }};
   }
 
+  location /observation/ {
+    proxy_pass {{ observation_api_url }};
+  }
 }

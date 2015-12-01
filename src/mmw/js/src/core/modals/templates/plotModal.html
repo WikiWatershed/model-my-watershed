@@ -1,0 +1,27 @@
+<div class="modal-dialog modal-dialog-lg">
+    <div class="modal-content plot-modal">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <div class="measurements-platform"> {{ platform_type }} </div>
+            <div class="measurements-name"> {{ measurement.name }} </div>
+            <div class="measurements-updated">Last updated {{ lastUpdated }}</div>
+            <select class="form-control btn btn-small btn-primary">
+                {% for measurement in measurements %}
+                    <option value="{{ measurement.var_id }}" {{ "selected" if measurement.var_id == currVarId }}>
+                        {{ measurement.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="modal-body">
+            {% if status == 'loading' %}
+                <i class="fa fa-circle-o-notch fa-spin"></i> Loading data...
+            {% elif status == 'failed' %}
+                <i class="fa fa-exclamation-triangle"></i> Failed to load data.
+            {% endif %}
+            <div id="observation-plot"></div>
+        </div>
+        <div class="modal-footer">
+        </div>
+    </div>
+</div>

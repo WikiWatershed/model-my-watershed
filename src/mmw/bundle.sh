@@ -114,6 +114,7 @@ JS_DEPS=(backbone
          ./js/shim/leaflet.utfgrid.js
          ./js/shim/marionette.transition-region.js
          ./js/shim/shutterbug.js
+         ./js/shim/highstock.js
          jquery
          leaflet
          leaflet-draw
@@ -121,6 +122,7 @@ JS_DEPS=(backbone
          leaflet-plugins
          leaflet-plugins/layer/tile/Google
          lodash
+         moment
          nunjucks
          nvd3
          turf-area

@@ -2,11 +2,35 @@
 
 var L = require('leaflet'),
     $ = require('jquery'),
+    _ = require('underscore'),
     Marionette = require('../../shim/backbone.marionette'),
     layerControlListTmpl = require('./templates/layerControlList.html'),
     layerControlButtonTmpl = require('./templates/layerControlButton.html');
 
 module.exports = L.Control.Layers.extend({
+
+    // Copied from  https://github.com/Leaflet/Leaflet/blob/master/src/control/Control.Layers.js
+    // with modifications for allowing a third layer type (observations)
+    initialize: function (baseLayers, overlays, observationLayers, options) {
+        L.setOptions(this, options);
+
+        this._layers = {};
+        this._lastZIndex = 0;
+        this._handlingClick = false;
+
+        for (var i in baseLayers) {
+            this._addLayer(baseLayers[i], i);
+        }
+
+        for (i in overlays) {
+            this._addLayer(overlays[i], i, 'overlay');
+        }
+
+        for (i in observationLayers) {
+            this._addLayer(observationLayers[i], i, 'observation');
+        }
+    },
+
     // Somewhat copied from https://github.com/Leaflet/Leaflet/blob/master/src/control/Control.Layers.js,
     // with modifications to use a customer container element and our own way to toggle visibility.
     _initLayout: function() {
@@ -50,6 +74,8 @@ module.exports = L.Control.Layers.extend({
                 $(listContainer).find("#basemap-layer-list").get(0));
         this._overlaysList = L.DomUtil.create('div', className + '-overlay',
                 $(listContainer).find("#overlays-layer-list").get(0));
+        this._observationList = L.DomUtil.create('div', className + '-observation',
+                $(listContainer).find("#observations-layer-list").get(0));
 
         // Add the layer control list as a sibling to the map.
         // This lets us control the size of the list based
@@ -65,7 +91,8 @@ module.exports = L.Control.Layers.extend({
             input,
             controlName = 'leaflet-overlay-layers';
 
-        if (obj.overlay && !obj.overlayType) {
+        if (obj.overlay && obj.overlayType === 'observation') {
+            controlName = 'leaflet-control-layers-observation';
             input = document.createElement('input');
             input.type = 'checkbox';
             input.className = 'leaflet-control-layers-selector';
@@ -100,14 +127,12 @@ module.exports = L.Control.Layers.extend({
             input.checked = true;
         }
 
-        var container = obj.overlay ? this._overlaysList : this._baseLayersList;
-        var subcontainer;
-        if (obj.overlayType) {
-             subcontainer = document.getElementById('overlay-subclass-' + obj.overlayType);
+        if (_.contains(['raster', 'vector'], obj.overlayType)) {
+             var subcontainer = document.getElementById('overlay-subclass-' + obj.overlayType);
              if (subcontainer === null) {
                  subcontainer = document.createElement('div');
                  subcontainer.id = 'overlay-subclass-' + obj.overlayType;
-                 container.appendChild(subcontainer);
+                 this._overlaysList.appendChild(subcontainer);
 
                  var title = obj.overlayType === 'vector' ? 'Boundary' : 'Coverage';
                  var textNode = document.createElement('h4');
@@ -115,15 +140,17 @@ module.exports = L.Control.Layers.extend({
                  subcontainer.appendChild(textNode);
              }
              subcontainer.appendChild(label);
+        } else if (obj.overlayType === 'observation') {
+            this._observationList.appendChild(label);
         } else {
-            container.appendChild(label);
+            this._baseLayersList.appendChild(label);
         }
 
         return label;
     },
 
     // Override the parent class and adds new overlayType data.
-    _addLayer: function (layer, name, overlay) {
+    _addLayer: function (layer, name, tabType) {
         layer.on('add remove', this._onLayerChange, this);
 
         var id = L.stamp(layer);
@@ -131,12 +158,14 @@ module.exports = L.Control.Layers.extend({
         this._layers[id] = {
             layer: layer,
             name: name,
-            overlay: overlay,
-            empty: layer.options.empty
+            overlay: !!tabType,
+            empty: layer.options ? layer.options.empty : false
         };
 
-        if (overlay) {
+        if (tabType === 'overlay') {
              this._layers[id].overlayType = layer.options.vector ? 'vector' : 'raster';
+        } else if (tabType === 'observation') {
+             this._layers[id].overlayType = tabType;
         }
 
         if (this.options.autoZIndex && layer.setZIndex) {
