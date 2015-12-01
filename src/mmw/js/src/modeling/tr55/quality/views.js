@@ -156,6 +156,8 @@ var CompareChartView = Marionette.ItemView.extend({
                 yAxisLabel: 'Load (kg)',
                 yAxisUnit: 'kg',
                 margin: {top: 20, right: 0, bottom: 40, left: 60},
+                reverseLegend: this.compareMode,
+                disableToggle: true,
                 abbreviateTicks: true
             };
 

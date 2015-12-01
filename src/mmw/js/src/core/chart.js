@@ -153,11 +153,12 @@ function renderHorizontalBarChart(chartEl, data, options) {
         },
         ...
    ]
-   where a series corresponds to a group of data that will be displayed with
-   the same color/legend item. Eg. Runoff
+   where a series corresponds to a group of data that will be
+   displayed with the same color/legend item. Eg. Runoff
 
-    options includes: margin, yAxisLabel, yAxisUnit, seriesColors, isPercentage,
-    maxBarWidth and abbreviateTicks
+   options includes: margin, yAxisLabel, yAxisUnit, seriesColors,
+   isPercentage, maxBarWidth, abbreviateTicks, reverseLegend, and
+   disableToggle
 */
 function renderVerticalBarChart(chartEl, data, options) {
     var chart = nv.models.multiBarChart(),
@@ -202,7 +203,10 @@ function renderVerticalBarChart(chartEl, data, options) {
 
         setChartWidth();
         // Throws error if this is not set to false for unknown reasons.
-        chart.legend.rightAlign(false);
+        chart.legend
+            .disableToggle(options.disableToggle)
+            .reverse(options.reverseLegend)
+            .rightAlign(false);
         chart.tooltip.enabled(true);
         chart.yAxis.ticks(5);
 
