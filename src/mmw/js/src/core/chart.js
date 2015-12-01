@@ -5,6 +5,8 @@ var d3 = require('d3'),
     $ = require('jquery'),
     _ = require('lodash');
 
+var widthCutoff = 400;
+
 function makeSvg(el) {
     // For some reason, the chart will only render if the style is
     // defined inline, even if it is blank.
@@ -162,7 +164,8 @@ function renderHorizontalBarChart(chartEl, data, options) {
 */
 function renderVerticalBarChart(chartEl, data, options) {
     var chart = nv.models.multiBarChart(),
-        svg = makeSvg(chartEl);
+        svg = makeSvg(chartEl),
+        $svg = $(svg);
 
     function setChartWidth() {
         // Set chart width to ensure that bars (and their padding)
@@ -170,7 +173,7 @@ function renderVerticalBarChart(chartEl, data, options) {
         var numBars = getNumBars(data),
             maxWidth = options.margin.left + options.margin.right +
                        numBars * options.maxBarWidth,
-            actualWidth = $(svg).width();
+            actualWidth = $svg.width();
 
         if (actualWidth > maxWidth) {
            chart.width(maxWidth);
@@ -180,9 +183,11 @@ function renderVerticalBarChart(chartEl, data, options) {
     }
 
     function updateChart() {
-        if($(svg).is(':visible')) {
+        if($svg.is(':visible')) {
             setChartWidth();
-            chart.update(); // Throws error if updating a hidden svg.
+            chart
+                .staggerLabels($svg.width() < widthCutoff)
+                .update(); // Throws error if updating a hidden svg.
         }
     }
 
@@ -197,7 +202,7 @@ function renderVerticalBarChart(chartEl, data, options) {
              .showControls(false)
              .stacked(true)
              .reduceXTicks(false)
-             .staggerLabels(true)
+             .staggerLabels($svg.width() < widthCutoff)
              .duration(0)
              .margin(options.margin);
 
