@@ -6,9 +6,9 @@
 {% endif %}
 <div class="measurements-region"></div>
 
-<div>Data from <a href="{{ provider_url }}">{{ provider }}</a></div>
+<div>Data from <a href="{{ provider_url }}" target="_blank">{{ provider }}</a></div>
 {% if url %}
-    <a href="{{ url }}">Original source data</a>
+    <a href="{{ url }}" target="_blank">Original source data</a>
 {% endif %}
 
 {% if measurements.length > 0 %}
