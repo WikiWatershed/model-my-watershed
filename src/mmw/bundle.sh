@@ -100,7 +100,7 @@ CONCAT_VENDOR_CSS_COMMAND="cat \
     ./node_modules/leaflet-draw/dist/leaflet.draw.css \
     ./node_modules/font-awesome/css/font-awesome.min.css \
     ./node_modules/bootstrap-table/dist/bootstrap-table.min.css \
-    ./node_modules/nvd3/build/nv.d3.min.css \
+    ./css/shim/nv.d3.min.css \
     > $VENDOR_CSS_FILE"
 
 JS_DEPS=(backbone
@@ -115,6 +115,7 @@ JS_DEPS=(backbone
          ./js/shim/marionette.transition-region.js
          ./js/shim/shutterbug.js
          ./js/shim/highstock.js
+         ./js/shim/nv.d3.js
          jquery
          leaflet
          leaflet-draw
@@ -124,7 +125,6 @@ JS_DEPS=(backbone
          lodash
          moment
          nunjucks
-         nvd3
          turf-area
          turf-bbox-polygon
          turf-buffer
