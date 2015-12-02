@@ -270,8 +270,7 @@ def _construct_tr55_job_chain(model_input, job_id):
         census_hash = modification_censuses.get('modification_hash')
         modification_census_items = modification_censuses.get('censuses')
 
-    if (aoi_census and ((modification_census_items and
-       census_hash == current_hash) or not pieces)):
+    if (aoi_census and ((modification_census_items and False) or not pieces)):
         censuses = [aoi_census] + modification_census_items
 
         job_chain.append(tasks.run_tr55.s(censuses, model_input))
