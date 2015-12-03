@@ -51,7 +51,8 @@ function getNumBars(data) {
 */
 function renderHorizontalBarChart(chartEl, data, options) {
     var chart = nv.models.multiBarHorizontalChart(),
-        svg = makeSvg(chartEl);
+        svg = makeSvg(chartEl),
+        $svg = $(svg);
 
     // Augment data so that it is part of a single series to match
     // the format expected by NVD3.
@@ -84,7 +85,7 @@ function renderHorizontalBarChart(chartEl, data, options) {
         var numBars = getNumBars(data),
             maxHeight = options.margin.top + options.margin.bottom +
                         numBars * options.maxBarHeight,
-            actualHeight = $(svg).height();
+            actualHeight = $svg.height();
 
         if (actualHeight > maxHeight) {
             chart.height(maxHeight);
@@ -94,8 +95,14 @@ function renderHorizontalBarChart(chartEl, data, options) {
     }
 
     function updateChart() {
-        if($(svg).is(':visible')) {
+        var width = $svg.width(),
+            availableWidth = width - (options.margin.left + options.margin.right),
+            minTickWidth = 60,
+            yticks = Math.floor(availableWidth / minTickWidth);
+
+        if($svg.is(':visible')) {
             setChartHeight();
+            chart.yAxis.ticks(Math.min(yticks, 5));
             chart.update(); // Throws error if updating a hidden svg.
             if (options.barClasses) {
                 addBarClasses();
@@ -214,7 +221,6 @@ function renderVerticalBarChart(chartEl, data, options) {
             .rightAlign(false);
         chart.tooltip.enabled(true);
         chart.yAxis.ticks(5);
-
         handleCommonOptions(chart, options);
 
         if (options.yAxisUnit) {
