@@ -21,8 +21,8 @@ h1, h2, h3 {
 }
 
 h1 {
-  font-size: 1.5rem;
-  font-weight: 100;
+  font-size: $font-h1;
+  font-weight: 500;
 
   &.precip {
     color: $water;
@@ -42,12 +42,12 @@ h1 {
 }
 
 h2 {
-  font-size: 1rem;
-  font-weight: 100;
+  font-size: $font-h2;
+  font-weight: 500;
 }
 
 h3 {
-  font-size: 0.7rem;
+  font-size: $font-h3;
   font-weight: 500;
 }
 

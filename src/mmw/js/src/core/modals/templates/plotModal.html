@@ -2,10 +2,9 @@
     <div class="modal-content plot-modal">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <div class="measurements-platform"> {{ platform_type }} </div>
-            <div class="measurements-name"> {{ measurement.name }} </div>
+            <div class="measurements-platform">{{ name }}, {{ platform_type }}</div>
             <div class="measurements-updated">Last updated {{ lastUpdated }}</div>
-            <select class="form-control btn btn-small btn-primary">
+            <select class="plot-measurement-select form-control btn btn-small btn-primary" style="width: 50%">
                 {% for measurement in measurements %}
                     <option value="{{ measurement.var_id }}" {{ "selected" if measurement.var_id == currVarId }}>
                         {{ measurement.name }}
@@ -20,8 +19,6 @@
                 <i class="fa fa-exclamation-triangle"></i> Failed to load data.
             {% endif %}
             <div id="observation-plot"></div>
-        </div>
-        <div class="modal-footer">
         </div>
     </div>
 </div>
