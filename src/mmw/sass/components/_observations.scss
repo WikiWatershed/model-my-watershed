@@ -3,17 +3,49 @@
     }
 
     .measurements-name {
+        font-size: $font-h1;
+        margin-bottom: .5rem;
     }
 
     .measurement-name {
         min-width: 100px;
     }
 
-    .measurement-value, .measurement-depth {
+    .measurement-value {
         text-align: right;
         min-width: 75px;
         color: $brand-primary;
     }
+
+    .measurement-depth {
+        color: #aaa;
+    }
+
+    table {
+        margin-bottom: 14px;
+    }
+
+    tr {
+        cursor: pointer;
+        &:hover {
+            background-color: #fafafa;
+        }
+    }
+
+    td {
+        padding: 4px;
+        &:last-child {
+            padding-right: 0;
+        }
+        &:first-child {
+            padding-left: 0;
+        }
+    }
+
+    .row {
+        margin: 0 -15px !important;
+    }
+
 }
 
 .plot-modal {
