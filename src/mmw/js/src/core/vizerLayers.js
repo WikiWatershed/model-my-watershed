@@ -5,6 +5,7 @@ var $ = require('jquery'),
     L = require('leaflet'),
     Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
+    moment = require('moment'),
     PlotView = require('./modals/views').PlotView,
     measurementTmpl = require('./templates/measurement.html'),
     measurementsTmpl = require('./templates/measurements.html'),
@@ -162,6 +163,20 @@ var ObservationPopupView = Marionette.LayoutView.extend({
 
     regions: {
         measurementsRegion: '.measurements-region'
+    },
+
+    templateHelpers: function() {
+        var measurements = this.model.get('measurements'),
+            lastUpdatedTimes = _.pluck(measurements, 'lastUpdated'),
+            latestTime = _.reduce(lastUpdatedTimes, function(latestTime, time) {
+                if (time > latestTime) {
+                    return time;
+                }
+                return latestTime;
+            });
+        return {
+            lastUpdated: moment(latestTime).fromNow()
+        };
     },
 
     onRender: function() {

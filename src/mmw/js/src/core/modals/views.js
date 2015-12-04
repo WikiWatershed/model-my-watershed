@@ -324,6 +324,16 @@ var PlotView = ModalBaseView.extend({
 
                 xAxis: { ordinal: false },
 
+                yAxis: {
+                    title: {
+                        text: measurement.units
+                    }
+                },
+
+                lang: {
+                    thousandsSep: ','
+                },
+
                 title : {
                     text : measurement.name + ' ' + measurement.units
                 },
