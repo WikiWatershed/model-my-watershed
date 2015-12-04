@@ -1,9 +1,18 @@
-.observation-popup {
+.modal {
     .measurements-platform {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+}
+
+.observation-popup {
+    min-width: 280px;
+
+    .measurements-platform {
+        margin-bottom: .2rem;
     }
 
     .measurements-name {
-        font-size: $font-h1;
         margin-bottom: .5rem;
     }
 
@@ -19,21 +28,29 @@
 
     .measurement-depth {
         color: #aaa;
+        text-align: right;
     }
 
     table {
         margin-bottom: 14px;
+        width: 100%;
     }
 
-    tr {
-        cursor: pointer;
-        &:hover {
-            background-color: #fafafa;
+    tbody {
+        & > tr {
+            cursor: pointer;
+            &:hover {
+                background-color: #fafafa;
+            }
         }
     }
 
-    td {
-        padding: 4px;
+    hr {
+        margin: 10px 0;
+    }
+
+    td, th {
+        padding: 3px 6px;
         &:last-child {
             padding-right: 0;
         }
@@ -51,5 +68,24 @@
 .plot-modal {
     .measurements-updated {
         color: $ui-grey;
+        font-size: 14px;
+        float: right;
     }
+}
+
+.plot-measurement-select {
+    width: 50%;
+    height: 40px;
+    font-size: 20px;
+}
+
+
+.highcharts-range-selector-buttons {
+    & > text:first-child {
+        display: none;
+    }
+}
+
+.highcharts-tooltip + text {
+    display: none;
 }

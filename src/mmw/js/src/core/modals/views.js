@@ -325,7 +325,7 @@ var PlotView = ModalBaseView.extend({
                 xAxis: { ordinal: false },
 
                 title : {
-                    text : measurement.name + ' ' + measurement.units
+                    text : null
                 },
 
                 series : [{

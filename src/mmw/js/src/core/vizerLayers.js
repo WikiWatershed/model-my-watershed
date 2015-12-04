@@ -7,6 +7,7 @@ var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     PlotView = require('./modals/views').PlotView,
     measurementTmpl = require('./templates/measurement.html'),
+    measurementsTmpl = require('./templates/measurements.html'),
     popupTmpl = require('./templates/observationPopup.html'),
     vizerUrls = require('./settings').get('vizer_urls');
 
@@ -130,10 +131,12 @@ var MeasurementView = Marionette.LayoutView.extend({
     }
 });
 
-var MeasurementsView = Marionette.CollectionView.extend({
-    tagName: 'table',
+var MeasurementsView = Marionette.CompositeView.extend({
+    template: measurementsTmpl,
 
     childView: MeasurementView,
+
+    childViewContainer: 'tbody',
 
     initialize: function(options) {
         this.options = options;
