@@ -324,13 +324,24 @@ var PlotView = ModalBaseView.extend({
 
                 xAxis: { ordinal: false },
 
+                yAxis: {
+                    title: {
+                        text: measurement.units
+                    }
+                },
+
+                lang: {
+                    thousandsSep: ','
+                },
+
                 title : {
-                    text : measurement.name + ' ' + measurement.units
+                    text : null
                 },
 
                 series : [{
                     name : measurement.name,
                     data : series,
+                    color: '#389b9b',
                     tooltip: {
                         valueDecimals: 2,
                         valueSuffix: measurement.units
