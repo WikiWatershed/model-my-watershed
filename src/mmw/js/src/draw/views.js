@@ -8,10 +8,10 @@ var $ = require('jquery'),
     turfBboxPolygon = require('turf-bbox-polygon'),
     turfBuffer = require('turf-buffer'),
     turfDestination = require('turf-destination'),
-    turfRandom = require('turf-random'),
     router = require('../router').router,
     App = require('../app'),
     utils = require('./utils'),
+    models = require('./models'),
     coreUtils = require('../core/utils'),
     toolbarTmpl = require('./templates/toolbar.html'),
     loadingTmpl = require('./templates/loading.html'),
@@ -338,36 +338,78 @@ var PlaceMarkerView = Marionette.ItemView.extend({
     },
 
     modelEvents: {
-        'change:toolsEnabled': 'render'
+        'change:toolsEnabled': 'render',
+        'change:polling': 'render',
+        'change:pollError': 'render'
+    },
+
+    initialize: function() {
+        this.rwdTaskModel = new models.RwdTaskModel();
     },
 
     onItemClicked: function(e) {
         var self = this,
             map = App.getLeafletMap(),
-            itemName = $(e.target).text(),
+            itemName = $(e.currentTarget).text(),
+            itemType = $(e.currentTarget).data('shape-type'),
             revertLayer = clearAoiLayer();
+
+        this.model.set('pollError', false);
 
         this.model.disableTools();
         utils.placeMarker(map)
             .then(function(latlng) {
-                // TODO: This is temporary until we have
-                // endpoints that can actually delienate
-                // watersheds.
                 var point = L.marker(latlng).toGeoJSON(),
                     buffered = turfBuffer(point, 5000, 'meters'),
                     bounds = L.geoJson(buffered).getBounds(),
-                    shape = turfRandom('polygons', 1, {
-                        max_vertcies: 50,
-                        bbox: [
-                            bounds.getWest(), bounds.getSouth(),
-                            bounds.getEast(), bounds.getNorth()
-                        ],
-                        max_radial_length: 0.25
-                    });
-                return $.Deferred().resolve(shape);
+                    shape,
+                    deferred = $.Deferred();
+
+                var taskHelper = {
+                    onStart: function() {
+                        self.model.set('polling', true);
+                    },
+
+                    pollSuccess: function(results) {
+                        var latlngs = _.map(JSON.parse(results.result), function(latLng) {
+                            return L.latLng(latLng[0], latLng[1]);
+                        });
+                        shape = L.polygon(latlngs).toGeoJSON();
+                        self.model.set('polling', false);
+                        deferred.resolve(shape);
+                    },
+
+                    pollFailure: function() {
+                        self.model.set({
+                            pollError: true,
+                            polling: false
+                        });
+                        deferred.reject();
+                    },
+
+                    pollEnd: function() {
+                        self.model.set('polling', false);
+                    },
+
+                    startFailure: function() {
+                        self.model.set({
+                            pollError: true,
+                            polling: false
+                        });
+                        deferred.reject();
+                    },
+
+                    postData: {'location': JSON.stringify([
+                        point.geometry.coordinates[1],
+                        point.geometry.coordinates[0]
+                    ])}
+                };
+
+                self.rwdTaskModel.start(taskHelper);
+                return deferred;
             })
-            .then(validateShape)
-            .then(function(shape) {
+            .done(validateShape)
+            .done(function(shape) {
                 addLayer(shape, itemName);
                 navigateToAnalyze();
             })
