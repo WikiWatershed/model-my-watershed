@@ -19,6 +19,27 @@ KG_PER_POUND = 0.453592
 CM_PER_INCH = 2.54
 
 
+def run_rwd(location):
+    # TODO Replace this stub with a call to the real RWD code.
+
+    # Draw a diamond shape around location.
+    offset = 0.0005
+    return [
+        [location[0] + offset, location[1]],
+        [location[0], location[1] + offset],
+        [location[0] - offset, location[1]],
+        [location[0], location[1] - offset]
+    ]
+
+
+@shared_task
+def start_rwd_job(location):
+    print(location)
+    location = json.loads(location)
+
+    return run_rwd(location)
+
+
 @shared_task
 def start_histogram_job(json_polygon):
     """ Calls the histogram_start function to
