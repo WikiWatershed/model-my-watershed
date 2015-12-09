@@ -4282,11 +4282,6 @@
         }
       }
     },
-    "nvd3": {
-      "version": "1.8.1",
-      "from": "nvd3@*",
-      "resolved": "https://registry.npmjs.org/nvd3/-/nvd3-1.8.1.tgz"
-    },
     "retina.js": {
       "version": "1.3.0",
       "from": "../../tmp/npm-31030-7f32f0c4/1436971651112-0.5243154705967754/a70e73639817473bad7bbb33f866b8e060e5f5a7",
@@ -4949,45 +4944,6 @@
         }
       }
     },
-    "turf-buffer": {
-      "version": "1.0.4",
-      "from": "https://registry.npmjs.org/turf-buffer/-/turf-buffer-1.0.4.tgz",
-      "resolved": "https://registry.npmjs.org/turf-buffer/-/turf-buffer-1.0.4.tgz",
-      "dependencies": {
-        "geojson-normalize": {
-          "version": "0.0.0",
-          "from": "https://registry.npmjs.org/geojson-normalize/-/geojson-normalize-0.0.0.tgz",
-          "resolved": "https://registry.npmjs.org/geojson-normalize/-/geojson-normalize-0.0.0.tgz"
-        },
-        "jsts": {
-          "version": "0.15.0",
-          "from": "https://registry.npmjs.org/jsts/-/jsts-0.15.0.tgz",
-          "resolved": "https://registry.npmjs.org/jsts/-/jsts-0.15.0.tgz",
-          "dependencies": {
-            "javascript.util": {
-              "version": "0.12.5",
-              "from": "https://registry.npmjs.org/javascript.util/-/javascript.util-0.12.5.tgz",
-              "resolved": "https://registry.npmjs.org/javascript.util/-/javascript.util-0.12.5.tgz"
-            }
-          }
-        },
-        "turf-combine": {
-          "version": "1.0.2",
-          "from": "https://registry.npmjs.org/turf-combine/-/turf-combine-1.0.2.tgz",
-          "resolved": "https://registry.npmjs.org/turf-combine/-/turf-combine-1.0.2.tgz"
-        },
-        "turf-featurecollection": {
-          "version": "1.0.1",
-          "from": "https://registry.npmjs.org/turf-featurecollection/-/turf-featurecollection-1.0.1.tgz",
-          "resolved": "https://registry.npmjs.org/turf-featurecollection/-/turf-featurecollection-1.0.1.tgz"
-        },
-        "turf-polygon": {
-          "version": "1.0.3",
-          "from": "https://registry.npmjs.org/turf-polygon/-/turf-polygon-1.0.3.tgz",
-          "resolved": "https://registry.npmjs.org/turf-polygon/-/turf-polygon-1.0.3.tgz"
-        }
-      }
-    },
     "turf-destination": {
       "version": "1.2.1",
       "from": "https://registry.npmjs.org/turf-destination/-/turf-destination-1.2.1.tgz",
@@ -5047,18 +5003,6 @@
               "resolved": "https://registry.npmjs.org/javascript.util/-/javascript.util-0.12.5.tgz"
             }
           }
-        }
-      }
-    },
-    "turf-random": {
-      "version": "1.0.2",
-      "from": "https://registry.npmjs.org/turf-random/-/turf-random-1.0.2.tgz",
-      "resolved": "https://registry.npmjs.org/turf-random/-/turf-random-1.0.2.tgz",
-      "dependencies": {
-        "geojson-random": {
-          "version": "0.2.2",
-          "from": "https://registry.npmjs.org/geojson-random/-/geojson-random-0.2.2.tgz",
-          "resolved": "https://registry.npmjs.org/geojson-random/-/geojson-random-0.2.2.tgz"
         }
       }
     },

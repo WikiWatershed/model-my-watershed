@@ -6,7 +6,6 @@ var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     turfArea = require('turf-area'),
     turfBboxPolygon = require('turf-bbox-polygon'),
-    turfBuffer = require('turf-buffer'),
     turfDestination = require('turf-destination'),
     router = require('../router').router,
     App = require('../app'),
@@ -351,7 +350,6 @@ var PlaceMarkerView = Marionette.ItemView.extend({
         var self = this,
             map = App.getLeafletMap(),
             itemName = $(e.currentTarget).text(),
-            itemType = $(e.currentTarget).data('shape-type'),
             revertLayer = clearAoiLayer();
 
         this.model.set('pollError', false);
@@ -360,8 +358,6 @@ var PlaceMarkerView = Marionette.ItemView.extend({
         utils.placeMarker(map)
             .then(function(latlng) {
                 var point = L.marker(latlng).toGeoJSON(),
-                    buffered = turfBuffer(point, 5000, 'meters'),
-                    bounds = L.geoJson(buffered).getBounds(),
                     shape,
                     deferred = $.Deferred();
 
