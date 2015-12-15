@@ -127,11 +127,9 @@ JS_DEPS=(backbone
          nunjucks
          turf-area
          turf-bbox-polygon
-         turf-buffer
          turf-destination
          turf-erase
          turf-intersect
-         turf-random
          underscore
          zeroclipboard)
 

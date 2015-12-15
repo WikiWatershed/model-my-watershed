@@ -24,6 +24,7 @@ urlpatterns = patterns(
     url(r'start/analyze/$', views.start_analyze, name='start_analyze'),
     url(r'jobs/' + uuid_regex, views.get_job, name='get_job'),
     url(r'start/tr55/$', views.start_tr55, name='start_tr55'),
+    url(r'start/rwd/$', views.start_rwd, name='start_rwd'),
     url(r'boundary-layers/(?P<table_code>\w+)/(?P<obj_id>[0-9]+)/$',
         views.boundary_layer_detail, name='boundary_layer_detail'),
 )
