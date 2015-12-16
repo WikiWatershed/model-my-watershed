@@ -21,7 +21,7 @@ var $ = require('jquery'),
     placeMarkerTmpl = require('./templates/placeMarker.html'),
     settings = require('../core/settings');
 
-var MAX_AREA = 2700; // 2,700 km^2
+var MAX_AREA = 112700; // About the size of a large state
 var codeToLayer = {}; // code to layer mapping
 
 function actOnUI(datum, bool) {
