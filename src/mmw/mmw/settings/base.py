@@ -12,7 +12,7 @@ from os import environ
 from os.path import abspath, basename, dirname, join, normpath
 from sys import path
 
-from layer_settings import LAYERS  # NOQA
+from layer_settings import LAYERS, VIZER_URLS  # NOQA
 
 # Normally you should not import ANYTHING from Django directly
 # into your settings, but ImproperlyConfigured is an exception.
@@ -367,8 +367,8 @@ GEOP = {
             'geometry': None,
             'tileCRS': 'ConusAlbers',
             'polyCRS': 'LatLng',
-            'nlcdLayer': 'nlcd-10m-epsg5070',
-            'soilLayer': 'ssurgo-soil-groups-10m',
+            'nlcdLayer': 'nlcd-2011-30m-epsg5070',
+            'soilLayer': 'ssurgo-hydro-groups-30m-epsg5070',
             'zoom': 0
         }
     }

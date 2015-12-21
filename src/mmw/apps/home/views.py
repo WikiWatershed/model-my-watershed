@@ -126,7 +126,8 @@ def get_client_settings(request):
             'raster_layers': get_layer_config(['raster', 'overlay']),
             'draw_tools': settings.DRAW_TOOLS,
             'map_controls': settings.MAP_CONTROLS,
-            'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY
+            'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
+            'vizer_urls': settings.VIZER_URLS
         })
     }
 

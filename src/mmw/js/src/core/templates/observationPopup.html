@@ -1,0 +1,25 @@
+<div class="measurements-platform"> {{ platform_type }} </div>
+<h2 class="measurements-name"> {{ name }} </h2>
+
+{% if measurements.length == 0 %}
+    No measurements available.
+{% else %}
+    <div class="measurements-updated"> Last updated {{ lastUpdated }} </div>
+{% endif %}
+
+<div class="measurements-region"></div>
+
+<hr>
+
+<div class="row">
+    <div class="col-xs-6">
+        <div>
+            Data from <br/>{% if url %}<a href="{{ url }}" target="_blank">{% endif %}{{ provider }}{% if url %}</a>{% endif %}
+        </div>
+    </div>
+    <div class="col-xs-6">
+        {% if measurements.length > 0 %}
+            <button class="show-plot btn btn-md">Historical Data</button>
+        {% endif %}
+    </div>
+</div>

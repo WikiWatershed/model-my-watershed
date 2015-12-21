@@ -164,6 +164,7 @@
     bottom: 30px;
     padding-bottom: 48px;
     white-space: normal;
+    z-index: 200;
 
     .column {
       position: relative;
@@ -251,6 +252,7 @@
     background-color: $paper;
     border-radius: 0.3rem;
     padding: 16px;
+    z-index: 300;
 
     label {
       padding-top: 4px;

@@ -79,6 +79,8 @@ var ResultView = Marionette.ItemView.extend({
                 seriesColors: ['#F8AA00', '#CF4300', '#C2D33C'],
                 yAxisLabel: 'Level (cm)',
                 yAxisUnit: 'cm',
+                reverseLegend: true,
+                disableToggle: true,
                 margin: this.compareMode ? {top: 20, right: 0, bottom: 40, left: 60} : undefined
             };
 

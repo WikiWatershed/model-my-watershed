@@ -17,7 +17,9 @@ var L = require('leaflet'),
     settings = require('./settings'),
     LayerControl = require('./layerControl'),
     StreamSliderControl = require('./streamSliderControl'),
-    OpacityControl = require('./opacityControl');
+    OpacityControl = require('./opacityControl'),
+    VizerLayers = require('./vizerLayers');
+
 
 require('leaflet.locatecontrol');
 require('leaflet-plugins/layer/tile/Google');
@@ -187,11 +189,14 @@ var MapView = Marionette.ItemView.extend({
             interactiveMode: true // True if clicking on map does stuff
         });
 
-        var map = new L.Map(this.el, {
+        var self = this,
+            map = new L.Map(this.el, {
                 zoomControl: false,
                 attributionControl: options.showLayerAttribution
             }),
-            overlayLayers = this.prepareOverlayLayers();
+            overlayLayers = this.prepareOverlayLayers(),
+            vizer = new VizerLayers(),
+            layersReadyDeferred = vizer.getLayers();
 
         // Center the map on the U.S.
         map.fitBounds([
@@ -218,13 +223,15 @@ var MapView = Marionette.ItemView.extend({
             addLocateMeButton(map, maxGeolocationAge);
         }
 
-        if (options.addLayerSelector) {
-            this.layerControl = new LayerControl(this.baseLayers, this.overlayLayers, {
-                autoZIndex: false,
-                position: 'topright',
-                collapsed: false
-            }).addTo(map);
-        }
+        layersReadyDeferred.then(function(vizerLayers) {
+            if (options.addLayerSelector) {
+                self.layerControl = new LayerControl(self.baseLayers, self.overlayLayers, vizerLayers, {
+                    autoZIndex: false,
+                    position: 'topright',
+                    collapsed: false
+                }).addTo(map);
+            }
+        });
 
         if (options.addStreamControl) {
             this.layerControl = new StreamSliderControl({

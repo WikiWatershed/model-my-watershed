@@ -19,6 +19,27 @@ KG_PER_POUND = 0.453592
 CM_PER_INCH = 2.54
 
 
+def run_rwd(location):
+    # TODO Replace this stub with a call to the real RWD code.
+
+    # Draw a diamond shape around location.
+    offset = 0.0005
+    return [
+        [location[0] + offset, location[1]],
+        [location[0], location[1] + offset],
+        [location[0] - offset, location[1]],
+        [location[0], location[1] - offset]
+    ]
+
+
+@shared_task
+def start_rwd_job(location):
+    print(location)
+    location = json.loads(location)
+
+    return run_rwd(location)
+
+
 @shared_task
 def start_histogram_job(json_polygon):
     """ Calls the histogram_start function to
@@ -101,13 +122,14 @@ def aoi_resolution(area_of_interest):
     average_lat = reduce(lambda total, p: total+p[1], pairs, 0) / len(pairs)
 
     max_lat = 48.7
-    max_lat_count = 10025
+    max_lat_count = 1116  # Number of pixels found in sq km at max lat
     min_lat = 25.2
-    min_lat_count = 9980
+    min_lat_count = 1112  # Number of pixels found in sq km at min lat
 
-    # Because the tile CRS is Conus Albers, the number of pixels per
-    # square kilometer is roughly (but no exactly) 10,000 everywhere
-    # in the CONUS.
+    # Because the tile CRS is Conus Albers @ 30m, the number of pixels per
+    # square kilometer is roughly (but no exactly) 1100 everywhere
+    # in the CONUS.  Iterpolate the number of cells at the current lat along
+    # the range defined above.
     x = (average_lat - min_lat) / (max_lat - min_lat)
     x = min(max(x, 0.0), 1.0)
     pixels_per_sq_kilometer = ((1 - x) * min_lat_count) + (x * max_lat_count)

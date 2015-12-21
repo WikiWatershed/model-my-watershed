@@ -30,7 +30,7 @@ elasticsearch_cluster_name: "logstash"
 
 nodejs_npm_version: 2.1.17
 
-java_version: "7u85-*"
+java_version: "7u91-*"
 
 docker_version: "1.8.*"
 docker_py_version: "1.2.3"
@@ -39,7 +39,7 @@ docker_options: "--storage-driver=aufs"
 sjs_host: "localhost"
 sjs_port: 8090
 
-geop_version: "0.3.0"
+geop_version: "0.3.2"
 
 nginx_cache_dir: "/var/cache/nginx"
 observation_api_url: "http://www.wikiwatershed-vs.org/"

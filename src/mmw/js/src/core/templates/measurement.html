@@ -1,0 +1,17 @@
+<td class="measurement-name"> {{ name }} </td>
+
+<td class="measurement-value">
+    {% if value %}
+        {{ value }} {{ units }}
+    {% else %}
+        -
+    {% endif %}
+</td>
+
+<td class="measurement-depth">
+    {% if depth %}
+        {{ depth }}
+    {% else %}
+        -
+    {% endif %}
+</td>

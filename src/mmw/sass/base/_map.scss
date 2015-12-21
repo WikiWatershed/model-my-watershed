@@ -143,3 +143,8 @@
     font-size: 24px;
   }
 }
+
+.leaflet-control-layers,
+.leaflet-popup {
+  font-family: $font-family !important;
+}
