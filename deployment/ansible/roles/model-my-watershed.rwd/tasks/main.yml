@@ -1,0 +1,12 @@
+---
+- name: Pull docker container image
+  command: /usr/bin/docker pull {{ rwd_docker_image }}
+
+- name: Configure upstart service
+  template: src=upstart-mmw-rwd.conf.j2
+            dest=/etc/init/mmw-rwd.conf
+  notify:
+    - Restart mmw-rwd
+
+- name: Ensure service is running
+  service: name=mmw-rwd state=started
