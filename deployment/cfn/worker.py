@@ -339,6 +339,9 @@ class Worker(StackNode):
     def get_cloud_config(self):
         return ['#cloud-config\n',
                 '\n',
+                'mounts:\n',
+                '  - [xvdf, /opt/rwd-data, ext4, "defaults,nofail,discard", 0, 2]\n'
+                '\n',
                 'write_files:\n',
                 '  - path: /etc/mmw.d/env/MMW_STACK_COLOR\n',
                 '    permissions: 0750\n',

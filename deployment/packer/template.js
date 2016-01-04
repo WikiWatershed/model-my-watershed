@@ -62,6 +62,14 @@
             "instance_type": "t2.large",
             "ssh_username": "ubuntu",
             "ami_name": "mmw-worker-{{timestamp}}-{{user `version`}}",
+            "ami_block_device_mappings": [
+                {
+                    "device_name": "/dev/sdf",
+                    "snapshot_id": "snap-3d8f22ab",
+                    "volume_type": "gp2",
+                    "delete_on_termination": true
+                }
+            ],
             "run_tags": {
                 "PackerBuilder": "amazon-ebs"
             },
