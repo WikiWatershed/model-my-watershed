@@ -4,9 +4,7 @@
         "branch": "",
         "aws_region": "",
         "aws_ubuntu_ami": "",
-        "stack_type": "",
-        "postgresql_password": "",
-        "itsi_secret_key": ""
+        "stack_type": ""
     },
     "builders": [
         {
@@ -105,7 +103,7 @@
                 "sleep 5",
                 "sudo apt-get update -qq",
                 "sudo apt-get install python-pip python-dev -y",
-                "sudo pip install ansible==1.9.0.1",
+                "sudo pip install ansible==1.9.4",
                 "sudo /bin/sh -c 'echo {{user `version`}} > /srv/version.txt'"
             ]
         },
@@ -115,7 +113,7 @@
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-app-server",
             "extra_arguments": [
-                "--extra-vars 'app_deploy_branch={{user `version`}} postgresql_password={{user `postgresql_password`}} itsi_secret_key={{user `itsi_secret_key`}}'"
+                "--extra-vars 'app_deploy_branch={{user `version`}}'"
             ],
             "only": [
                 "mmw-app"
@@ -127,7 +125,7 @@
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-tile-server",
             "extra_arguments": [
-                "--extra-vars 'tiler_deploy_branch={{user `version`}} postgresql_password={{user `postgresql_password`}}'"
+                "--extra-vars 'tiler_deploy_branch={{user `version`}}'"
             ],
             "only": [
                 "mmw-tiler"
@@ -139,7 +137,7 @@
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-worker-server",
             "extra_arguments": [
-                "--extra-vars 'app_deploy_branch={{user `version`}} postgresql_password={{user `postgresql_password`}}'"
+                "--extra-vars 'app_deploy_branch={{user `version`}}'"
             ],
             "only": [
                 "mmw-worker"
