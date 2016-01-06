@@ -19,7 +19,7 @@ end script
 exec /usr/bin/docker run \
   --name rwd \
   --publish {{ rwd_port }}:5000 \
-  --volume {{ rwd_data_path }}:{{ rwd_data_path }} \
+  --volume {{ rwd_data_path }}:{{ rwd_data_path }}:ro \
   {{ rwd_docker_image }}
 
 post-start script
