@@ -326,7 +326,8 @@ function _alterModifications(rawModifications) {
             newPiece = {
                 name: rawModification.get('name'),
                 shape: rawModification.get('effectiveShape') || rawModification.get('shape'),
-                value: rawModification.get('value')
+                value: rawModification.get('value'),
+                area: 0
             };
 
         for (var j = 0; (j < pieces.length) && (newPiece.shape !== undefined) && (j < n2); ++j) {
@@ -407,7 +408,7 @@ function _alterModifications(rawModifications) {
                 }
             }
         }
-
+        newPiece.area = turfArea(newPiece.shape);
         pieces.push(newPiece);
         pieces = _.filter(pieces, validShape);
     }
