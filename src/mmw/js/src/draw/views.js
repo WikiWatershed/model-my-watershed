@@ -82,6 +82,7 @@ var ToolbarView = Marionette.LayoutView.extend({
         this.model.set('streamFeatureGroup', sfg);
         map.addLayer(ofg);
         map.addLayer(sfg);
+        this.rwdTaskModel = new models.RwdTaskModel();
     },
 
     onDestroy: function() {
@@ -108,12 +109,14 @@ var ToolbarView = Marionette.LayoutView.extend({
         }
         if (_.contains(draw_tools, 'PlaceMarker')) {
             this.placeMarkerRegion.show(new PlaceMarkerView({
-                model: this.model
+                model: this.model,
+                rwdTaskModel: this.rwdTaskModel
             }));
         }
         if (_.contains(draw_tools, 'ResetDraw')) {
             this.resetRegion.show(new ResetDrawView({
-                model: this.model
+                model: this.model,
+                rwdTaskModel: this.rwdTaskModel
             }));
         }
     }
@@ -342,8 +345,8 @@ var PlaceMarkerView = Marionette.ItemView.extend({
         'change:pollError': 'render'
     },
 
-    initialize: function() {
-        this.rwdTaskModel = new models.RwdTaskModel();
+    initialize: function(options) {
+        this.rwdTaskModel = options.rwdTaskModel;
     },
 
     onItemClicked: function(e) {
@@ -423,7 +426,18 @@ var ResetDrawView = Marionette.ItemView.extend({
 
     events: { 'click @ui.reset': 'resetDrawingState' },
 
+    initialize: function(options) {
+        this.rwdTaskModel = options.rwdTaskModel;
+    },
+
     resetDrawingState: function() {
+        this.rwdTaskModel.reset();
+        this.model.set({
+            polling: false,
+            pollError: false
+        });
+        this.model.enableTools();
+
         utils.cancelDrawing(App.getLeafletMap());
         clearAoiLayer();
         clearBoundaryLayer(this.model);
