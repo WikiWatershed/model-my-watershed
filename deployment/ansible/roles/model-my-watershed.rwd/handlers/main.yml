@@ -1,0 +1,3 @@
+---
+- name: Restart mmw-rwd
+  service: name=mmw-rwd state=restarted

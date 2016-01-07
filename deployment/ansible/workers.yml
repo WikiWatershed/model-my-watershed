@@ -9,3 +9,4 @@
   roles:
     - { role: "model-my-watershed.geoprocessing" }
     - { role: "model-my-watershed.celery-worker" }
+    - { role: "model-my-watershed.rwd" }
