@@ -23,6 +23,7 @@ var ToolbarModel = Backbone.Model.extend({
     }
 });
 
+// Used for running Rapid Watershed Delineation tasks.
 var RwdTaskModel = coreModels.TaskModel.extend({
     defaults: _.extend( {
             taskName: 'rwd',
