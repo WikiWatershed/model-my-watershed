@@ -39,7 +39,7 @@ After the `staging-deployment` job completes, `mmw-dev.azavea.com` should reflec
 
 ## AMI Promotion
 
-Select one AMI for each `Service` built using the `release/X.Y.Z` branch. Once selected, use the `Permissions` tab to `Edit` the AMI and allow account ID `146471631080` execute privileges.
+Select one AMI for each `Service` built using the `release/X.Y.Z` branch. Once selected, use the `Permissions` tab to `Edit` the AMI and allow account ID `146471631080` execute privileges. In addition, use the `Tags` tab to `Add/Edit Tags` for the `Environment` key. Ensure that its value is changed from `Staging` to `Production`.
 
 To confirm, you can login to the Model my Watershed "production" account and see if the AMIs show up under the `Private images` filter.
 
