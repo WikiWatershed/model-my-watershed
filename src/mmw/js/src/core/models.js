@@ -146,7 +146,7 @@ var TaskModel = Backbone.Model.extend({
                         if (error && error.cancelledJob) {
                             console.log('Job ' + error.cancelledJob + ' was cancelled.');
                         } else {
-                            taskHelper.pollFailure();
+                            taskHelper.pollFailure(error);
                         }
                     })
                     .always(taskHelper.pollEnd);

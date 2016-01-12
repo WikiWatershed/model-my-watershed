@@ -20,7 +20,7 @@ var $ = require('jquery'),
     placeMarkerTmpl = require('./templates/placeMarker.html'),
     settings = require('../core/settings');
 
-var MAX_AREA = 112700; // About the size of a large state
+var MAX_AREA = 112700; // About the size of a large state (in km^2)
 var codeToLayer = {}; // code to layer mapping
 
 function actOnUI(datum, bool) {
@@ -356,7 +356,7 @@ var PlaceMarkerView = Marionette.ItemView.extend({
 
         this.model.disableTools();
         utils.placeMarker(map)
-            .then(function(latlng) {
+             .then(function(latlng) {
                 var point = L.marker(latlng).toGeoJSON(),
                     shape,
                     deferred = $.Deferred();
@@ -366,20 +366,18 @@ var PlaceMarkerView = Marionette.ItemView.extend({
                         self.model.set('polling', true);
                     },
 
-                    pollSuccess: function(results) {
-                        var latlngs = _.map(JSON.parse(results.result), function(latLng) {
-                            return L.latLng(latLng[0], latLng[1]);
-                        });
-                        shape = L.polygon(latlngs).toGeoJSON();
+                    pollSuccess: function(response) {
+                        shape = JSON.parse(response.result).features[0];
                         self.model.set('polling', false);
                         deferred.resolve(shape);
                     },
 
-                    pollFailure: function() {
+                    pollFailure: function(response) {
                         self.model.set({
                             pollError: true,
                             polling: false
                         });
+                        console.log(response.error);                        
                         deferred.reject();
                     },
 
@@ -411,7 +409,8 @@ var PlaceMarkerView = Marionette.ItemView.extend({
             })
             .fail(function() {
                 revertLayer();
-            }).always(function() {
+            })
+            .always(function() {
                 self.model.enableTools();
             });
     }
