@@ -158,6 +158,9 @@ def scenario(request, scen_id):
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
 def start_rwd(request, format=None):
+    """
+    Starts a job to run Rapid Watershed Delineation on a point-based location.
+    """
     user = request.user if request.user.is_authenticated() else None
     created = now()
     location = request.POST['location']

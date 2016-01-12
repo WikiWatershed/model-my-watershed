@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+import requests
 from celery import shared_task
 import json
 import logging
@@ -19,25 +20,21 @@ KG_PER_POUND = 0.453592
 CM_PER_INCH = 2.54
 
 
-def run_rwd(location):
-    # TODO Replace this stub with a call to the real RWD code.
-
-    # Draw a diamond shape around location.
-    offset = 0.0005
-    return [
-        [location[0] + offset, location[1]],
-        [location[0], location[1] + offset],
-        [location[0] - offset, location[1]],
-        [location[0], location[1] - offset]
-    ]
-
-
 @shared_task
 def start_rwd_job(location):
-    print(location)
+    """
+    Calls the Rapid Watershed Delineation endpoint
+    that is running in the Docker container, and returns
+    the response unless there is an out-of-watershed error
+    which raises an exception.
+    """
     location = json.loads(location)
+    rwd_url = 'http://localhost:5000/rwd/%f/%f' % (location[1], location[0])
+    response_json = requests.get(rwd_url).json()
+    if 'error' in response_json:
+        raise Exception(response_json['error'])
 
-    return run_rwd(location)
+    return response_json
 
 
 @shared_task
