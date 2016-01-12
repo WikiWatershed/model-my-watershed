@@ -124,6 +124,23 @@ LAYERS = [
         'has_opacity_slider': True
     },
     {
+        'display': 'Hydrologic Soil Groups',
+        'short_display': 'SSURGO',
+        'helptext': 'Soils are classified by the Natural Resource Conservation '
+                    'Service into four Hydrologic Soil Groups based on the '
+                    'soil\'s runoff potential. The four Hydrologic Soils Groups'
+                    'are A, B, C and D. Where A\'s generally have the smallest '
+                    'runoff potential and D\'s the greatest.',
+        'url': 'https://s3.amazonaws.com/com.azavea.datahub.tms/'
+               'ssurgo-hydro-group-30m/{z}/{x}/{y}.png',
+        'raster': True,
+        'overlay': True,
+        'maxNativeZoom': 13,
+        'maxZoom': 18,
+        'opacity': 0.618,
+        'has_opacity_slider': True
+    },
+    {
         'code': 'stream-low',
         'display': 'Low-Res',
         'table_name': 'deldem4net100r',
