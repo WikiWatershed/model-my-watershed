@@ -27,7 +27,7 @@ exec /usr/bin/docker run \
   --env {{ k }}={{ v }} \
   {% endfor -%}
   --log-driver syslog \
-  quay.io/azavea/spark-jobserver:latest --driver-memory {{ sjs_driver_memory }}
+  quay.io/azavea/spark-jobserver:0.6.1 --driver-memory {{ sjs_driver_memory }}
 
 post-start script
   while ! nc -w0 {{ sjs_host }} {{ sjs_port }}; do sleep 1; done

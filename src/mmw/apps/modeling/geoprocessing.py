@@ -116,11 +116,8 @@ def histogram_finish(job_id, retry):
     else:
         raise Exception('Unable to communicate with SJS (bottom-half).')
 
-    if data['status'] == 'OK':
-        if delete(url):  # job complete, remove
-            return [dict_to_array(d) for d in data['result']]
-        else:
-            raise Exception('Job completed, unable to delete.')
+    if data['status'] == 'FINISHED':
+        return [dict_to_array(d) for d in data['result']]
     elif data['status'] == 'RUNNING':
         try:
             retry()
