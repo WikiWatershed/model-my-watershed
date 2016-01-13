@@ -37,7 +37,7 @@
     - Restart Nginx
 
 - name: Pull Spark Job Server container image
-  command: /usr/bin/docker pull quay.io/azavea/spark-jobserver:latest
+  command: /usr/bin/docker pull quay.io/azavea/spark-jobserver:0.6.1
 
 - name: Configure Spark Job Server service definition
   template: src=upstart-spark-jobserver.conf.j2
