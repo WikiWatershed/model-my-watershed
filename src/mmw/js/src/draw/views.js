@@ -17,7 +17,7 @@ var $ = require('jquery'),
     selectTypeTmpl = require('./templates/selectType.html'),
     drawTmpl = require('./templates/draw.html'),
     resetDrawTmpl = require('./templates/reset.html'),
-    placeMarkerTmpl = require('./templates/placeMarker.html'),
+    delineationOptionsTmpl = require('./templates/delineationOptions.html'),
     settings = require('../core/settings');
 
 var MAX_AREA = 112700; // About the size of a large state (in km^2)
@@ -69,7 +69,7 @@ var ToolbarView = Marionette.LayoutView.extend({
     regions: {
         selectTypeRegion: '#select-area-region',
         drawRegion: '#draw-region',
-        placeMarkerRegion: '#place-marker-region',
+        watershedDelineationRegion: '#place-marker-region',
         resetRegion: '#reset-draw-region',
         streamRegion: '#stream-slider-region'
     },
@@ -108,7 +108,7 @@ var ToolbarView = Marionette.LayoutView.extend({
             }));
         }
         if (_.contains(draw_tools, 'PlaceMarker')) {
-            this.placeMarkerRegion.show(new PlaceMarkerView({
+            this.watershedDelineationRegion.show(new WatershedDelineationView({
                 model: this.model,
                 rwdTaskModel: this.rwdTaskModel
             }));
@@ -319,8 +319,8 @@ var DrawView = Marionette.ItemView.extend({
     }
 });
 
-var PlaceMarkerView = Marionette.ItemView.extend({
-    template: placeMarkerTmpl,
+var WatershedDelineationView= Marionette.ItemView.extend({
+    template: delineationOptionsTmpl,
 
     ui: {
         items: '[data-shape-type]',
