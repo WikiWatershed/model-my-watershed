@@ -352,7 +352,9 @@ var PlaceMarkerView = Marionette.ItemView.extend({
     onItemClicked: function(e) {
         var self = this,
             map = App.getLeafletMap(),
-            itemName = $(e.currentTarget).text(),
+            $item = $(e.currentTarget),
+            itemName = $item.text(),
+            snappingOn = !!$item.data('snapping-on'),
             revertLayer = clearAoiLayer();
 
         this.model.set('pollError', false);
@@ -380,7 +382,7 @@ var PlaceMarkerView = Marionette.ItemView.extend({
                             pollError: true,
                             polling: false
                         });
-                        console.log(response.error);                        
+                        console.log(response.error);
                         deferred.reject();
                     },
 
@@ -396,10 +398,13 @@ var PlaceMarkerView = Marionette.ItemView.extend({
                         deferred.reject();
                     },
 
-                    postData: {'location': JSON.stringify([
-                        point.geometry.coordinates[1],
-                        point.geometry.coordinates[0]
-                    ])}
+                    postData: {
+                        'location': JSON.stringify([
+                            point.geometry.coordinates[1],
+                            point.geometry.coordinates[0]
+                        ]),
+                        'snappingOn': snappingOn
+                    }
                 };
 
                 self.rwdTaskModel.start(taskHelper);
