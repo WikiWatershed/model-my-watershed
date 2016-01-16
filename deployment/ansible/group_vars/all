@@ -32,7 +32,7 @@ nodejs_npm_version: 2.1.17
 
 java_version: "7u91-*"
 
-docker_version: "1.8.*"
+docker_version: "1.9.*"
 docker_py_version: "1.2.3"
 docker_options: "--storage-driver=aufs"
 
