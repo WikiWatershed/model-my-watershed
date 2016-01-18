@@ -30,13 +30,20 @@
   &.map-container-bottom-3 {
     bottom: $location-description-height;
   }
-
   // Set bottom of map to full standard footer height.
   // Needs a more descriptive name.
   &.map-container-bottom-4 {
     bottom: $footer-height;
   }
-
+  // Sets map to correct container size for sidebar.
+  &.map-container-top-sidebar {
+    top: $height-lg * 2 + $toolbar-height;
+    right: $sidebar-width;
+  }
+  // Sets map to correct container size for sidebar.
+  &.map-container-bottom-sidebar {
+    bottom: 0 !important;
+  }
 
   .compare-scenarios-container & {
     top: 0;
