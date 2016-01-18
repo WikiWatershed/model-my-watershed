@@ -1,6 +1,8 @@
 //Base Colors
+$black-06: rgba(0,0,0,.06);
 $black-12: rgba(0,0,0,.12);
 $black-24: rgba(0,0,0,.24);
+$black-39: rgba(0,0,0,.39);
 $black-54: rgba(0,0,0,.54);
 $black-74: rgba(0,0,0,.74);
 $black: #000000;
@@ -33,6 +35,8 @@ $height-md: 36px;
 $height-sm: 28px;
 $height-xs: 18px;
 $sidebar-width: 400px;
+$sidebar-header-height: 40px;
+$sidebar-tab-subheader-height: 60px;
 
 //Border-radius
 $radius-sm: 2px;
