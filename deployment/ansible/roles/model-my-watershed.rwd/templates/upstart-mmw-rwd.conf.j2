@@ -1,7 +1,7 @@
 description "Rapid Watershed Delineation"
 
 {% if ['development', 'test'] | some_are_in(group_names) -%}
-start on (vagrant-mounted)
+start on (vagrant-mounted and started docker)
 {% else %}
 start on (filesystem and started docker)
 {% endif %}
