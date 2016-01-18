@@ -1,11 +1,12 @@
 //Layout
 #model-output-wrapper {
   position: absolute;
-  left: 0;
   right: 0;
+  top: $height-lg * 2 + $toolbar-height;
   bottom: 0;
+  width: $sidebar-width;
   min-height: 300px;
-  height: $footer-height;
+  height: auto !important;
   background-color: $paper;
   z-index: 100;
   box-shadow: 0 0 4px $black-54;
