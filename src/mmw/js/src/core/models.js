@@ -65,7 +65,7 @@ var MapModel = Backbone.Model.extend({
     },
 
     setDoubleHeaderHalfFooterSize: function(fit) {
-        this._setSizeOptions({ double: true  }, { large: true }, fit);
+        this._setSizeOptions({ sidebar: true  }, { sidebar: true }, fit);
     },
 
     setDrawSize: function(fit) {
