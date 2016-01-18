@@ -617,6 +617,9 @@ var MapView = Marionette.ItemView.extend({
         $container.toggleClass('map-container-bottom-3', !!size.bottom.med);
         $container.toggleClass('map-container-bottom-4', !!size.bottom.large);
 
+        $container.toggleClass('map-container-top-sidebar', !!size.top.sidebar);
+        $container.toggleClass('map-container-bottom-sidebar', !!size.top.sidebar);
+
 
         _.delay(function() {
             self._leafletMap.invalidateSize();
