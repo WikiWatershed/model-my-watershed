@@ -7,6 +7,7 @@ var $ = require('jquery'),
     chart = require('../../../core/chart.js'),
     barChartTmpl = require('../../../core/templates/barChart.html'),
     resultTmpl = require('./templates/result.html'),
+    AoiVolumeModel = require('../models').AoiVolumeModel,
     tableRowTmpl = require('./templates/tableRow.html'),
     tableTmpl = require('./templates/table.html');
 
@@ -24,6 +25,7 @@ var ResultView = Marionette.LayoutView.extend({
 
     initialize: function(options) {
         this.scenario = options.scenario;
+        this.aoi = options.areaOfInterest;
     },
 
     onShow: function() {
@@ -31,19 +33,19 @@ var ResultView = Marionette.LayoutView.extend({
         this.chartRegion.reset();
 
         if (this.model.get('result')) {
-            var dataCollection = new Backbone.Collection(
-                this.model.get('result')
-            );
+            var aoiVolumeModel = new AoiVolumeModel({
+                areaOfInterest: this.aoi
+            });
 
             this.tableRegion.show(new TableView({
                 scenario: this.scenario,
-                data: dataCollection
+                model: this.model,
+                aoiVolumeModel: aoiVolumeModel
             }));
 
             this.chartRegion.show(new ChartView({
                 model: this.model,
                 scenario: this.scenario,
-                collection: dataCollection
             }));
         }
     }
@@ -144,19 +146,21 @@ var TableView = Marionette.CompositeView.extend({
     ],
 
     initialize: function(options) {
-        this.collection = this.formatData(options.data, options.scenario);
+        this.aoiVolumeModel = this.options.aoiVolumeModel;
+        this.tr55Results = this.model.get('result');
+
+        this.collection = this.formatData(options.scenario);
     },
 
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
     },
 
-    formatData: function(data, scenario) {
+    formatData: function(scenario) {
         // The TR55 results should be broken down into:
-        // Scenario | Runoff Type | Depth
-        var tr55Results = data.first().attributes,
-            collection = new Backbone.Collection(),
-            // If not Current Conditions, match the graph by calling
+        // Scenario | Runoff Partition | Depth | Volume
+        var collection = new Backbone.Collection(),
+            // If not Current Conditions, match the chart label by calling
             // the scenario "modified"
             label = 'Modified';
 
@@ -164,32 +168,35 @@ var TableView = Marionette.CompositeView.extend({
         // is_current_conditions, otherwise we also want to include unmodified
         // which is the value of `Current Conditions`.
         if (scenario.get('is_current_conditions')) {
-            collection.add(this.makeRowsForScenario(tr55Results.pc_unmodified,
-                '100% Forest'));
+            collection.add(this.makeRowsForScenario('pc_unmodified', '100% Forest'));
             label = scenario.get('name');
         } else {
-            collection.add(this.makeRowsForScenario(tr55Results.unmodified,
-                'Current Conditions'));
+            collection.add(this.makeRowsForScenario('unmodified', 'Current Conditions'));
         }
 
-        collection.add(this.makeRowsForScenario(tr55Results.modified, label));
+        collection.add(this.makeRowsForScenario('modified', label));
 
         return collection;
     },
 
-    makeRowsForScenario: function(tr55Results, scenarioName) {
-        var self = this;
+    makeRowsForScenario: function(runoffKey, scenarioName) {
+        var self = this,
+            runoffPartition = this.tr55Results[runoffKey];
+
         return _.map(this.runoffTypes, function(runoffType) {
-            return _.extend(self.getRunoffTypeValue(tr55Results, runoffType), {
+            return _.extend(self.getRunoffTypeValue(runoffPartition, runoffType), {
                 scenario: scenarioName
             });
         });
     },
 
-    getRunoffTypeValue: function(tr55ResultRow, runoffType) {
+    getRunoffTypeValue: function(runoffPartition, runoffType) {
+        var depth = runoffPartition[runoffType.name];
+
         return {
             runoffType: runoffType.display,
-            depth: tr55ResultRow[runoffType.name]
+            depth: depth,
+            adjustedVolume: this.aoiVolumeModel.adjust(depth)
         };
     }
 });

@@ -146,7 +146,8 @@ def format_quality(model_output):
         measure, code = input
         return {
             'measure': measure,
-            'load': model_output['modified'][code] * KG_PER_POUND
+            'load': model_output['modified'][code] * KG_PER_POUND,
+            'runoff': model_output['modified']['runoff']  # Already CM
         }
 
     return map(fn, zip(measures, codes))

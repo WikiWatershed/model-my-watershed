@@ -663,6 +663,7 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
 
         if (scenario) {
             this.detailsRegion.show(new ResultsDetailsView({
+                areaOfInterest: this.model.get('area_of_interest'),
                 collection: scenario.get('results'),
                 scenario: scenario
             }));
@@ -736,7 +737,8 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
 
         this.contentRegion.show(new ResultsTabContentsView({
             collection: this.collection,
-            scenario: this.scenario
+            scenario: this.scenario,
+            areaOfInterest: this.options.areaOfInterest
         }));
     }
 });
@@ -808,6 +810,7 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
 
         this.resultRegion.show(new ResultView({
             model: this.model,
+            areaOfInterest: this.options.areaOfInterest,
             scenario: this.scenario
         }));
     }
@@ -820,7 +823,10 @@ var ResultsTabContentsView = Marionette.CollectionView.extend({
     className: 'tab-content',
     childView: ResultsTabContentView,
     childViewOptions: function() {
-        return {scenario: this.scenario};
+        return {
+            scenario: this.scenario,
+            areaOfInterest: this.options.areaOfInterest
+        };
     },
     initialize: function(options) {
         this.scenario = options.scenario;
