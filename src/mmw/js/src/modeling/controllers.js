@@ -15,6 +15,38 @@ var ModelingController = {
             router.navigate('', { trigger: true });
             return false;
         }
+
+        // The mask layer should always be applied to the map when entering
+        // analyze mode
+        if (!App.map.get('maskLayerApplied')) {
+            App.map.set('maskLayerApplied', true);
+        }
+
+        if (settings.get('activityMode')) {
+            // Only one project allowed in Activity Mode. Save current project
+            // and if in embedded mode, update interactive state for container.
+            var project = App.currentProject,
+                map = App.map;
+
+            if (project && project.get('scenarios').isEmpty()) {
+                project.set({
+                    'area_of_interest': map.get('areaOfInterest'),
+                    'area_of_interest_name': map.get('areaOfInterestName')
+                });
+                project
+                    .save()
+                    .done(function() {
+                        if (settings.get('itsi_embed')) {
+                            App.itsi.setLearnerUrl('project/' + project.id + '/draw');
+                        }
+                    });
+            }
+        } else {
+            // Multiple projects allowed in Regular Mode. Nullify current
+            // project since a new one will be created and saved by the
+            // Modelling Controller.
+            App.currentProject = null;
+        }
     },
 
     project: function(projectId, scenarioParam) {
@@ -50,7 +82,6 @@ var ModelingController = {
                         } else {
                             project.get('scenarios').makeFirstScenarioActive();
                         }
-                        project.fetchResultsIfNeeded();
 
                         // If this project is an activity then the application's behavior changes.
                         if (project.get('is_activity')) {
@@ -110,13 +141,11 @@ var ModelingController = {
 
                         // Now render.
                         initViews(project);
-                        project.fetchResultsIfNeeded();
 
                         updateUrl();
                     });
                 } else {
                     initViews(project);
-                    project.fetchResultsIfNeeded();
                     updateUrl();
                 }
             } else {
@@ -145,7 +174,6 @@ var ModelingController = {
                     project.on('change:id', updateUrl);
                     initScenarioEvents(project);
                     initViews(project);
-                    project.fetchResultsIfNeeded();
                     if (App.projectNumber) {
                         updateUrl();
                     }
@@ -171,7 +199,7 @@ var ModelingController = {
 
         App.getMapView().updateModifications(null);
         App.rootView.subHeaderRegion.empty();
-        App.rootView.footerRegion.empty();
+        App.rootView.sidebarRegion.empty();
     },
 
     // Since we handle redirects after ITSI sign-up within Backbone,
@@ -256,7 +284,7 @@ function setupNewProjectScenarios(project) {
 }
 
 function initViews(project, lock) {
-    var modelingResultsWindow = new views.ModelingResultsWindow({
+    var resultsView = new views.ResultsView({
             model: project,
             lock: lock
         }),
@@ -265,7 +293,7 @@ function initViews(project, lock) {
         });
 
     App.rootView.subHeaderRegion.show(modelingHeader);
-    App.rootView.footerRegion.show(modelingResultsWindow);
+    App.rootView.sidebarRegion.show(resultsView);
 }
 
 function makeProject(lock) {

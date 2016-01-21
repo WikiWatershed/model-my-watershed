@@ -14,16 +14,14 @@
 .analyze-message-region {
   position: relative;
   height: 100%;
+  min-height: 200px;
   text-align: center;
 }
 
 .analyze-message-inner {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  padding-top: 50px;
 }
 
 .analyze-message-text {
-  font-size: 0.5rem;
+  font-size: 0.6rem;
 }
