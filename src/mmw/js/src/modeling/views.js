@@ -7,6 +7,8 @@
     settings = require('../core/settings'),
     models = require('./models'),
     controls = require('./controls'),
+    analyzeViews = require('../analyze/views.js'),
+    analyzeModels = require('../analyze/models.js'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
@@ -620,31 +622,27 @@ var ToolbarTabContentsView = Marionette.CollectionView.extend({
     }
 });
 
-// The entire modeling results window
-var ModelingResultsWindow = Marionette.LayoutView.extend({
+var ResultsView = Marionette.LayoutView.extend({
     model: models.ProjectModel,
     id: 'model-output-wrapper',
     tagName: 'div',
     template: resultsWindowTmpl,
 
     regions: {
-        detailsRegion: '#modeling-details-region'
-    },
-
-    ui: {
-        'toggle': '.tab-content-toggle'
-    },
-
-    events: {
-        'click @ui.toggle': 'toggleResultsWindow'
+        analyzeRegion: '#analyze-tab-contents',
+        modelingRegion: '#modeling-tab-contents'
     },
 
     initialize: function(options) {
         var scenarios = this.model.get('scenarios');
+
         this.listenTo(scenarios, 'change:active', this.showDetailsRegion);
+
         if (options.lock) {
             this.lock = options.lock;
         }
+
+        this.model.fetchResultsIfNeeded();
     },
 
     onShow: function() {
@@ -655,14 +653,21 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         if (this.lock) {
             this.lock.resolve();
         }
+
+        this.$el.find('.tab-pane:first').addClass('active');
     },
 
     showDetailsRegion: function() {
         var scenarios = this.model.get('scenarios'),
-            scenario = scenarios.getActiveScenario();
+            scenario = scenarios.getActiveScenario(),
+            aoi = JSON.stringify(App.map.get('areaOfInterest'));
+
+        this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
+            model: createTaskModel(aoi)
+        }));
 
         if (scenario) {
-            this.detailsRegion.show(new ResultsDetailsView({
+            this.modelingRegion.show(new ResultsDetailsView({
                 areaOfInterest: this.model.get('area_of_interest'),
                 collection: scenario.get('results'),
                 scenario: scenario
@@ -678,13 +683,9 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         var self = this,
             fit = _.isUndefined(fitToBounds) ? true : fitToBounds;
 
-        this.$el.animate({ height: '55%', 'min-height': '300px' }, 200, function() {
-            App.map.setDoubleHeaderHalfFooterSize(fit);
+        this.$el.animate({ width: '400px' }, 200, function() {
+            App.map.setDoubleHeaderSidebarSize(fit);
             self.trigger('animateIn');
-            $(self.ui.toggle.selector).blur()
-                .find('i')
-                    .removeClass('fa-angle-up')
-                    .addClass('fa-angle-down');
             triggerBarChartRefresh();
         });
     },
@@ -697,21 +698,9 @@ var ModelingResultsWindow = Marionette.LayoutView.extend({
         // results window animates out
         App.map.setDoubleHeaderSmallFooterSize(fit);
 
-        this.$el.animate({ height: '0%', 'min-height': '50px' }, 200, function() {
+        this.$el.animate({ width: '0px' }, 200, function() {
             self.trigger('animateOut');
-            $(self.ui.toggle.selector).blur()
-                .find('i')
-                    .removeClass('fa-angle-down')
-                    .addClass('fa-angle-up');
         });
-    },
-
-    toggleResultsWindow: function() {
-        if (this.$el.css('height') === '50px') {
-            this.animateIn(false);
-        } else {
-            this.animateOut(false);
-        }
     }
 });
 
@@ -862,8 +851,18 @@ function getResultView(modelPackage, resultName) {
     }
 }
 
+// Pass in the serialized Area of Interest for
+// caching purposes (_.memoize returns the same
+// results for any object), and deserialize
+// the AoI for use on the model.
+var createTaskModel = _.memoize(function(aoi) {
+    return new analyzeModels.AnalyzeTaskModel({
+        area_of_interest: JSON.parse(aoi)
+    });
+});
+
 module.exports = {
-    ModelingResultsWindow: ModelingResultsWindow,
+    ResultsView: ResultsView,
     ModelingHeaderView: ModelingHeaderView,
     ScenariosView: ScenariosView,
     ScenarioTabPanelsView: ScenarioTabPanelsView,

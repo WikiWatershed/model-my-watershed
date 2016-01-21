@@ -31,6 +31,10 @@ var RootView = Marionette.LayoutView.extend({
         geocodeSearchRegion: '#geocode-search-region',
         drawToolsRegion: '#draw-tools-region',
         subHeaderRegion: '#sub-header',
+        sidebarRegion: {
+            regionClass: TransitionRegion,
+            selector: '#sidebar'
+        },
         footerRegion: {
             regionClass: TransitionRegion,
             selector: '#footer'
