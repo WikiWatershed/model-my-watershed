@@ -61,6 +61,8 @@ class Application(StackNode):
             'TileDeliveryNetwork:GreenTileServerDistributionEndpoint'],
         'ITSIBaseURL': ['global:ITSIBaseURL'],
         'ITSISecretKey': ['global:ITSISecretKey'],
+        'RollbarServerSideAccessToken':
+        ['global:RollbarServerSideAccessToken'],
     }
 
     DEFAULTS = {
@@ -412,6 +414,10 @@ class Application(StackNode):
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
                 '    content: ', Ref(self.color), '\n',
+                '  - path: /etc/mmw.d/env/MMW_STACK_TYPE\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', self.get_input('StackType'), '\n',
                 '  - path: /etc/mmw.d/env/MMW_DB_PASSWORD\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
@@ -420,6 +426,10 @@ class Application(StackNode):
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
                 '    content: ', Ref(tile_distribution_endpoint), '\n',
+                '  - path: /etc/mmw.d/env/ROLLBAR_SERVER_SIDE_ACCESS_TOKEN\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', self.get_input('RollbarServerSideAccessToken'), '\n',  # NOQA
                 '  - path: /etc/mmw.d/env/MMW_ITSI_BASE_URL\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',

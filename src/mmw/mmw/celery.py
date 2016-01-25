@@ -1,8 +1,10 @@
 from __future__ import absolute_import
 
 import os
+import rollbar
 
 from celery import Celery
+from celery.signals import task_failure
 
 from django.conf import settings
 
@@ -16,6 +18,17 @@ app = Celery('mmw')
 # pickle the object when using Windows.
 app.config_from_object('django.conf:settings')
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
+
+rollbar_settings = getattr(settings, 'ROLLBAR', {})
+if rollbar_settings:
+    rollbar.init(rollbar_settings.get('access_token'),
+                 rollbar_settings.get('environment'))
+
+
+@task_failure.connect
+def handle_task_failure(**kw):
+    if rollbar_settings:
+        rollbar.report_exc_info(extra_data=kw)
 
 
 @app.task(bind=True)
