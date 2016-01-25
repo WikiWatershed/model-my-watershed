@@ -199,7 +199,7 @@ def data_to_survey(data):
 
     def update_pcts(entry, count):
         area = entry['area']
-        entry['coverage'] = float(area) / count
+        entry['coverage'] = 0 if count == 0 else float(area) / count
         return entry
 
     def update_rule(nlcd, soil, count, survey):
