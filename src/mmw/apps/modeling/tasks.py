@@ -200,6 +200,19 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
     modification_censuses = (censuses[1:] if cached_aoi_census is None
                              else censuses[0:])
 
+    # Calculate total areas for each type modification
+    area_sums = {}
+    for piece in modification_pieces:
+        kind = piece['value']
+        area = piece['area']
+
+        if kind in area_sums:
+            area_sums[kind] += area
+        else:
+            area_sums[kind] = area
+
+    area_bmps = {k: v for k, v in area_sums.iteritems()}
+
     # The area of interest census
     aoi_census = cached_aoi_census if cached_aoi_census else censuses[0]
 
@@ -212,15 +225,19 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
     modifications = build_tr55_modification_input(modification_pieces,
                                                   modification_censuses)
     aoi_census['modifications'] = modifications
+    aoi_census['BMPs'] = area_bmps
 
     # Run the model under both current conditions and Pre-Columbian
     # conditions.
     try:
-        model_output = simulate_day(aoi_census, precip, cell_res=resolution)
+        model_output = simulate_day(aoi_census, precip,
+                                    cell_res=resolution)
+
         precolumbian_output = simulate_day(aoi_census,
                                            precip,
                                            cell_res=resolution,
                                            precolumbian=True)
+
         model_output['pc_unmodified'] = precolumbian_output['unmodified']
         model_output['pc_modified'] = precolumbian_output['modified']
         runoff = format_runoff(model_output)
