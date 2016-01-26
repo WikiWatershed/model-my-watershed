@@ -83,30 +83,6 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
                 collection: new models.LayerCollection(results)
             }));
         }
-    },
-
-    transitionInCss: {
-        height: '0%'
-    },
-
-    animateIn: function() {
-        var self = this;
-
-        App.map.setAnalyzeSize(true);
-
-        this.$el.animate({ height: '55%' }, 200, function() {
-            self.trigger('animateIn');
-        });
-    },
-
-    animateOut: function() {
-        var self = this;
-
-        App.map.setDoubleHeaderSmallFooterSize(true);
-
-        this.$el.animate({ height: '0%' }, 200, function() {
-            self.trigger('animateOut');
-        });
     }
 });
 
@@ -185,7 +161,11 @@ var TabContentView = Marionette.LayoutView.extend({
 
         this.tableRegion.show(new TableView({
             units: units,
-            model: new coreModels.GeoModel({units: (units === 'km2') ? 'km<sup>2</sup>' : 'm<sup>2</sup>'}),
+            model: new coreModels.GeoModel({
+                units: (units === 'km2') ? 'km<sup>2</sup>' : 'm<sup>2</sup>',
+                place: App.map.get('areaOfInterestName'),
+                shape: App.map.get('areaOfInterest')
+            }),
             collection: census
         }));
 
