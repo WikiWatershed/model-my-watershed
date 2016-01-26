@@ -9,7 +9,7 @@ var _ = require('lodash'),
     sinon = require('sinon'),
     models = require('./models'),
     views = require('./views'),
-    App = require('../app'),
+    App = require('../../app'),
     testUtils = require('../../core/testUtils');
 
 var sandboxId = 'sandbox',

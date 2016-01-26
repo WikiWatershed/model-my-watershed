@@ -10,10 +10,10 @@ var $ = require('jquery'),
     utils = require('../../core/utils'),
     windowTmpl = require('./templates/window.html'),
     messageTmpl = require('./templates/message.html'),
-    detailsTmpl = require('./templates/details.html'),
+    detailsTmpl = require('../templates/resultsDetails.html'),
     tableTmpl = require('./templates/table.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
-    tabPanelTmpl = require('./templates/tabPanel.html'),
+    tabPanelTmpl = require('../templates/resultsTabPanel.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     barChartTmpl = require('../../core/templates/barChart.html');
 
