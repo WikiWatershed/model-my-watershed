@@ -5,12 +5,12 @@ require('../core/setup');
 var _ = require('lodash'),
     $ = require('jquery'),
     assert = require('chai').assert,
-    Marionette = require('../../shim/backbone.marionette'),
+    Marionette = require('../../../shim/backbone.marionette'),
     sinon = require('sinon'),
     models = require('./models'),
     views = require('./views'),
     App = require('../app'),
-    testUtils = require('../core/testUtils');
+    testUtils = require('../../core/testUtils');
 
 var sandboxId = 'sandbox',
     sandboxSelector = '#' + sandboxId,
