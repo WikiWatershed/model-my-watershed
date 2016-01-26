@@ -17,7 +17,7 @@ var $ = require('jquery'),
     selectTypeTmpl = require('./templates/selectType.html'),
     drawTmpl = require('./templates/draw.html'),
     resetDrawTmpl = require('./templates/reset.html'),
-    placeMarkerTmpl = require('./templates/placeMarker.html'),
+    delineationOptionsTmpl = require('./templates/delineationOptions.html'),
     settings = require('../core/settings');
 
 var MAX_AREA = 112700; // About the size of a large state (in km^2)
@@ -69,7 +69,7 @@ var ToolbarView = Marionette.LayoutView.extend({
     regions: {
         selectTypeRegion: '#select-area-region',
         drawRegion: '#draw-region',
-        placeMarkerRegion: '#place-marker-region',
+        watershedDelineationRegion: '#place-marker-region',
         resetRegion: '#reset-draw-region',
         streamRegion: '#stream-slider-region'
     },
@@ -108,7 +108,7 @@ var ToolbarView = Marionette.LayoutView.extend({
             }));
         }
         if (_.contains(draw_tools, 'PlaceMarker')) {
-            this.placeMarkerRegion.show(new PlaceMarkerView({
+            this.watershedDelineationRegion.show(new WatershedDelineationView({
                 model: this.model,
                 rwdTaskModel: this.rwdTaskModel
             }));
@@ -319,8 +319,8 @@ var DrawView = Marionette.ItemView.extend({
     }
 });
 
-var PlaceMarkerView = Marionette.ItemView.extend({
-    template: placeMarkerTmpl,
+var WatershedDelineationView= Marionette.ItemView.extend({
+    template: delineationOptionsTmpl,
 
     ui: {
         items: '[data-shape-type]',
@@ -352,7 +352,9 @@ var PlaceMarkerView = Marionette.ItemView.extend({
     onItemClicked: function(e) {
         var self = this,
             map = App.getLeafletMap(),
-            itemName = $(e.currentTarget).text(),
+            $item = $(e.currentTarget),
+            itemName = $item.text(),
+            snappingOn = !!$item.data('snapping-on'),
             revertLayer = clearAoiLayer();
 
         this.model.set('pollError', false);
@@ -380,7 +382,7 @@ var PlaceMarkerView = Marionette.ItemView.extend({
                             pollError: true,
                             polling: false
                         });
-                        console.log(response.error);                        
+                        console.log(response.error);
                         deferred.reject();
                     },
 
@@ -396,10 +398,13 @@ var PlaceMarkerView = Marionette.ItemView.extend({
                         deferred.reject();
                     },
 
-                    postData: {'location': JSON.stringify([
-                        point.geometry.coordinates[1],
-                        point.geometry.coordinates[0]
-                    ])}
+                    postData: {
+                        'location': JSON.stringify([
+                            point.geometry.coordinates[1],
+                            point.geometry.coordinates[0]
+                        ]),
+                        'snappingOn': snappingOn
+                    }
                 };
 
                 self.rwdTaskModel.start(taskHelper);

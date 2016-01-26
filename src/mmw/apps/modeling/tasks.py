@@ -21,7 +21,7 @@ CM_PER_INCH = 2.54
 
 
 @shared_task
-def start_rwd_job(location):
+def start_rwd_job(location, snapping):
     """
     Calls the Rapid Watershed Delineation endpoint
     that is running in the Docker container, and returns
@@ -30,6 +30,13 @@ def start_rwd_job(location):
     """
     location = json.loads(location)
     rwd_url = 'http://localhost:5000/rwd/%f/%f' % (location[1], location[0])
+
+    # The Webserver defaults to enable snapping, uses 1 (true) 0 (false)
+    if not snapping:
+        rwd_url += '?snapping=0'
+
+    logger.debug('rwd request: %s' % rwd_url)
+
     response_json = requests.get(rwd_url).json()
     if 'error' in response_json:
         raise Exception(response_json['error'])
