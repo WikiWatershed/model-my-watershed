@@ -134,17 +134,16 @@
 #output-tabs-wrapper {
   position: absolute;
   left: 0;
-  top: 0;
+  top: $sidebar-tab-subheader-height;
   right: 0;
   height: 100%;
 
   .nav-tabs {
     font-weight: 500;
     font-size: 0.6rem;
-    border-bottom: none!important;
+    border-bottom: 3px solid $black-12;
     background-color: transparent;
-    position: absolute;
-    left: 120px;
+    background-color: $black-06;
 
     li a {
       border-radius: 0!important;
@@ -156,15 +155,21 @@
 
     li.active > a {
       color: $ui-secondary;
-      background-color: $paper;
+      .sidebar-tab-header-label {
+        color: $brand-primary;
+        font-weight: 800;
+        &:after {
+          border-bottom-color: $brand-primary;
+        }
+      }
     }
 
     li > a {
       color: $ui-secondary;
-      padding: 0.5rem 1rem;
-      line-height: $height-md;
+      padding: 0 1rem;
+      line-height: $sidebar-tab-subheader-height;
       background-color: transparent;
-      height: 60px;
+      height: $sidebar-tab-subheader-height;
 
       i {
         color: $black-54;
@@ -172,7 +177,6 @@
       }
 
       &:hover, &:focus {
-        background-color: $paper;
         border-radius: 0!important;
         color: $ui-secondary;
         border: none;
@@ -203,30 +207,8 @@
     }
 
     .left, .right {
-      padding: 1rem;
       position: relative;
       width: 100%;
-
-      @media(min-width:768px) {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        overflow-y: auto;
-      }
-    }
-
-    .left {
-      @media(min-width:768px) {
-        left: 0;
-        width: 50%;
-      }
-    }
-
-    .right {
-      @media(min-width:768px) {
-        right: 0;
-        width: 50%;
-      }
     }
   }
 }
