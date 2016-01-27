@@ -209,6 +209,10 @@ var LandUseCensusCollection = Backbone.Collection.extend({
     comparator: 'nlcd'
 });
 
+var SoilCensusCollection = Backbone.Collection.extend({
+    comparator: 'code'
+});
+
 var GeoModel = Backbone.Model.extend({
     M_IN_KM: 1000000,
 
@@ -260,6 +264,7 @@ module.exports = {
     MapModel: MapModel,
     TaskModel: TaskModel,
     LandUseCensusCollection: LandUseCensusCollection,
+    SoilCensusCollection: SoilCensusCollection,
     GeoModel: GeoModel,
     AreaOfInterestModel: AreaOfInterestModel,
     AppStateModel: AppStateModel

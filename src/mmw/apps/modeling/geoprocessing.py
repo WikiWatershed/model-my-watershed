@@ -186,13 +186,17 @@ def data_to_survey(data):
     """
     Turn raw data from Geotrellis into a survey.
     """
-    def update_category(string, count, categories):
-        if string in categories:
-            entry = categories[string]
+    def update_category(codeAndValue, count, categories):
+        code = codeAndValue[0]
+        value = codeAndValue[1]
+
+        if value in categories:
+            entry = categories[value]
             entry['area'] += count
         else:
-            categories[string] = {
-                'type': string,
+            categories[value] = {
+                'code': code,
+                'type': value,
                 'area': count,
                 'coverage': None
             }
@@ -207,14 +211,14 @@ def data_to_survey(data):
         soilCategories = survey[1]['categories']
 
         if nlcd in NLCD_MAPPING:
-            update_category(NLCD_MAPPING[nlcd][1], count, landCategories)
+            update_category(NLCD_MAPPING[nlcd], count, landCategories)
         else:
-            update_category('?', count, landCategories)
+            update_category([nlcd, nlcd], count, landCategories)
 
         if soil in SOIL_MAPPING:
-            update_category(SOIL_MAPPING[soil][1], count, soilCategories)
+            update_category(SOIL_MAPPING[soil], count, soilCategories)
         else:
-            update_category('?', count, soilCategories)
+            update_category([soil, soil], count, soilCategories)
 
     def after_rule(count, survey):
         nlcd_names = [v[1] for v in NLCD_MAPPING.values()]
