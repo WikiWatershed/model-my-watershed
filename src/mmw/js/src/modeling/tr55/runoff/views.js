@@ -12,6 +12,8 @@ var $ = require('jquery'),
     tableTmpl = require('./templates/table.html');
 
 var ResultView = Marionette.LayoutView.extend({
+    className: 'tab-pane',
+
     template: resultTmpl,
 
     regions: {
@@ -24,6 +26,7 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     initialize: function(options) {
+        this.compareMode = options.compareMode;
         this.scenario = options.scenario;
         this.aoi = options.areaOfInterest;
     },
@@ -37,11 +40,13 @@ var ResultView = Marionette.LayoutView.extend({
                 areaOfInterest: this.aoi
             });
 
-            this.tableRegion.show(new TableView({
-                scenario: this.scenario,
-                model: this.model,
-                aoiVolumeModel: aoiVolumeModel
-            }));
+            if (!this.compareMode) {
+                this.tableRegion.show(new TableView({
+                    scenario: this.scenario,
+                    model: this.model,
+                    aoiVolumeModel: aoiVolumeModel
+                }));
+            }
 
             this.chartRegion.show(new ChartView({
                 model: this.model,
