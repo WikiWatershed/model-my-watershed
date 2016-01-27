@@ -269,27 +269,31 @@ var ChartView = Marionette.ItemView.extend({
         this.addChart();
     },
 
+    getBarClass: function(item) {
+        var name = this.model.get('name');
+        if (name === 'land') {
+            return 'nlcd-' + item.nlcd;
+        } else if (name === 'soil') {
+            return 'soil-' + item.code;
+        }
+    },
+
     addChart: function() {
-        var chartEl = this.$el.find('.bar-chart').get(0),
+        var self = this,
+            chartEl = this.$el.find('.bar-chart').get(0),
             data = _.map(this.collection.toJSON(), function(model) {
                 return {
                     x: model.type,
                     y: model.coverage,
-                    class: model.nlcd ? 'nlcd-' + model.nlcd : null
+                    class: self.getBarClass(model)
                 };
             }),
-            chartOptions,
-            barClasses = null;
 
-        if (this.model.get('name') === 'land') {
-            barClasses = _.pluck(data, 'class');
-        }
-
-        chartOptions = {
-           yAxisLabel: 'Coverage',
-           isPercentage: true,
-           barClasses: barClasses
-       };
+            chartOptions = {
+               yAxisLabel: 'Coverage',
+               isPercentage: true,
+               barClasses: _.pluck(data, 'class')
+           };
 
         chart.renderHorizontalBarChart(chartEl, data, chartOptions);
     }
