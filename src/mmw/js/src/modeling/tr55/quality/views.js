@@ -77,7 +77,7 @@ var TableRowView = Marionette.ItemView.extend({
             adjustedRunoff = this.options.aoiVolumeModel.adjust(runoff);
 
         return {
-            concentration: load / adjustedRunoff
+            concentration: adjustedRunoff ? load / adjustedRunoff : 0
         };
     }
 });
