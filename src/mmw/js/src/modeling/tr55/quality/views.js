@@ -74,10 +74,11 @@ var TableRowView = Marionette.ItemView.extend({
     templateHelpers: function() {
         var load = this.model.get('load'),
             runoff = this.model.get('runoff'),
-            adjustedRunoff = this.options.aoiVolumeModel.adjust(runoff);
+            adjustedRunoff = this.options.aoiVolumeModel.adjust(runoff),
+            concentration = adjustedRunoff ? load / adjustedRunoff : 0;
 
         return {
-            concentration: load / adjustedRunoff
+            concentration: concentration * 1000 // g -> mg
         };
     }
 });
