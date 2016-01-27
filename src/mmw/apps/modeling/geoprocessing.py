@@ -213,12 +213,12 @@ def data_to_survey(data):
         if nlcd in NLCD_MAPPING:
             update_category(NLCD_MAPPING[nlcd], count, landCategories)
         else:
-            update_category(['?']*2, count, landCategories)
+            update_category([nlcd, nlcd], count, landCategories)
 
         if soil in SOIL_MAPPING:
             update_category(SOIL_MAPPING[soil], count, soilCategories)
         else:
-            update_category(['?']*2, count, soilCategories)
+            update_category([soil, soil], count, soilCategories)
 
     def after_rule(count, survey):
         nlcd_names = [v[1] for v in NLCD_MAPPING.values()]
