@@ -196,7 +196,7 @@ var MapView = Marionette.ItemView.extend({
             }),
             overlayLayers = this.prepareOverlayLayers(),
             vizer = new VizerLayers(),
-            layersReadyDeferred = vizer.getLayers();
+            observationsDeferred = vizer.getLayers();
 
         // Center the map on the U.S.
         map.fitBounds([
@@ -223,15 +223,19 @@ var MapView = Marionette.ItemView.extend({
             addLocateMeButton(map, maxGeolocationAge);
         }
 
-        layersReadyDeferred.then(function(vizerLayers) {
-            if (options.addLayerSelector) {
-                self.layerControl = new LayerControl(self.baseLayers, self.overlayLayers, vizerLayers, {
-                    autoZIndex: false,
-                    position: 'topright',
-                    collapsed: false
-                }).addTo(map);
-            }
-        });
+        if (options.addLayerSelector) {
+            var layerOptions = {
+                autoZIndex: false,
+                position: 'topright',
+                collapsed: false
+            };
+
+            self.layerControl = new LayerControl(
+                self.baseLayers, self.overlayLayers, observationsDeferred, layerOptions
+            );
+
+            self.layerControl.addTo(map);
+        }
 
         if (options.addStreamControl) {
             this.layerControl = new StreamSliderControl({
