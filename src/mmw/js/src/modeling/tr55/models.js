@@ -10,7 +10,7 @@ var AoiVolumeModel = Backbone.Model.extend({
     },
 
     initialize: function() {
-        if (this.canSetArea) {
+        if (this.canSetArea()) {
             this.setArea();
         }
 
@@ -18,7 +18,7 @@ var AoiVolumeModel = Backbone.Model.extend({
     },
 
     canSetArea: function() {
-        return this.get('areaOfInterest') && !this.get('aoiArea');
+        return !!(this.get('areaOfInterest') && !this.get('aoiArea'));
     },
 
     setArea: function() {
