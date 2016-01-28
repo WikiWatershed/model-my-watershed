@@ -2,7 +2,6 @@
 
 var router = require('./router').router,
     DrawController = require('./draw/controllers').DrawController,
-    AnalyzeController = require('./analyze/controllers').AnalyzeController,
     ModelingController = require('./modeling/controllers').ModelingController,
     CompareController = require('./compare/controllers').CompareController,
     ProjectsController = require('./projects/controllers').ProjectsController,
@@ -10,7 +9,6 @@ var router = require('./router').router,
     SignUpController = require('./user/controllers').SignUpController;
 
 router.addRoute(/^/, DrawController, 'draw');
-router.addRoute(/^analyze/, AnalyzeController, 'analyze');
 router.addRoute('project(/:projectId)(/scenario/:scenarioId)(/)', ModelingController, 'project');
 router.addRoute('project/:projectId/clone(/)', ModelingController, 'projectClone');
 router.addRoute('project/:projectId/draw(/)', ModelingController, 'projectDraw');
