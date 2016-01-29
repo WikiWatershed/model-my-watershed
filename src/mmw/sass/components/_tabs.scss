@@ -50,7 +50,7 @@
   left: 0;
   top: $sidebar-tab-subheader-height;
   right: 0;
-  height: 100%;
+  bottom: 0;
 
   .nav-tabs {
     font-weight: 500;
@@ -105,16 +105,6 @@
     left: 0;
     right: 0;
     bottom: 0;
-
-    .tab-pane {
-      height: 100%;
-    }
-
-    .active {
-      display: flex;
-      flex-direction: row;
-      height: 100%;
-    }
 
     img {
       width: 100%;

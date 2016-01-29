@@ -4,7 +4,10 @@
   right: 0;
   top: $height-lg * 2 + $toolbar-height;
   bottom: 0;
-  width: $sidebar-width;
+  width: $sidebar-width !important;
+  @media(min-width: 1280px) {
+    width: 540px !important;
+  }
   min-height: 300px;
   height: auto !important;
   background-color: $paper;

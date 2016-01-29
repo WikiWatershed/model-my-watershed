@@ -39,6 +39,9 @@
   &.map-container-top-sidebar {
     top: $height-lg * 2 + $toolbar-height;
     right: $sidebar-width;
+    @media(min-width: 1280px) {
+      right: 540px !important;
+    }
   }
   // Sets map to correct container size for sidebar.
   &.map-container-bottom-sidebar {
