@@ -5,7 +5,7 @@
   top: $height-lg * 2 + $toolbar-height;
   bottom: 0;
   width: $sidebar-width !important;
-  @media(min-width: 1280px) {
+  @media(min-width: 1040px) {
     width: 540px !important;
   }
   min-height: 300px;

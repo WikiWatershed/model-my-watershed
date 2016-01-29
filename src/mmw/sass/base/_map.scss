@@ -39,7 +39,7 @@
   &.map-container-top-sidebar {
     top: $height-lg * 2 + $toolbar-height;
     right: $sidebar-width;
-    @media(min-width: 1280px) {
+    @media(min-width: 1040px) {
       right: 540px !important;
     }
   }
