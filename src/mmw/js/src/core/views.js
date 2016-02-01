@@ -35,10 +35,7 @@ var RootView = Marionette.LayoutView.extend({
             regionClass: TransitionRegion,
             selector: '#sidebar'
         },
-        footerRegion: {
-            regionClass: TransitionRegion,
-            selector: '#footer'
-        }
+        footerRegion: '#footer'
     }
 });
 
