@@ -19,7 +19,6 @@
 
 //Hover Table
 .custom-hover {
-
   thead {
     border-bottom: solid 1px $black-12;
     font-weight: 500;
@@ -44,4 +43,9 @@
       padding-right: 0;
     }
   }
+}
+
+.fixed-table-container thead th .th-inner {
+  white-space: normal;
+  line-height: 1.25;
 }

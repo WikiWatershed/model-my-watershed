@@ -264,7 +264,7 @@ var DrawView = Marionette.ItemView.extend({
             .then(validateShape)
             .then(function(shape) {
                 addLayer(shape);
-                navigateToAnalyze();
+                navigateToProject();
             }).fail(function() {
                 revertLayer();
             }).always(function() {
@@ -310,7 +310,7 @@ var DrawView = Marionette.ItemView.extend({
             });
 
             addLayer(box, '1 Square Km');
-            navigateToAnalyze();
+            navigateToProject();
         }).fail(function() {
             revertLayer();
         }).always(function() {
@@ -413,7 +413,7 @@ var WatershedDelineationView= Marionette.ItemView.extend({
             .done(validateShape)
             .done(function(shape) {
                 addLayer(shape, itemName);
-                navigateToAnalyze();
+                navigateToProject();
             })
             .fail(function() {
                 revertLayer();
@@ -474,7 +474,7 @@ function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
             .then(function(shape) {
                 addLayer(shape, shapeName, layerName);
                 clearBoundaryLayer(model);
-                navigateToAnalyze();
+                navigateToProject();
                 deferred.resolve();
             }).fail(function() {
                 console.log('Shape endpoint failed');
@@ -541,8 +541,8 @@ function addLayer(shape, name, label) {
     });
 }
 
-function navigateToAnalyze() {
-    router.navigate('analyze', { trigger: true });
+function navigateToProject() {
+    router.navigate('project', { trigger: true });
 }
 
 module.exports = {

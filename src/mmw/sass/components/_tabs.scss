@@ -1,90 +1,5 @@
 //Analyze Tabs
-#analyze-details-region {
-  position: absolute;
-  top: 68px;
-  bottom: 0;
-  width: 100%;
-
-  .nav-tabs {
-    font-weight: 500;
-    font-size: 0.6rem;
-    border-bottom: none!important;
-    background-color: $ui-secondary;
-
-    li a {
-      border-radius: 0!important;
-      border-top: none!important;
-      border-left: none!important;
-      border-right: none!important;
-      text-transform: uppercase;
-      border-bottom: solid 4px transparent;
-    }
-
-    li.active > a {
-      border-bottom: solid 4px $active;
-      color: $paper;
-      background: transparent!important;
-    }
-
-    li > a {
-      color: $paper-54;
-      padding: 0.8rem 0.8rem 0.6rem 0.8rem;
-      margin: 0 0 1px 0;
-
-      &:hover {
-        background: transparent!important;
-        border-bottom: solid 4px $active;
-        border-radius: 0!important;
-        color: $paper;
-      }
-    }
-  }
-
-  .tab-content {
-    position: absolute;
-    top: 45px;
-    bottom: 0;
-    width: 100%;
-    overflow-y: auto;
-
-    @media(min-width: 768px) {
-      overflow-y: hidden;
-    }
-
-    @media(min-width: 1280px) {
-      top: 49px;
-    }
-
-    .left, .right {
-      padding: 1rem;
-      position: relative;
-      width: 100%;
-
-      @media(min-width:768px) {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        overflow-y: auto;
-      }
-    }
-
-    .left {
-
-      @media(min-width:768px) {
-        left: 0;
-        width: 50%;
-      }
-    }
-
-    .right {
-
-      @media(min-width:768px) {
-        right: 0;
-        width: 50%;
-      }
-    }
-  }
-}
+#analyze-details-region { }
 
 //Scenario Tabs
 #scenario-wrapper {
@@ -110,8 +25,7 @@
 
     li.active > a {
       color: $ui-secondary;
-      background-color: $paper;
-
+      background-color: #D0D0D0
     }
 
     li > a {
@@ -131,20 +45,19 @@
 }
 
 //Model Output Tabs
-#output-tabs-wrapper {
+.output-tabs-wrapper {
   position: absolute;
   left: 0;
-  top: 0;
+  top: $sidebar-tab-subheader-height;
   right: 0;
-  height: 100%;
+  bottom: 0;
 
   .nav-tabs {
     font-weight: 500;
     font-size: 0.6rem;
-    border-bottom: none!important;
+    border-bottom: 3px solid $black-12;
     background-color: transparent;
-    position: absolute;
-    left: 120px;
+    background-color: $black-06;
 
     li a {
       border-radius: 0!important;
@@ -156,15 +69,21 @@
 
     li.active > a {
       color: $ui-secondary;
-      background-color: $paper;
+      .sidebar-tab-header-label {
+        color: $brand-primary;
+        font-weight: 800;
+        &:after {
+          border-bottom-color: $brand-primary;
+        }
+      }
     }
 
     li > a {
       color: $ui-secondary;
-      padding: 0.5rem 1rem;
-      line-height: $height-md;
+      padding: 0 1rem;
+      line-height: $sidebar-tab-subheader-height;
       background-color: transparent;
-      height: 60px;
+      height: $sidebar-tab-subheader-height;
 
       i {
         color: $black-54;
@@ -172,30 +91,19 @@
       }
 
       &:hover, &:focus {
-        background-color: $paper;
         border-radius: 0!important;
         color: $ui-secondary;
-        border: none;
+        background-color: transparent;
       }
     }
   }
 
   .tab-content {
     position: absolute;
-    top: 3rem;
+    top: 62px;
     left: 0;
     right: 0;
     bottom: 0;
-
-    .tab-pane {
-      height: 100%;
-    }
-
-    .active {
-      display: flex;
-      flex-direction: row;
-      height: 100%;
-    }
 
     img {
       width: 100%;
@@ -203,30 +111,8 @@
     }
 
     .left, .right {
-      padding: 1rem;
       position: relative;
       width: 100%;
-
-      @media(min-width:768px) {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        overflow-y: auto;
-      }
-    }
-
-    .left {
-      @media(min-width:768px) {
-        left: 0;
-        width: 50%;
-      }
-    }
-
-    .right {
-      @media(min-width:768px) {
-        right: 0;
-        width: 50%;
-      }
     }
   }
 }

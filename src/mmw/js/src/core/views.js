@@ -31,10 +31,11 @@ var RootView = Marionette.LayoutView.extend({
         geocodeSearchRegion: '#geocode-search-region',
         drawToolsRegion: '#draw-tools-region',
         subHeaderRegion: '#sub-header',
-        footerRegion: {
+        sidebarRegion: {
             regionClass: TransitionRegion,
-            selector: '#footer'
-        }
+            selector: '#sidebar'
+        },
+        footerRegion: '#footer'
     }
 });
 
@@ -620,6 +621,9 @@ var MapView = Marionette.ItemView.extend({
         $container.toggleClass('map-container-bottom-2', !!size.bottom.small);
         $container.toggleClass('map-container-bottom-3', !!size.bottom.med);
         $container.toggleClass('map-container-bottom-4', !!size.bottom.large);
+
+        $container.toggleClass('map-container-top-sidebar', !!size.top.sidebar);
+        $container.toggleClass('map-container-bottom-sidebar', !!size.top.sidebar);
 
 
         _.delay(function() {

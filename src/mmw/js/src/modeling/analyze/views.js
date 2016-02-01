@@ -2,41 +2,31 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
-    Marionette = require('../../shim/backbone.marionette'),
-    App = require('../app'),
+    Marionette = require('../../../shim/backbone.marionette'),
+    App = require('../../app'),
     models = require('./models'),
-    coreModels = require('../core/models'),
-    coreViews = require('../core/views'),
-    chart = require('../core/chart'),
-    utils = require('../core/utils'),
+    coreModels = require('../../core/models'),
+    chart = require('../../core/chart'),
+    utils = require('../../core/utils'),
     windowTmpl = require('./templates/window.html'),
     messageTmpl = require('./templates/message.html'),
-    detailsTmpl = require('./templates/details.html'),
+    detailsTmpl = require('../templates/resultsDetails.html'),
     tableTmpl = require('./templates/table.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
-    tabPanelTmpl = require('./templates/tabPanel.html'),
+    tabPanelTmpl = require('../templates/resultsTabPanel.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
-    barChartTmpl = require('../core/templates/barChart.html');
+    barChartTmpl = require('../../core/templates/barChart.html');
 
 var AnalyzeWindow = Marionette.LayoutView.extend({
-    id: 'analyze-output-wrapper',
     template: windowTmpl,
 
     regions: {
-        headerRegion: '#analyze-header-region',
         detailsRegion: {
             el: '#analyze-details-region'
         }
     },
 
-    initialize: function() {
-        this.listenTo(this, 'animateIn', function() {
-            $('#analyze-output-wrapper .bar-chart').trigger('bar-chart:refresh');
-        });
-    },
-
     onShow: function() {
-        this.showHeaderRegion();
         this.showAnalyzingMessage();
 
         var self = this;
@@ -58,31 +48,18 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
 
                     postData: {'area_of_interest': aoi}
                 };
+
             this.model.start(taskHelper);
         } else {
-            this.lock = $.Deferred();
-            this.lock.done(function() {
-                self.showDetailsRegion();
-            });
+            self.showDetailsRegion();
         }
-    },
-
-    showHeaderRegion: function() {
-        this.headerRegion.show(new coreViews.AreaOfInterestView({
-            App: App,
-            model: new coreModels.AreaOfInterestModel({
-                shape: this.model.get('area_of_interest'),
-                place: App.map.get('areaOfInterestName'),
-                can_go_back: true,
-                next_label: 'Model',
-                url: 'project'
-            })
-        }));
     },
 
     showAnalyzingMessage: function() {
         var messageModel = new models.AnalyzeMessageModel();
+
         messageModel.setAnalyzing();
+
         this.detailsRegion.show(new MessageView({
             model: messageModel
         }));
@@ -90,7 +67,9 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
 
     showErrorMessage: function() {
         var messageModel = new models.AnalyzeMessageModel();
+
         messageModel.setError();
+
         this.detailsRegion.show(new MessageView({
             model: messageModel
         }));
@@ -104,33 +83,6 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
                 collection: new models.LayerCollection(results)
             }));
         }
-    },
-
-    transitionInCss: {
-        height: '0%'
-    },
-
-    animateIn: function() {
-        var self = this;
-
-        App.map.setAnalyzeSize(true);
-
-        this.$el.animate({ height: '55%' }, 200, function() {
-            self.trigger('animateIn');
-        });
-        if (this.lock !== undefined) {
-            this.lock.resolve();
-        }
-    },
-
-    animateOut: function() {
-        var self = this;
-
-        App.map.setDoubleHeaderSmallFooterSize(true);
-
-        this.$el.animate({ height: '0%' }, 200, function() {
-            self.trigger('animateOut');
-        });
     }
 });
 
@@ -209,7 +161,11 @@ var TabContentView = Marionette.LayoutView.extend({
 
         this.tableRegion.show(new TableView({
             units: units,
-            model: new coreModels.GeoModel({units: (units === 'km2') ? 'km<sup>2</sup>' : 'm<sup>2</sup>'}),
+            model: new coreModels.GeoModel({
+                units: (units === 'km2') ? 'km<sup>2</sup>' : 'm<sup>2</sup>',
+                place: App.map.get('areaOfInterestName'),
+                shape: App.map.get('areaOfInterest')
+            }),
             collection: census
         }));
 
