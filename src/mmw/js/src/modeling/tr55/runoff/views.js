@@ -51,6 +51,7 @@ var ResultView = Marionette.LayoutView.extend({
             this.chartRegion.show(new ChartView({
                 model: this.model,
                 scenario: this.scenario,
+                compareMode: this.compareMode
             }));
         }
     }
@@ -62,6 +63,7 @@ var ChartView = Marionette.ItemView.extend({
 
     initialize: function(options) {
         this.scenario = options.scenario;
+        this.compareMode = options.compareMode;
     },
 
     onAttach: function() {
