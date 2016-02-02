@@ -5,8 +5,7 @@
         state=directory
   with_items:
     - "{{ sjs_home }}"
-    - "{{ sjs_jars_dir }}"
-    - "{{ sjs_filedao_dir }}"
+    - "{{ sjs_data_dir }}"
 
 - name: Copy AWS Crendentials
   copy: src=~/.aws/ dest=/aws
