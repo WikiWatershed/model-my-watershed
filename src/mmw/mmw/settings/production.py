@@ -95,7 +95,7 @@ PRIVATE_AWS_STORAGE_URL_PROTOCOL = 'https:'
 DRAW_TOOLS = [
     'SelectArea',   # Boundary Selector
     'Draw',         # Custom Area or 1 Sq Km stamp
-    'PlaceMarker',  # Delineate Watershed
+    #'PlaceMarker',  # Delineate Watershed
     'ResetDraw',
 ]
 
