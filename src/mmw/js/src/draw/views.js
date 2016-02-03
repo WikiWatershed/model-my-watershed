@@ -42,7 +42,7 @@ function actOnLayer(datum) {
 }
 
 function validateShape(shape) {
-    var area = coreUtils.changeOfAreaUnits(turfArea(shape), 'm2', 'km2'),
+    var area = coreUtils.changeOfAreaUnits(turfArea(shape), 'm<sup>2</sup>', 'km<sup>2</sup>'),
         d = new $.Deferred();
 
     if (area > MAX_AREA) {
