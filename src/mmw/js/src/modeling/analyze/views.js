@@ -194,7 +194,7 @@ var TableRowView = Marionette.ItemView.extend({
             // Convert coverage to percentage for display.
             coveragePct: (this.model.get('coverage') * 100),
             // Scale the area to display units.
-            scaledArea: utils.changeOfAreaUnits(area, 'm2', units)
+            scaledArea: utils.changeOfAreaUnits(area, 'm<sup>2</sup>', units)
         };
     }
 });
