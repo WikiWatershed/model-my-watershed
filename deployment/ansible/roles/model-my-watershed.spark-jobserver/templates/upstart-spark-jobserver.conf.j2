@@ -21,18 +21,12 @@ exec /usr/bin/docker run \
   {% endif -%}
   --volume {{ sjs_home }}/spark-jobserver.conf:{{ sjs_home }}/spark-jobserver.conf \
   --volume {{ sjs_home }}/log4j.properties:{{ sjs_home }}/log4j.properties \
+  --volume {{ geop_home }}:{{ geop_home }} \
   --volume {{ sjs_data_dir }}:{{ sjs_data_dir }} \
-  {% for k,v in app_config.items() -%}
-  --env {{ k }}={{ v }} \
-  {% endfor -%}
   --log-driver syslog \
   {{ sjs_container_image }} --driver-memory {{ sjs_driver_memory }}
 
-post-start script
-  while ! nc -w0 {{ sjs_host }} {{ sjs_port }}; do sleep 1; done
-end script
-
 post-stop script
-  /usr/bin/docker kill spark-jobserver
-  /usr/bin/docker rm spark-jobserver
+  /usr/bin/docker kill spark-jobserver || true
+  /usr/bin/docker rm spark-jobserver || true
 end script
