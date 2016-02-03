@@ -10,6 +10,10 @@ spark.jobserver {
     rootdir = {{ sjs_data_dir }}
     jdbc.url = "jdbc:h2:file:/{{ sjs_data_dir }}/h2-db"
   }
+
+  job-jar-paths {
+    "geoprocessing-{{ geop_version }}" = {{ geop_home }}/mmw-geoprocessing-{{ geop_version }}.jar
+  }
 }
 
 spark.contexts {
