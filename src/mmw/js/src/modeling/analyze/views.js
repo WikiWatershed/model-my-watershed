@@ -162,7 +162,6 @@ var TabContentView = Marionette.LayoutView.extend({
         this.tableRegion.show(new TableView({
             units: units,
             model: new coreModels.GeoModel({
-                units: (units === 'km2') ? 'km<sup>2</sup>' : 'm<sup>2</sup>',
                 place: App.map.get('areaOfInterestName'),
                 shape: App.map.get('areaOfInterest')
             }),
@@ -205,6 +204,11 @@ var TableView = Marionette.CompositeView.extend({
     childViewOptions: function() {
         return {
             units: this.options.units
+        };
+    },
+    templateHelpers: function() {
+        return {
+            headerUnits: this.options.units
         };
     },
     childViewContainer: 'tbody',
