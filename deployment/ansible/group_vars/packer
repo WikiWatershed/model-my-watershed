@@ -1,6 +1,9 @@
 ---
 django_settings_module: "mmw.settings.production"
 
+itsi_base_url: ""
+itsi_secret_key: ""
+
 postgresql_username: "modelmywatershed"
 postgresql_database: "modelmywatershed"
 
@@ -16,6 +19,7 @@ relp_host: "monitoring.service.mmw.internal"
 graphite_host: "monitoring.service.mmw.internal"
 statsite_host: "monitoring.service.mmw.internal"
 
+tiler_host: ""
 tilecache_bucket_name: ""
 
 stack_type: "Packer"
