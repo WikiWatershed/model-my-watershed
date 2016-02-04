@@ -111,11 +111,11 @@ var ChartView = Marionette.ItemView.extend({
                 labelDisplayNames = [''];
                 this.$el.addClass('current-conditions');
             } else if (this.scenario.get('is_current_conditions')) {
-                labelNames = ['pc_unmodified', 'unmodified'];
-                labelDisplayNames = ['100% Forest', 'Current Conditions'];
+                labelNames = ['unmodified'];
+                labelDisplayNames = ['Current Conditions'];
             } else {
-                labelNames = ['unmodified', 'modified'];
-                labelDisplayNames = ['Current Conditions', 'Modified'];
+                labelNames = ['modified'];
+                labelDisplayNames = ['Modified'];
             }
 
             data = getData(result, seriesNames, seriesDisplayNames,
