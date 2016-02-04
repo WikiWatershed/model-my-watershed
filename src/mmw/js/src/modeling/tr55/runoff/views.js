@@ -42,7 +42,6 @@ var ResultView = Marionette.LayoutView.extend({
 
             if (!this.compareMode) {
                 this.tableRegion.show(new TableView({
-                    scenario: this.scenario,
                     model: this.model,
                     aoiVolumeModel: aoiVolumeModel
                 }));
@@ -152,48 +151,33 @@ var TableView = Marionette.CompositeView.extend({
         { name: 'inf', display: 'Infiltration' }
     ],
 
-    initialize: function(options) {
+    initialize: function() {
         this.aoiVolumeModel = this.options.aoiVolumeModel;
         this.tr55Results = this.model.get('result');
 
-        this.collection = this.formatData(options.scenario);
+        this.collection = this.formatData();
     },
 
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
     },
 
-    formatData: function(scenario) {
+    formatData: function() {
         // The TR55 results should be broken down into:
-        // Scenario | Runoff Partition | Depth | Volume
-        var collection = new Backbone.Collection(),
-            // If not Current Conditions, match the chart label by calling
-            // the scenario "modified"
-            label = 'Modified';
+        // Runoff Partition | Depth | Volume
+        var collection = new Backbone.Collection();
 
-        // Special cases:  100% Forest may exist as pc_unmodified if scenario
-        // is_current_conditions, otherwise we also want to include unmodified
-        // which is the value of `Current Conditions`.
-        if (scenario.get('is_current_conditions')) {
-            collection.add(this.makeRowsForScenario('pc_unmodified', '100% Forest'));
-            label = scenario.get('name');
-        } else {
-            collection.add(this.makeRowsForScenario('unmodified', 'Current Conditions'));
-        }
-
-        collection.add(this.makeRowsForScenario('modified', label));
+        collection.add(this.makeRowsForScenario('modified'));
 
         return collection;
     },
 
-    makeRowsForScenario: function(runoffKey, scenarioName) {
+    makeRowsForScenario: function(runoffKey) {
         var self = this,
             runoffPartition = this.tr55Results[runoffKey];
 
         return _.map(this.runoffTypes, function(runoffType) {
-            return _.extend(self.getRunoffTypeValue(runoffPartition, runoffType), {
-                scenario: scenarioName
-            });
+            return _.extend(self.getRunoffTypeValue(runoffPartition, runoffType));
         });
     },
 
