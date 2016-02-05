@@ -11,6 +11,7 @@ var $ = require('jquery'),
     windowTmpl = require('./templates/window.html'),
     messageTmpl = require('./templates/message.html'),
     detailsTmpl = require('../templates/resultsDetails.html'),
+    aoiHeaderTmpl = require('./templates/aoiHeader.html'),
     tableTmpl = require('./templates/table.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
     tabPanelTmpl = require('../templates/resultsTabPanel.html'),
@@ -148,6 +149,7 @@ var TabContentView = Marionette.LayoutView.extend({
         role: 'tabpanel'
     },
     regions: {
+        aoiRegion: '.analyze-aoi-region',
         tableRegion: '.analyze-table-region',
         chartRegion: '.analyze-chart-region'
     },
@@ -159,12 +161,15 @@ var TabContentView = Marionette.LayoutView.extend({
                 new coreModels.LandUseCensusCollection(categories) :
                 new coreModels.SoilCensusCollection(categories);
 
-        this.tableRegion.show(new TableView({
-            units: units,
+        this.aoiRegion.show(new AoiView({
             model: new coreModels.GeoModel({
                 place: App.map.get('areaOfInterestName'),
                 shape: App.map.get('areaOfInterest')
-            }),
+            })
+        }));
+
+        this.tableRegion.show(new TableView({
+            units: units,
             collection: census
         }));
 
@@ -181,6 +186,10 @@ var TabContentsView = Marionette.CollectionView.extend({
     onRender: function() {
         this.$el.find('.tab-pane:first').addClass('active');
     }
+});
+
+var AoiView = Marionette.ItemView.extend({
+    template: aoiHeaderTmpl
 });
 
 var TableRowView = Marionette.ItemView.extend({
