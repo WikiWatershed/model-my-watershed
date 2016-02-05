@@ -40,7 +40,7 @@
     top: $height-lg * 2 + $toolbar-height;
     right: $sidebar-width;
     @media(min-width: 1040px) {
-      right: 540px !important;
+      right: 485px !important;
     }
   }
   // Sets map to correct container size for sidebar.
@@ -48,6 +48,10 @@
     bottom: 0 !important;
   }
 
+  // Sets map to correct container size for no sidebar
+  &.hidden-sidebar {
+    right: 0 !important;
+  }
   .compare-scenarios-container & {
     top: 0;
   }
@@ -89,6 +93,10 @@
     float: right;
 }
 
+.leaflet-top {
+  top: 10px;
+}
+
 .leaflet-control-layers-expanded {
   padding: 0;
   background-color: transparent;
@@ -104,8 +112,8 @@
     margin-right: 50px;
     display: none;
     position: absolute;
-    top: 10px;
-    right: 0px;
+    top: 120px;
+    left: 60px;
     // Be as tall as the map container,
     // minus some space for the attribution
     height: 83%;
