@@ -2,21 +2,21 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
-    Marionette = require('../../../shim/backbone.marionette'),
-    App = require('../../app'),
+    Marionette = require('../../shim/backbone.marionette'),
+    App = require('../app'),
     models = require('./models'),
-    coreModels = require('../../core/models'),
-    chart = require('../../core/chart'),
-    utils = require('../../core/utils'),
+    coreModels = require('../core/models'),
+    chart = require('../core/chart'),
+    utils = require('../core/utils'),
     windowTmpl = require('./templates/window.html'),
     messageTmpl = require('./templates/message.html'),
-    detailsTmpl = require('../templates/resultsDetails.html'),
+    detailsTmpl = require('../modeling/templates/resultsDetails.html'),
     aoiHeaderTmpl = require('./templates/aoiHeader.html'),
     tableTmpl = require('./templates/table.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
-    tabPanelTmpl = require('../templates/resultsTabPanel.html'),
+    tabPanelTmpl = require('../modeling/templates/resultsTabPanel.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
-    barChartTmpl = require('../../core/templates/barChart.html');
+    barChartTmpl = require('../core/templates/barChart.html');
 
 var AnalyzeWindow = Marionette.LayoutView.extend({
     template: windowTmpl,
