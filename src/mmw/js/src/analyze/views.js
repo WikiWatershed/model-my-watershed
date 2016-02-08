@@ -16,7 +16,60 @@ var $ = require('jquery'),
     tableRowTmpl = require('./templates/tableRow.html'),
     tabPanelTmpl = require('../modeling/templates/resultsTabPanel.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
-    barChartTmpl = require('../core/templates/barChart.html');
+    barChartTmpl = require('../core/templates/barChart.html'),
+    resultsWindowTmpl = require('./templates/resultsWindow.html');
+
+var ResultsView = Marionette.LayoutView.extend({
+    id: 'model-output-wrapper',
+    className: 'analyze',
+    tagName: 'div',
+    template: resultsWindowTmpl,
+
+    regions: {
+        analyzeRegion: '#analyze-tab-contents'
+    },
+
+    onShow: function() {
+        this.showDetailsRegion();
+    },
+
+    onRender: function() {
+        this.$el.find('.tab-pane:first').addClass('active');
+    },
+
+    showDetailsRegion: function() {
+        this.analyzeRegion.show(new AnalyzeWindow({
+            model: this.model
+        }));
+    },
+
+    transitionInCss: {
+        height: '0%'
+    },
+
+    animateIn: function(fitToBounds) {
+        var self = this,
+            fit = _.isUndefined(fitToBounds) ? true : fitToBounds;
+
+        this.$el.animate({ width: '400px' }, 200, function() {
+            App.map.setNoHeaderSidebarSize(fit);
+            self.trigger('animateIn');
+        });
+    },
+
+    animateOut: function(fitToBounds) {
+        var self = this,
+            fit = _.isUndefined(fitToBounds) ? true : fitToBounds;
+
+        // Change map to full size first so there isn't empty space when
+        // results window animates out
+        App.map.setDoubleHeaderSmallFooterSize(fit);
+
+        this.$el.animate({ width: '0px' }, 200, function() {
+            self.trigger('animateOut');
+        });
+    }
+});
 
 var AnalyzeWindow = Marionette.LayoutView.extend({
     template: windowTmpl,
@@ -271,6 +324,7 @@ var ChartView = Marionette.ItemView.extend({
 });
 
 module.exports = {
+    ResultsView: ResultsView,
     AnalyzeWindow: AnalyzeWindow,
     DetailsView: DetailsView
 };

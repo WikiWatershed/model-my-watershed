@@ -654,7 +654,7 @@ var ResultsView = Marionette.LayoutView.extend({
             this.lock.resolve();
         }
 
-        this.$el.find('.tab-pane:first').addClass('active');
+        this.$el.find('.tab-pane:last').addClass('active');
     },
 
     showDetailsRegion: function() {
