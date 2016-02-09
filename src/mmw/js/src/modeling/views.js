@@ -660,10 +660,12 @@ var ResultsView = Marionette.LayoutView.extend({
     showDetailsRegion: function() {
         var scenarios = this.model.get('scenarios'),
             scenario = scenarios.getActiveScenario(),
-            aoi = JSON.stringify(App.map.get('areaOfInterest'));
+            aoi = JSON.stringify(App.map.get('areaOfInterest')),
+            analyzeModel = App.analyzeModel !== undefined ? App.analyzeModel :
+                            createTaskModel(aoi);
 
         this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
-            model: createTaskModel(aoi)
+            model: analyzeModel
         }));
 
         if (scenario) {
