@@ -30,7 +30,7 @@ elasticsearch_cluster_name: "logstash"
 
 nodejs_npm_version: 2.1.17
 
-java_version: "7u91-*"
+java_version: "7u95-*"
 
 docker_version: "1.9.*"
 docker_py_version: "1.2.3"
