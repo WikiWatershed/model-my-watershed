@@ -81,7 +81,7 @@ function checkTable(data) {
 }
 
 function checkTableHeader(name) {
-    var expectedHeaderLabels = ['Type', 'Area (m<sup>2</sup>)', 'Coverage (%)'];
+    var expectedHeaderLabels = ['Type', 'Area (m2)', 'Coverage (%)'];
     var headerLabels = $('#' + name + ' table thead tr th').map(function() {
         return $(this).text();
     }).get();
