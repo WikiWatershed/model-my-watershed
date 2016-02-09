@@ -128,7 +128,7 @@ var ChartView = Marionette.ItemView.extend({
                 disableToggle: true,
                 margin: this.compareMode ?
                     {top: 20, right: 0, bottom: 40, left: 60} :
-                    {top: 0, right: 0, bottom: 40, left: 200}
+                    {top: 0, right: 0, bottom: 40, left: 150}
             };
 
             chart.renderVerticalBarChart(chartEl, data, chartOptions);

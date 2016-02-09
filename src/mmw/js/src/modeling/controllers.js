@@ -11,6 +11,7 @@ var $ = require('jquery'),
 
 var ModelingController = {
     projectPrepare: function(projectId) {
+        App.rootView.showCollapsable();
         if (!projectId && !App.map.get('areaOfInterest')) {
             router.navigate('', { trigger: true });
             return false;
@@ -185,6 +186,7 @@ var ModelingController = {
     },
 
     projectCleanUp: function() {
+        App.rootView.hideCollapsable();
         if (App.currentProject) {
             var scenarios = App.currentProject.get('scenarios');
 
