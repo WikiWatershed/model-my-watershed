@@ -5,12 +5,12 @@ require('../core/setup');
 var _ = require('lodash'),
     $ = require('jquery'),
     assert = require('chai').assert,
-    Marionette = require('../../../shim/backbone.marionette'),
+    Marionette = require('../../shim/backbone.marionette'),
     sinon = require('sinon'),
     models = require('./models'),
     views = require('./views'),
-    App = require('../../app'),
-    testUtils = require('../../core/testUtils');
+    App = require('../app'),
+    testUtils = require('../core/testUtils');
 
 var sandboxId = 'sandbox',
     sandboxSelector = '#' + sandboxId,
@@ -81,7 +81,7 @@ function checkTable(data) {
 }
 
 function checkTableHeader(name) {
-    var expectedHeaderLabels = ['Type', 'Area (m<sup>2</sup>)', 'Coverage (%)'];
+    var expectedHeaderLabels = ['Type', 'Area (m2)', 'Coverage (%)'];
     var headerLabels = $('#' + name + ' table thead tr th').map(function() {
         return $(this).text();
     }).get();

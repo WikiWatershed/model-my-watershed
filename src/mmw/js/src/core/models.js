@@ -72,6 +72,11 @@ var MapModel = Backbone.Model.extend({
         this._setSizeOptions({ sidebar: true  }, { sidebar: true }, fit);
     },
 
+    setNoHeaderSidebarSize: function(fit) {
+        var noHeader = true;
+        this._setSizeOptions({ sidebar: true  }, { sidebar: true }, fit, noHeader);
+    },
+
     setDrawSize: function(fit) {
         this._setSizeOptions({ single: true }, { min: true }, fit);
     },
@@ -84,8 +89,8 @@ var MapModel = Backbone.Model.extend({
         this._setSizeOptions({ single: true  }, { large: true }, fit);
     },
 
-    _setSizeOptions: function(top, bottom, fit) {
-        this.set('size', { top: top, bottom: bottom, fit: !!fit });
+    _setSizeOptions: function(top, bottom, fit, noHeader) {
+        this.set('size', { top: top, bottom: bottom, fit: !!fit, noHeader: noHeader });
     }
 
 });

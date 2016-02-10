@@ -1,8 +1,8 @@
 "use strict";
 
-var Backbone = require('../../../shim/backbone'),
+var Backbone = require('../../shim/backbone'),
     _ = require('lodash'),
-    coreModels = require('../../core/models');
+    coreModels = require('../core/models');
 
 var LayerModel = Backbone.Model.extend({});
 

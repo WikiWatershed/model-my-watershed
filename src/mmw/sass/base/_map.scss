@@ -43,6 +43,15 @@
       right: 485px !important;
     }
   }
+  // Sets map to correct container size for sidebar
+  // with no header.
+  &.map-container-top-sidebar-no-header {
+    top: $height-lg;
+    right: $sidebar-width;
+    @media(min-width: 1040px) {
+      right: 485px !important;
+    }
+  }
   // Sets map to correct container size for sidebar.
   &.map-container-bottom-sidebar {
     bottom: 0 !important;

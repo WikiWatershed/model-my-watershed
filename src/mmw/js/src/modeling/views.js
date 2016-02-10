@@ -7,8 +7,8 @@
     settings = require('../core/settings'),
     models = require('./models'),
     controls = require('./controls'),
-    analyzeViews = require('./analyze/views.js'),
-    analyzeModels = require('./analyze/models.js'),
+    analyzeViews = require('../analyze/views.js'),
+    analyzeModels = require('../analyze/models.js'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
@@ -654,16 +654,18 @@ var ResultsView = Marionette.LayoutView.extend({
             this.lock.resolve();
         }
 
-        this.$el.find('.tab-pane:first').addClass('active');
+        this.$el.find('.tab-pane:last').addClass('active');
     },
 
     showDetailsRegion: function() {
         var scenarios = this.model.get('scenarios'),
             scenario = scenarios.getActiveScenario(),
-            aoi = JSON.stringify(App.map.get('areaOfInterest'));
+            aoi = JSON.stringify(App.map.get('areaOfInterest')),
+            analyzeModel = App.analyzeModel !== undefined ? App.analyzeModel :
+                            createTaskModel(aoi);
 
         this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
-            model: createTaskModel(aoi)
+            model: analyzeModel
         }));
 
         if (scenario) {

@@ -38,8 +38,8 @@ var DrawController = {
                     App: App,
                     model: new coreModels.AreaOfInterestModel({
                         can_go_back: false,
-                        next_label: 'Analyze & Model',
-                        url: 'project',
+                        next_label: 'Analyze',
+                        url: 'analyze',
                         shape: App.map.get('areaOfInterest'),
                         place: App.map.get('areaOfInterestName')
                     })

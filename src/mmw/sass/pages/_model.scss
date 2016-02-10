@@ -18,6 +18,10 @@
     transform: translateX(100%);
   }
 
+  &.analyze {
+    top: $height-lg;
+  }
+
   .title-row {
     background-color: $ui-light;
     color: $ui-secondary;
