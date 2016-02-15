@@ -13,7 +13,6 @@
       border-radius: 4px;
       box-shadow: -1px 0 5px $black-65;
       cursor: pointer;
-      transform: matrix(0,-1,1,0,-63,70);
     }
 
     &:focus {
@@ -73,4 +72,8 @@
       background:$paper;
       border: $paper;
     }
+}
+
+.opacity_slider_control {
+  transform: matrix(0,-1,1,0,-62,70);
 }
