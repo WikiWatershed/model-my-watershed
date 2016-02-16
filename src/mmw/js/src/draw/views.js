@@ -42,7 +42,7 @@ function actOnLayer(datum) {
 }
 
 function validateShape(shape) {
-    var area = coreUtils.changeOfAreaUnits(turfArea(shape), 'm2', 'km2'),
+    var area = coreUtils.changeOfAreaUnits(turfArea(shape), 'm<sup>2</sup>', 'km<sup>2</sup>'),
         d = new $.Deferred();
 
     if (area > MAX_AREA) {
@@ -264,7 +264,7 @@ var DrawView = Marionette.ItemView.extend({
             .then(validateShape)
             .then(function(shape) {
                 addLayer(shape);
-                navigateToProject();
+                navigateToAnalyze();
             }).fail(function() {
                 revertLayer();
             }).always(function() {
@@ -310,7 +310,7 @@ var DrawView = Marionette.ItemView.extend({
             });
 
             addLayer(box, '1 Square Km');
-            navigateToProject();
+            navigateToAnalyze();
         }).fail(function() {
             revertLayer();
         }).always(function() {
@@ -413,7 +413,7 @@ var WatershedDelineationView= Marionette.ItemView.extend({
             .done(validateShape)
             .done(function(shape) {
                 addLayer(shape, itemName);
-                navigateToProject();
+                navigateToAnalyze();
             })
             .fail(function() {
                 revertLayer();
@@ -474,7 +474,7 @@ function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
             .then(function(shape) {
                 addLayer(shape, shapeName, layerName);
                 clearBoundaryLayer(model);
-                navigateToProject();
+                navigateToAnalyze();
                 deferred.resolve();
             }).fail(function() {
                 console.log('Shape endpoint failed');
@@ -541,8 +541,8 @@ function addLayer(shape, name, label) {
     });
 }
 
-function navigateToProject() {
-    router.navigate('project', { trigger: true });
+function navigateToAnalyze() {
+    router.navigate('analyze', { trigger: true });
 }
 
 module.exports = {

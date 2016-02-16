@@ -1,13 +1,8 @@
-<div>
-    <h2>{{ place }}</h2>
-    <strong>Total Area</strong> <span class="right">{{ area|round|toLocaleString }} {{ units }}</span>
-</div>
-
 <table class="table custom-hover" data-toggle="table">
     <thead>
         <tr>
             <th data-sortable="true">Type</th>
-            <th class="text-right" data-sortable="true" data-sorter="window.numericSort">Area ({{ units }})</th>
+            <th class="text-right" data-sortable="true" data-sorter="window.numericSort">Area ({{ headerUnits }})</th>
             <th class="text-right" data-sortable="true" data-sorter="window.numericSort">Coverage (%)</th>
         </tr>
     </thead>

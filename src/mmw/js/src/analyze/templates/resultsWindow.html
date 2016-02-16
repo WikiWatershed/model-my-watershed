@@ -1,15 +1,19 @@
 <div class="sidebar-tab-header" role="tabpanel">
     <ul class="nav nav-tabs" role="tablist">
-        <li role="presentation">
+        <li class="active" role="presentation">
             <a aria-controls="home" aria-expanded="false"
                data-toggle="tab" href="#analyze-tab-contents" role="tab">
                 <div> Analyze </div>
             </a>
         </li>
-        <li class="active" role="presentation">
-            <a aria-controls="home" aria-expanded="true"
-               data-toggle="tab" href="#modeling-tab-contents" role="tab">
-                <div> Model </div>
+        <li>
+            <a aria-controls="home" aria-expanded="false">
+                <button type="button" class="btn btn-lg" data-url="/">
+                    Back
+                </button>
+                <button type="button" class="btn btn-lg btn-active" data-url="/project">
+                    Model
+                </button>
             </a>
         </li>
     </ul>
@@ -18,6 +22,5 @@
 <div class="tab-contents-region">
     <div class="tab-content">
         <div role="tabpanel" id="analyze-tab-contents" class="tab-pane"></div>
-        <div role="tabpanel" id="modeling-tab-contents" class="tab-pane"></div>
     </div>
 </div>

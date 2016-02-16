@@ -35,7 +35,7 @@ var App = new Marionette.Application({
             App.currentProject.set('needs_reset', needs);
         });
 
-        this.rootView = new views.RootView();
+        this.rootView = new views.RootView({app: this});
         this.user = new userModels.UserModel({});
 
         this.header = new views.HeaderView({

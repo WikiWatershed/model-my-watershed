@@ -2,20 +2,74 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
-    Marionette = require('../../../shim/backbone.marionette'),
-    App = require('../../app'),
+    Marionette = require('../../shim/backbone.marionette'),
+    App = require('../app'),
     models = require('./models'),
-    coreModels = require('../../core/models'),
-    chart = require('../../core/chart'),
-    utils = require('../../core/utils'),
+    coreModels = require('../core/models'),
+    chart = require('../core/chart'),
+    utils = require('../core/utils'),
     windowTmpl = require('./templates/window.html'),
     messageTmpl = require('./templates/message.html'),
-    detailsTmpl = require('../templates/resultsDetails.html'),
+    detailsTmpl = require('../modeling/templates/resultsDetails.html'),
+    aoiHeaderTmpl = require('./templates/aoiHeader.html'),
     tableTmpl = require('./templates/table.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
-    tabPanelTmpl = require('../templates/resultsTabPanel.html'),
+    tabPanelTmpl = require('../modeling/templates/resultsTabPanel.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
-    barChartTmpl = require('../../core/templates/barChart.html');
+    barChartTmpl = require('../core/templates/barChart.html'),
+    resultsWindowTmpl = require('./templates/resultsWindow.html');
+
+var ResultsView = Marionette.LayoutView.extend({
+    id: 'model-output-wrapper',
+    className: 'analyze',
+    tagName: 'div',
+    template: resultsWindowTmpl,
+
+    regions: {
+        analyzeRegion: '#analyze-tab-contents'
+    },
+
+    onShow: function() {
+        this.showDetailsRegion();
+    },
+
+    onRender: function() {
+        this.$el.find('.tab-pane:first').addClass('active');
+    },
+
+    showDetailsRegion: function() {
+        this.analyzeRegion.show(new AnalyzeWindow({
+            model: this.model
+        }));
+    },
+
+    transitionInCss: {
+        height: '0%'
+    },
+
+    animateIn: function(fitToBounds) {
+        var self = this,
+            fit = _.isUndefined(fitToBounds) ? true : fitToBounds;
+
+        this.$el.animate({ width: '400px' }, 200, function() {
+            App.map.setNoHeaderSidebarSize(fit);
+            self.trigger('animateIn');
+        });
+    },
+
+    animateOut: function(fitToBounds) {
+        var self = this,
+            fit = _.isUndefined(fitToBounds) ? true : fitToBounds;
+
+        // Change map to full size first so there isn't empty space when
+        // results window animates out
+        App.map.setDoubleHeaderSmallFooterSize(fit);
+
+        this.$el.animate({ width: '0px' }, 200, function() {
+            self.trigger('animateOut');
+        });
+    }
+});
 
 var AnalyzeWindow = Marionette.LayoutView.extend({
     template: windowTmpl,
@@ -148,6 +202,7 @@ var TabContentView = Marionette.LayoutView.extend({
         role: 'tabpanel'
     },
     regions: {
+        aoiRegion: '.analyze-aoi-region',
         tableRegion: '.analyze-table-region',
         chartRegion: '.analyze-chart-region'
     },
@@ -159,13 +214,15 @@ var TabContentView = Marionette.LayoutView.extend({
                 new coreModels.LandUseCensusCollection(categories) :
                 new coreModels.SoilCensusCollection(categories);
 
-        this.tableRegion.show(new TableView({
-            units: units,
+        this.aoiRegion.show(new AoiView({
             model: new coreModels.GeoModel({
-                units: (units === 'km2') ? 'km<sup>2</sup>' : 'm<sup>2</sup>',
                 place: App.map.get('areaOfInterestName'),
                 shape: App.map.get('areaOfInterest')
-            }),
+            })
+        }));
+
+        this.tableRegion.show(new TableView({
+            units: units,
             collection: census
         }));
 
@@ -184,6 +241,10 @@ var TabContentsView = Marionette.CollectionView.extend({
     }
 });
 
+var AoiView = Marionette.ItemView.extend({
+    template: aoiHeaderTmpl
+});
+
 var TableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
     template: tableRowTmpl,
@@ -195,7 +256,7 @@ var TableRowView = Marionette.ItemView.extend({
             // Convert coverage to percentage for display.
             coveragePct: (this.model.get('coverage') * 100),
             // Scale the area to display units.
-            scaledArea: utils.changeOfAreaUnits(area, 'm2', units)
+            scaledArea: utils.changeOfAreaUnits(area, 'm<sup>2</sup>', units)
         };
     }
 });
@@ -205,6 +266,11 @@ var TableView = Marionette.CompositeView.extend({
     childViewOptions: function() {
         return {
             units: this.options.units
+        };
+    },
+    templateHelpers: function() {
+        return {
+            headerUnits: this.options.units
         };
     },
     childViewContainer: 'tbody',
@@ -258,6 +324,7 @@ var ChartView = Marionette.ItemView.extend({
 });
 
 module.exports = {
+    ResultsView: ResultsView,
     AnalyzeWindow: AnalyzeWindow,
     DetailsView: DetailsView
 };

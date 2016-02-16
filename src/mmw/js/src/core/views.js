@@ -26,6 +26,11 @@ require('leaflet-plugins/layer/tile/Google');
 
 var RootView = Marionette.LayoutView.extend({
     el: 'body',
+    ui: {
+        collapse: '.tab-content-toggle',
+        mapContainer: '.map-container',
+        sidebar: '#sidebar'
+    },
     regions: {
         mainRegion: '#container',
         geocodeSearchRegion: '#geocode-search-region',
@@ -33,9 +38,38 @@ var RootView = Marionette.LayoutView.extend({
         subHeaderRegion: '#sub-header',
         sidebarRegion: {
             regionClass: TransitionRegion,
-            selector: '#sidebar'
+            selector: '#sidebar-content'
         },
         footerRegion: '#footer'
+    },
+    events: {
+        'click @ui.collapse': 'collapseSidebar',
+        'transitionend @ui.mapContainer': 'onMapResized'
+    },
+
+    collapseSidebar: function() {
+        // Toggle appropriate classes to show and hide
+        // the sidebar / make the map full/partial width
+        this.$el.find(this.ui.sidebar).toggleClass('hidden-sidebar');
+        this.$el.find(this.ui.mapContainer).toggleClass('hidden-sidebar');
+    },
+
+    showCollapsable: function() {
+        $(this.ui.collapse).show();
+    },
+
+    hideCollapsable: function() {
+        $(this.ui.collapse).hide();
+    },
+
+    onMapResized: function(e) {
+        // Many `transitionend` events are fired, but you can filter
+        // on the property name of the real event to find the correct
+        // transition to follow
+        if (e.originalEvent.propertyName !== 'right') {
+            return;
+        }
+        this.options.app.getMapView().resetMapSize();
     }
 });
 
@@ -121,7 +155,7 @@ var HeaderView = Marionette.ItemView.extend({
 // Init the locate plugin button and add it to the map.
 function addLocateMeButton(map, maxZoom, maxAge) {
     var locateOptions = {
-        position: 'topright',
+        position: 'topleft',
         metric: false,
         drawCircle: false,
         showPopup: false,
@@ -216,7 +250,7 @@ var MapView = Marionette.ItemView.extend({
         }
 
         if (options.addZoomControl) {
-            map.addControl(new L.Control.Zoom({position: 'topright'}));
+            map.addControl(new L.Control.Zoom({position: 'topleft'}));
         }
 
         var maxGeolocationAge = 60000;
@@ -227,7 +261,7 @@ var MapView = Marionette.ItemView.extend({
         if (options.addLayerSelector) {
             var layerOptions = {
                 autoZIndex: false,
-                position: 'topright',
+                position: 'topleft',
                 collapsed: false
             };
 
@@ -241,7 +275,7 @@ var MapView = Marionette.ItemView.extend({
         if (options.addStreamControl) {
             this.layerControl = new StreamSliderControl({
                 autoZIndex: false,
-                position: 'topright',
+                position: 'topleft',
                 collapsed: false
             }).addTo(map);
         }
@@ -387,7 +421,7 @@ var MapView = Marionette.ItemView.extend({
                     minZoom: 0});
                 leafletLayer = new L.TileLayer(tileUrl, layer);
                 if (layer.has_opacity_slider) {
-                    var slider = new OpacityControl();
+                    var slider = new OpacityControl({position: 'topleft'});
 
                     slider.setOpacityLayer(leafletLayer);
                     leafletLayer.slider = slider;
@@ -625,6 +659,7 @@ var MapView = Marionette.ItemView.extend({
         $container.toggleClass('map-container-top-sidebar', !!size.top.sidebar);
         $container.toggleClass('map-container-bottom-sidebar', !!size.top.sidebar);
 
+        $container.toggleClass('map-container-top-sidebar-no-header', !!size.noHeader);
 
         _.delay(function() {
             self._leafletMap.invalidateSize();
@@ -633,6 +668,11 @@ var MapView = Marionette.ItemView.extend({
                 self.fitToAoi();
             }
         }, 300);
+    },
+
+    resetMapSize: function() {
+        this._leafletMap.invalidateSize();
+        this.fitToAoi();
     },
 
     fitToAoi: function() {
