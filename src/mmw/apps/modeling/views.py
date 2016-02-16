@@ -158,13 +158,21 @@ def scenario(request, scen_id):
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
 def start_rwd(request, format=None):
+    """
+    Starts a job to run Rapid Watershed Delineation on a point-based location.
+    """
     user = request.user if request.user.is_authenticated() else None
     created = now()
     location = request.POST['location']
+
+    # Parse out the JS style T/F to a boolean
+    snappingParam = request.POST['snappingOn']
+    snapping = True if snappingParam == 'true' else False
+
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
 
-    task_list = _initiate_rwd_job_chain(location, job.id)
+    task_list = _initiate_rwd_job_chain(location, snapping, job.id)
 
     job.uuid = task_list.id
     job.save()
@@ -245,11 +253,11 @@ def _initiate_analyze_job_chain(area_of_interest, job_id, testing=False):
         .apply_async(link_error=save_job_error.s(job_id))
 
 
-def _initiate_rwd_job_chain(location, job_id, testing=False):
+def _initiate_rwd_job_chain(location, snapping, job_id, testing=False):
     exchange = MAGIC_EXCHANGE
     routing_key = choose_worker()
 
-    return chain(tasks.start_rwd_job.s(location)
+    return chain(tasks.start_rwd_job.s(location, snapping)
                  .set(exchange=exchange, routing_key=routing_key),
                  save_job_result.s(job_id, location)) \
         .apply_async(link_error=save_job_error.s(job_id))

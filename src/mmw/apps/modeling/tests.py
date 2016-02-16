@@ -144,24 +144,28 @@ class ExerciseGeoprocessing(TestCase):
                 "name": "land",
                 "categories": [
                     {
+                        "code": "woody_wetlands",
                         "nlcd": 90,
                         "type": "Woody Wetlands",
                         "coverage": 0.03213078618662748,
                         "area": 4373
                     },
                     {
+                        "code": "developed_med",
                         "nlcd": 23,
                         "type": "Developed, Medium Intensity",
                         "coverage": 0.057817781043350475,
                         "area": 7869
                     },
                     {
+                        "code": "barren_land",
                         "nlcd": 31,
                         "type": "Barren Land (Rock/Sand/Clay)",
                         "coverage": 0.0006024981631153563,
                         "area": 82
                     },
                     {
+                        "code": "developed_low",
                         "nlcd": 22,
                         "type": "Developed, Low Intensity",
                         "coverage": 0.19052902277736958,
@@ -174,18 +178,21 @@ class ExerciseGeoprocessing(TestCase):
                         'area': 0
                     },
                     {
+                        "code": "deciduous_forest",
                         "nlcd": 41,
                         "type": "Deciduous Forest",
                         "coverage": 0.20648052902277736,
                         "area": 28102
                     },
                     {
+                        "code": "open_water",
                         "nlcd": 11,
                         "type": "Open Water",
                         "coverage": 0.005349008082292432,
                         "area": 728
                     },
                     {
+                        "code": "mixed_forest",
                         "nlcd": 43,
                         "type": "Mixed Forest",
                         "coverage": 0.022299779573842764,
@@ -198,42 +205,49 @@ class ExerciseGeoprocessing(TestCase):
                         'area': 0
                     },
                     {
+                        "code": "developed_high",
                         "nlcd": 24,
                         "type": "Developed, High Intensity",
                         "coverage": 0.009639970609845701,
                         "area": 1312
                     },
                     {
+                        "code": "shrub",
                         "nlcd": 52,
                         "type": "Shrub/Scrub",
                         "coverage": 0.03096987509184423,
                         "area": 4215
                     },
                     {
+                        "code": "cultivated_crops",
                         "nlcd": 82,
                         "type": "Cultivated Crops",
                         "coverage": 0.005811903012490816,
                         "area": 791
                     },
                     {
+                        "code": "grassland",
                         "nlcd": 71,
                         "type": "Grassland/Herbaceous",
                         "coverage": 0.0014033798677443056,
                         "area": 191
                     },
                     {
+                        "code": "evergreen_forest",
                         "nlcd": 42,
                         "type": "Evergreen Forest",
                         "coverage": 0.020543717854518737,
                         "area": 2796
                     },
                     {
+                        "code": "developed_open",
                         "nlcd": 21,
                         "type": "Developed, Open Space",
                         "coverage": 0.3669654665686995,
                         "area": 49944
                     },
                     {
+                        "code": "pasture",
                         "nlcd": 81,
                         "type": "Pasture/Hay",
                         "coverage": 0.04945628214548126,
@@ -245,16 +259,19 @@ class ExerciseGeoprocessing(TestCase):
                 "name": "soil",
                 "categories": [
                     {
+                        "code": "b",
                         "type": "B - Moderate Infiltration",
                         "coverage": 0.25432770022042617,
                         "area": 34614
                     },
                     {
+                        "code": "a",
                         "type": "A - High Infiltration",
                         "coverage": 0.49510653930933135,
                         "area": 67384
                     },
                     {
+                        "code": "d",
                         "type": "D - Very Slow Infiltration",
                         "coverage": 0.2505657604702425,
                         "area": 34102

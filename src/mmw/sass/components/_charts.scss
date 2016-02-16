@@ -10,10 +10,10 @@
 .bar-chart {
   width: 100%;
   display: block;
-  height: 100%;
-  min-height: 300px;
+  height: 300px;
   vertical-align: baseline;
   vertical-align: bottom;
+  margin-bottom: 20px;
 
   .nv-bar {
     fill: $brand-primary;
@@ -33,8 +33,16 @@
   .nlcd-82 { fill: $nlcd-82; }
   .nlcd-90 { fill: $nlcd-90; }
 
+  .soil-a { fill: $soil-a; }
+  .soil-b { fill: $soil-b; }
+  .soil-c { fill: $soil-c; }
+  .soil-d { fill: $soil-d; }
+  .soil-ad { fill: $soil-ad; }
+  .soil-bd { fill: $soil-bd; }
+  .soil-cd { fill: $soil-cd; }
+
   svg {
-    width: 100%;
-    height: 100%;
+    width: 450px;
+    height: 300px;
   }
 }

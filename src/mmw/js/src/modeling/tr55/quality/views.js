@@ -4,6 +4,7 @@ var $ = require('jquery'),
     _ = require('underscore'),
     Backbone = require('../../../../shim/backbone'),
     Marionette = require('../../../../shim/backbone.marionette'),
+    AoiVolumeModel = require('../models').AoiVolumeModel,
     chart = require('../../../core/chart.js'),
     barChartTmpl = require('../../../core/templates/barChart.html'),
     resultTmpl = require('./templates/result.html'),
@@ -34,6 +35,9 @@ var ResultView = Marionette.LayoutView.extend({
 
     initialize: function(options) {
         this.compareMode = options.compareMode;
+        this.aoiVolumeModel = new AoiVolumeModel({
+            areaOfInterest: this.options.areaOfInterest
+        });
     },
 
     onShow: function() {
@@ -50,6 +54,7 @@ var ResultView = Marionette.LayoutView.extend({
                 );
 
                 this.tableRegion.show(new TableView({
+                    aoiVolumeModel: this.aoiVolumeModel,
                     collection: dataCollection
                 }));
 
@@ -64,12 +69,29 @@ var ResultView = Marionette.LayoutView.extend({
 
 var TableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
-    template: tableRowTmpl
+    template: tableRowTmpl,
+
+    templateHelpers: function() {
+        var load = this.model.get('load'),
+            runoff = this.model.get('runoff'),
+            adjustedRunoff = this.options.aoiVolumeModel.adjust(runoff),
+            concentration = adjustedRunoff ? load / adjustedRunoff : 0;
+
+        return {
+            concentration: concentration * 1000 // g -> mg
+        };
+    }
 });
 
 var TableView = Marionette.CompositeView.extend({
     childView: TableRowView,
     childViewContainer: 'tbody',
+    childViewOptions: function() {
+        return {
+            aoiVolumeModel: this.options.aoiVolumeModel
+        };
+    },
+
     template: tableTmpl,
 
     onAttach: function() {

@@ -93,6 +93,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     worker.vm.synced_folder ".", "/vagrant", disabled: true
     worker.vm.synced_folder "src/mmw", "/opt/app/"
 
+    if ENV["VAGRANT_ENV"].nil? || ENV["VAGRANT_ENV"] != "TEST"
+      worker.vm.synced_folder "/opt/rwd-data", "/opt/rwd-data"
+    end
+
     # Docker
     worker.vm.network "forwarded_port", {
       guest: 2375,

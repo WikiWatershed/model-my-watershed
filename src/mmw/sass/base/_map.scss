@@ -30,14 +30,37 @@
   &.map-container-bottom-3 {
     bottom: $location-description-height;
   }
-
   // Set bottom of map to full standard footer height.
   // Needs a more descriptive name.
   &.map-container-bottom-4 {
     bottom: $footer-height;
   }
+  // Sets map to correct container size for sidebar.
+  &.map-container-top-sidebar {
+    top: $height-lg * 2 + $toolbar-height;
+    right: $sidebar-width;
+    @media(min-width: 1040px) {
+      right: 485px !important;
+    }
+  }
+  // Sets map to correct container size for sidebar
+  // with no header.
+  &.map-container-top-sidebar-no-header {
+    top: $height-lg;
+    right: $sidebar-width;
+    @media(min-width: 1040px) {
+      right: 485px !important;
+    }
+  }
+  // Sets map to correct container size for sidebar.
+  &.map-container-bottom-sidebar {
+    bottom: 0 !important;
+  }
 
-
+  // Sets map to correct container size for no sidebar
+  &.hidden-sidebar {
+    right: 0 !important;
+  }
   .compare-scenarios-container & {
     top: 0;
   }
@@ -79,6 +102,10 @@
     float: right;
 }
 
+.leaflet-top {
+  top: 10px;
+}
+
 .leaflet-control-layers-expanded {
   padding: 0;
   background-color: transparent;
@@ -94,12 +121,12 @@
     margin-right: 50px;
     display: none;
     position: absolute;
-    top: 10px;
-    right: 0px;
+    top: 120px;
+    left: 60px;
     // Be as tall as the map container,
     // minus some space for the attribution
     height: 83%;
-    max-height: 340px;
+    max-height: 365px;
 
     h4 {
       font-size: 15px;

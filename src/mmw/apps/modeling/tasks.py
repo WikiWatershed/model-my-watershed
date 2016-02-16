@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+import requests
 from celery import shared_task
 import json
 import logging
@@ -19,25 +20,28 @@ KG_PER_POUND = 0.453592
 CM_PER_INCH = 2.54
 
 
-def run_rwd(location):
-    # TODO Replace this stub with a call to the real RWD code.
-
-    # Draw a diamond shape around location.
-    offset = 0.0005
-    return [
-        [location[0] + offset, location[1]],
-        [location[0], location[1] + offset],
-        [location[0] - offset, location[1]],
-        [location[0], location[1] - offset]
-    ]
-
-
 @shared_task
-def start_rwd_job(location):
-    print(location)
+def start_rwd_job(location, snapping):
+    """
+    Calls the Rapid Watershed Delineation endpoint
+    that is running in the Docker container, and returns
+    the response unless there is an out-of-watershed error
+    which raises an exception.
+    """
     location = json.loads(location)
+    rwd_url = 'http://localhost:5000/rwd/%f/%f' % (location[1], location[0])
 
-    return run_rwd(location)
+    # The Webserver defaults to enable snapping, uses 1 (true) 0 (false)
+    if not snapping:
+        rwd_url += '?snapping=0'
+
+    logger.debug('rwd request: %s' % rwd_url)
+
+    response_json = requests.get(rwd_url).json()
+    if 'error' in response_json:
+        raise Exception(response_json['error'])
+
+    return response_json
 
 
 @shared_task
@@ -149,7 +153,8 @@ def format_quality(model_output):
         measure, code = input
         return {
             'measure': measure,
-            'load': model_output['modified'][code] * KG_PER_POUND
+            'load': model_output['modified'][code] * KG_PER_POUND,
+            'runoff': model_output['modified']['runoff']  # Already CM
         }
 
     return map(fn, zip(measures, codes))
@@ -202,6 +207,19 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
     modification_censuses = (censuses[1:] if cached_aoi_census is None
                              else censuses[0:])
 
+    # Calculate total areas for each type modification
+    area_sums = {}
+    for piece in modification_pieces:
+        kind = piece['value']
+        area = piece['area']
+
+        if kind in area_sums:
+            area_sums[kind] += area
+        else:
+            area_sums[kind] = area
+
+    area_bmps = {k: v for k, v in area_sums.iteritems()}
+
     # The area of interest census
     aoi_census = cached_aoi_census if cached_aoi_census else censuses[0]
 
@@ -214,15 +232,19 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
     modifications = build_tr55_modification_input(modification_pieces,
                                                   modification_censuses)
     aoi_census['modifications'] = modifications
+    aoi_census['BMPs'] = area_bmps
 
     # Run the model under both current conditions and Pre-Columbian
     # conditions.
     try:
-        model_output = simulate_day(aoi_census, precip, cell_res=resolution)
+        model_output = simulate_day(aoi_census, precip,
+                                    cell_res=resolution)
+
         precolumbian_output = simulate_day(aoi_census,
                                            precip,
                                            cell_res=resolution,
                                            precolumbian=True)
+
         model_output['pc_unmodified'] = precolumbian_output['unmodified']
         model_output['pc_modified'] = precolumbian_output['modified']
         runoff = format_runoff(model_output)

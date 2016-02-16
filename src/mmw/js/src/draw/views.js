@@ -17,10 +17,10 @@ var $ = require('jquery'),
     selectTypeTmpl = require('./templates/selectType.html'),
     drawTmpl = require('./templates/draw.html'),
     resetDrawTmpl = require('./templates/reset.html'),
-    placeMarkerTmpl = require('./templates/placeMarker.html'),
+    delineationOptionsTmpl = require('./templates/delineationOptions.html'),
     settings = require('../core/settings');
 
-var MAX_AREA = 112700; // About the size of a large state
+var MAX_AREA = 112700; // About the size of a large state (in km^2)
 var codeToLayer = {}; // code to layer mapping
 
 function actOnUI(datum, bool) {
@@ -42,7 +42,7 @@ function actOnLayer(datum) {
 }
 
 function validateShape(shape) {
-    var area = coreUtils.changeOfAreaUnits(turfArea(shape), 'm2', 'km2'),
+    var area = coreUtils.changeOfAreaUnits(turfArea(shape), 'm<sup>2</sup>', 'km<sup>2</sup>'),
         d = new $.Deferred();
 
     if (area > MAX_AREA) {
@@ -69,7 +69,7 @@ var ToolbarView = Marionette.LayoutView.extend({
     regions: {
         selectTypeRegion: '#select-area-region',
         drawRegion: '#draw-region',
-        placeMarkerRegion: '#place-marker-region',
+        watershedDelineationRegion: '#place-marker-region',
         resetRegion: '#reset-draw-region',
         streamRegion: '#stream-slider-region'
     },
@@ -82,6 +82,7 @@ var ToolbarView = Marionette.LayoutView.extend({
         this.model.set('streamFeatureGroup', sfg);
         map.addLayer(ofg);
         map.addLayer(sfg);
+        this.rwdTaskModel = new models.RwdTaskModel();
     },
 
     onDestroy: function() {
@@ -107,13 +108,15 @@ var ToolbarView = Marionette.LayoutView.extend({
             }));
         }
         if (_.contains(draw_tools, 'PlaceMarker')) {
-            this.placeMarkerRegion.show(new PlaceMarkerView({
-                model: this.model
+            this.watershedDelineationRegion.show(new WatershedDelineationView({
+                model: this.model,
+                rwdTaskModel: this.rwdTaskModel
             }));
         }
         if (_.contains(draw_tools, 'ResetDraw')) {
             this.resetRegion.show(new ResetDrawView({
-                model: this.model
+                model: this.model,
+                rwdTaskModel: this.rwdTaskModel
             }));
         }
     }
@@ -316,8 +319,8 @@ var DrawView = Marionette.ItemView.extend({
     }
 });
 
-var PlaceMarkerView = Marionette.ItemView.extend({
-    template: placeMarkerTmpl,
+var WatershedDelineationView= Marionette.ItemView.extend({
+    template: delineationOptionsTmpl,
 
     ui: {
         items: '[data-shape-type]',
@@ -342,21 +345,23 @@ var PlaceMarkerView = Marionette.ItemView.extend({
         'change:pollError': 'render'
     },
 
-    initialize: function() {
-        this.rwdTaskModel = new models.RwdTaskModel();
+    initialize: function(options) {
+        this.rwdTaskModel = options.rwdTaskModel;
     },
 
     onItemClicked: function(e) {
         var self = this,
             map = App.getLeafletMap(),
-            itemName = $(e.currentTarget).text(),
+            $item = $(e.currentTarget),
+            itemName = $item.text(),
+            snappingOn = !!$item.data('snapping-on'),
             revertLayer = clearAoiLayer();
 
         this.model.set('pollError', false);
 
         this.model.disableTools();
         utils.placeMarker(map)
-            .then(function(latlng) {
+             .then(function(latlng) {
                 var point = L.marker(latlng).toGeoJSON(),
                     shape,
                     deferred = $.Deferred();
@@ -366,20 +371,18 @@ var PlaceMarkerView = Marionette.ItemView.extend({
                         self.model.set('polling', true);
                     },
 
-                    pollSuccess: function(results) {
-                        var latlngs = _.map(JSON.parse(results.result), function(latLng) {
-                            return L.latLng(latLng[0], latLng[1]);
-                        });
-                        shape = L.polygon(latlngs).toGeoJSON();
+                    pollSuccess: function(response) {
+                        shape = JSON.parse(response.result).features[0];
                         self.model.set('polling', false);
                         deferred.resolve(shape);
                     },
 
-                    pollFailure: function() {
+                    pollFailure: function(response) {
                         self.model.set({
                             pollError: true,
                             polling: false
                         });
+                        console.log(response.error);
                         deferred.reject();
                     },
 
@@ -395,10 +398,13 @@ var PlaceMarkerView = Marionette.ItemView.extend({
                         deferred.reject();
                     },
 
-                    postData: {'location': JSON.stringify([
-                        point.geometry.coordinates[1],
-                        point.geometry.coordinates[0]
-                    ])}
+                    postData: {
+                        'location': JSON.stringify([
+                            point.geometry.coordinates[1],
+                            point.geometry.coordinates[0]
+                        ]),
+                        'snappingOn': snappingOn
+                    }
                 };
 
                 self.rwdTaskModel.start(taskHelper);
@@ -411,7 +417,8 @@ var PlaceMarkerView = Marionette.ItemView.extend({
             })
             .fail(function() {
                 revertLayer();
-            }).always(function() {
+            })
+            .always(function() {
                 self.model.enableTools();
             });
     }
@@ -424,7 +431,18 @@ var ResetDrawView = Marionette.ItemView.extend({
 
     events: { 'click @ui.reset': 'resetDrawingState' },
 
+    initialize: function(options) {
+        this.rwdTaskModel = options.rwdTaskModel;
+    },
+
     resetDrawingState: function() {
+        this.rwdTaskModel.reset();
+        this.model.set({
+            polling: false,
+            pollError: false
+        });
+        this.model.enableTools();
+
         utils.cancelDrawing(App.getLeafletMap());
         clearAoiLayer();
         clearBoundaryLayer(this.model);

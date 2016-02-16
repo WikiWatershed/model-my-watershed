@@ -8,6 +8,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
 
+import os
+
 from boto.utils import get_instance_metadata
 
 from base import *  # NOQA
@@ -39,6 +41,20 @@ EMAIL_BACKEND = 'apps.core.mail.backends.boto_ses_mailer.EmailBackend'
 EMAIL_BOTO_CHECK_QUOTA = False
 DEFAULT_FROM_EMAIL = 'noreply@mmw.azavea.com'
 # END EMAIL CONFIGURATION
+
+# MIDDLEWARE CONFIGURATION
+MIDDLEWARE_CLASSES += (
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
+)
+# END MIDDLEWARE CONFIGURATION
+
+# ROLLBAR CONFIGURATION
+ROLLBAR = {
+    'access_token': get_env_setting('ROLLBAR_SERVER_SIDE_ACCESS_TOKEN'),
+    'environment': get_env_setting('MMW_STACK_TYPE'),
+    'root': os.getcwd(),
+}
+# END ROLLBAR CONFIGURATION
 
 # Turn off DRF GUI
 REST_FRAMEWORK = {
@@ -79,7 +95,7 @@ PRIVATE_AWS_STORAGE_URL_PROTOCOL = 'https:'
 DRAW_TOOLS = [
     'SelectArea',   # Boundary Selector
     'Draw',         # Custom Area or 1 Sq Km stamp
-    # 'PlaceMarker',  # Delineate Watershed
+    #'PlaceMarker',  # Delineate Watershed
     'ResetDraw',
 ]
 

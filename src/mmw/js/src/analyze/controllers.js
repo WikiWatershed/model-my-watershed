@@ -49,18 +49,19 @@ var AnalyzeController = {
 
     analyze: function() {
         var aoi = JSON.stringify(App.map.get('areaOfInterest')),
-            analyzeWindow = new views.AnalyzeWindow({
-                id: 'analyze-output-wrapper',
-                model: createTaskModel(aoi)
+            analyzeModel = createTaskModel(aoi),
+            analyzeResults = new views.ResultsView({
+                model: analyzeModel
             });
 
+        App.analyzeModel = analyzeModel;
         App.state.set('current_page_title', 'Geospatial Analysis');
 
-        App.rootView.footerRegion.show(analyzeWindow);
+        App.rootView.sidebarRegion.show(analyzeResults);
     },
 
     analyzeCleanUp: function() {
-        App.rootView.footerRegion.empty();
+        App.rootView.sidebarRegion.empty();
     }
 };
 

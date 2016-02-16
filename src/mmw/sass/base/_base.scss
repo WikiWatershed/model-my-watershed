@@ -1,5 +1,7 @@
 html {
   font-size: 18px;
+  height: 100%;
+  overflow: hidden;
 }
 
 @media (max-width: 400px) {
@@ -31,6 +33,18 @@ a {
 
 .row {
   margin: 0!important;
+}
+
+button.btn.tab-content-toggle {
+  position: absolute;
+  z-index: 1000;
+  top: 161px;
+  right: 10px;
+  display:none;
+
+  .hidden-sidebar & i {
+    transform: rotate(-180deg);
+  }
 }
 
 #footer {

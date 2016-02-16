@@ -65,7 +65,16 @@ var MapModel = Backbone.Model.extend({
     },
 
     setDoubleHeaderHalfFooterSize: function(fit) {
-        this._setSizeOptions({ double: true  }, { large: true }, fit);
+        this._setSizeOptions({ sidebar: true  }, { sidebar: true }, fit);
+    },
+
+    setDoubleHeaderSidebarSize: function(fit) {
+        this._setSizeOptions({ sidebar: true  }, { sidebar: true }, fit);
+    },
+
+    setNoHeaderSidebarSize: function(fit) {
+        var noHeader = true;
+        this._setSizeOptions({ sidebar: true  }, { sidebar: true }, fit, noHeader);
     },
 
     setDrawSize: function(fit) {
@@ -80,8 +89,8 @@ var MapModel = Backbone.Model.extend({
         this._setSizeOptions({ single: true  }, { large: true }, fit);
     },
 
-    _setSizeOptions: function(top, bottom, fit) {
-        this.set('size', { top: top, bottom: bottom, fit: !!fit });
+    _setSizeOptions: function(top, bottom, fit, noHeader) {
+        this.set('size', { top: top, bottom: bottom, fit: !!fit, noHeader: noHeader });
     }
 
 });
@@ -146,7 +155,7 @@ var TaskModel = Backbone.Model.extend({
                         if (error && error.cancelledJob) {
                             console.log('Job ' + error.cancelledJob + ' was cancelled.');
                         } else {
-                            taskHelper.pollFailure();
+                            taskHelper.pollFailure(error);
                         }
                     })
                     .always(taskHelper.pollEnd);
@@ -209,6 +218,10 @@ var LandUseCensusCollection = Backbone.Collection.extend({
     comparator: 'nlcd'
 });
 
+var SoilCensusCollection = Backbone.Collection.extend({
+    comparator: 'code'
+});
+
 var GeoModel = Backbone.Model.extend({
     M_IN_KM: 1000000,
 
@@ -260,6 +273,7 @@ module.exports = {
     MapModel: MapModel,
     TaskModel: TaskModel,
     LandUseCensusCollection: LandUseCensusCollection,
+    SoilCensusCollection: SoilCensusCollection,
     GeoModel: GeoModel,
     AreaOfInterestModel: AreaOfInterestModel,
     AppStateModel: AppStateModel

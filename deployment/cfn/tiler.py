@@ -54,6 +54,8 @@ class Tiler(StackNode):
         'PublicHostedZoneName': ['global:PublicHostedZoneName'],
         'VpcId': ['global:VpcId', 'VPC:VpcId'],
         'GlobalNotificationsARN': ['global:GlobalNotificationsARN'],
+        'RollbarServerSideAccessToken':
+        ['global:RollbarServerSideAccessToken'],
     }
 
     DEFAULTS = {
@@ -340,10 +342,18 @@ class Tiler(StackNode):
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
                 '    content: ', Ref(self.color), '\n',
+                '  - path: /etc/mmw.d/env/MMW_STACK_TYPE\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', self.get_input('StackType'), '\n',
                 '  - path: /etc/mmw.d/env/MMW_DB_PASSWORD\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
-                '    content: ', Ref(self.rds_password)]
+                '    content: ', Ref(self.rds_password), '\n',
+                '  - path: /etc/mmw.d/env/ROLLBAR_SERVER_SIDE_ACCESS_TOKEN\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', self.get_input('RollbarServerSideAccessToken')]  # NOQA
 
     def create_cloud_watch_resources(self, tile_server_lb):
         self.add_resource(cw.Alarm(

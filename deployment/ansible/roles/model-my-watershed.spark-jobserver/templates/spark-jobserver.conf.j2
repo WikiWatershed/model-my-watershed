@@ -4,8 +4,18 @@
 
 spark.jobserver {
   port = 8090
-  jar-store-rootdir = {{ sjs_jars_dir }}
-  filedao.rootdir = {{ sjs_filedao_dir }}
+  jobdao = spark.jobserver.io.JobSqlDAO
+
+  sqldao {
+    rootdir = {{ sjs_data_dir }}
+    jdbc.url = "jdbc:h2:file:/{{ sjs_data_dir }}/h2-db"
+  }
+
+  job-jar-paths {
+    "geoprocessing-{{ geop_version }}" = {{ geop_home }}/mmw-geoprocessing-{{ geop_version }}.jar
+  }
+
+  context-creation-timeout = 30 s
 }
 
 spark.contexts {

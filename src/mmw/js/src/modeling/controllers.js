@@ -11,6 +11,7 @@ var $ = require('jquery'),
 
 var ModelingController = {
     projectPrepare: function(projectId) {
+        App.rootView.showCollapsable();
         if (!projectId && !App.map.get('areaOfInterest')) {
             router.navigate('', { trigger: true });
             return false;
@@ -50,7 +51,6 @@ var ModelingController = {
                         } else {
                             project.get('scenarios').makeFirstScenarioActive();
                         }
-                        project.fetchResultsIfNeeded();
 
                         // If this project is an activity then the application's behavior changes.
                         if (project.get('is_activity')) {
@@ -110,13 +110,11 @@ var ModelingController = {
 
                         // Now render.
                         initViews(project);
-                        project.fetchResultsIfNeeded();
 
                         updateUrl();
                     });
                 } else {
                     initViews(project);
-                    project.fetchResultsIfNeeded();
                     updateUrl();
                 }
             } else {
@@ -145,7 +143,6 @@ var ModelingController = {
                     project.on('change:id', updateUrl);
                     initScenarioEvents(project);
                     initViews(project);
-                    project.fetchResultsIfNeeded();
                     if (App.projectNumber) {
                         updateUrl();
                     }
@@ -157,6 +154,7 @@ var ModelingController = {
     },
 
     projectCleanUp: function() {
+        App.rootView.hideCollapsable();
         if (App.currentProject) {
             var scenarios = App.currentProject.get('scenarios');
 
@@ -171,7 +169,7 @@ var ModelingController = {
 
         App.getMapView().updateModifications(null);
         App.rootView.subHeaderRegion.empty();
-        App.rootView.footerRegion.empty();
+        App.rootView.sidebarRegion.empty();
     },
 
     // Since we handle redirects after ITSI sign-up within Backbone,
@@ -256,7 +254,7 @@ function setupNewProjectScenarios(project) {
 }
 
 function initViews(project, lock) {
-    var modelingResultsWindow = new views.ModelingResultsWindow({
+    var resultsView = new views.ResultsView({
             model: project,
             lock: lock
         }),
@@ -265,7 +263,7 @@ function initViews(project, lock) {
         });
 
     App.rootView.subHeaderRegion.show(modelingHeader);
-    App.rootView.footerRegion.show(modelingResultsWindow);
+    App.rootView.sidebarRegion.show(resultsView);
 }
 
 function makeProject(lock) {

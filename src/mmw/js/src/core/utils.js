@@ -126,9 +126,9 @@ var utils = {
 
     magnitudeOfArea: function(value) {
         if (value >= M2_IN_KM2) {
-            return 'km2';
+            return 'km<sup>2</sup>';
         } else {
-            return 'm2';
+            return 'm<sup>2</sup>';
         }
     },
 
@@ -136,9 +136,9 @@ var utils = {
         var fromTo = (fromUnit + ':' + toUnit).toLowerCase();
 
         switch (fromTo) {
-            case 'm2:km2':
+            case 'm<sup>2</sup>:km<sup>2</sup>':
                  return value / M2_IN_KM2;
-            case 'm2:m2':
+            case 'm<sup>2</sup>:m<sup>2</sup>':
                  return value;
             default:
                  throw 'Conversion not implemented.';

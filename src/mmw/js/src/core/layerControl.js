@@ -11,7 +11,9 @@ module.exports = L.Control.Layers.extend({
 
     // Copied from  https://github.com/Leaflet/Leaflet/blob/master/src/control/Control.Layers.js
     // with modifications for allowing a third layer type (observations)
-    initialize: function (baseLayers, overlays, observationLayers, options) {
+    initialize: function (baseLayers, overlays, observationsDeferred, options) {
+        var self = this;
+
         L.setOptions(this, options);
 
         this._layers = {};
@@ -26,9 +28,18 @@ module.exports = L.Control.Layers.extend({
             this._addLayer(overlays[i], i, 'overlay');
         }
 
-        for (i in observationLayers) {
-            this._addLayer(observationLayers[i], i, 'observation');
-        }
+        observationsDeferred
+            .done(function(observationLayers) {
+                for (i in observationLayers) {
+                    self._addLayer(observationLayers[i], i, 'observation');
+                }
+
+                // Redraw the UI with the new layers
+                self._update();
+            })
+            .fail(function(reason) {
+                $('#observations-layer-list').text(reason);
+            });
     },
 
     // Somewhat copied from https://github.com/Leaflet/Leaflet/blob/master/src/control/Control.Layers.js,

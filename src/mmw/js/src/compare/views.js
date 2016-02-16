@@ -48,7 +48,7 @@ var CompareWindow = Marionette.LayoutView.extend({
         $(window).bind('resize.app', _.debounce(_.bind(this.updateContainerPos, this)));
     },
 
-    destroy: function() {
+    onDestroy: function() {
         $(window).unbind('resize.app');
     },
 

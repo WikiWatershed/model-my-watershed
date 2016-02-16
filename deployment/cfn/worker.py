@@ -55,6 +55,8 @@ class Worker(StackNode):
         'PublicHostedZoneName': ['global:PublicHostedZoneName'],
         'VpcId': ['global:VpcId', 'VPC:VpcId'],
         'GlobalNotificationsARN': ['global:GlobalNotificationsARN'],
+        'RollbarServerSideAccessToken':
+        ['global:RollbarServerSideAccessToken'],
     }
 
     DEFAULTS = {
@@ -339,15 +341,26 @@ class Worker(StackNode):
     def get_cloud_config(self):
         return ['#cloud-config\n',
                 '\n',
+                'mounts:\n',
+                '  - [xvdf, /opt/rwd-data, ext4, "defaults,nofail,discard", 0, 2]\n'  # NOQA
+                '\n',
                 'write_files:\n',
                 '  - path: /etc/mmw.d/env/MMW_STACK_COLOR\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
                 '    content: ', Ref(self.color), '\n',
+                '  - path: /etc/mmw.d/env/MMW_STACK_TYPE\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', self.get_input('StackType'), '\n',
                 '  - path: /etc/mmw.d/env/MMW_DB_PASSWORD\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
-                '    content: ', Ref(self.rds_password)]
+                '    content: ', Ref(self.rds_password), '\n',
+                '  - path: /etc/mmw.d/env/ROLLBAR_SERVER_SIDE_ACCESS_TOKEN\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', self.get_input('RollbarServerSideAccessToken')]  # NOQA
 
     def create_cloud_watch_resources(self, worker_auto_scaling_group):
         self.add_resource(cw.Alarm(

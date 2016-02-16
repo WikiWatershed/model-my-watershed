@@ -6,37 +6,81 @@ var $ = require('jquery'),
     App = require('../app'),
     models = require('./models'),
     coreModels = require('../core/models'),
-    coreViews = require('../core/views'),
     chart = require('../core/chart'),
     utils = require('../core/utils'),
     windowTmpl = require('./templates/window.html'),
     messageTmpl = require('./templates/message.html'),
-    detailsTmpl = require('./templates/details.html'),
+    detailsTmpl = require('../modeling/templates/resultsDetails.html'),
+    aoiHeaderTmpl = require('./templates/aoiHeader.html'),
     tableTmpl = require('./templates/table.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
-    tabPanelTmpl = require('./templates/tabPanel.html'),
+    tabPanelTmpl = require('../modeling/templates/resultsTabPanel.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
-    barChartTmpl = require('../core/templates/barChart.html');
+    barChartTmpl = require('../core/templates/barChart.html'),
+    resultsWindowTmpl = require('./templates/resultsWindow.html');
+
+var ResultsView = Marionette.LayoutView.extend({
+    id: 'model-output-wrapper',
+    className: 'analyze',
+    tagName: 'div',
+    template: resultsWindowTmpl,
+
+    regions: {
+        analyzeRegion: '#analyze-tab-contents'
+    },
+
+    onShow: function() {
+        this.showDetailsRegion();
+    },
+
+    onRender: function() {
+        this.$el.find('.tab-pane:first').addClass('active');
+    },
+
+    showDetailsRegion: function() {
+        this.analyzeRegion.show(new AnalyzeWindow({
+            model: this.model
+        }));
+    },
+
+    transitionInCss: {
+        height: '0%'
+    },
+
+    animateIn: function(fitToBounds) {
+        var self = this,
+            fit = _.isUndefined(fitToBounds) ? true : fitToBounds;
+
+        this.$el.animate({ width: '400px' }, 200, function() {
+            App.map.setNoHeaderSidebarSize(fit);
+            self.trigger('animateIn');
+        });
+    },
+
+    animateOut: function(fitToBounds) {
+        var self = this,
+            fit = _.isUndefined(fitToBounds) ? true : fitToBounds;
+
+        // Change map to full size first so there isn't empty space when
+        // results window animates out
+        App.map.setDoubleHeaderSmallFooterSize(fit);
+
+        this.$el.animate({ width: '0px' }, 200, function() {
+            self.trigger('animateOut');
+        });
+    }
+});
 
 var AnalyzeWindow = Marionette.LayoutView.extend({
-    id: 'analyze-output-wrapper',
     template: windowTmpl,
 
     regions: {
-        headerRegion: '#analyze-header-region',
         detailsRegion: {
             el: '#analyze-details-region'
         }
     },
 
-    initialize: function() {
-        this.listenTo(this, 'animateIn', function() {
-            $('#analyze-output-wrapper .bar-chart').trigger('bar-chart:refresh');
-        });
-    },
-
     onShow: function() {
-        this.showHeaderRegion();
         this.showAnalyzingMessage();
 
         var self = this;
@@ -58,31 +102,18 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
 
                     postData: {'area_of_interest': aoi}
                 };
+
             this.model.start(taskHelper);
         } else {
-            this.lock = $.Deferred();
-            this.lock.done(function() {
-                self.showDetailsRegion();
-            });
+            self.showDetailsRegion();
         }
-    },
-
-    showHeaderRegion: function() {
-        this.headerRegion.show(new coreViews.AreaOfInterestView({
-            App: App,
-            model: new coreModels.AreaOfInterestModel({
-                shape: this.model.get('area_of_interest'),
-                place: App.map.get('areaOfInterestName'),
-                can_go_back: true,
-                next_label: 'Model',
-                url: 'project'
-            })
-        }));
     },
 
     showAnalyzingMessage: function() {
         var messageModel = new models.AnalyzeMessageModel();
+
         messageModel.setAnalyzing();
+
         this.detailsRegion.show(new MessageView({
             model: messageModel
         }));
@@ -90,7 +121,9 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
 
     showErrorMessage: function() {
         var messageModel = new models.AnalyzeMessageModel();
+
         messageModel.setError();
+
         this.detailsRegion.show(new MessageView({
             model: messageModel
         }));
@@ -104,33 +137,6 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
                 collection: new models.LayerCollection(results)
             }));
         }
-    },
-
-    transitionInCss: {
-        height: '0%'
-    },
-
-    animateIn: function() {
-        var self = this;
-
-        App.map.setAnalyzeSize(true);
-
-        this.$el.animate({ height: '55%' }, 200, function() {
-            self.trigger('animateIn');
-        });
-        if (this.lock !== undefined) {
-            this.lock.resolve();
-        }
-    },
-
-    animateOut: function() {
-        var self = this;
-
-        App.map.setDoubleHeaderSmallFooterSize(true);
-
-        this.$el.animate({ height: '0%' }, 200, function() {
-            self.trigger('animateOut');
-        });
     }
 });
 
@@ -196,6 +202,7 @@ var TabContentView = Marionette.LayoutView.extend({
         role: 'tabpanel'
     },
     regions: {
+        aoiRegion: '.analyze-aoi-region',
         tableRegion: '.analyze-table-region',
         chartRegion: '.analyze-chart-region'
     },
@@ -203,11 +210,19 @@ var TabContentView = Marionette.LayoutView.extend({
         var categories = this.model.get('categories'),
             largestArea = _.max(_.pluck(categories, 'area')),
             units = utils.magnitudeOfArea(largestArea),
-            census = new coreModels.LandUseCensusCollection(categories);
+            census = this.model.get('name') === 'land' ?
+                new coreModels.LandUseCensusCollection(categories) :
+                new coreModels.SoilCensusCollection(categories);
+
+        this.aoiRegion.show(new AoiView({
+            model: new coreModels.GeoModel({
+                place: App.map.get('areaOfInterestName'),
+                shape: App.map.get('areaOfInterest')
+            })
+        }));
 
         this.tableRegion.show(new TableView({
             units: units,
-            model: new coreModels.GeoModel({units: (units === 'km2') ? 'km<sup>2</sup>' : 'm<sup>2</sup>'}),
             collection: census
         }));
 
@@ -226,6 +241,10 @@ var TabContentsView = Marionette.CollectionView.extend({
     }
 });
 
+var AoiView = Marionette.ItemView.extend({
+    template: aoiHeaderTmpl
+});
+
 var TableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
     template: tableRowTmpl,
@@ -237,7 +256,7 @@ var TableRowView = Marionette.ItemView.extend({
             // Convert coverage to percentage for display.
             coveragePct: (this.model.get('coverage') * 100),
             // Scale the area to display units.
-            scaledArea: utils.changeOfAreaUnits(area, 'm2', units)
+            scaledArea: utils.changeOfAreaUnits(area, 'm<sup>2</sup>', units)
         };
     }
 });
@@ -247,6 +266,11 @@ var TableView = Marionette.CompositeView.extend({
     childViewOptions: function() {
         return {
             units: this.options.units
+        };
+    },
+    templateHelpers: function() {
+        return {
+            headerUnits: this.options.units
         };
     },
     childViewContainer: 'tbody',
@@ -269,33 +293,38 @@ var ChartView = Marionette.ItemView.extend({
         this.addChart();
     },
 
+    getBarClass: function(item) {
+        var name = this.model.get('name');
+        if (name === 'land') {
+            return 'nlcd-' + item.nlcd;
+        } else if (name === 'soil') {
+            return 'soil-' + item.code;
+        }
+    },
+
     addChart: function() {
-        var chartEl = this.$el.find('.bar-chart').get(0),
+        var self = this,
+            chartEl = this.$el.find('.bar-chart').get(0),
             data = _.map(this.collection.toJSON(), function(model) {
                 return {
                     x: model.type,
                     y: model.coverage,
-                    class: model.nlcd ? 'nlcd-' + model.nlcd : null
+                    class: self.getBarClass(model)
                 };
             }),
-            chartOptions,
-            barClasses = null;
 
-        if (this.model.get('name') === 'land') {
-            barClasses = _.pluck(data, 'class');
-        }
-
-        chartOptions = {
-           yAxisLabel: 'Coverage',
-           isPercentage: true,
-           barClasses: barClasses
-       };
+            chartOptions = {
+               yAxisLabel: 'Coverage',
+               isPercentage: true,
+               barClasses: _.pluck(data, 'class')
+           };
 
         chart.renderHorizontalBarChart(chartEl, data, chartOptions);
     }
 });
 
 module.exports = {
+    ResultsView: ResultsView,
     AnalyzeWindow: AnalyzeWindow,
     DetailsView: DetailsView
 };

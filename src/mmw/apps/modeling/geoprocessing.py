@@ -116,11 +116,8 @@ def histogram_finish(job_id, retry):
     else:
         raise Exception('Unable to communicate with SJS (bottom-half).')
 
-    if data['status'] == 'OK':
-        if delete(url):  # job complete, remove
-            return [dict_to_array(d) for d in data['result']]
-        else:
-            raise Exception('Job completed, unable to delete.')
+    if data['status'] == 'FINISHED':
+        return [dict_to_array(d) for d in data['result']]
     elif data['status'] == 'RUNNING':
         try:
             retry()
@@ -189,20 +186,24 @@ def data_to_survey(data):
     """
     Turn raw data from Geotrellis into a survey.
     """
-    def update_category(string, count, categories):
-        if string in categories:
-            entry = categories[string]
+    def update_category(codeAndValue, count, categories):
+        code = codeAndValue[0]
+        value = codeAndValue[1]
+
+        if value in categories:
+            entry = categories[value]
             entry['area'] += count
         else:
-            categories[string] = {
-                'type': string,
+            categories[value] = {
+                'code': code,
+                'type': value,
                 'area': count,
                 'coverage': None
             }
 
     def update_pcts(entry, count):
         area = entry['area']
-        entry['coverage'] = float(area) / count
+        entry['coverage'] = 0 if count == 0 else float(area) / count
         return entry
 
     def update_rule(nlcd, soil, count, survey):
@@ -210,14 +211,14 @@ def data_to_survey(data):
         soilCategories = survey[1]['categories']
 
         if nlcd in NLCD_MAPPING:
-            update_category(NLCD_MAPPING[nlcd][1], count, landCategories)
+            update_category(NLCD_MAPPING[nlcd], count, landCategories)
         else:
-            update_category('?', count, landCategories)
+            update_category([nlcd, nlcd], count, landCategories)
 
         if soil in SOIL_MAPPING:
-            update_category(SOIL_MAPPING[soil][1], count, soilCategories)
+            update_category(SOIL_MAPPING[soil], count, soilCategories)
         else:
-            update_category('?', count, soilCategories)
+            update_category([soil, soil], count, soilCategories)
 
     def after_rule(count, survey):
         nlcd_names = [v[1] for v in NLCD_MAPPING.values()]

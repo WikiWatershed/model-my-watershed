@@ -1,6 +1,7 @@
 var aws = require('aws-sdk'),
     Windshaft = require('windshaft'),
     healthCheck = require('./healthCheck'),
+    rollbar = require('rollbar'),
     fs = require('fs'),
     stream = require('stream'),
     styles = fs.readFileSync('styles.mss', { encoding: 'utf8' });
@@ -12,7 +13,9 @@ var dbUser = process.env.MMW_DB_USER,
     dbPort = process.env.MMW_DB_PORT,
     redisHost = process.env.MMW_CACHE_HOST,
     redisPort = process.env.MMW_CACHE_PORT,
-    tileCacheBucket = process.env.MMW_TILECACHE_BUCKET;
+    tileCacheBucket = process.env.MMW_TILECACHE_BUCKET,
+    stackType = process.env.MMW_STACK_TYPE,
+    rollbarAccessToken = process.env.ROLLBAR_SERVER_SIDE_ACCESS_TOKEN;
 
 // N. B. These must be kept in sync with src/mmw/mmw/settings/base.py
 var interactivity = {
@@ -71,36 +74,45 @@ var config = {
     enable_cors: true,
 
     beforeTileRender: function(req, res, callback) {
-        callback(null);
+        try {
+            callback(null);
+        } catch (ex) {
+            rollbar.handleError(ex, req);
+            callback(ex);
+        }
     },
 
     afterTileRender: function(req, res, tile, headers, callback) {
+        try {
+            // Complete render pipline first, add cache header for
+            // 30 days
+            headers['Cache-Control'] = 'max-age=2592000';
+            callback(null, tile, headers);
 
-        // Complete render pipline first, add cache header for
-        // 30 days
-        headers['Cache-Control'] = 'max-age=2592000';
-        callback(null, tile, headers);
+            // Check if the environment is set up to cache tiles
+            if (!shouldCacheRequest(req)) { return; }
 
-        // Check if the environment is set up to cache tiles
-        if (!shouldCacheRequest(req)) { return; }
+            var cleanUrl = req.url[0] === '/' ? req.url.substr(1) : req.url,
+                s3Obj = new aws.S3({params: {Bucket: tileCacheBucket, Key: cleanUrl}}),
+                body;
 
-        var cleanUrl = req.url[0] === '/' ? req.url.substr(1) : req.url,
-            s3Obj = new aws.S3({params: {Bucket: tileCacheBucket, Key: cleanUrl}}),
-            body;
+            if (Buffer.isBuffer(tile)) {
+                body = new stream.PassThrough();
+                body.end(tile);
+            } else {
+                body = JSON.stringify(tile);
+            }
 
-        if (Buffer.isBuffer(tile)) {
-            body = new stream.PassThrough();
-            body.end(tile);
-        } else {
-            body = JSON.stringify(tile);
-        }
+            if (body) {
+                s3Obj
+                    .upload({Body: body})
+                    .send(function(err, data) { throw (err); });
+            }
 
-        if (body) {
-            s3Obj
-                .upload({Body: body})
-                .send(function(err, data) {
-                    if (err) { console.log(err); }
-                });
+            callback(null);
+        } catch (ex) {
+            rollbar.handleError(ex, req);
+            callback(ex, null);
         }
     },
 
@@ -114,8 +126,9 @@ var config = {
             req.params.style = styles;
             req.params.interactivity = interactivity[tableName];
             callback(null, req);
-        } catch(err) {
-            callback(err, null);
+        } catch (ex) {
+            rollbar.handleError(ex, req);
+            callback(ex, null);
         }
     }
 };
@@ -124,4 +137,5 @@ var config = {
 var ws = new Windshaft.Server(config);
 ws.get('/health-check', healthCheck(config));
 ws.listen(4000);
+ws.use(rollbar.errorHandler(rollbarAccessToken, {environment: stackType}));
 console.log('Starting MMW Windshaft tiler on http://localhost:4000' + config.base_url + '/:z/:x/:y.*');

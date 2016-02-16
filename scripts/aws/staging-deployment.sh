@@ -45,3 +45,9 @@ python mmw_stack.py remove-stacks \
   --mmw-profile "${MMW_PROFILE}" \
   --mmw-config-path "${MMW_CONFIG_PATH}" \
   --stack-color "${CURRENT_STACK_COLOR}" \
+
+curl -s https://api.rollbar.com/api/1/deploy/ \
+  -F "access_token=${ROLLBAR_ACCESS_TOKEN}" \
+  -F "environment=Staging" \
+  -F "revision=${BUILD_NUMBER}" \
+  -F "local_username=$(whoami)"
