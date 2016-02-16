@@ -9,6 +9,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.forms import PasswordResetForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.sites.shortcuts import get_current_site
+from django.conf import settings
 
 from registration.models import RegistrationProfile
 from registration.forms import RegistrationFormUniqueEmail
@@ -20,6 +21,8 @@ from rest_framework.permissions import AllowAny
 
 from apps.user.models import ItsiUser
 from apps.user.itsi import ItsiService
+
+EMBED_FLAG = settings.ITSI['embed_flag']
 
 
 @decorators.api_view(['POST', 'GET'])
@@ -129,8 +132,6 @@ def itsi_auth(request):
         auth_login(request, user)
         return redirect(request.GET.get('next', '/'))
     else:
-        # User did not authenticate. Save their ITSI ID and send to /sign-up
-        request.session['itsi_id'] = itsi_user['id']
         return itsi_create_user(request, itsi_user)
 
 
@@ -165,9 +166,16 @@ def itsi_create_user(request, itsi_user):
     itsi_user = ItsiUser.objects.create_itsi_user(user, itsi_id)
     itsi_user.save()
 
+    # Save embed mode state since we're going to lose the session upon
+    # logging in as a new user
+    itsi_embed = request.session.get(EMBED_FLAG, False)
+
     # Authenticate and log new user in
     user = authenticate(itsi_id=itsi_id)
     auth_login(request, user)
+
+    # Re-set itsi_embed flag
+    request.session[EMBED_FLAG] = itsi_embed
 
     return redirect(
         '/sign-up/itsi/{0}/{1}/{2}?next={3}'
