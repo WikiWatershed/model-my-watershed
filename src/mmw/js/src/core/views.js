@@ -627,7 +627,7 @@ var MapView = Marionette.ItemView.extend({
                 }
             });
             self._areaOfInterestLayer.addLayer(pointsLayer);
-        };
+        }
     },
 
     // Add GeoJSON layer for each modification model in modificationsColl.

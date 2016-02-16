@@ -57,7 +57,7 @@ function validateShape(shape, shapeKey) {
         window.alert(message);
         d.reject();
     } else {
-        d.resolve(shape);
+        d.resolve(polygon);
     }
     return d.promise();
 }
@@ -481,7 +481,7 @@ function makePointGeoJson(coords, props) {
         },
         properties: props,
         type: 'Feature'
-    }
+    };
 }
 
 function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
