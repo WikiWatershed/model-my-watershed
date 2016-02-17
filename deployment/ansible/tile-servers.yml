@@ -1,6 +1,6 @@
 ---
 - hosts: tile-servers
-  sudo: True
+  become: True
 
   pre_tasks:
     - name: Update APT cache

@@ -1,7 +1,7 @@
 ---
 - name: Ensure that source directories exist
   file: path="{{ item }}"
-        owner="{{ ansible_ssh_user }}"
+        owner="{{ ansible_user }}"
         group=mmw
         mode=0755
         state=directory

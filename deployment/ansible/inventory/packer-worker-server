@@ -1,5 +1,5 @@
 [mmw-worker]
-localhost ansible_ssh_user=ubuntu
+localhost ansible_user=ubuntu
 
 [workers]
 mmw-worker

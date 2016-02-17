@@ -2,6 +2,7 @@
 
 import boto
 import os
+import shutil
 import subprocess
 
 import logging
@@ -43,9 +44,17 @@ def update_ansible_roles():
     ansible_command = ['ansible-galaxy',
                        'install',
                        '-f',
-                       '-r', 'roles.txt',
+                       '-r', 'roles.yml',
                        '-p', ansible_roles_path]
     subprocess.check_call(ansible_command, cwd=ansible_dir)
+
+    # Remove `examples` subdirectory from all Azavea roles
+    for role_path in os.listdir(ansible_roles_path):
+        examples_path = os.path.join(ansible_roles_path, role_path, 'examples')
+
+        if role_path.startswith('azavea') and os.path.isdir(examples_path):
+            LOGGER.debug('Removing %s', examples_path)
+            shutil.rmtree(examples_path)
 
 
 def get_git_sha():

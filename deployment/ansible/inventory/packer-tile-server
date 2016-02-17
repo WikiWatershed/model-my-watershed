@@ -1,5 +1,5 @@
 [mmw-tiler]
-localhost ansible_ssh_user=ubuntu
+localhost ansible_user=ubuntu
 
 [tile-servers]
 mmw-tiler
