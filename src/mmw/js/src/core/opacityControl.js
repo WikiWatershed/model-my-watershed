@@ -87,6 +87,7 @@ var SliderView = Marionette.ItemView.extend({
     tagName: 'input',
     className: 'slider slider-leaflet',
     attributes: {
+        title: 'Drag to change opacity of overlay',
         type: 'range',
         min: 0,
         max: 99,

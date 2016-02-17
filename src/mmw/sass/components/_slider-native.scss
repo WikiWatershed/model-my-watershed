@@ -6,10 +6,11 @@
     cursor: pointer;
 
     &.slider-leaflet {
-      background: $paper;
+      background: $black;
       width: 150px;
       height: 26px;
-      padding: 7px;
+      padding: 1px;
+      border: 11px solid $paper;
       border-radius: 4px;
       box-shadow: -1px 0 5px $black-65;
       cursor: pointer;
@@ -32,7 +33,7 @@
     }
 
     &::-moz-range-track {
-      background: $paper;
+      background: $black;
     }
     &::-moz-range-thumb {
       background: $paper;
@@ -50,8 +51,8 @@
     }
     &::-ms-thumb {
       background: $paper;
-      width: 10px;
-      height: 10px;
+      width: 14px;
+      height: 14px;
       border: 2px solid $black-74;
       border-radius: 4px;
       box-shadow: -1px 0 1px $black-54;
