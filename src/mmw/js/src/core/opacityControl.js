@@ -42,8 +42,7 @@ Modified by Azavea, 2015.
 
 var L = require('leaflet'),
     $ = require('jquery'),
-    Marionette = require('../../shim/backbone.marionette'),
-    sliderTmpl = require('./templates/opacitySlider.html');
+    Marionette = require('../../shim/backbone.marionette');
 
 module.exports = L.Control.extend({
     options: {
@@ -84,5 +83,14 @@ module.exports = L.Control.extend({
 });
 
 var SliderView = Marionette.ItemView.extend({
-    template: sliderTmpl
+    template: false,
+    tagName: 'input',
+    className: 'slider slider-leaflet',
+    attributes: {
+        title: 'Drag to change opacity of overlay',
+        type: 'range',
+        min: 0,
+        max: 99,
+        step: 3
+    }
 });
