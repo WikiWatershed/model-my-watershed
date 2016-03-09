@@ -78,7 +78,7 @@ $ ./mmw_stack.py launch-stacks --aws-profile mmw-prd \
                                --activate-dns
 ```
 
-Within 60 seconds, `mmw.azavea.com` should reflect the current release.
+Within 60 seconds, `app.wikiwatershed.org` and `mmw.azavea.com` should reflect the current release.
 
 ## Repository & Jenkins Cleanup
 

@@ -24,6 +24,8 @@ if not instance_metadata:
 # HOST CONFIGURATION
 # See: https://docs.djangoproject.com/en/1.5/releases/1.5/#allowed-hosts-required-in-production  # NOQA
 ALLOWED_HOSTS = [
+    'app.wikiwatershed.org',
+    'staging.app.wikiwatershed.org',
     'mmw.azavea.com',
     'mmw-dev.azavea.com',
     '.elb.amazonaws.com',
@@ -39,7 +41,7 @@ ALLOWED_HOSTS.append(instance_metadata['local-ipv4'])
 # EMAIL CONFIGURATION
 EMAIL_BACKEND = 'apps.core.mail.backends.boto_ses_mailer.EmailBackend'
 EMAIL_BOTO_CHECK_QUOTA = False
-DEFAULT_FROM_EMAIL = 'noreply@mmw.azavea.com'
+DEFAULT_FROM_EMAIL = 'noreply@app.wikiwatershed.org'
 # END EMAIL CONFIGURATION
 
 # MIDDLEWARE CONFIGURATION
