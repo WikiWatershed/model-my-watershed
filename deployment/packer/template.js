@@ -63,7 +63,7 @@
             "ami_block_device_mappings": [
                 {
                     "device_name": "/dev/sdf",
-                    "snapshot_id": "snap-3d8f22ab",
+                    "snapshot_id": "snap-4a764b4a",
                     "volume_type": "gp2",
                     "delete_on_termination": true
                 }
