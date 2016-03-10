@@ -41,11 +41,22 @@ function actOnLayer(datum) {
     }
 }
 
-// Takes a GeoJSON shape, or if a key is specified, a dict
-// with a GeoJSON object found at shape[shapeKey]
-function validateShape(shape, shapeKey) {
-    var polygon = shapeKey ? shape[shapeKey] : shape,
-        area = coreUtils.changeOfAreaUnits(turfArea(shape), 'm<sup>2</sup>', 'km<sup>2</sup>'),
+function validateRwdShape(result) {
+    var d = new $.Deferred();
+    if (result.watershed) {
+        validateShape(result.watershed)
+            .done(function() {
+                d.resolve(result);
+            })
+            .fail(d.reject);
+    } else {
+        d.reject(result);
+    }
+    return d.promise();
+}
+
+function validateShape(polygon) {
+    var area = coreUtils.changeOfAreaUnits(turfArea(polygon), 'm<sup>2</sup>', 'km<sup>2</sup>'),
         d = new $.Deferred();
 
     if (area > MAX_AREA) {
@@ -412,35 +423,34 @@ var WatershedDelineationView= Marionette.ItemView.extend({
                 self.rwdTaskModel.start(taskHelper);
                 return deferred;
             })
-            .done(_.partialRight(validateShape, 'watershed'))
+            .then(validateRwdShape)
             .done(function(result) {
-                if (result.watershed) {
-                    var inputPoints = result.input_pt;
-                    // add additional aoi points:w
-                    if (inputPoints) {
-                        var properties = inputPoints.features[0].properties;
+                var inputPoints = result.input_pt;
+                // add additional aoi points:w
+                if (inputPoints) {
+                    var properties = inputPoints.features[0].properties;
 
-                        // If the point was snapped, there will be the original
-                        // point as attributes
-                        if (properties.Dist_moved) {
-                            inputPoints.features.push(
-                                makePointGeoJson([properties.Lon, properties.Lat], {
-                                    original: true
-                                })
-                            );
-                        }
-                        App.map.set({
-                            'areaOfInterestAdditionals': inputPoints
-                        });
+                    // If the point was snapped, there will be the original
+                    // point as attributes
+                    if (properties.Dist_moved) {
+                        inputPoints.features.push(
+                            makePointGeoJson([properties.Lon, properties.Lat], {
+                                original: true
+                            })
+                        );
                     }
-
-                    // Add Watershed AoI layer
-                    addLayer(result.watershed, itemName);
-                    navigateToAnalyze();
+                    App.map.set({
+                        'areaOfInterestAdditionals': inputPoints
+                    });
                 }
+
+                // Add Watershed AoI layer
+                addLayer(result.watershed, itemName);
+                navigateToAnalyze();
             })
             .fail(function() {
                 revertLayer();
+                window.alert('Unable to delineate watershed at this location');
             })
             .always(function() {
                 self.model.enableTools();
