@@ -29,7 +29,8 @@ def start_rwd_job(location, snapping):
     which raises an exception.
     """
     location = json.loads(location)
-    rwd_url = 'http://localhost:5000/rwd/%f/%f' % (location[1], location[0])
+    lat, lng = location
+    rwd_url = 'http://localhost:5000/rwd/%f/%f' % (lat, lng)
 
     # The Webserver defaults to enable snapping, uses 1 (true) 0 (false)
     if not snapping:
