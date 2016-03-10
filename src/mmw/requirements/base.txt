@@ -12,3 +12,4 @@ djangorestframework-gis==0.8.2
 tr55==1.1.3
 requests==2.9.1
 rollbar>=0.11.0,<=0.12.0
+retry==0.9.1
