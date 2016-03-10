@@ -49,6 +49,8 @@ class Application(StackNode):
         'AppServerAutoScalingMin': ['global:AppServerAutoScalingMin'],
         'AppServerAutoScalingMax': ['global:AppServerAutoScalingMax'],
         'SSLCertificateARN': ['global:SSLCertificateARN'],
+        'BackwardCompatSSLCertificateARN':
+        ['global:BackwardCompatSSLCertificateARN'],
         'PublicSubnets': ['global:PublicSubnets', 'VPC:PublicSubnets'],
         'PrivateSubnets': ['global:PrivateSubnets', 'VPC:PrivateSubnets'],
         'VpcId': ['global:VpcId', 'VPC:VpcId'],
@@ -154,6 +156,12 @@ class Application(StackNode):
             Description='ARN for a SSL certificate stored in IAM'
         ), 'SSLCertificateARN')
 
+        self.backward_compat_ssl_certificate_arn = self.add_parameter(
+            Parameter(
+                'BackwardCompatSSLCertificateARN', Type='String',
+                Description='ARN for a SSL certificate stored in IAM'
+            ), 'BackwardCompatSSLCertificateARN')
+
         self.public_subnets = self.add_parameter(Parameter(
             'PublicSubnets', Type='CommaDelimitedList',
             Description='A list of public subnets'
@@ -196,10 +204,13 @@ class Application(StackNode):
 
         app_server_lb_security_group, \
             app_server_security_group = self.create_security_groups()
-        app_server_lb = self.create_load_balancer(app_server_lb_security_group)
+        app_server_lb, \
+            backward_compat_app_server_lb = self.create_load_balancers(
+                app_server_lb_security_group)
 
         self.create_auto_scaling_resources(app_server_security_group,
-                                           app_server_lb)
+                                           app_server_lb,
+                                           backward_compat_app_server_lb)
 
         self.create_cloud_watch_resources(app_server_lb)
 
@@ -208,6 +219,13 @@ class Application(StackNode):
         self.add_output(Output('AppServerLoadBalancerHostedZoneNameID',
                                Value=GetAtt(app_server_lb,
                                             'CanonicalHostedZoneNameID')))
+        self.add_output(Output('BackwardCompatAppServerLoadBalancerEndpoint',
+                               Value=GetAtt(backward_compat_app_server_lb,
+                                            'DNSName')))
+        self.add_output(
+            Output('BackwardCompatAppServerLoadBalancerHostedZoneNameID',
+                   Value=GetAtt(backward_compat_app_server_lb,
+                                'CanonicalHostedZoneNameID')))
 
     def get_recent_app_server_ami(self):
         try:
@@ -282,43 +300,78 @@ class Application(StackNode):
 
         return app_server_lb_security_group, app_server_security_group
 
-    def create_load_balancer(self, app_server_lb_security_group):
+    def create_load_balancers(self, app_server_lb_security_group):
         app_server_lb_name = 'elbAppServer'
+        backward_compat_app_server_lb_name = 'elbBackwardCompatAppServer'
 
-        return self.add_resource(elb.LoadBalancer(
-            app_server_lb_name,
-            ConnectionDrainingPolicy=elb.ConnectionDrainingPolicy(
-                Enabled=True,
-                Timeout=300,
-            ),
-            CrossZone=True,
-            SecurityGroups=[Ref(app_server_lb_security_group)],
-            Listeners=[
-                elb.Listener(
-                    LoadBalancerPort='80',
-                    InstancePort='80',
-                    Protocol='HTTP',
+        return [
+            self.add_resource(elb.LoadBalancer(
+                app_server_lb_name,
+                ConnectionDrainingPolicy=elb.ConnectionDrainingPolicy(
+                    Enabled=True,
+                    Timeout=300,
                 ),
-                elb.Listener(
-                    LoadBalancerPort='443',
-                    InstancePort='80',
-                    Protocol='HTTPS',
-                    SSLCertificateId=Ref(self.ssl_certificate_arn)
-                )
-            ],
-            HealthCheck=elb.HealthCheck(
-                Target='HTTP:80/health-check/',
-                HealthyThreshold='3',
-                UnhealthyThreshold='2',
-                Interval='30',
-                Timeout='5',
-            ),
-            Subnets=Ref(self.public_subnets),
-            Tags=self.get_tags(Name=app_server_lb_name)
-        ))
+                CrossZone=True,
+                SecurityGroups=[Ref(app_server_lb_security_group)],
+                Listeners=[
+                    elb.Listener(
+                        LoadBalancerPort='80',
+                        InstancePort='80',
+                        Protocol='HTTP',
+                    ),
+                    elb.Listener(
+                        LoadBalancerPort='443',
+                        InstancePort='80',
+                        Protocol='HTTPS',
+                        SSLCertificateId=Ref(self.ssl_certificate_arn)
+                    )
+                ],
+                HealthCheck=elb.HealthCheck(
+                    Target='HTTP:80/health-check/',
+                    HealthyThreshold='3',
+                    UnhealthyThreshold='2',
+                    Interval='30',
+                    Timeout='5',
+                ),
+                Subnets=Ref(self.public_subnets),
+                Tags=self.get_tags(Name=app_server_lb_name)
+            )),
+            self.add_resource(elb.LoadBalancer(
+                backward_compat_app_server_lb_name,
+                ConnectionDrainingPolicy=elb.ConnectionDrainingPolicy(
+                    Enabled=True,
+                    Timeout=300,
+                ),
+                CrossZone=True,
+                SecurityGroups=[Ref(app_server_lb_security_group)],
+                Listeners=[
+                    elb.Listener(
+                        LoadBalancerPort='80',
+                        InstancePort='80',
+                        Protocol='HTTP',
+                    ),
+                    elb.Listener(
+                        LoadBalancerPort='443',
+                        InstancePort='80',
+                        Protocol='HTTPS',
+                        SSLCertificateId=Ref(
+                            self.backward_compat_ssl_certificate_arn)
+                    )
+                ],
+                HealthCheck=elb.HealthCheck(
+                    Target='HTTP:80/health-check/',
+                    HealthyThreshold='3',
+                    UnhealthyThreshold='2',
+                    Interval='30',
+                    Timeout='5',
+                ),
+                Subnets=Ref(self.public_subnets),
+                Tags=self.get_tags(Name=backward_compat_app_server_lb_name)
+            ))]
 
     def create_auto_scaling_resources(self, app_server_security_group,
-                                      app_server_lb):
+                                      app_server_lb,
+                                      backward_compat_app_server_lb):
         self.add_condition('BlueCondition', Equals('Blue', Ref(self.color)))
         self.add_condition('GreenCondition', Equals('Green', Ref(self.color)))
 
@@ -346,7 +399,8 @@ class Application(StackNode):
                 HealthCheckGracePeriod=600,
                 HealthCheckType='ELB',
                 LaunchConfigurationName=Ref(blue_app_server_launch_config),
-                LoadBalancerNames=[Ref(app_server_lb)],
+                LoadBalancerNames=[Ref(app_server_lb),
+                                   Ref(backward_compat_app_server_lb)],
                 MaxSize=Ref(self.app_server_auto_scaling_max),
                 MinSize=Ref(self.app_server_auto_scaling_min),
                 NotificationConfigurations=[
@@ -388,7 +442,8 @@ class Application(StackNode):
                 HealthCheckGracePeriod=600,
                 HealthCheckType='ELB',
                 LaunchConfigurationName=Ref(green_app_server_launch_config),
-                LoadBalancerNames=[Ref(app_server_lb)],
+                LoadBalancerNames=[Ref(app_server_lb),
+                                   Ref(backward_compat_app_server_lb)],
                 MaxSize=Ref(self.app_server_auto_scaling_max),
                 MinSize=Ref(self.app_server_auto_scaling_min),
                 NotificationConfigurations=[
