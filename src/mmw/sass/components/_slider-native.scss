@@ -6,75 +6,75 @@
     cursor: pointer;
 
     &.slider-leaflet {
-      background: $black;
-      width: 150px;
-      height: 26px;
-      padding: 1px;
-      border: 11px solid $paper;
-      border-radius: 4px;
-      box-shadow: -1px 0 5px $black-65;
-      cursor: pointer;
+        background: $black;
+        width: 150px;
+        height: 26px;
+        padding: 1px;
+        border: 11px solid $paper;
+        border-radius: 4px;
+        box-shadow: -1px 0 5px $black-65;
+        cursor: pointer;
     }
 
     &:focus {
-      outline: none;
+        outline: none;
     }
     &::-webkit-slider-thumb {
-      background: $paper;
-      width: 12px;
-      height: 12px;
-      border: 2px solid $black-74;
-      border-radius: 4px;
-      box-shadow: -1px 0 1px $black-54;
-      -webkit-appearance: none;
+        background: $paper;
+        width: 12px;
+        height: 12px;
+        border: 2px solid $black-74;
+        border-radius: 4px;
+        box-shadow: -1px 0 1px $black-54;
+        -webkit-appearance: none;
     }
     &:focus::-webkit-slider-thumb {
-      background: $black;
+        background: $black;
     }
 
     &::-moz-range-track {
-      background: $black;
+        background: $black;
     }
     &::-moz-range-thumb {
-      background: $paper;
-      width: 10px;
-      height: 10px;
-      border: 2px solid $black-74;
-      border-radius: 4px;
-      box-shadow: -1px 0 1px $black-54;
+        background: $paper;
+        width: 10px;
+        height: 10px;
+        border: 2px solid $black-74;
+        border-radius: 4px;
+        box-shadow: -1px 0 1px $black-54;
     }
 
     &::-ms-track {
-      background: transparent;
-      border-color: transparent;
-      color: transparent;
+        background: transparent;
+        border-color: transparent;
+        color: transparent;
     }
     &::-ms-thumb {
-      background: $paper;
-      width: 14px;
-      height: 14px;
-      border: 2px solid $black-74;
-      border-radius: 4px;
-      box-shadow: -1px 0 1px $black-54;
+        background: $paper;
+        width: 14px;
+        height: 14px;
+        border: 2px solid $black-74;
+        border-radius: 4px;
+        box-shadow: -1px 0 1px $black-54;
     }
     &::-ms-fill-lower {
-      background:$paper;
-      border: $paper;
+        background:$paper;
+        border: $paper;
     }
     &::-ms-fill-upper {
-      background:$paper;
-      border: $paper;
+        background:$paper;
+        border: $paper;
     }
     &:focus::-ms-fill-lower {
-      background:$paper;
-      border: $paper;
+        background:$paper;
+        border: $paper;
     }
     &:focus::-ms-fill-upper {
-      background:$paper;
-      border: $paper;
+        background:$paper;
+        border: $paper;
     }
 }
 
 .opacity_slider_control {
-  transform: matrix(0,-1,1,0,-62,70);
+    transform: matrix(0,-1,1,0,-62,70);
 }
