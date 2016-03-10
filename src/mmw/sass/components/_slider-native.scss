@@ -5,6 +5,10 @@
     margin: -7px 0;
     cursor: pointer;
 
+    &:focus {
+        outline: none;
+    }
+
     &.slider-leaflet {
         background: $black;
         width: 150px;
@@ -14,64 +18,61 @@
         border-radius: 4px;
         box-shadow: -1px 0 5px $black-65;
         cursor: pointer;
-    }
 
-    &:focus {
-        outline: none;
-    }
-    &::-webkit-slider-thumb {
-        background: $paper;
-        width: 12px;
-        height: 12px;
-        border: 2px solid $black-74;
-        border-radius: 4px;
-        box-shadow: -1px 0 1px $black-54;
-        -webkit-appearance: none;
-    }
-    &:focus::-webkit-slider-thumb {
-        background: $black;
-    }
+        &::-webkit-slider-thumb {
+            background: $paper;
+            width: 12px;
+            height: 12px;
+            border: 2px solid $black-74;
+            border-radius: 4px;
+            box-shadow: -1px 0 1px $black-54;
+            -webkit-appearance: none;
+        }
+        &:focus::-webkit-slider-thumb {
+            background: $black;
+        }
 
-    &::-moz-range-track {
-        background: $black;
-    }
-    &::-moz-range-thumb {
-        background: $paper;
-        width: 10px;
-        height: 10px;
-        border: 2px solid $black-74;
-        border-radius: 4px;
-        box-shadow: -1px 0 1px $black-54;
-    }
+        &::-moz-range-track {
+            background: $black;
+        }
+        &::-moz-range-thumb {
+            background: $paper;
+            width: 10px;
+            height: 10px;
+            border: 2px solid $black-74;
+            border-radius: 4px;
+            box-shadow: -1px 0 1px $black-54;
+        }
 
-    &::-ms-track {
-        background: transparent;
-        border-color: transparent;
-        color: transparent;
-    }
-    &::-ms-thumb {
-        background: $paper;
-        width: 14px;
-        height: 14px;
-        border: 2px solid $black-74;
-        border-radius: 4px;
-        box-shadow: -1px 0 1px $black-54;
-    }
-    &::-ms-fill-lower {
-        background:$paper;
-        border: $paper;
-    }
-    &::-ms-fill-upper {
-        background:$paper;
-        border: $paper;
-    }
-    &:focus::-ms-fill-lower {
-        background:$paper;
-        border: $paper;
-    }
-    &:focus::-ms-fill-upper {
-        background:$paper;
-        border: $paper;
+        &::-ms-track {
+            background: transparent;
+            border-color: transparent;
+            color: transparent;
+        }
+        &::-ms-thumb {
+            background: $paper;
+            width: 14px;
+            height: 14px;
+            border: 2px solid $black-74;
+            border-radius: 4px;
+            box-shadow: -1px 0 1px $black-54;
+        }
+        &::-ms-fill-lower {
+            background:$paper;
+            border: $paper;
+        }
+        &::-ms-fill-upper {
+            background:$paper;
+            border: $paper;
+        }
+        &:focus::-ms-fill-lower {
+            background:$paper;
+            border: $paper;
+        }
+        &:focus::-ms-fill-upper {
+            background:$paper;
+            border: $paper;
+        }
     }
 }
 
