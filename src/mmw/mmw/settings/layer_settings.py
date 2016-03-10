@@ -110,6 +110,15 @@ LAYERS = [
         'minZoom': 9,
     },
     {
+        'code': 'stream',
+        'display': 'National Stream Network',
+        'table_name': 'nhdflowline',
+        'boundary': False,
+        'stream': True,
+        'overlay': True,
+        'minZoom': 10
+    },
+    {
         'display': 'National Land Cover Database',
         'short_display': 'NLCD',
         'helptext': 'National Land Cover Database defines'
@@ -144,19 +153,19 @@ LAYERS = [
         'code': 'stream-low',
         'display': 'Low-Res',
         'table_name': 'deldem4net100r',
-        'stream': True,
+        'stream_drb': True,
     },
     {
         'code': 'stream-medium',
         'display': 'Medium-Res',
         'table_name': 'deldem4net50r',
-        'stream': True,
+        'stream_drb': True,
     },
     {
         'code': 'stream-high',
         'display': 'High-Res',
         'table_name': 'deldem4net20r',
-        'stream': True,
+        'stream_drb': True,
     },
     {
         'type': 'mapbox',

@@ -295,26 +295,23 @@ var MapView = Marionette.ItemView.extend({
     },
 
     prepareOverlayLayers: function() {
-        var nullVectorLayer = {
-                display: 'nullVector',
-                vector: true,
-                empty: true
-            },
-            nullRasterLayer = {
-                display: 'nullRaster',
-                raster: true,
-                empty: true
-            },
-            vectorOverlayLayers = settings.get('vector_layers'),
-            rasterOverlayLayers = settings.get('raster_layers');
+        // For each type of overlay, create an empty "layer" used for
+        // the "None" option and order the actual defined layer configs
+        // after it.
+        var overlayTypes = ['stream', 'vector', 'raster'],
+            overlayLayers = _.map(overlayTypes, function(type) {
+                var nullLayer =  {
+                    display: 'null' + type,
+                    empty: true
+                };
 
-        vectorOverlayLayers = !_.isEmpty(vectorOverlayLayers) ?
-                                [nullVectorLayer].concat(vectorOverlayLayers) : [];
+                nullLayer[type] = true;
 
-        rasterOverlayLayers = !_.isEmpty(rasterOverlayLayers) ?
-                                [nullRasterLayer].concat(rasterOverlayLayers) : [];
+                var layers = settings.get(type + '_layers');
+                return [nullLayer].concat(layers);
+            });
 
-        return vectorOverlayLayers.concat(rasterOverlayLayers);
+        return _.flatten(overlayLayers);
     },
 
     setupGeoLocation: function(maxAge) {

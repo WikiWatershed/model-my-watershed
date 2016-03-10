@@ -35,7 +35,8 @@ var interactivity = {
         huc12: 'boundary_huc12',
         'stream-low': 'drb_stream_network_100',
         'stream-medium': 'drb_stream_network_50',
-        'stream-high': 'drb_stream_network_20'
+        'stream-high': 'drb_stream_network_20',
+        stream: 'nhdflowline'
     },
     shouldCacheRequest = function(req) {
         // Caching can happen if the bucket to write to is defined

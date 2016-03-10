@@ -138,14 +138,22 @@ module.exports = L.Control.Layers.extend({
             input.checked = true;
         }
 
-        if (_.contains(['raster', 'vector'], obj.overlayType)) {
+        if (_.contains(['stream', 'raster', 'vector'], obj.overlayType)) {
              var subcontainer = document.getElementById('overlay-subclass-' + obj.overlayType);
              if (subcontainer === null) {
                  subcontainer = document.createElement('div');
                  subcontainer.id = 'overlay-subclass-' + obj.overlayType;
                  this._overlaysList.appendChild(subcontainer);
 
-                 var title = obj.overlayType === 'vector' ? 'Boundary' : 'Coverage';
+                 var title;
+                 if (obj.overlayType === 'vector') {
+                     title = 'Boundary';
+                 } else if (obj.overlayType === 'raster') {
+                     title = 'Coverage';
+                 } else if (obj.overlayType === 'stream') {
+                     title = 'Streams';
+                 }
+
                  var textNode = document.createElement('h4');
                  textNode.innerHTML = title;
                  subcontainer.appendChild(textNode);
@@ -174,7 +182,17 @@ module.exports = L.Control.Layers.extend({
         };
 
         if (tabType === 'overlay') {
-             this._layers[id].overlayType = layer.options.vector ? 'vector' : 'raster';
+            var overlayType;
+            if (layer.options.vector) {
+                overlayType = 'vector';
+            } else if (layer.options.raster) {
+                overlayType = 'raster';
+            } else if (layer.options.stream) {
+                overlayType = 'stream';
+            }
+
+            this._layers[id].overlayType = overlayType;
+
         } else if (tabType === 'observation') {
              this._layers[id].overlayType = tabType;
         }
