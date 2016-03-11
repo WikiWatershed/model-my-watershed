@@ -63,7 +63,7 @@
             "ami_block_device_mappings": [
                 {
                     "device_name": "/dev/sdf",
-                    "snapshot_id": "snap-3d8f22ab",
+                    "snapshot_id": "snap-4a764b4a",
                     "volume_type": "gp2",
                     "delete_on_termination": true
                 }
@@ -111,7 +111,7 @@
                 "sleep 5",
                 "sudo apt-get update -qq",
                 "sudo apt-get install python-pip python-dev -y",
-                "sudo pip install ansible==1.9.4",
+                "sudo pip install ansible==2.0.1.0",
                 "sudo /bin/sh -c 'echo {{user `version`}} > /srv/version.txt'"
             ]
         },
@@ -121,7 +121,7 @@
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-app-server",
             "extra_arguments": [
-                "--extra-vars 'app_deploy_branch={{user `version`}}'"
+                "--user 'ubuntu' --extra-vars 'app_deploy_branch={{user `version`}}'"
             ],
             "only": [
                 "mmw-app"
@@ -133,7 +133,7 @@
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-tile-server",
             "extra_arguments": [
-                "--extra-vars 'tiler_deploy_branch={{user `version`}}'"
+                "--user 'ubuntu' --extra-vars 'tiler_deploy_branch={{user `version`}}'"
             ],
             "only": [
                 "mmw-tiler"
@@ -145,7 +145,7 @@
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-worker-server",
             "extra_arguments": [
-                "--extra-vars 'app_deploy_branch={{user `version`}}'"
+                "--user 'ubuntu' --extra-vars 'app_deploy_branch={{user `version`}}'"
             ],
             "only": [
                 "mmw-worker"
@@ -156,6 +156,9 @@
             "playbook_file": "ansible/monitoring-servers.yml",
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-monitoring-server",
+            "extra_arguments": [
+                "--user 'ubuntu'"
+            ],
             "only": [
                 "mmw-monitoring"
             ]

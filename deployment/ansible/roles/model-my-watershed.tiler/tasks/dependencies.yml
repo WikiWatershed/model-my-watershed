@@ -13,4 +13,4 @@
     chdir: "{{ tiler_home }}"
   environment:
     PKG_CONFIG_PATH: "/usr/lib/pkgconfig/pycairo.pc"
-  sudo: False
+  become: False

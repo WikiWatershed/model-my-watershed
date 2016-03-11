@@ -585,6 +585,7 @@ var MapView = Marionette.ItemView.extend({
                     return drawUtils.polygonDefaults;
                 }});
             this._areaOfInterestLayer.addLayer(layer);
+            this.addAdditionalAoiShapes();
         }
     },
 
@@ -596,15 +597,36 @@ var MapView = Marionette.ItemView.extend({
 
         if (!areaOfInterest) {
             this._areaOfInterestLayer.clearLayers();
+            this.model.set('areaOfInterestAdditionals', null);
         } else {
             try {
                 var layer = new L.GeoJSON(areaOfInterest);
                 applyMask(this._areaOfInterestLayer, layer);
                 this.model.set('maskLayerApplied', true);
                 this._leafletMap.fitBounds(layer.getBounds(), { reset: true });
+                this.addAdditionalAoiShapes();
             } catch (ex) {
                 console.log('Error adding Leaflet layer (invalid GeoJSON object)');
             }
+        }
+    },
+
+    addAdditionalAoiShapes: function() {
+        var self = this,
+            additionalShapes = this.model.get('areaOfInterestAdditionals');
+
+        if (additionalShapes) {
+            var pointsLayer = new L.GeoJSON(additionalShapes, {
+                onEachFeature: function(feature, layer) {
+                    var message = "Outlet point snapped to nearest stream";
+                    if (feature.properties && feature.properties.original) {
+                        message = "Original clicked outlet point";
+                    }
+
+                    layer.bindPopup(message);
+                }
+            });
+            self._areaOfInterestLayer.addLayer(pointsLayer);
         }
     },
 

@@ -7,7 +7,7 @@
         state=present
 
 - name: Add Ansible SSH user to the mmw group
-  user: name="{{ ansible_ssh_user }}"
+  user: name="{{ ansible_user }}"
         append=yes
         group=mmw
         state=present

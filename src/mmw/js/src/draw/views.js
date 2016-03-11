@@ -41,8 +41,22 @@ function actOnLayer(datum) {
     }
 }
 
-function validateShape(shape) {
-    var area = coreUtils.changeOfAreaUnits(turfArea(shape), 'm<sup>2</sup>', 'km<sup>2</sup>'),
+function validateRwdShape(result) {
+    var d = new $.Deferred();
+    if (result.watershed) {
+        validateShape(result.watershed)
+            .done(function() {
+                d.resolve(result);
+            })
+            .fail(d.reject);
+    } else {
+        d.reject(result);
+    }
+    return d.promise();
+}
+
+function validateShape(polygon) {
+    var area = coreUtils.changeOfAreaUnits(turfArea(polygon), 'm<sup>2</sup>', 'km<sup>2</sup>'),
         d = new $.Deferred();
 
     if (area > MAX_AREA) {
@@ -54,7 +68,7 @@ function validateShape(shape) {
         window.alert(message);
         d.reject();
     } else {
-        d.resolve(shape);
+        d.resolve(polygon);
     }
     return d.promise();
 }
@@ -363,7 +377,6 @@ var WatershedDelineationView= Marionette.ItemView.extend({
         utils.placeMarker(map)
              .then(function(latlng) {
                 var point = L.marker(latlng).toGeoJSON(),
-                    shape,
                     deferred = $.Deferred();
 
                 var taskHelper = {
@@ -372,9 +385,9 @@ var WatershedDelineationView= Marionette.ItemView.extend({
                     },
 
                     pollSuccess: function(response) {
-                        shape = JSON.parse(response.result).features[0];
                         self.model.set('polling', false);
-                        deferred.resolve(shape);
+                        var result = JSON.parse(response.result);
+                        deferred.resolve(result);
                     },
 
                     pollFailure: function(response) {
@@ -410,13 +423,34 @@ var WatershedDelineationView= Marionette.ItemView.extend({
                 self.rwdTaskModel.start(taskHelper);
                 return deferred;
             })
-            .done(validateShape)
-            .done(function(shape) {
-                addLayer(shape, itemName);
+            .then(validateRwdShape)
+            .done(function(result) {
+                var inputPoints = result.input_pt;
+                // add additional aoi points:w
+                if (inputPoints) {
+                    var properties = inputPoints.features[0].properties;
+
+                    // If the point was snapped, there will be the original
+                    // point as attributes
+                    if (properties.Dist_moved) {
+                        inputPoints.features.push(
+                            makePointGeoJson([properties.Lon, properties.Lat], {
+                                original: true
+                            })
+                        );
+                    }
+                    App.map.set({
+                        'areaOfInterestAdditionals': inputPoints
+                    });
+                }
+
+                // Add Watershed AoI layer
+                addLayer(result.watershed, itemName);
                 navigateToAnalyze();
             })
             .fail(function() {
                 revertLayer();
+                window.alert('Unable to delineate watershed at this location');
             })
             .always(function() {
                 self.model.enableTools();
@@ -448,6 +482,17 @@ var ResetDrawView = Marionette.ItemView.extend({
         clearBoundaryLayer(this.model);
     }
 });
+
+function makePointGeoJson(coords, props) {
+    return {
+        geometry: {
+            coordinates: coords,
+            type: 'Point'
+        },
+        properties: props,
+        type: 'Feature'
+    };
+}
 
 function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
     // The shapeId might not be available at the time of the click
