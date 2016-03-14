@@ -68,7 +68,7 @@ fi
 
 if [ "$load_stream" = "true" ] ; then
     # Fetch stream network layer sql files
-    FILES=("drb_stream_network_20.sql.gz" "drb_stream_network_50.sql.gz" "drb_stream_network_100.sql.gz")
+    FILES=("nhdflowline.sql.gz")
 
     download_and_load $FILES
 fi
