@@ -113,7 +113,12 @@ var initialize = function(model) {
     }
 
     // Wire up events
-    $precipSlider.on('input', recalculate);
+    var isIE = ("ActiveXObject" in window);
+    if (isIE) {
+        $precipSlider.on('change', recalculate);
+    } else {
+        $precipSlider.on('input', recalculate);
+    }
     $('a[data-toggle="tab"]').on('shown.bs.tab', recalculate);
 
     // Trigger the first time page loads
