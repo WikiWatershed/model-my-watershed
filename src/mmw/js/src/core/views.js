@@ -307,8 +307,13 @@ var MapView = Marionette.ItemView.extend({
 
                 nullLayer[type] = true;
 
+                // Layers may be null in testing
                 var layers = settings.get(type + '_layers');
-                return [nullLayer].concat(layers);
+                if (!_.isEmpty(layers)) {
+                    return [nullLayer].concat(layers);
+                } else {
+                    return [nullLayer];
+                }
             });
 
         return _.flatten(overlayLayers);
