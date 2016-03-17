@@ -20,13 +20,14 @@
   }
 }
 
-@zoomBase: 0.3;
+@zoomBase: 0.5;
 
 #drb_stream_network_20,
 #drb_stream_network_50,
-#drb_stream_network_100
+#drb_stream_network_100,
+#nhdflowline
 {
-  line-color: #78CAE6;
+  line-color: #1562A9;
   [zoom<=10] { line-width: 1.0 * @zoomBase; }
   [zoom=11] { line-width: 2.0 * @zoomBase; }
   [zoom=12] { line-width: 4.0 * @zoomBase; }

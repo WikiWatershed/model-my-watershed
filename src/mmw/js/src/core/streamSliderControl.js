@@ -58,7 +58,7 @@ var StreamSliderView = Marionette.ItemView.extend({
 
     initialize: function(options) {
         this.streamFeatures = options.streamFeatures;
-        this.streamLayers = settings.get('stream_layers');
+        this.streamLayers = settings.get('stream_drb_layers');
     },
 
     onShow: function() {
