@@ -11,6 +11,7 @@ where: \n
     -b  load/reload boundary data\n
     -f  load a named boundary sql.gz\n
     -s  load/reload stream data\n
+    -m  load/reload mapshed data\n
 "
 
 # HTTP accessible storage for initial app data
@@ -18,8 +19,9 @@ FILE_HOST="https://s3.amazonaws.com/data.mmw.azavea.com"
 load_boundary=false
 file_to_load=
 load_stream=false
+load_mapshed=false
 
-while getopts ":hbsf:" opt; do
+while getopts ":hbsmf:" opt; do
     case $opt in
         h)
             echo -e $usage
@@ -28,6 +30,8 @@ while getopts ":hbsf:" opt; do
             load_boundary=true ;;
         s)
             load_stream=true ;;
+        m)
+            load_mapshed=true ;;
         f)
             file_to_load=$OPTARG ;;
         \?)
@@ -69,6 +73,13 @@ fi
 if [ "$load_stream" = "true" ] ; then
     # Fetch stream network layer sql files
     FILES=("nhdflowline.sql.gz")
+
+    download_and_load $FILES
+fi
+
+if [ "$load_mapshed" = "true" ] ; then
+    # Fetch map shed specific vector features
+    FILES=("ms_weather_station.sql.gz" "ms_pointsource.sql.gz" "ms_county_animals.sql.gz")
 
     download_and_load $FILES
 fi
