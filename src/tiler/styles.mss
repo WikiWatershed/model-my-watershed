@@ -25,6 +25,7 @@
 #drb_stream_network_20,
 #drb_stream_network_50,
 #drb_stream_network_100,
+#drb_streams_50,
 #nhdflowline
 {
   line-color: #1562A9;

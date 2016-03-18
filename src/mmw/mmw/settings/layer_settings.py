@@ -10,6 +10,15 @@ but default to 'geom' if not.
 For basemaps, maxZoom must be defined.
 """
 
+from os.path import join, dirname, abspath
+import json
+
+
+# Simplified perimeter of the Delaware River Basin (DRB).
+drb_perimeter_path = join(dirname(abspath(__file__)), 'data/drb_perimeter.json')
+drb_perimeter_file = open(drb_perimeter_path)
+drb_perimeter = json.load(drb_perimeter_file)
+
 LAYERS = [
     {
         'code': 'huc8',
@@ -117,6 +126,17 @@ LAYERS = [
         'stream': True,
         'overlay': True,
         'minZoom': 10
+    },
+    {
+        'code': 'drb_streams',
+        'display': 'DRB Stream Network',
+        'table_name': 'drb_streams_50',
+        'boundary': False,
+        'stream': True,
+        'overlay': True,
+        'minZoom': 11,
+        'perimeter': drb_perimeter # Layer is only selectable when viewport
+        # overlaps with perimeter polygon.
     },
     {
         'display': 'National Land Cover Database',

@@ -36,6 +36,7 @@ var interactivity = {
         'stream-low': 'drb_stream_network_100',
         'stream-medium': 'drb_stream_network_50',
         'stream-high': 'drb_stream_network_20',
+        'drb_streams': 'drb_streams_50',
         stream: 'nhdflowline'
     },
     shouldCacheRequest = function(req) {
