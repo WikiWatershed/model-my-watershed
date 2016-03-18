@@ -463,6 +463,8 @@ var MapView = Marionette.ItemView.extend({
             // minZoom being larger than the current zoom level are
             // cleared from the map.
             coreUtils.zoomToggle(map, layerConfig, actOnUI, actOnLayer);
+
+            coreUtils.perimeterToggle(map, layerConfig, actOnUI, actOnLayer);
         }
 
         return layers;
