@@ -84,29 +84,22 @@ var ToolbarView = Marionette.LayoutView.extend({
         selectTypeRegion: '#select-area-region',
         drawRegion: '#draw-region',
         watershedDelineationRegion: '#place-marker-region',
-        resetRegion: '#reset-draw-region',
-        streamRegion: '#stream-slider-region'
+        resetRegion: '#reset-draw-region'
     },
 
     initialize: function() {
         var map = App.getLeafletMap(),
-            ofg = L.featureGroup(),
-            sfg = L.featureGroup();
+            ofg = L.featureGroup();
         this.model.set('outlineFeatureGroup', ofg);
-        this.model.set('streamFeatureGroup', sfg);
         map.addLayer(ofg);
-        map.addLayer(sfg);
         this.rwdTaskModel = new models.RwdTaskModel();
     },
 
     onDestroy: function() {
         var map = App.getLeafletMap(),
-            ofg = this.model.get('outlineFeatureGroup'),
-            sfg = this.model.get('streamFeatureGroup');
+            ofg = this.model.get('outlineFeatureGroup');
         map.removeLayer(ofg);
-        map.removeLayer(sfg);
         this.model.set('outlineFeatureGroup', null);
-        this.model.set('streamFeatureGroup', null);
     },
 
     onShow: function() {

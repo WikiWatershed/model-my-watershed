@@ -170,24 +170,6 @@ LAYERS = [
         'has_opacity_slider': True
     },
     {
-        'code': 'stream-low',
-        'display': 'Low-Res',
-        'table_name': 'deldem4net100r',
-        'stream_drb': True,
-    },
-    {
-        'code': 'stream-medium',
-        'display': 'Medium-Res',
-        'table_name': 'deldem4net50r',
-        'stream_drb': True,
-    },
-    {
-        'code': 'stream-high',
-        'display': 'High-Res',
-        'table_name': 'deldem4net20r',
-        'stream_drb': True,
-    },
-    {
         'type': 'mapbox',
         'display': 'Streets',
         'url': 'https://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9'

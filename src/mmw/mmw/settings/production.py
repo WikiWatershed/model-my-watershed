@@ -105,7 +105,6 @@ MAP_CONTROLS = [
     'LayerAttribution',
     'LayerSelector',
     'LocateMeButton',
-    # 'StreamControl',
     'ZoomControl',
 ]
 

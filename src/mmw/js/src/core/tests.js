@@ -62,7 +62,6 @@ describe('Core', function() {
                     'LayerAttribution',
                     'LayerSelector',
                     'LocateMeButton',
-                    'StreamControl',
                     'ZoomControl',
                 ]);
             });

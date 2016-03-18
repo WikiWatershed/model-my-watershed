@@ -120,7 +120,6 @@ def get_client_settings(request):
         'client_settings': json.dumps({
             EMBED_FLAG: request.session.get(EMBED_FLAG, False),
             'base_layers': get_layer_config(['basemap']),
-            'stream_drb_layers': get_layer_config(['stream_drb']),
             'boundary_layers': get_layer_config(['boundary']),
             'vector_layers': get_layer_config(['vector', 'overlay']),
             'raster_layers': get_layer_config(['raster', 'overlay']),
