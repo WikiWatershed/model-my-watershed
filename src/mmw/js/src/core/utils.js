@@ -26,17 +26,20 @@ var utils = {
     // A function to enable/disable UI entries in response to zoom
     // level changes.
     zoomToggle: function(map, layerData, actOnUI, actOnLayer) {
-        map.on('zoomend', function(e) {
-            var zoom = e.target.getZoom();
-            _.forEach(layerData, function(layerDatum) {
-                if (zoom < (layerDatum.minZoom || 0)) {
-                    actOnUI(layerDatum, true);
-                    actOnLayer(layerDatum);
-                } else if (zoom >= (layerDatum.minZoom || 0)) {
-                    actOnUI(layerDatum, false);
-                }
-            });
-        });
+        var toggleActiveLayers = function(e) {
+                var zoom = e.target.getZoom();
+                _.forEach(layerData, function(layerDatum) {
+                    if (zoom < (layerDatum.minZoom || 0)) {
+                        actOnUI(layerDatum, true);
+                        actOnLayer(layerDatum);
+                    } else if (zoom >= (layerDatum.minZoom || 0)) {
+                        actOnUI(layerDatum, false);
+                    }
+                });
+            };
+
+        map.once('touchstart mouseover', toggleActiveLayers);
+        map.on('zoomend', toggleActiveLayers);
     },
 
     // A numeric comparator for strings.
