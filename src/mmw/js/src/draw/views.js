@@ -7,6 +7,7 @@ var $ = require('jquery'),
     turfArea = require('turf-area'),
     turfBboxPolygon = require('turf-bbox-polygon'),
     turfDestination = require('turf-destination'),
+    turfIntersect = require('turf-intersect'),
     router = require('../router').router,
     App = require('../app'),
     utils = require('./utils'),
@@ -69,6 +70,19 @@ function validateShape(polygon) {
         d.reject();
     } else {
         d.resolve(polygon);
+    }
+    return d.promise();
+}
+
+function validateClickedPointWithinDRB(latlng) {
+    var point = L.marker(latlng).toGeoJSON(),
+        d = $.Deferred(),
+        boundaries = settings.get('boundary_layers'),
+        drbPerimeter = _.findWhere(boundaries, {code:'drb_streams'}).perimeter;
+    if (turfIntersect(point, drbPerimeter)) {
+        d.resolve(latlng);
+    } else {
+        d.reject(latlng);
     }
     return d.promise();
 }
@@ -368,6 +382,7 @@ var WatershedDelineationView= Marionette.ItemView.extend({
 
         this.model.disableTools();
         utils.placeMarker(map)
+             .then(validateClickedPointWithinDRB)
              .then(function(latlng) {
                 var point = L.marker(latlng).toGeoJSON(),
                     deferred = $.Deferred();
