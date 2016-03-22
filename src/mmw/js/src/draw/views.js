@@ -51,7 +51,8 @@ function validateRwdShape(result) {
             })
             .fail(d.reject);
     } else {
-        d.reject(result);
+        var message = 'Unable to delineate watershed at this location';
+        d.reject(message);
     }
     return d.promise();
 }
@@ -66,8 +67,7 @@ function validateShape(polygon) {
         message += Math.floor(area) + ' square km were selected, ';
         message += 'but the maximum supported size is currently ';
         message += MAX_AREA + ' square km.';
-        window.alert(message);
-        d.reject();
+        d.reject(message);
     } else {
         d.resolve(polygon);
     }
@@ -82,7 +82,8 @@ function validateClickedPointWithinDRB(latlng) {
     if (turfIntersect(point, drbPerimeter)) {
         d.resolve(latlng);
     } else {
-        d.reject(latlng);
+        var message = 'Selected point is outside the Delaware River Basin';
+        d.reject(message);
     }
     return d.promise();
 }
@@ -404,7 +405,9 @@ var WatershedDelineationView= Marionette.ItemView.extend({
                             polling: false
                         });
                         console.log(response.error);
-                        deferred.reject();
+                        var message = 'Unable to delineate watershed at ' +
+                                      'this location';
+                        deferred.reject(message);
                     },
 
                     pollEnd: function() {
@@ -416,7 +419,8 @@ var WatershedDelineationView= Marionette.ItemView.extend({
                             pollError: true,
                             polling: false
                         });
-                        deferred.reject();
+                        var message = 'Unable to delineate watershed';
+                        deferred.reject(message);
                     },
 
                     postData: {
@@ -456,9 +460,11 @@ var WatershedDelineationView= Marionette.ItemView.extend({
                 addLayer(result.watershed, itemName);
                 navigateToAnalyze();
             })
-            .fail(function() {
+            .fail(function(message) {
                 revertLayer();
-                window.alert('Unable to delineate watershed at this location');
+                if (message) {
+                    window.alert(message);
+                }
             })
             .always(function() {
                 self.model.enableTools();
