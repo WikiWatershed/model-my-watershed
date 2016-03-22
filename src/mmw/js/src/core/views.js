@@ -16,7 +16,6 @@ var L = require('leaflet'),
     modalViews = require('./modals/views'),
     settings = require('./settings'),
     LayerControl = require('./layerControl'),
-    StreamSliderControl = require('./streamSliderControl'),
     OpacityControl = require('./opacityControl'),
     VizerLayers = require('./vizerLayers');
 
@@ -218,7 +217,6 @@ var MapView = Marionette.ItemView.extend({
             addZoomControl: _.contains(map_controls, 'ZoomControl'),
             addLocateMeButton: _.contains(map_controls, 'LocateMeButton'),
             addLayerSelector: _.contains(map_controls, 'LayerSelector'),
-            addStreamControl: _.contains(map_controls, 'StreamControl'),
             showLayerAttribution: _.contains(map_controls, 'LayerAttribution'),
             initialLayerName: defaultLayerName,
             interactiveMode: true // True if clicking on map does stuff
@@ -270,14 +268,6 @@ var MapView = Marionette.ItemView.extend({
             );
 
             self.layerControl.addTo(map);
-        }
-
-        if (options.addStreamControl) {
-            this.layerControl = new StreamSliderControl({
-                autoZIndex: false,
-                position: 'topleft',
-                collapsed: false
-            }).addTo(map);
         }
 
         this.setMapEvents();
@@ -463,6 +453,8 @@ var MapView = Marionette.ItemView.extend({
             // minZoom being larger than the current zoom level are
             // cleared from the map.
             coreUtils.zoomToggle(map, layerConfig, actOnUI, actOnLayer);
+
+            coreUtils.perimeterToggle(map, layerConfig, actOnUI, actOnLayer);
         }
 
         return layers;

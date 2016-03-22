@@ -11,6 +11,7 @@ where: \n
     -b  load/reload boundary data\n
     -f  load a named boundary sql.gz\n
     -s  load/reload stream data\n
+    -d load/reload DRB stream data\n
     -m  load/reload mapshed data\n
 "
 
@@ -21,7 +22,7 @@ file_to_load=
 load_stream=false
 load_mapshed=false
 
-while getopts ":hbsmf:" opt; do
+while getopts ":hbsdmf:" opt; do
     case $opt in
         h)
             echo -e $usage
@@ -30,6 +31,8 @@ while getopts ":hbsmf:" opt; do
             load_boundary=true ;;
         s)
             load_stream=true ;;
+        d)
+            load_drb_streams=true ;;
         m)
             load_mapshed=true ;;
         f)
@@ -73,6 +76,13 @@ fi
 if [ "$load_stream" = "true" ] ; then
     # Fetch stream network layer sql files
     FILES=("nhdflowline.sql.gz")
+
+    download_and_load $FILES
+fi
+
+if [ "$load_drb_streams" = "true" ] ; then
+    # Fetch DRB stream network layer sql file
+    FILES=("drb_streams_50.sql.gz")
 
     download_and_load $FILES
 fi

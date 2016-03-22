@@ -10,6 +10,15 @@ but default to 'geom' if not.
 For basemaps, maxZoom must be defined.
 """
 
+from os.path import join, dirname, abspath
+import json
+
+
+# Simplified perimeter of the Delaware River Basin (DRB).
+drb_perimeter_path = join(dirname(abspath(__file__)), 'data/drb_perimeter.json')
+drb_perimeter_file = open(drb_perimeter_path)
+drb_perimeter = json.load(drb_perimeter_file)
+
 LAYERS = [
     {
         'code': 'huc8',
@@ -119,6 +128,17 @@ LAYERS = [
         'minZoom': 10
     },
     {
+        'code': 'drb_streams',
+        'display': 'DRB Stream Network',
+        'table_name': 'drb_streams_50',
+        'boundary': False,
+        'stream': True,
+        'overlay': True,
+        'minZoom': 11,
+        'perimeter': drb_perimeter # Layer is only selectable when viewport
+        # overlaps with perimeter polygon.
+    },
+    {
         'display': 'National Land Cover Database',
         'short_display': 'NLCD',
         'helptext': 'National Land Cover Database defines'
@@ -148,24 +168,6 @@ LAYERS = [
         'maxZoom': 18,
         'opacity': 0.618,
         'has_opacity_slider': True
-    },
-    {
-        'code': 'stream-low',
-        'display': 'Low-Res',
-        'table_name': 'deldem4net100r',
-        'stream_drb': True,
-    },
-    {
-        'code': 'stream-medium',
-        'display': 'Medium-Res',
-        'table_name': 'deldem4net50r',
-        'stream_drb': True,
-    },
-    {
-        'code': 'stream-high',
-        'display': 'High-Res',
-        'table_name': 'deldem4net20r',
-        'stream_drb': True,
     },
     {
         'type': 'mapbox',
