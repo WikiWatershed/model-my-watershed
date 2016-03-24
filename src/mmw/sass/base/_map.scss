@@ -175,3 +175,31 @@
 .leaflet-popup {
   font-family: $font-family !important;
 }
+
+// style markers for 'Delineate Watershed'
+
+.marker-rwd {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 100%;
+  border: 1px solid #fff;
+  &:after {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    top: 2px;
+    left: 2px;
+    background-color: #fff;
+    content: "";
+    border-radius: 100%;
+  }
+}
+
+.marker-rwd-original-point {
+  background-color: #8e44ad;
+}
+
+.marker-rwd-nearest-stream-point {
+  background-color: #3498db;
+}

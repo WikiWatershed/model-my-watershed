@@ -19,7 +19,6 @@ var L = require('leaflet'),
     OpacityControl = require('./opacityControl'),
     VizerLayers = require('./vizerLayers');
 
-
 require('leaflet.locatecontrol');
 require('leaflet-plugins/layer/tile/Google');
 
@@ -610,17 +609,31 @@ var MapView = Marionette.ItemView.extend({
             additionalShapes = this.model.get('areaOfInterestAdditionals');
 
         if (additionalShapes) {
-            var pointsLayer = new L.GeoJSON(additionalShapes, {
-                onEachFeature: function(feature, layer) {
-                    var message = "Outlet point snapped to nearest stream";
-                    if (feature.properties && feature.properties.original) {
-                        message = "Original clicked outlet point";
-                    }
-
-                    layer.bindPopup(message);
+            _.each(additionalShapes.features, function(geoJSONpoint) {
+                function createMarkerIcon(iconName) {
+                    return L.divIcon({
+                        className: 'marker-rwd marker-rwd-' + iconName,
+                        iconSize: [16,16]
+                    });
                 }
+
+                var newLayer = L.geoJson(geoJSONpoint, {
+                    pointToLayer: function(feature, latLngForPoint) {
+                        var customIcon = feature.properties.original ?
+                            createMarkerIcon('original-point') :
+                            createMarkerIcon('nearest-stream-point');
+                        return L.marker(latLngForPoint, { icon: customIcon });
+                    },
+                    onEachFeature: function(feature, layer) {
+                        var popupMessage = feature.properties.original ?
+                            "Original clicked outlet point" :
+                            "Outlet point snapped to nearest stream";
+                        layer.bindPopup(popupMessage);
+                    }
+                });
+
+                self._areaOfInterestLayer.addLayer(newLayer);
             });
-            self._areaOfInterestLayer.addLayer(pointsLayer);
         }
     },
 
