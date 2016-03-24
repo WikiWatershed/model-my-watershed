@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+import time
 import requests
 from celery import shared_task
 import json
@@ -18,6 +19,20 @@ logger = logging.getLogger(__name__)
 
 KG_PER_POUND = 0.453592
 CM_PER_INCH = 2.54
+
+
+@shared_task
+def start_mapshed_job(input):
+    """
+    Runs a Mapshed job. For now, just wait 3s and return the input.
+    """
+    # TODO remove sleep and call actual mapshed code
+    time.sleep(3)
+    response_json = {
+        'input': input
+    }
+
+    return response_json
 
 
 @shared_task
