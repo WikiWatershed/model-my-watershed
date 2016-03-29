@@ -48,6 +48,7 @@ export PGHOST=$(cat /etc/mmw.d/env/MMW_DB_HOST)
 export PGDATABASE=$(cat /etc/mmw.d/env/MMW_DB_NAME)
 export PGUSER=$(cat /etc/mmw.d/env/MMW_DB_USER)
 export PGPASSWORD=$(cat /etc/mmw.d/env/MMW_DB_PASSWORD)
+export PUBLIC_HOSTED_ZONE_NAME=$(cat /etc/mmw.d/env/MMW_PUBLIC_HOSTED_ZONE_NAME)
 
 # Ensure that the PostGIS extension exists
 psql -c "CREATE EXTENSION IF NOT EXISTS postgis;"
@@ -61,6 +62,12 @@ function download_and_load {
     done
 }
 
+function purge_tile_cache {
+    for path in "${PATHS[@]}"; do
+        aws s3 rm --recursive "s3://tile-cache.${PUBLIC_HOSTED_ZONE_NAME}/${path}/"
+    done
+}
+
 if [ ! -z "$file_to_load" ] ; then
     FILES=("$file_to_load")
     download_and_load $FILES
@@ -69,22 +76,28 @@ fi
 if [ "$load_boundary" = "true" ] ; then
     # Fetch boundary layer sql files
     FILES=("boundary_county.sql.gz" "boundary_school_district.sql.gz" "boundary_district.sql.gz" "boundary_huc12.sql.gz" "boundary_huc10.sql.gz" "boundary_huc08.sql.gz")
+    PATHS=("county" "district" "huc8" "huc10" "huc12")
 
     download_and_load $FILES
+    purge_tile_cache $PATHS
 fi
 
 if [ "$load_stream" = "true" ] ; then
     # Fetch stream network layer sql files
     FILES=("nhdflowline.sql.gz")
+    PATHS=("stream")
 
     download_and_load $FILES
+    purge_tile_cache $PATHS
 fi
 
 if [ "$load_drb_streams" = "true" ] ; then
     # Fetch DRB stream network layer sql file
     FILES=("drb_streams_50.sql.gz")
+    PATHS=("drb_streams")
 
     download_and_load $FILES
+    purge_tile_cache $PATHS
 fi
 
 if [ "$load_mapshed" = "true" ] ; then

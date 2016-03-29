@@ -1,3 +1,7 @@
+/* CONSIDER THAT CHANGES TO THESE STYLES WILL MAKE THE   */
+/* TILE CACHE STALE. PLEASE USE setupdb.sh TO INVALIDATE */
+/* THE LAYERS IMPACTED BY YOUR CHANGES.                  */
+
 #boundary_county,
 #boundary_district,
 #boundary_school_district,
