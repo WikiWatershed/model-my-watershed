@@ -24,7 +24,9 @@
     projectMenuTmpl = require('./templates/projectMenu.html'),
     scenarioToolbarTabContentTmpl = require('./templates/scenarioToolbarTabContent.html'),
     tr55RunoffViews = require('./tr55/runoff/views.js'),
-    tr55QualityViews = require('./tr55/quality/views.js');
+    tr55QualityViews = require('./tr55/quality/views.js'),
+    gwlfeRunoffViews = tr55RunoffViews, // TODO actually make views for gwlfe
+    gwlfeQualityViews = tr55QualityViews;
 
 var ENTER_KEYCODE = 13,
     ESCAPE_KEYCODE = 27;
@@ -838,12 +840,22 @@ function triggerBarChartRefresh() {
 
 function getResultView(modelPackage, resultName) {
     switch (modelPackage) {
-        case 'tr-55':
+        case models.TR55_PACKAGE:
             switch(resultName) {
                 case 'runoff':
                     return tr55RunoffViews.ResultView;
                 case 'quality':
                     return tr55QualityViews.ResultView;
+                default:
+                    console.log('Result not supported.');
+            }
+            break;
+        case models.GWLFE:
+            switch(resultName) {
+                case 'runoff':
+                    return gwlfeRunoffViews.ResultView;
+                case 'quality':
+                    return gwlfeQualityViews.ResultView;
                 default:
                     console.log('Result not supported.');
             }

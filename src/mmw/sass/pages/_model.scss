@@ -18,6 +18,14 @@
     transform: translateX(100%);
   }
 
+  .back-button {
+      display: inline-block;
+  }
+
+  .disabled {
+      text-decoration: none;
+  }
+
   &.analyze {
     top: $height-lg;
   }

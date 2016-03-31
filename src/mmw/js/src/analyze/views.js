@@ -5,6 +5,7 @@ var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
+    settings = require('../core/settings'),
     coreModels = require('../core/models'),
     chart = require('../core/chart'),
     utils = require('../core/utils'),
@@ -41,6 +42,12 @@ var ResultsView = Marionette.LayoutView.extend({
         this.analyzeRegion.show(new AnalyzeWindow({
             model: this.model
         }));
+    },
+
+    templateHelpers: function() {
+        return {
+            modelPackages: settings.get('model_packages')
+        };
     },
 
     transitionInCss: {
