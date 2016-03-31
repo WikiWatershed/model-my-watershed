@@ -122,7 +122,6 @@ LAYERS = [
         'code': 'stream',
         'display': 'National Stream Network',
         'table_name': 'nhdflowline',
-        'boundary': False,
         'stream': True,
         'overlay': True,
         'minZoom': 10
@@ -131,7 +130,6 @@ LAYERS = [
         'code': 'drb_streams',
         'display': 'DRB Stream Network',
         'table_name': 'drb_streams_50',
-        'boundary': False,
         'stream': True,
         'overlay': True,
         'minZoom': 11,
