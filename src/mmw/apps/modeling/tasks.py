@@ -22,14 +22,13 @@ CM_PER_INCH = 2.54
 
 
 @shared_task
-def start_mapshed_job(input):
+def start_gwlfe_job(model_input):
     """
-    Runs a Mapshed job. For now, just wait 3s and return the input.
+    Runs a GWLFE job. For now, just wait 3s and return the input.
     """
-    # TODO remove sleep and call actual mapshed code
+    # TODO remove sleep and call actual GWLFE code
     time.sleep(3)
     response_json = {
-        'input': input
     }
 
     return response_json

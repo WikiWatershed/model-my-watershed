@@ -394,4 +394,22 @@ MAP_CONTROLS = [
     'ZoomControl',
 ]
 
+GWLFE = 'gwlfe'
+TR55_PACKAGE = 'tr-55'
+
+MODEL_PACKAGES = [
+    {
+        'name': TR55_PACKAGE,
+        'display_name': 'Site Storm Model',
+        'description': '',
+    },
+    {
+        'name': GWLFE,
+        'display_name': 'Watershed Multi-Year Model',
+        'description': '',
+    },
+]
+
+DISABLED_MODEL_PACKAGES = []
+
 # END UI CONFIGURATION

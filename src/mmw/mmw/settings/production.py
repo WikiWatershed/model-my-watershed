@@ -108,6 +108,8 @@ MAP_CONTROLS = [
     'ZoomControl',
 ]
 
+DISABLED_MODEL_PACKAGES = [GWLFE]
+
 # END UI CONFIGURATION
 
 # Google API key for production deployment
