@@ -11,6 +11,7 @@ var router = require('./router').router,
 
 router.addRoute(/^/, DrawController, 'draw');
 router.addRoute(/^analyze/, AnalyzeController, 'analyze');
+router.addRoute('project/new/:modelPackage(/)', ModelingController, 'makeNewProject');
 router.addRoute('project(/:projectId)(/scenario/:scenarioId)(/)', ModelingController, 'project');
 router.addRoute('project/:projectId/clone(/)', ModelingController, 'projectClone');
 router.addRoute('project/:projectId/draw(/)', ModelingController, 'projectDraw');
