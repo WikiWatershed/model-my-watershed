@@ -103,9 +103,11 @@ var config = {
             }
 
             if (body) {
-                s3Obj
-                    .upload({Body: body})
-                    .send(function(err, data) { throw (err); });
+                s3Obj.upload({Body: body}, function(err, data) {
+                    if (err) {
+                        throw (err);
+                    }
+                });
             }
 
             callback(null);
