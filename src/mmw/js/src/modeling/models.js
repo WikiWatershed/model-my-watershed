@@ -10,6 +10,10 @@ var Backbone = require('../../shim/backbone'),
     turfErase = require('turf-erase'),
     turfIntersect = require('turf-intersect');
 
+var GWLFE = 'gwlfe';
+var TR55_TASK = 'tr55';
+var TR55_PACKAGE = 'tr-55';
+
 var ModelPackageControlModel = Backbone.Model.extend({
     defaults: {
         name: ''
@@ -33,7 +37,17 @@ var ModelPackageModel = Backbone.Model.extend();
 var Tr55TaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
         {
-            taskName: 'tr55',
+            taskName: TR55_TASK,
+            taskType: 'modeling'
+        },
+        coreModels.TaskModel.prototype.defaults
+    )
+});
+
+var GwlfeTaskModel = coreModels.TaskModel.extend({
+    defaults: _.extend(
+        {
+            taskName: GWLFE,
             taskType: 'modeling'
         },
         coreModels.TaskModel.prototype.defaults
@@ -93,7 +107,7 @@ var ProjectModel = Backbone.Model.extend({
         created_at: null,               // Date
         area_of_interest: null,         // GeoJSON
         area_of_interest_name: null,    // Human readable string for AOI.
-        model_package: '',              // Package name
+        model_package: TR55_PACKAGE,    // Package name
         scenarios: null,                // ScenariosCollection
         user_id: 0,                     // User that created the project
         is_activity: false,             // Project that persists across routes
@@ -106,12 +120,6 @@ var ProjectModel = Backbone.Model.extend({
         if (scenarios === null || typeof scenarios === 'string') {
             this.set('scenarios', new ScenariosCollection());
         }
-        // TODO: For a new project, users will eventually
-        // be able to choose which modeling package
-        // they want to use in their project. For
-        // now, the only option is TR55, so it is
-        // hard-coded here.
-        this.set('model_package', 'tr-55');
 
         this.set('user_id', App.user.get('id'));
 
@@ -122,33 +130,16 @@ var ProjectModel = Backbone.Model.extend({
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
     },
 
+    setProjectModel: function(modelPackage) {
+        this.set('model_package', modelPackage);
+    },
+
     createTaskModel: function() {
-        var packageName = this.get('model_package');
-        switch (packageName) {
-            case 'tr-55':
-                return new Tr55TaskModel();
-        }
-        throw 'Model package not supported: ' + packageName;
+        return createTaskModel(this.get('model_package'));
     },
 
     createTaskResultCollection: function() {
-        var packageName = this.get('model_package');
-        switch (packageName) {
-            case 'tr-55':
-                return new ResultCollection([
-                    {
-                        name: 'runoff',
-                        displayName: 'Runoff',
-                        result: null
-                    },
-                    {
-                        name: 'quality',
-                        displayName: 'Water Quality',
-                        result: null
-                    }
-                ]);
-        }
-        throw 'Model package not supported: ' + packageName;
+        return createTaskResultCollection(this.get('model_package'));
     },
 
     fetchResultsIfNeeded: function() {
@@ -241,6 +232,8 @@ var ProjectModel = Backbone.Model.extend({
                 scenarios = _.map(response.scenarios, function(scenario) {
                     var scenarioModel = new ScenarioModel(scenario);
                     scenarioModel.set('user_id', user_id);
+                    scenarioModel.set('taskModel', createTaskModel(response.model_package));
+                    scenarioModel.set('results', createTaskResultCollection(response.model_package));
                     scenarioModel.get('modifications').reset(scenario.modifications);
                     if (!_.isEmpty(scenario.results)) {
                         scenarioModel.get('results').reset(scenario.results);
@@ -824,7 +817,7 @@ var ScenariosCollection = Backbone.Collection.extend({
 });
 
 function getControlsForModelPackage(modelPackageName, options) {
-    if (modelPackageName === 'tr-55') {
+    if (modelPackageName === TR55_PACKAGE) {
         if (options && (options.compareMode ||
                         options.is_current_conditions)) {
             return new ModelPackageControlsCollection([
@@ -837,10 +830,56 @@ function getControlsForModelPackage(modelPackageName, options) {
                 new ModelPackageControlModel({ name: 'precipitation' })
             ]);
         }
+    } else if (modelPackageName === GWLFE) {
+        // TODO add controls for GWLFE
+        return new ModelPackageControlsCollection([]);
     }
 
     throw 'Model package not supported ' + modelPackageName;
 }
+
+function createTaskModel(modelPackage) {
+    switch (modelPackage) {
+        case TR55_PACKAGE:
+            return new Tr55TaskModel();
+        case GWLFE:
+            return new GwlfeTaskModel();
+    }
+    throw 'Model package not supported: ' + modelPackage;
+}
+
+function createTaskResultCollection(modelPackage) {
+    switch (modelPackage) {
+        case TR55_PACKAGE:
+            return new ResultCollection([
+                {
+                    name: 'runoff',
+                    displayName: 'Runoff',
+                    result: null
+                },
+                {
+                    name: 'quality',
+                    displayName: 'Water Quality',
+                    result: null
+                }
+            ]);
+        case GWLFE:
+            return new ResultCollection([
+                {
+                    name: 'runoff',
+                    displayName: 'Runoff',
+                    result: null
+                },
+                {
+                    name: 'quality',
+                    displayName: 'Water Quality',
+                    result: null
+                }
+            ]);
+    }
+    throw 'Model package not supported: ' + modelPackage;
+}
+
 
 module.exports = {
     getControlsForModelPackage: getControlsForModelPackage,
@@ -850,6 +889,10 @@ module.exports = {
     ModelPackageControlsCollection: ModelPackageControlsCollection,
     ModelPackageControlModel: ModelPackageControlModel,
     Tr55TaskModel: Tr55TaskModel,
+    GwlfeTaskModel: GwlfeTaskModel,
+    TR55_TASK: TR55_TASK,
+    TR55_PACKAGE: TR55_PACKAGE,
+    GWLFE: GWLFE,
     ProjectModel: ProjectModel,
     ProjectCollection: ProjectCollection,
     ModificationModel: ModificationModel,

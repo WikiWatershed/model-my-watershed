@@ -189,17 +189,17 @@ def start_rwd(request, format=None):
 
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
-def start_mapshed(request, format=None):
+def start_gwlfe(request, format=None):
     """
-    Starts a job to run Mapshed.
+    Starts a job to run GWLF-E.
     """
     user = request.user if request.user.is_authenticated() else None
     created = now()
-    input = request.POST['input']
+    model_input = request.POST['model_input']
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
 
-    task_list = _initiate_mapshed_job_chain(input, job.id)
+    task_list = _initiate_gwlfe_job_chain(model_input, job.id)
 
     job.uuid = task_list.id
     job.save()
@@ -212,13 +212,13 @@ def start_mapshed(request, format=None):
     )
 
 
-def _initiate_mapshed_job_chain(input, job_id):
+def _initiate_gwlfe_job_chain(model_input, job_id):
     exchange = MAGIC_EXCHANGE
     routing_key = choose_worker()
 
-    return chain(tasks.start_mapshed_job.s(input)
+    return chain(tasks.start_gwlfe_job.s(model_input)
                  .set(exchange=exchange, routing_key=routing_key),
-                 save_job_result.s(job_id, input)) \
+                 save_job_result.s(job_id, model_input)) \
         .apply_async(link_error=save_job_error.s(job_id))
 
 

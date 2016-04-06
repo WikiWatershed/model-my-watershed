@@ -7,14 +7,31 @@
             </a>
         </li>
         <li>
-            <a aria-controls="home" aria-expanded="false">
+            <a class="back-button" aria-controls="home" aria-expanded="false">
                 <button type="button" class="btn btn-lg" data-url="/">
                     Back
                 </button>
-                <button type="button" class="btn btn-lg btn-active" data-url="/project">
-                    Model
-                </button>
             </a>
+
+            <div class="dropdown">
+              <button class="btn btn-lg btn-active dropdown-toggle" type="button" data-toggle="dropdown">Model
+              <span class="caret"></span></button>
+              <ul class="dropdown-menu dropdown-menu-right">
+                {% for modelPackage in modelPackages %}
+                    <li>
+                        {% if modelPackage.disabled %}
+                            <a class="disabled" href="#">
+                                {{ modelPackage.display_name }} (Coming Soon)
+                            </a>
+                        {% else %}
+                            <a href="#" data-url="/project/new/{{ modelPackage.name }}">
+                                {{ modelPackage.display_name }}
+                            </a>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+              </ul>
+            </div>
         </li>
     </ul>
 </div>

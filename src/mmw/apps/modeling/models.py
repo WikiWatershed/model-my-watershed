@@ -9,7 +9,11 @@ from django.contrib.auth.models import User
 
 class Project(models.Model):
     TR55 = 'tr-55'
-    MODEL_PACKAGES = ((TR55, 'Simple Model'),)
+    GWLFE = 'gwlfe'
+    MODEL_PACKAGES = (
+        (TR55, 'Site Storm Model'),
+        (GWLFE, 'Watershed Multi-Year Model'),
+    )
 
     user = models.ForeignKey(User)
     name = models.CharField(
