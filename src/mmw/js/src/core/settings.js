@@ -4,6 +4,7 @@ var defaultSettings = {
     itsi_embed: false,
     base_layers: {},
     stream_layers: {},
+    stream_drb_layers: {},
     boundary_layers: {},
     draw_tools: [],
     map_controls: [],

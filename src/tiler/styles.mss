@@ -1,3 +1,7 @@
+/* CONSIDER THAT CHANGES TO THESE STYLES WILL MAKE THE   */
+/* TILE CACHE STALE. PLEASE USE setupdb.sh TO INVALIDATE */
+/* THE LAYERS IMPACTED BY YOUR CHANGES.                  */
+
 #boundary_county,
 #boundary_district,
 #boundary_school_district,
@@ -20,13 +24,12 @@
   }
 }
 
-@zoomBase: 0.3;
+@zoomBase: 0.5;
 
-#drb_stream_network_20,
-#drb_stream_network_50,
-#drb_stream_network_100
+#drb_streams_50,
+#nhdflowline
 {
-  line-color: #78CAE6;
+  line-color: #1562A9;
   [zoom<=10] { line-width: 1.0 * @zoomBase; }
   [zoom=11] { line-width: 2.0 * @zoomBase; }
   [zoom=12] { line-width: 4.0 * @zoomBase; }

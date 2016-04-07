@@ -33,9 +33,8 @@ var interactivity = {
         huc8: 'boundary_huc08',
         huc10: 'boundary_huc10',
         huc12: 'boundary_huc12',
-        'stream-low': 'drb_stream_network_100',
-        'stream-medium': 'drb_stream_network_50',
-        'stream-high': 'drb_stream_network_20'
+        'drb_streams': 'drb_streams_50',
+        stream: 'nhdflowline'
     },
     shouldCacheRequest = function(req) {
         // Caching can happen if the bucket to write to is defined
@@ -104,9 +103,11 @@ var config = {
             }
 
             if (body) {
-                s3Obj
-                    .upload({Body: body})
-                    .send(function(err, data) { throw (err); });
+                s3Obj.upload({Body: body}, function(err, data) {
+                    if (err) {
+                        throw (err);
+                    }
+                });
             }
 
             callback(null);

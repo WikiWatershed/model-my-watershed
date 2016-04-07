@@ -20,6 +20,8 @@ from django.contrib.gis.geos import GEOSGeometry
 import celery
 from celery import chain
 
+from retry import retry
+
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
 from apps.modeling import tasks
@@ -187,6 +189,41 @@ def start_rwd(request, format=None):
 
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
+def start_mapshed(request, format=None):
+    """
+    Starts a job to run Mapshed.
+    """
+    user = request.user if request.user.is_authenticated() else None
+    created = now()
+    input = request.POST['input']
+    job = Job.objects.create(created_at=created, result='', error='',
+                             traceback='', user=user, status='started')
+
+    task_list = _initiate_mapshed_job_chain(input, job.id)
+
+    job.uuid = task_list.id
+    job.save()
+
+    return Response(
+        {
+            'job': task_list.id,
+            'status': 'started',
+        }
+    )
+
+
+def _initiate_mapshed_job_chain(input, job_id):
+    exchange = MAGIC_EXCHANGE
+    routing_key = choose_worker()
+
+    return chain(tasks.start_mapshed_job.s(input)
+                 .set(exchange=exchange, routing_key=routing_key),
+                 save_job_result.s(job_id, input)) \
+        .apply_async(link_error=save_job_error.s(job_id))
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((AllowAny, ))
 def start_analyze(request, format=None):
     user = request.user if request.user.is_authenticated() else None
     created = now()
@@ -235,8 +272,17 @@ def choose_worker():
     def predicate(worker_name):
         return settings.STACK_COLOR in worker_name or 'debug' in worker_name
 
+    @retry(Exception, delay=0.5, backoff=2, tries=3)
+    def get_list_of_workers():
+        workers = celery.current_app.control.inspect().ping()
+
+        if workers is None:
+            raise Exception('Unable to receive a PONG from any workers')
+
+        return workers.keys()
+
     workers = filter(predicate,
-                     celery.current_app.control.inspect().ping().keys())
+                     get_list_of_workers())
     return random.choice(workers)
 
 

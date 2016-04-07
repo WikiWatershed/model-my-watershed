@@ -49,6 +49,7 @@ class Tiler(StackNode):
         'TileServerAutoScalingDesired': ['global:TileServerAutoScalingDesired'],  # NOQA
         'TileServerAutoScalingMin': ['global:TileServerAutoScalingMin'],
         'TileServerAutoScalingMax': ['global:TileServerAutoScalingMax'],
+        'SSLCertificateARN': ['global:SSLCertificateARN'],
         'PublicSubnets': ['global:PublicSubnets', 'VPC:PublicSubnets'],
         'PrivateSubnets': ['global:PrivateSubnets', 'VPC:PrivateSubnets'],
         'PublicHostedZoneName': ['global:PublicHostedZoneName'],
@@ -142,6 +143,11 @@ class Tiler(StackNode):
             Description='Tile server AutoScalingGroup maximum'
         ), 'TileServerAutoScalingMax')
 
+        self.ssl_certificate_arn = self.add_parameter(Parameter(
+            'SSLCertificateARN', Type='String',
+            Description='ARN for a SSL certificate stored in IAM'
+        ), 'SSLCertificateARN')
+
         self.public_subnets = self.add_parameter(Parameter(
             'PublicSubnets', Type='CommaDelimitedList',
             Description='A list of public subnets'
@@ -207,7 +213,7 @@ class Tiler(StackNode):
                     IpProtocol='tcp', CidrIp=ALLOW_ALL_CIDR, FromPort=p,
                     ToPort=p
                 )
-                for p in [HTTP]
+                for p in [HTTP, HTTPS]
             ],
             SecurityGroupEgress=[
                 ec2.SecurityGroupRule(
@@ -275,6 +281,12 @@ class Tiler(StackNode):
                     LoadBalancerPort='80',
                     InstancePort='80',
                     Protocol='HTTP',
+                ),
+                elb.Listener(
+                    LoadBalancerPort='443',
+                    InstancePort='80',
+                    Protocol='HTTPS',
+                    SSLCertificateId=Ref(self.ssl_certificate_arn)
                 )
             ],
             HealthCheck=elb.HealthCheck(
@@ -350,6 +362,10 @@ class Tiler(StackNode):
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
                 '    content: ', Ref(self.rds_password), '\n',
+                '  - path: /etc/mmw.d/env/MMW_TILECACHE_BUCKET\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Join('.', ['tile-cache', Ref(self.public_hosted_zone_name)]), '\n',  # NOQA
                 '  - path: /etc/mmw.d/env/ROLLBAR_SERVER_SIDE_ACCESS_TOKEN\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',

@@ -1,7 +1,8 @@
 "use strict";
 
 var _ = require('underscore'),
-    md5 = require('blueimp-md5').md5;
+    md5 = require('blueimp-md5').md5,
+    intersect = require('turf-intersect');
 
 var M2_IN_KM2 = 1000000;
 
@@ -26,17 +27,57 @@ var utils = {
     // A function to enable/disable UI entries in response to zoom
     // level changes.
     zoomToggle: function(map, layerData, actOnUI, actOnLayer) {
-        map.on('zoomend', function(e) {
-            var zoom = e.target.getZoom();
+        var toggleActiveLayers = function(e) {
+                var zoom = e.target.getZoom();
+                _.forEach(layerData, function(layerDatum) {
+                    if (zoom < (layerDatum.minZoom || 0)) {
+                        actOnUI(layerDatum, true);
+                        actOnLayer(layerDatum);
+                    } else if (zoom >= (layerDatum.minZoom || 0)) {
+                        actOnUI(layerDatum, false);
+                    }
+                });
+            };
+
+        map.once('touchstart mouseover', toggleActiveLayers);
+        map.on('zoomend', toggleActiveLayers);
+    },
+
+    // Toggles layers if the viewport overlaps with the perimeter of that layer
+    // (if provided).
+    perimeterToggle: function(map, layerData, actOnUI, actOnLayer) {
+        function toggleCheck() {
+            var mapBounds = map.getBounds(),
+                viewportPolygon = {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Polygon',
+                        coordinates: [[
+                            [mapBounds.getNorthEast().lng, mapBounds.getNorthEast().lat],
+                            [mapBounds.getSouthEast().lng, mapBounds.getSouthEast().lat],
+                            [mapBounds.getSouthWest().lng, mapBounds.getSouthWest().lat],
+                            [mapBounds.getNorthWest().lng, mapBounds.getNorthWest().lat],
+                            [mapBounds.getNorthEast().lng, mapBounds.getNorthEast().lat]
+                        ]]
+                    }
+                };
+
             _.forEach(layerData, function(layerDatum) {
-                if (zoom < (layerDatum.minZoom || 0)) {
+                var perimeter = layerDatum.perimeter;
+                if (perimeter) {
                     actOnUI(layerDatum, true);
                     actOnLayer(layerDatum);
-                } else if (zoom >= (layerDatum.minZoom || 0)) {
-                    actOnUI(layerDatum, false);
+                    if (intersect(perimeter, viewportPolygon)) {
+                        actOnUI(layerDatum, false);
+                    }
                 }
             });
+        }
+
+        map.on('moveend', function() {
+            toggleCheck();
         });
+        toggleCheck();
     },
 
     // A numeric comparator for strings.

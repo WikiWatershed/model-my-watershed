@@ -16,10 +16,8 @@ var L = require('leaflet'),
     modalViews = require('./modals/views'),
     settings = require('./settings'),
     LayerControl = require('./layerControl'),
-    StreamSliderControl = require('./streamSliderControl'),
     OpacityControl = require('./opacityControl'),
     VizerLayers = require('./vizerLayers');
-
 
 require('leaflet.locatecontrol');
 require('leaflet-plugins/layer/tile/Google');
@@ -218,7 +216,6 @@ var MapView = Marionette.ItemView.extend({
             addZoomControl: _.contains(map_controls, 'ZoomControl'),
             addLocateMeButton: _.contains(map_controls, 'LocateMeButton'),
             addLayerSelector: _.contains(map_controls, 'LayerSelector'),
-            addStreamControl: _.contains(map_controls, 'StreamControl'),
             showLayerAttribution: _.contains(map_controls, 'LayerAttribution'),
             initialLayerName: defaultLayerName,
             interactiveMode: true // True if clicking on map does stuff
@@ -272,14 +269,6 @@ var MapView = Marionette.ItemView.extend({
             self.layerControl.addTo(map);
         }
 
-        if (options.addStreamControl) {
-            this.layerControl = new StreamSliderControl({
-                autoZIndex: false,
-                position: 'topleft',
-                collapsed: false
-            }).addTo(map);
-        }
-
         this.setMapEvents();
         this.setupGeoLocation(maxGeolocationAge);
 
@@ -295,26 +284,28 @@ var MapView = Marionette.ItemView.extend({
     },
 
     prepareOverlayLayers: function() {
-        var nullVectorLayer = {
-                display: 'nullVector',
-                vector: true,
-                empty: true
-            },
-            nullRasterLayer = {
-                display: 'nullRaster',
-                raster: true,
-                empty: true
-            },
-            vectorOverlayLayers = settings.get('vector_layers'),
-            rasterOverlayLayers = settings.get('raster_layers');
+        // For each type of overlay, create an empty "layer" used for
+        // the "None" option and order the actual defined layer configs
+        // after it.
+        var overlayTypes = ['stream', 'vector', 'raster'],
+            overlayLayers = _.map(overlayTypes, function(type) {
+                var nullLayer =  {
+                    display: 'null' + type,
+                    empty: true
+                };
 
-        vectorOverlayLayers = !_.isEmpty(vectorOverlayLayers) ?
-                                [nullVectorLayer].concat(vectorOverlayLayers) : [];
+                nullLayer[type] = true;
 
-        rasterOverlayLayers = !_.isEmpty(rasterOverlayLayers) ?
-                                [nullRasterLayer].concat(rasterOverlayLayers) : [];
+                // Layers may be null in testing
+                var layers = settings.get(type + '_layers');
+                if (!_.isEmpty(layers)) {
+                    return [nullLayer].concat(layers);
+                } else {
+                    return [nullLayer];
+                }
+            });
 
-        return vectorOverlayLayers.concat(rasterOverlayLayers);
+        return _.flatten(overlayLayers);
     },
 
     setupGeoLocation: function(maxAge) {
@@ -461,6 +452,8 @@ var MapView = Marionette.ItemView.extend({
             // minZoom being larger than the current zoom level are
             // cleared from the map.
             coreUtils.zoomToggle(map, layerConfig, actOnUI, actOnLayer);
+
+            coreUtils.perimeterToggle(map, layerConfig, actOnUI, actOnLayer);
         }
 
         return layers;
@@ -616,17 +609,31 @@ var MapView = Marionette.ItemView.extend({
             additionalShapes = this.model.get('areaOfInterestAdditionals');
 
         if (additionalShapes) {
-            var pointsLayer = new L.GeoJSON(additionalShapes, {
-                onEachFeature: function(feature, layer) {
-                    var message = "Outlet point snapped to nearest stream";
-                    if (feature.properties && feature.properties.original) {
-                        message = "Original clicked outlet point";
-                    }
-
-                    layer.bindPopup(message);
+            _.each(additionalShapes.features, function(geoJSONpoint) {
+                function createMarkerIcon(iconName) {
+                    return L.divIcon({
+                        className: 'marker-rwd marker-rwd-' + iconName,
+                        iconSize: [16,16]
+                    });
                 }
+
+                var newLayer = L.geoJson(geoJSONpoint, {
+                    pointToLayer: function(feature, latLngForPoint) {
+                        var customIcon = feature.properties.original ?
+                            createMarkerIcon('original-point') :
+                            createMarkerIcon('nearest-stream-point');
+                        return L.marker(latLngForPoint, { icon: customIcon });
+                    },
+                    onEachFeature: function(feature, layer) {
+                        var popupMessage = feature.properties.original ?
+                            "Original clicked outlet point" :
+                            "Outlet point snapped to nearest stream";
+                        layer.bindPopup(popupMessage);
+                    }
+                });
+
+                self._areaOfInterestLayer.addLayer(newLayer);
             });
-            self._areaOfInterestLayer.addLayer(pointsLayer);
         }
     },
 

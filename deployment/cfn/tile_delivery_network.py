@@ -6,7 +6,14 @@ from troposphere import (
     GetAtt,
     Join,
     cloudfront as cf,
-    cloudwatch as cw
+    cloudwatch as cw,
+    route53 as r53,
+    s3
+)
+
+from utils.constants import (
+    AMAZON_S3_HOSTED_ZONE_ID,
+    AMAZON_S3_WEBSITE_DOMAIN,
 )
 
 from majorkirby import StackNode
@@ -67,6 +74,8 @@ class TileDeliveryNetwork(StackNode):
         blue_tile_distribution, \
             green_tile_distribution = self.create_cloudfront_distributions()
 
+        self.create_s3_resources()
+
         self.add_output(Output('BlueTileServerDistributionEndpoint',
                                Value=GetAtt(blue_tile_distribution,
                                             'DomainName')))
@@ -82,7 +91,7 @@ class TileDeliveryNetwork(StackNode):
                     cf.Origin(
                         Id='tileOriginId',
                         DomainName=Join('.',
-                                        ['blue-tiles',
+                                        ['tile-cache',
                                          Ref(self.public_hosted_zone_name)]),
                         CustomOriginConfig=cf.CustomOrigin(
                             OriginProtocolPolicy='http-only'
@@ -155,7 +164,7 @@ class TileDeliveryNetwork(StackNode):
                     cf.Origin(
                         Id='tileOriginId',
                         DomainName=Join('.',
-                                        ['green-tiles',
+                                        ['tile-cache',
                                          Ref(self.public_hosted_zone_name)]),
                         CustomOriginConfig=cf.CustomOrigin(
                             OriginProtocolPolicy='http-only'
@@ -222,6 +231,61 @@ class TileDeliveryNetwork(StackNode):
         ))
 
         return blue_tile_distribution, green_tile_distribution
+
+    def create_s3_resources(self):
+        s3_bucket = self.add_resource(s3.Bucket(
+            's3TileCacheBucket',
+            BucketName=Join('.', ['tile-cache',
+                                  Ref(self.public_hosted_zone_name)]),
+            AccessControl=s3.PublicRead,
+            CorsConfiguration=s3.CorsConfiguration(
+                CorsRules=[
+                    s3.CorsRules(
+                        AllowedOrigins=['*'],
+                        AllowedMethods=['GET'],
+                        MaxAge=3000,
+                        AllowedHeaders=['*'],
+                    )
+                ]
+            )
+        ))
+
+        self.add_resource(s3.BucketPolicy(
+            's3TileCacheBucketPolicy',
+            Bucket=Ref(s3_bucket),
+            PolicyDocument={
+                'Statement': [{
+                    'Action': ['s3:GetObject'],
+                    'Effect': 'Allow',
+                    'Resource': {
+                        'Fn::Join': ['', [
+                            'arn:aws:s3:::',
+                            Ref(s3_bucket),
+                            '/*'
+                        ]]
+                    },
+                    'Principal': '*'
+                }]
+            }
+        ))
+
+        self.add_resource(r53.RecordSetGroup(
+            'dnsPublicRecordsCache',
+            HostedZoneName=Join('', [Ref(self.public_hosted_zone_name), '.']),
+            RecordSets=[
+                r53.RecordSet(
+                    'dnsTileServersCache',
+                    AliasTarget=r53.AliasTarget(
+                        AMAZON_S3_HOSTED_ZONE_ID,
+                        AMAZON_S3_WEBSITE_DOMAIN,
+                        True,
+                    ),
+                    Name=Join('', ['tile-cache.',
+                                   Ref(self.public_hosted_zone_name), '.']),
+                    Type='A'
+                )
+            ]
+        ))
 
     def get_tags(self, **kwargs):
         """Helper method to return Troposphere tags + default tags

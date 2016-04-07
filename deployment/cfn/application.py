@@ -53,6 +53,7 @@ class Application(StackNode):
         ['global:BackwardCompatSSLCertificateARN'],
         'PublicSubnets': ['global:PublicSubnets', 'VPC:PublicSubnets'],
         'PrivateSubnets': ['global:PrivateSubnets', 'VPC:PrivateSubnets'],
+        'PublicHostedZoneName': ['global:PublicHostedZoneName'],
         'VpcId': ['global:VpcId', 'VPC:VpcId'],
         'GlobalNotificationsARN': ['global:GlobalNotificationsARN'],
         'BlueTileServerDistributionEndpoint':
@@ -171,6 +172,11 @@ class Application(StackNode):
             'PrivateSubnets', Type='CommaDelimitedList',
             Description='A list of private subnets'
         ), 'PrivateSubnets')
+
+        self.public_hosted_zone_name = self.add_parameter(Parameter(
+            'PublicHostedZoneName', Type='String',
+            Description='Route 53 public hosted zone name'
+        ), 'PublicHostedZoneName')
 
         self.vpc_id = self.add_parameter(Parameter(
             'VpcId', Type='String',
@@ -473,6 +479,10 @@ class Application(StackNode):
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
                 '    content: ', self.get_input('StackType'), '\n',
+                '  - path: /etc/mmw.d/env/MMW_PUBLIC_HOSTED_ZONE_NAME\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.public_hosted_zone_name), '\n',
                 '  - path: /etc/mmw.d/env/MMW_DB_PASSWORD\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
