@@ -341,45 +341,38 @@ GWLFE_DEFAULTS = {
     'AWMSNgPct': 0,  # Animal Waste Management Systems: Poultry (%)
     'RunContPct': 0,  # Runoff Control (%)
     'PhytasePct': 0,  # Phytase in Feed (%),
-    'AnimalName': ['Dairy Cows', 'Beef Cows', 'Broilers', 'Layers',
-                   'Hogs/Swine', 'Sheep', 'Horses', 'Turkeys', 'Other'],
-    'NumAnimals': np.zeros(9),
-    'GrazingAnimal': ['Y', 'Y', 'N', 'N',
-                      'N', 'Y', 'Y', 'N', 'N'],
-    'AvgAnimalWt': np.array([640, 360, 0.9, 1.8,
-                             61, 50, 500, 6.8, 0]),  # Average Animal Weight (kg) # NOQA
-    'AnimalDailyN': np.array([0.44, 0.31, 1.07, 0.85,
-                              0.48, 0.37, 0.28, 0.59, 0]),  # Animal Daily Loads: Nitrogen (kg/AEU) # NOQA
-    'AnimalDailyP': np.array([0.07, 0.09, 0.30, 0.29,
-                              0.15, 0.10, 0.28, 0.59, 0]),  # Animal Daily Loads: Phosphorus (kg/AEU) # NOQA
-    'FCOrgsPerDay': np.array([1.0e+11, 1.0e+11, 1.4e+8, 1.4e+8,
-                              1.1e+10, 1.2e+10, 4.2e+8, 9.5e+7, 0]),  # Fecal Coliforms (orgs/day) # NOQA
-    'Month': ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    'NGPctManApp': np.array([0.01, 0.01, 0.15, 0.10, 0.05, 0.03,
-                            0.03, 0.03, 0.11, 0.10, 0.10, 0.08]),  # Manure Spreading: % Of Annual Load Applied To Crops/Pasture # NOQA
-    'NGAppNRate': np.ones(12) * 0.05,  # Manure Spreading: Base Nitrogen Loss Rate # NOQA
-    'NGAppPRate': np.ones(12) * 0.07,  # Manure Spreading: Base Phosphorus Loss Rate # NOQA
-    'NGAppFCRate': np.ones(12) * 0.12,  # Manure Spreading: Base Fecal Coliform Loss Rate # NOQA
-    'NGPctSoilIncRate': np.zeros(12),  # Manure Spreading: % Of Manure Load Incorporated Into Soil # NOQA
-    'NGBarnNRate': np.ones(12) * 0.2,  # Barnyard/Confined Area: Base Nitrogen Loss Rate # NOQA
-    'NGBarnPRate': np.ones(12) * 0.2,  # Barnyard/Confined Area: Base Phosphorus Loss Rate # NOQA
-    'NGBarnFCRate': np.ones(12) * 0.12,  # Barnyard/Confined Area: Base Fecal Coliform Loss Rate # NOQA
-    'PctGrazing': np.array([0.02, 0.02, 0.10, 0.25, 0.50, 0.50,
-                            0.50, 0.50, 0.50, 0.40, 0.25, 0.10]),  # Grazing Land: % Of Time Spent Grazing # NOQA
-    'PctStreams': np.ones(12) * 0.05,  # Grazing Land: % Of Time Spent In Streams # NOQA
-    'GrazingNRate': np.ones(12) * 0.05,  # Grazing Land: Base Nitrogen Loss Rate # NOQA
-    'GrazingPRate': np.ones(12) * 0.07,  # Grazing Land: Base Phosphorus Loss Rate # NOQA
-    'GrazingFCRate': np.ones(12) * 0.12,  # Grazing Land: Base Fecal Coliform Loss Rate # NOQA
-    'GRPctManApp': np.array([0.01, 0.01, 0.10, 0.05, 0.05, 0.03,
-                             0.03, 0.03, 0.11, 0.06, 0.02, 0.02]),  # Manure Spreading: % Of Annual Load Applied To Crops/Pasture # NOQA
-    'GRAppNRate': np.ones(12) * 0.05,  # Manure Spreading: Base Nitrogen Loss Rate # NOQA
-    'GRAppPRate': np.ones(12) * 0.07,  # Manure Spreading: Base Phosphorus Loss Rate # NOQA
-    'GRAppFCRate': np.ones(12) * 0.12,  # Manure Spreading: Base Fecal Coliform Loss Rate # NOQA
-    'GRPctSoilIncRate': np.zeros(12),  # Manure Spreading: % Of Manure Load Incorporated Into Soil # NOQA
-    'GRBarnNRate': np.ones(12) * 0.2,  # Barnyard/Confined Area: Base Nitrogen Loss Rate # NOQA
-    'GRBarnPRate': np.ones(12) * 0.2,  # Barnyard/Confined Area: Base Phosphorus Loss Rate # NOQA
-    'GRBarnFCRate': np.ones(12) * 0.12,  # Barnyard/Confined Area: Base Fecal Coliform Loss Rate # NOQA
+
+    'AnimalName':             ['Dairy Cows', 'Beef Cows', 'Broilers', 'Layers', 'Hogs/Swine',  'Sheep', 'Horses', 'Turkeys', 'Other'] ,  # NOQA
+    'NumAnimals':    np.array([        0.00,        0.00,       0.00,     0.00,         0.00,     0.00,     0.00,      0.00,    0.00]),  # NOQA
+    'GrazingAnimal':          [         'Y',         'Y',        'N',      'N',          'N',      'Y',      'Y',       'N',     'N'] ,  # NOQA
+    'AvgAnimalWt':   np.array([      640.00,      360.00,       0.90,     1.80,        61.00,    50.00,   500.00,      6.80,    0.00]),  # Average Animal Weight (kg) # NOQA
+    'AnimalDailyN':  np.array([        0.44,        0.31,       1.07,     0.85,         0.48,     0.37,     0.28,      0.59,    0.00]),  # Animal Daily Loads: Nitrogen (kg/AEU) # NOQA
+    'AnimalDailyP':  np.array([        0.07,        0.09,       0.30,     0.29,         0.15,     0.10,     0.06,      0.20,    0.00]),  # Animal Daily Loads: Phosphorus (kg/AEU) # NOQA
+    'FCOrgsPerDay':  np.array([     1.0e+11,     1.0e+11,    1.4e+08,  1.4e+08,      1.1e+10,  1.2e+10,  4.2e+08,   9.5e+07,    0.00]),  # Fecal Coliforms (orgs/day) # NOQA
+
+    'Month':                     ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],   # NOQA
+    'NGPctManApp':      np.array([ 0.01,  0.01,  0.15,  0.10,  0.05,  0.03,  0.03,  0.03,  0.11,  0.10,  0.10,  0.08]),  # Manure Spreading: % Of Annual Load Applied To Crops/Pasture # NOQA
+    'NGAppNRate':       np.array([ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05]),  # Manure Spreading: Base Nitrogen Loss Rate # NOQA
+    'NGAppPRate':       np.array([ 0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07]),  # Manure Spreading: Base Phosphorus Loss Rate # NOQA
+    'NGAppFCRate':      np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Manure Spreading: Base Fecal Coliform Loss Rate # NOQA
+    'NGPctSoilIncRate': np.array([ 0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00]),  # Manure Spreading: % Of Manure Load Incorporated Into Soil # NOQA
+    'NGBarnNRate':      np.array([ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20]),  # Barnyard/Confined Area: Base Nitrogen Loss Rate # NOQA
+    'NGBarnPRate':      np.array([ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20]),  # Barnyard/Confined Area: Base Phosphorus Loss Rate # NOQA
+    'NGBarnFCRate':     np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Barnyard/Confined Area: Base Fecal Coliform Loss Rate # NOQA
+    'PctGrazing':       np.array([ 0.02,  0.02,  0.10,  0.25,  0.50,  0.50,  0.50,  0.50,  0.50,  0.40,  0.25,  0.10]),  # Grazing Land: % Of Time Spent Grazing # NOQA
+    'PctStreams':       np.array([ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05]),  # Grazing Land: % Of Time Spent In Streams # NOQA
+    'GrazingNRate':     np.array([ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05]),  # Grazing Land: Base Nitrogen Loss Rate # NOQA
+    'GrazingPRate':     np.array([ 0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07]),  # Grazing Land: Base Phosphorus Loss Rate # NOQA
+    'GrazingFCRate':    np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Grazing Land: Base Fecal Coliform Loss Rate # NOQA
+    'GRPctManApp':      np.array([ 0.01,  0.01,  0.10,  0.05,  0.05,  0.03,  0.03,  0.03,  0.11,  0.06,  0.02,  0.02]),  # Manure Spreading: % Of Annual Load Applied To Crops/Pasture # NOQA
+    'GRAppNRate':       np.array([ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05]),  # Manure Spreading: Base Nitrogen Loss Rate # NOQA
+    'GRAppPRate':       np.array([ 0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07]),  # Manure Spreading: Base Phosphorus Loss Rate # NOQA
+    'GRAppFCRate':      np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Manure Spreading: Base Fecal Coliform Loss Rate # NOQA
+    'GRPctSoilIncRate': np.array([ 0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00]),  # Manure Spreading: % Of Manure Load Incorporated Into Soil # NOQA
+    'GRBarnNRate':      np.array([ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20]),  # Barnyard/Confined Area: Base Nitrogen Loss Rate # NOQA
+    'GRBarnPRate':      np.array([ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20]),  # Barnyard/Confined Area: Base Phosphorus Loss Rate # NOQA
+    'GRBarnFCRate':     np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Barnyard/Confined Area: Base Fecal Coliform Loss Rate # NOQA
+
     'ShedAreaDrainLake': 0,  # Percentage of watershed area that drains into a lake or wetlands: (0 - 1) # NOQA
     'RetentNLake': 0.12,  # Lake Retention Rate: Nitrogen
     'RetentPLake': 0.29,  # Lake Retention Rate: Phosphorus
