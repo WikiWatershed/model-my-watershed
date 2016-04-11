@@ -226,8 +226,13 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
     # Calculate total areas for each type modification
     area_sums = {}
     for piece in modification_pieces:
-        kind = piece['value']
+        kinds = piece['value']
         area = piece['area']
+
+        if 'bmp' in kinds:
+            kind = kinds['bmp']
+        else:
+            kind = kinds['reclass']
 
         if kind in area_sums:
             area_sums[kind] += area
@@ -322,9 +327,9 @@ def build_tr55_modification_input(pieces, censuses):
         value = modification['value']
 
         if name == 'landcover':
-            return {'change': ':%s:' % value}
+            return {'change': ':%s:' % value['reclass']}
         elif name == 'conservation_practice':
-            return {'change': '::%s' % value}
+            return {'change': '::%s' % value['bmp']}
         elif name == 'both':
             return {'change': ':%s:%s' % (value['reclass'], value['bmp'])}
 
