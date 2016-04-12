@@ -15,6 +15,11 @@ from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
 
 from tr55.model import simulate_day
 
+# from gwlfe import gwlfe
+from gwlfe.datamodel import DataModel
+
+from django.conf import settings
+
 logger = logging.getLogger(__name__)
 
 KG_PER_POUND = 0.453592
@@ -24,12 +29,19 @@ CM_PER_INCH = 2.54
 @shared_task
 def start_gwlfe_job(model_input):
     """
-    Runs a GWLFE job. For now, just wait 3s and return the input.
+    Runs a GWLFE job. For now, just wait 3s and return the default values.
     """
     # TODO remove sleep and call actual GWLFE code
     time.sleep(3)
-    response_json = {
-    }
+
+    model = DataModel(settings.GWLFE_DEFAULTS)
+
+    # TODO Run the actual model.
+    # Currently it writes to stdout and some files.
+    # Must have it return results in a data structure.
+    # gwlfe.run(model)
+
+    response_json = model.tojson() if model else {}
 
     return response_json
 
