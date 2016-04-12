@@ -40,6 +40,8 @@ docker_version: "1.9.*"
 docker_py_version: "1.2.3"
 docker_options: "--storage-driver=aufs"
 
+beaver_version: "36.2.0"
+
 sjs_host: "localhost"
 sjs_port: 8090
 sjs_container_image: "quay.io/azavea/spark-jobserver:0.6.1"
