@@ -382,6 +382,7 @@ function _alterModifications(rawModifications) {
                         overlapPiece.value.reclass = newPiece.value;
                     }
 
+                    overlapPiece.area = turfArea(overlapPiece.shape);
                     pieces.push(overlapPiece);
 
                     /* remove the overlapping portion from both parents */
@@ -406,7 +407,20 @@ function _alterModifications(rawModifications) {
         pieces = _.filter(pieces, validShape);
     }
 
-    return pieces;
+    return _.map(pieces, function(piece) { //ensures 'value' is uniform type for each piece
+      var p = piece;
+      if ( typeof p.value === 'string') {
+        var v = {};
+        if (p.name === reclass) { 
+          v.reclass = p.value; 
+        }
+        else if (p.name === bmp) { 
+          v.bmp = p.value; 
+        }
+        p.value = v;
+      }
+      return p;
+    });
 }
 
 var alterModifications = _.memoize(_alterModifications, function(_, hash) {return hash;});
