@@ -9,7 +9,7 @@
         <li>
             <a class="back-button" aria-controls="home" aria-expanded="false">
                 <button type="button" class="btn btn-lg" data-url="/">
-                    Back
+                    Draw
                 </button>
             </a>
 
@@ -20,11 +20,11 @@
                 {% for modelPackage in modelPackages %}
                     <li>
                         {% if modelPackage.disabled %}
-                            <a class="disabled" href="#">
+                            <a class="disabled" class="model-package" href="#" data-id="{{ modelPackage.name }}">
                                 {{ modelPackage.display_name }} (Coming Soon)
                             </a>
                         {% else %}
-                            <a href="#" data-url="/project/new/{{ modelPackage.name }}">
+                            <a href="#" class="model-package" data-id="{{ modelPackage.name }}">
                                 {{ modelPackage.display_name }}
                             </a>
                         {% endif %}
