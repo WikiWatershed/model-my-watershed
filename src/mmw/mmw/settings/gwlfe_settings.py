@@ -1,5 +1,10 @@
 import numpy as np
 
+from gwlfe.enums import (LandUse as lu,
+                         ETflag as et,
+                         YesOrNo as b,
+                         SweepType)
+
 GWLFE_DEFAULTS = {
     'NRur': 10,  # Number of Rural Land Use Categories
     'NUrb': 6,  # Number of Urban Land Use Categories
@@ -11,17 +16,42 @@ GWLFE_DEFAULTS = {
     'InitSnow': 0,  # Initial Snow Days
     'TileDrainRatio': 0,  # Tile Drain Ratio
     'TileDrainDensity': 0,  # Tile Drain Density
-    'ETFlag': 0,  # ET Flag: 0 for Hammon method, 1 for Blainy-Criddle method
-    'AntMoist': np.zeros(5),  # Antecedent Rain + Melt Moisture Conditions for Days 1 to 5 # NOQA
+    'ETFlag': et.HAMON_METHOD,  # ET Flag: 0 for Hamon method, 1 for Blainy-Criddle method
+    'AntMoist': np.zeros(5),  # Antecedent Rain + Melt Moisture Conditions for Days 1 to 5
     'StreamWithdrawal': np.zeros(12),  # Surface Water Withdrawal/Extraction
     'GroundWithdrawal': np.zeros(12),  # Groundwater Withdrawal/Extraction
     'PcntET': np.ones(12),  # Percent monthly adjustment for ET calculation
-    'PhysFlag': 0,  # Flag: Physiographic Province Layer Detected (0 No; 1 Yes)
-    'PointFlag': 1,  # Flag: Point Source Layer Detected (0 No; 1 Yes)
-    'SeptSysFlag': 0,  # Flag: Septic System Layer Detected (0 No; 1 Yes)
-    'CountyFlag': 0,  # Flag: County Layer Detected (0 No; 1 Yes)
-    'SoilPFlag': 1,  # Flag: Soil P Layer Detected (0 No; 1 Yes)
-    'GWNFlag': 1,  # Flag: Groundwater N Layer Detected (0 No; 1 Yes)
+    'Landuse': [lu.HAY_PAST,   # Maps NLCD 81
+                lu.CROPLAND,   # Maps NLCD 82
+                lu.FOREST,     # Maps NLCD 41, 42, 43, 52
+                lu.WETLAND,    # Maps NLCD 90, 95
+                lu.DISTURBED,       # Does not map to NLCD
+                lu.TURFGRASS,       # Does not map to NLCD
+                lu.OPEN_LAND,  # Maps NLCD 21, 71
+                lu.BARE_ROCK,  # Maps NLCD 12, 31
+                lu.SANDY_AREAS,     # Does not map to NLCD
+                lu.UNPAVED_ROAD,    # Does not map to NLCD
+                lu.LD_MIXED,   # Maps NLCD 22
+                lu.MD_MIXED,   # Maps NLCD 23
+                lu.HD_MIXED,   # Maps NLCD 24
+                lu.LD_RESIDENTIAL,  # Does not map to NLCD
+                lu.MD_RESIDENTIAL,  # Does not map to NLCD
+                lu.HD_RESIDENTIAL,  # Does not map to NLCD
+                ],
+    'Imper': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,          # Impervious surface area percentage
+                       0.15, 0.52, 0.87, 0.15, 0.52, 0.87]),  # only defined for urban land use types
+    'CNI': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Curve Number for Impervious Surfaces
+                     92, 98, 98, 92, 92, 92]),      # only defined for urban land use types
+    'CNP': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Curve Number for Pervious Surfaces
+                     74, 79, 79, 74, 74, 74]),      # only defined for urban land use types
+    'TotSusSolids': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Total Suspended Solids factor
+                              60, 70, 80, 90, 100, 110]),    # only defined for urban land use types
+    'PhysFlag': b.NO,  # Flag: Physiographic Province Layer Detected (0 No; 1 Yes)
+    'PointFlag': b.YES,  # Flag: Point Source Layer Detected (0 No; 1 Yes)
+    'SeptSysFlag': b.NO,  # Flag: Septic System Layer Detected (0 No; 1 Yes)
+    'CountyFlag': b.NO,  # Flag: County Layer Detected (0 No; 1 Yes)
+    'SoilPFlag': b.YES,  # Flag: Soil P Layer Detected (0 No; 1 Yes)
+    'GWNFlag': b.YES,  # Flag: Groundwater N Layer Detected (0 No; 1 Yes)
     'SedAAdjust': 1,  # Default Percent ET
     'SedNitr': 2000,  # Soil Concentration: N (mg/l)
     'BankNFrac': 0.25,  # % Bank N Fraction (0 - 1)
@@ -31,10 +61,37 @@ GWLFE_DEFAULTS = {
     'LastManureMonth': 0,  # MS Period 1: Last Month
     'FirstManureMonth2': 0,  # MS Period 2: First Month
     'LastManureMonth2': 0,  # MS Period 2: Last Month
+    'NitrConc': np.array([0.75, 2.90, 0.19, 0.19, 0.02,  # Dissolved Runoff Coefficient: Nitrogen mg/l
+                          2.50, 0.50, 0.30, 0.10, 0.19,  # only defined for rural land use types
+                          0, 0, 0, 0, 0, 0]),
+    'PhosConc': np.array([0.01, 0.01, 0.01, 0.01, 0.01,  # Dissolved Runoff Coefficient: Phosphorus mg/l
+                          0.01, 0.01, 0.01, 0.01, 0.01,  # only defined for rural land use types
+                          0, 0, 0, 0, 0, 0]),
     'Nqual': 3,  # Number of Contaminants (Default = 3)
     'Contaminant': ['Nitrogen', 'Phosphorus', 'Sediment'],
+    'LoadRateImp': np.array([[], [], [], [], [], [], [], [], [], [],  # Load Rate on Impervious Surfaces per urban land use per contaminant
+                             [0.095, 0.0095, 2.80],    # Ld_Mixed
+                             [0.105, 0.0105, 6.20],    # Md_Mixed
+                             [0.110, 0.0115, 2.80],    # Hd_Mixed
+                             [0.095, 0.0095, 2.50],    # Ld_Residential
+                             [0.100, 0.0115, 6.20],    # Md_Residential
+                             [0.105, 0.0120, 5.00]]),  # Hd_Residential
+    'LoadRatePerv': np.array([[], [], [], [], [], [], [], [], [], [],  # Load Rate on Pervious Surfaces per urban land use per contaminant
+                              [0.015, 0.0021, 0.80],    # Ld_Mixed
+                              [0.015, 0.0021, 0.80],    # Md_Mixed
+                              [0.015, 0.0021, 0.80],    # Hd_Mixed
+                              [0.015, 0.0019, 1.30],    # Ld_Residential
+                              [0.015, 0.0039, 1.10],    # Md_Residential
+                              [0.015, 0.0078, 1.50]]),  # Hd_Residential
+    'DisFract': np.array([[], [], [], [], [], [], [], [], [], [],  # Dissolved Fraction per urban land use per contaminant
+                          [0.33, 0.40, 0],    # Ld_Mixed
+                          [0.33, 0.40, 0],    # Md_Mixed
+                          [0.33, 0.40, 0],    # Hd_Mixed
+                          [0.28, 0.37, 0],    # Ld_Residential
+                          [0.28, 0.37, 0],    # Md_Residential
+                          [0.28, 0.37, 0]]),  # Hd_Residential
     'UrbBMPRed': np.zeros((16, 3)),  # Urban BMP Reduction
-    'SepticFlag': 1,  # Flag: Septic Systems Layer Detected (0 No; 1 Yes)
+    'SepticFlag': b.YES,  # Flag: Septic Systems Layer Detected (0 No; 1 Yes)
     'NumPondSys': np.zeros(12),  # Number of People on Pond Systems
     'NumShortSys': np.zeros(12),  # Number of People on Short Circuit Systems
     'NumDischargeSys': np.zeros(12),  # Number of People on Discharge Systems
@@ -130,20 +187,20 @@ GWLFE_DEFAULTS = {
     'n41h': 0,  # Phytase in Feed: Existing (%)
     'n41i': 0,  # Phytase in Feed: Future (%)
     'n43': 0,  # Stream Km with Vegetated Buffer Strips: Existing
-    'GRLBN': 0,  # Average Grazing Animal Loss Rate (Barnyard/Confined Area): Nitrogen # NOQA
-    'NGLBN': 0,  # Average Non-Grazing Animal Loss Rate (Barnyard/Confined Area): Nitrogen # NOQA
-    'GRLBP': 0,  # Average Grazing Animal Loss Rate (Barnyard/Confined Area): Phosphorus # NOQA
-    'NGLBP': 0,  # Average Non-Grazing Animal Loss Rate (Barnyard/Confined Area): Phosphorus # NOQA
-    'NGLManP': 0,  # Average Non-Grazing Animal Loss Rate (Manure Spreading): Phosphorus # NOQA
-    'NGLBFC': 0,  # Average Non-Grazing Animal Loss Rate (Barnyard/Confined Area): Fecal Coliform # NOQA
-    'GRLBFC': 0,  # Average Grazing Animal Loss Rate (Barnyard/Confined Area): Fecal Coliform # NOQA
-    'GRSFC': 0,  # Average Grazing Animal Loss Rate (Spent in Streams): Fecal Coliform # NOQA
+    'GRLBN': 0,  # Average Grazing Animal Loss Rate (Barnyard/Confined Area): Nitrogen
+    'NGLBN': 0,  # Average Non-Grazing Animal Loss Rate (Barnyard/Confined Area): Nitrogen
+    'GRLBP': 0,  # Average Grazing Animal Loss Rate (Barnyard/Confined Area): Phosphorus
+    'NGLBP': 0,  # Average Non-Grazing Animal Loss Rate (Barnyard/Confined Area): Phosphorus
+    'NGLManP': 0,  # Average Non-Grazing Animal Loss Rate (Manure Spreading): Phosphorus
+    'NGLBFC': 0,  # Average Non-Grazing Animal Loss Rate (Barnyard/Confined Area): Fecal Coliform
+    'GRLBFC': 0,  # Average Grazing Animal Loss Rate (Barnyard/Confined Area): Fecal Coliform
+    'GRSFC': 0,  # Average Grazing Animal Loss Rate (Spent in Streams): Fecal Coliform
     'GRSN': 0,  # Average Grazing Animal Loss Rate (Spent in Streams): Nitrogen
-    'GRSP': 0,  # Average Grazing Animal Loss Rate (Spent in Streams): Phosphorus # NOQA
+    'GRSP': 0,  # Average Grazing Animal Loss Rate (Spent in Streams): Phosphorus
     'n43b': 0,  # High Density Urban (Constructed Wetlands): Required Ha
     'n43c': 0,  # High Density Urban (Detention Basin): % Drainage Used
     'n43d': 0,  # High Density Urban: % Impervious Surface
-    'n43e': 0,  # High Density Urban (Constructed Wetlands): Impervious Ha Drained # NOQA
+    'n43e': 0,  # High Density Urban (Constructed Wetlands): Impervious Ha Drained
     'n43f': 0,  # High Density Urban (Detention Basin): Impervious Ha Drained
     'n43g': 0,  # High Density Urban (Bioretention Areas): Impervious Ha Drained
     'n43h': 0,  # High Density Urban (Bioretention Areas): Required Ha
@@ -155,7 +212,7 @@ GWLFE_DEFAULTS = {
     'n45b': 0,  # Low Density Urban (Constructed Wetlands): Required Ha
     'n45c': 0,  # Low Density Urban (Detention Basin): % Drainage Used
     'n45d': 0,  # Low Density Urban: % Impervious Surface
-    'n45e': 0,  # Low Density Urban (Constructed Wetlands): Impervious Ha Drained # NOQA
+    'n45e': 0,  # Low Density Urban (Constructed Wetlands): Impervious Ha Drained
     'n45f': 0,  # Low Density Urban (Detention Basin): Impervious Ha Drained
     'n46': 0,  # Stream Km with Fencing: Future
     'n46b': 0,  # Low Density Urban (Detention Basin): Required Ha
@@ -178,12 +235,12 @@ GWLFE_DEFAULTS = {
     'n51': 0,  # Septic Systems Converted by Secondary Treatment Type (%)
     'n52': 0,  # Septic Systems Converted by Tertiary Treatment Type (%)
     'n53': 0,  # No longer used (Default = 0)
-    'n54': 0,  # Distribution of Pollutant Discharges by Primary Treatment Type (%): Existing # NOQA
-    'n55': 0,  # Distribution of Pollutant Discharges by Secondary Treatment Type (%): Existing # NOQA
-    'n56': 0,  # Distribution of Pollutant Discharges by Tertiary Treatment Type (%): Existing # NOQA
-    'n57': 0,  # Distribution of Pollutant Discharges by Primary Treatment Type (%): Future # NOQA
-    'n58': 0,  # Distribution of Pollutant Discharges by Secondary Treatment Type (%): Future # NOQA
-    'n59': 0,  # Distribution of Pollutant Discharges by Tertiary Treatment Type (%): Future # NOQA
+    'n54': 0,  # Distribution of Pollutant Discharges by Primary Treatment Type (%): Existing
+    'n55': 0,  # Distribution of Pollutant Discharges by Secondary Treatment Type (%): Existing
+    'n56': 0,  # Distribution of Pollutant Discharges by Tertiary Treatment Type (%): Existing
+    'n57': 0,  # Distribution of Pollutant Discharges by Primary Treatment Type (%): Future
+    'n58': 0,  # Distribution of Pollutant Discharges by Secondary Treatment Type (%): Future
+    'n59': 0,  # Distribution of Pollutant Discharges by Tertiary Treatment Type (%): Future
     'n60': 0,  # Distribution of Treatment Upgrades (%): Primary to Secondary
     'n61': 0,  # Distribution of Treatment Upgrades (%): Primary to Tertiary
     'n62': 0,  # Distribution of Treatment Upgrades (%): Secondary to Tertiary
@@ -247,18 +304,18 @@ GWLFE_DEFAULTS = {
     'n85u': 0.82,  # Bioretention Areas (Pathogens)
     'n85v': 0.71,  # Detention Basins (Pathogens)
     'Qretention': 0,  # Detention Basin: Amount of runoff retention (cm)
-    'FilterWidth': 0,  # Stream Protection: Vegetative buffer strip width (meters) # NOQA
+    'FilterWidth': 0,  # Stream Protection: Vegetative buffer strip width (meters)
     'Capacity': 0,  # Detention Basin: Detention basin volume (cubic meters)
     'BasinDeadStorage': 0,  # Detention Basin: Basin dead storage (cubic meters)
     'BasinArea': 0,  # Detention Basin: Basin surface area (square meters)
     'DaysToDrain': 0,  # Detention Basin: Basin days to drain
     'CleanMon': 0,  # Detention Basin: Basin cleaning month
-    'PctAreaInfil': 0,  # Infiltration/Bioretention: Fraction of area treated (0-1) # NOQA
+    'PctAreaInfil': 0,  # Infiltration/Bioretention: Fraction of area treated (0-1)
     'PctStrmBuf': 0,  # Stream Protection: Fraction of streams treated (0-1)
     'UrbBankStab': 0,  # Stream Protection: Streams w/bank stabilization (km)
-    'ISRR': np.zeros(6),  # Impervious Surface Reduction (% Reduction) of Urban Land Uses # NOQA
-    'ISRA': np.zeros(6),  # Impervious Surface Reduction (Area) of Urban Land Uses # NOQA
-    'SweepType': 1,  # Street Sweeping: Sweep Type (1-2)
+    'ISRR': np.zeros(6),  # Impervious Surface Reduction (% Reduction) of Urban Land Uses
+    'ISRA': np.zeros(6),  # Impervious Surface Reduction (Area) of Urban Land Uses
+    'SweepType': SweepType.MECHANICAL,  # Street Sweeping: Sweep Type (1-2)
     'UrbSweepFrac': 1,  # Street Sweeping: Fraction of area treated (0-1)
     'StreetSweepNo': np.zeros(12),  # Street sweeping times per month
     'n108': 0,  # Row Crops: Sediment (kg x 1000)
@@ -304,13 +361,13 @@ GWLFE_DEFAULTS = {
     'n137': 0,  # Estimated Scenario Cost $: Unpaved Road Protection
     'n138': 0,  # Estimated Scenario Cost $: Animal BMPs
     'n139': 0,  # Pathogen Loads (Farm Animals): Existing (orgs/month)
-    'n140': 0,  # Pathogen Loads (Wastewater Treatment Plants): Existing (orgs/month) # NOQA
+    'n140': 0,  # Pathogen Loads (Wastewater Treatment Plants): Existing (orgs/month)
     'n141': 0,  # Pathogen Loads (Septic Systems): Existing (orgs/month)
     'n142': 0,  # Pathogen Loads (Urban Areas): Existing (orgs/month)
     'n143': 0,  # Pathogen Loads (Wildlife): Existing (orgs/month)
     'n144': 0,  # Pathogen Loads (Total): Existing (orgs/month)
     'n145': 0,  # Pathogen Loads (Farm Animals): Future (orgs/month)
-    'n146': 0,  # Pathogen Loads (Wastewater Treatment Plants): Future (orgs/month) # NOQA
+    'n146': 0,  # Pathogen Loads (Wastewater Treatment Plants): Future (orgs/month)
     'n147': 0,  # Pathogen Loads (Septic Systems): Future (orgs/month)
     'n148': 0,  # Pathogen Loads (Urban Areas): Future (orgs/month)
     'n149': 0,  # Pathogen Loads (Wildlife): Future (orgs/month)
@@ -318,17 +375,17 @@ GWLFE_DEFAULTS = {
     'n151': 0,  # Pathogen Loads: Percent Reduction (%)
     'InitNgN': 2373,  # Initial Non-Grazing Animal Totals: Nitrogen (kg/yr)
     'InitNgP': 785,  # Initial Non-Grazing Animal Totals: Phosphorus (kg/yr)
-    'InitNgFC': 3.38e+9,  # Initial Non-Grazing Animal Totals: Fecal Coliforms (orgs/yr) # NOQA
+    'InitNgFC': 3.38e+9,  # Initial Non-Grazing Animal Totals: Fecal Coliforms (orgs/yr)
     'NGAppSum': 0.55,  # Non-Grazing Manure Data Check: Land Applied (%)
     'NGBarnSum': 0.28,  # Non-Grazing Manure Data Check: In Confined Areas (%)
     'NGTotSum': 0.83,  # Non-Grazing Manure Data Check: Total (<= 1)
     'InitGrN': 2373,  # Initial Grazing Animal Totals: Nitrogen (kg/yr)
     'InitGrP': 785,  # Initial Grazing Animal Totals: Phosphorus (kg/yr)
-    'InitGrFC': 3.38e+9,  # Initial Grazing Animal Totals: Fecal Coliforms (orgs/yr) # NOQA
+    'InitGrFC': 3.38e+9,  # Initial Grazing Animal Totals: Fecal Coliforms (orgs/yr)
     'GRAppSum': 0.52,  # Grazing Manure Data Check: Land Applied (%)
     'GRBarnSum': 0.18,  # Grazing Manure Data Check: In Confined Areas (%)
     'GRTotSum': 1,  # Grazing Manure Data Check: Total (<= 1)
-    'AnimalFlag': 1,  # Flag: Animal Layer Detected (0 No; 1 Yes)
+    'AnimalFlag': b.YES,  # Flag: Animal Layer Detected (0 No; 1 Yes)
     'WildOrgsDay': 5.0e+8,  # Wildlife Loading Rate (org/animal/per day)
     'WildDensity': 25,  # Wildlife Density (animals/square mile)
     'WuDieoff': 0.9,  # Wildlife/Urban Die-Off Rate
@@ -342,38 +399,38 @@ GWLFE_DEFAULTS = {
     'RunContPct': 0,  # Runoff Control (%)
     'PhytasePct': 0,  # Phytase in Feed (%),
 
-    'AnimalName':             ['Dairy Cows', 'Beef Cows', 'Broilers', 'Layers', 'Hogs/Swine',  'Sheep', 'Horses', 'Turkeys', 'Other'] ,  # NOQA
-    'NumAnimals':    np.array([        0.00,        0.00,       0.00,     0.00,         0.00,     0.00,     0.00,      0.00,    0.00]),  # NOQA
-    'GrazingAnimal':          [         'Y',         'Y',        'N',      'N',          'N',      'Y',      'Y',       'N',     'N'] ,  # NOQA
-    'AvgAnimalWt':   np.array([      640.00,      360.00,       0.90,     1.80,        61.00,    50.00,   500.00,      6.80,    0.00]),  # Average Animal Weight (kg) # NOQA
-    'AnimalDailyN':  np.array([        0.44,        0.31,       1.07,     0.85,         0.48,     0.37,     0.28,      0.59,    0.00]),  # Animal Daily Loads: Nitrogen (kg/AEU) # NOQA
-    'AnimalDailyP':  np.array([        0.07,        0.09,       0.30,     0.29,         0.15,     0.10,     0.06,      0.20,    0.00]),  # Animal Daily Loads: Phosphorus (kg/AEU) # NOQA
-    'FCOrgsPerDay':  np.array([     1.0e+11,     1.0e+11,    1.4e+08,  1.4e+08,      1.1e+10,  1.2e+10,  4.2e+08,   9.5e+07,    0.00]),  # Fecal Coliforms (orgs/day) # NOQA
+    'AnimalName':             ['Dairy Cows', 'Beef Cows', 'Broilers', 'Layers', 'Hogs/Swine', 'Sheep', 'Horses', 'Turkeys', 'Other'] ,
+    'NumAnimals':    np.array([        0.00,        0.00,       0.00,     0.00,         0.00,    0.00,     0.00,      0.00,    0.00]),
+    'GrazingAnimal':          [       b.YES,       b.YES,       b.NO,     b.NO,         b.NO,   b.YES,    b.YES,      b.NO,    b.NO] ,
+    'AvgAnimalWt':   np.array([      640.00,      360.00,       0.90,     1.80,        61.00,   50.00,   500.00,      6.80,    0.00]),  # Average Animal Weight (kg)
+    'AnimalDailyN':  np.array([        0.44,        0.31,       1.07,     0.85,         0.48,    0.37,     0.28,      0.59,    0.00]),  # Animal Daily Loads: Nitrogen (kg/AEU)
+    'AnimalDailyP':  np.array([        0.07,        0.09,       0.30,     0.29,         0.15,    0.10,     0.06,      0.20,    0.00]),  # Animal Daily Loads: Phosphorus (kg/AEU)
+    'FCOrgsPerDay':  np.array([     1.0e+11,     1.0e+11,    1.4e+08,  1.4e+08,      1.1e+10, 1.2e+10,  4.2e+08,   9.5e+07,    0.00]),  # Fecal Coliforms (orgs/day)
 
-    'Month':                     ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],   # NOQA
-    'NGPctManApp':      np.array([ 0.01,  0.01,  0.15,  0.10,  0.05,  0.03,  0.03,  0.03,  0.11,  0.10,  0.10,  0.08]),  # Manure Spreading: % Of Annual Load Applied To Crops/Pasture # NOQA
-    'NGAppNRate':       np.array([ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05]),  # Manure Spreading: Base Nitrogen Loss Rate # NOQA
-    'NGAppPRate':       np.array([ 0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07]),  # Manure Spreading: Base Phosphorus Loss Rate # NOQA
-    'NGAppFCRate':      np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Manure Spreading: Base Fecal Coliform Loss Rate # NOQA
-    'NGPctSoilIncRate': np.array([ 0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00]),  # Manure Spreading: % Of Manure Load Incorporated Into Soil # NOQA
-    'NGBarnNRate':      np.array([ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20]),  # Barnyard/Confined Area: Base Nitrogen Loss Rate # NOQA
-    'NGBarnPRate':      np.array([ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20]),  # Barnyard/Confined Area: Base Phosphorus Loss Rate # NOQA
-    'NGBarnFCRate':     np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Barnyard/Confined Area: Base Fecal Coliform Loss Rate # NOQA
-    'PctGrazing':       np.array([ 0.02,  0.02,  0.10,  0.25,  0.50,  0.50,  0.50,  0.50,  0.50,  0.40,  0.25,  0.10]),  # Grazing Land: % Of Time Spent Grazing # NOQA
-    'PctStreams':       np.array([ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05]),  # Grazing Land: % Of Time Spent In Streams # NOQA
-    'GrazingNRate':     np.array([ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05]),  # Grazing Land: Base Nitrogen Loss Rate # NOQA
-    'GrazingPRate':     np.array([ 0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07]),  # Grazing Land: Base Phosphorus Loss Rate # NOQA
-    'GrazingFCRate':    np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Grazing Land: Base Fecal Coliform Loss Rate # NOQA
-    'GRPctManApp':      np.array([ 0.01,  0.01,  0.10,  0.05,  0.05,  0.03,  0.03,  0.03,  0.11,  0.06,  0.02,  0.02]),  # Manure Spreading: % Of Annual Load Applied To Crops/Pasture # NOQA
-    'GRAppNRate':       np.array([ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05]),  # Manure Spreading: Base Nitrogen Loss Rate # NOQA
-    'GRAppPRate':       np.array([ 0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07]),  # Manure Spreading: Base Phosphorus Loss Rate # NOQA
-    'GRAppFCRate':      np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Manure Spreading: Base Fecal Coliform Loss Rate # NOQA
-    'GRPctSoilIncRate': np.array([ 0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00]),  # Manure Spreading: % Of Manure Load Incorporated Into Soil # NOQA
-    'GRBarnNRate':      np.array([ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20]),  # Barnyard/Confined Area: Base Nitrogen Loss Rate # NOQA
-    'GRBarnPRate':      np.array([ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20]),  # Barnyard/Confined Area: Base Phosphorus Loss Rate # NOQA
-    'GRBarnFCRate':     np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Barnyard/Confined Area: Base Fecal Coliform Loss Rate # NOQA
+    'Month':                     ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    'NGPctManApp':      np.array([ 0.01,  0.01,  0.15,  0.10,  0.05,  0.03,  0.03,  0.03,  0.11,  0.10,  0.10,  0.08]),  # Manure Spreading: % Of Annual Load Applied To Crops/Pasture
+    'NGAppNRate':       np.array([ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05]),  # Manure Spreading: Base Nitrogen Loss Rate
+    'NGAppPRate':       np.array([ 0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07]),  # Manure Spreading: Base Phosphorus Loss Rate
+    'NGAppFCRate':      np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Manure Spreading: Base Fecal Coliform Loss Rate
+    'NGPctSoilIncRate': np.array([ 0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00]),  # Manure Spreading: % Of Manure Load Incorporated Into Soil
+    'NGBarnNRate':      np.array([ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20]),  # Barnyard/Confined Area: Base Nitrogen Loss Rate
+    'NGBarnPRate':      np.array([ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20]),  # Barnyard/Confined Area: Base Phosphorus Loss Rate
+    'NGBarnFCRate':     np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Barnyard/Confined Area: Base Fecal Coliform Loss Rate
+    'PctGrazing':       np.array([ 0.02,  0.02,  0.10,  0.25,  0.50,  0.50,  0.50,  0.50,  0.50,  0.40,  0.25,  0.10]),  # Grazing Land: % Of Time Spent Grazing
+    'PctStreams':       np.array([ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05]),  # Grazing Land: % Of Time Spent In Streams
+    'GrazingNRate':     np.array([ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05]),  # Grazing Land: Base Nitrogen Loss Rate
+    'GrazingPRate':     np.array([ 0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07]),  # Grazing Land: Base Phosphorus Loss Rate
+    'GrazingFCRate':    np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Grazing Land: Base Fecal Coliform Loss Rate
+    'GRPctManApp':      np.array([ 0.01,  0.01,  0.10,  0.05,  0.05,  0.03,  0.03,  0.03,  0.11,  0.06,  0.02,  0.02]),  # Manure Spreading: % Of Annual Load Applied To Crops/Pasture
+    'GRAppNRate':       np.array([ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05]),  # Manure Spreading: Base Nitrogen Loss Rate
+    'GRAppPRate':       np.array([ 0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07]),  # Manure Spreading: Base Phosphorus Loss Rate
+    'GRAppFCRate':      np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Manure Spreading: Base Fecal Coliform Loss Rate
+    'GRPctSoilIncRate': np.array([ 0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00]),  # Manure Spreading: % Of Manure Load Incorporated Into Soil
+    'GRBarnNRate':      np.array([ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20]),  # Barnyard/Confined Area: Base Nitrogen Loss Rate
+    'GRBarnPRate':      np.array([ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20]),  # Barnyard/Confined Area: Base Phosphorus Loss Rate
+    'GRBarnFCRate':     np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Barnyard/Confined Area: Base Fecal Coliform Loss Rate
 
-    'ShedAreaDrainLake': 0,  # Percentage of watershed area that drains into a lake or wetlands: (0 - 1) # NOQA
+    'ShedAreaDrainLake': 0,  # Percentage of watershed area that drains into a lake or wetlands: (0 - 1)
     'RetentNLake': 0.12,  # Lake Retention Rate: Nitrogen
     'RetentPLake': 0.29,  # Lake Retention Rate: Phosphorus
     'RetentSedLake': 0.84,  # Lake Retention Rate: Sediment
@@ -384,4 +441,13 @@ GWLFE_DEFAULTS = {
     'AttenLossRateTSS': 0,  # Attenuation: Loss Rate: Total Suspended Solids
     'AttenLossRatePath': 0,  # Attenuation: Loss Rate: Pathogens
     'StreamFlowVolAdj': 1,  # Streamflow Volume Adjustment Factor
+}
+
+GWLFE_CONFIG = {
+    'NumWeatherStations': 2,  # Number of weather stations to consider for each polygon
+    'Livestock': ['dairy_cows', 'beef_cows', 'hogs', 'sheep', 'horses'],
+    'Poultry': ['broilers', 'layers', 'turkeys'],
+    'ManureSpreadingLandUseIndices': [0, 1],  # Land Use Indices where manure spreading applies. Currently Hay/Past and Cropland.
+    'MonthDays': [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+    'WeatherNull': -99999,  # This value is used to indicate NULL in ms_weather dataset
 }

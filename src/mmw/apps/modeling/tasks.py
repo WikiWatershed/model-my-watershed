@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
-import time
 import requests
 from celery import shared_task
 import json
@@ -18,30 +17,82 @@ from tr55.model import simulate_day
 # from gwlfe import gwlfe
 from gwlfe.datamodel import DataModel
 
+from apps.modeling.mapshed import (day_lengths,
+                                   nearest_weather_stations,
+                                   growing_season,
+                                   erosion_coeff,
+                                   et_adjustment,
+                                   animal_energy_units,
+                                   manure_spread,
+                                   stream_length,
+                                   point_source_discharge,
+                                   weather_data,
+                                   )
+
 from django.conf import settings
+from django.contrib.gis.geos import GEOSGeometry
 
 logger = logging.getLogger(__name__)
 
 KG_PER_POUND = 0.453592
 CM_PER_INCH = 2.54
+ACRES_PER_SQM = 0.000247105
 
 
 @shared_task
 def start_gwlfe_job(model_input):
     """
-    Runs a GWLFE job. For now, just wait 3s and return the default values.
+    Runs a GWLFE job.
     """
-    # TODO remove sleep and call actual GWLFE code
-    time.sleep(3)
+    aoi_geom = GEOSGeometry(json.dumps(model_input['area_of_interest']),
+                            srid=4326)
+    aoi_area = aoi_geom.transform(5070, clone=True).area  # Square Meters
 
-    model = DataModel(settings.GWLFE_DEFAULTS)
+    # Data Model is called z by convention
+    z = DataModel(settings.GWLFE_DEFAULTS)
+
+    # Statically calculated lookup values
+    z.DayHrs = day_lengths(aoi_geom)
+
+    # Data from the Weather Stations dataset
+    ws = nearest_weather_stations(aoi_geom)
+    z.Grow = growing_season(ws)
+    z.Acoef = erosion_coeff(ws, z.Grow)
+    z.PcntET = et_adjustment(ws)
+    z.WxYrBeg = max([w.begyear for w in ws])
+    z.WxYrEnd = min([w.endyear for w in ws])
+    z.WxYrs = z.WxYrEnd - z.WxYrBeg + 1
+
+    # Data from the County Animals dataset
+    livestock_aeu, poultry_aeu = animal_energy_units(aoi_geom)
+    z.AEU = livestock_aeu / (aoi_area * ACRES_PER_SQM)
+    z.n41j = livestock_aeu
+    z.n41k = poultry_aeu
+    z.n41l = livestock_aeu + poultry_aeu
+
+    z.ManNitr, z.ManPhos = manure_spread(z.AEU)
+
+    # Data from Streams dataset
+    z.StreamLength = stream_length(aoi_geom)  # Meters
+    z.n42b = round(z.StreamLength / 1000)     # Kilometers
+
+    # Data from Point Source Discharge dataset
+    n_load, p_load, discharge = point_source_discharge(aoi_geom, aoi_area)
+    z.PointNitr = n_load
+    z.PointPhos = p_load
+    z.PointFlow = discharge
+
+    # Data from National Weather dataset
+    temps, prcps = weather_data(ws, z.WxYrBeg, z.WxYrEnd)
+    z.Temp = temps
+    z.Prec = prcps
 
     # TODO Run the actual model.
     # Currently it writes to stdout and some files.
     # Must have it return results in a data structure.
-    # gwlfe.run(model)
+    # gwlfe.run(z)
 
-    response_json = model.tojson() if model else {}
+    response_json = z.tojson() if z else {}
 
     return response_json
 

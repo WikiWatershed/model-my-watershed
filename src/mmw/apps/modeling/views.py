@@ -195,7 +195,7 @@ def start_gwlfe(request, format=None):
     """
     user = request.user if request.user.is_authenticated() else None
     created = now()
-    model_input = request.POST['model_input']
+    model_input = json.loads(request.POST['model_input'])
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
 
