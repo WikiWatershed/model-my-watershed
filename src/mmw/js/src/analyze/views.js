@@ -4,8 +4,11 @@ var $ = require('jquery'),
     _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
+    router = require('../router').router,
     models = require('./models'),
     settings = require('../core/settings'),
+    modalModels = require('../core/modals/models'),
+    modalViews = require('../core/modals/views'),
     coreModels = require('../core/models'),
     chart = require('../core/chart'),
     utils = require('../core/utils'),
@@ -28,6 +31,50 @@ var ResultsView = Marionette.LayoutView.extend({
 
     regions: {
         analyzeRegion: '#analyze-tab-contents'
+    },
+
+    ui: {
+        'modelPackageLinks': 'a.model-package',
+    },
+
+    events: {
+        'click @ui.modelPackageLinks': 'selectModelPackage',
+    },
+
+    selectModelPackage: function (e) {
+        e.preventDefault();
+
+        var modelPackages = settings.get('model_packages'),
+            modelPackageName = $(e.target).data('id'),
+            modelPackage = _.find(modelPackages, {name: modelPackageName}),
+            newProjectUrl = '/project/new/' + modelPackageName,
+            projectUrl = '/project';
+
+        if (!modelPackage.disabled) {
+            if (settings.get('itsi_embed') && App.currentProject && !App.currentProject.get('needs_reset')) {
+                var currModelPackageName = App.currentProject.get('model_package');
+                if (modelPackageName === currModelPackageName) {
+                    // Go to existing project
+                    router.navigate(projectUrl, {trigger: true});
+                } else {
+                    var confirmNewProject = new modalViews.ConfirmView({
+                        model: new modalModels.ConfirmModel({
+                            question: 'If you change the model you will lose your current work.',
+                            confirmLabel: 'Switch Model',
+                            cancelLabel: 'Cancel',
+                            feedbackRequired: true
+                        }),
+                    });
+
+                    confirmNewProject.on('confirmation', function() {
+                        router.navigate(newProjectUrl, {trigger: true});
+                    });
+                    confirmNewProject.render();
+                }
+            } else {
+                router.navigate(newProjectUrl, {trigger: true});
+            }
+        }
     },
 
     onShow: function() {
