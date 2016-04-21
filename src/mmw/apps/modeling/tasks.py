@@ -25,6 +25,7 @@ from apps.modeling.mapshed import (day_lengths,
                                    animal_energy_units,
                                    manure_spread,
                                    stream_length,
+                                   point_source_discharge,
                                    )
 
 from django.conf import settings
@@ -73,6 +74,12 @@ def start_gwlfe_job(model_input):
     # Data from Streams dataset
     z.StreamLength = stream_length(aoi_geom)  # Meters
     z.n42b = round(z.StreamLength / 1000)     # Kilometers
+
+    # Data from Point Source Discharge dataset
+    n_load, p_load, discharge = point_source_discharge(aoi_geom, aoi_area)
+    z.PointNitr = n_load
+    z.PointPhos = p_load
+    z.PointFlow = discharge
 
     # TODO Run the actual model.
     # Currently it writes to stdout and some files.

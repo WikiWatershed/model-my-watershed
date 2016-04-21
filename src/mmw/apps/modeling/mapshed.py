@@ -15,8 +15,10 @@ from django.db import connection
 
 NUM_WEATHER_STATIONS = settings.GWLFE_CONFIG['NumWeatherStations']
 MONTHS = settings.GWLFE_DEFAULTS['Month']
+MONTHDAYS = settings.GWLFE_CONFIG['MonthDays']
 LIVESTOCK = settings.GWLFE_CONFIG['Livestock']
 POULTRY = settings.GWLFE_CONFIG['Poultry']
+LITERS_PER_MGAL = 3785412
 
 
 def day_lengths(geom):
@@ -195,3 +197,30 @@ def stream_length(geom, drb=False):
         cursor.execute(sql, [geom.wkt, geom.wkt])
 
         return cursor.fetchone()[0]  # Aggregate query returns single value
+
+
+def point_source_discharge(geom, area):
+    """
+    Given a geometry and its area in square meters, returns three lists,
+    each with 12 values, one for each month, containing the Nitrogen Load (in
+    kg), Phosphorus Load (in kg), and Discharge (in liters per square meter)
+    """
+    sql = '''
+          SELECT SUM(mgd) AS mg_d,
+                 SUM(kgn_yr) / 12 AS kgn_month,
+                 SUM(kgp_yr) / 12 AS kgp_month
+          FROM ms_pointsource
+          WHERE ST_Intersects(geom,
+                              ST_SetSRID(ST_GeomFromText(%s), 4326));
+          '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [geom.wkt])
+        mg_d, kgn_month, kgp_month = cursor.fetchone()
+
+        n_load = np.array([kgn_month] * 12)
+        p_load = np.array([kgp_month] * 12)
+        discharge = np.array([float(mg_d * days * LITERS_PER_MGAL) / area
+                              for days in MONTHDAYS])
+
+        return n_load, p_load, discharge
