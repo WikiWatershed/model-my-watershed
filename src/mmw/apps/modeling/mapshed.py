@@ -19,6 +19,7 @@ MONTHDAYS = settings.GWLFE_CONFIG['MonthDays']
 LIVESTOCK = settings.GWLFE_CONFIG['Livestock']
 POULTRY = settings.GWLFE_CONFIG['Poultry']
 LITERS_PER_MGAL = 3785412
+WEATHER_NULL = settings.GWLFE_CONFIG['WeatherNull']
 
 
 def day_lengths(geom):
@@ -224,3 +225,74 @@ def point_source_discharge(geom, area):
                               for days in MONTHDAYS])
 
         return n_load, p_load, discharge
+
+
+def weather_data(ws, begyear, endyear):
+    """
+    Given a list of Weather Stations and beginning and end years, returns two
+    3D arrays, one for average temperature and the other for precipitation,
+    for each day in each month in each year in the range, averaged over all
+    stations in the list, in the format:
+        array[year][month][day] = value
+    where `year` 0 corresponds to the first year in the range, 1 to the second,
+    and so on; `month` 0 corresponds to January, 1 to February, and so on;
+    `day` 0 corresponds to the 1st of the month, 1 to the 2nd, and so on. Cells
+    with no corresponding values are marked as None.
+    """
+    temp_sql = '''
+               SELECT year, EXTRACT(MONTH FROM TO_DATE(month, 'MON')) AS month,
+                      AVG("1") AS "1", AVG("2") AS "2", AVG("3") AS "3",
+                      AVG("4") AS "4", AVG("5") AS "5", AVG("6") AS "6",
+                      AVG("7") AS "7", AVG("8") AS "8", AVG("9") AS "9",
+                      AVG("10") AS "10", AVG("11") AS "11", AVG("12") AS "12",
+                      AVG("13") AS "13", AVG("14") AS "14", AVG("15") AS "15",
+                      AVG("16") AS "16", AVG("17") AS "17", AVG("18") AS "18",
+                      AVG("19") AS "19", AVG("20") AS "20", AVG("21") AS "21",
+                      AVG("22") AS "22", AVG("23") AS "23", AVG("24") AS "24",
+                      AVG("25") AS "25", AVG("26") AS "26", AVG("27") AS "27",
+                      AVG("28") AS "28", AVG("29") AS "29", AVG("30") AS "30",
+                      AVG("31") AS "31"
+               FROM ms_weather
+               WHERE station IN %s
+                 AND measure IN ('TMax', 'TMin')
+                 AND year BETWEEN %s AND %s
+               GROUP BY year, month
+               ORDER BY year, month;
+               '''
+    prcp_sql = '''
+               SELECT year, EXTRACT(MONTH FROM TO_DATE(month, 'MON')) AS month,
+                     "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9", "10",
+                    "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+                    "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+                    "31"
+               FROM ms_weather
+               WHERE station IN %s
+                 AND measure = 'Prcp'
+                 AND year BETWEEN %s AND %s
+               ORDER BY year, month;
+               '''
+
+    year_range = endyear - begyear + 1
+    stations = tuple([w.station for w in ws])
+    temps = np.zeros((year_range, 12, 31))
+    prcps = np.zeros((year_range, 12, 31))
+
+    with connection.cursor() as cursor:
+        cursor.execute(temp_sql, [stations, begyear, endyear])
+        for row in cursor.fetchall():
+            year = row[0] - begyear
+            month = row[1] - 1
+            for day in range(31):
+                t = row[day + 2]
+                temps[year, month, day] = t if t != WEATHER_NULL else None
+
+    with connection.cursor() as cursor:
+        cursor.execute(prcp_sql, [stations, begyear, endyear])
+        for row in cursor.fetchall():
+            year = row[0] - begyear
+            month = row[1] - 1
+            for day in range(31):
+                p = row[day + 2]
+                prcps[year, month, day] = p if p != WEATHER_NULL else None
+
+    return temps, prcps

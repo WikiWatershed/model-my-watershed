@@ -449,4 +449,5 @@ GWLFE_CONFIG = {
     'Poultry': ['broilers', 'layers', 'turkeys'],
     'ManureSpreadingLandUseIndices': [0, 1],  # Land Use Indices where manure spreading applies. Currently Hay/Past and Cropland.
     'MonthDays': [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+    'WeatherNull': -99999,  # This value is used to indicate NULL in ms_weather dataset
 }

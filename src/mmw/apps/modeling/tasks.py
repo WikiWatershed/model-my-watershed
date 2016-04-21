@@ -26,6 +26,7 @@ from apps.modeling.mapshed import (day_lengths,
                                    manure_spread,
                                    stream_length,
                                    point_source_discharge,
+                                   weather_data,
                                    )
 
 from django.conf import settings
@@ -80,6 +81,11 @@ def start_gwlfe_job(model_input):
     z.PointNitr = n_load
     z.PointPhos = p_load
     z.PointFlow = discharge
+
+    # Data from National Weather dataset
+    temps, prcps = weather_data(ws, z.WxYrBeg, z.WxYrEnd)
+    z.Temp = temps
+    z.Prec = prcps
 
     # TODO Run the actual model.
     # Currently it writes to stdout and some files.
