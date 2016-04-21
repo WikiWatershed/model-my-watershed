@@ -368,8 +368,8 @@ GEOP = {
             'geometry': None,
             'tileCRS': 'ConusAlbers',
             'polyCRS': 'LatLng',
-            'nlcdLayer': 'nlcd-2011-30m-epsg5070',
-            'soilLayer': 'ssurgo-hydro-groups-30m-epsg5070',
+            'nlcdLayer': 'nlcd-2011-30m-epsg5070-0.10.0',
+            'soilLayer': 'ssurgo-hydro-groups-30m-epsg5070-0.10.0',
             'zoom': 0
         }
     }

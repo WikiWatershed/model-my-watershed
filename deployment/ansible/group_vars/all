@@ -44,7 +44,7 @@ sjs_host: "localhost"
 sjs_port: 8090
 sjs_container_image: "quay.io/azavea/spark-jobserver:0.6.1"
 
-geop_version: "0.4.0"
+geop_version: "1.0.0"
 
 nginx_cache_dir: "/var/cache/nginx"
 observation_api_url: "http://www.wikiwatershed-vs.org/"
