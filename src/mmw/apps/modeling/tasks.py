@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
-import time
 import requests
 from celery import shared_task
 import json
@@ -19,29 +18,33 @@ from tr55.model import simulate_day
 from gwlfe.datamodel import DataModel
 
 from django.conf import settings
+from django.contrib.gis.geos import GEOSGeometry
 
 logger = logging.getLogger(__name__)
 
 KG_PER_POUND = 0.453592
 CM_PER_INCH = 2.54
+ACRES_PER_SQM = 0.000247105
 
 
 @shared_task
 def start_gwlfe_job(model_input):
     """
-    Runs a GWLFE job. For now, just wait 3s and return the default values.
+    Runs a GWLFE job.
     """
-    # TODO remove sleep and call actual GWLFE code
-    time.sleep(3)
+    aoi_geom = GEOSGeometry(json.dumps(model_input['area_of_interest']),
+                            srid=4326)
+    aoi_area = aoi_geom.transform(5070, clone=True).area  # Square Meters
 
-    model = DataModel(settings.GWLFE_DEFAULTS)
+    # Data Model is called z by convention
+    z = DataModel(settings.GWLFE_DEFAULTS)
 
     # TODO Run the actual model.
     # Currently it writes to stdout and some files.
     # Must have it return results in a data structure.
-    # gwlfe.run(model)
+    # gwlfe.run(z)
 
-    response_json = model.tojson() if model else {}
+    response_json = z.tojson() if z else {}
 
     return response_json
 

@@ -13,7 +13,7 @@ from os.path import abspath, basename, dirname, join, normpath
 from sys import path
 
 from layer_settings import LAYERS, VIZER_URLS  # NOQA
-from gwlfe_settings import GWLFE_DEFAULTS  # NOQA
+from gwlfe_settings import GWLFE_DEFAULTS, GWLFE_CONFIG  # NOQA
 
 # Normally you should not import ANYTHING from Django directly
 # into your settings, but ImproperlyConfigured is an exception.

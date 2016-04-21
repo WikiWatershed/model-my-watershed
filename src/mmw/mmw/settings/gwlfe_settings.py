@@ -385,3 +385,6 @@ GWLFE_DEFAULTS = {
     'AttenLossRatePath': 0,  # Attenuation: Loss Rate: Pathogens
     'StreamFlowVolAdj': 1,  # Streamflow Volume Adjustment Factor
 }
+
+GWLFE_CONFIG = {
+}
