@@ -22,6 +22,8 @@ from apps.modeling.mapshed import (day_lengths,
                                    growing_season,
                                    erosion_coeff,
                                    et_adjustment,
+                                   animal_energy_units,
+                                   manure_spread,
                                    )
 
 from django.conf import settings
@@ -57,6 +59,15 @@ def start_gwlfe_job(model_input):
     z.WxYrBeg = max([w.begyear for w in ws])
     z.WxYrEnd = min([w.endyear for w in ws])
     z.WxYrs = z.WxYrEnd - z.WxYrBeg + 1
+
+    # Data from the County Animals dataset
+    livestock_aeu, poultry_aeu = animal_energy_units(aoi_geom)
+    z.AEU = livestock_aeu / (aoi_area * ACRES_PER_SQM)
+    z.n41j = livestock_aeu
+    z.n41k = poultry_aeu
+    z.n41l = livestock_aeu + poultry_aeu
+
+    z.ManNitr, z.ManPhos = manure_spread(z.AEU)
 
     # TODO Run the actual model.
     # Currently it writes to stdout and some files.

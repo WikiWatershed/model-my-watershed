@@ -15,6 +15,8 @@ from django.db import connection
 
 NUM_WEATHER_STATIONS = settings.GWLFE_CONFIG['NumWeatherStations']
 MONTHS = settings.GWLFE_DEFAULTS['Month']
+LIVESTOCK = settings.GWLFE_CONFIG['Livestock']
+POULTRY = settings.GWLFE_CONFIG['Poultry']
 
 
 def day_lengths(geom):
@@ -101,3 +103,72 @@ def et_adjustment(ws):
     avg_etadj = np.mean([w.etadj for w in ws])
 
     return np.array([avg_etadj] * 12)
+
+
+def animal_energy_units(geom):
+    """
+    Given a geometry, returns the total livestock and poultry AEUs within it
+    """
+    sql = '''
+          WITH clipped_counties AS (
+              SELECT ST_Intersection(geom,
+                                     ST_SetSRID(ST_GeomFromText(%s),
+                                                4326)) AS geom_clipped,
+                     ms_county_animals.*
+              FROM ms_county_animals
+              WHERE ST_Intersects(geom,
+                                  ST_SetSRID(ST_GeomFromText(%s),
+                                             4326))
+          ), clipped_counties_with_area AS (
+              SELECT ST_Area(geom_clipped) / ST_Area(geom) AS clip_percent,
+                     clipped_counties.*
+              FROM clipped_counties
+          )
+          SELECT SUM(beef_ha * totalha * clip_percent) AS beef_cows,
+                 SUM(broiler_ha * totalha * clip_percent) AS broilers,
+                 SUM(dairy_ha * totalha * clip_percent) AS dairy_cows,
+                 SUM(sheep_ha * totalha * clip_percent) AS sheep,
+                 SUM(hog_ha * totalha * clip_percent) AS hogs,
+                 SUM(horse_ha * totalha * clip_percent) AS horses,
+                 SUM(layer_ha * totalha * clip_percent) AS layers,
+                 SUM(turkey_ha * totalha * clip_percent) AS turkeys
+          FROM clipped_counties_with_area;
+          '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [geom.wkt, geom.wkt])
+
+        # Convert result to dictionary
+        columns = [col[0] for col in cursor.description]
+        values = cursor.fetchone()  # Only one row since aggregate query
+        aeu = dict(zip(columns, values))
+
+        livestock_aeu = round(sum(aeu[animal] for animal in LIVESTOCK))
+        poultry_aeu = round(sum(aeu[animal] for animal in POULTRY))
+
+        return livestock_aeu, poultry_aeu
+
+
+def manure_spread(aeu):
+    """
+    Given Animal Energy Units, returns two 16-item lists, containing nitrogen
+    and phosphorus manure spreading values for each of the 16 land use types.
+    If a given land use index is marked as having manure spreading applied in
+    the configuration, it will have a value calculated below, otherwise it
+    will be set to 0.
+    """
+    n_list = np.zeros(16)
+    p_list = np.zeros(16)
+
+    if 1.0 <= aeu:
+        n_spread, p_spread = 4.88, 0.86
+    elif 0.5 < aeu < 1.0:
+        n_spread, p_spread = 3.66, 0.57
+    else:
+        n_spread, p_spread = 2.44, 0.38
+
+    for lu in settings.GWLFE_CONFIG['ManureSpreadingLandUseIndices']:
+        n_list[lu] = n_spread
+        p_list[lu] = p_spread
+
+    return n_list, p_list
