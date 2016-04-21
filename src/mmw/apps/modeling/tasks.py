@@ -18,6 +18,10 @@ from tr55.model import simulate_day
 from gwlfe.datamodel import DataModel
 
 from apps.modeling.mapshed import (day_lengths,
+                                   nearest_weather_stations,
+                                   growing_season,
+                                   erosion_coeff,
+                                   et_adjustment,
                                    )
 
 from django.conf import settings
@@ -44,6 +48,15 @@ def start_gwlfe_job(model_input):
 
     # Statically calculated lookup values
     z.DayHrs = day_lengths(aoi_geom)
+
+    # Data from the Weather Stations dataset
+    ws = nearest_weather_stations(aoi_geom)
+    z.Grow = growing_season(ws)
+    z.Acoef = erosion_coeff(ws, z.Grow)
+    z.PcntET = et_adjustment(ws)
+    z.WxYrBeg = max([w.begyear for w in ws])
+    z.WxYrEnd = min([w.endyear for w in ws])
+    z.WxYrs = z.WxYrEnd - z.WxYrBeg + 1
 
     # TODO Run the actual model.
     # Currently it writes to stdout and some files.

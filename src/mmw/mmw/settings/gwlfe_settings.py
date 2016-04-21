@@ -444,4 +444,5 @@ GWLFE_DEFAULTS = {
 }
 
 GWLFE_CONFIG = {
+    'NumWeatherStations': 2,  # Number of weather stations to consider for each polygon
 }
