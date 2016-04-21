@@ -172,3 +172,26 @@ def manure_spread(aeu):
         p_list[lu] = p_spread
 
     return n_list, p_list
+
+
+def stream_length(geom, drb=False):
+    """
+    Given a geometry, finds the total length of streams in meters within it.
+    If the drb flag is set, we use the Delaware River Basin dataset instead
+    of NHD Flowline.
+    """
+    sql = '''
+          SELECT ROUND(SUM(ST_Length(
+              ST_Transform(
+                  ST_Intersection(geom,
+                                  ST_SetSRID(ST_GeomFromText(%s), 4326)),
+                  5070))))
+          FROM {datasource}
+          WHERE ST_Intersects(geom,
+                              ST_SetSRID(ST_GeomFromText(%s), 4326));
+          '''.format(datasource='drb_streams_50' if drb else 'nhdflowline')
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [geom.wkt, geom.wkt])
+
+        return cursor.fetchone()[0]  # Aggregate query returns single value

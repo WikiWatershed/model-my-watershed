@@ -24,6 +24,7 @@ from apps.modeling.mapshed import (day_lengths,
                                    et_adjustment,
                                    animal_energy_units,
                                    manure_spread,
+                                   stream_length,
                                    )
 
 from django.conf import settings
@@ -68,6 +69,10 @@ def start_gwlfe_job(model_input):
     z.n41l = livestock_aeu + poultry_aeu
 
     z.ManNitr, z.ManPhos = manure_spread(z.AEU)
+
+    # Data from Streams dataset
+    z.StreamLength = stream_length(aoi_geom)  # Meters
+    z.n42b = round(z.StreamLength / 1000)     # Kilometers
 
     # TODO Run the actual model.
     # Currently it writes to stdout and some files.
