@@ -21,6 +21,31 @@ GWLFE_DEFAULTS = {
     'StreamWithdrawal': np.zeros(12),  # Surface Water Withdrawal/Extraction
     'GroundWithdrawal': np.zeros(12),  # Groundwater Withdrawal/Extraction
     'PcntET': np.ones(12),  # Percent monthly adjustment for ET calculation
+    'Landuse': [lu.HAY_PAST,   # Maps NLCD 81
+                lu.CROPLAND,   # Maps NLCD 82
+                lu.FOREST,     # Maps NLCD 41, 42, 43, 52
+                lu.WETLAND,    # Maps NLCD 90, 95
+                lu.DISTURBED,       # Does not map to NLCD
+                lu.TURFGRASS,       # Does not map to NLCD
+                lu.OPEN_LAND,  # Maps NLCD 21, 71
+                lu.BARE_ROCK,  # Maps NLCD 12, 31
+                lu.SANDY_AREAS,     # Does not map to NLCD
+                lu.UNPAVED_ROAD,    # Does not map to NLCD
+                lu.LD_MIXED,   # Maps NLCD 22
+                lu.MD_MIXED,   # Maps NLCD 23
+                lu.HD_MIXED,   # Maps NLCD 24
+                lu.LD_RESIDENTIAL,  # Does not map to NLCD
+                lu.MD_RESIDENTIAL,  # Does not map to NLCD
+                lu.HD_RESIDENTIAL,  # Does not map to NLCD
+                ],
+    'Imper': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,          # Impervious surface area percentage
+                       0.15, 0.52, 0.87, 0.15, 0.52, 0.87]),  # only defined for urban land use types
+    'CNI': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Curve Number for Impervious Surfaces
+                     92, 98, 98, 92, 92, 92]),      # only defined for urban land use types
+    'CNP': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Curve Number for Pervious Surfaces
+                     74, 79, 79, 74, 74, 74]),      # only defined for urban land use types
+    'TotSusSolids': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Total Suspended Solids factor
+                              60, 70, 80, 90, 100, 110]),    # only defined for urban land use types
     'PhysFlag': b.NO,  # Flag: Physiographic Province Layer Detected (0 No; 1 Yes)
     'PointFlag': b.YES,  # Flag: Point Source Layer Detected (0 No; 1 Yes)
     'SeptSysFlag': b.NO,  # Flag: Septic System Layer Detected (0 No; 1 Yes)
@@ -36,8 +61,35 @@ GWLFE_DEFAULTS = {
     'LastManureMonth': 0,  # MS Period 1: Last Month
     'FirstManureMonth2': 0,  # MS Period 2: First Month
     'LastManureMonth2': 0,  # MS Period 2: Last Month
+    'NitrConc': np.array([0.75, 2.90, 0.19, 0.19, 0.02,  # Dissolved Runoff Coefficient: Nitrogen mg/l
+                          2.50, 0.50, 0.30, 0.10, 0.19,  # only defined for rural land use types
+                          0, 0, 0, 0, 0, 0]),
+    'PhosConc': np.array([0.01, 0.01, 0.01, 0.01, 0.01,  # Dissolved Runoff Coefficient: Phosphorus mg/l
+                          0.01, 0.01, 0.01, 0.01, 0.01,  # only defined for rural land use types
+                          0, 0, 0, 0, 0, 0]),
     'Nqual': 3,  # Number of Contaminants (Default = 3)
     'Contaminant': ['Nitrogen', 'Phosphorus', 'Sediment'],
+    'LoadRateImp': np.array([[], [], [], [], [], [], [], [], [], [],  # Load Rate on Impervious Surfaces per urban land use per contaminant
+                             [0.095, 0.0095, 2.80],    # Ld_Mixed
+                             [0.105, 0.0105, 6.20],    # Md_Mixed
+                             [0.110, 0.0115, 2.80],    # Hd_Mixed
+                             [0.095, 0.0095, 2.50],    # Ld_Residential
+                             [0.100, 0.0115, 6.20],    # Md_Residential
+                             [0.105, 0.0120, 5.00]]),  # Hd_Residential
+    'LoadRatePerv': np.array([[], [], [], [], [], [], [], [], [], [],  # Load Rate on Pervious Surfaces per urban land use per contaminant
+                              [0.015, 0.0021, 0.80],    # Ld_Mixed
+                              [0.015, 0.0021, 0.80],    # Md_Mixed
+                              [0.015, 0.0021, 0.80],    # Hd_Mixed
+                              [0.015, 0.0019, 1.30],    # Ld_Residential
+                              [0.015, 0.0039, 1.10],    # Md_Residential
+                              [0.015, 0.0078, 1.50]]),  # Hd_Residential
+    'DisFract': np.array([[], [], [], [], [], [], [], [], [], [],  # Dissolved Fraction per urban land use per contaminant
+                          [0.33, 0.40, 0],    # Ld_Mixed
+                          [0.33, 0.40, 0],    # Md_Mixed
+                          [0.33, 0.40, 0],    # Hd_Mixed
+                          [0.28, 0.37, 0],    # Ld_Residential
+                          [0.28, 0.37, 0],    # Md_Residential
+                          [0.28, 0.37, 0]]),  # Hd_Residential
     'UrbBMPRed': np.zeros((16, 3)),  # Urban BMP Reduction
     'SepticFlag': b.YES,  # Flag: Septic Systems Layer Detected (0 No; 1 Yes)
     'NumPondSys': np.zeros(12),  # Number of People on Pond Systems

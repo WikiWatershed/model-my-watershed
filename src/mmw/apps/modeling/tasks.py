@@ -17,6 +17,9 @@ from tr55.model import simulate_day
 # from gwlfe import gwlfe
 from gwlfe.datamodel import DataModel
 
+from apps.modeling.mapshed import (day_lengths,
+                                   )
+
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 
@@ -38,6 +41,9 @@ def start_gwlfe_job(model_input):
 
     # Data Model is called z by convention
     z = DataModel(settings.GWLFE_DEFAULTS)
+
+    # Statically calculated lookup values
+    z.DayHrs = day_lengths(aoi_geom)
 
     # TODO Run the actual model.
     # Currently it writes to stdout and some files.
