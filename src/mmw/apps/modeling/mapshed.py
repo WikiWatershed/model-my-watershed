@@ -57,6 +57,9 @@ def nearest_weather_stations(geom, n=NUM_WEATHER_STATIONS):
     with connection.cursor() as cursor:
         cursor.execute(sql, [geom.wkt, n])
 
+        if cursor.rowcount == 0:
+            raise Exception("No weather stations found.")
+
         # Return all rows from cursor as namedtuple
         weather_station = namedtuple('WeatherStation',
                                      [col[0] for col in cursor.description])
@@ -146,8 +149,8 @@ def animal_energy_units(geom):
         values = cursor.fetchone()  # Only one row since aggregate query
         aeu = dict(zip(columns, values))
 
-        livestock_aeu = round(sum(aeu[animal] for animal in LIVESTOCK))
-        poultry_aeu = round(sum(aeu[animal] for animal in POULTRY))
+        livestock_aeu = round(sum(aeu[animal] or 0 for animal in LIVESTOCK))
+        poultry_aeu = round(sum(aeu[animal] or 0 for animal in POULTRY))
 
         return livestock_aeu, poultry_aeu
 
@@ -197,7 +200,7 @@ def stream_length(geom, drb=False):
     with connection.cursor() as cursor:
         cursor.execute(sql, [geom.wkt, geom.wkt])
 
-        return cursor.fetchone()[0]  # Aggregate query returns single value
+        return cursor.fetchone()[0] or 0  # Aggregate query returns singleton
 
 
 def point_source_discharge(geom, area):
@@ -219,10 +222,10 @@ def point_source_discharge(geom, area):
         cursor.execute(sql, [geom.wkt])
         mg_d, kgn_month, kgp_month = cursor.fetchone()
 
-        n_load = np.array([kgn_month] * 12)
-        p_load = np.array([kgp_month] * 12)
+        n_load = np.array([kgn_month] * 12) if kgn_month else np.zeros(12)
+        p_load = np.array([kgp_month] * 12) if kgp_month else np.zeros(12)
         discharge = np.array([float(mg_d * days * LITERS_PER_MGAL) / area
-                              for days in MONTHDAYS])
+                              for days in MONTHDAYS]) if mg_d else np.zeros(12)
 
         return n_load, p_load, discharge
 
