@@ -5,6 +5,6 @@
         owner=root
         group=mmw
         mode=0750
-  with_dict: app_config
+  with_dict: "{{ app_config }}"
   notify:
     - Restart Celery
