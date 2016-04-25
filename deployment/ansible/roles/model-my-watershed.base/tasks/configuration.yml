@@ -25,7 +25,7 @@
         owner=root
         group=mmw
         mode=0750
-  with_dict: envdir_config
+  with_dict: "{{ envdir_config }}"
   notify:
     - Restart mmw-app
     - Restart Celery

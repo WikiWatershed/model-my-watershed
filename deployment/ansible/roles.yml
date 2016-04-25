@@ -43,7 +43,7 @@
 - src: azavea.mapnik
   version: 0.1.0
 - src: azavea.beaver
-  version: 0.1.3
+  version: 1.0.1
 - src: azavea.java
   version: 0.2.1
 - src: azavea.docker
