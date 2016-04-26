@@ -31,7 +31,7 @@ spark {
   master = "local[*]"
 
   context-settings.passthrough.spark.serializer = "org.apache.spark.serializer.KryoSerializer"
-  context-settings.passthrough.spark.kryo.registrator = "geotrellis.spark.io.hadoop.KryoRegistrator"
+  context-settings.passthrough.spark.kryo.registrator = "geotrellis.spark.io.kryo.KryoRegistrator"
 }
 
 #########
