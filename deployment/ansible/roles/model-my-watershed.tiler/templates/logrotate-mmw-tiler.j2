@@ -3,5 +3,8 @@
   {{ tiler_log_rotate_interval }}
   compress
   missingok
+  postrotate
+    restart mmw-tiler
+  endscript
   notifempty
 }
