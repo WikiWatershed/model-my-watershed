@@ -8,13 +8,14 @@ from celery import shared_task
 import json
 import logging
 from math import sqrt
+from os.path import join, dirname, abspath
 
 from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
     data_to_survey, data_to_censuses
 
 from tr55.model import simulate_day
 
-# from gwlfe import gwlfe
+from gwlfe import gwlfe, parser
 from gwlfe.datamodel import DataModel
 
 from apps.modeling.mapshed import (day_lengths,
@@ -87,12 +88,13 @@ def start_gwlfe_job(model_input):
     z.Temp = temps
     z.Prec = prcps
 
-    # TODO Run the actual model.
-    # Currently it writes to stdout and some files.
-    # Must have it return results in a data structure.
-    # gwlfe.run(z)
+    # TODO pass real input to model instead of reading it from gms file
+    gms_filename = join(dirname(abspath(__file__)), 'data/sample_input.gms')
+    gms_file = open(gms_filename, 'r')
+    z = parser.GmsReader(gms_file).read()
 
-    response_json = z.tojson() if z else {}
+    # The frontend expects an object with runoff and quality as keys.
+    response_json = {'runoff': gwlfe.run(z)}
 
     return response_json
 
