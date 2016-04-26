@@ -56,7 +56,13 @@
 
     .runoff-chart-container.current-conditions {
       height: 300px;
-      width: 100%
+      width: 100%;
+    }
+
+    .runoff-selector-region {
+      select {
+        width: 50%;
+      }
     }
   }
 
