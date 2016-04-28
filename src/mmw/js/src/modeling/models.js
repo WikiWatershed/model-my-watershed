@@ -61,7 +61,8 @@ var ResultModel = Backbone.Model.extend({
         inputmod_hash: null, // MD5 string generated from result
         result: null, // The actual result object
         polling: false, // True if currently polling
-        active: false // True if currently selected in Compare UI
+        active: false, // True if currently selected in Compare UI
+        activeVar: null // For GWLFE, the currently selected variable in the UI
     }
 });
 
@@ -411,11 +412,11 @@ function _alterModifications(rawModifications) {
       var p = piece;
       if ( typeof p.value === 'string') {
         var v = {};
-        if (p.name === reclass) { 
-          v.reclass = p.value; 
+        if (p.name === reclass) {
+          v.reclass = p.value;
         }
-        else if (p.name === bmp) { 
-          v.bmp = p.value; 
+        else if (p.name === bmp) {
+          v.bmp = p.value;
         }
         p.value = v;
       }

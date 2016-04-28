@@ -25,8 +25,8 @@
     scenarioToolbarTabContentTmpl = require('./templates/scenarioToolbarTabContent.html'),
     tr55RunoffViews = require('./tr55/runoff/views.js'),
     tr55QualityViews = require('./tr55/quality/views.js'),
-    gwlfeRunoffViews = tr55RunoffViews, // TODO actually make views for gwlfe
-    gwlfeQualityViews = tr55QualityViews;
+    gwlfeRunoffViews = require('./gwlfe/runoff/views.js'),
+    gwlfeQualityViews = tr55QualityViews; // TODO make gwlfe quality views
 
 var ENTER_KEYCODE = 13,
     ESCAPE_KEYCODE = 27;
