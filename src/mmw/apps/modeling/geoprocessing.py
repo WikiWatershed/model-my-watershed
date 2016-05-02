@@ -128,8 +128,8 @@ def histogram_start(polygons):
     """
     host = settings.GEOP['host']
     port = settings.GEOP['port']
-    args = settings.GEOP['args']
-    data = settings.GEOP['request'].copy()
+    args = settings.GEOP['args']['SummaryJob']
+    data = settings.GEOP['json']['nlcdSoilCensus'].copy()
     data['input']['geometry'] = polygons
 
     return sjs_submit(host, port, args, data)
