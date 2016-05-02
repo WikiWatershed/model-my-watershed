@@ -25,6 +25,7 @@ from retry import retry
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
 from apps.modeling import tasks
+from apps.modeling.mapshed.tasks import start_gwlfe_job
 from apps.modeling.models import Project, Scenario
 from apps.modeling.serializers import (ProjectSerializer,
                                        ProjectListingSerializer,
@@ -216,10 +217,10 @@ def _initiate_gwlfe_job_chain(model_input, job_id):
     exchange = MAGIC_EXCHANGE
     routing_key = choose_worker()
 
-    return chain(tasks.start_gwlfe_job.s(model_input)
-                 .set(exchange=exchange, routing_key=routing_key),
-                 save_job_result.s(job_id, model_input)) \
-        .apply_async(link_error=save_job_error.s(job_id))
+    return (start_gwlfe_job(model_input).set(exchange=exchange,
+                                             routing_key=routing_key) |
+            save_job_result.s(job_id, model_input)
+            ).apply_async(link_error=save_job_error.s(job_id))
 
 
 @decorators.api_view(['POST'])
