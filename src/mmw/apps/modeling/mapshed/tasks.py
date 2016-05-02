@@ -31,6 +31,32 @@ ACRES_PER_SQM = 0.000247105
 
 
 @shared_task
+def mapshed_start(opname, input_data):
+    host = settings.GEOP['host']
+    port = settings.GEOP['port']
+    args = settings.GEOP['args']['MapshedJob']
+
+    data = settings.GEOP['json'][opname].copy()
+    data['input'].update(input_data)
+
+    job_id = sjs_submit(host, port, args, data)
+
+    return {
+        'host': host,
+        'port': port,
+        'job_id': job_id
+    }
+
+
+@shared_task(bind=True, default_retry_delay=1, max_retries=42)
+def mapshed_finish(self, incoming):
+    sjs_result = sjs_retrieve(retry=self.retry, **incoming)
+
+    # Convert string "List(1,2,3)" into tuple (1,2,3) for each key
+    return {make_tuple(key[4:]): val for key, val in sjs_result.items()}
+
+
+@shared_task
 def collect_data(geojson):
     geom = GEOSGeometry(geojson, srid=4326)
     area = geom.transform(5070, clone=True).area  # Square Meters

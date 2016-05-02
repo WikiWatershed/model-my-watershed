@@ -364,6 +364,7 @@ GEOP = {
     'port': environ.get('MMW_GEOPROCESSING_PORT', '8090'),
     'args': {
         'SummaryJob': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.SummaryJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),
+        'MapshedJob': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.MapshedJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0')
     },
     'json': {
         'nlcdSoilCensus': {
