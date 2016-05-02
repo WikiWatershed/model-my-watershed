@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from os.path import join, dirname, abspath
 from ast import literal_eval as make_tuple
 
-from celery import shared_task
+from celery import shared_task, group
 
 from gwlfe import gwlfe, parser
 from gwlfe.datamodel import DataModel
@@ -22,6 +22,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          et_adjustment,
                                          animal_energy_units,
                                          manure_spread,
+                                         streams,
                                          stream_length,
                                          point_source_discharge,
                                          weather_data,
@@ -57,7 +58,7 @@ def mapshed_finish(self, incoming):
 
 
 @shared_task
-def collect_data(geojson):
+def collect_data(geop_results, geojson):
     geom = GEOSGeometry(geojson, srid=4326)
     area = geom.transform(5070, clone=True).area  # Square Meters
 
@@ -100,6 +101,12 @@ def collect_data(geojson):
     z.Temp = temps
     z.Prec = prcps
 
+    # Flatten geoprocessing results into one dictionary
+    geop_result = {k: v for r in geop_results for k, v in r.items()}
+
+    z.AgLength = geop_result['AgStreamPct'] * z.StreamLength
+    z.UrbLength = z.StreamLength - z.AgLength
+
     # TODO pass real input to model instead of reading it from gms file
     gms_filename = join(dirname(abspath(__file__)), 'data/sample_input.gms')
     gms_file = open(gms_filename, 'r')
@@ -116,4 +123,47 @@ def start_gwlfe_job(model_input):
     geom = GEOSGeometry(json.dumps(model_input['area_of_interest']),
                         srid=4326)
 
-    return collect_data.s(geom.geojson)
+    return (group(geop_tasks(geom)) |
+            identity.s() |
+            collect_data.s(geom.geojson))
+
+
+@shared_task
+def nlcd_streams(result):
+    ag_streams = sum(result.get(nlcd, 0) for nlcd in [81, 82])
+    total = sum(result.values())
+
+    ag_stream_percent = ag_streams / total
+
+    return {
+        'AgStreamPct': ag_stream_percent
+    }
+
+
+def geop_tasks(geom):
+    # List of tuples of (opname, data, callback) for each geop task
+    definitions = [
+        ('nlcd_streams',
+         {'polygon': [geom.geojson], 'vector': streams(geom)},
+         nlcd_streams),
+        # TODO Remove this second dummy call with actual geop task
+        # We need at least two for the flatten to work correctly.
+        ('nlcd_streams',
+         {'polygon': [geom.geojson], 'vector': streams(geom)},
+         nlcd_streams)
+    ]
+
+    return [(mapshed_start.s(opname, data) |
+             mapshed_finish.s() |
+             callback.s())
+            for (opname, data, callback) in definitions]
+
+
+@shared_task
+def identity(x):
+    """
+    Simple identity function that returns its argument.
+    Used as a buffer in a chord as a workaround to
+    https://github.com/celery/celery/issues/3191
+    """
+    return x

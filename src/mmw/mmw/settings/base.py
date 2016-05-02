@@ -375,6 +375,20 @@ GEOP = {
               'nlcdLayer': 'nlcd-2011-30m-epsg5070-0.10.0',
               'soilLayer': 'ssurgo-hydro-groups-30m-epsg5070-0.10.0',
               'zoom': 0
+            },
+        },
+        'nlcd_streams': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'vector': [],
+                'vectorCRS': 'LatLng',
+                'rasters': [
+                    'nlcd-2011-30m-epsg5070-0.10.0'
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterLinesJoin',
+                'zoom': 0
             }
         }
     }
