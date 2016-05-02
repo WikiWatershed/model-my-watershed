@@ -203,6 +203,33 @@ def stream_length(geom, drb=False):
         return cursor.fetchone()[0] or 0  # Aggregate query returns singleton
 
 
+def streams(geom, drb=False):
+    """
+    Given a geometry, returns a list of GeoJSON objects, either LineStrings or
+    MultiLineStrings, representing the set of streams contained inside the
+    geometry, in LatLng. If the drb flag is set, we use the Delaware River
+    Basin dataset instead of NHD Flowline.
+    """
+    sql = '''
+          WITH clipped_streams AS (
+              SELECT ST_Intersection(geom,
+                                     ST_SetSRID(ST_GeomFromText(%s), 4326))
+                     AS stream
+              FROM {datasource}
+              WHERE ST_Intersects(geom,
+                                  ST_SetSRID(ST_GeomFromText(%s), 4326))
+          )
+          SELECT ST_AsGeoJSON(ST_Force2D(stream))
+          FROM clipped_streams
+          WHERE NOT ST_IsEmpty(stream)
+          '''.format(datasource='drb_streams_50' if drb else 'nhdflowline')
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [geom.wkt, geom.wkt])
+
+        return [row[0] for row in cursor.fetchall()]  # List of GeoJSON strings
+
+
 def point_source_discharge(geom, area):
     """
     Given a geometry and its area in square meters, returns three lists,
