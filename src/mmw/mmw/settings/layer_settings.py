@@ -170,13 +170,8 @@ LAYERS = [
     {
         'type': 'mapbox',
         'display': 'Streets',
-        'url': 'https://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9'
-               '/{z}/{x}/{y}.png',
-        'attribution': 'Map data &copy; <a href="http://openstreetmap.org">'
-                       'OpenStreetMap</a> contributors, '
-                       '<a href="http://creativecommons.org/licenses/by-sa/'
-                       '2.0/">CC-BY-SA</a>, Imagery &copy; '
-                       '<a href="http://mapbox.com">Mapbox</a>',
+        'url': 'https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png',
+        'attribution': '&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         'maxZoom': 18,
         'default': True,
         'basemap': True,
