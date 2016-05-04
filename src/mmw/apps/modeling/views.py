@@ -25,7 +25,7 @@ from retry import retry
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
 from apps.modeling import tasks
-from apps.modeling.mapshed.tasks import geop_tasks, collect_data
+from apps.modeling.mapshed.tasks import geop_tasks, collect_data, combine
 from apps.modeling.models import Project, Scenario
 from apps.modeling.serializers import (ProjectSerializer,
                                        ProjectListingSerializer,
@@ -223,6 +223,7 @@ def _initiate_gwlfe_job_chain(model_input, job_id):
 
     chain = (group(geop_tasks(geom, errback)).set(exchange=exchange,
                                                   routing_key=routing_key) |
+             combine.s() |
              collect_data.s(geom.geojson).set(link_error=errback) |
              save_job_result.s(job_id, model_input))
 

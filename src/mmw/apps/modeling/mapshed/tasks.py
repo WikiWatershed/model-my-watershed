@@ -73,7 +73,7 @@ def mapshed_finish(self, incoming):
 
 
 @shared_task
-def collect_data(geop_results, geojson):
+def collect_data(geop_result, geojson):
     geom = GEOSGeometry(geojson, srid=4326)
     area = geom.transform(5070, clone=True).area  # Square Meters
 
@@ -115,9 +115,6 @@ def collect_data(geop_results, geojson):
     temps, prcps = weather_data(ws, z.WxYrBeg, z.WxYrEnd)
     z.Temp = temps
     z.Prec = prcps
-
-    # Flatten geoprocessing results into one dictionary
-    geop_result = {k: v for r in geop_results for k, v in r.items()}
 
     z.AgLength = geop_result['AgStreamPct'] * z.StreamLength
     z.UrbLength = z.StreamLength - z.AgLength
@@ -168,10 +165,13 @@ def geop_tasks(geom, errback):
 
 
 @shared_task
-def identity(x):
+def combine(geop_results):
     """
-    Simple identity function that returns its argument.
-    Used as a buffer in a chord as a workaround to
+    Flattens the incoming results dictionaries into one
+    which has all the keys of the components.
+
+    This could be a part of collect_data, but we need
+    a buffer in a chord as a workaround to
     https://github.com/celery/celery/issues/3191
     """
-    return x
+    return {k: v for r in geop_results for k, v in r.items()}
