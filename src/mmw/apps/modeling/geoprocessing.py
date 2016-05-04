@@ -105,15 +105,18 @@ def sjs_retrieve(host, port, job_id, retry=None):
                     raise Exception('Job {} timed out, unable to delete.\n'
                                     'Details: {}'.format(job_id, delete.text))
     else:
+        if job['status'] == 'ERROR':
+            status = 'ERROR ({}: {})'.format(job['result']['errorClass'],
+                                             job['result']['message'])
+        else:
+            status = job['status']
+
         delete = requests.delete(url)  # Job in unusual state, terminate
         if delete.ok:
-            raise Exception('Job {} was {}, deleted'.format(job_id,
-                                                            job['status']))
+            raise Exception('Job {} was {}, deleted'.format(job_id, status))
         else:
             raise Exception('Job {} was {}, could not delete.\n'
-                            'Details = {}'.format(job_id,
-                                                  job['status'],
-                                                  delete.text))
+                            'Details = {}'.format(job_id, status, delete.text))
 
 
 @statsd.timer(__name__ + '.histogram_start')
