@@ -18,14 +18,14 @@ from django.db import connection
 from django.contrib.gis.geos import GEOSGeometry
 
 import celery
-from celery import chain
+from celery import chain, group
 
 from retry import retry
 
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
 from apps.modeling import tasks
-from apps.modeling.mapshed.tasks import start_gwlfe_job
+from apps.modeling.mapshed.tasks import geop_tasks, collect_data
 from apps.modeling.models import Project, Scenario
 from apps.modeling.serializers import (ProjectSerializer,
                                        ProjectListingSerializer,
@@ -216,11 +216,17 @@ def start_gwlfe(request, format=None):
 def _initiate_gwlfe_job_chain(model_input, job_id):
     exchange = MAGIC_EXCHANGE
     routing_key = choose_worker()
+    errback = save_job_error.s(job_id)
 
-    return (start_gwlfe_job(model_input).set(exchange=exchange,
-                                             routing_key=routing_key) |
-            save_job_result.s(job_id, model_input)
-            ).apply_async(link_error=save_job_error.s(job_id))
+    geom = GEOSGeometry(json.dumps(model_input['area_of_interest']),
+                        srid=4326)
+
+    chain = (group(geop_tasks(geom, errback)).set(exchange=exchange,
+                                                  routing_key=routing_key) |
+             collect_data.s(geom.geojson).set(link_error=errback) |
+             save_job_result.s(job_id, model_input))
+
+    return chain.apply_async(link_error=errback)
 
 
 @decorators.api_view(['POST'])

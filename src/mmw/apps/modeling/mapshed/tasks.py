@@ -6,7 +6,7 @@ from __future__ import absolute_import
 from os.path import join, dirname, abspath
 from ast import literal_eval as make_tuple
 
-from celery import shared_task, group
+from celery import shared_task
 
 from gwlfe import gwlfe, parser
 from gwlfe.datamodel import DataModel
@@ -40,21 +40,36 @@ def mapshed_start(opname, input_data):
     data = settings.GEOP['json'][opname].copy()
     data['input'].update(input_data)
 
-    job_id = sjs_submit(host, port, args, data)
+    try:
+        job_id = sjs_submit(host, port, args, data)
 
-    return {
-        'host': host,
-        'port': port,
-        'job_id': job_id
-    }
+        return {
+            'host': host,
+            'port': port,
+            'job_id': job_id
+        }
+
+    except Exception as x:
+        return {
+            'error': x.message
+        }
 
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=42)
 def mapshed_finish(self, incoming):
-    sjs_result = sjs_retrieve(retry=self.retry, **incoming)
+    if 'error' in incoming:
+        return incoming
 
-    # Convert string "List(1,2,3)" into tuple (1,2,3) for each key
-    return {make_tuple(key[4:]): val for key, val in sjs_result.items()}
+    try:
+        sjs_result = sjs_retrieve(retry=self.retry, **incoming)
+
+        # Convert string "List(1,2,3)" into tuple (1,2,3) for each key
+        return {make_tuple(key[4:]): val for key, val in sjs_result.items()}
+
+    except Exception as x:
+        return {
+            'error': x.message
+        }
 
 
 @shared_task
@@ -118,18 +133,11 @@ def collect_data(geop_results, geojson):
     return response_json
 
 
-@shared_task
-def start_gwlfe_job(model_input):
-    geom = GEOSGeometry(json.dumps(model_input['area_of_interest']),
-                        srid=4326)
-
-    return (group(geop_tasks(geom)) |
-            identity.s() |
-            collect_data.s(geom.geojson))
-
-
-@shared_task
+@shared_task(throws=Exception)
 def nlcd_streams(result):
+    if 'error' in result:
+        raise Exception('[nlcd_streams] {}'.format(result['error']))
+
     ag_streams = sum(result.get(nlcd, 0) for nlcd in [81, 82])
     total = sum(result.values())
 
@@ -140,7 +148,7 @@ def nlcd_streams(result):
     }
 
 
-def geop_tasks(geom):
+def geop_tasks(geom, errback):
     # List of tuples of (opname, data, callback) for each geop task
     definitions = [
         ('nlcd_streams',
@@ -155,7 +163,7 @@ def geop_tasks(geom):
 
     return [(mapshed_start.s(opname, data) |
              mapshed_finish.s() |
-             callback.s())
+             callback.s().set(link_error=errback))
             for (opname, data, callback) in definitions]
 
 
