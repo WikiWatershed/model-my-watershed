@@ -68,6 +68,11 @@ def mapshed_finish(self, incoming):
         return {make_tuple(key[4:]): val for key, val in sjs_result.items()}
 
     except Retry as r:
+        # Celery throws a Retry exception when self.retry is called to stop
+        # the execution of any further code, and to indicate to the worker
+        # that the same task is going to be retried.
+        # We capture and re-raise Retry to continue this behavior, and ensure
+        # that it doesn't get passed to the next task like every other error.
         raise r
     except Exception as x:
         return {
@@ -135,6 +140,36 @@ def collect_data(geop_result, geojson):
 
 @shared_task(throws=Exception)
 def nlcd_streams(result):
+    """
+    From a dictionary mapping NLCD codes to the count of stream pixels on
+    each, return a dictionary with a key 'AgStreamPct' which indicates the
+    percent of streams in agricultural areas, namely NLCD 81 Pasture/Hay
+    and 82 Cultivated Crops.
+
+    In addition, we inspect the result to see if it includes an 'error' key.
+    If so, it would indicate that a preceeding task has thrown an exception,
+    and thus we throw an exception with that message.
+
+    We throw the actual exception in this final task in the chain, rather than
+    one of the preceeding ones, because when creating a chain the resulting
+    AsyncResult points to the last task in the chain. If task in the middle of
+    the chain fails, and the last task doesn't run, the AsyncResult is never
+    marked as Ready. In the case of pure chains this can be addressed with a
+    simple link_error, but in the case of chords the entire set of tasks in
+    the chord's header needs to be Ready before the body can execute. Thus, if
+    the final task never runs, Celery repeatedly calls chord_unlock infinitely
+    causing overflows. By throwing the exception in the final task instead of
+    an intermediate one, we ensure that the group is marked as Ready, and the
+    chord is notified of the failure and suspends execution gracefully.
+
+    Furthermore, this task is decorated with 'throws=Exception' so that the
+    exception is logged as INFO, rather than ERROR. This is because we have
+    already logged it as an ERROR the first time it was thrown up the chain,
+    and this will reduce noise in the logs.
+
+    This task should be used as a template for making other geoprocessing
+    post-processing tasks, to be used in geop_tasks.
+    """
     if 'error' in result:
         raise Exception('[nlcd_streams] {}'.format(result['error']))
 
