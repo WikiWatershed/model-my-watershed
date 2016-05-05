@@ -7,6 +7,7 @@ from os.path import join, dirname, abspath
 from ast import literal_eval as make_tuple
 
 from celery import shared_task
+from celery.exceptions import Retry
 
 from gwlfe import gwlfe, parser
 from gwlfe.datamodel import DataModel
@@ -66,6 +67,8 @@ def mapshed_finish(self, incoming):
         # Convert string "List(1,2,3)" into tuple (1,2,3) for each key
         return {make_tuple(key[4:]): val for key, val in sjs_result.items()}
 
+    except Retry as r:
+        raise r
     except Exception as x:
         return {
             'error': x.message
