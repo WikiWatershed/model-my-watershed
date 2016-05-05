@@ -124,6 +124,8 @@ CELERY_RESULT_BACKEND = 'djcelery.backends.cache:CacheBackend'
 STATSD_CELERY_SIGNALS = True
 CELERY_WORKER_DIRECT = True
 CELERY_CREATE_MISSING_QUEUES = True
+CELERY_CHORD_PROPAGATES = True
+CELERY_CHORD_UNLOCK_MAX_RETRIES = 3
 # END CELERY CONFIGURATION
 
 
@@ -362,15 +364,34 @@ ITSI = {
 GEOP = {
     'host': environ.get('MMW_GEOPROCESSING_HOST', 'localhost'),
     'port': environ.get('MMW_GEOPROCESSING_PORT', '8090'),
-    'args': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.SummaryJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),  # NOQA
-    'request': {
-        'input': {
-            'geometry': None,
-            'tileCRS': 'ConusAlbers',
-            'polyCRS': 'LatLng',
-            'nlcdLayer': 'nlcd-2011-30m-epsg5070-0.10.0',
-            'soilLayer': 'ssurgo-hydro-groups-30m-epsg5070-0.10.0',
-            'zoom': 0
+    'args': {
+        'SummaryJob': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.SummaryJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),
+        'MapshedJob': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.MapshedJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0')
+    },
+    'json': {
+        'nlcdSoilCensus': {
+            'input': {
+              'geometry': None,
+              'tileCRS': 'ConusAlbers',
+              'polyCRS': 'LatLng',
+              'nlcdLayer': 'nlcd-2011-30m-epsg5070-0.10.0',
+              'soilLayer': 'ssurgo-hydro-groups-30m-epsg5070-0.10.0',
+              'zoom': 0
+            },
+        },
+        'nlcd_streams': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'vector': [],
+                'vectorCRS': 'LatLng',
+                'rasters': [
+                    'nlcd-2011-30m-epsg5070-0.10.0'
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterLinesJoin',
+                'zoom': 0
+            }
         }
     }
 }
