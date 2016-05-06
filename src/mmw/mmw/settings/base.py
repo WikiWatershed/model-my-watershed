@@ -13,7 +13,7 @@ from os.path import abspath, basename, dirname, join, normpath
 from sys import path
 
 from layer_settings import LAYERS, VIZER_URLS  # NOQA
-from gwlfe_settings import GWLFE_DEFAULTS, GWLFE_CONFIG  # NOQA
+from gwlfe_settings import GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, SOILP, CURVE_NUMBER  # NOQA
 
 # Normally you should not import ANYTHING from Django directly
 # into your settings, but ImproperlyConfigured is an exception.
@@ -390,6 +390,20 @@ GEOP = {
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterLinesJoin',
+                'zoom': 0
+            }
+        },
+        'nlcd_soils': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'nlcd-2011-30m-epsg5070-0.10.0',
+                    'ssurgo-hydro-groups-30m-epsg5070-0.10.0',
+                    'us-ssugro-texture-id-30m-epsg5070'
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterJoin',
                 'zoom': 0
             }
         }
