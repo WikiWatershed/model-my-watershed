@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+import numpy as np
+
 from os.path import join, dirname, abspath
 from ast import literal_eval as make_tuple
 
@@ -27,8 +29,11 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          stream_length,
                                          point_source_discharge,
                                          weather_data,
+                                         curve_number,
+                                         sediment_phosphorus,
                                          )
 
+AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
 ACRES_PER_SQM = 0.000247105
 
 
@@ -124,6 +129,9 @@ def collect_data(geop_result, geojson):
     z.AgLength = geop_result['AgStreamPct'] * z.StreamLength
     z.UrbLength = z.StreamLength - z.AgLength
 
+    z.CN = np.array(geop_result['cn'])
+    z.SedPhos = geop_result['sed_phos']
+
     # TODO pass real input to model instead of reading it from gms file
     gms_filename = join(dirname(abspath(__file__)), 'data/sample_input.gms')
     gms_file = open(gms_filename, 'r')
@@ -175,7 +183,7 @@ def nlcd_streams(sjs_result):
     # which are not JSON serializable and thus can't be shared between tasks
     result = parse_sjs_result(sjs_result)
 
-    ag_streams = sum(result.get(nlcd, 0) for nlcd in [81, 82])
+    ag_streams = sum(result.get(nlcd, 0) for nlcd in AG_NLCD_CODES)
     total = sum(result.values())
 
     ag_stream_percent = ag_streams / total
@@ -185,17 +193,49 @@ def nlcd_streams(sjs_result):
     }
 
 
+@shared_task(throws=Exception)
+def nlcd_soils(sjs_result):
+    """
+    Results are expected to be in the format:
+    {
+      (NLCD ID, Soil Group ID, Soil Texture ID): Count,
+    }
+
+    We calculate a number of values relying on various combinations
+    of these raster datasets.
+    """
+    if 'error' in sjs_result:
+        raise Exception('[nlcd_soils] {}'.format(sjs_result['error']))
+
+    ngt_count = parse_sjs_result(sjs_result)
+
+    # Split combined counts into separate ones for processing
+    # Reduce [(n, g, t): c] to
+    n_count = {}   # [n: sum(c)]
+    ng_count = {}  # [(n, g): sum(c)]
+    nt_count = {}  # [(n, t): sum(c)]
+    for (n, g, t), count in ngt_count.iteritems():
+        n_count[n] = count + n_count.get(n, 0)
+        nt_count[(n, t)] = count + nt_count.get((n, t), 0)
+
+        # Map soil group values to usable subset
+        g2 = settings.SOIL_GROUP[g]
+        ng_count[(n, g2)] = count + ng_count.get((n, g2), 0)
+
+    return {
+        'cn': curve_number(n_count, ng_count),
+        'sed_phos': sediment_phosphorus(nt_count),
+    }
+
+
 def geop_tasks(geom, errback):
     # List of tuples of (opname, data, callback) for each geop task
     definitions = [
         ('nlcd_streams',
          {'polygon': [geom.geojson], 'vector': streams(geom)},
          nlcd_streams),
-        # TODO Remove this second dummy call with actual geop task
-        # We need at least two for the flatten to work correctly.
-        ('nlcd_streams',
-         {'polygon': [geom.geojson], 'vector': streams(geom)},
-         nlcd_streams)
+
+        ('nlcd_soils', {'polygon': [geom.geojson]}, nlcd_soils),
     ]
 
     return [(mapshed_start.s(opname, data) |
