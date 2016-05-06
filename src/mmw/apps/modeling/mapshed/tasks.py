@@ -62,10 +62,7 @@ def mapshed_finish(self, incoming):
         return incoming
 
     try:
-        sjs_result = sjs_retrieve(retry=self.retry, **incoming)
-
-        # Convert string "List(1,2,3)" into tuple (1,2,3) for each key
-        return {make_tuple(key[4:]): val for key, val in sjs_result.items()}
+        return sjs_retrieve(retry=self.retry, **incoming)
 
     except Retry as r:
         # Celery throws a Retry exception when self.retry is called to stop
@@ -139,7 +136,7 @@ def collect_data(geop_result, geojson):
 
 
 @shared_task(throws=Exception)
-def nlcd_streams(result):
+def nlcd_streams(sjs_result):
     """
     From a dictionary mapping NLCD codes to the count of stream pixels on
     each, return a dictionary with a key 'AgStreamPct' which indicates the
@@ -170,8 +167,13 @@ def nlcd_streams(result):
     This task should be used as a template for making other geoprocessing
     post-processing tasks, to be used in geop_tasks.
     """
-    if 'error' in result:
-        raise Exception('[nlcd_streams] {}'.format(result['error']))
+    if 'error' in sjs_result:
+        raise Exception('[nlcd_streams] {}'.format(sjs_result['error']))
+
+    # Parse SJS results
+    # This can't be done in mapshed_finish because the keys may be tuples,
+    # which are not JSON serializable and thus can't be shared between tasks
+    result = parse_sjs_result(sjs_result)
 
     ag_streams = sum(result.get(nlcd, 0) for nlcd in [81, 82])
     total = sum(result.values())
@@ -213,3 +215,8 @@ def combine(geop_results):
     https://github.com/celery/celery/issues/3191
     """
     return {k: v for r in geop_results for k, v in r.items()}
+
+
+def parse_sjs_result(sjs_result):
+    # Convert string "List(1,2,3)" into tuple (1,2,3) for each key
+    return {make_tuple(key[4:]): val for key, val in sjs_result.items()}
