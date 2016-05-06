@@ -112,8 +112,8 @@ def collect_data(geop_result, geojson):
     z.ManNitr, z.ManPhos = manure_spread(z.AEU)
 
     # Data from Streams dataset
-    z.StreamLength = stream_length(geom)   # Meters
-    z.n42b = round(z.StreamLength / 1000)  # Kilometers
+    z.StreamLength = stream_length(geom)      # Meters
+    z.n42b = round(z.StreamLength / 1000, 1)  # Kilometers
 
     # Data from Point Source Discharge dataset
     n_load, p_load, discharge = point_source_discharge(geom, area)
@@ -126,8 +126,12 @@ def collect_data(geop_result, geojson):
     z.Temp = temps
     z.Prec = prcps
 
-    z.AgLength = geop_result['AgStreamPct'] * z.StreamLength
+    # Begin processing geop_result
+    z.AgLength = geop_result['ag_stream_pct'] * z.StreamLength
     z.UrbLength = z.StreamLength - z.AgLength
+    z.n42 = round(z.AgLength / 1000, 1)
+    z.n46e = geop_result['med_high_urban_stream_pct'] * z.StreamLength / 1000
+    z.n46f = geop_result['low_urban_stream_pct'] * z.StreamLength / 1000
 
     z.CN = np.array(geop_result['cn'])
     z.SedPhos = geop_result['sed_phos']
@@ -147,9 +151,11 @@ def collect_data(geop_result, geojson):
 def nlcd_streams(sjs_result):
     """
     From a dictionary mapping NLCD codes to the count of stream pixels on
-    each, return a dictionary with a key 'AgStreamPct' which indicates the
-    percent of streams in agricultural areas, namely NLCD 81 Pasture/Hay
-    and 82 Cultivated Crops.
+    each, return a dictionary with keys 'ag_stream_pct', 'low_urban_stream_pct'
+    and 'med_high_urban_stream_pct' which indicate the percent of streams in
+    agricultural areas (namely NLCD 81 Pasture/Hay and 82 Cultivated Crops),
+    low density urban areas (NLCD 22), and medium and high density urban areas
+    (NLCD 23 and 24) respectively.
 
     In addition, we inspect the result to see if it includes an 'error' key.
     If so, it would indicate that a preceeding task has thrown an exception,
@@ -183,13 +189,21 @@ def nlcd_streams(sjs_result):
     # which are not JSON serializable and thus can't be shared between tasks
     result = parse_sjs_result(sjs_result)
 
-    ag_streams = sum(result.get(nlcd, 0) for nlcd in AG_NLCD_CODES)
+    ag_count = sum(result.get(nlcd, 0) for nlcd in AG_NLCD_CODES)
+    low_urban_count = result.get(22, 0)
+    med_high_urban_count = sum(result.get(nlcd, 0) for nlcd in [23, 24])
     total = sum(result.values())
 
-    ag_stream_percent = ag_streams / total
+    ag, low, med_high = (float(count) / total
+                         if total > 0 else 0
+                         for count in (ag_count,
+                                       low_urban_count,
+                                       med_high_urban_count))
 
     return {
-        'AgStreamPct': ag_stream_percent
+        'ag_stream_pct': ag,
+        'low_urban_stream_pct': low,
+        'med_high_urban_stream_pct': med_high
     }
 
 
