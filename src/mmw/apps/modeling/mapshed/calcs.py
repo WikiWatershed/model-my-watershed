@@ -401,3 +401,45 @@ def sediment_phosphorus(nt_count):
     sedp = float(ag_sedp + nag_sedp) / total
 
     return sedp * 1.6
+
+
+def groundwater_nitrogen_conc(gwn_dict):
+    """
+    Calculate GwN and GwP from a dictionary of NLCD land use keys
+    paired with the number of cells as values
+
+    Original at Class1.vb@1.3.0:9007-9022
+    """
+
+    # Discard any key-value pairs for keys < 1
+    valid_res = {k: gwn_dict[k] for k in gwn_dict.keys() if k > 0}
+    # Combine values for all keys >= 20 onto one key
+    valid_res[20] = sum([gwn_dict[k] for k in valid_res.keys() if k >= 20])
+    valid_total_cells = sum([v for v in valid_res.values()])
+
+    weighted_conc = 0
+    if valid_total_cells > 0:
+        weighted_conc = sum([float(gwn * count)/valid_total_cells
+                             for gwn, count in valid_res.iteritems()])
+
+    groundwater_nitrogen_conc = (0.7973 * weighted_conc) - 0.692
+    groundwater_phosphorus_conc = (0.0049 * weighted_conc) + 0.0089
+
+    if groundwater_nitrogen_conc < 0.34:
+        groundwater_nitrogen_conc = 0.34
+
+    return groundwater_nitrogen_conc, groundwater_phosphorus_conc
+
+
+def sediment_delivery_ratio(area_sq_km):
+    """
+    Calculate Sediment Delivery Ratio from the basin area in square km
+
+    Original at Class1.vb@1.3.0:9334-9340
+    """
+
+    if area_sq_km < 50:
+        return (0.000005 * (area_sq_km ** 2) -
+                (0.0014 * area_sq_km) + 0.198)
+    else:
+        return 0.451 * (area_sq_km ** (0 - 0.298))
