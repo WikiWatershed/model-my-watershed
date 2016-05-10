@@ -53,7 +53,7 @@ SOIL_MAPPING = {
 
 
 @statsd.timer(__name__ + '.sjs_submit')
-def sjs_submit(host, port, args, data):
+def sjs_submit(host, port, args, data, retry=None):
     """
     Submits a job to Spark Job Server. Returns its Job ID, which
     can be used with sjs_retrieve to get the final result.
@@ -64,8 +64,16 @@ def sjs_submit(host, port, args, data):
     if response.ok:
         job = response.json()
     else:
-        raise Exception('Unable to submit job to Spark JobServer.\n'
-                        'Details = {}'.format(response.text))
+        error = response.json()
+        if error['status'] == 'NO SLOTS AVAILABLE' and retry:
+            try:
+                retry()
+            except MaxRetriesExceededError:
+                raise Exception('No slots available in Spark JobServer.\n'
+                                'Details = {}'.format(response.text))
+        else:
+            raise Exception('Unable to submit job to Spark JobServer.\n'
+                            'Details = {}'.format(response.text))
 
     if job['status'] == 'STARTED':
         return job['result']['jobId']

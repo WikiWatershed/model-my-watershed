@@ -37,8 +37,8 @@ AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
 ACRES_PER_SQM = 0.000247105
 
 
-@shared_task
-def mapshed_start(opname, input_data):
+@shared_task(bind=True, default_retry_delay=1, max_retries=42)
+def mapshed_start(self, opname, input_data):
     host = settings.GEOP['host']
     port = settings.GEOP['port']
     args = settings.GEOP['args']['MapshedJob']
@@ -47,7 +47,7 @@ def mapshed_start(opname, input_data):
     data['input'].update(input_data)
 
     try:
-        job_id = sjs_submit(host, port, args, data)
+        job_id = sjs_submit(host, port, args, data, retry=self.retry)
 
         return {
             'host': host,
@@ -55,6 +55,8 @@ def mapshed_start(opname, input_data):
             'job_id': job_id
         }
 
+    except Retry as r:
+        raise r
     except Exception as x:
         return {
             'error': x.message
