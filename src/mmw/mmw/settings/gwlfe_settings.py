@@ -5,6 +5,8 @@ from gwlfe.enums import (LandUse as lu,
                          YesOrNo as b,
                          SweepType)
 
+NODATA = -2147483648  # Scala's Int.MinValue is NODATA in GeoTrellis
+
 GWLFE_DEFAULTS = {
     'NRur': 10,  # Number of Rural Land Use Categories
     'NUrb': 6,  # Number of Urban Land Use Categories
@@ -448,6 +450,92 @@ GWLFE_CONFIG = {
     'Livestock': ['dairy_cows', 'beef_cows', 'hogs', 'sheep', 'horses'],
     'Poultry': ['broilers', 'layers', 'turkeys'],
     'ManureSpreadingLandUseIndices': [0, 1],  # Land Use Indices where manure spreading applies. Currently Hay/Past and Cropland.
+    'AgriculturalNLCDCodes': [81, 82],  # NLCD codes considered agricultural. Correspond to Hay/Past and Cropland
     'MonthDays': [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
     'WeatherNull': -99999,  # This value is used to indicate NULL in ms_weather dataset
+}
+
+# Maps NLCD + Hygrological Soil Group to a Curve Number. Keys are NLCD Codes.
+# Array Index 0 has no value, rest map to SOIL_GROUP value.
+# Original at Class1.vb@1.3.0:4174-4315
+CURVE_NUMBER = {
+    11: [0, 100, 100, 100, 100],  # Water
+    12: [0,  72,  82,  87,  89],  # Perennial Ice/Snow
+    21: [0,  72,  82,  87,  89],  # Developed Open Space
+    31: [0,  72,  82,  87,  89],  # Barren Land
+    41: [0,  37,  60,  73,  80],  # Deciduous Forest
+    42: [0,  37,  60,  73,  80],  # Evergreen Forest
+    43: [0,  37,  60,  73,  80],  # Mixed Forest
+    52: [0,  37,  60,  73,  80],  # Shrub/Scrub
+    71: [0,  72,  82,  87,  89],  # Grassland/Herbaceous
+    81: [0,  43,  63,  75,  81],  # Pasture/Hay
+    82: [0,  64,  75,  82,  85],  # Cultivated Crops
+    90: [0,  69,  80,  87,  90],  # Woody Wetlands
+    95: [0,  69,  80,  87,  90],  # Emergent Herbaceous Wetlands
+}
+
+# Maps Hydrological Soil Groups to subset we can use
+SOIL_GROUP = {
+    1: 1,  # A
+    2: 2,  # B
+    3: 3,  # C
+    4: 4,  # D
+    5: 3,  # A/D -> C
+    6: 3,  # B/D -> C
+    7: 4,  # C/D -> D
+    NODATA: 3,  # NODATA -> C
+}
+
+# Maps Soil Texture values to Agricultural and Non-Agricultural Phosphorus levels
+SOILP = {
+    1: [900, 420],    # Clay
+    2: [690, 266],    # Fine sandy loam
+    3: [0, 0],        # Boulders
+    4: [0, 0],        # Gravel
+    5: [650, 230],    # Very fine sandy loam
+    6: [300, 100],    # Gypsiferous material
+    7: [600, 200],    # Loamy coarse sand
+    8: [1000, 600],   # Muck
+    9: [0, 0],        # Marl
+    10: [870, 400],   # Clay loam
+    11: [600, 200],   # Very fine sand
+    12: [0, 0],       # Artifacts
+    13: [780, 332],   # Silt
+    14: [100, 100],   # Material
+    15: [100, 100],   # Weathered bedrock
+    16: [1000, 600],  # Mucky peat
+    17: [0, 0],       # Consolidated permafrost (ice rich)
+    18: [580, 180],   # Coarse sand
+    19: [630, 220],   # Loamy fine sand
+    20: [0, 0],       # Fragmental material
+    21: [0, 0],       # Bedrock
+    22: [600, 200],   # Fine sand
+    23: [0, 0],       #
+    24: [0, 0],       # Channers
+    25: [600, 200],   # Pumiceous
+    26: [600, 200],   # Loamy sand
+    27: [0, 0],       # Water
+    28: [660, 244],   # Sandy loam
+    29: [680, 266],   # Sandy clay loam
+    30: [1000, 600],  # Moderately decomposed plant material
+    31: [300, 100],   # Cobbles
+    32: [580, 180],   # Sand
+    33: [0, 0],       # Cinders
+    34: [840, 376],   # Silty clay loam
+    35: [650, 230],   # Loamy very fine sand
+    36: [600, 200],   # Coarse sandy loam
+    37: [0, 0],       # Paragravel
+    38: [600, 200],   # Variable
+    39: [0, 0],       # Unweathered bedrock
+    40: [720, 288],   # Loam
+    41: [780, 332],   # Silt loam
+    42: [800, 320],   # Sandy clay
+    43: [300, 100],   # Stones
+    44: [1000, 600],  # Highly decomposed plant material
+    45: [1000, 600],  # Slightly decomposed plant material
+    46: [600, 200],   # LoamGravel
+    47: [840, 376],   # Silty clay
+    48: [1000, 600],  # Peat
+    49: [300, 100],   # SandGravel
+    NODATA: [100, 200],  # NODATA
 }

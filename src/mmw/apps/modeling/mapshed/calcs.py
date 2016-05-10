@@ -20,6 +20,7 @@ LIVESTOCK = settings.GWLFE_CONFIG['Livestock']
 POULTRY = settings.GWLFE_CONFIG['Poultry']
 LITERS_PER_MGAL = 3785412
 WEATHER_NULL = settings.GWLFE_CONFIG['WeatherNull']
+AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
 
 
 def day_lengths(geom):
@@ -326,3 +327,77 @@ def weather_data(ws, begyear, endyear):
                 prcps[year, month, day] = p if p != WEATHER_NULL else None
 
     return temps, prcps
+
+
+def curve_number(n_count, ng_count):
+    """
+    Given a dictionary mapping NLCD codes to counts of cells, and another
+    mapping pairs of NLCD codes and Hydrological Soil Groups, returns the
+    curve number for each non-urban MapShed land use type by calculating the
+    average hydrological soil group for each land use type, rounded to the
+    nearest integer, and looking up the value in the CURVE_NUMBER table.
+
+    Original at Class1.vb@1.3.0:7257-7267
+    """
+
+    # Calculate average hydrological soil group for each NLCD type by
+    # reducing [(n, g): c] to [n: avg(g * c)]
+    n_gavg = {}
+    for (n, g), count in ng_count.iteritems():
+        n_gavg[n] = float(g) * count / n_count[n] + n_gavg.get(n, 0)
+
+    def cni(nlcd):
+        # Helper method to lookup values from CURVE_NUMBER table
+        return settings.CURVE_NUMBER[nlcd][int(round(n_gavg.get(nlcd, 0)))]
+
+    def cni_avg(nlcds):
+        # Helper method to average non-zero values only
+        vals = [cni(nlcd) for nlcd in nlcds]
+        sum_vals = sum(vals)
+        nonzero_vals = len([v for v in vals if v > 0])
+
+        return float(sum_vals) / nonzero_vals if nonzero_vals > 0 else 0
+
+    return [
+        cni(81),  # Hay/Pasture
+        cni(82),  # Cropland
+        cni_avg([41, 42, 43, 52]),  # Forest
+        cni_avg([90, 95]),  # Wetland
+        0,  # Disturbed
+        0,  # Turf Grass
+        cni_avg([21, 71]),  # Open Land
+        cni_avg([12, 31]),  # Bare Rock
+        0,  # Sandy Areas
+        0,  # Unpaved Road
+        0, 0, 0, 0, 0, 0  # Urban Land Use Types
+    ]
+
+
+def sediment_phosphorus(nt_count):
+    """
+    Given a dictionary mapping pairs of NLCD Codes and Soil Textures to counts
+    of cells, returns the average concentration of phosphorus in the soil by
+    looking up the value in the SOILP table. NLCD Codes 81 and 82 correspond to
+    agricultural values, and the rest to non-agricultural ones.
+
+    Original at Class1.vb@1.3.0:8975-8988
+    """
+
+    ag_textures = {}
+    nag_textures = {}
+    total = sum(nt_count.values())
+
+    for (n, t), count in nt_count.iteritems():
+        if n in AG_NLCD_CODES:
+            ag_textures[t] = count + ag_textures.get(t, 0)
+        else:
+            nag_textures[t] = count + nag_textures.get(t, 0)
+
+    ag_sedp = sum(count * settings.SOILP[t][0]
+                  for t, count in ag_textures.iteritems())
+    nag_sedp = sum(count * settings.SOILP[t][1]
+                   for t, count in nag_textures.iteritems())
+
+    sedp = float(ag_sedp + nag_sedp) / total
+
+    return sedp * 1.6
