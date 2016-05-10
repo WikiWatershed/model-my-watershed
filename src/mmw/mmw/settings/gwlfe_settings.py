@@ -188,6 +188,7 @@ GWLFE_DEFAULTS = {
     'n41g': 0,  # Runoff Control: Future (%)
     'n41h': 0,  # Phytase in Feed: Existing (%)
     'n41i': 0,  # Phytase in Feed: Future (%)
+    'n42c': 0,  # Unpaved Road Length (km)
     'n43': 0,  # Stream Km with Vegetated Buffer Strips: Existing
     'GRLBN': 0,  # Average Grazing Animal Loss Rate (Barnyard/Confined Area): Nitrogen
     'NGLBN': 0,  # Average Non-Grazing Animal Loss Rate (Barnyard/Confined Area): Nitrogen
