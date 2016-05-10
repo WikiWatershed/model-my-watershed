@@ -128,7 +128,7 @@ def sjs_retrieve(host, port, job_id, retry=None):
 
 
 @statsd.timer(__name__ + '.histogram_start')
-def histogram_start(polygons):
+def histogram_start(polygons, retry=None):
     """
     Together, histogram_start and histogram_finish implement a
     function which takes a list of polygons or multipolygons as input,
@@ -143,7 +143,7 @@ def histogram_start(polygons):
     data = settings.GEOP['json']['nlcdSoilCensus'].copy()
     data['input']['geometry'] = polygons
 
-    return sjs_submit(host, port, args, data)
+    return sjs_submit(host, port, args, data, retry)
 
 
 @statsd.timer(__name__ + '.histogram_finish')

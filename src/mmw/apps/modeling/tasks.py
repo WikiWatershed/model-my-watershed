@@ -46,8 +46,8 @@ def start_rwd_job(location, snapping):
     return response_json
 
 
-@shared_task
-def start_histogram_job(json_polygon):
+@shared_task(bind=True, default_retry_delay=1, max_retries=42)
+def start_histogram_job(self, json_polygon):
     """ Calls the histogram_start function to
     kick off the SJS job to generate a histogram
     of the provided polygon (i.e. AoI).
@@ -60,12 +60,12 @@ def start_histogram_job(json_polygon):
 
     return {
         'pixel_width': aoi_resolution(polygon),
-        'sjs_job_id': histogram_start([json_polygon])
+        'sjs_job_id': histogram_start([json_polygon], self.retry)
     }
 
 
-@shared_task
-def start_histograms_job(polygons):
+@shared_task(bind=True, default_retry_delay=1, max_retries=42)
+def start_histograms_job(self, polygons):
     """ Calls the histogram_start function to
     kick off the SJS job to generate a histogram
     of the provided polygons (i.e. AoI + modifications,
@@ -79,7 +79,7 @@ def start_histograms_job(polygons):
 
     return {
         'pixel_width': None,
-        'sjs_job_id': histogram_start(json_polygons)
+        'sjs_job_id': histogram_start(json_polygons, self.retry)
     }
 
 
