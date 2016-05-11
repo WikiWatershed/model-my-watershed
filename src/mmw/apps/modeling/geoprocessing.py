@@ -53,7 +53,7 @@ SOIL_MAPPING = {
 
 
 @statsd.timer(__name__ + '.sjs_submit')
-def sjs_submit(host, port, args, data):
+def sjs_submit(host, port, args, data, retry=None):
     """
     Submits a job to Spark Job Server. Returns its Job ID, which
     can be used with sjs_retrieve to get the final result.
@@ -64,8 +64,16 @@ def sjs_submit(host, port, args, data):
     if response.ok:
         job = response.json()
     else:
-        raise Exception('Unable to submit job to Spark JobServer.\n'
-                        'Details = {}'.format(response.text))
+        error = response.json()
+        if error['status'] == 'NO SLOTS AVAILABLE' and retry:
+            try:
+                retry()
+            except MaxRetriesExceededError:
+                raise Exception('No slots available in Spark JobServer.\n'
+                                'Details = {}'.format(response.text))
+        else:
+            raise Exception('Unable to submit job to Spark JobServer.\n'
+                            'Details = {}'.format(response.text))
 
     if job['status'] == 'STARTED':
         return job['result']['jobId']
@@ -120,7 +128,7 @@ def sjs_retrieve(host, port, job_id, retry=None):
 
 
 @statsd.timer(__name__ + '.histogram_start')
-def histogram_start(polygons):
+def histogram_start(polygons, retry=None):
     """
     Together, histogram_start and histogram_finish implement a
     function which takes a list of polygons or multipolygons as input,
@@ -135,7 +143,7 @@ def histogram_start(polygons):
     data = settings.GEOP['json']['nlcdSoilCensus'].copy()
     data['input']['geometry'] = polygons
 
-    return sjs_submit(host, port, args, data)
+    return sjs_submit(host, port, args, data, retry)
 
 
 @statsd.timer(__name__ + '.histogram_finish')
