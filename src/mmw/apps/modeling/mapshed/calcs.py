@@ -14,6 +14,7 @@ from django.conf import settings
 from django.db import connection
 
 NUM_WEATHER_STATIONS = settings.GWLFE_CONFIG['NumWeatherStations']
+KV_FACTOR = settings.GWLFE_CONFIG['KvFactor']
 MONTHS = settings.GWLFE_DEFAULTS['Month']
 MONTHDAYS = settings.GWLFE_CONFIG['MonthDays']
 LIVESTOCK = settings.GWLFE_CONFIG['Livestock']
@@ -110,6 +111,25 @@ def et_adjustment(ws):
     avg_etadj = np.mean([w.etadj for w in ws])
 
     return np.array([avg_etadj] * 12)
+
+
+def kv_coefficient(ecs):
+    """
+    Given an array of erosion coefficients, returns an array of 12 decimals,
+    one for the KV coefficient of each month. The KV of a month is initialized
+    to the corresponding erosion coefficient value times the KV Factor, and
+    then averaged over the preceeding month. January being the first month is
+    not averaged.
+
+    Original at Class1.vb@1.3.0:4989-4995
+    """
+
+    kv = [ec * KV_FACTOR for ec in ecs]
+
+    for m in range(1, 12):
+        kv[m] = (kv[m] + kv[m-1]) / 2
+
+    return np.array(kv)
 
 
 def animal_energy_units(geom):

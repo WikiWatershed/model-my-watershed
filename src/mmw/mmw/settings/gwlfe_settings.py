@@ -448,6 +448,7 @@ GWLFE_DEFAULTS = {
 
 GWLFE_CONFIG = {
     'NumWeatherStations': 2,  # Number of weather stations to consider for each polygon
+    'KvFactor': 1.16,  # Original at Class1.vb@1.3.0:4987
     'Livestock': ['dairy_cows', 'beef_cows', 'hogs', 'sheep', 'horses'],
     'Poultry': ['broilers', 'layers', 'turkeys'],
     'ManureSpreadingLandUseIndices': [0, 1],  # Land Use Indices where manure spreading applies. Currently Hay/Past and Cropland.

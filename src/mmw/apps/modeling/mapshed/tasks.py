@@ -23,6 +23,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          growing_season,
                                          erosion_coeff,
                                          et_adjustment,
+                                         kv_coefficient,
                                          animal_energy_units,
                                          manure_spread,
                                          streams,
@@ -104,6 +105,7 @@ def collect_data(geop_result, geojson):
     z.Grow = growing_season(ws)
     z.Acoef = erosion_coeff(ws, z.Grow)
     z.PcntET = et_adjustment(ws)
+    z.KV = kv_coefficient(z.Acoef)
     z.WxYrBeg = max([w.begyear for w in ws])
     z.WxYrEnd = min([w.endyear for w in ws])
     z.WxYrs = z.WxYrEnd - z.WxYrBeg + 1
