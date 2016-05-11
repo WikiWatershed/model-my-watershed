@@ -403,7 +403,7 @@ GEOP = {
                     'us-ssugro-texture-id-30m-epsg5070'
                 ],
                 'rasterCRS': 'ConusAlbers',
-                'operationType': 'RasterJoin',
+                'operationType': 'RasterGroupedCount',
                 'zoom': 0
             }
         },
@@ -415,7 +415,7 @@ GEOP = {
                     'us-groundwater-nitrogen-30m-epsg5070'
                 ],
                 'rasterCRS': 'ConusAlbers',
-                'operationType': 'RasterJoin',
+                'operationType': 'RasterGroupedCount',
                 'zoom': 0
             }
         },
@@ -423,9 +423,10 @@ GEOP = {
             'input': {
                 'polygon': [],
                 'targetRaster': 'us-ssugro-aws100-30m-epsg5070',
+                'rasters': [],
                 'rasterCRS': 'ConusAlbers',
                 'polygonCRS': 'LatLng',
-                'operationType': 'RasterAverage',
+                'operationType': 'RasterGroupedAverage',
                 'zoom': 0
              }
         }
