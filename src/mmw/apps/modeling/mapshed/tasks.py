@@ -149,7 +149,12 @@ def collect_data(geop_result, geojson):
 
     z.NormalSys = normal_sys(z.Area)
 
-    # Additional calculated values
+    # Original at Class1.vb@1.3.0:9803-9807
+    z.n23 = z.Area[1]    # Row Crops Area
+    z.n23b = z.Area[13]  # High Density Mixed Urban Area
+    z.n24 = z.Area[0]    # Hay/Pasture Area
+    z.n24b = z.Area[11]  # Low Density Mixed Urban Area
+
     z.SedDelivRatio = sediment_delivery_ratio(area * SQKM_PER_SQM)
     z.TotArea = area * HECTARES_PER_SQM
     z.GrNitrConc = geop_result['gr_nitr_conc']
