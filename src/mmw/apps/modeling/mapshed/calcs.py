@@ -497,3 +497,21 @@ def landuse_pcts(n_count):
         0,  # Medium Density Residential
         0,  # High Density Residential
     ]
+
+
+def normal_sys(lu_area):
+    """
+    Given the land use area in hectares, estimates the number of normal septic
+    systems based on the constants SSLDR and SSLDM for Residential and Mixed
+    land uses respectively.
+    Since in this version Residential land uses are always 0, the value is
+    effectively dependent only on the area of medium density mixed land use.
+    However, we replicate the original formula for consistency.
+
+    Original at Class1.vb@1.3.0:9577-9579
+    """
+
+    SSLDR = settings.GWLFE_CONFIG['SSLDR']
+    SSLDM = settings.GWLFE_CONFIG['SSLDM']
+
+    return SSLDR * lu_area[14] + SSLDM * lu_area[11]

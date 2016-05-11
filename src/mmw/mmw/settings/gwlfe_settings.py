@@ -454,6 +454,8 @@ GWLFE_CONFIG = {
     'ManureSpreadingLandUseIndices': [0, 1],  # Land Use Indices where manure spreading applies. Currently Hay/Past and Cropland.
     'AgriculturalNLCDCodes': [81, 82],  # NLCD codes considered agricultural. Correspond to Hay/Past and Cropland
     'MonthDays': [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+    'SSLDR': 4.4,
+    'SSLDM': 2.2,
     'WeatherNull': -99999,  # This value is used to indicate NULL in ms_weather dataset
 }
 
