@@ -34,6 +34,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          sediment_phosphorus,
                                          groundwater_nitrogen_conc,
                                          sediment_delivery_ratio,
+                                         landuse_pcts,
                                          )
 
 AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
@@ -143,6 +144,7 @@ def collect_data(geop_result, geojson):
 
     z.CN = np.array(geop_result['cn'])
     z.SedPhos = geop_result['sed_phos']
+    z.Area = np.array(geop_result['landuse_pcts'] * area * HECTARES_PER_SQM)
 
     # Additional calculated values
     z.SedDelivRatio = sediment_delivery_ratio(area * SQKM_PER_SQM)
@@ -254,6 +256,7 @@ def nlcd_soils(sjs_result):
     return {
         'cn': curve_number(n_count, ng_count),
         'sed_phos': sediment_phosphorus(nt_count),
+        'landuse_pcts': landuse_pcts(n_count),
     }
 
 

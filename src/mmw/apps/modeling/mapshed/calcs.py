@@ -463,3 +463,37 @@ def sediment_delivery_ratio(area_sq_km):
                 (0.0014 * area_sq_km) + 0.198)
     else:
         return 0.451 * (area_sq_km ** (0 - 0.298))
+
+
+def landuse_pcts(n_count):
+    """
+    Given a dictionary mapping NLCD Codes to counts of cells, returns a
+    dictionary mapping MapShed Land Use Types to percent area covered.
+    """
+
+    total = sum(n_count.values())
+    if total > 0:
+        n_pct = {nlcd: float(count) / total
+                 for nlcd, count in n_count.iteritems()}
+    else:
+        n_pct = {nlcd: 0 for nlcd in n_count.keys()}
+
+    return [
+        n_pct.get(81, 0),  # Hay/Pasture
+        n_pct.get(82, 0),  # Cropland
+        n_pct.get(41, 0) + n_pct.get(42, 0) +
+        n_pct.get(43, 0) + n_pct.get(52, 0),  # Forest
+        n_pct.get(90, 0) + n_pct.get(95, 0),  # Wetland
+        0,  # Disturbed
+        0,  # Turf Grass
+        n_pct.get(21, 0) + n_pct.get(71, 0),  # Open Land
+        n_pct.get(12, 0) + n_pct.get(31, 0),  # Bare Rock
+        0,  # Sandy Areas
+        0,  # Unpaved Road
+        n_pct.get(22, 0),  # Low Density Mixed
+        n_pct.get(23, 0),  # Medium Density Mixed
+        n_pct.get(24, 0),  # High Density Mixed
+        0,  # Low Density Residential
+        0,  # Medium Density Residential
+        0,  # High Density Residential
+    ]
