@@ -31,10 +31,14 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          weather_data,
                                          curve_number,
                                          sediment_phosphorus,
+                                         groundwater_nitrogen_conc,
+                                         sediment_delivery_ratio,
                                          )
 
 AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
 ACRES_PER_SQM = 0.000247105
+HECTARES_PER_SQM = 0.0001
+SQKM_PER_SQM = 0.000001
 
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=42)
@@ -137,6 +141,13 @@ def collect_data(geop_result, geojson):
 
     z.CN = np.array(geop_result['cn'])
     z.SedPhos = geop_result['sed_phos']
+
+    # Additional calculated values
+    z.SedDelivRatio = sediment_delivery_ratio(area * SQKM_PER_SQM)
+    z.TotArea = area * HECTARES_PER_SQM
+    z.GrNitrConc = geop_result['gr_nitr_conc']
+    z.GrPhosConc = geop_result['gr_phos_conc']
+    z.MaxWaterCap = geop_result['avg_awc']
 
     # TODO pass real input to model instead of reading it from gms file
     gms_filename = join(dirname(abspath(__file__)), 'data/sample_input.gms')
@@ -244,14 +255,53 @@ def nlcd_soils(sjs_result):
     }
 
 
+@shared_task(throws=Exception)
+def gwn(sjs_result):
+    """
+    Derive Groundwater Nitrogen and Phosphorus
+    """
+    if 'error' in sjs_result:
+        raise Exception('[gwn] {}'
+                        .format(sjs_result['error']))
+
+    result = parse_sjs_result(sjs_result)
+    gr_nitr_conc, gr_phos_conc = groundwater_nitrogen_conc(result)
+
+    return {
+        'gr_nitr_conc': gr_nitr_conc,
+        'gr_phos_conc': gr_phos_conc
+    }
+
+
+@shared_task(throws=Exception)
+def avg_awc(sjs_result):
+    """
+    Get `AvgAwc` from MMW-Geoprocessing endpoint
+
+    Original at Class1.vb@1.3.0:4150
+    """
+    if 'error' in sjs_result:
+        raise Exception('[awc] {}'
+                        .format(sjs_result['error']))
+
+    result = parse_sjs_result(sjs_result)
+
+    return {
+        'avg_awc': result.values()[0]
+    }
+
+
 def geop_tasks(geom, errback):
     # List of tuples of (opname, data, callback) for each geop task
     definitions = [
         ('nlcd_streams',
          {'polygon': [geom.geojson], 'vector': streams(geom)},
          nlcd_streams),
-
         ('nlcd_soils', {'polygon': [geom.geojson]}, nlcd_soils),
+        ('gwn',
+         {'polygon': [geom.geojson]}, gwn),
+        ('avg_awc',
+         {'polygon': [geom.geojson]}, avg_awc),
     ]
 
     return [(mapshed_start.s(opname, data) |

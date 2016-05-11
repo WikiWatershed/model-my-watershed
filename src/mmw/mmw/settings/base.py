@@ -406,6 +406,28 @@ GEOP = {
                 'operationType': 'RasterJoin',
                 'zoom': 0
             }
+        },
+        'gwn': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'us-groundwater-nitrogen-30m-epsg5070'
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterJoin',
+                'zoom': 0
+            }
+        },
+        'avg_awc': {
+            'input': {
+                'polygon': [],
+                'targetRaster': 'us-ssugro-aws100-30m-epsg5070',
+                'rasterCRS': 'ConusAlbers',
+                'polygonCRS': 'LatLng',
+                'operationType': 'RasterAverage',
+                'zoom': 0
+             }
         }
     }
 }
