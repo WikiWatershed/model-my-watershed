@@ -25,6 +25,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          et_adjustment,
                                          kv_coefficient,
                                          animal_energy_units,
+                                         ls_factors,
                                          manure_spread,
                                          streams,
                                          stream_length,
@@ -156,6 +157,9 @@ def collect_data(geop_result, geojson):
 
     z.AvSlope = geop_result['avg_slope']
 
+    z.LS = ls_factors(geop_result['lu_stream_pct'], z.StreamLength,
+                      z.Area, z.AvSlope)
+
     z.AvKF = geop_result['avg_kf']
     z.KF = geop_result['kf']
 
@@ -181,7 +185,6 @@ def collect_data(geop_result, geojson):
 
     # The frontend expects an object with runoff and quality as keys.
     response_json = {'runoff': gwlfe.run(z)}
-
     return response_json
 
 
@@ -237,11 +240,17 @@ def nlcd_streams(sjs_result):
                          for count in (ag_count,
                                        low_urban_count,
                                        med_high_urban_count))
+    lu_stream_pct = [0.0] * 16
+    for nlcd, stream_count in result.iteritems():
+        lu = get_lu_index(nlcd)
+        if lu is not None:
+            lu_stream_pct[lu] += float(stream_count) / total
 
     return {
         'ag_stream_pct': ag,
         'low_urban_stream_pct': low,
-        'med_high_urban_stream_pct': med_high
+        'med_high_urban_stream_pct': med_high,
+        'lu_stream_pct': lu_stream_pct
     }
 
 
