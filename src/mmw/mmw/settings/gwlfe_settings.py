@@ -10,6 +10,7 @@ NODATA = -2147483648  # Scala's Int.MinValue is NODATA in GeoTrellis
 GWLFE_DEFAULTS = {
     'NRur': 10,  # Number of Rural Land Use Categories
     'NUrb': 6,  # Number of Urban Land Use Categories
+    'NLU': 16, # Total Number of Land Use Categories
     'TranVersionNo': '1.4.0',  # GWLF-E Version
     'RecessionCoef': 0.06,  # Recession Coefficient
     'SeepCoef': 0,  # Seepage Coefficient

@@ -38,6 +38,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          normal_sys,
                                          )
 
+NLU = settings.GWLFE_DEFAULTS['NLU']
 AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
 ACRES_PER_SQM = 0.000247105
 HECTARES_PER_SQM = 0.0001
@@ -61,7 +62,6 @@ def mapshed_start(self, opname, input_data):
             'port': port,
             'job_id': job_id
         }
-
     except Retry as r:
         raise r
     except Exception as x:
@@ -77,7 +77,6 @@ def mapshed_finish(self, incoming):
 
     try:
         return sjs_retrieve(retry=self.retry, **incoming)
-
     except Retry as r:
         # Celery throws a Retry exception when self.retry is called to stop
         # the execution of any further code, and to indicate to the worker
@@ -149,12 +148,22 @@ def collect_data(geop_result, geojson):
 
     z.NormalSys = normal_sys(z.Area)
 
+    z.AgSlope3 = (geop_result['ag_slope_3_pct'] * area) * HECTARES_PER_SQM
+    z.AgSlope3To8 = (geop_result['ag_slope_3_8_pct'] * area) * HECTARES_PER_SQM
+    z.n41 = geop_result['n41']
+
+    z.AvSlope = geop_result['avg_slope']
+
+    z.AvKF = geop_result['avg_kf']
+    z.KF = geop_result['kf']
+
     # Original at Class1.vb@1.3.0:9803-9807
     z.n23 = z.Area[1]    # Row Crops Area
     z.n23b = z.Area[13]  # High Density Mixed Urban Area
     z.n24 = z.Area[0]    # Hay/Pasture Area
     z.n24b = z.Area[11]  # Low Density Mixed Urban Area
 
+    # Additional calculated values
     z.SedDelivRatio = sediment_delivery_ratio(area * SQKM_PER_SQM)
     z.TotArea = area * HECTARES_PER_SQM
     z.GrNitrConc = geop_result['gr_nitr_conc']
@@ -304,6 +313,134 @@ def avg_awc(sjs_result):
     }
 
 
+@shared_task(throws=Exception)
+def nlcd_slope(result):
+    if 'error' in result:
+        raise Exception('[nlcd_slope] {}'.format(result['error']))
+
+    result = parse_sjs_result(result)
+
+    ag_slope_3_count = 0
+    ag_slope_3_8_count = 0
+    ag_count = 0
+    total_count = 0
+
+    for (nlcd_code, slope), count in result.iteritems():
+        if nlcd_code in AG_NLCD_CODES:
+            if slope > 3:
+                ag_slope_3_count += count
+            if 3 < slope < 8:
+                ag_slope_3_8_count += count
+            ag_count += count
+
+        total_count += count
+
+    # percent of AOI that is agricultural with slope > 3%
+    # see Class1.vb#7223
+    ag_slope_3_pct = (float(ag_slope_3_count) / total_count
+                      if total_count > 0 else 0.0)
+
+    # percent of AOI that is agricultural with 3% < slope < 8%
+    ag_slope_3_8_pct = (float(ag_slope_3_8_count) / total_count
+                        if total_count > 0 else 0.0)
+
+    # percent of agricultural parts of AOI with slope > 3%
+    # see Class1.vb#9864
+    n41 = float(ag_slope_3_count) / ag_count if ag_count > 0 else 0.0
+
+    output = {
+        'ag_slope_3_pct': ag_slope_3_pct,
+        'ag_slope_3_8_pct': ag_slope_3_8_pct,
+        'n41': n41,
+    }
+
+    # TODO remove before merging
+    print(output)
+
+    return output
+
+
+@shared_task(throws=Exception)
+def slope(result):
+    if 'error' in result:
+        raise Exception('[slope] {}'.format(result['error']))
+
+    result = parse_sjs_result(result)
+
+    # average slope over the AOI
+    # see Class1.vb#6252
+    avg_slope = result
+
+    output = {
+        'avg_slope': avg_slope
+    }
+
+    # TODO remove before merging
+    print(output)
+
+    return output
+
+
+def get_lu_index(nlcd):
+    if nlcd == 81:
+        lu_index = 1
+    elif nlcd == 82:
+        lu_index = 2
+    elif nlcd in [41, 42, 43]:
+        lu_index = 3
+    elif nlcd in [90, 95]:
+        lu_index = 4
+    elif nlcd in [21, 71]:
+        lu_index = 7
+    elif nlcd in [12, 31]:
+        lu_index = 8
+    elif nlcd == 22:
+        lu_index = 10
+    elif nlcd == 23:
+        lu_index = 11
+    elif nlcd == 24:
+        lu_index = 12
+    elif nlcd == 11:
+        lu_index = 16
+    else:
+        return None
+
+    return lu_index - 1
+
+
+@shared_task(throws=Exception)
+def nlcd_kfactor(result):
+    if 'error' in result:
+        raise Exception('[nlcd_kfactor] {}'.format(result['error']))
+
+    result = parse_sjs_result(result)
+
+    # average kfactor for each land use
+    # see Class1.vb#6431
+    kf = [0.0] * NLU
+    for nlcd_code, kfactor in result.iteritems():
+        lu_ind = get_lu_index(nlcd_code)
+        if lu_ind:
+            kf[lu_ind] = kfactor
+
+    # average kfactor across all land uses, ignoring zero values
+    # see Class1.vb#4151
+    num_nonzero_kf = len([k for k in kf if k != 0.0])
+    avg_kf = 0.0
+    if num_nonzero_kf != 0:
+        avg_kf = sum(kf) / num_nonzero_kf
+
+    output = {
+        'kf': kf,
+        'avg_kf': avg_kf
+    }
+
+    # TODO remove before merging
+    print(output)
+
+    return output
+
+
 def geop_tasks(geom, errback):
     # List of tuples of (opname, data, callback) for each geop task
     definitions = [
@@ -315,6 +452,15 @@ def geop_tasks(geom, errback):
          {'polygon': [geom.geojson]}, gwn),
         ('avg_awc',
          {'polygon': [geom.geojson]}, avg_awc),
+        ('nlcd_slope',
+         {'polygon': [geom.geojson]},
+         nlcd_slope),
+        ('slope',
+         {'polygon': [geom.geojson]},
+         slope),
+        ('nlcd_kfactor',
+         {'polygon': [geom.geojson]},
+         nlcd_kfactor)
     ]
 
     return [(mapshed_start.s(opname, data) |

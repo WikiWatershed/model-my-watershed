@@ -13,7 +13,8 @@ from os.path import abspath, basename, dirname, join, normpath
 from sys import path
 
 from layer_settings import LAYERS, VIZER_URLS  # NOQA
-from gwlfe_settings import GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, SOILP, CURVE_NUMBER  # NOQA
+from gwlfe_settings import (GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, # NOQA
+                            SOILP, CURVE_NUMBER)  # NOQA
 
 # Normally you should not import ANYTHING from Django directly
 # into your settings, but ImproperlyConfigured is an exception.
@@ -426,6 +427,43 @@ GEOP = {
                 'rasters': [],
                 'rasterCRS': 'ConusAlbers',
                 'polygonCRS': 'LatLng',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
+        },
+        'nlcd_slope': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'nlcd-2011-30m-epsg5070-0.10.0',
+                    'us-percent-slope-30m-epsg5070',
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedCount',
+                'zoom': 0
+            }
+        },
+        'slope': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [],
+                'targetRaster': 'us-percent-slope-30m-epsg5070',
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
+        },
+        'nlcd_kfactor': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'nlcd-2011-30m-epsg5070-0.10.0'
+                ],
+                'targetRaster': 'us-ssugro-kfactor-30m-epsg5070',
+                'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0
             }
