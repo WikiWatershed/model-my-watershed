@@ -134,6 +134,7 @@ def animal_energy_units(geom):
           SELECT SUM(beef_ha * totalha * clip_percent) AS beef_cows,
                  SUM(broiler_ha * totalha * clip_percent) AS broilers,
                  SUM(dairy_ha * totalha * clip_percent) AS dairy_cows,
+                 SUM(goat_ha * totalha * clip_percent) +
                  SUM(sheep_ha * totalha * clip_percent) AS sheep,
                  SUM(hog_ha * totalha * clip_percent) AS hogs,
                  SUM(horse_ha * totalha * clip_percent) AS horses,
