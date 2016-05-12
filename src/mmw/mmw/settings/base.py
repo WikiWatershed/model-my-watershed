@@ -125,7 +125,7 @@ STATSD_CELERY_SIGNALS = True
 CELERY_WORKER_DIRECT = True
 CELERY_CREATE_MISSING_QUEUES = True
 CELERY_CHORD_PROPAGATES = True
-CELERY_CHORD_UNLOCK_MAX_RETRIES = 3
+CELERY_CHORD_UNLOCK_MAX_RETRIES = 10
 # END CELERY CONFIGURATION
 
 
@@ -365,18 +365,18 @@ GEOP = {
     'host': environ.get('MMW_GEOPROCESSING_HOST', 'localhost'),
     'port': environ.get('MMW_GEOPROCESSING_PORT', '8090'),
     'args': {
-        'SummaryJob': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.SummaryJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),
-        'MapshedJob': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.MapshedJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0')
+        'SummaryJob': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.SummaryJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),  # NOQA
+        'MapshedJob': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.MapshedJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),  # NOQA
     },
     'json': {
         'nlcdSoilCensus': {
             'input': {
-              'geometry': None,
-              'tileCRS': 'ConusAlbers',
-              'polyCRS': 'LatLng',
-              'nlcdLayer': 'nlcd-2011-30m-epsg5070-0.10.0',
-              'soilLayer': 'ssurgo-hydro-groups-30m-epsg5070-0.10.0',
-              'zoom': 0
+                'geometry': None,
+                'tileCRS': 'ConusAlbers',
+                'polyCRS': 'LatLng',
+                'nlcdLayer': 'nlcd-2011-30m-epsg5070-0.10.0',
+                'soilLayer': 'ssurgo-hydro-groups-30m-epsg5070-0.10.0',
+                'zoom': 0
             },
         },
         'nlcd_streams': {
@@ -403,7 +403,7 @@ GEOP = {
                     'us-ssugro-texture-id-30m-epsg5070'
                 ],
                 'rasterCRS': 'ConusAlbers',
-                'operationType': 'RasterJoin',
+                'operationType': 'RasterGroupedCount',
                 'zoom': 0
             }
         },
@@ -415,7 +415,7 @@ GEOP = {
                     'us-groundwater-nitrogen-30m-epsg5070'
                 ],
                 'rasterCRS': 'ConusAlbers',
-                'operationType': 'RasterJoin',
+                'operationType': 'RasterGroupedCount',
                 'zoom': 0
             }
         },
@@ -423,11 +423,12 @@ GEOP = {
             'input': {
                 'polygon': [],
                 'targetRaster': 'us-ssugro-aws100-30m-epsg5070',
+                'rasters': [],
                 'rasterCRS': 'ConusAlbers',
                 'polygonCRS': 'LatLng',
-                'operationType': 'RasterAverage',
+                'operationType': 'RasterGroupedAverage',
                 'zoom': 0
-             }
+            }
         }
     }
 }
