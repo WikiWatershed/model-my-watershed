@@ -222,6 +222,49 @@ def _initiate_gwlfe_job_chain(model_input, job_id):
 
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
+def start_mapshed(request, format=None):
+    """
+    Starts a MapShed job which gathers data from various sources which
+    eventually is input to start_gwlfe to model the watershed.
+    """
+    user = request.user if request.user.is_authenticated() else None
+    created = now()
+    mapshed_input = json.loads(request.POST['mapshed_input'])
+    job = Job.objects.create(created_at=created, result='', error='',
+                             traceback='', user=user, status='started')
+
+    task_list = _initiate_mapshed_job_chain(mapshed_input, job.id)
+
+    job.uuid = task_list.id
+    job.save()
+
+    return Response(
+        {
+            'job': task_list.id,
+            'status': 'started',
+        }
+    )
+
+
+def _initiate_mapshed_job_chain(mapshed_input, job_id):
+    exchange = MAGIC_EXCHANGE
+    routing_key = choose_worker()
+    errback = save_job_error.s(job_id)
+
+    geom = GEOSGeometry(json.dumps(mapshed_input['area_of_interest']),
+                        srid=4326)
+
+    chain = (group(geop_tasks(geom, errback)).set(exchange=exchange,
+                                                  routing_key=routing_key) |
+             combine.s() |
+             collect_data.s(geom.geojson).set(link_error=errback) |
+             save_job_result.s(job_id, mapshed_input))
+
+    return chain.apply_async(link_error=errback)
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((AllowAny, ))
 def start_analyze(request, format=None):
     user = request.user if request.user.is_authenticated() else None
     created = now()

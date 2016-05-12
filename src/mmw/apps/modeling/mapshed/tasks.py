@@ -5,14 +5,10 @@ from __future__ import absolute_import
 
 import numpy as np
 
-from os.path import join, dirname, abspath
 from ast import literal_eval as make_tuple
 
 from celery import shared_task
 from celery.exceptions import Retry
-
-from gwlfe import gwlfe, parser
-from gwlfe.datamodel import DataModel
 
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
@@ -99,93 +95,87 @@ def collect_data(geop_result, geojson):
     area = geom.transform(5070, clone=True).area  # Square Meters
 
     # Data Model is called z by convention
-    z = DataModel(settings.GWLFE_DEFAULTS)
+    z = settings.GWLFE_DEFAULTS.copy()
 
     # Statically calculated lookup values
-    z.DayHrs = day_lengths(geom)
+    z['DayHrs'] = day_lengths(geom)
 
     # Data from the Weather Stations dataset
     ws = nearest_weather_stations(geom)
-    z.Grow = growing_season(ws)
-    z.Acoef = erosion_coeff(ws, z.Grow)
-    z.PcntET = et_adjustment(ws)
-    z.KV = kv_coefficient(z.Acoef)
-    z.WxYrBeg = max([w.begyear for w in ws])
-    z.WxYrEnd = min([w.endyear for w in ws])
-    z.WxYrs = z.WxYrEnd - z.WxYrBeg + 1
+    z['Grow'] = growing_season(ws)
+    z['Acoef'] = erosion_coeff(ws, z['Grow'])
+    z['PcntET'] = et_adjustment(ws)
+    z['KV'] = kv_coefficient(z['Acoef'])
+    z['WxYrBeg'] = max([w.begyear for w in ws])
+    z['WxYrEnd'] = min([w.endyear for w in ws])
+    z['WxYrs'] = z['WxYrEnd'] - z['WxYrBeg'] + 1
 
     # Data from the County Animals dataset
     livestock_aeu, poultry_aeu = animal_energy_units(geom)
-    z.AEU = livestock_aeu / (area * ACRES_PER_SQM)
-    z.n41j = livestock_aeu
-    z.n41k = poultry_aeu
-    z.n41l = livestock_aeu + poultry_aeu
+    z['AEU'] = livestock_aeu / (area * ACRES_PER_SQM)
+    z['n41j'] = livestock_aeu
+    z['n41k'] = poultry_aeu
+    z['n41l'] = livestock_aeu + poultry_aeu
 
-    z.ManNitr, z.ManPhos = manure_spread(z.AEU)
+    z['ManNitr'], z['ManPhos'] = manure_spread(z['AEU'])
 
     # Data from Streams dataset
-    z.StreamLength = stream_length(geom)      # Meters
-    z.n42b = round(z.StreamLength / 1000, 1)  # Kilometers
+    z['StreamLength'] = stream_length(geom)      # Meters
+    z['n42b'] = round(z['StreamLength'] / 1000, 1)  # Kilometers
 
     # Data from Point Source Discharge dataset
     n_load, p_load, discharge = point_source_discharge(geom, area)
-    z.PointNitr = n_load
-    z.PointPhos = p_load
-    z.PointFlow = discharge
+    z['PointNitr'] = n_load
+    z['PointPhos'] = p_load
+    z['PointFlow'] = discharge
 
     # Data from National Weather dataset
-    temps, prcps = weather_data(ws, z.WxYrBeg, z.WxYrEnd)
-    z.Temp = temps
-    z.Prec = prcps
+    temps, prcps = weather_data(ws, z['WxYrBeg'], z['WxYrEnd'])
+    z['Temp'] = temps
+    z['Prec'] = prcps
 
     # Begin processing geop_result
-    z.AgLength = geop_result['ag_stream_pct'] * z.StreamLength
-    z.UrbLength = z.StreamLength - z.AgLength
-    z.n42 = round(z.AgLength / 1000, 1)
-    z.n46e = geop_result['med_high_urban_stream_pct'] * z.StreamLength / 1000
-    z.n46f = geop_result['low_urban_stream_pct'] * z.StreamLength / 1000
+    z['AgLength'] = geop_result['ag_stream_pct'] * z['StreamLength']
+    z['UrbLength'] = z['StreamLength'] - z['AgLength']
+    z['n42'] = round(z['AgLength'] / 1000, 1)
+    z['n46e'] = (geop_result['med_high_urban_stream_pct'] *
+                 z['StreamLength'] / 1000)
+    z['n46f'] = geop_result['low_urban_stream_pct'] * z['StreamLength'] / 1000
 
-    z.CN = np.array(geop_result['cn'])
-    z.SedPhos = geop_result['sed_phos']
-    z.Area = np.array(geop_result['landuse_pcts']) * area * HECTARES_PER_SQM
+    z['CN'] = np.array(geop_result['cn'])
+    z['SedPhos'] = geop_result['sed_phos']
+    z['Area'] = np.array(geop_result['landuse_pcts']) * area * HECTARES_PER_SQM
 
-    z.NormalSys = normal_sys(z.Area)
+    z['NormalSys'] = normal_sys(z['Area'])
 
-    z.AgSlope3 = (geop_result['ag_slope_3_pct'] * area) * HECTARES_PER_SQM
-    z.AgSlope3To8 = (geop_result['ag_slope_3_8_pct'] * area) * HECTARES_PER_SQM
-    z.n41 = geop_result['n41']
+    z['AgSlope3'] = geop_result['ag_slope_3_pct'] * area * HECTARES_PER_SQM
+    z['AgSlope3To8'] = (geop_result['ag_slope_3_8_pct'] *
+                        area * HECTARES_PER_SQM)
+    z['n41'] = geop_result['n41']
 
-    z.AvSlope = geop_result['avg_slope']
+    z['AvSlope'] = geop_result['avg_slope']
 
-    z.LS = ls_factors(geop_result['lu_stream_pct'], z.StreamLength,
-                      z.Area, z.AvSlope)
-
-    z.AvKF = geop_result['avg_kf']
-    z.KF = geop_result['kf']
+    z['AvKF'] = geop_result['avg_kf']
+    z['KF'] = geop_result['kf']
 
     # Original at Class1.vb@1.3.0:9803-9807
-    z.n23 = z.Area[1]    # Row Crops Area
-    z.n23b = z.Area[13]  # High Density Mixed Urban Area
-    z.n24 = z.Area[0]    # Hay/Pasture Area
-    z.n24b = z.Area[11]  # Low Density Mixed Urban Area
+    z['n23'] = z['Area'][1]    # Row Crops Area
+    z['n23b'] = z['Area'][13]  # High Density Mixed Urban Area
+    z['n24'] = z['Area'][0]    # Hay/Pasture Area
+    z['n24b'] = z['Area'][11]  # Low Density Mixed Urban Area
 
-    # Additional calculated values
-    z.SedDelivRatio = sediment_delivery_ratio(area * SQKM_PER_SQM)
-    z.TotArea = area * HECTARES_PER_SQM
-    z.GrNitrConc = geop_result['gr_nitr_conc']
-    z.GrPhosConc = geop_result['gr_phos_conc']
-    z.MaxWaterCap = geop_result['avg_awc']
-    z.SedAFactor = sed_a_factor(geop_result['landuse_pcts'],
-                                z.CN, z.AEU, z.AvKF, z.AvSlope)
+    z['SedDelivRatio'] = sediment_delivery_ratio(area * SQKM_PER_SQM)
+    z['TotArea'] = area * HECTARES_PER_SQM
+    z['GrNitrConc'] = geop_result['gr_nitr_conc']
+    z['GrPhosConc'] = geop_result['gr_phos_conc']
+    z['MaxWaterCap'] = geop_result['avg_awc']
+    z['SedAFactor'] = sed_a_factor(geop_result['landuse_pcts'],
+                                   z['CN'], z['AEU'], z['AvKF'], z['AvSlope'])
 
-    # TODO pass real input to model instead of reading it from gms file
-    gms_filename = join(dirname(abspath(__file__)), 'data/sample_input.gms')
-    gms_file = open(gms_filename, 'r')
-    z = parser.GmsReader(gms_file).read()
+    z['LS'] = ls_factors(geop_result['lu_stream_pct'],
+                         z['StreamLength'], z['Area'], z['AvSlope'])
 
-    # The frontend expects an object with runoff and quality as keys.
-    response_json = {'runoff': gwlfe.run(z)}
-    return response_json
+    return z
 
 
 @shared_task(throws=Exception)

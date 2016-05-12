@@ -22,6 +22,7 @@ urlpatterns = patterns(
     url(r'scenarios/$', views.scenarios, name='scenarios'),
     url(r'scenarios/(?P<scen_id>[0-9]+)$', views.scenario, name='scenario'),
     url(r'start/analyze/$', views.start_analyze, name='start_analyze'),
+    url(r'start/mapshed/$', views.start_mapshed, name='start_mapshed'),
     url(r'jobs/' + uuid_regex, views.get_job, name='get_job'),
     url(r'start/tr55/$', views.start_tr55, name='start_tr55'),
     url(r'start/rwd/$', views.start_rwd, name='start_rwd'),
