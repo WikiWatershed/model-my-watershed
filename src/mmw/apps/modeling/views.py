@@ -214,20 +214,10 @@ def start_gwlfe(request, format=None):
 
 
 def _initiate_gwlfe_job_chain(model_input, job_id):
-    exchange = MAGIC_EXCHANGE
-    routing_key = choose_worker()
-    errback = save_job_error.s(job_id)
-
-    geom = GEOSGeometry(json.dumps(model_input['area_of_interest']),
-                        srid=4326)
-
-    chain = (group(geop_tasks(geom, errback)).set(exchange=exchange,
-                                                  routing_key=routing_key) |
-             combine.s() |
-             collect_data.s(geom.geojson).set(link_error=errback) |
+    chain = (tasks.run_gwlfe.s(model_input) |
              save_job_result.s(job_id, model_input))
 
-    return chain.apply_async(link_error=errback)
+    return chain.apply_async(link_error=save_job_error.s(job_id))
 
 
 @decorators.api_view(['POST'])
