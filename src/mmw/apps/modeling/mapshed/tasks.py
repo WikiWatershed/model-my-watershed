@@ -3,8 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
-import numpy as np
-
 from ast import literal_eval as make_tuple
 
 from celery import shared_task
@@ -106,8 +104,8 @@ def collect_data(geop_result, geojson):
     z['Acoef'] = erosion_coeff(ws, z['Grow'])
     z['PcntET'] = et_adjustment(ws)
     z['KV'] = kv_coefficient(z['Acoef'])
-    z['WxYrBeg'] = max([w.begyear for w in ws])
-    z['WxYrEnd'] = min([w.endyear for w in ws])
+    z['WxYrBeg'] = int(max([w.begyear for w in ws]))
+    z['WxYrEnd'] = int(min([w.endyear for w in ws]))
     z['WxYrs'] = z['WxYrEnd'] - z['WxYrBeg'] + 1
 
     # Data from the County Animals dataset
@@ -142,9 +140,10 @@ def collect_data(geop_result, geojson):
                  z['StreamLength'] / 1000)
     z['n46f'] = geop_result['low_urban_stream_pct'] * z['StreamLength'] / 1000
 
-    z['CN'] = np.array(geop_result['cn'])
+    z['CN'] = geop_result['cn']
     z['SedPhos'] = geop_result['sed_phos']
-    z['Area'] = np.array(geop_result['landuse_pcts']) * area * HECTARES_PER_SQM
+    z['Area'] = [percent * area * HECTARES_PER_SQM
+                 for percent in geop_result['landuse_pcts']]
 
     z['NormalSys'] = normal_sys(z['Area'])
 

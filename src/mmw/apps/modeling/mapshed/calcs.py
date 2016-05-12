@@ -4,10 +4,8 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 
 import math
-import numpy as np
 
 from collections import namedtuple
-import decimal
 
 from gwlfe.enums import GrowFlag
 
@@ -34,7 +32,7 @@ def day_lengths(geom):
     centroid for each month.
     """
     latitude = geom.centroid[1]
-    lengths = np.zeros(12)
+    lengths = [0.0] * 12
 
     for month in range(12):
         # Magic formula taken from original MapShed source
@@ -97,11 +95,11 @@ def erosion_coeff(ws, season):
     `rain_cool` instead.
     """
 
-    avg_warm = np.mean([w.rain_warm for w in ws])
-    avg_cool = np.mean([w.rain_cool for w in ws])
+    avg_warm = float(sum([w.rain_warm for w in ws])) / len(ws)
+    avg_cool = float(sum([w.rain_cool for w in ws])) / len(ws)
 
-    return np.array([avg_warm if month == GrowFlag.GROWING_SEASON else avg_cool
-                     for month in season])
+    return [avg_warm if month == GrowFlag.GROWING_SEASON else avg_cool
+            for month in season]
 
 
 def et_adjustment(ws):
@@ -111,9 +109,9 @@ def et_adjustment(ws):
     stations, and use that value for all months.
     """
 
-    avg_etadj = np.mean([w.etadj for w in ws])
+    avg_etadj = float(sum([w.etadj for w in ws])) / len(ws)
 
-    return np.array([avg_etadj] * 12)
+    return [avg_etadj] * 12
 
 
 def kv_coefficient(ecs):
@@ -127,12 +125,12 @@ def kv_coefficient(ecs):
     Original at Class1.vb@1.3.0:4989-4995
     """
 
-    kv = [ec * decimal.Decimal(KV_FACTOR) for ec in ecs]
+    kv = [ec * KV_FACTOR for ec in ecs]
 
     for m in range(1, 12):
         kv[m] = (kv[m] + kv[m-1]) / 2
 
-    return np.array(kv)
+    return kv
 
 
 def animal_energy_units(geom):
@@ -188,8 +186,8 @@ def manure_spread(aeu):
     the configuration, it will have a value calculated below, otherwise it
     will be set to 0.
     """
-    n_list = np.zeros(16)
-    p_list = np.zeros(16)
+    n_list = [0.0] * 16
+    p_list = [0.0] * 16
 
     if 1.0 <= aeu:
         n_spread, p_spread = 4.88, 0.86
@@ -315,10 +313,10 @@ def point_source_discharge(geom, area):
         cursor.execute(sql, [geom.wkt])
         mg_d, kgn_month, kgp_month = cursor.fetchone()
 
-        n_load = np.array([kgn_month] * 12) if kgn_month else np.zeros(12)
-        p_load = np.array([kgp_month] * 12) if kgp_month else np.zeros(12)
-        discharge = np.array([float(mg_d * days * LITERS_PER_MGAL) / area
-                              for days in MONTHDAYS]) if mg_d else np.zeros(12)
+        n_load = [kgn_month] * 12 if kgn_month else [0.0] * 12
+        p_load = [kgp_month] * 12 if kgp_month else [0.0] * 12
+        discharge = [float(mg_d * days * LITERS_PER_MGAL) / area
+                     for days in MONTHDAYS] if mg_d else [0.0] * 12
 
         return n_load, p_load, discharge
 
@@ -370,26 +368,26 @@ def weather_data(ws, begyear, endyear):
 
     year_range = endyear - begyear + 1
     stations = tuple([w.station for w in ws])
-    temps = np.zeros((year_range, 12, 31))
-    prcps = np.zeros((year_range, 12, 31))
+    temps = [[[0] * 31 for m in range(12)] for y in range(year_range)]
+    prcps = [[[0] * 31 for m in range(12)] for y in range(year_range)]
 
     with connection.cursor() as cursor:
         cursor.execute(temp_sql, [stations, begyear, endyear])
         for row in cursor.fetchall():
-            year = row[0] - begyear
-            month = row[1] - 1
+            year = int(row[0]) - begyear
+            month = int(row[1]) - 1
             for day in range(31):
-                t = row[day + 2]
-                temps[year, month, day] = t if t != WEATHER_NULL else None
+                t = float(row[day + 2])
+                temps[year][month][day] = t if t != WEATHER_NULL else None
 
     with connection.cursor() as cursor:
         cursor.execute(prcp_sql, [stations, begyear, endyear])
         for row in cursor.fetchall():
-            year = row[0] - begyear
-            month = row[1] - 1
+            year = int(row[0]) - begyear
+            month = int(row[1]) - 1
             for day in range(31):
-                p = row[day + 2]
-                prcps[year, month, day] = p if p != WEATHER_NULL else None
+                p = float(row[day + 2])
+                prcps[year][month][day] = p if p != WEATHER_NULL else None
 
     return temps, prcps
 
