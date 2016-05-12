@@ -7,6 +7,7 @@ import math
 import numpy as np
 
 from collections import namedtuple
+from decimal import Decimal
 
 from gwlfe.enums import GrowFlag
 
@@ -124,7 +125,7 @@ def kv_coefficient(ecs):
     Original at Class1.vb@1.3.0:4989-4995
     """
 
-    kv = [ec * KV_FACTOR for ec in ecs]
+    kv = ecs * Decimal(KV_FACTOR)
 
     for m in range(1, 12):
         kv[m] = (kv[m] + kv[m-1]) / 2
