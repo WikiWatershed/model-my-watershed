@@ -23,6 +23,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          growing_season,
                                          erosion_coeff,
                                          et_adjustment,
+                                         kv_coefficient,
                                          animal_energy_units,
                                          manure_spread,
                                          streams,
@@ -33,6 +34,8 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          sediment_phosphorus,
                                          groundwater_nitrogen_conc,
                                          sediment_delivery_ratio,
+                                         landuse_pcts,
+                                         normal_sys,
                                          )
 
 AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
@@ -104,6 +107,7 @@ def collect_data(geop_result, geojson):
     z.Grow = growing_season(ws)
     z.Acoef = erosion_coeff(ws, z.Grow)
     z.PcntET = et_adjustment(ws)
+    z.KV = kv_coefficient(z.Acoef)
     z.WxYrBeg = max([w.begyear for w in ws])
     z.WxYrEnd = min([w.endyear for w in ws])
     z.WxYrs = z.WxYrEnd - z.WxYrBeg + 1
@@ -141,8 +145,16 @@ def collect_data(geop_result, geojson):
 
     z.CN = np.array(geop_result['cn'])
     z.SedPhos = geop_result['sed_phos']
+    z.Area = np.array(geop_result['landuse_pcts'] * area * HECTARES_PER_SQM)
 
-    # Additional calculated values
+    z.NormalSys = normal_sys(z.Area)
+
+    # Original at Class1.vb@1.3.0:9803-9807
+    z.n23 = z.Area[1]    # Row Crops Area
+    z.n23b = z.Area[13]  # High Density Mixed Urban Area
+    z.n24 = z.Area[0]    # Hay/Pasture Area
+    z.n24b = z.Area[11]  # Low Density Mixed Urban Area
+
     z.SedDelivRatio = sediment_delivery_ratio(area * SQKM_PER_SQM)
     z.TotArea = area * HECTARES_PER_SQM
     z.GrNitrConc = geop_result['gr_nitr_conc']
@@ -252,6 +264,7 @@ def nlcd_soils(sjs_result):
     return {
         'cn': curve_number(n_count, ng_count),
         'sed_phos': sediment_phosphorus(nt_count),
+        'landuse_pcts': landuse_pcts(n_count),
     }
 
 

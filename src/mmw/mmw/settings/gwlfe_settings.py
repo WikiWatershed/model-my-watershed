@@ -448,11 +448,14 @@ GWLFE_DEFAULTS = {
 
 GWLFE_CONFIG = {
     'NumWeatherStations': 2,  # Number of weather stations to consider for each polygon
+    'KvFactor': 1.16,  # Original at Class1.vb@1.3.0:4987
     'Livestock': ['dairy_cows', 'beef_cows', 'hogs', 'sheep', 'horses'],
     'Poultry': ['broilers', 'layers', 'turkeys'],
     'ManureSpreadingLandUseIndices': [0, 1],  # Land Use Indices where manure spreading applies. Currently Hay/Past and Cropland.
     'AgriculturalNLCDCodes': [81, 82],  # NLCD codes considered agricultural. Correspond to Hay/Past and Cropland
     'MonthDays': [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
+    'SSLDR': 4.4,
+    'SSLDM': 2.2,
     'WeatherNull': -99999,  # This value is used to indicate NULL in ms_weather dataset
 }
 

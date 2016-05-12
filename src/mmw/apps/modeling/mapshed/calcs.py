@@ -14,6 +14,7 @@ from django.conf import settings
 from django.db import connection
 
 NUM_WEATHER_STATIONS = settings.GWLFE_CONFIG['NumWeatherStations']
+KV_FACTOR = settings.GWLFE_CONFIG['KvFactor']
 MONTHS = settings.GWLFE_DEFAULTS['Month']
 MONTHDAYS = settings.GWLFE_CONFIG['MonthDays']
 LIVESTOCK = settings.GWLFE_CONFIG['Livestock']
@@ -110,6 +111,25 @@ def et_adjustment(ws):
     avg_etadj = np.mean([w.etadj for w in ws])
 
     return np.array([avg_etadj] * 12)
+
+
+def kv_coefficient(ecs):
+    """
+    Given an array of erosion coefficients, returns an array of 12 decimals,
+    one for the KV coefficient of each month. The KV of a month is initialized
+    to the corresponding erosion coefficient value times the KV Factor, and
+    then averaged over the preceeding month. January being the first month is
+    not averaged.
+
+    Original at Class1.vb@1.3.0:4989-4995
+    """
+
+    kv = [ec * KV_FACTOR for ec in ecs]
+
+    for m in range(1, 12):
+        kv[m] = (kv[m] + kv[m-1]) / 2
+
+    return np.array(kv)
 
 
 def animal_energy_units(geom):
@@ -444,3 +464,55 @@ def sediment_delivery_ratio(area_sq_km):
                 (0.0014 * area_sq_km) + 0.198)
     else:
         return 0.451 * (area_sq_km ** (0 - 0.298))
+
+
+def landuse_pcts(n_count):
+    """
+    Given a dictionary mapping NLCD Codes to counts of cells, returns a
+    dictionary mapping MapShed Land Use Types to percent area covered.
+    """
+
+    total = sum(n_count.values())
+    if total > 0:
+        n_pct = {nlcd: float(count) / total
+                 for nlcd, count in n_count.iteritems()}
+    else:
+        n_pct = {nlcd: 0 for nlcd in n_count.keys()}
+
+    return [
+        n_pct.get(81, 0),  # Hay/Pasture
+        n_pct.get(82, 0),  # Cropland
+        n_pct.get(41, 0) + n_pct.get(42, 0) +
+        n_pct.get(43, 0) + n_pct.get(52, 0),  # Forest
+        n_pct.get(90, 0) + n_pct.get(95, 0),  # Wetland
+        0,  # Disturbed
+        0,  # Turf Grass
+        n_pct.get(21, 0) + n_pct.get(71, 0),  # Open Land
+        n_pct.get(12, 0) + n_pct.get(31, 0),  # Bare Rock
+        0,  # Sandy Areas
+        0,  # Unpaved Road
+        n_pct.get(22, 0),  # Low Density Mixed
+        n_pct.get(23, 0),  # Medium Density Mixed
+        n_pct.get(24, 0),  # High Density Mixed
+        0,  # Low Density Residential
+        0,  # Medium Density Residential
+        0,  # High Density Residential
+    ]
+
+
+def normal_sys(lu_area):
+    """
+    Given the land use area in hectares, estimates the number of normal septic
+    systems based on the constants SSLDR and SSLDM for Residential and Mixed
+    land uses respectively.
+    Since in this version Residential land uses are always 0, the value is
+    effectively dependent only on the area of medium density mixed land use.
+    However, we replicate the original formula for consistency.
+
+    Original at Class1.vb@1.3.0:9577-9579
+    """
+
+    SSLDR = settings.GWLFE_CONFIG['SSLDR']
+    SSLDM = settings.GWLFE_CONFIG['SSLDM']
+
+    return SSLDR * lu_area[14] + SSLDM * lu_area[11]
