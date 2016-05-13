@@ -133,5 +133,52 @@
         "name": "C/D - Medium/Very Slow Infiltration",
         "shortName": "C/D - Medium/Very Slow",
         "summary": "Group C/D soils have slow infiltration rates where artificially drained but behave as Group D soils where undrained."
+    },
+    "cover_crops": {
+        "name": "Cover Crops",
+        "summary": "Use of annual or perennial plant cover to protect the soil from erosion during the time period between the harvesting and planting of the primary crop. In addition to reducing soil erosion, cover crops can also limit nitrogen loss from cropped areas. Use of annual or perennial plant cover to protect the soil from erosion during the time period between the harvesting and planting of the primary crop. In addition to reducing soil erosion, cover crops can also limit nitrogen loss from cropped areas.",
+        "copyStyle": "deciduous_forest"
+    },
+    "conservation_tillage": {
+        "name": "Conservation Tillage",
+        "summary": "The purpose of this BMP is to leave enough residue from harvested crops on the soil surface (at least 30%) to significantly reduce soil erosion. Variations include seasonal residue management, mulch tillage and no-till planting.",
+        "copyStyle": "barren_land"
+    },
+    "nutrient_management": {
+        "name": "Nutrient Management",
+        "summary": "Refers to the planned use of organic and/or inorganic nutrients to sustain optimum crop production while at the same time protecting the quality of nearby water resources. This practice usually includes a farm-wide nutrient management plan that minimizes the use of animal wastes or commercial fertilizers to the greatest degree practicable.",
+        "copyStyle": "pasture"
+    },
+    "waste_management": {
+        "name": "Animal Waste Management Systems (Livestock &amp; Poultry)",
+        "shortName": "Waste Management",
+        "summary": "These are systems that are designed to collect runoff and/or wastes from confined animal operations for the purpose of breaking down organic wastes via aerobic or anaerobic processes. Typical examples include waste lagoons or holding tanks that collect the wastes and prevent their discharge to nearby streams.",
+        "copyStyle": "grassland"
+    },
+    "buffer_strips": {
+        "name": "Vegetated Buffer Strips",
+        "shortName": "Veg Buffer Strips",
+        "summary": "Areas of trees and/or grasses planted along streams or lakes that are designed to capture and renovate surface runoff and shallow subsurface flow from agricultural and urban areas via the processes of filtration, infiltration, absorption, adsorption, uptake, denitrification, volatilization, and deposition. A buffer width of 30 m (roughly 100 ft) is assumed.",
+        "copyStyle": "no_till"
+    },
+    "streambank_fencing": {
+        "name": "Streambank Fencing",
+        "summary": "This practice involves the construction of fencing that prohibits cattle from trampling stream banks, destroying protective vegetation, stirring up sediment in the streambed, and depositing organic waste directly into the stream.",
+        "copyStyle": "cultivated_crops"
+    },
+    "streambank_stabilization": {
+        "name": "Streambank Stabilization",
+        "summary": "The use of rip-rap, gabion walls, or a “bio-engineering” solution of some type along the edges of a stream to protect the banks during periods of heavy stream flow, thereby reducing direct stream bank erosion. The banks may also be covered with rocks, grass, trees, shrubs, and other protective surfaces to reduce erosion as well.",
+        "copyStyle": "woody_wetlands"
+    },
+    "water_retention": {
+        "name": "Surface Water Retention",
+        "summary": "With this practice, surface runoff from impervious areas is detained via this use of designed structures (e.g., retention/detention basins, constructed wetlands) for the purpose of reducing peak flows and promoting the reduction of nutrient and sediment loads primarily via sedimentation and/or plant uptake.",
+        "copyStyle": "rain_garden"
+    },
+    "infiltration": {
+        "name": "Infiltration / Bioretention",
+        "summary": "Various approaches that achieve runoff reduction and the treatment of urban pollutants (primarily nutrients) through the promotion of infiltration, evapotranspiration and renovation via subsurface flow. Examples include the use of pervious materials/porous pavement, infiltration basins/trenches, and vegetated roofs. It is assumed that runoff from a 2.54 cm (I.0 in) rainfall event is captured.",
+        "copyStyle": "infiltration_trench"
     }
 }
