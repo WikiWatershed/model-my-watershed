@@ -2,17 +2,16 @@
 
 var $ = require('jquery'),
     _ = require('underscore'),
-    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     drawUtils = require('../draw/utils'),
     coreUtils = require('../core/utils'),
     models = require('./models'),
     modificationConfigUtils = require('./modificationConfigUtils'),
-    landCoverTmpl = require('./templates/controls/landCover.html'),
-    conservationPracticeTmpl = require('./templates/controls/conservationPractice.html'),
     precipitationTmpl = require('./templates/controls/precipitation.html'),
-    summaryTmpl = require('./templates/controls/summary.html');
+    manualEntryTmpl = require('./templates/controls/manualEntry.html'),
+    thumbSelectTmpl = require('./templates/controls/thumbSelect.html'),
+    modDropdownTmpl = require('./templates/controls/modDropdown.html');
 
 // Simulation input controls base class.
 var ControlView = Marionette.LayoutView.extend({
@@ -35,24 +34,51 @@ var ControlView = Marionette.LayoutView.extend({
     }
 });
 
-// Drawing control base class.
-var DrawControlView = ControlView.extend({
+var ThumbSelectView = Marionette.ItemView.extend({
+    template: thumbSelectTmpl,
+
+    initialize: function(options) {
+        this.model.set('activeMod', null);
+        this.addModification = options.addModification;
+    },
+
     ui: {
+        thumb: '.thumb',
         drawControl: '[data-value]'
     },
 
     events: {
-        'click @ui.drawControl': 'startDrawing'
+        'click @ui.drawControl': 'onThumbClick',
+        'mouseenter @ui.thumb': 'onThumbHover'
     },
 
-    startDrawing: function(e) {
+    modelEvents: {
+        'change:activeMod': 'render'
+    },
+
+    onThumbHover: function(e) {
+        var value = $(e.currentTarget).data('value');
+        this.model.set('activeMod', value);
+    },
+
+    onThumbClick: function(e) {
+        var $el = $(e.currentTarget),
+            controlName = this.model.get('controlName'),
+            controlValue = $el.data('value');
+
+        if (this.model.get('manualMode')) {
+            this.startManual(controlName, controlValue);
+        } else {
+            this.startDrawing(controlName, controlValue);
+        }
+    },
+
+    startDrawing: function(controlName, controlValue) {
         var self = this,
-            $el = $(e.currentTarget),
-            controlName = this.getControlName(),
-            controlValue = $el.data('value'),
             map = App.getLeafletMap(),
             drawOpts = modificationConfigUtils.getDrawOpts(controlValue);
 
+        this.model.set('dropdownOpen', false);
         drawUtils.drawPolygon(map, drawOpts).then(function(geojson) {
             self.addModification(new models.ModificationModel({
                 name: controlName,
@@ -60,40 +86,106 @@ var DrawControlView = ControlView.extend({
                 shape: geojson
             }));
         });
+    },
+
+    startManual: function(controlName, controlValue) {
+        this.model.set('manualMod', controlValue);
     }
 });
 
-var SummaryView = Marionette.ItemView.extend({
-    template: summaryTmpl
-});
+var ManualEntryView = Marionette.ItemView.extend({
+    template: manualEntryTmpl,
 
-var ModificationsView = DrawControlView.extend({
-    ui: _.defaults({
-        thumb: '.thumb',
-        button: 'button'
-    }, DrawControlView.prototype.ui),
-
-    regions: {
-        summaryRegion: '.summary-region'
+    ui: {
+        'backButton': '.back-button',
+        'convertButton': '.convert-button'
     },
 
-    events: _.defaults({
-        'mouseenter @ui.thumb': 'onMouseHover'
-    }, DrawControlView.prototype.events),
+    events: {
+        'click @ui.backButton': 'clearManualMod',
+        'click @ui.convertButton': 'convert'
+    },
 
-    onMouseHover: function(e) {
-        var value = $(e.currentTarget).data('value');
+    clearManualMod: function() {
+        this.model.set('manualMod', null);
+    },
 
-        this.summaryRegion.show(new SummaryView({
-            model: new Backbone.Model({
-                value: value
-            })
-        }));
+    convert: function() {
+        // TODO add modification
+        this.model.set('dropdownOpen', false);
+        this.clearManualMod();
+    }
+});
+
+var ModificationsView = ControlView.extend({
+    template: modDropdownTmpl,
+
+    initialize: function(options) {
+        ControlView.prototype.initialize.apply(this, [options]);
+        var self = this;
+
+        // If clicked outside this view and dropdown is open, then close it.
+        $(document).mouseup(function(e) {
+            var isTargetOutsideDropdown = $(e.target).parents('.dropdown-menu').length === 0;
+
+            if (isTargetOutsideDropdown && self.model.get('dropdownOpen')) {
+                self.model.set('dropdownOpen', false);
+            }
+        });
+    },
+
+    ui: {
+        dropdownButton: '.dropdown-button'
+    },
+
+    events: {
+        'click @ui.dropdownButton': 'onClickDropdownButton'
+    },
+
+    modelEvents: {
+        'change:dropdownOpen': 'render',
+        'change:manualMod': 'updateContent'
+    },
+
+    regions: {
+        modContentRegion: '.mod-content-region'
+    },
+
+    onClickDropdownButton: function() {
+        if (!this.model.get('dropdownOpen')) {
+            this.model.set('dropdownOpen', true);
+        }
+    },
+
+    onRender: function() {
+        this.updateContent();
+    },
+
+    updateContent: function() {
+        if (this.model.get('manualMod')) {
+            this.modContentRegion.show(new ManualEntryView({model: this.model}));
+        } else {
+            this.modContentRegion.show(new ThumbSelectView({
+                addModification: this.addModification,
+                model: this.model
+            }));
+        }
     }
 });
 
 var LandCoverView = ModificationsView.extend({
-    template: landCoverTmpl,
+    initialize: function(options) {
+        ModificationsView.prototype.initialize.apply(this, [options]);
+        this.model.set({
+            controlName: this.getControlName(),
+            controlDisplayName: 'Land Cover',
+            modRows: [
+                ['open_water', 'developed_open', 'developed_low', 'developed_med'],
+                ['developed_high', 'barren_land', 'deciduous_forest', 'shrub'],
+                ['grassland', 'pasture', 'cultivated_crops', 'woody_wetlands']
+            ]
+        });
+    },
 
     getControlName: function() {
         return 'landcover';
@@ -101,10 +193,41 @@ var LandCoverView = ModificationsView.extend({
 });
 
 var ConservationPracticeView = ModificationsView.extend({
-    template: conservationPracticeTmpl,
+    initialize: function(options) {
+        ModificationsView.prototype.initialize.apply(this, [options]);
+        this.model.set({
+            controlName: this.getControlName(),
+            controlDisplayName: 'Conservation Practice',
+            modRows: [
+                ['rain_garden', 'infiltration_trench', 'porous_paving'],
+                ['green_roof', 'no_till', 'cluster_housing']
+            ]
+        });
+    },
 
     getControlName: function() {
         return 'conservation_practice';
+    }
+});
+
+var GwlfeConservationPracticeView = ModificationsView.extend({
+    initialize: function(options) {
+        ModificationsView.prototype.initialize.apply(this, [options]);
+        this.model.set({
+            controlName: this.getControlName(),
+            controlDisplayName: 'Conservation Practice',
+            manualMode: true,
+            manualMod: null,
+            modRows: [
+                ['cover_crops', 'conservation_tillage', 'nutrient_management'],
+                ['waste_management', 'buffer_strips', 'streambank_fencing'],
+                ['streambank_stabilization', 'water_retention', 'infiltration']
+            ]
+        });
+    },
+
+    getControlName: function() {
+        return 'gwlfe_conservation_practice';
     }
 });
 
@@ -250,6 +373,8 @@ function getControlView(controlName) {
             return LandCoverView;
         case 'conservation_practice':
             return ConservationPracticeView;
+        case 'gwlfe_conservation_practice':
+            return GwlfeConservationPracticeView;
         case 'precipitation':
             return PrecipitationView;
     }
@@ -259,6 +384,7 @@ function getControlView(controlName) {
 module.exports = {
     LandCoverView: LandCoverView,
     ConservationPracticeView: ConservationPracticeView,
+    GwlfeConservationPracticeView: GwlfeConservationPracticeView,
     PrecipitationView: PrecipitationView,
     getControlView: getControlView,
     PrecipitationSynchronizer: PrecipitationSynchronizer

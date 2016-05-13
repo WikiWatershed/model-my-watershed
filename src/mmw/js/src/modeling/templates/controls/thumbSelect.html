@@ -1,0 +1,25 @@
+<div class="thumb-select">
+    <div class="pad-1">
+        {% for modRow in modRows %}
+            <ul class="row">
+                {% for modKey in modRow %}
+                    <li>
+                        <div class="thumb" data-value="{{ modKey }}">
+                            <svg height="{{ 56 }}" width="{{ 56 }}">
+                                <rect height="{{ 56 }}" width="{{ 56 }}" fill="{{ modKey|modFill }}"></rect>
+                            </svg>
+                        </div>
+                        <label class="dark">{{ modKey|modShortName }}</label>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    </div>
+
+    {% if activeMod %}
+        <div class="dropdown-footer pad-1 summary-region">
+            <h2 class="dark">{{ activeMod|modName }}</h2>
+            <p class="small summary">{{ activeMod|modSummary }}</p>
+        </div>
+    {% endif %}
+</div>
