@@ -30,7 +30,7 @@ elasticsearch_cluster_name: "logstash"
 
 nodejs_npm_version: 2.1.17
 
-java_version: "7u95-*"
+java_version: "7u101-*"
 
 graphite_carbon_version: "0.9.13-pre1"
 graphite_whisper_version: "0.9.13-pre1"
