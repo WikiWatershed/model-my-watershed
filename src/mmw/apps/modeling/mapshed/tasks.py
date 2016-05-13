@@ -36,9 +36,11 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          sediment_delivery_ratio,
                                          landuse_pcts,
                                          normal_sys,
+                                         sed_a_factor
                                          )
 
-NLU = settings.GWLFE_DEFAULTS['NLU']
+NLU = settings.GWLFE_CONFIG['NLU']
+NRur = settings.GWLFE_DEFAULTS['NRur']
 AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
 ACRES_PER_SQM = 0.000247105
 HECTARES_PER_SQM = 0.0001
@@ -144,7 +146,7 @@ def collect_data(geop_result, geojson):
 
     z.CN = np.array(geop_result['cn'])
     z.SedPhos = geop_result['sed_phos']
-    z.Area = np.array(geop_result['landuse_pcts'] * area * HECTARES_PER_SQM)
+    z.Area = np.array(geop_result['landuse_pcts']) * area * HECTARES_PER_SQM
 
     z.NormalSys = normal_sys(z.Area)
 
@@ -169,7 +171,10 @@ def collect_data(geop_result, geojson):
     z.GrNitrConc = geop_result['gr_nitr_conc']
     z.GrPhosConc = geop_result['gr_phos_conc']
     z.MaxWaterCap = geop_result['avg_awc']
-
+    z.SedAFactor = sed_a_factor(geop_result['landuse_pcts'],
+                                z.CN, z.AEU, z.AvKF, z.AvSlope)
+    # TODO remove before merging
+    print('SedAFactor: ' + z.SedAFactor)
     # TODO pass real input to model instead of reading it from gms file
     gms_filename = join(dirname(abspath(__file__)), 'data/sample_input.gms')
     gms_file = open(gms_filename, 'r')
@@ -351,7 +356,7 @@ def nlcd_slope(result):
     output = {
         'ag_slope_3_pct': ag_slope_3_pct,
         'ag_slope_3_8_pct': ag_slope_3_8_pct,
-        'n41': n41,
+        'n41': n41
     }
 
     # TODO remove before merging
@@ -369,7 +374,7 @@ def slope(result):
 
     # average slope over the AOI
     # see Class1.vb#6252
-    avg_slope = result
+    avg_slope = result[0]
 
     output = {
         'avg_slope': avg_slope
@@ -386,7 +391,7 @@ def get_lu_index(nlcd):
         lu_index = 1
     elif nlcd == 82:
         lu_index = 2
-    elif nlcd in [41, 42, 43]:
+    elif nlcd in [41, 42, 43, 52]:
         lu_index = 3
     elif nlcd in [90, 95]:
         lu_index = 4
@@ -395,13 +400,11 @@ def get_lu_index(nlcd):
     elif nlcd in [12, 31]:
         lu_index = 8
     elif nlcd == 22:
-        lu_index = 10
-    elif nlcd == 23:
         lu_index = 11
-    elif nlcd == 24:
+    elif nlcd == 23:
         lu_index = 12
-    elif nlcd == 11:
-        lu_index = 16
+    elif nlcd == 24:
+        lu_index = 13
     else:
         return None
 

@@ -7,12 +7,14 @@ import math
 import numpy as np
 
 from collections import namedtuple
+import decimal
 
 from gwlfe.enums import GrowFlag
 
 from django.conf import settings
 from django.db import connection
 
+NRur = settings.GWLFE_DEFAULTS['NRur']
 NUM_WEATHER_STATIONS = settings.GWLFE_CONFIG['NumWeatherStations']
 KV_FACTOR = settings.GWLFE_CONFIG['KvFactor']
 MONTHS = settings.GWLFE_DEFAULTS['Month']
@@ -124,7 +126,7 @@ def kv_coefficient(ecs):
     Original at Class1.vb@1.3.0:4989-4995
     """
 
-    kv = [ec * KV_FACTOR for ec in ecs]
+    kv = [ec * decimal.Decimal(KV_FACTOR) for ec in ecs]
 
     for m in range(1, 12):
         kv[m] = (kv[m] + kv[m-1]) / 2
@@ -468,8 +470,9 @@ def sediment_delivery_ratio(area_sq_km):
 
 def landuse_pcts(n_count):
     """
-    Given a dictionary mapping NLCD Codes to counts of cells, returns a
-    dictionary mapping MapShed Land Use Types to percent area covered.
+    Given a dictionary mapping NLCD Codes to counts of cells, returns an
+    array mapping MapShed Land Use Types (as the index) to percent
+    area covered.
     """
 
     total = sum(n_count.values())
@@ -516,3 +519,24 @@ def normal_sys(lu_area):
     SSLDM = settings.GWLFE_CONFIG['SSLDM']
 
     return SSLDR * lu_area[14] + SSLDM * lu_area[11]
+
+
+def sed_a_factor(landuse_pct_vals, cn, AEU, AvKF, AvSlope):
+    # see Class1.vb#10518
+    urban_pct = sum(landuse_pct_vals[NRur:])
+
+    # see Class1.vb#10512
+    avg_cn = 0
+    nonzero_pct_sum = 0
+    for (cn_val, pct) in zip(cn, landuse_pct_vals):
+        avg_cn += cn_val * pct
+        if cn_val != 0:
+            nonzero_pct_sum += pct
+    # We need to normalize since the land uses with cn_val ==0
+    # shouldn't be counted as part of the average.
+    avg_cn = avg_cn / nonzero_pct_sum if nonzero_pct_sum > 0 else 0.0
+
+    # see Class1.vb#10521
+    return ((0.00467 * urban_pct) + (0.000863 * AEU) +
+            (0.000001 * avg_cn) + (0.000425 * AvKF) +
+            (0.000001 * AvSlope) - 0.000036)
