@@ -173,8 +173,7 @@ def collect_data(geop_result, geojson):
     z.MaxWaterCap = geop_result['avg_awc']
     z.SedAFactor = sed_a_factor(geop_result['landuse_pcts'],
                                 z.CN, z.AEU, z.AvKF, z.AvSlope)
-    # TODO remove before merging
-    print('SedAFactor: ' + z.SedAFactor)
+
     # TODO pass real input to model instead of reading it from gms file
     gms_filename = join(dirname(abspath(__file__)), 'data/sample_input.gms')
     gms_file = open(gms_filename, 'r')
@@ -359,9 +358,6 @@ def nlcd_slope(result):
         'n41': n41
     }
 
-    # TODO remove before merging
-    print(output)
-
     return output
 
 
@@ -380,35 +376,7 @@ def slope(result):
         'avg_slope': avg_slope
     }
 
-    # TODO remove before merging
-    print(output)
-
     return output
-
-
-def get_lu_index(nlcd):
-    if nlcd == 81:
-        lu_index = 1
-    elif nlcd == 82:
-        lu_index = 2
-    elif nlcd in [41, 42, 43, 52]:
-        lu_index = 3
-    elif nlcd in [90, 95]:
-        lu_index = 4
-    elif nlcd in [21, 71]:
-        lu_index = 7
-    elif nlcd in [12, 31]:
-        lu_index = 8
-    elif nlcd == 22:
-        lu_index = 11
-    elif nlcd == 23:
-        lu_index = 12
-    elif nlcd == 24:
-        lu_index = 13
-    else:
-        return None
-
-    return lu_index - 1
 
 
 @shared_task(throws=Exception)
@@ -423,7 +391,7 @@ def nlcd_kfactor(result):
     kf = [0.0] * NLU
     for nlcd_code, kfactor in result.iteritems():
         lu_ind = get_lu_index(nlcd_code)
-        if lu_ind:
+        if lu_ind is not None:
             kf[lu_ind] = kfactor
 
     # average kfactor across all land uses, ignoring zero values
@@ -437,9 +405,6 @@ def nlcd_kfactor(result):
         'kf': kf,
         'avg_kf': avg_kf
     }
-
-    # TODO remove before merging
-    print(output)
 
     return output
 
@@ -488,3 +453,29 @@ def combine(geop_results):
 def parse_sjs_result(sjs_result):
     # Convert string "List(1,2,3)" into tuple (1,2,3) for each key
     return {make_tuple(key[4:]): val for key, val in sjs_result.items()}
+
+
+def get_lu_index(nlcd):
+    # Convert NLCD code into MapShed Land Use Index
+    if nlcd == 81:
+        lu_index = 1
+    elif nlcd == 82:
+        lu_index = 2
+    elif nlcd in [41, 42, 43, 52]:
+        lu_index = 3
+    elif nlcd in [90, 95]:
+        lu_index = 4
+    elif nlcd in [21, 71]:
+        lu_index = 7
+    elif nlcd in [12, 31]:
+        lu_index = 8
+    elif nlcd == 22:
+        lu_index = 11
+    elif nlcd == 23:
+        lu_index = 12
+    elif nlcd == 24:
+        lu_index = 13
+    else:
+        return None
+
+    return lu_index - 1
