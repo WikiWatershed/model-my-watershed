@@ -447,6 +447,8 @@ GWLFE_DEFAULTS = {
 }
 
 GWLFE_CONFIG = {
+    'NLU': (GWLFE_DEFAULTS['NUrb'] +
+            GWLFE_DEFAULTS['NRur']), # Total Number of Land Use Categories
     'NumWeatherStations': 2,  # Number of weather stations to consider for each polygon
     'KvFactor': 1.16,  # Original at Class1.vb@1.3.0:4987
     'Livestock': ['dairy_cows', 'beef_cows', 'hogs', 'sheep', 'horses'],
