@@ -8,7 +8,6 @@ import json
 import requests
 
 from math import sqrt
-from os.path import join, dirname, abspath
 
 from celery import shared_task
 
@@ -16,7 +15,8 @@ from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
     data_to_survey, data_to_censuses
 
 from tr55.model import simulate_day
-from gwlfe import gwlfe, parser
+from gwlfe import gwlfe
+from gwlfe.datamodel import DataModel
 
 logger = logging.getLogger(__name__)
 
@@ -332,13 +332,7 @@ def build_tr55_modification_input(pieces, censuses):
 
 @shared_task
 def run_gwlfe(model_input):
-    # TODO pass real input to model instead of reading it from gms file
-    gms_filename = join(dirname(abspath(__file__)),
-                        'mapshed/data/sample_input.gms')
-    gms_file = open(gms_filename, 'r')
-    z = parser.GmsReader(gms_file).read()
-
     # The frontend expects an object with runoff and quality as keys.
+    z = DataModel(model_input)
     response_json = {'runoff': gwlfe.run(z)}
-
     return response_json
