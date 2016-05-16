@@ -51,7 +51,8 @@
         "strokeColor": "#356EB9"
     },
     "developed_open": {
-        "name": "Turf Grass",
+        "name": "Developed, Open Space",
+        "shortName": "Developed-Open",
         "summary": "NLCD Class 21: Areas with a mixture of some constructed materials, but mostly vegetation in the form of lawn grasses. Impervious surfaces account for less than 20% of total cover. These areas most commonly include large-lot single-family housing units, parks, playing fields, golf courses, and vegetation planted in developed settings for recreation, erosion control, or aesthetic purposes.",
         "strokeColor": "#172E2E"
     },
