@@ -1,5 +1,7 @@
 # model-my-watershed
 
+Jenkins
+
 ## Local Development
 
 A combination of Vagrant 1.6+ and Ansible 1.8+ is used to setup the development environment for this project. The project consists of the following virtual machines:
