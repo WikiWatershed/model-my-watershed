@@ -16,7 +16,14 @@ var TR55_PACKAGE = 'tr-55';
 
 var ModelPackageControlModel = Backbone.Model.extend({
     defaults: {
-        name: ''
+        name: '',
+        controlName: '',
+        controlDisplayName: '',
+        manualMode: false,
+        manualMod: '',
+        activeMod: '',
+        modRows: null,
+        dropdownOpen: false
     },
 
     // Return true if this is an input control and false if it is a
@@ -846,8 +853,14 @@ function getControlsForModelPackage(modelPackageName, options) {
             ]);
         }
     } else if (modelPackageName === GWLFE) {
-        // TODO add controls for GWLFE
-        return new ModelPackageControlsCollection([]);
+        if (options && (options.compareMode ||
+                        options.is_current_conditions)) {
+            return new ModelPackageControlsCollection();
+        } else {
+            return new ModelPackageControlsCollection([
+                new ModelPackageControlModel({ name: 'gwlfe_conservation_practice' })
+            ]);
+        }
     }
 
     throw 'Model package not supported ' + modelPackageName;

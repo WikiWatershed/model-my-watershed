@@ -4,6 +4,7 @@
   line-height: 1!important;
 
   .dropdown-menu {
+    padding: 0;
     border-radius: $radius-sm!important;
     border: 1px solid $black-12;
     box-shadow: 0 0 6px $black-24;
@@ -62,13 +63,38 @@
   }
 }
 
+.manual-entry {
+  .header {
+    position: relative;
+
+    .header-text {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+
+      .name, .back-button {
+        display: inline;
+      }
+    }
+  }
+
+  .amount-form {
+    margin: 10px;
+  }
+}
+
 //Drawing Tools Dropdown
-#land-tools, #conserve-tools {
+.thumb-select {
   padding: 0!important;
   min-width: 200px;
 
   .summary {
     line-height: 150%;
+  }
+
+  .select-draw-manual {
+    padding-left: 1rem;
+    padding-bottom: 0.5rem;
   }
 
   ul {

@@ -1,0 +1,18 @@
+<div class="manual-entry">
+    <div class="header">
+        <div class="header-text">
+            <button class="btn btn-icon back-button">
+                <i class="fa fa-arrow-left"></i>
+            </button>
+            <div class="name">{{ manualMod|modShortName}}</div>
+        </div>
+        <svg height="40" width="200">
+            <rect height="40" width="200" fill="{{ manualMod|modFill }}"></rect>
+        </svg>
+    </div>
+    <div class="amount-form form-group">
+      <label for="bmp-amount">Amount</label>
+      <input type="text" class="form-control" id="bmp-amount">
+    </div>
+    <button type="button" class="btn btn-lg btn-block btn-active convert-button">Convert</button>
+</div>
