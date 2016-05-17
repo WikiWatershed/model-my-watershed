@@ -24,6 +24,7 @@ POULTRY = settings.GWLFE_CONFIG['Poultry']
 LITERS_PER_MGAL = 3785412
 WEATHER_NULL = settings.GWLFE_CONFIG['WeatherNull']
 AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
+KM_PER_M = 0.001
 
 
 def day_lengths(geom):
@@ -202,6 +203,47 @@ def manure_spread(aeu):
         p_list[lu] = p_spread
 
     return n_list, p_list
+
+
+def ls_factors(lu_strms, total_strm_len, areas, avg_slope):
+    results = [0.0] * len(lu_strms)
+    if 0 <= avg_slope <= 1.0:
+        m = 0.2
+    elif 1.0 < avg_slope <= 3.5:
+        m = 0.3
+    elif 3.5 < avg_slope <= 4.5:
+        m = 0.4
+    else:
+        m = 0.5
+
+    for i in range(len(lu_strms)):
+        results[i] = (ls_factor(lu_strms[i] * total_strm_len * KM_PER_M,
+                      areas[i], avg_slope, m))
+
+    return results
+
+
+def ls_factor(stream_length, area, avg_slope, m):
+    #  units --> stream_length:km, area:hectare, avg_slope:%, m:(n/a)
+    if area == 0.0:
+        return 0.0
+
+    slope_cell_size = 30
+
+    #  ensure a floor on the stream length of 250m
+    if stream_length < (250.0 * KM_PER_M):
+        slope_length = (0.5 * area * 10000) / 250.0
+    else:
+        slope_length = (0.5 * area) / stream_length
+
+    ls = (((slope_length / 22.13) ** m) *
+          (0.065 + (0.043 * avg_slope) + (0.0065 * (avg_slope ** 2))))
+
+    #  keep this for posterity
+    if slope_cell_size < 50:
+        return (0.0793 * ls) + 0.1913
+    else:
+        return ls
 
 
 def stream_length(geom, drb=False):
