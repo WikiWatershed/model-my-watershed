@@ -119,6 +119,7 @@ var ProjectModel = Backbone.Model.extend({
         scenarios: null,                // ScenariosCollection
         user_id: 0,                     // User that created the project
         is_activity: false,             // Project that persists across routes
+        gis_data: null,                 // Additionally gathered data, such as MapShed for GWLF-E
         needs_reset: false,             // Should we overwrite project data on next save?
         allow_save: true                // Is allowed to save to the server - false in compare mode
     },

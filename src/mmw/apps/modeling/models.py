@@ -39,6 +39,10 @@ class Project(models.Model):
     is_activity = models.BooleanField(
         default=False,
         help_text='Projects with special properties')
+    gis_data = models.TextField(
+        null=True,
+        help_text='Serialized JSON representation of additional'
+                  ' data gathering steps, such as MapShed.')
 
     def __unicode__(self):
         return self.name
