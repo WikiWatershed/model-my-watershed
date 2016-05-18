@@ -52,6 +52,7 @@ export PUBLIC_HOSTED_ZONE_NAME=$(cat /etc/mmw.d/env/MMW_PUBLIC_HOSTED_ZONE_NAME)
 
 # Ensure that the PostGIS extension exists
 psql -c "CREATE EXTENSION IF NOT EXISTS postgis;"
+psql -c "ALTER TABLE spatial_ref_sys OWNER TO ${PGUSER};"
 
 # Run migrations
 envdir /etc/mmw.d/env /opt/app/manage.py migrate
