@@ -1,5 +1,3 @@
-import numpy as np
-
 from gwlfe.enums import (LandUse as lu,
                          ETflag as et,
                          YesOrNo as b,
@@ -19,10 +17,10 @@ GWLFE_DEFAULTS = {
     'TileDrainRatio': 0,  # Tile Drain Ratio
     'TileDrainDensity': 0,  # Tile Drain Density
     'ETFlag': et.HAMON_METHOD,  # ET Flag: 0 for Hamon method, 1 for Blainy-Criddle method
-    'AntMoist': np.zeros(5),  # Antecedent Rain + Melt Moisture Conditions for Days 1 to 5
-    'StreamWithdrawal': np.zeros(12),  # Surface Water Withdrawal/Extraction
-    'GroundWithdrawal': np.zeros(12),  # Groundwater Withdrawal/Extraction
-    'PcntET': np.ones(12),  # Percent monthly adjustment for ET calculation
+    'AntMoist': [0.0] * 5,  # Antecedent Rain + Melt Moisture Conditions for Days 1 to 5
+    'StreamWithdrawal': [0.0] * 12,  # Surface Water Withdrawal/Extraction
+    'GroundWithdrawal': [0.0] * 12,  # Groundwater Withdrawal/Extraction
+    'PcntET': [1.0] * 12,  # Percent monthly adjustment for ET calculation
     'Landuse': [lu.HAY_PAST,   # Maps NLCD 81
                 lu.CROPLAND,   # Maps NLCD 82
                 lu.FOREST,     # Maps NLCD 41, 42, 43, 52
@@ -40,14 +38,14 @@ GWLFE_DEFAULTS = {
                 lu.MD_RESIDENTIAL,  # Does not map to NLCD
                 lu.HD_RESIDENTIAL,  # Does not map to NLCD
                 ],
-    'Imper': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,          # Impervious surface area percentage
-                       0.15, 0.52, 0.87, 0.15, 0.52, 0.87]),  # only defined for urban land use types
-    'CNI': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Curve Number for Impervious Surfaces
-                     92, 98, 98, 92, 92, 92]),      # only defined for urban land use types
-    'CNP': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Curve Number for Pervious Surfaces
-                     74, 79, 79, 74, 74, 74]),      # only defined for urban land use types
-    'TotSusSolids': np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Total Suspended Solids factor
-                              60, 70, 80, 90, 100, 110]),    # only defined for urban land use types
+    'Imper': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         # Impervious surface area percentage
+              0.15, 0.52, 0.87, 0.15, 0.52, 0.87],  # only defined for urban land use types
+    'CNI': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Curve Number for Impervious Surfaces
+            92, 98, 98, 92, 92, 92],       # only defined for urban land use types
+    'CNP': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Curve Number for Pervious Surfaces
+            74, 79, 79, 74, 74, 74],       # only defined for urban land use types
+    'TotSusSolids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Total Suspended Solids factor
+                     60, 70, 80, 90, 100, 110],    # only defined for urban land use types
     'PhysFlag': b.NO,  # Flag: Physiographic Province Layer Detected (0 No; 1 Yes)
     'PointFlag': b.YES,  # Flag: Point Source Layer Detected (0 No; 1 Yes)
     'SeptSysFlag': b.NO,  # Flag: Septic System Layer Detected (0 No; 1 Yes)
@@ -63,41 +61,41 @@ GWLFE_DEFAULTS = {
     'LastManureMonth': 0,  # MS Period 1: Last Month
     'FirstManureMonth2': 0,  # MS Period 2: First Month
     'LastManureMonth2': 0,  # MS Period 2: Last Month
-    'NitrConc': np.array([0.75, 2.90, 0.19, 0.19, 0.02,  # Dissolved Runoff Coefficient: Nitrogen mg/l
-                          2.50, 0.50, 0.30, 0.10, 0.19,  # only defined for rural land use types
-                          0, 0, 0, 0, 0, 0]),
-    'PhosConc': np.array([0.01, 0.01, 0.01, 0.01, 0.01,  # Dissolved Runoff Coefficient: Phosphorus mg/l
-                          0.01, 0.01, 0.01, 0.01, 0.01,  # only defined for rural land use types
-                          0, 0, 0, 0, 0, 0]),
+    'NitrConc': [0.75, 2.90, 0.19, 0.19, 0.02,  # Dissolved Runoff Coefficient: Nitrogen mg/l
+                 2.50, 0.50, 0.30, 0.10, 0.19,  # only defined for rural land use types
+                 0, 0, 0, 0, 0, 0],
+    'PhosConc': [0.01, 0.01, 0.01, 0.01, 0.01,  # Dissolved Runoff Coefficient: Phosphorus mg/l
+                 0.01, 0.01, 0.01, 0.01, 0.01,  # only defined for rural land use types
+                 0, 0, 0, 0, 0, 0],
     'Nqual': 3,  # Number of Contaminants (Default = 3)
     'Contaminant': ['Nitrogen', 'Phosphorus', 'Sediment'],
-    'LoadRateImp': np.array([[], [], [], [], [], [], [], [], [], [],  # Load Rate on Impervious Surfaces per urban land use per contaminant
-                             [0.095, 0.0095, 2.80],    # Ld_Mixed
-                             [0.105, 0.0105, 6.20],    # Md_Mixed
-                             [0.110, 0.0115, 2.80],    # Hd_Mixed
-                             [0.095, 0.0095, 2.50],    # Ld_Residential
-                             [0.100, 0.0115, 6.20],    # Md_Residential
-                             [0.105, 0.0120, 5.00]]),  # Hd_Residential
-    'LoadRatePerv': np.array([[], [], [], [], [], [], [], [], [], [],  # Load Rate on Pervious Surfaces per urban land use per contaminant
-                              [0.015, 0.0021, 0.80],    # Ld_Mixed
-                              [0.015, 0.0021, 0.80],    # Md_Mixed
-                              [0.015, 0.0021, 0.80],    # Hd_Mixed
-                              [0.015, 0.0019, 1.30],    # Ld_Residential
-                              [0.015, 0.0039, 1.10],    # Md_Residential
-                              [0.015, 0.0078, 1.50]]),  # Hd_Residential
-    'DisFract': np.array([[], [], [], [], [], [], [], [], [], [],  # Dissolved Fraction per urban land use per contaminant
-                          [0.33, 0.40, 0],    # Ld_Mixed
-                          [0.33, 0.40, 0],    # Md_Mixed
-                          [0.33, 0.40, 0],    # Hd_Mixed
-                          [0.28, 0.37, 0],    # Ld_Residential
-                          [0.28, 0.37, 0],    # Md_Residential
-                          [0.28, 0.37, 0]]),  # Hd_Residential
-    'UrbBMPRed': np.zeros((16, 3)),  # Urban BMP Reduction
+    'LoadRateImp': [[], [], [], [], [], [], [], [], [], [],  # Load Rate on Impervious Surfaces per urban land use per contaminant
+                    [0.095, 0.0095, 2.80],   # Ld_Mixed
+                    [0.105, 0.0105, 6.20],   # Md_Mixed
+                    [0.110, 0.0115, 2.80],   # Hd_Mixed
+                    [0.095, 0.0095, 2.50],   # Ld_Residential
+                    [0.100, 0.0115, 6.20],   # Md_Residential
+                    [0.105, 0.0120, 5.00]],  # Hd_Residential
+    'LoadRatePerv': [[], [], [], [], [], [], [], [], [], [],  # Load Rate on Pervious Surfaces per urban land use per contaminant
+                     [0.015, 0.0021, 0.80],   # Ld_Mixed
+                     [0.015, 0.0021, 0.80],   # Md_Mixed
+                     [0.015, 0.0021, 0.80],   # Hd_Mixed
+                     [0.015, 0.0019, 1.30],   # Ld_Residential
+                     [0.015, 0.0039, 1.10],   # Md_Residential
+                     [0.015, 0.0078, 1.50]],  # Hd_Residential
+    'DisFract': [[], [], [], [], [], [], [], [], [], [],  # Dissolved Fraction per urban land use per contaminant
+                 [0.33, 0.40, 0],   # Ld_Mixed
+                 [0.33, 0.40, 0],   # Md_Mixed
+                 [0.33, 0.40, 0],   # Hd_Mixed
+                 [0.28, 0.37, 0],   # Ld_Residential
+                 [0.28, 0.37, 0],   # Md_Residential
+                 [0.28, 0.37, 0]],  # Hd_Residential
+    'UrbBMPRed': [[0.0] * 3 for m in range(12)],  # Urban BMP Reduction
     'SepticFlag': b.YES,  # Flag: Septic Systems Layer Detected (0 No; 1 Yes)
-    'NumPondSys': np.zeros(12),  # Number of People on Pond Systems
-    'NumShortSys': np.zeros(12),  # Number of People on Short Circuit Systems
-    'NumDischargeSys': np.zeros(12),  # Number of People on Discharge Systems
-    'NumSewerSys': np.zeros(12),  # Number of People on Public Sewer Systems
+    'NumPondSys': [0] * 12,  # Number of People on Pond Systems
+    'NumShortSys': [0] * 12,  # Number of People on Short Circuit Systems
+    'NumDischargeSys': [0] * 12,  # Number of People on Discharge Systems
+    'NumSewerSys': [0] * 12,  # Number of People on Public Sewer Systems
     'NitrSepticLoad': 12,  # Per Capita Tank Load: N (g/d)
     'PhosSepticLoad': 2.5,  # Per Capita Tank Load: P (g/d)
     'NitrPlantUptake': 1.6,  # Growing System Uptake: N (g/d)
@@ -316,11 +314,11 @@ GWLFE_DEFAULTS = {
     'PctAreaInfil': 0,  # Infiltration/Bioretention: Fraction of area treated (0-1)
     'PctStrmBuf': 0,  # Stream Protection: Fraction of streams treated (0-1)
     'UrbBankStab': 0,  # Stream Protection: Streams w/bank stabilization (km)
-    'ISRR': np.zeros(6),  # Impervious Surface Reduction (% Reduction) of Urban Land Uses
-    'ISRA': np.zeros(6),  # Impervious Surface Reduction (Area) of Urban Land Uses
+    'ISRR': [0.0] * 6,  # Impervious Surface Reduction (% Reduction) of Urban Land Uses
+    'ISRA': [0.0] * 6,  # Impervious Surface Reduction (Area) of Urban Land Uses
     'SweepType': SweepType.MECHANICAL,  # Street Sweeping: Sweep Type (1-2)
     'UrbSweepFrac': 1,  # Street Sweeping: Fraction of area treated (0-1)
-    'StreetSweepNo': np.zeros(12),  # Street sweeping times per month
+    'StreetSweepNo': [0] * 12,  # Street sweeping times per month
     'n108': 0,  # Row Crops: Sediment (kg x 1000)
     'n109': 0,  # Row Crops: Nitrogen (kg)
     'n110': 0,  # Row Crops: Phosphorus (kg)
@@ -402,36 +400,36 @@ GWLFE_DEFAULTS = {
     'RunContPct': 0,  # Runoff Control (%)
     'PhytasePct': 0,  # Phytase in Feed (%),
 
-    'AnimalName':             ['Dairy Cows', 'Beef Cows', 'Broilers', 'Layers', 'Hogs/Swine', 'Sheep', 'Horses', 'Turkeys', 'Other'] ,
-    'NumAnimals':    np.array([        0.00,        0.00,       0.00,     0.00,         0.00,    0.00,     0.00,      0.00,    0.00]),
-    'GrazingAnimal':          [       b.YES,       b.YES,       b.NO,     b.NO,         b.NO,   b.YES,    b.YES,      b.NO,    b.NO] ,
-    'AvgAnimalWt':   np.array([      640.00,      360.00,       0.90,     1.80,        61.00,   50.00,   500.00,      6.80,    0.00]),  # Average Animal Weight (kg)
-    'AnimalDailyN':  np.array([        0.44,        0.31,       1.07,     0.85,         0.48,    0.37,     0.28,      0.59,    0.00]),  # Animal Daily Loads: Nitrogen (kg/AEU)
-    'AnimalDailyP':  np.array([        0.07,        0.09,       0.30,     0.29,         0.15,    0.10,     0.06,      0.20,    0.00]),  # Animal Daily Loads: Phosphorus (kg/AEU)
-    'FCOrgsPerDay':  np.array([     1.0e+11,     1.0e+11,    1.4e+08,  1.4e+08,      1.1e+10, 1.2e+10,  4.2e+08,   9.5e+07,    0.00]),  # Fecal Coliforms (orgs/day)
+    'AnimalName':    ['Dairy Cows', 'Beef Cows', 'Broilers', 'Layers', 'Hogs/Swine', 'Sheep', 'Horses', 'Turkeys', 'Other'],
+    'NumAnimals':    [        0.00,        0.00,       0.00,     0.00,         0.00,    0.00,     0.00,      0.00,    0.00],
+    'GrazingAnimal': [       b.YES,       b.YES,       b.NO,     b.NO,         b.NO,   b.YES,    b.YES,      b.NO,    b.NO],
+    'AvgAnimalWt':   [      640.00,      360.00,       0.90,     1.80,        61.00,   50.00,   500.00,      6.80,    0.00],  # Average Animal Weight (kg)
+    'AnimalDailyN':  [        0.44,        0.31,       1.07,     0.85,         0.48,    0.37,     0.28,      0.59,    0.00],  # Animal Daily Loads: Nitrogen (kg/AEU)
+    'AnimalDailyP':  [        0.07,        0.09,       0.30,     0.29,         0.15,    0.10,     0.06,      0.20,    0.00],  # Animal Daily Loads: Phosphorus (kg/AEU)
+    'FCOrgsPerDay':  [     1.0e+11,     1.0e+11,    1.4e+08,  1.4e+08,      1.1e+10, 1.2e+10,  4.2e+08,   9.5e+07,    0.00],  # Fecal Coliforms (orgs/day)
 
-    'Month':                     ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    'NGPctManApp':      np.array([ 0.01,  0.01,  0.15,  0.10,  0.05,  0.03,  0.03,  0.03,  0.11,  0.10,  0.10,  0.08]),  # Manure Spreading: % Of Annual Load Applied To Crops/Pasture
-    'NGAppNRate':       np.array([ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05]),  # Manure Spreading: Base Nitrogen Loss Rate
-    'NGAppPRate':       np.array([ 0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07]),  # Manure Spreading: Base Phosphorus Loss Rate
-    'NGAppFCRate':      np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Manure Spreading: Base Fecal Coliform Loss Rate
-    'NGPctSoilIncRate': np.array([ 0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00]),  # Manure Spreading: % Of Manure Load Incorporated Into Soil
-    'NGBarnNRate':      np.array([ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20]),  # Barnyard/Confined Area: Base Nitrogen Loss Rate
-    'NGBarnPRate':      np.array([ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20]),  # Barnyard/Confined Area: Base Phosphorus Loss Rate
-    'NGBarnFCRate':     np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Barnyard/Confined Area: Base Fecal Coliform Loss Rate
-    'PctGrazing':       np.array([ 0.02,  0.02,  0.10,  0.25,  0.50,  0.50,  0.50,  0.50,  0.50,  0.40,  0.25,  0.10]),  # Grazing Land: % Of Time Spent Grazing
-    'PctStreams':       np.array([ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05]),  # Grazing Land: % Of Time Spent In Streams
-    'GrazingNRate':     np.array([ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05]),  # Grazing Land: Base Nitrogen Loss Rate
-    'GrazingPRate':     np.array([ 0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07]),  # Grazing Land: Base Phosphorus Loss Rate
-    'GrazingFCRate':    np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Grazing Land: Base Fecal Coliform Loss Rate
-    'GRPctManApp':      np.array([ 0.01,  0.01,  0.10,  0.05,  0.05,  0.03,  0.03,  0.03,  0.11,  0.06,  0.02,  0.02]),  # Manure Spreading: % Of Annual Load Applied To Crops/Pasture
-    'GRAppNRate':       np.array([ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05]),  # Manure Spreading: Base Nitrogen Loss Rate
-    'GRAppPRate':       np.array([ 0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07]),  # Manure Spreading: Base Phosphorus Loss Rate
-    'GRAppFCRate':      np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Manure Spreading: Base Fecal Coliform Loss Rate
-    'GRPctSoilIncRate': np.array([ 0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00]),  # Manure Spreading: % Of Manure Load Incorporated Into Soil
-    'GRBarnNRate':      np.array([ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20]),  # Barnyard/Confined Area: Base Nitrogen Loss Rate
-    'GRBarnPRate':      np.array([ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20]),  # Barnyard/Confined Area: Base Phosphorus Loss Rate
-    'GRBarnFCRate':     np.array([ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12]),  # Barnyard/Confined Area: Base Fecal Coliform Loss Rate
+    'Month':            ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    'NGPctManApp':      [ 0.01,  0.01,  0.15,  0.10,  0.05,  0.03,  0.03,  0.03,  0.11,  0.10,  0.10,  0.08],  # Manure Spreading: % Of Annual Load Applied To Crops/Pasture
+    'NGAppNRate':       [ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05],  # Manure Spreading: Base Nitrogen Loss Rate
+    'NGAppPRate':       [ 0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07],  # Manure Spreading: Base Phosphorus Loss Rate
+    'NGAppFCRate':      [ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12],  # Manure Spreading: Base Fecal Coliform Loss Rate
+    'NGPctSoilIncRate': [ 0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00],  # Manure Spreading: % Of Manure Load Incorporated Into Soil
+    'NGBarnNRate':      [ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20],  # Barnyard/Confined Area: Base Nitrogen Loss Rate
+    'NGBarnPRate':      [ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20],  # Barnyard/Confined Area: Base Phosphorus Loss Rate
+    'NGBarnFCRate':     [ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12],  # Barnyard/Confined Area: Base Fecal Coliform Loss Rate
+    'PctGrazing':       [ 0.02,  0.02,  0.10,  0.25,  0.50,  0.50,  0.50,  0.50,  0.50,  0.40,  0.25,  0.10],  # Grazing Land: % Of Time Spent Grazing
+    'PctStreams':       [ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05],  # Grazing Land: % Of Time Spent In Streams
+    'GrazingNRate':     [ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05],  # Grazing Land: Base Nitrogen Loss Rate
+    'GrazingPRate':     [ 0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07],  # Grazing Land: Base Phosphorus Loss Rate
+    'GrazingFCRate':    [ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12],  # Grazing Land: Base Fecal Coliform Loss Rate
+    'GRPctManApp':      [ 0.01,  0.01,  0.10,  0.05,  0.05,  0.03,  0.03,  0.03,  0.11,  0.06,  0.02,  0.02],  # Manure Spreading: % Of Annual Load Applied To Crops/Pasture
+    'GRAppNRate':       [ 0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05,  0.05],  # Manure Spreading: Base Nitrogen Loss Rate
+    'GRAppPRate':       [ 0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07,  0.07],  # Manure Spreading: Base Phosphorus Loss Rate
+    'GRAppFCRate':      [ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12],  # Manure Spreading: Base Fecal Coliform Loss Rate
+    'GRPctSoilIncRate': [ 0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00,  0.00],  # Manure Spreading: % Of Manure Load Incorporated Into Soil
+    'GRBarnNRate':      [ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20],  # Barnyard/Confined Area: Base Nitrogen Loss Rate
+    'GRBarnPRate':      [ 0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20,  0.20],  # Barnyard/Confined Area: Base Phosphorus Loss Rate
+    'GRBarnFCRate':     [ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12],  # Barnyard/Confined Area: Base Fecal Coliform Loss Rate
 
     'ShedAreaDrainLake': 0,  # Percentage of watershed area that drains into a lake or wetlands: (0 - 1)
     'RetentNLake': 0.12,  # Lake Retention Rate: Nitrogen
@@ -459,6 +457,74 @@ GWLFE_CONFIG = {
     'SSLDR': 4.4,
     'SSLDM': 2.2,
     'WeatherNull': -99999,  # This value is used to indicate NULL in ms_weather dataset
+    'ArrayFields': [  # These may be optionally converted to numpy arrays before running the model # NOQA
+        'Acoef',
+        'AnimalDailyN',
+        'AnimalDailyP',
+        'AnimalName',
+        'AntMoist',
+        'Area',
+        'AvgAnimalWt',
+        'CN',
+        'CNI',
+        'CNP',
+        'Contaminant',
+        'DayHrs',
+        'DisFract',
+        'FCOrgsPerDay',
+        'GRAppFCRate',
+        'GRAppNRate',
+        'GRAppPRate',
+        'GrazingAnimal',
+        'GrazingFCRate',
+        'GrazingNRate',
+        'GrazingPRate',
+        'GRBarnFCRate',
+        'GRBarnNRate',
+        'GRBarnPRate',
+        'GroundWithdrawal',
+        'Grow',
+        'GRPctManApp',
+        'GRPctSoilIncRate',
+        'Imper',
+        'ISRA',
+        'ISRR',
+        'KF',
+        'KV',
+        'Landuse',
+        'LoadRateImp',
+        'LoadRatePerv',
+        'ManNitr',
+        'ManPhos',
+        'Month',
+        'NGAppFCRate',
+        'NGAppNRate',
+        'NGAppPRate',
+        'NGBarnFCRate',
+        'NGBarnNRate',
+        'NGBarnPRate',
+        'NGPctManApp',
+        'NGPctSoilIncRate',
+        'NitrConc',
+        'NumAnimals',
+        'NumDischargeSys',
+        'NumPondSys',
+        'NumSewerSys',
+        'NumShortSys',
+        'PcntET',
+        'PctGrazing',
+        'PctStreams',
+        'PhosConc',
+        'PointFlow',
+        'PointNitr',
+        'PointPhos',
+        'Prec',
+        'StreamWithdrawal',
+        'StreetSweepNo',
+        'Temp',
+        'TotSusSolids',
+        'UrbBMPRed',
+    ]
 }
 
 # Maps NLCD + Hygrological Soil Group to a Curve Number. Keys are NLCD Codes.
