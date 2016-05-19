@@ -7,7 +7,7 @@
                         {{ columnName }}
                     </th>
                 {% else %}
-                    <th class="text-left" data-sortable="true" data-sorter="window.numericSort">{{ columnName }}</th>
+                    <th data-sortable="true" data-sorter="window.numericSort">{{ columnName }}</th>
                 {% endif %}
             {% endfor %}
         </tr>
@@ -17,9 +17,9 @@
             <tr>
                 {% for value in row %}
                     {% if loop.index0 == 0 %}
-                        <td data-month="{{ value }}">{{ monthNames[value] }}</td>
+                        <td class="text-left" data-month="{{ value }}">{{ monthNames[value] }}</td>
                     {% else %}
-                        <td class="strong text-left">{{ value|round(2)|toLocaleString }}</td>
+                        <td class="strong text-right">{{ value|round(2)|toLocaleString(2) }}</td>
                     {% endif %}
                 {% endfor %}
             </tr>

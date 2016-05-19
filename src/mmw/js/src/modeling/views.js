@@ -26,7 +26,7 @@
     tr55RunoffViews = require('./tr55/runoff/views.js'),
     tr55QualityViews = require('./tr55/quality/views.js'),
     gwlfeRunoffViews = require('./gwlfe/runoff/views.js'),
-    gwlfeQualityViews = tr55QualityViews; // TODO make gwlfe quality views
+    gwlfeQualityViews = require('./gwlfe/quality/views.js');
 
 var ENTER_KEYCODE = 13,
     ESCAPE_KEYCODE = 27;

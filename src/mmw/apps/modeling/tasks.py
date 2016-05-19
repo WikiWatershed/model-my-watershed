@@ -338,7 +338,4 @@ def run_gwlfe(model_input):
     gms_file = open(gms_filename, 'r')
     z = parser.GmsReader(gms_file).read()
 
-    # The frontend expects an object with runoff and quality as keys.
-    response_json = {'runoff': gwlfe.run(z)}
-
-    return response_json
+    return gwlfe.run(z)
