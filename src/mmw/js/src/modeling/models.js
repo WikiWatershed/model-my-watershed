@@ -23,7 +23,9 @@ var ModelPackageControlModel = Backbone.Model.extend({
         manualMod: '',
         activeMod: '',
         modRows: null,
-        dropdownOpen: false
+        dropdownOpen: false,
+        dataModel: null,
+        output: null
     },
 
     // Return true if this is an input control and false if it is a
