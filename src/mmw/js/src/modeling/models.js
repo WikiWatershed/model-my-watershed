@@ -625,9 +625,9 @@ var ScenarioModel = Backbone.Model.extend({
             this.get('results').forEach(function(resultModel) {
                 var resultName = resultModel.get('name');
 
-                if (serverResults[resultName]) {
+                if (serverResults) {
                     resultModel.set({
-                        'result': serverResults[resultName],
+                        'result': serverResults,
                         'inputmod_hash': serverResults.inputmod_hash
                     });
                 } else {
