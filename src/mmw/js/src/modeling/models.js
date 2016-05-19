@@ -1,6 +1,7 @@
 "use strict";
 
-var Backbone = require('../../shim/backbone'),
+var $ = require('jquery'),
+    Backbone = require('../../shim/backbone'),
     _ = require('lodash'),
     utils = require('../core/utils'),
     settings = require('../core/settings'),
@@ -10,6 +11,7 @@ var Backbone = require('../../shim/backbone'),
     turfErase = require('turf-erase'),
     turfIntersect = require('turf-intersect');
 
+var MAPSHED = 'mapshed';
 var GWLFE = 'gwlfe';
 var TR55_TASK = 'tr55';
 var TR55_PACKAGE = 'tr-55';
@@ -47,6 +49,16 @@ var Tr55TaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
         {
             taskName: TR55_TASK,
+            taskType: 'modeling'
+        },
+        coreModels.TaskModel.prototype.defaults
+    )
+});
+
+var MapshedTaskModel = coreModels.TaskModel.extend({
+    defaults: _.extend(
+        {
+            taskName: MAPSHED,
             taskType: 'modeling'
         },
         coreModels.TaskModel.prototype.defaults
@@ -121,6 +133,7 @@ var ProjectModel = Backbone.Model.extend({
         scenarios: null,                // ScenariosCollection
         user_id: 0,                     // User that created the project
         is_activity: false,             // Project that persists across routes
+        gis_data: null,                 // Additionally gathered data, such as MapShed for GWLF-E
         needs_reset: false,             // Should we overwrite project data on next save?
         allow_save: true                // Is allowed to save to the server - false in compare mode
     },
@@ -292,6 +305,88 @@ var ProjectModel = Backbone.Model.extend({
         }
 
         return url;
+    },
+
+    /**
+     * If a project is of the GWLFE package, we trigger the mapshed GIS
+     * data gathering chain, and poll for it to finish. Once it finishes,
+     * we resolve the lock to indicate the project is ready for further
+     * processing.
+     * If the project is not of the GWLFE package, we simply resolve the
+     * lock immediately and return.
+     */
+    fetchGisData: function() {
+        if (this.get('model_package') === GWLFE) {
+            var aoi = this.get('area_of_interest'),
+                promise = $.Deferred(),
+                taskModel = createTaskModel(MAPSHED),
+                taskHelper = {
+                    postData: {
+                        mapshed_input: JSON.stringify({
+                            area_of_interest: aoi
+                        })
+                    },
+
+                    onStart: function() {
+                        console.log('Starting polling for MAPSHED');
+                    },
+
+                    startFailure: function(response) {
+                        console.log('Failed to start gathering data for MAPSHED');
+
+                        if (response.responseJSON && response.responseJSON.error) {
+                            console.log(response.responseJSON.error);
+                        }
+
+                        promise.reject();
+                    },
+
+                    pollSuccess: function() {
+                        promise.resolve(taskModel.get('result'));
+                    },
+
+                    pollFailure: function() {
+                        console.log('Failed to gather data required for MAPSHED');
+                        promise.reject();
+                    }
+                };
+
+            taskModel.start(taskHelper);
+            return promise;
+        } else {
+            // Currently there are no methods for fetching GIS Data if the
+            // model package is not GWLFE. Thus we return a resolved promise
+            // so that any execution waiting on this can continue immediately.
+            return $.when();
+        }
+    },
+
+    /**
+     * Returns a promise that completes when GIS Data has been fetched. If fetching
+     * is not required, returns an immediatley resolved promise.
+     */
+    fetchGisDataIfNeeded: function() {
+        var self = this,
+            saveProjectAndScenarios = _.bind(self.saveProjectAndScenarios, self);
+
+        if (self.get('gis_data') === null && self.fetchGisDataPromise === undefined) {
+            self.fetchGisDataPromise = self.fetchGisData();
+            self.fetchGisDataPromise
+                .done(function(result) {
+                    if (result) {
+                        self.set('gis_data', result);
+                        saveProjectAndScenarios();
+                    }
+                })
+                .always(function() {
+                    // Clear promise once it completes, so we start a new one
+                    // next time.
+                    delete self.fetchGisDataPromise;
+                });
+        }
+
+        // Return fetchGisDataPromise if it exists, else an immediately resolved one.
+        return self.fetchGisDataPromise || $.when();
     }
 });
 
@@ -613,7 +708,10 @@ var ScenarioModel = Backbone.Model.extend({
             });
 
         if (needsResults) {
-            this.fetchResults();
+            var fetchResults = _.bind(this.fetchResults, this);
+            App.currentProject
+                .fetchGisDataIfNeeded()
+                .then(fetchResults);
         }
     },
 
@@ -654,21 +752,9 @@ var ScenarioModel = Backbone.Model.extend({
         var self = this,
             results = this.get('results'),
             taskModel = this.get('taskModel'),
-            nonZeroModifications = this.get('modifications').filter(function(mod) {
-                return mod.get('effectiveArea') > 0;
-            }),
+            gisData = this.getGisData(),
             taskHelper = {
-                postData: {
-                    model_input: JSON.stringify({
-                        inputs: self.get('inputs').toJSON(),
-                        modification_pieces: alterModifications(nonZeroModifications, self.get('modification_hash')),
-                        area_of_interest: App.currentProject.get('area_of_interest'),
-                        aoi_census: self.get('aoi_census'),
-                        modification_censuses: self.get('modification_censuses'),
-                        inputmod_hash: self.get('inputmod_hash'),
-                        modification_hash: self.get('modification_hash')
-                    })
-                },
+                postData: gisData,
 
                 onStart: function() {
                     results.setPolling(true);
@@ -717,6 +803,35 @@ var ScenarioModel = Backbone.Model.extend({
         var hash = utils.getCollectionHash(this.get('modifications'));
 
         this.set('modification_hash', hash);
+    },
+
+    getGisData: function() {
+        var self = this,
+            project = App.currentProject;
+
+        switch(App.currentProject.get('model_package')) {
+            case TR55_PACKAGE:
+                var nonZeroModifications = self.get('modifications').filter(function(mod) {
+                    return mod.get('effectiveArea') > 0;
+                });
+
+                return {
+                    model_input: JSON.stringify({
+                        inputs: self.get('inputs').toJSON(),
+                        modification_pieces: alterModifications(nonZeroModifications, self.get('modification_hash')),
+                        area_of_interest: project.get('area_of_interest'),
+                        aoi_census: self.get('aoi_census'),
+                        modification_censuses: self.get('modification_censuses'),
+                        inputmod_hash: self.get('inputmod_hash'),
+                        modification_hash: self.get('modification_hash')
+                    })
+                };
+
+            case GWLFE:
+                return {
+                    model_input: JSON.stringify(project.get('gis_data'))
+                };
+        }
     }
 });
 
@@ -874,6 +989,8 @@ function createTaskModel(modelPackage) {
             return new Tr55TaskModel();
         case GWLFE:
             return new GwlfeTaskModel();
+        case MAPSHED:
+            return new MapshedTaskModel();
     }
     throw 'Model package not supported: ' + modelPackage;
 }
