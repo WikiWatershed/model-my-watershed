@@ -25,6 +25,7 @@ var n23Name = 'n23',
     PctAreaInfilName = 'PctAreaInfil',
     UrbAreaTotalName = 'UrbAreaTotal',
     lengthToConvertName = 'lengthToConvert',
+    lengthToConvertInAgName = 'lengthToConvertInAg',
     areaToConvertName = 'areaToConvert',
     percentAeuToConvertName = 'percentAeuToConvert',
     percentAreaToConvertName = 'percentAreaToConvert',
@@ -51,15 +52,16 @@ function fromPairs(pairs) {
 }
 
 var displayNames = fromPairs([
-    [n23Name, 'Area of row crops (ha)'],
-    [areaToConvertName, 'Area to convert (ha)'],
     [percentAeuToConvertName, '% of AEUs to convert'],
     [percentAreaToConvertName, '% of area to convert'],
-    [n42Name, 'Total length of streams (km) in ag areas'],
-    [n42bName, 'Total length of streams (km) in entire watershed'],
+    [areaToConvertName, 'Area to convert (ha)'],
     [lengthToConvertName, 'Length to convert (km)'],
+    [lengthToConvertInAgName, 'Length to convert in ag areas (km)'],
+    [n23Name, 'Area of row crops (ha)'],
+    [n42Name, 'Length of streams in ag areas (km)'],
+    [n42bName, 'Length of streams in watershed (km)'],
     [UrbAreaTotalName, 'Total urban area (ha)'],
-    [UrbLengthName, 'Total length (km) of streams in non-ag areas']
+    [UrbLengthName, 'Length of streams in non-ag areas (km)']
 ]);
 
 function getPercentStr(fraction) {
@@ -208,9 +210,9 @@ function makeRuralStreamsBmpConfig(outputName) {
 
     return {
         dataModelNames: [n42Name, n42bName],
-        userInputNames: [lengthToConvertName],
-        validate: makeThresholdValidateFn(n42Name, LENGTH, lengthToConvertName),
-        computeOutput: makeComputeOutputFn(n42Name, lengthToConvertName, getOutput)
+        userInputNames: [lengthToConvertInAgName],
+        validate: makeThresholdValidateFn(n42Name, LENGTH, lengthToConvertInAgName),
+        computeOutput: makeComputeOutputFn(n42Name, lengthToConvertInAgName, getOutput)
     };
 }
 

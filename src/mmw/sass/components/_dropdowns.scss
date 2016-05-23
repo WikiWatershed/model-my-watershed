@@ -64,22 +64,44 @@
 }
 
 .manual-entry {
-  .header {
-    position: relative;
+  min-width: 250px;
 
+  .header {
     .header-text {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
+      background-color: $ui-light;
 
       .name, .back-button {
         display: inline;
       }
     }
+
+    svg {
+      position: absolute;
+    }
   }
 
-  .amount-form {
-    margin: 10px;
+  .content {
+    padding: 1rem;
+
+    .form-group {
+      margin-bottom: 0;
+    }
+
+    .info-region {
+      min-height: 25px;
+
+      .info-message {
+        color: $ui-grey;
+      }
+
+      .error-message {
+        color: $ui-danger;
+      }
+    }
+
+    .amount-form {
+      margin: 10px;
+    }
   }
 }
 
@@ -108,7 +130,6 @@
       float: left;
       display: block;
       width: 60px;
-      height: 90px;
       margin-bottom: 0.2rem;
       transition: all 0.4s ease-out;
       margin-right: 1rem;
