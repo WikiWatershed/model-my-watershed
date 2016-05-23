@@ -829,7 +829,7 @@ var ScenarioModel = Backbone.Model.extend({
 
             case GWLFE:
                 return {
-                    model_input: JSON.stringify(project.get('gis_data'))
+                    model_input: project.get('gis_data')
                 };
         }
     }

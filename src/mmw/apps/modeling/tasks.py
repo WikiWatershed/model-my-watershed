@@ -8,6 +8,7 @@ import json
 import requests
 
 from math import sqrt
+from StringIO import StringIO
 
 from celery import shared_task
 
@@ -15,8 +16,7 @@ from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
     data_to_survey, data_to_censuses
 
 from tr55.model import simulate_day
-from gwlfe import gwlfe
-from gwlfe.datamodel import DataModel
+from gwlfe import gwlfe, parser
 
 logger = logging.getLogger(__name__)
 
@@ -332,7 +332,25 @@ def build_tr55_modification_input(pieces, censuses):
 
 @shared_task
 def run_gwlfe(model_input):
-    # The frontend expects an object with runoff and quality as keys.
-    z = DataModel(model_input)
-    response_json = {'runoff': gwlfe.run(z)}
-    return response_json
+    """
+    Given a model_input resulting from a MapShed run, converts that dictionary
+    to an intermediate GMS file representation, which is then parsed by GWLF-E
+    to create the final data model z. We run GWLF-E on this final data model
+    and return the results.
+
+    This intermediate GMS file representation needs to be created because most
+    of GWLF-E logic is written to handle GMS files, and to support dictionaries
+    directly we would have to replicate all that logic. Thus, it is easier to
+    simply create a GMS file and have it read that.
+    """
+    pre_z = parser.DataModel(model_input)
+    output = StringIO()
+    writer = parser.GmsWriter(output)
+    writer.write(pre_z)
+
+    output.seek(0)
+
+    reader = parser.GmsReader(output)
+    z = reader.read()
+
+    return gwlfe.run(z)
