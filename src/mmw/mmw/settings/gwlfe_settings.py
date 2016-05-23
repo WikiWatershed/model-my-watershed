@@ -40,10 +40,14 @@ GWLFE_DEFAULTS = {
                 ],
     'Imper': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         # Impervious surface area percentage
               0.15, 0.52, 0.87, 0.15, 0.52, 0.87],  # only defined for urban land use types
-    'CNI': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Curve Number for Impervious Surfaces
-            92, 98, 98, 92, 92, 92],       # only defined for urban land use types
-    'CNP': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Curve Number for Pervious Surfaces
-            74, 79, 79, 74, 74, 74],       # only defined for urban land use types
+    'CNI': [[0] * 16,
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Curve Number for Impervious Surfaces
+             92, 98, 98, 92, 92, 92],       # only defined for urban land use types
+            [0] * 16],
+    'CNP': [[0] * 16,
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Curve Number for Pervious Surfaces
+             74, 79, 79, 74, 74, 74],       # only defined for urban land use types
+            [0] * 16],
     'TotSusSolids': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Total Suspended Solids factor
                      60, 70, 80, 90, 100, 110],    # only defined for urban land use types
     'PhysFlag': b.NO,  # Flag: Physiographic Province Layer Detected (0 No; 1 Yes)
@@ -90,7 +94,7 @@ GWLFE_DEFAULTS = {
                  [0.28, 0.37, 0],   # Ld_Residential
                  [0.28, 0.37, 0],   # Md_Residential
                  [0.28, 0.37, 0]],  # Hd_Residential
-    'UrbBMPRed': [[0.0] * 3 for m in range(12)],  # Urban BMP Reduction
+    'UrbBMPRed': [[0.0] * 3 for l in range(16)],  # Urban BMP Reduction
     'SepticFlag': b.YES,  # Flag: Septic Systems Layer Detected (0 No; 1 Yes)
     'NumPondSys': [0] * 12,  # Number of People on Pond Systems
     'NumShortSys': [0] * 12,  # Number of People on Short Circuit Systems
@@ -401,7 +405,7 @@ GWLFE_DEFAULTS = {
     'PhytasePct': 0,  # Phytase in Feed (%),
 
     'AnimalName':    ['Dairy Cows', 'Beef Cows', 'Broilers', 'Layers', 'Hogs/Swine', 'Sheep', 'Horses', 'Turkeys', 'Other'],
-    'NumAnimals':    [        0.00,        0.00,       0.00,     0.00,         0.00,    0.00,     0.00,      0.00,    0.00],
+    'NumAnimals':    [           0,           0,          0,        0,            0,       0,        0,         0,       0],
     'GrazingAnimal': [       b.YES,       b.YES,       b.NO,     b.NO,         b.NO,   b.YES,    b.YES,      b.NO,    b.NO],
     'AvgAnimalWt':   [      640.00,      360.00,       0.90,     1.80,        61.00,   50.00,   500.00,      6.80,    0.00],  # Average Animal Weight (kg)
     'AnimalDailyN':  [        0.44,        0.31,       1.07,     0.85,         0.48,    0.37,     0.28,      0.59,    0.00],  # Animal Daily Loads: Nitrogen (kg/AEU)
