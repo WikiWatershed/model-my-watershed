@@ -16,6 +16,8 @@ from django.utils.timezone import now
 from django.conf import settings
 from django.db import connection
 from django.contrib.gis.geos import GEOSGeometry
+from django.http import HttpResponse
+from django.core.servers.basehttp import FileWrapper
 
 import celery
 from celery import chain, group
@@ -261,6 +263,24 @@ def _initiate_mapshed_job_chain(mapshed_input, job_id):
              save_job_result.s(job_id, mapshed_input))
 
     return chain.apply_async(link_error=errback)
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((AllowAny, ))
+def export_gms(request, format=None):
+    mapshed_data = json.loads(request.POST.get('mapshed_data', '{}'))
+    filename = request.POST.get('filename', None)
+
+    if not mapshed_data or not filename:
+        return Response('Must specify mapshed_data and filename',
+                        status.HTTP_400_BAD_REQUEST)
+
+    gms_file = tasks.to_gms_file(mapshed_data)
+
+    response = HttpResponse(FileWrapper(gms_file), content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; '\
+                                      'filename={}.gms'.format(filename)
+    return response
 
 
 @decorators.api_view(['POST'])

@@ -343,14 +343,23 @@ def run_gwlfe(model_input):
     directly we would have to replicate all that logic. Thus, it is easier to
     simply create a GMS file and have it read that.
     """
-    pre_z = parser.DataModel(model_input)
+    output = to_gms_file(model_input)
+
+    reader = parser.GmsReader(output)
+    z = reader.read()
+
+    return gwlfe.run(z)
+
+
+def to_gms_file(mapshed_data):
+    """
+    Given a dictionary of MapShed data, uses GWLF-E to convert it to a GMS file
+    """
+    pre_z = parser.DataModel(mapshed_data)
     output = StringIO()
     writer = parser.GmsWriter(output)
     writer.write(pre_z)
 
     output.seek(0)
 
-    reader = parser.GmsReader(output)
-    z = reader.read()
-
-    return gwlfe.run(z)
+    return output
