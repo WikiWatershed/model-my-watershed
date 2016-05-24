@@ -161,12 +161,12 @@ var ManualEntryView = Marionette.CompositeView.extend({
 
     ui: {
         'backButton': '.back-button',
-        'convertButton': '.convert-button'
+        'applyButton': '.apply-button'
     },
 
     events: {
         'click @ui.backButton': 'clearManualMod',
-        'click @ui.convertButton': 'convert',
+        'click @ui.applyButton': 'applyModification',
         'keyup': 'onKeyUp'
     },
 
@@ -191,7 +191,7 @@ var ManualEntryView = Marionette.CompositeView.extend({
 
     onKeyUp: function(e) {
         if (e.keyCode === ENTER_KEYCODE) {
-            this.convert();
+            this.applyModification();
         }
     },
 
@@ -233,7 +233,7 @@ var ManualEntryView = Marionette.CompositeView.extend({
         });
     },
 
-    convert: function() {
+    applyModification: function() {
         this.computeOutput();
         var output = this.model.get('output');
         if (output && gwlfeConfig.isValid(output.errorMessages)) {

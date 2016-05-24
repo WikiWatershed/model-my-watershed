@@ -24,11 +24,11 @@ var n23Name = 'n23',
     QretentionName = 'Qretention',
     PctAreaInfilName = 'PctAreaInfil',
     UrbAreaTotalName = 'UrbAreaTotal',
-    lengthToConvertName = 'lengthToConvert',
-    lengthToConvertInAgName = 'lengthToConvertInAg',
-    areaToConvertName = 'areaToConvert',
-    percentAeuToConvertName = 'percentAeuToConvert',
-    percentAreaToConvertName = 'percentAreaToConvert',
+    lengthToModifyName = 'lengthToModify',
+    lengthToModifyInAgName = 'lengthToModifyInAg',
+    areaToModifyName = 'areaToModify',
+    percentAeuToModifyName = 'percentAeuToModify',
+    percentAreaToModifyName = 'percentAreaToModify',
     AREA = 'area',
     LENGTH = 'length',
     FilterWidthDefault = 30,
@@ -52,11 +52,11 @@ function fromPairs(pairs) {
 }
 
 var displayNames = fromPairs([
-    [percentAeuToConvertName, '% of AEUs to convert'],
-    [percentAreaToConvertName, '% of area to convert'],
-    [areaToConvertName, 'Area to convert (ha)'],
-    [lengthToConvertName, 'Length to convert (km)'],
-    [lengthToConvertInAgName, 'Length to convert in ag areas (km)'],
+    [percentAeuToModifyName, '% of AEUs to modify'],
+    [percentAreaToModifyName, '% of area to modify'],
+    [areaToModifyName, 'Area to modify (ha)'],
+    [lengthToModifyName, 'Length to modify (km)'],
+    [lengthToModifyInAgName, 'Length to modify in ag areas (km)'],
     [n23Name, 'Area of row crops (ha)'],
     [n42Name, 'Length of streams in ag areas (km)'],
     [n42bName, 'Length of streams in watershed (km)'],
@@ -175,24 +175,24 @@ function makeAgBmpConfig(outputName) {
 
     return {
         dataModelNames: [n23Name],
-        userInputNames: [areaToConvertName],
-        validate: makeThresholdValidateFn(n23Name, AREA, areaToConvertName),
-        computeOutput: makeComputeOutputFn(n23Name, areaToConvertName, getOutput)
+        userInputNames: [areaToModifyName],
+        validate: makeThresholdValidateFn(n23Name, AREA, areaToModifyName),
+        computeOutput: makeComputeOutputFn(n23Name, areaToModifyName, getOutput)
     };
 }
 
 function makeAeuBmpConfig(outputName) {
     return {
         dataModelNames: [],
-        userInputNames: [percentAeuToConvertName],
-        validate: makePercentValidateFn(percentAeuToConvertName),
+        userInputNames: [percentAeuToModifyName],
+        validate: makePercentValidateFn(percentAeuToModifyName),
         computeOutput: function(dataModel, cleanUserInput) {
-            var percentAeuToConvert = cleanUserInput[percentAeuToConvertName],
+            var percentAeuToModify = cleanUserInput[percentAeuToModifyName],
                 output = {},
                 infoMessages = {};
 
-            if (percentAeuToConvert) {
-                output[outputName] = percentAeuToConvert;
+            if (percentAeuToModify) {
+                output[outputName] = percentAeuToModify;
             }
 
             return formatOutput(infoMessages, output);
@@ -210,27 +210,27 @@ function makeRuralStreamsBmpConfig(outputName) {
 
     return {
         dataModelNames: [n42Name, n42bName],
-        userInputNames: [lengthToConvertInAgName],
-        validate: makeThresholdValidateFn(n42Name, LENGTH, lengthToConvertInAgName),
-        computeOutput: makeComputeOutputFn(n42Name, lengthToConvertInAgName, getOutput)
+        userInputNames: [lengthToModifyInAgName],
+        validate: makeThresholdValidateFn(n42Name, LENGTH, lengthToModifyInAgName),
+        computeOutput: makeComputeOutputFn(n42Name, lengthToModifyInAgName, getOutput)
     };
 }
 
 function makeUrbanStreamsBmpConfig(getOutput) {
     return {
         dataModelNames: [UrbLengthName],
-        userInputNames: [lengthToConvertName],
-        validate: makeThresholdValidateFn(UrbLengthName, LENGTH, lengthToConvertName),
-        computeOutput: makeComputeOutputFn(UrbLengthName, lengthToConvertName, getOutput)
+        userInputNames: [lengthToModifyName],
+        validate: makeThresholdValidateFn(UrbLengthName, LENGTH, lengthToModifyName),
+        computeOutput: makeComputeOutputFn(UrbLengthName, lengthToModifyName, getOutput)
     };
 }
 
 function makeUrbanAreaBmpConfig(getOutput) {
     return {
         dataModelNames: [UrbAreaTotalName],
-        userInputNames: [areaToConvertName],
-        validate: makeThresholdValidateFn(UrbAreaTotalName, AREA, areaToConvertName),
-        computeOutput: makeComputeOutputFn(UrbAreaTotalName, areaToConvertName, getOutput)
+        userInputNames: [areaToModifyName],
+        validate: makeThresholdValidateFn(UrbAreaTotalName, AREA, areaToModifyName),
+        computeOutput: makeComputeOutputFn(UrbAreaTotalName, areaToModifyName, getOutput)
     };
 }
 
