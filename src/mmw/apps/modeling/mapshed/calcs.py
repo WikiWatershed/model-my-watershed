@@ -20,7 +20,6 @@ MONTHDAYS = settings.GWLFE_CONFIG['MonthDays']
 LIVESTOCK = settings.GWLFE_CONFIG['Livestock']
 POULTRY = settings.GWLFE_CONFIG['Poultry']
 LITERS_PER_MGAL = 3785412
-WEATHER_NULL = settings.GWLFE_CONFIG['WeatherNull']
 AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
 KM_PER_M = 0.001
 
@@ -180,14 +179,11 @@ def animal_energy_units(geom):
 
 def manure_spread(aeu):
     """
-    Given Animal Energy Units, returns two 16-item lists, containing nitrogen
-    and phosphorus manure spreading values for each of the 16 land use types.
-    If a given land use index is marked as having manure spreading applied in
-    the configuration, it will have a value calculated below, otherwise it
-    will be set to 0.
+    Given Animal Energy Units, returns two lists, containing nitrogen and
+    phosphorus manure spreading values for each of the manure spreading land
+    use types.
     """
-    n_list = [0.0] * 16
-    p_list = [0.0] * 16
+    num_land_uses = len(settings.GWLFE_CONFIG['ManureSpreadingLandUseIndices'])
 
     if 1.0 <= aeu:
         n_spread, p_spread = 4.88, 0.86
@@ -196,11 +192,7 @@ def manure_spread(aeu):
     else:
         n_spread, p_spread = 2.44, 0.38
 
-    for lu in settings.GWLFE_CONFIG['ManureSpreadingLandUseIndices']:
-        n_list[lu] = n_spread
-        p_list[lu] = p_spread
-
-    return n_list, p_list
+    return [n_spread] * num_land_uses, [p_spread] * num_land_uses
 
 
 def ls_factors(lu_strms, total_strm_len, areas, avg_slope):
@@ -330,8 +322,7 @@ def weather_data(ws, begyear, endyear):
         array[year][month][day] = value
     where `year` 0 corresponds to the first year in the range, 1 to the second,
     and so on; `month` 0 corresponds to January, 1 to February, and so on;
-    `day` 0 corresponds to the 1st of the month, 1 to the 2nd, and so on. Cells
-    with no corresponding values are marked as None.
+    `day` 0 corresponds to the 1st of the month, 1 to the 2nd, and so on.
     """
     temp_sql = '''
                SELECT year, EXTRACT(MONTH FROM TO_DATE(month, 'MON')) AS month,
@@ -377,8 +368,7 @@ def weather_data(ws, begyear, endyear):
             year = int(row[0]) - begyear
             month = int(row[1]) - 1
             for day in range(31):
-                t = float(row[day + 2])
-                temps[year][month][day] = t if t != WEATHER_NULL else None
+                temps[year][month][day] = float(row[day + 2])
 
     with connection.cursor() as cursor:
         cursor.execute(prcp_sql, [stations, begyear, endyear])
@@ -386,8 +376,7 @@ def weather_data(ws, begyear, endyear):
             year = int(row[0]) - begyear
             month = int(row[1]) - 1
             for day in range(31):
-                p = float(row[day + 2])
-                prcps[year][month][day] = p if p != WEATHER_NULL else None
+                prcps[year][month][day] = float(row[day + 2])
 
     return temps, prcps
 

@@ -8,7 +8,7 @@ import json
 import requests
 
 from math import sqrt
-from os.path import join, dirname, abspath
+from StringIO import StringIO
 
 from celery import shared_task
 
@@ -332,10 +332,25 @@ def build_tr55_modification_input(pieces, censuses):
 
 @shared_task
 def run_gwlfe(model_input):
-    # TODO pass real input to model instead of reading it from gms file
-    gms_filename = join(dirname(abspath(__file__)),
-                        'mapshed/data/sample_input.gms')
-    gms_file = open(gms_filename, 'r')
-    z = parser.GmsReader(gms_file).read()
+    """
+    Given a model_input resulting from a MapShed run, converts that dictionary
+    to an intermediate GMS file representation, which is then parsed by GWLF-E
+    to create the final data model z. We run GWLF-E on this final data model
+    and return the results.
+
+    This intermediate GMS file representation needs to be created because most
+    of GWLF-E logic is written to handle GMS files, and to support dictionaries
+    directly we would have to replicate all that logic. Thus, it is easier to
+    simply create a GMS file and have it read that.
+    """
+    pre_z = parser.DataModel(model_input)
+    output = StringIO()
+    writer = parser.GmsWriter(output)
+    writer.write(pre_z)
+
+    output.seek(0)
+
+    reader = parser.GmsReader(output)
+    z = reader.read()
 
     return gwlfe.run(z)
