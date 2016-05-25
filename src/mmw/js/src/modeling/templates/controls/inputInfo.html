@@ -1,4 +1,3 @@
-<div>
-  {{ output.errorMessages[userInputName] }}
-  {{ output.infoMessages[userInputName] }}
-</div>
+<label class="{{ "error-message" if isError else "info-message" }}">
+  {{ message }}
+</label>

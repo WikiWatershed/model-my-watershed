@@ -6,18 +6,25 @@
             </button>
             <div class="name">{{ manualMod|modShortName}}</div>
         </div>
-        <svg height="40" width="200">
-            <rect height="40" width="200" fill="{{ manualMod|modFill }}"></rect>
+        <svg height="7" width="250">
+            <rect height="7" width="250" fill="{{ manualMod|modFill }}"></rect>
         </svg>
     </div>
 
-    <ul>
-        {% for dataModelName in modConfig.dataModelNames %}
-            <li>{{ displayNames[dataModelName] }}: {{ dataModel[dataModelName] }}</li>
-        {% endfor %}
-    </ul>
+    <div class="content">
+        <table class="table">
+            <tbody>
+                {% for dataModelName in modConfig.dataModelNames %}
+                    <tr>
+                        <td class="text-left">{{ displayNames[dataModelName] }}</td>
+                        <td class="strong text-right">{{ dataModel[dataModelName]|round(2)|toLocaleString(2) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-    <div id="user-input-region"></div>
+        <div id="user-input-region"></div>
 
-    <button type="button" class="btn btn-lg btn-block btn-active convert-button">Convert</button>
+        <button type="button" class="btn btn-lg btn-block btn-active apply-button">Apply</button>
+    </div class="content">
 </div>

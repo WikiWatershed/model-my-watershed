@@ -1,30 +1,30 @@
 {% macro table(columnNames, rows, isSortable) %}
-    <table class="table custom-hover" data-toggle="table">
-        <thead>
+<table class="table custom-hover" data-toggle="table">
+    <thead>
+        <tr>
+            {% for columnName in columnNames %}
+                {% if isSortable %}
+                    <th data-sortable="true" data-sorter="window.numericSort">{{ columnName }}</th>
+                {% else %}
+                    <th>{{ columnName }}</th>
+                {% endif %}
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
             <tr>
-                {% for columnName in columnNames %}
-                    {% if isSortable %}
-                        <th data-sortable="true" data-sorter="window.numericSort">{{ columnName }}</th>
+                {% for value in row %}
+                    {% if loop.index0 == 0 %}
+                        <td class="text-left">{{ value }}</td>
                     {% else %}
-                        <th>{{ columnName }}</th>
+                        <td class="strong text-right">{{ value|round(2)|toLocaleString(2) }}</td>
                     {% endif %}
                 {% endfor %}
             </tr>
-        </thead>
-        <tbody>
-            {% for row in rows %}
-                <tr>
-                    {% for value in row %}
-                        {% if loop.index0 == 0 %}
-                            <td class="text-left">{{ value }}</td>
-                        {% else %}
-                            <td class="strong text-right">{{ value|round(2)|toLocaleString(2) }}</td>
-                        {% endif %}
-                    {% endfor %}
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        {% endfor %}
+    </tbody>
+</table>
 {% endmacro %}
 
 

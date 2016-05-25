@@ -1,18 +1,23 @@
 <div class="thumb-select">
     <div class="pad-1">
-        {% for modRow in modRows %}
-            <ul class="row">
-                {% for modKey in modRow %}
-                    <li>
-                        <div class="thumb" data-value="{{ modKey }}">
-                            <svg height="{{ 56 }}" width="{{ 56 }}">
-                                <rect height="{{ 56 }}" width="{{ 56 }}" fill="{{ modKey|modFill }}"></rect>
-                            </svg>
-                        </div>
-                        <label class="dark">{{ modKey|modShortName }}</label>
-                    </li>
-                {% endfor %}
-            </ul>
+        {% for modRowGroup in modRowGroups %}
+            {% if modRowGroup.name %}
+                <h5>{{ modRowGroup.name }}</h5>
+            {% endif %}    
+            {% for row in modRowGroup.rows %}
+                <ul class="row">
+                    {% for modKey in row %}
+                        <li>
+                            <div class="thumb" data-value="{{ modKey }}">
+                                <svg height="{{ 56 }}" width="{{ 56 }}">
+                                    <rect height="{{ 56 }}" width="{{ 56 }}" fill="{{ modKey|modFill }}"></rect>
+                                </svg>
+                            </div>
+                            <label class="dark">{{ modKey|modShortName }}</label>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
         {% endfor %}
     </div>
 

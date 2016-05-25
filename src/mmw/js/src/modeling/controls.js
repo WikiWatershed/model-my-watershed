@@ -111,8 +111,22 @@ var InputInfoView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
+        var output = this.model.get('output'),
+            errorMessage = output && output.errorMessages[this.userInputName],
+            infoMessage = output && output.infoMessages[this.userInputName],
+            isError = false,
+            message;
+
+        if (errorMessage) {
+            isError = true;
+            message = errorMessage;
+        } else if (infoMessage) {
+            message = infoMessage;
+        }
+
         return {
-            userInputName: this.userInputName
+            message: message,
+            isError: isError
         };
     }
 });
@@ -147,12 +161,12 @@ var ManualEntryView = Marionette.CompositeView.extend({
 
     ui: {
         'backButton': '.back-button',
-        'convertButton': '.convert-button'
+        'applyButton': '.apply-button'
     },
 
     events: {
         'click @ui.backButton': 'clearManualMod',
-        'click @ui.convertButton': 'convert',
+        'click @ui.applyButton': 'applyModification',
         'keyup': 'onKeyUp'
     },
 
@@ -177,7 +191,7 @@ var ManualEntryView = Marionette.CompositeView.extend({
 
     onKeyUp: function(e) {
         if (e.keyCode === ENTER_KEYCODE) {
-            this.convert();
+            this.applyModification();
         }
     },
 
@@ -219,7 +233,7 @@ var ManualEntryView = Marionette.CompositeView.extend({
         });
     },
 
-    convert: function() {
+    applyModification: function() {
         this.computeOutput();
         var output = this.model.get('output');
         if (output && gwlfeConfig.isValid(output.errorMessages)) {
@@ -335,11 +349,14 @@ var LandCoverView = ModificationsView.extend({
         this.model.set({
             controlName: this.getControlName(),
             controlDisplayName: 'Land Cover',
-            modRows: [
-                ['open_water', 'developed_open', 'developed_low', 'developed_med'],
-                ['developed_high', 'barren_land', 'deciduous_forest', 'shrub'],
-                ['grassland', 'pasture', 'cultivated_crops', 'woody_wetlands']
-            ]
+            modRowGroups: [{
+                name: '',
+                rows: [
+                    ['open_water', 'developed_open', 'developed_low', 'developed_med'],
+                    ['developed_high', 'barren_land', 'deciduous_forest', 'shrub'],
+                    ['grassland', 'pasture', 'cultivated_crops', 'woody_wetlands']
+                ]
+            }]
         });
     },
 
@@ -354,10 +371,13 @@ var ConservationPracticeView = ModificationsView.extend({
         this.model.set({
             controlName: this.getControlName(),
             controlDisplayName: 'Conservation Practice',
-            modRows: [
-                ['rain_garden', 'infiltration_trench', 'porous_paving'],
-                ['green_roof', 'no_till', 'cluster_housing']
-            ]
+            modRowGroups: [{
+                name: '',
+                rows: [
+                    ['rain_garden', 'infiltration_trench', 'porous_paving'],
+                    ['green_roof', 'no_till', 'cluster_housing']
+                ]
+            }]
         });
     },
 
@@ -383,10 +403,18 @@ var GwlfeConservationPracticeView = ModificationsView.extend({
             controlDisplayName: 'Conservation Practice',
             manualMode: true,
             manualMod: null,
-            modRows: [
-                ['cover_crops', 'conservation_tillage', 'nutrient_management', 'waste_management_livestock'],
-                ['waste_management_poultry', 'buffer_strips', 'streambank_fencing', 'streambank_stabilization'],
-                ['urban_buffer_strips', 'urban_streambank_stabilization', 'water_retention', 'infiltration']
+            modRowGroups: [
+                {
+                    name: 'Rural',
+                    rows: [
+                        ['cover_crops', 'conservation_tillage', 'nutrient_management', 'waste_management_livestock'],
+                        ['waste_management_poultry', 'buffer_strips', 'streambank_fencing', 'streambank_stabilization']
+                    ]
+                },
+                {
+                    name: 'Urban',
+                    rows: [['urban_buffer_strips', 'urban_streambank_stabilization', 'water_retention', 'infiltration']]
+                }
             ],
             dataModel: mockDataModel,
             errorMessages: null,

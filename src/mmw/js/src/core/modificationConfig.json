@@ -160,7 +160,7 @@
         "name": "Animal Waste Management Systems (Poultry)",
         "shortName": "Poultry Waste Man.",
         "summary": "These are systems that are designed to collect runoff and/or wastes from confined animal operations for the purpose of breaking down organic wastes via aerobic or anaerobic processes. Typical examples include waste lagoons or holding tanks that collect the wastes and prevent their discharge to nearby streams.",
-        "copyStyle": "grassland"
+        "copyStyle": "shrub"
     },
     "buffer_strips": {
         "name": "Vegetated Buffer Strips (Rural)",
