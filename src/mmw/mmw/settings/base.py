@@ -117,7 +117,10 @@ BROKER_URL = 'redis://{0}:{1}/2'.format(
     environ.get('MMW_CACHE_HOST', 'localhost'),
     environ.get('MMW_CACHE_PORT', 6379))
 
-CELERY_IMPORTS = ('celery.task.http',)
+CELERY_IMPORTS = ('celery.task.http',
+                  # Submodule task is not always autodiscovered
+                  'apps.modeling.mapshed.tasks',
+                  )
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
