@@ -23,6 +23,14 @@
                 {% if itsi %}
                     <li role="presentation"><a role="menuitem" tabindex="-1" id="itsi-clone">Embed in ITSI</a></li>
                 {% endif %}
+                {% if gwlfe %}
+                    <form id="export-gms-form" method="post" action="/api/modeling/export/gms/" target="_blank">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrftoken }}">
+                        <input type="hidden" name="filename" value="{{ name }}">
+                        <input type="hidden" name="mapshed_data" value='{{ gis_data }}'>
+                    </form>
+                    <li role="presentation"><a role="menuitem" tabindex="-1" id="export-gms">Export GMS</a></li>
+                {% endif %}
                 {% if user and not itsi_embed %}
                     <li role="separator" class="divider"></li>
                     <li role="presentation"><a role="menuitem" tabindex="-1" data-url="/projects/">My Projects</a></li>
