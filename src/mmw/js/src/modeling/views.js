@@ -54,6 +54,8 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
     },
 
     reRender: function() {
+        var self = this;
+
         this.projectMenuRegion.empty();
         this.projectMenuRegion.show(new ProjectMenuView({
             model: this.model
@@ -66,10 +68,12 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         }));
 
         this.toolbarRegion.empty();
-        this.toolbarRegion.show(new ToolbarTabContentsView({
-            collection: this.model.get('scenarios'),
-            model_package: this.model.get('model_package')
-        }));
+        App.currentProject.fetchGisDataIfNeeded().done(function() {
+            self.toolbarRegion.show(new ToolbarTabContentsView({
+                collection: self.model.get('scenarios'),
+                model_package: self.model.get('model_package')
+            }));
+        });
     },
 
     onShow: function() {
