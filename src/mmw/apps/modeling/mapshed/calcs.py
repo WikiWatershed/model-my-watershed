@@ -305,8 +305,8 @@ def point_source_discharge(geom, area):
         cursor.execute(sql, [geom.wkt])
         mg_d, kgn_month, kgp_month = cursor.fetchone()
 
-        n_load = [kgn_month] * 12 if kgn_month else [0.0] * 12
-        p_load = [kgp_month] * 12 if kgp_month else [0.0] * 12
+        n_load = [float(kgn_month)] * 12 if kgn_month else [0.0] * 12
+        p_load = [float(kgp_month)] * 12 if kgp_month else [0.0] * 12
         discharge = [float(mg_d * days * LITERS_PER_MGAL) / area
                      for days in MONTHDAYS] if mg_d else [0.0] * 12
 
