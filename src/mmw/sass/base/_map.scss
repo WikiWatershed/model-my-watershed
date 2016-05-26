@@ -116,13 +116,18 @@
     display: block;
   }
 
+  &.opacity_slider_control {
+    position: absolute;
+    top: 134px;
+  }
+
   &.leaflet-control-layers {
     min-width: 246px;
     margin-right: 50px;
     display: none;
     position: absolute;
     top: 120px;
-    right: 60px;
+    right: 15px;
     // Be as tall as the map container,
     // minus some space for the attribution
     height: 83%;

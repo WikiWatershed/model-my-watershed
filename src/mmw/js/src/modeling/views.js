@@ -1,6 +1,6 @@
 "use strict";
 
-    var _ = require('lodash'),
+var _ = require('lodash'),
     $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
@@ -10,6 +10,7 @@
     controls = require('./controls'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
+    gwlfeConfig = require('./gwlfeModificationConfig'),
     analyzeViews = require('../analyze/views.js'),
     analyzeModels = require('../analyze/models.js'),
     modalModels = require('../core/modals/models'),
@@ -25,7 +26,8 @@
     scenarioMenuTmpl = require('./templates/scenarioMenu.html'),
     scenarioMenuItemTmpl = require('./templates/scenarioMenuItem.html'),
     projectMenuTmpl = require('./templates/projectMenu.html'),
-    scenarioToolbarTabContentTmpl = require('./templates/scenarioToolbarTabContent.html'),
+    tr55ScenarioToolbarTabContentTmpl = require('./templates/tr55ScenarioToolbarTabContent.html'),
+    gwlfeScenarioToolbarTabContentTmpl = require('./templates/gwlfeScenarioToolbarTabContent.html'),
     tr55RunoffViews = require('./tr55/runoff/views.js'),
     tr55QualityViews = require('./tr55/quality/views.js'),
     gwlfeRunoffViews = require('./gwlfe/runoff/views.js'),
@@ -527,8 +529,8 @@ var ScenarioDropDownMenuView = Marionette.CompositeView.extend({
 // The toolbar that contains the modification and input tools
 // for a scenario.
 var ToolbarTabContentView = Marionette.CompositeView.extend({
+    template: tr55ScenarioToolbarTabContentTmpl,
     model: models.ScenarioModel,
-    template: scenarioToolbarTabContentTmpl,
     collection: models.ModelPackageControlsCollection,
     childViewContainer: '.controls',
 
@@ -558,30 +560,10 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
         'change:active': 'render'
     },
 
-    ui: {
-        deleteModification: '[data-delete]'
-    },
-
-    events: {
-        'click @ui.deleteModification': 'deleteModification'
-    },
-
     initialize: function(options) {
         this.compareMode = options.compareMode;
         var modificationsColl = this.model.get('modifications');
         this.listenTo(modificationsColl, 'add remove reset', this.render);
-    },
-
-    templateHelpers: function() {
-        var shapes = this.model.get('modifications'),
-            groupedShapes = shapes.groupBy('name');
-
-        return {
-            compareMode: this.compareMode,
-            shapes: shapes,
-            groupedShapes: groupedShapes,
-            editable: isEditable(this.model)
-        };
     },
 
     // Only display modification controls if scenario is editable.
@@ -602,15 +584,6 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
         }
     },
 
-    deleteModification: function(e) {
-        var $el = $(e.currentTarget),
-            cid = $el.data('delete'),
-            modificationsColl = this.model.get('modifications'),
-            modification = modificationsColl.get(cid);
-
-        modificationsColl.remove(modification);
-    },
-
     getChildView: function(modelPackageControl) {
         var controlName = modelPackageControl.get('name');
 
@@ -626,12 +599,155 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
     }
 });
 
+// The toolbar that contains the modification and input tools
+// for a scenario.
+var Tr55ToolbarTabContentView = ToolbarTabContentView.extend({
+    template: tr55ScenarioToolbarTabContentTmpl,
+    model: models.ScenarioModel,
+
+    ui: {
+        deleteModification: '[data-delete]'
+    },
+
+    events: {
+        'click @ui.deleteModification': 'deleteModification'
+    },
+
+    templateHelpers: function() {
+        var shapes = this.model.get('modifications'),
+            groupedShapes = shapes.groupBy('name');
+
+        return {
+            compareMode: this.compareMode,
+            shapes: shapes,
+            groupedShapes: groupedShapes,
+            editable: isEditable(this.model)
+        };
+    },
+
+    deleteModification: function(e) {
+        var $el = $(e.currentTarget),
+            cid = $el.data('delete'),
+            modificationsColl = this.model.get('modifications'),
+            modification = modificationsColl.get(cid);
+
+        modificationsColl.remove(modification);
+    }
+});
+
+// The toolbar that contains the modification and input tools
+// for a scenario.
+var GwlfeToolbarTabContentView = ToolbarTabContentView.extend({
+    template: gwlfeScenarioToolbarTabContentTmpl,
+
+    model: models.ScenarioModel,
+
+    ui: {
+        thumb: '#gwlfe-modifications-bar .thumb',
+        deleteButton: '.delete-button',
+        closeButton: 'button.close'
+    },
+
+    events: {
+        'click @ui.thumb': 'onThumbClick',
+        'click @ui.deleteButton': 'deleteModification',
+        'click @ui.closeButton': 'closePopup'
+    },
+
+    modelEvents: _.defaults({
+        'change:activeModKey': 'render',
+        'change:modifications': 'render'
+    }, ToolbarTabContentView.prototype.modelEvents),
+
+    initialize: function(options) {
+        ToolbarTabContentView.prototype.initialize.apply(this, [options]);
+
+        var self = this;
+        function closePopupOnOutsideClick(e) {
+            var isTargetOutside = $(e.target).parents('#gwlfe-modifications-popup').length === 0;
+            if (self.model.get('activeModKey') && isTargetOutside) {
+                self.closePopup();
+            }
+        }
+
+        $(document).on('mouseup', function(e) {
+            closePopupOnOutsideClick(e);
+        });
+    },
+
+    setupTooltips: function() {
+        var options = this.model.get('activeModKey') ? 'destroy' : null;
+        $('#gwlfe-modifications-bar .thumb').tooltip(options);
+        $('#gwlfe-modifications-bar i').tooltip(options);
+    },
+
+    onRender: function() {
+        ToolbarTabContentView.prototype.onRender.apply(this);
+        this.setupTooltips();
+    },
+
+    onShow: function() {
+        this.setupTooltips();
+    },
+
+    closePopup: function() {
+        this.model.set('activeModKey', null);
+    },
+
+    getActiveMod: function() {
+        var activeModKey = this.model.get('activeModKey'),
+            modifications = this.model.get('modifications');
+        return activeModKey && modifications.where({modKey: activeModKey})[0];
+    },
+
+    deleteModification: function() {
+        var activeMod = this.getActiveMod(),
+            modifications = this.model.get('modifications');
+
+        if (activeMod) {
+            modifications.remove(activeMod);
+            this.closePopup();
+        }
+    },
+
+    onThumbClick: function(e) {
+        var modKey = $(e.currentTarget).data('value'),
+            thumbOffset = $(e.target).offset();
+
+        this.model.set('activeModKey', modKey);
+
+        $('#gwlfe-modifications-popup').offset({
+            top: thumbOffset.top - 50
+        });
+    },
+
+    templateHelpers: function() {
+        var activeMod = this.getActiveMod(),
+            modifications = this.model.get('modifications').toJSON();
+
+        activeMod = activeMod ? activeMod.toJSON() : null;
+
+        return {
+            modifications: modifications,
+            activeMod: activeMod,
+            displayNames: gwlfeConfig.displayNames
+        };
+    }
+});
+
 // The collection of modification and input toolbars for each
 // scenario.
 var ToolbarTabContentsView = Marionette.CollectionView.extend({
     collection: models.ScenariosCollection,
     className: 'tab-content',
-    childView: ToolbarTabContentView,
+    getChildView: function() {
+        var isGwlfe = App.currentProject.get('model_package') === 'gwlfe';
+        if (isGwlfe) {
+            return GwlfeToolbarTabContentView;
+        } else {
+            return Tr55ToolbarTabContentView;
+        }
+    },
     childViewOptions: function(model) {
         var controls = models.getControlsForModelPackage(
             this.options.model_package,
@@ -923,7 +1039,7 @@ module.exports = {
     ScenariosView: ScenariosView,
     ScenarioTabPanelsView: ScenarioTabPanelsView,
     ScenarioDropDownMenuView: ScenarioDropDownMenuView,
-    ToolbarTabContentView: ToolbarTabContentView,
+    Tr55ToolbarTabContentView: Tr55ToolbarTabContentView,
     ProjectMenuView: ProjectMenuView,
     getResultView: getResultView
 };
