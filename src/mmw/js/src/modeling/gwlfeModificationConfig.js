@@ -110,8 +110,11 @@ function makeThresholdValidateFn(thresholdName, thresholdType, userInputName) {
             cleanUserInput = {},
             threshold = dataModel[thresholdName],
             userInputVal = convertToNumber(userInput[userInputName]),
+            thresholdNum = Number(threshold).toFixed(2).toLocaleString('en', {
+                minimumFractionDigits: 2
+            }),
             errorMessage = 'Enter ' + thresholdType +
-                ' > 0 and <= ' + threshold;
+                ' > 0 and <= ' + thresholdNum;
 
         if (userInputVal) {
             if (userInputVal > threshold || userInputVal <= 0) {
