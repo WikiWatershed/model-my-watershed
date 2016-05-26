@@ -282,10 +282,12 @@ var ScenariosView = Marionette.LayoutView.extend({
         // Check the first scenario in the collection as a proxy for the
         // entire collection.
         var scenario = this.collection.first(),
+            showCompare = App.currentProject.get('model_package') === models.TR55_PACKAGE,
             compareUrl = this.projectModel.getCompareUrl();
 
         return {
             editable: isEditable(scenario),
+            showCompare: showCompare,
             compareUrl: compareUrl
         };
     },
