@@ -331,7 +331,7 @@ def build_tr55_modification_input(pieces, censuses):
 
 
 @shared_task
-def run_gwlfe(model_input):
+def run_gwlfe(model_input, inputmod_hash):
     """
     Given a model_input resulting from a MapShed run, converts that dictionary
     to an intermediate GMS file representation, which is then parsed by GWLF-E
@@ -348,7 +348,10 @@ def run_gwlfe(model_input):
     reader = parser.GmsReader(output)
     z = reader.read()
 
-    return gwlfe.run(z)
+    result = gwlfe.run(z)
+    result['inputmod_hash'] = inputmod_hash
+
+    return result
 
 
 def to_gms_file(mapshed_data):
