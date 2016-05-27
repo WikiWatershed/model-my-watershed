@@ -829,6 +829,7 @@ var ScenarioModel = Backbone.Model.extend({
 
             case GWLFE:
                 return {
+                    inputmod_hash: self.get('inputmod_hash'),
                     model_input: project.get('gis_data')
                 };
         }

@@ -199,10 +199,11 @@ def start_gwlfe(request, format=None):
     user = request.user if request.user.is_authenticated() else None
     created = now()
     model_input = json.loads(request.POST['model_input'])
+    inputmod_hash = request.POST.get('inputmod_hash', '')
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
 
-    task_list = _initiate_gwlfe_job_chain(model_input, job.id)
+    task_list = _initiate_gwlfe_job_chain(model_input, inputmod_hash, job.id)
 
     job.uuid = task_list.id
     job.save()
@@ -215,8 +216,8 @@ def start_gwlfe(request, format=None):
     )
 
 
-def _initiate_gwlfe_job_chain(model_input, job_id):
-    chain = (tasks.run_gwlfe.s(model_input) |
+def _initiate_gwlfe_job_chain(model_input, inputmod_hash, job_id):
+    chain = (tasks.run_gwlfe.s(model_input, inputmod_hash) |
              save_job_result.s(job_id, model_input))
 
     return chain.apply_async(link_error=save_job_error.s(job_id))
