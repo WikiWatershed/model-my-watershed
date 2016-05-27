@@ -44,4 +44,4 @@ exports.jqueryAjaxSetupOptions = {
 
 exports.getToken = function() {
     return getCookie('csrftoken');
-}
+};
