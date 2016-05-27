@@ -139,28 +139,13 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
 
         var self = this;
 
-        if (!this.model.get('result')) {
-            var aoi = JSON.stringify(this.model.get('area_of_interest')),
-                taskHelper = {
-                    pollSuccess: function() {
-                        self.showDetailsRegion();
-                    },
-
-                    pollFailure: function() {
-                        self.showErrorMessage();
-                    },
-
-                    startFailure: function() {
-                        self.showErrorMessage();
-                    },
-
-                    postData: {'area_of_interest': aoi}
-                };
-
-            this.model.start(taskHelper);
-        } else {
-            self.showDetailsRegion();
-        }
+        this.model.fetchAnalysisIfNeeded()
+            .done(function() {
+                self.showDetailsRegion();
+            })
+            .fail(function() {
+                self.showErrorMessage();
+            });
     },
 
     showAnalyzingMessage: function() {
