@@ -10,10 +10,10 @@ var $ = require('jquery'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
     coreModels = require('../core/models'),
+    coreViews = require('../core/views'),
     chart = require('../core/chart'),
     utils = require('../core/utils'),
     windowTmpl = require('./templates/window.html'),
-    messageTmpl = require('./templates/message.html'),
     detailsTmpl = require('../modeling/templates/resultsDetails.html'),
     aoiHeaderTmpl = require('./templates/aoiHeader.html'),
     tableTmpl = require('./templates/table.html'),
@@ -164,21 +164,21 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     },
 
     showAnalyzingMessage: function() {
-        var messageModel = new models.AnalyzeMessageModel();
+        var messageModel = new coreModels.TaskMessageViewModel();
 
-        messageModel.setAnalyzing();
+        messageModel.setWorking('Analyzing');
 
-        this.detailsRegion.show(new MessageView({
+        this.detailsRegion.show(new coreViews.TaskMessageView({
             model: messageModel
         }));
     },
 
     showErrorMessage: function() {
-        var messageModel = new models.AnalyzeMessageModel();
+        var messageModel = new coreModels.TaskMessageViewModel();
 
         messageModel.setError();
 
-        this.detailsRegion.show(new MessageView({
+        this.detailsRegion.show(new coreViews.TaskMessageView({
             model: messageModel
         }));
     },
@@ -192,11 +192,6 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
             }));
         }
     }
-});
-
-var MessageView = Marionette.ItemView.extend({
-    template: messageTmpl,
-    className: 'analyze-message-region'
 });
 
 var DetailsView = Marionette.LayoutView.extend({

@@ -213,6 +213,21 @@ var TaskModel = Backbone.Model.extend({
     }
 });
 
+var TaskMessageViewModel = Backbone.Model.extend({
+    message: null,
+    iconClass: null,
+
+    setError: function() {
+        this.set('message', 'Error');
+        this.set('iconClasses', 'fa fa-exclamation-triangle');
+    },
+
+    setWorking: function(message) {
+        this.set('message', message);
+        this.set('iconClasses', 'fa fa-circle-o-notch fa-spin');
+    }
+});
+
 // A collection of data points, useful for tables.
 var LandUseCensusCollection = Backbone.Collection.extend({
     comparator: 'nlcd'
@@ -272,6 +287,7 @@ var AppStateModel = Backbone.Model.extend({
 module.exports = {
     MapModel: MapModel,
     TaskModel: TaskModel,
+    TaskMessageViewModel: TaskMessageViewModel,
     LandUseCensusCollection: LandUseCensusCollection,
     SoilCensusCollection: SoilCensusCollection,
     GeoModel: GeoModel,
