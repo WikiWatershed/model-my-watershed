@@ -8,6 +8,8 @@
     csrf = require('../core/csrf'),
     models = require('./models'),
     controls = require('./controls'),
+    coreModels = require('../core/models'),
+    coreViews = require('../core/views'),
     analyzeViews = require('../analyze/views.js'),
     analyzeModels = require('../analyze/models.js'),
     modalModels = require('../core/modals/models'),
@@ -654,17 +656,35 @@ var ResultsView = Marionette.LayoutView.extend({
     initialize: function(options) {
         var scenarios = this.model.get('scenarios');
 
-        this.listenTo(scenarios, 'change:active', this.showDetailsRegion);
+        this.listenTo(scenarios, 'change:active', this.onShow);
 
         if (options.lock) {
             this.lock = options.lock;
         }
 
-        this.model.fetchResultsIfNeeded();
+        this.fetchGisDataPromise = this.model.fetchGisDataIfNeeded();
+        this.fetchResultsPromise = this.model.fetchResultsIfNeeded();
     },
 
     onShow: function() {
-        this.showDetailsRegion();
+        var self = this,
+            tmvModel = new coreModels.TaskMessageViewModel(),
+            errorHandler = function() {
+                tmvModel.setError();
+                self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
+            };
+
+        tmvModel.setWorking('Gathering Data');
+        self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
+
+        self.fetchGisDataPromise.done(function() {
+            tmvModel.setWorking('Calculating Results');
+            self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
+        }).fail(errorHandler);
+
+        self.fetchResultsPromise.done(function() {
+            self.showDetailsRegion();
+        }).fail(errorHandler);
     },
 
     onRender: function() {
