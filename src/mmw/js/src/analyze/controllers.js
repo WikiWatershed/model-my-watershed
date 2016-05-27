@@ -49,12 +49,15 @@ var AnalyzeController = {
 
     analyze: function() {
         var aoi = JSON.stringify(App.map.get('areaOfInterest')),
-            analyzeModel = createTaskModel(aoi),
+            analyzeModel = App.analyzeModel || createTaskModel(aoi),
             analyzeResults = new views.ResultsView({
                 model: analyzeModel
             });
 
-        App.analyzeModel = analyzeModel;
+        if (!App.analyzeModel) {
+            App.analyzeModel = analyzeModel;
+        }
+
         App.state.set('current_page_title', 'Geospatial Analysis');
 
         App.rootView.sidebarRegion.show(analyzeResults);

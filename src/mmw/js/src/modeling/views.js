@@ -676,6 +676,10 @@ var ResultsView = Marionette.LayoutView.extend({
                 self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
             };
 
+        if (!App.analyzeModel) {
+            App.analyzeModel = analyzeModel;
+        }
+
         this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
             model: analyzeModel
         }));
