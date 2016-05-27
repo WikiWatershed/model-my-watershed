@@ -64,8 +64,17 @@ var displayNames = fromPairs([
     [UrbLengthName, 'Length of streams in non-ag areas (km)']
 ]);
 
-function getPercentStr(fraction) {
-    return Math.round(fraction * 100) + '%';
+var shortDisplayNames = fromPairs([
+    [n23Name, 'area of row crops'],
+    [n42Name, 'length of streams in ag areas'],
+    [n42bName, 'length of streams in watershed'],
+    [UrbAreaTotalName, 'total urban area'],
+    [UrbLengthName, 'length of streams in non-ag areas']
+]);
+
+function getPercentStr(fraction, dataModelName) {
+    var dataModelDisplayName = shortDisplayNames[dataModelName] || displayNames[dataModelName];
+    return Math.round(fraction * 100) + '% of ' + dataModelDisplayName;
 }
 
 function convertToNumber(x) {
@@ -161,7 +170,7 @@ function makeComputeOutputFn(dataModelName, inputName, getOutput) {
 
         if (inputVal) {
             fractionVal = inputVal / dataModelVal;
-            infoMessages[inputName] = getPercentStr(fractionVal);
+            infoMessages[inputName] = getPercentStr(fractionVal, dataModelName);
             output = getOutput(inputVal, fractionVal);
         }
 
