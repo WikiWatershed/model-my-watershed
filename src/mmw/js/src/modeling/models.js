@@ -166,13 +166,17 @@ var ProjectModel = Backbone.Model.extend({
     },
 
     fetchResultsIfNeeded: function() {
+        var promises = [];
+
         this.get('scenarios').forEach(function(scenario) {
-            scenario.fetchResultsIfNeeded();
+            promises.push(scenario.fetchResultsIfNeeded());
         });
 
         this.get('scenarios').on('add', function(scenario) {
             scenario.fetchResultsIfNeeded();
         });
+
+        return $.when.apply($, promises);
     },
 
     updateName: function(newName) {
@@ -699,7 +703,8 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     fetchResultsIfNeeded: function() {
-        var inputmod_hash = this.get('inputmod_hash'),
+        var self = this,
+            inputmod_hash = this.get('inputmod_hash'),
             needsResults = this.get('results').some(function(resultModel) {
                 var emptyResults = !resultModel.get('result'),
                     staleResults = inputmod_hash !== resultModel.get('inputmod_hash');
@@ -707,12 +712,24 @@ var ScenarioModel = Backbone.Model.extend({
                 return emptyResults || staleResults;
             });
 
-        if (needsResults) {
-            var fetchResults = _.bind(this.fetchResults, this);
-            App.currentProject
-                .fetchGisDataIfNeeded()
-                .then(fetchResults);
+        if (needsResults && self.fetchResultsPromise === undefined) {
+            var fetchResults = _.bind(self.fetchResults, self),
+                fetchGisDataPromise = App.currentProject.fetchGisDataIfNeeded();
+
+            self.fetchResultsPromise = fetchGisDataPromise.then(function() {
+                var promises = fetchResults();
+                return $.when(promises.startPromise, promises.pollingPromise);
+            });
+
+            self.fetchResultsPromise
+                .always(function() {
+                    // Clear promise so we start a new one next time
+                    delete self.fetchResultsPromise;
+                });
         }
+
+        // Return fetchResultsPromise if it exists, else an immediately resovled one.
+        return self.fetchResultsPromise || $.when();
     },
 
     setResults: function() {
