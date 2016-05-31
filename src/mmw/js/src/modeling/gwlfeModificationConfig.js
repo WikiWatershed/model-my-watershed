@@ -72,6 +72,12 @@ var shortDisplayNames = fromPairs([
     [UrbLengthName, 'length of streams in non-ag areas']
 ]);
 
+function cleanDataModel(dataModel) {
+    return _.mapValues(dataModel, function(val, varName) {
+        return varName === UrbLengthName ? val / 1000 : val;
+    });
+}
+
 function getPercentStr(fraction, dataModelName) {
     var dataModelDisplayName = shortDisplayNames[dataModelName] || displayNames[dataModelName];
     return Math.round(fraction * 100) + '% of ' + dataModelDisplayName;
@@ -310,6 +316,7 @@ var configs = {
 };
 
 module.exports = {
+    cleanDataModel: cleanDataModel,
     displayNames: displayNames,
     isValid: isValid,
     aggregateOutput: aggregateOutput,
