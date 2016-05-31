@@ -1,7 +1,6 @@
 "use strict";
 
-var _ = require('underscore'),
-    App = require('../app'),
+var App = require('../app'),
     router = require('../router').router,
     views = require('./views'),
     models = require('./models'),
@@ -48,15 +47,11 @@ var AnalyzeController = {
     },
 
     analyze: function() {
-        var aoi = JSON.stringify(App.map.get('areaOfInterest')),
-            analyzeModel = App.analyzeModel || createTaskModel(aoi),
+        var aoi = App.map.get('areaOfInterest'),
+            analyzeModel = models.AnalyzeTaskModel.getSingleton(App, aoi),
             analyzeResults = new views.ResultsView({
                 model: analyzeModel
             });
-
-        if (!App.analyzeModel) {
-            App.analyzeModel = analyzeModel;
-        }
 
         App.state.set('current_page_title', 'Geospatial Analysis');
 
@@ -67,16 +62,6 @@ var AnalyzeController = {
         App.rootView.sidebarRegion.empty();
     }
 };
-
-// Pass in the serialized Area of Interest for
-// caching purposes (_.memoize returns the same
-// results for any object), and deserialize
-// the AoI for use on the model.
-var createTaskModel = _.memoize(function(aoi) {
-    return new models.AnalyzeTaskModel({
-        area_of_interest: JSON.parse(aoi)
-    });
-});
 
 module.exports = {
     AnalyzeController: AnalyzeController

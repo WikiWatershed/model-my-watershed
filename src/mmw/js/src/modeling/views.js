@@ -668,17 +668,13 @@ var ResultsView = Marionette.LayoutView.extend({
 
     onShow: function() {
         var self = this,
-            aoi = JSON.stringify(App.map.get('areaOfInterest')),
-            analyzeModel = App.analyzeModel || createTaskModel(aoi),
+            aoi = App.map.get('areaOfInterest'),
+            analyzeModel = analyzeModels.AnalyzeTaskModel.getSingleton(App, aoi),
             tmvModel = new coreModels.TaskMessageViewModel(),
             errorHandler = function() {
                 tmvModel.setError();
                 self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
             };
-
-        if (!App.analyzeModel) {
-            App.analyzeModel = analyzeModel;
-        }
 
         this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
             model: analyzeModel
@@ -903,16 +899,6 @@ function getResultView(modelPackage, resultName) {
             console.log('Model package ' + modelPackage + ' not supported.');
     }
 }
-
-// Pass in the serialized Area of Interest for
-// caching purposes (_.memoize returns the same
-// results for any object), and deserialize
-// the AoI for use on the model.
-var createTaskModel = _.memoize(function(aoi) {
-    return new analyzeModels.AnalyzeTaskModel({
-        area_of_interest: JSON.parse(aoi)
-    });
-});
 
 module.exports = {
     ResultsView: ResultsView,
