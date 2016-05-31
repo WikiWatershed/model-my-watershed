@@ -147,11 +147,15 @@
         margin-bottom: 0.2rem;
         display: block;
 
-        &:hover {
+        &:not(.disabled):hover {
           border-color: $ui-primary;
           cursor: pointer;
         }
       }
+    }
+
+    .disabled {
+      opacity: 0.4;
     }
   }
 }

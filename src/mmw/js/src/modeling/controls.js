@@ -44,7 +44,19 @@ var ThumbSelectView = Marionette.ItemView.extend({
     template: thumbSelectTmpl,
 
     initialize: function(options) {
-        this.model.set('activeMod', null);
+        var modKeys = _.flatten(_.pluck(this.model.get('modRowGroups'), 'rows'), true),
+            dataModel = this.model.get('dataModel'),
+            manualMode = this.model.get('manualMode'),
+            modEnabled = {};
+
+        _.forEach(modKeys, function(modKey) {
+            modEnabled[modKey] = manualMode ? gwlfeConfig.configs[modKey].validateDataModel(dataModel) : true;
+        });
+
+        this.model.set({
+            activeMod: null,
+            modEnabled: modEnabled
+        });
         this.addModification = options.addModification;
     },
 
@@ -63,8 +75,8 @@ var ThumbSelectView = Marionette.ItemView.extend({
     },
 
     onThumbHover: function(e) {
-        var value = $(e.currentTarget).data('value');
-        this.model.set('activeMod', value);
+        var modKey = $(e.currentTarget).data('value');
+        this.model.set('activeMod', modKey);
     },
 
     onThumbClick: function(e) {
@@ -72,10 +84,12 @@ var ThumbSelectView = Marionette.ItemView.extend({
             controlName = this.model.get('controlName'),
             controlValue = $el.data('value');
 
-        if (this.model.get('manualMode')) {
-            this.startManual(controlName, controlValue);
-        } else {
-            this.startDrawing(controlName, controlValue);
+        if (this.model.get('modEnabled')[controlValue]) {
+            if (this.model.get('manualMode')) {
+                this.startManual(controlName, controlValue);
+            } else {
+                this.startDrawing(controlName, controlValue);
+            }
         }
     },
 

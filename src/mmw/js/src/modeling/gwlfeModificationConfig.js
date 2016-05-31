@@ -169,6 +169,16 @@ function makeComputeOutputFn(dataModelName, inputName, getOutput) {
     };
 }
 
+// Returns a function that checks that each variable in dataModelNames
+// is positive. Useful for checking if a BMP is applicable to an AOI.
+function makeValidateDataModelFn(dataModelNames) {
+    return function(dataModel) {
+        return _.every(dataModelNames, function(dataModelName) {
+            return dataModel[dataModelName] > 0;
+        });
+    };
+}
+
 function makeAgBmpConfig(outputName) {
     function getOutput(inputVal, fractionVal) {
         return fromPairs([
@@ -178,6 +188,7 @@ function makeAgBmpConfig(outputName) {
 
     return {
         dataModelNames: [n23Name],
+        validateDataModel: makeValidateDataModelFn([n23Name]),
         userInputNames: [areaToModifyName],
         validate: makeThresholdValidateFn(n23Name, AREA, areaToModifyName),
         computeOutput: makeComputeOutputFn(n23Name, areaToModifyName, getOutput)
@@ -187,6 +198,7 @@ function makeAgBmpConfig(outputName) {
 function makeAeuBmpConfig(outputName) {
     return {
         dataModelNames: [],
+        validateDataModel: makeValidateDataModelFn([]),
         userInputNames: [percentAeuToModifyName],
         validate: makePercentValidateFn(percentAeuToModifyName),
         computeOutput: function(dataModel, cleanUserInput) {
@@ -213,6 +225,7 @@ function makeRuralStreamsBmpConfig(outputName) {
 
     return {
         dataModelNames: [n42Name, n42bName],
+        validateDataModel: makeValidateDataModelFn([n42Name]),
         userInputNames: [lengthToModifyInAgName],
         validate: makeThresholdValidateFn(n42Name, LENGTH, lengthToModifyInAgName),
         computeOutput: makeComputeOutputFn(n42Name, lengthToModifyInAgName, getOutput)
@@ -222,6 +235,7 @@ function makeRuralStreamsBmpConfig(outputName) {
 function makeUrbanStreamsBmpConfig(getOutput) {
     return {
         dataModelNames: [UrbLengthName],
+        validateDataModel: makeValidateDataModelFn([UrbLengthName]),
         userInputNames: [lengthToModifyName],
         validate: makeThresholdValidateFn(UrbLengthName, LENGTH, lengthToModifyName),
         computeOutput: makeComputeOutputFn(UrbLengthName, lengthToModifyName, getOutput)
@@ -231,6 +245,7 @@ function makeUrbanStreamsBmpConfig(getOutput) {
 function makeUrbanAreaBmpConfig(getOutput) {
     return {
         dataModelNames: [UrbAreaTotalName],
+        validateDataModel: makeValidateDataModelFn([UrbAreaTotalName]),
         userInputNames: [areaToModifyName],
         validate: makeThresholdValidateFn(UrbAreaTotalName, AREA, areaToModifyName),
         computeOutput: makeComputeOutputFn(UrbAreaTotalName, areaToModifyName, getOutput)
@@ -242,6 +257,8 @@ function makeUrbanAreaBmpConfig(getOutput) {
     to generate the UI for that modification.
     - dataModelNames is a list of variable names in the Mapshed data model
     (received from the backend) which should be displayed to the user.
+    - validateDataModel is a function which validates the values of the
+    dataModel which can be used to tell if the BMP is valid for an AOI
     - userInputNames is a list of non-Mapshed variables used to reference values
     the user enters into the UI. currently all the BMPs only reference a single
     user input variable, so using a list is overkill, but it could be useful in
