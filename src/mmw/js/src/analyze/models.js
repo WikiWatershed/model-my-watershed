@@ -1,7 +1,8 @@
 "use strict";
 
-var Backbone = require('../../shim/backbone'),
+var $ = require('jquery'),
     _ = require('lodash'),
+    Backbone = require('../../shim/backbone'),
     coreModels = require('../core/models');
 
 var LayerModel = Backbone.Model.extend({});
@@ -20,10 +21,55 @@ var LayerCategoryCollection = Backbone.Collection.extend({
 
 var AnalyzeTaskModel = coreModels.TaskModel.extend({
     defaults: _.extend( {
+            area_of_interest: null,
             taskName: 'analyze',
             taskType: 'modeling'
         }, coreModels.TaskModel.prototype.defaults
-    )
+    ),
+
+    /**
+     * Returns a promise that completes when Analysis has been fetched. If
+     * fetching is not required, returns an immediatley resolved promise.
+     */
+    fetchAnalysisIfNeeded: function() {
+        var self = this,
+            aoi = self.get('area_of_interest'),
+            result = self.get('result');
+
+        if (aoi && !result && self.fetchAnalysisPromise === undefined) {
+            var promises = self.start({
+                postData: {
+                    'area_of_interest': JSON.stringify(aoi)
+                }
+            });
+            self.fetchAnalysisPromise = $.when(promises.startPromise,
+                                               promises.pollingPromise);
+            self.fetchAnalysisPromise
+                .always(function() {
+                    delete self.fetchAnalysisPromise;
+                });
+        }
+
+        return self.fetchAnalysisPromise || $.when();
+    }
+});
+
+AnalyzeTaskModel.getSingleton = function(App, aoi) {
+    if (!App.analyzeModel) {
+        App.analyzeModel = createTaskModel(JSON.stringify(aoi));
+    }
+
+    return App.analyzeModel;
+};
+
+// Pass in the serialized Area of Interest for
+// caching purposes (_.memoize returns the same
+// results for any object), and deserialize
+// the AoI for use on the model.
+var createTaskModel = _.memoize(function(aoi) {
+    return new AnalyzeTaskModel({
+        area_of_interest: JSON.parse(aoi)
+    });
 });
 
 module.exports = {

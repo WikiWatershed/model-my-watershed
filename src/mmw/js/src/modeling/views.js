@@ -790,11 +790,17 @@ var ResultsView = Marionette.LayoutView.extend({
 
     onShow: function() {
         var self = this,
+            aoi = App.map.get('areaOfInterest'),
+            analyzeModel = analyzeModels.AnalyzeTaskModel.getSingleton(App, aoi),
             tmvModel = new coreModels.TaskMessageViewModel(),
             errorHandler = function() {
                 tmvModel.setError();
                 self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
             };
+
+        this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
+            model: analyzeModel
+        }));
 
         tmvModel.setWorking('Gathering Data');
         self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
@@ -819,14 +825,7 @@ var ResultsView = Marionette.LayoutView.extend({
 
     showDetailsRegion: function() {
         var scenarios = this.model.get('scenarios'),
-            scenario = scenarios.getActiveScenario(),
-            aoi = JSON.stringify(App.map.get('areaOfInterest')),
-            analyzeModel = App.analyzeModel !== undefined ? App.analyzeModel :
-                            createTaskModel(aoi);
-
-        this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
-            model: analyzeModel
-        }));
+            scenario = scenarios.getActiveScenario();
 
         if (scenario) {
             this.modelingRegion.show(new ResultsDetailsView({
@@ -1022,16 +1021,6 @@ function getResultView(modelPackage, resultName) {
             console.log('Model package ' + modelPackage + ' not supported.');
     }
 }
-
-// Pass in the serialized Area of Interest for
-// caching purposes (_.memoize returns the same
-// results for any object), and deserialize
-// the AoI for use on the model.
-var createTaskModel = _.memoize(function(aoi) {
-    return new analyzeModels.AnalyzeTaskModel({
-        area_of_interest: JSON.parse(aoi)
-    });
-});
 
 module.exports = {
     ResultsView: ResultsView,
