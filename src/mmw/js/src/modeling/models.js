@@ -826,10 +826,6 @@ var ScenarioModel = Backbone.Model.extend({
                 }
             };
 
-        // TODO remove before merging
-        console.log('gwlfe postData');
-        console.log(JSON.parse(gisData.model_input));
-
         return taskModel.start(taskHelper);
     },
 
