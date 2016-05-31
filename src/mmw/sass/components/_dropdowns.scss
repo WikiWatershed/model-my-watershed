@@ -162,8 +162,6 @@
   }
 }
 
-//Modification Dropdown
-#modifications {
-  max-height: 400px;
-  overflow-y: auto;
+.modification-dropdown {
+  z-index: 1002;
 }

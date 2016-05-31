@@ -144,6 +144,7 @@ def collect_data(geop_result, geojson):
     z['SedPhos'] = geop_result['sed_phos']
     z['Area'] = [percent * area * HECTARES_PER_SQM
                  for percent in geop_result['landuse_pcts']]
+    z['UrbAreaTotal'] = sum(z['Area'][NRur:])
 
     z['NormalSys'] = normal_sys(z['Area'])
 

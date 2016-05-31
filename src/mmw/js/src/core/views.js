@@ -154,7 +154,7 @@ var HeaderView = Marionette.ItemView.extend({
 // Init the locate plugin button and add it to the map.
 function addLocateMeButton(map, maxZoom, maxAge) {
     var locateOptions = {
-        position: 'topleft',
+        position: 'topright',
         metric: false,
         drawCircle: false,
         showPopup: false,
@@ -248,7 +248,7 @@ var MapView = Marionette.ItemView.extend({
         }
 
         if (options.addZoomControl) {
-            map.addControl(new L.Control.Zoom({position: 'topleft'}));
+            map.addControl(new L.Control.Zoom({position: 'topright'}));
         }
 
         var maxGeolocationAge = 60000;
@@ -259,7 +259,7 @@ var MapView = Marionette.ItemView.extend({
         if (options.addLayerSelector) {
             var layerOptions = {
                 autoZIndex: false,
-                position: 'topleft',
+                position: 'topright',
                 collapsed: false
             };
 
@@ -413,7 +413,7 @@ var MapView = Marionette.ItemView.extend({
                     minZoom: 0});
                 leafletLayer = new L.TileLayer(tileUrl, layer);
                 if (layer.has_opacity_slider) {
-                    var slider = new OpacityControl({position: 'topleft'});
+                    var slider = new OpacityControl({position: 'topright'});
 
                     slider.setOpacityLayer(leafletLayer);
                     leafletLayer.slider = slider;

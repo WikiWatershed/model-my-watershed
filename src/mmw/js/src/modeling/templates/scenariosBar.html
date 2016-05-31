@@ -9,6 +9,8 @@
     </div>
 </div>
 <div class="fade-tabs"></div>
-<div class="compare-top-btn">
-    <a data-url={{ compareUrl }} class="btn btn-compare"><i class="fa fa-th"></i> Compare</a>
-</div>
+{% if showCompare %}
+    <div class="compare-top-btn">
+        <a data-url={{ compareUrl }} class="btn btn-compare"><i class="fa fa-th"></i> Compare</a>
+    </div>
+{% endif %}

@@ -156,7 +156,7 @@ describe('Modeling', function() {
             });
         });
 
-        describe('ToolbarTabContentView', function() {
+        describe('Tr55ToolbarTabContentView', function() {
             beforeEach(function() {
                 this.userId = 1;
                 App.user.id = this.userId;
@@ -164,7 +164,7 @@ describe('Modeling', function() {
                     name: 'New Scenario',
                     modifications: []
                 });
-                this.view = new views.ToolbarTabContentView({
+                this.view = new views.Tr55ToolbarTabContentView({
                     model: this.model,
                     collection: models.getControlsForModelPackage('tr-55')
                 });

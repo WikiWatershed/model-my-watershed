@@ -189,6 +189,54 @@ header {
     background-color: #D0D0D0;
     height: $toolbar-height;
 
+    #gwlfe-modifications-bar, #gwlfe-modifications-popup {
+      padding: 5px;
+      position: absolute;
+      display: block;
+
+      .thumb {
+        cursor: pointer;
+        border: solid 2px transparent;
+        height: 40px;
+        width: 40px;
+      }
+
+      .thumb:hover {
+        border: solid 2px $black;
+      }
+    }
+
+    #gwlfe-modifications-bar {
+      top: 60px;
+      left: 0;
+      background-color: #D0D0D0;
+      z-index: 1001;
+
+      .title-icon {
+        text-align: center;
+        font-size: 15px;
+      }
+    }
+
+    #gwlfe-modifications-popup {
+      left: 46px;
+      z-index: 1003;
+
+      .popover-content {
+        padding: 12px;
+
+        .table {
+          margin-bottom: 10px;
+        }
+      }
+
+      .close {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+      }
+    }
+
     #modification-btn-wrapper {
       float: right;
     }

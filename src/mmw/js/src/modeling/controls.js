@@ -174,6 +174,10 @@ var ManualEntryView = Marionette.CompositeView.extend({
 
     childViewContainer: '#user-input-region',
 
+    initialize: function(options) {
+        this.addModification = options.addModification;
+    },
+
     childViewOptions: function() {
         return {
             parentModel: this.model
@@ -229,19 +233,26 @@ var ManualEntryView = Marionette.CompositeView.extend({
             userInput, modConfig.validate, modConfig.computeOutput);
 
         this.model.set({
-            output: output
+            output: output,
+            userInput: userInput
         });
     },
 
     applyModification: function() {
         this.computeOutput();
-        var output = this.model.get('output');
+        var modKey = this.model.get('manualMod'),
+            userInput = this.model.get('userInput'),
+            output = this.model.get('output');
+
         if (output && gwlfeConfig.isValid(output.errorMessages)) {
             this.clearManualMod();
             this.closeDropdown();
-            // TODO call this.addModification after infrastructure is in place
-            // to handle Gwlfe scenarios and modifications
-            console.log(output.output);
+
+            this.addModification(new models.GwlfeModificationModel({
+                modKey: modKey,
+                userInput: userInput,
+                output: output.output
+            }));
         }
     }
 });
@@ -386,15 +397,6 @@ var ConservationPracticeView = ModificationsView.extend({
     }
 });
 
-// TODO use the real Mapshed data model from the server
-var mockDataModel = {
-    n23: 500,
-    n42: 300,
-    n42b: 1000,
-    UrbAreaTotal: 900,
-    UrbLength: 200
-};
-
 var GwlfeConservationPracticeView = ModificationsView.extend({
     initialize: function(options) {
         ModificationsView.prototype.initialize.apply(this, [options]);
@@ -416,7 +418,7 @@ var GwlfeConservationPracticeView = ModificationsView.extend({
                     rows: [['urban_buffer_strips', 'urban_streambank_stabilization', 'water_retention', 'infiltration']]
                 }
             ],
-            dataModel: mockDataModel,
+            dataModel: JSON.parse(App.currentProject.get('gis_data')),
             errorMessages: null,
             infoMessages: null
         });

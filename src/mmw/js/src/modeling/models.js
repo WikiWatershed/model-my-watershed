@@ -582,6 +582,14 @@ var ModificationsCollection = Backbone.Collection.extend({
     model: ModificationModel
 });
 
+var GwlfeModificationModel = Backbone.Model.extend({
+    defaults: {
+        modKey: null,
+        output: null,
+        userInput: null
+    }
+});
+
 var ScenarioModel = Backbone.Model.extend({
     urlRoot: '/api/modeling/scenarios/',
 
@@ -605,16 +613,18 @@ var ScenarioModel = Backbone.Model.extend({
         Backbone.Model.prototype.initialize.apply(this, arguments);
         this.set('user_id', App.user.get('id'));
 
-        // TODO The default modifications might be a function
-        // of the model_package in the future.
-        _.defaults(attrs, {
-            inputs: [
-                {
-                    name: 'precipitation',
-                    value: 0.984252 // equal to 2.5 cm.
-                }
-            ]
-        });
+        var defaultMods = {};
+        if (App.currentProject.get('model_package') === TR55_PACKAGE)  {
+            defaultMods = {
+               inputs: [
+                   {
+                       name: 'precipitation',
+                       value: 0.984252 // equal to 2.5 cm.
+                   }
+               ]
+           };
+        }
+        _.defaults(attrs, defaultMods);
 
         this.set('inputs', new ModificationsCollection(attrs.inputs));
         this.set('modifications', new ModificationsCollection(attrs.modifications));
@@ -660,7 +670,20 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     addModification: function(modification) {
-        this.get('modifications').add(modification);
+        var modifications = this.get('modifications');
+
+        // For GWLFE, first remove existing mod with the same key since it
+        // doesn't make sense to have multiples of the same type of BMP.
+        if (App.currentProject.get('model_package') === GWLFE) {
+            var modKey = modification.get('modKey'),
+                matches = modifications.where({'modKey': modKey});
+
+            if (matches) {
+                modifications.remove(matches[0], {silent: true});
+            }
+        }
+
+        modifications.add(modification);
     },
 
     addOrReplaceInput: function(input) {
@@ -803,6 +826,10 @@ var ScenarioModel = Backbone.Model.extend({
                 }
             };
 
+        // TODO remove before merging
+        console.log('gwlfe postData');
+        console.log(JSON.parse(gisData.model_input));
+
         return taskModel.start(taskHelper);
     },
 
@@ -845,9 +872,18 @@ var ScenarioModel = Backbone.Model.extend({
                 };
 
             case GWLFE:
+                // Merge the values that came back from Mapshed with the values
+                // in the modifications from the user.
+                var modifications = self.get('modifications'),
+                    mergedGisData = JSON.parse(project.get('gis_data'));
+
+                modifications.forEach(function(mod) {
+                    Object.assign(mergedGisData, mod.get('output'));
+                });
+
                 return {
                     inputmod_hash: self.get('inputmod_hash'),
-                    model_input: project.get('gis_data')
+                    model_input: JSON.stringify(mergedGisData)
                 };
         }
     }
@@ -1061,6 +1097,7 @@ module.exports = {
     ProjectModel: ProjectModel,
     ProjectCollection: ProjectCollection,
     ModificationModel: ModificationModel,
+    GwlfeModificationModel: GwlfeModificationModel,
     ModificationsCollection: ModificationsCollection,
     ScenarioModel: ScenarioModel,
     ScenariosCollection: ScenariosCollection
