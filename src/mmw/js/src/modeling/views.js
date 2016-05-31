@@ -104,8 +104,6 @@ var ProjectMenuView = Marionette.ItemView.extend({
         print: '#print-project',
         save: '#save-project',
         privacy: '#project-privacy',
-        exportGms: '#export-gms',
-        exportGmsForm: '#export-gms-form',
         itsiClone: '#itsi-clone'
     },
 
@@ -116,7 +114,6 @@ var ProjectMenuView = Marionette.ItemView.extend({
         'click @ui.print': 'printProject',
         'click @ui.save': 'saveProjectOrLoginUser',
         'click @ui.privacy': 'setProjectPrivacy',
-        'click @ui.exportGms': 'downloadGmsFile',
         'click @ui.itsiClone': 'getItsiEmbedLink'
     },
 
@@ -127,11 +124,6 @@ var ProjectMenuView = Marionette.ItemView.extend({
             itsi: App.user.get('itsi'),
             itsi_embed: settings.get('itsi_embed'),
             editable: isEditable(this.model),
-            csrftoken: csrf.getToken(),
-            gwlfe: this.model.get('model_package') === models.GWLFE &&
-                   this.model.get('gis_data') !== null &&
-                   this.model.get('gis_data') !== '' &&
-                   this.model.get('gis_data') !== '{}',
             is_new: this.model.isNew()
         };
     },
@@ -248,13 +240,6 @@ var ProjectMenuView = Marionette.ItemView.extend({
         });
     },
 
-    downloadGmsFile: function() {
-        // We can't download a file from an AJAX call. One either has to
-        // load the data in an iframe, or submit a form that responds with
-        // Content-Disposition: attachment. We prefer submitting a form.
-        this.ui.exportGmsForm.submit();
-    },
-
     getItsiEmbedLink: function() {
         var self = this,
             embedLink = window.location.origin +
@@ -356,7 +341,19 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
+        var gis_data = this.model.getGisData().model_input,
+            gwlfe = App.currentProject.get('model_package') === models.GWLFE &&
+                    gis_data !== null &&
+                    gis_data !== '{}' &&
+                    gis_data !== '',
+            filename = App.currentProject.get('name').replace(' ', '_') +
+                        '__' + this.model.get('name').replace(' ', '_');
+
         return {
+            gwlfe: gwlfe,
+            csrftoken: csrf.getToken(),
+            filename: filename,
+            gis_data: gis_data,
             cid: this.model.cid,
             editable: isEditable(this.model),
             is_new: this.model.isNew()
@@ -373,6 +370,8 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
         rename: '[data-action="rename"]',
         print: '[data-action="print"]',
         duplicate: '[data-action="duplicate"]',
+        exportGms: '[data-action="export-gms"]',
+        exportGmsForm: '#export-gms-form',
         nameField: '.tab-name'
     },
 
@@ -383,7 +382,8 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
         'click @ui.print': function() {
             window.print();
         },
-        'click @ui.duplicate': 'duplicateScenario'
+        'click @ui.duplicate': 'duplicateScenario',
+        'click @ui.exportGms': 'downloadGmsFile',
     },
 
     renameScenario: function() {
@@ -452,6 +452,13 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
 
     duplicateScenario: function() {
         this.model.collection.duplicateScenario(this.model.cid);
+    },
+
+    downloadGmsFile: function() {
+        // We can't download a file from an AJAX call. One either has to
+        // load the data in an iframe, or submit a form that responds with
+        // Content-Disposition: attachment. We prefer submitting a form.
+        this.ui.exportGmsForm.submit();
     }
 });
 

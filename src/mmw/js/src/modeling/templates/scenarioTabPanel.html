@@ -1,5 +1,5 @@
 <a href="#{{ cid }}" data-scenario-cid="{{ cid }}" aria-controls="home" role="tab" data-toggle="tab" class="tab-name"><span>{{ name }}</span></a>
-{% if active and editable and not is_current_conditions %}
+{% if active and editable and (gwlfe or not is_current_conditions or not is_new) %}
     <div class="scenario-btn-dropdown">
         <div class="dropdown">
             <button class="btn btn-sm btn-icon dark dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
@@ -13,6 +13,14 @@
                     <li role="presentation"><a role="menuitem" tabindex="-1" data-action="rename">Rename</a></li>
                     <li role="presentation"><a role="menuitem" tabindex="-1" data-action="duplicate">Duplicate</a></li>
                     <li role="presentation"><a role="menuitem" tabindex="-1" data-action="delete">Delete</a></li>
+                {% endif %}
+                {% if gwlfe %}
+                    <form id="export-gms-form" method="post" action="/api/modeling/export/gms/" target="_blank">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrftoken }}">
+                        <input type="hidden" name="filename" value="{{ filename }}">
+                        <input type="hidden" name="mapshed_data" value='{{ gis_data }}'>
+                    </form>
+                    <li role="presentation"><a role="menuitem" tabindex="-1" data-action="export-gms">Export GMS</a></li>
                 {% endif %}
             </ul>
         </div>
