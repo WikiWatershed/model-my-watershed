@@ -12,7 +12,7 @@ from os import environ
 from os.path import abspath, basename, dirname, join, normpath
 from sys import path
 
-from layer_settings import LAYERS, VIZER_URLS  # NOQA
+from layer_settings import LAYERS, VIZER_URLS, DRB_PERIMETER  # NOQA
 from gwlfe_settings import (GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, # NOQA
                             SOILP, CURVE_NUMBER)  # NOQA
 

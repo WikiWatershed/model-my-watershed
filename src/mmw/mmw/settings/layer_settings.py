@@ -13,6 +13,8 @@ For basemaps, maxZoom must be defined.
 from os.path import join, dirname, abspath
 import json
 
+from django.contrib.gis.geos import GEOSGeometry
+
 
 # Simplified perimeter of the Delaware River Basin (DRB).
 drb_perimeter_path = join(dirname(abspath(__file__)), 'data/drb_perimeter.json')
@@ -207,6 +209,9 @@ LAYERS = [
         'basemap': True,
     }
 ]
+
+DRB_PERIMETER = GEOSGeometry(json.dumps(drb_perimeter['geometry']), srid=4326)
+
 # Vizer observation meta data URL.  Happens to be proxied through a local app
 # server to avoid Cross Domain request errors
 VIZER_ROOT = '/observation/services/get_asset_info.php?'

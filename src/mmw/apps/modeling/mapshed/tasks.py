@@ -37,6 +37,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
 NLU = settings.GWLFE_CONFIG['NLU']
 NRur = settings.GWLFE_DEFAULTS['NRur']
 AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
+DRB = settings.DRB_PERIMETER
 ACRES_PER_SQM = 0.000247105
 HECTARES_PER_SQM = 0.0001
 SQKM_PER_SQM = 0.000001
@@ -172,8 +173,11 @@ def collect_data(geop_result, geojson):
     z['SedAFactor'] = sed_a_factor(geop_result['landuse_pcts'],
                                    z['CN'], z['AEU'], z['AvKF'], z['AvSlope'])
 
+    ls_stream_length = (stream_length(geom, drb=True) if geom.within(DRB)
+                        else z['StreamLength'])
+
     z['LS'] = ls_factors(geop_result['lu_stream_pct'],
-                         z['StreamLength'], z['Area'], z['AvSlope'])
+                         ls_stream_length, z['Area'], z['AvSlope'])
 
     return z
 
