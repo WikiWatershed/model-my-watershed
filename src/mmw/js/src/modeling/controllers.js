@@ -119,6 +119,7 @@ var ModelingController = {
             finishProjectSetup(project, lock);
             updateUrl();
         }
+        App.rootView.showCollapsable();
     },
 
     projectCleanUp: function() {
