@@ -13,7 +13,7 @@ var runoffVars = [
         { name: 'AvPrecipitation', display: 'Precip' },
         { name: 'AvEvapoTrans', display: 'ET' },
         { name: 'AvRunoff', display: 'Surface Runoff' },
-        { name: 'AvTileDrain', display: 'Subsurface Flow' },
+        { name: 'AvGroundWater', display: 'Subsurface Flow' },
         { name: 'AvPtSrcFlow', display: 'Point Src Flow' },
         { name: 'AvStreamFlow', display: 'Stream Flow' },
     ],
