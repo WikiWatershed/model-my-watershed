@@ -22,6 +22,7 @@ POULTRY = settings.GWLFE_CONFIG['Poultry']
 LITERS_PER_MGAL = 3785412
 AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
 KM_PER_M = 0.001
+CM_PER_INCH = 2.54
 
 
 def day_lengths(geom):
@@ -324,6 +325,10 @@ def weather_data(ws, begyear, endyear):
     and so on; `month` 0 corresponds to January, 1 to February, and so on;
     `day` 0 corresponds to the 1st of the month, 1 to the 2nd, and so on.
     """
+    # Utility function to convert Fahrenheit to Celsius
+    def f_to_c(f):
+        return (f - 32) * 5.0 / 9.0
+
     temp_sql = '''
                SELECT year, EXTRACT(MONTH FROM TO_DATE(month, 'MON')) AS month,
                       AVG("1") AS "1", AVG("2") AS "2", AVG("3") AS "3",
@@ -368,7 +373,7 @@ def weather_data(ws, begyear, endyear):
             year = int(row[0]) - begyear
             month = int(row[1]) - 1
             for day in range(31):
-                temps[year][month][day] = float(row[day + 2])
+                temps[year][month][day] = f_to_c(float(row[day + 2]))
 
     with connection.cursor() as cursor:
         cursor.execute(prcp_sql, [stations, begyear, endyear])
@@ -376,7 +381,7 @@ def weather_data(ws, begyear, endyear):
             year = int(row[0]) - begyear
             month = int(row[1]) - 1
             for day in range(31):
-                prcps[year][month][day] = float(row[day + 2])
+                prcps[year][month][day] = float(row[day + 2]) * CM_PER_INCH
 
     return temps, prcps
 
