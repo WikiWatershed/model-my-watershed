@@ -1064,7 +1064,7 @@ function createTaskResultCollection(modelPackage) {
             return new ResultCollection([
                 {
                     name: 'runoff',
-                    displayName: 'Runoff',
+                    displayName: 'Hydrology',
                     result: null
                 },
                 {
