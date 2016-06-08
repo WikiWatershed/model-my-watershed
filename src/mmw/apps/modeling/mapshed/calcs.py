@@ -19,10 +19,11 @@ MONTHS = settings.GWLFE_DEFAULTS['Month']
 MONTHDAYS = settings.GWLFE_CONFIG['MonthDays']
 LIVESTOCK = settings.GWLFE_CONFIG['Livestock']
 POULTRY = settings.GWLFE_CONFIG['Poultry']
-LITERS_PER_MGAL = 3785412
+M3_PER_MGAL = 3785.41178
 AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
 KM_PER_M = 0.001
 CM_PER_INCH = 2.54
+CM_PER_M = 100.0
 
 
 def day_lengths(geom):
@@ -291,7 +292,7 @@ def point_source_discharge(geom, area):
     """
     Given a geometry and its area in square meters, returns three lists,
     each with 12 values, one for each month, containing the Nitrogen Load (in
-    kg), Phosphorus Load (in kg), and Discharge (in liters per square meter)
+    kg), Phosphorus Load (in kg), and Discharge (in centimeters per month).
     """
     sql = '''
           SELECT SUM(mgd) AS mg_d,
@@ -308,7 +309,7 @@ def point_source_discharge(geom, area):
 
         n_load = [float(kgn_month)] * 12 if kgn_month else [0.0] * 12
         p_load = [float(kgp_month)] * 12 if kgp_month else [0.0] * 12
-        discharge = [float(mg_d * days * LITERS_PER_MGAL) / area
+        discharge = [float(mg_d) * days * M3_PER_MGAL * CM_PER_M / area
                      for days in MONTHDAYS] if mg_d else [0.0] * 12
 
         return n_load, p_load, discharge
