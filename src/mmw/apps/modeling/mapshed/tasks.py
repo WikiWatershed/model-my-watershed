@@ -174,11 +174,15 @@ def collect_data(geop_result, geojson):
     z['SedAFactor'] = sed_a_factor(geop_result['landuse_pcts'],
                                    z['CN'], z['AEU'], z['AvKF'], z['AvSlope'])
 
-    ls_stream_length = (stream_length(geom, drb=True) if geom.within(DRB)
-                        else z['StreamLength'])
+    if geom.within(DRB):
+        ls_stream_length = stream_length(geom, drb=True)
+        ls_stream_pcts = geop_result['lu_stream_pct_drb']
+    else:
+        ls_stream_length = z['StreamLength']
+        ls_stream_pcts = geop_result['lu_stream_pct']
 
-    z['LS'] = ls_factors(geop_result['lu_stream_pct'],
-                         ls_stream_length, z['Area'], z['AvSlope'])
+    z['LS'] = ls_factors(ls_stream_pcts, ls_stream_length,
+                         z['Area'], z['AvSlope'])
 
     z['P'] = p_factors(z['AvSlope'])
 
@@ -237,7 +241,7 @@ def nlcd_streams(sjs_result):
                          for count in (ag_count,
                                        low_urban_count,
                                        med_high_urban_count))
-    lu_stream_pct = [0.0] * 16
+    lu_stream_pct = [0.0] * NLU
     for nlcd, stream_count in result.iteritems():
         lu = get_lu_index(nlcd)
         if lu is not None:
@@ -248,6 +252,29 @@ def nlcd_streams(sjs_result):
         'low_urban_stream_pct': low,
         'med_high_urban_stream_pct': med_high,
         'lu_stream_pct': lu_stream_pct
+    }
+
+
+@shared_task(throws=Exception)
+def nlcd_streams_drb(sjs_result):
+    """
+    This callback is run when the geometry falls within the DRB. We calculate
+    the percentage of DRB streams in each land use type.
+    """
+    if 'error' in sjs_result:
+        raise Exception('[nlcd_streams_drb] {}'.format(sjs_result['error']))
+
+    result = parse_sjs_result(sjs_result)
+    total = sum(result.values())
+
+    lu_stream_pct_drb = [0.0] * NLU
+    for nlcd, stream_count in result.iteritems():
+        lu = get_lu_index(nlcd)
+        if lu is not None:
+            lu_stream_pct_drb[lu] += float(stream_count) / total
+
+    return {
+        'lu_stream_pct_drb': lu_stream_pct_drb
     }
 
 
@@ -436,6 +463,12 @@ def geop_tasks(geom, errback):
          {'polygon': [geom.geojson]},
          nlcd_kfactor)
     ]
+
+    if geom.within(DRB):
+        definitions.append(('nlcd_streams',
+                            {'polygon': [geom.geojson],
+                             'vector': streams(geom, drb=True)},
+                            nlcd_streams_drb))
 
     return [(mapshed_start.s(opname, data) |
              mapshed_finish.s() |
