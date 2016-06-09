@@ -27,11 +27,11 @@ GWLFE_DEFAULTS = {
                 lu.WETLAND,    # Maps NLCD 90, 95
                 lu.DISTURBED,       # Does not map to NLCD
                 lu.TURFGRASS,       # Does not map to NLCD
-                lu.OPEN_LAND,  # Maps NLCD 21, 71
+                lu.OPEN_LAND,  # Maps NLCD 71
                 lu.BARE_ROCK,  # Maps NLCD 12, 31
                 lu.SANDY_AREAS,     # Does not map to NLCD
                 lu.UNPAVED_ROAD,    # Does not map to NLCD
-                lu.LD_MIXED,   # Maps NLCD 22
+                lu.LD_MIXED,   # Maps NLCD 21, 22
                 lu.MD_MIXED,   # Maps NLCD 23
                 lu.HD_MIXED,   # Maps NLCD 24
                 lu.LD_RESIDENTIAL,  # Does not map to NLCD
@@ -537,7 +537,6 @@ GWLFE_CONFIG = {
 CURVE_NUMBER = {
     11: [0, 100, 100, 100, 100],  # Water
     12: [0,  72,  82,  87,  89],  # Perennial Ice/Snow
-    21: [0,  72,  82,  87,  89],  # Developed Open Space
     31: [0,  72,  82,  87,  89],  # Barren Land
     41: [0,  37,  60,  73,  80],  # Deciduous Forest
     42: [0,  37,  60,  73,  80],  # Evergreen Forest

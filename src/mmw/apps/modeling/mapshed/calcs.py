@@ -423,7 +423,7 @@ def curve_number(n_count, ng_count):
         cni_avg([90, 95]),  # Wetland
         0,  # Disturbed
         0,  # Turf Grass
-        cni_avg([21, 71]),  # Open Land
+        cni(71),  # Open Land
         cni_avg([12, 31]),  # Bare Rock
         0,  # Sandy Areas
         0,  # Unpaved Road
@@ -525,11 +525,11 @@ def landuse_pcts(n_count):
         n_pct.get(90, 0) + n_pct.get(95, 0),  # Wetland
         0,  # Disturbed
         0,  # Turf Grass
-        n_pct.get(21, 0) + n_pct.get(71, 0),  # Open Land
+        n_pct.get(71, 0),  # Open Land
         n_pct.get(12, 0) + n_pct.get(31, 0),  # Bare Rock
         0,  # Sandy Areas
         0,  # Unpaved Road
-        n_pct.get(22, 0),  # Low Density Mixed
+        n_pct.get(21, 0) + n_pct.get(22, 0),  # Low Density Mixed
         n_pct.get(23, 0),  # Medium Density Mixed
         n_pct.get(24, 0),  # High Density Mixed
         0,  # Low Density Residential

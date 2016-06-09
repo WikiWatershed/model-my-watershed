@@ -189,8 +189,8 @@ def nlcd_streams(sjs_result):
     each, return a dictionary with keys 'ag_stream_pct', 'low_urban_stream_pct'
     and 'med_high_urban_stream_pct' which indicate the percent of streams in
     agricultural areas (namely NLCD 81 Pasture/Hay and 82 Cultivated Crops),
-    low density urban areas (NLCD 22), and medium and high density urban areas
-    (NLCD 23 and 24) respectively.
+    low density urban areas (NLCD 21 and 22), and medium and high density urban
+    areas (NLCD 23 and 24) respectively.
 
     In addition, we inspect the result to see if it includes an 'error' key.
     If so, it would indicate that a preceeding task has thrown an exception,
@@ -225,7 +225,7 @@ def nlcd_streams(sjs_result):
     result = parse_sjs_result(sjs_result)
 
     ag_count = sum(result.get(nlcd, 0) for nlcd in AG_NLCD_CODES)
-    low_urban_count = result.get(22, 0)
+    low_urban_count = sum(result.get(nlcd, 0) for nlcd in [21, 22])
     med_high_urban_count = sum(result.get(nlcd, 0) for nlcd in [23, 24])
     total = sum(result.values())
 
@@ -468,11 +468,11 @@ def get_lu_index(nlcd):
         lu_index = 3
     elif nlcd in [90, 95]:
         lu_index = 4
-    elif nlcd in [21, 71]:
+    elif nlcd == 71:
         lu_index = 7
     elif nlcd in [12, 31]:
         lu_index = 8
-    elif nlcd == 22:
+    elif nlcd in [21, 22]:
         lu_index = 11
     elif nlcd == 23:
         lu_index = 12
