@@ -31,18 +31,20 @@ def day_lengths(geom):
     Given a geometry in EPSG:4326, returns an array of 12 floats, each
     representing the average number of daylight hours at that geometry's
     centroid for each month.
+
+    Original at Class1.vb@1.3.0:8878-8889
     """
     latitude = geom.centroid[1]
     lengths = [0.0] * 12
 
-    for month in range(12):
+    for m in range(12):
         # Magic formula taken from original MapShed source
-        lengths[month] = 7.63942 * math.acos(0.43481 *
-                                             math.tan(latitude * 0.017453) *
-                                             math.cos(0.0172 *
-                                                      (month * 30.4375 - 5)))
+        lengths[m] = 7.63942 * math.acos(0.43481 *
+                                         math.tan(0.017453 * latitude) *
+                                         math.cos(0.0172 *
+                                                  ((m + 1) * 30.4375 - 5)))
 
-    return lengths
+    return [round(l, 1) for l in lengths]
 
 
 def nearest_weather_stations(geom, n=NUM_WEATHER_STATIONS):
