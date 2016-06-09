@@ -117,21 +117,28 @@ def et_adjustment(ws):
     return [avg_etadj] * 12
 
 
-def kv_coefficient(ecs):
+def kv_coefficient(area_pcts, season):
     """
-    Given an array of erosion coefficients, returns an array of 12 decimals,
-    one for the KV coefficient of each month. The KV of a month is initialized
-    to the corresponding erosion coefficient value times the KV Factor, and
-    then averaged over the preceeding month. January being the first month is
-    not averaged.
+    Given arrays of land use area percentages and growing season, returns an
+    array of 12 floats, one for the KV coefficient of each month. The KV of a
+    month is initialized to the sum of ETs of each land use type weighted by
+    its area percent, using growth or dormant coefficients depending on whether
+    or not the month is in the growing season. The value is then averaged over
+    the preceeding month and multiplied by the KV Factor. January being the
+    first month is not averaged.
 
     Original at Class1.vb@1.3.0:4989-4995
     """
 
-    kv = [ec * KV_FACTOR for ec in ecs]
+    et_grow = sum([et * area_pct for et, area_pct in
+                  zip(settings.GWLFE_CONFIG['ETGrowCoeff'], area_pcts)])
+    et_dorm = sum([et * area_pct for et, area_pct in
+                  zip(settings.GWLFE_CONFIG['ETDormCoeff'], area_pcts)])
 
+    kv = [et_grow if m == GrowFlag.GROWING_SEASON else et_dorm for m in season]
+    kv[0] *= KV_FACTOR
     for m in range(1, 12):
-        kv[m] = (kv[m] + kv[m-1]) / 2
+        kv[m] = KV_FACTOR * (kv[m] + kv[m-1]) / 2
 
     return kv
 

@@ -105,7 +105,6 @@ def collect_data(geop_result, geojson):
     z['Grow'] = growing_season(ws)
     z['Acoef'] = erosion_coeff(ws, z['Grow'])
     z['PcntET'] = et_adjustment(ws)
-    z['KV'] = kv_coefficient(z['Acoef'])
     z['WxYrBeg'] = int(max([w.begyear for w in ws]))
     z['WxYrEnd'] = int(min([w.endyear for w in ws]))
     z['WxYrs'] = z['WxYrEnd'] - z['WxYrBeg'] + 1
@@ -159,6 +158,8 @@ def collect_data(geop_result, geojson):
 
     z['AvKF'] = geop_result['avg_kf']
     z['KF'] = geop_result['kf']
+
+    z['KV'] = kv_coefficient(geop_result['landuse_pcts'], z['Grow'])
 
     # Original at Class1.vb@1.3.0:9803-9807
     z['n23'] = z['Area'][1]    # Row Crops Area

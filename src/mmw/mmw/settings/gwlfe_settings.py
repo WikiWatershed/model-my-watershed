@@ -463,6 +463,42 @@ GWLFE_CONFIG = {
     'SSLDR': 4.4,
     'SSLDM': 2.2,
     'WeatherNull': -99999,  # This value is used to indicate NULL in ms_weather dataset
+    'ETGrowCoeff': [
+        1.00,  # Hay/Pasture
+        0.80,  # Cropland
+        0.77,  # Forest
+        1.00,  # Wetlands
+        0.30,  # Disturbed
+        1.00,  # Turf Grass
+        1.00,  # Open Land
+        0.10,  # Bare Rock
+        0.30,  # Sandy Areas
+        1.00,  # Unpaved Roads
+        0.85,  # Low Density Mixed
+        0.48,  # Medium Density Mixed
+        0.70,  # High Density Mixed
+        0.85,  # Low Density Residential
+        0.48,  # Medium Density Residential
+        0.13,  # High Density Residential
+    ],
+    'ETDormCoeff': [
+        0.80,  # Hay/Pasture
+        0.30,  # Cropland
+        0.51,  # Forest
+        1.00,  # Wetlands
+        0.30,  # Disturbed
+        0.80,  # Turf Grass
+        0.80,  # Open Land
+        0.10,  # Bare Rock
+        0.30,  # Sandy Areas
+        1.00,  # Unpaved Roads
+        0.80,  # Low Density Mixed
+        0.48,  # Medium Density Mixed
+        0.70,  # High Density Mixed
+        0.85,  # Low Density Residential
+        0.48,  # Medium Density Residential
+        0.13,  # High Density Residential
+    ],
     'ArrayFields': [  # These may be optionally converted to numpy arrays before running the model # NOQA
         'Acoef',
         'AnimalDailyN',
