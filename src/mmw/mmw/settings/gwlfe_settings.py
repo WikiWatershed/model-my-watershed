@@ -40,6 +40,8 @@ GWLFE_DEFAULTS = {
                 ],
     'Imper': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         # Impervious surface area percentage
               0.15, 0.52, 0.87, 0.15, 0.52, 0.87],  # only defined for urban land use types
+    'C': [0.03, 0.42, 0.002, 0.01, 0.08, 0.03, 0.04, 0.001, 0.01, 0.8,  # C Factor Defaults
+          0, 0, 0, 0, 0, 0],                                            # only defined for rural land use types
     'CNI': [[0] * 16,
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Curve Number for Impervious Surfaces
              92, 98, 98, 92, 92, 92],       # only defined for urban land use types
@@ -469,6 +471,7 @@ GWLFE_CONFIG = {
         'AntMoist',
         'Area',
         'AvgAnimalWt',
+        'C',
         'CN',
         'CNI',
         'CNP',
@@ -515,6 +518,7 @@ GWLFE_CONFIG = {
         'NumPondSys',
         'NumSewerSys',
         'NumShortSys',
+        'P',
         'PcntET',
         'PctGrazing',
         'PctStreams',

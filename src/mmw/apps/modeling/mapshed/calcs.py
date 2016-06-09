@@ -575,3 +575,35 @@ def sed_a_factor(landuse_pct_vals, cn, AEU, AvKF, AvSlope):
     return ((0.00467 * urban_pct) + (0.000863 * AEU) +
             (0.000001 * avg_cn) + (0.000425 * AvKF) +
             (0.000001 * AvSlope) - 0.000036)
+
+
+def p_factors(avg_slope):
+    """
+    Given the average slope, calculates the P Factor for rural land use types.
+
+    Original at Class1.vb@1.3.0:4393-4470
+    """
+    if 0 <= avg_slope < 2.1:
+        ag_p = 0.52
+    elif 2.1 <= avg_slope < 7.1:
+        ag_p = 0.45
+    elif 7.1 <= avg_slope < 12.1:
+        ag_p = 0.52
+    elif 12.1 <= avg_slope < 18.1:
+        ag_p = 0.66
+    else:
+        ag_p = 0.74
+
+    return [
+        ag_p,  # Hay/Pasture
+        ag_p,  # Cropland
+        ag_p,  # Forest
+        0.1,   # Wetland
+        0.1,   # Disturbed
+        0.2,   # Turf Grass
+        ag_p,  # Open Land
+        ag_p,  # Bare Rock
+        ag_p,  # Sandy Areas
+        1.0,   # Unpaved
+        0, 0, 0, 0, 0, 0  # Urban Land Use Types
+    ]

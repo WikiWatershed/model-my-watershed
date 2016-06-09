@@ -20,6 +20,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          kv_coefficient,
                                          animal_energy_units,
                                          ls_factors,
+                                         p_factors,
                                          manure_spread,
                                          streams,
                                          stream_length,
@@ -178,6 +179,8 @@ def collect_data(geop_result, geojson):
 
     z['LS'] = ls_factors(geop_result['lu_stream_pct'],
                          ls_stream_length, z['Area'], z['AvSlope'])
+
+    z['P'] = p_factors(z['AvSlope'])
 
     return z
 
