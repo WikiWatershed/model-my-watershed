@@ -120,7 +120,7 @@ header {
           position: absolute;
           top: 10px;
           right: 0;
-          z-index: 200;
+          z-index: ($zindex-dropdown + 10);
           text-transform: uppercase;
         }
       }
@@ -139,6 +139,12 @@ header {
         top: 0;
         left: 0;
         padding: 7px;
+      }
+
+      #scenarios-drop-down-region {
+        .dropdown-menu {
+          z-index: ($zindex-dropdown + 10);
+        }
       }
 
       .scenario-tabs-wrapper {
