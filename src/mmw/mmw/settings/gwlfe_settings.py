@@ -454,6 +454,16 @@ GWLFE_CONFIG = {
     'KvFactor': 1.16,  # Original at Class1.vb@1.3.0:4987
     'Livestock': ['dairy_cows', 'beef_cows', 'hogs', 'sheep', 'horses'],
     'Poultry': ['broilers', 'layers', 'turkeys'],
+    'AvgAnimalWt': {  # Original at Class1.vb@1.3.0:9048-9056
+        'dairy_cows': 640.0,
+        'beef_cows': 360.0,
+        'broilers': 0.9,
+        'layers': 1.8,
+        'hogs': 61.0,
+        'sheep': 50.0,
+        'horses': 500.0,
+        'turkeys': 6.8,
+    },
     'ManureSpreadingLandUseIndices': [0, 1],  # Land Use Indices where manure spreading applies. Currently Hay/Past and Cropland.
     'AgriculturalNLCDCodes': [81, 82],  # NLCD codes considered agricultural. Correspond to Hay/Past and Cropland
     'MonthDays': [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
