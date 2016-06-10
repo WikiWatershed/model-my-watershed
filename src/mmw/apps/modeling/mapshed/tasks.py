@@ -28,6 +28,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          weather_data,
                                          curve_number,
                                          sediment_phosphorus,
+                                         phosphorus_conc,
                                          groundwater_nitrogen_conc,
                                          sediment_delivery_ratio,
                                          landuse_pcts,
@@ -146,6 +147,7 @@ def collect_data(geop_result, geojson):
     z['Area'] = [percent * area * HECTARES_PER_SQM
                  for percent in geop_result['landuse_pcts']]
     z['UrbAreaTotal'] = sum(z['Area'][NRur:])
+    z['PhosConc'] = phosphorus_conc(z['SedPhos'])
 
     z['NormalSys'] = normal_sys(z['Area'])
 

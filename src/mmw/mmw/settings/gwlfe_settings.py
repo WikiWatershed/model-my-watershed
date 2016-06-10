@@ -70,9 +70,6 @@ GWLFE_DEFAULTS = {
     'NitrConc': [0.75, 2.90, 0.19, 0.19, 0.02,  # Dissolved Runoff Coefficient: Nitrogen mg/l
                  2.50, 0.50, 0.30, 0.10, 0.19,  # only defined for rural land use types
                  0, 0, 0, 0, 0, 0],
-    'PhosConc': [0.01, 0.01, 0.01, 0.01, 0.01,  # Dissolved Runoff Coefficient: Phosphorus mg/l
-                 0.01, 0.01, 0.01, 0.01, 0.01,  # only defined for rural land use types
-                 0, 0, 0, 0, 0, 0],
     'Nqual': 3,  # Number of Contaminants (Default = 3)
     'Contaminant': ['Nitrogen', 'Phosphorus', 'Sediment'],
     'LoadRateImp': [[], [], [], [], [], [], [], [], [], [],  # Load Rate on Impervious Surfaces per urban land use per contaminant

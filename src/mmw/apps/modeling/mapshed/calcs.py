@@ -616,3 +616,31 @@ def p_factors(avg_slope):
         1.0,   # Unpaved
         0, 0, 0, 0, 0, 0  # Urban Land Use Types
     ]
+
+
+def phosphorus_conc(sed_phos):
+    """
+    Given the average concentration of phosphorus dissolved in sediments for
+    the entire polygon, returns average concentration per land use type based
+    on pre-baked estimates.
+
+    Original at Class1.vb@1.3.0:8975-9001,9350-9359
+    """
+    psed = sed_phos / 1.6
+    stp = 190 * psed / 836
+    prunoff = (1.98 * stp + 79) / 1000
+    prunoff_turf = 2.9 * psed / 836
+
+    return [
+        prunoff,       # Hay/Pasture
+        prunoff,       # Cropland
+        0.01,          # Forest
+        0.01,          # Wetland
+        0.01,          # Disturbed
+        prunoff_turf,  # Turf Grass
+        0.01,          # Open Land
+        0.01,          # Bare Rock
+        0.01,          # Sandy Areas
+        0.01,          # Unpaved
+        0, 0, 0, 0, 0, 0  # Urban Land Use Types
+    ]
