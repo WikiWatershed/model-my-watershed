@@ -27,11 +27,11 @@ GWLFE_DEFAULTS = {
                 lu.WETLAND,    # Maps NLCD 90, 95
                 lu.DISTURBED,       # Does not map to NLCD
                 lu.TURFGRASS,       # Does not map to NLCD
-                lu.OPEN_LAND,  # Maps NLCD 21, 71
+                lu.OPEN_LAND,  # Maps NLCD 71
                 lu.BARE_ROCK,  # Maps NLCD 12, 31
                 lu.SANDY_AREAS,     # Does not map to NLCD
                 lu.UNPAVED_ROAD,    # Does not map to NLCD
-                lu.LD_MIXED,   # Maps NLCD 22
+                lu.LD_MIXED,   # Maps NLCD 21, 22
                 lu.MD_MIXED,   # Maps NLCD 23
                 lu.HD_MIXED,   # Maps NLCD 24
                 lu.LD_RESIDENTIAL,  # Does not map to NLCD
@@ -40,6 +40,8 @@ GWLFE_DEFAULTS = {
                 ],
     'Imper': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         # Impervious surface area percentage
               0.15, 0.52, 0.87, 0.15, 0.52, 0.87],  # only defined for urban land use types
+    'C': [0.03, 0.42, 0.002, 0.01, 0.08, 0.03, 0.04, 0.001, 0.01, 0.8,  # C Factor Defaults
+          0, 0, 0, 0, 0, 0],                                            # only defined for rural land use types
     'CNI': [[0] * 16,
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  # Curve Number for Impervious Surfaces
              92, 98, 98, 92, 92, 92],       # only defined for urban land use types
@@ -67,9 +69,6 @@ GWLFE_DEFAULTS = {
     'LastManureMonth2': 0,  # MS Period 2: Last Month
     'NitrConc': [0.75, 2.90, 0.19, 0.19, 0.02,  # Dissolved Runoff Coefficient: Nitrogen mg/l
                  2.50, 0.50, 0.30, 0.10, 0.19,  # only defined for rural land use types
-                 0, 0, 0, 0, 0, 0],
-    'PhosConc': [0.01, 0.01, 0.01, 0.01, 0.01,  # Dissolved Runoff Coefficient: Phosphorus mg/l
-                 0.01, 0.01, 0.01, 0.01, 0.01,  # only defined for rural land use types
                  0, 0, 0, 0, 0, 0],
     'Nqual': 3,  # Number of Contaminants (Default = 3)
     'Contaminant': ['Nitrogen', 'Phosphorus', 'Sediment'],
@@ -461,6 +460,42 @@ GWLFE_CONFIG = {
     'SSLDR': 4.4,
     'SSLDM': 2.2,
     'WeatherNull': -99999,  # This value is used to indicate NULL in ms_weather dataset
+    'ETGrowCoeff': [
+        1.00,  # Hay/Pasture
+        0.80,  # Cropland
+        0.77,  # Forest
+        1.00,  # Wetlands
+        0.30,  # Disturbed
+        1.00,  # Turf Grass
+        1.00,  # Open Land
+        0.10,  # Bare Rock
+        0.30,  # Sandy Areas
+        1.00,  # Unpaved Roads
+        0.85,  # Low Density Mixed
+        0.48,  # Medium Density Mixed
+        0.70,  # High Density Mixed
+        0.85,  # Low Density Residential
+        0.48,  # Medium Density Residential
+        0.13,  # High Density Residential
+    ],
+    'ETDormCoeff': [
+        0.80,  # Hay/Pasture
+        0.30,  # Cropland
+        0.51,  # Forest
+        1.00,  # Wetlands
+        0.30,  # Disturbed
+        0.80,  # Turf Grass
+        0.80,  # Open Land
+        0.10,  # Bare Rock
+        0.30,  # Sandy Areas
+        1.00,  # Unpaved Roads
+        0.80,  # Low Density Mixed
+        0.48,  # Medium Density Mixed
+        0.70,  # High Density Mixed
+        0.85,  # Low Density Residential
+        0.48,  # Medium Density Residential
+        0.13,  # High Density Residential
+    ],
     'ArrayFields': [  # These may be optionally converted to numpy arrays before running the model # NOQA
         'Acoef',
         'AnimalDailyN',
@@ -469,6 +504,7 @@ GWLFE_CONFIG = {
         'AntMoist',
         'Area',
         'AvgAnimalWt',
+        'C',
         'CN',
         'CNI',
         'CNP',
@@ -515,6 +551,7 @@ GWLFE_CONFIG = {
         'NumPondSys',
         'NumSewerSys',
         'NumShortSys',
+        'P',
         'PcntET',
         'PctGrazing',
         'PctStreams',
@@ -537,7 +574,6 @@ GWLFE_CONFIG = {
 CURVE_NUMBER = {
     11: [0, 100, 100, 100, 100],  # Water
     12: [0,  72,  82,  87,  89],  # Perennial Ice/Snow
-    21: [0,  72,  82,  87,  89],  # Developed Open Space
     31: [0,  72,  82,  87,  89],  # Barren Land
     41: [0,  37,  60,  73,  80],  # Deciduous Forest
     42: [0,  37,  60,  73,  80],  # Evergreen Forest

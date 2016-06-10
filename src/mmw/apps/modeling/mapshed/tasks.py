@@ -20,6 +20,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          kv_coefficient,
                                          animal_energy_units,
                                          ls_factors,
+                                         p_factors,
                                          manure_spread,
                                          streams,
                                          stream_length,
@@ -27,6 +28,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          weather_data,
                                          curve_number,
                                          sediment_phosphorus,
+                                         phosphorus_conc,
                                          groundwater_nitrogen_conc,
                                          sediment_delivery_ratio,
                                          landuse_pcts,
@@ -104,7 +106,6 @@ def collect_data(geop_result, geojson):
     z['Grow'] = growing_season(ws)
     z['Acoef'] = erosion_coeff(ws, z['Grow'])
     z['PcntET'] = et_adjustment(ws)
-    z['KV'] = kv_coefficient(z['Acoef'])
     z['WxYrBeg'] = int(max([w.begyear for w in ws]))
     z['WxYrEnd'] = int(min([w.endyear for w in ws]))
     z['WxYrs'] = z['WxYrEnd'] - z['WxYrBeg'] + 1
@@ -146,6 +147,7 @@ def collect_data(geop_result, geojson):
     z['Area'] = [percent * area * HECTARES_PER_SQM
                  for percent in geop_result['landuse_pcts']]
     z['UrbAreaTotal'] = sum(z['Area'][NRur:])
+    z['PhosConc'] = phosphorus_conc(z['SedPhos'])
 
     z['NormalSys'] = normal_sys(z['Area'])
 
@@ -158,6 +160,8 @@ def collect_data(geop_result, geojson):
 
     z['AvKF'] = geop_result['avg_kf']
     z['KF'] = geop_result['kf']
+
+    z['KV'] = kv_coefficient(geop_result['landuse_pcts'], z['Grow'])
 
     # Original at Class1.vb@1.3.0:9803-9807
     z['n23'] = z['Area'][1]    # Row Crops Area
@@ -173,11 +177,17 @@ def collect_data(geop_result, geojson):
     z['SedAFactor'] = sed_a_factor(geop_result['landuse_pcts'],
                                    z['CN'], z['AEU'], z['AvKF'], z['AvSlope'])
 
-    ls_stream_length = (stream_length(geom, drb=True) if geom.within(DRB)
-                        else z['StreamLength'])
+    if geom.within(DRB):
+        ls_stream_length = stream_length(geom, drb=True)
+        ls_stream_pcts = geop_result['lu_stream_pct_drb']
+    else:
+        ls_stream_length = z['StreamLength']
+        ls_stream_pcts = geop_result['lu_stream_pct']
 
-    z['LS'] = ls_factors(geop_result['lu_stream_pct'],
-                         ls_stream_length, z['Area'], z['AvSlope'])
+    z['LS'] = ls_factors(ls_stream_pcts, ls_stream_length,
+                         z['Area'], z['AvSlope'])
+
+    z['P'] = p_factors(z['AvSlope'])
 
     return z
 
@@ -189,8 +199,8 @@ def nlcd_streams(sjs_result):
     each, return a dictionary with keys 'ag_stream_pct', 'low_urban_stream_pct'
     and 'med_high_urban_stream_pct' which indicate the percent of streams in
     agricultural areas (namely NLCD 81 Pasture/Hay and 82 Cultivated Crops),
-    low density urban areas (NLCD 22), and medium and high density urban areas
-    (NLCD 23 and 24) respectively.
+    low density urban areas (NLCD 21 and 22), and medium and high density urban
+    areas (NLCD 23 and 24) respectively.
 
     In addition, we inspect the result to see if it includes an 'error' key.
     If so, it would indicate that a preceeding task has thrown an exception,
@@ -225,7 +235,7 @@ def nlcd_streams(sjs_result):
     result = parse_sjs_result(sjs_result)
 
     ag_count = sum(result.get(nlcd, 0) for nlcd in AG_NLCD_CODES)
-    low_urban_count = result.get(22, 0)
+    low_urban_count = sum(result.get(nlcd, 0) for nlcd in [21, 22])
     med_high_urban_count = sum(result.get(nlcd, 0) for nlcd in [23, 24])
     total = sum(result.values())
 
@@ -234,7 +244,7 @@ def nlcd_streams(sjs_result):
                          for count in (ag_count,
                                        low_urban_count,
                                        med_high_urban_count))
-    lu_stream_pct = [0.0] * 16
+    lu_stream_pct = [0.0] * NLU
     for nlcd, stream_count in result.iteritems():
         lu = get_lu_index(nlcd)
         if lu is not None:
@@ -245,6 +255,29 @@ def nlcd_streams(sjs_result):
         'low_urban_stream_pct': low,
         'med_high_urban_stream_pct': med_high,
         'lu_stream_pct': lu_stream_pct
+    }
+
+
+@shared_task(throws=Exception)
+def nlcd_streams_drb(sjs_result):
+    """
+    This callback is run when the geometry falls within the DRB. We calculate
+    the percentage of DRB streams in each land use type.
+    """
+    if 'error' in sjs_result:
+        raise Exception('[nlcd_streams_drb] {}'.format(sjs_result['error']))
+
+    result = parse_sjs_result(sjs_result)
+    total = sum(result.values())
+
+    lu_stream_pct_drb = [0.0] * NLU
+    for nlcd, stream_count in result.iteritems():
+        lu = get_lu_index(nlcd)
+        if lu is not None:
+            lu_stream_pct_drb[lu] += float(stream_count) / total
+
+    return {
+        'lu_stream_pct_drb': lu_stream_pct_drb
     }
 
 
@@ -434,6 +467,12 @@ def geop_tasks(geom, errback):
          nlcd_kfactor)
     ]
 
+    if geom.within(DRB):
+        definitions.append(('nlcd_streams',
+                            {'polygon': [geom.geojson],
+                             'vector': streams(geom, drb=True)},
+                            nlcd_streams_drb))
+
     return [(mapshed_start.s(opname, data) |
              mapshed_finish.s() |
              callback.s().set(link_error=errback))
@@ -468,11 +507,11 @@ def get_lu_index(nlcd):
         lu_index = 3
     elif nlcd in [90, 95]:
         lu_index = 4
-    elif nlcd in [21, 71]:
+    elif nlcd == 71:
         lu_index = 7
     elif nlcd in [12, 31]:
         lu_index = 8
-    elif nlcd == 22:
+    elif nlcd in [21, 22]:
         lu_index = 11
     elif nlcd == 23:
         lu_index = 12

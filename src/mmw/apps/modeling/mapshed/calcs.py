@@ -31,18 +31,20 @@ def day_lengths(geom):
     Given a geometry in EPSG:4326, returns an array of 12 floats, each
     representing the average number of daylight hours at that geometry's
     centroid for each month.
+
+    Original at Class1.vb@1.3.0:8878-8889
     """
     latitude = geom.centroid[1]
     lengths = [0.0] * 12
 
-    for month in range(12):
+    for m in range(12):
         # Magic formula taken from original MapShed source
-        lengths[month] = 7.63942 * math.acos(0.43481 *
-                                             math.tan(latitude * 0.017453) *
-                                             math.cos(0.0172 *
-                                                      (month * 30.4375 - 5)))
+        lengths[m] = 7.63942 * math.acos(0.43481 *
+                                         math.tan(0.017453 * latitude) *
+                                         math.cos(0.0172 *
+                                                  ((m + 1) * 30.4375 - 5)))
 
-    return lengths
+    return [round(l, 1) for l in lengths]
 
 
 def nearest_weather_stations(geom, n=NUM_WEATHER_STATIONS):
@@ -115,21 +117,28 @@ def et_adjustment(ws):
     return [avg_etadj] * 12
 
 
-def kv_coefficient(ecs):
+def kv_coefficient(area_pcts, season):
     """
-    Given an array of erosion coefficients, returns an array of 12 decimals,
-    one for the KV coefficient of each month. The KV of a month is initialized
-    to the corresponding erosion coefficient value times the KV Factor, and
-    then averaged over the preceeding month. January being the first month is
-    not averaged.
+    Given arrays of land use area percentages and growing season, returns an
+    array of 12 floats, one for the KV coefficient of each month. The KV of a
+    month is initialized to the sum of ETs of each land use type weighted by
+    its area percent, using growth or dormant coefficients depending on whether
+    or not the month is in the growing season. The value is then averaged over
+    the preceeding month and multiplied by the KV Factor. January being the
+    first month is not averaged.
 
     Original at Class1.vb@1.3.0:4989-4995
     """
 
-    kv = [ec * KV_FACTOR for ec in ecs]
+    et_grow = sum([et * area_pct for et, area_pct in
+                  zip(settings.GWLFE_CONFIG['ETGrowCoeff'], area_pcts)])
+    et_dorm = sum([et * area_pct for et, area_pct in
+                  zip(settings.GWLFE_CONFIG['ETDormCoeff'], area_pcts)])
 
+    kv = [et_grow if m == GrowFlag.GROWING_SEASON else et_dorm for m in season]
+    kv[0] *= KV_FACTOR
     for m in range(1, 12):
-        kv[m] = (kv[m] + kv[m-1]) / 2
+        kv[m] = KV_FACTOR * (kv[m] + kv[m-1]) / 2
 
     return kv
 
@@ -423,7 +432,7 @@ def curve_number(n_count, ng_count):
         cni_avg([90, 95]),  # Wetland
         0,  # Disturbed
         0,  # Turf Grass
-        cni_avg([21, 71]),  # Open Land
+        cni(71),  # Open Land
         cni_avg([12, 31]),  # Bare Rock
         0,  # Sandy Areas
         0,  # Unpaved Road
@@ -525,11 +534,11 @@ def landuse_pcts(n_count):
         n_pct.get(90, 0) + n_pct.get(95, 0),  # Wetland
         0,  # Disturbed
         0,  # Turf Grass
-        n_pct.get(21, 0) + n_pct.get(71, 0),  # Open Land
+        n_pct.get(71, 0),  # Open Land
         n_pct.get(12, 0) + n_pct.get(31, 0),  # Bare Rock
         0,  # Sandy Areas
         0,  # Unpaved Road
-        n_pct.get(22, 0),  # Low Density Mixed
+        n_pct.get(21, 0) + n_pct.get(22, 0),  # Low Density Mixed
         n_pct.get(23, 0),  # Medium Density Mixed
         n_pct.get(24, 0),  # High Density Mixed
         0,  # Low Density Residential
@@ -575,3 +584,63 @@ def sed_a_factor(landuse_pct_vals, cn, AEU, AvKF, AvSlope):
     return ((0.00467 * urban_pct) + (0.000863 * AEU) +
             (0.000001 * avg_cn) + (0.000425 * AvKF) +
             (0.000001 * AvSlope) - 0.000036)
+
+
+def p_factors(avg_slope):
+    """
+    Given the average slope, calculates the P Factor for rural land use types.
+
+    Original at Class1.vb@1.3.0:4393-4470
+    """
+    if 0 <= avg_slope < 2.1:
+        ag_p = 0.52
+    elif 2.1 <= avg_slope < 7.1:
+        ag_p = 0.45
+    elif 7.1 <= avg_slope < 12.1:
+        ag_p = 0.52
+    elif 12.1 <= avg_slope < 18.1:
+        ag_p = 0.66
+    else:
+        ag_p = 0.74
+
+    return [
+        ag_p,  # Hay/Pasture
+        ag_p,  # Cropland
+        ag_p,  # Forest
+        0.1,   # Wetland
+        0.1,   # Disturbed
+        0.2,   # Turf Grass
+        ag_p,  # Open Land
+        ag_p,  # Bare Rock
+        ag_p,  # Sandy Areas
+        1.0,   # Unpaved
+        0, 0, 0, 0, 0, 0  # Urban Land Use Types
+    ]
+
+
+def phosphorus_conc(sed_phos):
+    """
+    Given the average concentration of phosphorus dissolved in sediments for
+    the entire polygon, returns average concentration per land use type based
+    on pre-baked estimates.
+
+    Original at Class1.vb@1.3.0:8975-9001,9350-9359
+    """
+    psed = sed_phos / 1.6
+    stp = 190 * psed / 836
+    prunoff = (1.98 * stp + 79) / 1000
+    prunoff_turf = 2.9 * psed / 836
+
+    return [
+        prunoff,       # Hay/Pasture
+        prunoff,       # Cropland
+        0.01,          # Forest
+        0.01,          # Wetland
+        0.01,          # Disturbed
+        prunoff_turf,  # Turf Grass
+        0.01,          # Open Land
+        0.01,          # Bare Rock
+        0.01,          # Sandy Areas
+        0.01,          # Unpaved
+        0, 0, 0, 0, 0, 0  # Urban Land Use Types
+    ]
