@@ -183,7 +183,7 @@ var TaskModel = Backbone.Model.extend({
         // pollInterval has elapsed.
         var getResults = function() {
             if (elapsed >= self.get('timeout')) {
-                defer.reject();
+                defer.reject({timeout: true});
                 return;
             }
 
@@ -219,6 +219,14 @@ var TaskMessageViewModel = Backbone.Model.extend({
 
     setError: function() {
         this.set('message', 'Error');
+        this.set('iconClasses', 'fa fa-exclamation-triangle');
+    },
+
+    setTimeoutError: function() {
+        var message = 'Operation took too long <br />' +
+                      'Consider trying a smaller area of interest.';
+
+        this.set('message', message);
         this.set('iconClasses', 'fa fa-exclamation-triangle');
     },
 

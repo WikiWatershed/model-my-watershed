@@ -137,15 +137,9 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     onShow: function() {
         this.showAnalyzingMessage();
 
-        var self = this;
-
         this.model.fetchAnalysisIfNeeded()
-            .done(function() {
-                self.showDetailsRegion();
-            })
-            .fail(function() {
-                self.showErrorMessage();
-            });
+            .done(_.bind(this.showDetailsRegion, this))
+            .fail(_.bind(this.showErrorMessage, this));
     },
 
     showAnalyzingMessage: function() {
@@ -158,10 +152,14 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
         }));
     },
 
-    showErrorMessage: function() {
+    showErrorMessage: function(err) {
         var messageModel = new coreModels.TaskMessageViewModel();
 
-        messageModel.setError();
+        if (err && err.timeout) {
+          messageModel.setTimeoutError();
+        } else {
+          messageModel.setError();
+        }
 
         this.detailsRegion.show(new coreViews.TaskMessageView({
             model: messageModel

@@ -349,9 +349,9 @@ var ProjectModel = Backbone.Model.extend({
                         promise.resolve(taskModel.get('result'));
                     },
 
-                    pollFailure: function() {
+                    pollFailure: function(err) {
                         console.log('Failed to gather data required for MAPSHED');
-                        promise.reject();
+                        promise.reject(err);
                     }
                 };
 
