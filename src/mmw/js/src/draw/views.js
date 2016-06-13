@@ -67,6 +67,7 @@ function validateShape(polygon) {
         message += Math.floor(area) + ' square km were selected, ';
         message += 'but the maximum supported size is currently ';
         message += MAX_AREA + ' square km.';
+        window.alert(message);
         d.reject(message);
     } else {
         d.resolve(polygon);
