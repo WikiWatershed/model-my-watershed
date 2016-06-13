@@ -17,7 +17,7 @@
                 {% if gwlfe %}
                     <form id="export-gms-form" method="post" action="/api/modeling/export/gms/" target="_blank">
                         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrftoken }}">
-                        <input type="hidden" name="filename" value="{{ filename }}">
+                        <input type="hidden" name="filename" class="gms-filename" value="export.gms">
                         <input type="hidden" name="mapshed_data" value='{{ gis_data }}'>
                     </form>
                     <li role="presentation"><a role="menuitem" tabindex="-1" data-action="export-gms">Export GMS</a></li>

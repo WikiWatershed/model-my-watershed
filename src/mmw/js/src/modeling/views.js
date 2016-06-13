@@ -345,14 +345,11 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
             gwlfe = App.currentProject.get('model_package') === models.GWLFE &&
                     gis_data !== null &&
                     gis_data !== '{}' &&
-                    gis_data !== '',
-            filename = App.currentProject.get('name').replace(' ', '_') +
-                        '__' + this.model.get('name').replace(' ', '_');
+                    gis_data !== '';
 
         return {
             gwlfe: gwlfe,
             csrftoken: csrf.getToken(),
-            filename: filename,
             gis_data: gis_data,
             cid: this.model.cid,
             editable: isEditable(this.model),
@@ -458,6 +455,10 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
         // We can't download a file from an AJAX call. One either has to
         // load the data in an iframe, or submit a form that responds with
         // Content-Disposition: attachment. We prefer submitting a form.
+        var filename = App.currentProject.get('name').replace(' ', '_') +
+                       '__' + this.model.get('name').replace(' ', '_');
+
+        this.ui.exportGmsForm.find('.gms-filename').val(filename);
         this.ui.exportGmsForm.submit();
     }
 });
