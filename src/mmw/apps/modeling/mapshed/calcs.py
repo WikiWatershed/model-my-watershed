@@ -17,6 +17,7 @@ NUM_WEATHER_STATIONS = settings.GWLFE_CONFIG['NumWeatherStations']
 KV_FACTOR = settings.GWLFE_CONFIG['KvFactor']
 MONTHS = settings.GWLFE_DEFAULTS['Month']
 MONTHDAYS = settings.GWLFE_CONFIG['MonthDays']
+WEIGHTOF = settings.GWLFE_CONFIG['AvgAnimalWt']
 LIVESTOCK = settings.GWLFE_CONFIG['Livestock']
 POULTRY = settings.GWLFE_CONFIG['Poultry']
 M3_PER_MGAL = 3785.41178
@@ -146,6 +147,8 @@ def kv_coefficient(area_pcts, season):
 def animal_energy_units(geom):
     """
     Given a geometry, returns the total livestock and poultry AEUs within it
+
+    Original at Class1.vb@1.3.0:9230-9247
     """
     sql = '''
           WITH clipped_counties AS (
@@ -180,10 +183,14 @@ def animal_energy_units(geom):
         # Convert result to dictionary
         columns = [col[0] for col in cursor.description]
         values = cursor.fetchone()  # Only one row since aggregate query
-        aeu = dict(zip(columns, values))
+        population = dict(zip(columns, values))
 
-        livestock_aeu = round(sum(aeu[animal] or 0 for animal in LIVESTOCK))
-        poultry_aeu = round(sum(aeu[animal] or 0 for animal in POULTRY))
+        livestock_aeu = round(sum(population.get(animal, 0) *
+                                  WEIGHTOF[animal] / 1000
+                                  for animal in LIVESTOCK))
+        poultry_aeu = round(sum(population.get(animal, 0) *
+                                WEIGHTOF[animal] / 1000
+                                for animal in POULTRY))
 
         return livestock_aeu, poultry_aeu
 
