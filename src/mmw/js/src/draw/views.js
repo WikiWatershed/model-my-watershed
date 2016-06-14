@@ -62,11 +62,10 @@ function validateShape(polygon) {
         d = new $.Deferred();
 
     if (area > MAX_AREA) {
-        var message = '';
-        message += 'Sorry, your Area of Interest is too large.\n\n';
-        message += Math.floor(area) + ' square km were selected, ';
-        message += 'but the maximum supported size is currently ';
-        message += MAX_AREA + ' square km.';
+        var message = 'Sorry, your Area of Interest is too large.\n\n' +
+                      Math.floor(area).toLocaleString() + ' km² were selected, ' +
+                      'but the maximum supported size is currently ' +
+                      MAX_AREA.toLocaleString() + ' km².';
         window.alert(message);
         d.reject(message);
     } else {
