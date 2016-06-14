@@ -801,8 +801,12 @@ var ResultsView = Marionette.LayoutView.extend({
             aoi = App.map.get('areaOfInterest'),
             analyzeModel = analyzeModels.AnalyzeTaskModel.getSingleton(App, aoi),
             tmvModel = new coreModels.TaskMessageViewModel(),
-            errorHandler = function() {
-                tmvModel.setError();
+            errorHandler = function(err) {
+                if (err && err.timeout) {
+                  tmvModel.setTimeoutError();
+                } else {
+                  tmvModel.setError();
+                }
                 self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
             };
 
