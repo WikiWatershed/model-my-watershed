@@ -46,20 +46,24 @@ var TableView = Marionette.CompositeView.extend({
     },
 
     templateHelpers: function() {
-        function makeRow(load) {
-            return [load.Source, load.Sediment, load.TotalN, load.TotalP];
+        function makeRow(addUnit, load) {
+            var source = addUnit ? load.Source + ' (' + load.Unit + ')'
+                : load.Source;
+            return [source, load.Sediment, load.TotalN, load.TotalP];
         }
 
         var result = this.model.get('result'),
-            columnNames = ['Sources', 'Sediment (kg)', 'Total Nitrogen (kg)', 'Total Phosphorus (kg)'],
-            landUseRows = _.map(result.Loads.slice(0,15), makeRow),
-            summaryRows = _.map(result.Loads.slice(15), makeRow);
+            landUseColumns = ['Sources', 'Sediment (kg)', 'Total Nitrogen (kg)', 'Total Phosphorus (kg)'],
+            landUseRows = _.map(result.Loads, _.partial(makeRow, false)),
+            summaryColumns = ['Sources', 'Sediment', 'Total Nitrogen', 'Total Phosphorus'],
+            summaryRows = _.map(result.SummaryLoads, _.partial(makeRow, true));
 
         return {
             MeanFlow: result.MeanFlow,
             MeanFlowPerSecond: result.MeanFlowPerSecond,
-            columnNames: columnNames,
+            landUseColumns: landUseColumns,
             landUseRows: landUseRows,
+            summaryColumns: summaryColumns,
             summaryRows: summaryRows
         };
     }
