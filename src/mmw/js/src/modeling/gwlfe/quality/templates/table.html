@@ -31,5 +31,5 @@
 <div class="mean-flow">
     Mean Flow: {{ MeanFlow|round(0)|toLocaleString }} (m<sup>3</sup>/year) and {{ MeanFlowPerSecond|round(0)|toLocaleString }} (m<sup>3</sup>/s)
 </div>
-{{ table(columnNames, landUseRows, true) }}
-{{ table(columnNames, summaryRows, false) }}
+{{ table(landUseColumns, landUseRows, true) }}
+{{ table(summaryColumns, summaryRows, false) }}
