@@ -143,8 +143,7 @@ LAYERS = [
         'short_display': 'NLCD',
         'helptext': 'National Land Cover Database defines'
                     'land use across the U.S.',
-        'url': 'https://s3.amazonaws.com/com.azavea.datahub.tms/'
-               'nlcd/{z}/{x}/{y}.png',
+        'url': 'https://{s}.tiles.azavea.com/nlcd/{z}/{x}/{y}.png',
         'raster': True,
         'overlay': True,
         'maxNativeZoom': 13,
@@ -160,8 +159,7 @@ LAYERS = [
                     'soil\'s runoff potential. The four Hydrologic Soils Groups'
                     'are A, B, C and D. Where A\'s generally have the smallest '
                     'runoff potential and D\'s the greatest.',
-        'url': 'https://s3.amazonaws.com/com.azavea.datahub.tms/'
-               'ssurgo-hydro-group-30m/{z}/{x}/{y}.png',
+        'url': 'https://{s}.tiles.azavea.com/ssurgo-hydro-group-30m/{z}/{x}/{y}.png',
         'raster': True,
         'overlay': True,
         'maxNativeZoom': 13,
