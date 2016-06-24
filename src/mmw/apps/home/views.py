@@ -133,10 +133,10 @@ def get_client_settings(request):
             'stream_layers': get_layer_config(['stream', 'overlay']),
             'draw_tools': settings.DRAW_TOOLS,
             'map_controls': settings.MAP_CONTROLS,
-            'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
             'vizer_urls': settings.VIZER_URLS,
             'model_packages': get_model_packages(),
-        })
+        }),
+        'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
     }
 
     return client_settings
