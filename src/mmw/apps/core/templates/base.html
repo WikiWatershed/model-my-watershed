@@ -54,7 +54,7 @@
 
     {% block javascript %}
         <script type="text/javascript"
-                src="https://maps.googleapis.com/maps/api/js?key={{ client_settings.google_maps_api_key }}">
+                src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}">
         </script>
         <script type="text/javascript">
             window.clientSettings = {{ client_settings | safe }};
