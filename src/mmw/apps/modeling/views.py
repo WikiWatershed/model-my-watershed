@@ -257,8 +257,7 @@ def _initiate_mapshed_job_chain(mapshed_input, job_id):
     geom = GEOSGeometry(json.dumps(mapshed_input['area_of_interest']),
                         srid=4326)
 
-    chain = (group(geop_tasks(geom, errback)).set(exchange=exchange,
-                                                  routing_key=routing_key) |
+    chain = (group(geop_tasks(geom, errback, exchange, routing_key)) |
              combine.s() |
              collect_data.s(geom.geojson).set(link_error=errback) |
              save_job_result.s(job_id, mapshed_input))
