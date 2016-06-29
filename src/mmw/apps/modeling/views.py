@@ -438,7 +438,7 @@ def _construct_tr55_job_chain(model_input, job_id):
         censuses = [aoi_census] + modification_census_items
 
         job_chain.append(tasks.run_tr55.s(censuses, model_input)
-                         .set(exhange=exchange, routing_key=choose_worker()))
+                         .set(exchange=exchange, routing_key=choose_worker()))
     else:
         job_chain.append(tasks.get_histogram_job_results.s()
                          .set(exchange=exchange, routing_key=routing_key))
