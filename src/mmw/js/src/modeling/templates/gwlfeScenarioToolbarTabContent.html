@@ -1,0 +1,48 @@
+<div class="inline controls"></div>
+
+{% if not compareMode and modifications.length > 0 %}
+    <div id="gwlfe-modifications-bar">
+        <div class="title-icon">
+            <i class="fa fa-database" data-toggle="tooltip" title="Applied Conservation Practices"
+                data-placement="right"></i>
+        </div>
+        {% for mod in modifications %}
+            <div class="thumb" data-value="{{ mod.modKey }}"
+                data-toggle="tooltip" title="{{ mod.modKey|modShortName }}"
+                data-placement="right">
+                <svg height="{{ 36 }}" width="{{ 36 }}">
+                    <rect height="{{ 36 }}" width="{{ 36 }}" fill="{{ mod.modKey|modFill }}"></rect>
+                </svg>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if activeMod %}
+        <div id="gwlfe-modifications-popup" class="popover right" style="top">
+            <div class="arrow" style="top: 50%;"></div>
+            <div class="popover-content">
+                <h5>
+                    {{ activeMod.modKey|modShortName }}
+                </h5>
+
+                <button type="button" class="close" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+
+                <table class="table">
+                    <tbody>
+                        {% for inputName, inputVal in activeMod.userInput %}
+                            <tr>
+                                <td class="text-left">{{ displayNames[inputName] }}</td>
+                                <td class="strong text-right">{{ inputVal|round(0)|toLocaleString(0) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <button class="btn btn-sm btn-icon dark delete-button" type="button">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    {% endif %}
+{% endif %}

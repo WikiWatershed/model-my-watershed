@@ -4,6 +4,7 @@
   line-height: 1!important;
 
   .dropdown-menu {
+    padding: 0;
     border-radius: $radius-sm!important;
     border: 1px solid $black-12;
     box-shadow: 0 0 6px $black-24;
@@ -62,13 +63,60 @@
   }
 }
 
+.manual-entry {
+  min-width: 250px;
+
+  .header {
+    .header-text {
+      background-color: $ui-light;
+
+      .name, .back-button {
+        display: inline;
+      }
+    }
+
+    svg {
+      position: absolute;
+    }
+  }
+
+  .content {
+    padding: 1rem;
+
+    .form-group {
+      margin-bottom: 0;
+    }
+
+    .info-region {
+      min-height: 25px;
+
+      .info-message {
+        color: $ui-grey;
+      }
+
+      .error-message {
+        color: $ui-danger;
+      }
+    }
+
+    .amount-form {
+      margin: 10px;
+    }
+  }
+}
+
 //Drawing Tools Dropdown
-#land-tools, #conserve-tools {
+.thumb-select {
   padding: 0!important;
   min-width: 200px;
 
   .summary {
     line-height: 150%;
+  }
+
+  .select-draw-manual {
+    padding-left: 1rem;
+    padding-bottom: 0.5rem;
   }
 
   ul {
@@ -82,7 +130,6 @@
       float: left;
       display: block;
       width: 60px;
-      height: 90px;
       margin-bottom: 0.2rem;
       transition: all 0.4s ease-out;
       margin-right: 1rem;
@@ -100,11 +147,15 @@
         margin-bottom: 0.2rem;
         display: block;
 
-        &:hover {
+        &:not(.disabled):hover {
           border-color: $ui-primary;
           cursor: pointer;
         }
       }
+    }
+
+    .disabled {
+      opacity: 0.4;
     }
   }
 }
@@ -115,8 +166,6 @@
   }
 }
 
-//Modification Dropdown
-#modifications {
-  max-height: 400px;
-  overflow-y: auto;
+.modification-dropdown {
+  z-index: 1002;
 }

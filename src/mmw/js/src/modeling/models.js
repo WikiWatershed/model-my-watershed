@@ -1,6 +1,7 @@
 "use strict";
 
-var Backbone = require('../../shim/backbone'),
+var $ = require('jquery'),
+    Backbone = require('../../shim/backbone'),
     _ = require('lodash'),
     utils = require('../core/utils'),
     settings = require('../core/settings'),
@@ -10,9 +11,23 @@ var Backbone = require('../../shim/backbone'),
     turfErase = require('turf-erase'),
     turfIntersect = require('turf-intersect');
 
+var MAPSHED = 'mapshed';
+var GWLFE = 'gwlfe';
+var TR55_TASK = 'tr55';
+var TR55_PACKAGE = 'tr-55';
+
 var ModelPackageControlModel = Backbone.Model.extend({
     defaults: {
-        name: ''
+        name: '',
+        controlName: '',
+        controlDisplayName: '',
+        manualMode: false,
+        manualMod: '',
+        activeMod: '',
+        modRows: null,
+        dropdownOpen: false,
+        dataModel: null,
+        output: null
     },
 
     // Return true if this is an input control and false if it is a
@@ -33,7 +48,27 @@ var ModelPackageModel = Backbone.Model.extend();
 var Tr55TaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
         {
-            taskName: 'tr55',
+            taskName: TR55_TASK,
+            taskType: 'modeling'
+        },
+        coreModels.TaskModel.prototype.defaults
+    )
+});
+
+var MapshedTaskModel = coreModels.TaskModel.extend({
+    defaults: _.extend(
+        {
+            taskName: MAPSHED,
+            taskType: 'modeling'
+        },
+        coreModels.TaskModel.prototype.defaults
+    )
+});
+
+var GwlfeTaskModel = coreModels.TaskModel.extend({
+    defaults: _.extend(
+        {
+            taskName: GWLFE,
             taskType: 'modeling'
         },
         coreModels.TaskModel.prototype.defaults
@@ -47,7 +82,8 @@ var ResultModel = Backbone.Model.extend({
         inputmod_hash: null, // MD5 string generated from result
         result: null, // The actual result object
         polling: false, // True if currently polling
-        active: false // True if currently selected in Compare UI
+        active: false, // True if currently selected in Compare UI
+        activeVar: null // For GWLFE, the currently selected variable in the UI
     }
 });
 
@@ -93,10 +129,11 @@ var ProjectModel = Backbone.Model.extend({
         created_at: null,               // Date
         area_of_interest: null,         // GeoJSON
         area_of_interest_name: null,    // Human readable string for AOI.
-        model_package: '',              // Package name
+        model_package: TR55_PACKAGE,    // Package name
         scenarios: null,                // ScenariosCollection
         user_id: 0,                     // User that created the project
         is_activity: false,             // Project that persists across routes
+        gis_data: null,                 // Additionally gathered data, such as MapShed for GWLF-E
         needs_reset: false,             // Should we overwrite project data on next save?
         allow_save: true                // Is allowed to save to the server - false in compare mode
     },
@@ -106,12 +143,6 @@ var ProjectModel = Backbone.Model.extend({
         if (scenarios === null || typeof scenarios === 'string') {
             this.set('scenarios', new ScenariosCollection());
         }
-        // TODO: For a new project, users will eventually
-        // be able to choose which modeling package
-        // they want to use in their project. For
-        // now, the only option is TR55, so it is
-        // hard-coded here.
-        this.set('model_package', 'tr-55');
 
         this.set('user_id', App.user.get('id'));
 
@@ -122,43 +153,30 @@ var ProjectModel = Backbone.Model.extend({
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
     },
 
+    setProjectModel: function(modelPackage) {
+        this.set('model_package', modelPackage);
+    },
+
     createTaskModel: function() {
-        var packageName = this.get('model_package');
-        switch (packageName) {
-            case 'tr-55':
-                return new Tr55TaskModel();
-        }
-        throw 'Model package not supported: ' + packageName;
+        return createTaskModel(this.get('model_package'));
     },
 
     createTaskResultCollection: function() {
-        var packageName = this.get('model_package');
-        switch (packageName) {
-            case 'tr-55':
-                return new ResultCollection([
-                    {
-                        name: 'runoff',
-                        displayName: 'Runoff',
-                        result: null
-                    },
-                    {
-                        name: 'quality',
-                        displayName: 'Water Quality',
-                        result: null
-                    }
-                ]);
-        }
-        throw 'Model package not supported: ' + packageName;
+        return createTaskResultCollection(this.get('model_package'));
     },
 
     fetchResultsIfNeeded: function() {
+        var promises = [];
+
         this.get('scenarios').forEach(function(scenario) {
-            scenario.fetchResultsIfNeeded();
+            promises.push(scenario.fetchResultsIfNeeded());
         });
 
         this.get('scenarios').on('add', function(scenario) {
             scenario.fetchResultsIfNeeded();
         });
+
+        return $.when.apply($, promises);
     },
 
     updateName: function(newName) {
@@ -241,6 +259,8 @@ var ProjectModel = Backbone.Model.extend({
                 scenarios = _.map(response.scenarios, function(scenario) {
                     var scenarioModel = new ScenarioModel(scenario);
                     scenarioModel.set('user_id', user_id);
+                    scenarioModel.set('taskModel', createTaskModel(response.model_package));
+                    scenarioModel.set('results', createTaskResultCollection(response.model_package));
                     scenarioModel.get('modifications').reset(scenario.modifications);
                     if (!_.isEmpty(scenario.results)) {
                         scenarioModel.get('results').reset(scenario.results);
@@ -289,6 +309,88 @@ var ProjectModel = Backbone.Model.extend({
         }
 
         return url;
+    },
+
+    /**
+     * If a project is of the GWLFE package, we trigger the mapshed GIS
+     * data gathering chain, and poll for it to finish. Once it finishes,
+     * we resolve the lock to indicate the project is ready for further
+     * processing.
+     * If the project is not of the GWLFE package, we simply resolve the
+     * lock immediately and return.
+     */
+    fetchGisData: function() {
+        if (this.get('model_package') === GWLFE) {
+            var aoi = this.get('area_of_interest'),
+                promise = $.Deferred(),
+                taskModel = createTaskModel(MAPSHED),
+                taskHelper = {
+                    postData: {
+                        mapshed_input: JSON.stringify({
+                            area_of_interest: aoi
+                        })
+                    },
+
+                    onStart: function() {
+                        console.log('Starting polling for MAPSHED');
+                    },
+
+                    startFailure: function(response) {
+                        console.log('Failed to start gathering data for MAPSHED');
+
+                        if (response.responseJSON && response.responseJSON.error) {
+                            console.log(response.responseJSON.error);
+                        }
+
+                        promise.reject();
+                    },
+
+                    pollSuccess: function() {
+                        promise.resolve(taskModel.get('result'));
+                    },
+
+                    pollFailure: function(err) {
+                        console.log('Failed to gather data required for MAPSHED');
+                        promise.reject(err);
+                    }
+                };
+
+            taskModel.start(taskHelper);
+            return promise;
+        } else {
+            // Currently there are no methods for fetching GIS Data if the
+            // model package is not GWLFE. Thus we return a resolved promise
+            // so that any execution waiting on this can continue immediately.
+            return $.when();
+        }
+    },
+
+    /**
+     * Returns a promise that completes when GIS Data has been fetched. If fetching
+     * is not required, returns an immediatley resolved promise.
+     */
+    fetchGisDataIfNeeded: function() {
+        var self = this,
+            saveProjectAndScenarios = _.bind(self.saveProjectAndScenarios, self);
+
+        if (self.get('gis_data') === null && self.fetchGisDataPromise === undefined) {
+            self.fetchGisDataPromise = self.fetchGisData();
+            self.fetchGisDataPromise
+                .done(function(result) {
+                    if (result) {
+                        self.set('gis_data', result);
+                        saveProjectAndScenarios();
+                    }
+                })
+                .always(function() {
+                    // Clear promise once it completes, so we start a new one
+                    // next time.
+                    delete self.fetchGisDataPromise;
+                });
+        }
+
+        // Return fetchGisDataPromise if it exists, else an immediately resolved one.
+        return self.fetchGisDataPromise || $.when();
     }
 });
 
@@ -389,6 +491,7 @@ function _alterModifications(rawModifications) {
                         overlapPiece.value.reclass = newPiece.value;
                     }
 
+                    overlapPiece.area = turfArea(overlapPiece.shape);
                     pieces.push(overlapPiece);
 
                     /* remove the overlapping portion from both parents */
@@ -413,7 +516,20 @@ function _alterModifications(rawModifications) {
         pieces = _.filter(pieces, validShape);
     }
 
-    return pieces;
+    return _.map(pieces, function(piece) { //ensures 'value' is uniform type for each piece
+      var p = piece;
+      if ( typeof p.value === 'string') {
+        var v = {};
+        if (p.name === reclass) {
+          v.reclass = p.value;
+        }
+        else if (p.name === bmp) {
+          v.bmp = p.value;
+        }
+        p.value = v;
+      }
+      return p;
+    });
 }
 
 var alterModifications = _.memoize(_alterModifications, function(_, hash) {return hash;});
@@ -466,6 +582,14 @@ var ModificationsCollection = Backbone.Collection.extend({
     model: ModificationModel
 });
 
+var GwlfeModificationModel = Backbone.Model.extend({
+    defaults: {
+        modKey: null,
+        output: null,
+        userInput: null
+    }
+});
+
 var ScenarioModel = Backbone.Model.extend({
     urlRoot: '/api/modeling/scenarios/',
 
@@ -489,16 +613,18 @@ var ScenarioModel = Backbone.Model.extend({
         Backbone.Model.prototype.initialize.apply(this, arguments);
         this.set('user_id', App.user.get('id'));
 
-        // TODO The default modifications might be a function
-        // of the model_package in the future.
-        _.defaults(attrs, {
-            inputs: [
-                {
-                    name: 'precipitation',
-                    value: 0.984252 // equal to 2.5 cm.
-                }
-            ]
-        });
+        var defaultMods = {};
+        if (App.currentProject.get('model_package') === TR55_PACKAGE)  {
+            defaultMods = {
+               inputs: [
+                   {
+                       name: 'precipitation',
+                       value: 0.984252 // equal to 2.5 cm.
+                   }
+               ]
+           };
+        }
+        _.defaults(attrs, defaultMods);
 
         this.set('inputs', new ModificationsCollection(attrs.inputs));
         this.set('modifications', new ModificationsCollection(attrs.modifications));
@@ -544,7 +670,20 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     addModification: function(modification) {
-        this.get('modifications').add(modification);
+        var modifications = this.get('modifications');
+
+        // For GWLFE, first remove existing mod with the same key since it
+        // doesn't make sense to have multiples of the same type of BMP.
+        if (App.currentProject.get('model_package') === GWLFE) {
+            var modKey = modification.get('modKey'),
+                matches = modifications.where({'modKey': modKey});
+
+            if (matches) {
+                modifications.remove(matches[0], {silent: true});
+            }
+        }
+
+        modifications.add(modification);
     },
 
     addOrReplaceInput: function(input) {
@@ -587,7 +726,8 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     fetchResultsIfNeeded: function() {
-        var inputmod_hash = this.get('inputmod_hash'),
+        var self = this,
+            inputmod_hash = this.get('inputmod_hash'),
             needsResults = this.get('results').some(function(resultModel) {
                 var emptyResults = !resultModel.get('result'),
                     staleResults = inputmod_hash !== resultModel.get('inputmod_hash');
@@ -595,9 +735,24 @@ var ScenarioModel = Backbone.Model.extend({
                 return emptyResults || staleResults;
             });
 
-        if (needsResults) {
-            this.fetchResults();
+        if (needsResults && self.fetchResultsPromise === undefined) {
+            var fetchResults = _.bind(self.fetchResults, self),
+                fetchGisDataPromise = App.currentProject.fetchGisDataIfNeeded();
+
+            self.fetchResultsPromise = fetchGisDataPromise.then(function() {
+                var promises = fetchResults();
+                return $.when(promises.startPromise, promises.pollingPromise);
+            });
+
+            self.fetchResultsPromise
+                .always(function() {
+                    // Clear promise so we start a new one next time
+                    delete self.fetchResultsPromise;
+                });
         }
+
+        // Return fetchResultsPromise if it exists, else an immediately resovled one.
+        return self.fetchResultsPromise || $.when();
     },
 
     setResults: function() {
@@ -610,9 +765,9 @@ var ScenarioModel = Backbone.Model.extend({
             this.get('results').forEach(function(resultModel) {
                 var resultName = resultModel.get('name');
 
-                if (serverResults[resultName]) {
+                if (serverResults) {
                     resultModel.set({
-                        'result': serverResults[resultName],
+                        'result': serverResults,
                         'inputmod_hash': serverResults.inputmod_hash
                     });
                 } else {
@@ -637,21 +792,9 @@ var ScenarioModel = Backbone.Model.extend({
         var self = this,
             results = this.get('results'),
             taskModel = this.get('taskModel'),
-            nonZeroModifications = this.get('modifications').filter(function(mod) {
-                return mod.get('effectiveArea') > 0;
-            }),
+            gisData = this.getGisData(),
             taskHelper = {
-                postData: {
-                    model_input: JSON.stringify({
-                        inputs: self.get('inputs').toJSON(),
-                        modification_pieces: alterModifications(nonZeroModifications, self.get('modification_hash')),
-                        area_of_interest: App.currentProject.get('area_of_interest'),
-                        aoi_census: self.get('aoi_census'),
-                        modification_censuses: self.get('modification_censuses'),
-                        inputmod_hash: self.get('inputmod_hash'),
-                        modification_hash: self.get('modification_hash')
-                    })
-                },
+                postData: gisData,
 
                 onStart: function() {
                     results.setPolling(true);
@@ -700,6 +843,45 @@ var ScenarioModel = Backbone.Model.extend({
         var hash = utils.getCollectionHash(this.get('modifications'));
 
         this.set('modification_hash', hash);
+    },
+
+    getGisData: function() {
+        var self = this,
+            project = App.currentProject;
+
+        switch(App.currentProject.get('model_package')) {
+            case TR55_PACKAGE:
+                var nonZeroModifications = self.get('modifications').filter(function(mod) {
+                    return mod.get('effectiveArea') > 0;
+                });
+
+                return {
+                    model_input: JSON.stringify({
+                        inputs: self.get('inputs').toJSON(),
+                        modification_pieces: alterModifications(nonZeroModifications, self.get('modification_hash')),
+                        area_of_interest: project.get('area_of_interest'),
+                        aoi_census: self.get('aoi_census'),
+                        modification_censuses: self.get('modification_censuses'),
+                        inputmod_hash: self.get('inputmod_hash'),
+                        modification_hash: self.get('modification_hash')
+                    })
+                };
+
+            case GWLFE:
+                // Merge the values that came back from Mapshed with the values
+                // in the modifications from the user.
+                var modifications = self.get('modifications'),
+                    mergedGisData = JSON.parse(project.get('gis_data'));
+
+                modifications.forEach(function(mod) {
+                    Object.assign(mergedGisData, mod.get('output'));
+                });
+
+                return {
+                    inputmod_hash: self.get('inputmod_hash'),
+                    model_input: JSON.stringify(mergedGisData)
+                };
+        }
     }
 });
 
@@ -824,7 +1006,7 @@ var ScenariosCollection = Backbone.Collection.extend({
 });
 
 function getControlsForModelPackage(modelPackageName, options) {
-    if (modelPackageName === 'tr-55') {
+    if (modelPackageName === TR55_PACKAGE) {
         if (options && (options.compareMode ||
                         options.is_current_conditions)) {
             return new ModelPackageControlsCollection([
@@ -837,10 +1019,64 @@ function getControlsForModelPackage(modelPackageName, options) {
                 new ModelPackageControlModel({ name: 'precipitation' })
             ]);
         }
+    } else if (modelPackageName === GWLFE) {
+        if (options && (options.compareMode ||
+                        options.is_current_conditions)) {
+            return new ModelPackageControlsCollection();
+        } else {
+            return new ModelPackageControlsCollection([
+                new ModelPackageControlModel({ name: 'gwlfe_conservation_practice' })
+            ]);
+        }
     }
 
     throw 'Model package not supported ' + modelPackageName;
 }
+
+function createTaskModel(modelPackage) {
+    switch (modelPackage) {
+        case TR55_PACKAGE:
+            return new Tr55TaskModel();
+        case GWLFE:
+            return new GwlfeTaskModel();
+        case MAPSHED:
+            return new MapshedTaskModel();
+    }
+    throw 'Model package not supported: ' + modelPackage;
+}
+
+function createTaskResultCollection(modelPackage) {
+    switch (modelPackage) {
+        case TR55_PACKAGE:
+            return new ResultCollection([
+                {
+                    name: 'runoff',
+                    displayName: 'Runoff',
+                    result: null
+                },
+                {
+                    name: 'quality',
+                    displayName: 'Water Quality',
+                    result: null
+                }
+            ]);
+        case GWLFE:
+            return new ResultCollection([
+                {
+                    name: 'runoff',
+                    displayName: 'Hydrology',
+                    result: null
+                },
+                {
+                    name: 'quality',
+                    displayName: 'Water Quality',
+                    result: null
+                }
+            ]);
+    }
+    throw 'Model package not supported: ' + modelPackage;
+}
+
 
 module.exports = {
     getControlsForModelPackage: getControlsForModelPackage,
@@ -850,9 +1086,14 @@ module.exports = {
     ModelPackageControlsCollection: ModelPackageControlsCollection,
     ModelPackageControlModel: ModelPackageControlModel,
     Tr55TaskModel: Tr55TaskModel,
+    GwlfeTaskModel: GwlfeTaskModel,
+    TR55_TASK: TR55_TASK,
+    TR55_PACKAGE: TR55_PACKAGE,
+    GWLFE: GWLFE,
     ProjectModel: ProjectModel,
     ProjectCollection: ProjectCollection,
     ModificationModel: ModificationModel,
+    GwlfeModificationModel: GwlfeModificationModel,
     ModificationsCollection: ModificationsCollection,
     ScenarioModel: ScenarioModel,
     ScenariosCollection: ScenariosCollection

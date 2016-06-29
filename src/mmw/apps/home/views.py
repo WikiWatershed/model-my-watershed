@@ -113,6 +113,13 @@ def get_layer_url(layer):
     return urljoin(tiler_base, layer['code'] + tiler_postfix)
 
 
+def get_model_packages():
+    for model_package in settings.MODEL_PACKAGES:
+        if model_package['name'] in settings.DISABLED_MODEL_PACKAGES:
+            model_package['disabled'] = True
+    return settings.MODEL_PACKAGES
+
+
 def get_client_settings(request):
     EMBED_FLAG = settings.ITSI['embed_flag']
 
@@ -126,9 +133,10 @@ def get_client_settings(request):
             'stream_layers': get_layer_config(['stream', 'overlay']),
             'draw_tools': settings.DRAW_TOOLS,
             'map_controls': settings.MAP_CONTROLS,
-            'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
-            'vizer_urls': settings.VIZER_URLS
-        })
+            'vizer_urls': settings.VIZER_URLS,
+            'model_packages': get_model_packages(),
+        }),
+        'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
     }
 
     return client_settings

@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
@@ -9,10 +9,15 @@ var $ = require('jquery'),
     coreUtils = require('../core/utils'),
     models = require('./models'),
     modificationConfigUtils = require('./modificationConfigUtils'),
-    landCoverTmpl = require('./templates/controls/landCover.html'),
-    conservationPracticeTmpl = require('./templates/controls/conservationPractice.html'),
+    gwlfeConfig = require('./gwlfeModificationConfig'),
     precipitationTmpl = require('./templates/controls/precipitation.html'),
-    summaryTmpl = require('./templates/controls/summary.html');
+    manualEntryTmpl = require('./templates/controls/manualEntry.html'),
+    userInputTmpl = require('./templates/controls/userInput.html'),
+    inputInfoTmpl = require('./templates/controls/inputInfo.html'),
+    thumbSelectTmpl = require('./templates/controls/thumbSelect.html'),
+    modDropdownTmpl = require('./templates/controls/modDropdown.html');
+
+var ENTER_KEYCODE = 13;
 
 // Simulation input controls base class.
 var ControlView = Marionette.LayoutView.extend({
@@ -35,24 +40,65 @@ var ControlView = Marionette.LayoutView.extend({
     }
 });
 
-// Drawing control base class.
-var DrawControlView = ControlView.extend({
+var ThumbSelectView = Marionette.ItemView.extend({
+    template: thumbSelectTmpl,
+
+    initialize: function(options) {
+        var modKeys = _.flatten(_.pluck(this.model.get('modRowGroups'), 'rows'), true),
+            dataModel = this.model.get('dataModel'),
+            manualMode = this.model.get('manualMode'),
+            modEnabled = {};
+
+        _.forEach(modKeys, function(modKey) {
+            modEnabled[modKey] = manualMode ? gwlfeConfig.configs[modKey].validateDataModel(dataModel) : true;
+        });
+
+        this.model.set({
+            activeMod: null,
+            modEnabled: modEnabled
+        });
+        this.addModification = options.addModification;
+    },
+
     ui: {
+        thumb: '.thumb',
         drawControl: '[data-value]'
     },
 
     events: {
-        'click @ui.drawControl': 'startDrawing'
+        'click @ui.drawControl': 'onThumbClick',
+        'mouseenter @ui.thumb': 'onThumbHover'
     },
 
-    startDrawing: function(e) {
+    modelEvents: {
+        'change:activeMod': 'render'
+    },
+
+    onThumbHover: function(e) {
+        var modKey = $(e.currentTarget).data('value');
+        this.model.set('activeMod', modKey);
+    },
+
+    onThumbClick: function(e) {
+        var $el = $(e.currentTarget),
+            controlName = this.model.get('controlName'),
+            controlValue = $el.data('value');
+
+        if (this.model.get('modEnabled')[controlValue]) {
+            if (this.model.get('manualMode')) {
+                this.startManual(controlName, controlValue);
+            } else {
+                this.startDrawing(controlName, controlValue);
+            }
+        }
+    },
+
+    startDrawing: function(controlName, controlValue) {
         var self = this,
-            $el = $(e.currentTarget),
-            controlName = this.getControlName(),
-            controlValue = $el.data('value'),
             map = App.getLeafletMap(),
             drawOpts = modificationConfigUtils.getDrawOpts(controlValue);
 
+        this.model.set('dropdownOpen', false);
         drawUtils.drawPolygon(map, drawOpts).then(function(geojson) {
             self.addModification(new models.ModificationModel({
                 name: controlName,
@@ -60,40 +106,284 @@ var DrawControlView = ControlView.extend({
                 shape: geojson
             }));
         });
+    },
+
+    startManual: function(controlName, controlValue) {
+        this.model.set('manualMod', controlValue);
     }
 });
 
-var SummaryView = Marionette.ItemView.extend({
-    template: summaryTmpl
-});
+var InputInfoView = Marionette.ItemView.extend({
+    template: inputInfoTmpl,
 
-var ModificationsView = DrawControlView.extend({
-    ui: _.defaults({
-        thumb: '.thumb',
-        button: 'button'
-    }, DrawControlView.prototype.ui),
-
-    regions: {
-        summaryRegion: '.summary-region'
+    initialize: function(options) {
+        this.userInputName = options.userInputName;
     },
 
-    events: _.defaults({
-        'mouseenter @ui.thumb': 'onMouseHover'
-    }, DrawControlView.prototype.events),
+    modelEvents: {
+        'change:output': 'render'
+    },
 
-    onMouseHover: function(e) {
-        var value = $(e.currentTarget).data('value');
+    templateHelpers: function() {
+        var output = this.model.get('output'),
+            errorMessage = output && output.errorMessages[this.userInputName],
+            infoMessage = output && output.infoMessages[this.userInputName],
+            isError = false,
+            message;
 
-        this.summaryRegion.show(new SummaryView({
-            model: new Backbone.Model({
-                value: value
-            })
+        if (errorMessage) {
+            isError = true;
+            message = errorMessage;
+        } else if (infoMessage) {
+            message = infoMessage;
+        }
+
+        return {
+            message: message,
+            isError: isError
+        };
+    }
+});
+
+var UserInputView = Marionette.LayoutView.extend({
+    template: userInputTmpl,
+
+    initialize: function(options) {
+        this.parentModel = options.parentModel;
+    },
+
+    regions: {
+        infoRegion: '.info-region'
+    },
+
+    onShow: function() {
+        this.infoRegion.show(new InputInfoView({
+            model: this.parentModel,
+            userInputName: this.model.get('userInputName')
         }));
+    },
+
+    templateHelpers: function() {
+        return {
+            displayNames: gwlfeConfig.displayNames
+        };
+    }
+});
+
+var ManualEntryView = Marionette.CompositeView.extend({
+    template: manualEntryTmpl,
+
+    ui: {
+        'backButton': '.back-button',
+        'applyButton': '.apply-button'
+    },
+
+    events: {
+        'click @ui.backButton': 'clearManualMod',
+        'click @ui.applyButton': 'applyModification',
+        'keyup': 'onKeyUp'
+    },
+
+    childView: UserInputView,
+
+    childViewContainer: '#user-input-region',
+
+    initialize: function(options) {
+        this.addModification = options.addModification;
+    },
+
+    childViewOptions: function() {
+        return {
+            parentModel: this.model
+        };
+    },
+
+    templateHelpers: function() {
+        var manualMod = this.model.get('manualMod');
+        return {
+            modConfig: gwlfeConfig.configs[manualMod],
+            displayNames: gwlfeConfig.displayNames,
+            dataModel: this.model.get('dataModel')
+        };
+    },
+
+    onKeyUp: function(e) {
+        if (e.keyCode === ENTER_KEYCODE) {
+            this.applyModification();
+        }
+    },
+
+    onShow: function() {
+        var self = this,
+            $input = $(this.el).find('input');
+
+        $input.on('change keyup paste', function() {
+            self.computeOutput();
+        });
+
+        $input[0].focus();
+    },
+
+    clearManualMod: function() {
+        this.model.set({
+            manualMod: null,
+            output: null
+        });
+    },
+
+    closeDropdown: function() {
+        this.model.set('dropdownOpen', false);
+    },
+
+    computeOutput: function() {
+        var modConfig = gwlfeConfig.configs[this.model.get('manualMod')],
+            userInput = _.map(modConfig.userInputNames, function(userInputName) {
+                return $('#'+userInputName).val();
+            }),
+            output;
+
+        userInput = _.zipObject(modConfig.userInputNames, userInput);
+        output = gwlfeConfig.aggregateOutput(this.model.get('dataModel'),
+            userInput, modConfig.validate, modConfig.computeOutput);
+
+        this.model.set({
+            output: output,
+            userInput: userInput
+        });
+    },
+
+    applyModification: function() {
+        this.computeOutput();
+        var modKey = this.model.get('manualMod'),
+            userInput = this.model.get('userInput'),
+            output = this.model.get('output');
+
+        if (output && gwlfeConfig.isValid(output.errorMessages)) {
+            this.clearManualMod();
+            this.closeDropdown();
+
+            this.addModification(new models.GwlfeModificationModel({
+                modKey: modKey,
+                userInput: userInput,
+                output: output.output
+            }));
+        }
+    }
+});
+
+var ModificationsView = ControlView.extend({
+    template: modDropdownTmpl,
+
+    initialize: function(options) {
+        ControlView.prototype.initialize.apply(this, [options]);
+        var self = this;
+
+        function closeDropdownOnOutsideClick(e) {
+            var isTargetOutsideDropdown = $(e.target).parents('.dropdown-menu').length === 0;
+            if (isTargetOutsideDropdown && self.model.get('dropdownOpen')) {
+                self.closeDropdown();
+            }
+        }
+
+        /*
+            If not in manualMode, and there was a click outside this view, and dropdown is
+            open, then close the dropdown. We don't do this in  manualMode because
+            highlighting the value in the input by clicking and then dragging outside the
+            dropdown closes the dropdown, and this is not correct. A more sophisticated
+            solution is possible, but this is a quickfix for the moment.
+        */
+        $(document).on('mouseup', function(e) {
+            if (!self.model.get('manualMode')) {
+                closeDropdownOnOutsideClick(e);
+            }
+        });
+    },
+
+    ui: {
+        dropdownButton: '.dropdown-button'
+    },
+
+    events: {
+        'click @ui.dropdownButton': 'onClickDropdownButton'
+    },
+
+    modelEvents: {
+        'change:dropdownOpen': 'render',
+        'change:manualMod': 'updateContent'
+    },
+
+    regions: {
+        modContentRegion: '.mod-content-region'
+    },
+
+    closeDropdown: function() {
+        this.model.set({
+            dropdownOpen: false,
+            manualMod: null,
+            output: null
+        });
+    },
+
+    openDropdown: function() {
+        this.model.set('dropdownOpen', true);
+    },
+
+    onClickDropdownButton: function() {
+        var dropdownOpen = this.model.get('dropdownOpen');
+        if (this.model.get('manualMode')) {
+            if (dropdownOpen) {
+                this.closeDropdown();
+            } else {
+                this.openDropdown();
+            }
+        } else if (!this.model.get('dropdownOpen')) {
+            this.openDropdown();
+        }
+    },
+
+    onRender: function() {
+        this.updateContent();
+    },
+
+    updateContent: function() {
+        var manualMod = this.model.get('manualMod');
+        if (manualMod) {
+            var modConfig = gwlfeConfig.configs[manualMod],
+                userInputNames = _.map(modConfig.userInputNames, function(name) {
+                    return { userInputName: name };
+                }),
+                userInputCollection = new Backbone.Collection(userInputNames);
+
+            this.modContentRegion.show(new ManualEntryView({
+                model: this.model,
+                collection: userInputCollection,
+                addModification: this.addModification
+            }));
+        } else {
+            this.modContentRegion.show(new ThumbSelectView({
+                addModification: this.addModification,
+                model: this.model
+            }));
+        }
     }
 });
 
 var LandCoverView = ModificationsView.extend({
-    template: landCoverTmpl,
+    initialize: function(options) {
+        ModificationsView.prototype.initialize.apply(this, [options]);
+        this.model.set({
+            controlName: this.getControlName(),
+            controlDisplayName: 'Land Cover',
+            modRowGroups: [{
+                name: '',
+                rows: [
+                    ['open_water', 'developed_open', 'developed_low', 'developed_med'],
+                    ['developed_high', 'barren_land', 'deciduous_forest', 'shrub'],
+                    ['grassland', 'pasture', 'cultivated_crops', 'woody_wetlands']
+                ]
+            }]
+        });
+    },
 
     getControlName: function() {
         return 'landcover';
@@ -101,10 +391,55 @@ var LandCoverView = ModificationsView.extend({
 });
 
 var ConservationPracticeView = ModificationsView.extend({
-    template: conservationPracticeTmpl,
+    initialize: function(options) {
+        ModificationsView.prototype.initialize.apply(this, [options]);
+        this.model.set({
+            controlName: this.getControlName(),
+            controlDisplayName: 'Conservation Practice',
+            modRowGroups: [{
+                name: '',
+                rows: [
+                    ['rain_garden', 'infiltration_trench', 'porous_paving'],
+                    ['green_roof', 'no_till', 'cluster_housing']
+                ]
+            }]
+        });
+    },
 
     getControlName: function() {
         return 'conservation_practice';
+    }
+});
+
+var GwlfeConservationPracticeView = ModificationsView.extend({
+    initialize: function(options) {
+        ModificationsView.prototype.initialize.apply(this, [options]);
+        this.model.set({
+            controlName: this.getControlName(),
+            controlDisplayName: 'Conservation Practice',
+            manualMode: true,
+            manualMod: null,
+            modRowGroups: [
+                {
+                    name: 'Rural',
+                    rows: [
+                        ['cover_crops', 'conservation_tillage', 'nutrient_management', 'waste_management_livestock'],
+                        ['waste_management_poultry', 'buffer_strips', 'streambank_fencing', 'streambank_stabilization']
+                    ]
+                },
+                {
+                    name: 'Urban',
+                    rows: [['urban_buffer_strips', 'urban_streambank_stabilization', 'water_retention', 'infiltration']]
+                }
+            ],
+            dataModel: gwlfeConfig.cleanDataModel(JSON.parse(App.currentProject.get('gis_data'))),
+            errorMessages: null,
+            infoMessages: null
+        });
+    },
+
+    getControlName: function() {
+        return 'gwlfe_conservation_practice';
     }
 });
 
@@ -250,6 +585,8 @@ function getControlView(controlName) {
             return LandCoverView;
         case 'conservation_practice':
             return ConservationPracticeView;
+        case 'gwlfe_conservation_practice':
+            return GwlfeConservationPracticeView;
         case 'precipitation':
             return PrecipitationView;
     }
@@ -259,6 +596,7 @@ function getControlView(controlName) {
 module.exports = {
     LandCoverView: LandCoverView,
     ConservationPracticeView: ConservationPracticeView,
+    GwlfeConservationPracticeView: GwlfeConservationPracticeView,
     PrecipitationView: PrecipitationView,
     getControlView: getControlView,
     PrecipitationSynchronizer: PrecipitationSynchronizer

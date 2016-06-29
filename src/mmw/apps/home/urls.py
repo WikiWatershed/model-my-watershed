@@ -12,6 +12,7 @@ urlpatterns = patterns(
     url(r'^$', home_page, name='home_page'),
     url(r'^projects/$', projects, name='projects'),
     url(r'^project/$', project, name='project'),
+    url(r'^project/new/', project, name='project'),
     url(r'^project/(?P<proj_id>[0-9]+)/$', project, name='project'),
     url(r'^project/(?P<proj_id>[0-9]+)/clone/?$',
         project_clone, name='project_clone'),

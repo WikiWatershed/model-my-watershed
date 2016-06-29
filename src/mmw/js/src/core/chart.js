@@ -246,7 +246,46 @@ function renderVerticalBarChart(chartEl, data, options) {
     });
 }
 
+// data is same format as for renderVerticalBarChart
+function renderLineChart(chartEl, data, options) {
+    var chart = nv.models.lineChart(),
+        svg = makeSvg(chartEl);
+
+    options = options || {};
+    _.defaults(options, {
+        margin: {top: 20, right: 30, bottom: 40, left: 60}
+    });
+
+    nv.addGraph(function() {
+        chart.showLegend(false)
+            .margin(options.margin);
+
+        chart.xAxis
+            .tickValues(options.xTickValues)
+            .tickFormat(function(month) {
+                return options.xAxisLabel(month);
+            });
+
+        chart.yAxis
+            .axisLabel(options.yAxisLabel)
+            .tickFormat(d3.format('.02f'));
+
+        chart.tooltip.valueFormatter(function(d) {
+            return chart.yAxis.tickFormat()(d) + ' ' + options.yAxisUnit;
+        });
+
+        handleCommonOptions(chart, options);
+
+        d3.select(svg)
+            .datum(data)
+            .call(chart);
+
+        return chart;
+    });
+}
+
 module.exports = {
     renderHorizontalBarChart: renderHorizontalBarChart,
-    renderVerticalBarChart: renderVerticalBarChart
+    renderVerticalBarChart: renderVerticalBarChart,
+    renderLineChart: renderLineChart
 };

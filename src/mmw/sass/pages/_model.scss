@@ -18,6 +18,14 @@
     transform: translateX(100%);
   }
 
+  .back-button {
+      display: inline-block;
+  }
+
+  .disabled {
+      text-decoration: none;
+  }
+
   &.analyze {
     top: $height-lg;
   }
@@ -41,6 +49,10 @@
     height: 100%;
     width: 100%;
 
+    .mean-flow {
+      font-size: 16px;
+    }
+
     .runoff-chart-container {
       height: 300px;
       width: 100%;
@@ -48,7 +60,13 @@
 
     .runoff-chart-container.current-conditions {
       height: 300px;
-      width: 100%
+      width: 100%;
+    }
+
+    .runoff-selector-region {
+      select {
+        width: 50%;
+      }
     }
   }
 

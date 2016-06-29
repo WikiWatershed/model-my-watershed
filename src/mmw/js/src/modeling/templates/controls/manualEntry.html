@@ -1,0 +1,30 @@
+<div class="manual-entry">
+    <div class="header">
+        <div class="header-text">
+            <button class="btn btn-icon back-button">
+                <i class="fa fa-arrow-left"></i>
+            </button>
+            <div class="name">{{ manualMod|modShortName}}</div>
+        </div>
+        <svg height="7" width="250">
+            <rect height="7" width="250" fill="{{ manualMod|modFill }}"></rect>
+        </svg>
+    </div>
+
+    <div class="content">
+        <table class="table">
+            <tbody>
+                {% for dataModelName in modConfig.dataModelNames %}
+                    <tr>
+                        <td class="text-left">{{ displayNames[dataModelName] }}</td>
+                        <td class="strong text-right">{{ dataModel[dataModelName]|round(2)|toLocaleString(2) }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div id="user-input-region"></div>
+
+        <button type="button" class="btn btn-lg btn-block btn-active apply-button">Apply</button>
+    </div class="content">
+</div>

@@ -30,7 +30,9 @@ elasticsearch_cluster_name: "logstash"
 
 nodejs_npm_version: 2.1.17
 
-java_version: "7u95-*"
+apache_version: "2.4.7-*"
+
+java_version: "7u101-*"
 
 graphite_carbon_version: "0.9.13-pre1"
 graphite_whisper_version: "0.9.13-pre1"
@@ -44,7 +46,7 @@ sjs_host: "localhost"
 sjs_port: 8090
 sjs_container_image: "quay.io/azavea/spark-jobserver:0.6.1"
 
-geop_version: "0.4.0"
+geop_version: "1.2.0"
 
 nginx_cache_dir: "/var/cache/nginx"
 observation_api_url: "http://www.wikiwatershed-vs.org/"

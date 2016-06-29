@@ -3,36 +3,26 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
-import time
-import requests
-from celery import shared_task
-import json
 import logging
+import json
+import requests
+
 from math import sqrt
+from StringIO import StringIO
+
+from celery import shared_task
 
 from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
     data_to_survey, data_to_censuses
 
 from tr55.model import simulate_day
+from gwlfe import gwlfe, parser
 
 logger = logging.getLogger(__name__)
 
 KG_PER_POUND = 0.453592
 CM_PER_INCH = 2.54
-
-
-@shared_task
-def start_mapshed_job(input):
-    """
-    Runs a Mapshed job. For now, just wait 3s and return the input.
-    """
-    # TODO remove sleep and call actual mapshed code
-    time.sleep(3)
-    response_json = {
-        'input': input
-    }
-
-    return response_json
+ACRES_PER_SQM = 0.000247105
 
 
 @shared_task
@@ -60,8 +50,8 @@ def start_rwd_job(location, snapping):
     return response_json
 
 
-@shared_task
-def start_histogram_job(json_polygon):
+@shared_task(bind=True, default_retry_delay=1, max_retries=42)
+def start_histogram_job(self, json_polygon):
     """ Calls the histogram_start function to
     kick off the SJS job to generate a histogram
     of the provided polygon (i.e. AoI).
@@ -74,12 +64,12 @@ def start_histogram_job(json_polygon):
 
     return {
         'pixel_width': aoi_resolution(polygon),
-        'sjs_job_id': histogram_start([json_polygon])
+        'sjs_job_id': histogram_start([json_polygon], self.retry)
     }
 
 
-@shared_task
-def start_histograms_job(polygons):
+@shared_task(bind=True, default_retry_delay=1, max_retries=42)
+def start_histograms_job(self, polygons):
     """ Calls the histogram_start function to
     kick off the SJS job to generate a histogram
     of the provided polygons (i.e. AoI + modifications,
@@ -93,7 +83,7 @@ def start_histograms_job(polygons):
 
     return {
         'pixel_width': None,
-        'sjs_job_id': histogram_start(json_polygons)
+        'sjs_job_id': histogram_start(json_polygons, self.retry)
     }
 
 
@@ -226,8 +216,13 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
     # Calculate total areas for each type modification
     area_sums = {}
     for piece in modification_pieces:
-        kind = piece['value']
+        kinds = piece['value']
         area = piece['area']
+
+        if 'bmp' in kinds:
+            kind = kinds['bmp']
+        else:
+            kind = kinds['reclass']
 
         if kind in area_sums:
             area_sums[kind] += area
@@ -322,9 +317,9 @@ def build_tr55_modification_input(pieces, censuses):
         value = modification['value']
 
         if name == 'landcover':
-            return {'change': ':%s:' % value}
+            return {'change': ':%s:' % value['reclass']}
         elif name == 'conservation_practice':
-            return {'change': '::%s' % value}
+            return {'change': '::%s' % value['bmp']}
         elif name == 'both':
             return {'change': ':%s:%s' % (value['reclass'], value['bmp'])}
 
@@ -333,3 +328,41 @@ def build_tr55_modification_input(pieces, censuses):
         census.update(change)
 
     return censuses
+
+
+@shared_task
+def run_gwlfe(model_input, inputmod_hash):
+    """
+    Given a model_input resulting from a MapShed run, converts that dictionary
+    to an intermediate GMS file representation, which is then parsed by GWLF-E
+    to create the final data model z. We run GWLF-E on this final data model
+    and return the results.
+
+    This intermediate GMS file representation needs to be created because most
+    of GWLF-E logic is written to handle GMS files, and to support dictionaries
+    directly we would have to replicate all that logic. Thus, it is easier to
+    simply create a GMS file and have it read that.
+    """
+    output = to_gms_file(model_input)
+
+    reader = parser.GmsReader(output)
+    z = reader.read()
+
+    result = gwlfe.run(z)
+    result['inputmod_hash'] = inputmod_hash
+
+    return result
+
+
+def to_gms_file(mapshed_data):
+    """
+    Given a dictionary of MapShed data, uses GWLF-E to convert it to a GMS file
+    """
+    pre_z = parser.DataModel(mapshed_data)
+    output = StringIO()
+    writer = parser.GmsWriter(output)
+    writer.write(pre_z)
+
+    output.seek(0)
+
+    return output

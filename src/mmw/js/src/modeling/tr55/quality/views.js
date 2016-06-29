@@ -50,7 +50,7 @@ var ResultView = Marionette.LayoutView.extend({
                 }));
             } else {
                 var dataCollection = new Backbone.Collection(
-                    this.model.get('result')
+                    this.model.get('result').quality
                 );
 
                 this.tableRegion.show(new TableView({
@@ -161,7 +161,7 @@ var CompareChartView = Marionette.ItemView.extend({
         }
 
         var chartEl = this.$el.find('.bar-chart').get(0),
-            result = this.model.get('result'),
+            result = this.model.get('result').quality,
             seriesDisplayNames = ['Oxygen Demand',
                                   'Suspended Solids',
                                   'Nitrogen',

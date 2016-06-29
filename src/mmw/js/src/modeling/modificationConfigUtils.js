@@ -11,13 +11,17 @@ function resetConfig() {
     modificationConfig = require('../core/modificationConfig.json');
 }
 
+function unknownModKey(modKey) {
+    console.warn('Unknown Land Cover or Conservation Practice: ' + modKey);
+    return '';
+}
+
 // modKey should be a key in modificationsConfig (eg. 'open_water').
 function getHumanReadableName(modKey) {
     if (modificationConfig[modKey]) {
         return modificationConfig[modKey].name;
     }
-    console.warn('Unknown Land Cover or Conservation Practice: ' + modKey);
-    return '';
+    return unknownModKey(modKey);
 }
 
 // If no shortName, just use name.
@@ -29,36 +33,42 @@ function getHumanReadableShortName(modKey) {
             return modificationConfig[modKey].name;
         }
     }
-    console.warn('Unknown Land Cover or Conservation Practice: ' + modKey);
-    return '';
+    return unknownModKey(modKey);
 }
 
 function getHumanReadableSummary(modKey) {
     if (modificationConfig[modKey]) {
         return modificationConfig[modKey].summary || '';
     }
-    console.warn('Unknown Land Cover or Conservation Practice: ' + modKey);
-    return '';
+    return unknownModKey(modKey);
 }
 
 var getDrawOpts = function(modKey) {
-    if (modKey && modificationConfig[modKey] && modificationConfig[modKey].strokeColor) {
-        return {
-            color: modificationConfig[modKey].strokeColor,
-            opacity: 1,
-            weight: 3,
-            fillColor: 'url(#fill-' + modKey + ')',
-            fillOpacity: 0.74
-        };
+    var defaultStyle = {
+        color: '#888',
+        opacity: 1,
+        weight: 3,
+        fillColor: '#888',
+        fillOpacity: 0.74
+    };
+
+    if (modKey && modificationConfig[modKey]) {
+        var config = modificationConfig[modKey];
+        if (config.copyStyle) {
+            return getDrawOpts(config.copyStyle);
+        } else if (config.strokeColor){
+            return {
+                color: config.strokeColor,
+                opacity: 1,
+                weight: 3,
+                fillColor: 'url(#fill-' + modKey + ')',
+                fillOpacity: 0.74
+            };
+        } else {
+            return defaultStyle;
+        }
     } else {
-        // Unknown modKey, return generic grey
-        return {
-            color: '#888',
-            opacity: 1,
-            weight: 3,
-            fillColor: '#888',
-            fillOpacity: 0.74
-        };
+        return defaultStyle;
     }
 };
 

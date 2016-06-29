@@ -88,7 +88,7 @@ var ChartView = Marionette.ItemView.extend({
         }
 
         var chartEl = this.$el.find('.bar-chart').get(0),
-            result = this.model.get('result'),
+            result = this.model.get('result').runoff,
             seriesNames = ['inf', 'runoff', 'et'],
             seriesDisplayNames = ['Infiltration', 'Runoff', 'Evapotranspiration'],
             labelNames,
@@ -155,7 +155,7 @@ var TableView = Marionette.CompositeView.extend({
 
     initialize: function() {
         this.aoiVolumeModel = this.options.aoiVolumeModel;
-        this.tr55Results = this.model.get('result');
+        this.tr55Results = this.model.get('result').runoff;
 
         this.collection = this.formatData();
     },

@@ -10,6 +10,7 @@ var L = require('leaflet'),
     coreUtils = require('./utils'),
     modificationConfigUtils = require('../modeling/modificationConfigUtils'),
     headerTmpl = require('./templates/header.html'),
+    messageTmpl = require('./templates/message.html'),
     modificationPopupTmpl = require('./templates/modificationPopup.html'),
     areaOfInterestTmpl = require('./templates/areaOfInterestHeader.html'),
     modalModels = require('./modals/models'),
@@ -153,7 +154,7 @@ var HeaderView = Marionette.ItemView.extend({
 // Init the locate plugin button and add it to the map.
 function addLocateMeButton(map, maxZoom, maxAge) {
     var locateOptions = {
-        position: 'topleft',
+        position: 'topright',
         metric: false,
         drawCircle: false,
         showPopup: false,
@@ -247,7 +248,7 @@ var MapView = Marionette.ItemView.extend({
         }
 
         if (options.addZoomControl) {
-            map.addControl(new L.Control.Zoom({position: 'topleft'}));
+            map.addControl(new L.Control.Zoom({position: 'topright'}));
         }
 
         var maxGeolocationAge = 60000;
@@ -258,7 +259,7 @@ var MapView = Marionette.ItemView.extend({
         if (options.addLayerSelector) {
             var layerOptions = {
                 autoZIndex: false,
-                position: 'topleft',
+                position: 'topright',
                 collapsed: false
             };
 
@@ -412,7 +413,7 @@ var MapView = Marionette.ItemView.extend({
                     minZoom: 0});
                 leafletLayer = new L.TileLayer(tileUrl, layer);
                 if (layer.has_opacity_slider) {
-                    var slider = new OpacityControl({position: 'topleft'});
+                    var slider = new OpacityControl({position: 'topright'});
 
                     slider.setOpacityLayer(leafletLayer);
                     leafletLayer.slider = slider;
@@ -841,10 +842,16 @@ var AreaOfInterestView = Marionette.ItemView.extend({
     }
 });
 
+var TaskMessageView = Marionette.ItemView.extend({
+    template: messageTmpl,
+    className: 'analyze-message-region'
+});
+
 module.exports = {
     HeaderView: HeaderView,
     MapView: MapView,
     RootView: RootView,
     AreaOfInterestView: AreaOfInterestView,
+    TaskMessageView: TaskMessageView,
     ModificationPopupView: ModificationPopupView
 };

@@ -52,8 +52,83 @@ SOIL_MAPPING = {
 }
 
 
+@statsd.timer(__name__ + '.sjs_submit')
+def sjs_submit(host, port, args, data, retry=None):
+    """
+    Submits a job to Spark Job Server. Returns its Job ID, which
+    can be used with sjs_retrieve to get the final result.
+    """
+    url = 'http://{}:{}/jobs?{}'.format(host, port, args)
+    response = requests.post(url, data=json.dumps(data))
+
+    if response.ok:
+        job = response.json()
+    else:
+        error = response.json()
+        if error['status'] == 'NO SLOTS AVAILABLE' and retry:
+            try:
+                retry()
+            except MaxRetriesExceededError:
+                raise Exception('No slots available in Spark JobServer.\n'
+                                'Details = {}'.format(response.text))
+        else:
+            raise Exception('Unable to submit job to Spark JobServer.\n'
+                            'Details = {}'.format(response.text))
+
+    if job['status'] == 'STARTED':
+        return job['result']['jobId']
+    else:
+        raise Exception('Submitted job did not start in Spark JobServer.\n'
+                        'Details = {}'.format(response.text))
+
+
+@statsd.timer(__name__ + '.sjs_retrieve')
+def sjs_retrieve(host, port, job_id, retry=None):
+    """
+    Given a job ID, will try to retrieve its value. If the job is
+    still running, will call the optional retry function before
+    proceeding.
+    """
+    url = 'http://{}:{}/jobs/{}'.format(host, port, job_id)
+    response = requests.get(url)
+
+    if response.ok:
+        job = response.json()
+    else:
+        raise Exception('Unable to retrieve job {} from Spark JobServer.\n'
+                        'Details = {}'.format(job_id, response.text))
+
+    if job['status'] == 'FINISHED':
+        return job['result']
+    elif job['status'] == 'RUNNING':
+        if retry:
+            try:
+                retry()
+            except MaxRetriesExceededError:
+                delete = requests.delete(url)  # Job took too long, terminate
+                if delete.ok:
+                    raise Exception('Job {} timed out, '
+                                    'deleted.'.format(job_id))
+                else:
+                    raise Exception('Job {} timed out, unable to delete.\n'
+                                    'Details: {}'.format(job_id, delete.text))
+    else:
+        if job['status'] == 'ERROR':
+            status = 'ERROR ({}: {})'.format(job['result']['errorClass'],
+                                             job['result']['message'])
+        else:
+            status = job['status']
+
+        delete = requests.delete(url)  # Job in unusual state, terminate
+        if delete.ok:
+            raise Exception('Job {} was {}, deleted'.format(job_id, status))
+        else:
+            raise Exception('Job {} was {}, could not delete.\n'
+                            'Details = {}'.format(job_id, status, delete.text))
+
+
 @statsd.timer(__name__ + '.histogram_start')
-def histogram_start(polygons):
+def histogram_start(polygons, retry=None):
     """
     Together, histogram_start and histogram_finish implement a
     function which takes a list of polygons or multipolygons as input,
@@ -62,27 +137,13 @@ def histogram_start(polygons):
 
     This is the top-half of the function.
     """
-    @statsd.timer(__name__ + '.histogram_start.sjs_post')
-    def post(url, data):
-        return requests.post(url, data)
-
     host = settings.GEOP['host']
     port = settings.GEOP['port']
-    path = settings.GEOP['path']
-    request = settings.GEOP['request'].copy()
-    request['input']['geometry'] = polygons
-    url = "http://%s:%s%s" % (host, port, path)
+    args = settings.GEOP['args']['SummaryJob']
+    data = settings.GEOP['json']['nlcdSoilCensus'].copy()
+    data['input']['geometry'] = polygons
 
-    response = post(url, data=json.dumps(request))
-    if response.ok:
-        data = response.json()
-    else:
-        raise Exception('Unable to communicate with SJS (top-half).')
-
-    if data['status'] == 'STARTED':
-        return data['result']['jobId']
-    else:
-        raise Exception('Job submission failed.')
+    return sjs_submit(host, port, args, data, retry)
 
 
 @statsd.timer(__name__ + '.histogram_finish')
@@ -97,40 +158,12 @@ def histogram_finish(job_id, retry):
             result.append(((k1, k2), v))
         return result
 
-    @statsd.timer(__name__ + '.histogram_finish.sjs_get')
-    def get(url):
-        return requests.get(url)
-
-    @statsd.timer(__name__ + '.histogram_finish.sjs_delete')
-    def delete(url):
-        response = requests.delete(url)
-        return response.ok
-
     host = settings.GEOP['host']
     port = settings.GEOP['port']
-    url = "http://%s:%s/jobs/%s" % (host, port, job_id)
 
-    response = get(url)
-    if response.ok:
-        data = response.json()
-    else:
-        raise Exception('Unable to communicate with SJS (bottom-half).')
+    data = sjs_retrieve(host, port, job_id, retry)
 
-    if data['status'] == 'FINISHED':
-        return [dict_to_array(d) for d in data['result']]
-    elif data['status'] == 'RUNNING':
-        try:
-            retry()
-        except MaxRetriesExceededError, X:  # job took too long, terminate
-            if delete(url):
-                raise X
-            else:
-                raise Exception('Job timed out, unable to delete.')
-    else:
-        if delete(url):  # job failed, terminate
-            raise Exception('Job failed, deleted.')
-        else:
-            raise Exception('Job failed, unable to delete.')
+    return [dict_to_array(d) for d in data]
 
 
 def histogram_to_x(data, nucleus, update_rule, after_rule):

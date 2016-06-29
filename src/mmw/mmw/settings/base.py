@@ -12,7 +12,9 @@ from os import environ
 from os.path import abspath, basename, dirname, join, normpath
 from sys import path
 
-from layer_settings import LAYERS, VIZER_URLS  # NOQA
+from layer_settings import LAYERS, VIZER_URLS, DRB_PERIMETER  # NOQA
+from gwlfe_settings import (GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, # NOQA
+                            SOILP, CURVE_NUMBER)  # NOQA
 
 # Normally you should not import ANYTHING from Django directly
 # into your settings, but ImproperlyConfigured is an exception.
@@ -115,7 +117,10 @@ BROKER_URL = 'redis://{0}:{1}/2'.format(
     environ.get('MMW_CACHE_HOST', 'localhost'),
     environ.get('MMW_CACHE_PORT', 6379))
 
-CELERY_IMPORTS = ('celery.task.http',)
+CELERY_IMPORTS = ('celery.task.http',
+                  # Submodule task is not always autodiscovered
+                  'apps.modeling.mapshed.tasks',
+                  )
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -123,6 +128,8 @@ CELERY_RESULT_BACKEND = 'djcelery.backends.cache:CacheBackend'
 STATSD_CELERY_SIGNALS = True
 CELERY_WORKER_DIRECT = True
 CELERY_CREATE_MISSING_QUEUES = True
+CELERY_CHORD_PROPAGATES = True
+CELERY_CHORD_UNLOCK_MAX_RETRIES = 60
 # END CELERY CONFIGURATION
 
 
@@ -361,15 +368,108 @@ ITSI = {
 GEOP = {
     'host': environ.get('MMW_GEOPROCESSING_HOST', 'localhost'),
     'port': environ.get('MMW_GEOPROCESSING_PORT', '8090'),
-    'path': '/jobs?context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.SummaryJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),  # NOQA
-    'request': {
-        'input': {
-            'geometry': None,
-            'tileCRS': 'ConusAlbers',
-            'polyCRS': 'LatLng',
-            'nlcdLayer': 'nlcd-2011-30m-epsg5070',
-            'soilLayer': 'ssurgo-hydro-groups-30m-epsg5070',
-            'zoom': 0
+    'args': {
+        'SummaryJob': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.SummaryJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),  # NOQA
+        'MapshedJob': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.MapshedJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),  # NOQA
+    },
+    'json': {
+        'nlcdSoilCensus': {
+            'input': {
+                'geometry': None,
+                'tileCRS': 'ConusAlbers',
+                'polyCRS': 'LatLng',
+                'nlcdLayer': 'nlcd-2011-30m-epsg5070-0.10.0',
+                'soilLayer': 'ssurgo-hydro-groups-30m-epsg5070-0.10.0',
+                'zoom': 0
+            },
+        },
+        'nlcd_streams': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'vector': [],
+                'vectorCRS': 'LatLng',
+                'rasters': [
+                    'nlcd-2011-30m-epsg5070-0.10.0'
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterLinesJoin',
+                'zoom': 0
+            }
+        },
+        'nlcd_soils': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'nlcd-2011-30m-epsg5070-0.10.0',
+                    'ssurgo-hydro-groups-30m-epsg5070-0.10.0',
+                    'us-ssugro-texture-id-30m-epsg5070'
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedCount',
+                'zoom': 0
+            }
+        },
+        'gwn': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'us-groundwater-nitrogen-30m-epsg5070'
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedCount',
+                'zoom': 0
+            }
+        },
+        'avg_awc': {
+            'input': {
+                'polygon': [],
+                'targetRaster': 'us-ssugro-aws100-30m-epsg5070',
+                'rasters': [],
+                'rasterCRS': 'ConusAlbers',
+                'polygonCRS': 'LatLng',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
+        },
+        'nlcd_slope': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'nlcd-2011-30m-epsg5070-0.10.0',
+                    'us-percent-slope-30m-epsg5070',
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedCount',
+                'zoom': 0
+            }
+        },
+        'slope': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [],
+                'targetRaster': 'us-percent-slope-30m-epsg5070',
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
+        },
+        'nlcd_kfactor': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'nlcd-2011-30m-epsg5070-0.10.0'
+                ],
+                'targetRaster': 'us-ssugro-kfactor-30m-epsg5070',
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
         }
     }
 }
@@ -393,5 +493,23 @@ MAP_CONTROLS = [
     'LocateMeButton',
     'ZoomControl',
 ]
+
+GWLFE = 'gwlfe'
+TR55_PACKAGE = 'tr-55'
+
+MODEL_PACKAGES = [
+    {
+        'name': TR55_PACKAGE,
+        'display_name': 'Site Storm Model',
+        'description': '',
+    },
+    {
+        'name': GWLFE,
+        'display_name': 'Watershed Multi-Year Model',
+        'description': '',
+    },
+]
+
+DISABLED_MODEL_PACKAGES = []
 
 # END UI CONFIGURATION

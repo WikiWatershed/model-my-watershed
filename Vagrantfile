@@ -47,8 +47,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     services.vm.hostname = "services"
     services.vm.network "private_network", ip: ENV.fetch("MMW_SERVICES_IP", "33.33.34.30")
 
-    services.vm.synced_folder ".", "/vagrant", disabled: true
-
     # Graphite Web
     services.vm.network "forwarded_port", {
       guest: 8080,
@@ -90,7 +88,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     worker.vm.hostname = "worker"
     worker.vm.network "private_network", ip: ENV.fetch("MMW_WORKER_IP", "33.33.34.20")
 
-    worker.vm.synced_folder ".", "/vagrant", disabled: true
     worker.vm.synced_folder "src/mmw", "/opt/app/"
 
     if ENV["VAGRANT_ENV"].nil? || ENV["VAGRANT_ENV"] != "TEST"
@@ -124,8 +121,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define "app" do |app|
     app.vm.hostname = "app"
     app.vm.network "private_network", ip: ENV.fetch("MMW_APP_IP", "33.33.34.10")
-
-    app.vm.synced_folder ".", "/vagrant", disabled: true
 
     if Vagrant::Util::Platform.windows? || Vagrant::Util::Platform.cygwin?
       app.vm.synced_folder "src/mmw", "/opt/app/", type: "rsync", rsync__exclude: ["node_modules/", "apps/"]
@@ -166,8 +161,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define "tiler" do |tiler|
     tiler.vm.hostname = "tiler"
     tiler.vm.network "private_network", ip: ENV.fetch("MMW_TILER_IP", "33.33.34.35")
-
-    tiler.vm.synced_folder ".", "/vagrant", disabled: true
 
     if Vagrant::Util::Platform.windows? || Vagrant::Util::Platform.cygwin?
       tiler.vm.synced_folder "src/tiler", "/opt/tiler/", type: "rsync", rsync__exclude: ["node_modules/"]

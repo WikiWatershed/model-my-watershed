@@ -13,6 +13,8 @@ For basemaps, maxZoom must be defined.
 from os.path import join, dirname, abspath
 import json
 
+from django.contrib.gis.geos import GEOSGeometry
+
 
 # Simplified perimeter of the Delaware River Basin (DRB).
 drb_perimeter_path = join(dirname(abspath(__file__)), 'data/drb_perimeter.json')
@@ -141,8 +143,7 @@ LAYERS = [
         'short_display': 'NLCD',
         'helptext': 'National Land Cover Database defines'
                     'land use across the U.S.',
-        'url': 'https://s3.amazonaws.com/com.azavea.datahub.tms/'
-               'nlcd/{z}/{x}/{y}.png',
+        'url': 'https://{s}.tiles.azavea.com/nlcd/{z}/{x}/{y}.png',
         'raster': True,
         'overlay': True,
         'maxNativeZoom': 13,
@@ -158,8 +159,7 @@ LAYERS = [
                     'soil\'s runoff potential. The four Hydrologic Soils Groups'
                     'are A, B, C and D. Where A\'s generally have the smallest '
                     'runoff potential and D\'s the greatest.',
-        'url': 'https://s3.amazonaws.com/com.azavea.datahub.tms/'
-               'ssurgo-hydro-group-30m/{z}/{x}/{y}.png',
+        'url': 'https://{s}.tiles.azavea.com/ssurgo-hydro-group-30m/{z}/{x}/{y}.png',
         'raster': True,
         'overlay': True,
         'maxNativeZoom': 13,
@@ -207,6 +207,9 @@ LAYERS = [
         'basemap': True,
     }
 ]
+
+DRB_PERIMETER = GEOSGeometry(json.dumps(drb_perimeter['geometry']), srid=4326)
+
 # Vizer observation meta data URL.  Happens to be proxied through a local app
 # server to avoid Cross Domain request errors
 VIZER_ROOT = '/observation/services/get_asset_info.php?'

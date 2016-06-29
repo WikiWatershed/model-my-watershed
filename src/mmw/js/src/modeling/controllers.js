@@ -72,62 +72,20 @@ var ModelingController = {
                 project = App.currentProject;
                 // Reset flag is set so clear off old project data.
                 if (project.get('needs_reset')) {
-                    project.set({
-                        'user_id': App.user.get('id'),
-                        'area_of_interest': App.map.get('areaOfInterest'),
-                        'area_of_interest_name': App.map.get('areaOfInterestName'),
-                        'needs_reset': false
-                    });
-
-                    // Clear current scenarios and start over.
-                    // Must convert to an array first to avoid conflicts with
-                    // collection events that are disassociating the model during
-                    // the loop.
-                    var locks = [];
-                    _.each(project.get('scenarios').toArray(), function(model) {
-                        var $lock = $.Deferred();
-                        locks.push($lock);
-                        model.destroy({
-                            success: function() {
-                                $lock.resolve();
-                            }
-                        });
-                    });
-
-                    // When all models have been deleted...
-                    $.when.apply($, locks).then(function() {
-                        setupNewProjectScenarios(project);
-
-                        // Don't reinitialize scenario events.
-                        if (!project.get('scenarios_events_initialized')) {
-                            initScenarioEvents(project);
-                            project.set('scenarios_events_initialized', true);
-                        }
-                        // Make sure to save the new project id onto scenarios.
-                        project.addIdsToScenarios();
-                        // Save to ensure we capture AOI.
-                        project.save();
-
-                        // Now render.
-                        initViews(project);
-
-                        updateUrl();
-                    });
+                    itsiResetProject(project);
                 } else {
                     initViews(project);
+                    if (!project.get('scenarios_events_initialized')) {
+                        initScenarioEvents(project);
+                        project.set('scenarios_events_initialized', true);
+                    }
                     updateUrl();
                 }
             } else {
                 var lock = $.Deferred();
 
                 if (!App.currentProject) {
-                    // Only make new project if this is the first time
-                    // hitting the modeling views.
-                    if (!App.projectNumber) {
-                        project = makeProject(lock);
-                    } else {
-                        project = reinstateProject(App.projectNumber, lock);
-                    }
+                    project = reinstateProject(App.projectNumber, lock);
 
                     App.currentProject = project;
                     if (!App.projectNumber) {
@@ -139,37 +97,37 @@ var ModelingController = {
                     lock.resolve();
                 }
 
-                lock.done(function() {
-                    project.on('change:id', updateUrl);
-                    initScenarioEvents(project);
-                    initViews(project);
-                    if (App.projectNumber) {
-                        updateUrl();
-                    }
-                });
+                finishProjectSetup(project, lock);
             }
         }
 
         App.state.set('current_page_title', 'Model');
     },
 
-    projectCleanUp: function() {
-        App.rootView.hideCollapsable();
-        if (App.currentProject) {
-            var scenarios = App.currentProject.get('scenarios');
+    makeNewProject: function(modelPackage) {
+        var project;
+        if (settings.get('itsi_embed')) {
+            project = App.currentProject;
+            project.set('model_package', modelPackage);
+            itsiResetProject(project);
+        } else {
+            var lock = $.Deferred();
+            project = makeProject(modelPackage, lock);
+            App.currentProject = project;
 
-            App.currentProject.off('change:id', updateUrl);
-            scenarios.off('change:activeScenario change:id', updateScenario);
-            // App.projectNumber holds the number of the project that was
-            // in use when the user left the `/project` page.  The intent
-            // is to allow the same project to be returned-to via the UI
-            // arrow buttons (see issue #690).
-            App.projectNumber = scenarios.at(0).get('project');
+            setupNewProjectScenarios(project);
+            finishProjectSetup(project, lock);
+            updateUrl();
         }
+        App.rootView.showCollapsable();
+    },
 
-        App.getMapView().updateModifications(null);
-        App.rootView.subHeaderRegion.empty();
-        App.rootView.sidebarRegion.empty();
+    projectCleanUp: function() {
+        projectCleanUp();
+    },
+
+    makeNewProjectCleanUp: function() {
+        projectCleanUp();
     },
 
     // Since we handle redirects after ITSI sign-up within Backbone,
@@ -213,6 +171,82 @@ var ModelingController = {
             });
     }
 };
+
+function itsiResetProject(project) {
+    project.set({
+        'user_id': App.user.get('id'),
+        'area_of_interest': App.map.get('areaOfInterest'),
+        'area_of_interest_name': App.map.get('areaOfInterestName'),
+        'needs_reset': false
+    });
+
+    // Clear current scenarios and start over.
+    // Must convert to an array first to avoid conflicts with
+    // collection events that are disassociating the model during
+    // the loop.
+    var locks = [];
+    _.each(project.get('scenarios').toArray(), function(model) {
+        var $lock = $.Deferred();
+        locks.push($lock);
+        model.destroy({
+            success: function() {
+                $lock.resolve();
+            }
+        });
+    });
+
+    // When all models have been deleted...
+    $.when.apply($, locks).then(function() {
+        setupNewProjectScenarios(project);
+
+        // Don't reinitialize scenario events.
+        if (!project.get('scenarios_events_initialized')) {
+            initScenarioEvents(project);
+            project.set('scenarios_events_initialized', true);
+        }
+
+        // Make sure to save the new project id onto scenarios.
+        project.addIdsToScenarios();
+        // Save to ensure we capture AOI.
+        project.save();
+
+        // Now render.
+        initViews(project);
+        updateUrl();
+    });
+}
+
+function finishProjectSetup(project, lock) {
+    lock.done(function() {
+        project.on('change:id', updateUrl);
+        initScenarioEvents(project);
+        initViews(project);
+        if (App.projectNumber) {
+            updateUrl();
+        }
+    });
+}
+
+function projectCleanUp() {
+    App.rootView.hideCollapsable();
+    if (App.currentProject) {
+        var scenarios = App.currentProject.get('scenarios');
+
+        App.currentProject.off('change:id', updateUrl);
+        scenarios.off('change:activeScenario change:id', updateScenario);
+        App.currentProject.set('scenarios_events_initialized', false);
+
+        // App.projectNumber holds the number of the project that was
+        // in use when the user left the `/project` page.  The intent
+        // is to allow the same project to be returned-to via the UI
+        // arrow buttons (see issue #690).
+        App.projectNumber = scenarios.at(0).get('project');
+    }
+
+    App.getMapView().updateModifications(null);
+    App.rootView.subHeaderRegion.empty();
+    App.rootView.sidebarRegion.empty();
+}
 
 function updateItsiFromEmbedMode() {
     if (settings.get('itsi_embed')) {
@@ -266,12 +300,13 @@ function initViews(project, lock) {
     App.rootView.sidebarRegion.show(resultsView);
 }
 
-function makeProject(lock) {
+function makeProject(modelPackage, lock) {
     var project = new models.ProjectModel({
         name: 'Untitled Project',
         created_at: Date.now(),
         area_of_interest: App.map.get('areaOfInterest'),
         area_of_interest_name: App.map.get('areaOfInterestName'),
+        model_package: modelPackage,
         scenarios: new models.ScenariosCollection()
     });
     lock.resolve();

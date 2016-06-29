@@ -31,7 +31,7 @@
                             </thead>
                             {% for model in models %}
                                 <tr>
-                                    <td>{{ model.get('value')|tr55Name }}</td>
+                                    <td>{{ model.get('value')|modName }}</td>
                                     <td class="strong text-right">{{ model.get('effectiveArea')|round(2)|toLocaleString(2) }} {{ model.get('effectiveUnits') }}</td>
                                     {% if editable %}
                                         <td class="text-right"><button class="btn btn-sm btn-icon dark" type="button" data-delete="{{ model.cid }}">

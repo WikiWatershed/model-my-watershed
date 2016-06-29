@@ -1,12 +1,16 @@
 "use strict";
 
-    var _ = require('lodash'),
+var _ = require('lodash'),
     $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     settings = require('../core/settings'),
+    csrf = require('../core/csrf'),
     models = require('./models'),
     controls = require('./controls'),
+    coreModels = require('../core/models'),
+    coreViews = require('../core/views'),
+    gwlfeConfig = require('./gwlfeModificationConfig'),
     analyzeViews = require('../analyze/views.js'),
     analyzeModels = require('../analyze/models.js'),
     modalModels = require('../core/modals/models'),
@@ -22,9 +26,12 @@
     scenarioMenuTmpl = require('./templates/scenarioMenu.html'),
     scenarioMenuItemTmpl = require('./templates/scenarioMenuItem.html'),
     projectMenuTmpl = require('./templates/projectMenu.html'),
-    scenarioToolbarTabContentTmpl = require('./templates/scenarioToolbarTabContent.html'),
+    tr55ScenarioToolbarTabContentTmpl = require('./templates/tr55ScenarioToolbarTabContent.html'),
+    gwlfeScenarioToolbarTabContentTmpl = require('./templates/gwlfeScenarioToolbarTabContent.html'),
     tr55RunoffViews = require('./tr55/runoff/views.js'),
-    tr55QualityViews = require('./tr55/quality/views.js');
+    tr55QualityViews = require('./tr55/quality/views.js'),
+    gwlfeRunoffViews = require('./gwlfe/runoff/views.js'),
+    gwlfeQualityViews = require('./gwlfe/quality/views.js');
 
 var ENTER_KEYCODE = 13,
     ESCAPE_KEYCODE = 27;
@@ -49,6 +56,8 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
     },
 
     reRender: function() {
+        var self = this;
+
         this.projectMenuRegion.empty();
         this.projectMenuRegion.show(new ProjectMenuView({
             model: this.model
@@ -61,10 +70,12 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         }));
 
         this.toolbarRegion.empty();
-        this.toolbarRegion.show(new ToolbarTabContentsView({
-            collection: this.model.get('scenarios'),
-            model_package: this.model.get('model_package')
-        }));
+        App.currentProject.fetchGisDataIfNeeded().done(function() {
+            self.toolbarRegion.show(new ToolbarTabContentsView({
+                collection: self.model.get('scenarios'),
+                model_package: self.model.get('model_package')
+            }));
+        });
     },
 
     onShow: function() {
@@ -262,10 +273,12 @@ var ScenariosView = Marionette.LayoutView.extend({
         // Check the first scenario in the collection as a proxy for the
         // entire collection.
         var scenario = this.collection.first(),
+            showCompare = App.currentProject.get('model_package') === models.TR55_PACKAGE,
             compareUrl = this.projectModel.getCompareUrl();
 
         return {
             editable: isEditable(scenario),
+            showCompare: showCompare,
             compareUrl: compareUrl
         };
     },
@@ -328,7 +341,16 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
+        var gis_data = this.model.getGisData().model_input,
+            gwlfe = App.currentProject.get('model_package') === models.GWLFE &&
+                    gis_data !== null &&
+                    gis_data !== '{}' &&
+                    gis_data !== '';
+
         return {
+            gwlfe: gwlfe,
+            csrftoken: csrf.getToken(),
+            gis_data: gis_data,
             cid: this.model.cid,
             editable: isEditable(this.model),
             is_new: this.model.isNew()
@@ -345,6 +367,8 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
         rename: '[data-action="rename"]',
         print: '[data-action="print"]',
         duplicate: '[data-action="duplicate"]',
+        exportGms: '[data-action="export-gms"]',
+        exportGmsForm: '#export-gms-form',
         nameField: '.tab-name'
     },
 
@@ -355,7 +379,8 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
         'click @ui.print': function() {
             window.print();
         },
-        'click @ui.duplicate': 'duplicateScenario'
+        'click @ui.duplicate': 'duplicateScenario',
+        'click @ui.exportGms': 'downloadGmsFile',
     },
 
     renameScenario: function() {
@@ -424,6 +449,17 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
 
     duplicateScenario: function() {
         this.model.collection.duplicateScenario(this.model.cid);
+    },
+
+    downloadGmsFile: function() {
+        // We can't download a file from an AJAX call. One either has to
+        // load the data in an iframe, or submit a form that responds with
+        // Content-Disposition: attachment. We prefer submitting a form.
+        var filename = App.currentProject.get('name').replace(' ', '_') +
+                       '__' + this.model.get('name').replace(' ', '_');
+
+        this.ui.exportGmsForm.find('.gms-filename').val(filename);
+        this.ui.exportGmsForm.submit();
     }
 });
 
@@ -501,8 +537,8 @@ var ScenarioDropDownMenuView = Marionette.CompositeView.extend({
 // The toolbar that contains the modification and input tools
 // for a scenario.
 var ToolbarTabContentView = Marionette.CompositeView.extend({
+    template: tr55ScenarioToolbarTabContentTmpl,
     model: models.ScenarioModel,
-    template: scenarioToolbarTabContentTmpl,
     collection: models.ModelPackageControlsCollection,
     childViewContainer: '.controls',
 
@@ -532,30 +568,10 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
         'change:active': 'render'
     },
 
-    ui: {
-        deleteModification: '[data-delete]'
-    },
-
-    events: {
-        'click @ui.deleteModification': 'deleteModification'
-    },
-
     initialize: function(options) {
         this.compareMode = options.compareMode;
         var modificationsColl = this.model.get('modifications');
         this.listenTo(modificationsColl, 'add remove reset', this.render);
-    },
-
-    templateHelpers: function() {
-        var shapes = this.model.get('modifications'),
-            groupedShapes = shapes.groupBy('name');
-
-        return {
-            compareMode: this.compareMode,
-            shapes: shapes,
-            groupedShapes: groupedShapes,
-            editable: isEditable(this.model)
-        };
     },
 
     // Only display modification controls if scenario is editable.
@@ -576,15 +592,6 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
         }
     },
 
-    deleteModification: function(e) {
-        var $el = $(e.currentTarget),
-            cid = $el.data('delete'),
-            modificationsColl = this.model.get('modifications'),
-            modification = modificationsColl.get(cid);
-
-        modificationsColl.remove(modification);
-    },
-
     getChildView: function(modelPackageControl) {
         var controlName = modelPackageControl.get('name');
 
@@ -600,12 +607,155 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
     }
 });
 
+// The toolbar that contains the modification and input tools
+// for a scenario.
+var Tr55ToolbarTabContentView = ToolbarTabContentView.extend({
+    template: tr55ScenarioToolbarTabContentTmpl,
+    model: models.ScenarioModel,
+
+    ui: {
+        deleteModification: '[data-delete]'
+    },
+
+    events: {
+        'click @ui.deleteModification': 'deleteModification'
+    },
+
+    templateHelpers: function() {
+        var shapes = this.model.get('modifications'),
+            groupedShapes = shapes.groupBy('name');
+
+        return {
+            compareMode: this.compareMode,
+            shapes: shapes,
+            groupedShapes: groupedShapes,
+            editable: isEditable(this.model)
+        };
+    },
+
+    deleteModification: function(e) {
+        var $el = $(e.currentTarget),
+            cid = $el.data('delete'),
+            modificationsColl = this.model.get('modifications'),
+            modification = modificationsColl.get(cid);
+
+        modificationsColl.remove(modification);
+    }
+});
+
+// The toolbar that contains the modification and input tools
+// for a scenario.
+var GwlfeToolbarTabContentView = ToolbarTabContentView.extend({
+    template: gwlfeScenarioToolbarTabContentTmpl,
+
+    model: models.ScenarioModel,
+
+    ui: {
+        thumb: '#gwlfe-modifications-bar .thumb',
+        deleteButton: '.delete-button',
+        closeButton: 'button.close'
+    },
+
+    events: {
+        'click @ui.thumb': 'onThumbClick',
+        'click @ui.deleteButton': 'deleteModification',
+        'click @ui.closeButton': 'closePopup'
+    },
+
+    modelEvents: _.defaults({
+        'change:activeModKey': 'render',
+        'change:modifications': 'render'
+    }, ToolbarTabContentView.prototype.modelEvents),
+
+    initialize: function(options) {
+        ToolbarTabContentView.prototype.initialize.apply(this, [options]);
+
+        var self = this;
+        function closePopupOnOutsideClick(e) {
+            var isTargetOutside = $(e.target).parents('#gwlfe-modifications-popup').length === 0;
+            if (self.model.get('activeModKey') && isTargetOutside) {
+                self.closePopup();
+            }
+        }
+
+        $(document).on('mouseup', function(e) {
+            closePopupOnOutsideClick(e);
+        });
+    },
+
+    setupTooltips: function() {
+        var options = this.model.get('activeModKey') ? 'destroy' : null;
+        $('#gwlfe-modifications-bar .thumb').tooltip(options);
+        $('#gwlfe-modifications-bar i').tooltip(options);
+    },
+
+    onRender: function() {
+        ToolbarTabContentView.prototype.onRender.apply(this);
+        this.setupTooltips();
+    },
+
+    onShow: function() {
+        this.setupTooltips();
+    },
+
+    closePopup: function() {
+        this.model.set('activeModKey', null);
+    },
+
+    getActiveMod: function() {
+        var activeModKey = this.model.get('activeModKey'),
+            modifications = this.model.get('modifications');
+        return activeModKey && modifications.where({modKey: activeModKey})[0];
+    },
+
+    deleteModification: function() {
+        var activeMod = this.getActiveMod(),
+            modifications = this.model.get('modifications');
+
+        if (activeMod) {
+            modifications.remove(activeMod);
+            this.closePopup();
+        }
+    },
+
+    onThumbClick: function(e) {
+        var modKey = $(e.currentTarget).data('value'),
+            thumbOffset = $(e.target).offset();
+
+        this.model.set('activeModKey', modKey);
+
+        $('#gwlfe-modifications-popup').offset({
+            top: thumbOffset.top - 50
+        });
+    },
+
+    templateHelpers: function() {
+        var activeMod = this.getActiveMod(),
+            modifications = this.model.get('modifications').toJSON();
+
+        activeMod = activeMod ? activeMod.toJSON() : null;
+
+        return {
+            modifications: modifications,
+            activeMod: activeMod,
+            displayNames: gwlfeConfig.displayNames
+        };
+    }
+});
+
 // The collection of modification and input toolbars for each
 // scenario.
 var ToolbarTabContentsView = Marionette.CollectionView.extend({
     collection: models.ScenariosCollection,
     className: 'tab-content',
-    childView: ToolbarTabContentView,
+    getChildView: function() {
+        var isGwlfe = App.currentProject.get('model_package') === 'gwlfe';
+        if (isGwlfe) {
+            return GwlfeToolbarTabContentView;
+        } else {
+            return Tr55ToolbarTabContentView;
+        }
+    },
     childViewOptions: function(model) {
         var controls = models.getControlsForModelPackage(
             this.options.model_package,
@@ -636,17 +786,45 @@ var ResultsView = Marionette.LayoutView.extend({
     initialize: function(options) {
         var scenarios = this.model.get('scenarios');
 
-        this.listenTo(scenarios, 'change:active', this.showDetailsRegion);
+        this.listenTo(scenarios, 'change:active', this.onShow);
 
         if (options.lock) {
             this.lock = options.lock;
         }
 
-        this.model.fetchResultsIfNeeded();
+        this.fetchGisDataPromise = this.model.fetchGisDataIfNeeded();
+        this.fetchResultsPromise = this.model.fetchResultsIfNeeded();
     },
 
     onShow: function() {
-        this.showDetailsRegion();
+        var self = this,
+            aoi = App.map.get('areaOfInterest'),
+            analyzeModel = analyzeModels.AnalyzeTaskModel.getSingleton(App, aoi),
+            tmvModel = new coreModels.TaskMessageViewModel(),
+            errorHandler = function(err) {
+                if (err && err.timeout) {
+                  tmvModel.setTimeoutError();
+                } else {
+                  tmvModel.setError();
+                }
+                self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
+            };
+
+        this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
+            model: analyzeModel
+        }));
+
+        tmvModel.setWorking('Gathering Data');
+        self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
+
+        self.fetchGisDataPromise.done(function() {
+            tmvModel.setWorking('Calculating Results');
+            self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
+        }).fail(errorHandler);
+
+        self.fetchResultsPromise.done(function() {
+            self.showDetailsRegion();
+        }).fail(errorHandler);
     },
 
     onRender: function() {
@@ -659,14 +837,7 @@ var ResultsView = Marionette.LayoutView.extend({
 
     showDetailsRegion: function() {
         var scenarios = this.model.get('scenarios'),
-            scenario = scenarios.getActiveScenario(),
-            aoi = JSON.stringify(App.map.get('areaOfInterest')),
-            analyzeModel = App.analyzeModel !== undefined ? App.analyzeModel :
-                            createTaskModel(aoi);
-
-        this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
-            model: analyzeModel
-        }));
+            scenario = scenarios.getActiveScenario();
 
         if (scenario) {
             this.modelingRegion.show(new ResultsDetailsView({
@@ -838,7 +1009,7 @@ function triggerBarChartRefresh() {
 
 function getResultView(modelPackage, resultName) {
     switch (modelPackage) {
-        case 'tr-55':
+        case models.TR55_PACKAGE:
             switch(resultName) {
                 case 'runoff':
                     return tr55RunoffViews.ResultView;
@@ -848,20 +1019,20 @@ function getResultView(modelPackage, resultName) {
                     console.log('Result not supported.');
             }
             break;
+        case models.GWLFE:
+            switch(resultName) {
+                case 'runoff':
+                    return gwlfeRunoffViews.ResultView;
+                case 'quality':
+                    return gwlfeQualityViews.ResultView;
+                default:
+                    console.log('Result not supported.');
+            }
+            break;
         default:
             console.log('Model package ' + modelPackage + ' not supported.');
     }
 }
-
-// Pass in the serialized Area of Interest for
-// caching purposes (_.memoize returns the same
-// results for any object), and deserialize
-// the AoI for use on the model.
-var createTaskModel = _.memoize(function(aoi) {
-    return new analyzeModels.AnalyzeTaskModel({
-        area_of_interest: JSON.parse(aoi)
-    });
-});
 
 module.exports = {
     ResultsView: ResultsView,
@@ -869,7 +1040,7 @@ module.exports = {
     ScenariosView: ScenariosView,
     ScenarioTabPanelsView: ScenarioTabPanelsView,
     ScenarioDropDownMenuView: ScenarioDropDownMenuView,
-    ToolbarTabContentView: ToolbarTabContentView,
+    Tr55ToolbarTabContentView: Tr55ToolbarTabContentView,
     ProjectMenuView: ProjectMenuView,
     getResultView: getResultView
 };

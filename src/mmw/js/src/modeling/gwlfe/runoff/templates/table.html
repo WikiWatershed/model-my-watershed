@@ -1,0 +1,28 @@
+<table class="table custom-hover" data-toggle="table">
+    <thead>
+        <tr>
+            {% for columnName in columnNames %}
+                {% if loop.index0 == 0 %}
+                    <th data-sortable="true" data-field="date" data-sort-name="_date_data" data-sorter="window.monthSorter">
+                        {{ columnName }}
+                    </th>
+                {% else %}
+                    <th data-sortable="true" data-sorter="window.numericSort">{{ columnName }} (cm)</th>
+                {% endif %}
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+            <tr>
+                {% for value in row %}
+                    {% if loop.index0 == 0 %}
+                        <td class="text-left" data-month="{{ value }}">{{ monthNames[value] }}</td>
+                    {% else %}
+                        <td class="strong text-right">{{ value|round(2)|toLocaleString(2) }}</td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

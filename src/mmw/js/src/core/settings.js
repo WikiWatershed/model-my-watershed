@@ -8,7 +8,8 @@ var defaultSettings = {
     boundary_layers: {},
     draw_tools: [],
     map_controls: [],
-    vizer_urls: {}
+    vizer_urls: {},
+    model_packages: []
 };
 
 var settings = (function() {

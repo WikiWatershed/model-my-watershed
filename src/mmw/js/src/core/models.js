@@ -183,7 +183,7 @@ var TaskModel = Backbone.Model.extend({
         // pollInterval has elapsed.
         var getResults = function() {
             if (elapsed >= self.get('timeout')) {
-                defer.reject();
+                defer.reject({timeout: true});
                 return;
             }
 
@@ -210,6 +210,29 @@ var TaskModel = Backbone.Model.extend({
 
         window.setTimeout(getResults, self.get('pollInterval'));
         return defer.promise();
+    }
+});
+
+var TaskMessageViewModel = Backbone.Model.extend({
+    message: null,
+    iconClass: null,
+
+    setError: function() {
+        this.set('message', 'Error');
+        this.set('iconClasses', 'fa fa-exclamation-triangle');
+    },
+
+    setTimeoutError: function() {
+        var message = 'Operation took too long <br />' +
+                      'Consider trying a smaller area of interest.';
+
+        this.set('message', message);
+        this.set('iconClasses', 'fa fa-exclamation-triangle');
+    },
+
+    setWorking: function(message) {
+        this.set('message', message);
+        this.set('iconClasses', 'fa fa-circle-o-notch fa-spin');
     }
 });
 
@@ -272,6 +295,7 @@ var AppStateModel = Backbone.Model.extend({
 module.exports = {
     MapModel: MapModel,
     TaskModel: TaskModel,
+    TaskMessageViewModel: TaskMessageViewModel,
     LandUseCensusCollection: LandUseCensusCollection,
     SoilCensusCollection: SoilCensusCollection,
     GeoModel: GeoModel,
