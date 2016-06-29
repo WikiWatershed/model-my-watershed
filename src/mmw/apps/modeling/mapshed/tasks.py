@@ -445,7 +445,9 @@ def nlcd_kfactor(result):
     return output
 
 
-def geop_tasks(geom, errback):
+def geop_tasks(geom, errback, exchange, choose_worker):
+    geop_worker = choose_worker()
+
     # List of tuples of (opname, data, callback) for each geop task
     definitions = [
         ('nlcd_streams',
@@ -473,9 +475,13 @@ def geop_tasks(geom, errback):
                              'vector': streams(geom, drb=True)},
                             nlcd_streams_drb))
 
-    return [(mapshed_start.s(opname, data) |
-             mapshed_finish.s() |
-             callback.s().set(link_error=errback))
+    return [(mapshed_start.s(opname, data).set(exchange=exchange,
+                                               routing_key=geop_worker) |
+             mapshed_finish.s().set(exchange=exchange,
+                                    routing_key=geop_worker) |
+             callback.s().set(link_error=errback,
+                              exchange=exchange,
+                              routing_key=choose_worker()))
             for (opname, data, callback) in definitions]
 
 
