@@ -22,7 +22,7 @@ file_to_load=
 load_stream=false
 load_mapshed=false
 
-while getopts ":hbsdmf:" opt; do
+while getopts ":hbsdpmf:" opt; do
     case $opt in
         h)
             echo -e $usage
@@ -33,6 +33,8 @@ while getopts ":hbsdmf:" opt; do
             load_stream=true ;;
         d)
             load_drb_streams=true ;;
+        p)
+            load_dep=true ;;
         m)
             load_mapshed=true ;;
         f)
@@ -73,6 +75,16 @@ if [ ! -z "$file_to_load" ] ; then
     FILES=("$file_to_load")
     download_and_load $FILES
 fi
+
+if [ "$load_dep" = "true" ] ; then
+    # Fetch DEP layers
+    FILES=("dep_urban_areas.sql.gz" "dep_municipalities.sql.gz")
+    PATHS=("dep_urbanareas" "dep_municipalities")
+
+    download_and_load $FILES
+    purge_tile_cache $PATHS
+fi
+
 
 if [ "$load_boundary" = "true" ] ; then
     # Fetch boundary layer sql files
