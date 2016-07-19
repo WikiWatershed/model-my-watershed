@@ -23,6 +23,26 @@ drb_perimeter = json.load(drb_perimeter_file)
 
 LAYERS = [
     {
+        'code': 'municipalities',
+        'table_name': 'dep_municipalities',
+        'display': 'DEP PA Municipalities',
+        'short_display': 'DEP PA Municipalities',
+        'vector': True,
+        'overlay': True,
+        'minZoom': 7,
+    },
+    {
+        'code': 'urban_areas',
+        'table_name': 'dep_urban_areas',
+        'display': 'DEP PA Urban Areas',
+        'short_display': 'DEP PA Urban Areas',
+        'raster': True,
+        'overlay': True,
+        'minZoom': 7,
+        'opacity': 0.618,
+        'has_opacity_slider': True
+    },
+    {
         'code': 'huc8',
         'display': 'USGS Subbasin unit (HUC-8)',
         'short_display': 'HUC-8 Subbasin',
