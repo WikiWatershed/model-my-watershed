@@ -440,6 +440,38 @@
               background-color: $nlcd-90;
             }
           }
+
+          &.soil-a {
+            border-color: $soil-a;
+
+            &:after {
+              background-color: $soil-a;
+            }
+          }
+
+          &.soil-b {
+            border-color: $soil-b;
+
+            &:after {
+              background-color: $soil-b;
+            }
+          }
+
+          &.soil-c {
+            border-color: $soil-c;
+
+            &:after {
+              background-color: $soil-c;
+            }
+          }
+
+          &.soil-d {
+            border-color: $soil-d;
+
+            &:after {
+              background-color: $soil-d;
+            }
+          }
         }
       }
     }
@@ -532,6 +564,24 @@
   &.nlcd-90 {
     background-color: $nlcd-90;
     color: #333;
+  }
+
+  &.soil-a {
+    background-color: $soil-a;
+    color: #333;
+  }
+
+  &.soil-b {
+    background-color: $soil-b;
+    color: #333;
+  }
+
+  &.soil-c {
+    background-color: $soil-c;
+  }
+
+  &.soil-d {
+    background-color: $soil-d;
   }
 }
 
