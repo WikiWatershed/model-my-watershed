@@ -234,6 +234,10 @@ var utils = {
         }
     },
 
+    filterOutOxygenDemand: function(element) {
+        return element.measure !== "Biochemical Oxygen Demand";
+    },
+
     // Reverse sorting of a Backbone Collection.
     // Taken from http://stackoverflow.com/a/12220415/2053314
     reverseSortBy: function(sortByFunction) {
