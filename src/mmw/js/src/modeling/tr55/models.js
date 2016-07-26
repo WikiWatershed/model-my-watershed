@@ -28,6 +28,12 @@ var AoiVolumeModel = Backbone.Model.extend({
     adjust: function(depth) {
         // Adjusted runoff is depth (cm) -> meters * the AoI area (m2)
         return (depth / 100) * this.get('aoiArea');
+    },
+
+    getLoadingRate: function(load) {
+        // The loadingRate is the load per hectare.
+        // The aoiArea is in m^2, so we divide by 10000 to get hectares.
+        return load / (this.get('aoiArea') / 10000);
     }
 });
 
