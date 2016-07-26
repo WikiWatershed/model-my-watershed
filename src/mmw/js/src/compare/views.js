@@ -234,6 +234,7 @@ var CompareModelingView = Marionette.LayoutView.extend({
             ResultView = modelingViews.getResultView(modelPackage, resultModel.get('name'));
 
         this.resultRegion.show(new ResultView({
+            areaOfInterest: this.projectModel.get('area_of_interest'),
             model: resultModel,
             scenario: this.model,
             compareMode: true
