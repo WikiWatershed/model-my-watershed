@@ -9,7 +9,8 @@ var $ = require('jquery'),
     barChartTmpl = require('../../../core/templates/barChart.html'),
     resultTmpl = require('./templates/result.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
-    tableTmpl = require('./templates/table.html');
+    tableTmpl = require('./templates/table.html'),
+    utils = require('../../../core/utils.js');
 
 var ResultView = Marionette.LayoutView.extend({
     className: 'tab-pane',
@@ -51,8 +52,9 @@ var ResultView = Marionette.LayoutView.extend({
                 }));
             } else {
                 var dataCollection = new Backbone.Collection(
-                    this.model.get('result').quality
-                );
+                    this.model.get('result').quality.filter(
+                        utils.filterOutOxygenDemand
+                ));
 
                 this.tableRegion.show(new TableView({
                     aoiVolumeModel: this.aoiVolumeModel,
@@ -168,10 +170,9 @@ var CompareChartView = Marionette.ItemView.extend({
         }
 
         var chartEl = this.$el.find('.bar-chart').get(0),
-            result = this.model.get('result').quality,
+            result = this.model.get('result').quality.filter(utils.filterOutOxygenDemand),
             aoiVolumeModel = this.options.aoiVolumeModel,
-            seriesDisplayNames = ['Oxygen Demand',
-                                  'Suspended Solids',
+            seriesDisplayNames = ['Suspended Solids',
                                   'Nitrogen',
                                   'Phosphorus'],
             data,
@@ -181,7 +182,7 @@ var CompareChartView = Marionette.ItemView.extend({
         if (result) {
             data = getData(result, seriesDisplayNames);
             chartOptions = {
-                seriesColors: ['#1589ff', '#4aeab3', '#4ebaea', '#329b9c'],
+                seriesColors: ['#4aeab3', '#4ebaea', '#329b9c'],
                 yAxisLabel: 'Loading Rate (kg/ha)',
                 yAxisUnit: 'kg/ha',
                 margin: {top: 20, right: 0, bottom: 40, left: 60},
