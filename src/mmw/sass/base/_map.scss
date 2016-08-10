@@ -77,7 +77,7 @@
   height: 100%;
 }
 
-#overlay-subclass-vector .disabled {
+#overlay-subclass-vector .disabled, #overlay-subclass-raster .disabled {
   color: $black-54;
 }
 
@@ -102,7 +102,7 @@
     float: right;
 }
 
-.leaflet-top {
+.leaflet-control-container .leaflet-top {
   top: 45px;
 }
 

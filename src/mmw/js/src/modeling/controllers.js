@@ -59,6 +59,8 @@ var ModelingController = {
 
                         // Send URL to parent if in embed mode
                         updateItsiFromEmbedMode();
+
+                        setPageTitle();
                     });
                 })
                 .fail(function() {
@@ -67,6 +69,8 @@ var ModelingController = {
                     console.log("[ERROR] Could not load project.");
                     App.currentProject = null;
                 });
+
+            App.state.set('current_page_title', 'Modeling');
         } else {
             if (App.currentProject && settings.get('activityMode')) {
                 project = App.currentProject;
@@ -85,6 +89,7 @@ var ModelingController = {
                 var lock = $.Deferred();
 
                 if (!App.currentProject) {
+
                     project = reinstateProject(App.projectNumber, lock);
 
                     App.currentProject = project;
@@ -99,9 +104,8 @@ var ModelingController = {
 
                 finishProjectSetup(project, lock);
             }
+            setPageTitle();            
         }
-
-        App.state.set('current_page_title', 'Model');
     },
 
     makeNewProject: function(modelPackage) {
@@ -120,6 +124,7 @@ var ModelingController = {
             updateUrl();
         }
         App.rootView.showCollapsable();
+        setPageTitle();
     },
 
     projectCleanUp: function() {
@@ -162,6 +167,8 @@ var ModelingController = {
                 if (project.get('is_activity')) {
                     settings.set('activityMode', true);
                 }
+
+                setPageTitle();
             })
             .fail(function() {
                 App.currentProject = null;
@@ -225,6 +232,14 @@ function finishProjectSetup(project, lock) {
             updateUrl();
         }
     });
+}
+
+function setPageTitle() {
+    var modelPackageName = App.currentProject.get('model_package'),
+        modelPackages = settings.get('model_packages'),
+        modelPackageDisplayName = _.find(modelPackages, {name: modelPackageName}).display_name;
+
+    App.state.set('current_page_title', modelPackageDisplayName);
 }
 
 function projectCleanUp() {
@@ -323,6 +338,7 @@ function reinstateProject(number, lock) {
                 'areaOfInterest': project.get('area_of_interest'),
                 'areaOfInterestName': project.get('area_of_interest_name')
             });
+            setPageTitle();
             lock.resolve();
         });
 

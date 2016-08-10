@@ -21,6 +21,11 @@ drb_perimeter_path = join(dirname(abspath(__file__)), 'data/drb_perimeter.json')
 drb_perimeter_file = open(drb_perimeter_path)
 drb_perimeter = json.load(drb_perimeter_file)
 
+# Simplified perimeter of PA, used for DEP specific layers
+pa_perimeter_path = join(dirname(abspath(__file__)), 'data/pa_perimeter.json')
+pa_perimeter_file = open(pa_perimeter_path)
+pa_perimeter = json.load(pa_perimeter_file)
+
 LAYERS = [
     {
         'code': 'huc8',
@@ -205,6 +210,28 @@ LAYERS = [
         'googleType': 'TERRAIN',  # SATELLITE, ROADMAP, HYBRID, or TERRAIN
         'maxZoom': 20,
         'basemap': True,
+    },
+    {
+        'code': 'municipalities',
+        'table_name': 'dep_municipalities',
+        'display': 'PA Municipalities',
+        'short_display': 'PA Municipalities',
+        'vector': True,
+        'overlay': True,
+        'minZoom': 7,
+        'perimeter': pa_perimeter,
+    },
+    {
+        'code': 'urban_areas',
+        'table_name': 'dep_urban_areas',
+        'display': 'PA Urbanized Areas',
+        'short_display': 'PA Urbanized Areas',
+        'raster': True,
+        'overlay': True,
+        'minZoom': 7,
+        'opacity': 0.618,
+        'has_opacity_slider': True,
+        'perimeter': pa_perimeter,
     }
 ]
 

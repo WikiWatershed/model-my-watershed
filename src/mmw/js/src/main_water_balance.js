@@ -130,10 +130,10 @@ var initBootstrap = function() {
 
     $('[data-toggle="popover"]').each(function(i, popover) {
         var $popover = $(popover),
-            nlcd = $popover.data('nlcd') || 'default',
+            category = $popover.data('category') || 'default',
             template = '<div class="popover" role="tooltip">' +
                 '<div class="arrow"></div>' +
-                '<h3 class="popover-title ' + ' ' + nlcd + '"></h3>' +
+                '<h3 class="popover-title ' + ' ' + category + '"></h3>' +
                 '<div class="popover-content"></div></div>',
             entry = modificationConfig[$popover.data('name')],
             options = {

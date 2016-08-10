@@ -9,7 +9,8 @@ var $ = require('jquery'),
     barChartTmpl = require('../../../core/templates/barChart.html'),
     resultTmpl = require('./templates/result.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
-    tableTmpl = require('./templates/table.html');
+    tableTmpl = require('./templates/table.html'),
+    utils = require('../../../core/utils.js');
 
 var ResultView = Marionette.LayoutView.extend({
     className: 'tab-pane',
@@ -46,12 +47,14 @@ var ResultView = Marionette.LayoutView.extend({
         if (this.model.get('result')) {
             if (this.compareMode) {
                 this.chartRegion.show(new CompareChartView({
-                    model: this.model
+                    model: this.model,
+                    aoiVolumeModel: this.aoiVolumeModel
                 }));
             } else {
                 var dataCollection = new Backbone.Collection(
-                    this.model.get('result').quality
-                );
+                    this.model.get('result').quality.filter(
+                        utils.filterOutOxygenDemand
+                ));
 
                 this.tableRegion.show(new TableView({
                     aoiVolumeModel: this.aoiVolumeModel,
@@ -59,6 +62,7 @@ var ResultView = Marionette.LayoutView.extend({
                 }));
 
                 this.chartRegion.show(new ChartView({
+                    aoiVolumeModel: this.aoiVolumeModel,
                     model: this.model,
                     collection: dataCollection
                 }));
@@ -75,9 +79,11 @@ var TableRowView = Marionette.ItemView.extend({
         var load = this.model.get('load'),
             runoff = this.model.get('runoff'),
             adjustedRunoff = this.options.aoiVolumeModel.adjust(runoff),
+            loadingRate = this.options.aoiVolumeModel.getLoadingRate(load),
             concentration = adjustedRunoff ? load / adjustedRunoff : 0;
 
         return {
+            loadingRate: loadingRate,
             concentration: concentration * 1000 // g -> mg
         };
     }
@@ -113,14 +119,16 @@ var ChartView = Marionette.ItemView.extend({
 
     addChart: function() {
         var chartEl = this.$el.find('.bar-chart').get(0),
+            aoiVolumeModel = this.options.aoiVolumeModel,
             data = this.collection.map(function(model) {
+                var load = model.attributes.load;
                 return {
                     x: model.attributes.measure,
-                    y: model.attributes.load
+                    y: aoiVolumeModel.getLoadingRate(load)
                 };
             }),
             chartOptions = {
-                yAxisLabel: 'Load (kg)',
+                yAxisLabel: 'Loading Rate (kg/ha)',
                 abbreviateTicks: true
             };
 
@@ -148,12 +156,13 @@ var CompareChartView = Marionette.ItemView.extend({
     addChart: function() {
         function getData(result, seriesDisplayNames) {
             return _.map(seriesDisplayNames, function(seriesDisplayName, seriesInd) {
+                var load = result[seriesInd].load;
                 return {
                     key: seriesDisplayName,
                     values: [
                         {
                             x: '',
-                            y: result[seriesInd].load
+                            y: aoiVolumeModel.getLoadingRate(load),
                         }
                     ]
                 };
@@ -161,22 +170,21 @@ var CompareChartView = Marionette.ItemView.extend({
         }
 
         var chartEl = this.$el.find('.bar-chart').get(0),
-            result = this.model.get('result').quality,
-            seriesDisplayNames = ['Oxygen Demand',
-                                  'Suspended Solids',
+            result = this.model.get('result').quality.filter(utils.filterOutOxygenDemand),
+            aoiVolumeModel = this.options.aoiVolumeModel,
+            seriesDisplayNames = ['Suspended Solids',
                                   'Nitrogen',
                                   'Phosphorus'],
             data,
             chartOptions;
 
         $(chartEl).empty();
-
         if (result) {
             data = getData(result, seriesDisplayNames);
             chartOptions = {
-                seriesColors: ['#1589ff', '#4aeab3', '#4ebaea', '#329b9c'],
-                yAxisLabel: 'Load (kg)',
-                yAxisUnit: 'kg',
+                seriesColors: ['#4aeab3', '#4ebaea', '#329b9c'],
+                yAxisLabel: 'Loading Rate (kg/ha)',
+                yAxisUnit: 'kg/ha',
                 margin: {top: 20, right: 0, bottom: 40, left: 60},
                 reverseLegend: this.compareMode,
                 disableToggle: true,

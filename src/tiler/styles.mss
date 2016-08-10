@@ -7,7 +7,8 @@
 #boundary_school_district,
 #boundary_huc08,
 #boundary_huc10,
-#boundary_huc12 {
+#boundary_huc12,
+#dep_municipalities {
   ::case {
    line-color: #FFF;
    line-opacity: 0.5;
@@ -21,6 +22,16 @@
     line-opacity: 0.75;
     line-width: 1.5;
     line-join: round;
+  }
+}
+
+#dep_urban_areas {
+  ::case {
+      line-color: #7F7F7F;
+      line-width: 1;
+  }
+  ::fill {
+      polygon-fill: #ccc;
   }
 }
 

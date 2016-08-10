@@ -405,7 +405,7 @@ var MapView = Marionette.ItemView.extend({
             } else if (!layer.empty) {
                 var tileUrl = (layer.url.match(/png/) === null ?
                                 layer.url + '.png' : layer.url),
-                    zIndex = layer.overlay ? 1 : 0;
+                    zIndex = determineZIndex(layer);
 
                 _.defaults(layer, {
                     zIndex: zIndex,
@@ -424,6 +424,21 @@ var MapView = Marionette.ItemView.extend({
 
             layers[layer['display']] = leafletLayer;
         });
+
+        function determineZIndex(layer) {
+            // ZIndex rules to keep coverages under the boundary lines
+            //  basemaps: 0
+            //  overlay::raster: 1
+            //  overlay::vector: 2
+
+            if (!layer.overlay) {
+                return 0;
+            } else if (layer.raster) {
+                return 1;
+            } else {
+                return 2;
+            }
+        }
 
         function actOnUI(datum, bool) {
             var code = datum.code,

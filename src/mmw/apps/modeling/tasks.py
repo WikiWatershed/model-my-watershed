@@ -149,11 +149,10 @@ def aoi_resolution(area_of_interest):
 
 
 def format_quality(model_output):
-    measures = ['Biochemical Oxygen Demand',
-                'Total Suspended Solids',
+    measures = ['Total Suspended Solids',
                 'Total Nitrogen',
                 'Total Phosphorus']
-    codes = ['bod', 'tss', 'tn', 'tp']
+    codes = ['tss', 'tn', 'tp']
 
     def fn(input):
         measure, code = input
