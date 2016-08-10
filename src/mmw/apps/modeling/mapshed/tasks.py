@@ -39,7 +39,6 @@ from apps.modeling.mapshed.calcs import (day_lengths,
 NLU = settings.GWLFE_CONFIG['NLU']
 NRur = settings.GWLFE_DEFAULTS['NRur']
 AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
-DRB = settings.DRB_PERIMETER
 ACRES_PER_SQM = 0.000247105
 HECTARES_PER_SQM = 0.0001
 SQKM_PER_SQM = 0.000001
@@ -177,14 +176,7 @@ def collect_data(geop_result, geojson):
     z['SedAFactor'] = sed_a_factor(geop_result['landuse_pcts'],
                                    z['CN'], z['AEU'], z['AvKF'], z['AvSlope'])
 
-    if geom.within(DRB):
-        ls_stream_length = stream_length(geom, drb=True)
-        ls_stream_pcts = geop_result['lu_stream_pct_drb']
-    else:
-        ls_stream_length = z['StreamLength']
-        ls_stream_pcts = geop_result['lu_stream_pct']
-
-    z['LS'] = ls_factors(ls_stream_pcts, ls_stream_length,
+    z['LS'] = ls_factors(geop_result['lu_stream_pct'], z['StreamLength'],
                          z['Area'], z['AvSlope'])
 
     z['P'] = p_factors(z['AvSlope'])
@@ -468,12 +460,6 @@ def geop_tasks(geom, errback, exchange, choose_worker):
          {'polygon': [geom.geojson]},
          nlcd_kfactor)
     ]
-
-    if geom.within(DRB):
-        definitions.append(('nlcd_streams',
-                            {'polygon': [geom.geojson],
-                             'vector': streams(geom, drb=True)},
-                            nlcd_streams_drb))
 
     return [(mapshed_start.s(opname, data).set(exchange=exchange,
                                                routing_key=geop_worker) |
