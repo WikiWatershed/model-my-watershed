@@ -45,7 +45,19 @@
   }
 }
 
-.fixed-table-container thead th .th-inner {
-  white-space: normal;
-  line-height: 1.25;
+.fixed-table-container {
+  padding-bottom: 0px !important;
+
+  thead th .th-inner {
+    white-space: normal;
+    line-height: 1.25;
+  }
+}
+
+.fixed-table-footer tr {
+    font-weight: bold;
+
+    td:nth-child(n+2) {
+        color: $brand-primary;
+    }
 }
