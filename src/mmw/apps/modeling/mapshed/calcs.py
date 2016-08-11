@@ -192,7 +192,7 @@ def animal_energy_units(geom):
                                 WEIGHTOF[animal] / 1000
                                 for animal in POULTRY))
 
-        return livestock_aeu, poultry_aeu
+        return livestock_aeu, poultry_aeu, population
 
 
 def manure_spread(aeu):
