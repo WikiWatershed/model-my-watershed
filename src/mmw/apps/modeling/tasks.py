@@ -357,6 +357,10 @@ def to_gms_file(mapshed_data):
     """
     Given a dictionary of MapShed data, uses GWLF-E to convert it to a GMS file
     """
+
+    mapshed_areas = [round(a, 1) for a in mapshed_data['Area']]
+    mapshed_data['Area'] = mapshed_areas
+
     pre_z = parser.DataModel(mapshed_data)
     output = StringIO()
     writer = parser.GmsWriter(output)
