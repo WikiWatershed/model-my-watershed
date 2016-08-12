@@ -1506,9 +1506,9 @@
       "resolved": "https://registry.npmjs.org/leaflet/-/leaflet-0.7.3.tgz"
     },
     "leaflet-draw": {
-      "version": "0.2.3",
-      "from": "../../tmp/npm-20250-abe6eb52/1438892615591-0.05360055458731949/e753b7d0eb9d1de8864ca85d5dafbf9ac955759c",
-      "resolved": "git://github.com/michaelguild13/Leaflet.draw#e753b7d0eb9d1de8864ca85d5dafbf9ac955759c"
+      "version": "0.3.0",
+      "from": "leaflet-draw@0.3.0",
+      "resolved": "https://registry.npmjs.org/leaflet-draw/-/leaflet-draw-0.3.0.tgz"
     },
     "leaflet-plugins": {
       "version": "1.3.8",
