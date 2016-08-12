@@ -64,7 +64,19 @@ var TableView = Marionette.CompositeView.extend({
             landUseColumns: landUseColumns,
             landUseRows: landUseRows,
             summaryColumns: summaryColumns,
-            summaryRows: summaryRows
+            summaryRows: summaryRows,
+            renderPrecision: {
+                summaryTable: [
+                    {source: 'Total Loads (kg)', precision: 1},
+                    {source: 'Loading Rates (kg/ha)', precision: 2},
+                    {source: 'Mean Annual Concentration (mg/l)', precision: 2},
+                    {source: 'Mean Low-Flow Concentration (mg/l)', precision: 2}],
+                landUseTable: [],
+            },
+            defaultPrecision: {
+                summaryTable: 2,
+                landUseTable: 1,
+            },
         };
     }
 });

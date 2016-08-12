@@ -1,4 +1,4 @@
-{% macro table(columnNames, rows, isSortable) %}
+{% macro table(columnNames, rows, isSortable, round_rows, default_precision) %}
 <table class="table custom-hover" data-toggle="table">
     <thead>
         <tr>
@@ -14,11 +14,17 @@
     <tbody>
         {% for row in rows %}
             <tr>
+                {% set precision = default_precision %}
                 {% for value in row %}
                     {% if loop.index0 == 0 %}
                         <td class="text-left">{{ value }}</td>
+                        {% for p in round_rows %}
+                            {% if p.source == value %}
+                                {% set precision = p.precision %}
+                            {% endif %}
+                        {% endfor %}
                     {% else %}
-                        <td class="strong text-right">{{ value|round(2)|toLocaleString(2) }}</td>
+                        <td class="strong text-right">{{ value|round(precision)|toLocaleString(precision) }}</td>
                     {% endif %}
                 {% endfor %}
             </tr>
@@ -27,9 +33,8 @@
 </table>
 {% endmacro %}
 
-
 <div class="mean-flow">
     Mean Flow: {{ MeanFlow|round(0)|toLocaleString }} (m<sup>3</sup>/year) and {{ MeanFlowPerSecond|round(2)|toLocaleString }} (m<sup>3</sup>/s)
 </div>
-{{ table(landUseColumns, landUseRows, true) }}
-{{ table(summaryColumns, summaryRows, false) }}
+{{ table(landUseColumns, landUseRows, true, renderPrecision.landUseTable, defaultPrecision.landUseTable) }}
+{{ table(summaryColumns, summaryRows, false, renderPrecision.summaryTable, defaultPrecision.summaryTable) }}
