@@ -554,7 +554,7 @@ def landuse_pcts(n_count):
     ]
 
 
-def normal_sys(lu_area):
+def num_normal_sys(lu_area):
     """
     Given the land use area in hectares, estimates the number of normal septic
     systems based on the constants SSLDR and SSLDM for Residential and Mixed
@@ -563,13 +563,18 @@ def normal_sys(lu_area):
     effectively dependent only on the area of medium density mixed land use.
     However, we replicate the original formula for consistency.
 
+    Returns an array with an integer value for each month of the
+    year as input for GWLF-E.
+
     Original at Class1.vb@1.3.0:9577-9579
     """
 
     SSLDR = settings.GWLFE_CONFIG['SSLDR']
     SSLDM = settings.GWLFE_CONFIG['SSLDM']
 
-    return SSLDR * lu_area[14] + SSLDM * lu_area[11]
+    normal_sys_estimate = SSLDR * lu_area[14] + SSLDM * lu_area[11]
+    normal_sys_int = int(round(normal_sys_estimate))
+    return [normal_sys_int for n in xrange(12)]
 
 
 def sed_a_factor(landuse_pct_vals, cn, AEU, AvKF, AvSlope):

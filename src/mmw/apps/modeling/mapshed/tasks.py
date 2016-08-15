@@ -32,7 +32,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          groundwater_nitrogen_conc,
                                          sediment_delivery_ratio,
                                          landuse_pcts,
-                                         normal_sys,
+                                         num_normal_sys,
                                          sed_a_factor
                                          )
 
@@ -148,7 +148,7 @@ def collect_data(geop_result, geojson):
     z['UrbAreaTotal'] = sum(z['Area'][NRur:])
     z['PhosConc'] = phosphorus_conc(z['SedPhos'])
 
-    z['NormalSys'] = normal_sys(z['Area'])
+    z['NumNormalSys'] = num_normal_sys(z['Area'])
 
     z['AgSlope3'] = geop_result['ag_slope_3_pct'] * area * HECTARES_PER_SQM
     z['AgSlope3To8'] = (geop_result['ag_slope_3_8_pct'] *
