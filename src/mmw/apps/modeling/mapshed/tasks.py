@@ -39,6 +39,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
 NLU = settings.GWLFE_CONFIG['NLU']
 NRur = settings.GWLFE_DEFAULTS['NRur']
 AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
+ANIMAL_KEYS = settings.GWLFE_CONFIG['AnimalKeys']
 ACRES_PER_SQM = 0.000247105
 HECTARES_PER_SQM = 0.0001
 SQKM_PER_SQM = 0.000001
@@ -110,11 +111,13 @@ def collect_data(geop_result, geojson):
     z['WxYrs'] = z['WxYrEnd'] - z['WxYrBeg'] + 1
 
     # Data from the County Animals dataset
-    livestock_aeu, poultry_aeu = animal_energy_units(geom)
+    livestock_aeu, poultry_aeu, population = animal_energy_units(geom)
     z['AEU'] = livestock_aeu / (area * ACRES_PER_SQM)
     z['n41j'] = livestock_aeu
     z['n41k'] = poultry_aeu
     z['n41l'] = livestock_aeu + poultry_aeu
+    z['NumAnimals'] = [int(population.get(animal, 0))
+                       for animal in ANIMAL_KEYS]
 
     z['ManNitr'], z['ManPhos'] = manure_spread(z['AEU'])
 

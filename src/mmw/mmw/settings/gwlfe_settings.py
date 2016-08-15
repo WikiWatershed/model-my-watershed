@@ -447,22 +447,35 @@ GWLFE_DEFAULTS = {
     'StreamFlowVolAdj': 1,  # Streamflow Volume Adjustment Factor
 }
 
+DAIRY_COWS = 'dairy_cows'
+BEEF_COWS = 'beef_cows'
+HOGS = 'hogs'
+SHEEP = 'sheep'
+HORSES = 'horses'
+BROILERS = 'broilers'
+LAYERS = 'layers'
+TURKEYS = 'turkeys'
+OTHER = 'other'
+# Animal keys ordered to mimic the order of the NumAnimals field
+ANIMAL_KEYS = [DAIRY_COWS, BEEF_COWS, BROILERS, LAYERS, HOGS, SHEEP, HORSES, TURKEYS, OTHER]
+
 GWLFE_CONFIG = {
     'NLU': (GWLFE_DEFAULTS['NUrb'] +
             GWLFE_DEFAULTS['NRur']), # Total Number of Land Use Categories
     'NumWeatherStations': 2,  # Number of weather stations to consider for each polygon
     'KvFactor': 1.16,  # Original at Class1.vb@1.3.0:4987
-    'Livestock': ['dairy_cows', 'beef_cows', 'hogs', 'sheep', 'horses'],
-    'Poultry': ['broilers', 'layers', 'turkeys'],
+    'Livestock': [DAIRY_COWS, BEEF_COWS, HOGS, SHEEP, HORSES],
+    'Poultry': [BROILERS, LAYERS, TURKEYS],
+    'AnimalKeys': ANIMAL_KEYS,
     'AvgAnimalWt': {  # Original at Class1.vb@1.3.0:9048-9056
-        'dairy_cows': 640.0,
-        'beef_cows': 360.0,
-        'broilers': 0.9,
-        'layers': 1.8,
-        'hogs': 61.0,
-        'sheep': 50.0,
-        'horses': 500.0,
-        'turkeys': 6.8,
+        DAIRY_COWS: 640.0,
+        BEEF_COWS: 360.0,
+        BROILERS: 0.9,
+        LAYERS: 1.8,
+        HOGS: 61.0,
+        SHEEP: 50.0,
+        HORSES: 500.0,
+        TURKEYS: 6.8,
     },
     'ManureSpreadingLandUseIndices': [0, 1],  # Land Use Indices where manure spreading applies. Currently Hay/Past and Cropland.
     'AgriculturalNLCDCodes': [81, 82],  # NLCD codes considered agricultural. Correspond to Hay/Past and Cropland
