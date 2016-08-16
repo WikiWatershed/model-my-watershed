@@ -254,7 +254,7 @@ def ag_ls_c_p(geom):
         return ag_lscp(*(cursor.fetchone()))
 
 
-def ls_factors(lu_strms, total_strm_len, areas, avg_slope):
+def ls_factors(lu_strms, total_strm_len, areas, avg_slope, ag_lscp):
     results = [0.0] * len(lu_strms)
     if 0 <= avg_slope <= 1.0:
         m = 0.2
@@ -265,7 +265,10 @@ def ls_factors(lu_strms, total_strm_len, areas, avg_slope):
     else:
         m = 0.5
 
-    for i in range(len(lu_strms)):
+    results[0] = ag_lscp.hp_ls
+    results[1] = ag_lscp.crop_ls
+
+    for i in xrange(2, 16):
         results[i] = (ls_factor(lu_strms[i] * total_strm_len * KM_PER_M,
                       areas[i], avg_slope, m))
 
@@ -639,7 +642,7 @@ def sed_a_factor(landuse_pct_vals, cn, AEU, AvKF, AvSlope):
             (0.000001 * AvSlope) - 0.000036)
 
 
-def p_factors(avg_slope):
+def p_factors(avg_slope, ag_lscp):
     """
     Given the average slope, calculates the P Factor for rural land use types.
 
@@ -657,8 +660,8 @@ def p_factors(avg_slope):
         ag_p = 0.74
 
     return [
-        ag_p,  # Hay/Pasture
-        ag_p,  # Cropland
+        ag_lscp.hp_p,    # Hay/Pasture
+        ag_lscp.crop_p,  # Cropland
         ag_p,  # Forest
         0.1,   # Wetland
         0.1,   # Disturbed
