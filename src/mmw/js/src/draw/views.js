@@ -78,7 +78,7 @@ function validateClickedPointWithinDRB(latlng) {
     var point = L.marker(latlng).toGeoJSON(),
         d = $.Deferred(),
         streamLayers = settings.get('stream_layers'),
-        drbPerimeter = _.findWhere(streamLayers, {code:'drb_streams'}).perimeter;
+        drbPerimeter = _.findWhere(streamLayers, {code:'drb_streams_v1'}).perimeter;
     if (turfIntersect(point, drbPerimeter)) {
         d.resolve(latlng);
     } else {

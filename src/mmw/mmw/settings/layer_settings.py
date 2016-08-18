@@ -153,7 +153,7 @@ LAYERS = [
         'table_name': 'nhdflowline',
         'stream': True,
         'overlay': True,
-        'minZoom': 10
+        'minZoom': 3
     },
     {
         'code': 'drb_streams',
@@ -161,8 +161,8 @@ LAYERS = [
         'table_name': 'drb_streams_50',
         'stream': True,
         'overlay': True,
-        'minZoom': 11,
-        'perimeter': drb_perimeter # Layer is only selectable when viewport
+        'minZoom': 5,
+        'perimeter': drb_perimeter  # Layer is only selectable when viewport
         # overlaps with perimeter polygon.
     },
     {
