@@ -19,6 +19,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          et_adjustment,
                                          kv_coefficient,
                                          animal_energy_units,
+                                         ag_ls_c_p,
                                          ls_factors,
                                          p_factors,
                                          manure_spread,
@@ -111,6 +112,10 @@ def collect_data(geop_result, geojson):
     z['WxYrs'] = z['WxYrEnd'] - z['WxYrBeg'] + 1
 
     # Data from the County Animals dataset
+    ag_lscp = ag_ls_c_p(geom)
+    z['C'][0] = ag_lscp.hp_c
+    z['C'][1] = ag_lscp.crop_c
+
     livestock_aeu, poultry_aeu, population = animal_energy_units(geom)
     z['AEU'] = livestock_aeu / (area * ACRES_PER_SQM)
     z['n41j'] = livestock_aeu
@@ -180,9 +185,9 @@ def collect_data(geop_result, geojson):
                                    z['CN'], z['AEU'], z['AvKF'], z['AvSlope'])
 
     z['LS'] = ls_factors(geop_result['lu_stream_pct'], z['StreamLength'],
-                         z['Area'], z['AvSlope'])
+                         z['Area'], z['AvSlope'], ag_lscp)
 
-    z['P'] = p_factors(z['AvSlope'])
+    z['P'] = p_factors(z['AvSlope'], ag_lscp)
 
     return z
 
