@@ -33,8 +33,8 @@ var interactivity = {
         huc8: 'boundary_huc08',
         huc10: 'boundary_huc10',
         huc12: 'boundary_huc12',
-        'drb_streams': 'drb_streams_50',
-        stream: 'nhdflowline',
+        drb_streams_v1: 'drb_streams_50',
+        nhd_streams_v1: 'nhdflowline',
         municipalities: 'dep_municipalities',
         urban_areas: 'dep_urban_areas'
     },

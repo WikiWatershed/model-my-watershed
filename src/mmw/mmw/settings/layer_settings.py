@@ -148,7 +148,7 @@ LAYERS = [
         'minZoom': 9,
     },
     {
-        'code': 'stream',
+        'code': 'nhd_streams_v1',
         'display': 'National Stream Network',
         'table_name': 'nhdflowline',
         'stream': True,
@@ -156,7 +156,7 @@ LAYERS = [
         'minZoom': 3
     },
     {
-        'code': 'drb_streams',
+        'code': 'drb_streams_v1',
         'display': 'DRB Stream Network',
         'table_name': 'drb_streams_50',
         'stream': True,
