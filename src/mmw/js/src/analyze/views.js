@@ -18,6 +18,8 @@ var $ = require('jquery'),
     aoiHeaderTmpl = require('./templates/aoiHeader.html'),
     tableTmpl = require('./templates/table.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
+    animalTableTmpl = require('./templates/animalTable.html'),
+    animalTableRowTmpl = require('./templates/animalTableRow.html'),
     tabPanelTmpl = require('../modeling/templates/resultsTabPanel.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     barChartTmpl = require('../core/templates/barChart.html'),
@@ -244,7 +246,9 @@ var TabContentView = Marionette.LayoutView.extend({
             units = utils.magnitudeOfArea(largestArea),
             census = this.model.get('name') === 'land' ?
                 new coreModels.LandUseCensusCollection(categories) :
-                new coreModels.SoilCensusCollection(categories);
+                this.model.get('name') === 'soil' ?
+                new coreModels.SoilCensusCollection(categories) :
+                new coreModels.AnimalCensusCollection(categories);
 
         this.aoiRegion.show(new AoiView({
             model: new coreModels.GeoModel({
@@ -253,15 +257,22 @@ var TabContentView = Marionette.LayoutView.extend({
             })
         }));
 
-        this.tableRegion.show(new TableView({
-            units: units,
-            collection: census
-        }));
+        if (this.model.get('name') === 'animals') {
+            this.tableRegion.show(new AnimalTableView({
+                units: units,
+                collection: census
+            }));
+        } else {
+            this.tableRegion.show(new TableView({
+                units: units,
+                collection: census
+            }));
 
-        this.chartRegion.show(new ChartView({
-            model: this.model,
-            collection: census
-        }));
+            this.chartRegion.show(new ChartView({
+                model: this.model,
+                collection: census
+            }));
+        }
     }
 });
 
@@ -313,6 +324,35 @@ var TableView = Marionette.CompositeView.extend({
     }
 });
 
+var AnimalTableRowView = Marionette.ItemView.extend({
+    tagName: 'tr',
+    template: animalTableRowTmpl,
+    templateHelpers: function() {
+        return {
+            aeu: this.model.get('aeu'),
+        };
+    }
+});
+
+var AnimalTableView = Marionette.CompositeView.extend({
+    childView: AnimalTableRowView,
+    childViewOptions: function() {
+        return {
+            units: this.options.units
+        };
+    },
+    templateHelpers: function() {
+        return {
+            headerUnits: this.options.units
+        };
+    },
+    childViewContainer: 'tbody',
+    template: animalTableTmpl,
+
+    onAttach: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    }
+});
 
 var ChartView = Marionette.ItemView.extend({
     template: barChartTmpl,

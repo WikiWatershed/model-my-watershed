@@ -165,15 +165,15 @@ def animal_energy_units(geom):
                      clipped_counties.*
               FROM clipped_counties
           )
-          SELECT SUM(beef_ha * totalha * clip_percent) AS beef_cows,
-                 SUM(broiler_ha * totalha * clip_percent) AS broilers,
-                 SUM(dairy_ha * totalha * clip_percent) AS dairy_cows,
-                 SUM(goat_ha * totalha * clip_percent) +
-                 SUM(sheep_ha * totalha * clip_percent) AS sheep,
-                 SUM(hog_ha * totalha * clip_percent) AS hogs,
-                 SUM(horse_ha * totalha * clip_percent) AS horses,
-                 SUM(layer_ha * totalha * clip_percent) AS layers,
-                 SUM(turkey_ha * totalha * clip_percent) AS turkeys
+          SELECT SUM(beef_ha * ag_ha * clip_percent) AS beef_cows,
+                 SUM(broiler_ha * ag_ha * clip_percent) AS broilers,
+                 SUM(dairy_ha * ag_ha * clip_percent) AS dairy_cows,
+                 SUM(goat_ha * ag_ha * clip_percent) +
+                 SUM(sheep_ha * ag_ha * clip_percent) AS sheep,
+                 SUM(hog_ha * ag_ha * clip_percent) AS hogs,
+                 SUM(horse_ha * ag_ha * clip_percent) AS horses,
+                 SUM(layer_ha * ag_ha * clip_percent) AS layers,
+                 SUM(turkey_ha * ag_ha * clip_percent) AS turkeys
           FROM clipped_counties_with_area;
           '''
 

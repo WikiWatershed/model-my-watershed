@@ -15,6 +15,8 @@ from celery import shared_task
 from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
     data_to_survey, data_to_censuses
 
+from apps.modeling.calcs import animal_population
+
 from tr55.model import simulate_day
 from gwlfe import gwlfe, parser
 
@@ -102,7 +104,7 @@ def get_histogram_job_results(self, incoming):
 
 
 @shared_task
-def histogram_to_survey(incoming):
+def histogram_to_survey(incoming, aoi):
     """
     Converts the histogram results (aka analyze results)
     to a survey of land use, which are rendered in the UI.
@@ -111,6 +113,7 @@ def histogram_to_survey(incoming):
     data = incoming['histogram'][0]
     results = data_to_survey(data)
     convert_result_areas(pixel_width, results)
+    results.append(animal_population(aoi))
 
     return results
 
