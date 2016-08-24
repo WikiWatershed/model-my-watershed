@@ -33,8 +33,8 @@ var interactivity = {
         huc8: 'boundary_huc08',
         huc10: 'boundary_huc10',
         huc12: 'boundary_huc12',
-        'drb_streams': 'drb_streams_50',
-        stream: 'nhdflowline',
+        drb_streams_v1: 'drb_streams_50',
+        nhd_streams_v1: 'nhdflowline',
         municipalities: 'dep_municipalities',
         urban_areas: 'dep_urban_areas'
     },
@@ -42,6 +42,29 @@ var interactivity = {
         // Caching can happen if the bucket to write to is defined
         // and the request is not coming from localhost.
         return req.headers.host!== 'localhost' && tileCacheBucket;
+    },
+    getSqlForStreamByReq = function(req) {
+        /* Limit the number of stream features returned at certain zoom levels.
+         * Stream rendering is a function of stream_order in styles.mss.  Lower
+         * number zoom levels only render higher order stream_orders.  Changing
+         * these filters may impact the style definitions. Reducing the number
+         * of features returned by the query greatly increase overall request
+         * performance.
+        */
+        zoom = req.params.z;
+        tableName = req.params.table;
+        stream_order = 0;  // All streams
+
+        if (zoom <= 5) {
+            stream_order = 7;
+        } else if (zoom <= 8) {
+            stream_order = 6;
+        } else if (zoom <= 10) {
+            stream_order = 5;
+        }
+
+        return '(SELECT geom, stream_order FROM ' + tableName +
+          ' WHERE stream_order >= ' + stream_order + ') as q';
     };
 
 var config = {
@@ -125,6 +148,12 @@ var config = {
                 tableName = tables[tableId];
 
             req.params.table = tableName;
+
+            // Streams have special performance optimized SQL queries
+            if (tableId.indexOf('streams') >= 0) {
+                req.params.sql = getSqlForStreamByReq(req);
+            }
+
             req.params.dbname = dbName;
             req.params.style = styles;
             req.params.interactivity = interactivity[tableName];

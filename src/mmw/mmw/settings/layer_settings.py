@@ -126,21 +126,21 @@ LAYERS = [
         'minZoom': 9,
     },
     {
-        'code': 'stream',
+        'code': 'nhd_streams_v1',
         'display': 'National Stream Network',
         'table_name': 'nhdflowline',
         'stream': True,
         'overlay': True,
-        'minZoom': 10
+        'minZoom': 3
     },
     {
-        'code': 'drb_streams',
+        'code': 'drb_streams_v1',
         'display': 'DRB Stream Network',
         'table_name': 'drb_streams_50',
         'stream': True,
         'overlay': True,
-        'minZoom': 11,
-        'perimeter': drb_perimeter # Layer is only selectable when viewport
+        'minZoom': 5,
+        'perimeter': drb_perimeter  # Layer is only selectable when viewport
         # overlaps with perimeter polygon.
     },
     {
