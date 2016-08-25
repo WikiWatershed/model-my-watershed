@@ -33,7 +33,7 @@
     "jshint": "2.8.0",
     "jstify": "0.9.0",
     "leaflet": "0.7.3",
-    "leaflet-draw": "git://github.com/michaelguild13/Leaflet.draw#e753b7d",
+    "leaflet-draw": "0.3.0",
     "leaflet-plugins": "git://github.com/azavea/leaflet-plugins#feature/browserify",
     "leaflet.locatecontrol": "0.43.0",
     "livereload": "0.3.7",
