@@ -28,7 +28,7 @@ def animal_population(geojson):
     for animal, aeu_value in aeu_for_geom.iteritems():
         aeu_return_values.append({
             'type': ANIMAL_DISPLAY_NAMES[animal],
-            'aeu': int(round(aeu_value)),
+            'aeu': int(aeu_value),
         })
 
     return {
