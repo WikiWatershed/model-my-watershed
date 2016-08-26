@@ -249,6 +249,10 @@ var AnimalCensusCollection = Backbone.Collection.extend({
     comparator: 'type'
 });
 
+var PointSourceCensusCollection = Backbone.Collection.extend({
+    comparator: 'city'
+});
+
 var GeoModel = Backbone.Model.extend({
     M_IN_KM: 1000000,
 
@@ -303,6 +307,7 @@ module.exports = {
     LandUseCensusCollection: LandUseCensusCollection,
     SoilCensusCollection: SoilCensusCollection,
     AnimalCensusCollection: AnimalCensusCollection,
+    PointSourceCensusCollection: PointSourceCensusCollection,
     GeoModel: GeoModel,
     AreaOfInterestModel: AreaOfInterestModel,
     AppStateModel: AppStateModel

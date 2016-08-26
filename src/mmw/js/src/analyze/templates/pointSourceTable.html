@@ -1,0 +1,28 @@
+<table class="table custom-hover" data-toggle="table">
+    <thead>
+        <tr>
+            <th data-sortable="true">Code</th>
+            <th data-sortable="true">City</th>
+            <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
+                Discharge (MGD)
+            </th>
+            <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
+                TN Load (kg/yr)
+            </th>
+            <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
+                TP Load (kg/yr)
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+    <tfoot>
+        <tr class="ptsrc-table-footer">
+            <td></td>
+            <td class="strong text-right">Total</th>
+            <td class="ptsrc-footer-item strong text-right">{{ totalMGD|toLocaleString() }}</td>
+            <td class="ptsrc-footer-item strong text-right">{{ totalKGN|toLocaleString() }}</td>
+            <td class="ptsrc-footer-item strong text-right">{{ totalKGP|toLocaleString() }}</td>
+        </tr>
+    </tfoot>
+</table>
