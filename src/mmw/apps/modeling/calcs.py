@@ -59,8 +59,14 @@ def point_source_pollution(geojson):
 
         if cursor.rowcount != 0:
             columns = [col[0] for col in cursor.description]
-            point_source_results = [dict(zip(columns, row)) for row in
-                                    cursor.fetchall()]
+            point_source_results = [
+                dict(zip(columns,
+                         [row[0], row[1],
+                          float(row[2]) if row[2] else None,
+                          float(row[3]) if row[3] else None,
+                          float(row[4]) if row[4] else None]))
+                for row in cursor.fetchall()
+            ]
         else:
             point_source_results = []
 
