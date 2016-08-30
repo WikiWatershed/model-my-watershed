@@ -1,6 +1,7 @@
 "use strict";
 
 var _ = require('underscore'),
+    lodash = require('lodash'),
     md5 = require('blueimp-md5').md5,
     intersect = require('turf-intersect');
 
@@ -92,6 +93,18 @@ var utils = {
         } else {
             return 1;
         }
+    },
+
+    noDataSort: function(x, y) {
+        var noData = 'no data';
+        if (x === noData && y !== noData) {
+            return -1;
+        } else if (x === noData && y === noData) {
+            return 0;
+        } else if (x !== noData && y === noData) {
+            return 1;
+        }
+        return utils.numericSort(x, y);
     },
 
     // Parse query strings for Backbone
@@ -254,6 +267,12 @@ var utils = {
 
             return l < r ? 1 : l > r ? -1 : 0;
         };
+    },
+
+    totalForPointSourceCollection: function(collection, key) {
+        return lodash.sum(lodash.map(collection, function(element) {
+            return element.attributes[key] || 0;
+        }));
     }
 };
 

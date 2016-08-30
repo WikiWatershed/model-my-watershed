@@ -20,6 +20,8 @@ var $ = require('jquery'),
     tableRowTmpl = require('./templates/tableRow.html'),
     animalTableTmpl = require('./templates/animalTable.html'),
     animalTableRowTmpl = require('./templates/animalTableRow.html'),
+    pointSourceTableTmpl = require('./templates/pointSourceTable.html'),
+    pointSourceTableRowTmpl = require('./templates/pointSourceTableRow.html'),
     tabPanelTmpl = require('../modeling/templates/resultsTabPanel.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     barChartTmpl = require('../core/templates/barChart.html'),
@@ -243,12 +245,25 @@ var TabContentView = Marionette.LayoutView.extend({
     onShow: function() {
         var categories = this.model.get('categories'),
             largestArea = _.max(_.pluck(categories, 'area')),
-            units = utils.magnitudeOfArea(largestArea),
-            census = this.model.get('name') === 'land' ?
-                new coreModels.LandUseCensusCollection(categories) :
-                this.model.get('name') === 'soil' ?
-                new coreModels.SoilCensusCollection(categories) :
-                new coreModels.AnimalCensusCollection(categories);
+            units = utils.magnitudeOfArea(largestArea);
+
+        var census;
+        switch (this.model.get('name')) {
+            case ('land'):
+                census = new coreModels.LandUseCensusCollection(categories);
+                break;
+            case ('soil'):
+                census = new coreModels.SoilCensusCollection(categories);
+                break;
+            case ('animals'):
+                census = new coreModels.AnimalCensusCollection(categories);
+                break;
+            case ('pointsource'):
+                census = new coreModels.PointSourceCensusCollection(categories);
+                break;
+            default:
+                throw new Error('invalid CensusCollection');
+        }
 
         this.aoiRegion.show(new AoiView({
             model: new coreModels.GeoModel({
@@ -259,6 +274,11 @@ var TabContentView = Marionette.LayoutView.extend({
 
         if (this.model.get('name') === 'animals') {
             this.tableRegion.show(new AnimalTableView({
+                units: units,
+                collection: census
+            }));
+        } else if (this.model.get('name') === 'pointsource') {
+            this.tableRegion.show(new PointSourceTableView({
                 units: units,
                 collection: census
             }));
@@ -348,6 +368,42 @@ var AnimalTableView = Marionette.CompositeView.extend({
     },
     childViewContainer: 'tbody',
     template: animalTableTmpl,
+
+    onAttach: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    }
+});
+
+var PointSourceTableRowView = Marionette.ItemView.extend({
+    tagName: 'tr',
+    template: pointSourceTableRowTmpl,
+    templateHelpers: function() {
+        return {
+            val: this.model.get('value'),
+        };
+    }
+});
+
+var PointSourceTableView = Marionette.CompositeView.extend({
+    childView: PointSourceTableRowView,
+    childViewOptions: function() {
+        return {
+            units: this.options.units
+        };
+    },
+    templateHelpers: function() {
+        return {
+            headerUnits: this.options.units,
+            totalMGD: utils.totalForPointSourceCollection(
+                this.collection.models, 'mgd'),
+            totalKGN: utils.totalForPointSourceCollection(
+                this.collection.models, 'kgn_yr'),
+            totalKGP: utils.totalForPointSourceCollection(
+                this.collection.models, 'kgp_yr')
+        };
+    },
+    childViewContainer: 'tbody',
+    template: pointSourceTableTmpl,
 
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();

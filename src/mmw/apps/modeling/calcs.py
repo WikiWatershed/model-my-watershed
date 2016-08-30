@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from django.contrib.gis.geos import GEOSGeometry
 
 from django.conf import settings
+from django.db import connection
 
 from apps.modeling.mapshed.calcs import animal_energy_units
 
@@ -35,4 +36,36 @@ def animal_population(geojson):
         'displayName': 'Animals',
         'name': 'animals',
         'categories': aeu_return_values
+    }
+
+
+def point_source_pollution(geojson):
+    """
+    Given a GeoJSON shape, retrieve point source pollution data
+    from the `ms_pointsource` table to display in the Analyze tab.
+    Returns a dictionary to append to the outgoing JSON for analysis
+    results.
+    """
+    geom = GEOSGeometry(geojson, srid=4326)
+
+    sql = '''
+          SELECT city, npdes_id, mgd, kgn_yr, kgp_yr
+          FROM ms_pointsource
+          WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromText(%s), 4326))
+          '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [geom.wkt])
+
+        if cursor.rowcount != 0:
+            columns = [col[0] for col in cursor.description]
+            point_source_results = [dict(zip(columns, row)) for row in
+                                    cursor.fetchall()]
+        else:
+            point_source_results = []
+
+    return {
+        'displayName': 'Point Source',
+        'name': 'pointsource',
+        'categories': point_source_results
     }

@@ -15,7 +15,8 @@ from celery import shared_task
 from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
     data_to_survey, data_to_censuses
 
-from apps.modeling.calcs import animal_population
+from apps.modeling.calcs import (animal_population,
+                                 point_source_pollution)
 
 from tr55.model import simulate_day
 from gwlfe import gwlfe, parser
@@ -114,6 +115,7 @@ def histogram_to_survey(incoming, aoi):
     results = data_to_survey(data)
     convert_result_areas(pixel_width, results)
     results.append(animal_population(aoi))
+    results.append(point_source_pollution(aoi))
 
     return results
 
