@@ -94,7 +94,7 @@
         "summary": "A shallow depression that is planted with deep-rooted native plants and grasses to encourage infiltration and percolation.",
         "strokeColor": "#2364AA"
     },
-    "infiltration_trench": {
+    "infiltration_basin": {
         "name": "Vegetation Infiltration Basin",
         "shortName": "Veg Basin",
         "summary": "Constructed large depressions that receive runoff from storm drain sewers or directly from impervious surfaces.  The runoff is temporarily stored until it infiltrates into the ground.",
@@ -197,6 +197,6 @@
     "infiltration": {
         "name": "Infiltration / Bioretention",
         "summary": "Various approaches that achieve runoff reduction and the treatment of urban pollutants (primarily nutrients) through the promotion of infiltration, evapotranspiration and renovation via subsurface flow. Examples include the use of pervious materials/porous pavement, infiltration basins/trenches, and vegetated roofs. It is assumed that runoff from a 2.54 cm (I.0 in) rainfall event is captured.",
-        "copyStyle": "infiltration_trench"
+        "copyStyle": "infiltration_basin"
     }
 }
