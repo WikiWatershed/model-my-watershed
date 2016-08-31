@@ -40,6 +40,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
 NLU = settings.GWLFE_CONFIG['NLU']
 NRur = settings.GWLFE_DEFAULTS['NRur']
 AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
+DRB = settings.DRB_PERIMETER
 ANIMAL_KEYS = settings.GWLFE_CONFIG['AnimalKeys']
 ACRES_PER_SQM = 0.000247105
 HECTARES_PER_SQM = 0.0001
@@ -131,7 +132,8 @@ def collect_data(geop_result, geojson):
     z['n42b'] = round(z['StreamLength'] / 1000, 1)  # Kilometers
 
     # Data from Point Source Discharge dataset
-    n_load, p_load, discharge = point_source_discharge(geom, area)
+    n_load, p_load, discharge = point_source_discharge(geom, area,
+                                                       drb=geom.within(DRB))
     z['PointNitr'] = n_load
     z['PointPhos'] = p_load
     z['PointFlow'] = discharge

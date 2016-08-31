@@ -348,20 +348,27 @@ def streams(geom, drb=False):
         return [row[0] for row in cursor.fetchall()]  # List of GeoJSON strings
 
 
-def point_source_discharge(geom, area):
+def get_point_source_table(drb):
+    return 'ms_pointsource' + ('_drb' if drb else '')
+
+
+def point_source_discharge(geom, area, drb=False):
     """
     Given a geometry and its area in square meters, returns three lists,
     each with 12 values, one for each month, containing the Nitrogen Load (in
     kg), Phosphorus Load (in kg), and Discharge (in centimeters per month).
+    If drb is true (meaning the AOI is within the Delaware River Basin),
+    this uses the ms_pointsource_drb table.
     """
+    table_name = get_point_source_table(drb)
     sql = '''
           SELECT SUM(mgd) AS mg_d,
                  SUM(kgn_yr) / 12 AS kgn_month,
                  SUM(kgp_yr) / 12 AS kgp_month
-          FROM ms_pointsource
+          FROM {table_name}
           WHERE ST_Intersects(geom,
                               ST_SetSRID(ST_GeomFromText(%s), 4326));
-          '''
+          '''.format(table_name=table_name)
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [geom.wkt])
