@@ -399,7 +399,7 @@ var ConservationPracticeView = ModificationsView.extend({
             modRowGroups: [{
                 name: '',
                 rows: [
-                    ['rain_garden', 'infiltration_trench', 'porous_paving'],
+                    ['rain_garden', 'infiltration_basin', 'porous_paving'],
                     ['green_roof', 'no_till', 'cluster_housing']
                 ]
             }]
