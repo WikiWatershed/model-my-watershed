@@ -8,8 +8,10 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.conf import settings
 from django.db import connection
 
-from apps.modeling.mapshed.calcs import animal_energy_units
+from apps.modeling.mapshed.calcs import (animal_energy_units,
+                                         get_point_source_table)
 
+DRB = settings.DRB_PERIMETER
 ANIMAL_KEYS = settings.GWLFE_CONFIG['AnimalKeys']
 ANIMAL_NAMES = settings.GWLFE_DEFAULTS['AnimalName']
 
@@ -47,12 +49,13 @@ def point_source_pollution(geojson):
     results.
     """
     geom = GEOSGeometry(geojson, srid=4326)
-
+    drb = geom.within(DRB)
+    table_name = get_point_source_table(drb)
     sql = '''
           SELECT city, npdes_id, mgd, kgn_yr, kgp_yr
-          FROM ms_pointsource
+          FROM {table_name}
           WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromText(%s), 4326))
-          '''
+          '''.format(table_name=table_name)
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [geom.wkt])

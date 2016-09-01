@@ -380,6 +380,7 @@ var PointSourceTableRowView = Marionette.ItemView.extend({
     templateHelpers: function() {
         return {
             val: this.model.get('value'),
+            noData: utils.noData
         };
     }
 });

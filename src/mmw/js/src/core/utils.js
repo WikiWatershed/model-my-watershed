@@ -6,6 +6,7 @@ var _ = require('underscore'),
     intersect = require('turf-intersect');
 
 var M2_IN_KM2 = 1000000;
+var noData = 'No Data';
 
 var utils = {
     // A function for enabling/disabling modal buttons.  In additiion
@@ -95,8 +96,9 @@ var utils = {
         }
     },
 
+    noData: noData,
+
     noDataSort: function(x, y) {
-        var noData = 'no data';
         if (x === noData && y !== noData) {
             return -1;
         } else if (x === noData && y === noData) {
