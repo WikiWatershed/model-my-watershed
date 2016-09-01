@@ -14,6 +14,7 @@ var $ = require('jquery'),
     chart = require('../core/chart'),
     utils = require('../core/utils'),
     windowTmpl = require('./templates/window.html'),
+    analyzeResultsTmpl = require('./templates/analyzeResults.html'),
     detailsTmpl = require('../modeling/templates/resultsDetails.html'),
     aoiHeaderTmpl = require('./templates/aoiHeader.html'),
     tableTmpl = require('./templates/table.html'),
@@ -451,6 +452,64 @@ var ChartView = Marionette.ItemView.extend({
         chart.renderHorizontalBarChart(chartEl, data, chartOptions);
     }
 });
+
+var AnalyzeResultView = Marionette.LayoutView.extend({
+    template: analyzeResultsTmpl,
+    regions: {
+        chartRegion: '.chart-region',
+        tableRegion: '.table-region'
+    },
+
+    showAnalyzeResults: function(CategoriesToCensus, AnalyzeTableView, AnalyzeChartView) {
+        var categories = this.model.get('categories'),
+            largestArea = _.max(_.pluck(categories, 'area')),
+            units = utils.magnitudeOfArea(largestArea),
+            census = new CategoriesToCensus(categories);
+
+        this.tableRegion.show(new AnalyzeTableView({
+            units: units,
+            collection: census
+        }));
+
+        if (AnalyzeChartView) {
+            this.chartRegion.show(new AnalyzeChartView({
+                model: this.model,
+                collection: census
+            }));
+        }
+    }
+});
+
+var LandResultView  = AnalyzeResultView.extend({
+    onShow: function() {
+        this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView, ChartView);
+    }
+});
+
+var SoilResultView  = AnalyzeResultView.extend({
+    onShow: function() {
+        this.showAnalyzeResults(coreModels.SoilCensusCollection, TableView, ChartView);
+    }
+});
+
+var AnimalsResultView = AnalyzeResultView.extend({
+    onShow: function() {
+        this.showAnalyzeResults(coreModels.AnimalCensusCollection, AnimalTableView);
+    }
+});
+
+var PointSourceResultView = AnalyzeResultView.extend({
+    onShow: function() {
+        this.showAnalyzeResults(coreModels.PointSourceCensusCollection, PointSourceTableView);
+    }
+});
+
+var AnalyzeResultViews = {
+    land: LandResultView,
+    soil: SoilResultView,
+    animals: AnimalsResultView,
+    pointsource: PointSourceResultView,
+};
 
 module.exports = {
     ResultsView: ResultsView,

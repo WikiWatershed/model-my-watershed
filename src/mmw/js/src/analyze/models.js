@@ -54,6 +54,27 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
     }
 });
 
+var AnalyzeTaskCollection = Backbone.Collection.extend({
+    model: AnalyzeTaskModel
+});
+
+function createAnalyzeTaskCollection(aoi) {
+    return new AnalyzeTaskCollection([
+        { area_of_interest: aoi, taskName: 'analyze' },
+        { area_of_interest: aoi, taskName: 'analyze/animals' },
+        { area_of_interest: aoi, taskName: 'analyze/pointsource' },
+    ]);
+}
+
+function createAnalyzeResultViewModelCollection(analyzeTaskCollection) {
+    return new Backbone.Collection([
+        { name: 'land', displayName: 'Land', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze' }) },
+        { name: 'soil', displayName: 'Soil', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze' }) },
+        { name: 'animals', displayName: 'Animals', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze/animals' }) },
+        { name: 'pointsource', displayName: 'Point Sources', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze/pointsource' }) },
+    ]);
+}
+
 AnalyzeTaskModel.getSingleton = function(App, aoi) {
     if (!App.analyzeModel) {
         App.analyzeModel = createTaskModel(JSON.stringify(aoi));
@@ -77,4 +98,6 @@ module.exports = {
     LayerModel: LayerModel,
     LayerCollection: LayerCollection,
     LayerCategoryCollection: LayerCategoryCollection,
+    createAnalyzeTaskCollection: createAnalyzeTaskCollection,
+    createAnalyzeResultViewModelCollection: createAnalyzeResultViewModelCollection,
 };
