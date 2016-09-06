@@ -275,6 +275,14 @@ var utils = {
         return lodash.sum(lodash.map(collection, function(element) {
             return element.attributes[key] || 0;
         }));
+    },
+
+    // A JavaScript implementation for when we can't use the Nunjucks filter
+    // Taken from http://stackoverflow.com/a/196991
+    toTitleCase: function(str) {
+        return str.replace(/\w\S*/g, function(txt) {
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        });
     }
 };
 

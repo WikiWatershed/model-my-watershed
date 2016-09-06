@@ -15,7 +15,6 @@ var $ = require('jquery'),
     utils = require('../core/utils'),
     windowTmpl = require('./templates/window.html'),
     analyzeResultsTmpl = require('./templates/analyzeResults.html'),
-    detailsTmpl = require('../modeling/templates/resultsDetails.html'),
     aoiHeaderTmpl = require('./templates/aoiHeader.html'),
     tableTmpl = require('./templates/table.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
@@ -144,24 +143,6 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
         }));
 
         this.contentsRegion.show(new TabContentsView({
-            collection: this.collection
-        }));
-    }
-});
-
-var DetailsView = Marionette.LayoutView.extend({
-    template: detailsTmpl,
-    regions: {
-        panelsRegion: '.tab-panels-region',
-        contentRegion: '.tab-contents-region'
-    },
-
-    onShow: function() {
-        this.panelsRegion.show(new TabPanelsView({
-            collection: this.collection
-        }));
-
-        this.contentRegion.show(new TabContentsView({
             collection: this.collection
         }));
     }
@@ -488,5 +469,5 @@ var AnalyzeResultViews = {
 module.exports = {
     ResultsView: ResultsView,
     AnalyzeWindow: AnalyzeWindow,
-    DetailsView: DetailsView
+    AnalyzeResultViews: AnalyzeResultViews,
 };
