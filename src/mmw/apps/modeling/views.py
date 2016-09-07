@@ -494,3 +494,43 @@ def boundary_layer_detail(request, table_code, obj_id):
             return Response(geojson)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+@decorators.api_view(['GET'])
+@decorators.permission_classes((AllowAny, ))
+def drb_point_sources(request):
+    query = '''
+          SELECT ST_X(geom) as lon, ST_Y(geom) as lat, city, state, npdes_id,
+                 mgd, kgn_yr, kgp_yr, facilityname
+          FROM ms_pointsource_drb
+          '''
+
+    point_source_results = {u'type': u'FeatureCollection', u'features': []}
+
+    with connection.cursor() as cursor:
+        cursor.execute(query)
+
+        point_source_array = [
+            {
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': [row[0], row[1]],
+                },
+                'properties': {
+                    'city': row[2],
+                    'state': row[3],
+                    'npdes_id': row[4],
+                    'mgd': float(row[5]) if row[5] else None,
+                    'kgn_yr': float(row[6]) if row[6] else None,
+                    'kgp_yr': float(row[7]) if row[7] else None,
+                    'facilityname': row[8]
+                }
+
+            } for row in cursor.fetchall()
+        ]
+
+    point_source_results['features'] = point_source_array
+
+    return Response(json.dumps(point_source_results),
+                    headers={'Cache-Control': 'max-age: 604800'})
