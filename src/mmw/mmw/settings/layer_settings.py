@@ -126,7 +126,7 @@ LAYERS = [
         'minZoom': 9,
     },
     {
-        'code': 'nhd_streams_v1',
+        'code': 'nhd_streams_v2',
         'display': 'National Stream Network',
         'table_name': 'nhdflowline',
         'stream': True,
@@ -134,7 +134,7 @@ LAYERS = [
         'minZoom': 3
     },
     {
-        'code': 'drb_streams_v1',
+        'code': 'drb_streams_v2',
         'display': ('Delaware River Basin High Resolution' +
             '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stream Network'),
         'table_name': 'drb_streams_50',

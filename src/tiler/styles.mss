@@ -90,21 +90,29 @@
     line-color: @streamColor;
     line-width: 4.0 * @zoomBase;
   }
+  [stream_order=5] {
+    line-color: @streamColor;
+    line-width: 3.0 * @zoomBase;
+  }
 }
 
 #drb_streams_50[zoom>=9][zoom<=10],
 #nhdflowline[zoom>=9][zoom<=10] {
   [stream_order>=9] {
     line-color: @streamColor;
-    line-width: 15.0 * @zoomBase ;
+    line-width: 14.0 * @zoomBase;
   }
   [stream_order<=8][stream_order>=6] {
     line-color: @streamColor;
-    line-width:  10.0 * @zoomBase;
+    line-width: 10.0 * @zoomBase;
   }
-  [stream_order=5] {
+  [stream_order<=5][stream_order>=4] {
     line-color: @streamColor;
-    line-width: 7.0 * @zoomBase;
+    line-width: 5.0 * @zoomBase;
+  }
+  [stream_order=3] {
+    line-color: @streamColor;
+    line-width: 4.0 * @zoomBase;
   }
 }
 
@@ -125,6 +133,14 @@
   [stream_order=3] {
     line-color: @streamColor;
     line-width:  6.0 * @zoomBase;
+  }
+  [stream_order=2] {
+    line-color: @streamColor;
+    line-width:  5.0 * @zoomBase;
+  }
+  [stream_order<=1][stream_order>=0] {
+    line-color: @streamColor;
+    line-width:  4.0 * @zoomBase;
   }
 }
 

@@ -33,8 +33,8 @@ var interactivity = {
         huc8: 'boundary_huc08',
         huc10: 'boundary_huc10',
         huc12: 'boundary_huc12',
-        drb_streams_v1: 'drb_streams_50',
-        nhd_streams_v1: 'nhdflowline',
+        drb_streams_v2: 'drb_streams_50',
+        nhd_streams_v2: 'nhdflowline',
         municipalities: 'dep_municipalities',
         urban_areas: 'dep_urban_areas'
     },
@@ -57,9 +57,9 @@ var interactivity = {
 
         if (zoom <= 5) {
             stream_order = 7;
-        } else if (zoom <= 8) {
+        } else if (zoom <= 6) {
             stream_order = 6;
-        } else if (zoom <= 10) {
+        } else if (zoom <= 8) {
             stream_order = 5;
         }
 
