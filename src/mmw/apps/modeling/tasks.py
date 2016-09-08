@@ -114,8 +114,6 @@ def histogram_to_survey(incoming, aoi):
     data = incoming['histogram'][0]
     results = data_to_survey(data)
     convert_result_areas(pixel_width, results)
-    results.append(animal_population(aoi))
-    results.append(point_source_pollution(aoi))
 
     return results
 
@@ -130,6 +128,22 @@ def histograms_to_censuses(incoming):
     results = data_to_censuses(data)
 
     return results
+
+
+@shared_task
+def analyze_animals(area_of_interest):
+    """
+    Given an area of interest, returns the animal population within it.
+    """
+    return [animal_population(area_of_interest)]
+
+
+@shared_task
+def analyze_pointsource(area_of_interest):
+    """
+    Given an area of interest, returns point sources of pollution within it.
+    """
+    return [point_source_pollution(area_of_interest)]
 
 
 def aoi_resolution(area_of_interest):

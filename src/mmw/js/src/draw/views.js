@@ -572,6 +572,7 @@ function clearAoiLayer() {
     App.map.set('areaOfInterest', null);
     App.projectNumber = undefined;
     App.map.setDrawSize(false);
+    App.clearAnalyzeCollection();
 
     return function revertLayer() {
         var previousShape = App.map.previous('areaOfInterest');

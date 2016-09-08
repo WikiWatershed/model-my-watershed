@@ -294,22 +294,44 @@ def export_gms(request, format=None):
 @decorators.permission_classes((AllowAny, ))
 def start_analyze(request, format=None):
     user = request.user if request.user.is_authenticated() else None
-    created = now()
     area_of_interest = request.POST['area_of_interest']
-    job = Job.objects.create(created_at=created, result='', error='',
-                             traceback='', user=user, status='started')
+    exchange = MAGIC_EXCHANGE
+    routing_key = choose_worker()
 
-    task_list = _initiate_analyze_job_chain(area_of_interest, job.id)
+    return start_celery_job([
+        tasks.start_histogram_job.s(area_of_interest)
+             .set(exchange=exchange, routing_key=routing_key),
+        tasks.get_histogram_job_results.s()
+             .set(exchange=exchange, routing_key=routing_key),
+        tasks.histogram_to_survey.s(area_of_interest)
+             .set(exchange=exchange, routing_key=choose_worker())
+    ], area_of_interest, user)
 
-    job.uuid = task_list.id
-    job.save()
 
-    return Response(
-        {
-            'job': task_list.id,
-            'status': 'started',
-        }
-    )
+@decorators.api_view(['POST'])
+@decorators.permission_classes((AllowAny, ))
+def start_analyze_animals(request, format=None):
+    user = request.user if request.user.is_authenticated() else None
+    area_of_interest = request.POST['area_of_interest']
+    exchange = MAGIC_EXCHANGE
+
+    return start_celery_job([
+        tasks.analyze_animals.s(area_of_interest)
+             .set(exchange=exchange, routing_key=choose_worker())
+    ], area_of_interest, user)
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((AllowAny, ))
+def start_analyze_pointsource(request, format=None):
+    user = request.user if request.user.is_authenticated() else None
+    area_of_interest = request.POST['area_of_interest']
+    exchange = MAGIC_EXCHANGE
+
+    return start_celery_job([
+        tasks.analyze_pointsource.s(area_of_interest)
+             .set(exchange=exchange, routing_key=choose_worker())
+    ], area_of_interest, user)
 
 
 @decorators.api_view(['GET'])
@@ -352,23 +374,6 @@ def choose_worker():
     workers = filter(predicate,
                      get_list_of_workers())
     return random.choice(workers)
-
-
-def _initiate_analyze_job_chain(area_of_interest, job_id, testing=False):
-    exchange = MAGIC_EXCHANGE
-    routing_key = choose_worker()
-    errback = save_job_error.s(job_id).set(exchange=MAGIC_EXCHANGE,
-                                           routing_key=choose_worker())
-
-    return chain(tasks.start_histogram_job.s(area_of_interest)
-                 .set(exchange=exchange, routing_key=routing_key),
-                 tasks.get_histogram_job_results.s()
-                 .set(exchange=exchange, routing_key=routing_key),
-                 tasks.histogram_to_survey.s(area_of_interest)
-                 .set(exchange=exchange, routing_key=choose_worker()),
-                 save_job_result.s(job_id, area_of_interest)
-                 .set(exchange=exchange, routing_key=choose_worker())) \
-        .apply_async(link_error=errback)
 
 
 def _initiate_rwd_job_chain(location, snapping, job_id, testing=False):
@@ -534,3 +539,40 @@ def drb_point_sources(request):
 
     return Response(json.dumps(point_source_results),
                     headers={'Cache-Control': 'max-age: 604800'})
+
+
+def start_celery_job(task_list, job_input, user=None,
+                     exchange=MAGIC_EXCHANGE, routing_key=None):
+    """
+    Given a list of Celery tasks and it's input, starts a Celery async job with
+    those tasks, adds save_job_result and save_job_error handlers, and returns
+    the job's id which is used to query status and retrieve results via get_job
+
+    :param task_list: A list of Celery tasks to execute. Is made into a chain
+    :param job_input: Input to the first task, used in recording started jobs
+    :param user: The user requesting the job. Optional.
+    :param exchange: Allows restricting jobs to specific exchange. Optional.
+    :param routing_key: Allows restricting jobs to specific workers. Optional.
+    :return: A Response contianing the job id, marked as 'started'
+    """
+    created = now()
+    job = Job.objects.create(created_at=created, result='', error='',
+                             traceback='', user=user, status='started')
+    routing_key = routing_key if routing_key else choose_worker()
+    success = save_job_result.s(job.id, job_input).set(exchange=exchange,
+                                                       routing_key=routing_key)
+    error = save_job_error.s(job.id).set(exchange=exchange,
+                                         routing_key=routing_key)
+
+    task_list.append(success)
+    task_chain = chain(task_list).apply_async(link_error=error)
+
+    job.uuid = task_chain.id
+    job.save()
+
+    return Response(
+        {
+            'job': task_chain.id,
+            'status': 'started',
+        }
+    )

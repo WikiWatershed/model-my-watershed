@@ -798,8 +798,8 @@ var ResultsView = Marionette.LayoutView.extend({
 
     onShow: function() {
         var self = this,
-            aoi = App.map.get('areaOfInterest'),
-            analyzeModel = analyzeModels.AnalyzeTaskModel.getSingleton(App, aoi),
+            analyzeCollection = App.getAnalyzeCollection(),
+            analyzeViewModels = analyzeModels.createAnalyzeResultViewModelCollection(analyzeCollection),
             tmvModel = new coreModels.TaskMessageViewModel(),
             errorHandler = function(err) {
                 if (err && err.timeout) {
@@ -811,7 +811,7 @@ var ResultsView = Marionette.LayoutView.extend({
             };
 
         this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
-            model: analyzeModel
+            collection: analyzeViewModels
         }));
 
         tmvModel.setWorking('Gathering Data');

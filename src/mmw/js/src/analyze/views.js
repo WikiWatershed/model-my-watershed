@@ -14,7 +14,7 @@ var $ = require('jquery'),
     chart = require('../core/chart'),
     utils = require('../core/utils'),
     windowTmpl = require('./templates/window.html'),
-    detailsTmpl = require('../modeling/templates/resultsDetails.html'),
+    analyzeResultsTmpl = require('./templates/analyzeResults.html'),
     aoiHeaderTmpl = require('./templates/aoiHeader.html'),
     tableTmpl = require('./templates/table.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
@@ -91,7 +91,7 @@ var ResultsView = Marionette.LayoutView.extend({
 
     showDetailsRegion: function() {
         this.analyzeRegion.show(new AnalyzeWindow({
-            model: this.model
+            collection: this.collection
         }));
     },
 
@@ -133,59 +133,8 @@ var AnalyzeWindow = Marionette.LayoutView.extend({
     template: windowTmpl,
 
     regions: {
-        detailsRegion: {
-            el: '#analyze-details-region'
-        }
-    },
-
-    onShow: function() {
-        this.showAnalyzingMessage();
-
-        this.model.fetchAnalysisIfNeeded()
-            .done(_.bind(this.showDetailsRegion, this))
-            .fail(_.bind(this.showErrorMessage, this));
-    },
-
-    showAnalyzingMessage: function() {
-        var messageModel = new coreModels.TaskMessageViewModel();
-
-        messageModel.setWorking('Analyzing');
-
-        this.detailsRegion.show(new coreViews.TaskMessageView({
-            model: messageModel
-        }));
-    },
-
-    showErrorMessage: function(err) {
-        var messageModel = new coreModels.TaskMessageViewModel();
-
-        if (err && err.timeout) {
-          messageModel.setTimeoutError();
-        } else {
-          messageModel.setError();
-        }
-
-        this.detailsRegion.show(new coreViews.TaskMessageView({
-            model: messageModel
-        }));
-    },
-
-    showDetailsRegion: function() {
-        var results = JSON.parse(this.model.get('result'));
-
-        if (!this.isDestroyed) {
-            this.detailsRegion.show(new DetailsView({
-                collection: new models.LayerCollection(results)
-            }));
-        }
-    }
-});
-
-var DetailsView = Marionette.LayoutView.extend({
-    template: detailsTmpl,
-    regions: {
         panelsRegion: '.tab-panels-region',
-        contentRegion: '.tab-contents-region'
+        contentsRegion: '.tab-contents-region',
     },
 
     onShow: function() {
@@ -193,7 +142,7 @@ var DetailsView = Marionette.LayoutView.extend({
             collection: this.collection
         }));
 
-        this.contentRegion.show(new TabContentsView({
+        this.contentsRegion.show(new TabContentsView({
             collection: this.collection
         }));
     }
@@ -204,6 +153,10 @@ var TabPanelView = Marionette.ItemView.extend({
     template: tabPanelTmpl,
     attributes: {
         role: 'presentation'
+    },
+
+    initialize: function() {
+        this.listenTo(this.model, 'change:polling', this.render);
     }
 });
 
@@ -214,14 +167,6 @@ var TabPanelsView = Marionette.CollectionView.extend({
         role: 'tablist'
     },
     childView: TabPanelView,
-
-    events: {
-        'shown.bs.tab li a ': 'triggerBarChartRefresh'
-    },
-
-    triggerBarChartRefresh: function() {
-        $('#analyze-output-wrapper .bar-chart').trigger('bar-chart:refresh');
-    },
 
     onRender: function() {
         this.$el.find('li:first').addClass('active');
@@ -238,33 +183,11 @@ var TabContentView = Marionette.LayoutView.extend({
         role: 'tabpanel'
     },
     regions: {
-        aoiRegion: '.analyze-aoi-region',
-        tableRegion: '.analyze-table-region',
-        chartRegion: '.analyze-chart-region'
+        aoiRegion: '.aoi-region',
+        resultRegion: '.result-region'
     },
+
     onShow: function() {
-        var categories = this.model.get('categories'),
-            largestArea = _.max(_.pluck(categories, 'area')),
-            units = utils.magnitudeOfArea(largestArea);
-
-        var census;
-        switch (this.model.get('name')) {
-            case ('land'):
-                census = new coreModels.LandUseCensusCollection(categories);
-                break;
-            case ('soil'):
-                census = new coreModels.SoilCensusCollection(categories);
-                break;
-            case ('animals'):
-                census = new coreModels.AnimalCensusCollection(categories);
-                break;
-            case ('pointsource'):
-                census = new coreModels.PointSourceCensusCollection(categories);
-                break;
-            default:
-                throw new Error('invalid CensusCollection');
-        }
-
         this.aoiRegion.show(new AoiView({
             model: new coreModels.GeoModel({
                 place: App.map.get('areaOfInterestName'),
@@ -272,26 +195,59 @@ var TabContentView = Marionette.LayoutView.extend({
             })
         }));
 
-        if (this.model.get('name') === 'animals') {
-            this.tableRegion.show(new AnimalTableView({
-                units: units,
-                collection: census
-            }));
-        } else if (this.model.get('name') === 'pointsource') {
-            this.tableRegion.show(new PointSourceTableView({
-                units: units,
-                collection: census
-            }));
-        } else {
-            this.tableRegion.show(new TableView({
-                units: units,
-                collection: census
-            }));
+        this.showAnalyzingMessage();
 
-            this.chartRegion.show(new ChartView({
-                model: this.model,
-                collection: census
-            }));
+        this.model.get('taskRunner').fetchAnalysisIfNeeded()
+            .done(_.bind(this.showResultsIfNotDestroyed, this))
+            .fail(_.bind(this.showErrorIfNotDestroyed, this));
+    },
+
+    showAnalyzingMessage: function() {
+        var tmvModel = new coreModels.TaskMessageViewModel();
+        tmvModel.setWorking('Analyzing');
+        this.resultRegion.show(new coreViews.TaskMessageView({
+            model: tmvModel
+        }));
+        this.model.set({ polling: true });
+    },
+
+    showErrorMessage: function(err) {
+        var tmvModel = new coreModels.TaskMessageViewModel();
+
+        if (err && err.timeout) {
+            tmvModel.setTimeoutError();
+        } else {
+            tmvModel.setError();
+        }
+
+        this.resultRegion.show(new coreViews.TaskMessageView({
+            model: tmvModel
+        }));
+        this.model.set({ polling: false });
+    },
+
+    showErrorIfNotDestroyed: function(err) {
+        if (!this.isDestroyed) {
+            this.showErrorMessage(err);
+        }
+    },
+
+    showResults: function() {
+        var name = this.model.get('name'),
+            results = JSON.parse(this.model.get('taskRunner').get('result')),
+            result = _.find(results, { name: name }),
+            resultModel = new models.LayerModel(result),
+            ResultView = AnalyzeResultViews[name];
+
+        this.resultRegion.show(new ResultView({
+            model: resultModel
+        }));
+        this.model.set({ polling: false });
+    },
+
+    showResultsIfNotDestroyed: function() {
+        if (!this.isDestroyed) {
+            this.showResults();
         }
     }
 });
@@ -452,8 +408,66 @@ var ChartView = Marionette.ItemView.extend({
     }
 });
 
+var AnalyzeResultView = Marionette.LayoutView.extend({
+    template: analyzeResultsTmpl,
+    regions: {
+        chartRegion: '.chart-region',
+        tableRegion: '.table-region'
+    },
+
+    showAnalyzeResults: function(CategoriesToCensus, AnalyzeTableView, AnalyzeChartView) {
+        var categories = this.model.get('categories'),
+            largestArea = _.max(_.pluck(categories, 'area')),
+            units = utils.magnitudeOfArea(largestArea),
+            census = new CategoriesToCensus(categories);
+
+        this.tableRegion.show(new AnalyzeTableView({
+            units: units,
+            collection: census
+        }));
+
+        if (AnalyzeChartView) {
+            this.chartRegion.show(new AnalyzeChartView({
+                model: this.model,
+                collection: census
+            }));
+        }
+    }
+});
+
+var LandResultView  = AnalyzeResultView.extend({
+    onShow: function() {
+        this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView, ChartView);
+    }
+});
+
+var SoilResultView  = AnalyzeResultView.extend({
+    onShow: function() {
+        this.showAnalyzeResults(coreModels.SoilCensusCollection, TableView, ChartView);
+    }
+});
+
+var AnimalsResultView = AnalyzeResultView.extend({
+    onShow: function() {
+        this.showAnalyzeResults(coreModels.AnimalCensusCollection, AnimalTableView);
+    }
+});
+
+var PointSourceResultView = AnalyzeResultView.extend({
+    onShow: function() {
+        this.showAnalyzeResults(coreModels.PointSourceCensusCollection, PointSourceTableView);
+    }
+});
+
+var AnalyzeResultViews = {
+    land: LandResultView,
+    soil: SoilResultView,
+    animals: AnimalsResultView,
+    pointsource: PointSourceResultView,
+};
+
 module.exports = {
     ResultsView: ResultsView,
     AnalyzeWindow: AnalyzeWindow,
-    DetailsView: DetailsView
+    AnalyzeResultViews: AnalyzeResultViews,
 };

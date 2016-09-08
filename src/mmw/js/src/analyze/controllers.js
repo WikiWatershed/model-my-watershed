@@ -47,10 +47,10 @@ var AnalyzeController = {
     },
 
     analyze: function() {
-        var aoi = App.map.get('areaOfInterest'),
-            analyzeModel = models.AnalyzeTaskModel.getSingleton(App, aoi),
+        var analyzeCollection = App.getAnalyzeCollection(),
+            viewModels = models.createAnalyzeResultViewModelCollection(analyzeCollection),
             analyzeResults = new views.ResultsView({
-                model: analyzeModel
+                collection: viewModels
             });
 
         App.state.set('current_page_title', 'Geospatial Analysis');
