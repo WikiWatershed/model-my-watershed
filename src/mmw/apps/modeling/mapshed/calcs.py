@@ -231,16 +231,16 @@ def ag_ls_c_p(geom):
           ), clipped_counties_with_area AS (
               SELECT ST_Area(geom_clipped) /
                      ST_Area(ST_SetSRID(ST_GeomFromText(%s),
-                                        4326)) AS clip_percent,
+                                        4326)) AS clip_pct,
                      clipped_counties.*
               FROM clipped_counties
           )
-          SELECT SUM(hp_ls * clip_percent) AS hp_ls,
-                 SUM(hp_c * clip_percent) AS hp_c,
-                 SUM(hp_p * clip_percent) AS hp_p,
-                 SUM(crop_ls * clip_percent) AS crop_ls,
-                 SUM(crop_c * clip_percent) AS crop_c,
-                 SUM(crop_p * clip_percent) AS crop_p
+          SELECT COALESCE(SUM(hp_ls * clip_pct), 0.0) AS hp_ls,
+                 COALESCE(SUM(hp_c * clip_pct), 0.0) AS hp_c,
+                 COALESCE(SUM(hp_p * clip_pct), 0.0) AS hp_p,
+                 COALESCE(SUM(crop_ls * clip_pct), 0.0) AS crop_ls,
+                 COALESCE(SUM(crop_c * clip_pct), 0.0) AS crop_c,
+                 COALESCE(SUM(crop_p * clip_pct), 0.0) AS crop_p
           FROM clipped_counties_with_area;
           '''
 
