@@ -27,7 +27,6 @@ require('leaflet-plugins/layer/tile/Google');
 var RootView = Marionette.LayoutView.extend({
     el: 'body',
     ui: {
-        collapse: '.tab-content-toggle',
         mapContainer: '.map-container',
         sidebar: '#sidebar'
     },
@@ -43,23 +42,7 @@ var RootView = Marionette.LayoutView.extend({
         footerRegion: '#footer'
     },
     events: {
-        'click @ui.collapse': 'collapseSidebar',
         'transitionend @ui.mapContainer': 'onMapResized'
-    },
-
-    collapseSidebar: function() {
-        // Toggle appropriate classes to show and hide
-        // the sidebar / make the map full/partial width
-        this.$el.find(this.ui.sidebar).toggleClass('hidden-sidebar');
-        this.$el.find(this.ui.mapContainer).toggleClass('hidden-sidebar');
-    },
-
-    showCollapsable: function() {
-        $(this.ui.collapse).show();
-    },
-
-    hideCollapsable: function() {
-        $(this.ui.collapse).hide();
     },
 
     onMapResized: function(e) {
