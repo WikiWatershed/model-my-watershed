@@ -18,6 +18,7 @@ var L = require('leaflet'),
     settings = require('./settings'),
     LayerControl = require('./layerControl'),
     OpacityControl = require('./opacityControl'),
+    SidebarToggleControl = require('./sidebarToggleControl'),
     VizerLayers = require('./vizerLayers');
 
 require('leaflet.locatecontrol');
@@ -767,6 +768,18 @@ var MapView = Marionette.ItemView.extend({
                 });
             }
         });
+    },
+
+    addSidebarToggleControl: function() {
+        this._sidebarToggleControl = new SidebarToggleControl();
+        this._leafletMap.addControl(this._sidebarToggleControl);
+    },
+
+    removeSidebarToggleControl: function() {
+        if (this._sidebarToggleControl) {
+            this._leafletMap.removeControl(this._sidebarToggleControl);
+            delete this._sidebarToggleControl;
+        }
     }
 });
 
