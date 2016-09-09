@@ -161,19 +161,19 @@ def animal_energy_units(geom):
                                   ST_SetSRID(ST_GeomFromText(%s),
                                              4326))
           ), clipped_counties_with_area AS (
-              SELECT ST_Area(geom_clipped) / ST_Area(geom) AS clip_percent,
+              SELECT ST_Area(geom_clipped) / ST_Area(geom) AS clip_pct,
                      clipped_counties.*
               FROM clipped_counties
           )
-          SELECT SUM(beef_ha * ag_ha * clip_percent) AS beef_cows,
-                 SUM(broiler_ha * ag_ha * clip_percent) AS broilers,
-                 SUM(dairy_ha * ag_ha * clip_percent) AS dairy_cows,
-                 SUM(goat_ha * ag_ha * clip_percent) +
-                 SUM(sheep_ha * ag_ha * clip_percent) AS sheep,
-                 SUM(hog_ha * ag_ha * clip_percent) AS hogs,
-                 SUM(horse_ha * ag_ha * clip_percent) AS horses,
-                 SUM(layer_ha * ag_ha * clip_percent) AS layers,
-                 SUM(turkey_ha * ag_ha * clip_percent) AS turkeys
+          SELECT COALESCE(SUM(beef_ha * ag_ha * clip_pct), 0.0) AS beef_cows,
+                 COALESCE(SUM(broiler_ha * ag_ha * clip_pct), 0.0) AS broilers,
+                 COALESCE(SUM(dairy_ha * ag_ha * clip_pct), 0.0) AS dairy_cows,
+                 COALESCE(SUM(goat_ha * ag_ha * clip_pct), 0.0) +
+                 COALESCE(SUM(sheep_ha * ag_ha * clip_pct), 0.0) AS sheep,
+                 COALESCE(SUM(hog_ha * ag_ha * clip_pct), 0.0) AS hogs,
+                 COALESCE(SUM(horse_ha * ag_ha * clip_pct), 0.0) AS horses,
+                 COALESCE(SUM(layer_ha * ag_ha * clip_pct), 0.0) AS layers,
+                 COALESCE(SUM(turkey_ha * ag_ha * clip_pct), 0.0) AS turkeys
           FROM clipped_counties_with_area;
           '''
 
@@ -184,11 +184,10 @@ def animal_energy_units(geom):
         columns = [col[0] for col in cursor.description]
         values = cursor.fetchone()  # Only one row since aggregate query
         population = dict(zip(columns, values))
-
-        livestock_aeu = round(sum(population.get(animal, 0) *
+        livestock_aeu = round(sum(population[animal] *
                                   WEIGHTOF[animal] / 1000
                                   for animal in LIVESTOCK))
-        poultry_aeu = round(sum(population.get(animal, 0) *
+        poultry_aeu = round(sum(population[animal] *
                                 WEIGHTOF[animal] / 1000
                                 for animal in POULTRY))
 
