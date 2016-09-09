@@ -140,7 +140,7 @@ var tableHeaders = {
     land: ['Type', 'Area (km2)', 'Coverage (%)'],
     soil: ['Type', 'Area (km2)', 'Coverage (%)'],
     animals: ['Animal', 'Count'],
-    pointsource: ['Code', 'City', 'Discharge (MGD)', 'TN Load (kg/yr)', 'TP Load (kg/yr)'],
+    pointsource: ['NPDES Code', 'City', 'Discharge (MGD)', 'TN Load (kg/yr)', 'TP Load (kg/yr)'],
 };
 
 function tableRows(type, result) {
