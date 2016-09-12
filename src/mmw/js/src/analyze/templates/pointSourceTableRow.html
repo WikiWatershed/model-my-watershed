@@ -1,4 +1,4 @@
-<td>{{ npdes_id }}</td>
+<td class="npdes-id" data-npdes-id="{{ npdes_id }}">{{ npdes_id }}</td>
 <td>{{ city|title if city else noData }}</td>
 <td class="strong text-right">{{ mgd|toLocaleString() if mgd else noData }}</td>
 <td class="strong text-right">{{ kgn_yr|toLocaleString() if kgn_yr else noData }}</td>
