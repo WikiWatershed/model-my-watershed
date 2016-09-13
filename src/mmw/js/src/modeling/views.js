@@ -803,9 +803,12 @@ var ResultsView = Marionette.LayoutView.extend({
             tmvModel = new coreModels.TaskMessageViewModel(),
             errorHandler = function(err) {
                 if (err && err.timeout) {
-                  tmvModel.setTimeoutError();
+                    tmvModel.setTimeoutError();
                 } else {
-                  tmvModel.setError();
+                    var message = err.error === 'NO_LAND_COVER' ?
+                        'Selected area of interest doesn\'t include any land ' +
+                        'cover to run the model' : 'Error';
+                    tmvModel.setError(message);
                 }
                 self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
             };

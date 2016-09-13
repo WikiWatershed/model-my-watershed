@@ -45,6 +45,7 @@ ANIMAL_KEYS = settings.GWLFE_CONFIG['AnimalKeys']
 ACRES_PER_SQM = 0.000247105
 HECTARES_PER_SQM = 0.0001
 SQKM_PER_SQM = 0.000001
+NO_LAND_COVER = 'NO_LAND_COVER'
 
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=42)
@@ -155,6 +156,11 @@ def collect_data(geop_result, geojson):
     z['SedPhos'] = geop_result['sed_phos']
     z['Area'] = [percent * area * HECTARES_PER_SQM
                  for percent in geop_result['landuse_pcts']]
+
+    # Immediately return an error if z['Area'] is a list of 0s
+    if sum(z['Area']) == 0:
+        raise Exception(NO_LAND_COVER)
+
     z['UrbAreaTotal'] = sum(z['Area'][NRur:])
     z['PhosConc'] = phosphorus_conc(z['SedPhos'])
 
@@ -298,6 +304,10 @@ def nlcd_soils(sjs_result):
         raise Exception('[nlcd_soils] {}'.format(sjs_result['error']))
 
     ngt_count = parse_sjs_result(sjs_result)
+
+    # Raise exception if no NLCD values
+    if len(ngt_count.values()) == 0:
+        raise Exception(NO_LAND_COVER)
 
     # Split combined counts into separate ones for processing
     # Reduce [(n, g, t): c] to
