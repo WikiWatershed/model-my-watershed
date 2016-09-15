@@ -1,9 +1,9 @@
 <h2 class="measurements-name">NPDES Code: {{ npdes_id }}</h2>
 <div class="measurements-platform">
-    {{ facilityname if facilityname else noData }}
+    {{ facilityname if facilityname else '' }}
 </div>
 <div class="measurements-platform">
-    {{ city if city else noData }}, {{ state if state else noData }}
+    {{ city if city else '' }}{{ ', ' + state if state else '' }}
 </div>
 <table class="table">
     <thead>

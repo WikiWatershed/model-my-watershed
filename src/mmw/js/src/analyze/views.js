@@ -2,7 +2,9 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
+    Backbone = require('../../shim/backbone'),
     App = require('../app'),
     router = require('../router').router,
     models = require('./models'),
@@ -13,6 +15,7 @@ var $ = require('jquery'),
     coreViews = require('../core/views'),
     chart = require('../core/chart'),
     utils = require('../core/utils'),
+    pointSourceLayer = require('../core/pointSourceLayer'),
     windowTmpl = require('./templates/window.html'),
     analyzeResultsTmpl = require('./templates/analyzeResults.html'),
     aoiHeaderTmpl = require('./templates/aoiHeader.html'),
@@ -333,6 +336,7 @@ var AnimalTableView = Marionette.CompositeView.extend({
 var PointSourceTableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
     template: pointSourceTableRowTmpl,
+
     templateHelpers: function() {
         return {
             val: this.model.get('value'),
@@ -364,6 +368,41 @@ var PointSourceTableView = Marionette.CompositeView.extend({
 
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
+    },
+
+    ui: {
+        'pointSourceId': '.point-source-id'
+    },
+
+    events: {
+        'mouseover @ui.pointSourceId': 'showPointSourceMarker',
+        'mouseout @ui.pointSourceId': 'removePointSourceMarker'
+    },
+
+    showPointSourceMarker: function(e) {
+        var data = $(e.currentTarget).data(),
+            latLng = L.latLng([data.lat, data.lng]),
+            map = App.getLeafletMap();
+
+        this.marker = L.circleMarker(latLng, {
+            fillColor: "#ff7800",
+            weight: 0,
+            fillOpacity: 0.75
+        }).bindPopup(new pointSourceLayer.PointSourcePopupView({
+          model: new Backbone.Model(data)
+        }).render().el);
+
+        this.marker.addTo(map);
+        map.panTo(this.marker.getLatLng());
+        this.marker.openPopup();
+    },
+
+    removePointSourceMarker: function() {
+        var map = App.getLeafletMap();
+
+        if (this.marker) {
+            map.removeLayer(this.marker);
+        }
     }
 });
 

@@ -13,7 +13,7 @@ var markerSizesForZoomLevels = [
     2, 2.25, 3, 6, 8, 10, 10, 10, 10, 10
 ];
 
-module.exports = {
+var Layer = {
     createLayer: function(geojsonFeatureCollection, leafletMap) {
         return L.geoJson($.parseJSON(geojsonFeatureCollection), {
             pointToLayer: function (feature, latlng) {
@@ -52,3 +52,6 @@ var PointSourcePopupView = Marionette.ItemView.extend({
         };
     }
 });
+
+module.exports.Layer = Layer;
+module.exports.PointSourcePopupView = PointSourcePopupView;
