@@ -217,8 +217,8 @@ var TaskMessageViewModel = Backbone.Model.extend({
     message: null,
     iconClass: null,
 
-    setError: function() {
-        this.set('message', 'Error');
+    setError: function(message) {
+        this.set('message', message);
         this.set('iconClasses', 'fa fa-exclamation-triangle');
     },
 

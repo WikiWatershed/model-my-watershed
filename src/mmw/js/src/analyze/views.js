@@ -217,7 +217,7 @@ var TabContentView = Marionette.LayoutView.extend({
         if (err && err.timeout) {
             tmvModel.setTimeoutError();
         } else {
-            tmvModel.setError();
+            tmvModel.setError('Error');
         }
 
         this.resultRegion.show(new coreViews.TaskMessageView({
