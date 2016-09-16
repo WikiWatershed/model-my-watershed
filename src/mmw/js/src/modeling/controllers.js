@@ -11,11 +11,11 @@ var $ = require('jquery'),
 
 var ModelingController = {
     projectPrepare: function(projectId) {
-        App.rootView.showCollapsable();
         if (!projectId && !App.map.get('areaOfInterest')) {
             router.navigate('', { trigger: true });
             return false;
         }
+        App.getMapView().addSidebarToggleControl();
     },
 
     project: function(projectId, scenarioParam) {
@@ -123,7 +123,7 @@ var ModelingController = {
             finishProjectSetup(project, lock);
             updateUrl();
         }
-        App.rootView.showCollapsable();
+        App.getMapView().addSidebarToggleControl();
         setPageTitle();
     },
 
@@ -243,7 +243,6 @@ function setPageTitle() {
 }
 
 function projectCleanUp() {
-    App.rootView.hideCollapsable();
     if (App.currentProject) {
         var scenarios = App.currentProject.get('scenarios');
 
@@ -258,6 +257,7 @@ function projectCleanUp() {
         App.projectNumber = scenarios.at(0).get('project');
     }
 
+    App.getMapView().removeSidebarToggleControl();
     App.getMapView().updateModifications(null);
     App.rootView.subHeaderRegion.empty();
     App.rootView.sidebarRegion.empty();
