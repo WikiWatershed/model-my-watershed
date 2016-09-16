@@ -45,6 +45,9 @@ function actOnLayer(datum) {
 function validateRwdShape(result) {
     var d = new $.Deferred();
     if (result.watershed) {
+        if (result.watershed.features[0].geometry.type === 'MultiPolygon') {
+            d.reject('Unable to generate a valid watershed area at this location');
+        }
         validateShape(result.watershed)
             .done(function() {
                 d.resolve(result);
