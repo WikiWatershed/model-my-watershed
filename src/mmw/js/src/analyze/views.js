@@ -2,7 +2,9 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
+    Backbone = require('../../shim/backbone'),
     App = require('../app'),
     router = require('../router').router,
     models = require('./models'),
@@ -13,6 +15,7 @@ var $ = require('jquery'),
     coreViews = require('../core/views'),
     chart = require('../core/chart'),
     utils = require('../core/utils'),
+    pointSourceLayer = require('../core/pointSourceLayer'),
     windowTmpl = require('./templates/window.html'),
     analyzeResultsTmpl = require('./templates/analyzeResults.html'),
     aoiHeaderTmpl = require('./templates/aoiHeader.html'),
@@ -332,7 +335,9 @@ var AnimalTableView = Marionette.CompositeView.extend({
 
 var PointSourceTableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
+    className: 'point-source',
     template: pointSourceTableRowTmpl,
+
     templateHelpers: function() {
         return {
             val: this.model.get('value'),
@@ -364,6 +369,60 @@ var PointSourceTableView = Marionette.CompositeView.extend({
 
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
+    },
+
+    ui: {
+        'pointSourceTR': 'tr.point-source',
+        'pointSourceId': '.point-source-id'
+    },
+
+    events: {
+        'click @ui.pointSourceId': 'panToPointSourceMarker',
+        'mouseout @ui.pointSourceId': 'removePointSourceMarker',
+        'mouseover @ui.pointSourceTR': 'addPointSourceMarkerToMap',
+        'mouseout @ui.pointSourceTR': 'removePointSourceMarker'
+    },
+
+    createPointSourceMarker: function(data) {
+        var latLng = L.latLng([data.lat, data.lng]);
+
+        this.marker = L.circleMarker(latLng, {
+            fillColor: "#ff7800",
+            weight: 0,
+            fillOpacity: 0.75
+        }).bindPopup(new pointSourceLayer.PointSourcePopupView({
+          model: new Backbone.Model(data)
+        }).render().el);
+    },
+
+    addPointSourceMarkerToMap: function(e) {
+        var data = $(e.currentTarget).find('.point-source-id').data(),
+            map = App.getLeafletMap();
+
+        this.createPointSourceMarker(data);
+
+        this.marker.addTo(map);
+    },
+
+    panToPointSourceMarker: function(e) {
+        var map = App.getLeafletMap();
+
+        if (!this.marker) {
+          var data = $(e.currentTarget).data();
+          this.createPointSourceMarker(data);
+        }
+
+        this.marker.addTo(map);
+        map.panTo(this.marker.getLatLng());
+        this.marker.openPopup();
+    },
+
+    removePointSourceMarker: function() {
+        var map = App.getLeafletMap();
+
+        if (this.marker) {
+            map.removeLayer(this.marker);
+        }
     }
 });
 

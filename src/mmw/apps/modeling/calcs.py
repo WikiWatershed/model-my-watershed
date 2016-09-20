@@ -52,7 +52,8 @@ def point_source_pollution(geojson):
     drb = geom.within(DRB)
     table_name = get_point_source_table(drb)
     sql = '''
-          SELECT city, npdes_id, mgd, kgn_yr, kgp_yr
+          SELECT city, state, npdes_id, mgd, kgn_yr, kgp_yr, latitude,
+                 longitude
           FROM {table_name}
           WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromText(%s), 4326))
           '''.format(table_name=table_name)
@@ -64,10 +65,12 @@ def point_source_pollution(geojson):
             columns = [col[0] for col in cursor.description]
             point_source_results = [
                 dict(zip(columns,
-                         [row[0], row[1],
-                          float(row[2]) if row[2] else None,
+                         [row[0], row[1], row[2],
                           float(row[3]) if row[3] else None,
-                          float(row[4]) if row[4] else None]))
+                          float(row[4]) if row[4] else None,
+                          float(row[5]) if row[5] else None,
+                          float(row[6]) if row[6] else None,
+                          float(row[7]) if row[7] else None]))
                 for row in cursor.fetchall()
             ]
         else:

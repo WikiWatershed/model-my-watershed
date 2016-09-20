@@ -36,7 +36,7 @@ module.exports = L.Control.Layers.extend({
                 for (i in observationLayers) {
                     self._addLayer(observationLayers[i], i, 'observation');
                 }
-                self._addLayer(pointSourceLayer.createLayer(pointSourceData[0],
+                self._addLayer(pointSourceLayer.Layer.createLayer(pointSourceData[0],
                     self._map), 'DRB Point Source', 'observation');
                 self._update();
             })
