@@ -335,6 +335,7 @@ var AnimalTableView = Marionette.CompositeView.extend({
 
 var PointSourceTableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
+    className: 'point-source',
     template: pointSourceTableRowTmpl,
 
     templateHelpers: function() {
@@ -371,18 +372,19 @@ var PointSourceTableView = Marionette.CompositeView.extend({
     },
 
     ui: {
+        'pointSourceTR': 'tr.point-source',
         'pointSourceId': '.point-source-id'
     },
 
     events: {
-        'mouseover @ui.pointSourceId': 'showPointSourceMarker',
-        'mouseout @ui.pointSourceId': 'removePointSourceMarker'
+        'click @ui.pointSourceId': 'panToPointSourceMarker',
+        'mouseout @ui.pointSourceId': 'removePointSourceMarker',
+        'mouseover @ui.pointSourceTR': 'addPointSourceMarkerToMap',
+        'mouseout @ui.pointSourceTR': 'removePointSourceMarker'
     },
 
-    showPointSourceMarker: function(e) {
-        var data = $(e.currentTarget).data(),
-            latLng = L.latLng([data.lat, data.lng]),
-            map = App.getLeafletMap();
+    createPointSourceMarker: function(data) {
+        var latLng = L.latLng([data.lat, data.lng]);
 
         this.marker = L.circleMarker(latLng, {
             fillColor: "#ff7800",
@@ -391,6 +393,24 @@ var PointSourceTableView = Marionette.CompositeView.extend({
         }).bindPopup(new pointSourceLayer.PointSourcePopupView({
           model: new Backbone.Model(data)
         }).render().el);
+    },
+
+    addPointSourceMarkerToMap: function(e) {
+        var data = $(e.currentTarget).find('.point-source-id').data(),
+            map = App.getLeafletMap();
+
+        this.createPointSourceMarker(data);
+
+        this.marker.addTo(map);
+    },
+
+    panToPointSourceMarker: function(e) {
+        var map = App.getLeafletMap();
+
+        if (!this.marker) {
+          var data = $(e.currentTarget).data();
+          this.createPointSourceMarker(data);
+        }
 
         this.marker.addTo(map);
         map.panTo(this.marker.getLatLng());
