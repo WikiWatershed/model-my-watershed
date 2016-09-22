@@ -41,12 +41,12 @@
     },
     "bootstrap-select": {
       "version": "1.6.4",
-      "from": "../../tmp/npm-31030-7f32f0c4/1436971651298-0.12548802117817104/f1755efa102a41e43fc367ba36ce905b8f2b90e1",
+      "from": "../../tmp/npm-24405-0c849a11/1458047984283-0.7709784908220172/f1755efa102a41e43fc367ba36ce905b8f2b90e1",
       "resolved": "git://github.com/azavea/bootstrap-select#f1755efa102a41e43fc367ba36ce905b8f2b90e1"
     },
     "bootstrap-table": {
       "version": "1.11.0",
-      "from": "bootstrap-table@1.11.0",
+      "from": "https://registry.npmjs.org/bootstrap-table/-/bootstrap-table-1.11.0.tgz",
       "resolved": "https://registry.npmjs.org/bootstrap-table/-/bootstrap-table-1.11.0.tgz"
     },
     "browserify": {
@@ -1059,7 +1059,7 @@
     },
     "iframe-phone": {
       "version": "1.1.3",
-      "from": "../../tmp/npm-20250-abe6eb52/1438892615234-0.44843362690880895/200f47f43ee32d640868072c17de4a675e16d96a",
+      "from": "../../tmp/npm-24405-0c849a11/1458047983092-0.3256396157667041/200f47f43ee32d640868072c17de4a675e16d96a",
       "resolved": "git://github.com/concord-consortium/iframe-phone#200f47f43ee32d640868072c17de4a675e16d96a"
     },
     "jquery": {
@@ -1506,13 +1506,13 @@
       "resolved": "https://registry.npmjs.org/leaflet/-/leaflet-0.7.3.tgz"
     },
     "leaflet-draw": {
-      "version": "0.3.0",
-      "from": "git://github.com/azavea/Leaflet.draw",
-      "resolved": "git://github.com/azavea/Leaflet.draw"
+      "version": "0.3.2",
+      "from": "../../tmp/npm-6199-00118bf9/1474488080742-0.8412217914592475/35f0df26bb8e403b1395a684f8d8a7fa0fae775e",
+      "resolved": "git://github.com/azavea/Leaflet.draw#35f0df26bb8e403b1395a684f8d8a7fa0fae775e"
     },
     "leaflet-plugins": {
       "version": "1.3.8",
-      "from": "git://github.com/azavea/leaflet-plugins#feature/browserify",
+      "from": "../../tmp/npm-24405-0c849a11/1458047983856-0.9523682650178671/1fb49a72c8f53cf95786064b1569dc91bfebae6c",
       "resolved": "git://github.com/azavea/leaflet-plugins#1fb49a72c8f53cf95786064b1569dc91bfebae6c"
     },
     "leaflet.locatecontrol": {
@@ -2038,7 +2038,7 @@
     },
     "moment": {
       "version": "2.10.6",
-      "from": "moment@*",
+      "from": "https://registry.npmjs.org/moment/-/moment-2.10.6.tgz",
       "resolved": "https://registry.npmjs.org/moment/-/moment-2.10.6.tgz"
     },
     "node-sass": {
@@ -3275,7 +3275,7 @@
     },
     "retina.js": {
       "version": "1.3.0",
-      "from": "../../tmp/npm-31030-7f32f0c4/1436971651112-0.5243154705967754/a70e73639817473bad7bbb33f866b8e060e5f5a7",
+      "from": "../../tmp/npm-24405-0c849a11/1458047983982-0.8071507911663502/a70e73639817473bad7bbb33f866b8e060e5f5a7",
       "resolved": "git://github.com/imulus/retinajs#a70e73639817473bad7bbb33f866b8e060e5f5a7"
     },
     "sinon": {
@@ -3956,7 +3956,7 @@
     },
     "turf-erase": {
       "version": "1.3.2",
-      "from": "turf-erase@1.3.2",
+      "from": "https://registry.npmjs.org/turf-erase/-/turf-erase-1.3.2.tgz",
       "resolved": "https://registry.npmjs.org/turf-erase/-/turf-erase-1.3.2.tgz",
       "dependencies": {
         "jsts": {
@@ -3973,14 +3973,14 @@
         },
         "turf-featurecollection": {
           "version": "1.0.1",
-          "from": "turf-featurecollection@1.0.1",
+          "from": "https://registry.npmjs.org/turf-featurecollection/-/turf-featurecollection-1.0.1.tgz",
           "resolved": "https://registry.npmjs.org/turf-featurecollection/-/turf-featurecollection-1.0.1.tgz"
         }
       }
     },
     "turf-intersect": {
       "version": "1.4.2",
-      "from": "turf-intersect@1.4.2",
+      "from": "https://registry.npmjs.org/turf-intersect/-/turf-intersect-1.4.2.tgz",
       "resolved": "https://registry.npmjs.org/turf-intersect/-/turf-intersect-1.4.2.tgz",
       "dependencies": {
         "jsts": {
@@ -3994,6 +3994,18 @@
               "resolved": "https://registry.npmjs.org/javascript.util/-/javascript.util-0.12.5.tgz"
             }
           }
+        }
+      }
+    },
+    "turf-kinks": {
+      "version": "3.0.12",
+      "from": "turf-kinks@*",
+      "resolved": "https://registry.npmjs.org/turf-kinks/-/turf-kinks-3.0.12.tgz",
+      "dependencies": {
+        "turf-helpers": {
+          "version": "3.0.12",
+          "from": "turf-helpers@>=3.0.12 <4.0.0",
+          "resolved": "https://registry.npmjs.org/turf-helpers/-/turf-helpers-3.0.12.tgz"
         }
       }
     },
