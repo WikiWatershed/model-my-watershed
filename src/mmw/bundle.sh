@@ -130,6 +130,7 @@ JS_DEPS=(backbone
          turf-destination
          turf-erase
          turf-intersect
+         turf-kinks
          underscore
          zeroclipboard)
 
