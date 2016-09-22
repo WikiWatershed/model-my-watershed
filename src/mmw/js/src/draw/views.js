@@ -8,6 +8,7 @@ var $ = require('jquery'),
     turfBboxPolygon = require('turf-bbox-polygon'),
     turfDestination = require('turf-destination'),
     turfIntersect = require('turf-intersect'),
+    turfKinks = require('turf-kinks'),
     router = require('../router').router,
     App = require('../app'),
     utils = require('./utils'),
@@ -63,8 +64,15 @@ function validateRwdShape(result) {
 function validateShape(polygon) {
     var area = coreUtils.changeOfAreaUnits(turfArea(polygon), 'm<sup>2</sup>', 'km<sup>2</sup>'),
         d = new $.Deferred();
+    var selfIntersectingShape = turfKinks(polygon).features.length > 0;
 
-    if (area > MAX_AREA) {
+    if (selfIntersectingShape) {
+        var errorMsg = 'This watershed shape is invalid because it intersects ' +
+                       'itself. Try drawing the shape again without crossing ' +
+                       'over its own border.';
+        window.alert(errorMsg);
+        d.reject(errorMsg);
+    } else if (area > MAX_AREA) {
         var message = 'Sorry, your Area of Interest is too large.\n\n' +
                       Math.floor(area).toLocaleString() + ' km² were selected, ' +
                       'but the maximum supported size is currently ' +
