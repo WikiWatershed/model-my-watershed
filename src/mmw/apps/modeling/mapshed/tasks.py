@@ -460,23 +460,14 @@ def nlcd_kfactor(result):
 def geop_tasks(geom, errback, exchange, choose_worker):
     # List of tuples of (opname, data, callback) for each geop task
     definitions = [
-        ('nlcd_streams',
-         {'polygon': [geom.geojson], 'vector': streams(geom)},
-         nlcd_streams),
+        ('nlcd_streams', {'polygon': [geom.geojson],
+                          'vector': streams(geom)}, nlcd_streams),
         ('nlcd_soils', {'polygon': [geom.geojson]}, nlcd_soils),
-        ('gwn',
-         {'polygon': [geom.geojson]}, gwn),
-        ('avg_awc',
-         {'polygon': [geom.geojson]}, avg_awc),
-        ('nlcd_slope',
-         {'polygon': [geom.geojson]},
-         nlcd_slope),
-        ('slope',
-         {'polygon': [geom.geojson]},
-         slope),
-        ('nlcd_kfactor',
-         {'polygon': [geom.geojson]},
-         nlcd_kfactor)
+        ('gwn', {'polygon': [geom.geojson]}, gwn),
+        ('avg_awc', {'polygon': [geom.geojson]}, avg_awc),
+        ('nlcd_slope', {'polygon': [geom.geojson]}, nlcd_slope),
+        ('slope', {'polygon': [geom.geojson]}, slope),
+        ('nlcd_kfactor', {'polygon': [geom.geojson]}, nlcd_kfactor)
     ]
 
     tasks = zip(definitions, [choose_worker()
