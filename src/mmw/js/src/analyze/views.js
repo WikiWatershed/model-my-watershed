@@ -55,7 +55,29 @@ var ResultsView = Marionette.LayoutView.extend({
             modelPackageName = $(e.target).data('id'),
             modelPackage = _.find(modelPackages, {name: modelPackageName}),
             newProjectUrl = '/project/new/' + modelPackageName,
-            projectUrl = '/project';
+            projectUrl = '/project',
+            analysisResults = JSON.parse(App.getAnalyzeCollection()
+                                            .findWhere({taskName: 'analyze'})
+                                            .get('result') || "{}"),
+            landResults = _.find(analysisResults, function(element) {
+                    return element.name === 'land';
+            });
+
+        if (landResults) {
+            var landCoverTotal = _.sum(_.map(landResults.categories,
+                    function(category) {
+                        if (category.type === 'Open Water') {
+                            return 0;
+                        }
+                        return category.area;
+                    }));
+
+            if (landCoverTotal === 0) {
+                window.alert("The selected Area of Interest doesn't " +
+                             "include any land cover to run the model.");
+                return;
+            }
+        }
 
         if (!modelPackage.disabled) {
             if (settings.get('itsi_embed') && App.currentProject && !App.currentProject.get('needs_reset')) {
