@@ -355,6 +355,7 @@ var MapView = Marionette.ItemView.extend({
 
         // The max available zoom level changes based on the active base layer
         this._leafletMap.on('baselayerchange', this.updateCurrentZoomLevel);
+        this._leafletMap.on('baselayerchange', this.updateDrbLayerZoomLevel);
 
         // Some Google layers have a dynamic max zoom that we need to handle.
         // Check that Google Maps API library is available before implementing
@@ -728,6 +729,29 @@ var MapView = Marionette.ItemView.extend({
                 map.setZoom(layerMaxZoom);
             }, 100);
         }
+    },
+
+    updateDrbLayerZoomLevel: function(e) {
+        var layerMaxZoom = e.layer.options.maxZoom;
+        var adjSettings = 
+            _.map(settings.get('stream_layers'),
+                  function(o) {
+                      if (o.code === 'drb_streams_v2') {
+                          o.maxZoom = layerMaxZoom;
+                          return o;
+                      } else {
+                          return o;
+                      }
+                  }
+            );
+
+        settings.set('stream_layers', adjSettings);
+
+        _.each(this._layers, function(layer) {
+          if (layer.options !== undefined && layer.options.code==='drb_streams_v2'){
+              layer.options.maxZoom = layerMaxZoom;
+          }
+        });
     },
 
     // The max zoom for a Google layer that uses satellite imagery
