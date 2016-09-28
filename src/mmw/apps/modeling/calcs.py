@@ -44,7 +44,9 @@ def animal_population(geojson):
 def point_source_pollution(geojson):
     """
     Given a GeoJSON shape, retrieve point source pollution data
-    from the `ms_pointsource` table to display in the Analyze tab.
+    from the `ms_pointsource` or `ms_pointsource_drb table to display
+    in the Analyze tab.
+
     Returns a dictionary to append to the outgoing JSON for analysis
     results.
     """
@@ -53,10 +55,11 @@ def point_source_pollution(geojson):
     table_name = get_point_source_table(drb)
     sql = '''
           SELECT city, state, npdes_id, mgd, kgn_yr, kgp_yr, latitude,
-                 longitude
+                 longitude, {facilityname}
           FROM {table_name}
           WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromText(%s), 4326))
-          '''.format(table_name=table_name)
+          '''.format(facilityname='facilityname' if drb else 'null',
+                     table_name=table_name)
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [geom.wkt])
@@ -70,7 +73,8 @@ def point_source_pollution(geojson):
                           float(row[4]) if row[4] else None,
                           float(row[5]) if row[5] else None,
                           float(row[6]) if row[6] else None,
-                          float(row[7]) if row[7] else None]))
+                          float(row[7]) if row[7] else None,
+                          row[8]]))
                 for row in cursor.fetchall()
             ]
         else:
