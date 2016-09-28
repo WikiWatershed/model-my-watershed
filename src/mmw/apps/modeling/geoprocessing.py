@@ -58,8 +58,9 @@ def sjs_submit(host, port, args, data, retry=None):
     Submits a job to Spark Job Server. Returns its Job ID, which
     can be used with sjs_retrieve to get the final result.
     """
-    url = 'http://{}:{}/jobs?{}'.format(host, port, args)
-    response = requests.post(url, data=json.dumps(data))
+    base_url = 'http://{}:{}'.format(host, port)
+    jobs_url = '{}/jobs?{}'.format(base_url, args)
+    response = requests.post(jobs_url, data=json.dumps(data))
 
     if response.ok:
         job = response.json()
@@ -71,6 +72,21 @@ def sjs_submit(host, port, args, data, retry=None):
             except MaxRetriesExceededError:
                 raise Exception('No slots available in Spark JobServer.\n'
                                 'Details = {}'.format(response.text))
+        elif error['result'] == 'context geoprocessing not found':
+            reboot_sjs_url = '{}/contexts?reset=reboot'.format(base_url)
+            context_response = requests.put(reboot_sjs_url)
+
+            if context_response.ok:
+                if retry:
+                    retry()
+                else:
+                    raise Exception('Geoprocessing context missing in Spark'
+                                    'JobServer, but no retry was set.\n'
+                                    'Details = {}'.format())
+            else:
+                raise Exception('Unable to create missing geoprocessing '
+                                'context in Spark JobServer.\n'
+                                'Details = {}'.format(context_response.text))
         else:
             raise Exception('Unable to submit job to Spark JobServer.\n'
                             'Details = {}'.format(response.text))
