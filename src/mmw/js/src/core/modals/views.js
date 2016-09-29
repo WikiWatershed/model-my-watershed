@@ -12,6 +12,7 @@ var _ = require('underscore'),
     modalInputTmpl = require('./templates/inputModal.html'),
     modalPlotTmpl = require('./templates/plotModal.html'),
     modalShareTmpl = require('./templates/shareModal.html'),
+    modalAlertTmpl = require('./templates/alertModal.html'),
     vizerUrls = require('../settings').get('vizer_urls'),
 
     ENTER_KEYCODE = 13,
@@ -198,6 +199,31 @@ var ShareView = ModalBaseView.extend({
     }
 });
 
+var AlertView = ModalBaseView.extend({
+    template: modalAlertTmpl,
+
+    ui: {
+        dismiss: '.btn-default'
+    },
+
+    events: _.defaults({
+        'click @ui.dismiss': 'dismissAction'
+    }, ModalBaseView.prototype.events),
+
+    dismissAction: function() {
+        this.triggerMethod('dismiss');
+    },
+
+    templateHelpers: function() {
+        return {
+            alertMessage: this.model.get('message'),
+            alertHeader: this.model.get('alertType').header,
+            alertIcon: this.model.get('alertType').alertIcon,
+            dismissLabel: this.model.get('alertType').dismissLabel
+        };
+    }
+});
+
 var PlotView = ModalBaseView.extend({
     template: modalPlotTmpl,
 
@@ -371,5 +397,6 @@ module.exports = {
     ShareView: ShareView,
     InputView: InputView,
     ConfirmView: ConfirmView,
-    PlotView: PlotView
+    PlotView: PlotView,
+    AlertView: AlertView
 };

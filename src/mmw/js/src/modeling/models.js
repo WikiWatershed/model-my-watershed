@@ -593,6 +593,7 @@ var GwlfeModificationModel = Backbone.Model.extend({
 
 var ScenarioModel = Backbone.Model.extend({
     urlRoot: '/api/modeling/scenarios/',
+    alerts: [],
 
     defaults: {
         name: '',
@@ -889,6 +890,7 @@ var ScenarioModel = Backbone.Model.extend({
 var ScenariosCollection = Backbone.Collection.extend({
     model: ScenarioModel,
     comparator: 'created_at',
+    alerts: [],
 
     initialize: function() {
         this.on('reset', this.makeFirstScenarioActive);
@@ -958,8 +960,12 @@ var ScenariosCollection = Backbone.Collection.extend({
         });
 
         if (match) {
-            window.alert("There is another scenario with the same name. " +
-                    "Please choose a unique name for this scenario.");
+            this.alerts.push({message: 'There is another scenario with the same name. ' +
+                        'Please choose a unique name for this scenario.',
+                        alertType: 'warning',
+                        dismissLabel: 'Okay'});
+
+           this.trigger('change:alerts'); 
 
             console.log('This name is already in use.');
 

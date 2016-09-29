@@ -267,6 +267,7 @@ var ScenariosView = Marionette.LayoutView.extend({
 
     initialize: function(options) {
         this.projectModel = options.projectModel;
+        this.listenTo(this.collection, 'change:alerts', this.showAlert);
     },
 
     templateHelpers: function() {
@@ -324,6 +325,19 @@ var ScenariosView = Marionette.LayoutView.extend({
             cid = $el.data('scenario-cid');
 
         this.collection.setActiveScenarioByCid(cid);
+    },
+
+    showAlert: function() {
+        var a = this.collection.alerts.shift();
+        var alertView = new modalViews.AlertView({
+            model: new modalModels.AlertModel({
+                message: a.message,
+                alertType: a.alertType,
+                dismissLabel: a.dismissLabel
+            })
+        });
+
+        alertView.render();
     }
 });
 
