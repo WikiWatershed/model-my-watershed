@@ -13,6 +13,7 @@ where: \n
     -s  load/reload stream data\n
     -d load/reload DRB stream data\n
     -m  load/reload mapshed data\n
+    -q  load/reload water quality data\n
 "
 
 # HTTP accessible storage for initial app data
@@ -21,8 +22,9 @@ load_boundary=false
 file_to_load=
 load_stream=false
 load_mapshed=false
+load_water_quality=false
 
-while getopts ":hbsdpmf:" opt; do
+while getopts ":hbsdpmqf:" opt; do
     case $opt in
         h)
             echo -e $usage
@@ -37,6 +39,8 @@ while getopts ":hbsdpmf:" opt; do
             load_dep=true ;;
         m)
             load_mapshed=true ;;
+        q)
+            load_water_quality=true ;;
         f)
             file_to_load=$OPTARG ;;
         \?)
@@ -118,5 +122,11 @@ if [ "$load_mapshed" = "true" ] ; then
     FILES=("ms_weather.sql.gz" "ms_weather_station.sql.gz" "ms_pointsource.sql.gz"
            "ms_pointsource_drb.sql.gz" "ms_county_animals.sql.gz")
 
+    download_and_load $FILES
+fi
+
+if [ "$load_water_quality" = "true" ] ; then
+    # Fetch water quality data
+    FILES=("nhd_water_quality.sql.gz")
     download_and_load $FILES
 fi
