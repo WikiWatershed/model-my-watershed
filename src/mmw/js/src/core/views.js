@@ -129,8 +129,7 @@ var HeaderView = Marionette.ItemView.extend({
                             alertMessage:'There was an error trying to clone that project. ' +
                                     'Please ensure that the project ID is valid and ' +
                                     'that you have permission to view the project.',
-                            alertType:'Error',
-                            dismissLabel:'Okay'
+                            alertType: modalModels.AlertTypes.error
                         })
                     });
 

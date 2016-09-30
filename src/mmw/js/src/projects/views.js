@@ -155,8 +155,7 @@ var ProjectRowView = Marionette.ItemView.extend({
                     var alertView = new modalViews.AlertView({
                         model: new modalModels.AlertModel({
                             alertMessage: 'Could not delete this project.', 
-                            alertType: 'error',
-                            dismissLabel: 'Okay'
+                            alertType: modalModels.AlertTypes.error
                         })
                     });
 

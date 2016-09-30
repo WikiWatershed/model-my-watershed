@@ -33,17 +33,17 @@ var ShareModel = Backbone.Model.extend({
 var AlertTypes = {
     info: {
         alertHeader: 'Information',
-        alertIcon: '\"fa fa-info-circle\"',
+        alertIcon: 'fa-info-circle',
         dismissLabel: 'Okay'
     },
     warn: {
         alertHeader: 'Warning',
-        alertIcon: '\"fa fa-exclamation-triangle\"',
+        alertIcon: 'fa-exclamation-triangle',
         dismissLabel: 'Okay'
     },
     error: {
         alertHeader: 'Error',
-        alertIcon: '\"fa fa-ban\"',
+        alertIcon: 'fa-ban',
         dismissLabel: 'Okay'
     }
 };

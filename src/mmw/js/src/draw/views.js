@@ -67,12 +67,13 @@ function validateShape(polygon) {
     var area = coreUtils.changeOfAreaUnits(turfArea(polygon), 'm<sup>2</sup>', 'km<sup>2</sup>'),
         d = new $.Deferred();
     var selfIntersectingShape = turfKinks(polygon).features.length > 0;
+    var alertView;
 
     if (selfIntersectingShape) {
         var errorMsg = 'This watershed shape is invalid because it intersects ' +
                        'itself. Try drawing the shape again without crossing ' +
                        'over its own border.';
-        var alertView = new modalViews.AlertView({
+        alertView = new modalViews.AlertView({
             model: new modalModels.AlertModel({
                 alertMessage: errorMsg,
                 alertType: modalModels.AlertTypes.warn
@@ -86,7 +87,7 @@ function validateShape(polygon) {
                       Math.floor(area).toLocaleString() + ' km² were selected, ' +
                       'but the maximum supported size is currently ' +
                       MAX_AREA.toLocaleString() + ' km².';
-        var alertView = new modalViews.AlertView({
+        alertView = new modalViews.AlertView({
             model: new modalModels.AlertModel({
                 alertMessage: message,
                 alertType: modalModels.AlertTypes.warn

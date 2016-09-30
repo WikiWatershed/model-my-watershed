@@ -889,7 +889,6 @@ var ScenarioModel = Backbone.Model.extend({
 var ScenariosCollection = Backbone.Collection.extend({
     model: ScenarioModel,
     comparator: 'created_at',
-    alerts: [],
 
     initialize: function() {
         this.on('reset', this.makeFirstScenarioActive);
@@ -951,7 +950,7 @@ var ScenariosCollection = Backbone.Collection.extend({
 
         // Bail early if the name actually didn't change.
         if (model.get('name') === newName) {
-            return false;
+            return true;
         }
 
         var match = this.find(function(model) {
@@ -959,10 +958,6 @@ var ScenariosCollection = Backbone.Collection.extend({
         });
 
         if (match) {
-            this.alerts.push({message: 'There is another scenario with the same name. ' +
-                        'Please choose a unique name for this scenario.'});
-
-            this.trigger('change:alerts'); 
             console.log('This name is already in use.');
             return false;
         } else if (model.get('name') !== newName) {

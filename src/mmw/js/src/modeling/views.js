@@ -274,7 +274,6 @@ var ScenariosView = Marionette.LayoutView.extend({
 
     initialize: function(options) {
         this.projectModel = options.projectModel;
-        this.listenTo(this.collection, 'change:alerts', this.showAlert);
     },
 
     templateHelpers: function() {
@@ -333,18 +332,6 @@ var ScenariosView = Marionette.LayoutView.extend({
 
         this.collection.setActiveScenarioByCid(cid);
     },
-
-    showAlert: function() {
-        var a = this.collection.alerts.shift();
-        var alertView = new modalViews.AlertView({
-            model: new modalModels.AlertModel({
-                alertMessage: a.message,
-                alertType: modalModels.AlertTypes.warn
-            })
-        });
-
-        alertView.render();
-    }
 });
 
 // A scenario tab.
@@ -405,11 +392,35 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
 
     renameScenario: function() {
         var self = this,
-            setScenarioName = function(name) {
-                if (!self.model.collection.updateScenarioName(self.model, name)) {
-                    self.render();
+            updateScenarioName = function(model, newName) {
+                newName = newName.trim();
+
+                var match = self.model.collection.find(function(model) {
+                    return model.get('name').toLowerCase() === newName.toLowerCase();
+                });
+
+                if (match) {
+                    console.log('This name is already in use.');
+                    var alertView = new modalViews.AlertView({
+                        model: new modalModels.AlertModel({
+                            alertMessage: 'There is another scenario with the same name. ' +
+                                            'Please choose a unique name for this scenario.',
+                            alertType: modalModels.AlertTypes.warn
+                        })
+                    });
+
+                    alertView.render();
+                    return false;
+                } else if (model.get('name') !== newName) {
+                    return model.set('name', newName);
                 }
-            };
+            },
+
+        setScenarioName = function(name) {
+            if (!updateScenarioName(self.model, name)) {
+                self.render(); // resets view state
+            }
+        };
 
         this.ui.nameField.attr('contenteditable', true).focus();
 
