@@ -124,11 +124,17 @@ var HeaderView = Marionette.ItemView.extend({
                     window.location.replace(cloneUrl);
                 })
                 .fail(function() {
-                    window.alert(
-                        'There was an error trying to clone that project. ' +
-                        'Please ensure that the project ID is valid and ' +
-                        'that you have permission to view the project.'
-                    );
+                    var alertView = new modalViews.AlertView({
+                        model: new modalModels.AlertModel({
+                            alertMessage:'There was an error trying to clone that project. ' +
+                                    'Please ensure that the project ID is valid and ' +
+                                    'that you have permission to view the project.',
+                            alertType:'Error',
+                            dismissLabel:'Okay'
+                        })
+                    });
+
+                    alertView.render();
                 });
         });
         view.render();

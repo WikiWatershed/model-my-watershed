@@ -20,7 +20,9 @@ var $ = require('jquery'),
     drawTmpl = require('./templates/draw.html'),
     resetDrawTmpl = require('./templates/reset.html'),
     delineationOptionsTmpl = require('./templates/delineationOptions.html'),
-    settings = require('../core/settings');
+    settings = require('../core/settings'),
+    modalModels = require('../core/modals/models'),
+    modalViews = require('../core/modals/views');
 
 var MAX_AREA = 112700; // About the size of a large state (in km^2)
 var codeToLayer = {}; // code to layer mapping
@@ -70,14 +72,27 @@ function validateShape(polygon) {
         var errorMsg = 'This watershed shape is invalid because it intersects ' +
                        'itself. Try drawing the shape again without crossing ' +
                        'over its own border.';
-        window.alert(errorMsg);
+        var alertView = new modalViews.AlertView({
+            model: new modalModels.AlertModel({
+                alertMessage: errorMsg,
+                alertType: modalModels.AlertTypes.warn
+            })
+        });
+
+        alertView.render();
         d.reject(errorMsg);
     } else if (area > MAX_AREA) {
         var message = 'Sorry, your Area of Interest is too large.\n\n' +
                       Math.floor(area).toLocaleString() + ' km² were selected, ' +
                       'but the maximum supported size is currently ' +
                       MAX_AREA.toLocaleString() + ' km².';
-        window.alert(message);
+        var alertView = new modalViews.AlertView({
+            model: new modalModels.AlertModel({
+                alertMessage: message,
+                alertType: modalModels.AlertTypes.warn
+            })
+        });
+        alertView.render();
         d.reject(message);
     } else {
         d.resolve(polygon);
@@ -474,7 +489,14 @@ var WatershedDelineationView= Marionette.ItemView.extend({
             .fail(function(message) {
                 revertLayer();
                 if (message) {
-                    window.alert(message);
+                    var alertView = new modalViews.AlertView({
+                        model: new modalModels.AlertModel({
+                            alertMessage: message,
+                            alertType: modalModels.AlertTypes.error
+                        })
+                    });
+
+                    alertView.render();
                 }
             })
             .always(function() {

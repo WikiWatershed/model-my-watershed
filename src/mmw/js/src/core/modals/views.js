@@ -215,12 +215,7 @@ var AlertView = ModalBaseView.extend({
     },
 
     templateHelpers: function() {
-        return {
-            alertMessage: this.model.get('message'),
-            alertHeader: this.model.get('alertType').header,
-            alertIcon: this.model.get('alertType').alertIcon,
-            dismissLabel: this.model.get('alertType').dismissLabel
-        };
+        return _.extend(this.model.get('alertType'), { alertMessage: this.model.get('alertMessage') });
     }
 });
 

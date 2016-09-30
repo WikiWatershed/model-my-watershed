@@ -593,7 +593,6 @@ var GwlfeModificationModel = Backbone.Model.extend({
 
 var ScenarioModel = Backbone.Model.extend({
     urlRoot: '/api/modeling/scenarios/',
-    alerts: [],
 
     defaults: {
         name: '',
@@ -961,14 +960,10 @@ var ScenariosCollection = Backbone.Collection.extend({
 
         if (match) {
             this.alerts.push({message: 'There is another scenario with the same name. ' +
-                        'Please choose a unique name for this scenario.',
-                        alertType: 'warning',
-                        dismissLabel: 'Okay'});
+                        'Please choose a unique name for this scenario.'});
 
-           this.trigger('change:alerts'); 
-
+            this.trigger('change:alerts'); 
             console.log('This name is already in use.');
-
             return false;
         } else if (model.get('name') !== newName) {
             return model.set('name', newName);

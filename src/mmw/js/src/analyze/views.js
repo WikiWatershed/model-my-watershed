@@ -74,9 +74,15 @@ var ResultsView = Marionette.LayoutView.extend({
                                                          'km<sup>2</sup>');
 
             if (areaInSqKm > settings.get('mapshed_max_area')) {
-                window.alert("The selected Area of Interest is too big for " +
-                             "the Watershed Multi-Year Model. The currently " +
-                             "maximum supported size is 1000 km².");
+                var alertView = new modalViews.AlertView({
+                    model: new modalModels.AlertModel({
+                        alertMessage: "The selected Area of Interest is too big for " +
+                                 "the Watershed Multi-Year Model. The currently " +
+                                 "maximum supported size is 1000 km².",
+                        alertType: modalModels.AlertTypes.warn
+                    })
+                });
+                alertView.render();
                 return;
             }
         }
@@ -91,8 +97,15 @@ var ResultsView = Marionette.LayoutView.extend({
                     }));
 
             if (landCoverTotal === 0) {
-                window.alert("The selected Area of Interest doesn't " +
-                             "include any land cover to run the model.");
+                var alertView = new modalViews.AlertView({
+                    model: new modalModels.AlertModel({
+                        alertMessage: "The selected Area of Interest doesn't " +
+                                 "include any land cover to run the model.",
+                        alertType: modalModels.AlertTypes.warn
+                    })
+                });
+
+                alertView.render();
                 return;
             }
         }

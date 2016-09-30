@@ -194,7 +194,14 @@ var ProjectMenuView = Marionette.ItemView.extend({
             if (xhr) {
                 xhr.done(navigateAfterDelete)
                     .fail(function() {
-                        window.alert('Could not delete this project.');
+                        var alertView = new modalViews.AlertView({
+                            model: new modalModels.AlertModel({
+                                alertMessage: 'Could not delete this project.', 
+                                alertType: modalModels.AlertTypes.error
+                            })
+                        });
+
+                        alertView.render();
                     });
             } else {
                 navigateAfterDelete();
@@ -331,9 +338,8 @@ var ScenariosView = Marionette.LayoutView.extend({
         var a = this.collection.alerts.shift();
         var alertView = new modalViews.AlertView({
             model: new modalModels.AlertModel({
-                message: a.message,
-                alertType: a.alertType,
-                dismissLabel: a.dismissLabel
+                alertMessage: a.message,
+                alertType: modalModels.AlertTypes.warn
             })
         });
 
