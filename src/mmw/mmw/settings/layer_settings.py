@@ -145,6 +145,30 @@ LAYERS = [
         # overlaps with perimeter polygon.
     },
     {
+        'code': 'nhd_quality_tp',
+        'display': 'Delaware River Basin TP Concentration',
+        'table_name': 'nhd_quality_tp',
+        'stream': True,
+        'overlay': True,
+        'minZoom': 3
+    },
+    {
+        'code': 'nhd_quality_tn',
+        'display': 'Delaware River Basin TN Concentration',
+        'table_name': 'nhd_quality_tn',
+        'stream': True,
+        'overlay': True,
+        'minZoom': 3
+    },
+    {
+        'code': 'nhd_quality_tss',
+        'display': 'Delaware River Basin TSS Concentration',
+        'table_name': 'nhd_quality_tss',
+        'stream': True,
+        'overlay': True,
+        'minZoom': 3
+    },
+    {
         'display': 'National Land Cover Database',
         'short_display': 'NLCD',
         'helptext': 'National Land Cover Database defines'

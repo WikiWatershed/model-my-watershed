@@ -15,7 +15,7 @@ var dbUser = process.env.MMW_DB_USER,
     redisPort = process.env.MMW_CACHE_PORT,
     tileCacheBucket = process.env.MMW_TILECACHE_BUCKET,
     stackType = process.env.MMW_STACK_TYPE,
-        rollbarAccessToken = process.env.ROLLBAR_SERVER_SIDE_ACCESS_TOKEN;
+    rollbarAccessToken = process.env.ROLLBAR_SERVER_SIDE_ACCESS_TOKEN;
 
 var NHD_QUALITY_TSS_MAP = {
     'L1': [0,50],
@@ -56,6 +56,9 @@ var interactivity = {
         huc12: 'boundary_huc12',
         drb_streams_v2: 'drb_streams_50',
         nhd_streams_v2: 'nhdflowline',
+        nhd_quality_tn: 'nhd_quality_tn',
+        nhd_quality_tp: 'nhd_quality_tp',
+        nhd_quality_tss: 'nhd_quality_tss',
         municipalities: 'dep_municipalities',
         urban_areas: 'dep_urban_areas',
         // The DRB Catchment tables here use aliases to match data from different
@@ -66,6 +69,7 @@ var interactivity = {
         drb_catchment_water_quality_tss: 'drb_catchment_water_quality_tss'
     },
     drbCatchmentWaterQualityTable = 'drb_catchment_water_quality';
+    nhdQualityTable = 'nhd_water_quality',
     shouldCacheRequest = function(req) {
         // Caching can happen if the bucket to write to is defined
         // and the request is not coming from localhost.
@@ -188,7 +192,7 @@ var config = {
     },
     redis: {
         host: redisHost,
-        eort: redisPort
+        port: redisPort
     },
     log_format: '{ "timestamp": ":date[iso]", "@fields": { "remote_addr": ":remote-addr", "body_bytes_sent": ":res[content-length]", "request_time": ":response-time", "status": ":status", "request": ":method :url HTTP/:http-version", "request_method": ":method", "http_referrer": ":referrer", "http_user_agent": ":user-agent" } }',
 
@@ -251,14 +255,13 @@ var config = {
                 req.params.sql = getSqlForStreamByReq(req);
             }
 
-<<<<<<< HEAD
             if (tableId.indexOf('drb_catchment') >= 0) {
                 req.params.sql = getSqlForDRBCatchmentByTableId(tableId);
-=======
+            }
+
             if (tableId.indexOf('nhd_quality') >= 0) {
                 req.params.table = tables[tableId];
                 req.params.sql = getSqlForStreamByReq(req);
->>>>>>> Add rendering & styling for water quality data
             }
 
             req.params.dbname = dbName;
