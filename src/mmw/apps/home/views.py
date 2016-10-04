@@ -135,6 +135,7 @@ def get_client_settings(request):
             'map_controls': settings.MAP_CONTROLS,
             'vizer_urls': settings.VIZER_URLS,
             'model_packages': get_model_packages(),
+            'mapshed_max_area': settings.GWLFE_CONFIG['MaxAoIArea']
         }),
         'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
     }
