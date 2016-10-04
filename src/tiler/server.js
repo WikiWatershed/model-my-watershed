@@ -15,7 +15,28 @@ var dbUser = process.env.MMW_DB_USER,
     redisPort = process.env.MMW_CACHE_PORT,
     tileCacheBucket = process.env.MMW_TILECACHE_BUCKET,
     stackType = process.env.MMW_STACK_TYPE,
-    rollbarAccessToken = process.env.ROLLBAR_SERVER_SIDE_ACCESS_TOKEN;
+        rollbarAccessToken = process.env.ROLLBAR_SERVER_SIDE_ACCESS_TOKEN;
+
+var NHD_QUALITY_TSS_MAP = {
+    'L1': [0,50],
+    'L2': [50,100],
+    'L3': [100,150],
+    'L4': [150,200]
+};
+
+var NHD_QUALITY_TN_MAP = {
+    'L1': [0,1],
+    'L2': [1,2],
+    'L3': [2,3],
+    'L4': [3,4]
+};
+
+var NHD_QUALITY_TP_MAP = {
+    'L1': [0,0.03],
+    'L2': [0.03,0.06],
+    'L3': [0.06,0.09],
+    'L4': [0.09,0.12]
+};
 
 // N. B. These must be kept in sync with src/mmw/mmw/settings/base.py
 var interactivity = {
@@ -60,6 +81,7 @@ var interactivity = {
         */
         zoom = req.params.z;
         tableName = req.params.table;
+        tableId = req.params.tableId;
         stream_order = 0;  // All streams
 
         if (tableName === tables.drb_streams_v2) {
@@ -79,10 +101,45 @@ var interactivity = {
                 stream_order = 5;
             }
         }
+        
+        var caseSql = function(mapping, field) {
+            var sql = []
+            for (var category in mapping) {
+                sql.push(['WHEN ',field,' >= ',mapping[category][0],' AND ',field,' < ',mapping[category][1],' THEN \'',category,'\' '].join(''));
+            }
+            sql.unshift('CASE ');
+            sql.push('WHEN ',field,' > ',mapping.L4[1],' THEN \'L5\' ');
+            sql.push('ELSE \'NA\' ');
+            sql.push('END');
 
-        return '(SELECT geom, stream_order FROM ' + tableName +
-          ' WHERE stream_order >= ' + stream_order + ') as q';
+            return sql;
+        }
+
+        var waterQualitySql = function(qualityMap, streamOrder) {
+            var sql = [];
+            sql.push('(SELECT geom, stream_order, ')
+            sql.push(qualityMap.join(''), ' ')
+            sql.push('AS nhd_qual_grp ')
+            sql.push('FROM ',tables.nhd_streams_v2,' ')
+            sql.push('LEFT OUTER JOIN ',nhdQualityTable,' ')
+            sql.push('ON ',nhdQualityTable,'.comid','=',tables.nhd_streams_v2,'.comid',' ')
+            sql.push('WHERE stream_order >= ',streamOrder)
+            sql.push(') as q');
+            return sql.join('');
+        }
+
+        if (tableId === 'nhd_quality_tn') {
+            return waterQualitySql(caseSql(NHD_QUALITY_TN_MAP, 'tn_yr_avg_concmgl'), stream_order);
+        } else if (tableId === 'nhd_quality_tp') {
+            return waterQualitySql(caseSql(NHD_QUALITY_TP_MAP, 'tp_yr_avg_concmgl'), stream_order);
+        } else if (tableId === 'nhd_quality_tss') {
+            return waterQualitySql(caseSql(NHD_QUALITY_TSS_MAP, 'tss_concmgl'), stream_order);
+        } else {
+            return '(SELECT geom, stream_order FROM ' + tableName +
+              ' WHERE stream_order >= ' + stream_order + ') as q';
+        }     
     },
+
     getSqlForDRBCatchmentByTableId = function(tableId) {
         var columnToRetrive = null,
             resultsAliasName = null;
@@ -131,7 +188,7 @@ var config = {
     },
     redis: {
         host: redisHost,
-        port: redisPort
+        eort: redisPort
     },
     log_format: '{ "timestamp": ":date[iso]", "@fields": { "remote_addr": ":remote-addr", "body_bytes_sent": ":res[content-length]", "request_time": ":response-time", "status": ":status", "request": ":method :url HTTP/:http-version", "request_method": ":method", "http_referrer": ":referrer", "http_user_agent": ":user-agent" } }',
 
@@ -194,8 +251,14 @@ var config = {
                 req.params.sql = getSqlForStreamByReq(req);
             }
 
+<<<<<<< HEAD
             if (tableId.indexOf('drb_catchment') >= 0) {
                 req.params.sql = getSqlForDRBCatchmentByTableId(tableId);
+=======
+            if (tableId.indexOf('nhd_quality') >= 0) {
+                req.params.table = tables[tableId];
+                req.params.sql = getSqlForStreamByReq(req);
+>>>>>>> Add rendering & styling for water quality data
             }
 
             req.params.dbname = dbName;
