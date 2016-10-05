@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     Marionette = require('../../../../shim/backbone.marionette'),
     chart = require('../../../core/chart.js'),
     barChartTmpl = require('../../../core/templates/barChart.html'),
@@ -153,6 +153,16 @@ function monthSorter(a, b) {
 }
 
 window.monthSorter = monthSorter;
+
+function SumFormatter(data) {
+    var field = this.field,
+        total = _.sum(_.map(data, function(row) {
+            return parseFloat(row[field]);
+        }));
+
+    return total.toFixed(2);
+}
+window.sumFormatter = SumFormatter;
 
 var TableView = Marionette.CompositeView.extend({
     template: tableTmpl,

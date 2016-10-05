@@ -455,8 +455,8 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
         // We can't download a file from an AJAX call. One either has to
         // load the data in an iframe, or submit a form that responds with
         // Content-Disposition: attachment. We prefer submitting a form.
-        var filename = App.currentProject.get('name').replace(' ', '_') +
-                       '__' + this.model.get('name').replace(' ', '_');
+        var filename = App.currentProject.get('name').replace(/\s/g, '_') +
+                       '__' + this.model.get('name').replace(/\s/g, '_');
 
         this.ui.exportGmsForm.find('.gms-filename').val(filename);
         this.ui.exportGmsForm.submit();
@@ -798,20 +798,23 @@ var ResultsView = Marionette.LayoutView.extend({
 
     onShow: function() {
         var self = this,
-            aoi = App.map.get('areaOfInterest'),
-            analyzeModel = analyzeModels.AnalyzeTaskModel.getSingleton(App, aoi),
+            analyzeCollection = App.getAnalyzeCollection(),
+            analyzeViewModels = analyzeModels.createAnalyzeResultViewModelCollection(analyzeCollection),
             tmvModel = new coreModels.TaskMessageViewModel(),
             errorHandler = function(err) {
                 if (err && err.timeout) {
-                  tmvModel.setTimeoutError();
+                    tmvModel.setTimeoutError();
                 } else {
-                  tmvModel.setError();
+                    var message = err.error === 'NO_LAND_COVER' ?
+                        'Selected area of interest doesn\'t include any land ' +
+                        'cover to run the model' : 'Error';
+                    tmvModel.setError(message);
                 }
                 self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
             };
 
         this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
-            model: analyzeModel
+            collection: analyzeViewModels
         }));
 
         tmvModel.setWorking('Gathering Data');

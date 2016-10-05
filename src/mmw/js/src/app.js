@@ -7,6 +7,7 @@ var $ = require('jquery'),
     models = require('./core/models'),
     settings = require('./core/settings'),
     itsi = require('./core/itsiEmbed'),
+    analyzeModels = require('./analyze/models'),
     userModels = require('./user/models'),
     userViews = require('./user/views');
 
@@ -63,6 +64,18 @@ var App = new Marionette.Application({
                 zoom: mapState.zoom
             });
         }
+    },
+
+    getAnalyzeCollection: function() {
+        if (!this.analyzeCollection) {
+            this.analyzeCollection = analyzeModels.createAnalyzeTaskCollection(this.map.get('areaOfInterest'));
+        }
+
+        return this.analyzeCollection;
+    },
+
+    clearAnalyzeCollection: function() {
+        delete this.analyzeCollection;
     },
 
     getMapView: function() {

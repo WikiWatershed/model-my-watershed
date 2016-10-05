@@ -53,7 +53,6 @@ var DrawController = {
     },
 
     drawCleanUp: function() {
-        delete App.analyzeModel;
         App.rootView.geocodeSearchRegion.empty();
         App.rootView.drawToolsRegion.empty();
         App.rootView.footerRegion.empty();

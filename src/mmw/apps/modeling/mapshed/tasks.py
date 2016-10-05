@@ -19,6 +19,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          et_adjustment,
                                          kv_coefficient,
                                          animal_energy_units,
+                                         ag_ls_c_p,
                                          ls_factors,
                                          p_factors,
                                          manure_spread,
@@ -32,7 +33,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          groundwater_nitrogen_conc,
                                          sediment_delivery_ratio,
                                          landuse_pcts,
-                                         normal_sys,
+                                         num_normal_sys,
                                          sed_a_factor
                                          )
 
@@ -40,9 +41,11 @@ NLU = settings.GWLFE_CONFIG['NLU']
 NRur = settings.GWLFE_DEFAULTS['NRur']
 AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
 DRB = settings.DRB_PERIMETER
+ANIMAL_KEYS = settings.GWLFE_CONFIG['AnimalKeys']
 ACRES_PER_SQM = 0.000247105
 HECTARES_PER_SQM = 0.0001
 SQKM_PER_SQM = 0.000001
+NO_LAND_COVER = 'NO_LAND_COVER'
 
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=42)
@@ -111,11 +114,17 @@ def collect_data(geop_result, geojson):
     z['WxYrs'] = z['WxYrEnd'] - z['WxYrBeg'] + 1
 
     # Data from the County Animals dataset
-    livestock_aeu, poultry_aeu = animal_energy_units(geom)
+    ag_lscp = ag_ls_c_p(geom)
+    z['C'][0] = ag_lscp.hp_c
+    z['C'][1] = ag_lscp.crop_c
+
+    livestock_aeu, poultry_aeu, population = animal_energy_units(geom)
     z['AEU'] = livestock_aeu / (area * ACRES_PER_SQM)
     z['n41j'] = livestock_aeu
     z['n41k'] = poultry_aeu
     z['n41l'] = livestock_aeu + poultry_aeu
+    z['NumAnimals'] = [int(population.get(animal, 0))
+                       for animal in ANIMAL_KEYS]
 
     z['ManNitr'], z['ManPhos'] = manure_spread(z['AEU'])
 
@@ -124,7 +133,8 @@ def collect_data(geop_result, geojson):
     z['n42b'] = round(z['StreamLength'] / 1000, 1)  # Kilometers
 
     # Data from Point Source Discharge dataset
-    n_load, p_load, discharge = point_source_discharge(geom, area)
+    n_load, p_load, discharge = point_source_discharge(geom, area,
+                                                       drb=geom.within(DRB))
     z['PointNitr'] = n_load
     z['PointPhos'] = p_load
     z['PointFlow'] = discharge
@@ -146,10 +156,15 @@ def collect_data(geop_result, geojson):
     z['SedPhos'] = geop_result['sed_phos']
     z['Area'] = [percent * area * HECTARES_PER_SQM
                  for percent in geop_result['landuse_pcts']]
+
+    # Immediately return an error if z['Area'] is a list of 0s
+    if sum(z['Area']) == 0:
+        raise Exception(NO_LAND_COVER)
+
     z['UrbAreaTotal'] = sum(z['Area'][NRur:])
     z['PhosConc'] = phosphorus_conc(z['SedPhos'])
 
-    z['NormalSys'] = normal_sys(z['Area'])
+    z['NumNormalSys'] = num_normal_sys(z['Area'])
 
     z['AgSlope3'] = geop_result['ag_slope_3_pct'] * area * HECTARES_PER_SQM
     z['AgSlope3To8'] = (geop_result['ag_slope_3_8_pct'] *
@@ -177,17 +192,10 @@ def collect_data(geop_result, geojson):
     z['SedAFactor'] = sed_a_factor(geop_result['landuse_pcts'],
                                    z['CN'], z['AEU'], z['AvKF'], z['AvSlope'])
 
-    if geom.within(DRB):
-        ls_stream_length = stream_length(geom, drb=True)
-        ls_stream_pcts = geop_result['lu_stream_pct_drb']
-    else:
-        ls_stream_length = z['StreamLength']
-        ls_stream_pcts = geop_result['lu_stream_pct']
+    z['LS'] = ls_factors(geop_result['lu_stream_pct'], z['StreamLength'],
+                         z['Area'], z['AvSlope'], ag_lscp)
 
-    z['LS'] = ls_factors(ls_stream_pcts, ls_stream_length,
-                         z['Area'], z['AvSlope'])
-
-    z['P'] = p_factors(z['AvSlope'])
+    z['P'] = p_factors(z['AvSlope'], ag_lscp)
 
     return z
 
@@ -296,6 +304,10 @@ def nlcd_soils(sjs_result):
         raise Exception('[nlcd_soils] {}'.format(sjs_result['error']))
 
     ngt_count = parse_sjs_result(sjs_result)
+
+    # Raise exception if no NLCD values
+    if len(ngt_count.values()) == 0:
+        raise Exception(NO_LAND_COVER)
 
     # Split combined counts into separate ones for processing
     # Reduce [(n, g, t): c] to
@@ -468,12 +480,6 @@ def geop_tasks(geom, errback, exchange, choose_worker):
          {'polygon': [geom.geojson]},
          nlcd_kfactor)
     ]
-
-    if geom.within(DRB):
-        definitions.append(('nlcd_streams',
-                            {'polygon': [geom.geojson],
-                             'vector': streams(geom, drb=True)},
-                            nlcd_streams_drb))
 
     return [(mapshed_start.s(opname, data).set(exchange=exchange,
                                                routing_key=geop_worker) |

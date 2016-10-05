@@ -217,8 +217,8 @@ var TaskMessageViewModel = Backbone.Model.extend({
     message: null,
     iconClass: null,
 
-    setError: function() {
-        this.set('message', 'Error');
+    setError: function(message) {
+        this.set('message', message);
         this.set('iconClasses', 'fa fa-exclamation-triangle');
     },
 
@@ -243,6 +243,14 @@ var LandUseCensusCollection = Backbone.Collection.extend({
 
 var SoilCensusCollection = Backbone.Collection.extend({
     comparator: 'code'
+});
+
+var AnimalCensusCollection = Backbone.Collection.extend({
+    comparator: 'type'
+});
+
+var PointSourceCensusCollection = Backbone.Collection.extend({
+    comparator: 'city'
 });
 
 var GeoModel = Backbone.Model.extend({
@@ -298,6 +306,8 @@ module.exports = {
     TaskMessageViewModel: TaskMessageViewModel,
     LandUseCensusCollection: LandUseCensusCollection,
     SoilCensusCollection: SoilCensusCollection,
+    AnimalCensusCollection: AnimalCensusCollection,
+    PointSourceCensusCollection: PointSourceCensusCollection,
     GeoModel: GeoModel,
     AreaOfInterestModel: AreaOfInterestModel,
     AppStateModel: AppStateModel

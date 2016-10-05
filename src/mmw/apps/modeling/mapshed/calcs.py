@@ -161,19 +161,19 @@ def animal_energy_units(geom):
                                   ST_SetSRID(ST_GeomFromText(%s),
                                              4326))
           ), clipped_counties_with_area AS (
-              SELECT ST_Area(geom_clipped) / ST_Area(geom) AS clip_percent,
+              SELECT ST_Area(geom_clipped) / ST_Area(geom) AS clip_pct,
                      clipped_counties.*
               FROM clipped_counties
           )
-          SELECT SUM(beef_ha * totalha * clip_percent) AS beef_cows,
-                 SUM(broiler_ha * totalha * clip_percent) AS broilers,
-                 SUM(dairy_ha * totalha * clip_percent) AS dairy_cows,
-                 SUM(goat_ha * totalha * clip_percent) +
-                 SUM(sheep_ha * totalha * clip_percent) AS sheep,
-                 SUM(hog_ha * totalha * clip_percent) AS hogs,
-                 SUM(horse_ha * totalha * clip_percent) AS horses,
-                 SUM(layer_ha * totalha * clip_percent) AS layers,
-                 SUM(turkey_ha * totalha * clip_percent) AS turkeys
+          SELECT COALESCE(SUM(beef_ha * ag_ha * clip_pct), 0.0) AS beef_cows,
+                 COALESCE(SUM(broiler_ha * ag_ha * clip_pct), 0.0) AS broilers,
+                 COALESCE(SUM(dairy_ha * ag_ha * clip_pct), 0.0) AS dairy_cows,
+                 COALESCE(SUM(goat_ha * ag_ha * clip_pct), 0.0) +
+                 COALESCE(SUM(sheep_ha * ag_ha * clip_pct), 0.0) AS sheep,
+                 COALESCE(SUM(hog_ha * ag_ha * clip_pct), 0.0) AS hogs,
+                 COALESCE(SUM(horse_ha * ag_ha * clip_pct), 0.0) AS horses,
+                 COALESCE(SUM(layer_ha * ag_ha * clip_pct), 0.0) AS layers,
+                 COALESCE(SUM(turkey_ha * ag_ha * clip_pct), 0.0) AS turkeys
           FROM clipped_counties_with_area;
           '''
 
@@ -184,15 +184,14 @@ def animal_energy_units(geom):
         columns = [col[0] for col in cursor.description]
         values = cursor.fetchone()  # Only one row since aggregate query
         population = dict(zip(columns, values))
-
-        livestock_aeu = round(sum(population.get(animal, 0) *
+        livestock_aeu = round(sum(population[animal] *
                                   WEIGHTOF[animal] / 1000
                                   for animal in LIVESTOCK))
-        poultry_aeu = round(sum(population.get(animal, 0) *
+        poultry_aeu = round(sum(population[animal] *
                                 WEIGHTOF[animal] / 1000
                                 for animal in POULTRY))
 
-        return livestock_aeu, poultry_aeu
+        return livestock_aeu, poultry_aeu, population
 
 
 def manure_spread(aeu):
@@ -213,7 +212,48 @@ def manure_spread(aeu):
     return [n_spread] * num_land_uses, [p_spread] * num_land_uses
 
 
-def ls_factors(lu_strms, total_strm_len, areas, avg_slope):
+def ag_ls_c_p(geom):
+    """
+    Given a geometry, calculates the area-weighted average value of LS, C, and
+    P factors for agriculatural land use tyeps within the geometry, namely
+    Hay/Pasture and Cropland.
+    """
+    sql = '''
+          WITH clipped_counties AS (
+              SELECT ST_Intersection(geom,
+                                     ST_SetSRID(ST_GeomFromText(%s),
+                                                4326)) AS geom_clipped,
+                     ms_county_animals.*
+              FROM ms_county_animals
+              WHERE ST_Intersects(geom,
+                                  ST_SetSRID(ST_GeomFromText(%s),
+                                             4326))
+          ), clipped_counties_with_area AS (
+              SELECT ST_Area(geom_clipped) /
+                     ST_Area(ST_SetSRID(ST_GeomFromText(%s),
+                                        4326)) AS clip_pct,
+                     clipped_counties.*
+              FROM clipped_counties
+          )
+          SELECT COALESCE(SUM(hp_ls * clip_pct), 0.0) AS hp_ls,
+                 COALESCE(SUM(hp_c * clip_pct), 0.0) AS hp_c,
+                 COALESCE(SUM(hp_p * clip_pct), 0.0) AS hp_p,
+                 COALESCE(SUM(crop_ls * clip_pct), 0.0) AS crop_ls,
+                 COALESCE(SUM(crop_c * clip_pct), 0.0) AS crop_c,
+                 COALESCE(SUM(crop_p * clip_pct), 0.0) AS crop_p
+          FROM clipped_counties_with_area;
+          '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [geom.wkt, geom.wkt, geom.wkt])
+
+        ag_lscp = namedtuple('Ag_LS_C_P',
+                             [col[0] for col in cursor.description])
+
+        return ag_lscp(*(cursor.fetchone()))
+
+
+def ls_factors(lu_strms, total_strm_len, areas, avg_slope, ag_lscp):
     results = [0.0] * len(lu_strms)
     if 0 <= avg_slope <= 1.0:
         m = 0.2
@@ -224,7 +264,10 @@ def ls_factors(lu_strms, total_strm_len, areas, avg_slope):
     else:
         m = 0.5
 
-    for i in range(len(lu_strms)):
+    results[0] = ag_lscp.hp_ls
+    results[1] = ag_lscp.crop_ls
+
+    for i in xrange(2, 16):
         results[i] = (ls_factor(lu_strms[i] * total_strm_len * KM_PER_M,
                       areas[i], avg_slope, m))
 
@@ -304,20 +347,27 @@ def streams(geom, drb=False):
         return [row[0] for row in cursor.fetchall()]  # List of GeoJSON strings
 
 
-def point_source_discharge(geom, area):
+def get_point_source_table(drb):
+    return 'ms_pointsource' + ('_drb' if drb else '')
+
+
+def point_source_discharge(geom, area, drb=False):
     """
     Given a geometry and its area in square meters, returns three lists,
     each with 12 values, one for each month, containing the Nitrogen Load (in
     kg), Phosphorus Load (in kg), and Discharge (in centimeters per month).
+    If drb is true (meaning the AOI is within the Delaware River Basin),
+    this uses the ms_pointsource_drb table.
     """
+    table_name = get_point_source_table(drb)
     sql = '''
           SELECT SUM(mgd) AS mg_d,
                  SUM(kgn_yr) / 12 AS kgn_month,
                  SUM(kgp_yr) / 12 AS kgp_month
-          FROM ms_pointsource
+          FROM {table_name}
           WHERE ST_Intersects(geom,
                               ST_SetSRID(ST_GeomFromText(%s), 4326));
-          '''
+          '''.format(table_name=table_name)
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [geom.wkt])
@@ -554,7 +604,7 @@ def landuse_pcts(n_count):
     ]
 
 
-def normal_sys(lu_area):
+def num_normal_sys(lu_area):
     """
     Given the land use area in hectares, estimates the number of normal septic
     systems based on the constants SSLDR and SSLDM for Residential and Mixed
@@ -563,13 +613,18 @@ def normal_sys(lu_area):
     effectively dependent only on the area of medium density mixed land use.
     However, we replicate the original formula for consistency.
 
+    Returns an array with an integer value for each month of the
+    year as input for GWLF-E.
+
     Original at Class1.vb@1.3.0:9577-9579
     """
 
     SSLDR = settings.GWLFE_CONFIG['SSLDR']
     SSLDM = settings.GWLFE_CONFIG['SSLDM']
 
-    return SSLDR * lu_area[14] + SSLDM * lu_area[11]
+    normal_sys_estimate = SSLDR * lu_area[14] + SSLDM * lu_area[11]
+    normal_sys_int = int(round(normal_sys_estimate))
+    return [normal_sys_int for n in xrange(12)]
 
 
 def sed_a_factor(landuse_pct_vals, cn, AEU, AvKF, AvSlope):
@@ -593,7 +648,7 @@ def sed_a_factor(landuse_pct_vals, cn, AEU, AvKF, AvSlope):
             (0.000001 * AvSlope) - 0.000036)
 
 
-def p_factors(avg_slope):
+def p_factors(avg_slope, ag_lscp):
     """
     Given the average slope, calculates the P Factor for rural land use types.
 
@@ -611,8 +666,8 @@ def p_factors(avg_slope):
         ag_p = 0.74
 
     return [
-        ag_p,  # Hay/Pasture
-        ag_p,  # Cropland
+        ag_lscp.hp_p,    # Hay/Pasture
+        ag_lscp.crop_p,  # Cropland
         ag_p,  # Forest
         0.1,   # Wetland
         0.1,   # Disturbed

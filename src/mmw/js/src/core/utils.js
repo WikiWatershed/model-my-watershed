@@ -1,10 +1,12 @@
 "use strict";
 
 var _ = require('underscore'),
+    lodash = require('lodash'),
     md5 = require('blueimp-md5').md5,
     intersect = require('turf-intersect');
 
 var M2_IN_KM2 = 1000000;
+var noData = 'No Data';
 
 var utils = {
     // A function for enabling/disabling modal buttons.  In additiion
@@ -94,6 +96,19 @@ var utils = {
         }
     },
 
+    noData: noData,
+
+    noDataSort: function(x, y) {
+        if (x === noData && y !== noData) {
+            return -1;
+        } else if (x === noData && y === noData) {
+            return 0;
+        } else if (x !== noData && y === noData) {
+            return 1;
+        }
+        return utils.numericSort(x, y);
+    },
+
     // Parse query strings for Backbone
     // Takes queryString of format "key1=value1&key2=value2"
     // Returns object of format {key1: value1, key2: value2}
@@ -179,6 +194,10 @@ var utils = {
         switch (fromTo) {
             case 'm<sup>2</sup>:km<sup>2</sup>':
                  return value / M2_IN_KM2;
+            case 'km<sup>2</sup>:m<sup>2</sup>':
+                 return value * M2_IN_KM2;
+            case 'km<sup>2</sup>:km<sup>2</sup>':
+                 return value;
             case 'm<sup>2</sup>:m<sup>2</sup>':
                  return value;
             default:
@@ -254,6 +273,20 @@ var utils = {
 
             return l < r ? 1 : l > r ? -1 : 0;
         };
+    },
+
+    totalForPointSourceCollection: function(collection, key) {
+        return lodash.sum(lodash.map(collection, function(element) {
+            return element.attributes[key] || 0;
+        }));
+    },
+
+    // A JavaScript implementation for when we can't use the Nunjucks filter
+    // Taken from http://stackoverflow.com/a/196991
+    toTitleCase: function(str) {
+        return str.replace(/\w\S*/g, function(txt) {
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        });
     }
 };
 

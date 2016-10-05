@@ -45,6 +45,9 @@ function actOnLayer(datum) {
 function validateRwdShape(result) {
     var d = new $.Deferred();
     if (result.watershed) {
+        if (result.watershed.features[0].geometry.type === 'MultiPolygon') {
+            d.reject('Unable to generate a valid watershed area at this location');
+        }
         validateShape(result.watershed)
             .done(function() {
                 d.resolve(result);
@@ -78,7 +81,7 @@ function validateClickedPointWithinDRB(latlng) {
     var point = L.marker(latlng).toGeoJSON(),
         d = $.Deferred(),
         streamLayers = settings.get('stream_layers'),
-        drbPerimeter = _.findWhere(streamLayers, {code:'drb_streams'}).perimeter;
+        drbPerimeter = _.findWhere(streamLayers, {code:'drb_streams_v2'}).perimeter;
     if (turfIntersect(point, drbPerimeter)) {
         d.resolve(latlng);
     } else {
@@ -572,6 +575,7 @@ function clearAoiLayer() {
     App.map.set('areaOfInterest', null);
     App.projectNumber = undefined;
     App.map.setDrawSize(false);
+    App.clearAnalyzeCollection();
 
     return function revertLayer() {
         var previousShape = App.map.previous('areaOfInterest');

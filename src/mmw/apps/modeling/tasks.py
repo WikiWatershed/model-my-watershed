@@ -15,6 +15,9 @@ from celery import shared_task
 from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
     data_to_survey, data_to_censuses
 
+from apps.modeling.calcs import (animal_population,
+                                 point_source_pollution)
+
 from tr55.model import simulate_day
 from gwlfe import gwlfe, parser
 
@@ -60,11 +63,14 @@ def start_histogram_job(self, json_polygon):
     the polygon so that areas can be calculated from
     the results.
     """
-    polygon = json.loads(json_polygon)
+
+    # Normalize AOI to handle single-ring multipolygon
+    # inputs sent from RWD as well as shapes sent from the front-end
+    polygon = parse_single_ring_multipolygon(json.loads(json_polygon))
 
     return {
         'pixel_width': aoi_resolution(polygon),
-        'sjs_job_id': histogram_start([json_polygon], self.retry)
+        'sjs_job_id': histogram_start([json.dumps(polygon)], self.retry)
     }
 
 
@@ -102,7 +108,7 @@ def get_histogram_job_results(self, incoming):
 
 
 @shared_task
-def histogram_to_survey(incoming):
+def histogram_to_survey(incoming, aoi):
     """
     Converts the histogram results (aka analyze results)
     to a survey of land use, which are rendered in the UI.
@@ -127,8 +133,42 @@ def histograms_to_censuses(incoming):
     return results
 
 
+@shared_task
+def analyze_animals(area_of_interest):
+    """
+    Given an area of interest, returns the animal population within it.
+    """
+    return [animal_population(area_of_interest)]
+
+
+@shared_task
+def analyze_pointsource(area_of_interest):
+    """
+    Given an area of interest, returns point sources of pollution within it.
+    """
+    return [point_source_pollution(area_of_interest)]
+
+
+def parse_single_ring_multipolygon(area_of_interest):
+    """
+    Given a multipolygon comprising just a single ring structured in a
+    five-dimensional array, remove one level of nesting and make the AOI's
+    coordinates a four-dimensional array. Otherwise, no op.
+    """
+
+    if type(area_of_interest['coordinates'][0][0][0][0]) is list:
+        multipolygon_shapes = area_of_interest['coordinates'][0]
+        if len(multipolygon_shapes) > 1:
+            raise Exception('Unable to parse multi-ring RWD multipolygon')
+        else:
+            area_of_interest['coordinates'] = multipolygon_shapes
+
+    return area_of_interest
+
+
 def aoi_resolution(area_of_interest):
     pairs = area_of_interest['coordinates'][0][0]
+
     average_lat = reduce(lambda total, p: total+p[1], pairs, 0) / len(pairs)
 
     max_lat = 48.7
@@ -199,7 +239,12 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
 
     # Get precipitation and cell resolution
     precip = get_precip(model_input)
-    width = aoi_resolution(model_input.get('area_of_interest'))
+
+    # Normalize AOI to handle single-ring multipolygon
+    # inputs sent from RWD as well as shapes sent from the front-end
+    aoi = parse_single_ring_multipolygon(model_input.get('area_of_interest'))
+
+    width = aoi_resolution(aoi)
     resolution = width * width
 
     if precip is None:
@@ -357,6 +402,9 @@ def to_gms_file(mapshed_data):
     """
     Given a dictionary of MapShed data, uses GWLF-E to convert it to a GMS file
     """
+    mapshed_areas = [round(a, 1) for a in mapshed_data['Area']]
+    mapshed_data['Area'] = mapshed_areas
+
     pre_z = parser.DataModel(mapshed_data)
     output = StringIO()
     writer = parser.GmsWriter(output)

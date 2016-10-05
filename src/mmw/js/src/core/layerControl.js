@@ -5,7 +5,8 @@ var L = require('leaflet'),
     _ = require('underscore'),
     Marionette = require('../../shim/backbone.marionette'),
     layerControlListTmpl = require('./templates/layerControlList.html'),
-    layerControlButtonTmpl = require('./templates/layerControlButton.html');
+    layerControlButtonTmpl = require('./templates/layerControlButton.html'),
+    pointSourceLayer = require('./pointSourceLayer.js');
 
 module.exports = L.Control.Layers.extend({
 
@@ -28,13 +29,15 @@ module.exports = L.Control.Layers.extend({
             this._addLayer(overlays[i], i, 'overlay');
         }
 
-        observationsDeferred
-            .done(function(observationLayers) {
+        var pointSrcAPIUrl = '/api/modeling/point-source/';
+
+        $.when(observationsDeferred, $.ajax({ 'url': pointSrcAPIUrl, 'type': 'GET'}))
+            .done(function(observationLayers, pointSourceData) {
                 for (i in observationLayers) {
                     self._addLayer(observationLayers[i], i, 'observation');
                 }
-
-                // Redraw the UI with the new layers
+                self._addLayer(pointSourceLayer.Layer.createLayer(pointSourceData[0],
+                    self._map), 'DRB Point Source', 'observation');
                 self._update();
             })
             .fail(function(reason) {

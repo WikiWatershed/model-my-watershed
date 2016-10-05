@@ -35,6 +35,10 @@ App.start();
 // is available for use in templates.
 window.numericSort = utils.numericSort;
 
+// This comparator sorts a table with "no data" fields intermixed
+// with numeric fields.
+window.noDataSort = utils.noDataSort;
+
 //
 // Expose application so we can interact with it via JS console.
 //

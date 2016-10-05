@@ -126,21 +126,22 @@ LAYERS = [
         'minZoom': 9,
     },
     {
-        'code': 'stream',
+        'code': 'nhd_streams_v2',
         'display': 'National Stream Network',
         'table_name': 'nhdflowline',
         'stream': True,
         'overlay': True,
-        'minZoom': 10
+        'minZoom': 3
     },
     {
-        'code': 'drb_streams',
-        'display': 'DRB Stream Network',
+        'code': 'drb_streams_v2',
+        'display': ('Delaware River Basin High Resolution' +
+            '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stream Network'),
         'table_name': 'drb_streams_50',
         'stream': True,
         'overlay': True,
-        'minZoom': 11,
-        'perimeter': drb_perimeter # Layer is only selectable when viewport
+        'minZoom': 5,
+        'perimeter': drb_perimeter  # Layer is only selectable when viewport
         # overlaps with perimeter polygon.
     },
     {

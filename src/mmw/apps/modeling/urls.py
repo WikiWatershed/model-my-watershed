@@ -22,6 +22,10 @@ urlpatterns = patterns(
     url(r'scenarios/$', views.scenarios, name='scenarios'),
     url(r'scenarios/(?P<scen_id>[0-9]+)$', views.scenario, name='scenario'),
     url(r'start/analyze/$', views.start_analyze, name='start_analyze'),
+    url(r'start/analyze/animals/$', views.start_analyze_animals,
+        name='start_analyze_animals'),
+    url(r'start/analyze/pointsource/$', views.start_analyze_pointsource,
+        name='start_analyze_pointsource'),
     url(r'start/mapshed/$', views.start_mapshed, name='start_mapshed'),
     url(r'jobs/' + uuid_regex, views.get_job, name='get_job'),
     url(r'start/tr55/$', views.start_tr55, name='start_tr55'),
@@ -30,4 +34,5 @@ urlpatterns = patterns(
     url(r'boundary-layers/(?P<table_code>\w+)/(?P<obj_id>[0-9]+)/$',
         views.boundary_layer_detail, name='boundary_layer_detail'),
     url(r'export/gms/?$', views.export_gms, name='export_gms'),
+    url(r'point-source/$', views.drb_point_sources, name='drb_point_sources'),
 )
