@@ -194,6 +194,10 @@ var utils = {
         switch (fromTo) {
             case 'm<sup>2</sup>:km<sup>2</sup>':
                  return value / M2_IN_KM2;
+            case 'km<sup>2</sup>:m<sup>2</sup>':
+                 return value * M2_IN_KM2;
+            case 'km<sup>2</sup>:km<sup>2</sup>':
+                 return value;
             case 'm<sup>2</sup>:m<sup>2</sup>':
                  return value;
             default:

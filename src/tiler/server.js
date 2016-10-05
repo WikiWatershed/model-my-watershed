@@ -55,12 +55,22 @@ var interactivity = {
         tableName = req.params.table;
         stream_order = 0;  // All streams
 
-        if (zoom <= 5) {
-            stream_order = 7;
-        } else if (zoom <= 6) {
-            stream_order = 6;
-        } else if (zoom <= 8) {
-            stream_order = 5;
+        if (tableName === tables.drb_streams_v2) {
+            // drb_zoom_levels: { zoomLevel : stream_order }
+            drb_zoom_levels = {
+                1:7, 2:7, 3:7, 4:7, 5:7, 6:6, 7:6, 8:5, 9:5, 10:4,
+                11:3, 12:2, 13:0, 14:0, 15:0, 16:0, 17:0, 18: 0
+            }; 
+
+            stream_order = zoom in drb_zoom_levels ? drb_zoom_levels[zoom] : 0;
+        } else {
+            if (zoom <= 5) {
+                stream_order = 7;
+            } else if (zoom <= 6) {
+                stream_order = 6;
+            } else if (zoom <= 8) {
+                stream_order = 5;
+            }
         }
 
         return '(SELECT geom, stream_order FROM ' + tableName +

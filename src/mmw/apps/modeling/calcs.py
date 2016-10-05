@@ -12,10 +12,17 @@ from apps.modeling.mapshed.calcs import (animal_energy_units,
                                          get_point_source_table)
 
 DRB = settings.DRB_PERIMETER
-ANIMAL_KEYS = settings.GWLFE_CONFIG['AnimalKeys']
-ANIMAL_NAMES = settings.GWLFE_DEFAULTS['AnimalName']
 
-ANIMAL_DISPLAY_NAMES = dict(zip(ANIMAL_KEYS, ANIMAL_NAMES))
+ANIMAL_DISPLAY_NAMES = {
+    'sheep': 'Sheep',
+    'horses': 'Horses',
+    'turkeys': 'Turkeys',
+    'layers': 'Chickens, Layers',
+    'beef_cows': 'Cows, Beef',
+    'hogs': 'Pigs/Hogs/Swine',
+    'dairy_cows': 'Cows, Dairy',
+    'broilers': 'Chickens, Broilers',
+}
 
 
 def animal_population(geojson):

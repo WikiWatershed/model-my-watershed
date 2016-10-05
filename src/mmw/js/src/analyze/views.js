@@ -13,6 +13,7 @@ var $ = require('jquery'),
     modalViews = require('../core/modals/views'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
+    coreUtils = require('../core/utils'),
     chart = require('../core/chart'),
     utils = require('../core/utils'),
     pointSourceLayer = require('../core/pointSourceLayer'),
@@ -56,12 +57,29 @@ var ResultsView = Marionette.LayoutView.extend({
             modelPackage = _.find(modelPackages, {name: modelPackageName}),
             newProjectUrl = '/project/new/' + modelPackageName,
             projectUrl = '/project',
+            aoiModel = new coreModels.GeoModel({
+                shape: App.map.get('areaOfInterest'),
+                place: App.map.get('areaOfInterestName')
+            }),
             analysisResults = JSON.parse(App.getAnalyzeCollection()
                                             .findWhere({taskName: 'analyze'})
-                                            .get('result')),
+                                            .get('result') || "{}"),
             landResults = _.find(analysisResults, function(element) {
                     return element.name === 'land';
             });
+
+        if (modelPackageName === 'gwlfe' && settings.get('mapshed_max_area')) {
+            var areaInSqKm = coreUtils.changeOfAreaUnits(aoiModel.get('area'),
+                                                         aoiModel.get('units'),
+                                                         'km<sup>2</sup>');
+
+            if (areaInSqKm > settings.get('mapshed_max_area')) {
+                window.alert("The selected Area of Interest is too big for " +
+                             "the Watershed Multi-Year Model. The currently " +
+                             "maximum supported size is 1000 km².");
+                return;
+            }
+        }
 
         if (landResults) {
             var landCoverTotal = _.sum(_.map(landResults.categories,
