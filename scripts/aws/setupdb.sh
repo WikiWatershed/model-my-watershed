@@ -93,7 +93,7 @@ fi
 if [ "$load_boundary" = "true" ] ; then
     # Fetch boundary layer sql files
     FILES=("boundary_county.sql.gz" "boundary_school_district.sql.gz" "boundary_district.sql.gz" "boundary_huc12.sql.gz" "boundary_huc10.sql.gz" "boundary_huc08.sql.gz")
-    PATHS=("county" "district" "huc8" "huc10" "huc12")
+    PATHS=("county" "district" "huc8" "huc10" "huc12" "school")
 
     download_and_load $FILES
     purge_tile_cache $PATHS
