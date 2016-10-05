@@ -13,6 +13,7 @@ where: \n
     -s  load/reload stream data\n
     -d  load/reload DRB stream data\n
     -m  load/reload mapshed data\n
+    -p  load/reload DEP data\n
     -q  load/reload water quality data\n
 "
 
