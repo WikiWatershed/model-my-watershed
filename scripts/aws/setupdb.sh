@@ -102,7 +102,7 @@ fi
 if [ "$load_stream" = "true" ] ; then
     # Fetch stream network layer sql files
     FILES=("nhdflowline.sql.gz")
-    PATHS=("stream")
+    PATHS=("nhd_streams_v2")
 
     download_and_load $FILES
     purge_tile_cache $PATHS
@@ -111,7 +111,7 @@ fi
 if [ "$load_drb_streams" = "true" ] ; then
     # Fetch DRB stream network layer sql file
     FILES=("drb_streams_50.sql.gz")
-    PATHS=("drb_streams")
+    PATHS=("drb_streams_v2")
 
     download_and_load $FILES
     purge_tile_cache $PATHS
