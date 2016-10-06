@@ -11,7 +11,7 @@ where: \n
     -b  load/reload boundary data\n
     -f  load a named boundary sql.gz\n
     -s  load/reload stream data\n
-    -d load/reload DRB stream data\n
+    -d  load/reload DRB stream data\n
     -m  load/reload mapshed data\n
     -q  load/reload water quality data\n
 "
@@ -127,6 +127,6 @@ fi
 
 if [ "$load_water_quality" = "true" ] ; then
     # Fetch water quality data
-    FILES=("nhd_water_quality.sql.gz")
+    FILES=("nhd_water_quality.sql.gz" "drb_catchment_water_quality.sql.gz")
     download_and_load $FILES
 fi
