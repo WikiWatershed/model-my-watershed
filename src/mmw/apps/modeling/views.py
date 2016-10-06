@@ -303,7 +303,7 @@ def start_analyze(request, format=None):
              .set(exchange=exchange, routing_key=routing_key),
         tasks.get_histogram_job_results.s()
              .set(exchange=exchange, routing_key=routing_key),
-        tasks.histogram_to_survey.s(area_of_interest)
+        tasks.histogram_to_survey_census.s()
              .set(exchange=exchange, routing_key=choose_worker())
     ], area_of_interest, user)
 

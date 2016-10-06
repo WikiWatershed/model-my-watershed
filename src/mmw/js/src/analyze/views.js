@@ -277,7 +277,7 @@ var TabContentView = Marionette.LayoutView.extend({
 
     showResults: function() {
         var name = this.model.get('name'),
-            results = JSON.parse(this.model.get('taskRunner').get('result')),
+            results = JSON.parse(this.model.get('taskRunner').get('result')).survey,
             result = _.find(results, { name: name }),
             resultModel = new models.LayerModel(result),
             ResultView = AnalyzeResultViews[name];
