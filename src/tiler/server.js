@@ -36,8 +36,15 @@ var interactivity = {
         drb_streams_v2: 'drb_streams_50',
         nhd_streams_v2: 'nhdflowline',
         municipalities: 'dep_municipalities',
-        urban_areas: 'dep_urban_areas'
+        urban_areas: 'dep_urban_areas',
+        // The DRB Catchment tables here use aliases to match data from different
+        // columns in the `drb_catchment_water_quality` table to different
+        // rendering rules.
+        drb_catchment_water_quality_tn: 'drb_catchment_water_quality_tn',
+        drb_catchment_water_quality_tp: 'drb_catchment_water_quality_tp',
+        drb_catchment_water_quality_tss: 'drb_catchment_water_quality_tss'
     },
+    drbCatchmentWaterQualityTable = 'drb_catchment_water_quality';
     shouldCacheRequest = function(req) {
         // Caching can happen if the bucket to write to is defined
         // and the request is not coming from localhost.
@@ -60,7 +67,7 @@ var interactivity = {
             drb_zoom_levels = {
                 1:7, 2:7, 3:7, 4:7, 5:7, 6:6, 7:6, 8:5, 9:5, 10:4,
                 11:3, 12:2, 13:0, 14:0, 15:0, 16:0, 17:0, 18: 0
-            }; 
+            };
 
             stream_order = zoom in drb_zoom_levels ? drb_zoom_levels[zoom] : 0;
         } else {
@@ -75,6 +82,29 @@ var interactivity = {
 
         return '(SELECT geom, stream_order FROM ' + tableName +
           ' WHERE stream_order >= ' + stream_order + ') as q';
+    },
+    getSqlForDRBCatchmentByTableId = function(tableId) {
+        var columnToRetrive = null,
+            resultsAliasName = null;
+        switch (tableId) {
+            case 'drb_catchment_water_quality_tn':
+                columnToRetrive = 'tn_tot_kgy';
+                resultsAliasName = 'drb_wq_tn';
+                break;
+            case 'drb_catchment_water_quality_tp':
+                columnToRetrive = 'tp_tot_kgy';
+                resultsAliasName = 'drb_wq_tp';
+                break;
+            case 'drb_catchment_water_quality_tss':
+                columnToRetrive = 'tss_tot_kg';
+                resultsAliasName = 'drb_wq_tss';
+                break;
+            default:
+                throw new Error('Invalid drb_catchment_water_quality value');
+                break;
+        }
+        return '(SELECT geom, ' + columnToRetrive + ' FROM ' +
+            drbCatchmentWaterQualityTable + ') AS ' + resultsAliasName;
     };
 
 var config = {
@@ -162,6 +192,10 @@ var config = {
             // Streams have special performance optimized SQL queries
             if (tableId.indexOf('streams') >= 0) {
                 req.params.sql = getSqlForStreamByReq(req);
+            }
+
+            if (tableId.indexOf('drb_catchment') >= 0) {
+                req.params.sql = getSqlForDRBCatchmentByTableId(tableId);
             }
 
             req.params.dbname = dbName;

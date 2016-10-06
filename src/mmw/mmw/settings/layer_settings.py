@@ -233,6 +233,36 @@ LAYERS = [
         'opacity': 0.618,
         'has_opacity_slider': True,
         'perimeter': pa_perimeter,
+    },
+    {
+        'code': 'drb_catchment_water_quality_tn',
+        'display': ('DRB Catchment Water Quality Data' +
+                    '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TN Loading Rates'),
+        'table_name': 'drb_catchment_water_quality_tn',
+        'vector': True,
+        'overlay': True,
+        'minZoom': 3,
+        'perimeter': drb_perimeter
+    },
+    {
+        'code': 'drb_catchment_water_quality_tp',
+        'display': ('DRB Catchment Water Quality Data' +
+                    '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TP Loading Rates'),
+        'table_name': 'drb_catchment_water_quality_tp',
+        'vector': True,
+        'overlay': True,
+        'minZoom': 3,
+        'perimeter': drb_perimeter
+    },
+    {
+        'code': 'drb_catchment_water_quality_tss',
+        'display': ('DRB Catchment Water Quality Data' +
+                    '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TSS Loading Rates'),
+        'table_name': 'drb_catchment_water_quality_tss',
+        'vector': True,
+        'overlay': True,
+        'minZoom': 3,
+        'perimeter': drb_perimeter
     }
 ]
 
