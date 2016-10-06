@@ -93,7 +93,7 @@ fi
 if [ "$load_boundary" = "true" ] ; then
     # Fetch boundary layer sql files
     FILES=("boundary_county.sql.gz" "boundary_school_district.sql.gz" "boundary_district.sql.gz" "boundary_huc12.sql.gz" "boundary_huc10.sql.gz" "boundary_huc08.sql.gz")
-    PATHS=("county" "district" "huc8" "huc10" "huc12")
+    PATHS=("county" "district" "huc8" "huc10" "huc12" "school")
 
     download_and_load $FILES
     purge_tile_cache $PATHS
@@ -102,7 +102,7 @@ fi
 if [ "$load_stream" = "true" ] ; then
     # Fetch stream network layer sql files
     FILES=("nhdflowline.sql.gz")
-    PATHS=("stream")
+    PATHS=("nhd_streams_v2")
 
     download_and_load $FILES
     purge_tile_cache $PATHS
@@ -111,7 +111,7 @@ fi
 if [ "$load_drb_streams" = "true" ] ; then
     # Fetch DRB stream network layer sql file
     FILES=("drb_streams_50.sql.gz")
-    PATHS=("drb_streams")
+    PATHS=("drb_streams_v2")
 
     download_and_load $FILES
     purge_tile_cache $PATHS
