@@ -9,7 +9,9 @@ A combination of Vagrant 1.6+ and Ansible 1.8+ is used to setup the development 
 - `tiler`
 - `worker`
 
-The `app` virtual machine contains an instance of the Django application, `services` contains:
+The `app` virtual machine contains an instance of the Django application. 
+
+`services` contains:
 
 - PostgreSQL
 - Pgweb
