@@ -334,6 +334,19 @@ def start_analyze_pointsource(request, format=None):
     ], area_of_interest, user)
 
 
+@decorators.api_view(['POST'])
+@decorators.permission_classes((AllowAny, ))
+def start_analyze_catchment_water_quality(request, format=None):
+    user = request.user if request.user.is_authenticated() else None
+    area_of_interest = request.POST['area_of_interest']
+    exchange = MAGIC_EXCHANGE
+
+    return start_celery_job([
+        tasks.analyze_catchment_water_quality.s(area_of_interest)
+             .set(exchange=exchange, routing_key=choose_worker())
+    ], area_of_interest, user)
+
+
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
 def get_job(request, job_uuid, format=None):
