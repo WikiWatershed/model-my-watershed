@@ -37,6 +37,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          sed_a_factor
                                          )
 
+
 NLU = settings.GWLFE_CONFIG['NLU']
 NRur = settings.GWLFE_DEFAULTS['NRur']
 AG_NLCD_CODES = settings.GWLFE_CONFIG['AgriculturalNLCDCodes']
@@ -457,30 +458,51 @@ def nlcd_kfactor(result):
     return output
 
 
-def geop_tasks(geom, errback, exchange, choose_worker):
-    # List of tuples of (opname, data, callback) for each geop task
-    definitions = [
-        ('nlcd_streams', {'polygon': [geom.geojson],
-                          'vector': streams(geom)}, nlcd_streams),
-        ('nlcd_soils', {'polygon': [geom.geojson]}, nlcd_soils),
-        ('gwn', {'polygon': [geom.geojson]}, gwn),
-        ('avg_awc', {'polygon': [geom.geojson]}, avg_awc),
-        ('nlcd_slope', {'polygon': [geom.geojson]}, nlcd_slope),
-        ('slope', {'polygon': [geom.geojson]}, slope),
-        ('nlcd_kfactor', {'polygon': [geom.geojson]}, nlcd_kfactor)
-    ]
+def geop_tasks():
+    return geop_task_defs.keys()
 
-    tasks = zip(definitions, [choose_worker()
-                              for _ in xrange(len(definitions))])
 
-    return [(mapshed_start.s(opname, data).set(exchange=exchange,
-                                               routing_key=geop_worker) |
-             mapshed_finish.s().set(exchange=exchange,
-                                    routing_key=geop_worker) |
-             callback.s().set(link_error=errback,
-                              exchange=exchange,
-                              routing_key=choose_worker()))
-            for ((opname, data, callback), geop_worker) in tasks]
+geop_task_defs = {
+    'nlcd_streams': lambda geom: (
+        'nlcd_streams',
+        {'polygon': [geom.geojson], 'vector': streams(geom)},
+        nlcd_streams),
+    'nlcd_soils': lambda geom: (
+        'nlcd_soils',
+        {'polygon': [geom.geojson]},
+        nlcd_soils),
+    'gwn': lambda geom: ('gwn', {'polygon': [geom.geojson]}, gwn),
+    'avg_awc': lambda geom: (
+        'avg_awc',
+        {'polygon': [geom.geojson]},
+        avg_awc),
+    'nlcd_slope': lambda geom: (
+        'nlcd_slope',
+        {'polygon': [geom.geojson]},
+        nlcd_slope),
+    'slope': lambda geom: (
+        'slope',
+        {'polygon': [geom.geojson]},
+        slope),
+    'nlcd_kfactor': lambda geom: (
+        'nlcd_kfactor',
+        {'polygon': [geom.geojson]},
+        nlcd_kfactor)
+}
+
+
+#@shared_task(bind=True, default_retry_delay=1, max_retries=42)
+def geop_task(taskName, geom, exchange, errback, choose_worker):
+    print('geop_task')
+    (opname, data, callback) = geop_task_defs[taskName](geom)
+    geop_worker = choose_worker()
+    return (mapshed_start.s(opname, data).set(exchange=exchange,
+                                              routing_key=geop_worker) |
+            mapshed_finish.s().set(exchange=exchange,
+                                   routing_key=geop_worker) |
+            callback.s().set(link_error=errback,
+                             exchange=exchange,
+                             routing_key=choose_worker()))
 
 
 @shared_task

@@ -27,12 +27,14 @@ from retry import retry
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
 from apps.modeling import tasks
-from apps.modeling.mapshed.tasks import geop_tasks, collect_data, combine
+from apps.modeling.mapshed.tasks import (geop_tasks, collect_data, combine,
+                                         geop_task)
 from apps.modeling.models import Project, Scenario
 from apps.modeling.serializers import (ProjectSerializer,
                                        ProjectListingSerializer,
                                        ProjectUpdateSerializer,
                                        ScenarioSerializer)
+
 
 # When CELERY_WORKER_DIRECT = True, this exchange is automatically
 # created to allow direct communication with workers.
@@ -260,16 +262,20 @@ def _initiate_mapshed_job_chain(mapshed_input, job_id):
     geom = GEOSGeometry(json.dumps(mapshed_input['area_of_interest']),
                         srid=4326)
 
-    chain = (group(geop_tasks(geom, errback, MAGIC_EXCHANGE, choose_worker)) |
-             combine.s().set(exchange=MAGIC_EXCHANGE,
-                             routing_key=choose_worker()) |
-             collect_data.s(geom.geojson).set(link_error=errback,
-                                              exchange=MAGIC_EXCHANGE,
-                                              routing_key=choose_worker()) |
-             save_job_result.s(job_id, mapshed_input)
-             .set(exchange=MAGIC_EXCHANGE, routing_key=choose_worker()))
+    job_chain = (group(
+                 geop_task(t, geom, MAGIC_EXCHANGE, errback, choose_worker)
+                 for t in geop_tasks()) |
+                 combine.s().set(
+                     exchange=MAGIC_EXCHANGE,
+                     routing_key=choose_worker()) |
+                 collect_data.s(geom.geojson).set(
+                     link_error=errback,
+                     exchange=MAGIC_EXCHANGE,
+                     routing_key=choose_worker()) |
+                 save_job_result.s(job_id, mapshed_input).set(
+                     exchange=MAGIC_EXCHANGE, routing_key=choose_worker()))
 
-    return chain.apply_async(link_error=errback)
+    return chain(job_chain).apply_async(link_error=errback)
 
 
 @decorators.api_view(['POST'])
@@ -373,6 +379,7 @@ def choose_worker():
 
     workers = filter(predicate,
                      get_list_of_workers())
+
     return random.choice(workers)
 
 
