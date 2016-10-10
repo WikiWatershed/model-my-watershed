@@ -352,7 +352,7 @@ var DrawView = Marionette.ItemView.extend({
     }
 });
 
-var WatershedDelineationView= Marionette.ItemView.extend({
+var WatershedDelineationView = Marionette.ItemView.extend({
     template: delineationOptionsTmpl,
 
     ui: {
@@ -391,84 +391,18 @@ var WatershedDelineationView= Marionette.ItemView.extend({
             revertLayer = clearAoiLayer();
 
         this.model.set('pollError', false);
-
         this.model.disableTools();
+
         utils.placeMarker(map)
-             .then(validateClickedPointWithinDRB)
-             .then(function(latlng) {
-                var point = L.marker(latlng).toGeoJSON(),
-                    deferred = $.Deferred();
-
-                var taskHelper = {
-                    onStart: function() {
-                        self.model.set('polling', true);
-                    },
-
-                    pollSuccess: function(response) {
-                        self.model.set('polling', false);
-                        var result = JSON.parse(response.result);
-                        deferred.resolve(result);
-                    },
-
-                    pollFailure: function(response) {
-                        self.model.set({
-                            pollError: true,
-                            polling: false
-                        });
-                        console.log(response.error);
-                        var message = 'Unable to delineate watershed at ' +
-                                      'this location';
-                        deferred.reject(message);
-                    },
-
-                    pollEnd: function() {
-                        self.model.set('polling', false);
-                    },
-
-                    startFailure: function() {
-                        self.model.set({
-                            pollError: true,
-                            polling: false
-                        });
-                        var message = 'Unable to delineate watershed';
-                        deferred.reject(message);
-                    },
-
-                    postData: {
-                        'location': JSON.stringify([
-                            point.geometry.coordinates[1],
-                            point.geometry.coordinates[0]
-                        ]),
-                        'snappingOn': snappingOn
-                    }
-                };
-
-                self.rwdTaskModel.start(taskHelper);
-                return deferred;
+            .then(validateClickedPointWithinDRB)
+            .then(function(latlng) {
+                return self.delineateWatershed(latlng, snappingOn);
+            })
+            .then(function(result) {
+                return self.drawWatershed(result, itemName);
             })
             .then(validateRwdShape)
-            .done(function(result) {
-                var inputPoints = result.input_pt;
-                // add additional aoi points:w
-                if (inputPoints) {
-                    var properties = inputPoints.features[0].properties;
-
-                    // If the point was snapped, there will be the original
-                    // point as attributes
-                    if (properties.Dist_moved) {
-                        inputPoints.features.push(
-                            makePointGeoJson([properties.Lon, properties.Lat], {
-                                original: true
-                            })
-                        );
-                    }
-                    App.map.set({
-                        'areaOfInterestAdditionals': inputPoints
-                    });
-                }
-
-                // Add Watershed AoI layer
-                addLayer(result.watershed, itemName);
+            .done(function() {
                 navigateToAnalyze();
             })
             .fail(function(message) {
@@ -480,6 +414,88 @@ var WatershedDelineationView= Marionette.ItemView.extend({
             .always(function() {
                 self.model.enableTools();
             });
+    },
+
+    delineateWatershed: function(latlng, snappingOn) {
+        var self = this,
+            point = L.marker(latlng).toGeoJSON(),
+            deferred = $.Deferred();
+
+        var taskHelper = {
+            onStart: function() {
+                self.model.set('polling', true);
+            },
+
+            pollSuccess: function(response) {
+                self.model.set('polling', false);
+                var result = JSON.parse(response.result);
+                // Convert watershed to MultiPolygon to pass shape validation.
+                result.watershed = coreUtils.toMultiPolygon(result.watershed);
+                deferred.resolve(result);
+            },
+
+            pollFailure: function(response) {
+                self.model.set({
+                    pollError: true,
+                    polling: false
+                });
+                console.log(response.error);
+                var message = 'Unable to delineate watershed at ' +
+                              'this location';
+                deferred.reject(message);
+            },
+
+            pollEnd: function() {
+                self.model.set('polling', false);
+            },
+
+            startFailure: function() {
+                self.model.set({
+                    pollError: true,
+                    polling: false
+                });
+                var message = 'Unable to delineate watershed';
+                deferred.reject(message);
+            },
+
+            postData: {
+                'location': JSON.stringify([
+                    point.geometry.coordinates[1],
+                    point.geometry.coordinates[0]
+                ]),
+                'snappingOn': snappingOn
+            }
+        };
+
+        this.rwdTaskModel.start(taskHelper);
+        return deferred;
+    },
+
+    drawWatershed: function(result, itemName) {
+        var inputPoints = result.input_pt;
+
+        // add additional aoi points
+        if (inputPoints) {
+            var properties = inputPoints.features[0].properties;
+
+            // If the point was snapped, there will be the original
+            // point as attributes
+            if (properties.Dist_moved) {
+                inputPoints.features.push(
+                    makePointGeoJson([properties.Lon, properties.Lat], {
+                        original: true
+                    })
+                );
+            }
+            App.map.set({
+                'areaOfInterestAdditionals': inputPoints
+            });
+        }
+
+        // Add Watershed AoI layer
+        addLayer(result.watershed, itemName);
+
+        return result;
     }
 });
 

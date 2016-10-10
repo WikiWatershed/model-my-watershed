@@ -287,6 +287,20 @@ var utils = {
         return str.replace(/\w\S*/g, function(txt) {
             return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
         });
+    },
+
+    // Convert polygon to MultiPolyon (mutates original argument).
+    toMultiPolygon: function(polygon) {
+        var geom = polygon.geometry ? polygon.geometry : polygon;
+        if (geom.type !== 'MultiPolygon') {
+            if (geom.type === 'Polygon') {
+                geom.coordinates = [geom.coordinates];
+            } else if (geom.type === 'FeatureCollection') {
+                geom.coordinates = [geom.features[0].geometry.coordinates];
+            }
+            geom.type = 'MultiPolygon';
+        }
+        return geom;
     }
 };
 
