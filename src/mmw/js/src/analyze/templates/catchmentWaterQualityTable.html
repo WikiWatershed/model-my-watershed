@@ -1,0 +1,28 @@
+<table class="table custom-hover catchment-water-quality" data-toggle="table">
+    <thead>
+        <tr>
+            <th data-sortable="true">Id</th>
+            <th data-sortable="true">Area (ha)</th>
+            <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
+                Total N (kg/ha)
+            </th>
+            <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
+                Total P (kg/ha)
+            </th>
+            <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
+                Total TSS (kg/ha)
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+    <tfoot>
+        <tr class="catchment-water-quality-table-footer">
+            <td></td>
+            <td class="strong text-right">Total (kg/ha)</td>
+            <td class="catchment-water-quality-footer-item strong text-right">{{ totalTN|filterNoData()|toLocaleString() }}</td>
+            <td class="catchment-water-quality-footer-item strong text-right">{{ totalTP|toLocaleString() }}</td>
+            <td class="catchment-water-quality-footer-item strong text-right">{{ totalTSS|filterNoData()|toLocaleString() }}</td>
+        </tr>
+    </tfoot>
+</table>

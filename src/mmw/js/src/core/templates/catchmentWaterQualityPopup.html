@@ -1,0 +1,73 @@
+<h2 class="measurements-name">ID: {{ nord }}</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Source</th>
+            <th class="text-right">TN (kg/y)</th>
+            <th class="text-right">TP (kg/y)</th>
+            <th class="text-right">TSS (kg/y)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Agrarian</td>
+            <td class="text-right">
+                {{ tn_ag_kgyr|filterNoData()|toLocaleString() }}
+            </td>
+            <td class="text-right">
+                {{ tp_ag_kgyr|filterNoData()|toLocaleString() }}
+            </td>
+            <td class="text-right">
+                {{ tss_ag_kgy|filterNoData()|toLocaleString() }}
+            </td>
+        </tr>
+        <tr>
+            <td>Natural</td>
+            <td class="text-right">
+                {{ tn_natural|filterNoData()|toLocaleString() }}
+            </td>
+            <td class="text-right">
+                {{ tp_natural|filterNoData()|toLocaleString() }}
+            </td>
+            <td class="text-right">
+                {{ tss_natura|filterNoData()|toLocaleString() }}
+            </td>
+        </tr>
+        <tr>
+            <td>Point Source</td>
+            <td class="text-right">
+                {{ tn_pt_kgyr|filterNoData()|toLocaleString() }}
+            </td>
+            <td class="text-right">
+                {{ tp_pt_kgyr|filterNoData()|toLocaleString() }}
+            </td>
+            <td class="text-right">
+                {{ noData }}
+            </td>
+        </tr>
+        <tr>
+            <td>Riparian</td>
+            <td class="text-right">
+                {{ tn_riparia|filterNoData()|toLocaleString() }}
+            </td>
+            <td class="text-right">
+                {{ tp_riparia|filterNoData()|toLocaleString() }}
+            </td>
+            <td class="text-right">
+                {{ tss_rip_kg|filterNoData()|toLocaleString() }}
+            </td>
+        </tr>
+        <tr>
+            <td>Urban</td>
+            <td class="text-right">
+                {{ tn_urban_k|filterNoData()|toLocaleString() }}
+            </td>
+            <td class="text-right">
+                {{ tp_urban_k|filterNoData()|toLocaleString() }}
+            </td>
+            <td class="text-right">
+                {{ tss_urban_|filterNoData()|toLocaleString() }}
+            </td>
+        </tr>
+    </tbody>
+</table>

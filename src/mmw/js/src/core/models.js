@@ -253,6 +253,10 @@ var PointSourceCensusCollection = Backbone.Collection.extend({
     comparator: 'city'
 });
 
+var CatchmentWaterQualityCensusCollection = Backbone.Collection.extend({
+    comparator: 'nord'
+});
+
 var GeoModel = Backbone.Model.extend({
     M_IN_KM: 1000000,
 
@@ -308,6 +312,7 @@ module.exports = {
     SoilCensusCollection: SoilCensusCollection,
     AnimalCensusCollection: AnimalCensusCollection,
     PointSourceCensusCollection: PointSourceCensusCollection,
+    CatchmentWaterQualityCensusCollection: CatchmentWaterQualityCensusCollection,
     GeoModel: GeoModel,
     AreaOfInterestModel: AreaOfInterestModel,
     AppStateModel: AppStateModel
