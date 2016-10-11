@@ -578,7 +578,8 @@ function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
 }
 
 function clearAoiLayer() {
-    var projectNumber = App.projectNumber;
+    var projectNumber = App.projectNumber,
+        previousShape = App.map.get('areaOfInterest');
 
     App.map.set('areaOfInterest', null);
     App.projectNumber = undefined;
@@ -586,7 +587,6 @@ function clearAoiLayer() {
     App.clearAnalyzeCollection();
 
     return function revertLayer() {
-        var previousShape = App.map.previous('areaOfInterest');
         App.map.set('areaOfInterest', previousShape);
         App.projectNumber = projectNumber;
     };
