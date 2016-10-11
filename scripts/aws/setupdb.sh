@@ -131,4 +131,7 @@ if [ "$load_water_quality" = "true" ] ; then
     FILES=("nhd_water_quality.sql.gz" "drb_catchment_water_quality.sql.gz")
     PATHS=("drb_catchment_water_quality_tn" "drb_catchment_water_quality_tp"
             "drb_catchment_water_quality_tss" "nhd_quality_tp" "nhd_quality_tn")
+
+    download_and_load $FILES
+    purge_tile_cache $PATHS
 fi
