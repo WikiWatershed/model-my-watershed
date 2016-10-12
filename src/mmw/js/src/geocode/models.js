@@ -27,11 +27,14 @@ var SuggestionModel = Backbone.Model.extend({
     },
 
     setMapViewToLocation: function(zoom) {
-        App.map.set({
-            lat: this.get('location').get('y'),
-            lng: this.get('location').get('x'),
-            zoom: zoom || this.get('zoom')
-        });
+        var location = this.get('location');
+        if (location) {
+            App.map.set({
+                lat: location.get('y'),
+                lng: location.get('x'),
+                zoom: zoom || this.get('zoom')
+            });
+        }
     },
 
     select: function() {
