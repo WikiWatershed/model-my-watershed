@@ -256,24 +256,27 @@ def start_mapshed(request, format=None):
 
 
 def _initiate_mapshed_job_chain(mapshed_input, job_id):
+    workers = get_living_workers()
+    get_worker = lambda: random.choice(workers)
     errback = save_job_error.s(job_id).set(exchange=MAGIC_EXCHANGE,
-                                           routing_key=choose_worker())
+                                           routing_key=get_worker())
 
     geom = GEOSGeometry(json.dumps(mapshed_input['area_of_interest']),
                         srid=4326)
 
     job_chain = (group(
-                 geop_task(t, geom, MAGIC_EXCHANGE, errback, choose_worker)
-                 for t in geop_tasks()) |
-                 combine.s().set(
-                     exchange=MAGIC_EXCHANGE,
-                     routing_key=choose_worker()) |
-                 collect_data.s(geom.geojson).set(
-                     link_error=errback,
-                     exchange=MAGIC_EXCHANGE,
-                     routing_key=choose_worker()) |
-                 save_job_result.s(job_id, mapshed_input).set(
-                     exchange=MAGIC_EXCHANGE, routing_key=choose_worker()))
+        geop_task(t, geom, MAGIC_EXCHANGE, errback, get_worker)
+        for t in geop_tasks()) |
+        combine.s().set(
+            exchange=MAGIC_EXCHANGE,
+            routing_key=get_worker()) |
+        collect_data.s(geom.geojson).set(
+            link_error=errback,
+            exchange=MAGIC_EXCHANGE,
+            routing_key=get_worker()) |
+        save_job_result.s(job_id, mapshed_input).set(
+            exchange=MAGIC_EXCHANGE,
+            routing_key=get_worker()))
 
     return chain(job_chain).apply_async(link_error=errback)
 
@@ -364,7 +367,7 @@ def get_job(request, job_uuid, format=None):
     )
 
 
-def choose_worker():
+def get_living_workers():
     def predicate(worker_name):
         return settings.STACK_COLOR in worker_name or 'debug' in worker_name
 
@@ -379,8 +382,11 @@ def choose_worker():
 
     workers = filter(predicate,
                      get_list_of_workers())
+    return workers
 
-    return random.choice(workers)
+
+def choose_worker():
+    return random.choice(get_living_workers())
 
 
 def _initiate_rwd_job_chain(location, snapping, job_id, testing=False):

@@ -491,9 +491,7 @@ geop_task_defs = {
 }
 
 
-#@shared_task(bind=True, default_retry_delay=1, max_retries=42)
 def geop_task(taskName, geom, exchange, errback, choose_worker):
-    print('geop_task')
     (opname, data, callback) = geop_task_defs[taskName](geom)
     geop_worker = choose_worker()
     return (mapshed_start.s(opname, data).set(exchange=exchange,
