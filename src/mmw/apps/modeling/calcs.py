@@ -107,10 +107,10 @@ def catchment_water_quality(geojson):
     table_name = 'drb_catchment_water_quality'
     sql = '''
           SELECT nord, areaha, tn_tot_kgy, tp_tot_kgy, tss_tot_kg,
-              tn_urban_k, tn_riparia, tn_ag_kgyr, tn_natural, tn_pt_kgyr,
-              tp_urban_k, tp_riparia, tp_ag_kgyr, tp_natural, tp_pt_kgyr,
-              tss_urban_, tss_rip_kg, tss_ag_kgy, tss_natura,
-              ST_AsGeoJSON(geom) as geom
+          tn_urban_k, tn_riparia, tn_ag_kgyr, tn_natural, tn_pt_kgyr,
+          tp_urban_k, tp_riparia, tp_ag_kgyr, tp_natural, tp_pt_kgyr,
+          tss_urban_, tss_rip_kg, tss_ag_kgy, tss_natura,
+          tn_yr_avg_, tp_yr_avg_, tss_concmg, ST_AsGeoJSON(geom) as geom
           FROM {table_name}
           WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromText(%s), 4326))
           '''.format(table_name=table_name)
@@ -143,7 +143,10 @@ def catchment_water_quality(geojson):
                           float(row[16]) if row[16] else None,
                           float(row[17]) if row[17] else None,
                           float(row[18]) if row[18] else None,
-                          row[19]]))
+                          float(row[19]) if row[19] else None,
+                          float(row[20]) if row[20] else None,
+                          float(row[21]) if row[21] else None,
+                          row[22]]))
                 for row in cursor.fetchall()
             ]
         else:

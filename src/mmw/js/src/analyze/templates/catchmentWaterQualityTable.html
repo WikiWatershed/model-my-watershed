@@ -12,6 +12,15 @@
             <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
                 Total TSS (kg/ha)
             </th>
+            <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
+                Avg TN (mg/l)
+            </th>
+            <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
+                Avg TP (mg/l)
+            </th>
+            <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
+                Avg TSS (mg/l)
+            </th>
         </tr>
     </thead>
     <tbody>
@@ -19,10 +28,27 @@
     <tfoot>
         <tr class="catchment-water-quality-table-footer">
             <td></td>
-            <td class="strong text-right">Total (kg/ha)</td>
-            <td class="catchment-water-quality-footer-item strong text-right">{{ totalTN|filterNoData()|toLocaleString() }}</td>
-            <td class="catchment-water-quality-footer-item strong text-right">{{ totalTP|toLocaleString() }}</td>
-            <td class="catchment-water-quality-footer-item strong text-right">{{ totalTSS|filterNoData()|toLocaleString() }}</td>
+            <td class="strong text-right">
+                Total (kg/ha)
+            </td>
+            <td class="catchment-water-quality-footer-item strong text-right">
+                {{ totalTN|filterNoData()|toLocaleString() }}
+            </td>
+            <td class="catchment-water-quality-footer-item strong text-right">
+                {{ totalTP|filterNoData()|toLocaleString() }}
+            </td>
+            <td class="catchment-water-quality-footer-item strong text-right">
+                {{ totalTSS|filterNoData()|toLocaleString() }}
+            </td>
+            <td class="catchment-water-quality-footer-item strong text-right">
+                --
+            </td>
+            <td class="catchment-water-quality-footer-item strong text-right">
+                --
+            </td>
+            <td class="catchment-water-quality-footer-item strong text-right">
+                --
+            </td>
         </tr>
     </tfoot>
 </table>

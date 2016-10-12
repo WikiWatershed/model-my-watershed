@@ -70,4 +70,26 @@
             </td>
         </tr>
     </tbody>
+    <thead>
+        <tr>
+            <th>Concentrations</th>
+            <th class="text-right">Avg TN (mg/l)</th>
+            <th class="text-right">Avg TP (mg/l)</th>
+            <th class="text-right">Avg TSS (mg/l)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td></td>
+            <td class="text-right">
+                {{ tn_yr_avg_|filterNoData()|toLocaleString() }}
+            </td>
+            <td class="text-right">
+                {{ tp_yr_avg_|filterNoData()|toLocaleString() }}
+            </td>
+            <td class="text-right">
+                {{ tss_concmg|filterNoData()|toLocaleString() }}
+            </td>
+        </tr>
+    </tbody>
 </table>
