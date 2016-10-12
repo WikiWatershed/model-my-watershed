@@ -42,12 +42,10 @@
 @drb_catchment_step_five_color: #202020;
 @drb_catchment_line_color: #FFF;
 @drb_catchment_line_width: 4;
-@drb_catchment_opacity: 0.65;
 
 #drb_catchment_water_quality_tn {
     line-color: @drb_catchment_line_color;
     line-width: @drb_catchment_line_width;
-    opacity: @drb_catchment_opacity;
     [tn_tot_kgy >= 0][tn_tot_kgy < 5] {
         polygon-fill: @drb_catchment_step_one_color;
     }
@@ -68,7 +66,6 @@
 #drb_catchment_water_quality_tp {
     line-color: @drb_catchment_line_color;
     line-width: @drb_catchment_line_width;
-    opacity: @drb_catchment_opacity;
     [tp_tot_kgy >= 0.0][tp_tot_kgy < 0.30] {
         polygon-fill: @drb_catchment_step_one_color;
     }
@@ -89,7 +86,6 @@
 #drb_catchment_water_quality_tss {
     line-color: @drb_catchment_line_color;
     line-width: @drb_catchment_line_width;
-    opacity: @drb_catchment_opacity;
     [tss_tot_kg >= 0][tss_tot_kg < 250] {
         polygon-fill: @drb_catchment_step_one_color;
     }
