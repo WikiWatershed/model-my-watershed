@@ -27,11 +27,32 @@
 
     data-tn_pt_kgyr="{{ tn_pt_kgyr|filterNoData()|toLocaleString() }}"
     data-tp_pt_kgyr="{{ tp_pt_kgyr|filterNoData()|toLocaleString() }}"
+
+    data-tn_yr_avg_="{{ tn_yr_avg_|filterNoData()|toLocaleString() }}"
+    data-tp_yr_avg_="{{ tp_yr_avg_|filterNoData()|toLocaleString() }}"
+    data-tss_concmg="{{ tss_concmg|filterNoData()|toLocaleString() }}"
   >
     {{ nord }}
   </a>
 </td>
-<td class="strong text-right">{{ areaha|filterNoData()|toLocaleString() }}</td>
-<td class="strong text-right">{{ (tn_tot_kgy/areaha)|filterNoData()|toLocaleString() }}</td>
-<td class="strong text-right">{{ (tp_tot_kgy/areaha)|filterNoData()|toLocaleString() }}</td>
-<td class="strong text-right">{{ (tss_tot_kg/areaha)|filterNoData()|toLocaleString() }}</td>
+<td class="strong text-right">
+    {{ areaha|filterNoData()|toLocaleString() }}
+</td>
+<td class="strong text-right">
+    {{ (tn_tot_kgy/areaha)|filterNoData()|toLocaleString() }}
+</td>
+<td class="strong text-right">
+    {{ (tp_tot_kgy/areaha)|filterNoData()|toLocaleString() }}
+</td>
+<td class="strong text-right">
+    {{ (tss_tot_kg/areaha)|filterNoData()|toLocaleString() }}
+</td>
+<td class="strong text-right">
+    {{ tn_yr_avg_|filterNoData()|toLocaleString() }}
+</td>
+<td class="strong text-right">
+    {{ tp_yr_avg_|filterNoData()|toLocaleString() }}
+</td>
+<td class="strong text-right">
+    {{ tss_concmg|filterNoData()|toLocaleString() }}
+</td>

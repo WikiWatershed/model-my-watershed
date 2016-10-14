@@ -136,9 +136,13 @@ function catchmentWaterQualityTableFormatter(categories) {
             areaha = coreUtils.filterNoData(category.get('areaha')).toLocaleString(),
             tn_tot_kgy = coreUtils.filterNoData((category.get('tn_tot_kgy')/category.get('areaha'))).toLocaleString(),
             tp_tot_kgy = coreUtils.filterNoData((category.get('tp_tot_kgy')/category.get('areaha'))).toLocaleString(),
-            tss_tot_kg = coreUtils.filterNoData((category.get('tss_tot_kg')/category.get('areaha'))).toLocaleString();
+            tss_tot_kg = coreUtils.filterNoData((category.get('tss_tot_kg')/category.get('areaha'))).toLocaleString(),
+            tn_yr_avg_ = coreUtils.filterNoData((category.get('tn_yr_avg_'))).toLocaleString(),
+            tp_yr_avg_ = coreUtils.filterNoData((category.get('tp_yr_avg_'))).toLocaleString(),
+            tss_concmg = coreUtils.filterNoData((category.get('tss_concmg'))).toLocaleString();
 
-        return [nord, areaha, tn_tot_kgy, tp_tot_kgy, tss_tot_kg];
+        return [nord, areaha, tn_tot_kgy, tp_tot_kgy, tss_tot_kg, tn_yr_avg_,
+            tp_yr_avg_, tss_concmg];
     });
 }
 
@@ -155,7 +159,8 @@ var tableHeaders = {
     soil: ['Type', 'Area (km2)', 'Coverage (%)'],
     animals: ['Animal', 'Count'],
     pointsource: ['NPDES Code', 'City', 'Discharge (MGD)', 'TN Load (kg/yr)', 'TP Load (kg/yr)'],
-    catchment_water_quality: ['Id', 'Area (ha)', 'Total N (kg/ha)', 'Total P (kg/ha)', 'Total TSS (kg/ha)'],
+    catchment_water_quality: ['Id', 'Area (ha)', 'Total N (kg/ha)', 'Total P (kg/ha)',
+        'Total TSS (kg/ha)', 'Avg TN (mg/l)', 'Avg TP (mg/l)', 'Avg TSS (mg/l)'],
 };
 
 function tableRows(type, result) {
