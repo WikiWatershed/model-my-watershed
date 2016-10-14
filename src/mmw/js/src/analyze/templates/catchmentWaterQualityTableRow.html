@@ -1,0 +1,37 @@
+<td>
+  <a
+    class="catchment-water-quality-id"
+
+    data-nord="{{ nord }}"
+    data-areaha="{{ areaha }}"
+
+    data-tn_tot_kgy="{{ tn_tot_kgy|filterNoData()|toLocaleString() }}"
+    data-tp_tot_kgy="{{ tp_tot_kgy|filterNoData()|toLocaleString() }}"
+    data-tss_tot_kg="{{ tss_tot_kg|filterNoData()|toLocaleString() }}"
+
+    data-tn_urban_k="{{ tn_urban_k|filterNoData()|toLocaleString() }}"
+    data-tp_urban_k="{{ tp_urban_k|filterNoData()|toLocaleString() }}"
+    data-tss_urban_="{{ tss_urban_|filterNoData()|toLocaleString() }}"
+
+    data-tn_riparia="{{ tn_riparia|filterNoData()|toLocaleString()}}"
+    data-tp_riparia="{{ tp_riparia|filterNoData()|toLocaleString() }}"
+    data-tss_rip_kg="{{ tss_rip_kg|filterNoData()|toLocaleString() }}"
+
+    data-tn_ag_kgyr="{{ tn_ag_kgyr|filterNoData()|toLocaleString() }}"
+    data-tp_ag_kgyr="{{ tp_ag_kgyr|filterNoData()|toLocaleString() }}"
+    data-tss_ag_kgy="{{ tss_ag_kgy|filterNoData()|toLocaleString() }}"
+
+    data-tn_natural="{{ tn_natural|filterNoData()|toLocaleString() }}"
+    data-tp_natural="{{ tp_natural|filterNoData()|toLocaleString() }}"
+    data-tss_natura="{{ tss_natura|filterNoData()|toLocaleString() }}"
+
+    data-tn_pt_kgyr="{{ tn_pt_kgyr|filterNoData()|toLocaleString() }}"
+    data-tp_pt_kgyr="{{ tp_pt_kgyr|filterNoData()|toLocaleString() }}"
+  >
+    {{ nord }}
+  </a>
+</td>
+<td class="strong text-right">{{ areaha|filterNoData()|toLocaleString() }}</td>
+<td class="strong text-right">{{ (tn_tot_kgy/areaha)|filterNoData()|toLocaleString() }}</td>
+<td class="strong text-right">{{ (tp_tot_kgy/areaha)|filterNoData()|toLocaleString() }}</td>
+<td class="strong text-right">{{ (tss_tot_kg/areaha)|filterNoData()|toLocaleString() }}</td>

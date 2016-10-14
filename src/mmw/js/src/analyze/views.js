@@ -17,6 +17,7 @@ var $ = require('jquery'),
     chart = require('../core/chart'),
     utils = require('../core/utils'),
     pointSourceLayer = require('../core/pointSourceLayer'),
+    catchmentWaterQualityLayer = require('../core/catchmentWaterQualityLayer'),
     windowTmpl = require('./templates/window.html'),
     analyzeResultsTmpl = require('./templates/analyzeResults.html'),
     aoiHeaderTmpl = require('./templates/aoiHeader.html'),
@@ -26,6 +27,8 @@ var $ = require('jquery'),
     animalTableRowTmpl = require('./templates/animalTableRow.html'),
     pointSourceTableTmpl = require('./templates/pointSourceTable.html'),
     pointSourceTableRowTmpl = require('./templates/pointSourceTableRow.html'),
+    catchmentWaterQualityTableTmpl = require('./templates/catchmentWaterQualityTable.html'),
+    catchmentWaterQualityTableRowTmpl = require('./templates/catchmentWaterQualityTableRow.html'),
     tabPanelTmpl = require('../modeling/templates/resultsTabPanel.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     barChartTmpl = require('../core/templates/barChart.html'),
@@ -432,7 +435,7 @@ var PointSourceTableView = Marionette.CompositeView.extend({
             fillOpacity: 0.75
         }).bindPopup(new pointSourceLayer.PointSourcePopupView({
           model: new Backbone.Model(data)
-        }).render().el);
+      }).render().el, { closeButton: false });
     },
 
     addPointSourceMarkerToMap: function(e) {
@@ -462,6 +465,106 @@ var PointSourceTableView = Marionette.CompositeView.extend({
 
         if (this.marker) {
             map.removeLayer(this.marker);
+        }
+    }
+});
+
+var CatchmentWaterQualityTableRowView = Marionette.ItemView.extend({
+    tagName: 'tr',
+    className: 'catchment-water-quality',
+    template: catchmentWaterQualityTableRowTmpl,
+
+    templateHelpers: function() {
+        return {
+            val: this.model.get('value'),
+            noData: utils.noData
+        };
+    }
+});
+
+var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
+    childView: CatchmentWaterQualityTableRowView,
+    childViewOptions: function() {
+        return {
+            units: this.options.units
+        };
+    },
+    templateHelpers: function() {
+        return {
+            headerUnits: this.options.units,
+            totalTN: utils.totalForCatchmentWaterQualityCollection(
+                this.collection.models, 'tn_tot_kgy', 'areaha'),
+            totalTP: utils.totalForCatchmentWaterQualityCollection(
+                this.collection.models, 'tp_tot_kgy', 'areaha'),
+            totalTSS: utils.totalForCatchmentWaterQualityCollection(
+                this.collection.models, 'tss_tot_kg', 'areaha')
+        };
+    },
+    childViewContainer: 'tbody',
+    template: catchmentWaterQualityTableTmpl,
+
+    onAttach: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    },
+
+    ui: {
+        'catchmentWaterQualityTR': 'tr.catchment-water-quality',
+        'catchmentWaterQualityId': '.catchment-water-quality-id'
+    },
+
+    events: {
+        'click @ui.catchmentWaterQualityId': 'panToCatchmentPolygon',
+        'mouseout @ui.catchmentWaterQualityId': 'removeCatchmentPolygon',
+        'mouseover @ui.catchmentWaterQualityTR': 'addCatchmentToMap',
+        'mouseout @ui.catchmentWaterQualityTR': 'removeCatchmentPolygon'
+    },
+
+    createCatchmentPolygon: function(data) {
+        var geom = utils.geomForIdInCatchmentWaterQualityCollection(this.collection.models,
+            'nord', data.nord);
+        var geoJson = {
+            "type": "Feature",
+            "geometry": JSON.parse(geom),
+        };
+        this.catchmentPolygon = L.geoJson(geoJson, {
+            style: {
+                fillColor: '#ff7800',
+                fillOpacity: 0.5
+            }
+        }).bindPopup(new catchmentWaterQualityLayer.CatchmentWaterQualityPopupView({
+          model: new Backbone.Model(data)
+      }).render().el, { closeButton: false });
+    },
+
+    addCatchmentToMap: function(e) {
+        var data = $(e.currentTarget).find('.catchment-water-quality-id').data(),
+            map = App.getLeafletMap();
+
+        this.createCatchmentPolygon(data);
+
+        this.catchmentPolygon.addTo(map);
+    },
+
+    panToCatchmentPolygon: function(e) {
+        var map = App.getLeafletMap();
+        var data = $(e.currentTarget).data();
+
+        if (!this.catchmentPolygon) {
+          this.createCatchmentPolygon(data);
+        }
+        var geom = utils.geomForIdInCatchmentWaterQualityCollection(this.collection.models,
+                    'nord', data.nord);
+        this.catchmentPolygon.addTo(map);
+        map.panInsideBounds(this.catchmentPolygon.getBounds());
+        var popUpLocationGeoJSON = utils.findCenterOfShapeIntersection(JSON.parse(geom), App.map.get('areaOfInterest'));
+        this.catchmentPolygon.openPopup(L.GeoJSON.coordsToLatLng(popUpLocationGeoJSON.geometry.coordinates));
+    },
+
+    removeCatchmentPolygon: function() {
+        var map = App.getLeafletMap();
+
+        if (this.catchmentPolygon) {
+            map.removeLayer(this.catchmentPolygon);
         }
     }
 });
@@ -558,11 +661,19 @@ var PointSourceResultView = AnalyzeResultView.extend({
     }
 });
 
+var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
+    onShow: function() {
+        this.showAnalyzeResults(coreModels.CatchmentWaterQualityCensusCollection,
+            CatchmentWaterQualityTableView);
+    }
+});
+
 var AnalyzeResultViews = {
     land: LandResultView,
     soil: SoilResultView,
     animals: AnimalsResultView,
     pointsource: PointSourceResultView,
+    catchment_water_quality: CatchmentWaterQualityResultView,
 };
 
 module.exports = {

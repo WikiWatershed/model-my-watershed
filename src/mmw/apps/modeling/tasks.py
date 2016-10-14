@@ -16,7 +16,8 @@ from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
     data_to_survey, data_to_census, data_to_censuses
 
 from apps.modeling.calcs import (animal_population,
-                                 point_source_pollution)
+                                 point_source_pollution,
+                                 catchment_water_quality)
 
 from tr55.model import simulate_day
 from gwlfe import gwlfe, parser
@@ -148,6 +149,15 @@ def analyze_pointsource(area_of_interest):
     Given an area of interest, returns point sources of pollution within it.
     """
     return {'survey': [point_source_pollution(area_of_interest)]}
+
+
+@shared_task
+def analyze_catchment_water_quality(area_of_interest):
+    """
+    Given an area of interest in the DRB, returns catchment water quality data
+    within it.
+    """
+    return {'survey': [catchment_water_quality(area_of_interest)]}
 
 
 def parse_single_ring_multipolygon(area_of_interest):

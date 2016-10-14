@@ -63,14 +63,17 @@
     }
 }
 
-.ptsrc-table-footer {
+.catchment-water-quality-table-footer,
+    .ptsrc-table-footer {
     border-top: 1px solid #ddd;
 }
 
-.ptsrc-footer-item {
+.catchment-water-quality-footer-item,
+    .ptsrc-footer-item {
     border-left: 1px solid #ddd;
 }
 
-.point-source .point-source-id {
+.catchment-water-quality .catchment-water-quality-id,
+    .point-source .point-source-id {
   cursor: pointer;
 }
