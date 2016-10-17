@@ -583,7 +583,8 @@ def start_celery_job(task_list, job_input, user=None,
     """
     created = now()
     job = Job.objects.create(created_at=created, result='', error='',
-                             traceback='', user=user, status='started')
+                             traceback='', user=user, status='started',
+                             model_input=job_input)
     routing_key = routing_key if routing_key else choose_worker()
     success = save_job_result.s(job.id, job_input).set(exchange=exchange,
                                                        routing_key=routing_key)
