@@ -124,29 +124,10 @@ def catchment_water_quality(geojson):
                 # The TN, TP, and TSS values return as type Decimal,
                 # but we want floats.
                 dict(zip(columns,
-                         [row[0],
-                          float(row[1]) if row[1] else None,
-                          float(row[2]) if row[2] else None,
-                          float(row[3]) if row[3] else None,
-                          float(row[4]) if row[4] else None,
-                          float(row[5]) if row[5] else None,
-                          float(row[6]) if row[6] else None,
-                          float(row[7]) if row[7] else None,
-                          float(row[8]) if row[8] else None,
-                          float(row[9]) if row[9] else None,
-                          float(row[10]) if row[10] else None,
-                          float(row[11]) if row[11] else None,
-                          float(row[12]) if row[12] else None,
-                          float(row[13]) if row[13] else None,
-                          float(row[14]) if row[14] else None,
-                          float(row[15]) if row[15] else None,
-                          float(row[16]) if row[16] else None,
-                          float(row[17]) if row[17] else None,
-                          float(row[18]) if row[18] else None,
-                          float(row[19]) if row[19] else None,
-                          float(row[20]) if row[20] else None,
-                          float(row[21]) if row[21] else None,
-                          row[22]]))
+                         ([int(row[0]) if row[0] else None] +
+                          [float(value) if value else None
+                           for value in row[1:22]] +
+                          [row[22]])))
                 for row in cursor.fetchall()
             ]
         else:
