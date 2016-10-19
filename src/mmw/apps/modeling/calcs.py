@@ -110,7 +110,8 @@ def catchment_water_quality(geojson):
           tn_urban_k, tn_riparia, tn_ag_kgyr, tn_natural, tn_pt_kgyr,
           tp_urban_k, tp_riparia, tp_ag_kgyr, tp_natural, tp_pt_kgyr,
           tss_urban_, tss_rip_kg, tss_ag_kgy, tss_natura,
-          tn_yr_avg_, tp_yr_avg_, tss_concmg, ST_AsGeoJSON(geom) as geom
+          tn_yr_avg_, tp_yr_avg_, tss_concmg,
+          ST_AsGeoJSON(ST_Simplify(geom, 0.0003)) as geom
           FROM {table_name}
           WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromText(%s), 4326))
           '''.format(table_name=table_name)
