@@ -403,9 +403,9 @@ var WatershedDelineationView = Marionette.ItemView.extend({
             map = App.getLeafletMap(),
             $item = $(e.currentTarget),
             itemName = $item.text(),
-            snappingOn = !!$item.data('snapping-on'),
-            revertLayer = clearAoiLayer();
+            snappingOn = !!$item.data('snapping-on');
 
+        clearAoiLayer();
         this.model.set('pollError', false);
         this.model.disableTools();
 
@@ -422,7 +422,7 @@ var WatershedDelineationView = Marionette.ItemView.extend({
                 navigateToAnalyze();
             })
             .fail(function(message) {
-                revertLayer();
+                clearAoiLayer();
                 if (message) {
                     var alertView = new modalViews.AlertView({
                         model: new modalModels.AlertModel({
