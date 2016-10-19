@@ -69,18 +69,12 @@ module.exports = L.Control.Layers.extend({
         // from firing a mouseout event when the touch is released
         container.setAttribute('aria-haspopup', true);
 
-        // Copied directly from the parent class.
+        // Copied directly from the parent class, with addition of listContainer
+        L.DomEvent.disableClickPropagation(container);
+        L.DomEvent.disableClickPropagation(listContainer);
         if (!L.Browser.touch) {
-            L.DomEvent
-                .disableClickPropagation(container)
-                .disableScrollPropagation(container);
-
-            L.DomEvent
-                .disableClickPropagation(listContainer)
-                .disableScrollPropagation(listContainer);
-        } else {
-            L.DomEvent.on(container, 'click', L.DomEvent.stopPropagation);
-            L.DomEvent.on(listContainer, 'click', L.DomEvent.stopPropagation);
+            L.DomEvent.disableScrollPropagation(container);
+            L.DomEvent.disableScrollPropagation(listContainer);
         }
 
         // Expand the layer control so that Leaflet
@@ -131,7 +125,10 @@ module.exports = L.Control.Layers.extend({
             $(input).attr('id', obj.layer.options.code);
         }
 
-        L.DomEvent.on(input, 'click', this._onInputClick, this);
+        // work around for Firefox Android issue https://github.com/Leaflet/Leaflet/issues/2033
+        L.DomEvent.on(input, 'click', function () {
+            setTimeout(L.bind(this._onInputClick, this), 0);
+        }, this);
 
         var name = document.createElement('span');
         name.innerHTML = ' ' + obj.name;
