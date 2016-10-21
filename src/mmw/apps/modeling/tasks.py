@@ -11,6 +11,7 @@ from math import sqrt
 from StringIO import StringIO
 
 from celery import shared_task
+from celery.exceptions import SoftTimeLimitExceeded
 
 from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
     data_to_survey, data_to_census, data_to_censuses
@@ -21,6 +22,8 @@ from apps.modeling.calcs import (animal_population,
 
 from tr55.model import simulate_day
 from gwlfe import gwlfe, parser
+
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -99,13 +102,34 @@ def get_histogram_job_results(self, incoming):
     """ Calls a function that polls SJS for the results
     of the given Job. Self here is Celery.
     """
-    pixel_width = incoming['pixel_width']
-    histogram = histogram_finish(incoming['sjs_job_id'], self.retry)
+    try:
+        pixel_width = incoming['pixel_width']
+        histogram = histogram_finish(incoming['sjs_job_id'], self.retry)
+        return {
+            'pixel_width': pixel_width,
+            'histogram': histogram
+        }
+    except SoftTimeLimitExceeded:
+        sjs_job_id = self.request.args[0]['sjs_job_id']
+        url = 'http://{}:{}/jobs/{}'.format(settings.GEOP['host'],
+                                            settings.GEOP['port'],
+                                            sjs_job_id)
 
-    return {
-        'pixel_width': pixel_width,
-        'histogram': histogram
-    }
+        response = requests.get(url)
+        if response.ok:
+            sjs_result = response.json()
+        else:
+            raise Exception('Unable to retrieve job {} from Spark JobServer.\n'
+                            'Details = {}'.format(sjs_job_id))
+
+        if sjs_result['status'] == 'RUNNING':
+            delete = requests.delete(url)
+            if delete.ok:
+                return {'message':
+                        'Job {0} successfully terminated.'.format(sjs_job_id)}
+            else:
+                raise Exception('Job {} timed out, unable to delete.\n'
+                                'Details: {}'.format(sjs_job_id, delete.text))
 
 
 @shared_task

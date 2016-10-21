@@ -567,6 +567,25 @@ def drb_point_sources(request):
                     headers={'Cache-Control': 'max-age: 604800'})
 
 
+@decorators.api_view(['GET'])
+@decorators.permission_classes((AllowAny, ))
+def kill_job(request, job_uuid, format=None):
+    try:
+
+        celery.current_app.control.revoke(job_uuid,
+                                          terminate=True,
+                                          signal='SIGUSR1')
+        return Response(
+            'Job {0} was successfully terminated.'.format(
+                job_uuid))
+    except Exception as ex:
+        response_data = {
+            'errors': ['Job {0} could not be killed.'.format(job_uuid),
+                       ex.message]}
+        return Response(data=response_data,
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 def start_celery_job(task_list, job_input, user=None,
                      exchange=MAGIC_EXCHANGE, routing_key=None):
     """

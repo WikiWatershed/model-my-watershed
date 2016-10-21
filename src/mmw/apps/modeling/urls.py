@@ -13,7 +13,7 @@ from apps.modeling import views
 # Third set of characters must start with a '4'.
 # Fourth set of characters must start with one of 'a,b,8,9'.
 uuid_regex = '(?P<job_uuid>[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-' \
-             + '[89abAB][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12})/$'
+             + '[89abAB][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12})'
 
 urlpatterns = patterns(
     '',
@@ -30,7 +30,8 @@ urlpatterns = patterns(
         views.start_analyze_catchment_water_quality,
         name='start_analyze_catchment_water_quality'),
     url(r'start/mapshed/$', views.start_mapshed, name='start_mapshed'),
-    url(r'jobs/' + uuid_regex, views.get_job, name='get_job'),
+    url(r'jobs/' + uuid_regex + r'/$', views.get_job, name='get_job'),
+    url(r'jobs/' + uuid_regex + r'/kill/$', views.kill_job, name='kill_job'),
     url(r'start/tr55/$', views.start_tr55, name='start_tr55'),
     url(r'start/rwd/$', views.start_rwd, name='start_rwd'),
     url(r'start/gwlfe/$', views.start_gwlfe, name='start_gwlfe'),
