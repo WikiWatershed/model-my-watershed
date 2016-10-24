@@ -144,7 +144,7 @@ var ModelingController = {
                         ).census
                     );
                 })
-                .fail(projectCleanUp);
+                .fail(projectErrorState);
 
             setupNewProjectScenarios(project);
             finishProjectSetup(project, lock);
@@ -156,6 +156,10 @@ var ModelingController = {
 
     projectCleanUp: function() {
         projectCleanUp();
+    },
+
+    projectErrorState: function() {
+        projectErrorState();
     },
 
     makeNewProjectCleanUp: function() {
@@ -288,6 +292,18 @@ function projectCleanUp() {
     App.getMapView().updateModifications(null);
     App.rootView.subHeaderRegion.empty();
     App.rootView.sidebarRegion.empty();
+}
+
+function projectErrorState() {
+    if (App.currentProject) {
+        var scenarios = App.currentProject.get('scenarios');
+        App.currentProject.off('change:id', updateUrl);
+        scenarios.off('change:activeScenario change:id', updateScenario);
+        App.currentProject.set('scenarios_events_initialized', false);
+        App.projectNumber = scenarios.at(0).get('project');
+    }
+
+    App.getMapView().updateModifications(null);
 }
 
 function updateItsiFromEmbedMode() {
