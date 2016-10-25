@@ -19,6 +19,7 @@ var $ = require('jquery'),
     pointSourceLayer = require('../core/pointSourceLayer'),
     catchmentWaterQualityLayer = require('../core/catchmentWaterQualityLayer'),
     windowTmpl = require('./templates/window.html'),
+    AnalyzeDescriptionTmpl = require('./templates/analyzeDescription.html'),
     analyzeResultsTmpl = require('./templates/analyzeResults.html'),
     aoiHeaderTmpl = require('./templates/aoiHeader.html'),
     tableTmpl = require('./templates/table.html'),
@@ -324,6 +325,10 @@ var AoiView = Marionette.ItemView.extend({
     template: aoiHeaderTmpl
 });
 
+var AnalyzeDescriptionView = Marionette.ItemView.extend({
+    template: AnalyzeDescriptionTmpl
+});
+
 var TableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
     template: tableRowTmpl,
@@ -627,11 +632,13 @@ var ChartView = Marionette.ItemView.extend({
 var AnalyzeResultView = Marionette.LayoutView.extend({
     template: analyzeResultsTmpl,
     regions: {
+        descriptionRegion: '.desc-region',
         chartRegion: '.chart-region',
         tableRegion: '.table-region'
     },
 
-    showAnalyzeResults: function(CategoriesToCensus, AnalyzeTableView, AnalyzeChartView) {
+    showAnalyzeResults: function(CategoriesToCensus, AnalyzeTableView,
+        AnalyzeChartView, description) {
         var categories = this.model.get('categories'),
             largestArea = _.max(_.pluck(categories, 'area')),
             units = utils.magnitudeOfArea(largestArea),
@@ -648,37 +655,57 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
                 collection: census
             }));
         }
+
+        if (description) {
+            this.descriptionRegion.show(new AnalyzeDescriptionView({
+                model: new Backbone.Model({
+                    description: description
+                })
+            }));
+        }
     }
 });
 
 var LandResultView  = AnalyzeResultView.extend({
     onShow: function() {
-        this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView, ChartView);
+        var desc = 'Land cover distribution';
+        this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView,
+            ChartView, desc);
     }
 });
 
 var SoilResultView  = AnalyzeResultView.extend({
     onShow: function() {
-        this.showAnalyzeResults(coreModels.SoilCensusCollection, TableView, ChartView);
+        var desc = 'Hydrologic soil group distribution';
+        this.showAnalyzeResults(coreModels.SoilCensusCollection, TableView,
+            ChartView, desc);
     }
 });
 
 var AnimalsResultView = AnalyzeResultView.extend({
     onShow: function() {
-        this.showAnalyzeResults(coreModels.AnimalCensusCollection, AnimalTableView);
+        var desc = 'Estimated number of agricultural animals',
+            chart = null;
+        this.showAnalyzeResults(coreModels.AnimalCensusCollection, AnimalTableView,
+            chart, desc);
     }
 });
 
 var PointSourceResultView = AnalyzeResultView.extend({
     onShow: function() {
-        this.showAnalyzeResults(coreModels.PointSourceCensusCollection, PointSourceTableView);
+        var desc = 'Point source pollution',
+            chart = null;
+        this.showAnalyzeResults(coreModels.PointSourceCensusCollection,
+            PointSourceTableView, chart, desc);
     }
 });
 
 var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
     onShow: function() {
+        var desc = 'Average annual catchment loading rates and stream concentrations',
+            chart = null;
         this.showAnalyzeResults(coreModels.CatchmentWaterQualityCensusCollection,
-            CatchmentWaterQualityTableView);
+            CatchmentWaterQualityTableView, chart, desc);
     }
 });
 
