@@ -19,9 +19,8 @@ var AnalyzeController = {
             App.map.set('maskLayerApplied', true);
         }
 
-        if (settings.get('activityMode')) {
-            // Only one project allowed in Activity Mode. Save current project
-            // and if in embedded mode, update interactive state for container.
+        if (settings.get('itsi_embed')) {
+            // Only one project allowed in embed mode
             var project = App.currentProject,
                 map = App.map;
 
@@ -30,13 +29,6 @@ var AnalyzeController = {
                     'area_of_interest': map.get('areaOfInterest'),
                     'area_of_interest_name': map.get('areaOfInterestName')
                 });
-                project
-                    .save()
-                    .done(function() {
-                        if (settings.get('itsi_embed')) {
-                            App.itsi.setLearnerUrl('project/' + project.id + '/draw');
-                        }
-                    });
             }
         } else {
             // Multiple projects allowed in Regular Mode. Nullify current
