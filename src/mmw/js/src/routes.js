@@ -20,3 +20,11 @@ router.addRoute('projects(/)', ProjectsController, 'projects');
 router.addRoute('error(/:type)(/)', ErrorController, 'error');
 router.addRoute('sign-up(/)', SignUpController, 'signUp');
 router.addRoute('sign-up/itsi(/:username)(/:first_name)(/:last_name)(/)', SignUpController, 'itsiSignUp');
+
+router.on('route', function() {
+    // Allow Google Analytics to track virtual pageloads following approach in
+    // https://developers.google.com/analytics/devguides/collection/
+    // analyticsjs/single-page-applications
+    window.ga('set', 'page', window.location.pathname);
+    window.ga('send', 'pageview');
+});
