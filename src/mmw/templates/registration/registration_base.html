@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% include 'head.html' %}
 
 {% block header %}
 <header>
@@ -11,7 +11,7 @@
 {% endblock header %}
 
 {% block content %}
-<div class="container-fluid top-nav">
+<div class="container-fluid top-nav registration-form">
     {% block title %}
     {% endblock %}
     {% block registration_content %}
