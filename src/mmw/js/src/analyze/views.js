@@ -668,7 +668,7 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
 
 var LandResultView  = AnalyzeResultView.extend({
     onShow: function() {
-        var desc = 'Land cover distribution';
+        var desc = 'Land cover distribution from National Land Cover Database (NLCD 2011)';
         this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView,
             ChartView, desc);
     }
@@ -676,7 +676,7 @@ var LandResultView  = AnalyzeResultView.extend({
 
 var SoilResultView  = AnalyzeResultView.extend({
     onShow: function() {
-        var desc = 'Hydrologic soil group distribution';
+        var desc = 'Hydrologic soil group distribution from USDA (gSSURGO 2016)';
         this.showAnalyzeResults(coreModels.SoilCensusCollection, TableView,
             ChartView, desc);
     }
@@ -684,7 +684,7 @@ var SoilResultView  = AnalyzeResultView.extend({
 
 var AnimalsResultView = AnalyzeResultView.extend({
     onShow: function() {
-        var desc = 'Estimated number of agricultural animals',
+        var desc = 'Estimated number of farm animals',
             chart = null;
         this.showAnalyzeResults(coreModels.AnimalCensusCollection, AnimalTableView,
             chart, desc);
@@ -693,7 +693,7 @@ var AnimalsResultView = AnalyzeResultView.extend({
 
 var PointSourceResultView = AnalyzeResultView.extend({
     onShow: function() {
-        var desc = 'Point source pollution',
+        var desc = 'Discharge Monitoring Report annual averages from EPA NPDES',
             chart = null;
         this.showAnalyzeResults(coreModels.PointSourceCensusCollection,
             PointSourceTableView, chart, desc);
@@ -702,7 +702,7 @@ var PointSourceResultView = AnalyzeResultView.extend({
 
 var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
     onShow: function() {
-        var desc = 'Average annual catchment loading rates and stream concentrations',
+        var desc = 'River Basin only: Stream Reach Assessment Tool model estimates',
             chart = null;
         this.showAnalyzeResults(coreModels.CatchmentWaterQualityCensusCollection,
             CatchmentWaterQualityTableView, chart, desc);
