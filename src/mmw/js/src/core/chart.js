@@ -7,6 +7,30 @@ var d3 = require('d3'),
 
 var widthCutoff = 400;
 
+// Make jQuery handle destroyed event.
+// http://stackoverflow.com/questions/2200494/
+// jquery-trigger-event-when-an-element-is-removed-from-the-dom
+(function($) {
+    $.event.special.destroyed = {
+        remove: function(o) {
+            if (o.handler) {
+                o.handler();
+            }
+        }
+    };
+})($);
+
+// When we replace a chart with a new one, the tooltip for the old chart
+// persists because it resides under the body tag instead of under
+// chartEl (the container div for the chart) like the other chart components.
+// Therefore, we manually remove the tooltip when elements under chartEl are
+// destroyed.
+function removeTooltipOnDestroy(chartEl, tooltip) {
+    $(chartEl).children().bind('destroyed', function() {
+        $('#' + tooltip.id()).remove();
+    });
+}
+
 function makeSvg(el) {
     // For some reason, the chart will only render if the style is
     // defined inline, even if it is blank.
@@ -140,6 +164,11 @@ function renderHorizontalBarChart(chartEl, data, options) {
         // redrawing the chart.
         $(chartEl).on('bar-chart:refresh', updateChart);
 
+        // This isn't strictly necessary since tooltips aren't enabled in the
+        // horizontal bar chart, but it's here defensively in case we start
+        // using them.
+        removeTooltipOnDestroy(chartEl, chart.tooltip);
+
         return chart;
     });
 }
@@ -232,7 +261,6 @@ function renderVerticalBarChart(chartEl, data, options) {
             chart.color(options.seriesColors);
         }
 
-
         d3.select(svg)
             .datum(data)
             .call(chart);
@@ -241,6 +269,8 @@ function renderVerticalBarChart(chartEl, data, options) {
         // The bar-chart:refresh event occurs when switching tabs which requires
         // redrawing the chart.
         $(chartEl).on('bar-chart:refresh', updateChart);
+
+        removeTooltipOnDestroy(chartEl, chart.tooltip);
 
         return chart;
     });
