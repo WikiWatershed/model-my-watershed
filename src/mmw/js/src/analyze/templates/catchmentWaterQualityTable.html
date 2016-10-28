@@ -1,54 +1,64 @@
-<table class="table custom-hover catchment-water-quality" data-toggle="table">
-    <thead>
-        <tr>
-            <th data-sortable="true">Id</th>
-            <th data-sortable="true">Area (ha)</th>
-            <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
-                Total N (kg/ha)
-            </th>
-            <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
-                Total P (kg/ha)
-            </th>
-            <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
-                Total TSS (kg/ha)
-            </th>
-            <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
-                Avg TN (mg/l)
-            </th>
-            <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
-                Avg TP (mg/l)
-            </th>
-            <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
-                Avg TSS (mg/l)
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-    </tbody>
-    <tfoot>
-        <tr class="catchment-water-quality-table-footer">
-            <td></td>
-            <td class="strong text-right">
-                Total (kg/ha)
-            </td>
-            <td class="catchment-water-quality-footer-item strong text-right">
-                {{ totalTN|filterNoData()|toLocaleString() }}
-            </td>
-            <td class="catchment-water-quality-footer-item strong text-right">
-                {{ totalTP|filterNoData()|toLocaleString() }}
-            </td>
-            <td class="catchment-water-quality-footer-item strong text-right">
-                {{ totalTSS|filterNoData()|toLocaleString() }}
-            </td>
-            <td class="catchment-water-quality-footer-item strong text-right">
-                --
-            </td>
-            <td class="catchment-water-quality-footer-item strong text-right">
-                --
-            </td>
-            <td class="catchment-water-quality-footer-item strong text-right">
-                --
-            </td>
-        </tr>
-    </tfoot>
-</table>
+<div class="pageable-table-container">
+  <table class="table custom-hover catchment-water-quality pageable-table-size" data-toggle="table">
+      <thead>
+          <tr>
+              <th data-sortable="true">Id</th>
+              <th data-sortable="true">Area (ha)</th>
+              <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
+                  Total N (kg/ha)
+              </th>
+              <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
+                  Total P (kg/ha)
+              </th>
+              <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
+                  Total TSS (kg/ha)
+              </th>
+              <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
+                  Avg TN (mg/l)
+              </th>
+              <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
+                  Avg TP (mg/l)
+              </th>
+              <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
+                  Avg TSS (mg/l)
+              </th>
+          </tr>
+      </thead>
+      <tbody>
+      </tbody>
+      <tfoot>
+          <tr class="catchment-water-quality-table-footer">
+              <td></td>
+              <td class="strong text-right">
+                  Total (kg/ha)
+              </td>
+              <td class="catchment-water-quality-footer-item strong text-right">
+                  {{ totalTN|filterNoData()|toLocaleString() }}
+              </td>
+              <td class="catchment-water-quality-footer-item strong text-right">
+                  {{ totalTP|filterNoData()|toLocaleString() }}
+              </td>
+              <td class="catchment-water-quality-footer-item strong text-right">
+                  {{ totalTSS|filterNoData()|toLocaleString() }}
+              </td>
+              <td class="catchment-water-quality-footer-item strong text-right">
+                  --
+              </td>
+              <td class="catchment-water-quality-footer-item strong text-right">
+                  --
+              </td>
+              <td class="catchment-water-quality-footer-item strong text-right">
+                  --
+              </td>
+          </tr>
+      </tfoot>
+  </table>
+</div>
+<div class="row paging-ctl-row">
+  <button class="btn-prev-page btn btn-primary">
+    <span aria-hidden="true">&larr;</span>
+  </button>
+  <button class="btn-next-page btn btn-primary">
+    <span aria-hidden="true">&rarr;</span>
+  </button>
+</div>
