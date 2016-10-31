@@ -6,6 +6,7 @@ from __future__ import absolute_import
 from django.conf import settings
 from django_statsd.clients import statsd
 from celery.exceptions import MaxRetriesExceededError
+from requests.exceptions import ConnectionError
 
 import requests
 import json
@@ -60,29 +61,36 @@ def sjs_submit(host, port, args, data, retry=None):
     """
     base_url = 'http://{}:{}'.format(host, port)
     jobs_url = '{}/jobs?{}'.format(base_url, args)
-    response = requests.post(jobs_url, data=json.dumps(data))
+
+    try:
+        response = requests.post(jobs_url, data=json.dumps(data))
+    except ConnectionError as exc:
+        if retry is not None:
+            retry(exc=exc)
 
     if response.ok:
         job = response.json()
     else:
         error = response.json()
-        if error['status'] == 'NO SLOTS AVAILABLE' and retry:
-            try:
-                retry()
-            except MaxRetriesExceededError:
-                raise Exception('No slots available in Spark JobServer.\n'
-                                'Details = {}'.format(response.text))
+
+        if error['status'] == 'NO SLOTS AVAILABLE' and retry is not None:
+            retry(exc=Exception('No slots available in Spark JobServer.\n'
+                                'Details = {}'.format(response.text)))
         elif error['result'] == 'context geoprocessing not found':
             reboot_sjs_url = '{}/contexts?reset=reboot'.format(base_url)
             context_response = requests.put(reboot_sjs_url)
 
             if context_response.ok:
-                if retry:
-                    retry()
+                if retry is not None:
+                    retry(exc=Exception('Geoprocessing context missing in '
+                                        'Spark JobServer\nDetails = {}'.format(
+                                            context_response.text)))
                 else:
-                    raise Exception('Geoprocessing context missing in Spark'
-                                    'JobServer, but no retry was set.\n'
-                                    'Details = {}'.format())
+                    raise Exception('Geoprocessing context missing in '
+                                    'Spark JobServer, but no retry was set.\n'
+                                    'Details = {}'.format(
+                                        context_response.text))
+
             else:
                 raise Exception('Unable to create missing geoprocessing '
                                 'context in Spark JobServer.\n'
@@ -106,7 +114,11 @@ def sjs_retrieve(host, port, job_id, retry=None):
     proceeding.
     """
     url = 'http://{}:{}/jobs/{}'.format(host, port, job_id)
-    response = requests.get(url)
+    try:
+        response = requests.get(url)
+    except ConnectionError as exc:
+        if retry is not None:
+            retry(exc=exc)
 
     if response.ok:
         job = response.json()
@@ -117,7 +129,7 @@ def sjs_retrieve(host, port, job_id, retry=None):
     if job['status'] == 'FINISHED':
         return job['result']
     elif job['status'] == 'RUNNING':
-        if retry:
+        if retry is not None:
             try:
                 retry()
             except MaxRetriesExceededError:
