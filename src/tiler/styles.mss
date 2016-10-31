@@ -104,12 +104,12 @@
 }
 
 @streamColor: #1562A9;
-@wtrQualColor0: #d7191c;
-@wtrQualColor1: #fdae61;
+@wtrQualColor0: #1a9641;
+@wtrQualColor1: #a6d96a;
 @wtrQualColor2: #ffffbf;
-@wtrQualColor3: #a6d96a;
-@wtrQualColor4: #1a9641;
-@wtrQualColorNA: #787878;
+@wtrQualColor3: #fdae61;
+@wtrQualColor4: #d7191c;
+@wtrQualColorNA: #9E9E9E;
 
 @zoomBase: 0.5;
 
