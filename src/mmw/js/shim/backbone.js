@@ -7,5 +7,6 @@ var $ = require('jquery'),
 
 // See: https://github.com/jashkenas/backbone/issues/3291
 Backbone.$ = $;
+Backbone.PageableCollection = require('backbone.paginator');
 
 module.exports = Backbone;

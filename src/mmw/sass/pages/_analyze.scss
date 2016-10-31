@@ -30,3 +30,28 @@
   font-size: 0.8rem;
   padding-top: 5px;
 }
+
+.paging-ctl-row {
+  text-align: center;
+  bottom:0rem;
+  position:fixed;
+  background-color: $paper;
+  @media (max-height: 884px) {
+    top:0.2rem;
+    position:relative;
+  }
+}
+
+.pageable-table-container {
+  overflow: visible;
+  padding-bottom:10%;
+  @media (max-height: 884px) {
+    padding-bottom:0px;
+  }
+}
+
+.pageable-table {
+  width: 650px !important;
+  max-width: 650px !important;
+  height: 100%;
+}
