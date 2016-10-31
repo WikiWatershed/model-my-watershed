@@ -41,7 +41,7 @@
 @drb_catchment_step_four_color: #484848;
 @drb_catchment_step_five_color: #202020;
 @drb_catchment_line_color: #FFF;
-@drb_catchment_line_width: 4;
+@drb_catchment_line_width: 2;
 
 #drb_catchment_water_quality_tn {
     line-color: @drb_catchment_line_color;
