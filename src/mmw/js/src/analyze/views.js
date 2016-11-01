@@ -423,7 +423,11 @@ var PointSourceTableView = Marionette.CompositeView.extend({
             totalKGN: utils.totalForPointSourceCollection(
                 this.collection.models, 'kgn_yr'),
             totalKGP: utils.totalForPointSourceCollection(
-                this.collection.models, 'kgp_yr')
+                this.collection.models, 'kgp_yr'),
+            hasNextPage: this.collection.hasNextPage(),
+            hasPreviousPage: this.collection.hasPreviousPage(),
+            currentPage: this.collection.state.currentPage,
+            totalPages: this.collection.state.totalPages,
         };
     },
     childViewContainer: 'tbody',
@@ -532,11 +536,15 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
         return {
             headerUnits: this.options.units,
             totalTN: utils.totalForCatchmentWaterQualityCollection(
-                this.collection.models, 'tn_tot_kgy', 'areaha'),
+                this.collection.fullCollection.models, 'tn_tot_kgy', 'areaha'),
             totalTP: utils.totalForCatchmentWaterQualityCollection(
-                this.collection.models, 'tp_tot_kgy', 'areaha'),
+                this.collection.fullCollection.models, 'tp_tot_kgy', 'areaha'),
             totalTSS: utils.totalForCatchmentWaterQualityCollection(
-                this.collection.models, 'tss_tot_kg', 'areaha')
+                this.collection.fullCollection.models, 'tss_tot_kg', 'areaha'),
+            hasNextPage: this.collection.hasNextPage(),
+            hasPreviousPage: this.collection.hasPreviousPage(),
+            currentPage: this.collection.state.currentPage,
+            totalPages: this.collection.state.totalPages,
         };
     },
     childViewContainer: 'tbody',
@@ -549,8 +557,8 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
     ui: {
         'catchmentWaterQualityTR': 'tr.catchment-water-quality',
         'catchmentWaterQualityId': '.catchment-water-quality-id',
-        'pointSourceTblNext': '.btn-next-page',
-        'pointSourceTblPrev': '.btn-prev-page'
+        'catchmentWaterQualityTblNext': '.btn-next-page',
+        'catchmentWaterQualityTblPrev': '.btn-prev-page',
     },
 
     events: {
@@ -558,8 +566,8 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
         'mouseout @ui.catchmentWaterQualityId': 'removeCatchmentPolygon',
         'mouseover @ui.catchmentWaterQualityTR': 'addCatchmentToMap',
         'mouseout @ui.catchmentWaterQualityTR': 'removeCatchmentPolygon',
-        'click @ui.pointSourceTblNext': 'nextPage',
-        'click @ui.pointSourceTblPrev': 'prevPage'
+        'click @ui.catchmentWaterQualityTblNext': 'nextPage',
+        'click @ui.catchmentWaterQualityTblPrev': 'prevPage',
     },
 
     nextPage: function() {
