@@ -19,9 +19,8 @@
       </tbody>
       <tfoot>
           <tr class="ptsrc-table-footer">
-              <td></td>
-              <td class="strong text-right">
-                  Total
+              <td class="strong text-right" colspan="2">
+                  Total For Area of Interest
               </td>
               <td class="ptsrc-footer-item strong text-right">
                   {{ totalMGD|filterNoData()|toLocaleString(3) }}
@@ -36,11 +35,24 @@
       </tfoot>
   </table>
 </div>
-<div class="row paging-ctl-row">
-  <button class="btn-prev-page btn btn-primary">
-    <span aria-hidden="true">&larr;</span>
-  </button>
-  <button class="btn-next-page btn btn-primary">
-    <span aria-hidden="true">&rarr;</span>
-  </button>
-</div>
+{% if totalPages > 1 %}
+    <div class="row paging-ctl-row">
+            <p>
+                {{currentPage}} of {{totalPages}}
+            </p>
+            {% if hasPreviousPage %}
+                <button class="btn-prev-page btn btn-primary"
+                  data-toggle="tooltip" title="Previous Page"
+                  data-placement="right">
+                    <span aria-hidden="true">&larr;</span>
+                </button>
+            {% endif %}
+            {% if hasNextPage %}
+                <button class="btn-next-page btn btn-primary"
+                  data-toggle="tooltip" title="Next Page"
+                  data-placement="right">
+                    <span aria-hidden="true">&rarr;</span>
+                </button>
+            {% endif %}
+    </div>
+{% endif %}
