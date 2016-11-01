@@ -744,7 +744,7 @@ var PointSourceResultView = AnalyzeResultView.extend({
 
 var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
     onShow: function() {
-        var desc = 'River Basin only: Stream Reach Assessment Tool model estimates',
+        var desc = 'Delaware River Basin only: Stream Reach Assessment Tool model estimates',
             chart = null;
         this.showAnalyzeResults(coreModels.CatchmentWaterQualityCensusCollection,
             CatchmentWaterQualityTableView, chart, desc);
