@@ -121,9 +121,9 @@ function pointsourceTableFormatter(categories) {
     return collection.map(function(category) {
         var code = category.get('npdes_id'),
             city = coreUtils.toTitleCase(category.get('city')),
-            discharge = coreUtils.filterNoData(category.get('mgd')).toLocaleString(),
-            tn_load = coreUtils.filterNoData(category.get('kgn_yr')).toLocaleString(),
-            tp_load = coreUtils.filterNoData(category.get('kgp_yr')).toLocaleString();
+            discharge = coreUtils.filterNoData(category.get('mgd')).toLocaleString(3),
+            tn_load = coreUtils.filterNoData(category.get('kgn_yr')).toLocaleString(3),
+            tp_load = coreUtils.filterNoData(category.get('kgp_yr')).toLocaleString(3);
 
         return [code, city, discharge, tn_load, tp_load];
     });
@@ -133,13 +133,13 @@ function catchmentWaterQualityTableFormatter(categories) {
     var collection = new coreModels.CatchmentWaterQualityCensusCollection(categories);
     return collection.map(function(category) {
         var nord = category.get('nord').toString(),
-            areaha = coreUtils.filterNoData(category.get('areaha')).toLocaleString(),
-            tn_tot_kgy = coreUtils.filterNoData((category.get('tn_tot_kgy')/category.get('areaha'))).toLocaleString(),
-            tp_tot_kgy = coreUtils.filterNoData((category.get('tp_tot_kgy')/category.get('areaha'))).toLocaleString(),
-            tss_tot_kg = coreUtils.filterNoData((category.get('tss_tot_kg')/category.get('areaha'))).toLocaleString(),
-            tn_yr_avg_ = coreUtils.filterNoData((category.get('tn_yr_avg_'))).toLocaleString(),
-            tp_yr_avg_ = coreUtils.filterNoData((category.get('tp_yr_avg_'))).toLocaleString(),
-            tss_concmg = coreUtils.filterNoData((category.get('tss_concmg'))).toLocaleString();
+            areaha = coreUtils.filterNoData(category.get('areaha')).toLocaleString(3),
+            tn_tot_kgy = coreUtils.filterNoData((category.get('tn_tot_kgy')/category.get('areaha'))).toLocaleString(3),
+            tp_tot_kgy = coreUtils.filterNoData((category.get('tp_tot_kgy')/category.get('areaha'))).toLocaleString(3),
+            tss_tot_kg = coreUtils.filterNoData((category.get('tss_tot_kg')/category.get('areaha'))).toLocaleString(3),
+            tn_yr_avg_ = coreUtils.filterNoData((category.get('tn_yr_avg_'))).toLocaleString(3),
+            tp_yr_avg_ = coreUtils.filterNoData((category.get('tp_yr_avg_'))).toLocaleString(3),
+            tss_concmg = coreUtils.filterNoData((category.get('tss_concmg'))).toLocaleString(3);
 
         return [nord, areaha, tn_tot_kgy, tp_tot_kgy, tss_tot_kg, tn_yr_avg_,
             tp_yr_avg_, tss_concmg];

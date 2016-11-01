@@ -3,7 +3,9 @@
       <thead>
           <tr>
               <th data-sortable="true">Id</th>
-              <th data-sortable="true">Area (ha)</th>
+              <th data-sortable="true" data-sorter="window.noDataSort">
+                  Area (ha)
+              </th>
               <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
                   Total N (kg/ha)
               </th>
@@ -33,13 +35,13 @@
                   Total (kg/ha)
               </td>
               <td class="catchment-water-quality-footer-item strong text-right">
-                  {{ totalTN|filterNoData()|toLocaleString() }}
+                  {{ totalTN|filterNoData()|toLocaleString(3) }}
               </td>
               <td class="catchment-water-quality-footer-item strong text-right">
-                  {{ totalTP|filterNoData()|toLocaleString() }}
+                  {{ totalTP|filterNoData()|toLocaleString(3) }}
               </td>
               <td class="catchment-water-quality-footer-item strong text-right">
-                  {{ totalTSS|filterNoData()|toLocaleString() }}
+                  {{ totalTSS|filterNoData()|toLocaleString(3) }}
               </td>
               <td class="catchment-water-quality-footer-item strong text-right">
                   --

@@ -12,7 +12,7 @@ var noData = 'No Data';
 var utils = {
     filterNoData: function(data) {
         if (data && !isNaN(data) && isFinite(data)) {
-            return data;
+            return data.toFixed(3);
         } else {
             return noData;
         }
