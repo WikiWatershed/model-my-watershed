@@ -587,8 +587,10 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
         };
         this.catchmentPolygon = L.geoJson(geoJson, {
             style: {
-                fillColor: '#ff7800',
-                fillOpacity: 0.5
+                fillColor: '#49b8ea',
+                fillOpacity: 0.7,
+                color: '#49b8ea',
+                weight: 0
             }
         }).bindPopup(new catchmentWaterQualityLayer.CatchmentWaterQualityPopupView({
           model: new Backbone.Model(data)
