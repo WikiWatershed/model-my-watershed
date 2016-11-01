@@ -6,15 +6,15 @@
     data-lng="{{ longitude }}"
     data-city="{{ city|title if city else '' }}"
     data-state="{{ state|upper if state else '' }}"
-    data-mgd="{{ mgd|filterNoData()|toLocaleString() }}"
+    data-mgd="{{ mgd if mgd else noData }}"
     data-facilityname="{{ facilityname if facilityname else '' }}"
-    data-kgn_yr="{{ kgn_yr|filterNoData()|toLocaleString() }}"
-    data-kgp_yr="{{ kgp_yr|filterNoData()|toLocaleString() }}"
+    data-kgn_yr="{{ kgn_yr if kgn_yr else noData }}"
+    data-kgp_yr="{{ kgp_yr if kgp_yr else noData }}"
   >
     {{ npdes_id }}
   </a>
 </td>
 <td>{{ city|title if city else noData }}</td>
-<td class="strong text-right">{{ mgd|filterNoData()|toLocaleString() }}</td>
-<td class="strong text-right">{{ kgn_yr|filterNoData()|toLocaleString() }}</td>
-<td class="strong text-right">{{ kgp_yr|filterNoData()|toLocaleString() }}</td>
+<td class="strong text-right">{{ mgd|filterNoData()|toLocaleString(3) }}</td>
+<td class="strong text-right">{{ kgn_yr|filterNoData()|toLocaleString(3) }}</td>
+<td class="strong text-right">{{ kgp_yr|filterNoData()|toLocaleString(3) }}</td>
