@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('lodash'),
+    lodash = require('lodash'),
     Backbone = require('../../shim/backbone'),
     coreModels = require('../core/models');
 
@@ -20,7 +20,7 @@ var LayerCategoryCollection = Backbone.Collection.extend({
 });
 
 var AnalyzeTaskModel = coreModels.TaskModel.extend({
-    defaults: _.extend( {
+    defaults: lodash.extend( {
             area_of_interest: null,
             taskName: 'analyze',
             taskType: 'modeling'
@@ -63,6 +63,7 @@ function createAnalyzeTaskCollection(aoi) {
         { area_of_interest: aoi, taskName: 'analyze' },
         { area_of_interest: aoi, taskName: 'analyze/animals' },
         { area_of_interest: aoi, taskName: 'analyze/pointsource' },
+        { area_of_interest: aoi, taskName: 'analyze/catchment-water-quality' },
     ]);
 }
 
@@ -72,6 +73,8 @@ function createAnalyzeResultViewModelCollection(analyzeTaskCollection) {
         { name: 'soil', displayName: 'Soil', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze' }) },
         { name: 'animals', displayName: 'Animals', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze/animals' }) },
         { name: 'pointsource', displayName: 'Point Sources', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze/pointsource' }) },
+        { name: 'catchment_water_quality', displayName: 'Water Quality',
+            taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze/catchment-water-quality' }) },
     ]);
 }
 

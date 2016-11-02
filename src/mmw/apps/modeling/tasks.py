@@ -13,10 +13,11 @@ from StringIO import StringIO
 from celery import shared_task
 
 from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
-    data_to_survey, data_to_censuses
+    data_to_survey, data_to_census, data_to_censuses
 
 from apps.modeling.calcs import (animal_population,
-                                 point_source_pollution)
+                                 point_source_pollution,
+                                 catchment_water_quality)
 
 from tr55.model import simulate_day
 from gwlfe import gwlfe, parser
@@ -108,17 +109,18 @@ def get_histogram_job_results(self, incoming):
 
 
 @shared_task
-def histogram_to_survey(incoming, aoi):
+def histogram_to_survey_census(incoming):
     """
     Converts the histogram results (aka analyze results)
-    to a survey of land use, which are rendered in the UI.
+    to a survey & census of land use, which are rendered in the UI.
     """
     pixel_width = incoming['pixel_width']
     data = incoming['histogram'][0]
-    results = data_to_survey(data)
-    convert_result_areas(pixel_width, results)
+    census = data_to_census(data)
+    survey = data_to_survey(data)
+    convert_result_areas(pixel_width, survey)
 
-    return results
+    return {'survey': survey, 'census': census}
 
 
 @shared_task
@@ -138,7 +140,7 @@ def analyze_animals(area_of_interest):
     """
     Given an area of interest, returns the animal population within it.
     """
-    return [animal_population(area_of_interest)]
+    return {'survey': [animal_population(area_of_interest)]}
 
 
 @shared_task
@@ -146,7 +148,16 @@ def analyze_pointsource(area_of_interest):
     """
     Given an area of interest, returns point sources of pollution within it.
     """
-    return [point_source_pollution(area_of_interest)]
+    return {'survey': [point_source_pollution(area_of_interest)]}
+
+
+@shared_task
+def analyze_catchment_water_quality(area_of_interest):
+    """
+    Given an area of interest in the DRB, returns catchment water quality data
+    within it.
+    """
+    return {'survey': [catchment_water_quality(area_of_interest)]}
 
 
 def parse_single_ring_multipolygon(area_of_interest):

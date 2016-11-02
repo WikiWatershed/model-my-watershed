@@ -17,6 +17,27 @@ var dbUser = process.env.MMW_DB_USER,
     stackType = process.env.MMW_STACK_TYPE,
     rollbarAccessToken = process.env.ROLLBAR_SERVER_SIDE_ACCESS_TOKEN;
 
+var NHD_QUALITY_TSS_MAP = {
+    'L1': [0,50],
+    'L2': [50,100],
+    'L3': [100,150],
+    'L4': [150,200]
+};
+
+var NHD_QUALITY_TN_MAP = {
+    'L1': [0,1],
+    'L2': [1,2],
+    'L3': [2,3],
+    'L4': [3,4]
+};
+
+var NHD_QUALITY_TP_MAP = {
+    'L1': [0,0.03],
+    'L2': [0.03,0.06],
+    'L3': [0.06,0.09],
+    'L4': [0.09,0.12]
+};
+
 // N. B. These must be kept in sync with src/mmw/mmw/settings/base.py
 var interactivity = {
         'boundary_county': 'name,id',
@@ -35,9 +56,20 @@ var interactivity = {
         huc12: 'boundary_huc12',
         drb_streams_v2: 'drb_streams_50',
         nhd_streams_v2: 'nhdflowline',
+        nhd_quality_tn: 'nhd_quality_tn',
+        nhd_quality_tp: 'nhd_quality_tp',
+        nhd_quality_tss: 'nhd_quality_tss',
         municipalities: 'dep_municipalities',
-        urban_areas: 'dep_urban_areas'
+        urban_areas: 'dep_urban_areas',
+        // The DRB Catchment tables here use aliases to match data from different
+        // columns in the `drb_catchment_water_quality` table to different
+        // rendering rules.
+        drb_catchment_water_quality_tn: 'drb_catchment_water_quality_tn',
+        drb_catchment_water_quality_tp: 'drb_catchment_water_quality_tp',
+        drb_catchment_water_quality_tss: 'drb_catchment_water_quality_tss'
     },
+    drbCatchmentWaterQualityTable = 'drb_catchment_water_quality';
+    nhdQualityTable = 'nhd_water_quality',
     shouldCacheRequest = function(req) {
         // Caching can happen if the bucket to write to is defined
         // and the request is not coming from localhost.
@@ -53,6 +85,7 @@ var interactivity = {
         */
         zoom = req.params.z;
         tableName = req.params.table;
+        tableId = req.params.tableId;
         stream_order = 0;  // All streams
 
         if (tableName === tables.drb_streams_v2) {
@@ -60,7 +93,7 @@ var interactivity = {
             drb_zoom_levels = {
                 1:7, 2:7, 3:7, 4:7, 5:7, 6:6, 7:6, 8:5, 9:5, 10:4,
                 11:3, 12:2, 13:0, 14:0, 15:0, 16:0, 17:0, 18: 0
-            }; 
+            };
 
             stream_order = zoom in drb_zoom_levels ? drb_zoom_levels[zoom] : 0;
         } else {
@@ -72,9 +105,67 @@ var interactivity = {
                 stream_order = 5;
             }
         }
+        
+        var caseSql = function(mapping, field) {
+            var sql = []
+            for (var category in mapping) {
+                sql.push(['WHEN ',field,' >= ',mapping[category][0],' AND ',field,' < ',mapping[category][1],' THEN \'',category,'\' '].join(''));
+            }
+            sql.unshift('CASE ');
+            sql.push('WHEN ',field,' > ',mapping.L4[1],' THEN \'L5\' ');
+            sql.push('ELSE \'NA\' ');
+            sql.push('END');
 
-        return '(SELECT geom, stream_order FROM ' + tableName +
-          ' WHERE stream_order >= ' + stream_order + ') as q';
+            return sql;
+        }
+
+        var waterQualitySql = function(qualityMap, streamOrder) {
+            var sql = [];
+            sql.push('(SELECT geom, stream_order, ')
+            sql.push(qualityMap.join(''), ' ')
+            sql.push('AS nhd_qual_grp ')
+            sql.push('FROM ',tables.nhd_streams_v2,' ')
+            sql.push('LEFT OUTER JOIN ',nhdQualityTable,' ')
+            sql.push('ON ',nhdQualityTable,'.comid','=',tables.nhd_streams_v2,'.comid',' ')
+            sql.push('WHERE stream_order >= ',streamOrder)
+            sql.push(') as q');
+            return sql.join('');
+        }
+
+        if (tableId === 'nhd_quality_tn') {
+            return waterQualitySql(caseSql(NHD_QUALITY_TN_MAP, 'tn_yr_avg_concmgl'), stream_order);
+        } else if (tableId === 'nhd_quality_tp') {
+            return waterQualitySql(caseSql(NHD_QUALITY_TP_MAP, 'tp_yr_avg_concmgl'), stream_order);
+        } else if (tableId === 'nhd_quality_tss') {
+            return waterQualitySql(caseSql(NHD_QUALITY_TSS_MAP, 'tss_concmgl'), stream_order);
+        } else {
+            return '(SELECT geom, stream_order FROM ' + tableName +
+              ' WHERE stream_order >= ' + stream_order + ') as q';
+        }     
+    },
+
+    getSqlForDRBCatchmentByTableId = function(tableId) {
+        var columnToRetrive = null,
+            resultsAliasName = null;
+        switch (tableId) {
+            case 'drb_catchment_water_quality_tn':
+                columnToRetrive = 'tn_tot_kgy';
+                resultsAliasName = 'drb_wq_tn';
+                break;
+            case 'drb_catchment_water_quality_tp':
+                columnToRetrive = 'tp_tot_kgy';
+                resultsAliasName = 'drb_wq_tp';
+                break;
+            case 'drb_catchment_water_quality_tss':
+                columnToRetrive = 'tss_tot_kg';
+                resultsAliasName = 'drb_wq_tss';
+                break;
+            default:
+                throw new Error('Invalid drb_catchment_water_quality value');
+                break;
+        }
+        return '(SELECT geom, ' + columnToRetrive + ' FROM ' +
+            drbCatchmentWaterQualityTable + ') AS ' + resultsAliasName;
     };
 
 var config = {
@@ -161,6 +252,15 @@ var config = {
 
             // Streams have special performance optimized SQL queries
             if (tableId.indexOf('streams') >= 0) {
+                req.params.sql = getSqlForStreamByReq(req);
+            }
+
+            if (tableId.indexOf('drb_catchment') >= 0) {
+                req.params.sql = getSqlForDRBCatchmentByTableId(tableId);
+            }
+
+            if (tableId.indexOf('nhd_quality') >= 0) {
+                req.params.table = tables[tableId];
                 req.params.sql = getSqlForStreamByReq(req);
             }
 

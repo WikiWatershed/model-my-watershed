@@ -135,7 +135,8 @@ var ProjectModel = Backbone.Model.extend({
         is_activity: false,             // Project that persists across routes
         gis_data: null,                 // Additionally gathered data, such as MapShed for GWLF-E
         needs_reset: false,             // Should we overwrite project data on next save?
-        allow_save: true                // Is allowed to save to the server - false in compare mode
+        allow_save: true,               // Is allowed to save to the server - false in compare mode
+        aoi_census: null                // JSON blob
     },
 
     initialize: function() {
@@ -949,7 +950,7 @@ var ScenariosCollection = Backbone.Collection.extend({
 
         // Bail early if the name actually didn't change.
         if (model.get('name') === newName) {
-            return false;
+            return true;
         }
 
         var match = this.find(function(model) {
@@ -957,11 +958,7 @@ var ScenariosCollection = Backbone.Collection.extend({
         });
 
         if (match) {
-            window.alert("There is another scenario with the same name. " +
-                    "Please choose a unique name for this scenario.");
-
             console.log('This name is already in use.');
-
             return false;
         } else if (model.get('name') !== newName) {
             return model.set('name', newName);

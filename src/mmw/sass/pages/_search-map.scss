@@ -8,6 +8,14 @@
 
   @media(max-width: 1200px) {
     max-width: 595px;
+    // Let clicks pass through to leaflet-right controls
+    pointer-events: none;
+  }
+
+  @media(max-width: 750px) {
+    // On narrow screens, prevent overlap with
+    // leaflet-right controls
+    max-width: 320px;
   }
 
   .search-icon {

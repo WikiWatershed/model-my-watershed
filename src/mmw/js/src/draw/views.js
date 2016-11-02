@@ -8,6 +8,7 @@ var $ = require('jquery'),
     turfBboxPolygon = require('turf-bbox-polygon'),
     turfDestination = require('turf-destination'),
     turfIntersect = require('turf-intersect'),
+    turfKinks = require('turf-kinks'),
     router = require('../router').router,
     App = require('../app'),
     utils = require('./utils'),
@@ -19,7 +20,9 @@ var $ = require('jquery'),
     drawTmpl = require('./templates/draw.html'),
     resetDrawTmpl = require('./templates/reset.html'),
     delineationOptionsTmpl = require('./templates/delineationOptions.html'),
-    settings = require('../core/settings');
+    settings = require('../core/settings'),
+    modalModels = require('../core/modals/models'),
+    modalViews = require('../core/modals/views');
 
 var MAX_AREA = 112700; // About the size of a large state (in km^2)
 var codeToLayer = {}; // code to layer mapping
@@ -63,13 +66,34 @@ function validateRwdShape(result) {
 function validateShape(polygon) {
     var area = coreUtils.changeOfAreaUnits(turfArea(polygon), 'm<sup>2</sup>', 'km<sup>2</sup>'),
         d = new $.Deferred();
+    var selfIntersectingShape = turfKinks(polygon).features.length > 0;
+    var alertView;
 
-    if (area > MAX_AREA) {
+    if (selfIntersectingShape) {
+        var errorMsg = 'This watershed shape is invalid because it intersects ' +
+                       'itself. Try drawing the shape again without crossing ' +
+                       'over its own border.';
+        alertView = new modalViews.AlertView({
+            model: new modalModels.AlertModel({
+                alertMessage: errorMsg,
+                alertType: modalModels.AlertTypes.warn
+            })
+        });
+
+        alertView.render();
+        d.reject(errorMsg);
+    } else if (area > MAX_AREA) {
         var message = 'Sorry, your Area of Interest is too large.\n\n' +
                       Math.floor(area).toLocaleString() + ' km² were selected, ' +
                       'but the maximum supported size is currently ' +
                       MAX_AREA.toLocaleString() + ' km².';
-        window.alert(message);
+        alertView = new modalViews.AlertView({
+            model: new modalModels.AlertModel({
+                alertMessage: message,
+                alertType: modalModels.AlertTypes.warn
+            })
+        });
+        alertView.render();
         d.reject(message);
     } else {
         d.resolve(polygon);
@@ -344,7 +368,7 @@ var DrawView = Marionette.ItemView.extend({
     }
 });
 
-var WatershedDelineationView= Marionette.ItemView.extend({
+var WatershedDelineationView = Marionette.ItemView.extend({
     template: delineationOptionsTmpl,
 
     ui: {
@@ -379,99 +403,122 @@ var WatershedDelineationView= Marionette.ItemView.extend({
             map = App.getLeafletMap(),
             $item = $(e.currentTarget),
             itemName = $item.text(),
-            snappingOn = !!$item.data('snapping-on'),
-            revertLayer = clearAoiLayer();
+            snappingOn = !!$item.data('snapping-on');
 
+        clearAoiLayer();
         this.model.set('pollError', false);
-
         this.model.disableTools();
+
         utils.placeMarker(map)
-             .then(validateClickedPointWithinDRB)
-             .then(function(latlng) {
-                var point = L.marker(latlng).toGeoJSON(),
-                    deferred = $.Deferred();
-
-                var taskHelper = {
-                    onStart: function() {
-                        self.model.set('polling', true);
-                    },
-
-                    pollSuccess: function(response) {
-                        self.model.set('polling', false);
-                        var result = JSON.parse(response.result);
-                        deferred.resolve(result);
-                    },
-
-                    pollFailure: function(response) {
-                        self.model.set({
-                            pollError: true,
-                            polling: false
-                        });
-                        console.log(response.error);
-                        var message = 'Unable to delineate watershed at ' +
-                                      'this location';
-                        deferred.reject(message);
-                    },
-
-                    pollEnd: function() {
-                        self.model.set('polling', false);
-                    },
-
-                    startFailure: function() {
-                        self.model.set({
-                            pollError: true,
-                            polling: false
-                        });
-                        var message = 'Unable to delineate watershed';
-                        deferred.reject(message);
-                    },
-
-                    postData: {
-                        'location': JSON.stringify([
-                            point.geometry.coordinates[1],
-                            point.geometry.coordinates[0]
-                        ]),
-                        'snappingOn': snappingOn
-                    }
-                };
-
-                self.rwdTaskModel.start(taskHelper);
-                return deferred;
+            .then(validateClickedPointWithinDRB)
+            .then(function(latlng) {
+                return self.delineateWatershed(latlng, snappingOn);
+            })
+            .then(function(result) {
+                return self.drawWatershed(result, itemName);
             })
             .then(validateRwdShape)
-            .done(function(result) {
-                var inputPoints = result.input_pt;
-                // add additional aoi points:w
-                if (inputPoints) {
-                    var properties = inputPoints.features[0].properties;
-
-                    // If the point was snapped, there will be the original
-                    // point as attributes
-                    if (properties.Dist_moved) {
-                        inputPoints.features.push(
-                            makePointGeoJson([properties.Lon, properties.Lat], {
-                                original: true
-                            })
-                        );
-                    }
-                    App.map.set({
-                        'areaOfInterestAdditionals': inputPoints
-                    });
-                }
-
-                // Add Watershed AoI layer
-                addLayer(result.watershed, itemName);
+            .done(function() {
                 navigateToAnalyze();
             })
             .fail(function(message) {
-                revertLayer();
+                clearAoiLayer();
                 if (message) {
-                    window.alert(message);
+                    var alertView = new modalViews.AlertView({
+                        model: new modalModels.AlertModel({
+                            alertMessage: message,
+                            alertType: modalModels.AlertTypes.error
+                        })
+                    });
+
+                    alertView.render();
                 }
             })
             .always(function() {
                 self.model.enableTools();
             });
+    },
+
+    delineateWatershed: function(latlng, snappingOn) {
+        var self = this,
+            point = L.marker(latlng).toGeoJSON(),
+            deferred = $.Deferred();
+
+        var taskHelper = {
+            onStart: function() {
+                self.model.set('polling', true);
+            },
+
+            pollSuccess: function(response) {
+                self.model.set('polling', false);
+                var result = JSON.parse(response.result);
+                // Convert watershed to MultiPolygon to pass shape validation.
+                result.watershed = coreUtils.toMultiPolygon(result.watershed);
+                deferred.resolve(result);
+            },
+
+            pollFailure: function(response) {
+                self.model.set({
+                    pollError: true,
+                    polling: false
+                });
+                console.log(response.error);
+                var message = 'Unable to delineate watershed at ' +
+                              'this location';
+                deferred.reject(message);
+            },
+
+            pollEnd: function() {
+                self.model.set('polling', false);
+            },
+
+            startFailure: function() {
+                self.model.set({
+                    pollError: true,
+                    polling: false
+                });
+                var message = 'Unable to delineate watershed';
+                deferred.reject(message);
+            },
+
+            postData: {
+                'location': JSON.stringify([
+                    point.geometry.coordinates[1],
+                    point.geometry.coordinates[0]
+                ]),
+                'snappingOn': snappingOn
+            }
+        };
+
+        this.rwdTaskModel.start(taskHelper);
+        return deferred;
+    },
+
+    drawWatershed: function(result, itemName) {
+        var inputPoints = result.input_pt;
+
+        // add additional aoi points
+        if (inputPoints) {
+            var properties = inputPoints.features[0].properties;
+
+            // If the point was snapped, there will be the original
+            // point as attributes
+            if (properties.Dist_moved) {
+                inputPoints.features.push(
+                    makePointGeoJson([properties.Lon, properties.Lat], {
+                        original: true
+                    })
+                );
+            }
+            App.map.set({
+                'areaOfInterestAdditionals': inputPoints
+            });
+        }
+
+        // Add Watershed AoI layer
+        addLayer(result.watershed, itemName);
+
+        return result;
     }
 });
 
@@ -570,7 +617,8 @@ function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
 }
 
 function clearAoiLayer() {
-    var projectNumber = App.projectNumber;
+    var projectNumber = App.projectNumber,
+        previousShape = App.map.get('areaOfInterest');
 
     App.map.set('areaOfInterest', null);
     App.projectNumber = undefined;
@@ -578,7 +626,6 @@ function clearAoiLayer() {
     App.clearAnalyzeCollection();
 
     return function revertLayer() {
-        var previousShape = App.map.previous('areaOfInterest');
         App.map.set('areaOfInterest', previousShape);
         App.projectNumber = projectNumber;
     };

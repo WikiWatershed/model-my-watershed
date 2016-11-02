@@ -60,6 +60,8 @@ p.info {
 #geocode-search-region {
   display: inline-block;
 
+  // Override pointer-events: none in #search-map
+  pointer-events: auto;
   #search-results-container {
     position: absolute;
   }
@@ -69,6 +71,13 @@ p.info {
 .draw-tools-container div {
   display: inline-block;
   text-transform: none;
+  // Override pointer-events: none in #search-map
+  pointer-events: auto;
+  padding-bottom: 0.2rem;
+
+  @media(max-width: 710px) {
+    display: block;
+  }
 
   // Undo bootstrap input[type="range"] syling
   #stream-slider {

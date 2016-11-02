@@ -3,12 +3,21 @@
 var _ = require('underscore'),
     lodash = require('lodash'),
     md5 = require('blueimp-md5').md5,
-    intersect = require('turf-intersect');
+    intersect = require('turf-intersect'),
+    centroid = require('turf-centroid');
 
 var M2_IN_KM2 = 1000000;
 var noData = 'No Data';
 
 var utils = {
+    filterNoData: function(data) {
+        if (data && !isNaN(data) && isFinite(data)) {
+            return data.toFixed(3);
+        } else {
+            return noData;
+        }
+    },
+
     // A function for enabling/disabling modal buttons.  In additiion
     // to adding the disabled class, it is also important to somehow
     // note the fact that the button is disabled becaue there is an
@@ -281,12 +290,43 @@ var utils = {
         }));
     },
 
+    totalForCatchmentWaterQualityCollection: function(collection, key, normalizerKey) {
+        return lodash.sum(lodash.map(collection, function(element) {
+            return element.attributes[key] / element.attributes[normalizerKey] || 0;
+        }));
+    },
+
+    geomForIdInCatchmentWaterQualityCollection: function(collection, key, id) {
+        return lodash.find(collection, function(element) {
+            return element.attributes[key] === id;
+        }).attributes['geom'] || null;
+    },
+
+    findCenterOfShapeIntersection: function(shapeOne, shapeTwo) {
+        var intersection = intersect(shapeOne, shapeTwo);
+        return centroid(intersection);
+    },
+
     // A JavaScript implementation for when we can't use the Nunjucks filter
     // Taken from http://stackoverflow.com/a/196991
     toTitleCase: function(str) {
         return str.replace(/\w\S*/g, function(txt) {
             return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
         });
+    },
+
+    // Convert polygon to MultiPolyon (mutates original argument).
+    toMultiPolygon: function(polygon) {
+        var geom = polygon.geometry ? polygon.geometry : polygon;
+        if (geom.type !== 'MultiPolygon') {
+            if (geom.type === 'Polygon') {
+                geom.coordinates = [geom.coordinates];
+            } else if (geom.type === 'FeatureCollection') {
+                geom.coordinates = [geom.features[0].geometry.coordinates];
+            }
+            geom.type = 'MultiPolygon';
+        }
+        return geom;
     }
 };
 

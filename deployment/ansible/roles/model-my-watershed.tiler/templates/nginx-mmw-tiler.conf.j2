@@ -5,7 +5,7 @@ server {
   access_log /var/log/nginx/mmw-tiler.access.log logstash_json;
 
   {% if ['packer'] | is_in(group_names) -%}
-  location /version.txt {
+  location = /version.txt {
     alias /srv/version.txt;
   }
   {% endif %}

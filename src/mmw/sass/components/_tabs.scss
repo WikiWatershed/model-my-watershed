@@ -80,14 +80,15 @@
 
     li > a {
       color: $ui-secondary;
-      padding: 0 1rem;
+      padding: 0 0.85rem;
       line-height: $sidebar-tab-subheader-height;
       background-color: transparent;
       height: $sidebar-tab-subheader-height;
 
       i {
         color: $black-54;
-        margin-right: 8px;
+        position: relative;
+        top: 0.85rem;
       }
 
       &:hover, &:focus {

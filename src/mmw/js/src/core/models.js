@@ -3,7 +3,8 @@
 var Backbone = require('../../shim/backbone'),
     $ = require('jquery'),
     _ = require('lodash'),
-    turfArea = require('turf-area');
+    turfArea = require('turf-area'),
+    utils = require('./utils');
 
 var MapModel = Backbone.Model.extend({
     defaults: {
@@ -30,20 +31,7 @@ var MapModel = Backbone.Model.extend({
         // object with type='MultiPolygon', a coordinates attribute
         // and nothing else.
         if (this.get('areaOfInterest')) {
-            var aoi = this.get('areaOfInterest').geometry ?
-                      this.get('areaOfInterest').geometry :
-                      this.get('areaOfInterest');
-
-            if (aoi.type !== 'MultiPolygon') {
-                if (aoi.type === 'Polygon') {
-                    aoi.coordinates = [aoi.coordinates];
-                } else if (aoi.type === 'FeatureCollection') {
-                    aoi.coordinates = [aoi.features[0].geometry.coordinates];
-                }
-
-                aoi.type = 'MultiPolygon';
-            }
-
+            var aoi = utils.toMultiPolygon(this.get('areaOfInterest'));
             this.set('areaOfInterest', aoi);
         }
     },
@@ -249,8 +237,16 @@ var AnimalCensusCollection = Backbone.Collection.extend({
     comparator: 'type'
 });
 
-var PointSourceCensusCollection = Backbone.Collection.extend({
-    comparator: 'city'
+var PointSourceCensusCollection = Backbone.PageableCollection.extend({
+    comparator: 'city',
+    mode: 'client',
+    state: { pageSize: 50, firstPage: 1 }
+});
+
+var CatchmentWaterQualityCensusCollection = Backbone.PageableCollection.extend({
+    comparator: 'nord',
+    mode: 'client',
+    state: { pageSize: 50, firstPage: 1 }
 });
 
 var GeoModel = Backbone.Model.extend({
@@ -308,6 +304,7 @@ module.exports = {
     SoilCensusCollection: SoilCensusCollection,
     AnimalCensusCollection: AnimalCensusCollection,
     PointSourceCensusCollection: PointSourceCensusCollection,
+    CatchmentWaterQualityCensusCollection: CatchmentWaterQualityCensusCollection,
     GeoModel: GeoModel,
     AreaOfInterestModel: AreaOfInterestModel,
     AppStateModel: AppStateModel

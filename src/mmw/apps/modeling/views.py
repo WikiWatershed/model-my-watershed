@@ -27,12 +27,14 @@ from retry import retry
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
 from apps.modeling import tasks
-from apps.modeling.mapshed.tasks import geop_tasks, collect_data, combine
+from apps.modeling.mapshed.tasks import (geop_tasks, collect_data, combine,
+                                         geop_task)
 from apps.modeling.models import Project, Scenario
 from apps.modeling.serializers import (ProjectSerializer,
                                        ProjectListingSerializer,
                                        ProjectUpdateSerializer,
                                        ScenarioSerializer)
+
 
 # When CELERY_WORKER_DIRECT = True, this exchange is automatically
 # created to allow direct communication with workers.
@@ -254,22 +256,29 @@ def start_mapshed(request, format=None):
 
 
 def _initiate_mapshed_job_chain(mapshed_input, job_id):
+    workers = get_living_workers()
+    get_worker = lambda: random.choice(workers)
     errback = save_job_error.s(job_id).set(exchange=MAGIC_EXCHANGE,
-                                           routing_key=choose_worker())
+                                           routing_key=get_worker())
 
     geom = GEOSGeometry(json.dumps(mapshed_input['area_of_interest']),
                         srid=4326)
 
-    chain = (group(geop_tasks(geom, errback, MAGIC_EXCHANGE, choose_worker)) |
-             combine.s().set(exchange=MAGIC_EXCHANGE,
-                             routing_key=choose_worker()) |
-             collect_data.s(geom.geojson).set(link_error=errback,
-                                              exchange=MAGIC_EXCHANGE,
-                                              routing_key=choose_worker()) |
-             save_job_result.s(job_id, mapshed_input)
-             .set(exchange=MAGIC_EXCHANGE, routing_key=choose_worker()))
+    job_chain = (group(
+        geop_task(t, geom, MAGIC_EXCHANGE, errback, get_worker)
+        for t in geop_tasks()) |
+        combine.s().set(
+            exchange=MAGIC_EXCHANGE,
+            routing_key=get_worker()) |
+        collect_data.s(geom.geojson).set(
+            link_error=errback,
+            exchange=MAGIC_EXCHANGE,
+            routing_key=get_worker()) |
+        save_job_result.s(job_id, mapshed_input).set(
+            exchange=MAGIC_EXCHANGE,
+            routing_key=get_worker()))
 
-    return chain.apply_async(link_error=errback)
+    return chain(job_chain).apply_async(link_error=errback)
 
 
 @decorators.api_view(['POST'])
@@ -303,7 +312,7 @@ def start_analyze(request, format=None):
              .set(exchange=exchange, routing_key=routing_key),
         tasks.get_histogram_job_results.s()
              .set(exchange=exchange, routing_key=routing_key),
-        tasks.histogram_to_survey.s(area_of_interest)
+        tasks.histogram_to_survey_census.s()
              .set(exchange=exchange, routing_key=choose_worker())
     ], area_of_interest, user)
 
@@ -334,6 +343,19 @@ def start_analyze_pointsource(request, format=None):
     ], area_of_interest, user)
 
 
+@decorators.api_view(['POST'])
+@decorators.permission_classes((AllowAny, ))
+def start_analyze_catchment_water_quality(request, format=None):
+    user = request.user if request.user.is_authenticated() else None
+    area_of_interest = request.POST['area_of_interest']
+    exchange = MAGIC_EXCHANGE
+
+    return start_celery_job([
+        tasks.analyze_catchment_water_quality.s(area_of_interest)
+             .set(exchange=exchange, routing_key=choose_worker())
+    ], area_of_interest, user)
+
+
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
 def get_job(request, job_uuid, format=None):
@@ -358,7 +380,7 @@ def get_job(request, job_uuid, format=None):
     )
 
 
-def choose_worker():
+def get_living_workers():
     def predicate(worker_name):
         return settings.STACK_COLOR in worker_name or 'debug' in worker_name
 
@@ -373,7 +395,11 @@ def choose_worker():
 
     workers = filter(predicate,
                      get_list_of_workers())
-    return random.choice(workers)
+    return workers
+
+
+def choose_worker():
+    return random.choice(get_living_workers())
 
 
 def _initiate_rwd_job_chain(location, snapping, job_id, testing=False):
@@ -557,7 +583,8 @@ def start_celery_job(task_list, job_input, user=None,
     """
     created = now()
     job = Job.objects.create(created_at=created, result='', error='',
-                             traceback='', user=user, status='started')
+                             traceback='', user=user, status='started',
+                             model_input=job_input)
     routing_key = routing_key if routing_key else choose_worker()
     success = save_job_result.s(job.id, job_input).set(exchange=exchange,
                                                        routing_key=routing_key)

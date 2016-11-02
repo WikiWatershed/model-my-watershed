@@ -1,0 +1,58 @@
+<td>
+  <a
+    class="catchment-water-quality-id"
+
+    data-nord="{{ nord }}"
+    data-areaha="{{ areaha }}"
+
+    data-tn_tot_kgy="{{ tn_tot_kgy if tn_tot_kgy else noData }}"
+    data-tp_tot_kgy="{{ tp_tot_kgy if tp_tot_kgy else noData }}"
+    data-tss_tot_kg="{{ tss_tot_kg if tss_tot_kg else noData }}"
+
+    data-tn_urban_k="{{ tn_urban_k if tn_urban_k else noData }}"
+    data-tp_urban_k="{{ tp_urban_k if tp_urban_k else noData }}"
+    data-tss_urban_="{{ tss_urban_ if tss_urban_ else noData }}"
+
+    data-tn_riparia="{{ tn_riparia if tn_riparia else noData }}"
+    data-tp_riparia="{{ tp_riparia if tp_riparia else noData }}"
+    data-tss_rip_kg="{{ tss_rip_kg if tss_rip_kg else noData }}"
+
+    data-tn_ag_kgyr="{{ tn_ag_kgyr if tn_ag_kgyr else noData }}"
+    data-tp_ag_kgyr="{{ tp_ag_kgyr if tp_ag_kgyr else noData }}"
+    data-tss_ag_kgy="{{ tss_ag_kgy if tss_ag_kgy else noData }}"
+
+    data-tn_natural="{{ tn_natural if tn_natural else noData }}"
+    data-tp_natural="{{ tp_natural if tp_natural else noData }}"
+    data-tss_natura="{{ tss_natura if tss_natura else noData }}"
+
+    data-tn_pt_kgyr="{{ tn_pt_kgyr if tn_pt_kgyr else noData }}"
+    data-tp_pt_kgyr="{{ tp_pt_kgyr if tp_pt_kgyr else noData }}"
+
+    data-tn_yr_avg_="{{ tn_yr_avg_ if tn_yr_avg_ else noData }}"
+    data-tp_yr_avg_="{{ tp_yr_avg_ if tp_yr_avg_ else noData }}"
+    data-tss_concmg="{{ tss_concmg if tss_concmg else noData }}"
+  >
+    {{ nord }}
+  </a>
+</td>
+<td class="strong text-right">
+    {{ areaha|filterNoData()|toLocaleString(3) }}
+</td>
+<td class="strong text-right">
+    {{ (tn_tot_kgy/areaha)|filterNoData()|toLocaleString(3) }}
+</td>
+<td class="strong text-right">
+    {{ (tp_tot_kgy/areaha)|filterNoData()|toLocaleString(3) }}
+</td>
+<td class="strong text-right">
+    {{ (tss_tot_kg/areaha)|filterNoData()|toLocaleString(3) }}
+</td>
+<td class="strong text-right">
+    {{ tn_yr_avg_|filterNoData()|toLocaleString(3) }}
+</td>
+<td class="strong text-right">
+    {{ tp_yr_avg_|filterNoData()|toLocaleString(3) }}
+</td>
+<td class="strong text-right">
+    {{ tss_concmg|filterNoData()|toLocaleString(3) }}
+</td>

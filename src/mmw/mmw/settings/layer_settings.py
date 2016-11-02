@@ -145,6 +145,30 @@ LAYERS = [
         # overlaps with perimeter polygon.
     },
     {
+        'code': 'nhd_quality_tp',
+        'display': 'Delaware River Basin TP Concentration',
+        'table_name': 'nhd_quality_tp',
+        'stream': True,
+        'overlay': True,
+        'minZoom': 3
+    },
+    {
+        'code': 'nhd_quality_tn',
+        'display': 'Delaware River Basin TN Concentration',
+        'table_name': 'nhd_quality_tn',
+        'stream': True,
+        'overlay': True,
+        'minZoom': 3
+    },
+    {
+        'code': 'nhd_quality_tss',
+        'display': 'Delaware River Basin TSS Concentration',
+        'table_name': 'nhd_quality_tss',
+        'stream': True,
+        'overlay': True,
+        'minZoom': 3
+    },
+    {
         'display': 'National Land Cover Database',
         'short_display': 'NLCD',
         'helptext': 'National Land Cover Database defines'
@@ -233,6 +257,42 @@ LAYERS = [
         'opacity': 0.618,
         'has_opacity_slider': True,
         'perimeter': pa_perimeter,
+    },
+    {
+        'code': 'drb_catchment_water_quality_tn',
+        'display': ('DRB Catchment Water Quality Data' +
+                    '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TN Loading Rates'),
+        'table_name': 'drb_catchment_water_quality_tn',
+        'raster': True,
+        'overlay': True,
+        'minZoom': 3,
+        'perimeter': drb_perimeter,
+        'opacity': 0.618,
+        'has_opacity_slider': True
+    },
+    {
+        'code': 'drb_catchment_water_quality_tp',
+        'display': ('DRB Catchment Water Quality Data' +
+                    '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TP Loading Rates'),
+        'table_name': 'drb_catchment_water_quality_tp',
+        'raster': True,
+        'overlay': True,
+        'minZoom': 3,
+        'perimeter': drb_perimeter,
+        'opacity': 0.618,
+        'has_opacity_slider': True
+    },
+    {
+        'code': 'drb_catchment_water_quality_tss',
+        'display': ('DRB Catchment Water Quality Data' +
+                    '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TSS Loading Rates'),
+        'table_name': 'drb_catchment_water_quality_tss',
+        'raster': True,
+        'overlay': True,
+        'minZoom': 3,
+        'perimeter': drb_perimeter,
+        'opacity': 0.618,
+        'has_opacity_slider': True
     }
 ]
 

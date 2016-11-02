@@ -30,8 +30,35 @@ var ShareModel = Backbone.Model.extend({
     }
 });
 
+var AlertTypes = {
+    info: {
+        alertHeader: 'Information',
+        alertIcon: 'fa-info-circle',
+        dismissLabel: 'Okay'
+    },
+    warn: {
+        alertHeader: 'Warning',
+        alertIcon: 'fa-exclamation-triangle',
+        dismissLabel: 'Okay'
+    },
+    error: {
+        alertHeader: 'Error',
+        alertIcon: 'fa-ban',
+        dismissLabel: 'Okay'
+    }
+};
+
+var AlertModel = Backbone.Model.extend({
+    defaults: {
+        alertMessage: '',
+        alertType: AlertTypes.info,
+    },
+});
+
 module.exports = {
     ConfirmModel: ConfirmModel,
     InputModel: InputModel,
-    ShareModel: ShareModel
+    ShareModel: ShareModel,
+    AlertTypes: AlertTypes,
+    AlertModel: AlertModel
 };

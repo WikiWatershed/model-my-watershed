@@ -138,3 +138,22 @@
   top: 1rem;
   left: 2rem;
 }
+
+.modal-popup {
+    .fa {
+      font-size: 1.0rem;
+      padding: 0 0.1rem 0 0.1rem;
+    }
+
+    .fa-info-circle {
+      color: $brand-primary;
+    }
+
+    .fa-ban {
+      color: $ui-danger;
+    }
+
+    .fa-exclamation-triangle {
+      color: $ui-warning;
+    }
+}

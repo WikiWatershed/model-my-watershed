@@ -20,6 +20,15 @@ var sandboxId = 'sandbox',
         el: sandboxSelector
     });
 
+function renderPtSrcAndWQTableRowValue(n) {
+    if (n && !_.isNaN(n)) {
+        return Number(n.toFixed(3)).toLocaleString('en',
+            { minimumFractionDigits: 3 });
+    } else {
+        return coreUtils.noData;
+    }
+}
+
 describe('Analyze', function() {
     before(function() {
         if ($(sandboxSelector).length === 0) {
@@ -43,7 +52,7 @@ describe('Analyze', function() {
 
     describe('Views', function() {
         describe('AnalysisResultView', function() {
-            _.each(['land', 'soil', 'animals', 'pointsource'], testAnalysisType);
+            _.each(['land', 'soil', 'animals', 'pointsource', 'catchment_water_quality'], testAnalysisType);
         });
     });
 });
@@ -121,11 +130,31 @@ function pointsourceTableFormatter(categories) {
     return collection.map(function(category) {
         var code = category.get('npdes_id'),
             city = coreUtils.toTitleCase(category.get('city')),
-            discharge = category.get('mgd') === null ? 'No Data' : category.get('mgd').toLocaleString(),
-            tn_load = category.get('kgn_yr') === null ? 'No Data' : category.get('kgn_yr').toLocaleString(),
-            tp_load = category.get('kgp_yr') === null ? 'No Data' : category.get('kgp_yr').toLocaleString();
+            discharge = renderPtSrcAndWQTableRowValue(category.get('mgd')),
+            tn_load = renderPtSrcAndWQTableRowValue(category.get('kgn_yr')),
+            tp_load = renderPtSrcAndWQTableRowValue(category.get('kgp_yr'));
 
         return [code, city, discharge, tn_load, tp_load];
+    });
+}
+
+function catchmentWaterQualityTableFormatter(categories) {
+    var collection = new coreModels.CatchmentWaterQualityCensusCollection(categories);
+    return collection.map(function(category) {
+        var nord = category.get('nord').toString(),
+            areaha = renderPtSrcAndWQTableRowValue(category.get('areaha')),
+            tn_tot_kgy = renderPtSrcAndWQTableRowValue(
+                category.get('tn_tot_kgy')/category.get('areaha')),
+            tp_tot_kgy = renderPtSrcAndWQTableRowValue(
+                category.get('tp_tot_kgy')/category.get('areaha')),
+            tss_tot_kg = renderPtSrcAndWQTableRowValue(
+                category.get('tss_tot_kg')/category.get('areaha')),
+            tn_yr_avg_ = renderPtSrcAndWQTableRowValue(category.get('tn_yr_avg_')),
+            tp_yr_avg_ = renderPtSrcAndWQTableRowValue(category.get('tp_yr_avg_')),
+            tss_concmg = renderPtSrcAndWQTableRowValue(category.get('tss_concmg'));
+
+        return [nord, areaha, tn_tot_kgy, tp_tot_kgy, tss_tot_kg, tn_yr_avg_,
+            tp_yr_avg_, tss_concmg];
     });
 }
 
@@ -134,6 +163,7 @@ var dataFormatters = {
     soil: soilTableFormatter,
     animals: animalTableFormatter,
     pointsource: pointsourceTableFormatter,
+    catchment_water_quality: catchmentWaterQualityTableFormatter,
 };
 
 var tableHeaders = {
@@ -141,6 +171,8 @@ var tableHeaders = {
     soil: ['Type', 'Area (km2)', 'Coverage (%)'],
     animals: ['Animal', 'Count'],
     pointsource: ['NPDES Code', 'City', 'Discharge (MGD)', 'TN Load (kg/yr)', 'TP Load (kg/yr)'],
+    catchment_water_quality: ['Id', 'Area (ha)', 'Total N (kg/ha)', 'Total P (kg/ha)',
+        'Total TSS (kg/ha)', 'Avg TN (mg/l)', 'Avg TP (mg/l)', 'Avg TSS (mg/l)'],
 };
 
 function tableRows(type, result) {

@@ -13,8 +13,6 @@ module.exports = L.Control.Layers.extend({
     // Copied from  https://github.com/Leaflet/Leaflet/blob/master/src/control/Control.Layers.js
     // with modifications for allowing a third layer type (observations)
     initialize: function (baseLayers, overlays, observationsDeferred, options) {
-        var self = this;
-
         L.setOptions(this, options);
 
         this._layers = {};
@@ -29,11 +27,21 @@ module.exports = L.Control.Layers.extend({
             this._addLayer(overlays[i], i, 'overlay');
         }
 
-        var pointSrcAPIUrl = '/api/modeling/point-source/';
+        this._observationsDeferred = observationsDeferred;
+    },
 
-        $.when(observationsDeferred, $.ajax({ 'url': pointSrcAPIUrl, 'type': 'GET'}))
+    fetchObservations: function () {
+        var pointSrcAPIUrl = '/api/modeling/point-source/';
+        var self = this;
+
+        $('#observations-layer-list').text('Loading...');
+        $.when(self._observationsDeferred, $.ajax({ 'url': pointSrcAPIUrl, 'type': 'GET'}))
             .done(function(observationLayers, pointSourceData) {
-                for (i in observationLayers) {
+                $('#observations-layer-list').empty();
+                self._observationList = L.DomUtil.create('div', 'leaflet-control-layers-observation',
+                    $('#observations-layer-list').get(0));
+
+                for (var i in observationLayers) {
                     self._addLayer(observationLayers[i], i, 'observation');
                 }
                 self._addLayer(pointSourceLayer.Layer.createLayer(pointSourceData[0],
@@ -49,7 +57,9 @@ module.exports = L.Control.Layers.extend({
     // with modifications to use a customer container element and our own way to toggle visibility.
     _initLayout: function() {
         var className = 'leaflet-control-layers',
-            container = this._container = new LayerControlButtonView({}).render().el,
+            container = this._container = new LayerControlButtonView({
+                layerControl: this
+            }).render().el,
             listContainer = this._listContainer = new LayerControlListView({}).render().el;
 
         this._form = $(listContainer).find('form').get(0);
@@ -59,18 +69,12 @@ module.exports = L.Control.Layers.extend({
         // from firing a mouseout event when the touch is released
         container.setAttribute('aria-haspopup', true);
 
-        // Copied directly from the parent class.
+        // Copied directly from the parent class, with addition of listContainer
+        L.DomEvent.disableClickPropagation(container);
+        L.DomEvent.disableClickPropagation(listContainer);
         if (!L.Browser.touch) {
-            L.DomEvent
-                .disableClickPropagation(container)
-                .disableScrollPropagation(container);
-
-            L.DomEvent
-                .disableClickPropagation(listContainer)
-                .disableScrollPropagation(listContainer);
-        } else {
-            L.DomEvent.on(container, 'click', L.DomEvent.stopPropagation);
-            L.DomEvent.on(listContainer, 'click', L.DomEvent.stopPropagation);
+            L.DomEvent.disableScrollPropagation(container);
+            L.DomEvent.disableScrollPropagation(listContainer);
         }
 
         // Expand the layer control so that Leaflet
@@ -88,8 +92,6 @@ module.exports = L.Control.Layers.extend({
                 $(listContainer).find("#basemap-layer-list").get(0));
         this._overlaysList = L.DomUtil.create('div', className + '-overlay',
                 $(listContainer).find("#overlays-layer-list").get(0));
-        this._observationList = L.DomUtil.create('div', className + '-observation',
-                $(listContainer).find("#observations-layer-list").get(0));
 
         // Add the layer control list as a sibling to the map.
         // This lets us control the size of the list based
@@ -123,7 +125,10 @@ module.exports = L.Control.Layers.extend({
             $(input).attr('id', obj.layer.options.code);
         }
 
-        L.DomEvent.on(input, 'click', this._onInputClick, this);
+        // work around for Firefox Android issue https://github.com/Leaflet/Leaflet/issues/2033
+        L.DomEvent.on(input, 'click', function () {
+            setTimeout(L.bind(this._onInputClick, this), 0);
+        }, this);
 
         var name = document.createElement('span');
         name.innerHTML = ' ' + obj.name;
@@ -264,6 +269,11 @@ module.exports = L.Control.Layers.extend({
 var LayerControlButtonView = Marionette.ItemView.extend({
     template: layerControlButtonTmpl,
 
+    initialize: function(options) {
+        this.layerControl = options.layerControl;
+        this.hasBeenToggled = false;
+    },
+
     ui: {
         controlToggle: '.leaflet-bar-part',
     },
@@ -273,10 +283,14 @@ var LayerControlButtonView = Marionette.ItemView.extend({
     },
 
     toggle: function() {
+        if (!this.hasBeenToggled) {
+            this.layerControl.fetchObservations();
+            this.hasBeenToggled = true;
+        }
+
         $('.leaflet-control-layers').toggle();
     }
 });
-
 
 var LayerControlListView = Marionette.ItemView.extend({
     template: layerControlListTmpl,

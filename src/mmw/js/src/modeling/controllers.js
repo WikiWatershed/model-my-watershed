@@ -114,21 +114,52 @@ var ModelingController = {
             project = App.currentProject;
             project.set('model_package', modelPackage);
             itsiResetProject(project);
+            App.getMapView().addSidebarToggleControl();
+            setPageTitle();
         } else {
             var lock = $.Deferred();
-            project = makeProject(modelPackage, lock);
+            project = new models.ProjectModel({
+                name: 'Untitled Project',
+                created_at: Date.now(),
+                area_of_interest: App.map.get('areaOfInterest'),
+                area_of_interest_name: App.map.get('areaOfInterestName'),
+                model_package: modelPackage,
+                scenarios: new models.ScenariosCollection()
+            });
+
+            var analyzeTask = App.getAnalyzeCollection().findWhere({taskName:'analyze'});
+
             App.currentProject = project;
+            lock.resolve();
+
+            analyzeTask
+                .fetchAnalysisIfNeeded()
+                .done(function() {
+                    App.currentProject.set(
+                        'aoi_census',
+                        JSON.parse(
+                            App.getAnalyzeCollection()
+                                .findWhere({taskName:'analyze'})
+                                .get('result')
+                        ).census
+                    );
+                })
+                .fail(projectErrorState);
 
             setupNewProjectScenarios(project);
             finishProjectSetup(project, lock);
             updateUrl();
+            App.getMapView().addSidebarToggleControl();
+            setPageTitle();
         }
-        App.getMapView().addSidebarToggleControl();
-        setPageTitle();
     },
 
     projectCleanUp: function() {
         projectCleanUp();
+    },
+
+    projectErrorState: function() {
+        projectErrorState();
     },
 
     makeNewProjectCleanUp: function() {
@@ -263,6 +294,18 @@ function projectCleanUp() {
     App.rootView.sidebarRegion.empty();
 }
 
+function projectErrorState() {
+    if (App.currentProject) {
+        var scenarios = App.currentProject.get('scenarios');
+        App.currentProject.off('change:id', updateUrl);
+        scenarios.off('change:activeScenario change:id', updateScenario);
+        App.currentProject.set('scenarios_events_initialized', false);
+        App.projectNumber = scenarios.at(0).get('project');
+    }
+
+    App.getMapView().updateModifications(null);
+}
+
 function updateItsiFromEmbedMode() {
     if (settings.get('itsi_embed')) {
         App.itsi.setLearnerUrl(Backbone.history.getFragment());
@@ -285,14 +328,17 @@ function initScenarioEvents(project) {
 }
 
 function setupNewProjectScenarios(project) {
+    var aoiCensus = project.get('aoi_census');
     project.get('scenarios').add([
         new models.ScenarioModel({
             name: 'Current Conditions',
             is_current_conditions: true,
-            active: true
+            active: true,
+            aoi_census: aoiCensus
         }),
         new models.ScenarioModel({
-            name: 'New Scenario'
+            name: 'New Scenario',
+            aoi_census: aoiCensus
         })
         // Silent is set to true because we don't actually want to save the
         // project without some user interaction. This initialization
@@ -313,19 +359,6 @@ function initViews(project, lock) {
 
     App.rootView.subHeaderRegion.show(modelingHeader);
     App.rootView.sidebarRegion.show(resultsView);
-}
-
-function makeProject(modelPackage, lock) {
-    var project = new models.ProjectModel({
-        name: 'Untitled Project',
-        created_at: Date.now(),
-        area_of_interest: App.map.get('areaOfInterest'),
-        area_of_interest_name: App.map.get('areaOfInterestName'),
-        model_package: modelPackage,
-        scenarios: new models.ScenariosCollection()
-    });
-    lock.resolve();
-    return project;
 }
 
 function reinstateProject(number, lock) {

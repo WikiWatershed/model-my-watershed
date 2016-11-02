@@ -12,6 +12,7 @@ var polygonDefaults = {
 function drawPolygon(map, drawOpts) {
     var defer = $.Deferred(),
         tool = new L.Draw.Polygon(map, {
+            allowIntersection: false,
             shapeOptions: _.defaults(drawOpts || {}, polygonDefaults)
         }),
         clearEvents = function() {

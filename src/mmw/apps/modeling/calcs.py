@@ -92,3 +92,49 @@ def point_source_pollution(geojson):
         'name': 'pointsource',
         'categories': point_source_results
     }
+
+
+def catchment_water_quality(geojson):
+    """
+    Given a GeoJSON shape, retrieve Catchment Water Quality data
+    from the `drb_catchment_water_quality` table to display
+    in the Analyze tab.
+
+    Returns a dictionary to append to the outgoing JSON for analysis
+    result
+    """
+    geom = GEOSGeometry(geojson, srid=4326)
+    table_name = 'drb_catchment_water_quality'
+    sql = '''
+          SELECT nord, areaha, tn_tot_kgy, tp_tot_kgy, tss_tot_kg,
+          tn_urban_k, tn_riparia, tn_ag_kgyr, tn_natural, tn_pt_kgyr,
+          tp_urban_k, tp_riparia, tp_ag_kgyr, tp_natural, tp_pt_kgyr,
+          tss_urban_, tss_rip_kg, tss_ag_kgy, tss_natura,
+          tn_yr_avg_, tp_yr_avg_, tss_concmg,
+          ST_AsGeoJSON(ST_Simplify(geom, 0.0003)) as geom
+          FROM {table_name}
+          WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromText(%s), 4326))
+          '''.format(table_name=table_name)
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [geom.wkt])
+
+        if cursor.rowcount != 0:
+            columns = [col[0] for col in cursor.description]
+            catchment_water_quality_results = [
+                # The TN, TP, and TSS values return as type Decimal,
+                # but we want floats.
+                dict(zip(columns,
+                         ([int(row[0]) if row[0] else None] +
+                          [float(value) if value else None
+                           for value in row[1:22]] +
+                          [row[22]])))
+                for row in cursor.fetchall()
+            ]
+        else:
+            catchment_water_quality_results = []
+    return {
+        'displayName': 'Water Quality',
+        'name': 'catchment_water_quality',
+        'categories': catchment_water_quality_results
+    }
