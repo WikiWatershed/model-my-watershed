@@ -1,5 +1,5 @@
-<div class="pageable-table-container">
-  <table class="table custom-hover catchment-water-quality pageable-table-size" data-toggle="table">
+  <table class="table custom-hover catchment-water-quality" data-toggle="table"
+        data-pagination="true" data-page-size=50>
       <thead>
           <tr>
               <th data-sortable="true">Id</th>
@@ -52,25 +52,3 @@
           </tr>
       </tfoot>
   </table>
-</div>
-{% if totalPages > 1 %}
-    <div class="row paging-ctl-row">
-            <p>
-                {{currentPage}} of {{totalPages}}
-            </p>
-            {% if hasPreviousPage %}
-                <button class="btn-prev-page btn btn-primary"
-                  data-toggle="tooltip" title="Previous Page"
-                  data-placement="right">
-                    <span aria-hidden="true">&larr;</span>
-                </button>
-            {% endif %}
-            {% if hasNextPage %}
-                <button class="btn-next-page btn btn-primary"
-                  data-toggle="tooltip" title="Next Page"
-                  data-placement="right">
-                    <span aria-hidden="true">&rarr;</span>
-                </button>
-            {% endif %}
-    </div>
-{% endif %}

@@ -237,11 +237,11 @@ var AnimalCensusCollection = Backbone.Collection.extend({
     comparator: 'type'
 });
 
-var PointSourceCensusCollection = Backbone.PageableCollection.extend({
+var PointSourceCensusCollection = Backbone.Collection.extend({
     comparator: 'city',
 });
 
-var CatchmentWaterQualityCensusCollection = Backbone.PageableCollection.extend({
+var CatchmentWaterQualityCensusCollection = Backbone.Collection.extend({
     comparator: 'nord',
 });
 
