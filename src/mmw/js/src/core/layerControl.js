@@ -48,8 +48,8 @@ module.exports = L.Control.Layers.extend({
                     self._map), 'DRB Point Source', 'observation');
                 self._update();
             })
-            .fail(function(reason) {
-                $('#observations-layer-list').text(reason);
+            .fail(function() {
+                $('#observations-layer-list').text('Could not load observations.');
             });
     },
 
