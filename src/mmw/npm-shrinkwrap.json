@@ -29,6 +29,11 @@
         }
       }
     },
+    "backbone.paginator": {
+      "version": "2.0.5",
+      "from": "backbone.paginator@*",
+      "resolved": "https://registry.npmjs.org/backbone.paginator/-/backbone.paginator-2.0.5.tgz"
+    },
     "blueimp-md5": {
       "version": "1.1.0",
       "from": "https://registry.npmjs.org/blueimp-md5/-/blueimp-md5-1.1.0.tgz",

@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('lodash'),
+    lodash = require('lodash'),
     L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
     Backbone = require('../../shim/backbone'),
@@ -19,6 +19,7 @@ var $ = require('jquery'),
     pointSourceLayer = require('../core/pointSourceLayer'),
     catchmentWaterQualityLayer = require('../core/catchmentWaterQualityLayer'),
     windowTmpl = require('./templates/window.html'),
+    AnalyzeDescriptionTmpl = require('./templates/analyzeDescription.html'),
     analyzeResultsTmpl = require('./templates/analyzeResults.html'),
     aoiHeaderTmpl = require('./templates/aoiHeader.html'),
     tableTmpl = require('./templates/table.html'),
@@ -57,7 +58,7 @@ var ResultsView = Marionette.LayoutView.extend({
 
         var modelPackages = settings.get('model_packages'),
             modelPackageName = $(e.target).data('id'),
-            modelPackage = _.find(modelPackages, {name: modelPackageName}),
+            modelPackage = lodash.find(modelPackages, {name: modelPackageName}),
             newProjectUrl = '/project/new/' + modelPackageName,
             projectUrl = '/project',
             alertView,
@@ -68,7 +69,7 @@ var ResultsView = Marionette.LayoutView.extend({
             analysisResults = JSON.parse(App.getAnalyzeCollection()
                                             .findWhere({taskName: 'analyze'})
                                             .get('result') || "{}"),
-            landResults = _.find(analysisResults, function(element) {
+            landResults = lodash.find(analysisResults, function(element) {
                     return element.name === 'land';
             });
 
@@ -92,7 +93,7 @@ var ResultsView = Marionette.LayoutView.extend({
         }
 
         if (landResults) {
-            var landCoverTotal = _.sum(_.map(landResults.categories,
+            var landCoverTotal = lodash.sum(lodash.map(landResults.categories,
                     function(category) {
                         if (category.type === 'Open Water') {
                             return 0;
@@ -167,7 +168,7 @@ var ResultsView = Marionette.LayoutView.extend({
 
     animateIn: function(fitToBounds) {
         var self = this,
-            fit = _.isUndefined(fitToBounds) ? true : fitToBounds;
+            fit = lodash.isUndefined(fitToBounds) ? true : fitToBounds;
 
         this.$el.animate({ width: '400px' }, 200, function() {
             App.map.setNoHeaderSidebarSize(fit);
@@ -177,7 +178,7 @@ var ResultsView = Marionette.LayoutView.extend({
 
     animateOut: function(fitToBounds) {
         var self = this,
-            fit = _.isUndefined(fitToBounds) ? true : fitToBounds;
+            fit = lodash.isUndefined(fitToBounds) ? true : fitToBounds;
 
         // Change map to full size first so there isn't empty space when
         // results window animates out
@@ -258,8 +259,8 @@ var TabContentView = Marionette.LayoutView.extend({
         this.showAnalyzingMessage();
 
         this.model.get('taskRunner').fetchAnalysisIfNeeded()
-            .done(_.bind(this.showResultsIfNotDestroyed, this))
-            .fail(_.bind(this.showErrorIfNotDestroyed, this));
+            .done(lodash.bind(this.showResultsIfNotDestroyed, this))
+            .fail(lodash.bind(this.showErrorIfNotDestroyed, this));
     },
 
     showAnalyzingMessage: function() {
@@ -295,7 +296,7 @@ var TabContentView = Marionette.LayoutView.extend({
     showResults: function() {
         var name = this.model.get('name'),
             results = JSON.parse(this.model.get('taskRunner').get('result')).survey,
-            result = _.find(results, { name: name }),
+            result = lodash.find(results, { name: name }),
             resultModel = new models.LayerModel(result),
             ResultView = AnalyzeResultViews[name];
 
@@ -322,6 +323,10 @@ var TabContentsView = Marionette.CollectionView.extend({
 
 var AoiView = Marionette.ItemView.extend({
     template: aoiHeaderTmpl
+});
+
+var AnalyzeDescriptionView = Marionette.ItemView.extend({
+    template: AnalyzeDescriptionTmpl
 });
 
 var TableRowView = Marionette.ItemView.extend({
@@ -418,7 +423,11 @@ var PointSourceTableView = Marionette.CompositeView.extend({
             totalKGN: utils.totalForPointSourceCollection(
                 this.collection.models, 'kgn_yr'),
             totalKGP: utils.totalForPointSourceCollection(
-                this.collection.models, 'kgp_yr')
+                this.collection.models, 'kgp_yr'),
+            hasNextPage: this.collection.hasNextPage(),
+            hasPreviousPage: this.collection.hasPreviousPage(),
+            currentPage: this.collection.state.currentPage,
+            totalPages: this.collection.state.totalPages,
         };
     },
     childViewContainer: 'tbody',
@@ -430,14 +439,18 @@ var PointSourceTableView = Marionette.CompositeView.extend({
 
     ui: {
         'pointSourceTR': 'tr.point-source',
-        'pointSourceId': '.point-source-id'
+        'pointSourceId': '.point-source-id',
+        'pointSourceTblNext': '.btn-next-page',
+        'pointSourceTblPrev': '.btn-prev-page'
     },
 
     events: {
         'click @ui.pointSourceId': 'panToPointSourceMarker',
         'mouseout @ui.pointSourceId': 'removePointSourceMarker',
         'mouseover @ui.pointSourceTR': 'addPointSourceMarkerToMap',
-        'mouseout @ui.pointSourceTR': 'removePointSourceMarker'
+        'mouseout @ui.pointSourceTR': 'removePointSourceMarker',
+        'click @ui.pointSourceTblNext': 'nextPage',
+        'click @ui.pointSourceTblPrev': 'prevPage'
     },
 
     createPointSourceMarker: function(data) {
@@ -450,6 +463,22 @@ var PointSourceTableView = Marionette.CompositeView.extend({
         }).bindPopup(new pointSourceLayer.PointSourcePopupView({
           model: new Backbone.Model(data)
       }).render().el, { closeButton: false });
+    },
+
+    nextPage: function() {
+        if (this.collection.hasNextPage()) {
+            this.collection.getNextPage();
+            this.render();
+            $('[data-toggle="table"]').bootstrapTable();
+        }
+    },
+
+    prevPage: function() {
+        if (this.collection.hasPreviousPage()) {
+            this.collection.getPreviousPage();
+            this.render();
+            $('[data-toggle="table"]').bootstrapTable();
+        }
     },
 
     addPointSourceMarkerToMap: function(e) {
@@ -507,11 +536,15 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
         return {
             headerUnits: this.options.units,
             totalTN: utils.totalForCatchmentWaterQualityCollection(
-                this.collection.models, 'tn_tot_kgy', 'areaha'),
+                this.collection.fullCollection.models, 'tn_tot_kgy', 'areaha'),
             totalTP: utils.totalForCatchmentWaterQualityCollection(
-                this.collection.models, 'tp_tot_kgy', 'areaha'),
+                this.collection.fullCollection.models, 'tp_tot_kgy', 'areaha'),
             totalTSS: utils.totalForCatchmentWaterQualityCollection(
-                this.collection.models, 'tss_tot_kg', 'areaha')
+                this.collection.fullCollection.models, 'tss_tot_kg', 'areaha'),
+            hasNextPage: this.collection.hasNextPage(),
+            hasPreviousPage: this.collection.hasPreviousPage(),
+            currentPage: this.collection.state.currentPage,
+            totalPages: this.collection.state.totalPages,
         };
     },
     childViewContainer: 'tbody',
@@ -523,14 +556,34 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
 
     ui: {
         'catchmentWaterQualityTR': 'tr.catchment-water-quality',
-        'catchmentWaterQualityId': '.catchment-water-quality-id'
+        'catchmentWaterQualityId': '.catchment-water-quality-id',
+        'catchmentWaterQualityTblNext': '.btn-next-page',
+        'catchmentWaterQualityTblPrev': '.btn-prev-page',
     },
 
     events: {
         'click @ui.catchmentWaterQualityId': 'panToCatchmentPolygon',
         'mouseout @ui.catchmentWaterQualityId': 'removeCatchmentPolygon',
         'mouseover @ui.catchmentWaterQualityTR': 'addCatchmentToMap',
-        'mouseout @ui.catchmentWaterQualityTR': 'removeCatchmentPolygon'
+        'mouseout @ui.catchmentWaterQualityTR': 'removeCatchmentPolygon',
+        'click @ui.catchmentWaterQualityTblNext': 'nextPage',
+        'click @ui.catchmentWaterQualityTblPrev': 'prevPage',
+    },
+
+    nextPage: function() {
+        if (this.collection.hasNextPage()) {
+            this.collection.getNextPage();
+            this.render();
+            $('[data-toggle="table"]').bootstrapTable();
+        }
+    },
+
+    prevPage: function() {
+        if (this.collection.hasPreviousPage()) {
+            this.collection.getPreviousPage();
+            this.render();
+            $('[data-toggle="table"]').bootstrapTable();
+        }
     },
 
     createCatchmentPolygon: function(data) {
@@ -542,8 +595,10 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
         };
         this.catchmentPolygon = L.geoJson(geoJson, {
             style: {
-                fillColor: '#ff7800',
-                fillOpacity: 0.5
+                fillColor: '#49b8ea',
+                fillOpacity: 0.7,
+                color: '#49b8ea',
+                weight: 0
             }
         }).bindPopup(new catchmentWaterQualityLayer.CatchmentWaterQualityPopupView({
           model: new Backbone.Model(data)
@@ -606,7 +661,7 @@ var ChartView = Marionette.ItemView.extend({
     addChart: function() {
         var self = this,
             chartEl = this.$el.find('.bar-chart').get(0),
-            data = _.map(this.collection.toJSON(), function(model) {
+            data = lodash.map(this.collection.toJSON(), function(model) {
                 return {
                     x: model.type,
                     y: model.coverage,
@@ -617,7 +672,7 @@ var ChartView = Marionette.ItemView.extend({
             chartOptions = {
                yAxisLabel: 'Coverage',
                isPercentage: true,
-               barClasses: _.pluck(data, 'class')
+               barClasses: lodash.pluck(data, 'class')
            };
 
         chart.renderHorizontalBarChart(chartEl, data, chartOptions);
@@ -627,13 +682,15 @@ var ChartView = Marionette.ItemView.extend({
 var AnalyzeResultView = Marionette.LayoutView.extend({
     template: analyzeResultsTmpl,
     regions: {
+        descriptionRegion: '.desc-region',
         chartRegion: '.chart-region',
         tableRegion: '.table-region'
     },
 
-    showAnalyzeResults: function(CategoriesToCensus, AnalyzeTableView, AnalyzeChartView) {
+    showAnalyzeResults: function(CategoriesToCensus, AnalyzeTableView,
+        AnalyzeChartView, description) {
         var categories = this.model.get('categories'),
-            largestArea = _.max(_.pluck(categories, 'area')),
+            largestArea = lodash.max(lodash.pluck(categories, 'area')),
             units = utils.magnitudeOfArea(largestArea),
             census = new CategoriesToCensus(categories);
 
@@ -648,37 +705,57 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
                 collection: census
             }));
         }
+
+        if (description) {
+            this.descriptionRegion.show(new AnalyzeDescriptionView({
+                model: new Backbone.Model({
+                    description: description
+                })
+            }));
+        }
     }
 });
 
 var LandResultView  = AnalyzeResultView.extend({
     onShow: function() {
-        this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView, ChartView);
+        var desc = 'Land cover distribution from National Land Cover Database (NLCD 2011)';
+        this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView,
+            ChartView, desc);
     }
 });
 
 var SoilResultView  = AnalyzeResultView.extend({
     onShow: function() {
-        this.showAnalyzeResults(coreModels.SoilCensusCollection, TableView, ChartView);
+        var desc = 'Hydrologic soil group distribution from USDA (gSSURGO 2016)';
+        this.showAnalyzeResults(coreModels.SoilCensusCollection, TableView,
+            ChartView, desc);
     }
 });
 
 var AnimalsResultView = AnalyzeResultView.extend({
     onShow: function() {
-        this.showAnalyzeResults(coreModels.AnimalCensusCollection, AnimalTableView);
+        var desc = 'Estimated number of farm animals',
+            chart = null;
+        this.showAnalyzeResults(coreModels.AnimalCensusCollection, AnimalTableView,
+            chart, desc);
     }
 });
 
 var PointSourceResultView = AnalyzeResultView.extend({
     onShow: function() {
-        this.showAnalyzeResults(coreModels.PointSourceCensusCollection, PointSourceTableView);
+        var desc = 'Discharge Monitoring Report annual averages from EPA NPDES',
+            chart = null;
+        this.showAnalyzeResults(coreModels.PointSourceCensusCollection,
+            PointSourceTableView, chart, desc);
     }
 });
 
 var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
     onShow: function() {
+        var desc = 'Delaware River Basin only: Stream Reach Assessment Tool model estimates',
+            chart = null;
         this.showAnalyzeResults(coreModels.CatchmentWaterQualityCensusCollection,
-            CatchmentWaterQualityTableView);
+            CatchmentWaterQualityTableView, chart, desc);
     }
 });
 

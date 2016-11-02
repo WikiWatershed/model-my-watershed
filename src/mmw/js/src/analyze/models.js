@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('lodash'),
+    lodash = require('lodash'),
     Backbone = require('../../shim/backbone'),
     coreModels = require('../core/models');
 
@@ -20,7 +20,7 @@ var LayerCategoryCollection = Backbone.Collection.extend({
 });
 
 var AnalyzeTaskModel = coreModels.TaskModel.extend({
-    defaults: _.extend( {
+    defaults: lodash.extend( {
             area_of_interest: null,
             taskName: 'analyze',
             taskType: 'modeling'

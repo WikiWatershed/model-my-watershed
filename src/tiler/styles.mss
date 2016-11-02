@@ -41,7 +41,7 @@
 @drb_catchment_step_four_color: #484848;
 @drb_catchment_step_five_color: #202020;
 @drb_catchment_line_color: #FFF;
-@drb_catchment_line_width: 4;
+@drb_catchment_line_width: 2;
 
 #drb_catchment_water_quality_tn {
     line-color: @drb_catchment_line_color;
@@ -104,12 +104,12 @@
 }
 
 @streamColor: #1562A9;
-@wtrQualColor0: #d7191c;
-@wtrQualColor1: #fdae61;
+@wtrQualColor0: #1a9641;
+@wtrQualColor1: #a6d96a;
 @wtrQualColor2: #ffffbf;
-@wtrQualColor3: #a6d96a;
-@wtrQualColor4: #1a9641;
-@wtrQualColorNA: #787878;
+@wtrQualColor3: #fdae61;
+@wtrQualColor4: #d7191c;
+@wtrQualColorNA: #9E9E9E;
 
 @zoomBase: 0.5;
 
