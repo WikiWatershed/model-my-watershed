@@ -16,10 +16,16 @@ import json
 from django.contrib.gis.geos import GEOSGeometry
 
 
-# Simplified perimeter of the Delaware River Basin (DRB).
+# Full perimeter of the Delaware River Basin (DRB).
 drb_perimeter_path = join(dirname(abspath(__file__)), 'data/drb_perimeter.json')
 drb_perimeter_file = open(drb_perimeter_path)
 drb_perimeter = json.load(drb_perimeter_file)
+
+# Buffered (3 mi) and simplified perimeter of the Delaware River Basin (DRB).
+drb_simple_perimeter_path = join(dirname(abspath(__file__)),
+                                 'data/drb_simple_perimeter.json')
+drb_simple_perimeter_file = open(drb_simple_perimeter_path)
+drb_simple_perimeter = json.load(drb_simple_perimeter_file)
 
 # Simplified perimeter of PA, used for DEP specific layers
 pa_perimeter_path = join(dirname(abspath(__file__)), 'data/pa_perimeter.json')
@@ -141,7 +147,7 @@ LAYERS = [
         'stream': True,
         'overlay': True,
         'minZoom': 5,
-        'perimeter': drb_perimeter  # Layer is only selectable when viewport
+        'perimeter': drb_simple_perimeter  # Layer is only selectable when viewport
         # overlaps with perimeter polygon.
     },
     {
@@ -266,7 +272,7 @@ LAYERS = [
         'raster': True,
         'overlay': True,
         'minZoom': 3,
-        'perimeter': drb_perimeter,
+        'perimeter': drb_simple_perimeter,
         'opacity': 0.618,
         'has_opacity_slider': True
     },
@@ -278,7 +284,7 @@ LAYERS = [
         'raster': True,
         'overlay': True,
         'minZoom': 3,
-        'perimeter': drb_perimeter,
+        'perimeter': drb_simple_perimeter,
         'opacity': 0.618,
         'has_opacity_slider': True
     },
@@ -290,7 +296,7 @@ LAYERS = [
         'raster': True,
         'overlay': True,
         'minZoom': 3,
-        'perimeter': drb_perimeter,
+        'perimeter': drb_simple_perimeter,
         'opacity': 0.618,
         'has_opacity_slider': True
     }
