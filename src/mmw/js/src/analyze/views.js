@@ -424,10 +424,6 @@ var PointSourceTableView = Marionette.CompositeView.extend({
                 this.collection.models, 'kgn_yr'),
             totalKGP: utils.totalForPointSourceCollection(
                 this.collection.models, 'kgp_yr'),
-            hasNextPage: this.collection.hasNextPage(),
-            hasPreviousPage: this.collection.hasPreviousPage(),
-            currentPage: this.collection.state.currentPage,
-            totalPages: this.collection.state.totalPages,
         };
     },
     childViewContainer: 'tbody',
@@ -440,8 +436,6 @@ var PointSourceTableView = Marionette.CompositeView.extend({
     ui: {
         'pointSourceTR': 'tr.point-source',
         'pointSourceId': '.point-source-id',
-        'pointSourceTblNext': '.btn-next-page',
-        'pointSourceTblPrev': '.btn-prev-page'
     },
 
     events: {
@@ -449,8 +443,6 @@ var PointSourceTableView = Marionette.CompositeView.extend({
         'mouseout @ui.pointSourceId': 'removePointSourceMarker',
         'mouseover @ui.pointSourceTR': 'addPointSourceMarkerToMap',
         'mouseout @ui.pointSourceTR': 'removePointSourceMarker',
-        'click @ui.pointSourceTblNext': 'nextPage',
-        'click @ui.pointSourceTblPrev': 'prevPage'
     },
 
     createPointSourceMarker: function(data) {
@@ -463,22 +455,6 @@ var PointSourceTableView = Marionette.CompositeView.extend({
         }).bindPopup(new pointSourceLayer.PointSourcePopupView({
           model: new Backbone.Model(data)
       }).render().el, { closeButton: false });
-    },
-
-    nextPage: function() {
-        if (this.collection.hasNextPage()) {
-            this.collection.getNextPage();
-            this.render();
-            $('[data-toggle="table"]').bootstrapTable();
-        }
-    },
-
-    prevPage: function() {
-        if (this.collection.hasPreviousPage()) {
-            this.collection.getPreviousPage();
-            this.render();
-            $('[data-toggle="table"]').bootstrapTable();
-        }
     },
 
     addPointSourceMarkerToMap: function(e) {
@@ -536,15 +512,11 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
         return {
             headerUnits: this.options.units,
             totalTN: utils.totalForCatchmentWaterQualityCollection(
-                this.collection.fullCollection.models, 'tn_tot_kgy', 'areaha'),
+                this.collection.models, 'tn_tot_kgy', 'areaha'),
             totalTP: utils.totalForCatchmentWaterQualityCollection(
-                this.collection.fullCollection.models, 'tp_tot_kgy', 'areaha'),
+                this.collection.models, 'tp_tot_kgy', 'areaha'),
             totalTSS: utils.totalForCatchmentWaterQualityCollection(
-                this.collection.fullCollection.models, 'tss_tot_kg', 'areaha'),
-            hasNextPage: this.collection.hasNextPage(),
-            hasPreviousPage: this.collection.hasPreviousPage(),
-            currentPage: this.collection.state.currentPage,
-            totalPages: this.collection.state.totalPages,
+                this.collection.models, 'tss_tot_kg', 'areaha'),
         };
     },
     childViewContainer: 'tbody',
@@ -557,8 +529,6 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
     ui: {
         'catchmentWaterQualityTR': 'tr.catchment-water-quality',
         'catchmentWaterQualityId': '.catchment-water-quality-id',
-        'catchmentWaterQualityTblNext': '.btn-next-page',
-        'catchmentWaterQualityTblPrev': '.btn-prev-page',
     },
 
     events: {
@@ -566,24 +536,6 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
         'mouseout @ui.catchmentWaterQualityId': 'removeCatchmentPolygon',
         'mouseover @ui.catchmentWaterQualityTR': 'addCatchmentToMap',
         'mouseout @ui.catchmentWaterQualityTR': 'removeCatchmentPolygon',
-        'click @ui.catchmentWaterQualityTblNext': 'nextPage',
-        'click @ui.catchmentWaterQualityTblPrev': 'prevPage',
-    },
-
-    nextPage: function() {
-        if (this.collection.hasNextPage()) {
-            this.collection.getNextPage();
-            this.render();
-            $('[data-toggle="table"]').bootstrapTable();
-        }
-    },
-
-    prevPage: function() {
-        if (this.collection.hasPreviousPage()) {
-            this.collection.getPreviousPage();
-            this.render();
-            $('[data-toggle="table"]').bootstrapTable();
-        }
     },
 
     createCatchmentPolygon: function(data) {

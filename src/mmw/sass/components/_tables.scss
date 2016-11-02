@@ -77,3 +77,20 @@
     .point-source .point-source-id {
   cursor: pointer;
 }
+
+.fixed-table-pagination li.active a {
+    background: $brand-primary;
+    color: $paper;
+    border-color: $brand-primary;
+    &:hover{
+        color: $paper;
+        background-color: $brand-primary;
+        border-color: $brand-primary;
+        cursor: default;
+    }
+}
+
+.fixed-table-pagination li a {
+    background: $paper;
+    color: $brand-primary;
+}
