@@ -104,7 +104,7 @@ var ModelingController = {
 
                 finishProjectSetup(project, lock);
             }
-            setPageTitle();            
+            setPageTitle();
         }
     },
 
@@ -333,11 +333,11 @@ function setupNewProjectScenarios(project) {
         new models.ScenarioModel({
             name: 'Current Conditions',
             is_current_conditions: true,
-            active: true,
             aoi_census: aoiCensus
         }),
         new models.ScenarioModel({
             name: 'New Scenario',
+            active: true,
             aoi_census: aoiCensus
         })
         // Silent is set to true because we don't actually want to save the
