@@ -17,7 +17,7 @@
                 {% if editable %}
                     <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="rename-project">Rename</a></li>
                 {% endif %}
-                {% if is_new %}
+                {% if is_new and not itsi_embed %}
                     <li role="presentation"><a role="menuitem" tabindex="-1" id="save-project">Save</a></li>
                 {% endif %}
                 {% if itsi %}

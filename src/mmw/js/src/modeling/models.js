@@ -4,7 +4,6 @@ var $ = require('jquery'),
     Backbone = require('../../shim/backbone'),
     _ = require('lodash'),
     utils = require('../core/utils'),
-    settings = require('../core/settings'),
     App = require('../app'),
     coreModels = require('../core/models'),
     turfArea = require('turf-area'),
@@ -132,7 +131,6 @@ var ProjectModel = Backbone.Model.extend({
         model_package: TR55_PACKAGE,    // Package name
         scenarios: null,                // ScenariosCollection
         user_id: 0,                     // User that created the project
-        is_activity: false,             // Project that persists across routes
         gis_data: null,                 // Additionally gathered data, such as MapShed for GWLF-E
         needs_reset: false,             // Should we overwrite project data on next save?
         allow_save: true,               // Is allowed to save to the server - false in compare mode
@@ -146,10 +144,6 @@ var ProjectModel = Backbone.Model.extend({
         }
 
         this.set('user_id', App.user.get('id'));
-
-        // If activity mode is enabled make sure to initialize the project as
-        // an activity.
-        this.set('is_activity', settings.get('activityMode'));
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
     },
