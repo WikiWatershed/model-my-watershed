@@ -419,11 +419,11 @@ var PointSourceTableView = Marionette.CompositeView.extend({
         return {
             headerUnits: this.options.units,
             totalMGD: utils.totalForPointSourceCollection(
-                this.collection.models, 'mgd'),
+                this.collection.fullCollection.models, 'mgd'),
             totalKGN: utils.totalForPointSourceCollection(
-                this.collection.models, 'kgn_yr'),
+                this.collection.fullCollection.models, 'kgn_yr'),
             totalKGP: utils.totalForPointSourceCollection(
-                this.collection.models, 'kgp_yr'),
+                this.collection.fullCollection.models, 'kgp_yr'),
             hasNextPage: this.collection.hasNextPage(),
             hasPreviousPage: this.collection.hasPreviousPage(),
             currentPage: this.collection.state.currentPage,
