@@ -76,5 +76,7 @@ module.exports = {
     drawPolygon: drawPolygon,
     placeMarker: placeMarker,
     cancelDrawing: cancelDrawing,
-    polygonDefaults: polygonDefaults
+    polygonDefaults: polygonDefaults,
+    NHD: 'nhd',
+    DRB: 'drb',
 };

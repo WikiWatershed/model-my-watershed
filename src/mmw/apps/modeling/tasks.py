@@ -28,9 +28,11 @@ KG_PER_POUND = 0.453592
 CM_PER_INCH = 2.54
 ACRES_PER_SQM = 0.000247105
 
+DRB = 'drb'
+
 
 @shared_task
-def start_rwd_job(location, snapping):
+def start_rwd_job(location, snapping, data_source):
     """
     Calls the Rapid Watershed Delineation endpoint
     that is running in the Docker container, and returns
@@ -39,7 +41,8 @@ def start_rwd_job(location, snapping):
     """
     location = json.loads(location)
     lat, lng = location
-    rwd_url = 'http://localhost:5000/rwd/%f/%f' % (lat, lng)
+    end_point = 'rwd' if data_source == DRB else 'rwd-nhd'
+    rwd_url = 'http://localhost:5000/%s/%f/%f' % (end_point, lat, lng)
 
     # The Webserver defaults to enable snapping, uses 1 (true) 0 (false)
     if not snapping:
