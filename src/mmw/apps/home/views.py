@@ -131,6 +131,7 @@ def get_client_settings(request):
             'vector_layers': get_layer_config(['vector', 'overlay']),
             'raster_layers': get_layer_config(['raster', 'overlay']),
             'stream_layers': get_layer_config(['stream', 'overlay']),
+            'nhd_perimeter': settings.NHD_REGION2_PERIMETER,
             'draw_tools': settings.DRAW_TOOLS,
             'map_controls': settings.MAP_CONTROLS,
             'vizer_urls': settings.VIZER_URLS,

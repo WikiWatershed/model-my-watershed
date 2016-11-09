@@ -101,16 +101,32 @@ function validateShape(polygon) {
     return d.promise();
 }
 
-function validateClickedPointWithinDRB(latlng) {
+function validatePointWithinDataSourceBounds(latlng, dataSource) {
     var point = L.marker(latlng).toGeoJSON(),
         d = $.Deferred(),
-        streamLayers = settings.get('stream_layers'),
-        drbPerimeter = _.findWhere(streamLayers, {code:'drb_streams_v2'}).perimeter;
-    if (turfIntersect(point, drbPerimeter)) {
+        perimeter = null,
+        point_outside_message = null;
+
+        switch (dataSource) {
+            case utils.DRB:
+                var streamLayers = settings.get('stream_layers');
+                perimeter = _.findWhere(streamLayers, {code:'drb_streams_v2'}).perimeter;
+                point_outside_message = 'Selected point is outside the Delaware River Basin';
+                break;
+            case utils.NHD:
+                perimeter = settings.get('nhd_perimeter');
+                point_outside_message = 'Selected point is outside the NHD Mid-Atlantic Region';
+                break;
+            default:
+                var message = 'Not a valid data source';
+                d.reject(message);
+                return d.promise();
+        }
+
+    if (turfIntersect(point, perimeter)) {
         d.resolve(latlng);
     } else {
-        var message = 'Selected point is outside the Delaware River Basin';
-        d.reject(message);
+        d.reject(point_outside_message);
     }
     return d.promise();
 }
@@ -371,6 +387,11 @@ var DrawView = Marionette.ItemView.extend({
 var WatershedDelineationView = Marionette.ItemView.extend({
     template: delineationOptionsTmpl,
 
+    templateHelpers: {
+        DRB: utils.DRB,
+        NHD: utils.NHD,
+    },
+
     ui: {
         items: '[data-shape-type]',
         button: '#delineate-shape',
@@ -403,16 +424,19 @@ var WatershedDelineationView = Marionette.ItemView.extend({
             map = App.getLeafletMap(),
             $item = $(e.currentTarget),
             itemName = $item.text(),
-            snappingOn = !!$item.data('snapping-on');
+            snappingOn = !!$item.data('snapping-on'),
+            dataSource = $item.data('data-source');
 
         clearAoiLayer();
         this.model.set('pollError', false);
         this.model.disableTools();
 
         utils.placeMarker(map)
-            .then(validateClickedPointWithinDRB)
             .then(function(latlng) {
-                return self.delineateWatershed(latlng, snappingOn);
+                return validatePointWithinDataSourceBounds(latlng, dataSource);
+            })
+            .then(function(latlng) {
+                return self.delineateWatershed(latlng, snappingOn, dataSource);
             })
             .then(function(result) {
                 return self.drawWatershed(result, itemName);
@@ -439,7 +463,7 @@ var WatershedDelineationView = Marionette.ItemView.extend({
             });
     },
 
-    delineateWatershed: function(latlng, snappingOn) {
+    delineateWatershed: function(latlng, snappingOn, dataSource) {
         var self = this,
             point = L.marker(latlng).toGeoJSON(),
             deferred = $.Deferred();
@@ -486,7 +510,8 @@ var WatershedDelineationView = Marionette.ItemView.extend({
                     point.geometry.coordinates[1],
                     point.geometry.coordinates[0]
                 ]),
-                'snappingOn': snappingOn
+                'snappingOn': snappingOn,
+                'dataSource': dataSource,
             }
         };
 

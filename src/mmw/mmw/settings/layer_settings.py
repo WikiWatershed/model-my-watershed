@@ -32,6 +32,16 @@ pa_perimeter_path = join(dirname(abspath(__file__)), 'data/pa_perimeter.json')
 pa_perimeter_file = open(pa_perimeter_path)
 pa_perimeter = json.load(pa_perimeter_file)
 
+# Buffered with QGIS [buffer distance = 0.10] and simplified [factor=0.01]
+# perimeter of the NHD Mid Atlantic Region (02)
+# Not a visible layer, but used for to detect if a point will work for RWD.
+nhd_region2_simple_perimeter_path = join(dirname(abspath(__file__)),
+                                         'data/nhd_region2_simple_perimeter.json')
+nhd_region2_simple_perimeter_file = open(nhd_region2_simple_perimeter_path)
+
+NHD_REGION2_PERIMETER = json.load(nhd_region2_simple_perimeter_file)
+
+
 LAYERS = [
     {
         'code': 'huc8',

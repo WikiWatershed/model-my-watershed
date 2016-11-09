@@ -12,8 +12,14 @@
   </button>
   <ul class="dropdown-menu menu-left" role="menu">
     <li role="presentation">
-      <a role="menuitem" tabindex="-1" href="#" data-shape-type="stream" data-snapping-on="true">
-        <span>Stream Network</span> <i class="split fa fa-question-circle"
+      <a role="menuitem" tabindex="-1" href="#" data-shape-type="stream" data-snapping-on="true" data-data-source={{DRB}}>
+        <span>DRB Stream Network</span> <i class="split fa fa-question-circle"
+          data-content="This automatically snaps to the nearest point on a perennial stream and calculates the watershed boundaries for the stream and its tributaries upstream of the selected point."></i>
+      </a>
+    </li>
+    <li role="presentation">
+      <a role="menuitem" tabindex="-1" href="#" data-shape-type="stream" data-snapping-on="true" data-data-source={{NHD}}>
+        <span style="width: 250px">NHD Mid-Atlantic Stream Network</span> <i class="split fa fa-question-circle"
           data-content="This automatically snaps to the nearest point on a perennial stream and calculates the watershed boundaries for the stream and its tributaries upstream of the selected point."></i>
       </a>
     </li>
