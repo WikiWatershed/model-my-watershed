@@ -50,6 +50,10 @@ class Worker(StackNode):
         'WorkerAutoScalingDesired': ['global:WorkerAutoScalingDesired'],  # NOQA
         'WorkerAutoScalingMin': ['global:WorkerAutoScalingMin'],
         'WorkerAutoScalingMax': ['global:WorkerAutoScalingMax'],
+        'WorkerAutoScalingScheduleStartCapacity': ['global:WorkerAutoScalingScheduleStartCapacity'],  # NOQA
+        'WorkerAutoScalingScheduleStartRecurrence': ['global:WorkerAutoScalingScheduleStartRecurrence'],  # NOQA
+        'WorkerAutoScalingScheduleEndCapacity': ['global:WorkerAutoScalingScheduleEndCapacity'],  # NOQA
+        'WorkerAutoScalingScheduleEndRecurrence': ['global:WorkerAutoScalingScheduleEndRecurrence'],  # NOQA
         'PublicSubnets': ['global:PublicSubnets', 'VPC:PublicSubnets'],
         'PrivateSubnets': ['global:PrivateSubnets', 'VPC:PrivateSubnets'],
         'PublicHostedZoneName': ['global:PublicHostedZoneName'],
@@ -135,19 +139,47 @@ class Worker(StackNode):
         ), 'WorkerInstanceProfile')
 
         self.worker_auto_scaling_desired = self.add_parameter(Parameter(
-            'WorkerAutoScalingDesired', Type='String', Default='1',
+            'WorkerAutoScalingDesired', Type='String', Default='2',
             Description='Worker AutoScalingGroup desired'
         ), 'WorkerAutoScalingDesired')
 
         self.worker_auto_scaling_min = self.add_parameter(Parameter(
-            'WorkerAutoScalingMin', Type='String', Default='1',
+            'WorkerAutoScalingMin', Type='String', Default='0',
             Description='Worker AutoScalingGroup minimum'
         ), 'WorkerAutoScalingMin')
 
         self.worker_auto_scaling_max = self.add_parameter(Parameter(
-            'WorkerAutoScalingMax', Type='String', Default='1',
+            'WorkerAutoScalingMax', Type='String', Default='2',
             Description='Worker AutoScalingGroup maximum'
         ), 'WorkerAutoScalingMax')
+
+        self.worker_auto_scaling_schedule_start_recurrence = self.add_parameter(  # NOQA
+            Parameter(
+                'WorkerAutoScalingScheduleStartRecurrence', Type='String',
+                Default='0 13 * * 1-5',
+                Description='Worker ASG schedule start recurrence'
+            ), 'WorkerAutoScalingScheduleStartRecurrence')
+
+        self.worker_auto_scaling_schedule_start_capacity = self.add_parameter(  # NOQA
+            Parameter(
+                'WorkerAutoScalingScheduleStartCapacity', Type='String',
+                Default='2',
+                Description='Worker ASG schedule start capacity'
+            ), 'WorkerAutoScalingScheduleStartCapacity')
+
+        self.worker_auto_scaling_schedule_end_recurrence = self.add_parameter(  # NOQA
+            Parameter(
+                'WorkerAutoScalingScheduleEndRecurrence', Type='String',
+                Default='0 23 * * *',
+                Description='Worker ASG schedule end recurrence'
+            ), 'WorkerAutoScalingScheduleEndRecurrence')
+
+        self.worker_auto_scaling_schedule_end_capacity = self.add_parameter(  # NOQA
+            Parameter(
+                'WorkerAutoScalingScheduleEndCapacity', Type='String',
+                Default='0',
+                Description='Worker ASG schedule end capacity'
+            ), 'WorkerAutoScalingScheduleEndCapacity')
 
         self.public_subnets = self.add_parameter(Parameter(
             'PublicSubnets', Type='CommaDelimitedList',
@@ -310,7 +342,7 @@ class Worker(StackNode):
 
         worker_auto_scaling_group_name = 'asgWorker'
 
-        return self.add_resource(
+        worker_asg = self.add_resource(
             asg.AutoScalingGroup(
                 worker_auto_scaling_group_name,
                 AvailabilityZones=Ref(self.availability_zones),
@@ -337,6 +369,30 @@ class Worker(StackNode):
                 Tags=[asg.Tag('Name', 'Worker', True)]
             )
         )
+
+        self.add_resource(
+            asg.ScheduledAction(
+                'schedWorkerAutoScalingStart',
+                AutoScalingGroupName=Ref(worker_asg),
+                DesiredCapacity=Ref(
+                    self.worker_auto_scaling_schedule_start_capacity),
+                Recurrence=Ref(
+                    self.worker_auto_scaling_schedule_start_recurrence)
+            )
+        )
+
+        self.add_resource(
+            asg.ScheduledAction(
+                'schedWorkerAutoScalingEnd',
+                AutoScalingGroupName=Ref(worker_asg),
+                DesiredCapacity=Ref(
+                    self.worker_auto_scaling_schedule_end_capacity),
+                Recurrence=Ref(
+                    self.worker_auto_scaling_schedule_end_recurrence)
+            )
+        )
+
+        return worker_asg
 
     def get_cloud_config(self):
         return ['#cloud-config\n',
