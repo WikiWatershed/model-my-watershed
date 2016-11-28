@@ -85,6 +85,7 @@ fi
 COPY_IMAGES_COMMAND="cp -r \
     ./node_modules/leaflet/dist/images/* \
     ./node_modules/leaflet-draw/dist/images/* \
+    ./img/* \
     $STATIC_IMAGES_DIR"
 
 COPY_FONTS_COMMAND="cp -r \
