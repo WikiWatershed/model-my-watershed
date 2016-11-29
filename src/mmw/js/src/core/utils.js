@@ -290,9 +290,9 @@ var utils = {
         }));
     },
 
-    totalForCatchmentWaterQualityCollection: function(collection, key, normalizerKey) {
+    totalForCatchmentWaterQualityCollection: function(collection, key) {
         return lodash.sum(lodash.map(collection, function(element) {
-            return element.attributes[key] / element.attributes[normalizerKey] || 0;
+            return element.attributes[key] || 0;
         }));
     },
 
