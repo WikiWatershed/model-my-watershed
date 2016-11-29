@@ -171,7 +171,7 @@ def start_rwd(request, format=None):
     user = request.user if request.user.is_authenticated() else None
     created = now()
     location = request.POST['location']
-    data_source = request.POST['dataSource']
+    data_source = request.POST.get('dataSource', 'drb')
 
     # Parse out the JS style T/F to a boolean
     snappingParam = request.POST['snappingOn']
