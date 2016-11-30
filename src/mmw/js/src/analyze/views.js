@@ -535,12 +535,6 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
     templateHelpers: function() {
         return {
             headerUnits: this.options.units,
-            totalTN: utils.totalForCatchmentWaterQualityCollection(
-                this.collection.fullCollection.models, 'tn_tot_kgy', 'areaha'),
-            totalTP: utils.totalForCatchmentWaterQualityCollection(
-                this.collection.fullCollection.models, 'tp_tot_kgy', 'areaha'),
-            totalTSS: utils.totalForCatchmentWaterQualityCollection(
-                this.collection.fullCollection.models, 'tss_tot_kg', 'areaha'),
             hasNextPage: this.collection.hasNextPage(),
             hasPreviousPage: this.collection.hasPreviousPage(),
             currentPage: this.collection.state.currentPage,

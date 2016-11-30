@@ -144,11 +144,11 @@ function catchmentWaterQualityTableFormatter(categories) {
         var nord = category.get('nord').toString(),
             areaha = renderPtSrcAndWQTableRowValue(category.get('areaha')),
             tn_tot_kgy = renderPtSrcAndWQTableRowValue(
-                category.get('tn_tot_kgy')/category.get('areaha')),
+                category.get('tn_tot_kgy')),
             tp_tot_kgy = renderPtSrcAndWQTableRowValue(
-                category.get('tp_tot_kgy')/category.get('areaha')),
+                category.get('tp_tot_kgy')),
             tss_tot_kg = renderPtSrcAndWQTableRowValue(
-                category.get('tss_tot_kg')/category.get('areaha')),
+                category.get('tss_tot_kg')),
             tn_yr_avg_ = renderPtSrcAndWQTableRowValue(category.get('tn_yr_avg_')),
             tp_yr_avg_ = renderPtSrcAndWQTableRowValue(category.get('tp_yr_avg_')),
             tss_concmg = renderPtSrcAndWQTableRowValue(category.get('tss_concmg'));
