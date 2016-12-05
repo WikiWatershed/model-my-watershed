@@ -36,6 +36,9 @@ class Project(models.Model):
         auto_now_add=True)
     modified_at = models.DateTimeField(
         auto_now=True)
+    is_activity = models.BooleanField(
+        default=False,
+        help_text='Projects with special properties')
     gis_data = models.TextField(
         null=True,
         help_text='Serialized JSON representation of additional'
