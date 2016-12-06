@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    Backbone = require('../../shim/backbone'),
     App = require('../app'),
     settings = require('../core/settings'),
     router = require('../router').router,
@@ -51,6 +52,14 @@ var ModelingController = {
                             project.get('scenarios').makeFirstScenarioActive();
                         }
 
+                        // If this project is an activity then the application's behavior changes.
+                        if (project.get('is_activity')) {
+                            settings.set('activityMode', true);
+                        }
+
+                        // Send URL to parent if in embed mode
+                        updateItsiFromEmbedMode();
+
                         setPageTitle();
                     });
                 })
@@ -63,7 +72,7 @@ var ModelingController = {
 
             App.state.set('current_page_title', 'Modeling');
         } else {
-            if (App.currentProject && settings.get('itsi_embed')) {
+            if (App.currentProject && settings.get('activityMode')) {
                 project = App.currentProject;
                 // Reset flag is set so clear off old project data.
                 if (project.get('needs_reset')) {
@@ -95,7 +104,7 @@ var ModelingController = {
 
                 finishProjectSetup(project, lock);
             }
-            setPageTitle();
+            setPageTitle();            
         }
     },
 
@@ -135,7 +144,7 @@ var ModelingController = {
                         ).census
                     );
                 })
-                .fail(projectCleanUp);
+                .fail(projectErrorState);
 
             setupNewProjectScenarios(project);
             finishProjectSetup(project, lock);
@@ -147,6 +156,10 @@ var ModelingController = {
 
     projectCleanUp: function() {
         projectCleanUp();
+    },
+
+    projectErrorState: function() {
+        projectErrorState();
     },
 
     makeNewProjectCleanUp: function() {
@@ -180,6 +193,10 @@ var ModelingController = {
                     // that this project is properly initialized by the
                     // modeling controller.
                     project.set('needs_reset', true);
+                }
+
+                if (project.get('is_activity')) {
+                    settings.set('activityMode', true);
                 }
 
                 setPageTitle();
@@ -228,6 +245,8 @@ function itsiResetProject(project) {
 
         // Make sure to save the new project id onto scenarios.
         project.addIdsToScenarios();
+        // Save to ensure we capture AOI.
+        project.save();
 
         // Now render.
         initViews(project);
@@ -275,9 +294,28 @@ function projectCleanUp() {
     App.rootView.sidebarRegion.empty();
 }
 
+function projectErrorState() {
+    if (App.currentProject) {
+        var scenarios = App.currentProject.get('scenarios');
+        App.currentProject.off('change:id', updateUrl);
+        scenarios.off('change:activeScenario change:id', updateScenario);
+        App.currentProject.set('scenarios_events_initialized', false);
+        App.projectNumber = scenarios.at(0).get('project');
+    }
+
+    App.getMapView().updateModifications(null);
+}
+
+function updateItsiFromEmbedMode() {
+    if (settings.get('itsi_embed')) {
+        App.itsi.setLearnerUrl(Backbone.history.getFragment());
+    }
+}
+
 function updateUrl() {
     // Use replace: true, so that the back button will work as expected.
     router.navigate(App.currentProject.getReferenceUrl(), { replace: true });
+    updateItsiFromEmbedMode();
 }
 
 function updateScenario(scenario) {

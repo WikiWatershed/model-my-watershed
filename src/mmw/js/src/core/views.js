@@ -481,8 +481,10 @@ var MapView = Marionette.ItemView.extend({
     },
 
     aoiChangeWarning: _.debounce(function() {
+        var activityMode = settings.get('activityMode');
+
         // Fail fast.
-        if (this._didRevert || !settings.get('itsi_embed')) {
+        if (this._didRevert || !activityMode) {
             this._didRevert = false;
             return;
         }
@@ -736,7 +738,7 @@ var MapView = Marionette.ItemView.extend({
 
     updateDrbLayerZoomLevel: function(e) {
         var layerMaxZoom = e.layer.options.maxZoom;
-        var adjSettings =
+        var adjSettings = 
             _.map(settings.get('stream_layers'),
                   function(o) {
                       if (o.code === 'drb_streams_v2') {
