@@ -143,7 +143,8 @@ LAYERS = [
     },
     {
         'code': 'nhd_streams_v2',
-        'display': 'National Stream Network',
+        'display': ('Continental US Medium Resolution' +
+            '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stream Network'),
         'table_name': 'nhdflowline',
         'stream': True,
         'overlay': True,
