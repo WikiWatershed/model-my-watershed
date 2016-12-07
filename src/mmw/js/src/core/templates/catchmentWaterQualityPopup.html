@@ -3,9 +3,9 @@
     <thead>
         <tr>
             <th>Source</th>
-            <th class="text-right">TN (kg/y)</th>
-            <th class="text-right">TP (kg/y)</th>
-            <th class="text-right">TSS (kg/y)</th>
+            <th class="text-right">TN (kg/ha)</th>
+            <th class="text-right">TP (kg/ha)</th>
+            <th class="text-right">TSS (kg/ha)</th>
         </tr>
     </thead>
     <tbody>
@@ -46,7 +46,7 @@
             </td>
         </tr>
         <tr>
-            <td>Riparian</td>
+            <td>Streambank</td>
             <td class="text-right">
                 {{ tn_riparia|filterNoData()|toLocaleString(3) }}
             </td>

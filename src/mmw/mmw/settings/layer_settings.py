@@ -143,7 +143,8 @@ LAYERS = [
     },
     {
         'code': 'nhd_streams_v2',
-        'display': 'National Stream Network',
+        'display': ('Continental US Medium Resolution' +
+            '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stream Network'),
         'table_name': 'nhdflowline',
         'stream': True,
         'overlay': True,
@@ -216,8 +217,8 @@ LAYERS = [
     {
         'type': 'mapbox',
         'display': 'Streets',
-        'url': 'https://{s}.tiles.mapbox.com/v4/srgdamia1.d0197125'
-                '/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic3JnZGFtaWExIiwiYSI6ImNpbnJ1bGd5ajEwbDB1YW0zcnE4bjZwaWwifQ.4kGj3EcIdDY4MyBmOEZsrA', #noqa
+        'url': 'https://{s}.tiles.mapbox.com/v4/stroudcenter.1f06e119'
+                '/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic3Ryb3VkY2VudGVyIiwiYSI6ImNpd2NhMmZiMDA1enUyb2xrdjlhYzV6N24ifQ.3dFii4MfQFOqYEDg9kVguA',  # NOQA
         'attribution': 'Map data &copy; <a href="http://openstreetmap.org">'
                        'OpenStreetMap</a> contributors, '
                        '<a href="http://creativecommons.org/licenses/by-sa/'

@@ -29,6 +29,12 @@ header {
     }
   }
 
+  img {
+    height: 24px;
+    position: relative;
+    top: -2px;
+  }
+
   .navigation {
     float: right;
     display: inline-block;

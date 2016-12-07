@@ -30,7 +30,7 @@ var DrawController = {
         App.rootView.geocodeSearchRegion.show(geocodeSearch);
         App.rootView.drawToolsRegion.show(toolbarView);
 
-        enableSingleProjectModeIfITSIEmbed();
+        enableSingleProjectModeIfActivity();
 
         if (App.map.get('areaOfInterest')) {
             var aoiView = new coreViews.AreaOfInterestView({
@@ -65,15 +65,15 @@ var DrawController = {
  * immedialty upon visiting the page and will be the only project the user can
  * save during this session.
  */
-
-function enableSingleProjectModeIfITSIEmbed() {
-    if (settings.get('itsi_embed')) {
+function enableSingleProjectModeIfActivity() {
+    if (settings.get('activityMode')) {
         if (!App.currentProject) {
             var project = new modelingModels.ProjectModel({
                 name: 'New Activity',
                 created_at: Date.now(),
                 area_of_interest: null,
                 scenarios: new modelingModels.ScenariosCollection(),
+                is_activity: true,
                 needs_reset: true
             });
             App.currentProject = project;

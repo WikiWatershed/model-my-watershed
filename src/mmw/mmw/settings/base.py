@@ -263,7 +263,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django_statsd.middleware.GraphiteRequestTimingMiddleware',
     'django_statsd.middleware.GraphiteMiddleware',
-    'apps.user.middleware.ItsiEmbedMiddleware',
+    'apps.user.middleware.ItsiAuthenticationMiddleware',
 )
 # END MIDDLEWARE CONFIGURATION
 
