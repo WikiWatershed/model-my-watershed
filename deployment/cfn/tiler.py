@@ -49,6 +49,10 @@ class Tiler(StackNode):
         'TileServerAutoScalingDesired': ['global:TileServerAutoScalingDesired'],  # NOQA
         'TileServerAutoScalingMin': ['global:TileServerAutoScalingMin'],
         'TileServerAutoScalingMax': ['global:TileServerAutoScalingMax'],
+        'TileServerAutoScalingScheduleStartCapacity': ['global:TileServerAutoScalingScheduleStartCapacity'],  # NOQA
+        'TileServerAutoScalingScheduleStartRecurrence': ['global:TileServerAutoScalingScheduleStartRecurrence'],  # NOQA
+        'TileServerAutoScalingScheduleEndCapacity': ['global:TileServerAutoScalingScheduleEndCapacity'],  # NOQA
+        'TileServerAutoScalingScheduleEndRecurrence': ['global:TileServerAutoScalingScheduleEndRecurrence'],  # NOQA
         'SSLCertificateARN': ['global:SSLCertificateARN'],
         'PublicSubnets': ['global:PublicSubnets', 'VPC:PublicSubnets'],
         'PrivateSubnets': ['global:PrivateSubnets', 'VPC:PrivateSubnets'],
@@ -142,6 +146,34 @@ class Tiler(StackNode):
             'TileServerAutoScalingMax', Type='String', Default='1',
             Description='Tile server AutoScalingGroup maximum'
         ), 'TileServerAutoScalingMax')
+
+        self.tile_server_auto_scaling_schedule_start_recurrence = self.add_parameter(  # NOQA
+            Parameter(
+                'TileServerAutoScalingScheduleStartRecurrence', Type='String',
+                Default='0 13 * * 1-5',
+                Description='Tile server ASG schedule start recurrence'
+            ), 'TileServerAutoScalingScheduleStartRecurrence')
+
+        self.tile_server_auto_scaling_schedule_start_capacity = self.add_parameter(  # NOQA
+            Parameter(
+                'TileServerAutoScalingScheduleStartCapacity', Type='String',
+                Default='1',
+                Description='Tile server ASG schedule start capacity'
+            ), 'TileServerAutoScalingScheduleStartCapacity')
+
+        self.tile_server_auto_scaling_schedule_end_recurrence = self.add_parameter(  # NOQA
+            Parameter(
+                'TileServerAutoScalingScheduleEndRecurrence', Type='String',
+                Default='0 23 * * *',
+                Description='Tile server ASG schedule end recurrence'
+            ), 'TileServerAutoScalingScheduleEndRecurrence')
+
+        self.tile_server_auto_scaling_schedule_end_capacity = self.add_parameter(  # NOQA
+            Parameter(
+                'TileServerAutoScalingScheduleEndCapacity', Type='String',
+                Default='1',
+                Description='Tile server ASG schedule end capacity'
+            ), 'TileServerAutoScalingScheduleEndCapacity')
 
         self.ssl_certificate_arn = self.add_parameter(Parameter(
             'SSLCertificateARN', Type='String',
@@ -318,7 +350,7 @@ class Tiler(StackNode):
 
         tile_server_auto_scaling_group_name = 'asgTileServer'
 
-        self.add_resource(
+        tile_server_asg = self.add_resource(
             asg.AutoScalingGroup(
                 tile_server_auto_scaling_group_name,
                 AvailabilityZones=Ref(self.availability_zones),
@@ -343,6 +375,28 @@ class Tiler(StackNode):
                 ],
                 VPCZoneIdentifier=Ref(self.private_subnets),
                 Tags=[asg.Tag('Name', 'TileServer', True)]
+            )
+        )
+
+        self.add_resource(
+            asg.ScheduledAction(
+                'schedTileServerAutoScalingStart',
+                AutoScalingGroupName=Ref(tile_server_asg),
+                DesiredCapacity=Ref(
+                    self.tile_server_auto_scaling_schedule_start_capacity),
+                Recurrence=Ref(
+                    self.tile_server_auto_scaling_schedule_start_recurrence)
+            )
+        )
+
+        self.add_resource(
+            asg.ScheduledAction(
+                'schedTileServerAutoScalingEnd',
+                AutoScalingGroupName=Ref(tile_server_asg),
+                DesiredCapacity=Ref(
+                    self.tile_server_auto_scaling_schedule_end_capacity),
+                Recurrence=Ref(
+                    self.tile_server_auto_scaling_schedule_end_recurrence)
             )
         )
 

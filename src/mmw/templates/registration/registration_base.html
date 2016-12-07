@@ -1,17 +1,23 @@
-{% extends "base.html" %}
+{% include 'head.html' %}
 
 {% block header %}
 <header>
     <nav id="app-header" class="navbar-watershed">
-        <div class="brand"><a href="{% url 'home_page' %}">Model My Watershed</a></div>
+        <div class="brand">
+            <a href="{% url 'home_page' %}">Model My Watershed</a>
+        </div>
         <div class="navigation">
+            <ul class="main">
+                <li class="header-link"><a target="_blank" href="http://www.stroudcenter.org/"><img src="/static/images/stroud-logo.png" alt="Logo" /></a></li>
+                <li class="header-link"><a target="_blank" href="http://www.wikiwatershed.org">WikiWatershed</a></li>
+            </ul>
         </div>
     </nav>
 </header>
 {% endblock header %}
 
 {% block content %}
-<div class="container-fluid top-nav">
+<div class="container-fluid top-nav registration-form">
     {% block title %}
     {% endblock %}
     {% block registration_content %}

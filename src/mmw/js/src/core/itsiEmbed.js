@@ -21,7 +21,7 @@ var ItsiEmbed = function(App) {
             this.url = window.location.origin + '/' + route + '?' + QUERY_SUFFIX;
             this.interactiveState = { route: route };
         }
-        
+
         this.sendLearnerUrl();
     };
 

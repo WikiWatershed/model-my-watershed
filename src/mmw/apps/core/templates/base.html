@@ -1,3 +1,4 @@
+{% include 'head.html' %}
 {% load staticfiles %}
 
 <!DOCTYPE html>
@@ -21,6 +22,7 @@
 
         ga('create', '{{ GOOGLE_ANALYTICS_ACCOUNT }}', 'auto');
         ga('send', 'pageview');
+        window.ga = ga;
     </script>
 </head>
 

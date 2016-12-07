@@ -171,6 +171,7 @@ def start_rwd(request, format=None):
     user = request.user if request.user.is_authenticated() else None
     created = now()
     location = request.POST['location']
+    data_source = request.POST.get('dataSource', 'drb')
 
     # Parse out the JS style T/F to a boolean
     snappingParam = request.POST['snappingOn']
@@ -179,7 +180,8 @@ def start_rwd(request, format=None):
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
 
-    task_list = _initiate_rwd_job_chain(location, snapping, job.id)
+    task_list = _initiate_rwd_job_chain(location, snapping, data_source,
+                                        job.id)
 
     job.uuid = task_list.id
     job.save()
@@ -402,13 +404,14 @@ def choose_worker():
     return random.choice(get_living_workers())
 
 
-def _initiate_rwd_job_chain(location, snapping, job_id, testing=False):
+def _initiate_rwd_job_chain(location, snapping, data_source,
+                            job_id, testing=False):
     exchange = MAGIC_EXCHANGE
     routing_key = choose_worker()
     errback = save_job_error.s(job_id).set(exchange=MAGIC_EXCHANGE,
                                            routing_key=choose_worker())
 
-    return chain(tasks.start_rwd_job.s(location, snapping)
+    return chain(tasks.start_rwd_job.s(location, snapping, data_source)
                  .set(exchange=exchange, routing_key=routing_key),
                  save_job_result.s(job_id, location)
                  .set(exchange=exchange, routing_key=choose_worker())) \

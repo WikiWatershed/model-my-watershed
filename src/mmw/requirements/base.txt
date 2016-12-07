@@ -9,7 +9,7 @@ django-registration-redux==1.2
 python-omgeo==1.7.2
 rauth==0.7.1
 djangorestframework-gis==0.8.2
-tr55==1.2.0
+tr55==1.2.1
 gwlf-e==0.6.2
 requests==2.9.1
 rollbar==0.13.8

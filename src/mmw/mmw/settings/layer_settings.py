@@ -16,15 +16,31 @@ import json
 from django.contrib.gis.geos import GEOSGeometry
 
 
-# Simplified perimeter of the Delaware River Basin (DRB).
+# Full perimeter of the Delaware River Basin (DRB).
 drb_perimeter_path = join(dirname(abspath(__file__)), 'data/drb_perimeter.json')
 drb_perimeter_file = open(drb_perimeter_path)
 drb_perimeter = json.load(drb_perimeter_file)
+
+# Buffered (3 mi) and simplified perimeter of the Delaware River Basin (DRB).
+drb_simple_perimeter_path = join(dirname(abspath(__file__)),
+                                 'data/drb_simple_perimeter.json')
+drb_simple_perimeter_file = open(drb_simple_perimeter_path)
+drb_simple_perimeter = json.load(drb_simple_perimeter_file)
 
 # Simplified perimeter of PA, used for DEP specific layers
 pa_perimeter_path = join(dirname(abspath(__file__)), 'data/pa_perimeter.json')
 pa_perimeter_file = open(pa_perimeter_path)
 pa_perimeter = json.load(pa_perimeter_file)
+
+# Buffered with QGIS [buffer distance = 0.10] and simplified [factor=0.01]
+# perimeter of the NHD Mid Atlantic Region (02)
+# Not a visible layer, but used for to detect if a point will work for RWD.
+nhd_region2_simple_perimeter_path = join(dirname(abspath(__file__)),
+                                         'data/nhd_region2_simple_perimeter.json')
+nhd_region2_simple_perimeter_file = open(nhd_region2_simple_perimeter_path)
+
+NHD_REGION2_PERIMETER = json.load(nhd_region2_simple_perimeter_file)
+
 
 LAYERS = [
     {
@@ -127,7 +143,8 @@ LAYERS = [
     },
     {
         'code': 'nhd_streams_v2',
-        'display': 'National Stream Network',
+        'display': ('Continental US Medium Resolution' +
+            '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stream Network'),
         'table_name': 'nhdflowline',
         'stream': True,
         'overlay': True,
@@ -141,7 +158,7 @@ LAYERS = [
         'stream': True,
         'overlay': True,
         'minZoom': 5,
-        'perimeter': drb_perimeter  # Layer is only selectable when viewport
+        'perimeter': drb_simple_perimeter  # Layer is only selectable when viewport
         # overlaps with perimeter polygon.
     },
     {
@@ -200,8 +217,8 @@ LAYERS = [
     {
         'type': 'mapbox',
         'display': 'Streets',
-        'url': 'https://{s}.tiles.mapbox.com/v4/srgdamia1.d0197125'
-                '/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic3JnZGFtaWExIiwiYSI6ImNpbnJ1bGd5ajEwbDB1YW0zcnE4bjZwaWwifQ.4kGj3EcIdDY4MyBmOEZsrA', #noqa
+        'url': 'https://{s}.tiles.mapbox.com/v4/stroudcenter.1f06e119'
+                '/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic3Ryb3VkY2VudGVyIiwiYSI6ImNpd2NhMmZiMDA1enUyb2xrdjlhYzV6N24ifQ.3dFii4MfQFOqYEDg9kVguA',  # NOQA
         'attribution': 'Map data &copy; <a href="http://openstreetmap.org">'
                        'OpenStreetMap</a> contributors, '
                        '<a href="http://creativecommons.org/licenses/by-sa/'
@@ -266,7 +283,7 @@ LAYERS = [
         'raster': True,
         'overlay': True,
         'minZoom': 3,
-        'perimeter': drb_perimeter,
+        'perimeter': drb_simple_perimeter,
         'opacity': 0.618,
         'has_opacity_slider': True
     },
@@ -278,7 +295,7 @@ LAYERS = [
         'raster': True,
         'overlay': True,
         'minZoom': 3,
-        'perimeter': drb_perimeter,
+        'perimeter': drb_simple_perimeter,
         'opacity': 0.618,
         'has_opacity_slider': True
     },
@@ -290,7 +307,7 @@ LAYERS = [
         'raster': True,
         'overlay': True,
         'minZoom': 3,
-        'perimeter': drb_perimeter,
+        'perimeter': drb_simple_perimeter,
         'opacity': 0.618,
         'has_opacity_slider': True
     }

@@ -84,7 +84,7 @@ fi
 if [ "$load_dep" = "true" ] ; then
     # Fetch DEP layers
     FILES=("dep_urban_areas.sql.gz" "dep_municipalities.sql.gz")
-    PATHS=("dep_urbanareas" "dep_municipalities")
+    PATHS=("urban_areas" "municipalities")
 
     download_and_load $FILES
     purge_tile_cache $PATHS

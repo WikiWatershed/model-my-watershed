@@ -11,6 +11,17 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 from base import *  # NOQA
 
 
+# SITE CONFIGURATION
+# Hosts/domain names that are valid for this site
+# See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
+ALLOWED_HOSTS = [
+    '.ngrok.io',
+    '.internal.azavea.com',
+    '.local',
+    'localhost',
+]
+# END SITE CONFIGURATION
+
 # DEBUG CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#debug
 DEBUG = True

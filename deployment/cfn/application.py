@@ -48,6 +48,10 @@ class Application(StackNode):
         'AppServerAutoScalingDesired': ['global:AppServerAutoScalingDesired'],
         'AppServerAutoScalingMin': ['global:AppServerAutoScalingMin'],
         'AppServerAutoScalingMax': ['global:AppServerAutoScalingMax'],
+        'AppServerAutoScalingScheduleStartCapacity': ['global:AppServerAutoScalingScheduleStartCapacity'],  # NOQA
+        'AppServerAutoScalingScheduleStartRecurrence': ['global:AppServerAutoScalingScheduleStartRecurrence'],  # NOQA
+        'AppServerAutoScalingScheduleEndCapacity': ['global:AppServerAutoScalingScheduleEndCapacity'],  # NOQA
+        'AppServerAutoScalingScheduleEndRecurrence': ['global:AppServerAutoScalingScheduleEndRecurrence'],  # NOQA
         'SSLCertificateARN': ['global:SSLCertificateARN'],
         'BackwardCompatSSLCertificateARN':
         ['global:BackwardCompatSSLCertificateARN'],
@@ -151,6 +155,34 @@ class Application(StackNode):
             'AppServerAutoScalingMax', Type='String', Default='1',
             Description='Application server AutoScalingGroup maximum'
         ), 'AppServerAutoScalingMax')
+
+        self.app_server_auto_scaling_schedule_start_recurrence = self.add_parameter(  # NOQA
+            Parameter(
+                'AppServerAutoScalingScheduleStartRecurrence', Type='String',
+                Default='0 13 * * 1-5',
+                Description='Application server ASG schedule start recurrence'
+            ), 'AppServerAutoScalingScheduleStartRecurrence')
+
+        self.app_server_auto_scaling_schedule_start_capacity = self.add_parameter(  # NOQA
+            Parameter(
+                'AppServerAutoScalingScheduleStartCapacity', Type='String',
+                Default='1',
+                Description='Application server ASG schedule start capacity'
+            ), 'AppServerAutoScalingScheduleStartCapacity')
+
+        self.app_server_auto_scaling_schedule_end_recurrence = self.add_parameter(  # NOQA
+            Parameter(
+                'AppServerAutoScalingScheduleEndRecurrence', Type='String',
+                Default='0 23 * * *',
+                Description='Application server ASG schedule end recurrence'
+            ), 'AppServerAutoScalingScheduleEndRecurrence')
+
+        self.app_server_auto_scaling_schedule_end_capacity = self.add_parameter(  # NOQA
+            Parameter(
+                'AppServerAutoScalingScheduleEndCapacity', Type='String',
+                Default='1',
+                Description='Application server ASG schedule end capacity'
+            ), 'AppServerAutoScalingScheduleEndCapacity')
 
         self.ssl_certificate_arn = self.add_parameter(Parameter(
             'SSLCertificateARN', Type='String',
@@ -395,7 +427,7 @@ class Application(StackNode):
                         self.blue_tile_distribution_endpoint)))
             ))
 
-        self.add_resource(
+        blue_app_server_asg = self.add_resource(
             asg.AutoScalingGroup(
                 'asgAppServerBlue',
                 AvailabilityZones=Ref(self.availability_zones),
@@ -424,6 +456,30 @@ class Application(StackNode):
                 Tags=[asg.Tag('Name', 'AppServer', True)])
         )
 
+        self.add_resource(
+            asg.ScheduledAction(
+                'schedTileServerAutoScalingStartBlue',
+                AutoScalingGroupName=Ref(blue_app_server_asg),
+                Condition='BlueCondition',
+                DesiredCapacity=Ref(
+                    self.app_server_auto_scaling_schedule_start_capacity),
+                Recurrence=Ref(
+                    self.app_server_auto_scaling_schedule_start_recurrence)
+            )
+        )
+
+        self.add_resource(
+            asg.ScheduledAction(
+                'schedTileServerAutoScalingEndBlue',
+                AutoScalingGroupName=Ref(blue_app_server_asg),
+                Condition='BlueCondition',
+                DesiredCapacity=Ref(
+                    self.app_server_auto_scaling_schedule_end_capacity),
+                Recurrence=Ref(
+                    self.app_server_auto_scaling_schedule_end_recurrence)
+            )
+        )
+
         green_app_server_launch_config = self.add_resource(
             asg.LaunchConfiguration(
                 'lcAppServerGreen',
@@ -438,7 +494,7 @@ class Application(StackNode):
                         self.green_tile_distribution_endpoint)))
             ))
 
-        self.add_resource(
+        green_app_server_asg = self.add_resource(
             asg.AutoScalingGroup(
                 'asgAppServerGreen',
                 AvailabilityZones=Ref(self.availability_zones),
@@ -465,6 +521,30 @@ class Application(StackNode):
                 ],
                 VPCZoneIdentifier=Ref(self.private_subnets),
                 Tags=[asg.Tag('Name', 'AppServer', True)])
+        )
+
+        self.add_resource(
+            asg.ScheduledAction(
+                'schedTileServerAutoScalingStartGreen',
+                AutoScalingGroupName=Ref(green_app_server_asg),
+                Condition='GreenCondition',
+                DesiredCapacity=Ref(
+                    self.app_server_auto_scaling_schedule_start_capacity),
+                Recurrence=Ref(
+                    self.app_server_auto_scaling_schedule_start_recurrence)
+            )
+        )
+
+        self.add_resource(
+            asg.ScheduledAction(
+                'schedTileServerAutoScalingEndGreen',
+                AutoScalingGroupName=Ref(green_app_server_asg),
+                Condition='GreenCondition',
+                DesiredCapacity=Ref(
+                    self.app_server_auto_scaling_schedule_end_capacity),
+                Recurrence=Ref(
+                    self.app_server_auto_scaling_schedule_end_recurrence)
+            )
         )
 
     def get_cloud_config(self, tile_distribution_endpoint):

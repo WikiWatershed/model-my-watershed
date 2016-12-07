@@ -1,7 +1,10 @@
 <nav id="app-header" class="navbar-watershed">
-    <div class="brand"><a href="#">Model My Watershed: {{ current_page_title }}</a></div>
+    <div class="brand">
+        <a href="#">Model My Watershed: {{ current_page_title }}</a>
+    </div>
     <div class="navigation">
         <ul class="main">
+            <li class="header-link"><a target="_blank" href="http://www.stroudcenter.org/"><img src="/static/images/stroud-logo.png" alt="Logo" /></a></li>
             <li class="header-link"><a target="_blank" href="http://www.wikiwatershed.org">WikiWatershed</a></li>
             {% if guest %}
                 <li class="header-link"><a class="show-login" href="javascript:void(0);">Login</a></li>
