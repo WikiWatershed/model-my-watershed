@@ -86,6 +86,12 @@ var App = new Marionette.Application({
         return this._mapView._leafletMap;
     },
 
+    getUserOrShowLoginIfNotItsiEmbed: function() {
+        if (!settings.get('itsi_embed')) {
+            this.getUserOrShowLogin();
+        }
+    },
+
     getUserOrShowLogin: function() {
         this.user.fetch().always(function() {
             if (App.user.get('guest')) {
