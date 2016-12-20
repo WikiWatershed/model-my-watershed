@@ -40,9 +40,11 @@ var ItsiEmbed = function(App) {
 
     this.loadInteractive = function(interactiveState) {
         // Only redirect if route specified and different
+        // and user is logged in
         if (interactiveState &&
             interactiveState.route &&
-            interactiveState.route !== Backbone.history.getFragment()) {
+            interactiveState.route !== Backbone.history.getFragment() &&
+            !App.user.get('guest')) {
 
             App.currentProject = null;
             router.navigate(interactiveState.route, { trigger: true });
