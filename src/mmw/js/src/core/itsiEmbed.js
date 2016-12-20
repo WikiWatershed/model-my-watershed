@@ -53,10 +53,22 @@ var ItsiEmbed = function(App) {
         this.phone.post('extendedSupport', this.extendedSupport);
     };
 
+    this.getAuthInfo = function() {
+        this.phone.post('getAuthInfo');
+    };
+
+    this.authInfo = function(info) {
+        if (info && info.loggedIn && App.user.get('guest')) {
+            window.location.href = '/user/itsi/login?itsi_embed=true&next=/' +
+                                   Backbone.history.getFragment();
+        }
+    };
+
     this.phone.addListener('getExtendedSupport', _.bind(this.getExtendedSupport, this));
     this.phone.addListener('getLearnerUrl', _.bind(this.sendLearnerUrlOnlyFromProjectView, this));
     this.phone.addListener('getInteractiveState', _.bind(this.sendLearnerUrlOnlyFromProjectView, this));
     this.phone.addListener('loadInteractive', _.bind(this.loadInteractive, this));
+    this.phone.addListener('authInfo', _.bind(this.authInfo, this));
     this.phone.initialize();
 };
 
