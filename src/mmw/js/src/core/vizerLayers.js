@@ -10,13 +10,15 @@ var $ = require('jquery'),
     measurementTmpl = require('./templates/measurement.html'),
     measurementsTmpl = require('./templates/measurements.html'),
     popupTmpl = require('./templates/observationPopup.html'),
-    vizerUrls = require('./settings').get('vizer_urls');
+    vizerUrls = require('./settings').get('vizer_urls'),
+    vizerIgnore = require('./settings').get('vizer_ignore'),
+    vizerNames = require('./settings').get('vizer_names');
 
 // These are likely temporary until we develop custom icons for each type
 var platformIcons = {
         'River Guage': '#F44336',
-        'Weather Station': '#2196F3',
-        'Fixed Shore Platform': '#4CAF50',
+        'Weather Station': '#4CAF50',
+        'Fixed Shore Platform': '#2196F3',
         'Soil Pit': '#FFEB3B',
         'Well': '#795548'
     },
@@ -41,7 +43,7 @@ function VizerLayers() {
                 // A list of all assets (typically sensor devices) and the variables
                 // they manage, along with various meta data grouped by the data
                 // provider which acts as the "layer" which can be toggled on/off
-                var layerAssets = _.groupBy(assets.result, 'provider');
+                var layerAssets = _.omit(_.groupBy(assets.result, 'provider'), vizerIgnore);
                 var layers = _.map(layerAssets, function(assets, provider) {
 
                     // Create a marker for each asset point in this layer and
@@ -78,7 +80,7 @@ function VizerLayers() {
 
 function makeProviderLabel(provider, assets) {
     // Create a label for the layer selector.
-    return provider + ' (' + assets.length + ')';
+    return (vizerNames[provider] || provider) + ' (' + assets.length + ')';
 }
 
 function attachPopups(featureGroup) {
@@ -182,9 +184,15 @@ var ObservationPopupView = Marionette.LayoutView.extend({
                     return time;
                 }
                 return latestTime;
-            });
+            }),
+            provider = this.model.get('provider'),
+            providerName =
+                provider === "NOS/CO-OPS" ?
+                    provider :
+                    vizerNames[provider];
         return {
-            lastUpdated: moment(latestTime).fromNow()
+            lastUpdated: moment(latestTime).fromNow(),
+            providerName: providerName,
         };
     },
 

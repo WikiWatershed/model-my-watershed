@@ -9,6 +9,8 @@ var defaultSettings = {
     draw_tools: [],
     map_controls: [],
     vizer_urls: {},
+    vizer_ignore: [],
+    vizer_names: {},
     model_packages: []
 };
 

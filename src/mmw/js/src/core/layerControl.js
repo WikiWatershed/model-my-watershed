@@ -44,8 +44,11 @@ module.exports = L.Control.Layers.extend({
                 for (var i in observationLayers) {
                     self._addLayer(observationLayers[i], i, 'observation');
                 }
+
+                var num_points = JSON.parse(pointSourceData[0]).features.length;
                 self._addLayer(pointSourceLayer.Layer.createLayer(pointSourceData[0],
-                    self._map), 'DRB Point Source', 'observation');
+                    self._map), 'EPA Permitted Point Sources (' + num_points + ')',
+                    'observation');
                 self._update();
             })
             .fail(function() {
