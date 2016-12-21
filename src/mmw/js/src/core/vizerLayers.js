@@ -17,8 +17,8 @@ var $ = require('jquery'),
 // These are likely temporary until we develop custom icons for each type
 var platformIcons = {
         'River Guage': '#F44336',
-        'Weather Station': '#2196F3',
-        'Fixed Shore Platform': '#4CAF50',
+        'Weather Station': '#4CAF50',
+        'Fixed Shore Platform': '#2196F3',
         'Soil Pit': '#FFEB3B',
         'Well': '#795548'
     },
