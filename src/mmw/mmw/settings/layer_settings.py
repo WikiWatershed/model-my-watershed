@@ -327,3 +327,17 @@ VIZER_URLS = {
     'variable': VIZER_ROOT + 'opt=data&asset_id={{asset_id}}&var_id={{var_id}}' + VIZER_TYPE_PARAM,  # NOQA
     'recent': VIZER_ROOT + 'opt=recent_values&asset_id={{asset_id}}&var_id=all' + VIZER_TYPE_PARAM  # NOQA
 }
+
+# To hide elements from the UI
+VIZER_IGNORE = [
+    'CRBCZO',
+    'SWRC',
+    'USCRN'
+]
+
+# To give friendly names in the UI
+VIZER_NAMES = {
+    'DEOS': 'Delaware Environmental Observing System',
+    'NOS/CO-OPS': 'NOAA Tides and Currents',
+    'USGS': 'USGS National Water Information System'
+}
