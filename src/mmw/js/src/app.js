@@ -24,6 +24,7 @@ var App = new Marionette.Application({
         // Initialize embed interface if in activity mode
         if (activityMode) {
             this.itsi = new itsi.ItsiEmbed(this);
+            this.itsi.getAuthInfo();
         }
 
         // This view is intentionally not attached to any region.
@@ -84,6 +85,12 @@ var App = new Marionette.Application({
 
     getLeafletMap: function() {
         return this._mapView._leafletMap;
+    },
+
+    getUserOrShowLoginIfNotItsiEmbed: function() {
+        if (!settings.get('itsi_embed')) {
+            this.getUserOrShowLogin();
+        }
     },
 
     getUserOrShowLogin: function() {

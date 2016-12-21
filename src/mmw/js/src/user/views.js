@@ -246,7 +246,7 @@ var LoginModalView = ModalBaseView.extend({
 
         var loginURL = '/user/itsi/login?next=/' + Backbone.history.getFragment();
         if (window.clientSettings.itsi_embed) {
-            loginURL = '/?itsi_embed=true&next=/' + Backbone.history.getFragment();
+            loginURL += '&itsi_embed=true';
         }
         window.location.href = loginURL;
     }
