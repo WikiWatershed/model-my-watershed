@@ -184,9 +184,15 @@ var ObservationPopupView = Marionette.LayoutView.extend({
                     return time;
                 }
                 return latestTime;
-            });
+            }),
+            provider = this.model.get('provider'),
+            providerName =
+                provider === "NOS/CO-OPS" ?
+                    provider :
+                    vizerNames[provider];
         return {
-            lastUpdated: moment(latestTime).fromNow()
+            lastUpdated: moment(latestTime).fromNow(),
+            providerName: providerName,
         };
     },
 
