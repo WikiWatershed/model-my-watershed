@@ -122,18 +122,55 @@ function RestAPI() {
 }
 
 function initializeShutterbug() {
+    var googleTileLayerSelector = '#map > .leaflet-google-layer > div > div > div:nth-child(1) > div:nth-child(1)';
+
     $(window)
         .on('shutterbug-saycheese', function() {
             // Set fixed width before screenshot to constrain width to viewport
             $('#model-output-wrapper, body > .map-container').css({
                 'width': window.innerWidth
             });
+
+            var mapView = App.getMapView(),
+                activeBaseLayer = mapView.baseLayers[mapView.getActiveBaseLayerName()],
+                googleLayerVisible = !!activeBaseLayer._google;
+
+            if (googleLayerVisible) {
+                // Convert Google Maps CSS Transforms to Left / Right
+                var $googleTileLayer = $(googleTileLayerSelector),
+                    transform = $googleTileLayer.css('transform').split(','),
+                    left = parseFloat(transform[4]),
+                    top = parseFloat(transform[5]);
+
+                $googleTileLayer.css({
+                    transform: 'none',
+                    left: left,
+                    top: top,
+                });
+            }
         })
         .on('shutterbug-asyouwere', function() {
             // Reset after screenshot has been taken
             $('#model-output-wrapper, body > .map-container').css({
                 'width': ''
             });
+
+            var mapView = App.getMapView(),
+                activeBaseLayer = mapView.baseLayers[mapView.getActiveBaseLayerName()],
+                googleLayerVisible = !!activeBaseLayer._google;
+
+            if (googleLayerVisible) {
+                var $googleTileLayer = $(googleTileLayerSelector),
+                    left = parseFloat($googleTileLayer.css('left')),
+                    top = parseFloat($googleTileLayer.css('top')),
+                    transform = 'matrix(1, 0, 0, 1, ' + left + ', ' + top + ')';
+
+                $googleTileLayer.css({
+                    transform: transform,
+                    left: '',
+                    top: '',
+                });
+            }
         });
 
     shutterbug.enable('body');
