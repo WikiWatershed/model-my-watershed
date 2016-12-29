@@ -148,6 +148,12 @@ function initializeShutterbug() {
                     top: top,
                 });
             }
+
+            // Fix Firefox screenshots by adding a '#' to the URL.
+            // Setting to empty string does nothing, so we first set to
+            // '/' then to empty string, which leaves a '#' in the URL.
+            document.location.hash = '/';
+            document.location.hash = '';
         })
         .on('shutterbug-asyouwere', function() {
             // Reset after screenshot has been taken
