@@ -107,21 +107,21 @@ function validatePointWithinDataSourceBounds(latlng, dataSource) {
         perimeter = null,
         point_outside_message = null;
 
-        switch (dataSource) {
-            case utils.DRB:
-                var streamLayers = settings.get('stream_layers');
-                perimeter = _.findWhere(streamLayers, {code:'drb_streams_v2'}).perimeter;
-                point_outside_message = 'Selected point is outside the Delaware River Basin';
-                break;
-            case utils.NHD:
-                perimeter = settings.get('nhd_perimeter');
-                point_outside_message = 'Selected point is outside the NHD Mid-Atlantic Region';
-                break;
-            default:
-                var message = 'Not a valid data source';
-                d.reject(message);
-                return d.promise();
-        }
+    switch (dataSource) {
+        case utils.DRB:
+            var streamLayers = settings.get('stream_layers');
+            perimeter = _.findWhere(streamLayers, {code:'drb_streams_v2'}).perimeter;
+            point_outside_message = 'Selected point is outside the Delaware River Basin';
+            break;
+        case utils.NHD:
+            perimeter = settings.get('nhd_perimeter');
+            point_outside_message = 'Selected point is outside the NHD Mid-Atlantic Region';
+            break;
+        default:
+            var message = 'Not a valid data source';
+            d.reject(message);
+            return d.promise();
+    }
 
     if (turfIntersect(point, perimeter)) {
         d.resolve(latlng);
