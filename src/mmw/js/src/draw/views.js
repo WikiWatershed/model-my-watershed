@@ -114,9 +114,9 @@ function validatePointWithinDataSourceBounds(latlng, dataSource) {
             point_outside_message = 'Selected point is outside the Delaware River Basin';
             break;
         case utils.NHD:
-            perimeter = settings.get('nhd_perimeter');
-            point_outside_message = 'Selected point is outside the NHD Mid-Atlantic Region';
-            break;
+            // Bounds checking disabled until #1656 is complete.
+            d.resolve(latlng);
+            return d.promise();
         default:
             var message = 'Not a valid data source';
             d.reject(message);
