@@ -5,6 +5,7 @@ var L = require('leaflet'),
     _ = require('underscore'),
     router = require('../router.js').router,
     Marionette = require('../../shim/backbone.marionette'),
+    Backbone = require('backbone'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
     drawUtils = require('../draw/utils'),
     coreUtils = require('./utils'),
@@ -16,7 +17,7 @@ var L = require('leaflet'),
     modalModels = require('./modals/models'),
     modalViews = require('./modals/views'),
     settings = require('./settings'),
-    LayerControl = require('./layerControl'),
+    utils = require('./utils'),
     OpacityControl = require('./opacityControl'),
     SidebarToggleControl = require('./sidebarToggleControl'),
     VizerLayers = require('./vizerLayers');
@@ -39,6 +40,7 @@ var RootView = Marionette.LayoutView.extend({
             regionClass: TransitionRegion,
             selector: '#sidebar-content'
         },
+        layerPickerRegion: '#layer-picker-region',
         footerRegion: '#footer'
     },
     events: {
@@ -216,7 +218,6 @@ var MapView = Marionette.ItemView.extend({
                 zoomControl: false,
                 attributionControl: options.showLayerAttribution
             }),
-            overlayLayers = this.prepareOverlayLayers(),
             vizer = new VizerLayers(),
             observationsDeferred = vizer.getLayers();
 
@@ -229,8 +230,10 @@ var MapView = Marionette.ItemView.extend({
         this._leafletMap = map;
         this._areaOfInterestLayer = new L.FeatureGroup();
         this._modificationsLayer = new L.FeatureGroup();
-        this.baseLayers = this.buildLayers(settings.get('base_layers'));
-        this.overlayLayers = this.buildLayers(overlayLayers, map);
+        this.baseLayers = this.buildLayers('base_layers');
+        this.coverageLayers = this.buildLayers('coverage_layers');
+        this.boundaryLayers = this.buildLayers('boundary_layers');
+        this.streamLayers = this.buildLayers('stream_layers');
 
         if (!options.interactiveMode) {
             this.setMapToNonInteractive();
@@ -246,27 +249,17 @@ var MapView = Marionette.ItemView.extend({
         }
 
         if (options.addLayerSelector) {
-            var layerOptions = {
-                autoZIndex: false,
-                position: 'topright',
-                collapsed: false
-            };
-
-            self.layerControl = new LayerControl(
-                self.baseLayers, self.overlayLayers, observationsDeferred, layerOptions
-            );
-
-            self.layerControl.addTo(map);
+            //TODO add new layer selector
         }
 
         this.setMapEvents();
         this.setupGeoLocation(maxGeolocationAge);
 
-        var initialLayer = this.baseLayers[options.initialLayerName] ||
-                           this.baseLayers[defaultLayerName];
+        var initialLayer = this.baseLayers.findWhere({display: options.initialLayerName}) ||
+                           this.baseLayers.findWhere({display: defaultLayerName});
 
         if (initialLayer) {
-            map.addLayer(initialLayer);
+            map.addLayer(initialLayer.get('leafletLayer'));
         }
 
         map.addLayer(this._areaOfInterestLayer);
@@ -379,11 +372,11 @@ var MapView = Marionette.ItemView.extend({
         }
     },
 
-    buildLayers: function(layerConfig, map) {
+    buildLayers: function(layerType) {
         var self = this,
-            layers = {};
+            layers = [];
 
-        _.each(layerConfig, function(layer) {
+        _.each(settings.get(layerType), function(layer) {
             var leafletLayer;
 
             // Check to see if the google api service has been loaded
@@ -392,85 +385,30 @@ var MapView = Marionette.ItemView.extend({
                 leafletLayer = new L.Google(layer.googleType, {
                     maxZoom: layer.maxZoom
                 });
-            } else if (!layer.empty) {
+            } else {
                 var tileUrl = (layer.url.match(/png/) === null ?
-                                layer.url + '.png' : layer.url),
-                    zIndex = determineZIndex(layer);
-
+                                layer.url + '.png' : layer.url);
                 _.defaults(layer, {
-                    zIndex: zIndex,
+                    zIndex: utils.layerGroupZIndices[layerType],
                     attribution: '',
                     minZoom: 0});
                 leafletLayer = new L.TileLayer(tileUrl, layer);
-                if (layer.has_opacity_slider) {
-                    var slider = new OpacityControl({position: 'topright'});
-
-                    slider.setOpacityLayer(leafletLayer);
-                    leafletLayer.slider = slider;
-                }
-            } else {
-                leafletLayer = new L.TileLayer('', layer);
             }
 
-            layers[layer['display']] = leafletLayer;
+            layers.push({
+                leafletLayer: leafletLayer,
+                display: layer.display
+            });
         });
-
-        function determineZIndex(layer) {
-            // ZIndex rules to keep coverages under the boundary lines
-            //  basemaps: 0
-            //  overlay::raster: 1
-            //  overlay::vector: 2
-
-            if (!layer.overlay) {
-                return 0;
-            } else if (layer.raster) {
-                return 1;
-            } else {
-                return 2;
-            }
-        }
-
-        function actOnUI(datum, bool) {
-            var code = datum.code,
-                $el = $('#overlays-layer-list #' + code);
-            $el.attr('disabled', bool);
-            if (bool) {
-                $el.siblings('span').addClass('disabled');
-            } else {
-                $el.siblings('span').removeClass('disabled');
-            }
-        }
-
-        function actOnLayer(datum) {
-            var display = datum.display;
-            if (display) {
-                // Work-around to prevent after-image when zooming
-                // out.  Not worried about this when zooming in --
-                // actually it is desirable in that case.  Derived
-                // from https://github.com/Leaflet/Leaflet/issues/1905.
-                layers[display]._clearBgBuffer();
-            }
-        }
-
-        if (map) {
-            // Toggle UI entries in response to zoom changes and make
-            // sure that layers which are invisible due to their
-            // minZoom being larger than the current zoom level are
-            // cleared from the map.
-            coreUtils.zoomToggle(map, layerConfig, actOnUI, actOnLayer);
-
-            coreUtils.perimeterToggle(map, layerConfig, actOnUI, actOnLayer);
-        }
-
-        return layers;
+        return new Backbone.Collection(layers);
     },
 
     getActiveBaseLayerName: function() {
         var activeBaseLayerName,
             self = this;
 
-        activeBaseLayerName = _.findKey(self.baseLayers, function(layer) {
-            return self._leafletMap.hasLayer(layer);
+        activeBaseLayerName = self.baseLayers.findWhere(function(layer) {
+            return self._leafletMap.hasLayer(layer.get('display'));
         });
 
         return activeBaseLayerName;
@@ -738,7 +676,7 @@ var MapView = Marionette.ItemView.extend({
 
     updateDrbLayerZoomLevel: function(e) {
         var layerMaxZoom = e.layer.options.maxZoom;
-        var adjSettings = 
+        var adjSettings =
             _.map(settings.get('stream_layers'),
                   function(o) {
                       if (o.code === 'drb_streams_v2') {
@@ -773,8 +711,8 @@ var MapView = Marionette.ItemView.extend({
                 return;
             } else {
                 // Set layer zoom level to the max for the current area
-                _.each(self.baseLayers, function(layer) {
-                    if (layer._type === 'HYBRID' || layer._type === 'SATELLITE') {
+                self.baseLayers.forEach(function(layer) {
+                    if (layer.get('type') === 'HYBRID' || layer.get('type') === 'SATELLITE') {
                         layer.options.maxZoom = response.zoom;
                     }
                 });

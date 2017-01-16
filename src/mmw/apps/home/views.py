@@ -5,6 +5,7 @@ from __future__ import division
 
 import json
 from urlparse import urljoin
+from copy import deepcopy
 
 from django.http import Http404
 from django.shortcuts import render_to_response, get_object_or_404, redirect
@@ -79,26 +80,6 @@ def project_clone(request, proj_id=None):
     return redirect('/project/{0}'.format(project.id))
 
 
-def get_layer_config(layerKeys):
-    """ Retrieves the configuration for the provided
-    layer types. layerKeys is an array of strings that
-    contains keys. Layers with these keys set to True
-    will be returned.
-    """
-    selected_layers = []
-
-    for layer in settings.LAYERS:
-        if all(key in layer for key in layerKeys):
-            # Populate the layer url for layers that we host
-            if 'url' not in layer and 'table_name' in layer:
-                layer['url'] = get_layer_url(layer)
-
-            # Add only the layers we want based on layerKey
-            selected_layers.append(layer)
-
-    return selected_layers
-
-
 def get_layer_url(layer):
     """ For layers that are served off our tile server,
     the URL depends on the environment. Therefore, we
@@ -120,17 +101,26 @@ def get_model_packages():
     return settings.MODEL_PACKAGES
 
 
+def create_layer_config_with_urls(layer_type):
+    layers = deepcopy(settings.LAYER_GROUPS[layer_type])
+    [set_url(layer) for layer in layers
+        if 'url' not in layer and 'table_name' in layer]
+    return layers
+
+
+def set_url(layer):
+    layer.update({'url': get_layer_url(layer)})
+
+
 def get_client_settings(request):
     EMBED_FLAG = settings.ITSI['embed_flag']
-
     client_settings = {
         'client_settings': json.dumps({
             EMBED_FLAG: request.session.get(EMBED_FLAG, False),
-            'base_layers': get_layer_config(['basemap']),
-            'boundary_layers': get_layer_config(['boundary']),
-            'vector_layers': get_layer_config(['vector', 'overlay']),
-            'raster_layers': get_layer_config(['raster', 'overlay']),
-            'stream_layers': get_layer_config(['stream', 'overlay']),
+            'base_layers': create_layer_config_with_urls('basemap'),
+            'boundary_layers': create_layer_config_with_urls('boundary'),
+            'coverage_layers': create_layer_config_with_urls('coverage'),
+            'stream_layers': create_layer_config_with_urls('stream'),
             'nhd_perimeter': settings.NHD_REGION2_PERIMETER,
             'draw_tools': settings.DRAW_TOOLS,
             'map_controls': settings.MAP_CONTROLS,
