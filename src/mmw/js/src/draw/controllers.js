@@ -7,8 +7,8 @@ var App = require('../app'),
     coreViews = require('../core/views'),
     settings = require('../core/settings'),
     modelingModels = require('../modeling/models'),
-    models = require('./models');
-
+    models = require('./models'),
+    _ = require('underscore');
 
 var DrawController = {
     drawPrepare: function() {
@@ -25,7 +25,8 @@ var DrawController = {
                 model: toolbarModel
             });
 
-        toolbarModel.set('predefinedShapeTypes', settings.get('boundary_layers'));
+        toolbarModel.set('predefinedShapeTypes',
+            _.filter(settings.get('boundary_layers'), { selectable: true }));
 
         App.rootView.geocodeSearchRegion.show(geocodeSearch);
         App.rootView.drawToolsRegion.show(toolbarView);

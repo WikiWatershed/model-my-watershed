@@ -132,8 +132,8 @@ function initializeShutterbug() {
             });
 
             var mapView = App.getMapView(),
-                activeBaseLayer = mapView.baseLayers[mapView.getActiveBaseLayerName()],
-                googleLayerVisible = !!activeBaseLayer._google;
+                activeBaseLayer = mapView.baseLayers.findWhere({'display': mapView.getActiveBaseLayerName()}),
+                googleLayerVisible = !!activeBaseLayer.get('_google');
 
             if (googleLayerVisible) {
                 // Convert Google Maps CSS Transforms to Left / Right
@@ -162,8 +162,8 @@ function initializeShutterbug() {
             });
 
             var mapView = App.getMapView(),
-                activeBaseLayer = mapView.baseLayers[mapView.getActiveBaseLayerName()],
-                googleLayerVisible = !!activeBaseLayer._google;
+                activeBaseLayer = mapView.baseLayers.findWhere({'display': mapView.getActiveBaseLayerName()}),
+                googleLayerVisible = !!activeBaseLayer.get('_google');
 
             if (googleLayerVisible) {
                 var $googleTileLayer = $(googleTileLayerSelector),
