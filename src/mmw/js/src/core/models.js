@@ -4,7 +4,9 @@ var Backbone = require('../../shim/backbone'),
     $ = require('jquery'),
     _ = require('lodash'),
     turfArea = require('turf-area'),
-    utils = require('./utils');
+    L = require('leaflet'),
+    utils = require('./utils'),
+    settings = require('./settings');
 
 var MapModel = Backbone.Model.extend({
     defaults: {
@@ -81,6 +83,78 @@ var MapModel = Backbone.Model.extend({
         this.set('size', { top: top, bottom: bottom, fit: !!fit, noHeader: noHeader });
     }
 
+});
+
+var LayerGroupModel = Backbone.Model.extend({
+    defaults: {
+        name: null,
+        layers: null,
+        layersDeferred: null,
+        mustHaveActive: false,
+        canSelectMultiple: false,
+    }
+});
+
+var LayersModel = Backbone.Model.extend({
+    initialize: function() {
+        var defaultBaseLayer = _.findWhere(settings.get('base_layers'), function(layer) {
+                return layer.default === true;
+            }),
+            defaultBaseLayerName = defaultBaseLayer ? defaultBaseLayer['display'] : 'Streets';
+        this.baseLayers = this.buildLayers('base_layers', defaultBaseLayerName);
+        this.coverageLayers = this.buildLayers('coverage_layers');
+        this.boundaryLayers = this.buildLayers('boundary_layers');
+        this.streamLayers = this.buildLayers('stream_layers');
+        this._googleMaps = (window.google ? window.google.maps : null);
+    },
+
+    buildLayers: function(layerType, initialActive) {
+        var self = this,
+            layers = [];
+
+        _.each(settings.get(layerType), function(layer) {
+            var leafletLayer;
+
+            // Check to see if the google api service has been loaded
+            // before creating a google layer
+            if (layer.googleType){
+                if (self._googleMaps) {
+                    leafletLayer = new L.Google(layer.googleType, {
+                        maxZoom: layer.maxZoom
+                    });
+                }
+            } else {
+                var tileUrl = (layer.url.match(/png/) === null ?
+                                layer.url + '.png' : layer.url);
+                _.defaults(layer, {
+                    zIndex: utils.layerGroupZIndices[layerType],
+                    attribution: '',
+                    minZoom: 0});
+                leafletLayer = new L.TileLayer(tileUrl, layer);
+            }
+
+            layers.push({
+                leafletLayer: leafletLayer,
+                display: layer.display,
+                code: layer.code,
+                perimeter: layer.perimeter,
+                maxZoom: layer.maxZoom,
+                minZoom: layer.minZoom,
+                googleType: layer.googleType,
+                disabled: false,
+                active: layer.display === initialActive ? true : false,
+            });
+        });
+        return new Backbone.Collection(layers);
+    },
+
+    getCurrentActiveBaseLayer: function() {
+        return this.baseLayers.findWhere({ 'active': true });
+    },
+
+    getCurrentActiveBaseLayerName: function() {
+        return this.getCurrentActiveBaseLayer().get('display');
+    }
 });
 
 var TaskModel = Backbone.Model.extend({
@@ -298,6 +372,8 @@ var AppStateModel = Backbone.Model.extend({
 
 module.exports = {
     MapModel: MapModel,
+    LayersModel: LayersModel,
+    LayerGroupModel: LayerGroupModel,
     TaskModel: TaskModel,
     TaskMessageViewModel: TaskMessageViewModel,
     LandUseCensusCollection: LandUseCensusCollection,

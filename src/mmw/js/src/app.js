@@ -4,6 +4,7 @@ var $ = require('jquery'),
     Marionette = require('../shim/backbone.marionette'),
     shutterbug = require('../shim/shutterbug'),
     views = require('./core/views'),
+    LayerPickerView = require('./core/layerPicker'),
     models = require('./core/models'),
     settings = require('./core/settings'),
     itsi = require('./core/itsiEmbed'),
@@ -15,6 +16,7 @@ var App = new Marionette.Application({
     initialize: function() {
         this.restApi = new RestAPI();
         this.map = new models.MapModel();
+        this.layers = new models.LayersModel();
         this.state = new models.AppStateModel();
 
         // If in embed mode we are by default in activity mode.
@@ -30,6 +32,7 @@ var App = new Marionette.Application({
         // This view is intentionally not attached to any region.
         this._mapView = new views.MapView({
             model: this.map,
+            layersModel: this.layers,
             el: '#map'
         });
 
@@ -48,6 +51,10 @@ var App = new Marionette.Application({
 
         this.header.render();
 
+        if (settings.isLayerSelectorEnabled()) {
+            this.showLayerPicker();
+        }
+
         // Not set until modeling/controllers.js creates a
         // new project.
         this.currentProject = null;
@@ -65,6 +72,18 @@ var App = new Marionette.Application({
                 zoom: mapState.zoom
             });
         }
+    },
+
+    getLayersModel: function() {
+        return this.layers;
+    },
+
+    showLayerPicker: function() {
+        this.layerPickerView = new LayerPickerView({
+            model: this.layers,
+            leafletMap: this.getLeafletMap(),
+        });
+        this.rootView.layerPickerRegion.show(this.layerPickerView);
     },
 
     getAnalyzeCollection: function() {
@@ -131,9 +150,8 @@ function initializeShutterbug() {
                 'width': window.innerWidth
             });
 
-            var mapView = App.getMapView(),
-                activeBaseLayer = mapView.baseLayers.findWhere({'display': mapView.getActiveBaseLayerName()}),
-                googleLayerVisible = !!activeBaseLayer.get('_google');
+            var activeBaseLayer = App.getLayersModel().getCurrentActiveBaseLayer(),
+                googleLayerVisible = !!activeBaseLayer.get('leafletLayer')._google;
 
             if (googleLayerVisible) {
                 // Convert Google Maps CSS Transforms to Left / Right
@@ -161,9 +179,8 @@ function initializeShutterbug() {
                 'width': ''
             });
 
-            var mapView = App.getMapView(),
-                activeBaseLayer = mapView.baseLayers.findWhere({'display': mapView.getActiveBaseLayerName()}),
-                googleLayerVisible = !!activeBaseLayer.get('_google');
+            var activeBaseLayer = App.getLayersModel().getCurrentActiveBaseLayer(),
+                googleLayerVisible = !!activeBaseLayer.get('leafletLayer')._google;
 
             if (googleLayerVisible) {
                 var $googleTileLayer = $(googleTileLayerSelector),

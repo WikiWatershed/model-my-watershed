@@ -46,7 +46,6 @@ NEW_LINE_AND_TAB = '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
 LAYER_GROUPS = {
     'basemap': [
         {
-            'type': 'mapbox',
             'display': 'Streets',
             'url': 'https://{s}.tiles.mapbox.com/v4/stroudcenter.1f06e119'
                     '/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic3Ryb3VkY2VudGVyIiwiYSI6ImNpd2NhMmZiMDA1enUyb2xrdjlhYzV6N24ifQ.3dFii4MfQFOqYEDg9kVguA',  # NOQA
@@ -60,7 +59,6 @@ LAYER_GROUPS = {
         },
         {
             'display': 'Satellite',
-            'type': 'esri',
             'url': 'https://server.arcgisonline.com/arcgis/rest/services/'
                    'World_Imagery/MapServer/tile/{z}/{y}/{x}',
             'attribution': 'Map data from <a href="http://www.arcgis.com/home/'
@@ -70,13 +68,11 @@ LAYER_GROUPS = {
         },
         {
             'display': 'Satellite with Roads',
-            'type': 'google',
             'googleType': 'HYBRID',  # SATELLITE, ROADMAP, HYBRID, or TERRAIN
             'maxZoom': 18,  # Max zoom changes based on location. Safe default
         },
         {
             'display': 'Terrain',
-            'type': 'google',
             'googleType': 'TERRAIN',  # SATELLITE, ROADMAP, HYBRID, or TERRAIN
             'maxZoom': 20,
         },
@@ -117,7 +113,7 @@ LAYER_GROUPS = {
         {
             'code': 'drb_catchment_water_quality_tn',
             'display': ('DRB Catchment Water Quality Data' +
-                        NEW_LINE_AND_TAB + 'TN Loading Rates from SRAT Catchments'),
+                        ' ' + 'TN Loading Rates from SRAT Catchments'),
             'table_name': 'drb_catchment_water_quality_tn',
             'minZoom': 3,
             'perimeter': drb_simple_perimeter,
@@ -126,7 +122,7 @@ LAYER_GROUPS = {
         {
             'code': 'drb_catchment_water_quality_tp',
             'display': ('DRB Catchment Water Quality Data' +
-                        NEW_LINE_AND_TAB + 'TP Loading Rates from SRAT Catchments'),
+                        ' ' + 'TP Loading Rates from SRAT Catchments'),
             'table_name': 'drb_catchment_water_quality_tp',
             'minZoom': 3,
             'perimeter': drb_simple_perimeter,
@@ -135,7 +131,7 @@ LAYER_GROUPS = {
         {
             'code': 'drb_catchment_water_quality_tss',
             'display': ('DRB Catchment Water Quality Data' +
-                        NEW_LINE_AND_TAB + 'TSS Loading Rates from SRAT Catchments'),
+                        ' ' + 'TSS Loading Rates from SRAT Catchments'),
             'table_name': 'drb_catchment_water_quality_tss',
             'minZoom': 3,
             'perimeter': drb_simple_perimeter,
@@ -242,14 +238,14 @@ LAYER_GROUPS = {
         {
             'code': 'nhd_streams_v2',
             'display': ('Continental US Medium Resolution' +
-                        NEW_LINE_AND_TAB + 'Stream Network'),
+                        ' Stream Network'),
             'table_name': 'nhdflowline',
             'minZoom': 3
         },
         {
             'code': 'drb_streams_v2',
             'display': ('Delaware River Basin High Resolution' +
-                        NEW_LINE_AND_TAB + 'Stream Network'),
+                        ' Stream Network'),
             'table_name': 'drb_streams_50',
             'minZoom': 5,
             'perimeter': drb_simple_perimeter  # Layer is only selectable when viewport
@@ -258,21 +254,21 @@ LAYER_GROUPS = {
         {
             'code': 'nhd_quality_tn',
             'display': ('Delaware River Basin TN Concentration' +
-                        NEW_LINE_AND_TAB + 'From SRAT'),
+                        ' From SRAT'),
             'table_name': 'nhd_quality_tn',
             'minZoom': 3
         },
         {
             'code': 'nhd_quality_tp',
             'display': ('Delaware River Basin TP Concentration' +
-                        NEW_LINE_AND_TAB + 'From SRAT'),
+                        ' From SRAT'),
             'table_name': 'nhd_quality_tp',
             'minZoom': 3
         },
         {
             'code': 'nhd_quality_tss',
             'display': ('Delaware River Basin TSS Concentration' +
-                        NEW_LINE_AND_TAB + 'From SRAT'),
+                        ' From SRAT'),
             'table_name': 'nhd_quality_tss',
             'minZoom': 3
         },
