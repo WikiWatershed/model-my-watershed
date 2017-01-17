@@ -1,0 +1,34 @@
+<div class="layerpicker-layer">
+    <button
+        class="{{layerClass}}"
+        {% if isDisabled %} disabled {% endif %}
+    >
+        {{ layerDisplay }}
+    </button>
+    {% if not isDisabled %}
+        <a
+            tabindex="-1"
+            role="presentation"
+            data-html="true"
+            data-toggle="popover"
+            data-trigger="focus"
+            class="layerpicker-info"
+            data-layer-help-icon="{{layerDisplay}}"
+            data-content="<div>
+                <div class='layerpicker-legenditem'>
+                    <div class='layerpicker-legendcolor'></div>
+                    These here
+                </div>
+                <div class='layerpicker-legenditem'>
+                    <div class='layerpicker-legendcolor'></div>
+                    Are Just
+                </div>
+                <div class='layerpicker-legenditem'>
+                    <div class='layerpicker-legendcolor'></div>
+                    Placeholders
+                </div>
+            </div>"
+        >
+        </a>
+    {% endif %}
+</div>

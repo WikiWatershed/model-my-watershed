@@ -1,5 +1,5 @@
 .layerpicker {
-  z-index: 50000;
+  z-index: 500000;
   position: absolute;
   bottom: 20px;
   left: 10px;
@@ -33,6 +33,9 @@
   &.active {
     color: $brand-primary;
   }
+  &:disabled {
+      color: $ui-light;
+  }
 }
 
 .layerpicker-heading {
@@ -43,7 +46,7 @@
 
 .layerpicker-navbutton {
   text-align: center;
-  width: 25%;
+  width: 20%;
   float: left;
   padding: 6px;
   background-color: #ddd;
@@ -71,18 +74,6 @@
     content: "\f05a";
   }
 }
-
-// .layerpicker-arrow-1 {
-//   top: 0;
-//   left: -5px;
-//   position: absolute;
-//   width: 0;
-//   height: 0;
-//   border-top: 5px solid transparent;
-//   border-bottom: 5px solid transparent;
-//   border-right: 5px solid #fff;
-//   border-left: none;
-// }
 
 .layerpicker-arrow-2 {
   bottom: 46px;
@@ -112,30 +103,6 @@
   padding: 10px;
   bottom: 0;
 }
-
-// .layerpicker-legend {
-//   top: 0;
-//   bottom: auto;
-//   left: 0;
-//   transform: translateY(calc(-100% - 8px));
-//   width: 100%;
-//   &:after {
-//     content: "";
-//     bottom: -10px;
-//     right: 117px;
-//     position: absolute;
-//     z-index: 20000;
-//     width: 0;
-//     height: 0;
-//     border-top: 5px solid white;
-//     border-bottom: 5px solid transparent;
-//     border-right: 5px solid transparent;
-//     border-left: 5px solid transparent;
-//     margin-left: 26px;
-//     margin-top: 5px;
-//     opacity: 1;
-//   }
-// }
 
 .layerpicker-legenditem {
   @include clearfix;
