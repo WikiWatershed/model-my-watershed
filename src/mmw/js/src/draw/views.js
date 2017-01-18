@@ -442,7 +442,6 @@ var WatershedDelineationView = Marionette.ItemView.extend({
                 navigateToAnalyze();
             })
             .fail(function(message) {
-                clearAoiLayer();
                 displayAlert(message, modalModels.AlertTypes.warn);
             })
             .always(function() {
