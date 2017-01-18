@@ -87,6 +87,7 @@ LAYER_GROUPS = {
             'maxNativeZoom': 13,
             'maxZoom': 18,
             'opacity': 0.618,
+            'has_opacity_slider': True,
         },
         {
             'display': 'Hydrologic Soil Groups From gSSURGO',
@@ -100,6 +101,7 @@ LAYER_GROUPS = {
             'maxNativeZoom': 13,
             'maxZoom': 18,
             'opacity': 0.618,
+            'has_opacity_slider': True,
         },
         {
             'code': 'urban_areas',
@@ -108,6 +110,7 @@ LAYER_GROUPS = {
             'short_display': 'PA Urbanized Areas',
             'minZoom': 7,
             'opacity': 0.618,
+            'has_opacity_slider': True,
             'perimeter': pa_perimeter,
         },
         {
@@ -118,6 +121,7 @@ LAYER_GROUPS = {
             'minZoom': 3,
             'perimeter': drb_simple_perimeter,
             'opacity': 0.618,
+            'has_opacity_slider': True,
         },
         {
             'code': 'drb_catchment_water_quality_tp',
@@ -127,6 +131,7 @@ LAYER_GROUPS = {
             'minZoom': 3,
             'perimeter': drb_simple_perimeter,
             'opacity': 0.618,
+            'has_opacity_slider': True,
         },
         {
             'code': 'drb_catchment_water_quality_tss',
@@ -136,6 +141,7 @@ LAYER_GROUPS = {
             'minZoom': 3,
             'perimeter': drb_simple_perimeter,
             'opacity': 0.618,
+            'has_opacity_slider': True,
         }
     ],
     'boundary': [

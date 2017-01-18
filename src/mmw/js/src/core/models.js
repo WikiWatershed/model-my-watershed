@@ -150,6 +150,7 @@ var LayersModel = Backbone.Model.extend({
                 minZoom: layer.minZoom,
                 googleType: layer.googleType,
                 disabled: false,
+                hasOpacitySlider: layer.has_opacity_slider,
                 active: layer.display === initialActive ? true : false,
             });
         });
