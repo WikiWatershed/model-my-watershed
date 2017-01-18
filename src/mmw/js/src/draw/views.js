@@ -462,9 +462,18 @@ var WatershedDelineationView = Marionette.ItemView.extend({
 
             pollSuccess: function(response) {
                 self.model.set('polling', false);
-                var result = JSON.parse(response.result);
-                // Convert watershed to MultiPolygon to pass shape validation.
-                result.watershed = coreUtils.toMultiPolygon(result.watershed);
+
+                var result;
+                try {
+                    result = JSON.parse(response.result);
+                } catch (ex) {
+                    return this.pollFailure();
+                }
+
+                if (result.watershed) {
+                    // Convert watershed to MultiPolygon to pass shape validation.
+                    result.watershed = coreUtils.toMultiPolygon(result.watershed);
+                }
                 deferred.resolve(result);
             },
 
