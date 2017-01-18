@@ -27,6 +27,16 @@ var $ = require('jquery'),
 var MAX_AREA = 112700; // About the size of a large state (in km^2)
 var codeToLayer = {}; // code to layer mapping
 
+function displayAlert(message, alertType) {
+    var alertView = new modalViews.AlertView({
+        model: new modalModels.AlertModel({
+            alertMessage: message,
+            alertType: alertType
+        })
+    });
+    alertView.render();
+}
+
 function actOnUI(datum, bool) {
     var code = datum.code,
         $el = $('[data-layer-code="' + code + '"]');
@@ -67,33 +77,17 @@ function validateShape(polygon) {
     var area = coreUtils.changeOfAreaUnits(turfArea(polygon), 'm<sup>2</sup>', 'km<sup>2</sup>'),
         d = new $.Deferred();
     var selfIntersectingShape = turfKinks(polygon).features.length > 0;
-    var alertView;
 
     if (selfIntersectingShape) {
         var errorMsg = 'This watershed shape is invalid because it intersects ' +
                        'itself. Try drawing the shape again without crossing ' +
                        'over its own border.';
-        alertView = new modalViews.AlertView({
-            model: new modalModels.AlertModel({
-                alertMessage: errorMsg,
-                alertType: modalModels.AlertTypes.warn
-            })
-        });
-
-        alertView.render();
         d.reject(errorMsg);
     } else if (area > MAX_AREA) {
         var message = 'Sorry, your Area of Interest is too large.\n\n' +
                       Math.floor(area).toLocaleString() + ' km² were selected, ' +
                       'but the maximum supported size is currently ' +
                       MAX_AREA.toLocaleString() + ' km².';
-        alertView = new modalViews.AlertView({
-            model: new modalModels.AlertModel({
-                alertMessage: message,
-                alertType: modalModels.AlertTypes.warn
-            })
-        });
-        alertView.render();
         d.reject(message);
     } else {
         d.resolve(polygon);
@@ -330,8 +324,9 @@ var DrawView = Marionette.ItemView.extend({
             .then(function(shape) {
                 addLayer(shape);
                 navigateToAnalyze();
-            }).fail(function() {
+            }).fail(function(message) {
                 revertLayer();
+                displayAlert(message, modalModels.AlertTypes.error);
             }).always(function() {
                 self.model.enableTools();
             });
@@ -376,8 +371,9 @@ var DrawView = Marionette.ItemView.extend({
 
             addLayer(box, '1 Square Km');
             navigateToAnalyze();
-        }).fail(function() {
+        }).fail(function(message) {
             revertLayer();
+            displayAlert(message, modalModels.AlertTypes.error);
         }).always(function() {
             self.model.enableTools();
         });
@@ -447,16 +443,7 @@ var WatershedDelineationView = Marionette.ItemView.extend({
             })
             .fail(function(message) {
                 clearAoiLayer();
-                if (message) {
-                    var alertView = new modalViews.AlertView({
-                        model: new modalModels.AlertModel({
-                            alertMessage: message,
-                            alertType: modalModels.AlertTypes.error
-                        })
-                    });
-
-                    alertView.render();
-                }
+                displayAlert(message, modalModels.AlertTypes.warn);
             })
             .always(function() {
                 self.model.enableTools();
