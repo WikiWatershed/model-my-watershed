@@ -32,20 +32,21 @@ var DrawController = {
 
         enableSingleProjectModeIfActivity();
 
-        if (App.map.get('areaOfInterest')) {
-            var aoiView = new coreViews.AreaOfInterestView({
-                    id: 'aoi-header-wrapper',
-                    App: App,
-                    model: new coreModels.AreaOfInterestModel({
-                        can_go_back: false,
-                        next_label: 'Analyze',
-                        url: 'analyze',
-                        shape: App.map.get('areaOfInterest'),
-                        place: App.map.get('areaOfInterestName')
-                    })
-            });
+        var aoiView = new coreViews.AreaOfInterestView({
+                id: 'aoi-header-wrapper',
+                App: App,
+                model: new coreModels.AreaOfInterestModel({
+                    can_go_back: false,
+                    next_label: 'Analyze',
+                    url: 'analyze',
+                    shape: App.map.get('areaOfInterest'),
+                    place: App.map.get('areaOfInterestName')
+                })
+        });
 
-            App.rootView.footerRegion.show(aoiView);
+        App.rootView.footerRegion.show(aoiView);
+
+        if (App.map.get('areaOfInterest')) {
             App.map.setDrawWithBarSize(true);
         }
 

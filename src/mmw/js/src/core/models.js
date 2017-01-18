@@ -260,6 +260,11 @@ var GeoModel = Backbone.Model.extend({
     },
 
     initialize: function() {
+        this.update();
+        this.listenTo(this, 'change:shape', this.update);
+    },
+
+    update: function() {
         this.setDisplayArea();
     },
 

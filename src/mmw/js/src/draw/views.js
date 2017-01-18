@@ -643,15 +643,22 @@ function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
 
 function clearAoiLayer() {
     var projectNumber = App.projectNumber,
-        previousShape = App.map.get('areaOfInterest');
+        previousShape = App.map.get('areaOfInterest'),
+        previousShapeName = App.map.get('areaOfInterestName');
 
-    App.map.set('areaOfInterest', null);
+    App.map.set({
+        'areaOfInterest': null,
+        'areaOfInterestName': ''
+    });
     App.projectNumber = undefined;
     App.map.setDrawSize(false);
     App.clearAnalyzeCollection();
 
     return function revertLayer() {
-        App.map.set('areaOfInterest', previousShape);
+        App.map.set({
+            'areaOfInterest': previousShape,
+            'areaOfInterestName': previousShapeName
+        });
         App.projectNumber = projectNumber;
     };
 }
