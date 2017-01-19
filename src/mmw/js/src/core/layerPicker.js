@@ -7,6 +7,7 @@ var models = require('./models'),
     Backbone = require('backbone'),
     _ = require('underscore'),
     utils = require('./utils'),
+    pointSourceLayer = require('./pointSourceLayer.js'),
     layerPickerTmpl = require('./templates/layerPicker.html'),
     layerPickerGroupTmpl = require('./templates/layerPickerGroup.html'),
     layerPickerLayerTmpl = require('./templates/layerPickerLayer.html');
@@ -127,21 +128,79 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
         layers: '#layerpicker-layers',
     },
 
+    modelEvents: {
+        'change': 'render'
+    },
+
     initialize: function(options) {
         this.leafletMap = options.leafletMap;
     },
 
     onRender: function() {
-        this.showChildView('layers', new LayerPickerLayerListView({
-          collection: this.model.get('layers'),
-          model: this.model,
-          leafletMap: this.leafletMap,
-      }));
+        if (this.model.get('name') === 'Observations' && !this.model.get('layers')) {
+            this.fetchObservations();
+        } else {
+            this.showChildView('layers', new LayerPickerLayerListView({
+                collection: this.model.get('layers'),
+                model: this.model,
+                leafletMap: this.leafletMap,
+            }));
+        }
+    },
+
+    fetchObservations: function () {
+        var self = this,
+            pointSrcAPIUrl = '/api/modeling/point-source/';
+        this.model.set('polling', true);
+        $.when(self.model.get('layersDeferred'), $.ajax({ 'url': pointSrcAPIUrl, 'type': 'GET'}))
+            .done(function(observationLayers, pointSourceData) {
+                self.model.set({
+                    'polling': false,
+                    'error': null,
+                });
+                var observationLayerObjects =_.map(observationLayers, function(leafletLayer, display) {
+                        return {
+                                leafletLayer: leafletLayer,
+                                display: display,
+                                active: false,
+                            };
+                    }),
+                    observationLayersCollection = new Backbone.Collection(observationLayerObjects);
+
+                if (pointSourceData) {
+                    try {
+                        var parsedPointSource = JSON.parse(pointSourceData[0]),
+                            numberOfPoints = parsedPointSource.features.length;
+                        observationLayersCollection.add({
+                            leafletLayer: pointSourceLayer.Layer.createLayer(pointSourceData[0], self.leafletMap),
+                            display: 'EPA Permitted Point Sources (' + numberOfPoints + ')',
+                            active: false,
+                        });
+                    } catch (e) {
+                        console.error('Unable to parse point source data');
+                    }
+                }
+
+                self.model.set('layers', observationLayersCollection);
+            })
+            .fail(function() {
+                self.model.set({
+                    'polling': false,
+                    'error': 'Could not load observations',
+                });
+            });
     },
 
     templateHelpers: function() {
+        var message = null;
+        if (this.model.get('error')) {
+            message = this.model.get('error');
+        } else if (this.model.get('polling')) {
+            message = 'Loading...';
+        }
         return {
             layerGroupName: this.model.get('name'),
+            message: message,
         };
     }
 });
@@ -219,6 +278,9 @@ var LayerPickerView = Marionette.LayoutView.extend({
                         name: 'Observations',
                         canSelectMultiple: true,
                         layersDeferred: this.model.observationsDeferred,
+                        polling: false,
+                        error: null,
+                        layers: null,
                     }),
                 ])
             },
