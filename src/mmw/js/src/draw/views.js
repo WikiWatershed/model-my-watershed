@@ -57,7 +57,8 @@ function validateRwdShape(result) {
     var d = new $.Deferred();
     if (result.watershed) {
         if (result.watershed.features[0].geometry.type === 'MultiPolygon') {
-            d.reject('Unable to generate a valid watershed area at this location');
+            d.reject('Unfortunately, the watershed generated at this ' +
+                     'location is not available for analysis');
         }
         validateShape(result.watershed)
             .done(function() {
@@ -81,11 +82,12 @@ function validateShape(polygon) {
                        'over its own border.';
         d.reject(errorMsg);
     } else if (!utils.isValidForAnalysis(polygon)) {
-        var area = utils.shapeArea(polygon);
-        var message = 'Sorry, your Area of Interest is too large.\n\n' +
-                      Math.floor(area).toLocaleString() + ' km² were selected, ' +
-                      'but the maximum supported size is currently ' +
-                      utils.MAX_AREA.toLocaleString() + ' km².';
+        var maxArea = utils.MAX_AREA.toLocaleString(),
+            selectedArea = Math.floor(utils.shapeArea(polygon)).toLocaleString(),
+            message = 'Sorry, the area you have delineated is too large ' +
+                      'to analyze or model. ' + selectedArea + ' km² were ' +
+                      'selected, but the maximum supported size is ' +
+                      'currently ' + maxArea + ' km².';
         d.reject(message);
     } else {
         d.resolve(polygon);
