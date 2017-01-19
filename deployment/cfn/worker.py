@@ -331,6 +331,7 @@ class Worker(StackNode):
         worker_launch_config = self.add_resource(
             asg.LaunchConfiguration(
                 worker_launch_config_name,
+                EbsOptimized=True,
                 ImageId=Ref(self.worker_ami),
                 IamInstanceProfile=Ref(self.worker_instance_profile),
                 InstanceType=Ref(self.worker_instance_type),
