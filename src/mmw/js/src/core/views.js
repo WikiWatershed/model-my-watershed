@@ -19,6 +19,7 @@ var L = require('leaflet'),
     LayerControl = require('./layerControl'),
     OpacityControl = require('./opacityControl'),
     SidebarToggleControl = require('./sidebarToggleControl'),
+    LatLngControl = require('./latLngControl'),
     VizerLayers = require('./vizerLayers');
 
 require('leaflet.locatecontrol');
@@ -225,6 +226,8 @@ var MapView = Marionette.ItemView.extend({
             [24.2, -126.4],
             [49.8, -66.0]
         ]);
+
+        map.addControl(new LatLngControl());
 
         this._leafletMap = map;
         this._areaOfInterestLayer = new L.FeatureGroup();
