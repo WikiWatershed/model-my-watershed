@@ -12,9 +12,11 @@
         <label class="light">{{ area|round|toLocaleString }} {{ units }}</label>
         {% endif %}
     </div>
+    {% if isValidForAnalysis %}
     <div class="cta-wrapper">
         <a data-url="/{{ url }}" class="btn btn-lg btn-cta"><i class="fa fa-arrow-right"></i></a>
         <label class="paper center-block text-center">{{ next_label }}</label>
     </div>
+    {% endif %}
 </div>
 {% endif %}

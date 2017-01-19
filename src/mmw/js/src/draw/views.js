@@ -4,7 +4,6 @@ var $ = require('jquery'),
     _ = require('lodash'),
     L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
-    turfArea = require('turf-area'),
     turfBboxPolygon = require('turf-bbox-polygon'),
     turfDestination = require('turf-destination'),
     turfIntersect = require('turf-intersect'),
@@ -24,7 +23,6 @@ var $ = require('jquery'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views');
 
-var MAX_AREA = 112700; // About the size of a large state (in km^2)
 var codeToLayer = {}; // code to layer mapping
 
 function displayAlert(message, alertType) {
@@ -74,20 +72,20 @@ function validateRwdShape(result) {
 }
 
 function validateShape(polygon) {
-    var area = coreUtils.changeOfAreaUnits(turfArea(polygon), 'm<sup>2</sup>', 'km<sup>2</sup>'),
-        d = new $.Deferred();
-    var selfIntersectingShape = turfKinks(polygon).features.length > 0;
+    var d = new $.Deferred(),
+        selfIntersectingShape = turfKinks(polygon).features.length > 0;
 
     if (selfIntersectingShape) {
         var errorMsg = 'This watershed shape is invalid because it intersects ' +
                        'itself. Try drawing the shape again without crossing ' +
                        'over its own border.';
         d.reject(errorMsg);
-    } else if (area > MAX_AREA) {
+    } else if (!utils.isValidForAnalysis(polygon)) {
+        var area = utils.shapeArea(polygon);
         var message = 'Sorry, your Area of Interest is too large.\n\n' +
                       Math.floor(area).toLocaleString() + ' km² were selected, ' +
                       'but the maximum supported size is currently ' +
-                      MAX_AREA.toLocaleString() + ' km².';
+                      utils.MAX_AREA.toLocaleString() + ' km².';
         d.reject(message);
     } else {
         d.resolve(polygon);

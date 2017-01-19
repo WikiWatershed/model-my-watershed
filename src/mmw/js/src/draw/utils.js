@@ -2,7 +2,11 @@
 
 var $ = require('jquery'),
     L = require('leaflet'),
-    _ = require('lodash');
+    _ = require('lodash'),
+    turfArea = require('turf-area'),
+    coreUtils = require('../core/utils');
+
+var MAX_AREA = 112700; // About the size of a large state (in km^2)
 
 var polygonDefaults = {
         fillColor: '#E77471',
@@ -72,11 +76,28 @@ function cancelDrawing(map) {
     map.fire('draw:drawstop');
 }
 
+// Return shape area in km2.
+function shapeArea(shape) {
+    return coreUtils.changeOfAreaUnits(turfArea(shape),
+            'm<sup>2</sup>', 'km<sup>2</sup>');
+}
+
+function isValidForAnalysis(shape) {
+    if (shape) {
+        var area = shapeArea(shape);
+        return area > 0 && area <= MAX_AREA;
+    }
+    return false;
+}
+
 module.exports = {
     drawPolygon: drawPolygon,
     placeMarker: placeMarker,
     cancelDrawing: cancelDrawing,
     polygonDefaults: polygonDefaults,
+    shapeArea: shapeArea,
+    isValidForAnalysis: isValidForAnalysis,
     NHD: 'nhd',
     DRB: 'drb',
+    MAX_AREA: MAX_AREA
 };
