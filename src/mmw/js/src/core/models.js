@@ -7,7 +7,8 @@ var Backbone = require('../../shim/backbone'),
     L = require('leaflet'),
     utils = require('./utils'),
     drawUtils = require('../draw/utils'),
-    settings = require('./settings');
+    settings = require('./settings'),
+    VizerLayers = require('./vizerLayers');
 
 var MapModel = Backbone.Model.extend({
     defaults: {
@@ -97,6 +98,10 @@ var LayerGroupModel = Backbone.Model.extend({
 });
 
 var LayersModel = Backbone.Model.extend({
+    defaults: {
+        _googleMaps: (window.google ? window.google.maps : null)
+    },
+
     initialize: function() {
         var defaultBaseLayer = _.findWhere(settings.get('base_layers'), function(layer) {
                 return layer.default === true;
@@ -106,7 +111,9 @@ var LayersModel = Backbone.Model.extend({
         this.coverageLayers = this.buildLayers('coverage_layers');
         this.boundaryLayers = this.buildLayers('boundary_layers');
         this.streamLayers = this.buildLayers('stream_layers');
-        this._googleMaps = (window.google ? window.google.maps : null);
+
+        var vizer = new VizerLayers();
+        this.observationsDeferred = vizer.getLayers();
     },
 
     buildLayers: function(layerType, initialActive) {
