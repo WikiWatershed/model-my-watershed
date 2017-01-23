@@ -4,7 +4,6 @@ var $ = require('jquery'),
     _ = require('lodash'),
     L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
-    turfArea = require('turf-area'),
     turfBboxPolygon = require('turf-bbox-polygon'),
     turfDestination = require('turf-destination'),
     turfIntersect = require('turf-intersect'),
@@ -24,8 +23,17 @@ var $ = require('jquery'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views');
 
-var MAX_AREA = 112700; // About the size of a large state (in km^2)
 var codeToLayer = {}; // code to layer mapping
+
+function displayAlert(message, alertType) {
+    var alertView = new modalViews.AlertView({
+        model: new modalModels.AlertModel({
+            alertMessage: message,
+            alertType: alertType
+        })
+    });
+    alertView.render();
+}
 
 function actOnUI(datum, bool) {
     var code = datum.code,
@@ -49,7 +57,8 @@ function validateRwdShape(result) {
     var d = new $.Deferred();
     if (result.watershed) {
         if (result.watershed.features[0].geometry.type === 'MultiPolygon') {
-            d.reject('Unable to generate a valid watershed area at this location');
+            d.reject('Unfortunately, the watershed generated at this ' +
+                     'location is not available for analysis');
         }
         validateShape(result.watershed)
             .done(function() {
@@ -64,36 +73,21 @@ function validateRwdShape(result) {
 }
 
 function validateShape(polygon) {
-    var area = coreUtils.changeOfAreaUnits(turfArea(polygon), 'm<sup>2</sup>', 'km<sup>2</sup>'),
-        d = new $.Deferred();
-    var selfIntersectingShape = turfKinks(polygon).features.length > 0;
-    var alertView;
+    var d = new $.Deferred(),
+        selfIntersectingShape = turfKinks(polygon).features.length > 0;
 
     if (selfIntersectingShape) {
         var errorMsg = 'This watershed shape is invalid because it intersects ' +
                        'itself. Try drawing the shape again without crossing ' +
                        'over its own border.';
-        alertView = new modalViews.AlertView({
-            model: new modalModels.AlertModel({
-                alertMessage: errorMsg,
-                alertType: modalModels.AlertTypes.warn
-            })
-        });
-
-        alertView.render();
         d.reject(errorMsg);
-    } else if (area > MAX_AREA) {
-        var message = 'Sorry, your Area of Interest is too large.\n\n' +
-                      Math.floor(area).toLocaleString() + ' km² were selected, ' +
-                      'but the maximum supported size is currently ' +
-                      MAX_AREA.toLocaleString() + ' km².';
-        alertView = new modalViews.AlertView({
-            model: new modalModels.AlertModel({
-                alertMessage: message,
-                alertType: modalModels.AlertTypes.warn
-            })
-        });
-        alertView.render();
+    } else if (!utils.isValidForAnalysis(polygon)) {
+        var maxArea = utils.MAX_AREA.toLocaleString(),
+            selectedArea = Math.floor(utils.shapeArea(polygon)).toLocaleString(),
+            message = 'Sorry, the area you have delineated is too large ' +
+                      'to analyze or model. ' + selectedArea + ' km² were ' +
+                      'selected, but the maximum supported size is ' +
+                      'currently ' + maxArea + ' km².';
         d.reject(message);
     } else {
         d.resolve(polygon);
@@ -330,8 +324,9 @@ var DrawView = Marionette.ItemView.extend({
             .then(function(shape) {
                 addLayer(shape);
                 navigateToAnalyze();
-            }).fail(function() {
+            }).fail(function(message) {
                 revertLayer();
+                displayAlert(message, modalModels.AlertTypes.error);
             }).always(function() {
                 self.model.enableTools();
             });
@@ -376,8 +371,9 @@ var DrawView = Marionette.ItemView.extend({
 
             addLayer(box, '1 Square Km');
             navigateToAnalyze();
-        }).fail(function() {
+        }).fail(function(message) {
             revertLayer();
+            displayAlert(message, modalModels.AlertTypes.error);
         }).always(function() {
             self.model.enableTools();
         });
@@ -446,17 +442,7 @@ var WatershedDelineationView = Marionette.ItemView.extend({
                 navigateToAnalyze();
             })
             .fail(function(message) {
-                clearAoiLayer();
-                if (message) {
-                    var alertView = new modalViews.AlertView({
-                        model: new modalModels.AlertModel({
-                            alertMessage: message,
-                            alertType: modalModels.AlertTypes.error
-                        })
-                    });
-
-                    alertView.render();
-                }
+                displayAlert(message, modalModels.AlertTypes.warn);
             })
             .always(function() {
                 self.model.enableTools();
@@ -475,9 +461,18 @@ var WatershedDelineationView = Marionette.ItemView.extend({
 
             pollSuccess: function(response) {
                 self.model.set('polling', false);
-                var result = JSON.parse(response.result);
-                // Convert watershed to MultiPolygon to pass shape validation.
-                result.watershed = coreUtils.toMultiPolygon(result.watershed);
+
+                var result;
+                try {
+                    result = JSON.parse(response.result);
+                } catch (ex) {
+                    return this.pollFailure();
+                }
+
+                if (result.watershed) {
+                    // Convert watershed to MultiPolygon to pass shape validation.
+                    result.watershed = coreUtils.toMultiPolygon(result.watershed);
+                }
                 deferred.resolve(result);
             },
 
@@ -643,15 +638,22 @@ function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
 
 function clearAoiLayer() {
     var projectNumber = App.projectNumber,
-        previousShape = App.map.get('areaOfInterest');
+        previousShape = App.map.get('areaOfInterest'),
+        previousShapeName = App.map.get('areaOfInterestName');
 
-    App.map.set('areaOfInterest', null);
+    App.map.set({
+        'areaOfInterest': null,
+        'areaOfInterestName': ''
+    });
     App.projectNumber = undefined;
     App.map.setDrawSize(false);
     App.clearAnalyzeCollection();
 
     return function revertLayer() {
-        App.map.set('areaOfInterest', previousShape);
+        App.map.set({
+            'areaOfInterest': previousShape,
+            'areaOfInterestName': previousShapeName
+        });
         App.projectNumber = projectNumber;
     };
 }

@@ -875,13 +875,16 @@ var AreaOfInterestView = Marionette.ItemView.extend({
     template: areaOfInterestTmpl,
     initialize: function() {
         this.map = this.options.App.map;
-        this.listenTo(this.map, 'change areaOfInterest', this.syncArea);
+        this.listenTo(this.map, 'change:areaOfInterest', this.syncArea);
     },
 
-    modelEvents: { 'change shape': 'render' },
+    modelEvents: { 'change:shape': 'render' },
 
     syncArea: function() {
-        this.model.set('shape', this.map.get('areaOfInterest'));
+        this.model.set({
+            'shape': this.map.get('areaOfInterest'),
+            'place': this.map.get('areaOfInterestName'),
+        });
     }
 });
 

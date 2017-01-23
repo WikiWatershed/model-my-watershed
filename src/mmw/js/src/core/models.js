@@ -4,7 +4,9 @@ var Backbone = require('../../shim/backbone'),
     $ = require('jquery'),
     _ = require('lodash'),
     turfArea = require('turf-area'),
-    utils = require('./utils');
+    utils = require('./utils'),
+    drawUtils = require('../draw/utils');
+
 
 var MapModel = Backbone.Model.extend({
     defaults: {
@@ -257,10 +259,17 @@ var GeoModel = Backbone.Model.extend({
         shape: null,        // GeoJSON
         area: '0',
         units: 'm<sup>2</sup>',
+        isValidForAnalysis: true
     },
 
     initialize: function() {
+        this.update();
+        this.listenTo(this, 'change:shape', this.update);
+    },
+
+    update: function() {
         this.setDisplayArea();
+        this.setValidForAnalysis();
     },
 
     setDisplayArea: function(shapeAttr, areaAttr, unitsAttr) {
@@ -280,6 +289,11 @@ var GeoModel = Backbone.Model.extend({
             this.set(area, areaInMeters / this.M_IN_KM);
             this.set(units, 'km<sup>2</sup>');
         }
+    },
+
+    setValidForAnalysis: function() {
+        var shape = this.get('shape');
+        this.set('isValidForAnalysis', drawUtils.isValidForAnalysis(shape));
     }
 });
 
