@@ -62,6 +62,7 @@ var CompareController = {
         }
 
         App.rootView.footerRegion.empty();
+        App.showLayerPicker();
     }
 };
 
@@ -166,6 +167,7 @@ function showCompareWindow() {
             model: App.currentProject
         });
     App.rootView.footerRegion.show(compareWindow);
+    App.rootView.layerPickerRegion.empty();
 }
 
 module.exports = {

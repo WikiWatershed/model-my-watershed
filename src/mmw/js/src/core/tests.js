@@ -10,6 +10,7 @@ var $ = require('jquery'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
     sinon = require('sinon'),
     App = require('../app'),
+    LayerPickerView = require('./layerPicker'),
     views = require('./views'),
     models = require('./models'),
     AppRouter = require('../router').AppRouter,
@@ -32,6 +33,12 @@ describe('Core', function() {
         if ($(sandboxSelector).length === 0) {
             $('<div>', {id: sandboxId}).appendTo('body');
         }
+        settings.set('map_controls', [
+            'LayerAttribution',
+            'LayerSelector',
+            'LocateMeButton',
+            'ZoomControl',
+        ]);
     });
 
     beforeEach(function() {
@@ -68,8 +75,10 @@ describe('Core', function() {
 
             it('adds layers to the map when the map model attribute areaOfInterest is set', function() {
                 var model = new models.MapModel(),
+                    layersModel = new models.LayersModel(),
                     view = new views.MapView({
                         model: model,
+                        layersModel: layersModel,
                         el: sandboxSelector
                     }),
                     featureGroup = view._areaOfInterestLayer;
@@ -85,8 +94,10 @@ describe('Core', function() {
 
             it('updates the position of the map when the map model location attributes are set', function() {
                 var model = new models.MapModel(),
+                    layersModel = new models.LayersModel(),
                     view = new views.MapView({
                         model: model,
+                        layersModel: layersModel,
                         el: sandboxSelector
                     }),
                     latLng = [40, -75],
@@ -105,8 +116,10 @@ describe('Core', function() {
 
             it('silently sets the map model location attributes when the map position is updated', function() {
                 var model = new models.MapModel(),
+                    layersModel = new models.LayersModel(),
                     view = new views.MapView({
                         model: model,
+                        layersModel: layersModel,
                         el: sandboxSelector
                     }),
                     latLng = [40, -75],
@@ -123,8 +136,10 @@ describe('Core', function() {
 
             it('adds the map-container top & bottom classes to the map container for DoubleHeader and Small Footer', function(){
                 var model = new models.MapModel(),
+                    layersModel = new models.LayersModel(),
                     view = new views.MapView({
                         model: model,
+                        layersModel: layersModel,
                         el: sandboxSelector
                     }),
                     $container = $(sandboxSelector).parent();
@@ -138,8 +153,10 @@ describe('Core', function() {
 
             it('adds the map-container top & bottom classes to the map container for Draw screen with AoI bar', function(){
                 var model = new models.MapModel(),
+                    layersModel = new models.LayersModel(),
                     view = new views.MapView({
                         model: model,
+                        layersModel: layersModel,
                         el: sandboxSelector
                     }),
                     $container = $(sandboxSelector).parent();
@@ -150,35 +167,37 @@ describe('Core', function() {
 
                 view.destroy();
             });
+        });
 
-
-            it('creates a layer selector with the correct items', function() {
+        describe('LayerPickerView', function() {
+            it('creates a layer picker with the correct items', function() {
                 var baseLayers = [
                     {
                         'url': 'https://{s}.tiles.mapbox.com/v3/ctaylor.lg2deoc9/{z}/{x}/{y}.png',
                         'default': true,
                         'display': 'A',
-                        'basemap': true
                     },
                     {
                         'url': 'https://{s}.tiles.mapbox.com/v3/examples.map-i86nkdio/{z}/{x}/{y}.png',
                         'display': 'B',
-                        'basemap': true
                     }
                 ];
                 settings.set('base_layers', baseLayers);
 
-                var model = new models.MapModel(),
-                    view = new views.MapView({
+                var model = new models.LayersModel(),
+                    view = new LayerPickerView({
                         model: model,
-                        el: sandboxSelector
-                    }),
-                    $layers = $('.leaflet-control-layers-base'),
-                    layerNames = $layers.find('span').map(function() {
+                        leafletMap: App.getLeafletMap(),
+                    });
+
+                    $(sandboxSelector).html(view.render().el);
+
+                    var $layers = $(sandboxSelector).find('#layerpicker-layers'),
+                    layerNames = $layers.find('button').map(function() {
                         return $(this).text().trim();
                     }).get();
 
-                assert.equal($layers.length, 2, 'Did not add layer selector');
+                assert.equal(layerNames.length, 2, 'Did not add layer selector');
                 assert.deepEqual(layerNames, _.pluck(baseLayers, 'display'));
 
                 view.destroy();
