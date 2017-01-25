@@ -22,7 +22,7 @@
 
 .layerpicker-title {
   float: left;
-  width: 204px;
+  width: 91%;
   padding: 0;
   text-align: left;
   border: 0;
@@ -145,6 +145,7 @@
         border-top: 11px solid transparent;
         border-bottom: 11px solid transparent;
         cursor: pointer;
+        padding: 0;
 
         &::-webkit-slider-thumb {
             background: $brand-primary;
@@ -181,12 +182,16 @@
         &::-ms-track {
             background: transparent;
             border-color: transparent;
+            width: 100%;
+            height: 2.2px;
+            cursor: pointer;
+            border-width: 6px 0;
             color: transparent;
         }
         &::-ms-thumb {
             background: $brand-primary;
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             border: 1px solid $brand-primary;
             border-radius: 50px;
         }
@@ -201,10 +206,12 @@
         &:focus::-ms-fill-lower {
             background:  #999;
             border:  #999;
+            border-radius: 7px;
         }
         &:focus::-ms-fill-upper {
             background: #999;
             border:  #999;
+            border-radius: 7px;
         }
     }
 }
