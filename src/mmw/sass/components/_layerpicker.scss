@@ -1,21 +1,23 @@
 .layerpicker {
-  z-index: 500000;
+  z-index: 500;
   position: absolute;
   bottom: 20px;
   left: 10px;
   width: 240px;
   background-color: #fff;
+  border-radius: 2px;
+  box-shadow: 0 0 6px $black-74;
 }
 
 .layerpicker-layers {
-  max-height: 97px;
+  max-height: 104px;
   overflow: auto;
 }
 
 .layerpicker-layer {
   @include clearfix;
   font-size: 13px;
-  padding: 6px;
+  padding: 4px 6px;
 }
 
 .layerpicker-title {
@@ -51,6 +53,7 @@
   float: left;
   padding: 6px;
   background-color: #ddd;
+  cursor: pointer;
   &.open {
     background-color: #fff;
   }
@@ -139,6 +142,8 @@
 
     &.slider-leaflet {
         background-color: transparent;
+        border-top: 11px solid transparent;
+        border-bottom: 11px solid transparent;
         cursor: pointer;
 
         &::-webkit-slider-thumb {
