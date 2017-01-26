@@ -10,7 +10,40 @@ var models = require('./models'),
     pointSourceLayer = require('./pointSourceLayer.js'),
     layerPickerTmpl = require('./templates/layerPicker.html'),
     layerPickerGroupTmpl = require('./templates/layerPickerGroup.html'),
-    layerPickerLayerTmpl = require('./templates/layerPickerLayer.html');
+    layerPickerLayerTmpl = require('./templates/layerPickerLayer.html'),
+    opacityControlTmpl = require('./templates/opacityControl.html');
+
+var LayerOpacitySliderView = Marionette.ItemView.extend({
+    template: opacityControlTmpl,
+
+    events: {
+       'mousedown input': 'onMouseDown',
+       'mouseup input': 'onMouseUp',
+    },
+
+    initialize: function(options) {
+        this.leafletMap = options.leafletMap;
+        this.layer = options.layer;
+    },
+
+    onMouseDown: function() {
+        this.leafletMap.dragging.disable();
+    },
+
+    onMouseUp: function(e) {
+        this.leafletMap.dragging.enable();
+        var el = $(e.target),
+        sliderValue = el.val();
+        this.layer.get('leafletLayer').setOpacity(sliderValue / 100);
+        el.attr('value', sliderValue);
+    },
+
+    templateHelpers: function() {
+        return {
+            sliderValue: this.layer.get('leafletLayer').options.opacity * 100,
+        };
+    }
+});
 
 /* The individual layers in each layer group */
 var LayerPickerLayerView = Marionette.ItemView.extend({
@@ -117,6 +150,7 @@ var LayerPickerLayerListView = Marionette.CollectionView.extend({
         if (this.model.get('name') === "Basemaps") {
             this.leafletMap.fireEvent('baselayerchange', selectedLayer.get('leafletLayer'));
         }
+        this.triggerMethod('select:layer');
     },
 });
 
@@ -124,8 +158,10 @@ var LayerPickerLayerListView = Marionette.CollectionView.extend({
     with its layers. */
 var LayerPickerGroupView = Marionette.LayoutView.extend({
     template: layerPickerGroupTmpl,
+
     regions: {
         layers: '#layerpicker-layers',
+        opacityControl: '#layerpicker-opacity-control',
     },
 
     modelEvents: {
@@ -144,7 +180,8 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
                 collection: this.model.get('layers'),
                 model: this.model,
                 leafletMap: this.leafletMap,
-            }));
+            }).on('select:layer', _.bind(this.addOpacityControl, this)));
+            this.addOpacityControl();
         }
     },
 
@@ -189,6 +226,21 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
                     'error': 'Could not load observations',
                 });
             });
+    },
+
+    addOpacityControl: function() {
+        var currentActiveOpacityLayer = this.model.get('layers').findWhere({
+            active: true,
+            hasOpacitySlider: true,
+        });
+        if (currentActiveOpacityLayer) {
+            this.showChildView('opacityControl', new LayerOpacitySliderView({
+                leafletMap: this.leafletMap,
+                layer: currentActiveOpacityLayer,
+            }));
+        } else {
+            this.opacityControl.empty();
+        }
     },
 
     templateHelpers: function() {
