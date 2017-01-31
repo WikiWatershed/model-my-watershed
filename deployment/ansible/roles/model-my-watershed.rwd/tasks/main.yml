@@ -1,16 +1,3 @@
 ---
-- name: Create RWD data directory
-  file: path="{{ rwd_data_path }}"
-        state=directory
-
-- name: Pull RWD docker container image
-  command: /usr/bin/docker pull {{ rwd_docker_image }}
-
-- name: Configure RWD service definition
-  template: src=upstart-mmw-rwd.conf.j2
-            dest=/etc/init/mmw-rwd.conf
-  notify:
-    - Restart mmw-rwd
-
-- name: Ensure service is running
-  service: name=mmw-rwd state=started
+- { include: configuration.yml }
+- { include: app.yml }

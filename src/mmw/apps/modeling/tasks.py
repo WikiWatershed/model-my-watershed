@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+import os
 import logging
 import json
 import requests
@@ -30,6 +31,9 @@ ACRES_PER_SQM = 0.000247105
 
 DRB = 'drb'
 
+RWD_HOST = os.environ.get('RWD_HOST', 'localhost')
+RWD_PORT = os.environ.get('RWD_PORT', '5000')
+
 
 @shared_task
 def start_rwd_job(location, snapping, data_source):
@@ -42,7 +46,8 @@ def start_rwd_job(location, snapping, data_source):
     location = json.loads(location)
     lat, lng = location
     end_point = 'rwd' if data_source == DRB else 'rwd-nhd'
-    rwd_url = 'http://localhost:5000/%s/%f/%f' % (end_point, lat, lng)
+    rwd_url = 'http://%s:%s/%s/%f/%f' % (RWD_HOST, RWD_PORT, end_point,
+                                         lat, lng)
 
     # The Webserver defaults to enable snapping, uses 1 (true) 0 (false)
     if not snapping:
