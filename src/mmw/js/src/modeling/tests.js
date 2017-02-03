@@ -963,6 +963,49 @@ describe('Modeling', function() {
                     assert.isTrue(spyAlert.calledOnce);
                     assert.equal(collection.at(1).get('name'), 'New Scenario 1');
                 });
+
+                it('will not show error when trying to save name as is', function() {
+                    var collection = getTestScenarioCollection(),
+                        view = new views.ScenarioTabPanelsView({ collection: collection });
+
+                    view.render();
+                    var childViews = _.values(view.children._views);
+
+                    childViews[1].ui.rename.trigger('click');
+                    childViews[1].ui.nameField.text('New Scenario 1');
+                    childViews[1].ui.nameField.trigger('blur');
+
+                    assert.isFalse(spyAlert.calledOnce);
+                    assert.equal(collection.at(1).get('name'), 'New Scenario 1');
+                });
+
+                it('resets name if set to empty string', function() {
+                    var collection = getTestScenarioCollection(),
+                        view = new views.ScenarioTabPanelsView({ collection: collection });
+
+                    view.render();
+                    var childViews = _.values(view.children._views);
+
+                    childViews[1].ui.rename.trigger('click');
+                    childViews[1].ui.nameField.text('');
+                    childViews[1].ui.nameField.trigger('blur');
+
+                    assert.equal(collection.at(1).get('name'), 'New Scenario 1');
+                });
+
+                it('resets name if set to just spaces', function() {
+                    var collection = getTestScenarioCollection(),
+                        view = new views.ScenarioTabPanelsView({ collection: collection });
+
+                    view.render();
+                    var childViews = _.values(view.children._views);
+
+                    childViews[1].ui.rename.trigger('click');
+                    childViews[1].ui.nameField.text(' ');
+                    childViews[1].ui.nameField.trigger('blur');
+
+                    assert.equal(collection.at(1).get('name'), 'New Scenario 1');
+                });
             });
 
             describe('#duplicateScenario', function() {
