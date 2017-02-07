@@ -173,7 +173,7 @@ class Application(StackNode):
         self.app_server_auto_scaling_schedule_end_recurrence = self.add_parameter(  # NOQA
             Parameter(
                 'AppServerAutoScalingScheduleEndRecurrence', Type='String',
-                Default='0 23 * * *',
+                Default='0 1 * * *',
                 Description='Application server ASG schedule end recurrence'
             ), 'AppServerAutoScalingScheduleEndRecurrence')
 
