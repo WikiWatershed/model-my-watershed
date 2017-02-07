@@ -417,7 +417,10 @@ class Worker(StackNode):
                 '  - path: /etc/mmw.d/env/ROLLBAR_SERVER_SIDE_ACCESS_TOKEN\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
-                '    content: ', self.get_input('RollbarServerSideAccessToken')]  # NOQA
+                '    content: ', self.get_input('RollbarServerSideAccessToken'),  # NOQA
+                '\n',
+                'runcmd:\n',
+                '  - /opt/model-my-watershed/scripts/aws/ebs-warmer.sh']
 
     def create_cloud_watch_resources(self, worker_auto_scaling_group):
         self.add_resource(cw.Alarm(
