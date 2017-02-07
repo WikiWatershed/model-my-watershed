@@ -170,7 +170,7 @@ class Worker(StackNode):
         self.worker_auto_scaling_schedule_end_recurrence = self.add_parameter(  # NOQA
             Parameter(
                 'WorkerAutoScalingScheduleEndRecurrence', Type='String',
-                Default='0 23 * * *',
+                Default='0 1 * * *',
                 Description='Worker ASG schedule end recurrence'
             ), 'WorkerAutoScalingScheduleEndRecurrence')
 
