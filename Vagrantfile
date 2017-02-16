@@ -91,7 +91,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     worker.vm.synced_folder "src/mmw", "/opt/app/"
 
     # Path to RWD data (ex. /media/passport/rwd-nhd)
-    worker.vm.synced_folder ENV.fetch("RWD_DATA", "/dev/null"), "/opt/rwd-data"
+    worker.vm.synced_folder ENV.fetch("RWD_DATA", "/tmp"), "/opt/rwd-data"
 
     # Docker
     worker.vm.network "forwarded_port", {
