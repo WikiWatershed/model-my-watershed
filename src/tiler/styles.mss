@@ -221,7 +221,7 @@
     line-width: 5.0 * @zoomBase;
   }
   [stream_order=3] {
-    line-width: 4.0 * @zoomBase;
+    line-width: 3.0 * @zoomBase;
   }
 }
 
