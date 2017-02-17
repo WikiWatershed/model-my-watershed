@@ -646,9 +646,9 @@ var ChartView = Marionette.ItemView.extend({
     getBarClass: function(item) {
         var name = this.model.get('name');
         if (name === 'land') {
-            return 'nlcd-' + item.nlcd;
+            return 'nlcd-fill-' + item.nlcd;
         } else if (name === 'soil') {
-            return 'soil-' + item.code;
+            return 'soil-fill-' + item.code;
         }
     },
 

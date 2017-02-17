@@ -7,6 +7,10 @@
   background-color: #fff;
   border-radius: 2px;
   box-shadow: 0 0 6px $black-74;
+
+  .popover > .popover-content {
+      border: #fff 1px solid;
+  }
 }
 
 .layerpicker-layers {
@@ -100,12 +104,8 @@
 
 .layerpicker-legend {
   font-size: 13px;
-  position: absolute;
-  left: 244px;
   width: 200px;
   background-color: #fff;
-  padding: 10px;
-  bottom: 0;
 }
 
 .layerpicker-legenditem {
@@ -115,11 +115,14 @@
 .layerpicker-legendcolor {
   width: 12px;
   height: 12px;
-  margin-right: 6px;
-  background-color: tomato;
   float: left;
   position: relative;
   top: 3px;
+  border: 1px solid #ccc
+}
+
+.layerpicker-legendtext {
+    margin-left: 18px;
 }
 
 #layerpicker-opacity-control {

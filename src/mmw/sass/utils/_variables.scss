@@ -43,28 +43,78 @@ $sidebar-tab-subheader-height: 60px;
 //Border-radius
 $radius-sm: 2px;
 
-//NLCD
-$nlcd-11: #5475A8;
-$nlcd-21: #E8D1D1;
-$nlcd-22: #E29E8C;
-$nlcd-23: #ff0000;
-$nlcd-24: #B50000;
-$nlcd-31: #D2CDC0;
-$nlcd-41: #85C77E;
-$nlcd-52: #DCCA8F;
-$nlcd-71: #FDE9AA;
-$nlcd-81: #FBF65D;
-$nlcd-82: #CA9146;
-$nlcd-90: #C8E6F8;
+$nlcdColors: (
+    11: #5475A8,
+    12: #FFFFFF,
+    21: #E8D1D1,
+    22: #E29E8C,
+    23: #ff0000,
+    24: #B50000,
+    31: #D2CDC0,
+    41: #85C77E,
+    42: #38814E,
+    43: #D4E7B0,
+    52: #DCCA8F,
+    71: #FDE9AA,
+    81: #FBF65D,
+    82: #CA9146,
+    90: #C8E6F8,
+    95: #64B3D5,
+);
+
+@each $id, $color in $nlcdColors {
+  .nlcd-#{$id} {
+    background-color: $color;
+  }
+}
+
 
 //Hydrologic Soil Groups
-$soil-a: #ffffd4;
-$soil-b: #fee391;
-$soil-c: #fec44f;
-$soil-d: #8c2d04;
-$soil-ad: #fe9929;
-$soil-bd: #ec7014;
-$soil-cd: #cc4c02;
+$soilColors: (
+    a: #ffffd4,
+    b: #fee391,
+    c: #fec44f,
+    d: #8c2d04,
+    ad: #fe9929,
+    bd: #ec7014,
+    cd: #cc4c02,
+);
+
+@each $id, $color in $soilColors {
+  .soil-#{$id} {
+    background-color: $color;
+  }
+}
+
+// From tiler/styles.mss
+$streamWaterQualityColors: (
+    0: #1a9641,
+    1: #a6d96a,
+    2: #ffffbf,
+    3: #fdae61,
+    4: #d7191c,
+    NA: #9E9E9E,
+);
+
+@each $id, $color in $streamWaterQualityColors {
+  .stream-#{$id} {
+    background-color: $color;
+  }
+}
+
+$catchmentWaterQualityColors: (
+    1: #A0A0A0,
+    2: #888888,
+    3: #707070,
+    4: #484848,
+    5: #202020,
+);
+
+@each $id, $color in $catchmentWaterQualityColors {
+  .catchment-#{$id} {
+    background-color: $color;
+  }
+}
 
 //Type
 $font-family: 'Roboto', helvetica, arial, sans-serif;
