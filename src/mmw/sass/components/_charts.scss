@@ -18,27 +18,17 @@
     fill: $brand-primary;
   }
 
-  // Official NLCD legend colors for classes selected for display
-  .nlcd-11 { fill: $nlcd-11; }
-  .nlcd-21 { fill: $nlcd-21; }
-  .nlcd-22 { fill: $nlcd-22; }
-  .nlcd-23 { fill: $nlcd-23; }
-  .nlcd-24 { fill: $nlcd-24; }
-  .nlcd-31 { fill: $nlcd-31; }
-  .nlcd-41 { fill: $nlcd-41; }
-  .nlcd-52 { fill: $nlcd-52; }
-  .nlcd-71 { fill: $nlcd-71; }
-  .nlcd-81 { fill: $nlcd-81; }
-  .nlcd-82 { fill: $nlcd-82; }
-  .nlcd-90 { fill: $nlcd-90; }
+  @each $id, $color in $nlcdColors {
+    .nlcd-fill-#{$id} {
+      fill: $color;
+    }
+  }
 
-  .soil-a { fill: $soil-a; }
-  .soil-b { fill: $soil-b; }
-  .soil-c { fill: $soil-c; }
-  .soil-d { fill: $soil-d; }
-  .soil-ad { fill: $soil-ad; }
-  .soil-bd { fill: $soil-bd; }
-  .soil-cd { fill: $soil-cd; }
+  @each $id, $color in $soilColors {
+    .soil-fill-#{$id} {
+      fill: $color;
+    }
+  }
 
   svg {
     width: 450px;

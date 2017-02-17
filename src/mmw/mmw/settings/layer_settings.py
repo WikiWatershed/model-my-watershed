@@ -133,6 +133,7 @@ LAYER_GROUPS = {
             'perimeter': drb_simple_perimeter,
             'opacity': 0.618,
             'has_opacity_slider': True,
+            'css_class_prefix': 'catchment',
             # Defined in tiler/styles.mss
             'legend_mapping': {
                 1: 'Less than 5 kg/y',
@@ -151,6 +152,7 @@ LAYER_GROUPS = {
             'perimeter': drb_simple_perimeter,
             'opacity': 0.618,
             'has_opacity_slider': True,
+            'css_class_prefix': 'catchment',
             # Defined in tiler/styles.mss
             'legend_mapping': {
                 1: 'Less than 0.30 kg/y',
@@ -169,6 +171,7 @@ LAYER_GROUPS = {
             'perimeter': drb_simple_perimeter,
             'opacity': 0.618,
             'has_opacity_slider': True,
+            'css_class_prefix': 'catchment',
             # Defined in tiler/styles.mss
             'legend_mapping': {
                 1: 'Less than 250 kg/y',
@@ -298,6 +301,7 @@ LAYER_GROUPS = {
                         ' From SRAT'),
             'table_name': 'nhd_quality_tn',
             'minZoom': 3,
+            'css_class_prefix': 'stream',
             # Defined in tiler/server.js
             'legend_mapping': {
                 1: 'Less than 1 kg/y',
@@ -313,6 +317,7 @@ LAYER_GROUPS = {
                         ' From SRAT'),
             'table_name': 'nhd_quality_tp',
             'minZoom': 3,
+            'css_class_prefix': 'stream',
             # Defined in tiler/server.js
             'legend_mapping': {
                 1: 'Less than 0.03 kg/y',
@@ -328,6 +333,7 @@ LAYER_GROUPS = {
                         ' From SRAT'),
             'table_name': 'nhd_quality_tss',
             'minZoom': 3,
+            'css_class_prefix': 'stream',
             # Defined in tiler/server.js
             'legend_mapping': {
                 1: 'Less than 50 kg/y',
