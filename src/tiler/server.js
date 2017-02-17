@@ -17,6 +17,7 @@ var dbUser = process.env.MMW_DB_USER,
     stackType = process.env.MMW_STACK_TYPE,
     rollbarAccessToken = process.env.ROLLBAR_SERVER_SIDE_ACCESS_TOKEN;
 
+// Updates to steps should also be made to the legend_mappings in mmw/settings/layer_settings
 var NHD_QUALITY_TSS_MAP = {
     'L1': [0,50],
     'L2': [50,100],
@@ -107,7 +108,7 @@ var interactivity = {
                 stream_order = 4;
             }
         }
-        
+
         var caseSql = function(mapping, field) {
             var sql = []
             for (var category in mapping) {
@@ -143,7 +144,7 @@ var interactivity = {
         } else {
             return '(SELECT geom, stream_order FROM ' + tableName +
               ' WHERE stream_order >= ' + stream_order + ') as q';
-        }     
+        }
     },
 
     getSqlForDRBCatchmentByTableId = function(tableId) {
