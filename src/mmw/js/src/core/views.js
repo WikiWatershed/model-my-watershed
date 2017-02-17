@@ -619,18 +619,11 @@ var MapView = Marionette.ItemView.extend({
 
         if (additionalShapes) {
             _.each(additionalShapes.features, function(geoJSONpoint) {
-                function createMarkerIcon(iconName) {
-                    return L.divIcon({
-                        className: 'marker-rwd marker-rwd-' + iconName,
-                        iconSize: [16,16]
-                    });
-                }
-
                 var newLayer = L.geoJson(geoJSONpoint, {
                     pointToLayer: function(feature, latLngForPoint) {
                         var customIcon = feature.properties.original ?
-                            createMarkerIcon('original-point') :
-                            createMarkerIcon('nearest-stream-point');
+                            drawUtils.createRwdMarkerIcon('original-point') :
+                            drawUtils.createRwdMarkerIcon('nearest-stream-point');
                         return L.marker(latLngForPoint, { icon: customIcon });
                     },
                     onEachFeature: function(feature, layer) {

@@ -72,6 +72,13 @@ function placeMarker(map, drawOpts) {
     return defer.promise();
 }
 
+function createRwdMarkerIcon(iconName) {
+    return L.divIcon({
+        className: 'marker-rwd marker-rwd-' + iconName,
+        iconSize: [16,16]
+    });
+}
+
 // Cancel any previous draw action in progress.
 function cancelDrawing(map) {
     map.fire('draw:drawstop');
@@ -94,6 +101,7 @@ function isValidForAnalysis(shape) {
 module.exports = {
     drawPolygon: drawPolygon,
     placeMarker: placeMarker,
+    createRwdMarkerIcon: createRwdMarkerIcon,
     cancelDrawing: cancelDrawing,
     polygonDefaults: polygonDefaults,
     shapeArea: shapeArea,

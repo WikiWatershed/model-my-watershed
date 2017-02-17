@@ -13,6 +13,7 @@ var $ = require('jquery'),
     utils = require('./utils'),
     models = require('./models'),
     coreUtils = require('../core/utils'),
+    drawUtils = require('../draw/utils'),
     toolbarTmpl = require('./templates/toolbar.html'),
     loadingTmpl = require('./templates/loading.html'),
     selectTypeTmpl = require('./templates/selectType.html'),
@@ -421,7 +422,8 @@ var WatershedDelineationView = Marionette.ItemView.extend({
             $item = $(e.currentTarget),
             itemName = $item.text(),
             snappingOn = !!$item.data('snapping-on'),
-            dataSource = $item.data('data-source');
+            dataSource = $item.data('data-source'),
+            rwdClickedPoint;
 
         clearAoiLayer();
         this.model.set('pollError', false);
@@ -430,6 +432,15 @@ var WatershedDelineationView = Marionette.ItemView.extend({
         utils.placeMarker(map)
             .then(function(latlng) {
                 return validatePointWithinDataSourceBounds(latlng, dataSource);
+            })
+            .then(function(latlng) {
+                // Assign `rwdClickedPoint` so it's in scope to be removed from
+                // the map when the deferred chain completes.
+                rwdClickedPoint = L.marker(latlng, {
+                    icon: drawUtils.createRwdMarkerIcon('original-point')
+                }).bindPopup('Original clicked outlet point');
+                rwdClickedPoint.addTo(map);
+                return latlng;
             })
             .then(function(latlng) {
                 return self.delineateWatershed(latlng, snappingOn, dataSource);
@@ -445,6 +456,7 @@ var WatershedDelineationView = Marionette.ItemView.extend({
                 displayAlert(message, modalModels.AlertTypes.warn);
             })
             .always(function() {
+                map.removeLayer(rwdClickedPoint);
                 self.model.enableTools();
             });
     },
