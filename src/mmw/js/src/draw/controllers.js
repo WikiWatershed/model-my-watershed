@@ -8,7 +8,9 @@ var App = require('../app'),
     settings = require('../core/settings'),
     modelingModels = require('../modeling/models'),
     models = require('./models'),
-    _ = require('underscore');
+    _ = require('underscore'),
+    utils = require('../core/utils'),
+    models = require('./models');
 
 var DrawController = {
     drawPrepare: function() {
@@ -51,7 +53,7 @@ var DrawController = {
             App.map.setDrawWithBarSize(true);
         }
 
-        App.state.set('current_page_title', 'Choose Area of Interest');
+        App.state.set('active_page', utils.selectAreaPageTitle);
     },
 
     drawCleanUp: function() {

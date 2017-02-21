@@ -6,6 +6,7 @@ var L = require('leaflet'),
     router = require('../router.js').router,
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
+    coreUtils = require('./utils'),
     drawUtils = require('../draw/utils'),
     modificationConfigUtils = require('../modeling/modificationConfigUtils'),
     headerTmpl = require('./templates/header.html'),
@@ -78,12 +79,55 @@ var HeaderView = Marionette.ItemView.extend({
         this.listenTo(this.appState, 'change', this.render);
     },
 
+    makeNavClasses: function(isActive, isVisible) {
+        return (isActive ? 'active' : '') + (isVisible ? ' visible' : '');
+    },
+
+    isProjectsPage: function(currentActive) {
+        return currentActive === coreUtils.projectsPageTitle;
+    },
+
+    makeSelectAreaNavClasses: function(currentActive) {
+        var isVisible = !this.isProjectsPage(currentActive),
+            isActive = currentActive === coreUtils.selectAreaPageTitle;
+        return this.makeNavClasses(isActive, isVisible);
+    },
+
+    makeAnalyzeNavClasses: function(currentActive, wasAnalyzeVisible, wasModelVisible) {
+        var isVisible = !this.isProjectsPage(currentActive) && (wasAnalyzeVisible || wasModelVisible),
+            isActive = currentActive === coreUtils.analyzePageTitle;
+        return this.makeNavClasses(isActive, isVisible);
+    },
+
+    makeModelNavClasses: function(currentActive) {
+        var modelPackageNames = _.pluck(settings.get('model_packages'), 'display_name'),
+            isCompare = currentActive === coreUtils.comparePageTitle,
+            isActive = _.contains(modelPackageNames, currentActive),
+            isVisible = isActive || isCompare;
+        return this.makeNavClasses(isActive, isVisible);
+    },
+
+    makeCompareNavClasses: function(currentActive, wasCompareVisible) {
+        var modelPackageNames = _.pluck(settings.get('model_packages'), 'display_name'),
+            isModel = _.contains(modelPackageNames, currentActive),
+            isActive = currentActive === coreUtils.comparePageTitle,
+            isVisible = (isModel && wasCompareVisible) || isActive;
+        return this.makeNavClasses(isActive, isVisible);
+    },
+
     templateHelpers: function() {
-        var self = this;
+        var self = this,
+            currentActive = self.appState.get('active_page'),
+            wasAnalyzeVisible = self.appState.get('was_analyze_visible'),
+            wasModelVisible = self.appState.get('was_model_visible'),
+            wasCompareVisible = self.appState.get('was_compare_visible');
 
         return {
             'itsi_embed': settings.get('itsi_embed'),
-            'current_page_title': self.appState.get('current_page_title')
+            'selectAreaNavClasses': this.makeSelectAreaNavClasses(currentActive),
+            'analyzeNavClasses': this.makeAnalyzeNavClasses(currentActive, wasAnalyzeVisible, wasModelVisible),
+            'modelNavClasses': this.makeModelNavClasses(currentActive),
+            'compareNavClasses': this.makeCompareNavClasses(currentActive, wasCompareVisible),
         };
     },
 

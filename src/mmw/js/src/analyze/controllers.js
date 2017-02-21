@@ -4,6 +4,7 @@ var App = require('../app'),
     router = require('../router').router,
     views = require('./views'),
     models = require('./models'),
+    utils = require('../core/utils'),
     settings = require('../core/settings');
 
 var AnalyzeController = {
@@ -54,7 +55,11 @@ var AnalyzeController = {
                 collection: viewModels
             });
 
-        App.state.set('current_page_title', 'Geospatial Analysis');
+        App.state.set({
+            'active_page': utils.analyzePageTitle,
+            'was_analyze_visible': true,
+            'was_compare_visible': false,
+        });
 
         App.rootView.sidebarRegion.show(analyzeResults);
     },
