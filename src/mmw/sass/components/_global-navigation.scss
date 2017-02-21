@@ -1,0 +1,52 @@
+.modal, .modal-backdrop {
+  display: none !important;
+}
+
+.global-navigation {
+  float: left;
+  list-style: none;
+  padding: 0;
+  margin-left: 18px;
+  @include clearfix;
+}
+
+.global-navigation-item {
+  float: left;
+  position: relative;
+  &:after {
+    position: absolute;
+    content: '';
+    height: 16px;
+    width: 6px;
+    background-image: url(/static/images/global-navigation-arrow.svg);
+    top: 14px;
+    opacity: 0.5;
+    left: -11px;
+  }
+  button {
+    background: none;
+    background-color: transparent;
+    color: #fff;
+    border: 0;
+    font-size: 0.7rem;
+    line-height: 44px;
+    padding: 0 16px 0 0;
+    &::-moz-focus-inner {
+      border: 0;
+      padding: 0;
+    }
+  }
+  &:not(.visible) {
+    display: none;
+  }
+  &:not(.active) {
+    button {
+      opacity: 0.5;
+    }
+  }
+  &.active {
+    button {
+      font-weight: 500;
+    }
+  }
+}
