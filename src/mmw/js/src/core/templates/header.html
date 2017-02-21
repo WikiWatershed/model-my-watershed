@@ -1,7 +1,13 @@
 <nav id="app-header" class="navbar-watershed">
     <div class="brand">
-        <a href="#">Model My Watershed: {{ current_page_title }}</a>
+        <a href="#">Model My Watershed</a>
     </div>
+    <ul class="global-navigation">
+        <li class="global-navigation-item {{selectAreaNavClasses}}"><button  data-url="/">Select Area</button></li>
+        <li class="global-navigation-item {{analyzeNavClasses}}"><button data-url="/analyze">Analyze</button></li>
+        <li class="global-navigation-item {{modelNavClasses}}"><button  data-url="/project">Model</button></li>
+        <li class="global-navigation-item {{compareNavClasses}}"><button  data-url="/project/compare">Compare</button></li>
+    </ul>
     <div class="navigation">
         <ul class="main">
             <li class="header-link"><a target="_blank" href="http://www.stroudcenter.org/"><img src="/static/images/stroud-logo.png" alt="Logo" /></a></li>
