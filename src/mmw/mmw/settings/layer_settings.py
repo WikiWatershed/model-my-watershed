@@ -11,10 +11,11 @@ For basemaps, maxZoom must be defined.
 """
 
 from os.path import join, dirname, abspath
+from collections import OrderedDict
 import json
 
 from django.contrib.gis.geos import GEOSGeometry
-
+from tr55_settings import NLCD_MAPPING, SOIL_MAPPING
 
 # Full perimeter of the Delaware River Basin (DRB).
 drb_perimeter_path = join(dirname(abspath(__file__)), 'data/drb_perimeter.json')
@@ -40,8 +41,6 @@ nhd_region2_simple_perimeter_path = join(dirname(abspath(__file__)),
 nhd_region2_simple_perimeter_file = open(nhd_region2_simple_perimeter_path)
 
 NHD_REGION2_PERIMETER = json.load(nhd_region2_simple_perimeter_file)
-
-NEW_LINE_AND_TAB = '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
 
 LAYER_GROUPS = {
     'basemap': [
@@ -80,6 +79,7 @@ LAYER_GROUPS = {
     'coverage': [
         {
             'display': 'National Land Cover Database',
+            'css_class_prefix': 'nlcd',
             'short_display': 'NLCD',
             'helptext': 'National Land Cover Database defines'
                         'land use across the U.S.',
@@ -88,10 +88,12 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
+            'legend_mapping': { key: names[1] for key, names in NLCD_MAPPING.iteritems()},
         },
         {
             'display': 'Hydrologic Soil Groups From gSSURGO',
             'short_display': 'SSURGO',
+            'css_class_prefix': 'soil',
             'helptext': 'Soils are classified by the Natural Resource Conservation '
                         'Service into four Hydrologic Soil Groups based on the '
                         'soil\'s runoff potential. The four Hydrologic Soils Groups'
@@ -102,6 +104,15 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
+            'legend_mapping': OrderedDict([
+                SOIL_MAPPING[1],
+                SOIL_MAPPING[2],
+                SOIL_MAPPING[3],
+                SOIL_MAPPING[5],
+                SOIL_MAPPING[6],
+                SOIL_MAPPING[7],
+                SOIL_MAPPING[4],
+            ]),
         },
         {
             'code': 'urban_areas',
@@ -122,6 +133,15 @@ LAYER_GROUPS = {
             'perimeter': drb_simple_perimeter,
             'opacity': 0.618,
             'has_opacity_slider': True,
+            'css_class_prefix': 'catchment',
+            # Defined in tiler/styles.mss
+            'legend_mapping': {
+                1: 'Less than 5 kg/y',
+                2: 'Less than 10 kg/y',
+                3: 'Less than 15 kg/y',
+                4: 'Less than 20 kg/y',
+                5: 'Greater than 20 kg/y',
+            }
         },
         {
             'code': 'drb_catchment_water_quality_tp',
@@ -132,6 +152,15 @@ LAYER_GROUPS = {
             'perimeter': drb_simple_perimeter,
             'opacity': 0.618,
             'has_opacity_slider': True,
+            'css_class_prefix': 'catchment',
+            # Defined in tiler/styles.mss
+            'legend_mapping': {
+                1: 'Less than 0.30 kg/y',
+                2: 'Less than 0.60 kg/y',
+                3: 'Less than 0.90 kg/y',
+                4: 'Less than 1.20 kg/y',
+                5: 'Greater than 1.20 kg/y',
+            }
         },
         {
             'code': 'drb_catchment_water_quality_tss',
@@ -142,6 +171,15 @@ LAYER_GROUPS = {
             'perimeter': drb_simple_perimeter,
             'opacity': 0.618,
             'has_opacity_slider': True,
+            'css_class_prefix': 'catchment',
+            # Defined in tiler/styles.mss
+            'legend_mapping': {
+                1: 'Less than 250 kg/y',
+                2: 'Less than 500 kg/y',
+                3: 'Less than 750 kg/y',
+                4: 'Less than 1000 kg/y',
+                5: 'Greater than 1000 kg/y',
+            }
         }
     ],
     'boundary': [
@@ -262,21 +300,48 @@ LAYER_GROUPS = {
             'display': ('Delaware River Basin TN Concentration' +
                         ' From SRAT'),
             'table_name': 'nhd_quality_tn',
-            'minZoom': 3
+            'minZoom': 3,
+            'css_class_prefix': 'stream',
+            # Defined in tiler/server.js
+            'legend_mapping': {
+                1: 'Less than 1 kg/y',
+                2: 'Less than 2 kg/y',
+                3: 'Less than 3 kg/y',
+                4: 'Less than 4 kg/y',
+                'NA': 'No Data'
+            }
         },
         {
             'code': 'nhd_quality_tp',
             'display': ('Delaware River Basin TP Concentration' +
                         ' From SRAT'),
             'table_name': 'nhd_quality_tp',
-            'minZoom': 3
+            'minZoom': 3,
+            'css_class_prefix': 'stream',
+            # Defined in tiler/server.js
+            'legend_mapping': {
+                1: 'Less than 0.03 kg/y',
+                2: 'Less than 0.06 kg/y',
+                3: 'Less than 0.09 kg/y',
+                4: 'Less than 0.12 kg/y',
+                'NA': 'No Data'
+            }
         },
         {
             'code': 'nhd_quality_tss',
             'display': ('Delaware River Basin TSS Concentration' +
                         ' From SRAT'),
             'table_name': 'nhd_quality_tss',
-            'minZoom': 3
+            'minZoom': 3,
+            'css_class_prefix': 'stream',
+            # Defined in tiler/server.js
+            'legend_mapping': {
+                1: 'Less than 50 kg/y',
+                2: 'Less than 100 kg/y',
+                3: 'Less than 150 kg/y',
+                4: 'Less than 200 kg/y',
+                'NA': 'No Data'
+            }
         },
     ],
 }

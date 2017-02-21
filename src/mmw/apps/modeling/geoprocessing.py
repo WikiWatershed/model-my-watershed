@@ -13,46 +13,6 @@ import json
 import re
 
 
-# Here, the keys of this dictionary are NLCD numbers (found in the
-# rasters), and the values of the dictionary are arrays of length two.
-# The first element of each array is the name of the NLCD category in
-# the TR-55 code.  The second string is a short, human-readable name.
-NLCD_MAPPING = {
-    11: ['open_water', 'Open Water'],
-    12: ['perennial_ice', 'Perennial Ice/Snow'],
-    21: ['developed_open', 'Developed, Open Space'],
-    22: ['developed_low', 'Developed, Low Intensity'],
-    23: ['developed_med', 'Developed, Medium Intensity'],
-    24: ['developed_high', 'Developed, High Intensity'],
-    31: ['barren_land', 'Barren Land (Rock/Sand/Clay)'],
-    41: ['deciduous_forest', 'Deciduous Forest'],
-    42: ['evergreen_forest', 'Evergreen Forest'],
-    43: ['mixed_forest', 'Mixed Forest'],
-    52: ['shrub', 'Shrub/Scrub'],
-    71: ['grassland', 'Grassland/Herbaceous'],
-    81: ['pasture', 'Pasture/Hay'],
-    82: ['cultivated_crops', 'Cultivated Crops'],
-    90: ['woody_wetlands', 'Woody Wetlands'],
-    95: ['herbaceous_wetlands', 'Emergent Herbaceous Wetlands']
-}
-
-# The soil rasters contain the numbers 1 through 7 (the keys of this
-# dictionary).  The values of this dictionary are length-two arrays
-# containing two strings.  The first member of each array is the name
-# used for the corresponding soil-type in the TR-55 code.  The second
-# member of each array is a human-readable description of that
-# soil-type.
-SOIL_MAPPING = {
-    1: ['a', 'A - High Infiltration'],
-    2: ['b', 'B - Moderate Infiltration'],
-    3: ['c', 'C - Slow Infiltration'],
-    4: ['d', 'D - Very Slow Infiltration'],
-    5: ['ad', 'A/D - High/Very Slow Infiltration'],
-    6: ['bd', 'B/D - Medium/Very Slow Infiltration'],
-    7: ['cd', 'C/D - Medium/Very Slow Infiltration']
-}
-
-
 @statsd.timer(__name__ + '.sjs_submit')
 def sjs_submit(host, port, args, data, retry=None):
     """
@@ -222,9 +182,9 @@ def data_to_census(data):
     """
     def update_rule(nlcd, soil, count, census):
         dist = census['distribution']
-        if nlcd in NLCD_MAPPING and soil in SOIL_MAPPING:
-            nlcd_str = NLCD_MAPPING[nlcd][0]
-            soil_str = SOIL_MAPPING[soil][0]
+        if nlcd in settings.NLCD_MAPPING and soil in settings.SOIL_MAPPING:
+            nlcd_str = settings.NLCD_MAPPING[nlcd][0]
+            soil_str = settings.SOIL_MAPPING[soil][0]
             if soil_str == 'ad':
                 soil_str = 'c'
             elif soil_str == 'bd':
@@ -271,19 +231,19 @@ def data_to_survey(data):
         landCategories = survey[0]['categories']
         soilCategories = survey[1]['categories']
 
-        if nlcd in NLCD_MAPPING:
-            update_category(NLCD_MAPPING[nlcd], count, landCategories)
+        if nlcd in settings.NLCD_MAPPING:
+            update_category(settings.NLCD_MAPPING[nlcd], count, landCategories)
         else:
             update_category([nlcd, nlcd], count, landCategories)
 
-        if soil in SOIL_MAPPING:
-            update_category(SOIL_MAPPING[soil], count, soilCategories)
+        if soil in settings.SOIL_MAPPING:
+            update_category(settings.SOIL_MAPPING[soil], count, soilCategories)
         else:
             update_category([soil, soil], count, soilCategories)
 
     def after_rule(count, survey):
-        nlcd_names = [v[1] for v in NLCD_MAPPING.values()]
-        nlcd_keys = NLCD_MAPPING.keys()
+        nlcd_names = [v[1] for v in settings.NLCD_MAPPING.values()]
+        nlcd_keys = settings.NLCD_MAPPING.keys()
         used_nlcd_names = [k for k in survey[0]['categories'].keys()]
 
         for index, name in enumerate(nlcd_names):

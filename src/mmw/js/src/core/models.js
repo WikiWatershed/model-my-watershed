@@ -150,6 +150,8 @@ var LayersModel = Backbone.Model.extend({
                 googleType: layer.googleType,
                 disabled: false,
                 hasOpacitySlider: layer.has_opacity_slider,
+                legendMapping: layer.legend_mapping,
+                cssClassPrefix: layer.css_class_prefix,
                 active: layer.display === initialActive ? true : false,
             });
         });

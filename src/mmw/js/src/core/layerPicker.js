@@ -11,6 +11,7 @@ var models = require('./models'),
     layerPickerTmpl = require('./templates/layerPicker.html'),
     layerPickerGroupTmpl = require('./templates/layerPickerGroup.html'),
     layerPickerLayerTmpl = require('./templates/layerPickerLayer.html'),
+    layerPickerLegendTmpl = require('./templates/layerPickerLegend.html'),
     opacityControlTmpl = require('./templates/opacityControl.html');
 
 var LayerOpacitySliderView = Marionette.ItemView.extend({
@@ -45,6 +46,17 @@ var LayerOpacitySliderView = Marionette.ItemView.extend({
     }
 });
 
+var LayerPickerLegendView = Marionette.ItemView.extend({
+    template: layerPickerLegendTmpl,
+
+    templateHelpers: function() {
+        return {
+            legendMapping: this.model.get('legendMapping'),
+            colorClass: this.model.get('cssClassPrefix')
+        };
+    }
+});
+
 /* The individual layers in each layer group */
 var LayerPickerLayerView = Marionette.ItemView.extend({
     template: layerPickerLayerTmpl,
@@ -72,7 +84,13 @@ var LayerPickerLayerView = Marionette.ItemView.extend({
     onRender: function() {
         this.ui.layerHelpIcon.popover({
             trigger: 'hover',
-            viewport: '.map-container'
+            viewport: {
+                'selector': '.map-container',
+                'padding': 10
+            },
+            content: new LayerPickerLegendView({
+                model: this.model,
+            }).render().el
         });
     },
 });

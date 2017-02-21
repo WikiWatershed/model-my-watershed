@@ -5,7 +5,7 @@
     >
         {{ layerDisplay }}
     </button>
-    {% if not isDisabled %}
+    {% if not isDisabled and legendMapping %}
         <a
             tabindex="-1"
             role="presentation"
@@ -14,20 +14,6 @@
             data-trigger="focus"
             class="layerpicker-info"
             data-layer-help-icon="{{layerDisplay}}"
-            data-content="<div>
-                <div class='layerpicker-legenditem'>
-                    <div class='layerpicker-legendcolor'></div>
-                    These here
-                </div>
-                <div class='layerpicker-legenditem'>
-                    <div class='layerpicker-legendcolor'></div>
-                    Are Just
-                </div>
-                <div class='layerpicker-legenditem'>
-                    <div class='layerpicker-legendcolor'></div>
-                    Placeholders
-                </div>
-            </div>"
         >
         </a>
     {% endif %}
