@@ -15,6 +15,7 @@ where: \n
     -m  load/reload mapshed data\n
     -p  load/reload DEP data\n
     -q  load/reload water quality data\n
+    -x  purge s3 cache for given path\n
 "
 
 # HTTP accessible storage for initial app data
@@ -25,7 +26,7 @@ load_stream=false
 load_mapshed=false
 load_water_quality=false
 
-while getopts ":hbsdpmqf:" opt; do
+while getopts ":hbsdpmqf:x:" opt; do
     case $opt in
         h)
             echo -e $usage
@@ -44,6 +45,8 @@ while getopts ":hbsdpmqf:" opt; do
             load_water_quality=true ;;
         f)
             file_to_load=$OPTARG ;;
+        x)
+            path_to_purge=$OPTARG ;;
         \?)
             echo "invalid option: -$OPTARG"
             exit ;;
@@ -79,6 +82,11 @@ function purge_tile_cache {
 if [ ! -z "$file_to_load" ] ; then
     FILES=("$file_to_load")
     download_and_load $FILES
+fi
+
+if [ ! -z "$path_to_purge" ] ; then
+    PATHS=("$path_to_purge")
+    purge_tile_cache $PATHS
 fi
 
 if [ "$load_dep" = "true" ] ; then
