@@ -423,7 +423,7 @@ var WatershedDelineationView = Marionette.ItemView.extend({
             itemName = $item.text(),
             snappingOn = !!$item.data('snapping-on'),
             dataSource = $item.data('data-source'),
-            rwdClickedPoint;
+            rwdClickedPoint = null;
 
         clearAoiLayer();
         this.model.set('pollError', false);
@@ -456,7 +456,9 @@ var WatershedDelineationView = Marionette.ItemView.extend({
                 displayAlert(message, modalModels.AlertTypes.warn);
             })
             .always(function() {
-                map.removeLayer(rwdClickedPoint);
+                if (rwdClickedPoint) {
+                    map.removeLayer(rwdClickedPoint);
+                }
                 self.model.enableTools();
             });
     },
