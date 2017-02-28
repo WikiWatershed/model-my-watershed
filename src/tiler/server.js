@@ -103,6 +103,8 @@ var interactivity = {
                 stream_order = 6;
             } else if (zoom <= 8) {
                 stream_order = 5;
+            } else if (zoom <= 9) {
+                stream_order = 4;
             }
         }
         
