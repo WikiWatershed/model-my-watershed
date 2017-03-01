@@ -20,6 +20,13 @@ var ToolbarModel = Backbone.Model.extend({
 
     disableTools: function() {
         this.set('toolsEnabled', false);
+    },
+
+    clearRwdClickedPoint: function(map) {
+        if (map && this.has('rwd-original-point')) {
+            map.removeLayer(this.get('rwd-original-point'));
+            this.unset('rwd-original-point');
+        }
     }
 });
 
