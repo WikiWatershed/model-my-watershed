@@ -15,7 +15,8 @@ var $ = require('jquery'),
     models = require('./models'),
     AppRouter = require('../router').AppRouter,
     settings = require('./settings'),
-    testUtils = require('./testUtils');
+    testUtils = require('./testUtils'),
+    coreUtils = require('./utils');
 
 var TEST_SHAPE = {
     'type': 'Feature',
@@ -225,16 +226,29 @@ describe('Core', function() {
         });
 
         describe('HeaderView', function() {
-            it('shows the current page', function() {
+            it('shows the current page as active', function() {
                 var appState = new models.AppStateModel({
-                        current_page_title: 'Test Page'
+                        active_page: coreUtils.selectAreaPageTitle,
                     }),
                     header = new views.HeaderView({
                         model: App.user,
                         appState: appState
                     }).render();
 
-                assert.include(header.$el.find('.brand').text(), 'Test Page');
+                assert.include(header.$el.find('.global-navigation-item.active')
+                    .find('button').text(), 'Select Area');
+            });
+            it('shows past active pages as visible', function() {
+                var appState = new models.AppStateModel({
+                        active_page: coreUtils.selectAreaPageTitle,
+                        was_analyze_visible: true,
+                    }),
+                    header = new views.HeaderView({
+                        model: App.user,
+                        appState: appState
+                    }).render();
+                assert.include(header.$el.find('.global-navigation-item.visible').not('.active')
+                    .find('button').text(), 'Analyze');
             });
         });
     });
