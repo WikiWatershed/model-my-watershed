@@ -422,8 +422,7 @@ var WatershedDelineationView = Marionette.ItemView.extend({
             $item = $(e.currentTarget),
             itemName = $item.text(),
             snappingOn = !!$item.data('snapping-on'),
-            dataSource = $item.data('data-source'),
-            rwdClickedPoint;
+            dataSource = $item.data('data-source');
 
         clearAoiLayer();
         this.model.set('pollError', false);
@@ -434,11 +433,12 @@ var WatershedDelineationView = Marionette.ItemView.extend({
                 return validatePointWithinDataSourceBounds(latlng, dataSource);
             })
             .then(function(latlng) {
-                // Assign `rwdClickedPoint` so it's in scope to be removed from
-                // the map when the deferred chain completes.
-                rwdClickedPoint = L.marker(latlng, {
+                // Set `rwd-original-point` in the model so it can be
+                // removed when the deferred chain completes.
+                var rwdClickedPoint = L.marker(latlng, {
                     icon: drawUtils.createRwdMarkerIcon('original-point')
                 }).bindPopup('Original clicked outlet point');
+                self.model.set('rwd-original-point', rwdClickedPoint);
                 rwdClickedPoint.addTo(map);
                 return latlng;
             })
@@ -456,7 +456,8 @@ var WatershedDelineationView = Marionette.ItemView.extend({
                 displayAlert(message, modalModels.AlertTypes.warn);
             })
             .always(function() {
-                map.removeLayer(rwdClickedPoint);
+                self.model.clearRwdClickedPoint(map);
+
                 self.model.enableTools();
             });
     },
@@ -566,6 +567,7 @@ var ResetDrawView = Marionette.ItemView.extend({
     },
 
     resetDrawingState: function() {
+        this.model.clearRwdClickedPoint(App.getLeafletMap());
         this.rwdTaskModel.reset();
         this.model.set({
             polling: false,

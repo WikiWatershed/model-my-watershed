@@ -155,7 +155,7 @@
   }
 }
 
-#drb_streams_50[zoom<=4],
+
 #nhdflowline[zoom<=4],
 #nhd_quality_tp[zoom<=4],
 #nhd_quality_tn[zoom<=4],
@@ -171,7 +171,7 @@
   }
 }
 
-#drb_streams_50[zoom>=5][zoom<=6],
+
 #nhdflowline[zoom>=5][zoom<=6],
 #nhd_quality_tp[zoom>=5][zoom<=6],
 #nhd_quality_tn[zoom>=5][zoom<=6],
@@ -187,7 +187,7 @@
   }
 }
 
-#drb_streams_50[zoom>=7][zoom<=8],
+
 #nhdflowline[zoom>=7][zoom<=8],
 #nhd_quality_tp[zoom>=7][zoom<=8],
 #nhd_quality_tn[zoom>=7][zoom<=8],
@@ -206,7 +206,7 @@
   }
 }
 
-#drb_streams_50[zoom>=9][zoom<=10],
+
 #nhdflowline[zoom>=9][zoom<=10],
 #nhd_quality_tp[zoom>=9][zoom<=10],
 #nhd_quality_tn[zoom>=9][zoom<=10],
@@ -221,11 +221,11 @@
     line-width: 5.0 * @zoomBase;
   }
   [stream_order=3] {
-    line-width: 4.0 * @zoomBase;
+    line-width: 3.0 * @zoomBase;
   }
 }
 
-#drb_streams_50[zoom>=11][zoom<=12],
+
 #nhdflowline[zoom>=11][zoom<=12],
 #nhd_quality_tp[zoom>=11][zoom<=12],
 #nhd_quality_tn[zoom>=11][zoom<=12],
@@ -251,7 +251,7 @@
 }
 
 
-#drb_streams_50[zoom>=13],
+
 #nhdflowline[zoom>=13],
 #nhd_quality_tp[zoom>=13],
 #nhd_quality_tn[zoom>=13],
@@ -270,5 +270,100 @@
   }
   [stream_order<=1][stream_order>=0] {
     line-width:  5.0 * @zoomBase;
+  }
+}
+
+#drb_streams_50[zoom<=4]{
+  [stream_order=10] {
+    line-width: 3.0 * @zoomBase;
+  }
+  [stream_order=9] {
+    line-width: 3.0 * @zoomBase;
+  }
+  [stream_order<=8] {
+    line-width: 2.0 * @zoomBase;
+  }
+}
+
+#drb_streams_50[zoom>=5][zoom<=6]{
+  [stream_order=10] {
+    line-width: 4.0 * @zoomBase;
+  }
+  [stream_order=9] {
+    line-width: 3.0 * @zoomBase;
+  }
+  [stream_order<=8] {
+    line-width: 2.0 * @zoomBase;
+  }
+}
+
+#drb_streams_50[zoom>=7][zoom<=8]{
+  [stream_order>=9] {
+    line-width: 7.0 * @zoomBase;
+  }
+  [stream_order<=8][stream_order>=7] {
+    line-width: 4.0 * @zoomBase;
+  }
+  [stream_order<=6] {
+    line-width: 3.0 * @zoomBase;
+  }
+  [stream_order=5] {
+    line-width: 2.0 * @zoomBase;
+  }
+}
+
+#drb_streams_50[zoom>=9][zoom<=10]{
+  [stream_order>=9] {
+    line-width: 10.0 * @zoomBase;
+  }
+  [stream_order<=8][stream_order>=6] {
+    line-width: 5.0 * @zoomBase;
+  }
+  [stream_order<=5][stream_order>=4] {
+    line-width: 3.0 * @zoomBase;
+  }
+  [stream_order=3] {
+    line-width: 2.0 * @zoomBase;
+  }
+}
+
+#drb_streams_50[zoom>=11][zoom<=12] {
+  [stream_order>=9] {
+    line-width: 12.0 * @zoomBase;
+  }
+  [stream_order<=8][stream_order>=6] {
+    line-width: 10.0 * @zoomBase;
+  }
+  [stream_order<=5][stream_order>=4] {
+    line-width:  6.0 * @zoomBase;
+  }
+  [stream_order=3] {
+    line-width:  5.0 * @zoomBase;
+  }
+  [stream_order=2] {
+    line-width:  4.0 * @zoomBase;
+  }
+  [stream_order<=1][stream_order>=0] {
+    line-width:  3.0 * @zoomBase;
+  }
+}
+#drb_streams_50[zoom>=13]{
+  [stream_order>=9] {
+    line-width: 14.0 * @zoomBase;
+  }
+  [stream_order<=8][stream_order>=6] {
+    line-width: 11.0 * @zoomBase;
+  }
+  [stream_order<=5][stream_order>=4] {
+    line-width:  8.0 * @zoomBase;
+  }
+  [stream_order=3] {
+    line-width:  5.0 * @zoomBase;
+  }
+  [stream_order=2] {
+    line-width:  4.0 * @zoomBase;
+  }
+  [stream_order<=1][stream_order>=0] {
+    line-width:  3.0 * @zoomBase;
   }
 }
