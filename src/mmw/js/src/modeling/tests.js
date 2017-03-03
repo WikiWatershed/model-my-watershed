@@ -675,14 +675,14 @@ describe('Modeling', function() {
                     });
 
                     model.updateModificationHash();
-                    assert.equal(model.get('modification_hash'), '65af065d7205cd998aeb0bf15c41f256');
+                    assert.equal(model.get('modification_hash'), '582b6178186440159bd4ea25f0260892');
 
                     var mod = new models.ModificationModel(mocks.modifications.sample2);
                     model.get('modifications').add(mod);
-                    assert.equal(model.get('modification_hash'), 'ae69e823f926824a2fc22d9a5f1ea62c');
+                    assert.equal(model.get('modification_hash'), 'd95d0c983f0e3d0b171aaa0a84540205');
 
                     model.get('modifications').remove(mod);
-                    assert.equal(model.get('modification_hash'), '65af065d7205cd998aeb0bf15c41f256');
+                    assert.equal(model.get('modification_hash'), '582b6178186440159bd4ea25f0260892');
                 });
 
                 it('is called when the modifications for a scenario changes', function() {
@@ -961,6 +961,49 @@ describe('Modeling', function() {
                     childViews[1].ui.nameField.trigger('blur');
 
                     assert.isTrue(spyAlert.calledOnce);
+                    assert.equal(collection.at(1).get('name'), 'New Scenario 1');
+                });
+
+                it('will not show error when trying to save name as is', function() {
+                    var collection = getTestScenarioCollection(),
+                        view = new views.ScenarioTabPanelsView({ collection: collection });
+
+                    view.render();
+                    var childViews = _.values(view.children._views);
+
+                    childViews[1].ui.rename.trigger('click');
+                    childViews[1].ui.nameField.text('New Scenario 1');
+                    childViews[1].ui.nameField.trigger('blur');
+
+                    assert.isFalse(spyAlert.calledOnce);
+                    assert.equal(collection.at(1).get('name'), 'New Scenario 1');
+                });
+
+                it('resets name if set to empty string', function() {
+                    var collection = getTestScenarioCollection(),
+                        view = new views.ScenarioTabPanelsView({ collection: collection });
+
+                    view.render();
+                    var childViews = _.values(view.children._views);
+
+                    childViews[1].ui.rename.trigger('click');
+                    childViews[1].ui.nameField.text('');
+                    childViews[1].ui.nameField.trigger('blur');
+
+                    assert.equal(collection.at(1).get('name'), 'New Scenario 1');
+                });
+
+                it('resets name if set to just spaces', function() {
+                    var collection = getTestScenarioCollection(),
+                        view = new views.ScenarioTabPanelsView({ collection: collection });
+
+                    view.render();
+                    var childViews = _.values(view.children._views);
+
+                    childViews[1].ui.rename.trigger('click');
+                    childViews[1].ui.nameField.text(' ');
+                    childViews[1].ui.nameField.trigger('blur');
+
                     assert.equal(collection.at(1).get('name'), 'New Scenario 1');
                 });
             });

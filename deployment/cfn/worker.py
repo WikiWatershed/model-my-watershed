@@ -170,7 +170,7 @@ class Worker(StackNode):
         self.worker_auto_scaling_schedule_end_recurrence = self.add_parameter(  # NOQA
             Parameter(
                 'WorkerAutoScalingScheduleEndRecurrence', Type='String',
-                Default='0 23 * * *',
+                Default='0 1 * * *',
                 Description='Worker ASG schedule end recurrence'
             ), 'WorkerAutoScalingScheduleEndRecurrence')
 
@@ -331,6 +331,7 @@ class Worker(StackNode):
         worker_launch_config = self.add_resource(
             asg.LaunchConfiguration(
                 worker_launch_config_name,
+                EbsOptimized=True,
                 ImageId=Ref(self.worker_ami),
                 IamInstanceProfile=Ref(self.worker_instance_profile),
                 InstanceType=Ref(self.worker_instance_type),
@@ -416,7 +417,10 @@ class Worker(StackNode):
                 '  - path: /etc/mmw.d/env/ROLLBAR_SERVER_SIDE_ACCESS_TOKEN\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
-                '    content: ', self.get_input('RollbarServerSideAccessToken')]  # NOQA
+                '    content: ', self.get_input('RollbarServerSideAccessToken'),  # NOQA
+                '\n',
+                'runcmd:\n',
+                '  - /opt/model-my-watershed/scripts/aws/ebs-warmer.sh']
 
     def create_cloud_watch_resources(self, worker_auto_scaling_group):
         self.add_resource(cw.Alarm(

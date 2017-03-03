@@ -135,6 +135,8 @@ def get_client_settings(request):
             'draw_tools': settings.DRAW_TOOLS,
             'map_controls': settings.MAP_CONTROLS,
             'vizer_urls': settings.VIZER_URLS,
+            'vizer_ignore': settings.VIZER_IGNORE,
+            'vizer_names': settings.VIZER_NAMES,
             'model_packages': get_model_packages(),
             'mapshed_max_area': settings.GWLFE_CONFIG['MaxAoIArea']
         }),

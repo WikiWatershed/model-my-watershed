@@ -24,6 +24,7 @@ var App = new Marionette.Application({
         // Initialize embed interface if in activity mode
         if (activityMode) {
             this.itsi = new itsi.ItsiEmbed(this);
+            this.itsi.getAuthInfo();
         }
 
         // This view is intentionally not attached to any region.
@@ -86,6 +87,12 @@ var App = new Marionette.Application({
         return this._mapView._leafletMap;
     },
 
+    getUserOrShowLoginIfNotItsiEmbed: function() {
+        if (!settings.get('itsi_embed')) {
+            this.getUserOrShowLogin();
+        }
+    },
+
     getUserOrShowLogin: function() {
         this.user.fetch().always(function() {
             if (App.user.get('guest')) {
@@ -115,18 +122,61 @@ function RestAPI() {
 }
 
 function initializeShutterbug() {
+    var googleTileLayerSelector = '#map > .leaflet-google-layer > div > div > div:nth-child(1) > div:nth-child(1)';
+
     $(window)
         .on('shutterbug-saycheese', function() {
             // Set fixed width before screenshot to constrain width to viewport
             $('#model-output-wrapper, body > .map-container').css({
                 'width': window.innerWidth
             });
+
+            var mapView = App.getMapView(),
+                activeBaseLayer = mapView.baseLayers[mapView.getActiveBaseLayerName()],
+                googleLayerVisible = !!activeBaseLayer._google;
+
+            if (googleLayerVisible) {
+                // Convert Google Maps CSS Transforms to Left / Right
+                var $googleTileLayer = $(googleTileLayerSelector),
+                    transform = $googleTileLayer.css('transform').split(','),
+                    left = parseFloat(transform[4]),
+                    top = parseFloat(transform[5]);
+
+                $googleTileLayer.css({
+                    transform: 'none',
+                    left: left,
+                    top: top,
+                });
+            }
+
+            // Fix Firefox screenshots by adding a '#' to the URL.
+            // Setting to empty string does nothing, so we first set to
+            // '/' then to empty string, which leaves a '#' in the URL.
+            document.location.hash = '/';
+            document.location.hash = '';
         })
         .on('shutterbug-asyouwere', function() {
             // Reset after screenshot has been taken
             $('#model-output-wrapper, body > .map-container').css({
                 'width': ''
             });
+
+            var mapView = App.getMapView(),
+                activeBaseLayer = mapView.baseLayers[mapView.getActiveBaseLayerName()],
+                googleLayerVisible = !!activeBaseLayer._google;
+
+            if (googleLayerVisible) {
+                var $googleTileLayer = $(googleTileLayerSelector),
+                    left = parseFloat($googleTileLayer.css('left')),
+                    top = parseFloat($googleTileLayer.css('top')),
+                    transform = 'matrix(1, 0, 0, 1, ' + left + ', ' + top + ')';
+
+                $googleTileLayer.css({
+                    transform: transform,
+                    left: '',
+                    top: '',
+                });
+            }
         });
 
     shutterbug.enable('body');

@@ -40,9 +40,11 @@ var ItsiEmbed = function(App) {
 
     this.loadInteractive = function(interactiveState) {
         // Only redirect if route specified and different
+        // and user is logged in
         if (interactiveState &&
             interactiveState.route &&
-            interactiveState.route !== Backbone.history.getFragment()) {
+            interactiveState.route !== Backbone.history.getFragment() &&
+            !App.user.get('guest')) {
 
             App.currentProject = null;
             router.navigate(interactiveState.route, { trigger: true });
@@ -53,10 +55,22 @@ var ItsiEmbed = function(App) {
         this.phone.post('extendedSupport', this.extendedSupport);
     };
 
+    this.getAuthInfo = function() {
+        this.phone.post('getAuthInfo');
+    };
+
+    this.authInfo = function(info) {
+        if (info && info.loggedIn && App.user.get('guest')) {
+            window.location.href = '/user/itsi/login?itsi_embed=true&next=/' +
+                                   Backbone.history.getFragment();
+        }
+    };
+
     this.phone.addListener('getExtendedSupport', _.bind(this.getExtendedSupport, this));
     this.phone.addListener('getLearnerUrl', _.bind(this.sendLearnerUrlOnlyFromProjectView, this));
     this.phone.addListener('getInteractiveState', _.bind(this.sendLearnerUrlOnlyFromProjectView, this));
     this.phone.addListener('loadInteractive', _.bind(this.loadInteractive, this));
+    this.phone.addListener('authInfo', _.bind(this.authInfo, this));
     this.phone.initialize();
 };
 

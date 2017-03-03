@@ -41,6 +41,7 @@ nhd_region2_simple_perimeter_file = open(nhd_region2_simple_perimeter_path)
 
 NHD_REGION2_PERIMETER = json.load(nhd_region2_simple_perimeter_file)
 
+NEW_LINE_AND_TAB = '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
 
 LAYERS = [
     {
@@ -144,7 +145,7 @@ LAYERS = [
     {
         'code': 'nhd_streams_v2',
         'display': ('Continental US Medium Resolution' +
-            '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stream Network'),
+                    NEW_LINE_AND_TAB + 'Stream Network'),
         'table_name': 'nhdflowline',
         'stream': True,
         'overlay': True,
@@ -153,7 +154,7 @@ LAYERS = [
     {
         'code': 'drb_streams_v2',
         'display': ('Delaware River Basin High Resolution' +
-            '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stream Network'),
+                    NEW_LINE_AND_TAB + 'Stream Network'),
         'table_name': 'drb_streams_50',
         'stream': True,
         'overlay': True,
@@ -162,24 +163,27 @@ LAYERS = [
         # overlaps with perimeter polygon.
     },
     {
-        'code': 'nhd_quality_tp',
-        'display': 'Delaware River Basin TP Concentration',
-        'table_name': 'nhd_quality_tp',
-        'stream': True,
-        'overlay': True,
-        'minZoom': 3
-    },
-    {
         'code': 'nhd_quality_tn',
-        'display': 'Delaware River Basin TN Concentration',
+        'display': ('Delaware River Basin TN Concentration' +
+                    NEW_LINE_AND_TAB + 'From SRAT'),
         'table_name': 'nhd_quality_tn',
         'stream': True,
         'overlay': True,
         'minZoom': 3
     },
     {
+        'code': 'nhd_quality_tp',
+        'display': ('Delaware River Basin TP Concentration' +
+                    NEW_LINE_AND_TAB + 'From SRAT'),
+        'table_name': 'nhd_quality_tp',
+        'stream': True,
+        'overlay': True,
+        'minZoom': 3
+    },
+    {
         'code': 'nhd_quality_tss',
-        'display': 'Delaware River Basin TSS Concentration',
+        'display': ('Delaware River Basin TSS Concentration' +
+                    NEW_LINE_AND_TAB + 'From SRAT'),
         'table_name': 'nhd_quality_tss',
         'stream': True,
         'overlay': True,
@@ -199,7 +203,7 @@ LAYERS = [
         'has_opacity_slider': True
     },
     {
-        'display': 'Hydrologic Soil Groups',
+        'display': 'Hydrologic Soil Groups From gSSURGO',
         'short_display': 'SSURGO',
         'helptext': 'Soils are classified by the Natural Resource Conservation '
                     'Service into four Hydrologic Soil Groups based on the '
@@ -278,7 +282,7 @@ LAYERS = [
     {
         'code': 'drb_catchment_water_quality_tn',
         'display': ('DRB Catchment Water Quality Data' +
-                    '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TN Loading Rates'),
+                    NEW_LINE_AND_TAB + 'TN Loading Rates from SRAT Catchments'),
         'table_name': 'drb_catchment_water_quality_tn',
         'raster': True,
         'overlay': True,
@@ -290,7 +294,7 @@ LAYERS = [
     {
         'code': 'drb_catchment_water_quality_tp',
         'display': ('DRB Catchment Water Quality Data' +
-                    '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TP Loading Rates'),
+                    NEW_LINE_AND_TAB + 'TP Loading Rates from SRAT Catchments'),
         'table_name': 'drb_catchment_water_quality_tp',
         'raster': True,
         'overlay': True,
@@ -302,7 +306,7 @@ LAYERS = [
     {
         'code': 'drb_catchment_water_quality_tss',
         'display': ('DRB Catchment Water Quality Data' +
-                    '<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TSS Loading Rates'),
+                    NEW_LINE_AND_TAB + 'TSS Loading Rates from SRAT Catchments'),
         'table_name': 'drb_catchment_water_quality_tss',
         'raster': True,
         'overlay': True,
@@ -326,4 +330,18 @@ VIZER_URLS = {
     'layers': VIZER_CACHED_ROOT + 'opt=meta' + VIZER_TYPE_PARAM,
     'variable': VIZER_ROOT + 'opt=data&asset_id={{asset_id}}&var_id={{var_id}}' + VIZER_TYPE_PARAM,  # NOQA
     'recent': VIZER_ROOT + 'opt=recent_values&asset_id={{asset_id}}&var_id=all' + VIZER_TYPE_PARAM  # NOQA
+}
+
+# To hide elements from the UI
+VIZER_IGNORE = [
+    'CRBCZO',
+    'SWRC',
+    'USCRN'
+]
+
+# To give friendly names in the UI
+VIZER_NAMES = {
+    'DEOS': 'Delaware Environmental Observing System',
+    'NOS/CO-OPS': 'NOAA Tides and Currents',
+    'USGS': 'USGS National Water Information System'
 }

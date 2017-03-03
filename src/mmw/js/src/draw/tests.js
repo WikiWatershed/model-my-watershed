@@ -16,9 +16,15 @@ var $ = require('jquery'),
 
 var sandboxId = 'sandbox',
     sandboxSelector = '#' + sandboxId,
+    // City Hall
     TEST_SHAPE = {
         'type': 'MultiPolygon',
-        'coordinates': [[[-5e6, -1e6], [-4e6, 1e6], [-3e6, -1e6]]]
+        'coordinates': [[[
+          [-75.16472339630127, 39.953446247674904],
+          [-75.16255617141724, 39.95311727224624],
+          [-75.16287803649902, 39.95161218948083],
+          [-75.16518473625183, 39.95194939669509],
+          [-75.16472339630127, 39.953446247674904]]]]
     };
 
 var SandboxRegion = Marionette.Region.extend({

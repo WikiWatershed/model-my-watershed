@@ -616,18 +616,11 @@ var MapView = Marionette.ItemView.extend({
 
         if (additionalShapes) {
             _.each(additionalShapes.features, function(geoJSONpoint) {
-                function createMarkerIcon(iconName) {
-                    return L.divIcon({
-                        className: 'marker-rwd marker-rwd-' + iconName,
-                        iconSize: [16,16]
-                    });
-                }
-
                 var newLayer = L.geoJson(geoJSONpoint, {
                     pointToLayer: function(feature, latLngForPoint) {
                         var customIcon = feature.properties.original ?
-                            createMarkerIcon('original-point') :
-                            createMarkerIcon('nearest-stream-point');
+                            drawUtils.createRwdMarkerIcon('original-point') :
+                            drawUtils.createRwdMarkerIcon('nearest-stream-point');
                         return L.marker(latLngForPoint, { icon: customIcon });
                     },
                     onEachFeature: function(feature, layer) {
@@ -872,13 +865,16 @@ var AreaOfInterestView = Marionette.ItemView.extend({
     template: areaOfInterestTmpl,
     initialize: function() {
         this.map = this.options.App.map;
-        this.listenTo(this.map, 'change areaOfInterest', this.syncArea);
+        this.listenTo(this.map, 'change:areaOfInterest', this.syncArea);
     },
 
-    modelEvents: { 'change shape': 'render' },
+    modelEvents: { 'change:shape': 'render' },
 
     syncArea: function() {
-        this.model.set('shape', this.map.get('areaOfInterest'));
+        this.model.set({
+            'shape': this.map.get('areaOfInterest'),
+            'place': this.map.get('areaOfInterestName'),
+        });
     }
 });
 

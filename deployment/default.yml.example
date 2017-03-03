@@ -29,8 +29,8 @@ AppServerAutoScalingScheduleStartCapacity: '1'
 # 8AM ET
 AppServerAutoScalingScheduleStartRecurrence: '0 13 * * 1-5'
 AppServerAutoScalingScheduleEndCapacity: '0'
-# 6PM ET
-AppServerAutoScalingScheduleEndRecurrence: '0 23 * * *'
+# 8PM ET
+AppServerAutoScalingScheduleEndRecurrence: '0 1 * * *'
 SSLCertificateARN: 'arn:aws:iam...'
 BackwardCompatSSLCertificateARN: 'arn:aws:iam...'
 TileServerInstanceType: 't2.micro'
@@ -45,8 +45,8 @@ TileServerAutoScalingScheduleStartCapacity: '1'
 # 8AM ET
 TileServerAutoScalingScheduleStartRecurrence: '0 13 * * 1-5'
 TileServerAutoScalingScheduleEndCapacity: '0'
-# 6PM ET
-TileServerAutoScalingScheduleEndRecurrence: '0 23 * * *'
+# 8PM ET
+TileServerAutoScalingScheduleEndRecurrence: '0 1 * * *'
 WorkerInstanceType: 't2.micro'
 # Leaving this commented dynamically looks up the
 # most recent AMI for this type.
@@ -59,8 +59,8 @@ WorkerAutoScalingScheduleStartCapacity: '2'
 # 8AM ET
 WorkerAutoScalingScheduleStartRecurrence: '0 13 * * 1-5'
 WorkerAutoScalingScheduleEndCapacity: '0'
-# 6PM ET
-WorkerAutoScalingScheduleEndRecurrence: '0 23 * * *'
+# 8PM ET
+WorkerAutoScalingScheduleEndRecurrence: '0 1 * * *'
 ITSIBaseURL: ''
 ITSISecretKey: ''
 RollbarServerSideAccessToken: ''

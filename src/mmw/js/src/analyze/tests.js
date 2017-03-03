@@ -172,7 +172,7 @@ var tableHeaders = {
     animals: ['Animal', 'Count'],
     pointsource: ['NPDES Code', 'City', 'Discharge (MGD)', 'TN Load (kg/yr)', 'TP Load (kg/yr)'],
     catchment_water_quality: ['Id', 'Area (ha)', 'Total N (kg/ha)', 'Total P (kg/ha)',
-        'Total TSS (kg/ha)', 'Avg TN (mg/l)', 'Avg TP (mg/l)', 'Avg TSS (mg/l)'],
+        'Total SS (kg/ha)', 'Avg TN (mg/l)', 'Avg TP (mg/l)', 'Avg TSS (mg/l)'],
 };
 
 function tableRows(type, result) {
