@@ -16,6 +16,12 @@ var ResultView = Marionette.LayoutView.extend({
 
     template: resultTmpl,
 
+    templateHelpers: function() {
+        return {
+            showModelDescription: !this.compareMode
+        };
+    },
+
     regions: {
         tableRegion: '.runoff-table-region',
         chartRegion: '.runoff-chart-region'

@@ -21,6 +21,12 @@ var ResultView = Marionette.LayoutView.extend({
 
     template: resultTmpl,
 
+    templateHelpers: function() {
+        return {
+            showModelDescription: !this.compareMode
+        };
+    },
+
     attributes: {
         role: 'tabpanel'
     },
