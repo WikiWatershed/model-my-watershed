@@ -309,6 +309,7 @@ var LayerPickerView = Marionette.LayoutView.extend({
     initialize: function (options) {
         this.collection = new Backbone.Collection([
             {   name: 'Basemaps',
+                iconClass: 'icon-basemaps',
                 active: true,
                 layerGroups: new Backbone.Collection([
                     new models.LayerGroupModel({
@@ -319,6 +320,7 @@ var LayerPickerView = Marionette.LayoutView.extend({
                 ])
             },
             {   name: 'Streams',
+                iconClass: 'icon-streams',
                 layerGroups: new Backbone.Collection([
                     new models.LayerGroupModel({
                         name: 'Streams',
@@ -327,6 +329,7 @@ var LayerPickerView = Marionette.LayoutView.extend({
                 ]),
             },
             {   name: 'Coverage Grid',
+                iconClass: 'icon-coverage',
                 layerGroups: new Backbone.Collection([
                     new models.LayerGroupModel({
                         name: 'Coverage Grid',
@@ -335,6 +338,7 @@ var LayerPickerView = Marionette.LayoutView.extend({
                 ])
             },
             {   name: 'Boundary',
+                iconClass: 'icon-boundary',
                 layerGroups: new Backbone.Collection([
                     new models.LayerGroupModel({
                         name: 'Boundary',
@@ -343,6 +347,7 @@ var LayerPickerView = Marionette.LayoutView.extend({
                 ])
             },
             {   name: 'Observations',
+                iconClass: 'icon-observations',
                 layerGroups: new Backbone.Collection([
                     new models.LayerGroupModel({
                         name: 'Observations',
