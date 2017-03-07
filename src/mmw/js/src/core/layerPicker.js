@@ -287,6 +287,15 @@ var LayerPickerTabView = Marionette.CollectionView.extend({
     }
 });
 
+/**
+The main layerpicker view
+Expects options = {
+    leafletMap, // required
+    defaultActiveTabIndex, // optional, an index of the layer group tab
+                             // that should start as active. Defaults to
+                             // the first tab.
+}
+**/
 var LayerPickerView = Marionette.LayoutView.extend({
     template: layerPickerTmpl,
 
@@ -309,7 +318,6 @@ var LayerPickerView = Marionette.LayoutView.extend({
     initialize: function (options) {
         this.collection = new Backbone.Collection([
             {   name: 'Streams',
-                active: true,
                 iconClass: 'icon-streams',
                 layerGroups: new Backbone.Collection([
                     new models.LayerGroupModel({
@@ -360,6 +368,11 @@ var LayerPickerView = Marionette.LayoutView.extend({
                 ])
             },
         ]);
+
+        var layerToMakeActive = this.collection.models[options.defaultActiveTabIndex] ||
+            this.collection.models[0];
+        layerToMakeActive.set('active', true);
+
         this.leafletMap = options.leafletMap;
     },
 

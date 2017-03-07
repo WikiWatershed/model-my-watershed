@@ -189,6 +189,9 @@ describe('Core', function() {
                     view = new LayerPickerView({
                         model: model,
                         leafletMap: App.getLeafletMap(),
+                        // The basemaps are currently the 5th tab in the
+                        // layerpicker
+                        defaultActiveTabIndex: 4,
                     });
 
                     $(sandboxSelector).html(view.render().el);
