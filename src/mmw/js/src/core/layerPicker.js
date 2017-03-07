@@ -308,18 +308,8 @@ var LayerPickerView = Marionette.LayoutView.extend({
 
     initialize: function (options) {
         this.collection = new Backbone.Collection([
-            {   name: 'Basemaps',
-                iconClass: 'icon-basemaps',
-                active: true,
-                layerGroups: new Backbone.Collection([
-                    new models.LayerGroupModel({
-                        name: 'Basemaps',
-                        mustHaveActive: true,
-                        layers: this.model.baseLayers,
-                    }),
-                ])
-            },
             {   name: 'Streams',
+                active: true,
                 iconClass: 'icon-streams',
                 layerGroups: new Backbone.Collection([
                     new models.LayerGroupModel({
@@ -356,6 +346,16 @@ var LayerPickerView = Marionette.LayoutView.extend({
                         polling: false,
                         error: null,
                         layers: null,
+                    }),
+                ])
+            },
+            {   name: 'Basemaps',
+                iconClass: 'icon-basemaps',
+                layerGroups: new Backbone.Collection([
+                    new models.LayerGroupModel({
+                        name: 'Basemaps',
+                        mustHaveActive: true,
+                        layers: this.model.baseLayers,
                     }),
                 ])
             },
