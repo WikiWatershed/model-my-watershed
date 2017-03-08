@@ -135,6 +135,12 @@ $ ./scripts/test.sh
 
 ##### Python
 
+To check for Python lint:
+
+```bash
+$ ./scripts/check.sh
+```
+
 To run all the tests on the Django app:
 
 ```bash
@@ -151,7 +157,7 @@ More info [here](https://docs.djangoproject.com/en/1.8/topics/testing/).
 
 ##### JavaScript
 
-To check for JavaScript lint, run the following command:
+To check for JavaScript lint:
 
 ```bash
 $ ./scripts/npm.sh run lint
