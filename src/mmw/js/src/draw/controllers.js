@@ -3,8 +3,6 @@
 var App = require('../app'),
     geocoder = require('../geocode/views'),
     views = require('./views'),
-    coreModels = require('../core/models'),
-    coreViews = require('../core/views'),
     settings = require('../core/settings'),
     modelingModels = require('../modeling/models'),
     models = require('./models'),
@@ -34,23 +32,7 @@ var DrawController = {
         App.rootView.drawToolsRegion.show(toolbarView);
 
         enableSingleProjectModeIfActivity();
-
-        if (App.map.get('areaOfInterest')) {
-            var aoiView = new coreViews.AreaOfInterestView({
-                    id: 'aoi-header-wrapper',
-                    App: App,
-                    model: new coreModels.AreaOfInterestModel({
-                        can_go_back: false,
-                        next_label: 'Analyze',
-                        url: 'analyze',
-                        shape: App.map.get('areaOfInterest'),
-                        place: App.map.get('areaOfInterestName')
-                    })
-            });
-
-            App.rootView.footerRegion.show(aoiView);
-            App.map.setDrawWithBarSize(true);
-        }
+        App.map.setDrawSize();
 
         App.state.set('active_page', utils.selectAreaPageTitle);
     },

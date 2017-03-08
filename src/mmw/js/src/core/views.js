@@ -12,7 +12,6 @@ var L = require('leaflet'),
     headerTmpl = require('./templates/header.html'),
     messageTmpl = require('./templates/message.html'),
     modificationPopupTmpl = require('./templates/modificationPopup.html'),
-    areaOfInterestTmpl = require('./templates/areaOfInterestHeader.html'),
     modalModels = require('./modals/models'),
     modalViews = require('./modals/views'),
     settings = require('./settings'),
@@ -751,20 +750,6 @@ var ModificationPopupView = Marionette.ItemView.extend({
     }
 });
 
-var AreaOfInterestView = Marionette.ItemView.extend({
-    template: areaOfInterestTmpl,
-    initialize: function() {
-        this.map = this.options.App.map;
-        this.listenTo(this.map, 'change areaOfInterest', this.syncArea);
-    },
-
-    modelEvents: { 'change shape': 'render' },
-
-    syncArea: function() {
-        this.model.set('shape', this.map.get('areaOfInterest'));
-    }
-});
-
 var TaskMessageView = Marionette.ItemView.extend({
     template: messageTmpl,
     className: 'analyze-message-region'
@@ -774,7 +759,6 @@ module.exports = {
     HeaderView: HeaderView,
     MapView: MapView,
     RootView: RootView,
-    AreaOfInterestView: AreaOfInterestView,
     TaskMessageView: TaskMessageView,
     ModificationPopupView: ModificationPopupView
 };

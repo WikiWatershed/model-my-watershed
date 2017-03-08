@@ -152,7 +152,7 @@ describe('Core', function() {
                 view.destroy();
             });
 
-            it('adds the map-container top & bottom classes to the map container for Draw screen with AoI bar', function(){
+            it('adds the map-container top & bottom classes to the map container for Draw screen', function(){
                 var model = new models.MapModel(),
                     layersModel = new models.LayersModel(),
                     view = new views.MapView({
@@ -162,9 +162,9 @@ describe('Core', function() {
                     }),
                     $container = $(sandboxSelector).parent();
 
-                model.setDrawWithBarSize();
+                model.setDrawSize();
                 assert.isTrue($container.hasClass('map-container-top-1'));
-                assert.isTrue($container.hasClass('map-container-bottom-3'));
+                assert.isTrue($container.hasClass('map-container-bottom-1'));
 
                 view.destroy();
             });
