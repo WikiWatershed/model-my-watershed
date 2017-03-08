@@ -151,6 +151,12 @@ More info [here](https://docs.djangoproject.com/en/1.8/topics/testing/).
 
 ##### JavaScript
 
+To check for JavaScript lint, run the following command:
+
+```bash
+$ ./scripts/npm.sh run lint
+```
+
 When creating new tests or debugging old tests, it may be easier to open the testem page, which polls for changes to the test bundle and updates the test state dynamically.
 
 First, start the testem process.
