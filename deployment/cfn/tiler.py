@@ -150,7 +150,7 @@ class Tiler(StackNode):
         self.tile_server_auto_scaling_schedule_start_recurrence = self.add_parameter(  # NOQA
             Parameter(
                 'TileServerAutoScalingScheduleStartRecurrence', Type='String',
-                Default='0 13 * * 1-5',
+                Default='0 12 * * 1-5',
                 Description='Tile server ASG schedule start recurrence'
             ), 'TileServerAutoScalingScheduleStartRecurrence')
 
@@ -164,7 +164,7 @@ class Tiler(StackNode):
         self.tile_server_auto_scaling_schedule_end_recurrence = self.add_parameter(  # NOQA
             Parameter(
                 'TileServerAutoScalingScheduleEndRecurrence', Type='String',
-                Default='0 1 * * *',
+                Default='0 0 * * *',
                 Description='Tile server ASG schedule end recurrence'
             ), 'TileServerAutoScalingScheduleEndRecurrence')
 
