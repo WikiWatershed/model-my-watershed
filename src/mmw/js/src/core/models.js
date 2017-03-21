@@ -4,9 +4,11 @@ var Backbone = require('../../shim/backbone'),
     $ = require('jquery'),
     _ = require('lodash'),
     turfArea = require('turf-area'),
+    L = require('leaflet'),
     utils = require('./utils'),
-    drawUtils = require('../draw/utils');
-
+    drawUtils = require('../draw/utils'),
+    settings = require('./settings'),
+    VizerLayers = require('./vizerLayers');
 
 var MapModel = Backbone.Model.extend({
     defaults: {
@@ -71,10 +73,6 @@ var MapModel = Backbone.Model.extend({
         this._setSizeOptions({ single: true }, { min: true }, fit);
     },
 
-    setDrawWithBarSize: function(fit) {
-        this._setSizeOptions({ single: true  }, { med: true }, fit);
-    },
-
     setAnalyzeSize: function(fit) {
         this._setSizeOptions({ single: true  }, { large: true }, fit);
     },
@@ -83,6 +81,87 @@ var MapModel = Backbone.Model.extend({
         this.set('size', { top: top, bottom: bottom, fit: !!fit, noHeader: noHeader });
     }
 
+});
+
+var LayerGroupModel = Backbone.Model.extend({
+    defaults: {
+        name: null,
+        layers: null,
+        layersDeferred: null,
+        mustHaveActive: false,
+        canSelectMultiple: false,
+    }
+});
+
+var LayersModel = Backbone.Model.extend({
+    defaults: {
+        _googleMaps: (window.google ? window.google.maps : null)
+    },
+
+    initialize: function() {
+        var defaultBaseLayer = _.findWhere(settings.get('base_layers'), function(layer) {
+                return layer.default === true;
+            }),
+            defaultBaseLayerName = defaultBaseLayer ? defaultBaseLayer['display'] : 'Streets';
+        this.baseLayers = this.buildLayers('base_layers', defaultBaseLayerName);
+        this.coverageLayers = this.buildLayers('coverage_layers');
+        this.boundaryLayers = this.buildLayers('boundary_layers');
+        this.streamLayers = this.buildLayers('stream_layers');
+
+        var vizer = new VizerLayers();
+        this.observationsDeferred = vizer.getLayers();
+    },
+
+    buildLayers: function(layerType, initialActive) {
+        var self = this,
+            layers = [];
+
+        _.each(settings.get(layerType), function(layer) {
+            var leafletLayer;
+
+            // Check to see if the google api service has been loaded
+            // before creating a google layer
+            if (layer.googleType){
+                if (self._googleMaps) {
+                    leafletLayer = new L.Google(layer.googleType, {
+                        maxZoom: layer.maxZoom
+                    });
+                }
+            } else {
+                var tileUrl = (layer.url.match(/png/) === null ?
+                                layer.url + '.png' : layer.url);
+                _.defaults(layer, {
+                    zIndex: utils.layerGroupZIndices[layerType],
+                    attribution: '',
+                    minZoom: 0});
+                leafletLayer = new L.TileLayer(tileUrl, layer);
+            }
+
+            layers.push({
+                leafletLayer: leafletLayer,
+                display: layer.display,
+                code: layer.code,
+                perimeter: layer.perimeter,
+                maxZoom: layer.maxZoom,
+                minZoom: layer.minZoom,
+                googleType: layer.googleType,
+                disabled: false,
+                hasOpacitySlider: layer.has_opacity_slider,
+                legendMapping: layer.legend_mapping,
+                cssClassPrefix: layer.css_class_prefix,
+                active: layer.display === initialActive ? true : false,
+            });
+        });
+        return new Backbone.Collection(layers);
+    },
+
+    getCurrentActiveBaseLayer: function() {
+        return this.baseLayers.findWhere({ 'active': true });
+    },
+
+    getCurrentActiveBaseLayerName: function() {
+        return this.getCurrentActiveBaseLayer().get('display');
+    }
 });
 
 var TaskModel = Backbone.Model.extend({
@@ -306,12 +385,17 @@ var AreaOfInterestModel = GeoModel.extend({
 
 var AppStateModel = Backbone.Model.extend({
     defaults: {
-        current_page_title: 'Select Area of Interest'
+        active_page: 'Select Area Of Interest',
+        was_analyze_visible: false,
+        was_model_visible: false,
+        was_compare_visible: false,
     }
 });
 
 module.exports = {
     MapModel: MapModel,
+    LayersModel: LayersModel,
+    LayerGroupModel: LayerGroupModel,
     TaskModel: TaskModel,
     TaskMessageViewModel: TaskMessageViewModel,
     LandUseCensusCollection: LandUseCensusCollection,

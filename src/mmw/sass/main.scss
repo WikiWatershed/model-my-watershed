@@ -14,7 +14,9 @@
  */
 @import
   "animate",
-  "bootstrap";
+  "bootstrap",
+  "../fonts/fontello/css/mmw.css",
+  "../fonts/fontello/css/animation.css";
 
 /**
  * All sass tools, utilities and helpers
@@ -59,7 +61,9 @@
   "components/slider-native",
   "components/tables",
   "components/observations",
-  "components/sidebar";
+  "components/sidebar",
+  "components/global-navigation",
+  "components/layerpicker";
 
 /**
  * Pages

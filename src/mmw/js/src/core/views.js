@@ -6,20 +6,16 @@ var L = require('leaflet'),
     router = require('../router.js').router,
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
-    drawUtils = require('../draw/utils'),
     coreUtils = require('./utils'),
+    drawUtils = require('../draw/utils'),
     modificationConfigUtils = require('../modeling/modificationConfigUtils'),
     headerTmpl = require('./templates/header.html'),
     messageTmpl = require('./templates/message.html'),
     modificationPopupTmpl = require('./templates/modificationPopup.html'),
-    areaOfInterestTmpl = require('./templates/areaOfInterestHeader.html'),
     modalModels = require('./modals/models'),
     modalViews = require('./modals/views'),
     settings = require('./settings'),
-    LayerControl = require('./layerControl'),
-    OpacityControl = require('./opacityControl'),
-    SidebarToggleControl = require('./sidebarToggleControl'),
-    VizerLayers = require('./vizerLayers');
+    SidebarToggleControl = require('./sidebarToggleControl');
 
 require('leaflet.locatecontrol');
 require('leaflet-plugins/layer/tile/Google');
@@ -34,6 +30,7 @@ var RootView = Marionette.LayoutView.extend({
         mainRegion: '#container',
         geocodeSearchRegion: '#geocode-search-region',
         drawToolsRegion: '#draw-tools-region',
+        layerPickerRegion: '#layer-picker-region',
         subHeaderRegion: '#sub-header',
         sidebarRegion: {
             regionClass: TransitionRegion,
@@ -81,12 +78,55 @@ var HeaderView = Marionette.ItemView.extend({
         this.listenTo(this.appState, 'change', this.render);
     },
 
+    makeNavClasses: function(isActive, isVisible) {
+        return (isActive ? 'active' : '') + (isVisible ? ' visible' : '');
+    },
+
+    isProjectsPage: function(currentActive) {
+        return currentActive === coreUtils.projectsPageTitle;
+    },
+
+    makeSelectAreaNavClasses: function(currentActive) {
+        var isVisible = !this.isProjectsPage(currentActive),
+            isActive = currentActive === coreUtils.selectAreaPageTitle;
+        return this.makeNavClasses(isActive, isVisible);
+    },
+
+    makeAnalyzeNavClasses: function(currentActive, wasAnalyzeVisible, wasModelVisible) {
+        var isVisible = !this.isProjectsPage(currentActive) && (wasAnalyzeVisible || wasModelVisible),
+            isActive = currentActive === coreUtils.analyzePageTitle;
+        return this.makeNavClasses(isActive, isVisible);
+    },
+
+    makeModelNavClasses: function(currentActive) {
+        var modelPackageNames = _.pluck(settings.get('model_packages'), 'display_name'),
+            isCompare = currentActive === coreUtils.comparePageTitle,
+            isActive = _.contains(modelPackageNames, currentActive),
+            isVisible = isActive || isCompare;
+        return this.makeNavClasses(isActive, isVisible);
+    },
+
+    makeCompareNavClasses: function(currentActive, wasCompareVisible) {
+        var modelPackageNames = _.pluck(settings.get('model_packages'), 'display_name'),
+            isModel = _.contains(modelPackageNames, currentActive),
+            isActive = currentActive === coreUtils.comparePageTitle,
+            isVisible = (isModel && wasCompareVisible) || isActive;
+        return this.makeNavClasses(isActive, isVisible);
+    },
+
     templateHelpers: function() {
-        var self = this;
+        var self = this,
+            currentActive = self.appState.get('active_page'),
+            wasAnalyzeVisible = self.appState.get('was_analyze_visible'),
+            wasModelVisible = self.appState.get('was_model_visible'),
+            wasCompareVisible = self.appState.get('was_compare_visible');
 
         return {
             'itsi_embed': settings.get('itsi_embed'),
-            'current_page_title': self.appState.get('current_page_title')
+            'selectAreaNavClasses': this.makeSelectAreaNavClasses(currentActive),
+            'analyzeNavClasses': this.makeAnalyzeNavClasses(currentActive, wasAnalyzeVisible, wasModelVisible),
+            'modelNavClasses': this.makeModelNavClasses(currentActive),
+            'compareNavClasses': this.makeCompareNavClasses(currentActive, wasCompareVisible),
         };
     },
 
@@ -196,29 +236,21 @@ var MapView = Marionette.ItemView.extend({
     _googleMaps: (window.google ? window.google.maps : null),
 
     initialize: function(options) {
-        var defaultLayer = _.findWhere(settings.get('base_layers'), function(layer) {
-                return layer.default === true;
-            }),
-            defaultLayerName = defaultLayer ? defaultLayer['display'] : 'Streets',
-            map_controls = settings.get('map_controls');
+        var map_controls = settings.get('map_controls');
+
+        this.layersModel = options.layersModel;
 
         _.defaults(options, {
             addZoomControl: _.contains(map_controls, 'ZoomControl'),
             addLocateMeButton: _.contains(map_controls, 'LocateMeButton'),
-            addLayerSelector: _.contains(map_controls, 'LayerSelector'),
             showLayerAttribution: _.contains(map_controls, 'LayerAttribution'),
-            initialLayerName: defaultLayerName,
             interactiveMode: true // True if clicking on map does stuff
         });
 
-        var self = this,
-            map = new L.Map(this.el, {
+        var map = new L.Map(this.el, {
                 zoomControl: false,
                 attributionControl: options.showLayerAttribution
-            }),
-            overlayLayers = this.prepareOverlayLayers(),
-            vizer = new VizerLayers(),
-            observationsDeferred = vizer.getLayers();
+            });
 
         // Center the map on the U.S.
         map.fitBounds([
@@ -229,9 +261,6 @@ var MapView = Marionette.ItemView.extend({
         this._leafletMap = map;
         this._areaOfInterestLayer = new L.FeatureGroup();
         this._modificationsLayer = new L.FeatureGroup();
-        this.baseLayers = this.buildLayers(settings.get('base_layers'));
-        this.overlayLayers = this.buildLayers(overlayLayers, map);
-
         if (!options.interactiveMode) {
             this.setMapToNonInteractive();
         }
@@ -245,57 +274,19 @@ var MapView = Marionette.ItemView.extend({
             addLocateMeButton(map, maxGeolocationAge);
         }
 
-        if (options.addLayerSelector) {
-            var layerOptions = {
-                autoZIndex: false,
-                position: 'topright',
-                collapsed: false
-            };
-
-            self.layerControl = new LayerControl(
-                self.baseLayers, self.overlayLayers, observationsDeferred, layerOptions
-            );
-
-            self.layerControl.addTo(map);
-        }
-
         this.setMapEvents();
         this.setupGeoLocation(maxGeolocationAge);
 
-        var initialLayer = this.baseLayers[options.initialLayerName] ||
-                           this.baseLayers[defaultLayerName];
+        var initialLayer = options.initialLayerName ?
+            this.layersModel.baseLayers.findWhere({ display: options.initialLayerName }) :
+            this.layersModel.baseLayers.findWhere({active: true});
 
         if (initialLayer) {
-            map.addLayer(initialLayer);
+            map.addLayer(initialLayer.get('leafletLayer'));
         }
 
         map.addLayer(this._areaOfInterestLayer);
         map.addLayer(this._modificationsLayer);
-    },
-
-    prepareOverlayLayers: function() {
-        // For each type of overlay, create an empty "layer" used for
-        // the "None" option and order the actual defined layer configs
-        // after it.
-        var overlayTypes = ['stream', 'vector', 'raster'],
-            overlayLayers = _.map(overlayTypes, function(type) {
-                var nullLayer =  {
-                    display: 'null' + type,
-                    empty: true
-                };
-
-                nullLayer[type] = true;
-
-                // Layers may be null in testing
-                var layers = settings.get(type + '_layers');
-                if (!_.isEmpty(layers)) {
-                    return [nullLayer].concat(layers);
-                } else {
-                    return [nullLayer];
-                }
-            });
-
-        return _.flatten(overlayLayers);
     },
 
     setupGeoLocation: function(maxAge) {
@@ -360,7 +351,7 @@ var MapView = Marionette.ItemView.extend({
 
         // The max available zoom level changes based on the active base layer
         this._leafletMap.on('baselayerchange', this.updateCurrentZoomLevel);
-        this._leafletMap.on('baselayerchange', this.updateDrbLayerZoomLevel);
+        this._leafletMap.on('baselayerchange', this.updateDrbLayerZoomLevel, this);
 
         // Some Google layers have a dynamic max zoom that we need to handle.
         // Check that Google Maps API library is available before implementing
@@ -377,103 +368,6 @@ var MapView = Marionette.ItemView.extend({
             // Get the maximum zoom level for the initial location
             this.updateGoogleMaxZoom({ target: this._leafletMap });
         }
-    },
-
-    buildLayers: function(layerConfig, map) {
-        var self = this,
-            layers = {};
-
-        _.each(layerConfig, function(layer) {
-            var leafletLayer;
-
-            // Check to see if the google api service has been loaded
-            // before creating a google layer
-            if (self._googleMaps && layer.type === 'google') {
-                leafletLayer = new L.Google(layer.googleType, {
-                    maxZoom: layer.maxZoom
-                });
-            } else if (!layer.empty) {
-                var tileUrl = (layer.url.match(/png/) === null ?
-                                layer.url + '.png' : layer.url),
-                    zIndex = determineZIndex(layer);
-
-                _.defaults(layer, {
-                    zIndex: zIndex,
-                    attribution: '',
-                    minZoom: 0});
-                leafletLayer = new L.TileLayer(tileUrl, layer);
-                if (layer.has_opacity_slider) {
-                    var slider = new OpacityControl({position: 'topright'});
-
-                    slider.setOpacityLayer(leafletLayer);
-                    leafletLayer.slider = slider;
-                }
-            } else {
-                leafletLayer = new L.TileLayer('', layer);
-            }
-
-            layers[layer['display']] = leafletLayer;
-        });
-
-        function determineZIndex(layer) {
-            // ZIndex rules to keep coverages under the boundary lines
-            //  basemaps: 0
-            //  overlay::raster: 1
-            //  overlay::vector: 2
-
-            if (!layer.overlay) {
-                return 0;
-            } else if (layer.raster) {
-                return 1;
-            } else {
-                return 2;
-            }
-        }
-
-        function actOnUI(datum, bool) {
-            var code = datum.code,
-                $el = $('#overlays-layer-list #' + code);
-            $el.attr('disabled', bool);
-            if (bool) {
-                $el.siblings('span').addClass('disabled');
-            } else {
-                $el.siblings('span').removeClass('disabled');
-            }
-        }
-
-        function actOnLayer(datum) {
-            var display = datum.display;
-            if (display) {
-                // Work-around to prevent after-image when zooming
-                // out.  Not worried about this when zooming in --
-                // actually it is desirable in that case.  Derived
-                // from https://github.com/Leaflet/Leaflet/issues/1905.
-                layers[display]._clearBgBuffer();
-            }
-        }
-
-        if (map) {
-            // Toggle UI entries in response to zoom changes and make
-            // sure that layers which are invisible due to their
-            // minZoom being larger than the current zoom level are
-            // cleared from the map.
-            coreUtils.zoomToggle(map, layerConfig, actOnUI, actOnLayer);
-
-            coreUtils.perimeterToggle(map, layerConfig, actOnUI, actOnLayer);
-        }
-
-        return layers;
-    },
-
-    getActiveBaseLayerName: function() {
-        var activeBaseLayerName,
-            self = this;
-
-        activeBaseLayerName = _.findKey(self.baseLayers, function(layer) {
-            return self._leafletMap.hasLayer(layer);
-        });
-
-        return activeBaseLayerName;
     },
 
     onBeforeDestroy: function() {
@@ -712,8 +606,8 @@ var MapView = Marionette.ItemView.extend({
         }
     },
 
-    updateCurrentZoomLevel: function(e) {
-        var layerMaxZoom = e.layer.options.maxZoom,
+    updateCurrentZoomLevel: function(layer) {
+        var layerMaxZoom = layer.options.maxZoom,
             map = this,
             currentZoom = map.getZoom();
 
@@ -729,27 +623,10 @@ var MapView = Marionette.ItemView.extend({
         }
     },
 
-    updateDrbLayerZoomLevel: function(e) {
-        var layerMaxZoom = e.layer.options.maxZoom;
-        var adjSettings = 
-            _.map(settings.get('stream_layers'),
-                  function(o) {
-                      if (o.code === 'drb_streams_v2') {
-                          o.maxZoom = layerMaxZoom;
-                          return o;
-                      } else {
-                          return o;
-                      }
-                  }
-            );
-
-        settings.set('stream_layers', adjSettings);
-
-        _.each(this._layers, function(layer) {
-          if (layer.options !== undefined && layer.options.code==='drb_streams_v2'){
-              layer.options.maxZoom = layerMaxZoom;
-          }
-        });
+    updateDrbLayerZoomLevel: function(layer) {
+        var layerMaxZoom = layer.options.maxZoom;
+        var drbStreamLayer = this.layersModel.streamLayers.findWhere({ code: 'drb_streams_v2'});
+        drbStreamLayer.get('leafletLayer').options.maxZoom = layerMaxZoom;
     },
 
     // The max zoom for a Google layer that uses satellite imagery
@@ -766,11 +643,16 @@ var MapView = Marionette.ItemView.extend({
                 return;
             } else {
                 // Set layer zoom level to the max for the current area
-                _.each(self.baseLayers, function(layer) {
-                    if (layer._type === 'HYBRID' || layer._type === 'SATELLITE') {
-                        layer.options.maxZoom = response.zoom;
-                    }
-                });
+                self.layersModel.baseLayers.forEach(function(layer) {
+                        if (layer.get('googleType')) {
+                            var leafletLayer = layer.get('leafletLayer');
+                            if (leafletLayer) {
+                                if (leafletLayer._type === 'HYBRID' || leafletLayer._type === 'SATELLITE') {
+                                    leafletLayer.options.maxZoom = response.zoom;
+                                }
+                            }
+                        }
+                    });
             }
         });
     },
@@ -785,7 +667,7 @@ var MapView = Marionette.ItemView.extend({
             this._leafletMap.removeControl(this._sidebarToggleControl);
             delete this._sidebarToggleControl;
         }
-    }
+    },
 });
 
 // Apply a mask over the entire map excluding bounds/shape specified.
@@ -861,23 +743,6 @@ var ModificationPopupView = Marionette.ItemView.extend({
     }
 });
 
-var AreaOfInterestView = Marionette.ItemView.extend({
-    template: areaOfInterestTmpl,
-    initialize: function() {
-        this.map = this.options.App.map;
-        this.listenTo(this.map, 'change:areaOfInterest', this.syncArea);
-    },
-
-    modelEvents: { 'change:shape': 'render' },
-
-    syncArea: function() {
-        this.model.set({
-            'shape': this.map.get('areaOfInterest'),
-            'place': this.map.get('areaOfInterestName'),
-        });
-    }
-});
-
 var TaskMessageView = Marionette.ItemView.extend({
     template: messageTmpl,
     className: 'analyze-message-region'
@@ -887,7 +752,6 @@ module.exports = {
     HeaderView: HeaderView,
     MapView: MapView,
     RootView: RootView,
-    AreaOfInterestView: AreaOfInterestView,
     TaskMessageView: TaskMessageView,
     ModificationPopupView: ModificationPopupView
 };

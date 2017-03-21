@@ -90,6 +90,7 @@ COPY_IMAGES_COMMAND="cp -r \
 
 COPY_FONTS_COMMAND="cp -r \
     ./node_modules/font-awesome/fonts/* \
+    ./font/* \
     $STATIC_FONTS_DIR"
 
 COPY_ZEROCLIPBOARD_COMMAND="cp \

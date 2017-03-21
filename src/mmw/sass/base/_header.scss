@@ -18,7 +18,7 @@ header {
       float: left;
       line-height: $height-lg;
       font-size: 0.7rem;
-      font-weight: 400;
+      font-weight: 700;
       color: $paper;
 
       &:hover {
@@ -116,6 +116,7 @@ header {
         display: inline-block;
         position: relative;
         width: 180px;
+        margin-left: 18px;
 
         h3 {
           margin: 0;
@@ -343,13 +344,4 @@ header {
       }
     }
   }
-}
-
-//Shared Elements
-.back {
-  line-height: $height-lg;
-  height: 100%;
-  display: inline-block;
-  position: relative;
-  vertical-align: top;
 }

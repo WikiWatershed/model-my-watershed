@@ -10,6 +10,21 @@ var M2_IN_KM2 = 1000000;
 var noData = 'No Data';
 
 var utils = {
+    layerGroupZIndices: {
+        base_layers: 0,
+        coverage_layers: 1,
+        stream_layers: 2,
+        boundary_layers: 2
+    },
+
+    selectAreaPageTitle: 'Choose Area of Interest',
+
+    analyzePageTitle: 'Geospatial Analysis',
+
+    comparePageTitle: 'Compare',
+
+    projectsPageTitle: 'Projects',
+
     filterNoData: function(data) {
         if (data && !isNaN(data) && isFinite(data)) {
             return data.toFixed(3);

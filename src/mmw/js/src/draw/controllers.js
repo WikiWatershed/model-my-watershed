@@ -3,12 +3,12 @@
 var App = require('../app'),
     geocoder = require('../geocode/views'),
     views = require('./views'),
-    coreModels = require('../core/models'),
-    coreViews = require('../core/views'),
     settings = require('../core/settings'),
     modelingModels = require('../modeling/models'),
+    models = require('./models'),
+    _ = require('underscore'),
+    utils = require('../core/utils'),
     models = require('./models');
-
 
 var DrawController = {
     drawPrepare: function() {
@@ -25,32 +25,17 @@ var DrawController = {
                 model: toolbarModel
             });
 
-        toolbarModel.set('predefinedShapeTypes', settings.get('boundary_layers'));
+        toolbarModel.set('predefinedShapeTypes',
+            _.filter(settings.get('boundary_layers'), { selectable: true }));
 
         App.rootView.geocodeSearchRegion.show(geocodeSearch);
         App.rootView.drawToolsRegion.show(toolbarView);
 
         enableSingleProjectModeIfActivity();
 
-        var aoiView = new coreViews.AreaOfInterestView({
-                id: 'aoi-header-wrapper',
-                App: App,
-                model: new coreModels.AreaOfInterestModel({
-                    can_go_back: false,
-                    next_label: 'Analyze',
-                    url: 'analyze',
-                    shape: App.map.get('areaOfInterest'),
-                    place: App.map.get('areaOfInterestName')
-                })
-        });
+        App.map.setDrawSize();
 
-        App.rootView.footerRegion.show(aoiView);
-
-        if (App.map.get('areaOfInterest')) {
-            App.map.setDrawWithBarSize(true);
-        }
-
-        App.state.set('current_page_title', 'Choose Area of Interest');
+        App.state.set('active_page', utils.selectAreaPageTitle);
     },
 
     drawCleanUp: function() {

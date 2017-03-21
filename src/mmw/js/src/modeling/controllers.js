@@ -70,7 +70,7 @@ var ModelingController = {
                     App.currentProject = null;
                 });
 
-            App.state.set('current_page_title', 'Modeling');
+            App.state.set('active_page', 'Modeling');
         } else {
             if (App.currentProject && settings.get('activityMode')) {
                 project = App.currentProject;
@@ -104,7 +104,7 @@ var ModelingController = {
 
                 finishProjectSetup(project, lock);
             }
-            setPageTitle();            
+            setPageTitle();
         }
     },
 
@@ -270,7 +270,10 @@ function setPageTitle() {
         modelPackages = settings.get('model_packages'),
         modelPackageDisplayName = _.find(modelPackages, {name: modelPackageName}).display_name;
 
-    App.state.set('current_page_title', modelPackageDisplayName);
+    App.state.set({
+        'active_page': modelPackageDisplayName,
+        'was_model_visible': true,
+    });
 }
 
 function projectCleanUp() {

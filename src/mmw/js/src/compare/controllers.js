@@ -6,6 +6,7 @@ var _ = require('lodash'),
     views = require('./views'),
     modelingModels = require('../modeling/models.js'),
     modelingControls = require('../modeling/controls'),
+    coreUtils = require('../core/utils'),
     synchronizer = modelingControls.PrecipitationSynchronizer;
 
 var CompareController = {
@@ -46,7 +47,10 @@ var CompareController = {
         }
         // else -- this case is caught by the backend and raises a 404
 
-        App.state.set('current_page_title', 'Compare');
+        App.state.set({
+            'active_page': coreUtils.comparePageTitle,
+            'was_compare_visible': true,
+        });
     },
 
     compareCleanUp: function() {
@@ -62,6 +66,7 @@ var CompareController = {
         }
 
         App.rootView.footerRegion.empty();
+        App.showLayerPicker();
     }
 };
 
@@ -166,6 +171,7 @@ function showCompareWindow() {
             model: App.currentProject
         });
     App.rootView.footerRegion.show(compareWindow);
+    App.rootView.layerPickerRegion.empty();
 }
 
 module.exports = {

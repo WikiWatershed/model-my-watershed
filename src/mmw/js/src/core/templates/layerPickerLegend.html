@@ -1,0 +1,8 @@
+<div class="layerpicker-legend">
+    {% for id, display in legendMapping %}
+        <div class="layerpicker-legenditem">
+            <div class="layerpicker-legendcolor {{colorClass}}-{{id}}"></div>
+            <div class="layerpicker-legendtext">{{ display }}</div>
+        </div>
+    {% endfor %}
+</div>

@@ -35,6 +35,9 @@
   }
 }
 
+// Updates to steps should also be made to the legend_mappings
+// in mmw/settings/layer_settings
+// Any updates to colors must also be made in _variables.scss
 @drb_catchment_step_one_color: #A0A0A0;
 @drb_catchment_step_two_color: #888888;
 @drb_catchment_step_three_color: #707070;
@@ -103,6 +106,7 @@
     }
 }
 
+// Any updates to colors should also be made in _variables.scss
 @streamColor: #1562A9;
 @wtrQualColor0: #1a9641;
 @wtrQualColor1: #a6d96a;

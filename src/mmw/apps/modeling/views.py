@@ -508,9 +508,8 @@ def _construct_tr55_job_chain(model_input, job_id):
 @decorators.permission_classes((AllowAny, ))
 def boundary_layer_detail(request, table_code, obj_id):
     try:
-        layers = [layer for layer in settings.LAYERS
-                  if layer.get('code') == table_code and
-                  layer.get('boundary')]
+        layers = [layer for layer in settings.LAYER_GROUPS['boundary']
+                  if layer.get('code') == table_code]
         table_name = layers[0]['table_name']
         json_field = layers[0].get('json_field', 'geom')
 
