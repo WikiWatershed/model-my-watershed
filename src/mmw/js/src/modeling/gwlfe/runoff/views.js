@@ -7,7 +7,9 @@ var $ = require('jquery'),
     barChartTmpl = require('../../../core/templates/barChart.html'),
     selectorTmpl = require('./templates/selector.html'),
     resultTmpl = require('./templates/result.html'),
-    tableTmpl = require('./templates/table.html');
+    tableTmpl = require('./templates/table.html'),
+    utils = require('../../../core/utils.js'),
+    constants = require('./constants');
 
 var runoffVars = [
         { name: 'AvPrecipitation', display: 'Precip' },
@@ -28,6 +30,14 @@ var ResultView = Marionette.LayoutView.extend({
         selectorRegion: '.runoff-selector-region',
         chartRegion: '.runoff-chart-region',
         tableRegion: '.runoff-table-region'
+    },
+
+    ui: {
+        downloadCSV: '[data-action="download-csv"]'
+    },
+
+    events: {
+        'click @ui.downloadCSV': 'downloadCSV'
     },
 
     modelEvents: {
@@ -63,7 +73,18 @@ var ResultView = Marionette.LayoutView.extend({
                 compareMode: this.compareMode
             }));
         }
-    }
+    },
+
+    downloadCSV: function() {
+        var data = this.model.get('result').monthly,
+            prefix = 'mapshed_hydrology_',
+            timestamp = new Date().toISOString(),
+            filename = prefix + timestamp,
+            nameMap = constants.hydrologyCSVColumnMap,
+            renamedData = utils.renameCSVColumns(data, nameMap);
+
+        utils.downloadDataCSV(renamedData, filename);
+    },
 });
 
 var SelectorView = Marionette.ItemView.extend({

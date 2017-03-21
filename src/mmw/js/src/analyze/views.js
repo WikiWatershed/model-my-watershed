@@ -1,6 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
+    _ = require('underscore'),
     lodash = require('lodash'),
     L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
@@ -16,6 +17,7 @@ var $ = require('jquery'),
     coreUtils = require('../core/utils'),
     chart = require('../core/chart'),
     utils = require('../core/utils'),
+    constants = require('./constants'),
     pointSourceLayer = require('../core/pointSourceLayer'),
     catchmentWaterQualityLayer = require('../core/catchmentWaterQualityLayer'),
     windowTmpl = require('./templates/window.html'),
@@ -679,6 +681,59 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
         descriptionRegion: '.desc-region',
         chartRegion: '.chart-region',
         tableRegion: '.table-region'
+    },
+
+    ui: {
+        downloadCSV: '[data-action="download-csv"]'
+    },
+
+    events: {
+        'click @ui.downloadCSV': 'downloadCSV'
+    },
+
+    downloadCSV: function() {
+        var data = this.model.get('categories'),
+            timestamp = new Date().toISOString(),
+            filename,
+            nameMap,
+            renamedData;
+
+        switch (this.model.get('name')) {
+            case 'land':
+                filename = 'nlcd_land_cover_' + timestamp;
+                renamedData = utils.renameCSVColumns(data,
+                    constants.csvColumnMaps.nlcd);
+                break;
+            case 'soil':
+                filename = 'nlcd_soils_' + timestamp;
+                renamedData = utils.renameCSVColumns(data,
+                    constants.csvColumnMaps.soil);
+                break;
+            case 'animals':
+                filename = 'animal_estimate_' + timestamp;
+                renamedData = utils.renameCSVColumns(data,
+                    constants.csvColumnMaps.animals);
+                break;
+            case 'pointsource':
+                filename = 'pointsource_' + timestamp;
+                renamedData = utils.renameCSVColumns(data,
+                    constants.csvColumnMaps.pointSource);
+                break;
+            case 'catchment_water_quality':
+                filename = 'catchment_water_quality_' + timestamp;
+                renamedData = _.map(data, function(element) {
+                    return _.omit(element, 'geom');
+                });
+                renamedData = utils.renameCSVColumns(renamedData,
+                    constants.csvColumnMaps.waterQuality);
+                break;
+            default:
+                filename = this.model.get('name') + '_' + timestamp;
+                nameMap = {};
+                renamedData = data;
+        }
+
+        utils.downloadDataCSV(renamedData, filename);
     },
 
     showAnalyzeResults: function(CategoriesToCensus, AnalyzeTableView,
