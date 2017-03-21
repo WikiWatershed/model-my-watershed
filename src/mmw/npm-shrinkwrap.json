@@ -3992,6 +3992,11 @@
         }
       }
     },
+    "papaparse": {
+      "version": "4.2.0",
+      "from": "papaparse@*",
+      "resolved": "https://registry.npmjs.org/papaparse/-/papaparse-4.2.0.tgz"
+    },
     "retina.js": {
       "version": "1.3.0",
       "from": "../../tmp/npm-8086-93d2a729/1490189832167-0.7281006346456707/a70e73639817473bad7bbb33f866b8e060e5f5a7",
