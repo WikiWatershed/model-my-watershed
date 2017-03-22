@@ -192,6 +192,7 @@ var LoginModalView = ModalBaseView.extend({
     handleSuccess: function() {
         this.$el.modal('hide');
         this.app.user.set('guest', false);
+        this.model.onSuccess();
     },
 
     handleFailure: function(response) {
