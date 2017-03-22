@@ -10,6 +10,7 @@ from apps.home.views import home_page, projects, project, project_clone
 urlpatterns = patterns(
     '',
     url(r'^$', home_page, name='home_page'),
+    url(r'^draw/?$', home_page, name='home_page'),
     url(r'^projects/$', projects, name='projects'),
     url(r'^project/$', project, name='project'),
     url(r'^project/new/', project, name='project'),

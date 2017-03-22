@@ -17,6 +17,8 @@ var $ = require('jquery'),
     toolbarTmpl = require('./templates/toolbar.html'),
     loadingTmpl = require('./templates/loading.html'),
     selectTypeTmpl = require('./templates/selectType.html'),
+    splashTmpl = require('./templates/splash.html'),
+    windowTmpl = require('./templates/window.html'),
     drawTmpl = require('./templates/draw.html'),
     resetDrawTmpl = require('./templates/reset.html'),
     delineationOptionsTmpl = require('./templates/delineationOptions.html'),
@@ -125,6 +127,37 @@ function validatePointWithinDataSourceBounds(latlng, dataSource) {
     }
     return d.promise();
 }
+
+var DrawWindow = Marionette.ItemView.extend({
+    template: windowTmpl,
+
+    id: 'draw-window',
+
+});
+
+var SplashWindow = Marionette.ItemView.extend({
+    template: splashTmpl,
+
+    id: 'splash-window',
+
+    ui: {
+        'start': '#get-started',
+        'openProject': '#splash-open-project',
+    },
+
+    events: {
+        'click @ui.start': 'moveToDraw',
+        'click @ui.openProject': 'openOrLogin',
+    },
+
+    moveToDraw: function() {
+        router.navigate('/draw', {trigger: true});
+    },
+
+    openOrLogin: function() {
+        router.navigate('/projects', {trigger: true});
+    }
+});
 
 // Responsible for loading and displaying tools for selecting and drawing
 // shapes on the map.
@@ -703,5 +736,7 @@ function navigateToAnalyze() {
 
 module.exports = {
     ToolbarView: ToolbarView,
+    SplashWindow: SplashWindow,
+    DrawWindow: DrawWindow,
     getShapeAndAnalyze: getShapeAndAnalyze
 };
