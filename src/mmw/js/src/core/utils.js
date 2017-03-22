@@ -17,6 +17,8 @@ var utils = {
         boundary_layers: 2
     },
 
+    splashPageTitle: 'Model My Watershed',
+
     selectAreaPageTitle: 'Choose Area of Interest',
 
     analyzePageTitle: 'Geospatial Analysis',

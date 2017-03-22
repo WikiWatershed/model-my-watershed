@@ -145,6 +145,10 @@ var SplashWindow = Marionette.ItemView.extend({
         'openProject': '#splash-open-project',
     },
 
+    initialize: function() {
+        clearAoiLayer();
+    },
+
     events: {
         'click @ui.start': 'moveToDraw',
         'click @ui.openProject': 'openOrLogin',

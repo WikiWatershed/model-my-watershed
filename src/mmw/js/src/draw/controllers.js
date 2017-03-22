@@ -30,7 +30,6 @@ var DrawController = {
         enableSingleProjectModeIfActivity();
 
         App.map.setDrawSize();
-
         App.state.set('active_page', utils.selectAreaPageTitle);
     },
 
@@ -46,6 +45,10 @@ var DrawController = {
         App.rootView.geocodeSearchRegion.show(new geocoder.GeocoderView());
         App.rootView.sidebarRegion.show(new views.SplashWindow());
         App.map.setDrawSize();
+        App.state.set({
+            'active_page': utils.splashPageTitle,
+            'was_analyze_visible': false
+        });
     }
 };
 
