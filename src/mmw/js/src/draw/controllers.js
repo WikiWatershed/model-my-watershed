@@ -11,12 +11,7 @@ var App = require('../app'),
     models = require('./models');
 
 var DrawController = {
-    drawPrepare: function() {
-        App.map.revertMaskLayer();
-        if (!App.map.get('areaOfInterest')) {
-            App.map.setDrawSize(true);
-        }
-    },
+    drawPrepare: prepareView,
 
     draw: function() {
         var geocodeSearch = new geocoder.GeocoderView(),
@@ -30,11 +25,11 @@ var DrawController = {
 
         App.rootView.geocodeSearchRegion.show(geocodeSearch);
         App.rootView.drawToolsRegion.show(toolbarView);
+        App.rootView.sidebarRegion.show(new views.DrawWindow());
 
         enableSingleProjectModeIfActivity();
 
         App.map.setDrawSize();
-
         App.state.set('active_page', utils.selectAreaPageTitle);
     },
 
@@ -42,8 +37,24 @@ var DrawController = {
         App.rootView.geocodeSearchRegion.empty();
         App.rootView.drawToolsRegion.empty();
         App.rootView.footerRegion.empty();
+    },
+
+    splashPrepare: prepareView,
+
+    splash: function() {
+        App.rootView.geocodeSearchRegion.show(new geocoder.GeocoderView());
+        App.rootView.sidebarRegion.show(new views.SplashWindow());
+        App.map.setDrawSize();
+        App.state.set({
+            'active_page': utils.splashPageTitle,
+            'was_analyze_visible': false
+        });
     }
 };
+
+function prepareView() {
+    App.map.revertMaskLayer();
+}
 
 /**
  * If we are in embed mode then the project is an activity and we want to keep

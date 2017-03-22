@@ -86,6 +86,10 @@ var HeaderView = Marionette.ItemView.extend({
         return currentActive === coreUtils.projectsPageTitle;
     },
 
+    makeSplashNavClasses: function() {
+        return this.makeNavClasses(true, true);
+    },
+
     makeSelectAreaNavClasses: function(currentActive) {
         var isVisible = !this.isProjectsPage(currentActive),
             isActive = currentActive === coreUtils.selectAreaPageTitle;
@@ -123,6 +127,7 @@ var HeaderView = Marionette.ItemView.extend({
 
         return {
             'itsi_embed': settings.get('itsi_embed'),
+            'splashNavClasses': this.makeSplashNavClasses(wasAnalyzeVisible, wasModelVisible),
             'selectAreaNavClasses': this.makeSelectAreaNavClasses(currentActive),
             'analyzeNavClasses': this.makeAnalyzeNavClasses(currentActive, wasAnalyzeVisible, wasModelVisible),
             'modelNavClasses': this.makeModelNavClasses(currentActive),
@@ -287,6 +292,7 @@ var MapView = Marionette.ItemView.extend({
 
         map.addLayer(this._areaOfInterestLayer);
         map.addLayer(this._modificationsLayer);
+        map.addControl(new SidebarToggleControl());
     },
 
     setupGeoLocation: function(maxAge) {

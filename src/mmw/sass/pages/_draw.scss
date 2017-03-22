@@ -1,0 +1,22 @@
+#draw-window,
+#splash-window {
+    width: 460px;
+    padding: 15px;
+    position: absolute;
+    right: 0;
+    transition: all 200ms;
+    top: 44px;
+    overflow-y: auto;
+}
+
+.splash-step {
+  padding: 8px;
+
+  & .badge {
+    margin-right: 10px;
+  }
+
+  & p {
+    margin-left: 30px;
+  }
+}

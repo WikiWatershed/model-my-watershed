@@ -45,7 +45,6 @@ var AnalyzeController = {
             // Modelling Controller.
             App.currentProject = null;
         }
-        App.getMapView().addSidebarToggleControl();
     },
 
     analyze: function() {
@@ -66,7 +65,6 @@ var AnalyzeController = {
 
     analyzeCleanUp: function() {
         App.rootView.sidebarRegion.empty();
-        App.getMapView().removeSidebarToggleControl();
     }
 };
 

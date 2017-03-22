@@ -152,7 +152,7 @@ describe('Core', function() {
                 view.destroy();
             });
 
-            it('adds the map-container top & bottom classes to the map container for Draw screen', function(){
+            it('adds the map-container sidebar top & bottom classes to the map container for Draw screen', function(){
                 var model = new models.MapModel(),
                     layersModel = new models.LayersModel(),
                     view = new views.MapView({
@@ -163,8 +163,8 @@ describe('Core', function() {
                     $container = $(sandboxSelector).parent();
 
                 model.setDrawSize();
-                assert.isTrue($container.hasClass('map-container-top-1'));
-                assert.isTrue($container.hasClass('map-container-bottom-1'));
+                assert.isTrue($container.hasClass('map-container-top-sidebar'));
+                assert.isTrue($container.hasClass('map-container-bottom-sidebar'));
 
                 view.destroy();
             });

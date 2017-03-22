@@ -5,6 +5,10 @@
   margin-left: 18px;
   margin-bottom: 0px;
   @include clearfix;
+
+  &>li:first-child:after {
+    content: none;
+  }
 }
 
 .global-navigation-item {
