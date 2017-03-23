@@ -8,6 +8,7 @@ var $ = require('jquery'),
     turfDestination = require('turf-destination'),
     turfIntersect = require('turf-intersect'),
     turfKinks = require('turf-kinks'),
+    shapefile = require('shapefile'),
     router = require('../router').router,
     App = require('../app'),
     utils = require('./utils'),
@@ -19,6 +20,7 @@ var $ = require('jquery'),
     selectTypeTmpl = require('./templates/selectType.html'),
     splashTmpl = require('./templates/splash.html'),
     windowTmpl = require('./templates/window.html'),
+    aoiUploadTmpl = require('./templates/aoiUpload.html'),
     drawTmpl = require('./templates/draw.html'),
     resetDrawTmpl = require('./templates/reset.html'),
     delineationOptionsTmpl = require('./templates/delineationOptions.html'),
@@ -35,6 +37,7 @@ function displayAlert(message, alertType) {
             alertType: alertType
         })
     });
+
     alertView.render();
 }
 
@@ -180,7 +183,8 @@ var ToolbarView = Marionette.LayoutView.extend({
         selectTypeRegion: '#select-area-region',
         drawRegion: '#draw-region',
         watershedDelineationRegion: '#place-marker-region',
-        resetRegion: '#reset-draw-region'
+        resetRegion: '#reset-draw-region',
+        uploadRegion: '#dropbox-region'
     },
 
     initialize: function() {
@@ -222,6 +226,126 @@ var ToolbarView = Marionette.LayoutView.extend({
                 rwdTaskModel: this.rwdTaskModel
             }));
         }
+        this.uploadRegion.show(new AoIUploadView({}));
+    }
+});
+
+var AoIUploadView = Marionette.ItemView.extend({
+    template: aoiUploadTmpl,
+
+    events: {
+        'dragenter': 'stopEvents',
+        'dragover': 'stopEvents'
+    },
+
+    onAttach: function() {
+        // Using jQuery to bind this event prevents the file
+        // data from being attached to the event object,
+        // so we behind it manually once the view has been rendered
+        // and attached to the DOM.
+        var dropbox = document.getElementById("dropbox");
+        dropbox.addEventListener("drop", _.bind(this.drop, this), false);
+    },
+
+    drop: function(e) {
+        this.stopEvents(e);
+
+        var file = e.dataTransfer.files[0],
+            validationInfo = this.validateFile(file);
+
+        if (validationInfo.valid) {
+            this.readFile(file, validationInfo.extension);
+        } else {
+            displayAlert(validationInfo.message, modalModels.AlertTypes.error);
+        }
+    },
+
+    validateFile: function(file) {
+        // File must be less than 200 mb
+        if (file.size > 200000000) {
+            return {
+                valid: false,
+                message: 'File is too large. It must be smaller than 200 MB.'
+            };
+        }
+
+        // Only shapefiles and geojson are supported
+        var fileExtension = file.name.substr(file.name.lastIndexOf(".") + 1).toLowerCase();
+        if (!_.includes(['shp', 'json', 'geojson'], fileExtension)) {
+            return {
+                valid: false,
+                message: 'File is not supported. Only shapefiles (.shp) and GeoJSON (.json, .geojson) are supported.'
+            };
+        }
+
+        return {
+            valid: true,
+            extension: fileExtension
+        };
+    },
+
+    stopEvents: function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+    },
+
+    readFile: function(file, fileExtension){
+        var reader = new FileReader();
+        var self = this;
+
+        reader.onload = function() {
+            if (reader.readyState !== 2 || reader.error) {
+                return;
+            } else {
+                if (fileExtension === 'shp') {
+                    self.handleShp(reader.result);
+                } else if (fileExtension === 'json' || fileExtension === 'geojson') {
+                    self.handleGeoJSON(reader.result);
+                }
+            }
+        };
+
+        if (fileExtension === 'shp') {
+            reader.readAsArrayBuffer(file);
+        } else if (fileExtension === 'json' || fileExtension === 'geojson') {
+            reader.readAsText(file);
+        }
+    },
+
+    handleGeoJSON: function(jsonString) {
+        var geojson = JSON.parse(jsonString);
+
+        this.addPolygonToMap(geojson.features[0]);
+    },
+
+    handleShp: function(file) {
+        var self = this,
+            errorMsg = 'Unable to parse shapefile. Please try a different file.';
+
+        shapefile.open(file)
+            .then(function(source) {
+                source.read()
+                    .then(function parse(result) {
+                        if (result.done) { return; }
+                        // Add the first feature to the map
+                        self.addPolygonToMap(result.value);
+                    });
+            }).catch(function() {
+                displayAlert(errorMsg, modalModels.AlertTypes.error);
+            });
+    },
+
+    addPolygonToMap: function(polygon) {
+        validateShape(polygon)
+            .done(function() {
+                clearAoiLayer();
+                addLayer(polygon);
+                navigateToAnalyze();
+            })
+            .fail(function(message) {
+                addLayer(polygon);
+                displayAlert(message, modalModels.AlertTypes.error);
+            });
     }
 });
 
