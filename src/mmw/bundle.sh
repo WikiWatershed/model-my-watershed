@@ -127,6 +127,7 @@ JS_DEPS=(backbone
          lodash
          moment
          nunjucks
+         shapefile
          turf-area
          turf-bbox-polygon
          turf-centroid

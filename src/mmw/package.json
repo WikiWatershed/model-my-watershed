@@ -46,6 +46,7 @@
     "nunjucks": "1.3.4",
     "nunjucksify": "0.2.2",
     "retina.js": "git://github.com/imulus/retinajs#1.3.0",
+    "shapefile": "0.6.2",
     "sinon": "1.14.1",
     "testem": "0.5.15",
     "turf-area": "1.1.1",
