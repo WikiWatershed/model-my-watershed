@@ -159,7 +159,13 @@ var SplashWindow = Marionette.ItemView.extend({
     },
 
     openOrLogin: function() {
-        router.navigate('/projects', {trigger: true});
+        if (App.user.get('guest')) {
+            App.showLoginModal(function() {
+                router.navigate('/projects', {trigger: true});
+            });
+        } else {
+            router.navigate('/projects', {trigger: true});
+        }
     }
 });
 

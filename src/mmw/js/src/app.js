@@ -120,9 +120,11 @@ var App = new Marionette.Application({
         });
     },
 
-    showLoginModal: function() {
+    showLoginModal: function(onSuccess) {
         new userViews.LoginModalView({
-            model: new userModels.LoginFormModel({}),
+            model: new userModels.LoginFormModel({
+                successCallback: onSuccess
+            }),
             app: this
         }).render();
     }

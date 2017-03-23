@@ -1,6 +1,7 @@
 "use strict";
 
-var Backbone = require('../../shim/backbone');
+var Backbone = require('../../shim/backbone'),
+    _ = require('underscore');
 
 var UserModel = Backbone.Model.extend({
     defaults: {
@@ -65,7 +66,8 @@ var ModalBaseModel = Backbone.Model.extend({
 var LoginFormModel = ModalBaseModel.extend({
     defaults: {
         username: null,
-        password: null
+        password: null,
+        successCallback: null
     },
 
     url: '/user/login',
@@ -92,6 +94,13 @@ var LoginFormModel = ModalBaseModel.extend({
                 'client_errors': null,
                 'server_errors': null
             });
+        }
+    },
+
+    onSuccess: function() {
+        var callback = this.get('successCallback');
+        if (callback && _.isFunction(callback)) {
+            callback();
         }
     }
 });
