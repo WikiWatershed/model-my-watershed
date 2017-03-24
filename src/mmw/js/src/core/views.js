@@ -188,7 +188,7 @@ var HeaderView = Marionette.ItemView.extend({
 // Init the locate plugin button and add it to the map.
 function addLocateMeButton(map, maxZoom, maxAge) {
     var locateOptions = {
-        position: 'topright',
+        position: 'bottomright',
         metric: false,
         drawCircle: false,
         showPopup: false,
@@ -270,13 +270,21 @@ var MapView = Marionette.ItemView.extend({
             this.setMapToNonInteractive();
         }
 
-        if (options.addZoomControl) {
-            map.addControl(new L.Control.Zoom({position: 'topright'}));
-        }
-
         var maxGeolocationAge = 60000;
+
+        map.addControl(new SidebarToggleControl());
+
         if (options.addLocateMeButton) {
             addLocateMeButton(map, maxGeolocationAge);
+        }
+
+        if (options.addZoomControl) {
+            map.addControl(new L.Control.Zoom({position: 'bottomright'}));
+            // We're overriding css to display the zoom controls horizontally.
+            // Because the zoom-in div usally exists on top, we need to flip it
+            // with the zoom-out div, so when they're horizontal they appear as
+            // [ - | + ]
+            $('.leaflet-control-zoom-out').insertBefore('.leaflet-control-zoom-in');
         }
 
         this.setMapEvents();
@@ -292,7 +300,6 @@ var MapView = Marionette.ItemView.extend({
 
         map.addLayer(this._areaOfInterestLayer);
         map.addLayer(this._modificationsLayer);
-        map.addControl(new SidebarToggleControl());
     },
 
     setupGeoLocation: function(maxAge) {

@@ -107,6 +107,58 @@
   background-color: transparent;
 }
 
+
+// Override leaflet bottomright controls
+.leaflet-bottom.leaflet-right {
+    text-align: right;
+}
+
+.leaflet-bottom.leaflet-right > .leaflet-control {
+    display: inline-block;
+    float: none;
+    margin: 2px 4px;
+    vertical-align: middle;
+    &:nth-last-child(2), &:last-child {
+        margin-right: 10px;
+    }
+    &.leaflet-control-attribution {
+       display: block;
+    }
+
+    &.leaflet-control-zoom {
+        width: 80px;
+       .leaflet-control-zoom-out {
+           border-right: 2px #ccc solid;
+       }
+       .leaflet-control-zoom-out, .leaflet-control-zoom-in {
+           font-size: 24px;
+           line-height: 38px;
+       }
+    }
+}
+
+.leaflet-bottom.leaflet-right > .leaflet-bar,
+.layer-control-button-container.leaflet-bar {
+    height: 40px;
+    width: 40px;
+    > a {
+        display: inline-block;
+        background-color: $ui-light;
+        color: $ui-secondary;
+        border-radius: 0px;
+        height: 40px;
+        width: 40px;
+        line-height: 40px;
+        border: none;
+        font-size: 18px;
+        box-shadow: none;
+        float: none;
+        &:hover {
+            background-color: #ccc;
+        }
+    }
+}
+
 .leaflet-control {
   .leaflet-control-layers-list {
     display: block;

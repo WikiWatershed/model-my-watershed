@@ -1,7 +1,7 @@
 .layerpicker {
   z-index: 500;
   position: absolute;
-  bottom: 20px;
+  bottom: 22px;
   left: 10px;
   width: 240px;
   background-color: #fff;
@@ -56,7 +56,7 @@
   width: 20%;
   float: left;
   padding: 6px;
-  background-color: #ddd;
+  background-color: $ui-light;
   cursor: pointer;
   &.open {
     background-color: #fff;
