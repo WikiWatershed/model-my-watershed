@@ -63,14 +63,16 @@ var ProjectRowView = Marionette.ItemView.extend({
         rename: '.btn-rename',
         share: '.btn-share',
         privacy: '.btn-privacy',
-        remove: '.btn-delete'
+        remove: '.btn-delete',
+        open: '.open-project'
     },
 
     events: {
         'click @ui.rename': 'renameProject',
         'click @ui.share': 'shareProject',
         'click @ui.privacy': 'setProjectPrivacy',
-        'click @ui.remove': 'deleteProject'
+        'click @ui.remove': 'deleteProject',
+        'click @ui.open': 'openProject'
     },
 
     modelEvents: {
@@ -162,6 +164,11 @@ var ProjectRowView = Marionette.ItemView.extend({
                     alertView.render();
                 });
         });
+    },
+
+    openProject: function() {
+        App.clearAnalyzeCollection();
+        router.navigate('/project/' + this.model.id, { trigger: true });
     }
 });
 
