@@ -168,6 +168,10 @@ var ProjectRowView = Marionette.ItemView.extend({
 
     openProject: function() {
         App.clearAnalyzeCollection();
+        App.map.set({
+            'areaOfInterest': null,
+            'areaOfInterestName': ''
+        });
         router.navigate('/project/' + this.model.id, { trigger: true });
     }
 });
