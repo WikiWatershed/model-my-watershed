@@ -36,6 +36,14 @@ var ResultView = Marionette.LayoutView.extend({
         chartRegion: '.quality-chart-region'
     },
 
+    ui: {
+        downloadCSV: '[data-action="download-csv"]'
+    },
+
+    events: {
+        'click @ui.downloadCSV': 'downloadCSV'
+    },
+
     modelEvents: {
         'change': 'onShow'
     },
@@ -74,6 +82,32 @@ var ResultView = Marionette.LayoutView.extend({
                 }));
             }
         }
+    },
+
+    downloadCSV: function() {
+        var data = this.model.get('result').quality,
+            aoiVolumeModel = new AoiVolumeModel({
+                areaOfInterest: this.options.areaOfInterest }),
+            prefix = 'tr55_water_quality_',
+            timestamp = new Date().toISOString(),
+            filename = prefix + timestamp;
+
+        var adjustedData =  _.map(data, function(row) {
+            var measure = row.measure,
+                load = row.load,
+                adjustedRunoff = aoiVolumeModel.adjust(row.runoff),
+                concentration = adjustedRunoff ? load / adjustedRunoff : 0,
+                avgConcMgL = concentration * 1000; // g -> mg
+
+            return {
+                'quality_measure': measure,
+                'load_kg': load,
+                'loading_rate_kg_per_ha': aoiVolumeModel.getLoadingRate(load),
+                'average_concentration_mg_l': avgConcMgL
+            };
+        });
+
+        utils.downloadDataCSV(adjustedData, filename);
     }
 });
 
