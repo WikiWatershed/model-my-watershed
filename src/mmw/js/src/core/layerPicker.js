@@ -273,9 +273,10 @@ var LayerPickerView = Marionette.LayoutView.extend({
                         if (layers) {
                             return layers.findWhere({ active : true });
                         }
-                    }));
-                layerTab.navButtonClass = showTabAsActive ?
-                    'layerpicker-navbutton active' : 'layerpicker-navbutton';
+                    })),
+                    activeClass = showTabAsActive ? 'active ' : '',
+                    openClass = layerTab.active ? 'open ' : '';
+                layerTab.navButtonClass = 'layerpicker-navbutton ' +  openClass + activeClass;
             })
         };
     },
