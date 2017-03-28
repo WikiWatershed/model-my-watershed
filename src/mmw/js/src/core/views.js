@@ -243,7 +243,7 @@ var MapView = Marionette.ItemView.extend({
     initialize: function(options) {
         var map_controls = settings.get('map_controls');
 
-        this.layersModel = options.layersModel;
+        this.layerTabCollection = options.layerTabCollection;
 
         _.defaults(options, {
             addZoomControl: _.contains(map_controls, 'ZoomControl'),
@@ -291,8 +291,8 @@ var MapView = Marionette.ItemView.extend({
         this.setupGeoLocation(maxGeolocationAge);
 
         var initialLayer = options.initialLayerName ?
-            this.layersModel.baseLayers.findWhere({ display: options.initialLayerName }) :
-            this.layersModel.baseLayers.findWhere({active: true});
+            this.layerTabCollection.findLayerWhere({ display: options.initialLayerName }) :
+            this.layerTabCollection.getBaseLayerTab().findLayerWhere({ active: true });
 
         if (initialLayer) {
             map.addLayer(initialLayer.get('leafletLayer'));
@@ -638,7 +638,7 @@ var MapView = Marionette.ItemView.extend({
 
     updateDrbLayerZoomLevel: function(layer) {
         var layerMaxZoom = layer.options.maxZoom;
-        var drbStreamLayer = this.layersModel.streamLayers.findWhere({ code: 'drb_streams_v2'});
+        var drbStreamLayer = this.layerTabCollection.findLayerWhere({ code: 'drb_streams_v2' });
         drbStreamLayer.get('leafletLayer').options.maxZoom = layerMaxZoom;
     },
 
@@ -656,7 +656,8 @@ var MapView = Marionette.ItemView.extend({
                 return;
             } else {
                 // Set layer zoom level to the max for the current area
-                self.layersModel.baseLayers.forEach(function(layer) {
+                self.layerTabCollection.getBaseLayerTab().get('layerGroups').forEach(function(layerGroup) {
+                    layerGroup.get('layers').forEach(function(layer) {
                         if (layer.get('googleType')) {
                             var leafletLayer = layer.get('leafletLayer');
                             if (leafletLayer) {
@@ -666,6 +667,7 @@ var MapView = Marionette.ItemView.extend({
                             }
                         }
                     });
+                });
             }
         });
     },

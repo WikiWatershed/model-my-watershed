@@ -119,7 +119,7 @@ var CompareScenarioView = Marionette.LayoutView.extend({
 
     onShow: function() {
         this.mapModel = new coreModels.MapModel({});
-        this.layersModel = new coreModels.LayersModel();
+        this.LayerTabCollection = new coreModels.LayerTabCollection();
         this.mapModel.set({
             'areaOfInterest': this.projectModel.get('area_of_interest'),
             'areaOfInterestName': this.projectModel.get('area_of_interest_name')
@@ -131,8 +131,8 @@ var CompareScenarioView = Marionette.LayoutView.extend({
             addLocateMeButton: false,
             addLayerSelector: false,
             showLayerAttribution: false,
-            initialLayerName: App.getLayersModel().getCurrentActiveBaseLayerName(),
-            layersModel: this.layersModel,
+            initialLayerName: App.getLayerTabCollection().getCurrentActiveBaseLayerName(),
+            LayerTabCollection: this.LayerTabCollection,
             interactiveMode: false
         });
 

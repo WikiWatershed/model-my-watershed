@@ -79,6 +79,7 @@ LAYER_GROUPS = {
     'coverage': [
         {
             'display': 'National Land Cover Database',
+            'code': 'nlcd',
             'css_class_prefix': 'nlcd',
             'short_display': 'NLCD',
             'helptext': 'National Land Cover Database defines'
@@ -92,6 +93,7 @@ LAYER_GROUPS = {
         },
         {
             'display': 'Hydrologic Soil Groups From gSSURGO',
+            'code': 'soil',
             'short_display': 'SSURGO',
             'css_class_prefix': 'soil',
             'helptext': 'Soils are classified by the Natural Resource Conservation '

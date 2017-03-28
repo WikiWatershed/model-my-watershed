@@ -76,10 +76,10 @@ describe('Core', function() {
 
             it('adds layers to the map when the map model attribute areaOfInterest is set', function() {
                 var model = new models.MapModel(),
-                    layersModel = new models.LayersModel(),
+                    layerTabCollection = new models.LayerTabCollection(null),
                     view = new views.MapView({
                         model: model,
-                        layersModel: layersModel,
+                        layerTabCollection: layerTabCollection,
                         el: sandboxSelector
                     }),
                     featureGroup = view._areaOfInterestLayer;
@@ -95,10 +95,10 @@ describe('Core', function() {
 
             it('updates the position of the map when the map model location attributes are set', function() {
                 var model = new models.MapModel(),
-                    layersModel = new models.LayersModel(),
+                    layerTabCollection = new models.LayerTabCollection(null),
                     view = new views.MapView({
                         model: model,
-                        layersModel: layersModel,
+                        layerTabCollection: layerTabCollection,
                         el: sandboxSelector
                     }),
                     latLng = [40, -75],
@@ -117,10 +117,10 @@ describe('Core', function() {
 
             it('silently sets the map model location attributes when the map position is updated', function() {
                 var model = new models.MapModel(),
-                    layersModel = new models.LayersModel(),
+                    layerTabCollection = new models.LayerTabCollection(null),
                     view = new views.MapView({
                         model: model,
-                        layersModel: layersModel,
+                        layerTabCollection: layerTabCollection,
                         el: sandboxSelector
                     }),
                     latLng = [40, -75],
@@ -137,10 +137,10 @@ describe('Core', function() {
 
             it('adds the map-container top & bottom classes to the map container for DoubleHeader and Small Footer', function(){
                 var model = new models.MapModel(),
-                    layersModel = new models.LayersModel(),
+                    layerTabCollection = new models.LayerTabCollection(null),
                     view = new views.MapView({
                         model: model,
-                        layersModel: layersModel,
+                        layerTabCollection: layerTabCollection,
                         el: sandboxSelector
                     }),
                     $container = $(sandboxSelector).parent();
@@ -154,10 +154,10 @@ describe('Core', function() {
 
             it('adds the map-container sidebar top & bottom classes to the map container for Draw screen', function(){
                 var model = new models.MapModel(),
-                    layersModel = new models.LayersModel(),
+                    layerTabCollection = new models.LayerTabCollection(null),
                     view = new views.MapView({
                         model: model,
-                        layersModel: layersModel,
+                        layerTabCollection: layerTabCollection,
                         el: sandboxSelector
                     }),
                     $container = $(sandboxSelector).parent();
@@ -185,9 +185,9 @@ describe('Core', function() {
                 ];
                 settings.set('base_layers', baseLayers);
 
-                var model = new models.LayersModel(),
+                var collection = new models.LayerTabCollection(null),
                     view = new LayerPickerView({
-                        model: model,
+                        collection: collection,
                         leafletMap: App.getLeafletMap(),
                         // The basemaps are currently the 5th tab in the
                         // layerpicker
