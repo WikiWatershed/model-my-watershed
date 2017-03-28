@@ -23,6 +23,7 @@ var $ = require('jquery'),
     windowTmpl = require('./templates/window.html'),
     AnalyzeDescriptionTmpl = require('./templates/analyzeDescription.html'),
     analyzeResultsTmpl = require('./templates/analyzeResults.html'),
+    analyzeLayerToggleTmpl = require('./templates/analyzeLayerToggle.html'),
     aoiHeaderTmpl = require('./templates/aoiHeader.html'),
     tableTmpl = require('./templates/table.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
@@ -316,7 +317,7 @@ var TabContentView = Marionette.LayoutView.extend({
 });
 
 var TabContentsView = Marionette.CollectionView.extend({
-    className: 'tab-content',
+    className: 'tab-content analyze',
     childView: TabContentView,
     onRender: function() {
         this.$el.find('.tab-pane:first').addClass('active');
@@ -329,6 +330,89 @@ var AoiView = Marionette.ItemView.extend({
 
 var AnalyzeDescriptionView = Marionette.ItemView.extend({
     template: AnalyzeDescriptionTmpl
+});
+
+var AnalyzeLayerToggleView = Marionette.ItemView.extend({
+    template: analyzeLayerToggleTmpl,
+
+    ui: {
+        'toggleButton': '.analyze-layertoggle',
+    },
+
+    events: {
+        'click @ui.toggleButton': 'toggleLayer',
+    },
+
+    initialize: function(options) {
+        this.code = options.code;
+
+        this.setLayer();
+        if (this.code === 'pointsource' && !this.model) {
+            this.layerGroup = App.getLayerTabCollection().getObservationLayerGroup();
+            this.listenTo(this.layerGroup, 'change:layers', function() {
+                this.setLayer();
+                this.render();
+            }, this);
+            this.listenTo(this.layerGroup, 'change:error change:polling', this.setMessage, this);
+            if (!this.layerGroup.get('polling')) {
+                this.layerGroup.fetchLayers(App.getLeafletMap());
+            }
+        }
+    },
+
+    setLayer: function() {
+        this.model = App.getLayerTabCollection().findLayerWhere({ code: this.code });
+        if (this.model) {
+            this.model.on('change:active', this.renderIfNotDestroyed, this);
+            this.message = null;
+        }
+    },
+
+    renderIfNotDestroyed: function() {
+        if (!this.isDestroyed) {
+            this.render();
+        }
+    },
+
+    setMessage: function() {
+        var polling = this.layerGroup.get('polling'),
+            error = this.layerGroup.get('error');
+        if (polling) {
+            this.message = 'Loading related layers...';
+        } else if (error) {
+            this.message = error;
+        }
+    },
+
+    toggleLayer: function() {
+        utils.toggleLayer(this.model, App.getLeafletMap(),
+            App.getLayerTabCollection().findLayerGroup(this.model.get('layerType')));
+        App.getLayerTabCollection().trigger('toggle:layer');
+    },
+
+    templateHelpers: function() {
+        if (this.message) {
+            return {
+                message: this.message,
+            };
+        }
+        else if (this.model) {
+            return {
+                layerDisplay: this.model.get('display'),
+                isLayerOn: this.model.get('active'),
+            };
+        }
+    },
+});
+
+var AnalyzeLayerToggleCollectionView = Marionette.CollectionView.extend({
+    childView: AnalyzeLayerToggleView,
+
+    childViewOptions: function(model) {
+        return {
+            code: model.get('code'),
+        };
+    }
 });
 
 var TableRowView = Marionette.ItemView.extend({
@@ -459,7 +543,7 @@ var PointSourceTableView = Marionette.CompositeView.extend({
         var latLng = L.latLng([data.lat, data.lng]);
 
         this.marker = L.circleMarker(latLng, {
-            fillColor: "#ff7800",
+            fillColor: "#49b8ea",
             weight: 0,
             fillOpacity: 0.75
         }).bindPopup(new pointSourceLayer.PointSourcePopupView({
@@ -678,6 +762,7 @@ var ChartView = Marionette.ItemView.extend({
 var AnalyzeResultView = Marionette.LayoutView.extend({
     template: analyzeResultsTmpl,
     regions: {
+        layerToggleRegion: '.layer-region',
         descriptionRegion: '.desc-region',
         chartRegion: '.chart-region',
         tableRegion: '.table-region'
@@ -737,7 +822,7 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
     },
 
     showAnalyzeResults: function(CategoriesToCensus, AnalyzeTableView,
-        AnalyzeChartView, description) {
+        AnalyzeChartView, description, associatedLayerCodes) {
         var categories = this.model.get('categories'),
             largestArea = lodash.max(lodash.pluck(categories, 'area')),
             units = utils.magnitudeOfArea(largestArea),
@@ -762,22 +847,32 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
                 })
             }));
         }
+
+        if (associatedLayerCodes) {
+            this.layerToggleRegion.show(new AnalyzeLayerToggleCollectionView({
+                collection: new Backbone.Collection(lodash.map(associatedLayerCodes, function(code) {
+                    return { code: code };
+                }))
+            }));
+        }
     }
 });
 
 var LandResultView  = AnalyzeResultView.extend({
     onShow: function() {
-        var desc = 'Land cover distribution from National Land Cover Database (NLCD 2011)';
+        var desc = 'Land cover distribution from National Land Cover Database (NLCD 2011)',
+            associatedLayerCodes = ['nlcd'];
         this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView,
-            ChartView, desc);
+            ChartView, desc, associatedLayerCodes);
     }
 });
 
 var SoilResultView  = AnalyzeResultView.extend({
     onShow: function() {
-        var desc = 'Hydrologic soil group distribution from USDA (gSSURGO 2016)';
+        var desc = 'Hydrologic soil group distribution from USDA (gSSURGO 2016)',
+            associatedLayerCodes = ['soil'];
         this.showAnalyzeResults(coreModels.SoilCensusCollection, TableView,
-            ChartView, desc);
+            ChartView, desc, associatedLayerCodes);
     }
 });
 
@@ -793,9 +888,10 @@ var AnimalsResultView = AnalyzeResultView.extend({
 var PointSourceResultView = AnalyzeResultView.extend({
     onShow: function() {
         var desc = 'Discharge Monitoring Report annual averages from EPA NPDES',
+            associatedLayerCodes = ['pointsource'],
             chart = null;
         this.showAnalyzeResults(coreModels.PointSourceCensusCollection,
-            PointSourceTableView, chart, desc);
+            PointSourceTableView, chart, desc, associatedLayerCodes);
     }
 });
 
@@ -804,9 +900,14 @@ var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
         var desc = 'Delaware River Basin only: <a target="_blank" ' +
                    'href="https://www.arcgis.com/home/item.html?id=260d7e17039d48a6beee0f0b640eb754"​>' +
                    'Stream Reach Assessment Tool</a> model estimates',
+            associatedLayerCodes = [
+                'drb_catchment_water_quality_tn',
+                'drb_catchment_water_quality_tp',
+                'drb_catchment_water_quality_tss',
+            ],
             chart = null;
         this.showAnalyzeResults(coreModels.CatchmentWaterQualityCensusCollection,
-            CatchmentWaterQualityTableView, chart, desc);
+            CatchmentWaterQualityTableView, chart, desc, associatedLayerCodes);
     }
 });
 

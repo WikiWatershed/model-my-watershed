@@ -242,7 +242,7 @@ var LayerPickerView = Marionette.LayoutView.extend({
 
     collectionEvents: {
         'change': 'render',
-        'change:layer': 'render'
+        'toggle:layer': 'render'
     },
 
     initialize: function (options) {
