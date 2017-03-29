@@ -1,27 +1,30 @@
-<div id="delineate-shape" class="dropdown menu-left">
-  <button class="btn btn-md btn-search-tool dropdown-toggle {{ 'disabled' if not toolsEnabled }}"
-      type="button" data-toggle="dropdown" aria-expanded="true">
-    {% if polling %}
-        <i class="fa fa-circle-o-notch fa-spin"></i>
-    {% endif %}
-    {% if pollError %}
-        <i class="fa fa-exclamation-triangle"></i>
-    {% endif %}
-    Delineate Watershed
-    <span class="caret"></span>
-  </button>
-  <ul class="dropdown-menu menu-left" role="menu">
-    <li role="presentation">
-      <a role="menuitem" tabindex="-1" href="#" data-shape-type="stream" data-snapping-on="true" data-data-source={{DRB}}>
+<div class="delineate-watershed-tool">
+  {% if polling %}
+    <div class="delineate-watershed-status-icon pull-right">
+      <i class="fa fa-circle-o-notch fa-spin"></i>
+    </div>
+  {% endif %}
+  {% if pollError %}
+    <div class="delineate-watershed-status-icon pull-right">
+      <i class="fa fa-exclamation-triangle"></i>
+    </div>
+  {% endif %}
+  <ul class="draw-pane-list">
+    <li class="draw-pane-list-item" role="presentation">
+      <button class="draw-pane-list-item-button" role="menuitem" tabindex="-1"
+              href="#" data-shape-type="stream" data-snapping-on="true" data-data-source={{DRB}}
+              {{ 'disabled' if toolsDisabled }}>
         <span>Delaware High Resolution</span> <i class="split fa fa-question-circle"
           data-content="Snaps to the nearest downhill point on the Delaware River Basin high resolution stream network and calculates the watershed upstream of this point using a 1/3 arc second (10m) resolution digital elevation model."></i>
-      </a>
+      </button>
     </li>
-    <li role="presentation">
-      <a role="menuitem" tabindex="-1" href="#" data-shape-type="stream" data-snapping-on="true" data-data-source={{NHD}}>
-        <span style="width: 250px">Continental US Medium Resolution</span> <i class="split fa fa-question-circle"
+    <li class="draw-pane-list-item" role="presentation">
+      <button class="draw-pane-list-item-button" role="button" tabindex="-1"
+              href="#" data-shape-type="stream" data-snapping-on="true" data-data-source={{NHD}}
+              {{ 'disabled' if toolsDisabled }}>
+        <span>Continental US Medium Resolution</span> <i class="split fa fa-question-circle"
           data-content="Snaps to the nearest downhill point on the medium resolution flow lines of the National Hydrography Dataset and calculates the watershed upstream of this point using the 30m resolution NHDPlus flow direction grid."></i>
-      </a>
+      </button>
     </li>
     <!-- Hill Slope is disabled currently
     <li role="presentation">

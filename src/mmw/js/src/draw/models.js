@@ -11,7 +11,8 @@ var ToolbarModel = Backbone.Model.extend({
         predefinedShapeTypes: null,
         outlineFeatureGroup: null,
         polling: false,
-        pollError: false
+        pollError: false,
+        selectedDrawTool: null
     },
 
     enableTools: function() {

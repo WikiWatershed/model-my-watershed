@@ -25,7 +25,9 @@ var DrawController = {
 
         App.rootView.geocodeSearchRegion.show(geocodeSearch);
         App.rootView.drawToolsRegion.show(toolbarView);
-        App.rootView.sidebarRegion.show(new views.DrawWindow());
+        App.rootView.sidebarRegion.show(new views.DrawWindow({
+            model: toolbarModel
+        }));
 
         enableSingleProjectModeIfActivity();
 
