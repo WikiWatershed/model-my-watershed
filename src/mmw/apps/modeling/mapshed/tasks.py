@@ -3,10 +3,11 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
-from ast import literal_eval as make_tuple
+import requests
 
+from ast import literal_eval as make_tuple
 from celery import shared_task
-from celery.exceptions import Retry
+from celery.exceptions import Retry, SoftTimeLimitExceeded
 
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
@@ -81,6 +82,27 @@ def mapshed_finish(self, incoming):
 
     try:
         return sjs_retrieve(retry=self.retry, **incoming)
+    except SoftTimeLimitExceeded:
+        sjs_job_id = self.request.args[0]['job_id']
+        url = 'http://{}:{}/jobs/{}'.format(settings.GEOP['host'],
+                                            settings.GEOP['port'],
+                                            sjs_job_id)
+
+        response = requests.get(url)
+        if response.ok:
+            sjs_result = response.json()
+        else:
+            raise Exception('Unable to retrieve job {} from Spark JobServer.\n'
+                            'Details = {}'.format(sjs_job_id))
+
+        if sjs_result['status'] == 'RUNNING':
+            delete = requests.delete(url)
+            if delete.ok:
+                return {'message':
+                        'Job {0} successfully terminated.'.format(sjs_job_id)}
+            else:
+                raise Exception('Job {} timed out, unable to delete.\n'
+                                'Details: {}'.format(sjs_job_id, delete.text))
     except Retry as r:
         # Celery throws a Retry exception when self.retry is called to stop
         # the execution of any further code, and to indicate to the worker

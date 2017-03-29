@@ -132,6 +132,9 @@ CELERY_WORKER_DIRECT = True
 CELERY_CREATE_MISSING_QUEUES = True
 CELERY_CHORD_PROPAGATES = True
 CELERY_CHORD_UNLOCK_MAX_RETRIES = 60
+# the time limit won't affect the polling tasks since they are short-running
+# the value of 42 coincides with the implied time limit on the polling tasks
+CELERYD_TASK_TIME_LIMIT = 42
 # CELERYD_CONCURRENCY = 2
 # END CELERY CONFIGURATION
 
