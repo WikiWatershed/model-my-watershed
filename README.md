@@ -135,6 +135,12 @@ $ ./scripts/test.sh
 
 ##### Python
 
+To check for Python lint:
+
+```bash
+$ ./scripts/check.sh
+```
+
 To run all the tests on the Django app:
 
 ```bash
@@ -150,6 +156,12 @@ $ ./scripts/manage.sh test apps.app_name.tests
 More info [here](https://docs.djangoproject.com/en/1.8/topics/testing/).
 
 ##### JavaScript
+
+To check for JavaScript lint:
+
+```bash
+$ ./scripts/npm.sh run lint
+```
 
 When creating new tests or debugging old tests, it may be easier to open the testem page, which polls for changes to the test bundle and updates the test state dynamically.
 
