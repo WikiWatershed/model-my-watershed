@@ -504,19 +504,25 @@ def _construct_tr55_job_chain(model_input, job_id):
     return job_chain
 
 
+def _get_boundary_layer_by_code(code):
+    for layer in settings.LAYER_GROUPS['boundary']:
+        if layer.get('code') == code:
+            return layer
+    return False
+
+
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
 def boundary_layer_detail(request, table_code, obj_id):
-    try:
-        layers = [layer for layer in settings.LAYER_GROUPS['boundary']
-                  if layer.get('code') == table_code]
-        table_name = layers[0]['table_name']
-        json_field = layers[0].get('json_field', 'geom')
-
-        query = 'SELECT {field} FROM {table} WHERE id = %s'.format(
-                field=json_field, table=table_name)
-    except (KeyError, IndexError):
+    layer = _get_boundary_layer_by_code(table_code)
+    if not layer:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+    table_name = layer['table_name']
+    json_field = layer.get('json_field', 'geom')
+
+    query = 'SELECT {field} FROM {table} WHERE id = %s'.format(
+            field=json_field, table=table_name)
 
     with connection.cursor() as cursor:
         cursor.execute(query, [int(obj_id)])
@@ -526,7 +532,7 @@ def boundary_layer_detail(request, table_code, obj_id):
             geojson = json.loads(GEOSGeometry(row[0]).geojson)
             return Response(geojson)
         else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 @decorators.api_view(['GET'])
