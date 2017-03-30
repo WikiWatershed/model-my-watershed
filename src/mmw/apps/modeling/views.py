@@ -15,7 +15,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
 from django.conf import settings
 from django.db import connection
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, WKBReader
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
 
@@ -533,6 +533,89 @@ def boundary_layer_detail(request, table_code, obj_id):
             return Response(geojson)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+def _get_boundary_search_query(search_term):
+    """
+    Return raw SQL query to perform full text search against
+    all searchable boundary layers.
+    """
+    select_fmt = """
+        SELECT
+            id,
+            '{code}' AS code,
+            name,
+            {priority} AS priority,
+            ST_Centroid(geom) as center
+        FROM {table}
+        WHERE name ILIKE %(term)s
+    """.strip()
+
+    selects = []
+    for layer in settings.LAYER_GROUPS['boundary']:
+        if not layer.get('searchable'):
+            continue
+
+        code = layer['code']
+        table_name = layer['table_name']
+        priority = layer.get('search_priority', 0)
+
+        selects.append(select_fmt.format(
+            code=code, table=table_name, priority=priority))
+
+    if len(selects) == 0:
+        raise Exception('No boundary layers are searchable')
+
+    subquery = ' UNION ALL '.join(selects)
+
+    return ('SELECT id, code, name, priority, center FROM ({}) AS subquery '
+            'ORDER BY priority DESC, name LIMIT 5').format(subquery)
+
+
+def _boundary_search(search_term):
+    """
+    Execute full text search against all searchable boundary layers.
+    """
+    query = _get_boundary_search_query(search_term)
+
+    with connection.cursor() as cursor:
+        wildcard_term = '%{}%'.format(search_term)
+        cursor.execute(query, {'term': wildcard_term})
+
+        wkb_r = WKBReader()
+
+        result = []
+        for row in cursor.fetchall():
+            id = row[0]
+            code = row[1]
+            name = row[2]
+            priority = row[3]
+            point = wkb_r.read(row[4])
+
+            layer = _get_boundary_layer_by_code(code)
+
+            # Field names should match the ArcGIS API suggest endpoint fields
+            result.append({
+                'id': id,
+                'code': code,
+                'text': name,
+                'label': layer['short_display'],
+                'priority': priority,
+                'y': point.y,
+                'x': point.x,
+            })
+        return result
+
+
+@decorators.api_view(['GET'])
+@decorators.permission_classes((AllowAny, ))
+def boundary_layer_search(request):
+    search_term = request.query_params.get('text')
+    if not search_term:
+        return Response('Missing query string param: text',
+                        status=status.HTTP_400_BAD_REQUEST)
+    result = _boundary_search(search_term)
+    return Response(result)
 
 
 @decorators.api_view(['GET'])
