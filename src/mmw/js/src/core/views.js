@@ -247,6 +247,7 @@ var MapView = Marionette.ItemView.extend({
 
         _.defaults(options, {
             addZoomControl: _.contains(map_controls, 'ZoomControl'),
+            addSidebarToggleControl: _.contains(map_controls, 'SidebarToggleControl'),
             addLocateMeButton: _.contains(map_controls, 'LocateMeButton'),
             showLayerAttribution: _.contains(map_controls, 'LayerAttribution'),
             interactiveMode: true // True if clicking on map does stuff
@@ -272,7 +273,9 @@ var MapView = Marionette.ItemView.extend({
 
         var maxGeolocationAge = 60000;
 
-        map.addControl(new SidebarToggleControl());
+        if (options.addSidebarToggleControl) {
+            map.addControl(new SidebarToggleControl());
+        }
 
         if (options.addLocateMeButton) {
             addLocateMeButton(map, maxGeolocationAge);
@@ -668,18 +671,6 @@ var MapView = Marionette.ItemView.extend({
                     });
             }
         });
-    },
-
-    addSidebarToggleControl: function() {
-        this._sidebarToggleControl = new SidebarToggleControl();
-        this._leafletMap.addControl(this._sidebarToggleControl);
-    },
-
-    removeSidebarToggleControl: function() {
-        if (this._sidebarToggleControl) {
-            this._leafletMap.removeControl(this._sidebarToggleControl);
-            delete this._sidebarToggleControl;
-        }
     },
 });
 
