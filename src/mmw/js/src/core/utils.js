@@ -84,6 +84,7 @@ var utils = {
         if (layerGroup.get('name') === "Basemaps") {
             map.fireEvent('baselayerchange', selectedLayer.get('leafletLayer'));
         }
+        layerGroup.trigger('toggle:layer');
     },
 
     // A function for enabling/disabling modal buttons.  In additiion

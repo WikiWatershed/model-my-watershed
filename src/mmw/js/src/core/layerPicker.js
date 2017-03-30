@@ -8,6 +8,7 @@ var $ = require('jquery'),
     layerPickerGroupTmpl = require('./templates/layerPickerGroup.html'),
     layerPickerLayerTmpl = require('./templates/layerPickerLayer.html'),
     layerPickerLegendTmpl = require('./templates/layerPickerLegend.html'),
+    layerPickerNavTmpl = require('./templates/layerPickerNav.html'),
     opacityControlTmpl = require('./templates/opacityControl.html');
 
 var LayerOpacitySliderView = Marionette.ItemView.extend({
@@ -154,7 +155,8 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
     },
 
     modelEvents: {
-        'change': 'render'
+        'change': 'render',
+        'toggle:layer': 'addOpacityControl',
     },
 
     initialize: function(options) {
@@ -169,7 +171,7 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
                 collection: this.model.get('layers'),
                 model: this.model,
                 leafletMap: this.leafletMap,
-            }).on('select:layer', _.bind(this.addOpacityControl, this)));
+            }));
             this.addOpacityControl();
         }
     },
@@ -216,53 +218,22 @@ var LayerPickerTabView = Marionette.CollectionView.extend({
     }
 });
 
-/**
-The main layerpicker view
-Expects options = {
-    leafletMap, // required
-    defaultActiveTabIndex, // optional, an index of the layer group tab
-                             // that should start as active. Defaults to
-                             // the first tab.
-}
-**/
-var LayerPickerView = Marionette.LayoutView.extend({
-    template: layerPickerTmpl,
-
-    regions: {
-        layerTab: '#layerpicker-tab',
-    },
+var LayerPickerNavView = Marionette.ItemView.extend({
+    template: layerPickerNavTmpl,
 
     ui: {
         tabIcons: '[data-layer-tab]',
     },
 
+    collectionEvents: {
+        'toggle:layer': 'render'
+    },
+
+
     events: {
         'click @ui.tabIcons': 'onTabIconClicked',
     },
 
-    collectionEvents: {
-        'change': 'render',
-        'toggle:layer': 'render'
-    },
-
-    initialize: function (options) {
-        var layerToMakeActive = this.collection.models[options.defaultActiveTabIndex] ||
-            this.collection.models[0];
-        layerToMakeActive.set('active', true);
-
-        this.leafletMap = options.leafletMap;
-    },
-
-    onRender: function() {
-        var activeLayerTab = this.collection.findWhere({ active: true }),
-            activeLayerGroups = activeLayerTab ? activeLayerTab.get('layerGroups') : null;
-        if (activeLayerGroups) {
-            this.layerTab.show(new LayerPickerTabView({
-                collection: activeLayerGroups,
-                leafletMap: this.leafletMap,
-            }));
-        }
-    },
 
     templateHelpers: function() {
         return {
@@ -297,6 +268,52 @@ var LayerPickerView = Marionette.LayoutView.extend({
         this.toggleActiveTab(tabName);
         e.preventDefault();
     },
+});
+
+/**
+The main layerpicker view
+Expects options = {
+    leafletMap, // required
+    defaultActiveTabIndex, // optional, an index of the layer group tab
+                             // that should start as active. Defaults to
+                             // the first tab.
+}
+**/
+var LayerPickerView = Marionette.LayoutView.extend({
+    template: layerPickerTmpl,
+
+    regions: {
+        layerTab: '#layerpicker-tab',
+        layerTabNav: '.layerpicker-nav',
+    },
+
+    collectionEvents: {
+        'change': 'render',
+    },
+
+    initialize: function (options) {
+        var layerToMakeActive = this.collection.models[options.defaultActiveTabIndex] ||
+            this.collection.models[0];
+        layerToMakeActive.set('active', true);
+
+        this.leafletMap = options.leafletMap;
+    },
+
+    onRender: function() {
+        this.layerTabNav.show(new LayerPickerNavView({
+            collection: this.collection,
+        }));
+
+        var activeLayerTab = this.collection.findWhere({ active: true }),
+            activeLayerGroups = activeLayerTab ? activeLayerTab.get('layerGroups') : null;
+        if (activeLayerGroups) {
+            this.layerTab.show(new LayerPickerTabView({
+                collection: activeLayerGroups,
+                leafletMap: this.leafletMap,
+            }));
+        }
+    },
+
 });
 
 module.exports = LayerPickerView;
