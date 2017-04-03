@@ -16,7 +16,7 @@ var App = new Marionette.Application({
     initialize: function() {
         this.restApi = new RestAPI();
         this.map = new models.MapModel();
-        this.layers = new models.LayersModel();
+        this.layerTabs = new models.LayerTabCollection(null);
         this.state = new models.AppStateModel();
 
         // If in embed mode we are by default in activity mode.
@@ -32,7 +32,7 @@ var App = new Marionette.Application({
         // This view is intentionally not attached to any region.
         this._mapView = new views.MapView({
             model: this.map,
-            layersModel: this.layers,
+            layerTabCollection: this.layerTabs,
             el: '#map'
         });
 
@@ -74,13 +74,13 @@ var App = new Marionette.Application({
         }
     },
 
-    getLayersModel: function() {
-        return this.layers;
+    getLayerTabCollection: function() {
+        return this.layerTabs;
     },
 
     showLayerPicker: function() {
         this.layerPickerView = new LayerPickerView({
-            model: this.layers,
+            collection: this.layerTabs,
             leafletMap: this.getLeafletMap(),
         });
         this.rootView.layerPickerRegion.show(this.layerPickerView);
@@ -152,7 +152,7 @@ function initializeShutterbug() {
                 'width': window.innerWidth
             });
 
-            var activeBaseLayer = App.getLayersModel().getCurrentActiveBaseLayer(),
+            var activeBaseLayer = App.getLayerTabCollection().getCurrentActiveBaseLayer(),
                 googleLayerVisible = !!activeBaseLayer.get('leafletLayer')._google;
 
             if (googleLayerVisible) {
@@ -181,7 +181,7 @@ function initializeShutterbug() {
                 'width': ''
             });
 
-            var activeBaseLayer = App.getLayersModel().getCurrentActiveBaseLayer(),
+            var activeBaseLayer = App.getLayerTabCollection().getCurrentActiveBaseLayer(),
                 googleLayerVisible = !!activeBaseLayer.get('leafletLayer')._google;
 
             if (googleLayerVisible) {

@@ -1,17 +1,14 @@
 'use strict';
 
-var models = require('./models'),
-    L = require('leaflet'),
-    $ = require('jquery'),
+var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
-    Backbone = require('backbone'),
     _ = require('underscore'),
     utils = require('./utils'),
-    pointSourceLayer = require('./pointSourceLayer.js'),
     layerPickerTmpl = require('./templates/layerPicker.html'),
     layerPickerGroupTmpl = require('./templates/layerPickerGroup.html'),
     layerPickerLayerTmpl = require('./templates/layerPickerLayer.html'),
     layerPickerLegendTmpl = require('./templates/layerPickerLegend.html'),
+    layerPickerNavTmpl = require('./templates/layerPickerNav.html'),
     opacityControlTmpl = require('./templates/opacityControl.html');
 
 var LayerOpacitySliderView = Marionette.ItemView.extend({
@@ -98,6 +95,25 @@ var LayerPickerLayerView = Marionette.ItemView.extend({
 /* The list of layers in a layer group */
 var LayerPickerLayerListView = Marionette.CollectionView.extend({
     childView: LayerPickerLayerView,
+    modelEvents: {
+        'change': 'renderIfNotDestroyed'
+    },
+    collectionEvents: {
+        'change': 'renderIfNotDestroyed',
+    },
+
+    // Use this gaurd because model updates after fetch
+    // in the observations tab's LayerPickerGroupView
+    // cause a parent re-render, and destroy this view.
+    // This view is, however, listening to changes on the same model, so
+    // `render` is called after it's been destroyed, and there's a
+    // Marionette `ViewDestroyedError`
+    renderIfNotDestroyed: function() {
+        if(!this.isDestroyed){
+            this.render();
+        }
+    },
+
     onChildviewSelectLayer: function(childView) {
         this.toggleLayer(childView.model);
     },
@@ -122,52 +138,8 @@ var LayerPickerLayerListView = Marionette.CollectionView.extend({
         }
     },
 
-    // If the google layer wasn't ready to set up when the model was initialized,
-    // initialize it now.
-    loadGoogleLayer: function(layer) {
-        if (window.google) {
-            layer.set('leafletLayer', new L.Google(layer.get('googleType'), {
-                maxZoom: layer.get('maxZoom')
-            }));
-        }
-    },
-
     toggleLayer: function(selectedLayer) {
-        if (!selectedLayer.get('leafletLayer') && selectedLayer.get('googleType')) {
-            this.loadGoogleLayer(selectedLayer);
-        }
-        var currentActiveLayers = this.collection.where({ active: true });
-        var isInCurrentActive = _.includes(currentActiveLayers, selectedLayer);
-        if (currentActiveLayers.length > 0) {
-            // Works like a checkbox
-            if (this.model.get('canSelectMultiple')) {
-                if (isInCurrentActive) {
-                    selectedLayer.set('active', false);
-                    this.leafletMap.removeLayer(selectedLayer.get('leafletLayer'));
-                } else {
-                    selectedLayer.set('active', true);
-                    this.leafletMap.addLayer(selectedLayer.get('leafletLayer'));
-                }
-            // Works like radio buttons
-            } else {
-                if (isInCurrentActive && !this.model.get('mustHaveActive')) {
-                    selectedLayer.set('active', false);
-                    this.leafletMap.removeLayer(selectedLayer.get('leafletLayer'));
-                } else {
-                    var currentActiveLayer = currentActiveLayers[0];
-                    currentActiveLayer.set('active', false);
-                    this.leafletMap.removeLayer(currentActiveLayer.get('leafletLayer'));
-                    selectedLayer.set('active', true);
-                    this.leafletMap.addLayer(selectedLayer.get('leafletLayer'));
-                }
-            }
-        } else {
-            selectedLayer.set('active', true);
-            this.leafletMap.addLayer(selectedLayer.get('leafletLayer'));
-        }
-        if (this.model.get('name') === "Basemaps") {
-            this.leafletMap.fireEvent('baselayerchange', selectedLayer.get('leafletLayer'));
-        }
+        utils.toggleLayer(selectedLayer, this.leafletMap, this.model);
         this.triggerMethod('select:layer');
     },
 });
@@ -183,7 +155,8 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
     },
 
     modelEvents: {
-        'change': 'render'
+        'change': 'render',
+        'toggle:layer': 'addOpacityControl',
     },
 
     initialize: function(options) {
@@ -192,58 +165,15 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
 
     onRender: function() {
         if (this.model.get('name') === 'Observations' && !this.model.get('layers')) {
-            this.fetchObservations();
+            this.model.fetchLayers(this.leafletMap);
         } else {
             this.showChildView('layers', new LayerPickerLayerListView({
                 collection: this.model.get('layers'),
                 model: this.model,
                 leafletMap: this.leafletMap,
-            }).on('select:layer', _.bind(this.addOpacityControl, this)));
+            }));
             this.addOpacityControl();
         }
-    },
-
-    fetchObservations: function () {
-        var self = this,
-            pointSrcAPIUrl = '/api/modeling/point-source/';
-        this.model.set('polling', true);
-        $.when(self.model.get('layersDeferred'), $.ajax({ 'url': pointSrcAPIUrl, 'type': 'GET'}))
-            .done(function(observationLayers, pointSourceData) {
-                self.model.set({
-                    'polling': false,
-                    'error': null,
-                });
-                var observationLayerObjects =_.map(observationLayers, function(leafletLayer, display) {
-                        return {
-                                leafletLayer: leafletLayer,
-                                display: display,
-                                active: false,
-                            };
-                    }),
-                    observationLayersCollection = new Backbone.Collection(observationLayerObjects);
-
-                if (pointSourceData) {
-                    try {
-                        var parsedPointSource = JSON.parse(pointSourceData[0]),
-                            numberOfPoints = parsedPointSource.features.length;
-                        observationLayersCollection.add({
-                            leafletLayer: pointSourceLayer.Layer.createLayer(pointSourceData[0], self.leafletMap),
-                            display: 'EPA Permitted Point Sources (' + numberOfPoints + ')',
-                            active: false,
-                        });
-                    } catch (e) {
-                        console.error('Unable to parse point source data');
-                    }
-                }
-
-                self.model.set('layers', observationLayersCollection);
-            })
-            .fail(function() {
-                self.model.set({
-                    'polling': false,
-                    'error': 'Could not load observations',
-                });
-            });
     },
 
     addOpacityControl: function() {
@@ -282,110 +212,28 @@ var LayerPickerTabView = Marionette.CollectionView.extend({
             leafletMap: this.leafletMap,
         };
     },
+
     initialize: function(options) {
         this.leafletMap = options.leafletMap;
     }
 });
 
-/**
-The main layerpicker view
-Expects options = {
-    leafletMap, // required
-    defaultActiveTabIndex, // optional, an index of the layer group tab
-                             // that should start as active. Defaults to
-                             // the first tab.
-}
-**/
-var LayerPickerView = Marionette.LayoutView.extend({
-    template: layerPickerTmpl,
-
-    regions: {
-        layerTab: '#layerpicker-tab',
-    },
+var LayerPickerNavView = Marionette.ItemView.extend({
+    template: layerPickerNavTmpl,
 
     ui: {
         tabIcons: '[data-layer-tab]',
     },
 
+    collectionEvents: {
+        'toggle:layer': 'render'
+    },
+
+
     events: {
         'click @ui.tabIcons': 'onTabIconClicked',
     },
 
-    collectionEvents: {
-        'change': 'render'
-    },
-
-    initialize: function (options) {
-        this.collection = new Backbone.Collection([
-            {   name: 'Streams',
-                iconClass: 'icon-streams',
-                layerGroups: new Backbone.Collection([
-                    new models.LayerGroupModel({
-                        name: 'Streams',
-                        layers: this.model.streamLayers,
-                    }),
-                ]),
-            },
-            {   name: 'Coverage Grid',
-                iconClass: 'icon-coverage',
-                layerGroups: new Backbone.Collection([
-                    new models.LayerGroupModel({
-                        name: 'Coverage Grid',
-                        layers: this.model.coverageLayers,
-                    }),
-                ])
-            },
-            {   name: 'Boundary',
-                iconClass: 'icon-boundary',
-                layerGroups: new Backbone.Collection([
-                    new models.LayerGroupModel({
-                        name: 'Boundary',
-                        layers:this.model.boundaryLayers,
-                    }),
-                ])
-            },
-            {   name: 'Observations',
-                iconClass: 'icon-observations',
-                layerGroups: new Backbone.Collection([
-                    new models.LayerGroupModel({
-                        name: 'Observations',
-                        canSelectMultiple: true,
-                        layersDeferred: this.model.observationsDeferred,
-                        polling: false,
-                        error: null,
-                        layers: null,
-                    }),
-                ])
-            },
-            {   name: 'Basemaps',
-                iconClass: 'icon-basemaps',
-                layerGroups: new Backbone.Collection([
-                    new models.LayerGroupModel({
-                        name: 'Basemaps',
-                        mustHaveActive: true,
-                        layers: this.model.baseLayers,
-                    }),
-                ])
-            },
-        ]);
-
-        var layerToMakeActive = this.collection.models[options.defaultActiveTabIndex] ||
-            this.collection.models[0];
-        layerToMakeActive.set('active', true);
-
-        this.leafletMap = options.leafletMap;
-    },
-
-    onRender: function() {
-        var activeLayerTab = this.collection.findWhere({ active: true}),
-            activeLayerGroups = activeLayerTab ? activeLayerTab.get('layerGroups') : null;
-        if (activeLayerGroups) {
-            this.layerTab.show(new LayerPickerTabView({
-                collection: activeLayerGroups,
-                leafletMap: this.leafletMap,
-            }));
-        }
-    },
 
     templateHelpers: function() {
         return {
@@ -396,9 +244,10 @@ var LayerPickerView = Marionette.LayoutView.extend({
                         if (layers) {
                             return layers.findWhere({ active : true });
                         }
-                    }));
-                layerTab.navButtonClass = showTabAsActive ?
-                    'layerpicker-navbutton active' : 'layerpicker-navbutton';
+                    })),
+                    activeClass = showTabAsActive ? 'active ' : '',
+                    openClass = layerTab.active ? 'open ' : '';
+                layerTab.navButtonClass = 'layerpicker-navbutton ' +  openClass + activeClass;
             })
         };
     },
@@ -419,6 +268,52 @@ var LayerPickerView = Marionette.LayoutView.extend({
         this.toggleActiveTab(tabName);
         e.preventDefault();
     },
+});
+
+/**
+The main layerpicker view
+Expects options = {
+    leafletMap, // required
+    defaultActiveTabIndex, // optional, an index of the layer group tab
+                             // that should start as active. Defaults to
+                             // the first tab.
+}
+**/
+var LayerPickerView = Marionette.LayoutView.extend({
+    template: layerPickerTmpl,
+
+    regions: {
+        layerTab: '#layerpicker-tab',
+        layerTabNav: '.layerpicker-nav',
+    },
+
+    collectionEvents: {
+        'change': 'render',
+    },
+
+    initialize: function (options) {
+        var layerToMakeActive = this.collection.models[options.defaultActiveTabIndex] ||
+            this.collection.models[0];
+        layerToMakeActive.set('active', true);
+
+        this.leafletMap = options.leafletMap;
+    },
+
+    onRender: function() {
+        this.layerTabNav.show(new LayerPickerNavView({
+            collection: this.collection,
+        }));
+
+        var activeLayerTab = this.collection.findWhere({ active: true }),
+            activeLayerGroups = activeLayerTab ? activeLayerTab.get('layerGroups') : null;
+        if (activeLayerGroups) {
+            this.layerTab.show(new LayerPickerTabView({
+                collection: activeLayerGroups,
+                leafletMap: this.leafletMap,
+            }));
+        }
+    },
+
 });
 
 module.exports = LayerPickerView;

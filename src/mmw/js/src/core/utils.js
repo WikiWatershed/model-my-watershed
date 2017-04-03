@@ -1,6 +1,7 @@
 "use strict";
 
-var _ = require('underscore'),
+var L = require('leaflet'),
+    _ = require('underscore'),
     lodash = require('lodash'),
     md5 = require('blueimp-md5').md5,
     intersect = require('turf-intersect'),
@@ -34,6 +35,56 @@ var utils = {
         } else {
             return noData;
         }
+    },
+
+    // If the google layer wasn't ready to set up when the model was initialized,
+    // initialize it
+    loadGoogleLayer: function(layer) {
+        if (window.google) {
+            layer.set('leafletLayer', new L.Google(layer.get('googleType'), {
+                maxZoom: layer.get('maxZoom')
+            }));
+        }
+    },
+
+    toggleLayer: function(selectedLayer, map, layerGroup) {
+        var layers = layerGroup.get('layers');
+        if (!selectedLayer.get('leafletLayer') && selectedLayer.get('googleType')) {
+            this.loadGoogleLayer(selectedLayer);
+        }
+        var currentActiveLayers = layers.where({ active: true });
+        var isInCurrentActive = _.includes(currentActiveLayers, selectedLayer);
+        if (currentActiveLayers.length > 0) {
+            // Works like a checkbox
+            if (layerGroup.get('canSelectMultiple')) {
+                if (isInCurrentActive) {
+                    selectedLayer.set('active', false);
+                    map.removeLayer(selectedLayer.get('leafletLayer'));
+                } else {
+                    selectedLayer.set('active', true);
+                    map.addLayer(selectedLayer.get('leafletLayer'));
+                }
+            // Works like radio buttons
+            } else {
+                if (isInCurrentActive && !layerGroup.get('mustHaveActive')) {
+                    selectedLayer.set('active', false);
+                    map.removeLayer(selectedLayer.get('leafletLayer'));
+                } else {
+                    var currentActiveLayer = currentActiveLayers[0];
+                    currentActiveLayer.set('active', false);
+                    map.removeLayer(currentActiveLayer.get('leafletLayer'));
+                    selectedLayer.set('active', true);
+                    map.addLayer(selectedLayer.get('leafletLayer'));
+                }
+            }
+        } else {
+            selectedLayer.set('active', true);
+            map.addLayer(selectedLayer.get('leafletLayer'));
+        }
+        if (layerGroup.get('name') === "Basemaps") {
+            map.fireEvent('baselayerchange', selectedLayer.get('leafletLayer'));
+        }
+        layerGroup.trigger('toggle:layer');
     },
 
     // A function for enabling/disabling modal buttons.  In additiion

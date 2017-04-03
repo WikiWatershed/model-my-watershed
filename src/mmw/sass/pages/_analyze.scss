@@ -1,5 +1,9 @@
 // Analyze
 
+.tab-content.analyze {
+    padding: 0 !important;
+}
+
 #analyze-output-wrapper {
   position: absolute;
   left: 0;
@@ -10,6 +14,14 @@
   z-index: 100;
   width: 100%;
 }
+
+.results-content,
+.analyze-layertoggle,
+.analyze-layermessage,
+.aoi-region {
+    padding: 1rem;
+}
+
 
 .analyze-message-region {
   position: relative;
@@ -29,6 +41,24 @@
 .analyze-description {
   font-size: 0.8rem;
   padding-top: 5px;
+}
+
+.layer-region {
+    border-bottom: 2px solid $ui-light;
+    .analyze-layertoggle, .analyze-layermessage {
+        padding-bottom: 0.5rem;
+        border: none;
+        font-size: 0.7rem;
+        background: none;
+        display: inline;
+        text-align: left;
+        width: 100%;
+        > .on-off-toggle {
+            color: #337ab7; // bootstrap brand-primary used for anchor tags
+            display: inline;
+            margin-left: 1rem;
+        }
+    }
 }
 
 .paging-ctl-row {
