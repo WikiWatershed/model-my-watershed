@@ -495,6 +495,7 @@ MAP_CONTROLS = [
     'LayerSelector',
     'LocateMeButton',
     'ZoomControl',
+    'SidebarToggleControl',
 ]
 
 GWLFE = 'gwlfe'
