@@ -46,9 +46,9 @@ function actOnUI(datum, bool) {
         $el = $('[data-layer-code="' + code + '"]');
 
     if (bool) {
-        $el.addClass('disabled');
+        $el.prop('disabled', true);
     } else {
-        $el.removeClass('disabled');
+        $el.prop('disabled', false);
     }
 }
 
@@ -531,7 +531,7 @@ var SelectAreaView = Marionette.ItemView.extend({
             shortDisplay = $el.data('short-display'),
             minZoom = $el.data('min-zoom');
 
-        if (!$el.hasClass('disabled')) {
+        if (!$el.prop('disabled')) {
             clearAoiLayer();
             this.changeOutlineLayer(tileUrl, layerCode, shortDisplay, minZoom);
             e.preventDefault();

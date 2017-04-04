@@ -7,7 +7,7 @@
           data-layer-code="{{ item.code }}"
           data-short-display="{{ item.short_display }}"
           data-min-zoom="{{ item.minZoom }}"
-          {{ 'disabled' if toolsDisabled }}>
+          {{ "disabled" if item.minZoom > currentZoomLevel }}>
           <span>
             {{ item.display }}
           </span> <i class="split fa fa-question-circle"
