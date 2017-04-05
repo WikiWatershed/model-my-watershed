@@ -1,21 +1,18 @@
-<div id="predefined-shape" class="dropdown">
-  <button class="btn btn-md btn-search-tool dropdown-toggle {{ 'disabled' if not toolsEnabled }}"
-      type="button" data-toggle="dropdown" aria-expanded="true">
-    Select by Boundary
-    <span class="caret"></span>
-  </button>
-  <ul class="dropdown-menu menu-left" role="menu" id="wrapper">
-  {% for item in predefinedShapeTypes %}
-      <li role="presentation">
-        <a role="menuitem" tabindex="-1" href="#"
-           data-tile-url="{{ item.url }}"
-           data-layer-code="{{ item.code }}"
-           data-short-display="{{ item.short_display }}"
-           data-min-zoom="{{ item.minZoom }}">
-          <span>{{ item.display }}</span> <i class="split fa fa-question-circle"
-                                             data-content="{{ item.helptext }}"></i>
-        </a>
-      </li>
-  {% endfor %}
-  </ul>
-</div>
+<ul class="draw-pane-list">
+{% for item in predefinedShapeTypes %}
+    <li class="draw-pane-list-item" role="presentation">
+      <button class="draw-pane-list-item-button" role="button"
+          tabindex="-1" href="#"
+          data-tile-url="{{ item.url }}"
+          data-layer-code="{{ item.code }}"
+          data-short-display="{{ item.short_display }}"
+          data-min-zoom="{{ item.minZoom }}"
+          {{ "disabled" if item.minZoom > currentZoomLevel }}>
+          <span>
+            {{ item.display }}
+          </span> <i class="split fa fa-question-circle"
+                     data-content="{{ item.helptext }}"></i>
+      </button>
+    </li>
+{% endfor %}
+</ul>

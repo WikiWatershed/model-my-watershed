@@ -20,3 +20,86 @@
     margin-left: 30px;
   }
 }
+
+#draw-pane-header-description {
+  margin-top: 0.8rem;
+}
+
+#draw-pane-buttons {
+  margin-top: 1rem;
+
+  & .draw-tool-button {
+    background-color: #d4d7d8;
+  }
+
+  & .draw-tool-button-slideout {
+    margin-top: 0px;
+    margin-bottom: 5px;
+    background-color: #eceff1;
+    line-height: 0.5rem;
+
+    & .reset-draw-button {
+      margin-top: 1rem;
+      margin-right: 0.9rem;
+      cursor: pointer;
+    }
+  }
+
+  & .draw-button-title {
+    font-size: 1rem;
+    font-weight: 400;
+    color: black;
+    line-height: 1.4;
+    margin-top: 0.4rem;
+  }
+
+  & .draw-button-subtitle {
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+
+  & .draw-button-icon {
+    margin-top: 1rem;
+  }
+
+  & #upload-file-region {
+    height: 5.5rem;
+
+    & #file-upload-title {
+      margin-top: 0;
+    }
+  }
+
+  & #draw-tool-file-upload-button {
+    margin-top: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+
+  & .draw-pane-list {
+    text-align: left;
+    font-size: 1rem;
+    display: inline;
+
+    & .draw-pane-list-item {
+      list-style-type: none;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+      margin-left: 0.8rem;
+      font-size: 0.8rem;
+
+      & .draw-pane-list-item-button {
+        background: transparent;
+        border: none;
+      }
+
+      & .draw-pane-list-item-button:disabled {
+        color: #7f8181;
+      }
+    }
+  }
+
+  & .delineate-watershed-status-icon {
+    margin-top: 1rem;
+  }
+
+}
