@@ -1,1 +1,6 @@
-<span>{{ text }}</span>
+<span>
+    {% if label %}
+    <strong>{{ label }}:</strong>
+    {% endif %}
+    {{ text }}
+</span>

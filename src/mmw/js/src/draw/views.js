@@ -994,5 +994,7 @@ function navigateToAnalyze() {
 module.exports = {
     SplashWindow: SplashWindow,
     DrawWindow: DrawWindow,
-    getShapeAndAnalyze: getShapeAndAnalyze
+    getShapeAndAnalyze: getShapeAndAnalyze,
+    addLayer: addLayer,
+    clearAoiLayer: clearAoiLayer
 };

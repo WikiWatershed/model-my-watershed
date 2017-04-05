@@ -2,7 +2,9 @@
 
 var _ = require('underscore'),
     $ = require('jquery'),
+    App = require('../app'),
     Marionette = require('../../shim/backbone.marionette'),
+    drawViews = require('../draw/views'),
     models = require('./models'),
     geocoderTmpl = require('./templates/geocoder.html'),
     searchTmpl = require('./templates/search.html'),
@@ -19,6 +21,26 @@ var ICON_BASE = 'search-icon fa ',
 var MSG_DEFAULT = '',
     MSG_EMPTY   = 'No results found.',
     MSG_ERROR   = 'Oops! Something went wrong.';
+
+
+function addBoundaryLayer(model) {
+    App.restApi.getPolygon({
+            layerCode: model.get('code'),
+            shapeId: model.get('id')
+        })
+        .then(function(shape) {
+            drawViews.addLayer(shape);
+        });
+}
+
+function selectSearchSuggestion(model) {
+    model.setMapViewToLocation();
+    if (model.get('isBoundaryLayer')) {
+        addBoundaryLayer(model);
+    } else {
+        drawViews.clearAoiLayer();
+    }
+}
 
 var GeocoderView = Marionette.LayoutView.extend({
     template: geocoderTmpl,
@@ -145,8 +167,7 @@ var SearchBoxView = Marionette.LayoutView.extend({
 
     search: function(query) {
         return this.collection.fetch({
-            data: { text: query },
-            reset: true
+            data: { text: query }
         });
     },
 
@@ -161,7 +182,8 @@ var SearchBoxView = Marionette.LayoutView.extend({
             .select()
                 .done(function() {
                     self.setStateDefault();
-                    self.collection.first().setMapViewToLocation();
+                    var model = self.collection.first();
+                    selectSearchSuggestion(model);
                 })
                 .fail(_.bind(this.setStateError, this))
                 .always(_.bind(this.reset, this));
@@ -219,7 +241,7 @@ var SuggestionView = Marionette.ItemView.extend({
     },
 
     selectSuccess: function() {
-        this.model.setMapViewToLocation();
+        selectSearchSuggestion(this.model);
         this.triggerMethod('suggestion:select:success');
     },
 
