@@ -129,11 +129,10 @@ var CompareScenarioView = Marionette.LayoutView.extend({
             el: $(this.el).find('.map-container').get(),
             addZoomControl: false,
             addLocateMeButton: false,
-            addLayerSelector: false,
             addSidebarToggleControl: false,
             showLayerAttribution: false,
             initialLayerName: App.getLayerTabCollection().getCurrentActiveBaseLayerName(),
-            LayerTabCollection: this.LayerTabCollection,
+            layerTabCollection: this.LayerTabCollection,
             interactiveMode: false
         });
 
