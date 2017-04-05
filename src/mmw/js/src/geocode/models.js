@@ -9,29 +9,20 @@ var GeocoderModel = Backbone.Model.extend({
     }
 });
 
-var LocationModel = Backbone.Model.extend({
+var SuggestionModel = Backbone.Model.extend({
     url: '/api/geocode/',
 
-    parse: function(response) {
-        if (response.length) {
-            return response[0];
-        } else {
-            return {};
-        }
-    }
-});
-
-var SuggestionModel = Backbone.Model.extend({
     defaults: {
         zoom: 18
     },
 
     setMapViewToLocation: function(zoom) {
-        var location = this.get('location');
-        if (location) {
+        var lat = this.get('y'),
+            lng = this.get('x');
+        if (lat && lng) {
             App.map.set({
-                lat: location.get('y'),
-                lng: location.get('x'),
+                lat: lat,
+                lng: lng,
                 zoom: zoom || this.get('zoom')
             });
         }
@@ -42,10 +33,16 @@ var SuggestionModel = Backbone.Model.extend({
             key: this.get('magicKey'),
             search: this.get('text')
         };
+        return this.fetch({ data: data });
+    },
 
-        this.set('location', new LocationModel(data));
-
-        return this.get('location').fetch({ data: data });
+    parse: function(data) {
+        // Parse from API request
+        if (data.length) {
+            return data[0];
+        }
+        // Parse from initialization
+        return data;
     }
 });
 
@@ -69,6 +66,5 @@ var SuggestionsCollection = Backbone.Collection.extend({
 module.exports = {
     GeocoderModel: GeocoderModel,
     SuggestionModel: SuggestionModel,
-    LocationModel: LocationModel,
     SuggestionsCollection: SuggestionsCollection
 };

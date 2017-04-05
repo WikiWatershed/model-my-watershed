@@ -184,25 +184,31 @@ describe('Geocoder', function() {
                     testGeocode = getTestGeocodes(1),
                     zoomLevel = 15;
 
-                model.set('location', new models.LocationModel(testGeocode[0]));
+                model.fetch = function() {
+                    model.set(testGeocode[0]);
+                };
+
+                model.select();
                 model.setMapViewToLocation(zoomLevel);
 
-                assert.equal(App.map.get('lat'), model.get('location').get('y'));
-                assert.equal(App.map.get('lng'), model.get('location').get('x'));
+                assert.equal(App.map.get('lat'), model.get('y'));
+                assert.equal(App.map.get('lng'), model.get('x'));
                 assert.equal(App.map.get('zoom'), zoomLevel);
             });
         });
 
         describe('#select', function() {
-            it('fetchs location information for the selected model', function(done) {
+            it('fetches location information for the selected model', function(done) {
                 var testSuggestion = getTestSuggestions(1),
-                    model = new models.SuggestionModel(testSuggestion[0]),
-                    testGeocode = JSON.stringify(getTestGeocodes(1));
+                    testGeocode = getTestGeocodes(1),
+                    model = new models.SuggestionModel(testSuggestion[0]);
 
-                this.server.respondWith([200, { 'Content-Type': 'application/json' }, testGeocode]);
+                this.server.respondWith([200, { 'Content-Type': 'application/json' },
+                    JSON.stringify(testGeocode)]);
 
                 model.select().done(function() {
-                    assert.instanceOf(model.get('location'), Backbone.Model);
+                    assert.equal(model.get('y'), testGeocode[0].y);
+                    assert.equal(model.get('x'), testGeocode[0].x);
                     done();
                 });
             });
