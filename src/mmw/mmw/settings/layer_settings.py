@@ -199,6 +199,8 @@ LAYER_GROUPS = {
                         'HUC-8 to analyze.',
             'minZoom': 7,
             'selectable': True,
+            'searchable': True,
+            'search_priority': 100,
         },
         {
             'code': 'huc10',
@@ -214,6 +216,8 @@ LAYER_GROUPS = {
                         'HUC-10 to analyze.',
             'minZoom': 8,
             'selectable': True,
+            'searchable': True,
+            'search_priority': 90,
         },
         {
             'code': 'huc12',
@@ -230,6 +234,8 @@ LAYER_GROUPS = {
                         'HUC-12 to analyze.',
             'minZoom': 9,
             'selectable': True,
+            'searchable': True,
+            'search_priority': 80,
         },
         {
             'code': 'county',
