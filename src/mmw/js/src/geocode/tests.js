@@ -5,7 +5,6 @@ require('../core/setup');
 var _ = require('lodash'),
     $ = require('jquery'),
     assert = require('chai').assert,
-    Backbone = require('../../shim/backbone'),
     sinon = require('sinon'),
     App = require('../app'),
     views = require('./views'),
@@ -47,7 +46,7 @@ describe('Geocoder', function() {
 
             this.server.respondWith([200, { 'Content-Type': 'application/json' }, responseData]);
 
-            testNumberOfResults(testData.length, done);
+            testNumberOfResults(testData.length * 2, done);
         });
 
         it('renders multiple list items if there are multiple suggestions', function(done) {
@@ -56,7 +55,7 @@ describe('Geocoder', function() {
 
             this.server.respondWith([200, { 'Content-Type': 'application/json' }, responseData]);
 
-            testNumberOfResults(testData.length, done);
+            testNumberOfResults(testData.length * 2, done);
         });
 
         it('renders no list items and an error message if there are no suggestions', function(done) {
@@ -86,7 +85,8 @@ describe('Geocoder', function() {
                 responseData = JSON.stringify({ suggestions: testData }),
                 view = createView();
 
-            this.server.respondWith([200, { 'Content-Type': 'application/json' }, responseData]);
+            this.server.respondWith(/geocode.arcgis.com/,
+                [200, { 'Content-Type': 'application/json' }, responseData]);
 
             var self = this;
             view.handleSearch('a query').done(function() {

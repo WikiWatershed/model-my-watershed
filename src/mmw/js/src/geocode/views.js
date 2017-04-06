@@ -163,6 +163,12 @@ var SearchBoxView = Marionette.LayoutView.extend({
         var self = this,
             defer = $.Deferred();
 
+        if (this.collection.size() === 0) {
+            this.setStateError();
+            defer.reject();
+            return defer.promise();
+        }
+
         this.setStateWorking();
 
         this.collection
