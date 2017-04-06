@@ -572,10 +572,11 @@ def _get_boundary_search_query(search_term):
             'ORDER BY priority DESC, name LIMIT 5').format(subquery)
 
 
-def _boundary_search(search_term):
+def _do_boundary_search(search_term):
     """
     Execute full text search against all searchable boundary layers.
     """
+    result = []
     query = _get_boundary_search_query(search_term)
 
     with connection.cursor() as cursor:
@@ -584,7 +585,6 @@ def _boundary_search(search_term):
 
         wkb_r = WKBReader()
 
-        result = []
         for row in cursor.fetchall():
             id = row[0]
             code = row[1]
@@ -594,7 +594,6 @@ def _boundary_search(search_term):
 
             layer = _get_boundary_layer_by_code(code)
 
-            # Field names should match the ArcGIS API suggest endpoint fields
             result.append({
                 'id': id,
                 'code': code,
@@ -604,7 +603,17 @@ def _boundary_search(search_term):
                 'y': point.y,
                 'x': point.x,
             })
-        return result
+
+    return result
+
+
+def _boundary_search_context(search_term):
+    suggestions = [] if len(search_term) < 3 else \
+        _do_boundary_search(search_term)
+    # Data format should match the ArcGIS API suggest endpoint response
+    return {
+        'suggestions': suggestions,
+    }
 
 
 @decorators.api_view(['GET'])
@@ -614,7 +623,7 @@ def boundary_layer_search(request):
     if not search_term:
         return Response('Missing query string param: text',
                         status=status.HTTP_400_BAD_REQUEST)
-    result = _boundary_search(search_term)
+    result = _boundary_search_context(search_term)
     return Response(result)
 
 
