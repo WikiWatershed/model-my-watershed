@@ -80,7 +80,7 @@ var LayerPickerLayerView = Marionette.ItemView.extend({
 
     onRender: function() {
         this.ui.layerHelpIcon.popover({
-            trigger: 'hover',
+            trigger: 'focus',
             viewport: {
                 'selector': '.map-container',
                 'padding': 10
