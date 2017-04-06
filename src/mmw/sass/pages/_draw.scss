@@ -6,7 +6,7 @@
     right: 0;
     transition: all 200ms;
     top: 44px;
-    overflow-y: auto;
+    overflow: visible;
 }
 
 .splash-step {
@@ -94,6 +94,14 @@
 
       & .draw-pane-list-item-button:disabled {
         color: #7f8181;
+      }
+
+      & a.help {
+        color: #999;
+
+        &:hover {
+          color: inherit;
+        }
       }
     }
   }

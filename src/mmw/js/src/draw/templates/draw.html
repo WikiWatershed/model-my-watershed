@@ -2,13 +2,21 @@
   <li class="draw-pane-list-item" role="presentation">
     <button class="draw-pane-list-item-button" role="button" tabindex="-1"
             href="#" id="custom-shape" {{ 'disabled' if toolsDisabled }}>
-      <span>Free Draw</span> <i class="split fa fa-question-circle" data-content="Draw a custom area on which you want to perform perform water quality analysis."></i>
+        <span>Free Draw</span>
     </button>
+    <a class="help" data-toggle="popover" tabindex="0"
+       role="button" data-content="Draw a custom area on which you want to perform water quality analysis.">
+       <i class="fa fa-question-circle"></i>
+    </a>
   </li>
   <li class="draw-pane-list-item" role="presentation">
     <button class="draw-pane-list-item-button" role="button" tabindex="-1"
             href="#" id="one-km-stamp" {{ 'disabled' if toolsDisabled }}>
-      <span>Square Km</span> <i class="split fa fa-question-circle" data-content="Draw a predefined one kilometer square with a center at the point you choose."></i>
+        <span>Square Km</span>
     </button>
+    <a class="help" data-toggle="popover" tabindex="0"
+       role="button" data-content="Draw a predefined one kilometer square with a center at the point you choose.">
+       <i class="fa fa-question-circle"></i>
+    </a>
   </li>
 </ul>

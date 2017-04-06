@@ -14,17 +14,29 @@
       <button class="draw-pane-list-item-button" role="menuitem" tabindex="-1"
               href="#" data-shape-type="stream" data-snapping-on="true" data-data-source={{DRB}}
               {{ 'disabled' if toolsDisabled }}>
-        <span>Delaware High Resolution</span> <i class="split fa fa-question-circle"
-          data-content="Snaps to the nearest downhill point on the Delaware River Basin high resolution stream network and calculates the watershed upstream of this point using a 1/3 arc second (10m) resolution digital elevation model."></i>
+        <span>Delaware High Resolution</span>
       </button>
+      <a class="help" data-toggle="popover" tabindex="0" data-html="true"
+         role="button" data-content="Snaps to the nearest downhill point on the Delaware River Basin
+         high resolution stream network and calculates the watershed upstream of this point using a
+         1/3 arc second (10m) resolution digital elevation model. The stream network was
+         delineated using <a href='http://hydrology.usu.edu/taudem/taudem5/index.html' target='_blank'>TauDEM</a>.">
+         <i class="fa fa-question-circle"></i>
+      </a>
     </li>
     <li class="draw-pane-list-item" role="presentation">
       <button class="draw-pane-list-item-button" role="button" tabindex="-1"
               href="#" data-shape-type="stream" data-snapping-on="true" data-data-source={{NHD}}
               {{ 'disabled' if toolsDisabled }}>
-        <span>Continental US Medium Resolution</span> <i class="split fa fa-question-circle"
-          data-content="Snaps to the nearest downhill point on the medium resolution flow lines of the National Hydrography Dataset and calculates the watershed upstream of this point using the 30m resolution NHDPlus flow direction grid."></i>
+        <span>Continental US Medium Resolution</span>
       </button>
+      <a class="help" data-toggle="popover" tabindex="0" data-html="true"
+         role="button" data-content="Snaps to the nearest downhill point on the medium
+         resolution flow lines of the National Hydrography Dataset and calculates the
+         watershed upstream of this point using the 30m resolution NHDPlus flow direction grid.
+         Learn more about NHDPlus <a href='http://www.horizon-systems.com/nhdplus/' target='_blank'>here</a>.">
+         <i class="fa fa-question-circle"></i>
+      </a>
     </li>
     <!-- Hill Slope is disabled currently
     <li role="presentation">

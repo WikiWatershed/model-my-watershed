@@ -489,7 +489,7 @@ var SelectAreaView = Marionette.ItemView.extend({
     ui: {
         items: '[data-tile-url]',
         button: '#predefined-shape',
-        helptextIcon: 'i.split'
+        helptextIcon: 'a.help'
     },
 
     events: {
@@ -519,8 +519,8 @@ var SelectAreaView = Marionette.ItemView.extend({
 
     onRender: function() {
         this.ui.helptextIcon.popover({
-            trigger: 'hover',
-            viewport: '.map-container'
+            trigger: 'focus',
+            placement: 'top'
         });
     },
 
@@ -610,7 +610,7 @@ var DrawView = Marionette.ItemView.extend({
     ui: {
         drawArea: '#custom-shape',
         drawStamp: '#one-km-stamp',
-        helptextIcon: 'i.split'
+        helptextIcon: 'a.help'
     },
 
     events: {
@@ -649,8 +649,8 @@ var DrawView = Marionette.ItemView.extend({
 
     onShow: function() {
         this.ui.helptextIcon.popover({
-            trigger: 'hover',
-            viewport: '.map-container'
+            trigger: 'focus',
+            placement: 'top'
         });
     },
 
@@ -709,7 +709,7 @@ var WatershedDelineationView = Marionette.ItemView.extend({
     ui: {
         items: '[data-shape-type]',
         button: '#delineate-shape',
-        helptextIcon: 'i.split'
+        helptextIcon: 'a.help'
     },
 
     events: {
@@ -718,8 +718,8 @@ var WatershedDelineationView = Marionette.ItemView.extend({
 
     onShow: function() {
         this.ui.helptextIcon.popover({
-            trigger: 'hover',
-            viewport: '.map-container'
+            trigger: 'focus',
+            placement: 'top'
         });
     },
 

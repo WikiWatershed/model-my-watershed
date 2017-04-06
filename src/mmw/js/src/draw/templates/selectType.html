@@ -10,9 +10,12 @@
           {{ "disabled" if item.minZoom > currentZoomLevel }}>
           <span>
             {{ item.display }}
-          </span> <i class="split fa fa-question-circle"
-                     data-content="{{ item.helptext }}"></i>
+          </span>
       </button>
+      <a class="help" data-toggle="popover" tabindex="0"
+         role="button" data-content="{{ item.helptext }}">
+        <i class="fa fa-question-circle"></i>
+      </a>
     </li>
 {% endfor %}
 </ul>

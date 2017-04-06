@@ -111,18 +111,6 @@ p.info {
         span {
           display:inline-block;
         }
-
-        i.split {
-          display:inline-block;
-          position: absolute;
-          right: 5%;
-          top:30%;
-        }
-        .popover {
-          min-width: 400px;
-          max-width: 450px;
-          line-height: 200%;
-        }
       }
     }
   }
@@ -136,4 +124,9 @@ p.info {
   position: absolute;
   z-index: 1;
   opacity: 0.8;
+}
+
+a:focus {
+    outline: none;
+    outline-offset: 0;
 }
