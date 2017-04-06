@@ -350,7 +350,7 @@ var LayerTabCollection = Backbone.Collection.extend({
     },
 
     getCurrentActiveBaseLayer: function() {
-        return this.getBaseLayerTab.findLayerWhere({ 'active': true });
+        return this.getBaseLayerTab().findLayerWhere({ 'active': true });
     },
 
     getCurrentActiveBaseLayerName: function() {
