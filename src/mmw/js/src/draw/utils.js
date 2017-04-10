@@ -7,7 +7,7 @@ var $ = require('jquery'),
     coreUtils = require('../core/utils');
 
 // Keep in sync with src/api/main.py in rapid-watershed-delineation.
-var MAX_AREA = 112700; // About the size of a large state (in km^2)
+var MAX_AREA = 75000; // About the size of West Virginia (in km^2)
 
 var polygonDefaults = {
         fillColor: '#E77471',
