@@ -89,9 +89,9 @@ function validateShape(polygon) {
         d.reject(errorMsg);
     } else if (!utils.isValidForAnalysis(polygon)) {
         var maxArea = utils.MAX_AREA.toLocaleString(),
-            selectedArea = Math.floor(utils.shapeArea(polygon)).toLocaleString(),
-            message = 'Sorry, the area you have delineated is too large ' +
-                      'to analyze or model. ' + selectedArea + ' km² were ' +
+            selectedBoundingBoxArea = Math.floor(utils.shapeBoundingBoxArea(polygon)).toLocaleString(),
+            message = 'Sorry, the bounding box of the area you have delineated is too large ' +
+                      'to analyze or model. ' + selectedBoundingBoxArea + ' km² were ' +
                       'selected, but the maximum supported size is ' +
                       'currently ' + maxArea + ' km².';
         d.reject(message);
