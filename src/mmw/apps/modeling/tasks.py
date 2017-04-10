@@ -213,15 +213,19 @@ def format_quality(model_output):
                 'Total Phosphorus']
     codes = ['tss', 'tn', 'tp']
 
-    def fn(input):
-        measure, code = input
-        return {
-            'measure': measure,
-            'load': model_output['modified'][code] * KG_PER_POUND,
-            'runoff': model_output['modified']['runoff']  # Already CM
-        }
+    quality = {}
+    for key in model_output:
+        def map_and_convert_units(input):
+            measure, code = input
+            return {
+                'measure': measure,
+                'load': model_output[key][code] * KG_PER_POUND,
+                'runoff': model_output[key]['runoff']  # Already CM
+            }
 
-    return map(fn, zip(measures, codes))
+        quality[key] = map(map_and_convert_units, zip(measures, codes))
+
+    return quality
 
 
 def format_runoff(model_output):

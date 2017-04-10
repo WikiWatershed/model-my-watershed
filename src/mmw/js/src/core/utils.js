@@ -335,6 +335,24 @@ var utils = {
         return element.measure !== "Biochemical Oxygen Demand";
     },
 
+
+    // TR-55 runoff and water quality results are in the format:
+    // {
+    //     modified: ...,
+    //     unmodified: ...,
+    //     pc_unmodified: ...,
+    // }
+    // Use the scenario attributes to figure out which subresult should be
+    // accessed.
+    getTR55ResultKey: function(scenario) {
+        if (scenario.get('is_current_conditions')) {
+            return 'unmodified';
+        } else if (scenario.get('is_pre_columbian')) {
+            return 'pc_unmodified';
+        }
+        return 'modified';
+    },
+
     // Reverse sorting of a Backbone Collection.
     // Taken from http://stackoverflow.com/a/12220415/2053314
     reverseSortBy: function(sortByFunction) {
