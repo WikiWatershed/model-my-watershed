@@ -128,7 +128,9 @@ def get_client_settings(request):
             'vizer_ignore': settings.VIZER_IGNORE,
             'vizer_names': settings.VIZER_NAMES,
             'model_packages': get_model_packages(),
-            'mapshed_max_area': settings.GWLFE_CONFIG['MaxAoIArea']
+            'mapshed_max_area': settings.GWLFE_CONFIG['MaxAoIArea'],
+            'analyze_enabled': settings.ANALYZE_ENABLED,
+            'itsi_enabled': settings.ITSI_ENABLED,
         }),
         'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
     }
