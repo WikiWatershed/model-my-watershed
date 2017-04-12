@@ -38,4 +38,9 @@ spark {
 # spray #
 #########
 
-spray.can.server.parsing.max-content-length = 250m
+spray.can.server {
+  parsing.max-content-length = 250m
+  # Match the backend's timeout set here src/mmw/apps/modeling/tasks.py
+  idle-timeout = 45s
+  request-timeout = 42s
+}

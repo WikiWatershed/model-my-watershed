@@ -4,10 +4,11 @@ var $ = require('jquery'),
     L = require('leaflet'),
     _ = require('lodash'),
     turfArea = require('turf-area'),
+    turfBboxPolygon = require('turf-bbox-polygon'),
     coreUtils = require('../core/utils');
 
 // Keep in sync with src/api/main.py in rapid-watershed-delineation.
-var MAX_AREA = 112700; // About the size of a large state (in km^2)
+var MAX_AREA = 75000; // About the size of West Virginia (in km^2)
 
 var polygonDefaults = {
         fillColor: '#E77471',
@@ -84,15 +85,44 @@ function cancelDrawing(map) {
     map.fire('draw:drawstop');
 }
 
+function getGeoJsonLatLngs(shape) {
+    if (shape.coordinates) {
+        return L.GeoJSON.coordsToLatLngs(shape.coordinates, 2);
+    } else if (shape.geometry) {
+        return L.GeoJSON.coordsToLatLngs(shape.geometry.coordinates, 1);
+    } else if (shape.features) {
+        var coordinates = [];
+        _.forEach(shape.features, function(feature) {
+            coordinates.push(feature.geometry.coordinates);
+        });
+        return L.GeoJSON.coordsToLatLngs(coordinates, 2);
+    }
+    return null;
+}
+
 // Return shape area in km2.
 function shapeArea(shape) {
     return coreUtils.changeOfAreaUnits(turfArea(shape),
             'm<sup>2</sup>', 'km<sup>2</sup>');
 }
 
+// Get the bounding box of the shape and return its area in km2
+function shapeBoundingBoxArea(shape) {
+    var shapeLatLngPoints = getGeoJsonLatLngs(shape),
+        latLngBounds = L.latLngBounds(shapeLatLngPoints),
+        boundingBox = [
+            latLngBounds.getWest(),
+            latLngBounds.getSouth(),
+            latLngBounds.getEast(),
+            latLngBounds.getNorth()
+        ],
+        boundingBoxPolygon = turfBboxPolygon(boundingBox);
+    return shapeArea(boundingBoxPolygon);
+}
+
 function isValidForAnalysis(shape) {
     if (shape) {
-        var area = shapeArea(shape);
+        var area = shapeBoundingBoxArea(shape);
         return area > 0 && area <= MAX_AREA;
     }
     return false;
@@ -104,7 +134,7 @@ module.exports = {
     createRwdMarkerIcon: createRwdMarkerIcon,
     cancelDrawing: cancelDrawing,
     polygonDefaults: polygonDefaults,
-    shapeArea: shapeArea,
+    shapeBoundingBoxArea: shapeBoundingBoxArea,
     isValidForAnalysis: isValidForAnalysis,
     NHD: 'nhd',
     DRB: 'drb',
