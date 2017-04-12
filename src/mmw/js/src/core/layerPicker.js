@@ -1,6 +1,7 @@
 'use strict';
 
 var $ = require('jquery'),
+    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     _ = require('underscore'),
     utils = require('./utils'),
@@ -229,37 +230,49 @@ var LayerPickerNavView = Marionette.ItemView.extend({
         'toggle:layer': 'render'
     },
 
-
     events: {
         'click @ui.tabIcons': 'onTabIconClicked',
     },
 
-
     templateHelpers: function() {
+        var doesLayerGroupHaveActiveLayer = function(layerGroup) {
+            var layers = layerGroup.get('layers');
+            if (layers) {
+                return layers.findWhere({ active : true });
+            }
+            return false;
+        };
+
         return {
             layerTabs: _.forEach(this.collection.toJSON(), function(layerTab) {
-                var showTabAsActive = layerTab.active || (layerTab.name !== "Basemaps" &&
-                    layerTab.layerGroups.any(function(layerGroup) {
-                        var layers = layerGroup.get('layers');
-                        if (layers) {
-                            return layers.findWhere({ active : true });
-                        }
-                    })),
+                var isLayerPickerOpenAndTabActive = layerTab.active && this.isLayerPickerOpen,
+                    showTabAsActive = isLayerPickerOpenAndTabActive ||
+                        (layerTab.name !== "Basemaps" &&
+                        layerTab.layerGroups.any(doesLayerGroupHaveActiveLayer)),
                     activeClass = showTabAsActive ? 'active ' : '',
-                    openClass = layerTab.active ? 'open ' : '';
+                    openClass = isLayerPickerOpenAndTabActive ? 'open ' : '';
                 layerTab.navButtonClass = 'layerpicker-navbutton ' +  openClass + activeClass;
-            })
+            }, { isLayerPickerOpen: this.model.get('isOpen') })
         };
     },
 
     toggleActiveTab: function(newActiveTabName) {
-        var currentActive = this.collection.findWhere({ active: true});
-        if (currentActive) {
+        var currentActive = this.collection.findWhere({ active: true}),
+            isLayerPickerOpen = this.model.get('isOpen'),
+            isCurrentActiveNewActive = currentActive &&
+                newActiveTabName === currentActive.get('name');
+
+        if (!isLayerPickerOpen) {
+            this.model.set('isOpen', true);
+        } else if (isLayerPickerOpen && isCurrentActiveNewActive) {
+            this.model.set('isOpen', false);
+        }
+
+        if (!isCurrentActiveNewActive) {
             currentActive.set('active', false);
         }
-        if (!currentActive || currentActive.get('name') !== newActiveTabName) {
-            this.collection.findWhere({ name: newActiveTabName }).set('active', true);
-        }
+
+        this.collection.findWhere({ name: newActiveTabName }).set('active', true);
     },
 
     onTabIconClicked: function(e) {
@@ -287,7 +300,19 @@ var LayerPickerView = Marionette.LayoutView.extend({
         layerTabNav: '.layerpicker-nav',
     },
 
+    ui: {
+        header: '.layerpicker-header'
+    },
+
+    events: {
+        'click @ui.header': 'onHeaderClicked',
+    },
+
     collectionEvents: {
+        'change': 'render',
+    },
+
+    modelEvents: {
         'change': 'render',
     },
 
@@ -297,22 +322,32 @@ var LayerPickerView = Marionette.LayoutView.extend({
         layerToMakeActive.set('active', true);
 
         this.leafletMap = options.leafletMap;
+        this.model = new Backbone.Model({
+            isOpen: true,
+        });
     },
 
     onRender: function() {
+        var isOpen = this.model.get('isOpen');
+
         this.layerTabNav.show(new LayerPickerNavView({
             collection: this.collection,
+            model: this.model,
         }));
 
         var activeLayerTab = this.collection.findWhere({ active: true }),
             activeLayerGroups = activeLayerTab ? activeLayerTab.get('layerGroups') : null;
-        if (activeLayerGroups) {
+        if (activeLayerGroups && isOpen) {
             this.layerTab.show(new LayerPickerTabView({
                 collection: activeLayerGroups,
-                leafletMap: this.leafletMap,
+                leafletMap: this.leafletMap
             }));
         }
     },
+
+    onHeaderClicked: function() {
+        this.model.set('isOpen', !this.model.get('isOpen'));
+    }
 
 });
 

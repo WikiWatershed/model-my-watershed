@@ -13,6 +13,19 @@
   }
 }
 
+.layerpicker-header {
+    background-color: $ui-primary;
+    color: $paper;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 4px 12px;
+    i {
+        float: right;
+        margin-top: 2px;
+    }
+}
+
 .layerpicker-layers {
   max-height: 104px;
   overflow: auto;
@@ -45,7 +58,7 @@
 }
 
 .layerpicker-heading {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
   padding: 6px;
   display: flex;
