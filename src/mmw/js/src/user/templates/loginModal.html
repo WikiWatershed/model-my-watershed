@@ -24,8 +24,10 @@
     <div class="text-muted" id="continue-as-divider">
         Or continue as
     </div>
-    <div class="row" id="guest-buttons">
+    <div class="row{% if showItsiButton %} half-width{% endif %}" id="guest-buttons">
         <button type="button" class="btn btn-lg btn-primary" data-dismiss="modal" id="dismiss-button">Guest</button>
+        {% if showItsiButton %}
         <button type="button" class="btn btn-lg btn-primary itsi-login">ITSI</button>
+        {% endif %}
     </div>
 {% endblock %}
