@@ -44,7 +44,10 @@ def project(request, proj_id=None, scenario_id=None):
         if project.user != request.user and project.is_private:
             raise Http404
 
-        return render_to_response('home/home.html', get_context(request))
+        context = get_context(request)
+        context.update({'project': True})
+
+        return render_to_response('home/home.html', context)
     else:
         return redirect('/projects/')
 
