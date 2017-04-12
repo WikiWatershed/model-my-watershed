@@ -125,22 +125,14 @@ var ChartView = Marionette.ItemView.extend({
         $(chartEl).empty();
 
         if (result) {
+            var resultKey = utils.getTR55ResultKey(this.scenario);
+            labelNames = [resultKey];
             if (this.compareMode) {
-                var target_result = 'modified';
-                if (this.scenario.get('is_current_conditions')) {
-                    target_result = 'unmodified';
-                }
-                if (this.scenario.get('is_pre_columbian')) {
-                    target_result = 'pc_unmodified';
-                }
-                labelNames = [target_result];
                 labelDisplayNames = [''];
                 this.$el.addClass('current-conditions');
             } else if (this.scenario.get('is_current_conditions')) {
-                labelNames = ['unmodified'];
                 labelDisplayNames = ['Current Conditions'];
             } else {
-                labelNames = ['modified'];
                 labelDisplayNames = ['Modified'];
             }
 

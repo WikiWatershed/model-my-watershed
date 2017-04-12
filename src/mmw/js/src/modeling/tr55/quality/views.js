@@ -50,6 +50,8 @@ var ResultView = Marionette.LayoutView.extend({
 
     initialize: function(options) {
         this.compareMode = options.compareMode;
+        this.scenario = options.scenario;
+
         this.aoiVolumeModel = new AoiVolumeModel({
             areaOfInterest: this.options.areaOfInterest
         });
@@ -62,11 +64,12 @@ var ResultView = Marionette.LayoutView.extend({
             if (this.compareMode) {
                 this.chartRegion.show(new CompareChartView({
                     model: this.model,
-                    aoiVolumeModel: this.aoiVolumeModel
+                    aoiVolumeModel: this.aoiVolumeModel,
+                    scenario: this.scenario,
                 }));
             } else {
                 var dataCollection = new Backbone.Collection(
-                    this.model.get('result').quality.filter(
+                    this.model.get('result').quality['modified'].filter(
                         utils.filterOutOxygenDemand
                 ));
 
@@ -210,7 +213,7 @@ var CompareChartView = Marionette.ItemView.extend({
         }
 
         var chartEl = this.$el.find('.bar-chart').get(0),
-            result = this.model.get('result').quality.filter(utils.filterOutOxygenDemand),
+            result = this.model.get('result').quality,
             aoiVolumeModel = this.options.aoiVolumeModel,
             seriesDisplayNames = ['Suspended Solids',
                                   'Nitrogen',
@@ -220,7 +223,9 @@ var CompareChartView = Marionette.ItemView.extend({
 
         $(chartEl).empty();
         if (result) {
-            data = getData(result, seriesDisplayNames);
+            var resultKey = utils.getTR55ResultKey(this.scenario);
+
+            data = getData(result[resultKey].filter(utils.filterOutOxygenDemand), seriesDisplayNames);
             chartOptions = {
                 seriesColors: ['#4aeab3', '#4ebaea', '#329b9c'],
                 yAxisLabel: 'Loading Rate (kg/ha)',
