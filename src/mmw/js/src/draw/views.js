@@ -984,7 +984,9 @@ function addLayer(shape, name, label) {
 }
 
 function navigateToAnalyze() {
-    router.navigate('analyze', { trigger: true });
+    if (settings.get('analyze_enabled')) {
+        router.navigate('analyze', { trigger: true });
+    }
 }
 
 module.exports = {
