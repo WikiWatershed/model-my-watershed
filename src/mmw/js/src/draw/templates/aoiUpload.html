@@ -1,1 +1,21 @@
-<span id="dropbox">Drop a .shp file here.</span>
+<ul class="draw-pane-list">
+  <li class="draw-pane-list-item" role="presentation">
+    <div>
+        <span class="draw-button-title pull-left"
+              id="dropbox">
+            Drag and drop a file
+            <ul class="draw-pane-description-list">
+                <li>Must be a shapefile (.zip) or geojson</li>
+                <li>Only the first feature is used</li>
+            </ul>
+        <button
+            class="btn btn-success pull-left"
+            id="draw-tool-file-upload-button">
+            Select a file
+        </button>
+        <input id="draw-tool-file-upload-input" type="file" style="display: none;" />
+    </span>
+
+    </div>
+  </li>
+</ul>

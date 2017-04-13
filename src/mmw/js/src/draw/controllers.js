@@ -15,16 +15,12 @@ var DrawController = {
 
     draw: function() {
         var geocodeSearch = new geocoder.GeocoderView(),
-            toolbarModel = new models.ToolbarModel(),
-            toolbarView = new views.ToolbarView({
-                model: toolbarModel
-            });
+            toolbarModel = new models.ToolbarModel();
 
         toolbarModel.set('predefinedShapeTypes',
             _.filter(settings.get('boundary_layers'), { selectable: true }));
 
         App.rootView.geocodeSearchRegion.show(geocodeSearch);
-        App.rootView.drawToolsRegion.show(toolbarView);
         App.rootView.sidebarRegion.show(new views.DrawWindow({
             model: toolbarModel
         }));
@@ -37,7 +33,6 @@ var DrawController = {
 
     drawCleanUp: function() {
         App.rootView.geocodeSearchRegion.empty();
-        App.rootView.drawToolsRegion.empty();
         App.rootView.footerRegion.empty();
     },
 
