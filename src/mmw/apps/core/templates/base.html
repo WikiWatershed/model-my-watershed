@@ -5,7 +5,8 @@
     {% block header %}
     {% endblock header %}
 
-    <div class="map-container">
+    <div class="map-container map-container-top-sidebar map-container-bottom-sidebar
+                {% if not project %} map-container-top-sidebar-no-header {% endif %}">
         {% block map %}
         {% endblock map %}
 
