@@ -119,6 +119,7 @@ JS_DEPS=(backbone
          ./js/shim/highstock.js
          ./js/shim/nv.d3.js
          jquery
+         jszip
          leaflet
          leaflet-draw
          leaflet.locatecontrol
