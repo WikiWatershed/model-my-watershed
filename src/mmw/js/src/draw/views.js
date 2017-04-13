@@ -386,10 +386,10 @@ var AoIUploadView = Marionette.ItemView.extend({
 
         // Only shapefiles and geojson are supported
         var fileExtension = file.name.substr(file.name.lastIndexOf(".") + 1).toLowerCase();
-        if (!_.includes(['shp', 'json', 'geojson'], fileExtension)) {
+        if (!_.includes(['zip', 'json', 'geojson'], fileExtension)) {
             return {
                 valid: false,
-                message: 'File is not supported. Only shapefiles (.shp) and GeoJSON (.json, .geojson) are supported.'
+                message: 'File is not supported. Only shapefiles (.zip) and GeoJSON (.json, .geojson) are supported.'
             };
         }
 
@@ -412,7 +412,7 @@ var AoIUploadView = Marionette.ItemView.extend({
             if (reader.readyState !== 2 || reader.error) {
                 return;
             } else {
-                if (fileExtension === 'shp') {
+                if (fileExtension === 'zip') {
                     self.handleShp(reader.result);
                 } else if (fileExtension === 'json' || fileExtension === 'geojson') {
                     self.handleGeoJSON(reader.result);
@@ -420,7 +420,7 @@ var AoIUploadView = Marionette.ItemView.extend({
             }
         };
 
-        if (fileExtension === 'shp') {
+        if (fileExtension === 'zip') {
             reader.readAsArrayBuffer(file);
         } else if (fileExtension === 'json' || fileExtension === 'geojson') {
             reader.readAsText(file);
@@ -433,17 +433,22 @@ var AoIUploadView = Marionette.ItemView.extend({
         this.addPolygonToMap(geojson.features[0]);
     },
 
-    handleShp: function(file) {
+    handleShp: function(zipfile) {
         var self = this,
             errorMsg = 'Unable to parse shapefile. Please try a different file.';
 
-        shapefile.open(file)
-            .then(function(source) {
-                source.read()
-                    .then(function parse(result) {
-                        if (result.done) { return; }
-                        // Add the first feature to the map
-                        self.addPolygonToMap(result.value);
+        drawUtils.loadAsyncShpFileFromZip(zipfile)
+            .then(function(file) {
+                shapefile.open(file)
+                    .then(function(source) {
+                        source.read()
+                            .then(function parse(result) {
+                                if (result.done) { return; }
+                                // Add the first feature to the map
+                                self.addPolygonToMap(result.value);
+                            });
+                    }).catch(function() {
+                        displayAlert(errorMsg, modalModels.AlertTypes.error);
                     });
             }).catch(function() {
                 displayAlert(errorMsg, modalModels.AlertTypes.error);

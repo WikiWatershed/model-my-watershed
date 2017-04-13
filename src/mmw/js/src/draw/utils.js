@@ -3,6 +3,7 @@
 var $ = require('jquery'),
     L = require('leaflet'),
     _ = require('lodash'),
+    JSZip = require('jszip'),
     turfArea = require('turf-area'),
     turfBboxPolygon = require('turf-bbox-polygon'),
     coreUtils = require('../core/utils');
@@ -120,6 +121,21 @@ function shapeBoundingBoxArea(shape) {
     return shapeArea(boundingBoxPolygon);
 }
 
+function getShpFileFromZipObjects(zipObjects) {
+    return _.find(zipObjects.files, function(zipObject) {
+        return zipObject.name.substr(zipObject.name.lastIndexOf(".") + 1)
+            .toLowerCase() === 'shp';
+    });
+}
+
+function loadAsyncShpFileFromZip(zipfile) {
+    return JSZip.loadAsync(zipfile)
+        .then(function(zipObjects) {
+            var shpFileZipObject = getShpFileFromZipObjects(zipObjects);
+            return zipObjects.file(shpFileZipObject.name).async("arraybuffer");
+        });
+}
+
 function isValidForAnalysis(shape) {
     if (shape) {
         var area = shapeBoundingBoxArea(shape);
@@ -136,6 +152,7 @@ module.exports = {
     polygonDefaults: polygonDefaults,
     shapeBoundingBoxArea: shapeBoundingBoxArea,
     isValidForAnalysis: isValidForAnalysis,
+    loadAsyncShpFileFromZip: loadAsyncShpFileFromZip,
     NHD: 'nhd',
     DRB: 'drb',
     MAX_AREA: MAX_AREA
