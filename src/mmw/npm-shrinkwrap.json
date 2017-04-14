@@ -3354,6 +3354,89 @@
       "from": "https://registry.npmjs.org/papaparse/-/papaparse-4.2.0.tgz",
       "resolved": "https://registry.npmjs.org/papaparse/-/papaparse-4.2.0.tgz"
     },
+    "reproject": {
+      "version": "1.1.1",
+      "from": "reproject@*",
+      "resolved": "https://registry.npmjs.org/reproject/-/reproject-1.1.1.tgz",
+      "dependencies": {
+        "minimist": {
+          "version": "1.2.0",
+          "from": "minimist@>=1.2.0 <2.0.0",
+          "resolved": "https://registry.npmjs.org/minimist/-/minimist-1.2.0.tgz"
+        },
+        "concat-stream": {
+          "version": "1.6.0",
+          "from": "concat-stream@>=1.5.1 <2.0.0",
+          "resolved": "https://registry.npmjs.org/concat-stream/-/concat-stream-1.6.0.tgz",
+          "dependencies": {
+            "inherits": {
+              "version": "2.0.3",
+              "from": "inherits@>=2.0.3 <3.0.0",
+              "resolved": "https://registry.npmjs.org/inherits/-/inherits-2.0.3.tgz"
+            },
+            "typedarray": {
+              "version": "0.0.6",
+              "from": "typedarray@>=0.0.6 <0.0.7",
+              "resolved": "https://registry.npmjs.org/typedarray/-/typedarray-0.0.6.tgz"
+            },
+            "readable-stream": {
+              "version": "2.2.9",
+              "from": "readable-stream@>=2.2.2 <3.0.0",
+              "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.2.9.tgz",
+              "dependencies": {
+                "buffer-shims": {
+                  "version": "1.0.0",
+                  "from": "buffer-shims@>=1.0.0 <1.1.0",
+                  "resolved": "https://registry.npmjs.org/buffer-shims/-/buffer-shims-1.0.0.tgz"
+                },
+                "core-util-is": {
+                  "version": "1.0.2",
+                  "from": "core-util-is@>=1.0.0 <1.1.0",
+                  "resolved": "https://registry.npmjs.org/core-util-is/-/core-util-is-1.0.2.tgz"
+                },
+                "isarray": {
+                  "version": "1.0.0",
+                  "from": "isarray@>=1.0.0 <1.1.0",
+                  "resolved": "https://registry.npmjs.org/isarray/-/isarray-1.0.0.tgz"
+                },
+                "process-nextick-args": {
+                  "version": "1.0.7",
+                  "from": "process-nextick-args@>=1.0.6 <1.1.0",
+                  "resolved": "https://registry.npmjs.org/process-nextick-args/-/process-nextick-args-1.0.7.tgz"
+                },
+                "string_decoder": {
+                  "version": "1.0.0",
+                  "from": "string_decoder@>=1.0.0 <1.1.0",
+                  "resolved": "https://registry.npmjs.org/string_decoder/-/string_decoder-1.0.0.tgz"
+                },
+                "util-deprecate": {
+                  "version": "1.0.2",
+                  "from": "util-deprecate@>=1.0.1 <1.1.0",
+                  "resolved": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz"
+                }
+              }
+            }
+          }
+        },
+        "proj4": {
+          "version": "2.4.3",
+          "from": "proj4@>=2.3.12 <3.0.0",
+          "resolved": "https://registry.npmjs.org/proj4/-/proj4-2.4.3.tgz",
+          "dependencies": {
+            "mgrs": {
+              "version": "1.0.0",
+              "from": "mgrs@1.0.0",
+              "resolved": "https://registry.npmjs.org/mgrs/-/mgrs-1.0.0.tgz"
+            },
+            "wkt-parser": {
+              "version": "1.1.3",
+              "from": "wkt-parser@>=1.1.3 <2.0.0",
+              "resolved": "https://registry.npmjs.org/wkt-parser/-/wkt-parser-1.1.3.tgz"
+            }
+          }
+        }
+      }
+    },
     "retina.js": {
       "version": "1.3.0",
       "from": "../../tmp/npm-25360-e04608df/1472064034211-0.10679260268807411/a70e73639817473bad7bbb33f866b8e060e5f5a7",
