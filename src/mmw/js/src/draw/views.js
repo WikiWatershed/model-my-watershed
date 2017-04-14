@@ -15,7 +15,6 @@ var $ = require('jquery'),
     models = require('./models'),
     coreUtils = require('../core/utils'),
     drawUtils = require('../draw/utils'),
-    toolbarTmpl = require('./templates/toolbar.html'),
     loadingTmpl = require('./templates/loading.html'),
     selectTypeTmpl = require('./templates/selectType.html'),
     splashTmpl = require('./templates/splash.html'),
@@ -23,7 +22,6 @@ var $ = require('jquery'),
     aoiUploadTmpl = require('./templates/aoiUpload.html'),
     drawTmpl = require('./templates/draw.html'),
     delineationOptionsTmpl = require('./templates/delineationOptions.html'),
-    uploadFileTmpl = require('./templates/uploadFile.html'),
     settings = require('../core/settings'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views');
@@ -243,7 +241,7 @@ var DrawWindow = Marionette.LayoutView.extend({
                 }
                 break;
             case this.constants.uploadFile:
-                this.uploadFileRegion.show(new UploadFileView({}));
+                this.uploadFileRegion.show(new AoIUploadView({}));
                 break;
             case null:
                 break;
@@ -330,46 +328,19 @@ var SplashWindow = Marionette.ItemView.extend({
     }
 });
 
-// Responsible for loading and displaying tools for selecting and drawing
-// shapes on the map.
-var ToolbarView = Marionette.LayoutView.extend({
-    template: toolbarTmpl,
-
-    className: 'draw-tools-container',
-
-    regions: {
-        uploadRegion: '#dropbox-region'
-    },
-
-    initialize: function() {
-        var map = App.getLeafletMap(),
-            ofg = L.featureGroup();
-        this.model.set('outlineFeatureGroup', ofg);
-        map.addLayer(ofg);
-    },
-
-    onDestroy: function() {
-        var map = App.getLeafletMap(),
-            ofg = this.model.get('outlineFeatureGroup');
-        map.removeLayer(ofg);
-        this.model.set('outlineFeatureGroup', null);
-    },
-
-    onShow: function() {
-        this.uploadRegion.show(new AoIUploadView({}));
-    }
-});
-
-var UploadFileView = Marionette.ItemView.extend({
-    template: uploadFileTmpl,
-});
-
 var AoIUploadView = Marionette.ItemView.extend({
     template: aoiUploadTmpl,
 
+    ui: {
+        'selectFileInput': '#draw-tool-file-upload-input',
+        'selectFileButton': '#draw-tool-file-upload-button',
+    },
+
     events: {
         'dragenter': 'stopEvents',
-        'dragover': 'stopEvents'
+        'dragover': 'stopEvents',
+        'click @ui.selectFileButton': 'onSelectFileButtonClick',
+        'change @ui.selectFileInput': 'selectFile',
     },
 
     onAttach: function() {
@@ -381,11 +352,21 @@ var AoIUploadView = Marionette.ItemView.extend({
         dropbox.addEventListener("drop", _.bind(this.drop, this), false);
     },
 
+    onSelectFileButtonClick: function() {
+        this.ui.selectFileInput.click();
+    },
+
+    selectFile: function(e) {
+        this.validateAndReadFile(e.target.files[0]);
+    },
+
     drop: function(e) {
         this.stopEvents(e);
+        this.validateAndReadFile(e.dataTransfer.files[0]);
+    },
 
-        var file = e.dataTransfer.files[0],
-            validationInfo = this.validateFile(file);
+    validateAndReadFile: function(file) {
+        var validationInfo = this.validateFile(file);
 
         if (validationInfo.valid) {
             this.readFile(file, validationInfo.extension);
@@ -405,10 +386,10 @@ var AoIUploadView = Marionette.ItemView.extend({
 
         // Only shapefiles and geojson are supported
         var fileExtension = file.name.substr(file.name.lastIndexOf(".") + 1).toLowerCase();
-        if (!_.includes(['shp', 'json', 'geojson'], fileExtension)) {
+        if (!_.includes(['zip', 'json', 'geojson'], fileExtension)) {
             return {
                 valid: false,
-                message: 'File is not supported. Only shapefiles (.shp) and GeoJSON (.json, .geojson) are supported.'
+                message: 'File is not supported. Only shapefiles (.zip) and GeoJSON (.json, .geojson) are supported.'
             };
         }
 
@@ -431,7 +412,7 @@ var AoIUploadView = Marionette.ItemView.extend({
             if (reader.readyState !== 2 || reader.error) {
                 return;
             } else {
-                if (fileExtension === 'shp') {
+                if (fileExtension === 'zip') {
                     self.handleShp(reader.result);
                 } else if (fileExtension === 'json' || fileExtension === 'geojson') {
                     self.handleGeoJSON(reader.result);
@@ -439,7 +420,7 @@ var AoIUploadView = Marionette.ItemView.extend({
             }
         };
 
-        if (fileExtension === 'shp') {
+        if (fileExtension === 'zip') {
             reader.readAsArrayBuffer(file);
         } else if (fileExtension === 'json' || fileExtension === 'geojson') {
             reader.readAsText(file);
@@ -452,17 +433,22 @@ var AoIUploadView = Marionette.ItemView.extend({
         this.addPolygonToMap(geojson.features[0]);
     },
 
-    handleShp: function(file) {
+    handleShp: function(zipfile) {
         var self = this,
             errorMsg = 'Unable to parse shapefile. Please try a different file.';
 
-        shapefile.open(file)
-            .then(function(source) {
-                source.read()
-                    .then(function parse(result) {
-                        if (result.done) { return; }
-                        // Add the first feature to the map
-                        self.addPolygonToMap(result.value);
+        drawUtils.loadAsyncShpFileFromZip(zipfile)
+            .then(function(file) {
+                shapefile.open(file)
+                    .then(function(source) {
+                        source.read()
+                            .then(function parse(result) {
+                                if (result.done) { return; }
+                                // Add the first feature to the map
+                                self.addPolygonToMap(result.value);
+                            });
+                    }).catch(function() {
+                        displayAlert(errorMsg, modalModels.AlertTypes.error);
                     });
             }).catch(function() {
                 displayAlert(errorMsg, modalModels.AlertTypes.error);
@@ -988,7 +974,6 @@ function navigateToAnalyze() {
 }
 
 module.exports = {
-    ToolbarView: ToolbarView,
     SplashWindow: SplashWindow,
     DrawWindow: DrawWindow,
     getShapeAndAnalyze: getShapeAndAnalyze

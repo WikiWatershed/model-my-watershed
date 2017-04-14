@@ -63,7 +63,7 @@
   }
 
   & #upload-file-region {
-    height: 5.5rem;
+    height: 10rem;
 
     & #file-upload-title {
       margin-top: 0;
@@ -94,6 +94,15 @@
 
       & .draw-pane-list-item-button:disabled {
         color: #7f8181;
+      }
+
+      & .draw-pane-description-list {
+        margin-bottom: 1rem;
+        > li {
+            margin: 0.25rem 0;
+            font-size: 0.7rem;
+            list-style-type: disc;
+        }
       }
 
       & a.help {
