@@ -134,6 +134,9 @@
            font-size: 24px;
            line-height: 38px;
        }
+       .leaflet-touch & {
+           width: 84px;
+       }
     }
 }
 
@@ -156,6 +159,10 @@
         &:hover {
             background-color: #ccc;
         }
+    }
+    .leaflet-touch & {
+        height: 44px;
+        width: 44px;
     }
 }
 
