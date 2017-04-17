@@ -215,7 +215,7 @@ This flag is for troubleshooting purposes only.
 
 #### Adding JS dependencies
 
-To add a new JS depenency, update the `JS_DEPS` array in `bundle.sh`, and `package.json` accordingly.
+To add a new JS dependency, update the `JS_DEPS` array in `bundle.sh`, and `package.json` accordingly.
 Because our dependencies are shrinkwrapped, follow the [instructions](https://docs.npmjs.com/cli/shrinkwrap#building-shrinkwrapped-packages) for adding a dependency to a shrinkwrapped package.
 Rebuild the vendor bundle using `./scripts/bundle.sh --vendor`.
 `npm` commands can be run using `./scripts/npm.sh`.
