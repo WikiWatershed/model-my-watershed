@@ -110,7 +110,8 @@ var SignUpFormModel = ModalBaseModel.extend({
         username: null,
         password1: null,
         password2: null,
-        email: null
+        email: null,
+        showItsiButton: true
     },
 
     url: '/user/sign_up',

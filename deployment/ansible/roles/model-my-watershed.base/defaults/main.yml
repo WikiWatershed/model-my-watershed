@@ -19,4 +19,6 @@ envdir_config:
   MMW_STACK_COLOR: "{{ stack_color }}"
   MMW_TILECACHE_BUCKET: "{{ tilecache_bucket_name }}"
   MMW_STACK_TYPE: "{{ stack_type }}"
+  MMW_BIGCZ_MODE: "{{ bigcz_mode }}"
+
   ROLLBAR_SERVER_SIDE_ACCESS_TOKEN: "Unknown"

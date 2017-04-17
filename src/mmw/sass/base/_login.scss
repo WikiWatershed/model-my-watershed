@@ -7,10 +7,16 @@
 #guest-buttons {
   .btn {
     float: left;
-    width: 48%;
+    width: 100%;
   }
 
-  .btn + .btn {
-    margin-left: 4%;
+  &.half-width {
+    .btn {
+      width: 48%;
+    }
+
+    .btn + .btn {
+      margin-left: 4%;
+    }
   }
 }

@@ -50,3 +50,5 @@ geop_version: "1.2.0"
 
 nginx_cache_dir: "/var/cache/nginx"
 observation_api_url: "http://www.wikiwatershed-vs.org/"
+
+bigcz_mode: "{{ lookup('env', 'MMW_BIGCZ_MODE') }}"
