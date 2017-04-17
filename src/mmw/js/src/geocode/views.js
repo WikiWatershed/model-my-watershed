@@ -2,13 +2,14 @@
 
 var _ = require('underscore'),
     $ = require('jquery'),
-    App = require('../app'),
+    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
+    App = require('../app'),
     drawViews = require('../draw/views'),
     models = require('./models'),
     geocoderTmpl = require('./templates/geocoder.html'),
     searchTmpl = require('./templates/search.html'),
-    suggestionTmpl = require('./templates/suggestion.html');
+    suggestionsTmpl = require('./templates/suggestions.html');
 
 var ENTER_KEYCODE = 13;
 
@@ -77,19 +78,6 @@ var SearchBoxView = Marionette.LayoutView.extend({
 
     modelEvents: {
         'change:query': 'render'
-    },
-
-    childEvents: {
-        'suggestion:select:in-progress': function() {
-            this.setStateWorking();
-        },
-        'suggestion:select:success': function() {
-            this.reset();
-            this.setStateDefault();
-        },
-        'suggestion:select:failure': function() {
-            this.setStateError();
-        }
     },
 
     regions: {
@@ -197,11 +185,22 @@ var SearchBoxView = Marionette.LayoutView.extend({
             return false;
         }
 
-        this.getRegion('resultsRegion').show(
-            new SuggestionsView({
-                collection: this.collection
-            })
-        );
+        var view = new SuggestionsView({
+            collection: this.collection
+        });
+
+        this.listenTo(view, 'suggestion:select:in-progress', function() {
+            this.setStateWorking();
+        });
+        this.listenTo(view, 'suggestion:select:success', function() {
+            this.reset();
+            this.setStateDefault();
+        });
+        this.listenTo(view, 'suggestion:select:failure', function() {
+            this.setStateError();
+        });
+
+        this.getRegion('resultsRegion').show(view);
     },
 
     emptyResultsRegion: function() {
@@ -219,45 +218,45 @@ var SearchBoxView = Marionette.LayoutView.extend({
     }
 });
 
-var SuggestionView = Marionette.ItemView.extend({
-    tagName: 'li',
-    template: suggestionTmpl,
-
-    ui: {
-        'result': 'span'
+var SuggestionsView = Backbone.View.extend({
+    initialize: function() {
+        this.$el.on('click', 'li', _.bind(this.selectSuggestion, this));
+        this.listenTo(this.collection, 'add remove change reset', this.render);
     },
 
-    events: {
-        'click @ui.result': 'selectSuggestion'
-    },
+    selectSuggestion: function(e) {
+        var $el = $(e.target),
+            cid = $el.attr('data-cid'),
+            model = this.collection.get(cid);
 
-    selectSuggestion: function() {
-        this.triggerMethod('suggestion:select:in-progress');
+        this.trigger('suggestion:select:in-progress');
 
-        this.model
-            .select()
-            .done(_.bind(this.selectSuccess, this))
+        model.select()
+            .done(_.bind(this.selectSuccess, this, model))
             .fail(_.bind(this.selectFail, this));
     },
 
-    selectSuccess: function() {
-        selectSearchSuggestion(this.model);
-        this.triggerMethod('suggestion:select:success');
+    selectSuccess: function(model) {
+        selectSearchSuggestion(model);
+        this.trigger('suggestion:select:success');
     },
 
     selectFail: function() {
-        this.triggerMethod('suggestion:select:failure');
-    }
-});
+        this.trigger('suggestion:select:failure');
+    },
 
-var SuggestionsView = Marionette.CollectionView.extend({
-    tagName: 'ul',
-    childView: SuggestionView
+    render: function() {
+        var html = suggestionsTmpl.render({
+            geocodeSuggestions: this.collection.geocodeSuggestions,
+            boundarySuggestions: this.collection.boundarySuggestions
+                .groupBy('label')
+        });
+        this.$el.html(html);
+    }
 });
 
 module.exports = {
     GeocoderView: GeocoderView,
     SuggestionsView: SuggestionsView,
-    SuggestionView: SuggestionView,
     SearchBoxView: SearchBoxView
 };

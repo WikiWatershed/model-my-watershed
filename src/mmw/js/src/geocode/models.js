@@ -90,22 +90,57 @@ var BoundarySuggestions = GeocodeSuggestions.extend({
 // GeocodeSuggestions and BoundarySuggestions.
 var SuggestionsCollection = Backbone.Collection.extend({
     initialize: function() {
+        this.requests = [];
         this.geocodeSuggestions = new GeocodeSuggestions();
         this.boundarySuggestions = new BoundarySuggestions();
     },
 
+    // Abort requests in-progress
+    abort: function() {
+        while (this.requests.length) {
+            var xhr = this.requests.pop();
+            if (xhr.abort) {
+                xhr.abort();
+            }
+        }
+    },
+
     fetch: function(options) {
-        var xhr = new $.Deferred();
+        var combineSuggestions = _.bind(this.combineSuggestions, this);
 
-        var requests = $.when(
-            this.geocodeSuggestions.fetch(options)
-                .then(_.bind(this.combineSuggestions, this)),
-            this.boundarySuggestions.fetch(options)
-                .then(_.bind(this.combineSuggestions, this)));
+        var xhr = $.Deferred();
+        var failures = 0;
+        var successes = 0;
 
-        requests
-            .done(xhr.resolve)
-            .fail(xhr.reject);
+        function always() {
+            if (successes + failures < 2) {
+                // Wait for both requests to complete
+                return;
+            } else if (failures === 2) {
+                // Reject if both requests failed
+                xhr.reject();
+            } else {
+                // Resolve if at least one request succeeded
+                xhr.resolve();
+            }
+        }
+
+        function fetch(coll) {
+            var xhr = coll.fetch(options);
+            xhr.then(combineSuggestions)
+                .done(function() {
+                    successes++;
+                })
+                .fail(function() {
+                    failures++;
+                })
+                .always(always);
+            return xhr;
+        }
+
+        this.abort();
+        this.requests.push(fetch(this.geocodeSuggestions));
+        this.requests.push(fetch(this.boundarySuggestions));
 
         return xhr.promise();
     },
