@@ -129,6 +129,7 @@ JS_DEPS=(backbone
          moment
          papaparse
          nunjucks
+         reproject
          shapefile
          turf-area
          turf-bbox-polygon

@@ -9,6 +9,7 @@ var $ = require('jquery'),
     turfIntersect = require('turf-intersect'),
     turfKinks = require('turf-kinks'),
     shapefile = require('shapefile'),
+    reproject = require('reproject'),
     router = require('../router').router,
     App = require('../app'),
     utils = require('./utils'),
@@ -373,6 +374,11 @@ var AoIUploadView = Marionette.ItemView.extend({
         } else {
             displayAlert(validationInfo.message, modalModels.AlertTypes.error);
         }
+
+        // If the upload fails, the user may choose to upload another file.
+        // Clear the current file input so that the `change` event will fire
+        // on the second time.
+        this.ui.selectFileInput.val(null);
     },
 
     validateFile: function(file) {
@@ -435,23 +441,33 @@ var AoIUploadView = Marionette.ItemView.extend({
 
     handleShp: function(zipfile) {
         var self = this,
-            errorMsg = 'Unable to parse shapefile. Please try a different file.';
+            errorMsg = 'Unable to parse shapefile. Please ensure it is a valid shapefile with projection information.';
 
-        drawUtils.loadAsyncShpFileFromZip(zipfile)
-            .then(function(file) {
-                shapefile.open(file)
+        drawUtils.loadAsyncShpFilesFromZip(zipfile)
+            .then(function(shpAndPrj) {
+                var shp = shpAndPrj[0],
+                    prj = shpAndPrj[1];
+
+                shapefile.open(shp)
                     .then(function(source) {
                         source.read()
                             .then(function parse(result) {
                                 if (result.done) { return; }
                                 // Add the first feature to the map
-                                self.addPolygonToMap(result.value);
+                                var geom = reproject.toWgs84(result.value, prj);
+                                self.addPolygonToMap(geom);
+                            }).catch(function() {
+                                displayAlert(errorMsg, modalModels.AlertTypes.error);
                             });
                     }).catch(function() {
                         displayAlert(errorMsg, modalModels.AlertTypes.error);
                     });
-            }).catch(function() {
-                displayAlert(errorMsg, modalModels.AlertTypes.error);
+            }).catch(function(err) {
+                var msg = errorMsg;
+                if (typeof err === "string") {
+                    msg = err;
+                }
+                displayAlert(msg, modalModels.AlertTypes.error);
             });
     },
 
