@@ -419,7 +419,7 @@ var AoIUploadView = Marionette.ItemView.extend({
                 return;
             } else {
                 if (fileExtension === 'zip') {
-                    self.handleShp(reader.result);
+                    self.handleShpZip(reader.result);
                 } else if (fileExtension === 'json' || fileExtension === 'geojson') {
                     self.handleGeoJSON(reader.result);
                 }
@@ -439,36 +439,44 @@ var AoIUploadView = Marionette.ItemView.extend({
         this.addPolygonToMap(geojson.features[0]);
     },
 
-    handleShp: function(zipfile) {
-        var self = this,
-            errorMsg = 'Unable to parse shapefile. Please ensure it is a valid shapefile with projection information.';
+    handleShpZip: function(zipfile) {
+        var self = this;
 
         drawUtils.loadAsyncShpFilesFromZip(zipfile)
             .then(function(shpAndPrj) {
                 var shp = shpAndPrj[0],
                     prj = shpAndPrj[1];
 
-                shapefile.open(shp)
-                    .then(function(source) {
-                        source.read()
-                            .then(function parse(result) {
-                                if (result.done) { return; }
-                                // Add the first feature to the map
-                                var geom = reproject.toWgs84(result.value, prj);
-                                self.addPolygonToMap(geom);
-                            }).catch(function() {
-                                displayAlert(errorMsg, modalModels.AlertTypes.error);
-                            });
-                    }).catch(function() {
-                        displayAlert(errorMsg, modalModels.AlertTypes.error);
-                    });
-            }).catch(function(err) {
-                var msg = errorMsg;
-                if (typeof err === "string") {
-                    msg = err;
-                }
-                displayAlert(msg, modalModels.AlertTypes.error);
-            });
+                self.reprojectAndAddFeature(shp, prj);
+            })
+            .catch(self.handleShapefileError);
+    },
+
+    reprojectAndAddFeature: function(shp, prj) {
+        // Read in and add the first feature to the map in geographic coordinates
+        var self = this;
+        shapefile.open(shp)
+            .then(function(source) {
+                source
+                    .read()
+                    .then(function parse(result) {
+                        if (result.done) { return; }
+                        var geom = reproject.toWgs84(result.value, prj);
+                        self.addPolygonToMap(geom);
+                    })
+                    .catch(self.handleShapefileError);
+            })
+            .catch(self.handleShapefileError);
+    },
+
+    handleShapefileError: function(err) {
+        var errorMsg = 'Unable to parse shapefile. Please ensure it is a valid shapefile with projection information.',
+            msg = errorMsg;
+
+        if (typeof err === "string") {
+            msg = err;
+        }
+        displayAlert(msg, modalModels.AlertTypes.error);
     },
 
     addPolygonToMap: function(polygon) {
