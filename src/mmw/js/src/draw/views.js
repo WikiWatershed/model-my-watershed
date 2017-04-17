@@ -2,6 +2,7 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    JSZip = require('jszip'),
     L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
     turfBboxPolygon = require('turf-bbox-polygon'),
@@ -28,6 +29,12 @@ var $ = require('jquery'),
     modalViews = require('../core/modals/views');
 
 var codeToLayer = {}; // code to layer mapping
+
+// The shapefile library relies on a native Promise implementation,
+// a polyfill for which is available in the JSZip library
+if (!window.Promise) {
+    window.Promise = JSZip.external.Promise;
+}
 
 function displayAlert(message, alertType) {
     var alertView = new modalViews.AlertView({
