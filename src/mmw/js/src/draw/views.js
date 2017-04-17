@@ -374,6 +374,11 @@ var AoIUploadView = Marionette.ItemView.extend({
         } else {
             displayAlert(validationInfo.message, modalModels.AlertTypes.error);
         }
+
+        // If the upload fails, the user may choose to upload another file.
+        // Clear the current file input so that the `change` event will fire
+        // on the second time.
+        this.ui.selectFileInput.val(null);
     },
 
     validateFile: function(file) {
