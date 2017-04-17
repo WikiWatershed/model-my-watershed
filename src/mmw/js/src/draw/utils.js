@@ -121,18 +121,31 @@ function shapeBoundingBoxArea(shape) {
     return shapeArea(boundingBoxPolygon);
 }
 
-function getShpFileFromZipObjects(zipObjects) {
+function getFileFromZipObjects(zipObjects, extension) {
     return _.find(zipObjects.files, function(zipObject) {
-        return zipObject.name.substr(zipObject.name.lastIndexOf(".") + 1)
-            .toLowerCase() === 'shp';
+        var fileExtension = zipObject.name.substr(zipObject.name.lastIndexOf(".") + 1);
+        return fileExtension.toLowerCase() === extension;
     });
 }
 
-function loadAsyncShpFileFromZip(zipfile) {
+function loadAsyncShpFilesFromZip(zipfile) {
     return JSZip.loadAsync(zipfile)
         .then(function(zipObjects) {
-            var shpFileZipObject = getShpFileFromZipObjects(zipObjects);
-            return zipObjects.file(shpFileZipObject.name).async("arraybuffer");
+            var shpFileZipObject = getFileFromZipObjects(zipObjects, 'shp'),
+                prjFileZipObject = getFileFromZipObjects(zipObjects, 'prj');
+
+                if (!shpFileZipObject) {
+                    throw "Zip file must contain a .shp file.";
+                }
+
+                if (!prjFileZipObject) {
+                    throw "Zip file must contain a .prj file.";
+                }
+
+            var shpPromise = zipObjects.file(shpFileZipObject.name).async("arraybuffer"),
+                prjPromise = zipObjects.file(prjFileZipObject.name).async("string");
+
+            return JSZip.external.Promise.all([shpPromise, prjPromise]);
         });
 }
 
@@ -152,7 +165,7 @@ module.exports = {
     polygonDefaults: polygonDefaults,
     shapeBoundingBoxArea: shapeBoundingBoxArea,
     isValidForAnalysis: isValidForAnalysis,
-    loadAsyncShpFileFromZip: loadAsyncShpFileFromZip,
+    loadAsyncShpFilesFromZip: loadAsyncShpFilesFromZip,
     NHD: 'nhd',
     DRB: 'drb',
     MAX_AREA: MAX_AREA
