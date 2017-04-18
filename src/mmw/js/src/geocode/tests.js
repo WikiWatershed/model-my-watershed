@@ -15,8 +15,7 @@ var sandboxId = 'sandbox',
     sandboxSelector = '#' + sandboxId;
 
 describe('Geocoder', function() {
-    var MSG_EMPTY = 'No results found.',
-        MSG_ERROR = 'Oops! Something went wrong.';
+    var MSG_ERROR = 'Oops! Something went wrong.';
 
     before(function() {
         if ($(sandboxSelector).length === 0) {
@@ -56,17 +55,6 @@ describe('Geocoder', function() {
             this.server.respondWith([200, { 'Content-Type': 'application/json' }, responseData]);
 
             testNumberOfResults(testData.length * 2, done);
-        });
-
-        it('renders no list items and an error message if there are no suggestions', function(done) {
-            this.server.respondWith([200, { 'Content-Type': 'application/json' }, '[]']);
-            var view = createView();
-
-            view.handleSearch('a query').then(function() {
-                assert.equal($('#sandbox li').length, 0);
-                assert.include($('.message').text().trim(), MSG_EMPTY);
-                done();
-            }());
         });
 
         it('renders an error message if there was a problem getting suggestions', function(done) {
