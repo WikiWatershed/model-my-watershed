@@ -143,12 +143,28 @@ var SearchBoxView = Marionette.LayoutView.extend({
     }, 500, { leading: false, trailing: true }),
 
     handleSearch: function(query) {
+        var self = this;
         var defer = $.Deferred();
 
-        this.search(query)
-            .then(_.bind(this.setStateDefault, this))
-            .done(_.bind(this.showResultsRegion, this))
-            .fail(_.bind(this.setStateError, this));
+        function fail(args) {
+            if (args && args.cancelled) {
+                return;
+            }
+            self.setStateError();
+        }
+
+        // Cancel in-progress search request
+        if (this.searchRequest) {
+            this.searchRequest.cancel();
+        }
+
+        // Make sure there's a place to put search results as they stream in
+        this.showResultsRegion();
+
+        this.searchRequest = this.search(query);
+        this.searchRequest
+            .done(_.bind(this.setStateDefault, this))
+            .fail(fail);
 
         return defer.promise();
     },
@@ -186,11 +202,6 @@ var SearchBoxView = Marionette.LayoutView.extend({
     },
 
     showResultsRegion: function() {
-        if (this.collection.isEmpty()) {
-            this.setStateEmpty();
-            return false;
-        }
-
         var view = new SuggestionsView({
             collection: this.collection
         });

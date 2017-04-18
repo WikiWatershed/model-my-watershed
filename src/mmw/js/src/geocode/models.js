@@ -142,7 +142,11 @@ var SuggestionsCollection = Backbone.Collection.extend({
         this.requests.push(fetch(this.geocodeSuggestions));
         this.requests.push(fetch(this.boundarySuggestions));
 
-        return xhr.promise();
+        var promise = xhr.promise();
+        promise.cancel = function() {
+            xhr.reject({ cancelled: true });
+        };
+        return promise;
     },
 
     combineSuggestions: function() {
