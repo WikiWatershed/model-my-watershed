@@ -154,6 +154,19 @@ var LayersCollection = Backbone.Collection.extend({
             });
         }
     },
+
+    updateDisabled: function(layer, shouldDisable) {
+        this.findWhere({ display: layer.display })
+            .set('disabled', shouldDisable);
+    },
+
+    clearBgBufferOnLayer: function(layer) {
+        var leafletLayer = this.findWhere({ display: layer.display})
+            .get('leafletLayer');
+        if (leafletLayer) {
+            leafletLayer._clearBgBuffer();
+        }
+    },
 });
 
 var LayerGroupModel = Backbone.Model.extend({
@@ -320,6 +333,22 @@ var LayerTabCollection = Backbone.Collection.extend({
                 ])
             }),
         ]);
+    },
+
+    disableLayersOnZoomAndPan: function(leafletMap) {
+        this.forEach(function(layerTab) {
+            layerTab.get('layerGroups').forEach(function(layerGroup) {
+                var layers = layerGroup.get('layers');
+                if (layers)  {
+                    utils.zoomToggle(leafletMap, layers.toJSON(),
+                        _.bind(layers.updateDisabled, layers),
+                        _.bind(layers.clearBgBufferOnLayer, layers));
+                    utils.perimeterToggle(leafletMap, layers.toJSON(),
+                        _.bind(layers.updateDisabled, layers),
+                        _.bind(layers.clearBgBufferOnLayer, layers));
+                }
+            });
+        });
     },
 
     findLayerWhere: function(attributes) {

@@ -120,23 +120,6 @@ var LayerPickerLayerListView = Marionette.CollectionView.extend({
     },
     initialize: function(options) {
         this.leafletMap = options.leafletMap;
-        utils.zoomToggle(this.leafletMap, options.collection.toJSON(),
-            _.bind(this.updateDisabled, this), _.bind(this.clearBgBufferOnLayer, this));
-        utils.perimeterToggle(this.leafletMap, options.collection.toJSON(),
-            _.bind(this.updateDisabled, this), _.bind(this.clearBgBufferOnLayer, this));
-    },
-
-    updateDisabled: function(layer, shouldDisable) {
-        this.collection.findWhere({ display: layer.display })
-            .set('disabled', shouldDisable);
-    },
-
-    clearBgBufferOnLayer: function(layer) {
-        var leafletLayer = this.collection.findWhere({ display: layer.display})
-            .get('leafletLayer');
-        if (leafletLayer) {
-            leafletLayer._clearBgBuffer();
-        }
     },
 
     toggleLayer: function(selectedLayer) {

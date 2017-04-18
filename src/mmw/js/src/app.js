@@ -41,6 +41,8 @@ var App = new Marionette.Application({
             App.currentProject.set('needs_reset', needs);
         });
 
+        this.layerTabs.disableLayersOnZoomAndPan(this.getLeafletMap());
+
         this.rootView = new views.RootView({app: this});
         this.user = new userModels.UserModel({});
 
