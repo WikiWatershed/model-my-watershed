@@ -200,7 +200,7 @@ LAYER_GROUPS = {
             'minZoom': 7,
             'selectable': True,
             'searchable': True,
-            'search_priority': 100,
+            'search_rank': 30,
         },
         {
             'code': 'huc10',
@@ -217,7 +217,7 @@ LAYER_GROUPS = {
             'minZoom': 8,
             'selectable': True,
             'searchable': True,
-            'search_priority': 90,
+            'search_rank': 20,
         },
         {
             'code': 'huc12',
@@ -235,7 +235,7 @@ LAYER_GROUPS = {
             'minZoom': 9,
             'selectable': True,
             'searchable': True,
-            'search_priority': 80,
+            'search_rank': 10,
         },
         {
             'code': 'county',

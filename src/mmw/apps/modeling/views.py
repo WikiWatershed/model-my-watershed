@@ -541,14 +541,11 @@ def _get_boundary_search_query(search_term):
     all searchable boundary layers.
     """
     select_fmt = """
-        SELECT
-            id,
-            '{code}' AS code,
-            name,
-            {priority} AS priority,
+        (SELECT id, '{code}' AS code, name, {rank} AS rank,
             ST_Centroid(geom) as center
         FROM {table}
         WHERE name ILIKE %(term)s
+        LIMIT 3)
     """.strip()
 
     selects = []
@@ -558,18 +555,21 @@ def _get_boundary_search_query(search_term):
 
         code = layer['code']
         table_name = layer['table_name']
-        priority = layer.get('search_priority', 0)
+        rank = layer.get('search_rank', 0)
 
         selects.append(select_fmt.format(
-            code=code, table=table_name, priority=priority))
+            code=code, table=table_name, rank=rank))
 
     if len(selects) == 0:
         raise Exception('No boundary layers are searchable')
 
     subquery = ' UNION ALL '.join(selects)
 
-    return ('SELECT id, code, name, priority, center FROM ({}) AS subquery '
-            'ORDER BY priority DESC, name LIMIT 5').format(subquery)
+    return """
+        SELECT id, code, name, rank, center
+        FROM ({}) AS subquery
+        ORDER BY rank DESC, name
+    """.format(subquery)
 
 
 def _do_boundary_search(search_term):
@@ -589,7 +589,7 @@ def _do_boundary_search(search_term):
             id = row[0]
             code = row[1]
             name = row[2]
-            priority = row[3]
+            rank = row[3]
             point = wkb_r.read(row[4])
 
             layer = _get_boundary_layer_by_code(code)
@@ -599,7 +599,7 @@ def _do_boundary_search(search_term):
                 'code': code,
                 'text': name,
                 'label': layer['short_display'],
-                'priority': priority,
+                'rank': rank,
                 'y': point.y,
                 'x': point.x,
             })
