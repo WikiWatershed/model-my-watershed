@@ -544,7 +544,7 @@ def _get_boundary_search_query(search_term):
         (SELECT id, '{code}' AS code, name, {rank} AS rank,
             ST_Centroid(geom) as center
         FROM {table}
-        WHERE name ILIKE %(term)s
+        WHERE UPPER(name) LIKE UPPER(%(term)s)
         LIMIT 3)
     """.strip()
 
