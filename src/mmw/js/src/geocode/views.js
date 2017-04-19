@@ -2,11 +2,14 @@
 
 var _ = require('underscore'),
     $ = require('jquery'),
+    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
+    App = require('../app'),
+    drawViews = require('../draw/views'),
     models = require('./models'),
     geocoderTmpl = require('./templates/geocoder.html'),
     searchTmpl = require('./templates/search.html'),
-    suggestionTmpl = require('./templates/suggestion.html');
+    suggestionsTmpl = require('./templates/suggestions.html');
 
 var ENTER_KEYCODE = 13;
 
@@ -19,6 +22,26 @@ var ICON_BASE = 'search-icon fa ',
 var MSG_DEFAULT = '',
     MSG_EMPTY   = 'No results found.',
     MSG_ERROR   = 'Oops! Something went wrong.';
+
+
+function addBoundaryLayer(model) {
+    App.restApi.getPolygon({
+            layerCode: model.get('code'),
+            shapeId: model.get('id')
+        })
+        .then(function(shape) {
+            drawViews.addLayer(shape);
+        });
+}
+
+function selectSearchSuggestion(model) {
+    model.setMapViewToLocation();
+    if (model.get('isBoundaryLayer')) {
+        addBoundaryLayer(model);
+    } else {
+        drawViews.clearAoiLayer();
+    }
+}
 
 var GeocoderView = Marionette.LayoutView.extend({
     template: geocoderTmpl,
@@ -55,19 +78,6 @@ var SearchBoxView = Marionette.LayoutView.extend({
 
     modelEvents: {
         'change:query': 'render'
-    },
-
-    childEvents: {
-        'suggestion:select:in-progress': function() {
-            this.setStateWorking();
-        },
-        'suggestion:select:success': function() {
-            this.reset();
-            this.setStateDefault();
-        },
-        'suggestion:select:failure': function() {
-            this.setStateError();
-        }
     },
 
     regions: {
@@ -133,26 +143,47 @@ var SearchBoxView = Marionette.LayoutView.extend({
     }, 500, { leading: false, trailing: true }),
 
     handleSearch: function(query) {
+        var self = this;
         var defer = $.Deferred();
 
-        this.search(query)
-            .then(_.bind(this.setStateDefault, this))
-            .done(_.bind(this.showResultsRegion, this))
-            .fail(_.bind(this.setStateError, this));
+        function fail(args) {
+            if (args && args.cancelled) {
+                return;
+            }
+            self.setStateError();
+        }
+
+        // Cancel in-progress search request
+        if (this.searchRequest) {
+            this.searchRequest.cancel();
+        }
+
+        // Make sure there's a place to put search results as they stream in
+        this.showResultsRegion();
+
+        this.searchRequest = this.search(query);
+        this.searchRequest
+            .done(_.bind(this.setStateDefault, this))
+            .fail(fail);
 
         return defer.promise();
     },
 
     search: function(query) {
         return this.collection.fetch({
-            data: { text: query },
-            reset: true
+            data: { text: query }
         });
     },
 
     selectFirst: function() {
         var self = this,
             defer = $.Deferred();
+
+        if (this.collection.size() === 0) {
+            this.setStateError();
+            defer.reject();
+            return defer.promise();
+        }
 
         this.setStateWorking();
 
@@ -161,7 +192,8 @@ var SearchBoxView = Marionette.LayoutView.extend({
             .select()
                 .done(function() {
                     self.setStateDefault();
-                    self.collection.first().setMapViewToLocation();
+                    var model = self.collection.first();
+                    selectSearchSuggestion(model);
                 })
                 .fail(_.bind(this.setStateError, this))
                 .always(_.bind(this.reset, this));
@@ -170,16 +202,22 @@ var SearchBoxView = Marionette.LayoutView.extend({
     },
 
     showResultsRegion: function() {
-        if (this.collection.isEmpty()) {
-            this.setStateEmpty();
-            return false;
-        }
+        var view = new SuggestionsView({
+            collection: this.collection
+        });
 
-        this.getRegion('resultsRegion').show(
-            new SuggestionsView({
-                collection: this.collection
-            })
-        );
+        this.listenTo(view, 'suggestion:select:in-progress', function() {
+            this.setStateWorking();
+        });
+        this.listenTo(view, 'suggestion:select:success', function() {
+            this.reset();
+            this.setStateDefault();
+        });
+        this.listenTo(view, 'suggestion:select:failure', function() {
+            this.setStateError();
+        });
+
+        this.getRegion('resultsRegion').show(view);
     },
 
     emptyResultsRegion: function() {
@@ -197,45 +235,45 @@ var SearchBoxView = Marionette.LayoutView.extend({
     }
 });
 
-var SuggestionView = Marionette.ItemView.extend({
-    tagName: 'li',
-    template: suggestionTmpl,
-
-    ui: {
-        'result': 'span'
+var SuggestionsView = Backbone.View.extend({
+    initialize: function() {
+        this.$el.on('click', 'li', _.bind(this.selectSuggestion, this));
+        this.listenTo(this.collection, 'add remove change reset', this.render);
     },
 
-    events: {
-        'click @ui.result': 'selectSuggestion'
-    },
+    selectSuggestion: function(e) {
+        var $el = $(e.target),
+            cid = $el.attr('data-cid'),
+            model = this.collection.get(cid);
 
-    selectSuggestion: function() {
-        this.triggerMethod('suggestion:select:in-progress');
+        this.trigger('suggestion:select:in-progress');
 
-        this.model
-            .select()
-            .done(_.bind(this.selectSuccess, this))
+        model.select()
+            .done(_.bind(this.selectSuccess, this, model))
             .fail(_.bind(this.selectFail, this));
     },
 
-    selectSuccess: function() {
-        this.model.setMapViewToLocation();
-        this.triggerMethod('suggestion:select:success');
+    selectSuccess: function(model) {
+        selectSearchSuggestion(model);
+        this.trigger('suggestion:select:success');
     },
 
     selectFail: function() {
-        this.triggerMethod('suggestion:select:failure');
-    }
-});
+        this.trigger('suggestion:select:failure');
+    },
 
-var SuggestionsView = Marionette.CollectionView.extend({
-    tagName: 'ul',
-    childView: SuggestionView
+    render: function() {
+        var html = suggestionsTmpl.render({
+            geocodeSuggestions: this.collection.geocodeSuggestions,
+            boundarySuggestions: this.collection.boundarySuggestions
+                .groupBy('label')
+        });
+        this.$el.html(html);
+    }
 });
 
 module.exports = {
     GeocoderView: GeocoderView,
     SuggestionsView: SuggestionsView,
-    SuggestionView: SuggestionView,
     SearchBoxView: SearchBoxView
 };

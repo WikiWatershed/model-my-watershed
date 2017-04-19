@@ -898,7 +898,7 @@ var PointSourceResultView = AnalyzeResultView.extend({
 var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
     onShow: function() {
         var desc = 'Delaware River Basin only: <a target="_blank" ' +
-                   'href="https://www.arcgis.com/home/item.html?id=260d7e17039d48a6beee0f0b640eb754"​>' +
+                   'href="https://www.arcgis.com/home/item.html?id=260d7e17039d48a6beee0f0b640eb754">' +
                    'Stream Reach Assessment Tool</a> model estimates',
             associatedLayerCodes = [
                 'drb_catchment_water_quality_tn',

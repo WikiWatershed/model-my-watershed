@@ -2,7 +2,7 @@
 #search-map {
   position: absolute;
   top: 0;
-  z-index: 100;
+  z-index: 600;
   padding: 1rem;
 
   @media(max-width: 1200px) {
@@ -55,19 +55,27 @@
 
 #geocode-search-results-region {
   position: absolute;
+  border-radius: 2px;
+  box-shadow: 0 0 6px $black-74;
+  font-size: 0.8rem;
+  color: $black-54;
+  background-color: $paper;
+  margin-top: 6px;
+  min-width: 300px;
+  z-index: 700;
+
+  h1 {
+    margin: 0.5rem;
+    border-bottom: 1px solid #bbb;
+    font-size: 0.8rem;
+    color: #bbb;
+  }
 
   ul {
     list-style-type: none;
-    position: absolute;
-    border-radius: 2px;
-    box-shadow: 0 0 6px $black-74;
-    font-size: 0.8rem;
-    padding: 0.5rem 0;
-    color: $black-54;
-    background-color: $paper;
-    margin-top: 6px;
-    min-width: 300px;
-    z-index: 10;
+    margin: 0;
+    padding: 0;
+
     & > li {
       cursor: pointer;
       padding: 0.5rem 1rem;

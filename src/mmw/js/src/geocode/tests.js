@@ -5,7 +5,6 @@ require('../core/setup');
 var _ = require('lodash'),
     $ = require('jquery'),
     assert = require('chai').assert,
-    Backbone = require('../../shim/backbone'),
     sinon = require('sinon'),
     App = require('../app'),
     views = require('./views'),
@@ -16,8 +15,7 @@ var sandboxId = 'sandbox',
     sandboxSelector = '#' + sandboxId;
 
 describe('Geocoder', function() {
-    var MSG_EMPTY = 'No results found.',
-        MSG_ERROR = 'Oops! Something went wrong.';
+    var MSG_ERROR = 'Oops! Something went wrong.';
 
     before(function() {
         if ($(sandboxSelector).length === 0) {
@@ -47,7 +45,7 @@ describe('Geocoder', function() {
 
             this.server.respondWith([200, { 'Content-Type': 'application/json' }, responseData]);
 
-            testNumberOfResults(testData.length, done);
+            testNumberOfResults(testData.length * 2, done);
         });
 
         it('renders multiple list items if there are multiple suggestions', function(done) {
@@ -56,18 +54,7 @@ describe('Geocoder', function() {
 
             this.server.respondWith([200, { 'Content-Type': 'application/json' }, responseData]);
 
-            testNumberOfResults(testData.length, done);
-        });
-
-        it('renders no list items and an error message if there are no suggestions', function(done) {
-            this.server.respondWith([200, { 'Content-Type': 'application/json' }, '[]']);
-            var view = createView();
-
-            view.handleSearch('a query').then(function() {
-                assert.equal($('#sandbox li').length, 0);
-                assert.include($('.message').text().trim(), MSG_EMPTY);
-                done();
-            }());
+            testNumberOfResults(testData.length * 2, done);
         });
 
         it('renders an error message if there was a problem getting suggestions', function(done) {
@@ -86,7 +73,8 @@ describe('Geocoder', function() {
                 responseData = JSON.stringify({ suggestions: testData }),
                 view = createView();
 
-            this.server.respondWith([200, { 'Content-Type': 'application/json' }, responseData]);
+            this.server.respondWith(/geocode.arcgis.com/,
+                [200, { 'Content-Type': 'application/json' }, responseData]);
 
             var self = this;
             view.handleSearch('a query').done(function() {
@@ -184,25 +172,31 @@ describe('Geocoder', function() {
                     testGeocode = getTestGeocodes(1),
                     zoomLevel = 15;
 
-                model.set('location', new models.LocationModel(testGeocode[0]));
+                model.fetch = function() {
+                    model.set(testGeocode[0]);
+                };
+
+                model.select();
                 model.setMapViewToLocation(zoomLevel);
 
-                assert.equal(App.map.get('lat'), model.get('location').get('y'));
-                assert.equal(App.map.get('lng'), model.get('location').get('x'));
+                assert.equal(App.map.get('lat'), model.get('y'));
+                assert.equal(App.map.get('lng'), model.get('x'));
                 assert.equal(App.map.get('zoom'), zoomLevel);
             });
         });
 
         describe('#select', function() {
-            it('fetchs location information for the selected model', function(done) {
+            it('fetches location information for the selected model', function(done) {
                 var testSuggestion = getTestSuggestions(1),
-                    model = new models.SuggestionModel(testSuggestion[0]),
-                    testGeocode = JSON.stringify(getTestGeocodes(1));
+                    testGeocode = getTestGeocodes(1),
+                    model = new models.SuggestionModel(testSuggestion[0]);
 
-                this.server.respondWith([200, { 'Content-Type': 'application/json' }, testGeocode]);
+                this.server.respondWith([200, { 'Content-Type': 'application/json' },
+                    JSON.stringify(testGeocode)]);
 
                 model.select().done(function() {
-                    assert.instanceOf(model.get('location'), Backbone.Model);
+                    assert.equal(model.get('y'), testGeocode[0].y);
+                    assert.equal(model.get('x'), testGeocode[0].x);
                     done();
                 });
             });
