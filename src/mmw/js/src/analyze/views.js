@@ -363,7 +363,7 @@ var AnalyzeLayerToggleView = Marionette.ItemView.extend({
     setLayer: function() {
         this.model = App.getLayerTabCollection().findLayerWhere({ code: this.code });
         if (this.model) {
-            this.model.on('change:active', this.renderIfNotDestroyed, this);
+            this.model.on('change:active change:disabled', this.renderIfNotDestroyed, this);
             this.message = null;
         }
     },
@@ -400,6 +400,7 @@ var AnalyzeLayerToggleView = Marionette.ItemView.extend({
             return {
                 layerDisplay: this.model.get('display'),
                 isLayerOn: this.model.get('active'),
+                isDisabled: this.model.get('disabled')
             };
         }
     },
