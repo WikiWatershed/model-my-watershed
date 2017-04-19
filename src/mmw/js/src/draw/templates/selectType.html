@@ -13,7 +13,10 @@
           </span>
       </button>
       <a class="help" data-toggle="popover" tabindex="0"
-         role="button" data-content="{{ item.helptext }}">
+         role="button" data-content="{{ item.helptext }}"
+         data-template="<div class='popover'><div class='pull-right'
+             id='popover-close-button'><i class='fa fa-times' /></div><div
+             class='popover-content'></div><div class='arrow'></div></div>">
         <i class="fa fa-question-circle"></i>
       </a>
     </li>

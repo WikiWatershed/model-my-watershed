@@ -665,9 +665,17 @@ var DrawView = Marionette.ItemView.extend({
     },
 
     onShow: function() {
+        this.activatePopovers();
+    },
+
+    onRender: function() {
+        this.activatePopovers();
+    },
+
+    activatePopovers: function() {
         this.ui.helptextIcon.popover({
-            trigger: 'focus',
-            placement: 'top'
+            placement: 'top',
+            trigger: 'focus'
         });
     },
 
@@ -733,13 +741,6 @@ var WatershedDelineationView = Marionette.ItemView.extend({
         'click @ui.items': 'onItemClicked'
     },
 
-    onShow: function() {
-        this.ui.helptextIcon.popover({
-            trigger: 'focus',
-            placement: 'top'
-        });
-    },
-
     modelEvents: {
         'change:toolsEnabled': 'render',
         'change:polling': 'render',
@@ -748,6 +749,21 @@ var WatershedDelineationView = Marionette.ItemView.extend({
 
     initialize: function(options) {
         this.rwdTaskModel = options.rwdTaskModel;
+    },
+
+    onShow: function() {
+        this.activatePopovers();
+    },
+
+    onRender: function() {
+        this.activatePopovers();
+    },
+
+    activatePopovers: function() {
+        this.ui.helptextIcon.popover({
+            placement: 'top',
+            trigger: 'focus'
+        });
     },
 
     onItemClicked: function(e) {
