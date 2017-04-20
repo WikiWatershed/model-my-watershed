@@ -6,7 +6,8 @@
     right: 0;
     transition: all 200ms;
     top: 44px;
-    overflow: visible;
+    bottom: 0px;
+    overflow-y: auto;
 }
 
 .splash-step {
