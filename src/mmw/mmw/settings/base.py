@@ -358,10 +358,10 @@ OMGEO_SETTINGS = [[
 # Feature flags
 MMW_BIGCZ_MODE = bool(environ.get('MMW_BIGCZ_MODE', False))
 if MMW_BIGCZ_MODE:
-    ANALYZE_ENABLED = False
+    DATA_CATALOG_ENABLED = True
     ITSI_ENABLED = False
 else:
-    ANALYZE_ENABLED = True
+    DATA_CATALOG_ENABLED = False
     ITSI_ENABLED = True
 
 # ITSI Portal Settings

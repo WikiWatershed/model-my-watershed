@@ -36,17 +36,12 @@ var $ = require('jquery'),
     tabPanelTmpl = require('../modeling/templates/resultsTabPanel.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     barChartTmpl = require('../core/templates/barChart.html'),
-    resultsWindowTmpl = require('./templates/resultsWindow.html');
+    resultsWindowTmpl = require('./templates/resultsWindow.html'),
+    modelSelectionDropdownTmpl = require('./templates/modelSelectionDropdown.html'),
+    dataSourceButtonTmpl = require('./templates/dataSourceButton.html');
 
-var ResultsView = Marionette.LayoutView.extend({
-    id: 'model-output-wrapper',
-    className: 'analyze',
-    tagName: 'div',
-    template: resultsWindowTmpl,
-
-    regions: {
-        analyzeRegion: '#analyze-tab-contents'
-    },
+var ModelSelectionDropdownView = Marionette.ItemView.extend({
+    template: modelSelectionDropdownTmpl,
 
     ui: {
         'modelPackageLinks': 'a.model-package',
@@ -56,7 +51,7 @@ var ResultsView = Marionette.LayoutView.extend({
         'click @ui.modelPackageLinks': 'selectModelPackage',
     },
 
-    selectModelPackage: function (e) {
+    selectModelPackage: function(e) {
         e.preventDefault();
 
         var modelPackages = settings.get('model_packages'),
@@ -145,8 +140,47 @@ var ResultsView = Marionette.LayoutView.extend({
         }
     },
 
+    templateHelpers: function() {
+        return {
+            modelPackages: settings.get('model_packages')
+        };
+    },
+});
+
+var DataSourceButtonView = Marionette.ItemView.extend({
+    template: dataSourceButtonTmpl,
+
+    ui: {
+        'dataSourceButton': '#data-source-button',
+    },
+
+    events: {
+        'click @ui.dataSourceButton': 'navigateSearchDataSource',
+    },
+
+    navigateSearchDataSource: function() {
+        router.navigate('search', { trigger: true });
+    },
+});
+
+var ResultsView = Marionette.LayoutView.extend({
+    id: 'model-output-wrapper',
+    className: 'analyze',
+    tagName: 'div',
+    template: resultsWindowTmpl,
+
+    regions: {
+        analyzeRegion: '#analyze-tab-contents',
+        nextStageRegion: '#next-stage-navigation-region',
+    },
+
     onShow: function() {
         this.showDetailsRegion();
+        if (settings.get('data_catalog_enabled')) {
+            this.showDataSourceButton();
+        } else {
+            this.showModelSelectionDropdown();
+        }
     },
 
     onRender: function() {
@@ -159,10 +193,12 @@ var ResultsView = Marionette.LayoutView.extend({
         }));
     },
 
-    templateHelpers: function() {
-        return {
-            modelPackages: settings.get('model_packages')
-        };
+    showDataSourceButton: function() {
+        this.nextStageRegion.show(new DataSourceButtonView());
+    },
+
+    showModelSelectionDropdown: function() {
+        this.nextStageRegion.show(new ModelSelectionDropdownView());
     },
 
     transitionInCss: {
@@ -178,19 +214,6 @@ var ResultsView = Marionette.LayoutView.extend({
             self.trigger('animateIn');
         });
     },
-
-    animateOut: function(fitToBounds) {
-        var self = this,
-            fit = lodash.isUndefined(fitToBounds) ? true : fitToBounds;
-
-        // Change map to full size first so there isn't empty space when
-        // results window animates out
-        App.map.setDoubleHeaderSmallFooterSize(fit);
-
-        this.$el.animate({ width: '0px' }, 200, function() {
-            self.trigger('animateOut');
-        });
-    }
 });
 
 var AnalyzeWindow = Marionette.LayoutView.extend({

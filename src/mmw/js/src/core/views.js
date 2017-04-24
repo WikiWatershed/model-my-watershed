@@ -102,6 +102,12 @@ var HeaderView = Marionette.ItemView.extend({
         return this.makeNavClasses(isActive, isVisible);
     },
 
+    makeDataCatalogNavClasses: function(currentActive, wasDataCatalogVisible) {
+        var isVisible = !this.isProjectsPage(currentActive) && wasDataCatalogVisible,
+            isActive = currentActive === coreUtils.dataCatalogPageTitle;
+        return this.makeNavClasses(isActive, isVisible);
+    },
+
     makeModelNavClasses: function(currentActive) {
         var modelPackageNames = _.pluck(settings.get('model_packages'), 'display_name'),
             isCompare = currentActive === coreUtils.comparePageTitle,
@@ -122,6 +128,7 @@ var HeaderView = Marionette.ItemView.extend({
         var self = this,
             currentActive = self.appState.get('active_page'),
             wasAnalyzeVisible = self.appState.get('was_analyze_visible'),
+            wasDataCatalogVisible = self.appState.get('was_data_catalog_visible'),
             wasModelVisible = self.appState.get('was_model_visible'),
             wasCompareVisible = self.appState.get('was_compare_visible');
 
@@ -130,6 +137,7 @@ var HeaderView = Marionette.ItemView.extend({
             'splashNavClasses': this.makeSplashNavClasses(wasAnalyzeVisible, wasModelVisible),
             'selectAreaNavClasses': this.makeSelectAreaNavClasses(currentActive),
             'analyzeNavClasses': this.makeAnalyzeNavClasses(currentActive, wasAnalyzeVisible, wasModelVisible),
+            'dataCatalogNavClasses': this.makeDataCatalogNavClasses(currentActive, wasDataCatalogVisible),
             'modelNavClasses': this.makeModelNavClasses(currentActive),
             'compareNavClasses': this.makeCompareNavClasses(currentActive, wasCompareVisible),
         };
@@ -598,6 +606,7 @@ var MapView = Marionette.ItemView.extend({
         $container.toggleClass('map-container-bottom-sidebar', !!size.top.sidebar);
 
         $container.toggleClass('map-container-top-sidebar-no-header', !!size.noHeader);
+        $container.toggleClass('-widesidebar', !!size.wideSidebar);
 
         _.delay(function() {
             self._leafletMap.invalidateSize();

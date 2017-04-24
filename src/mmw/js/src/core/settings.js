@@ -5,7 +5,7 @@ var _ = require('lodash');
 var defaultSettings = {
     itsi_embed: false,
     itsi_enabled: true,
-    analyze_enabled: true,
+    data_catalog_enabled: false,
     base_layers: {},
     stream_layers: {},
     coverage_layers: {},

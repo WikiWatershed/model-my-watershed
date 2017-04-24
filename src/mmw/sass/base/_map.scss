@@ -52,6 +52,11 @@
       right: 485px !important;
     }
   }
+  &.-widesidebar {
+      @media(min-width: 1040px) {
+        right: 600px !important;
+      }
+  }
   // Sets map to correct container size for sidebar.
   &.map-container-bottom-sidebar {
     bottom: 0 !important;
