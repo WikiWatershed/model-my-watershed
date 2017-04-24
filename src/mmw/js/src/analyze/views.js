@@ -24,6 +24,7 @@ var $ = require('jquery'),
     AnalyzeDescriptionTmpl = require('./templates/analyzeDescription.html'),
     analyzeResultsTmpl = require('./templates/analyzeResults.html'),
     analyzeLayerToggleTmpl = require('./templates/analyzeLayerToggle.html'),
+    analyzeLayerToggleCollectionTmpl = require('./templates/analyzeLayerToggleCollection.html'),
     aoiHeaderTmpl = require('./templates/aoiHeader.html'),
     tableTmpl = require('./templates/table.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
@@ -56,7 +57,7 @@ var ResultsView = Marionette.LayoutView.extend({
         'click @ui.modelPackageLinks': 'selectModelPackage',
     },
 
-    selectModelPackage: function (e) {
+    selectModelPackage: function(e) {
         e.preventDefault();
 
         var modelPackages = settings.get('model_packages'),
@@ -406,12 +407,54 @@ var AnalyzeLayerToggleView = Marionette.ItemView.extend({
     },
 });
 
-var AnalyzeLayerToggleCollectionView = Marionette.CollectionView.extend({
-    childView: AnalyzeLayerToggleView,
+/**
+    A dropdown view for toggling multiple related layers
+    (eg the water quality tab has TN, TP, and TSS layers).
 
-    childViewOptions: function(model) {
+    Assumes only one layer of the list can be selected/active at a time. If multiple
+    can be selected, the active layername will appear as only the first active in
+    the list.
+**/
+var AnalyzeLayerToggleDropdownView = Marionette.ItemView.extend({
+    template: analyzeLayerToggleCollectionTmpl,
+
+    ui: {
+        'layers': 'a.layer-option',
+    },
+
+    events: {
+        'click @ui.layers': 'toggleLayer',
+    },
+
+    collectionEvents: {
+        'change': 'renderIfNotDestroyed',
+    },
+
+    toggleLayer: function(e) {
+        e.preventDefault();
+        var code = $(e.target).data('id'),
+            layer = this.collection.findWhere({ code: code }),
+            layerTabCollection = App.getLayerTabCollection(),
+            layerGroup = layerTabCollection.findLayerGroup(layer.get('layerType'));
+
+        utils.toggleLayer(layer, App.getLeafletMap(), layerGroup);
+        layerTabCollection.trigger('toggle:layer');
+    },
+
+    renderIfNotDestroyed: function() {
+        if (!this.isDestroyed) {
+            this.render();
+        }
+    },
+
+    templateHelpers: function() {
+        var activeLayer = this.collection.findWhere({ active: true });
         return {
-            code: model.get('code'),
+            layers: this.collection.toJSON(),
+            activeLayerDisplay: activeLayer && activeLayer.get('display'),
+            allDisabled: this.collection.every(function(layer) {
+                return layer.get('disabled');
+            }),
         };
     }
 });
@@ -850,11 +893,17 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
         }
 
         if (associatedLayerCodes) {
-            this.layerToggleRegion.show(new AnalyzeLayerToggleCollectionView({
-                collection: new Backbone.Collection(lodash.map(associatedLayerCodes, function(code) {
-                    return { code: code };
-                }))
-            }));
+            if (associatedLayerCodes.length === 1) {
+                this.layerToggleRegion.show(new AnalyzeLayerToggleView({
+                    code: _.first(associatedLayerCodes)
+                }));
+            } else {
+                this.layerToggleRegion.show(new AnalyzeLayerToggleDropdownView({
+                    collection: new Backbone.Collection(_.map(associatedLayerCodes, function(code) {
+                        return App.getLayerTabCollection().findLayerWhere({ code: code });
+                    })),
+                }));
+            }
         }
     }
 });
