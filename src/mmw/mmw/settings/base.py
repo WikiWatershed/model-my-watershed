@@ -318,6 +318,7 @@ AUTHENTICATION_BACKENDS = (
 
 # Apps specific for this project go here.
 LOCAL_APPS = (
+    'apps.bigcz',
     'apps.core',
     'apps.modeling',
     'apps.home',
