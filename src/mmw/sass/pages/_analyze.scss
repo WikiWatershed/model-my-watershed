@@ -53,11 +53,24 @@
         display: inline;
         text-align: left;
         width: 100%;
+    }
+
+    .analyze-layertoggle.dropdown-toggle {
         > .on-off-toggle {
-            color: #337ab7; // bootstrap brand-primary used for anchor tags
-            display: inline;
-            margin-left: 1rem;
+            margin-left: 0.5rem;
+            margin-right: 0.2rem;
         }
+    }
+
+    .analyze-layer-dropdown {
+        margin: 0.75rem;
+    }
+
+    .on-off-toggle,
+    .dropdown .dropdown-menu li a i {
+        color: #337ab7; // bootstrap brand-primary used for anchor tags
+        display: inline;
+        margin-left: 1rem;
     }
 }
 

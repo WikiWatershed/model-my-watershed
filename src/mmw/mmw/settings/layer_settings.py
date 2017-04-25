@@ -130,6 +130,7 @@ LAYER_GROUPS = {
             'code': 'drb_catchment_water_quality_tn',
             'display': ('DRB Catchment Water Quality Data' +
                         ' ' + 'TN Loading Rates from SRAT Catchments'),
+            'short_display': 'TN Loading Rates',
             'table_name': 'drb_catchment_water_quality_tn',
             'minZoom': 3,
             'perimeter': drb_simple_perimeter,
@@ -149,6 +150,7 @@ LAYER_GROUPS = {
             'code': 'drb_catchment_water_quality_tp',
             'display': ('DRB Catchment Water Quality Data' +
                         ' ' + 'TP Loading Rates from SRAT Catchments'),
+            'short_display': 'TP Loading Rates',
             'table_name': 'drb_catchment_water_quality_tp',
             'minZoom': 3,
             'perimeter': drb_simple_perimeter,
@@ -168,6 +170,7 @@ LAYER_GROUPS = {
             'code': 'drb_catchment_water_quality_tss',
             'display': ('DRB Catchment Water Quality Data' +
                         ' ' + 'TSS Loading Rates from SRAT Catchments'),
+            'short_display': 'TSS Loading Rates',
             'table_name': 'drb_catchment_water_quality_tss',
             'minZoom': 3,
             'perimeter': drb_simple_perimeter,

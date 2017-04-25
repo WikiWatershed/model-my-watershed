@@ -1,0 +1,32 @@
+{% if not allDisabled %}
+    <div class="dropdown">
+      <button class="analyze-layertoggle dropdown-toggle" type="button" data-toggle="dropdown">
+          {% if activeLayerDisplay %}
+            Related Layer: {{ activeLayerDisplay }}
+            <div class="on-off-toggle">
+                <i class="fa fa-check" aria-hidden="true"></i>
+            </div>
+          {% else %}
+            {{ layers.length }} related layers
+          {% endif %}
+      <span class="caret"></span></button>
+      <ul class="dropdown-menu dropdown-menu-left analyze-layer-dropdown">
+        {% for layer in layers %}
+            <li>
+                {% if not layer.disabled %}
+                    <a href="#" class="layer-option" data-id="{{ layer.code }}">
+                        {{ layer.shortDisplay or layer.display }}
+                        {% if layer.active %}
+                            <i class="fa fa-check" aria-hidden="true"></i>
+                        {% endif %}
+                    </a>
+                {% endif %}
+            </li>
+        {% endfor %}
+      </ul>
+    </div>
+{% else %}
+    <span class="analyze-layertoggle">
+        No layers available for this area
+    </span>
+{% endif %}
