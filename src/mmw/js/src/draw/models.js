@@ -6,21 +6,39 @@ var Backbone = require('../../shim/backbone'),
 
 var ToolbarModel = Backbone.Model.extend({
     defaults: {
-        toolsEnabled: true,
         // Array of { endpoint, tableId, display } objects.
         predefinedShapeTypes: null,
         outlineFeatureGroup: null,
         polling: false,
         pollError: false,
-        selectedDrawTool: null
+        activeDrawTool: null,
+        activeDrawToolItem: null,
+        openDrawTool: null
     },
 
-    enableTools: function() {
-        this.set('toolsEnabled', true);
+    reset: function() {
+        this.set({
+            activeDrawTool: null,
+            activeDrawToolItem: null,
+            polling: false,
+            pollError: false
+        });
     },
 
-    disableTools: function() {
-        this.set('toolsEnabled', false);
+    openDrawTool: function(drawTool) {
+        this.set('openDrawTool', drawTool);
+    },
+
+    closeDrawTool: function() {
+        this.set('openDrawTool', null);
+    },
+
+    selectDrawToolItem: function(drawTool, drawToolItem) {
+        this.set({
+            activeDrawTool: drawTool,
+            activeDrawToolItem: drawToolItem
+        });
+        this.closeDrawTool();
     },
 
     clearRwdClickedPoint: function(map) {
