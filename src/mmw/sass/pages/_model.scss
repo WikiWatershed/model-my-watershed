@@ -46,8 +46,10 @@
     width: 100%;
 
     .result-text {
-        font-size: 0.8rem;
-        margin-bottom: 20px;
+        margin-bottom: $temp-h4;
+        font-size: 14px;
+        font-weight: 600;
+        color: #333333;
     }
 
     .mean-flow {

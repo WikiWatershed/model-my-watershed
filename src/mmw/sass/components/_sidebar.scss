@@ -6,27 +6,63 @@
         background-color: $black-06;
         border-radius: 0;
         border: 0;
-        color: $black-74;
         font-weight: 800;
+        background-color: #389b9b !important;
+        color: #fff;
     }
     .nav-tabs > li {
         width: 50%;
         margin-bottom: -1px;
         float: left;
+        top: 2px;
+        position: relative;
+        & > a {
+            height: 40px;
+            width: 130px;
+            line-height: 40px;
+            color: #fff;
+            font-size: $temp-h3;
+            position: relative;
+            top: 10px;
+            border-radius: 2px 0px 0px 2px;
+        }
+        &:first-child {
+            a {
+                float: right;
+            }
+        }
+        &:last-child {
+            a {
+                float: left;
+            }
+        }
+        &.active {
+            a {
+
+            }
+
+        }
     }
     .nav-tabs > li > a {
         margin: 0;
         border-radius: 0;
         border: 0;
         background-color: $black-12;
-        height: $sidebar-tab-subheader-height;
-        line-height: $sidebar-tab-subheader-height;
         padding-top: 0;
         text-align: center;
         color: $black-39;
+        height: 36px;
+        line-height: 36px;
     }
     .nav-tabs {
         border-bottom: 0;
+        background-color: $black-06;
+        height: 60px;
+        .dropdown-menu {
+            .model-package {
+                width: 100%;
+            }
+        }
     }
 }
 
@@ -50,16 +86,17 @@
     color: rgba(0, 0, 0, 0.54);
     margin-right: 8px;
     position: absolute;
-    bottom: 0;
+    bottom: 2px;
     height: auto;
     text-align: center;
     width: 100%;
+    font-size: 8px;
 }
 
 .results-content.downloadcsv-link,
 .downloadcsv-link {
-    padding-top: 10px;
-    padding-left: 5px;
+    margin-top: 14px;
+    margin-left: 7px;
     cursor: pointer;
     font-size: 0.7rem;
 }

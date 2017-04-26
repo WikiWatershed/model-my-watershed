@@ -1,18 +1,18 @@
 <div>
-    <button class="btn btn-lg btn-block draw-tool-button dropdown-toggle" type="button"
-        aria-haspopup="true" aria-expanded="false">
-        <p class="draw-button-title pull-left">
+    <button
+        class="btn btn-lg btn-block draw-tool-button dropdown-toggle"
+        type="button" aria-haspopup="true" aria-expanded="false">
+        <p class="draw-button-title">
             Upload file
         </p>
-        <br />
-        <p class="draw-button-subtitle pull-left">
+        <p class="draw-button-subtitle">
             Lorem ipsum dolor it amet, consectetur
         </p>
     </button>
     {% if activeDrawTool == 'aoiUpload' %}
         <div>
             <i class="fa fa-times pull-right reset-draw-button"></i>
-            <span class="draw-button-title pull-left"
+            <span class="draw-button-title"
                   id="dropbox">
                 Drag and drop a file
                 <ul class="draw-pane-description-list">
@@ -20,7 +20,7 @@
                     <li>Only the first feature is used</li>
                 </ul>
                 <button
-                    class="btn btn-success pull-left"
+                    class="btn btn-success"
                     id="draw-tool-file-upload-button">
                     Select a file
                 </button>
