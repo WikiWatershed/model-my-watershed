@@ -889,11 +889,15 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
     },
 
     showAnalyzeResults: function(CategoriesToCensus, AnalyzeTableView,
-        AnalyzeChartView, description, associatedLayerCodes) {
+        AnalyzeChartView, description, associatedLayerCodes, pageSize) {
         var categories = this.model.get('categories'),
             largestArea = lodash.max(lodash.pluck(categories, 'area')),
             units = utils.magnitudeOfArea(largestArea),
             census = new CategoriesToCensus(categories);
+
+        if (pageSize) {
+            census.setPageSize(pageSize);
+        }
 
         this.tableRegion.show(new AnalyzeTableView({
             units: units,
@@ -962,9 +966,12 @@ var PointSourceResultView = AnalyzeResultView.extend({
     onShow: function() {
         var desc = 'Discharge Monitoring Report annual averages from EPA NPDES',
             associatedLayerCodes = ['pointsource'],
+            avgRowHeight = 30,  // Most rows are between 2-3 lines, 12px per line
+            minScreenHeight = 768 + 45, // height of landscape iPad + extra content below the table
+            pageSize = utils.calculateVisibleRows(minScreenHeight, avgRowHeight, 3),
             chart = null;
         this.showAnalyzeResults(coreModels.PointSourceCensusCollection,
-            PointSourceTableView, chart, desc, associatedLayerCodes);
+            PointSourceTableView, chart, desc, associatedLayerCodes, pageSize);
     }
 });
 
@@ -978,9 +985,12 @@ var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
                 'drb_catchment_water_quality_tp',
                 'drb_catchment_water_quality_tss',
             ],
+            avgRowHeight = 18,  // Most rows are between 1-2 lines, 12px per line
+            minScreenHeight = 768 + 45, // height of landscape iPad + extra content below the table
+            pageSize = utils.calculateVisibleRows(minScreenHeight, avgRowHeight, 5),
             chart = null;
         this.showAnalyzeResults(coreModels.CatchmentWaterQualityCensusCollection,
-            CatchmentWaterQualityTableView, chart, desc, associatedLayerCodes);
+            CatchmentWaterQualityTableView, chart, desc, associatedLayerCodes, pageSize);
     }
 });
 

@@ -435,6 +435,15 @@ var utils = {
             });
             return newRow;
         });
+    },
+
+    calculateVisibleRows: function(minScreenHeight, avgRowHeight, minRows) {
+        var screenHeight = document.documentElement.clientHeight;
+        if (screenHeight <= minScreenHeight) {
+            return minRows;
+        }
+
+        return minRows + Math.floor((screenHeight - minScreenHeight) / avgRowHeight);
     }
 };
 
