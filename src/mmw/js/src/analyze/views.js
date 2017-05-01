@@ -14,7 +14,6 @@ var $ = require('jquery'),
     modalViews = require('../core/modals/views'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
-    coreUtils = require('../core/utils'),
     chart = require('../core/chart'),
     utils = require('../core/utils'),
     constants = require('./constants'),
@@ -73,9 +72,9 @@ var ModelSelectionDropdownView = Marionette.ItemView.extend({
             });
 
         if (modelPackageName === 'gwlfe' && settings.get('mapshed_max_area')) {
-            var areaInSqKm = coreUtils.changeOfAreaUnits(aoiModel.get('area'),
-                                                         aoiModel.get('units'),
-                                                         'km<sup>2</sup>');
+            var areaInSqKm = utils.changeOfAreaUnits(aoiModel.get('area'),
+                                                     aoiModel.get('units'),
+                                                     'km<sup>2</sup>');
 
             if (areaInSqKm > settings.get('mapshed_max_area')) {
                 alertView = new modalViews.AlertView({
