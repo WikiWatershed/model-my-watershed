@@ -1,4 +1,31 @@
 <div class="pageable-table-container">
+{% if totalPages > 1 %}
+<div class="row paging-ctl-row">
+    {% if hasPreviousPage %}
+        <button
+            class="btn-prev-page btn btn-primary col-sm-1 col-sm-offset-3"
+            data-toggle="tooltip"
+            title="Previous Page"
+            data-placement="right"
+        >
+            <span aria-hidden="true">&larr;</span>
+        </button>
+    {% endif %}
+    <p class="col-sm-3 {{ "col-sm-offset-4" if not hasPreviousPage else "" }}">
+        {{currentPage}} of {{totalPages}}
+    </p>
+    {% if hasNextPage %}
+        <button
+            class="btn-next-page btn btn-primary col-sm-1"
+            data-toggle="tooltip"
+            title="Next Page"
+            data-placement="right"
+        >
+            <span aria-hidden="true">&rarr;</span>
+        </button>
+    {% endif %}
+</div>
+{% endif %}
   <table class="table custom-hover catchment-water-quality pageable-table-size" data-toggle="table">
       <thead>
           <tr>
@@ -30,24 +57,3 @@
       </tfoot>
   </table>
 </div>
-{% if totalPages > 1 %}
-    <div class="row paging-ctl-row">
-            <p>
-                {{currentPage}} of {{totalPages}}
-            </p>
-            {% if hasPreviousPage %}
-                <button class="btn-prev-page btn btn-primary"
-                  data-toggle="tooltip" title="Previous Page"
-                  data-placement="right">
-                    <span aria-hidden="true">&larr;</span>
-                </button>
-            {% endif %}
-            {% if hasNextPage %}
-                <button class="btn-next-page btn btn-primary"
-                  data-toggle="tooltip" title="Next Page"
-                  data-placement="right">
-                    <span aria-hidden="true">&rarr;</span>
-                </button>
-            {% endif %}
-    </div>
-{% endif %}

@@ -76,13 +76,7 @@
 
 .paging-ctl-row {
   text-align: center;
-  bottom:0rem;
-  position:fixed;
-  background-color: $paper;
-  @media (max-height: 884px) {
-    top:0.2rem;
-    position:relative;
-  }
+  margin-top: 20px !important;
 }
 
 .pageable-table-container {
