@@ -25,6 +25,8 @@ var utils = {
 
     analyzePageTitle: 'Geospatial Analysis',
 
+    dataCatalogPageTitle: 'Search Data Sources',
+
     comparePageTitle: 'Compare',
 
     projectsPageTitle: 'Projects',

@@ -188,3 +188,7 @@
   background-color: darken($ui-light, 5%);
   border: solid 1px darken($ui-light, 10%);
 }
+
+.btn-go-to-data-catalog > .fa-arrow-right {
+    margin-left: 0.25rem;
+}

@@ -1,0 +1,44 @@
+.data-catalog-window {
+    width: 600px;
+    padding: 1rem;
+    position: absolute;
+    right: 0;
+    transition: all 200ms;
+    top: 44px;
+    bottom: 0px;
+    overflow-y: auto;
+    background-color: $ui-light;
+}
+
+.data-catalog-title {
+    font-weight: 900;
+    display: inline;
+    margin-right: 1rem;
+    font-size: 1.2rem;
+}
+
+.data-catalog-search {
+    position: relative;
+    top: 0;
+    margin-top: 1rem;
+    > .data-catalog-search-input {
+        width: 100%;
+        height: 38px;
+        border: none;
+        padding-left: 38px;
+        margin-bottom: 0.5rem;
+        font-size: 0.8rem;
+    }
+    > .data-catalog-search-icon {
+        color: $ui-grey;
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-size: 18px;
+    }
+    > .data-catalog-search-description {
+        color: $ui-grey;
+        font-size: 0.7rem;
+        margin-left: 0.5rem;
+    }
+}
