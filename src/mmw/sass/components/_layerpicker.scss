@@ -2,7 +2,7 @@
   z-index: 500;
   position: absolute;
   bottom: 22px;
-  left: 10px;
+  left: 0.7rem;
   width: 240px;
   background-color: #fff;
   border-radius: 2px;
@@ -17,12 +17,15 @@
     background-color: $ui-primary;
     color: $paper;
     cursor: pointer;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: bold;
-    padding: 4px 12px;
+    padding: 5px 8px 5px 6px;
     i {
         float: right;
         margin-top: 2px;
+        font-size: 12px;
+        position: relative;
+        top: 2px
     }
 }
 
@@ -60,15 +63,16 @@
 .layerpicker-heading {
   font-size: 13px;
   font-weight: 700;
-  padding: 6px;
+  padding: 10px 6px 4px;
   display: flex;
+  position: relative;
 }
 
 .layerpicker-navbutton {
   text-align: center;
   width: 20%;
   float: left;
-  padding: 6px;
+  padding: 4px 6px 5px;
   background-color: $ui-light;
   cursor: pointer;
   &.open {
@@ -163,6 +167,9 @@
         border-bottom: 11px solid transparent;
         cursor: pointer;
         padding: 0;
+        position: absolute;
+        right: 12px;
+        top: 6px;
 
         &::-webkit-slider-thumb {
             background: $brand-primary;

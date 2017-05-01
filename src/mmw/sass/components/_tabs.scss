@@ -48,7 +48,7 @@
 .output-tabs-wrapper {
   position: absolute;
   left: 0;
-  top: $sidebar-tab-subheader-height;
+  top: 60px;
   right: 0;
   bottom: 0;
 
@@ -81,7 +81,7 @@
     li > a {
       color: $ui-secondary;
       padding: 0 0.85rem;
-      line-height: $sidebar-tab-subheader-height;
+      line-height: 34px;
       background-color: transparent;
       height: $sidebar-tab-subheader-height;
 
@@ -101,7 +101,7 @@
 
   .tab-content {
     position: absolute;
-    top: 62px;
+    top: 44px;
     left: 0;
     right: 0;
     bottom: 0;
