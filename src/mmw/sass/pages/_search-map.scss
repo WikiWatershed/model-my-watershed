@@ -62,7 +62,14 @@
   background-color: $paper;
   margin-top: 6px;
   min-width: 300px;
+  max-height: 600px;
+  overflow: hidden;
+  overflow-y: auto;
   z-index: 700;
+
+  & .geocode-suggestions {
+    padding-top: 0.3rem;
+  }
 
   h1 {
     margin: 0.5rem;
@@ -78,17 +85,11 @@
 
     & > li {
       cursor: pointer;
-      padding: 0.5rem 1rem;
-      border-bottom: solid 1px $black-12;
-
-      &:last-child {
-        border: none;
-      }
+      padding: 0.3rem 0.5rem;
 
       &:hover {
         color: $ui-primary;
       }
     }
   }
-
 }
