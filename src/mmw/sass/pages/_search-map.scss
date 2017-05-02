@@ -57,7 +57,7 @@
   position: absolute;
   border-radius: 2px;
   box-shadow: 0 0 6px $black-74;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: $black-54;
   background-color: $paper;
   margin-top: 6px;
@@ -72,10 +72,12 @@
   }
 
   h1 {
-    margin: 0.5rem;
-    border-bottom: 1px solid #bbb;
-    font-size: 0.8rem;
-    color: #bbb;
+    margin: 0.6rem 0.5rem 0.3rem;
+    border-bottom: 1px solid #ccc;
+    font-size: 0.6rem;
+    color: #333;
+    text-transform: uppercase;
+    padding-bottom: 0.3rem;
   }
 
   ul {
@@ -85,11 +87,15 @@
 
     & > li {
       cursor: pointer;
-      padding: 0.3rem 0.5rem;
+      padding: 0.2rem 0.5rem;
 
       &:hover {
         color: $ui-primary;
       }
     }
   }
+}
+
+.boundary-suggestions {
+  padding-bottom: 0.3rem;
 }
