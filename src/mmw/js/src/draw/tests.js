@@ -57,24 +57,48 @@ describe('Draw', function() {
     describe('DrawWindow', function() {
         // Setup the toolbar controls, enable/disable them, and verify
         // the correct CSS classes are applied.
-        it('toggles draw tools active and inactive when model.selectedDrawTool changes', function() {
+        it('open draw-tool-selection in correct place when activeDrawToolItem is set ', function() {
             var sandbox = new SandboxRegion(),
                 $el = sandbox.$el,
                 model = new models.ToolbarModel(),
                 view = new views.DrawWindow({
                     model: model
-                }),
-                selectedDrawTool = 'selectedDrawTool';
+                });
+
+            model.set('predefinedShapeTypes', [
+                {
+                    code: 'huc8',
+                    display: 'title',
+                    helptext: 'helptext',
+                    minZoom: 0
+                }
+            ]);
 
             sandbox.show(view);
             assertDrawToolIsVisible($el, null);
-            view.model.set(selectedDrawTool, 'selectBoundary');
-            assertDrawToolIsVisible($el, '#select-area-region');
-            view.model.set(selectedDrawTool, 'drawArea');
-            assertDrawToolIsVisible($el, '#draw-region');
-            view.model.set(selectedDrawTool, 'delineateWatershed');
-            assertDrawToolIsVisible($el, '#place-marker-region');
-            view.model.set(selectedDrawTool, null);
+
+            model.set({
+                activeDrawTool: views.selectBoundary,
+                activeDrawToolItem: 'huc8'
+            });
+            assertDrawToolIsVisible($el, '#select-boundary-region');
+
+            model.set({
+                activeDrawTool: views.drawArea,
+                activeDrawToolItem: views.freeDraw
+            });
+            assertDrawToolIsVisible($el, '#draw-area-region');
+
+            model.set({
+                activeDrawTool: views.delineateWatershed,
+                activeDrawToolItem: utils.DRB,
+            });
+            assertDrawToolIsVisible($el, '#watershed-delineation-region');
+
+            model.set({
+                activeDrawTool: null,
+                activeDrawToolItem: null
+            });
             assertDrawToolIsVisible($el, null);
         });
 
@@ -210,14 +234,14 @@ function setupResetTestObject() {
 }
 
 function assertDrawToolIsVisible($el, drawToolRegion) {
-    var regions = ['#select-area-region', '#draw-region', '#place-marker-region'],
+    var regions = ['#select-boundary-region', '#draw-region', '#place-marker-region'],
         inactiveRegions = drawToolRegion ? _.without(regions, drawToolRegion) : regions;
 
     if (drawToolRegion) {
-        assert.equal($el.find(drawToolRegion).size(), 1);
+        assert.equal($el.find(drawToolRegion + ' .draw-tool-selection').size(), 1);
     }
 
     _.each(inactiveRegions, function (inactiveDrawToolRegion) {
-        assert.equal($el.find(inactiveDrawToolRegion).size(), 0);
+        assert.equal($el.find(inactiveDrawToolRegion + ' .draw-tool-region').size(), 0);
     });
 }
