@@ -14,3 +14,5 @@ gwlf-e==0.6.2
 requests==2.9.1
 rollbar==0.13.8
 retry==0.9.1
+python-dateutil==2.6.0
+suds==0.4
