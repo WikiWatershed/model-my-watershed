@@ -7,24 +7,8 @@
     here</a>.
 </p>
 <div id="draw-pane-buttons">
-    {% for drawTool in drawTools %}
-        <div class="btn btn-lg btn-block draw-tool-button" type="button"
-            data-toggle="dropdown" aria-expanded="true"
-            id={{ drawTool.button }}>
-            <p class="draw-button-title pull-left">
-                {{ drawTool.name }}
-            </p>
-            <span class="draw-button-icon caret pull-right"></span>
-            <br />
-            <p class="draw-button-subtitle pull-left">
-                Lorem ipsum dolor sit amet, consectetur
-            </p>
-        </div>
-        {% if activeDrawTool == drawTool.id %}
-            <div class="draw-tool-button-slideout" aria-expanded="true">
-                <i class="fa fa-times pull-right reset-draw-button"></i>
-                <div id={{ drawTool.region }}></div>
-            </div>
-        {% endif %}
-    {% endfor %}
+    <div id="select-boundary-region"></div>
+    <div id="draw-area-region"></div>
+    <div id="watershed-delineation-region"></div>
+    <div id="upload-file-region"></div>
 </div>

@@ -17,16 +17,20 @@ var $ = require('jquery'),
     models = require('./models'),
     coreUtils = require('../core/utils'),
     drawUtils = require('../draw/utils'),
-    loadingTmpl = require('./templates/loading.html'),
-    selectTypeTmpl = require('./templates/selectType.html'),
     splashTmpl = require('./templates/splash.html'),
     windowTmpl = require('./templates/window.html'),
     aoiUploadTmpl = require('./templates/aoiUpload.html'),
-    drawTmpl = require('./templates/draw.html'),
-    delineationOptionsTmpl = require('./templates/delineationOptions.html'),
+    drawToolTmpl = require('./templates/drawTool.html'),
     settings = require('../core/settings'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views');
+
+var selectBoundary = 'selectBoundary',
+    drawArea = 'drawArea',
+    delineateWatershed = 'delineateWatershed',
+    aoiUpload = 'aoiUpload',
+    freeDraw = 'free-draw',
+    squareKm = 'square-km';
 
 var codeToLayer = {}; // code to layer mapping
 
@@ -49,7 +53,7 @@ function displayAlert(message, alertType) {
 
 function actOnUI(datum, bool) {
     var code = datum.code,
-        $el = $('[data-layer-code="' + code + '"]');
+        $el = $('#' + code);
 
     if (bool) {
         $el.prop('disabled', true);
@@ -138,135 +142,58 @@ function validatePointWithinDataSourceBounds(latlng, dataSource) {
 }
 
 var DrawWindow = Marionette.LayoutView.extend({
+    // model: ToolbarModel,
+
     template: windowTmpl,
 
     id: 'draw-window',
 
     regions: {
-        selectTypeRegion: '#select-area-region',
-        drawRegion: '#draw-region',
-        watershedDelineationRegion: '#place-marker-region',
+        selectBoundaryRegion: '#select-boundary-region',
+        drawAreaRegion: '#draw-area-region',
+        watershedDelineationRegion: '#watershed-delineation-region',
         uploadFileRegion: '#upload-file-region'
-    },
-
-    ui: {
-        'selectBoundary': '#select-boundary-button',
-        'drawArea': '#draw-area-button',
-        'delineateWatershed': '#delineate-watershed-button',
-        'uploadFile': '#upload-file-button',
-        'resetDraw': '.reset-draw-button'
-    },
-
-    events: {
-        'click @ui.selectBoundary': 'toggleSelectBoundary',
-        'click @ui.drawArea': 'toggleDrawArea',
-        'click @ui.delineateWatershed': 'toggleDelineateWatershed',
-        'click @ui.uploadFile': 'toggleUploadFile',
-        'click @ui.resetDraw': 'resetDrawingState'
-    },
-
-    modelEvents: {
-        'change:selectedDrawTool': 'updateTools'
-    },
-
-    constants: {
-        selectedDrawTool: 'selectedDrawTool',
-        selectBoundary: 'selectBoundary',
-        drawArea: 'drawArea',
-        delineateWatershed: 'delineateWatershed',
-        uploadFile: 'uploadFile'
-    },
-
-    templateHelpers: function() {
-        return {
-            activeDrawTool: this.model.get(this.constants.selectedDrawTool),
-            drawTools: [
-                {
-                    id: this.constants.selectBoundary,
-                    button: 'select-boundary-button',
-                    name: 'Select by boundary',
-                    region: 'select-area-region'
-                },
-                {
-                    id: this.constants.drawArea,
-                    button: 'draw-area-button',
-                    name: 'Draw area',
-                    region: 'draw-region'
-                },
-                {
-                    id: this.constants.delineateWatershed,
-                    button: 'delineate-watershed-button',
-                    name: 'Delineate watershed',
-                    region: 'place-marker-region'
-                },
-                {
-                    id: this.constants.uploadFile,
-                    button: 'upload-file-button',
-                    name: 'Upload file',
-                    region: 'upload-file-region'
-                }
-            ]
-        };
     },
 
     initialize: function() {
         var map = App.getLeafletMap(),
             ofg = L.featureGroup();
         this.model.set('outlineFeatureGroup', ofg);
-        this.model.set(this.constants.selectedDrawTool, null);
         map.addLayer(ofg);
         this.rwdTaskModel = new models.RwdTaskModel();
     },
 
-    updateTools: function() {
-        var drawTools = settings.get('draw_tools'),
-            activeDrawTool = this.model.get(this.constants.selectedDrawTool);
+    onShow: function() {
+        var self = this,
+            resetDrawingState = function() {
+                self.resetDrawingState();
+            };
 
-        // Update the view to mount the proper region divs
-        this.render();
+        this.selectBoundaryRegion.show(new SelectBoundaryView({
+            model: this.model,
+            resetDrawingState: resetDrawingState
+        }));
 
-        switch (activeDrawTool) {
-            case this.constants.selectBoundary:
-                if (_.contains(drawTools, 'SelectArea')) {
-                    this.selectTypeRegion.show(new SelectAreaView({
-                        model: this.model
-                    }));
-                }
-                break;
-            case this.constants.drawArea:
-                if (_.contains(drawTools, 'Draw')) {
-                    this.drawRegion.show(new DrawView({ model: this.model }));
-                }
-                break;
-            case this.constants.delineateWatershed:
-                if (_.contains(drawTools, 'PlaceMarker')) {
-                    this.watershedDelineationRegion.show(
-                        new WatershedDelineationView({
-                            model: this.model,
-                            rwdTaskModel: this.rwdTaskModel
-                        })
-                    );
-                }
-                break;
-            case this.constants.uploadFile:
-                this.uploadFileRegion.show(new AoIUploadView({}));
-                break;
-            case null:
-                break;
-            default:
-                window.console.warn('Invalid draw tool selected');
-        }
+        this.drawAreaRegion.show(new DrawAreaView({
+            model: this.model,
+            resetDrawingState: resetDrawingState
+        }));
+
+        this.watershedDelineationRegion.show(
+            new WatershedDelineationView({
+                model: this.model,
+                resetDrawingState: resetDrawingState,
+                rwdTaskModel: this.rwdTaskModel
+            })
+        );
+
+        this.uploadFileRegion.show(new AoIUploadView({ model: this.model }));
     },
 
     resetDrawingState: function() {
         this.model.clearRwdClickedPoint(App.getLeafletMap());
         this.rwdTaskModel.reset();
-        this.model.set({
-            polling: false,
-            pollError: false
-        });
-        this.model.enableTools();
-        this.model.set(this.constants.selectedDrawTool, null);
+        this.model.reset();
 
         utils.cancelDrawing(App.getLeafletMap());
         clearAoiLayer();
@@ -276,29 +203,6 @@ var DrawWindow = Marionette.LayoutView.extend({
             'was_model_visible': false,
             'was_compare_visible': false,
         });
-    },
-
-    toggleSelectBoundary: function() {
-        this.toggleButtonSlideout(this.constants.selectBoundary);
-    },
-
-    toggleDrawArea: function() {
-        this.toggleButtonSlideout(this.constants.drawArea);
-    },
-
-    toggleDelineateWatershed: function() {
-        this.toggleButtonSlideout(this.constants.delineateWatershed);
-    },
-
-    toggleUploadFile: function() {
-        this.toggleButtonSlideout(this.constants.uploadFile);
-    },
-
-    toggleButtonSlideout: function(sender) {
-        var selectedDrawTool = this.model.get(this.constants.selectedDrawTool),
-            newSelectedTool = selectedDrawTool === sender ? null : sender;
-
-        this.model.set(this.constants.selectedDrawTool, newSelectedTool);
     }
 });
 
@@ -340,8 +244,10 @@ var AoIUploadView = Marionette.ItemView.extend({
     template: aoiUploadTmpl,
 
     ui: {
-        'selectFileInput': '#draw-tool-file-upload-input',
-        'selectFileButton': '#draw-tool-file-upload-button',
+        drawToolButton: '.draw-tool-button',
+        selectFileInput: '#draw-tool-file-upload-input',
+        selectFileButton: '#draw-tool-file-upload-button',
+        resetDrawButton: '.reset-draw-button'
     },
 
     events: {
@@ -349,15 +255,35 @@ var AoIUploadView = Marionette.ItemView.extend({
         'dragover': 'stopEvents',
         'click @ui.selectFileButton': 'onSelectFileButtonClick',
         'change @ui.selectFileInput': 'selectFile',
+        'click @ui.drawToolButton': 'selectDrawToolItem',
+        'click @ui.resetDrawButton': 'reset'
     },
 
-    onAttach: function() {
+    modelEvents: {
+        change: 'render'
+    },
+
+    initialize: function() {
+        this.id = aoiUpload;
+    },
+
+    reset: function() {
+        this.model.reset();
+    },
+
+    selectDrawToolItem: function() {
+        this.model.selectDrawToolItem(this.id, this.id);
+    },
+
+    onRender: function() {
         // Using jQuery to bind this event prevents the file
         // data from being attached to the event object,
         // so we behind it manually once the view has been rendered
         // and attached to the DOM.
         var dropbox = document.getElementById("dropbox");
-        dropbox.addEventListener("drop", _.bind(this.drop, this), false);
+        if (dropbox) {
+            dropbox.addEventListener("drop", _.bind(this.drop, this), false);
+        }
     },
 
     onSelectFileButtonClick: function() {
@@ -500,64 +426,136 @@ var AoIUploadView = Marionette.ItemView.extend({
     }
 });
 
-var SelectAreaView = Marionette.ItemView.extend({
-    $label: $('#boundary-label'),
+var DrawToolBaseView = Marionette.ItemView.extend({
+    template: drawToolTmpl,
 
     ui: {
-        items: '[data-tile-url]',
-        button: '#predefined-shape',
-        helptextIcon: 'a.help'
+        drawToolButton: '.draw-tool-button',
+        drawToolItemButton: '.draw-pane-list-item-button',
+        helptextIcon: 'a.help',
+        resetButton: '.reset-draw-button'
     },
 
     events: {
-        'click @ui.items': 'onItemClicked'
+        'click @ui.drawToolItemButton': 'onClickItem',
+        'click @ui.drawToolButton': 'openDrawTool',
+        'click @ui.resetButton': 'resetDrawingState'
     },
 
     modelEvents: {
-        'change': 'render',
-        'change:toolsEnabled': 'removeBoundaryLayer'
+        'change': 'render'
+    },
+
+    initialize: function(options) {
+        this.resetDrawingState = options.resetDrawingState;
+        var self = this;
+
+        $(document).on('mouseup', function(e) {
+            var isTargetOutside = $(e.target).parents('.dropdown-menu').length === 0;
+            if (isTargetOutside && self.model.get('openDrawTool') === self.id) {
+                self.model.closeDrawTool();
+            }
+        });
     },
 
     templateHelpers: function() {
+        var activeDrawTool = this.model.get('activeDrawTool'),
+            activeDrawToolItem = this.model.get('activeDrawToolItem'),
+            currentZoomLevel = App.getLeafletMap().getZoom(),
+            openDrawTool = this.model.get('openDrawTool'),
+            activeTitle = null,
+            activeDirections = null,
+            toolData = this.getToolData();
+
+        if (activeDrawTool === toolData.id) {
+            var activeItem = _.find(toolData.items, function(item) {
+                return item.id === activeDrawToolItem;
+            });
+            activeTitle = activeItem.title;
+            activeDirections = activeItem.directions;
+        }
+
         return {
-            toolsDisabled: !this.model.get('toolsEnabled'),
-            currentZoomLevel: App.getLeafletMap().getZoom()
+            toolData: toolData,
+            activeTitle: activeTitle,
+            activeDirections: activeDirections,
+            currentZoomLevel: currentZoomLevel,
+            openDrawTool: openDrawTool
         };
     },
 
-    initialize: function() {
+    onShow: function() {
+        this.activatePopovers();
+    },
+
+    onRender: function() {
+        this.activatePopovers();
+    },
+
+    openDrawTool: function() {
+        this.model.openDrawTool(this.id);
+    },
+
+    activatePopovers: function() {
+        this.ui.helptextIcon.popover({
+            placement: 'top',
+            trigger: 'focus'
+        });
+    }
+});
+
+var SelectBoundaryView = DrawToolBaseView.extend({
+    $label: $('#boundary-label'),
+
+    initialize: function(options) {
+        DrawToolBaseView.prototype.initialize.call(this, options);
+
         var map = App.getLeafletMap(),
             ofg = this.model.get('outlineFeatureGroup'),
             types = this.model.get('predefinedShapeTypes');
 
         ofg.on('layerremove', _.bind(this.clearLabel, this));
         coreUtils.zoomToggle(map, types, actOnUI, actOnLayer);
+        this.id = selectBoundary;
     },
 
-    onRender: function() {
-        this.ui.helptextIcon.popover({
-            trigger: 'focus',
-            placement: 'top'
-        });
+    getToolData: function() {
+        var toolData = {
+                id: this.id,
+                title: 'Select boundary',
+                info: 'Lorem ipsum dolor it amet, consectetur'
+            },
+            shapeTypes = this.model.get('predefinedShapeTypes'),
+            directions = 'Click on a boundary.',
+            items = _.map(shapeTypes, function(shapeType) {
+                return {
+                    id: shapeType.code,
+                    title: shapeType.display,
+                    info: shapeType.helptext,
+                    minZoom: shapeType.minZoom,
+                    directions: directions
+                };
+            });
+
+        toolData.items = items;
+        return toolData;
     },
 
-    onItemClicked: function(e) {
-        var $el = $(e.currentTarget),
-            tileUrl = $el.data('tile-url'),
-            layerCode = $el.data('layer-code'),
-            shortDisplay = $el.data('short-display'),
-            minZoom = $el.data('min-zoom');
+    onClickItem: function(e) {
+        var itemId = e.currentTarget.id,
+            shapeTypes = this.model.get('predefinedShapeTypes'),
+            shapeType = _.find(shapeTypes, function(shapeType) {
+                return shapeType.code === itemId;
+            });
 
-        if (!$el.prop('disabled')) {
-            clearAoiLayer();
-            this.changeOutlineLayer(tileUrl, layerCode, shortDisplay, minZoom);
-            e.preventDefault();
-        }
-    },
+        this.resetDrawingState();
+        clearAoiLayer();
+        this.changeOutlineLayer(
+            shapeType.url, shapeType.code, shapeType.shortDisplay,
+            shapeType.minZoom);
+        e.preventDefault();
 
-    getTemplate: function() {
-        var types = this.model.get('predefinedShapeTypes');
-        return !types ? loadingTmpl : selectTypeTmpl;
+        this.model.selectDrawToolItem(this.id, itemId);
     },
 
     changeOutlineLayer: function(tileUrl, layerCode, shortDisplay, minZoom) {
@@ -621,36 +619,57 @@ var SelectAreaView = Marionette.ItemView.extend({
     }
 });
 
-var DrawView = Marionette.ItemView.extend({
-    template: drawTmpl,
+var DrawAreaView = DrawToolBaseView.extend({
+    initialize: function(options) {
+        DrawToolBaseView.prototype.initialize.call(this, options);
 
-    ui: {
-        drawArea: '#custom-shape',
-        drawStamp: '#one-km-stamp',
-        helptextIcon: 'a.help'
+        this.id = drawArea;
     },
 
-    events: {
-        'click @ui.drawArea': 'enableDrawArea',
-        'click @ui.drawStamp': 'enableStampTool'
-    },
-
-    modelEvents: {
-        'change:toolsEnabled': 'render'
-    },
-
-    templateHelpers: function() {
+    getToolData: function() {
         return {
-            toolsDisabled: !this.model.get('toolsEnabled')
+            id: this.id,
+            title: 'Draw area',
+            info: 'Lorem ipsum dolor it amet, consectetur',
+            items: [
+                {
+                    id: freeDraw,
+                    title: 'Free draw',
+                    info: 'Draw a custom area on which you want to perform water quality analysis.',
+                    minZoom: 0,
+                    directions: 'Draw a boundary.'
+                },
+                {
+                    id: squareKm,
+                    title: 'Square Km',
+                    info: 'Draw a predefined one kilometer square with a center at the point you choose.',
+                    minZoom: 0,
+                    directions: 'Click a point.'
+                }
+            ]
         };
     },
 
+    onClickItem: function(e) {
+        this.resetDrawingState();
+
+        var itemId = e.currentTarget.id;
+        switch (itemId) {
+            case freeDraw:
+                this.enableDrawArea();
+                break;
+            case squareKm:
+                this.enableStampTool();
+                break;
+        }
+
+        this.model.selectDrawToolItem(this.id, itemId);
+    },
+
     enableDrawArea: function() {
-        var self = this,
-            map = App.getLeafletMap(),
+        var map = App.getLeafletMap(),
             revertLayer = clearAoiLayer();
 
-        this.model.disableTools();
         utils.drawPolygon(map)
             .then(validateShape)
             .then(function(shape) {
@@ -659,32 +678,13 @@ var DrawView = Marionette.ItemView.extend({
             }).fail(function(message) {
                 revertLayer();
                 displayAlert(message, modalModels.AlertTypes.error);
-            }).always(function() {
-                self.model.enableTools();
             });
     },
 
-    onShow: function() {
-        this.activatePopovers();
-    },
-
-    onRender: function() {
-        this.activatePopovers();
-    },
-
-    activatePopovers: function() {
-        this.ui.helptextIcon.popover({
-            placement: 'top',
-            trigger: 'focus'
-        });
-    },
-
     enableStampTool: function() {
-        var self = this,
-            map = App.getLeafletMap(),
+        var map = App.getLeafletMap(),
             revertLayer = clearAoiLayer();
 
-        this.model.disableTools();
         utils.placeMarker(map).then(function(latlng) {
             var point = L.marker(latlng).toGeoJSON(),
                 halfKmbufferPoints = _.map([-180, -90, 0, 90], function(bearing) {
@@ -714,69 +714,70 @@ var DrawView = Marionette.ItemView.extend({
         }).fail(function(message) {
             revertLayer();
             displayAlert(message, modalModels.AlertTypes.error);
-        }).always(function() {
-            self.model.enableTools();
         });
     }
 });
 
-var WatershedDelineationView = Marionette.ItemView.extend({
-    template: delineationOptionsTmpl,
-
-    templateHelpers: function() {
-        return {
-            toolsDisabled: !this.model.get('toolsEnabled'),
-            DRB: utils.DRB,
-            NHD: utils.NHD
-        };
-    },
-
-    ui: {
-        items: '[data-shape-type]',
-        button: '#delineate-shape',
-        helptextIcon: 'a.help'
-    },
-
-    events: {
-        'click @ui.items': 'onItemClicked'
-    },
-
-    modelEvents: {
-        'change:toolsEnabled': 'render',
-        'change:polling': 'render',
-        'change:pollError': 'render'
-    },
-
+var WatershedDelineationView = DrawToolBaseView.extend({
     initialize: function(options) {
+        DrawToolBaseView.prototype.initialize.call(this, options);
+        this.id = delineateWatershed;
         this.rwdTaskModel = options.rwdTaskModel;
     },
 
-    onShow: function() {
-        this.activatePopovers();
+    getToolData: function() {
+        return {
+            id: this.id,
+            title: 'Delineate watershed',
+            info: 'Lorem ipsum dolor it amet, consectetur',
+            items: [
+                {
+                    id: utils.DRB,
+                    dataSource: utils.DRB,
+                    title: 'Delaware High Resolution',
+                    info: 'Snaps to the nearest downhill point on the Delaware River Basin' +
+                        ' high resolution stream network and calculates the watershed upstream of this point using a' +
+                        ' 1/3 arc second (10m) resolution digital elevation model. The stream network was' +
+                        ' delineated using <a href=\'http://hydrology.usu.edu/taudem/taudem5/index.html\' target=\'_blank\'>TauDEM</a>.',
+                    shapeType: 'stream',
+                    snappingOn: true,
+                    minZoom: 0,
+                    directions: 'Click a point to delineate a watershed.'
+                },
+                {
+                    id: utils.NHD,
+                    dataSource: utils.NHD,
+                    title: 'Continental US Medium Resolution',
+                    info: ' Snaps to the nearest downhill point on the medium' +
+                        ' resolution flow lines of the National Hydrography Dataset and calculates the' +
+                        ' watershed upstream of this point using the 30m resolution NHDPlus flow direction grid.' +
+                        ' Learn more about NHDPlus <a href=\'http://www.horizon-systems.com/nhdplus/\' target=\'_blank\'>here</a>.',
+                    shapeType: 'stream',
+                    snappingOn: true,
+                    minZoom: 0,
+                    directions: 'Click a point to delineate a watershed.'
+                }
+            ]
+        };
     },
 
-    onRender: function() {
-        this.activatePopovers();
-    },
-
-    activatePopovers: function() {
-        this.ui.helptextIcon.popover({
-            placement: 'top',
-            trigger: 'focus'
-        });
-    },
-
-    onItemClicked: function(e) {
+    onClickItem: function(e) {
         var self = this,
+            itemId = e.currentTarget.id,
             map = App.getLeafletMap(),
-            $item = $(e.currentTarget),
-            itemName = $item.text(),
-            snappingOn = !!$item.data('snapping-on'),
-            dataSource = $item.data('data-source');
+            toolData = this.getToolData(),
+            item = _.find(toolData.items, function(item) {
+                return item.id === itemId;
+            }),
+            itemName = item.title,
+            snappingOn = item.snappingOn,
+            dataSource = item.dataSource;
+
+        this.resetDrawingState();
+        this.model.selectDrawToolItem(this.id, itemId);
 
         clearAoiLayer();
         this.model.set('pollError', false);
-        this.model.disableTools();
 
         utils.placeMarker(map)
             .then(function(latlng) {
@@ -804,11 +805,10 @@ var WatershedDelineationView = Marionette.ItemView.extend({
             })
             .fail(function(message) {
                 displayAlert(message, modalModels.AlertTypes.warn);
+                self.resetDrawingState();
             })
             .always(function() {
                 self.model.clearRwdClickedPoint(map);
-
-                self.model.enableTools();
             });
     },
 
@@ -946,8 +946,6 @@ function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
             }).fail(function() {
                 console.log('Shape endpoint failed');
                 deferred.reject();
-            }).always(function() {
-                model.enableTools();
             });
     }
 
@@ -966,7 +964,6 @@ function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
                 .setLatLng(e.latlng)
                 .setContent('The region was not available. Please try clicking again.')
                 .openOn(App.getLeafletMap());
-            model.enableTools();
             deferred.reject();
         }
     }
@@ -1025,5 +1022,11 @@ module.exports = {
     DrawWindow: DrawWindow,
     getShapeAndAnalyze: getShapeAndAnalyze,
     addLayer: addLayer,
-    clearAoiLayer: clearAoiLayer
+    clearAoiLayer: clearAoiLayer,
+    selectBoundary: selectBoundary,
+    drawArea: drawArea,
+    delineateWatershed: delineateWatershed,
+    aoiUpload: aoiUpload,
+    freeDraw: freeDraw,
+    squareKm: squareKm
 };

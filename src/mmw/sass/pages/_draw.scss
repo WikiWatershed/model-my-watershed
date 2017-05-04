@@ -31,18 +31,19 @@
 
   & .draw-tool-button {
     background-color: #d4d7d8;
+    margin-top: 10px;
   }
 
-  & .draw-tool-button-slideout {
-    margin-top: 0px;
-    margin-bottom: 5px;
-    background-color: #eceff1;
-    line-height: 0.5rem;
+  & .reset-draw-button {
+    cursor: pointer;
+  }
 
-    & .reset-draw-button {
-      margin-top: 1rem;
-      margin-right: 0.9rem;
-      cursor: pointer;
+  & .draw-tool-selection {
+    padding: 0.5rem 1.0rem;
+    background-color: $brand-primary;
+
+    & i {
+      margin-top: 0.25rem;
     }
   }
 
@@ -79,7 +80,6 @@
   & .draw-pane-list {
     text-align: left;
     font-size: 1rem;
-    display: inline;
 
     & .draw-pane-list-item {
       list-style-type: none;
