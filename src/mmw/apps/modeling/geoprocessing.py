@@ -192,7 +192,9 @@ def data_to_census(data):
             elif soil_str == 'cd':
                 soil_str = 'd'
             key_str = '%s:%s' % (soil_str, nlcd_str)
-            dist[key_str] = {'cell_count': count}
+            dist[key_str] = {'cell_count': (
+                count + (dist[key_str]['cell_count'] if key_str in dist else 0)
+            )}
 
     def after_rule(count, census):
         census['cell_count'] = count
