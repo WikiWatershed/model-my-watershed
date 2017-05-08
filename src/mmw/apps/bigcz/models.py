@@ -11,10 +11,12 @@ class ResourceLink(object):
 
 
 class Resource(object):
-    def __init__(self, id, title, description, links, created_at, updated_at):
+    def __init__(self, id, title, description, bbox,
+                 links, created_at, updated_at):
         self.id = id
         self.title = title
         self.description = description
+        self.bbox = bbox
         self.links = links
         self.created_at = created_at
         self.updated_at = updated_at

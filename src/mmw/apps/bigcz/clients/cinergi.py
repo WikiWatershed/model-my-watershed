@@ -36,6 +36,7 @@ def parse_record(item):
         id=item['id'],
         title=item['title'],
         description=item['summary'],
+        bbox=item['bbox'],
         links=parse_links(item),
         created_at=None,
         updated_at=parse_date(item['updated']))

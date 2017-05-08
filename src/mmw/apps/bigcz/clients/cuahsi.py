@@ -17,10 +17,13 @@ client = Client(SOAP_URL)
 
 
 def parse_record(site, service):
+    lat = site['Latitude']
+    lng = site['Longitude']
     return Resource(
         id=site['SiteCode'],
         title=site['SiteName'],
         description=service['aabstract'],
+        bbox=[lng, lat, lng, lat],
         links=[
             ResourceLink('details', service['ServiceDescriptionURL'])
         ],

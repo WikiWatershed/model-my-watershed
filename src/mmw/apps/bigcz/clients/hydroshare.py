@@ -22,7 +22,8 @@ def parse_record(item):
     return Resource(
         id=item['resource_id'],
         title=item['resource_title'],
-        description='',
+        description=None,
+        bbox=None,
         links=[
             ResourceLink('details', item['resource_url'])
         ],
