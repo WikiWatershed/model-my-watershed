@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+from ast import literal_eval as make_tuple
+
 from django.conf import settings
 from django_statsd.clients import statsd
 from celery.exceptions import MaxRetriesExceededError
@@ -10,7 +12,6 @@ from requests.exceptions import ConnectionError
 
 import requests
 import json
-import re
 
 
 @statsd.timer(__name__ + '.sjs_submit')
@@ -127,9 +128,9 @@ def histogram_start(polygons, retry=None):
     """
     host = settings.GEOP['host']
     port = settings.GEOP['port']
-    args = settings.GEOP['args']['SummaryJob']
-    data = settings.GEOP['json']['nlcdSoilCensus'].copy()
-    data['input']['geometry'] = polygons
+    args = settings.GEOP['args']['MapshedJob']
+    data = settings.GEOP['json']['nlcd_soil_census'].copy()
+    data['input']['polygon'] = polygons
 
     return sjs_submit(host, port, args, data, retry)
 
@@ -139,19 +140,25 @@ def histogram_finish(job_id, retry):
     """
     This is the bottom-half of the function.
     """
-    def dict_to_array(d):
-        result = []
-        for k, v in d.iteritems():
-            [k1, k2] = map(int, re.sub('[^0-9,]', '', k).split(','))
-            result.append(((k1, k2), v))
-        return result
-
     host = settings.GEOP['host']
     port = settings.GEOP['port']
 
-    data = sjs_retrieve(host, port, job_id, retry)
+    sjs_result = sjs_retrieve(host, port, job_id, retry)
 
-    return [dict_to_array(d) for d in data]
+    # Convert string "List(3,4)" to tuples (3,4) and
+    # Map NODATA soil cells cells to 3
+    # This was previously done within the SummaryJob: https://github.com/WikiWatershed/mmw-geoprocessing/blob/0d95dee35e729d9fd2f58fb9e73a69dcbe61df61/summary/src/main/scala/SummaryJob.scala#L106  # NOQA
+    # but since MapshedJob doesn't support remapping, we do it here.
+    nlcd_soil_count = {}
+    for key, count in sjs_result.iteritems():
+        (n, s) = make_tuple(key[4:])  # Convert "List(3,4)" to (3, 4)
+        s2 = s if s != settings.NODATA else 3  # Map NODATA soil cells to 3
+        nlcd_soil_count[(n, s2)] = count + nlcd_soil_count.get((n, s2), 0)
+
+    # Convert to array for backwards compatibility
+    result = [(ns, count) for ns, count in nlcd_soil_count.items()]
+
+    return [result]
 
 
 def histogram_to_x(data, nucleus, update_rule, after_rule):
