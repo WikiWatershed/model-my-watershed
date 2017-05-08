@@ -15,11 +15,15 @@ import json
 
 
 @statsd.timer(__name__ + '.sjs_submit')
-def sjs_submit(host, port, args, data, retry=None):
+def sjs_submit(data, retry=None):
     """
     Submits a job to Spark Job Server. Returns its Job ID, which
     can be used with sjs_retrieve to get the final result.
     """
+    host = settings.GEOP['host']
+    port = settings.GEOP['port']
+    args = settings.GEOP['args']
+
     base_url = 'http://{}:{}'.format(host, port)
     jobs_url = '{}/jobs?{}'.format(base_url, args)
 
@@ -68,12 +72,15 @@ def sjs_submit(host, port, args, data, retry=None):
 
 
 @statsd.timer(__name__ + '.sjs_retrieve')
-def sjs_retrieve(host, port, job_id, retry=None):
+def sjs_retrieve(job_id, retry=None):
     """
     Given a job ID, will try to retrieve its value. If the job is
     still running, will call the optional retry function before
     proceeding.
     """
+    host = settings.GEOP['host']
+    port = settings.GEOP['port']
+
     url = 'http://{}:{}/jobs/{}'.format(host, port, job_id)
     try:
         response = requests.get(url)
@@ -126,13 +133,10 @@ def histogram_start(polygons, retry=None):
 
     This is the top-half of the function.
     """
-    host = settings.GEOP['host']
-    port = settings.GEOP['port']
-    args = settings.GEOP['args']['MapshedJob']
     data = settings.GEOP['json']['nlcd_soil_census'].copy()
     data['input']['polygon'] = polygons
 
-    return sjs_submit(host, port, args, data, retry)
+    return sjs_submit(data, retry)
 
 
 @statsd.timer(__name__ + '.histogram_finish')
@@ -140,10 +144,7 @@ def histogram_finish(job_id, retry):
     """
     This is the bottom-half of the function.
     """
-    host = settings.GEOP['host']
-    port = settings.GEOP['port']
-
-    sjs_result = sjs_retrieve(host, port, job_id, retry)
+    sjs_result = sjs_retrieve(job_id, retry)
 
     # Convert string "List(3,4)" to tuples (3,4) and
     # Map NODATA soil cells cells to 3

@@ -381,9 +381,7 @@ ITSI = {
 GEOP = {
     'host': environ.get('MMW_GEOPROCESSING_HOST', 'localhost'),
     'port': environ.get('MMW_GEOPROCESSING_PORT', '8090'),
-    'args': {
-        'MapshedJob': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.MapshedJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),  # NOQA
-    },
+    'args': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.MapshedJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),  # NOQA
     'json': {
         'nlcd_soil_census': {
             'input': {
