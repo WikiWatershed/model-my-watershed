@@ -26,6 +26,7 @@ var _ = require('lodash'),
     scenarioMenuTmpl = require('./templates/scenarioMenu.html'),
     scenarioMenuItemTmpl = require('./templates/scenarioMenuItem.html'),
     projectMenuTmpl = require('./templates/projectMenu.html'),
+    scenarioToolbarTabContentsTmpl = require('./templates/scenarioToolbarTabContents.html'),
     tr55ScenarioToolbarTabContentTmpl = require('./templates/tr55ScenarioToolbarTabContent.html'),
     gwlfeScenarioToolbarTabContentTmpl = require('./templates/gwlfeScenarioToolbarTabContent.html'),
     tr55RunoffViews = require('./tr55/runoff/views.js'),
@@ -794,9 +795,23 @@ var GwlfeToolbarTabContentView = ToolbarTabContentView.extend({
 
 // The collection of modification and input toolbars for each
 // scenario.
-var ToolbarTabContentsView = Marionette.CollectionView.extend({
+var ToolbarTabContentsView = Marionette.CompositeView.extend({
+    template: scenarioToolbarTabContentsTmpl,
     collection: models.ScenariosCollection,
     className: 'tab-content',
+
+    ui: {
+        addChangesButton: '#add-changes',
+    },
+
+    events: {
+        'click @ui.addChangesButton': 'onAddChangesClick',
+    },
+
+    collectionEvents: {
+        'change:active': 'render',
+    },
+
     getChildView: function() {
         var isGwlfe = App.currentProject.get('model_package') === 'gwlfe';
         if (isGwlfe) {
@@ -818,6 +833,17 @@ var ToolbarTabContentsView = Marionette.CollectionView.extend({
 
     initialize: function(options) {
         this.mergeOptions(options, ['model_package']);
+    },
+
+    onAddChangesClick: function() {
+        this.collection.createNewScenario();
+    },
+
+    templateHelpers: function() {
+        return {
+            hasNoScenarios: this.collection.length === 1 &&
+                this.collection.first().get('is_current_conditions'),
+        };
     }
 });
 
