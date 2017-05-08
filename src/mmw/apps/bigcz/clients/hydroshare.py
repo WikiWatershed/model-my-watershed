@@ -7,7 +7,7 @@ import requests
 import dateutil.parser
 
 from rest_framework.exceptions import ValidationError
-from apps.bigcz.models import Resource, ResourceList, BBox
+from apps.bigcz.models import Resource, ResourceLink, ResourceList, BBox
 
 
 CATALOG_NAME = 'hydroshare'
@@ -23,7 +23,9 @@ def parse_record(item):
         id=item['resource_id'],
         title=item['resource_title'],
         description='',
-        url=item['resource_url'],
+        links=[
+            ResourceLink('details', item['resource_url'])
+        ],
         created_at=parse_date(item['date_created']),
         updated_at=parse_date(item['date_last_updated']))
 

@@ -7,24 +7,20 @@ import requests
 import dateutil.parser
 
 from rest_framework.exceptions import ValidationError
-from apps.bigcz.models import Resource, ResourceList, BBox
+from apps.bigcz.models import Resource, ResourceLink, ResourceList, BBox
 
 
 CATALOG_NAME = 'cinergi'
 GEOPORTAL_URL = 'http://cinergi.sdsc.edu/geoportal/rest/find/document'
 
 
-def parse_url(item):
-    """
-    Return "details" URL or first link if not found.
-    """
+def parse_links(item):
+    result = []
     links = item['links']
     if links:
         for link in links:
-            if link['type'] == 'details':
-                return link['href']
-        return links[0]['href']
-    return None
+            result.append(ResourceLink(link['type'], link['href']))
+    return result
 
 
 def parse_date(value):
@@ -40,7 +36,7 @@ def parse_record(item):
         id=item['id'],
         title=item['title'],
         description=item['summary'],
-        url=parse_url(item),
+        links=parse_links(item),
         created_at=None,
         updated_at=parse_date(item['updated']))
 

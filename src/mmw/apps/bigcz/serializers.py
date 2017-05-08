@@ -7,11 +7,16 @@ from rest_framework.serializers import \
     Serializer, CharField, IntegerField, DateTimeField
 
 
+class ResourceLinkSerializer(Serializer):
+    href = CharField()
+    type = CharField()
+
+
 class ResourceSerializer(Serializer):
     id = CharField()
     title = CharField()
     description = CharField()
-    url = CharField()
+    links = ResourceLinkSerializer(many=True)
     created_at = DateTimeField()
     updated_at = DateTimeField()
 

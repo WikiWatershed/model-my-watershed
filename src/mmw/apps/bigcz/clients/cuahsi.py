@@ -6,7 +6,7 @@ from __future__ import division
 from suds.client import Client
 from rest_framework.exceptions import ValidationError
 
-from apps.bigcz.models import Resource, ResourceList, BBox
+from apps.bigcz.models import Resource, ResourceLink, ResourceList, BBox
 
 
 CATALOG_NAME = 'cuahsi'
@@ -21,7 +21,9 @@ def parse_record(site, service):
         id=site['SiteCode'],
         title=site['SiteName'],
         description=service['aabstract'],
-        url=service['ServiceDescriptionURL'],
+        links=[
+            ResourceLink('details', service['ServiceDescriptionURL'])
+        ],
         created_at=None,
         updated_at=None)
 
