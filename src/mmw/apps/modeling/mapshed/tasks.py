@@ -51,20 +51,12 @@ NO_LAND_COVER = 'NO_LAND_COVER'
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=42)
 def mapshed_start(self, opname, input_data):
-    host = settings.GEOP['host']
-    port = settings.GEOP['port']
-    args = settings.GEOP['args']['MapshedJob']
-
     data = settings.GEOP['json'][opname].copy()
     data['input'].update(input_data)
 
     try:
-        job_id = sjs_submit(host, port, args, data, retry=self.retry)
-
         return {
-            'host': host,
-            'port': port,
-            'job_id': job_id
+            'job_id': sjs_submit(data, retry=self.retry)
         }
     except Retry as r:
         raise r

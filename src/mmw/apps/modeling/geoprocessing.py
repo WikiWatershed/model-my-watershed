@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+from ast import literal_eval as make_tuple
+
 from django.conf import settings
 from django_statsd.clients import statsd
 from celery.exceptions import MaxRetriesExceededError
@@ -10,15 +12,18 @@ from requests.exceptions import ConnectionError
 
 import requests
 import json
-import re
 
 
 @statsd.timer(__name__ + '.sjs_submit')
-def sjs_submit(host, port, args, data, retry=None):
+def sjs_submit(data, retry=None):
     """
     Submits a job to Spark Job Server. Returns its Job ID, which
     can be used with sjs_retrieve to get the final result.
     """
+    host = settings.GEOP['host']
+    port = settings.GEOP['port']
+    args = settings.GEOP['args']
+
     base_url = 'http://{}:{}'.format(host, port)
     jobs_url = '{}/jobs?{}'.format(base_url, args)
 
@@ -67,12 +72,15 @@ def sjs_submit(host, port, args, data, retry=None):
 
 
 @statsd.timer(__name__ + '.sjs_retrieve')
-def sjs_retrieve(host, port, job_id, retry=None):
+def sjs_retrieve(job_id, retry=None):
     """
     Given a job ID, will try to retrieve its value. If the job is
     still running, will call the optional retry function before
     proceeding.
     """
+    host = settings.GEOP['host']
+    port = settings.GEOP['port']
+
     url = 'http://{}:{}/jobs/{}'.format(host, port, job_id)
     try:
         response = requests.get(url)
@@ -125,13 +133,10 @@ def histogram_start(polygons, retry=None):
 
     This is the top-half of the function.
     """
-    host = settings.GEOP['host']
-    port = settings.GEOP['port']
-    args = settings.GEOP['args']['SummaryJob']
-    data = settings.GEOP['json']['nlcdSoilCensus'].copy()
-    data['input']['geometry'] = polygons
+    data = settings.GEOP['json']['nlcd_soil_census'].copy()
+    data['input']['polygon'] = polygons
 
-    return sjs_submit(host, port, args, data, retry)
+    return sjs_submit(data, retry)
 
 
 @statsd.timer(__name__ + '.histogram_finish')
@@ -139,19 +144,22 @@ def histogram_finish(job_id, retry):
     """
     This is the bottom-half of the function.
     """
-    def dict_to_array(d):
-        result = []
-        for k, v in d.iteritems():
-            [k1, k2] = map(int, re.sub('[^0-9,]', '', k).split(','))
-            result.append(((k1, k2), v))
-        return result
+    sjs_result = sjs_retrieve(job_id, retry)
 
-    host = settings.GEOP['host']
-    port = settings.GEOP['port']
+    # Convert string "List(3,4)" to tuples (3,4) and
+    # Map NODATA soil cells cells to 3
+    # This was previously done within the SummaryJob: https://github.com/WikiWatershed/mmw-geoprocessing/blob/0d95dee35e729d9fd2f58fb9e73a69dcbe61df61/summary/src/main/scala/SummaryJob.scala#L106  # NOQA
+    # but since MapshedJob doesn't support remapping, we do it here.
+    nlcd_soil_count = {}
+    for key, count in sjs_result.iteritems():
+        (n, s) = make_tuple(key[4:])  # Convert "List(3,4)" to (3, 4)
+        s2 = s if s != settings.NODATA else 3  # Map NODATA soil cells to 3
+        nlcd_soil_count[(n, s2)] = count + nlcd_soil_count.get((n, s2), 0)
 
-    data = sjs_retrieve(host, port, job_id, retry)
+    # Convert to array for backwards compatibility
+    result = [(ns, count) for ns, count in nlcd_soil_count.items()]
 
-    return [dict_to_array(d) for d in data]
+    return [result]
 
 
 def histogram_to_x(data, nucleus, update_rule, after_rule):
@@ -192,7 +200,9 @@ def data_to_census(data):
             elif soil_str == 'cd':
                 soil_str = 'd'
             key_str = '%s:%s' % (soil_str, nlcd_str)
-            dist[key_str] = {'cell_count': count}
+            dist[key_str] = {'cell_count': (
+                count + (dist[key_str]['cell_count'] if key_str in dist else 0)
+            )}
 
     def after_rule(count, census):
         census['cell_count'] = count
