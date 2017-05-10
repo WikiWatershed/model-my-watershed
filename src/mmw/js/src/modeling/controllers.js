@@ -332,10 +332,6 @@ function setupNewProjectScenarios(project) {
         new models.ScenarioModel({
             name: 'Current Conditions',
             is_current_conditions: true,
-            aoi_census: aoiCensus
-        }),
-        new models.ScenarioModel({
-            name: 'New Scenario',
             active: true,
             aoi_census: aoiCensus
         })
