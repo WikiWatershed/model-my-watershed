@@ -57,10 +57,41 @@ describe('Modeling', function() {
     });
 
     describe('Views', function() {
-        describe('ScenariosView', function() {
-            it('adds a new scenario when the plus button is clicked', function() {
+        describe('ScenarioToolbarView', function() {
+            it('adds a new scenario when the add changes button is clicked', function() {
+                var projectModel = getTestProject(),
+                    collection = projectModel.get('scenarios'),
+                    view = new views.ScenarioToolbarView({
+                        collection: collection,
+                        model_package: "tr-55"
+                    });
+
+                $(sandboxSelector).html(view.render().el);
+
+                assert.equal(collection.length, 1);
+                $('#sandbox #add-changes').click();
+                assert.equal(collection.length, 2);
+            });
+        });
+
+        describe('ScenarioToolbarView', function() {
+            it('does not show the add changes button when there are non-current condition scenario', function() {
                 var collection = getTestScenarioCollection(),
-                    view = new views.ScenariosView({
+                    view = new views.ScenarioToolbarView({
+                        collection: collection,
+                        model_package: "tr-55"
+                    });
+
+                $(sandboxSelector).html(view.render().el);
+
+                assert.equal($('#sandbox #add-changes').text(), '');
+            });
+        });
+
+        describe('ScenarioButtonsView', function() {
+            it('adds a new scenario when the add scenario button is clicked', function() {
+                var collection = getTestScenarioCollection(),
+                    view = new views.ScenarioButtonsView({
                         collection: collection,
                         projectModel: new models.ProjectModel()
                     });
@@ -85,80 +116,83 @@ describe('Modeling', function() {
             });
         });
 
-        describe('ScenarioTabPanelsView', function() {
-            it('renders no tabs if there are no scenarios', function() {
+        describe('ScenarioDropDownMenuView', function() {
+            it('disables dropdown if there are no scenarios', function() {
                 var collection = new models.ScenariosCollection([]),
-                    view = new views.ScenarioTabPanelsView({ collection: collection });
+                    view = new views.ScenarioDropDownMenuView({ collection: collection });
 
                 $(sandboxSelector).html(view.render().el);
-                assert.equal($('#sandbox ul.nav.nav-tabs > li').length, 0);
+                assert.isTrue($('#sandbox .scenario-dropdown').get(0).disabled);
             });
 
-            it('renders one tab if there is one scenario', function() {
-                var collection = new models.ScenariosCollection([
-                    new models.ScenarioModel({ name: 'Current Conditions' })
-                ]),
-                    view = new views.ScenarioTabPanelsView({ collection: collection });
+            it('disables dropdown if there is only current conditions', function() {
+                var collection = getTestProject().get('scenarios'),
+                    view = new views.ScenarioDropDownMenuView({ collection: collection });
 
                 $(sandboxSelector).html(view.render().el);
-                assert.equal($('#sandbox ul.nav.nav-tabs > li').length, 1);
+                assert.isTrue($('#sandbox .scenario-dropdown').get(0).disabled);
             });
 
-            it('renders multiple tabs if there are multiple scenarios', function() {
+            it('renders multiple dropdown items if there are multiple scenarios', function() {
                 var collection = getTestScenarioCollection(),
-                    view = new views.ScenarioTabPanelsView({ collection: collection });
+                    view = new views.ScenarioDropDownMenuView({ collection: collection });
 
                 $(sandboxSelector).html(view.render().el);
-                assert.equal($('#sandbox ul.nav.nav-tabs > li').length, 3);
+                assert.equal($('#sandbox ul.dropdown-menu > li').length, collection.length);
             });
+        });
 
+        describe('ScenarioDropDownMenuItemView', function() {
             function checkMenuItemsMatch(expectedItems) {
-                var $menuItems = $('#sandbox ul.nav.nav-tabs li.active ul.dropdown-menu li'),
-                    menuItems = $menuItems.map(function() {
-                        return $(this).text();
+                var $scenarioItemActions = $('#sandbox i'),
+                    menuItems = $scenarioItemActions.map(function() {
+                        return $(this).get(0).title;
                     }).get();
-                assert.deepEqual(menuItems, expectedItems);
+                assert.deepEqual(menuItems.reverse(), expectedItems);
             }
 
-            it('renders tab dropdowns for editing if the user owns the project', function() {
+            it('renders action icons for editing if the user owns the project', function() {
                 App.user.set('id', 1);
-                var project = getTestProject();
+                var project = getTestProject(),
+                    collection = getTestScenarioCollection();
 
                 project.get('scenarios').invoke('set', 'user_id', 1);
 
-                var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
+                var view = new views.ScenarioDropDownMenuItemView({ model: collection.at(1) });
 
                 $(sandboxSelector).html(view.render().el);
-                checkMenuItemsMatch(['Rename', 'Duplicate', 'Delete']);
+                checkMenuItemsMatch(['Rename', 'Delete', 'More...']);
             });
 
-            it('renders no tab dropdowns if the user does not own the project', function() {
+            it('renders no action icons if the user does not own the project', function() {
                 App.user.set('id', 8);
                 var project = getTestProject();
 
                 project.get('scenarios').invoke('set', 'user_id', 1);
 
-                var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
+                var view = new views.ScenarioDropDownMenuItemView({  model: project.get('scenarios').at(0) });
 
                 $(sandboxSelector).html(view.render().el);
-                assert.isUndefined($(sandboxSelector + ' .scenario-btn-dropdown').el);
+                checkMenuItemsMatch([]);
             });
 
             it('renders tab dropdown for sharing if the scenario is saved', function() {
                 App.user.set('id', 1);
-                var project = getTestProject();
+                var project = getTestProject(),
+                    collection = getTestScenarioCollection();
 
                 // Simulate scenario that has been saved.
                 project.get('scenarios').invoke('set', 'id', 1);
 
-                var view = new views.ScenarioTabPanelsView({ collection: project.get('scenarios') });
-
-                $(sandboxSelector).html(view.render().el);
-                checkMenuItemsMatch(['Share', 'Rename', 'Duplicate', 'Delete']);
+                var view = new views.ScenarioDropDownMenuItemView({ model: collection.at(1) });
+                view.render();
+                view.ui.showMore.trigger('click');
+                $(sandboxSelector).html(view.moreOptions.el);
+                checkMenuItemsMatch(['Duplicate', 'Share']);
             });
         });
 
-        describe('Tr55ToolbarTabContentView', function() {
+        describe('Tr55ToolbarView', function() {
             beforeEach(function() {
                 this.userId = 1;
                 App.user.id = this.userId;
@@ -166,7 +200,7 @@ describe('Modeling', function() {
                     name: 'New Scenario',
                     modifications: []
                 });
-                this.view = new views.Tr55ToolbarTabContentView({
+                this.view = new views.Tr55ToolbarView({
                     model: this.model,
                     collection: models.getControlsForModelPackage('tr-55')
                 });
@@ -473,7 +507,7 @@ describe('Modeling', function() {
                     this.server.respondWith('POST', '/api/modeling/projects/',
                                             [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
 
-                    var project = getTestProject(),
+                    var project = getTestProject(getTestScenarioCollection()),
                         projectSpy = sinon.spy(project, 'save'),
                         scenario1Spy = sinon.spy(project.get('scenarios').at(0), 'save'),
                         scenario2Spy = sinon.spy(project.get('scenarios').at(1), 'save');
@@ -494,7 +528,7 @@ describe('Modeling', function() {
                     this.server.respondWith('POST', '/api/modeling/scenarios/',
                                             [ 200, { 'Content-Type': 'application/json' }, scenarioResponse ]);
 
-                    var project = getTestProject();
+                    var project = getTestProject(getTestScenarioCollection());
 
                     project.saveProjectAndScenarios();
 
@@ -919,31 +953,29 @@ describe('Modeling', function() {
 
                 it('trims whitespace from the provided new name', function() {
                     var collection = getTestScenarioCollection(),
-                        view = new views.ScenarioTabPanelsView({ collection: collection });
+                        view = new views.ScenarioDropDownMenuItemView({ model: collection.at(1) });
 
-                    collection.updateScenarioName(collection.at(0), 'New Name       ');
-                    view.collection.updateScenarioName(view.collection.at(0), 'New Name       ');
+                    collection.updateScenarioName(collection.at(1), 'New Name       ');
+                    view.model.collection.updateScenarioName(view.model, 'New Name       ');
                     view.render();
-                    var childViews = _.values(view.children._views);
 
-                    childViews[0].ui.rename.trigger('click');
-                    childViews[0].ui.nameField.text('New Name         ');
-                    childViews[0].ui.nameField.trigger('blur');
+                    view.ui.rename.trigger('click');
+                    view.ui.nameField.text('New Name         ');
+                    view.ui.nameField.trigger('blur');
 
                     assert.isFalse(spyAlert.called);
-                    assert.equal(collection.at(0).get('name'), 'New Name');
+                    assert.equal(collection.at(1).get('name'), 'New Name');
                 });
 
                 it('ignores case when comparing the new name with existing names', function() {
                     var collection = getTestScenarioCollection(),
-                        view = new views.ScenarioTabPanelsView({ collection: collection });
+                        view = new views.ScenarioDropDownMenuItemView({ model: collection.at(1) });
 
                     view.render();
-                    var childViews = _.values(view.children._views);
 
-                    childViews[1].ui.rename.trigger('click');
-                    childViews[1].ui.nameField.text('cuRRENT conDITions');
-                    childViews[1].ui.nameField.trigger('blur');
+                    view.ui.rename.trigger('click');
+                    view.ui.nameField.text('cuRRENT conDITions');
+                    view.ui.nameField.trigger('blur');
 
                     assert.isTrue(spyAlert.calledOnce);
                     assert.equal(collection.at(1).get('name'), 'New Scenario 1');
@@ -951,14 +983,13 @@ describe('Modeling', function() {
 
                 it('will not rename the scenario if the new name matches an existing name', function() {
                     var collection = getTestScenarioCollection(),
-                        view = new views.ScenarioTabPanelsView({ collection: collection });
+                        view = new views.ScenarioDropDownMenuItemView({ model: collection.at(1) });
 
                     view.render();
-                    var childViews = _.values(view.children._views);
 
-                    childViews[1].ui.rename.trigger('click');
-                    childViews[1].ui.nameField.text('Current Conditions');
-                    childViews[1].ui.nameField.trigger('blur');
+                    view.ui.rename.trigger('click');
+                    view.ui.nameField.text('Current Conditions');
+                    view.ui.nameField.trigger('blur');
 
                     assert.isTrue(spyAlert.calledOnce);
                     assert.equal(collection.at(1).get('name'), 'New Scenario 1');
@@ -966,14 +997,13 @@ describe('Modeling', function() {
 
                 it('will not show error when trying to save name as is', function() {
                     var collection = getTestScenarioCollection(),
-                        view = new views.ScenarioTabPanelsView({ collection: collection });
+                        view = new views.ScenarioDropDownMenuItemView({ model: collection.at(1) });
 
                     view.render();
-                    var childViews = _.values(view.children._views);
 
-                    childViews[1].ui.rename.trigger('click');
-                    childViews[1].ui.nameField.text('New Scenario 1');
-                    childViews[1].ui.nameField.trigger('blur');
+                    view.ui.rename.trigger('click');
+                    view.ui.nameField.text('New Scenario 1');
+                    view.ui.nameField.trigger('blur');
 
                     assert.isFalse(spyAlert.calledOnce);
                     assert.equal(collection.at(1).get('name'), 'New Scenario 1');
@@ -981,28 +1011,26 @@ describe('Modeling', function() {
 
                 it('resets name if set to empty string', function() {
                     var collection = getTestScenarioCollection(),
-                        view = new views.ScenarioTabPanelsView({ collection: collection });
+                        view = new views.ScenarioDropDownMenuItemView({ model: collection.at(1) });
 
                     view.render();
-                    var childViews = _.values(view.children._views);
 
-                    childViews[1].ui.rename.trigger('click');
-                    childViews[1].ui.nameField.text('');
-                    childViews[1].ui.nameField.trigger('blur');
+                    view.ui.rename.trigger('click');
+                    view.ui.nameField.text('');
+                    view.ui.nameField.trigger('blur');
 
                     assert.equal(collection.at(1).get('name'), 'New Scenario 1');
                 });
 
                 it('resets name if set to just spaces', function() {
                     var collection = getTestScenarioCollection(),
-                        view = new views.ScenarioTabPanelsView({ collection: collection });
+                        view = new views.ScenarioDropDownMenuItemView({ model: collection.at(1) });
 
                     view.render();
-                    var childViews = _.values(view.children._views);
 
-                    childViews[1].ui.rename.trigger('click');
-                    childViews[1].ui.nameField.text(' ');
-                    childViews[1].ui.nameField.trigger('blur');
+                    view.ui.rename.trigger('click');
+                    view.ui.nameField.text(' ');
+                    view.ui.nameField.trigger('blur');
 
                     assert.equal(collection.at(1).get('name'), 'New Scenario 1');
                 });
@@ -1077,6 +1105,7 @@ function getTestScenarioCollection() {
             is_current_conditions: true
         }),
         new models.ScenarioModel({
+            id: 1,
             name: 'New Scenario 1',
             modifications: [
                 {
@@ -1094,22 +1123,18 @@ function getTestScenarioCollection() {
     return collection;
 }
 
-function getTestProject() {
+function getTestProject(optionalScenarios) {
     var project = new models.ProjectModel({
         name: 'My Project',
         created_at: Date.now(),
         area_of_interest: '[]',
         user_id: 1,
-        scenarios: new models.ScenariosCollection([
+        scenarios: optionalScenarios || new models.ScenariosCollection([
             new models.ScenarioModel({
                 name: 'Current Conditions',
-                is_current_conditions: true
+                is_current_conditions: true,
+                active: true,
             }),
-            new models.ScenarioModel({
-                name: 'New Scenario',
-                is_current_conditions: false,
-                active: true
-            })
         ])
     });
 
