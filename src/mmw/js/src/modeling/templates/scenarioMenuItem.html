@@ -1,7 +1,30 @@
-<a href="#{{ cid }}" data-scenario-cid="{{ cid }}">
-{% if active %}
-    <strong>{{ name }}</strong>
-{% else %}
-    {{ name }}
-{% endif %}
-</a>
+<div class="scenario-dropdown-menu-item">
+<!-- elements appear in the reverse order in the ui -->
+    {% if editable and (gwlfe or not is_current_conditions or not is_new) %}
+        <div class="scenario-dropdown-actions">
+            <div class="more-options-region"></div>
+            <i data-action="show-more" class="fa fa-ellipsis-h" title="More..."></i>
+            {% if not is_current_conditions %}
+                <i data-action="delete" class="fa fa-trash" title="Delete"></i>
+            {% endif %}
+            {% if is_gwlfe %}
+                <form id="export-gms-form" method="post" action="/api/modeling/export/gms/" target="_blank">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrftoken }}">
+                    <input type="hidden" name="filename" class="gms-filename" value="export.gms">
+                    <input type="hidden" name="mapshed_data" value='{{ gis_data }}'>
+                </form>
+                <i data-action="export-gms" class="fa fa-download" title="Export GMS"></i>
+            {% endif %}
+            {% if not is_current_conditions %}
+                <i data-action="rename" class="fa fa-pencil-square-o" title="Rename"></i>
+            {% endif %}
+        </div>
+    {% endif %}
+    <span id="scenario-name" data-action="select">
+        {% if active %}
+            <strong class="-active">{{ name }}</strong>
+        {% else %}
+            {{ name }}
+        {% endif %}
+    </span>
+</div>

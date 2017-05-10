@@ -2,7 +2,7 @@
 #model-output-wrapper {
   position: absolute;
   right: 0;
-  top: $height-lg * 2 + $toolbar-height;
+  top: $height-lg * 2 + $height-lg;
   bottom: 0;
   width: $sidebar-width !important;
   @media(min-width: 1040px) {

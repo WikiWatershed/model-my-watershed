@@ -145,25 +145,16 @@
   width: 200px;
 }
 
-.btn-compare {
-  color: $paper;
-  background-color: $ui-secondary;
-  font-size: 0.8rem;
-  height: $height-lg;
-  border-radius: 0!important;
-  padding: 0.7rem;
-
+.btn-scenario {
+  color: $ui-primary;
   i {
     margin-right: 4px;
-    color: $paper-54;
+    color: $ui-primary;
   }
 
-  &:hover {
-    color: $paper;
-    background-color: $brand-primary;
-
+  &:hover, &:focus {
     i {
-      color: $paper-54;
+      color: $paper;
     }
   }
 }
