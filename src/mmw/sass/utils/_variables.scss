@@ -36,12 +36,19 @@ $height-lg: 44px;
 $height-md: 36px;
 $height-sm: 28px;
 $height-xs: 18px;
-$sidebar-width: 460px;
 $sidebar-header-height: 40px;
 $sidebar-tab-subheader-height: 40px;
 
+//Widths
+$sidebar-width: 460px;
+$wide-sidebar-width:  600px;
+$layerpicker-width: 240px;
+$search-width: 300px;
+
 //Border-radius
 $radius-sm: 2px;
+
+$right-controls-margin: 12px;
 
 $nlcdColors: (
     11: #5475A8,

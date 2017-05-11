@@ -18,9 +18,8 @@ var MapModel = Backbone.Model.extend({
         zoom: 0,
         areaOfInterest: null,           // GeoJSON
         areaOfInterestName: '',
-        halfSize: false,
         geolocationEnabled: true,
-        previousAreaOfInterest: null
+        previousAreaOfInterest: null,
     },
 
     revertMaskLayer: function() {
@@ -53,21 +52,10 @@ var MapModel = Backbone.Model.extend({
         this.set('areaOfInterest', _.clone(this.get('previousAreaOfInterest')));
     },
 
-    setDoubleHeaderSmallFooterSize: function(fit) {
-        this._setSizeOptions({ double: true  }, { small: true }, fit);
-    },
-
-    setDoubleHeaderHalfFooterSize: function(fit) {
-        this._setSizeOptions({ sidebar: true  }, { sidebar: true }, fit);
-    },
-
-    setDoubleHeaderSidebarSize: function(fit) {
-        this._setSizeOptions({ sidebar: true  }, { sidebar: true }, fit);
-    },
-
-    setNoHeaderSidebarSize: function(fit) {
-        var noHeader = true;
-        this._setSizeOptions({ sidebar: true  }, { sidebar: true }, fit, noHeader);
+    setNoHeaderSidebarSize: function(fit, sidebarWidth) {
+        var hasSidebar = true,
+            hasProjectHeader = false;
+        this._setSizeOptions(fit, hasProjectHeader, hasSidebar, sidebarWidth);
     },
 
     setDrawSize: function(fit) {
@@ -75,23 +63,45 @@ var MapModel = Backbone.Model.extend({
     },
 
     setAnalyzeSize: function(fit) {
-        this._setSizeOptions({ single: true  }, { large: true }, fit);
+        this.setNoHeaderSidebarSize(fit);
     },
 
     setDataCatalogSize: function(fit) {
-        var wideSidebar = true,
-            noHeader = true;
-        this._setSizeOptions({ sidebar: true  }, { sidebar: true }, fit, noHeader,
-            wideSidebar);
+        this.setNoHeaderSidebarSize(fit, utils.sidebarWide);
     },
 
-    _setSizeOptions: function(top, bottom, fit, noHeader, wideSidebar) {
+    setModelSize: function(fit) {
+        var hasSidebar = true,
+            hasProjectHeader = true;
+        this._setSizeOptions(fit, hasProjectHeader, hasSidebar);
+    },
+
+    toggleSidebar: function() {
+        var sizeCopy = _.clone(this.get('size')),
+            updatedSize =_.merge(sizeCopy, {
+                hasSidebar: !sizeCopy.hasSidebar
+            });
+        this.set('size', updatedSize);
+    },
+
+// Set the sizing options for the map
+//      param: fit                  - bool, true if should fit the map to the AoI
+//      param: hasProjectHeader     - bool, true if the -projectheader class should
+//                                    be on the map container
+//      param: hasSidebar           - bool, true if the -sidebar class should
+//                                    be on the map container
+//      param: sidebarWidth         - string, if matches width option (eg 'wide'),
+//                                    and `hasSidebar === true`, map will add
+//                                    class to container accordingly.
+//                                    If option doesn't exist or is falsey, no
+//                                    class will be added, and map container will
+//                                    use the default sidebar size if `hasSidebar`
+    _setSizeOptions: function(fit, hasProjectHeader, hasSidebar, sidebarWidth) {
         this.set('size', {
-            top: top,
-            bottom: bottom,
-            fit: !!fit,
-            noHeader: noHeader,
-            wideSidebar: wideSidebar
+            fit: fit,
+            hasProjectHeader: hasProjectHeader,
+            hasSidebar: hasSidebar,
+            sidebarWidth: sidebarWidth,
         });
     }
 

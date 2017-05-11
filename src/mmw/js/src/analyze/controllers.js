@@ -48,6 +48,8 @@ var AnalyzeController = {
     },
 
     analyze: function() {
+        App.map.setAnalyzeSize();
+
         var analyzeCollection = App.getAnalyzeCollection(),
             viewModels = models.createAnalyzeResultViewModelCollection(analyzeCollection),
             analyzeResults = new views.ResultsView({

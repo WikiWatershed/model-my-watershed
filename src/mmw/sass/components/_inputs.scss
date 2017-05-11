@@ -8,13 +8,11 @@
   border: 0!important;
   box-shadow: 0 0 6px $black-74;
   font-size: 0.7rem;
-  width: 300px;
+  width: $search-width;
   height: 36px;
   padding: 0 0.7rem;
   color: $black-54;
   background-color: $paper;
-  margin-right: 0.6rem;
-
 
   &:hover {
     background-color: $ui-light;

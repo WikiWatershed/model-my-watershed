@@ -1,22 +1,11 @@
 //Layout
 #model-output-wrapper {
-  position: absolute;
-  right: 0;
-  top: $height-lg * 2 + $height-lg;
-  bottom: 0;
   width: $sidebar-width !important;
   @media(min-width: 1040px) {
     width: 485px !important;
   }
-  min-height: 300px;
-  height: auto !important;
   background-color: $paper;
   z-index: 100;
-  transform: translateX(0%);
-
-  .hidden-sidebar & {
-    transform: translateX(100%);
-  }
 
   .disabled {
       text-decoration: none;

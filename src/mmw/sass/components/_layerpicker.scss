@@ -2,8 +2,8 @@
   z-index: 500;
   position: absolute;
   bottom: 22px;
-  left: 0.7rem;
-  width: 240px;
+  right: $right-controls-margin;
+  width: $layerpicker-width;
   background-color: #fff;
   border-radius: 2px;
   box-shadow: 0 0 6px $black-74;

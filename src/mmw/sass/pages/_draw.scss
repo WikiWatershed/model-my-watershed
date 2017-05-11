@@ -1,12 +1,8 @@
 #draw-window,
 #splash-window {
-  width: 400px;
-  height: 100%;
+  width: 460px;
   padding: 15px;
-  position: absolute;
-  right: 0;
   transition: all 200ms;
-  top: 44px;
   overflow-y: auto;
   & > h1, & > h2 {
     font-size: $temp-h1;

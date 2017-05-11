@@ -2,8 +2,10 @@
 #search-map {
   position: absolute;
   top: 0;
+  right: 0;
   z-index: 600;
   padding: 0.7rem;
+  padding-right: $right-controls-margin;
 
   @media(max-width: 1200px) {
     max-width: 595px;
@@ -42,7 +44,7 @@
     font-size: 0.7rem;
     padding: 0.5rem 1rem;
     margin-top: 6px;
-    width: 300px;
+    width: $search-width;
 
     &.dismiss {
       float: right;
@@ -55,13 +57,14 @@
 
 #geocode-search-results-region {
   position: absolute;
+  right: $right-controls-margin;
   border-radius: 2px;
   box-shadow: 0 0 6px $black-74;
   font-size: 0.7rem;
   color: $black-54;
   background-color: $paper;
   margin-top: 6px;
-  min-width: 300px;
+  min-width: $search-width;
   max-height: 600px;
   overflow: hidden;
   overflow-y: auto;
