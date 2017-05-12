@@ -21,6 +21,11 @@ from apps.modeling.calcs import (animal_population,
 
 from apps.modeling.geoprocessing import to_one_ring_multipolygon
 
+from apps.modeling.tr55.utils import (aoi_resolution,
+                                      precipitation,
+                                      apply_modifications_to_census,
+                                      )
+
 from tr55.model import simulate_day
 from gwlfe import gwlfe, parser
 
@@ -169,28 +174,6 @@ def analyze_catchment_water_quality(area_of_interest):
     return {'survey': [catchment_water_quality(area_of_interest)]}
 
 
-def aoi_resolution(area_of_interest):
-    pairs = area_of_interest['coordinates'][0][0]
-
-    average_lat = reduce(lambda total, p: total+p[1], pairs, 0) / len(pairs)
-
-    max_lat = 48.7
-    max_lat_count = 1116  # Number of pixels found in sq km at max lat
-    min_lat = 25.2
-    min_lat_count = 1112  # Number of pixels found in sq km at min lat
-
-    # Because the tile CRS is Conus Albers @ 30m, the number of pixels per
-    # square kilometer is roughly (but no exactly) 1100 everywhere
-    # in the CONUS.  Iterpolate the number of cells at the current lat along
-    # the range defined above.
-    x = (average_lat - min_lat) / (max_lat - min_lat)
-    x = min(max(x, 0.0), 1.0)
-    pixels_per_sq_kilometer = ((1 - x) * min_lat_count) + (x * max_lat_count)
-    pixels_per_sq_meter = pixels_per_sq_kilometer / 1000000
-
-    return 1.0/sqrt(pixels_per_sq_meter)
-
-
 def format_quality(model_output):
     measures = ['Total Suspended Solids',
                 'Total Nitrogen',
@@ -245,7 +228,7 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
     """
 
     # Get precipitation and cell resolution
-    precip = get_precip(model_input)
+    precip = precipitation(model_input)
 
     # Normalize AOI to handle single-ring multipolygon
     # inputs sent from RWD as well as shapes sent from the front-end
@@ -291,7 +274,7 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
     elif (modification_censuses and not modification_pieces):
         modification_censuses = []
 
-    modifications = build_tr55_modification_input(modification_pieces,
+    modifications = apply_modifications_to_census(modification_pieces,
                                                   modification_censuses)
     aoi_census['modifications'] = modifications
     aoi_census['BMPs'] = area_bmps
@@ -336,15 +319,6 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
     }
 
 
-def get_precip(model_input):
-    try:
-        precips = [item for item in model_input['inputs']
-                   if item['name'] == 'precipitation']
-        return precips[0]['value']
-    except Exception:
-        return None
-
-
 def convert_result_areas(pixel_width, results):
     """
     Updates area values on the survey results. The survey gives area as a
@@ -355,30 +329,6 @@ def convert_result_areas(pixel_width, results):
         for j in range(len(categories)):
             categories[j]['area'] = (categories[j]['area'] * pixel_width *
                                      pixel_width)
-
-
-def build_tr55_modification_input(pieces, censuses):
-    """ Applying modifications to the AoI census.
-    In other words, preparing part of the model input
-    for TR-55 that contains the "this area was converted
-    from developed to forest" directives, for example.
-    """
-    def change_key(modification):
-        name = modification['name']
-        value = modification['value']
-
-        if name == 'landcover':
-            return {'change': ':%s:' % value['reclass']}
-        elif name == 'conservation_practice':
-            return {'change': '::%s' % value['bmp']}
-        elif name == 'both':
-            return {'change': ':%s:%s' % (value['reclass'], value['bmp'])}
-
-    changes = [change_key(piece) for piece in pieces]
-    for (census, change) in zip(censuses, changes):
-        census.update(change)
-
-    return censuses
 
 
 @shared_task
