@@ -3,16 +3,19 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
-from ast import literal_eval as make_tuple
-
-from django.conf import settings
-from django_statsd.clients import statsd
-from celery import shared_task
-from celery.exceptions import MaxRetriesExceededError, Retry
-from requests.exceptions import ConnectionError
-
 import requests
 import json
+
+from ast import literal_eval as make_tuple
+
+from celery import shared_task
+from celery.exceptions import MaxRetriesExceededError, Retry
+
+from requests.exceptions import ConnectionError
+
+from django_statsd.clients import statsd
+
+from django.conf import settings
 
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=42)

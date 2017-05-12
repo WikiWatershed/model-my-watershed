@@ -6,11 +6,12 @@ from __future__ import absolute_import
 import os
 import logging
 import json
-import requests
 
 from ast import literal_eval as make_tuple
 
 from StringIO import StringIO
+
+import requests
 
 from celery import shared_task
 
@@ -18,7 +19,8 @@ from django.conf import settings
 
 from apps.modeling.calcs import (animal_population,
                                  point_source_pollution,
-                                 catchment_water_quality)
+                                 catchment_water_quality,
+                                 )
 
 from apps.modeling.geoprocessing import to_one_ring_multipolygon
 
@@ -183,21 +185,18 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
         else:
             area_sums[kind] = area
 
-    area_bmps = {k: v for k, v in area_sums.iteritems()}
-
     # The area of interest census
     aoi_census = cached_aoi_census if cached_aoi_census else censuses[0]
 
-    modifications = []
-    if (modification_pieces and not modification_censuses):
+    if modification_pieces and not modification_censuses:
         raise Exception('Missing censuses for modifications')
-    elif (modification_censuses and not modification_pieces):
+    elif modification_censuses and not modification_pieces:
         modification_censuses = []
 
     modifications = apply_modifications_to_census(modification_pieces,
                                                   modification_censuses)
     aoi_census['modifications'] = modifications
-    aoi_census['BMPs'] = area_bmps
+    aoi_census['BMPs'] = area_sums
 
     # Run the model under both current conditions and Pre-Columbian
     # conditions.
@@ -216,8 +215,6 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
         quality = format_quality(model_output)
 
     except KeyError as e:
-        model_output = None
-        precolumbian_output = None
         runoff = {}
         quality = []
         logger.error('Bad input data to TR55: %s' % e)

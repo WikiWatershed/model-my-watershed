@@ -3,17 +3,17 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from apps.core.models import Job
-from apps.modeling import example_aois, geoprocessing, tasks, views
-from django.contrib.auth.models import User
+from celery import chain, shared_task
 
+from rest_framework.test import APIClient
+
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.utils.timezone import now
 
-from rest_framework.test import APIClient
-
-from celery import chain, shared_task
+from apps.core.models import Job
+from apps.modeling import example_aois, geoprocessing, tasks, views
 
 
 @shared_task

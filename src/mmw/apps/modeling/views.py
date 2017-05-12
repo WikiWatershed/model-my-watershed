@@ -5,6 +5,11 @@ from __future__ import unicode_literals
 import json
 import random
 
+import celery
+from celery import chain, group
+
+from retry import retry
+
 from rest_framework.response import Response
 from rest_framework import decorators, status
 from rest_framework.permissions import (AllowAny,
@@ -18,11 +23,6 @@ from django.db import connection
 from django.contrib.gis.geos import GEOSGeometry, WKBReader
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
-
-import celery
-from celery import chain, group
-
-from retry import retry
 
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
