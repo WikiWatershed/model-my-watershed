@@ -60,7 +60,8 @@ var AnalyzeTaskCollection = Backbone.Collection.extend({
 
 function createAnalyzeTaskCollection(aoi) {
     return new AnalyzeTaskCollection([
-        { area_of_interest: aoi, taskName: 'analyze' },
+        { area_of_interest: aoi, taskName: 'analyze/land' },
+        { area_of_interest: aoi, taskName: 'analyze/soil' },
         { area_of_interest: aoi, taskName: 'analyze/animals' },
         { area_of_interest: aoi, taskName: 'analyze/pointsource' },
         { area_of_interest: aoi, taskName: 'analyze/catchment-water-quality' },
@@ -69,8 +70,8 @@ function createAnalyzeTaskCollection(aoi) {
 
 function createAnalyzeResultViewModelCollection(analyzeTaskCollection) {
     return new Backbone.Collection([
-        { name: 'land', displayName: 'Land', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze' }) },
-        { name: 'soil', displayName: 'Soil', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze' }) },
+        { name: 'land', displayName: 'Land', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze/land' }) },
+        { name: 'soil', displayName: 'Soil', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze/soil' }) },
         { name: 'animals', displayName: 'Animals', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze/animals' }) },
         { name: 'pointsource', displayName: 'Point Sources', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze/pointsource' }) },
         { name: 'catchment_water_quality', displayName: 'Water Quality',

@@ -383,6 +383,30 @@ GEOP = {
     'port': environ.get('MMW_GEOPROCESSING_PORT', '8090'),
     'args': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.MapshedJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),  # NOQA
     'json': {
+        'nlcd': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'nlcd-2011-30m-epsg5070-0.10.0'
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedCount',
+                'zoom': 0
+            }
+        },
+        'soil': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'ssurgo-hydro-groups-30m-epsg5070-0.10.0'
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedCount',
+                'zoom': 0
+            }
+        },
         'nlcd_soil_census': {
             'input': {
                 'polygon': [],

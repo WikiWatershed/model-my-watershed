@@ -136,7 +136,6 @@ var ProjectModel = Backbone.Model.extend({
         gis_data: null,                 // Additionally gathered data, such as MapShed for GWLF-E
         needs_reset: false,             // Should we overwrite project data on next save?
         allow_save: true,               // Is allowed to save to the server - false in compare mode
-        aoi_census: null                // JSON blob
     },
 
     initialize: function() {

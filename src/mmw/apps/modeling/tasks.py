@@ -14,8 +14,6 @@ from StringIO import StringIO
 
 from celery import shared_task
 
-from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
-    data_to_survey, data_to_census, data_to_censuses
 from django.conf import settings
 
 from apps.modeling.calcs import (animal_population,
@@ -69,56 +67,6 @@ def start_rwd_job(location, snapping, data_source):
         raise Exception(response_json['error'])
 
     return response_json
-
-
-@shared_task(bind=True, default_retry_delay=1, max_retries=42)
-def start_histogram_job(self, json_polygon):
-    """ Calls the histogram_start function to
-    kick off the SJS job to generate a histogram
-    of the provided polygon (i.e. AoI).
-    Returns the id of the job so we can poll later
-    for the results, as well as the pixel width of
-    the polygon so that areas can be calculated from
-    the results.
-    """
-
-    # Normalize AOI to handle single-ring multipolygon
-    # inputs sent from RWD as well as shapes sent from the front-end
-    polygon = parse_single_ring_multipolygon(json.loads(json_polygon))
-
-    return {
-        'pixel_width': aoi_resolution(polygon),
-        'sjs_job_id': histogram_start([json.dumps(polygon)], self.retry)
-    }
-
-
-@shared_task(bind=True, default_retry_delay=1, max_retries=42)
-def get_histogram_job_results(self, incoming):
-    """ Calls a function that polls SJS for the results
-    of the given Job. Self here is Celery.
-    """
-    pixel_width = incoming['pixel_width']
-    histogram = histogram_finish(incoming['sjs_job_id'], self.retry)
-
-    return {
-        'pixel_width': pixel_width,
-        'histogram': histogram
-    }
-
-
-@shared_task
-def histogram_to_survey_census(incoming):
-    """
-    Converts the histogram results (aka analyze results)
-    to a survey & census of land use, which are rendered in the UI.
-    """
-    pixel_width = incoming['pixel_width']
-    data = incoming['histogram'][0]
-    census = data_to_census(data)
-    survey = data_to_survey(data)
-    convert_result_areas(pixel_width, survey)
-
-    return {'survey': survey, 'census': census}
 
 
 @shared_task
@@ -291,18 +239,6 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
     }
 
 
-def convert_result_areas(pixel_width, results):
-    """
-    Updates area values on the survey results. The survey gives area as a
-    number of pixels in a geotiff. This converts the area to square meters.
-    """
-    for i in range(len(results)):
-        categories = results[i]['categories']
-        for j in range(len(categories)):
-            categories[j]['area'] = (categories[j]['area'] * pixel_width *
-                                     pixel_width)
-
-
 @shared_task
 def run_gwlfe(model_input, inputmod_hash):
     """
@@ -342,6 +278,75 @@ def to_gms_file(mapshed_data):
     output.seek(0)
 
     return output
+
+
+@shared_task(throws=Exception)
+def analyze_nlcd(result, area_of_interest=None):
+    if 'error' in result:
+        raise Exception('[analyze_nlcd] {}'.format(result['error']))
+
+    pixel_width = aoi_resolution(area_of_interest) if area_of_interest else 1
+
+    histogram = {}
+    total_count = 0
+    categories = []
+
+    # Convert results to histogram, calculate total
+    for key, count in result.iteritems():
+        total_count += count
+        histogram[make_tuple(key[4:])] = count  # Change {"List(1)":5} to {1:5}
+
+    for nlcd, (code, name) in settings.NLCD_MAPPING.iteritems():
+        categories.append({
+            'area': histogram.get(nlcd, 0) * pixel_width * pixel_width,
+            'code': code,
+            'coverage': float(histogram.get(nlcd, 0)) / total_count,
+            'nlcd': nlcd,
+            'type': name,
+        })
+
+    return {
+        'survey': [{
+            'name': 'land',
+            'displayName': 'Land',
+            'categories': categories,
+        }]
+    }
+
+
+@shared_task(throws=Exception)
+def analyze_soil(result, area_of_interest=None):
+    if 'error' in result:
+        raise Exception('[analyze_soil] {}'.format(result['error']))
+
+    pixel_width = aoi_resolution(area_of_interest) if area_of_interest else 1
+
+    histogram = {}
+    total_count = 0
+    categories = []
+
+    # Convert results to histogram, calculate total
+    for key, count in result.iteritems():
+        total_count += count
+        s = make_tuple(key[4:])  # Change {"List(1)":5} to {1:5}
+        s = s if s != settings.NODATA else 3  # Map NODATA to 3
+        histogram[s] = count + histogram.get(s, 0)
+
+    for soil, (code, name) in settings.SOIL_MAPPING.iteritems():
+        categories.append({
+            'area': histogram.get(soil, 0) * pixel_width * pixel_width,
+            'code': code,
+            'coverage': float(histogram.get(soil, 0)) / total_count,
+            'type': name,
+        })
+
+    return {
+        'survey': [{
+            'name': 'soil',
+            'displayName': 'Soil',
+            'categories': categories,
+        }]
+    }
 
 
 @shared_task(throws=Exception)

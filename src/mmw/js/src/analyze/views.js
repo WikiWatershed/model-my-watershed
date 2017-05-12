@@ -65,7 +65,7 @@ var ModelSelectionDropdownView = Marionette.ItemView.extend({
                 place: App.map.get('areaOfInterestName')
             }),
             analysisResults = JSON.parse(App.getAnalyzeCollection()
-                                            .findWhere({taskName: 'analyze'})
+                                            .findWhere({taskName: 'analyze/land'})
                                             .get('result') || "{}"),
             landResults = lodash.find(analysisResults, function(element) {
                     return element.name === 'land';

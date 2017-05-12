@@ -303,18 +303,44 @@ def export_gms(request, format=None):
 
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
-def start_analyze(request, format=None):
+def start_analyze_land(request, format=None):
     user = request.user if request.user.is_authenticated() else None
-    area_of_interest = request.POST['area_of_interest']
     exchange = MAGIC_EXCHANGE
     routing_key = choose_worker()
 
+    area_of_interest = geoprocessing.to_one_ring_multipolygon(json.loads(
+        request.POST['area_of_interest']))
+
+    geop_input = {'polygon': [json.dumps(area_of_interest)]}
+
     return start_celery_job([
-        tasks.start_histogram_job.s(area_of_interest)
-             .set(exchange=exchange, routing_key=routing_key),
-        tasks.get_histogram_job_results.s()
-             .set(exchange=exchange, routing_key=routing_key),
-        tasks.histogram_to_survey_census.s()
+        geoprocessing.start.s('nlcd', geop_input)
+                     .set(exchange=exchange, routing_key=routing_key),
+        geoprocessing.finish.s()
+                     .set(exchange=exchange, routing_key=routing_key),
+        tasks.analyze_nlcd.s(area_of_interest)
+             .set(exchange=exchange, routing_key=choose_worker())
+    ], area_of_interest, user)
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((AllowAny, ))
+def start_analyze_soil(request, format=None):
+    user = request.user if request.user.is_authenticated() else None
+    exchange = MAGIC_EXCHANGE
+    routing_key = choose_worker()
+
+    area_of_interest = geoprocessing.to_one_ring_multipolygon(json.loads(
+        request.POST['area_of_interest']))
+
+    geop_input = {'polygon': [json.dumps(area_of_interest)]}
+
+    return start_celery_job([
+        geoprocessing.start.s('soil', geop_input)
+                     .set(exchange=exchange, routing_key=routing_key),
+        geoprocessing.finish.s()
+                     .set(exchange=exchange, routing_key=routing_key),
+        tasks.analyze_soil.s(area_of_interest)
              .set(exchange=exchange, routing_key=choose_worker())
     ], area_of_interest, user)
 
