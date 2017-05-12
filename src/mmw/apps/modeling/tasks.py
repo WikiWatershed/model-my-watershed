@@ -74,7 +74,7 @@ def analyze_animals(area_of_interest):
     """
     Given an area of interest, returns the animal population within it.
     """
-    return {'survey': [animal_population(area_of_interest)]}
+    return {'survey': animal_population(area_of_interest)}
 
 
 @shared_task
@@ -82,7 +82,7 @@ def analyze_pointsource(area_of_interest):
     """
     Given an area of interest, returns point sources of pollution within it.
     """
-    return {'survey': [point_source_pollution(area_of_interest)]}
+    return {'survey': point_source_pollution(area_of_interest)}
 
 
 @shared_task
@@ -91,7 +91,7 @@ def analyze_catchment_water_quality(area_of_interest):
     Given an area of interest in the DRB, returns catchment water quality data
     within it.
     """
-    return {'survey': [catchment_water_quality(area_of_interest)]}
+    return {'survey': catchment_water_quality(area_of_interest)}
 
 
 def format_quality(model_output):
@@ -306,11 +306,11 @@ def analyze_nlcd(result, area_of_interest=None):
         })
 
     return {
-        'survey': [{
+        'survey': {
             'name': 'land',
             'displayName': 'Land',
             'categories': categories,
-        }]
+        }
     }
 
 
@@ -341,11 +341,11 @@ def analyze_soil(result, area_of_interest=None):
         })
 
     return {
-        'survey': [{
+        'survey': {
             'name': 'soil',
             'displayName': 'Soil',
             'categories': categories,
-        }]
+        }
     }
 
 
