@@ -251,7 +251,7 @@ var CompareModelingView = Marionette.LayoutView.extend({
 
         // TODO this needs to be generalized if we want the compare view
         // to work with GWLF-E
-        this.controlsRegion.show(new modelingViews.Tr55ToolbarTabContentView({
+        this.controlsRegion.show(new modelingViews.Tr55ToolbarView({
             model: this.model,
             collection: controls,
             compareMode: true

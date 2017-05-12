@@ -1,0 +1,6 @@
+{% if editable and not isOnlyCurrentConditions %}
+    <button class="btn btn-sm btn-default inverted btn-scenario" id="add-scenario"><i class="fa fa-plus"></i>New scenario</button>
+{% endif %}
+{% if showCompare %}
+    <button data-url={{ compareUrl }} class="btn btn-sm btn-default inverted btn-scenario"><i class="fa fa-th"></i> Compare</button>
+{% endif %}

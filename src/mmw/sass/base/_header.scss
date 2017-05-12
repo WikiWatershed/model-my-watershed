@@ -10,8 +10,7 @@ header {
 #app-header {
   background-color: $ui-primary;
   height: $height-lg;
-  box-shadow: 0 0 4px $black-54;
-  padding: 0 1rem;
+  padding: 0 1rem 0 0;
 
   .brand {
     a {
@@ -79,12 +78,12 @@ header {
 
   .toolbar {
     position: absolute;
-    top: $height-lg;
+    top: $height-xl;
     left: 0;
     right: 0;
-    padding: 0.7rem;
+    padding: 0.7rem 0.15rem;
     background-color: $paper;
-    height: $toolbar-height;
+    height: $height-xl;
 
     #modification-btn-wrapper {
       float: right;
@@ -102,34 +101,18 @@ header {
 #model-header {
   background-color: $ui-secondary;
   height: 104px;
-  box-shadow: 0 0 4px $black-54;
 
   .top {
-    height: $height-lg;
+    height: $height-xl;
 
     .project {
-      width: 240px;
       background-color: $ui-primary;
       height: 100%;
 
       .project-title {
         display: inline-block;
         position: relative;
-        width: 180px;
         margin-left: 18px;
-
-        h3 {
-          margin: 0;
-          line-height: $height-lg;
-        }
-
-        #project-settings {
-          position: absolute;
-          top: 10px;
-          right: 0;
-          z-index: ($zindex-dropdown + 10);
-          text-transform: uppercase;
-        }
       }
     }
 
@@ -141,66 +124,22 @@ header {
       padding: 8px 0 8px 8px;
       height: inherit;
 
-      .tab-controls {
-        position: absolute;
-        top: 0;
-        left: 0;
-        padding: 7px;
-      }
-
       #scenarios-drop-down-region {
         .dropdown-menu {
           z-index: ($zindex-dropdown + 10);
         }
-      }
-
-      .scenario-tabs-wrapper {
-        position: absolute;
-        top: 0;
-        left: 70px;
-        height: $height-lg;
-        width: 5000px;
-
-        .nav-tabs a.tab-name[contenteditable=true] span {
-            border: 1px solid maroon;
-        }
-
-        .scenario-btn-dropdown {
-          position: absolute;
-          top: 0.5rem;
-          right: 0;
-          z-index: 200;
-        }
-      }
-
-      .fade-tabs {
-        position: absolute;
-        top: 0;
-        right: 85px;
-        height: $height-lg;
-        width: 10px;
-        z-index: 200;
-        background: linear-gradient(90deg,rgba(0,0,0,0),$ui-secondary);
-      }
-
-      .compare-top-btn {
-        position: absolute;
-        top: 0;
-        right: 0;
-        display: block;
-        z-index: 200;
       }
     }
   }
 
   .toolbar {
     position: absolute;
-    top: $height-lg;
+    top: $height-xl;
     left: 0;
     right: 0;
-    padding: 0.7rem;
-    background-color: #D0D0D0;
-    height: $toolbar-height;
+    padding: 0.15rem 0.7rem;
+    background-color: $ui-light;
+    height: $height-xl;
 
     #gwlfe-modifications-bar, #gwlfe-modifications-popup {
       padding: 5px;

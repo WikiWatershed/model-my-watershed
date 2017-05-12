@@ -22,20 +22,22 @@ var _ = require('lodash'),
     router = require('../router').router,
     modelingHeaderTmpl = require('./templates/modelingHeader.html'),
     scenariosBarTmpl = require('./templates/scenariosBar.html'),
-    scenarioTabPanelTmpl = require('./templates/scenarioTabPanel.html'),
+    scenariosBarButtonsTmpl = require('./templates/scenariosBarButtons.html'),
     scenarioMenuTmpl = require('./templates/scenarioMenu.html'),
     scenarioMenuItemTmpl = require('./templates/scenarioMenuItem.html'),
+    scenarioMenuItemMoreOptionsTmpl = require('./templates/scenarioMenuItemMoreOptions.html'),
     projectMenuTmpl = require('./templates/projectMenu.html'),
-    scenarioToolbarTabContentsTmpl = require('./templates/scenarioToolbarTabContents.html'),
-    tr55ScenarioToolbarTabContentTmpl = require('./templates/tr55ScenarioToolbarTabContent.html'),
-    gwlfeScenarioToolbarTabContentTmpl = require('./templates/gwlfeScenarioToolbarTabContent.html'),
+    scenarioAddChangesButtonTmpl = require('./templates/scenarioAddChangesButton.html'),
+    tr55ScenarioToolbarTmpl = require('./templates/tr55ScenarioToolbar.html'),
+    gwlfeScenarioToolbarTmpl = require('./templates/gwlfeScenarioToolbar.html'),
     tr55RunoffViews = require('./tr55/runoff/views.js'),
     tr55QualityViews = require('./tr55/quality/views.js'),
     gwlfeRunoffViews = require('./gwlfe/runoff/views.js'),
     gwlfeQualityViews = require('./gwlfe/quality/views.js');
 
 var ENTER_KEYCODE = 13,
-    ESCAPE_KEYCODE = 27;
+    ESCAPE_KEYCODE = 27,
+    SPACE_KEYCODE = 32;
 
 // The entire modeling header.
 var ModelingHeaderView = Marionette.LayoutView.extend({
@@ -72,7 +74,7 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
 
         this.toolbarRegion.empty();
         App.currentProject.fetchGisDataIfNeeded().done(function() {
-            self.toolbarRegion.show(new ToolbarTabContentsView({
+            self.toolbarRegion.show(new ScenarioToolbarView({
                 collection: self.model.get('scenarios'),
                 model_package: self.model.get('model_package')
             }));
@@ -98,6 +100,7 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
 // The drop down containing the project name
 // and projects options drop down.
 var ProjectMenuView = Marionette.ItemView.extend({
+    className: 'project',
     ui: {
         rename: '#rename-project',
         share: '#share-project',
@@ -266,54 +269,23 @@ var ProjectMenuView = Marionette.ItemView.extend({
     }
 });
 
-// The toolbar containing the scenario tabs,
-// scenario drop down menu, and the add
-// scenario button.
-var ScenariosView = Marionette.LayoutView.extend({
+var ScenarioButtonsView = Marionette.ItemView.extend({
+    template: scenariosBarButtonsTmpl,
     collection: models.ScenariosCollection,
-    template: scenariosBarTmpl,
-
-    initialize: function(options) {
-        this.projectModel = options.projectModel;
-    },
-
-    templateHelpers: function() {
-        // Check the first scenario in the collection as a proxy for the
-        // entire collection.
-        var scenario = this.collection.first(),
-            showCompare = App.currentProject.get('model_package') === models.TR55_PACKAGE,
-            compareUrl = this.projectModel.getCompareUrl();
-
-        return {
-            editable: isEditable(scenario),
-            showCompare: showCompare,
-            compareUrl: compareUrl
-        };
+    collectionEvents: {
+        'change:active': 'render',
     },
 
     ui: {
         addScenario: '#add-scenario',
-        tab: '[data-toggle="tab"]'
     },
 
     events: {
         'click @ui.addScenario': 'addScenario',
-        'click @ui.tab': 'onScenarioTabClicked'
     },
 
-    regions: {
-        dropDownRegion: '#scenarios-drop-down-region',
-        panelsRegion: '#scenarios-tab-panel-region'
-    },
-
-    onShow: function() {
-        this.panelsRegion.show(new ScenarioTabPanelsView({
-            collection: this.collection
-        }));
-
-        this.dropDownRegion.show(new ScenarioDropDownMenuView({
-            collection: this.collection
-        }));
+    initialize: function(options) {
+        this.projectModel = options.projectModel;
     },
 
     addScenario: function() {
@@ -327,71 +299,143 @@ var ScenariosView = Marionette.LayoutView.extend({
         }
     },
 
-    onScenarioTabClicked: function(e) {
-        var $el = $(e.currentTarget),
-            cid = $el.data('scenario-cid');
+    templateHelpers: function() {
+        // Check the first scenario in the collection as a proxy for the
+        // entire collection.
+        var scenario = this.collection.first(),
+            isOnlyCurrentConditions = this.collection.length === 1,
+            showCompare = App.currentProject.get('model_package') === models.TR55_PACKAGE &&
+                !isOnlyCurrentConditions,
+            compareUrl = this.projectModel.getCompareUrl();
 
-        this.collection.setActiveScenarioByCid(cid);
+        return {
+            isOnlyCurrentConditions: isOnlyCurrentConditions,
+            editable: isEditable(scenario),
+            showCompare: showCompare,
+            compareUrl: compareUrl
+        };
     },
 });
 
-// A scenario tab.
-var ScenarioTabPanelView = Marionette.ItemView.extend({
+// The toolbar containing the scenario drop down menu region, and
+// the scenario button region (add scenario and go to compare view)
+var ScenariosView = Marionette.LayoutView.extend({
+    collection: models.ScenariosCollection,
+    template: scenariosBarTmpl,
+    className: 'inline',
+
+    initialize: function(options) {
+        this.options = options;
+    },
+
+    regions: {
+        dropDownRegion: '#scenarios-drop-down-region',
+        buttonRegion: '#scenarios-button-region',
+    },
+
+    onShow: function() {
+        this.dropDownRegion.show(new ScenarioDropDownMenuView({
+            collection: this.collection
+        }));
+        this.buttonRegion.show(new ScenarioButtonsView({
+            collection: this.collection,
+            projectModel: this.options.projectModel,
+        }));
+    },
+});
+
+// Additional action options to appear in the scenario dropdown menu item
+var ScenarioDropDownMenuMoreOptionsView = Marionette.ItemView.extend({
+    model: models.ScenarioModel,
+    template: scenarioMenuItemMoreOptionsTmpl,
+    className: "more-options",
+    ui: {
+        share: '[data-action="share"]',
+        duplicate: '[data-action="duplicate"]',
+    },
+    events: {
+        'click @ui.share': 'showShareModal',
+        'click @ui.duplicate': 'duplicateScenario',
+    },
+
+    showShareModal: function() {
+        var share = new modalViews.ShareView({
+                model: new modalModels.ShareModel({
+                    text: 'Scenario',
+                    url: window.location.href,
+                    guest: App.user.get('guest'),
+                    is_private: App.currentProject.get('is_private')
+                }),
+                app: App,
+            });
+
+        share.render();
+    },
+
+    duplicateScenario: function() {
+        this.model.collection.duplicateScenario(this.model.cid);
+    },
+
+    templateHelpers: function() {
+        return {
+            is_new: this.model.isNew()
+        };
+    },
+});
+
+// The menu item for a scenario in the scenario drop down menu.
+var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
     model: models.ScenarioModel,
     tagName: 'li',
-    template: scenarioTabPanelTmpl,
+    template: scenarioMenuItemTmpl,
+    regions: {
+        'moreOptions': '.more-options-region',
+    },
     attributes: {
         role: 'presentation'
     },
 
     modelEvents: {
-        'change': 'render'
-    },
-
-    templateHelpers: function() {
-        var gis_data = this.model.getGisData().model_input,
-            gwlfe = App.currentProject.get('model_package') === models.GWLFE &&
-                    gis_data !== null &&
-                    gis_data !== '{}' &&
-                    gis_data !== '';
-
-        return {
-            gwlfe: gwlfe,
-            csrftoken: csrf.getToken(),
-            gis_data: gis_data,
-            cid: this.model.cid,
-            editable: isEditable(this.model),
-            is_new: this.model.isNew()
-        };
-    },
-
-    onRender: function() {
-        this.$el.toggleClass('active', this.model.get('active'));
+        'change': 'render',
     },
 
     ui: {
-        share: '[data-action="share"]',
+        selectScenario: '[data-action="select"]',
         destroyConfirm: '[data-action="delete"]',
         rename: '[data-action="rename"]',
-        print: '[data-action="print"]',
-        duplicate: '[data-action="duplicate"]',
         exportGms: '[data-action="export-gms"]',
         exportGmsForm: '#export-gms-form',
-        nameField: '.tab-name'
+        nameField: '#scenario-name',
+        showMore: '[data-action="show-more"]',
     },
 
     events: {
+        'click @ui.selectScenario': 'selectScenario',
         'click @ui.rename': 'renameScenario',
         'click @ui.destroyConfirm': 'destroyConfirm',
-        'click @ui.share': 'showShareModal',
-        'click @ui.print': function() {
-            window.print();
-        },
-        'click @ui.duplicate': 'duplicateScenario',
         'click @ui.exportGms': 'downloadGmsFile',
+        'click @ui.showMore': 'toggleMoreOptions',
     },
 
-    renameScenario: function() {
+    toggleMoreOptions: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.moreOptions.hasView()) {
+            this.moreOptions.empty();
+        } else {
+            this.moreOptions.show(new ScenarioDropDownMenuMoreOptionsView({
+                model: this.model,
+            }));
+        }
+    },
+
+    selectScenario: function(e) {
+        e.preventDefault();
+        this.model.collection.setActiveScenario(this.model);
+    },
+
+    renameScenario: function(e) {
+        e.preventDefault();
         var self = this,
             updateScenarioName = function(model, newName) {
                 newName = newName.trim();
@@ -425,7 +469,7 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
                 }
             },
 
-            selectScenarioTabText = function() {
+            selectScenarioNameText = function() {
                 // Select scenario name's text
                 var range = document.createRange(),
                     selection = window.getSelection();
@@ -434,13 +478,25 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
                 selection.addRange(range);
             };
 
-        selectScenarioTabText();
+        selectScenarioNameText();
+        e.stopImmediatePropagation();
+
         this.ui.nameField.attr('contenteditable', true).focus();
 
         this.ui.nameField.on('keyup', function(e) {
             // Cancel on escape key.
             if (e.keyCode === ESCAPE_KEYCODE) {
                 self.render();
+            }
+        });
+
+        this.ui.nameField.on('keydown', function(e) {
+            var keycode = (e.keyCode ? e.keyCode : e.which);
+            if (keycode === SPACE_KEYCODE) {
+                // bootstrap dropdown prevents space from getting entered into
+                // text
+                e.stopImmediatePropagation();
+                e.stopPropagation();
             }
         });
 
@@ -465,7 +521,9 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
         });
     },
 
-    destroyConfirm: function() {
+    destroyConfirm: function(e) {
+        e.preventDefault();
+
         var self = this,
             del = new modalViews.ConfirmView({
                 model: new modalModels.ConfirmModel({
@@ -478,27 +536,9 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
         del.render();
 
         del.on('confirmation', function() {
-            self.triggerMethod('tab:removed', self.model.cid);
-            self.model.destroy();
+            var modelIndex = self.model.collection.indexOf(self.model);
+            self.model.collection.remove(self.model, modelIndex);
         });
-    },
-
-    showShareModal: function() {
-        var share = new modalViews.ShareView({
-                model: new modalModels.ShareModel({
-                    text: 'Scenario',
-                    url: window.location.href,
-                    guest: App.user.get('guest'),
-                    is_private: App.currentProject.get('is_private')
-                }),
-                app: App
-            });
-
-        share.render();
-    },
-
-    duplicateScenario: function() {
-        this.model.collection.duplicateScenario(this.model.cid);
     },
 
     downloadGmsFile: function() {
@@ -510,52 +550,23 @@ var ScenarioTabPanelView = Marionette.ItemView.extend({
 
         this.ui.exportGmsForm.find('.gms-filename').val(filename);
         this.ui.exportGmsForm.submit();
-    }
-});
-
-// The tabs used to select a scenario.
-var ScenarioTabPanelsView = Marionette.CollectionView.extend({
-    collection: models.ScenariosCollection,
-    tagName: 'ul',
-    className: 'nav nav-tabs',
-    attributes: {
-        role: 'tablist'
     },
 
-    childView: ScenarioTabPanelView,
-
-    collectionEvents: {
-        'change': 'render'
-    },
-
-    childEvents: {
-        'tab:removed': function(view, cid) {
-            var modelIndex = _.findIndex(this.collection.models, function(model) {
-                    return model.cid === cid;
-                }),
-                newCid = this.collection.models[modelIndex - 1].cid;
-
-            this.collection.setActiveScenarioByCid(newCid);
-       }
-    }
-});
-
-// The menu item for a scenario in the scenario drop down menu.
-var ScenarioDropDownMenuItemView = Marionette.ItemView.extend({
-    model: models.ScenarioModel,
-    tagName: 'li',
-    template: scenarioMenuItemTmpl,
-    attributes: {
-        role: 'presentation'
-    },
     templateHelpers: function() {
-        return {
-            cid: this.model.cid
-        };
-    },
-    modelEvents: {
-        'change': 'render'
-    }
+            var gis_data = this.model.getGisData().model_input,
+                is_gwlfe = App.currentProject.get('model_package') === models.GWLFE &&
+                        gis_data !== null &&
+                        gis_data !== '{}' &&
+                        gis_data !== '';
+
+            return {
+                is_gwlfe: is_gwlfe,
+                csrftoken: csrf.getToken(),
+                gis_data: gis_data,
+                editable: isEditable(this.model),
+                is_new: this.model.isNew(),
+            };
+        },
 });
 
 // The menu next to the scenario tabs that is used to select a
@@ -566,28 +577,33 @@ var ScenarioDropDownMenuView = Marionette.CompositeView.extend({
     childView: ScenarioDropDownMenuItemView,
     childViewContainer: 'ul',
 
-    ui: {
-        menuItem: 'ul li a'
+    collectionEvents: {
+        'change:active change:name': 'render',
+        'remove': 'onChildRemoved',
     },
 
-    events: {
-        'click @ui.menuItem': 'onMenuItemClick'
-    },
+    onChildRemoved: function(model, _, modelIndex) {
+        if (model.get('active')) {
+            var newCid = this.collection.at(modelIndex - 1).cid;
+            this.collection.setActiveScenarioByCid(newCid);
+        }
+        model.destroy();
+        this.render();
+   },
 
-    onMenuItemClick: function(e) {
-        e.preventDefault();
-
-        var $el = $(e.currentTarget),
-            cid = $el.data('scenario-cid');
-
-        this.collection.setActiveScenarioByCid(cid);
+    templateHelpers: function() {
+        var activeScenario = this.collection.findWhere({ active: true });
+        return {
+            name: activeScenario && activeScenario.get('name'),
+            hasNoScenarios: this.collection.length <= 1,
+        };
     }
 });
 
 // The toolbar that contains the modification and input tools
 // for a scenario.
-var ToolbarTabContentView = Marionette.CompositeView.extend({
-    template: tr55ScenarioToolbarTabContentTmpl,
+var ScenarioModelToolbarView = Marionette.CompositeView.extend({
+    template: tr55ScenarioToolbarTmpl,
     model: models.ScenarioModel,
     collection: models.ModelPackageControlsCollection,
     childViewContainer: '.controls',
@@ -659,8 +675,8 @@ var ToolbarTabContentView = Marionette.CompositeView.extend({
 
 // The toolbar that contains the modification and input tools
 // for a scenario.
-var Tr55ToolbarTabContentView = ToolbarTabContentView.extend({
-    template: tr55ScenarioToolbarTabContentTmpl,
+var Tr55ToolbarView = ScenarioModelToolbarView.extend({
+    template: tr55ScenarioToolbarTmpl,
     model: models.ScenarioModel,
 
     ui: {
@@ -695,8 +711,8 @@ var Tr55ToolbarTabContentView = ToolbarTabContentView.extend({
 
 // The toolbar that contains the modification and input tools
 // for a scenario.
-var GwlfeToolbarTabContentView = ToolbarTabContentView.extend({
-    template: gwlfeScenarioToolbarTabContentTmpl,
+var GwlfeToolbarView = ScenarioModelToolbarView.extend({
+    template: gwlfeScenarioToolbarTmpl,
 
     model: models.ScenarioModel,
 
@@ -715,10 +731,10 @@ var GwlfeToolbarTabContentView = ToolbarTabContentView.extend({
     modelEvents: _.defaults({
         'change:activeModKey': 'render',
         'change:modifications': 'render'
-    }, ToolbarTabContentView.prototype.modelEvents),
+    }, ScenarioModelToolbarView.prototype.modelEvents),
 
     initialize: function(options) {
-        ToolbarTabContentView.prototype.initialize.apply(this, [options]);
+        ScenarioModelToolbarView.prototype.initialize.apply(this, [options]);
 
         var self = this;
         function closePopupOnOutsideClick(e) {
@@ -740,7 +756,7 @@ var GwlfeToolbarTabContentView = ToolbarTabContentView.extend({
     },
 
     onRender: function() {
-        ToolbarTabContentView.prototype.onRender.apply(this);
+        ScenarioModelToolbarView.prototype.onRender.apply(this);
         this.setupTooltips();
     },
 
@@ -795,8 +811,8 @@ var GwlfeToolbarTabContentView = ToolbarTabContentView.extend({
 
 // The collection of modification and input toolbars for each
 // scenario.
-var ToolbarTabContentsView = Marionette.CompositeView.extend({
-    template: scenarioToolbarTabContentsTmpl,
+var ScenarioToolbarView = Marionette.CompositeView.extend({
+    template: scenarioAddChangesButtonTmpl,
     collection: models.ScenariosCollection,
     className: 'tab-content',
 
@@ -815,9 +831,9 @@ var ToolbarTabContentsView = Marionette.CompositeView.extend({
     getChildView: function() {
         var isGwlfe = App.currentProject.get('model_package') === 'gwlfe';
         if (isGwlfe) {
-            return GwlfeToolbarTabContentView;
+            return GwlfeToolbarView;
         } else {
-            return Tr55ToolbarTabContentView;
+            return Tr55ToolbarView;
         }
     },
     childViewOptions: function(model) {
@@ -841,7 +857,7 @@ var ToolbarTabContentsView = Marionette.CompositeView.extend({
 
     templateHelpers: function() {
         return {
-            hasNoScenarios: this.collection.length === 1 &&
+            isOnlyCurrentConditions: this.collection.length === 1 &&
                 this.collection.first().get('is_current_conditions'),
         };
     }
@@ -1116,9 +1132,11 @@ module.exports = {
     ResultsView: ResultsView,
     ModelingHeaderView: ModelingHeaderView,
     ScenariosView: ScenariosView,
-    ScenarioTabPanelsView: ScenarioTabPanelsView,
+    ScenarioButtonsView: ScenarioButtonsView,
     ScenarioDropDownMenuView: ScenarioDropDownMenuView,
-    Tr55ToolbarTabContentView: Tr55ToolbarTabContentView,
+    ScenarioDropDownMenuItemView: ScenarioDropDownMenuItemView,
+    ScenarioToolbarView: ScenarioToolbarView,
+    Tr55ToolbarView: Tr55ToolbarView,
     ProjectMenuView: ProjectMenuView,
     getResultView: getResultView
 };
