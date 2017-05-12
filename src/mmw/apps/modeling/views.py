@@ -26,7 +26,7 @@ from retry import retry
 
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
-from apps.modeling import tasks
+from apps.modeling import tasks, geoprocessing
 from apps.modeling.mapshed.tasks import (geop_tasks, collect_data, combine,
                                          geop_task)
 from apps.modeling.models import Project, Scenario
@@ -474,27 +474,30 @@ def _construct_tr55_job_chain(model_input, job_id):
         job_chain.append(tasks.run_tr55.s(censuses, model_input)
                          .set(exchange=exchange, routing_key=choose_worker()))
     else:
-        job_chain.append(tasks.get_histogram_job_results.s()
+        job_chain.append(geoprocessing.finish.s()
                          .set(exchange=exchange, routing_key=routing_key))
-        job_chain.append(tasks.histograms_to_censuses.s()
-                         .set(exchange=exchange, routing_key=routing_key))
+        job_chain.append(tasks.nlcd_soil_census.s()
+                         .set(exchange=exchange, routing_key=choose_worker()))
 
         if aoi_census and pieces:
             polygons = [m['shape']['geometry'] for m in pieces]
+            geop_input = {'polygon': [json.dumps(p) for p in polygons]}
 
-            job_chain.insert(0, tasks.start_histograms_job.s(polygons)
+            job_chain.insert(0, geoprocessing.start.s('nlcd_soil_census',
+                                                      geop_input)
                              .set(exchange=exchange, routing_key=routing_key))
-            job_chain.insert(len(job_chain),
-                             tasks.run_tr55.s(model_input,
+            job_chain.append(tasks.run_tr55.s(model_input,
                                               cached_aoi_census=aoi_census)
                              .set(exchange=exchange,
                                   routing_key=choose_worker()))
         else:
             polygons = [aoi] + [m['shape']['geometry'] for m in pieces]
+            geop_input = {'polygon': [json.dumps(p) for p in polygons]}
 
-            job_chain.insert(0, tasks.start_histograms_job.s(polygons)
+            job_chain.insert(0, geoprocessing.start.s('nlcd_soil_census',
+                                                      geop_input)
                              .set(exchange=exchange, routing_key=routing_key))
-            job_chain.insert(len(job_chain), tasks.run_tr55.s(model_input)
+            job_chain.append(tasks.run_tr55.s(model_input)
                              .set(exchange=exchange,
                                   routing_key=choose_worker()))
 

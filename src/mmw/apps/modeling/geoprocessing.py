@@ -271,11 +271,6 @@ def histogram_to_x(data, nucleus, update_rule, after_rule):
     return retval
 
 
-@statsd.timer(__name__ + '.data_to_censuses')
-def data_to_censuses(data):
-    return [data_to_census(subdata) for subdata in data]
-
-
 def data_to_census(data):
     """
     Turn raw data from Geotrellis into a census.

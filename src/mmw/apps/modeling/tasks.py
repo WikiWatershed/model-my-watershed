@@ -8,12 +8,15 @@ import logging
 import json
 import requests
 
+from ast import literal_eval as make_tuple
+
 from StringIO import StringIO
 
 from celery import shared_task
 
 from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
     data_to_survey, data_to_census, data_to_censuses
+from django.conf import settings
 
 from apps.modeling.calcs import (animal_population,
                                  point_source_pollution,
@@ -90,25 +93,6 @@ def start_histogram_job(self, json_polygon):
 
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=42)
-def start_histograms_job(self, polygons):
-    """ Calls the histogram_start function to
-    kick off the SJS job to generate a histogram
-    of the provided polygons (i.e. AoI + modifications,
-    or just modifications).
-    Returns the id of the job so we can poll later
-    for the results. pixel_width is None because the
-    results are eventually provided to TR-55 and areas
-    do not need to be calculated.
-    """
-    json_polygons = [json.dumps(p) for p in polygons]
-
-    return {
-        'pixel_width': None,
-        'sjs_job_id': histogram_start(json_polygons, self.retry)
-    }
-
-
-@shared_task(bind=True, default_retry_delay=1, max_retries=42)
 def get_histogram_job_results(self, incoming):
     """ Calls a function that polls SJS for the results
     of the given Job. Self here is Celery.
@@ -135,18 +119,6 @@ def histogram_to_survey_census(incoming):
     convert_result_areas(pixel_width, survey)
 
     return {'survey': survey, 'census': census}
-
-
-@shared_task
-def histograms_to_censuses(incoming):
-    """
-    Converts the histogram results to censuses,
-    which are provided to TR-55.
-    """
-    data = incoming['histogram']
-    results = data_to_censuses(data)
-
-    return results
 
 
 @shared_task
@@ -370,3 +342,31 @@ def to_gms_file(mapshed_data):
     output.seek(0)
 
     return output
+
+
+@shared_task(throws=Exception)
+def nlcd_soil_census(result):
+    if 'error' in result:
+        raise Exception('[nlcd_soil_census] {}'.format(result['error']))
+
+    dist = {}
+    total_count = 0
+
+    for key, count in result.iteritems():
+        # Extract (3, 4) from "List(3,4)"
+        (n, s) = make_tuple(key[4:])
+        # Only count those values for which we have mappings
+        if n in settings.NLCD_MAPPING and s in settings.SOIL_MAPPING:
+            total_count += count
+            # Map [NODATA, ad, bd] to c, [cd] to d
+            s2 = 3 if s in [settings.NODATA, 5, 6] else 4 if s == 7 else s
+            label = '{soil}:{nlcd}'.format(soil=settings.SOIL_MAPPING[s2][0],
+                                           nlcd=settings.NLCD_MAPPING[n][0])
+            dist[label] = {'cell_count': (
+                count + (dist[label]['cell_count'] if label in dist else 0)
+            )}
+
+    return [{
+        'cell_count': total_count,
+        'distribution': dist,
+    }]
