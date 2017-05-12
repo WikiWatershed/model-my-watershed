@@ -41,7 +41,9 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
         if (aoi && !result && self.fetchAnalysisPromise === undefined) {
             var promises = self.start({
                 postData: {
-                    'area_of_interest': JSON.stringify(aoi)
+                    'analyze_input': JSON.stringify({
+                        'area_of_interest': aoi
+                    })
                 }
             });
             self.fetchAnalysisPromise = $.when(promises.startPromise,
