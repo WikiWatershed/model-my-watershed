@@ -8,7 +8,6 @@ import logging
 import json
 import requests
 
-from math import sqrt
 from StringIO import StringIO
 
 from celery import shared_task
@@ -19,6 +18,8 @@ from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
 from apps.modeling.calcs import (animal_population,
                                  point_source_pollution,
                                  catchment_water_quality)
+
+from apps.modeling.geoprocessing import to_one_ring_multipolygon
 
 from tr55.model import simulate_day
 from gwlfe import gwlfe, parser
@@ -168,23 +169,6 @@ def analyze_catchment_water_quality(area_of_interest):
     return {'survey': [catchment_water_quality(area_of_interest)]}
 
 
-def parse_single_ring_multipolygon(area_of_interest):
-    """
-    Given a multipolygon comprising just a single ring structured in a
-    five-dimensional array, remove one level of nesting and make the AOI's
-    coordinates a four-dimensional array. Otherwise, no op.
-    """
-
-    if type(area_of_interest['coordinates'][0][0][0][0]) is list:
-        multipolygon_shapes = area_of_interest['coordinates'][0]
-        if len(multipolygon_shapes) > 1:
-            raise Exception('Unable to parse multi-ring RWD multipolygon')
-        else:
-            area_of_interest['coordinates'] = multipolygon_shapes
-
-    return area_of_interest
-
-
 def aoi_resolution(area_of_interest):
     pairs = area_of_interest['coordinates'][0][0]
 
@@ -265,7 +249,7 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
 
     # Normalize AOI to handle single-ring multipolygon
     # inputs sent from RWD as well as shapes sent from the front-end
-    aoi = parse_single_ring_multipolygon(model_input.get('area_of_interest'))
+    aoi = to_one_ring_multipolygon(model_input.get('area_of_interest'))
 
     width = aoi_resolution(aoi)
     resolution = width * width

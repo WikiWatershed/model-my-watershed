@@ -7,11 +7,103 @@ from ast import literal_eval as make_tuple
 
 from django.conf import settings
 from django_statsd.clients import statsd
-from celery.exceptions import MaxRetriesExceededError
+from celery import shared_task
+from celery.exceptions import MaxRetriesExceededError, Retry
 from requests.exceptions import ConnectionError
 
 import requests
 import json
+
+
+@shared_task(bind=True, default_retry_delay=1, max_retries=42)
+def start(self, opname, input_data):
+    """
+    Start a geoproessing operation.
+
+    Given an operation name and a dictionary of input data, looks up the
+    operation from the list of supported operations in settings.GEOP['json'],
+    combines it with input data, and submits it to Spark JobServer.
+
+    This task must always be succeeded by `finish` below.
+
+    All errors are passed along and not raised here, so that error handling can
+    be attached to the final task in the chain, without needing to be attached
+    to every task.
+
+    :param opname: Name of operation. Must exist in settings.GEOP['json']
+    :param input_data: Dictionary of values to extend base operation JSON with
+    :return: Dictionary containing either job_id if successful, error if not
+    """
+    if opname not in settings.GEOP['json']:
+        return {
+            'error': 'Unsupported operation {}'.format(opname)
+        }
+
+    if not input_data:
+        return {
+            'error': 'Input data cannot be empty'
+        }
+
+    data = settings.GEOP['json'][opname].copy()
+    data['input'].update(input_data)
+
+    try:
+        return {
+            'job_id': sjs_submit(data, retry=self.retry)
+        }
+    except Retry as r:
+        raise r
+    except Exception as x:
+        return {
+            'error': x.message
+        }
+
+
+@shared_task(bind=True, default_retry_delay=1, max_retries=42)
+def finish(self, incoming):
+    """
+    Retrieves results of geoprocessing.
+
+    To be used immediately after the `start` task, this takes the incoming
+    data and inspects it to see if there are any reported errors. If found,
+    the errors are passed through to the next task. Otherwise, the incoming
+    parameters are used to retrieve the job from Spark JobServer, and those
+    results are returned.
+
+    This task must always be preceeded by `start` above. The succeeding task
+    must take the raw JSON values and process them into information. The JSON
+    output will look like:
+
+        {
+            'List(1,2)': 3,
+            'List(4,5)': 6
+        }
+
+    where the values and number of items depend on the input.
+
+    All errors are passed along and not raised here, so that error handling can
+    be attached to the final task in the chain, without needing to be attached
+    to every task.
+
+    :param incoming: Dictionary containing job_id or error
+    :return: Dictionary of Spark JobServer results, or error
+    """
+    if 'error' in incoming:
+        return incoming
+
+    try:
+        return sjs_retrieve(retry=self.retry, **incoming)
+    except Retry as r:
+        # Celery throws a Retry exception when self.retry is called to stop
+        # the execution of any further code, and to indicate to the worker
+        # that the same task is going to be retried.
+        # We capture and re-raise Retry to continue this behavior, and ensure
+        # that it doesn't get passed to the next task like every other error.
+        raise r
+    except Exception as x:
+        return {
+            'error': x.message
+        }
 
 
 @statsd.timer(__name__ + '.sjs_submit')
@@ -289,3 +381,44 @@ def data_to_survey(data):
     ]
 
     return histogram_to_x(data, nucleus, update_rule, after_rule)
+
+
+def parse(sjs_result):
+    """
+    Converts raw JSON results from Spark JobServer to dictionary of tuples
+
+    If the input is this:
+
+        {
+            'List(1,2)': 3,
+            'List(4,5)': 6
+        }
+
+    The output will be:
+
+        {
+            (1, 2): 3,
+            (4, 5): 6
+        }
+
+    :param sjs_result: Dictionary mapping strings like 'List(a,b,c)' to ints
+    :return: Dictionary mapping tuples of ints to ints
+    """
+    return {make_tuple(key[4:]): val for key, val in sjs_result.items()}
+
+
+def to_one_ring_multipolygon(area_of_interest):
+    """
+    Given a multipolygon comprising just a single ring structured in a
+    five-dimensional array, remove one level of nesting and make the AOI's
+    coordinates a four-dimensional array. Otherwise, no op.
+    """
+
+    if type(area_of_interest['coordinates'][0][0][0][0]) is list:
+        multipolygon_shapes = area_of_interest['coordinates'][0]
+        if len(multipolygon_shapes) > 1:
+            raise Exception('Unable to parse multi-ring RWD multipolygon')
+        else:
+            area_of_interest['coordinates'] = multipolygon_shapes
+
+    return area_of_interest
