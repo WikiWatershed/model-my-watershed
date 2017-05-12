@@ -140,25 +140,6 @@
   }
 }
 
-.btn-model {
-  margin: 8px 0 0 16px;
-  width: 200px;
-  margin: 0;
-  border-radius: 0;
-  border: 0;
-  padding-top: 0;
-  text-align: center;
-  height: 36px;
-  line-height: 36px;
-  font-size: 15px;
-  top: 10px;
-  background-color: $black-12 !important;
-  color: $black-39 !important;
-  &:hover, &:focus {
-    color: $black-39 !important;
-  }
-}
-
 .btn-scenario {
   color: $ui-primary;
   i {
@@ -194,6 +175,18 @@
   border: solid 1px darken($ui-light, 10%);
 }
 
-.btn-go-to-data-catalog > .fa-arrow-right {
+// Buttons in Analyze stage
+#change-area-button {
+    margin-right: 10px;
+}
+
+#change-area-button,
+.select-model-button,
+.go-to-data-catalog-button {
+    width: 100%;
+    height: 46px;
+}
+
+.go-to-data-catalog-button > .fa-arrow-right {
     margin-left: 0.25rem;
 }

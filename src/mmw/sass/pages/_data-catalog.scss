@@ -1,11 +1,8 @@
 .data-catalog-window {
     width: $wide-sidebar-width;
     padding: 1rem;
-    position: absolute;
-    right: 0;
     transition: all 200ms;
-    top: 44px;
-    bottom: 0px;
+    position: absolute;
     overflow-y: auto;
     background-color: $ui-light;
 }

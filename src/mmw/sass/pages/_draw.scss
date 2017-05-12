@@ -1,9 +1,11 @@
 #draw-window,
 #splash-window {
-  width: 460px;
+  width: $sidebar-width;
   padding: 15px;
   transition: all 200ms;
   overflow-y: auto;
+  position: absolute;
+  height: calc(100% - #{$height-lg});
   & > h1, & > h2 {
     font-size: $temp-h1;
     font-weight: 800;
@@ -13,9 +15,6 @@
     margin: 10px 0;
   }
   padding-top: 30px;
-  @media(min-width: 1040px) {
-    width: 400px;
-  }
   #get-started {
     font-size: $temp-h3;
   }
@@ -59,8 +58,9 @@
   & .draw-tool-button {
     background-color: #d4d7d8;
     padding: 0.1rem 0.6rem;
-    margin-bottom: 8px;
+    margin-top: 8px;
     &.-hasselection {
+        margin-bottom: 0px;
         border-bottom-left-radius: 0px;
         border-bottom-right-radius: 0px;
     }
@@ -68,16 +68,17 @@
 
   & .reset-draw-button {
     cursor: pointer;
-    margin-right: 0.53rem;
   }
 
   & .draw-tool-selection {
-    padding: 0.5rem 1.0rem;
+    padding: 0.5rem 0.6rem;
     background-color: $brand-primary;
-    margin-bottom: 8px;
+    font-size: $temp-p;
+    color: $paper;
+    font-weight: lighter;
 
     & i {
-      margin-top: 0.25rem;
+      margin-top: 0.1rem;
     }
   }
 
@@ -117,14 +118,14 @@
 
     & .draw-pane-list-item {
       list-style-type: none;
-      margin-top: 0.5rem;
-      margin-bottom: 0.5rem;
-      margin-left: 0.8rem;
       font-size: $temp-h4;
 
       & .draw-pane-list-item-button {
         background: transparent;
-        border: none;
+        display: block;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        padding-left: 0.8rem;
       }
 
       & .draw-pane-list-item-button:disabled {
@@ -142,6 +143,7 @@
 
       & a.help {
         color: #999;
+        padding: 0.5rem 1rem;
 
         &:hover {
           color: inherit;

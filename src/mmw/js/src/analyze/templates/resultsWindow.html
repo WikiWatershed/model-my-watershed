@@ -1,19 +1,13 @@
-<div class="sidebar-tab-header" role="tabpanel">
-    <ul class="nav nav-tabs" role="tablist">
-        <li class="active" role="presentation">
-            <a aria-controls="home" aria-expanded="false"
-               data-toggle="tab" href="#analyze-tab-contents" role="tab">
-                <div> Analyze </div>
-            </a>
-        </li>
-        <li>
-            <div id="next-stage-navigation-region"></div>
-        </li>
-    </ul>
-</div>
-
 <div class="tab-contents-region">
     <div class="tab-content">
-        <div role="tabpanel" id="analyze-tab-contents" class="tab-pane"></div>
+        <div class="aoi-region"></div>
+        <div role="tabpanel" id="analyze-tab-contents"
+            class="tab-pane analyze-stage-results-tab-pane"></div>
     </div>
+</div>
+<div class="navigation-footer">
+    <button id="change-area-button" class="btn btn-lg" type="button" data-url="/draw">
+        Change area
+    </button>
+    <div id="next-stage-navigation-region"></div>
 </div>

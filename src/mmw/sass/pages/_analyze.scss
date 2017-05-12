@@ -5,26 +5,46 @@
 }
 
 #analyze-output-wrapper {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: $footer-height;
   background-color: $paper;
   z-index: 100;
   width: 100%;
 }
 
-.results-content,
-.analyze-layertoggle,
-.analyze-layermessage,
-.aoi-region {
+.results-content {
+    padding-bottom: 1rem;
+}
+
+.aoi-region,
+.navigation-footer {
     padding: 1rem;
 }
 
+.navigation-footer {
+    border-top: 2px solid $ui-light;
+    position: absolute;
+    bottom: 0;
+    height: $height-lg * 2;
+    background: $paper;
+    width: $sidebar-width;
+    display: inline-flex;
+}
+
+#next-stage-navigation-region {
+    display: inline-block;
+    width: 100%;
+}
+
+.navigation-footer > button,
+#next-stage-navigation-region > button {
+    height: 46px;
+}
+
 .aoi-region {
+  height: $aoi-header-height;
+  background-color: $black-06;
   h2 {
     font-size: $temp-h2;
+    line-height: $aoi-header-height / 2;
   }
 }
 
@@ -49,23 +69,29 @@
   font-size: 0.6rem;
 }
 
-.analyze-description {
-  font-size: 14px;
-  padding-top: 5px;
-  font-weight: 600;
+.analyze-title {
+    padding-top: 5px;
+    font-size: $temp-h4;
+    font-weight: 600;
+}
+.analyze-source {
+    padding-bottom: 6px;
+}
+
+.analyze-source,
+.analyze-layertoggle,
+.analyze-layermessage {
+    font-size: 0.7rem;
+    font-weight: lighter;
 }
 
 .layer-region {
-    border-bottom: 2px solid $ui-light;
-    margin-top: -21px;
-    padding-bottom: 6px;
     &:empty {
         padding-top: 18px;
     }
     .analyze-layertoggle, .analyze-layermessage {
-        padding-bottom: 0.5rem;
+        padding-left: 0px;
         border: none;
-        font-size: 0.7rem;
         background: none;
         display: inline;
         text-align: left;

@@ -14,13 +14,9 @@
   // Sets map to correct container size for sidebar.
   &.-sidebar {
     left: $sidebar-width;
-    @media(min-width: 1040px) {
-      left: 485px !important;
-    }
+
     &.-wide {
-        @media(min-width: 1040px) {
-          left: $wide-sidebar-width !important;
-        }
+        left: $wide-sidebar-width !important;
     }
   }
   .compare-scenarios-container & {
@@ -100,7 +96,8 @@
         font-family: "roboto";
        }
        .leaflet-touch & {
-           width: 84px;
+           width: 72px;
+           height: 38px;
        }
     }
 }
@@ -127,8 +124,8 @@
         }
     }
     .leaflet-touch & {
-        height: 44px;
-        width: 44px;
+        height: 38px;
+        width: 38px;
     }
 }
 

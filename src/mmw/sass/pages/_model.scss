@@ -1,18 +1,12 @@
 //Layout
 #model-output-wrapper {
   width: $sidebar-width !important;
-  @media(min-width: 1040px) {
-    width: 485px !important;
-  }
   background-color: $paper;
   z-index: 100;
+  height: 100%;
 
   .disabled {
       text-decoration: none;
-  }
-
-  &.analyze {
-    top: $height-lg;
   }
 
   .title-row {
@@ -59,15 +53,6 @@
       select {
         width: 50%;
       }
-    }
-  }
-
-  .tab-content {
-    overflow-y: auto;
-    padding: 1rem;
-
-    .row {
-      width: 100%;
     }
   }
 }

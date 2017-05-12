@@ -44,7 +44,7 @@ var ModelSelectionDropdownView = Marionette.ItemView.extend({
     template: modelSelectionDropdownTmpl,
 
     ui: {
-        'modelPackageLinks': 'a.model-package',
+        'modelPackageLinks': 'a.analyze-model-package-link',
     },
 
     events: {
@@ -55,7 +55,7 @@ var ModelSelectionDropdownView = Marionette.ItemView.extend({
         e.preventDefault();
 
         var modelPackages = settings.get('model_packages'),
-            modelPackageName = $(e.target).data('id'),
+            modelPackageName = $(e.currentTarget).data('id'),
             modelPackage = lodash.find(modelPackages, {name: modelPackageName}),
             newProjectUrl = '/project/new/' + modelPackageName,
             projectUrl = '/project',
@@ -170,11 +170,13 @@ var ResultsView = Marionette.LayoutView.extend({
     template: resultsWindowTmpl,
 
     regions: {
+        aoiRegion: '.aoi-region',
         analyzeRegion: '#analyze-tab-contents',
         nextStageRegion: '#next-stage-navigation-region',
     },
 
     onShow: function() {
+        this.showAoiRegion();
         this.showDetailsRegion();
         if (settings.get('data_catalog_enabled')) {
             this.showDataSourceButton();
@@ -185,6 +187,15 @@ var ResultsView = Marionette.LayoutView.extend({
 
     onRender: function() {
         this.$el.find('.tab-pane:first').addClass('active');
+    },
+
+    showAoiRegion: function() {
+        this.aoiRegion.show(new AoiView({
+            model: new coreModels.GeoModel({
+                place: App.map.get('areaOfInterestName'),
+                shape: App.map.get('areaOfInterest')
+            })
+        }));
     },
 
     showDetailsRegion: function() {
@@ -201,16 +212,12 @@ var ResultsView = Marionette.LayoutView.extend({
         this.nextStageRegion.show(new ModelSelectionDropdownView());
     },
 
-    transitionInCss: {
-        height: '0%'
-    },
-
     animateIn: function(fitToBounds) {
         var self = this,
             fit = lodash.isUndefined(fitToBounds) ? true : fitToBounds;
 
-        this.$el.animate({ width: '400px' }, 200, function() {
-            App.map.setNoHeaderSidebarSize(fit);
+        this.$el.animate({ width: '400px', opacity: 1 }, 200, function() {
+            App.map.setAnalyzeSize(fit);
             self.trigger('animateIn');
         });
     },
@@ -270,18 +277,10 @@ var TabContentView = Marionette.LayoutView.extend({
         role: 'tabpanel'
     },
     regions: {
-        aoiRegion: '.aoi-region',
         resultRegion: '.result-region'
     },
 
     onShow: function() {
-        this.aoiRegion.show(new AoiView({
-            model: new coreModels.GeoModel({
-                place: App.map.get('areaOfInterestName'),
-                shape: App.map.get('areaOfInterest')
-            })
-        }));
-
         this.showAnalyzingMessage();
 
         this.model.get('taskRunner').fetchAnalysisIfNeeded()
@@ -340,7 +339,7 @@ var TabContentView = Marionette.LayoutView.extend({
 });
 
 var TabContentsView = Marionette.CollectionView.extend({
-    className: 'tab-content analyze',
+    className: 'tab-content',
     childView: TabContentView,
     onRender: function() {
         this.$el.find('.tab-pane:first').addClass('active');
@@ -349,10 +348,6 @@ var TabContentsView = Marionette.CollectionView.extend({
 
 var AoiView = Marionette.ItemView.extend({
     template: aoiHeaderTmpl
-});
-
-var AnalyzeDescriptionView = Marionette.ItemView.extend({
-    template: AnalyzeDescriptionTmpl
 });
 
 var AnalyzeLayerToggleView = Marionette.ItemView.extend({
@@ -478,6 +473,32 @@ var AnalyzeLayerToggleDropdownView = Marionette.ItemView.extend({
                 return layer.get('disabled');
             }),
         };
+    }
+});
+
+var AnalyzeDescriptionView = Marionette.LayoutView.extend({
+    template: AnalyzeDescriptionTmpl,
+    regions: {
+        layerToggleRegion: '.layer-region',
+    },
+
+    onShow: function() {
+        var associatedLayerCodes = this.model.get('associatedLayerCodes');
+        if (associatedLayerCodes) {
+            if (associatedLayerCodes.length === 1) {
+                this.layerToggleRegion.show(new AnalyzeLayerToggleView({
+                    code: _.first(associatedLayerCodes)
+                }));
+            } else {
+                this.layerToggleRegion.show(new AnalyzeLayerToggleDropdownView({
+                    collection: new Backbone.Collection(
+                        _.map(associatedLayerCodes, function(code) {
+                            return App.getLayerTabCollection()
+                                      .findLayerWhere({ code: code });
+                    })),
+                }));
+            }
+        }
     }
 });
 
@@ -828,7 +849,6 @@ var ChartView = Marionette.ItemView.extend({
 var AnalyzeResultView = Marionette.LayoutView.extend({
     template: analyzeResultsTmpl,
     regions: {
-        layerToggleRegion: '.layer-region',
         descriptionRegion: '.desc-region',
         chartRegion: '.chart-region',
         tableRegion: '.table-region'
@@ -888,7 +908,7 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
     },
 
     showAnalyzeResults: function(CategoriesToCensus, AnalyzeTableView,
-        AnalyzeChartView, description, associatedLayerCodes, pageSize) {
+        AnalyzeChartView, title, source, associatedLayerCodes, pageSize) {
         var categories = this.model.get('categories'),
             largestArea = lodash.max(lodash.pluck(categories, 'area')),
             units = utils.magnitudeOfArea(largestArea),
@@ -910,75 +930,67 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
             }));
         }
 
-        if (description) {
+        if (title || associatedLayerCodes || source) {
             this.descriptionRegion.show(new AnalyzeDescriptionView({
                 model: new Backbone.Model({
-                    description: description
+                    title: title,
+                    associatedLayerCodes: associatedLayerCodes,
+                    source: source,
                 })
             }));
-        }
-
-        if (associatedLayerCodes) {
-            if (associatedLayerCodes.length === 1) {
-                this.layerToggleRegion.show(new AnalyzeLayerToggleView({
-                    code: _.first(associatedLayerCodes)
-                }));
-            } else {
-                this.layerToggleRegion.show(new AnalyzeLayerToggleDropdownView({
-                    collection: new Backbone.Collection(_.map(associatedLayerCodes, function(code) {
-                        return App.getLayerTabCollection().findLayerWhere({ code: code });
-                    })),
-                }));
-            }
         }
     }
 });
 
 var LandResultView  = AnalyzeResultView.extend({
     onShow: function() {
-        var desc = 'Land cover distribution from National Land Cover Database (NLCD 2011)',
+        var title = 'Land cover distribution',
+            source = 'National Land Cover Database (NLCD 2011)',
             associatedLayerCodes = ['nlcd'];
         this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView,
-            ChartView, desc, associatedLayerCodes);
+            ChartView, title, source, associatedLayerCodes);
     }
 });
 
 var SoilResultView  = AnalyzeResultView.extend({
     onShow: function() {
-        var desc = 'Hydrologic soil group distribution from USDA (gSSURGO 2016)',
+        var title = 'Hydrologic soil group distribution',
+            source = 'USDA (gSSURGO 2016)',
             associatedLayerCodes = ['soil'];
         this.showAnalyzeResults(coreModels.SoilCensusCollection, TableView,
-            ChartView, desc, associatedLayerCodes);
+            ChartView, title, source, associatedLayerCodes);
     }
 });
 
 var AnimalsResultView = AnalyzeResultView.extend({
     onShow: function() {
-        var desc = 'Estimated number of farm animals',
+        var title = 'Estimated number of farm animals',
             chart = null;
         this.showAnalyzeResults(coreModels.AnimalCensusCollection, AnimalTableView,
-            chart, desc);
+            chart, title);
     }
 });
 
 var PointSourceResultView = AnalyzeResultView.extend({
     onShow: function() {
-        var desc = 'Discharge Monitoring Report annual averages from EPA NPDES',
+        var title = 'Discharge Monitoring Report annual averages',
+            source = 'EPA NPDES',
             associatedLayerCodes = ['pointsource'],
             avgRowHeight = 30,  // Most rows are between 2-3 lines, 12px per line
             minScreenHeight = 768 + 45, // height of landscape iPad + extra content below the table
             pageSize = utils.calculateVisibleRows(minScreenHeight, avgRowHeight, 3),
             chart = null;
         this.showAnalyzeResults(coreModels.PointSourceCensusCollection,
-            PointSourceTableView, chart, desc, associatedLayerCodes, pageSize);
+            PointSourceTableView, chart, title, source, associatedLayerCodes, pageSize);
     }
 });
 
 var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
     onShow: function() {
-        var desc = 'Delaware River Basin only: <a target="_blank" ' +
+        var title = 'Delaware River Basin only: <a target="_blank" ' +
                    'href="https://www.arcgis.com/home/item.html?id=260d7e17039d48a6beee0f0b640eb754">' +
                    'Stream Reach Assessment Tool</a> model estimates',
+            source = null,
             associatedLayerCodes = [
                 'drb_catchment_water_quality_tn',
                 'drb_catchment_water_quality_tp',
@@ -989,7 +1001,8 @@ var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
             pageSize = utils.calculateVisibleRows(minScreenHeight, avgRowHeight, 5),
             chart = null;
         this.showAnalyzeResults(coreModels.CatchmentWaterQualityCensusCollection,
-            CatchmentWaterQualityTableView, chart, desc, associatedLayerCodes, pageSize);
+            CatchmentWaterQualityTableView, chart, title, source, associatedLayerCodes,
+            pageSize);
     }
 });
 

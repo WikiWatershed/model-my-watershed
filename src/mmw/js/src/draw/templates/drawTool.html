@@ -13,11 +13,6 @@
         <ul class="dropdown-menu draw-pane-list">
             {% for item in toolData.items %}
                 <li class="draw-pane-list-item" role="presentation">
-                    <button class="draw-pane-list-item-button" role="button" tabindex="-1"
-                        data-min-zoom="{{ item.minZoom }}"
-                        href="#" id="{{ item.id }}" {{ 'disabled' if currentZoomLevel < item.minZoom }}>
-                    <span>{{ item.title }}</span>
-                    </button>
                     <a class="help pull-right" data-toggle="popover" tabindex="0" data-html="true"
                         data-container="body" role="button" data-content="{{ item.info | safe }}"
                         data-template="<div class='popover'><div class='pull-right'
@@ -25,24 +20,28 @@
                             class='popover-content'></div><div class='arrow'></div></div>">
                         <i class="fa fa-question-circle"></i>
                     </a>
+                    <span class="draw-pane-list-item-button" role="button" tabindex="-1"
+                        data-min-zoom="{{ item.minZoom }}"
+                        href="#" id="{{ item.id }}" {{ 'disabled' if currentZoomLevel < item.minZoom }}>
+                        {{ item.title }}
+                    </span>
                 </li>
                 {% if not loop.last %}
                     <li role="separator" class="divider"></li>
                 {% endif %}
             {% endfor %}
         </ul>
-        {% if activeTitle %}
-            <div class="draw-tool-selection">
-                {{ activeTitle }}: {{ activeDirections }}
-                <i class="fa fa-times pull-right reset-draw-button"></i>
-                {% if polling %}
-                    <i class="fa fa-circle-o-notch pull-right fa-spin"></i>
-                {% endif %}
-                {% if pollError %}
-                    <i class="fa fa-exclamation-triangle pull-right"></i>
-                {% endif %}
-            </div>
-        {% endif %}
     </div>
-
+    {% if activeTitle %}
+        <div class="draw-tool-selection">
+            {{ activeTitle }}: {{ activeDirections }}
+            <i class="fa fa-times pull-right reset-draw-button"></i>
+            {% if polling %}
+                <i class="fa fa-circle-o-notch pull-right fa-spin"></i>
+            {% endif %}
+            {% if pollError %}
+                <i class="fa fa-exclamation-triangle pull-right"></i>
+            {% endif %}
+        </div>
+    {% endif %}
 </div>

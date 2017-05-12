@@ -1,16 +1,24 @@
-<div class="dropdown">
-  <button class="btn btn-model btn-lg btn-active dropdown-toggle" type="button" data-toggle="dropdown">Model this area
-  <span class="caret"></span></button>
-  <ul class="dropdown-menu dropdown-menu-right">
+<div class="dropup">
+  <button class="btn btn-lg btn-active select-model-button" type="button" data-toggle="dropdown">
+      Select a model
+  </button>
+  <ul class="dropdown-menu dropdown-menu-right select-model-dropdown">
+      <h2 class="select-model-dropdown-header">Select a model</h2>
+        <p>
+            This should explain what modeling is. Lorem ipsum dolor sit amet.
+            Arma virumque cano, Troiae qui primus ab oris Italiam, fato profugus,
+            Laviniaque venit litora
+        </p>
     {% for modelPackage in modelPackages %}
-        <li>
+        <li class="select-model-dropdown-menu-item">
             {% if modelPackage.disabled %}
-                <a class="disabled" class="model-package" href="#" data-id="{{ modelPackage.name }}">
+                <a class="disabled" class="analyze-model-package-link" href="#" data-id="{{ modelPackage.name }}">
                     {{ modelPackage.display_name }} (Coming Soon)
                 </a>
             {% else %}
-                <a href="#" class="model-package" data-id="{{ modelPackage.name }}">
-                    {{ modelPackage.display_name }}
+                <a href="#" class="analyze-model-package-link" data-id="{{ modelPackage.name }}">
+                    <div class="analyze-model-name">{{ modelPackage.display_name }}</div>
+                    <p>Lorem ipsum dolor sit amet. Arma virumque cano</p>
                 </a>
             {% endif %}
         </li>
