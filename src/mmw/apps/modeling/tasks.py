@@ -136,7 +136,7 @@ def format_runoff(model_output):
 
 
 @shared_task
-def run_tr55(censuses, model_input, cached_aoi_census=None):
+def run_tr55(censuses, aoi, model_input, cached_aoi_census=None):
     """
     A Celery wrapper around our TR55 implementation.
     censuses is either output from previous tasks in the job
@@ -154,7 +154,7 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
 
     # Normalize AOI to handle single-ring multipolygon
     # inputs sent from RWD as well as shapes sent from the front-end
-    aoi = to_one_ring_multipolygon(model_input.get('area_of_interest'))
+    aoi = to_one_ring_multipolygon(aoi)
 
     width = aoi_resolution(aoi)
     resolution = width * width

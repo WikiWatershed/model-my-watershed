@@ -443,11 +443,13 @@ geop_task_defs = {
 }
 
 
-def geop_task(taskName, geom, exchange, errback, choose_worker):
+def geop_task(taskName, geom, wkaoi, exchange, errback, choose_worker):
     (opname, data, callback) = geop_task_defs[taskName](geom)
     worker = choose_worker()
-    return (start.s(opname, data).set(exchange=exchange, routing_key=worker) |
-            finish.s().set(exchange=exchange, routing_key=worker) |
+    return (start.s(opname, data, wkaoi).set(exchange=exchange,
+                                             routing_key=worker) |
+            finish.s().set(exchange=exchange,
+                           routing_key=worker) |
             callback.s().set(link_error=errback,
                              exchange=exchange,
                              routing_key=choose_worker()))
