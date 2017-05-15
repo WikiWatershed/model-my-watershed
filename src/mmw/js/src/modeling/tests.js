@@ -281,8 +281,8 @@ describe('Modeling', function() {
 
                 $(sandboxSelector).html(view.render().el);
 
-                assert.equal($('#sandbox li').length, preSaveMenuItems.length);
-                $('#sandbox li').each(function() {
+                assert.equal($('#sandbox .dropdown-menu > li').length, preSaveMenuItems.length);
+                $('#sandbox .dropdown-menu li').each(function() {
                     assert.include(preSaveMenuItems, $(this).text());
                 });
             });
@@ -309,8 +309,8 @@ describe('Modeling', function() {
 
                 $(sandboxSelector).html(view.render().el);
 
-                assert.equal($('#sandbox li').length, postSaveMenuItems.length);
-                $('#sandbox li').each(function() {
+                assert.equal($('#sandbox .dropdown-menu > li').length, postSaveMenuItems.length);
+                $('#sandbox .dropdown-menu > li').each(function() {
                     assert.include(postSaveMenuItems, $(this).text());
                 });
             });
@@ -380,8 +380,8 @@ describe('Modeling', function() {
 
                 $('#sandbox').html(view.render().el);
 
-                assert.equal($('#sandbox li').length, postSaveMenuItems.length);
-                $('#sandbox li').each(function() {
+                assert.equal($('#sandbox .dropdown-menu li').length, postSaveMenuItems.length);
+                $('#sandbox .dropdown-menu li').each(function() {
                     assert.include(postSaveMenuItems, $(this).text());
                 });
             });

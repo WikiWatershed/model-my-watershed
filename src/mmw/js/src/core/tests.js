@@ -135,7 +135,7 @@ describe('Core', function() {
                 view.destroy();
             });
 
-            it('adds the map-container top & bottom classes to the map container for DoubleHeader and Small Footer', function(){
+            it('adds the sidebar class for the analyze size', function(){
                 var model = new models.MapModel(),
                     layerTabCollection = new models.LayerTabCollection(null),
                     view = new views.MapView({
@@ -145,14 +145,14 @@ describe('Core', function() {
                     }),
                     $container = $(sandboxSelector).parent();
 
-                model.setDoubleHeaderSmallFooterSize();
-                assert.isTrue($container.hasClass('map-container-top-2'));
-                assert.isTrue($container.hasClass('map-container-bottom-2'));
+                model.setAnalyzeSize();
+                assert.isTrue($container.hasClass('-sidebar'));
+                assert.isFalse($container.hasClass('-projectheader'));
 
                 view.destroy();
             });
 
-            it('adds the map-container sidebar top & bottom classes to the map container for Draw screen', function(){
+            it('adds the sidebar and header class for the model size', function(){
                 var model = new models.MapModel(),
                     layerTabCollection = new models.LayerTabCollection(null),
                     view = new views.MapView({
@@ -162,9 +162,9 @@ describe('Core', function() {
                     }),
                     $container = $(sandboxSelector).parent();
 
-                model.setDrawSize();
-                assert.isTrue($container.hasClass('map-container-top-sidebar'));
-                assert.isTrue($container.hasClass('map-container-bottom-sidebar'));
+                model.setModelSize();
+                assert.isTrue($container.hasClass('-sidebar'));
+                assert.isTrue($container.hasClass('-projectheader'));
 
                 view.destroy();
             });
