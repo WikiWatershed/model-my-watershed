@@ -20,15 +20,17 @@ from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
 from django.conf import settings
 from django.db import connection
-from django.contrib.gis.geos import GEOSGeometry, WKBReader
+from django.contrib.gis.geos import WKBReader
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
 
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
 from apps.modeling import tasks, geoprocessing
-from apps.modeling.mapshed.tasks import (geop_tasks, collect_data, combine,
-                                         geop_task)
+from apps.modeling.mapshed.tasks import (geoprocessing_chains,
+                                         combine,
+                                         collect_data,
+                                         )
 from apps.modeling.models import Project, Scenario
 from apps.modeling.serializers import (ProjectSerializer,
                                        ProjectListingSerializer,
@@ -265,11 +267,9 @@ def _initiate_mapshed_job_chain(mapshed_input, job_id):
 
     area_of_interest, wkaoi = parse_input(mapshed_input)
 
-    geom = GEOSGeometry(area_of_interest, srid=4326)
-
-    job_chain = (group(
-        geop_task(t, geom, wkaoi, MAGIC_EXCHANGE, errback, get_worker)
-        for t in geop_tasks()) |
+    job_chain = (
+        group(geoprocessing_chains(area_of_interest, wkaoi,
+                                   MAGIC_EXCHANGE, errback, choose_worker)) |
         combine.s().set(
             exchange=MAGIC_EXCHANGE,
             routing_key=get_worker()) |

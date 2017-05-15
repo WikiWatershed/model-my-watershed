@@ -10,6 +10,7 @@ from collections import namedtuple
 from gwlfe.enums import GrowFlag
 
 from django.conf import settings
+from django.contrib.gis.geos import GEOSGeometry
 from django.db import connection
 
 NRur = settings.GWLFE_DEFAULTS['NRur']
@@ -345,6 +346,17 @@ def streams(geom, drb=False):
         cursor.execute(sql, [geom.wkt, geom.wkt])
 
         return [row[0] for row in cursor.fetchall()]  # List of GeoJSON strings
+
+
+def streams_from_geojson(geojson, drb=False):
+    """
+    Construct geometry from geojson and run streams routine.
+
+    Convenience method for running returning streams within a geometry using
+    GeoJSON as input.
+    """
+    geom = GEOSGeometry(geojson, srid=4326)
+    return streams(geom, drb)
 
 
 def get_point_source_table(drb):
