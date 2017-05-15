@@ -15,11 +15,12 @@ from requests.exceptions import ConnectionError
 
 from django_statsd.clients import statsd
 
+from django.core.cache import cache
 from django.conf import settings
 
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=42)
-def start(self, opname, input_data):
+def start(self, opname, input_data, wkaoi=None):
     """
     Start a geoproessing operation.
 
@@ -33,8 +34,15 @@ def start(self, opname, input_data):
     be attached to the final task in the chain, without needing to be attached
     to every task.
 
+    If a well-known area of interest id is specified in wkaoi, checks to see
+    if there is a cached result for that wkaoi and operation. If so, returns
+    that immediately in the 'cached' key. If not, starts the geoprocessing
+    operation while also passing along the cache key to the next step, so that
+    the results of geoprocessing may be cached.
+
     :param opname: Name of operation. Must exist in settings.GEOP['json']
     :param input_data: Dictionary of values to extend base operation JSON with
+    :param wkaoi: String id of well-known area of interest. "{table}__{id}"
     :return: Dictionary containing either job_id if successful, error if not
     """
     if opname not in settings.GEOP['json']:
@@ -47,13 +55,22 @@ def start(self, opname, input_data):
             'error': 'Input data cannot be empty'
         }
 
+    outgoing = {}
+
+    if wkaoi:
+        key = '{}__{}'.format(wkaoi, opname)
+        outgoing['key'] = key
+        cached = cache.get(key)
+        if cached:
+            outgoing['cached'] = cached
+            return outgoing
+
     data = settings.GEOP['json'][opname].copy()
     data['input'].update(input_data)
 
     try:
-        return {
-            'job_id': sjs_submit(data, retry=self.retry)
-        }
+        outgoing['job_id'] = sjs_submit(data, self.retry)
+        return outgoing
     except Retry as r:
         raise r
     except Exception as x:
@@ -65,7 +82,7 @@ def start(self, opname, input_data):
 @shared_task(bind=True, default_retry_delay=1, max_retries=42)
 def finish(self, incoming):
     """
-    Retrieves results of geoprocessing.
+    Retrieve results of geoprocessing.
 
     To be used immediately after the `start` task, this takes the incoming
     data and inspects it to see if there are any reported errors. If found,
@@ -88,14 +105,25 @@ def finish(self, incoming):
     be attached to the final task in the chain, without needing to be attached
     to every task.
 
+    If the incoming set of values contains a 'cached' key, then its contents
+    are returned immediately. If there is a 'key' key, then the results of
+    geoprocessing will be saved to the cache with that key before returning.
+
     :param incoming: Dictionary containing job_id or error
     :return: Dictionary of Spark JobServer results, or error
     """
     if 'error' in incoming:
         return incoming
 
+    if 'cached' in incoming:
+        return incoming['cached']
+
     try:
-        return sjs_retrieve(retry=self.retry, **incoming)
+        result = sjs_retrieve(incoming['job_id'], self.retry)
+        if 'key' in incoming:
+            cache.set(incoming['key'], result, None)
+
+        return result
     except Retry as r:
         # Celery throws a Retry exception when self.retry is called to stop
         # the execution of any further code, and to indicate to the worker
