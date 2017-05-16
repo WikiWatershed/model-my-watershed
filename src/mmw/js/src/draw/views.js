@@ -551,7 +551,7 @@ var SelectBoundaryView = DrawToolBaseView.extend({
         this.resetDrawingState();
         clearAoiLayer();
         this.changeOutlineLayer(
-            shapeType.url, shapeType.code, shapeType.shortDisplay,
+            shapeType.url, shapeType.code, shapeType.short_display,
             shapeType.minZoom);
         e.preventDefault();
 
@@ -1005,7 +1005,8 @@ function addLayer(shape, name, label) {
         name = 'Selected Area';
     }
 
-    var displayName = (label ? label+=': ' : '') + name;
+    var labelDisplay = label ? ', ' + label : '',
+        displayName = name + labelDisplay;
 
     App.map.set({
         'areaOfInterest': shape,
