@@ -41,6 +41,10 @@ if (!window.Promise) {
 }
 
 function displayAlert(message, alertType) {
+    if (message === drawUtils.CANCEL_DRAWING) {
+        return;
+    }
+
     var alertView = new modalViews.AlertView({
         model: new modalModels.AlertModel({
             alertMessage: message,
