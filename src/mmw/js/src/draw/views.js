@@ -938,12 +938,15 @@ function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
         }
 
     function _getShapeAndAnalyze() {
-        App.restApi.getPolygon({
-            layerCode: layerCode,
-            shapeId: shapeId})
+        App.restApi
+            .getPolygon({
+                layerCode: layerCode,
+                shapeId: shapeId
+            })
             .then(validateShape)
             .then(function(shape) {
-                addLayer(shape, shapeName, layerName);
+                var wkaoi = layerCode + '__' + shapeId;
+                addLayer(shape, shapeName, layerName, wkaoi);
                 clearBoundaryLayer(model);
                 navigateToAnalyze();
                 deferred.resolve();
@@ -982,7 +985,8 @@ function clearAoiLayer() {
 
     App.map.set({
         'areaOfInterest': null,
-        'areaOfInterestName': ''
+        'areaOfInterestName': '',
+        'wellKnownAreaOfInterest': null,
     });
     App.projectNumber = undefined;
     App.map.setDrawSize(false);
@@ -1004,7 +1008,7 @@ function clearBoundaryLayer(model) {
     }
 }
 
-function addLayer(shape, name, label) {
+function addLayer(shape, name, label, wkaoi) {
     if (!name) {
         name = 'Selected Area';
     }
@@ -1014,7 +1018,8 @@ function addLayer(shape, name, label) {
 
     App.map.set({
         'areaOfInterest': shape,
-        'areaOfInterestName': displayName
+        'areaOfInterestName': displayName,
+        'wellKnownAreaOfInterest': wkaoi,
     });
 }
 

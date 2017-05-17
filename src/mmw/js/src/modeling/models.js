@@ -129,6 +129,7 @@ var ProjectModel = Backbone.Model.extend({
         created_at: null,               // Date
         area_of_interest: null,         // GeoJSON
         area_of_interest_name: null,    // Human readable string for AOI.
+        wkaoi: null,                    // Well Known Area of Interest ID "{code}__{id}"
         model_package: TR55_PACKAGE,    // Package name
         scenarios: null,                // ScenariosCollection
         user_id: 0,                     // User that created the project
@@ -322,13 +323,15 @@ var ProjectModel = Backbone.Model.extend({
     fetchGisData: function() {
         if (this.get('model_package') === GWLFE) {
             var aoi = this.get('area_of_interest'),
+                wkaoi = this.get('wkaoi'),
                 promise = $.Deferred(),
+                mapshedInput = utils.isWKAoIValid(wkaoi) ?
+                                   JSON.stringify({ 'wkaoi': wkaoi }) :
+                                   JSON.stringify({ 'area_of_interest': aoi }),
                 taskModel = createTaskModel(MAPSHED),
                 taskHelper = {
                     postData: {
-                        mapshed_input: JSON.stringify({
-                            area_of_interest: aoi
-                        })
+                        mapshed_input: mapshedInput
                     },
 
                     onStart: function() {
@@ -847,24 +850,32 @@ var ScenarioModel = Backbone.Model.extend({
 
     getGisData: function() {
         var self = this,
-            project = App.currentProject;
+            project = App.currentProject,
+            aoi = project.get('area_of_interest'),
+            wkaoi = project.get('wkaoi');
 
         switch(App.currentProject.get('model_package')) {
             case TR55_PACKAGE:
                 var nonZeroModifications = self.get('modifications').filter(function(mod) {
-                    return mod.get('effectiveArea') > 0;
-                });
-
-                return {
-                    model_input: JSON.stringify({
+                        return mod.get('effectiveArea') > 0;
+                    }),
+                    modelInput = {
                         inputs: self.get('inputs').toJSON(),
                         modification_pieces: alterModifications(nonZeroModifications, self.get('modification_hash')),
-                        area_of_interest: project.get('area_of_interest'),
                         aoi_census: self.get('aoi_census'),
                         modification_censuses: self.get('modification_censuses'),
                         inputmod_hash: self.get('inputmod_hash'),
                         modification_hash: self.get('modification_hash')
-                    })
+                    };
+
+                if (utils.isWKAoIValid(wkaoi)) {
+                    modelInput.wkaoi = wkaoi;
+                } else {
+                    modelInput.area_of_interest = aoi;
+                }
+
+                return {
+                    model_input: JSON.stringify(modelInput)
                 };
 
             case GWLFE:
