@@ -8,6 +8,8 @@ var $ = require('jquery'),
     turfBboxPolygon = require('turf-bbox-polygon'),
     coreUtils = require('../core/utils');
 
+var CANCEL_DRAWING = 'CANCEL_DRAWING';
+
 // Keep in sync with src/api/main.py in rapid-watershed-delineation.
 var MAX_AREA = 75000; // About the size of West Virginia (in km^2)
 
@@ -35,7 +37,7 @@ function drawPolygon(map, drawOpts) {
         drawStop = function() {
             tool.disable();
             clearEvents();
-            defer.reject();
+            defer.reject(CANCEL_DRAWING);
         };
 
     cancelDrawing(map);
@@ -62,7 +64,7 @@ function placeMarker(map, drawOpts) {
         drawStop = function() {
             tool.disable();
             clearEvents();
-            defer.reject();
+            defer.reject(CANCEL_DRAWING);
         };
 
     cancelDrawing(map);
@@ -168,5 +170,6 @@ module.exports = {
     loadAsyncShpFilesFromZip: loadAsyncShpFilesFromZip,
     NHD: 'nhd',
     DRB: 'drb',
+    CANCEL_DRAWING: CANCEL_DRAWING,
     MAX_AREA: MAX_AREA
 };
