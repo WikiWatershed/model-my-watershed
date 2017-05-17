@@ -5,6 +5,11 @@ from __future__ import unicode_literals
 import json
 import random
 
+import celery
+from celery import chain, group
+
+from retry import retry
+
 from rest_framework.response import Response
 from rest_framework import decorators, status
 from rest_framework.permissions import (AllowAny,
@@ -19,14 +24,9 @@ from django.contrib.gis.geos import GEOSGeometry, WKBReader
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
 
-import celery
-from celery import chain, group
-
-from retry import retry
-
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
-from apps.modeling import tasks
+from apps.modeling import tasks, geoprocessing
 from apps.modeling.mapshed.tasks import (geop_tasks, collect_data, combine,
                                          geop_task)
 from apps.modeling.models import Project, Scenario
@@ -303,18 +303,44 @@ def export_gms(request, format=None):
 
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
-def start_analyze(request, format=None):
+def start_analyze_land(request, format=None):
     user = request.user if request.user.is_authenticated() else None
-    area_of_interest = request.POST['area_of_interest']
     exchange = MAGIC_EXCHANGE
     routing_key = choose_worker()
 
+    area_of_interest = geoprocessing.to_one_ring_multipolygon(json.loads(
+        request.POST['area_of_interest']))
+
+    geop_input = {'polygon': [json.dumps(area_of_interest)]}
+
     return start_celery_job([
-        tasks.start_histogram_job.s(area_of_interest)
-             .set(exchange=exchange, routing_key=routing_key),
-        tasks.get_histogram_job_results.s()
-             .set(exchange=exchange, routing_key=routing_key),
-        tasks.histogram_to_survey_census.s()
+        geoprocessing.start.s('nlcd', geop_input)
+                     .set(exchange=exchange, routing_key=routing_key),
+        geoprocessing.finish.s()
+                     .set(exchange=exchange, routing_key=routing_key),
+        tasks.analyze_nlcd.s(area_of_interest)
+             .set(exchange=exchange, routing_key=choose_worker())
+    ], area_of_interest, user)
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((AllowAny, ))
+def start_analyze_soil(request, format=None):
+    user = request.user if request.user.is_authenticated() else None
+    exchange = MAGIC_EXCHANGE
+    routing_key = choose_worker()
+
+    area_of_interest = geoprocessing.to_one_ring_multipolygon(json.loads(
+        request.POST['area_of_interest']))
+
+    geop_input = {'polygon': [json.dumps(area_of_interest)]}
+
+    return start_celery_job([
+        geoprocessing.start.s('soil', geop_input)
+                     .set(exchange=exchange, routing_key=routing_key),
+        geoprocessing.finish.s()
+                     .set(exchange=exchange, routing_key=routing_key),
+        tasks.analyze_soil.s(area_of_interest)
              .set(exchange=exchange, routing_key=choose_worker())
     ], area_of_interest, user)
 
@@ -474,27 +500,30 @@ def _construct_tr55_job_chain(model_input, job_id):
         job_chain.append(tasks.run_tr55.s(censuses, model_input)
                          .set(exchange=exchange, routing_key=choose_worker()))
     else:
-        job_chain.append(tasks.get_histogram_job_results.s()
+        job_chain.append(geoprocessing.finish.s()
                          .set(exchange=exchange, routing_key=routing_key))
-        job_chain.append(tasks.histograms_to_censuses.s()
-                         .set(exchange=exchange, routing_key=routing_key))
+        job_chain.append(tasks.nlcd_soil_census.s()
+                         .set(exchange=exchange, routing_key=choose_worker()))
 
         if aoi_census and pieces:
             polygons = [m['shape']['geometry'] for m in pieces]
+            geop_input = {'polygon': [json.dumps(p) for p in polygons]}
 
-            job_chain.insert(0, tasks.start_histograms_job.s(polygons)
+            job_chain.insert(0, geoprocessing.start.s('nlcd_soil_census',
+                                                      geop_input)
                              .set(exchange=exchange, routing_key=routing_key))
-            job_chain.insert(len(job_chain),
-                             tasks.run_tr55.s(model_input,
+            job_chain.append(tasks.run_tr55.s(model_input,
                                               cached_aoi_census=aoi_census)
                              .set(exchange=exchange,
                                   routing_key=choose_worker()))
         else:
             polygons = [aoi] + [m['shape']['geometry'] for m in pieces]
+            geop_input = {'polygon': [json.dumps(p) for p in polygons]}
 
-            job_chain.insert(0, tasks.start_histograms_job.s(polygons)
+            job_chain.insert(0, geoprocessing.start.s('nlcd_soil_census',
+                                                      geop_input)
                              .set(exchange=exchange, routing_key=routing_key))
-            job_chain.insert(len(job_chain), tasks.run_tr55.s(model_input)
+            job_chain.append(tasks.run_tr55.s(model_input)
                              .set(exchange=exchange,
                                   routing_key=choose_worker()))
 

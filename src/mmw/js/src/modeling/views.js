@@ -12,7 +12,6 @@ var _ = require('lodash'),
     coreViews = require('../core/views'),
     gwlfeConfig = require('./gwlfeModificationConfig'),
     analyzeViews = require('../analyze/views.js'),
-    analyzeModels = require('../analyze/models.js'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
@@ -890,7 +889,6 @@ var ResultsView = Marionette.LayoutView.extend({
     onShow: function() {
         var self = this,
             analyzeCollection = App.getAnalyzeCollection(),
-            analyzeViewModels = analyzeModels.createAnalyzeResultViewModelCollection(analyzeCollection),
             tmvModel = new coreModels.TaskMessageViewModel(),
             errorHandler = function(err) {
                 if (err && err.timeout) {
@@ -905,7 +903,7 @@ var ResultsView = Marionette.LayoutView.extend({
             };
 
         this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
-            collection: analyzeViewModels
+            collection: analyzeCollection
         }));
 
         tmvModel.setWorking('Gathering Data');

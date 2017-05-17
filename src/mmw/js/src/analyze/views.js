@@ -65,11 +65,9 @@ var ModelSelectionDropdownView = Marionette.ItemView.extend({
                 place: App.map.get('areaOfInterestName')
             }),
             analysisResults = JSON.parse(App.getAnalyzeCollection()
-                                            .findWhere({taskName: 'analyze'})
+                                            .findWhere({taskName: 'analyze/land'})
                                             .get('result') || "{}"),
-            landResults = lodash.find(analysisResults, function(element) {
-                    return element.name === 'land';
-            });
+            landResults = analysisResults.survey;
 
         if (modelPackageName === 'gwlfe' && settings.get('mapshed_max_area')) {
             var areaInSqKm = utils.changeOfAreaUnits(aoiModel.get('area'),
@@ -284,7 +282,7 @@ var TabContentView = Marionette.LayoutView.extend({
 
         this.showAnalyzingMessage();
 
-        this.model.get('taskRunner').fetchAnalysisIfNeeded()
+        this.model.fetchAnalysisIfNeeded()
             .done(lodash.bind(this.showResultsIfNotDestroyed, this))
             .fail(lodash.bind(this.showErrorIfNotDestroyed, this));
     },
@@ -321,8 +319,7 @@ var TabContentView = Marionette.LayoutView.extend({
 
     showResults: function() {
         var name = this.model.get('name'),
-            results = JSON.parse(this.model.get('taskRunner').get('result')).survey,
-            result = lodash.find(results, { name: name }),
+            result = JSON.parse(this.model.get('result')).survey,
             resultModel = new models.LayerModel(result),
             ResultView = AnalyzeResultViews[name];
 

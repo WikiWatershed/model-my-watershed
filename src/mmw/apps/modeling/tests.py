@@ -3,282 +3,343 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from apps.core.models import Job
-from apps.modeling import example_aois, geoprocessing, tasks, views
-from django.contrib.auth.models import User
+from celery import chain, shared_task
 
+from rest_framework.test import APIClient
+
+from django.contrib.auth.models import User
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.utils.timezone import now
 
-from rest_framework.test import APIClient
-
-from celery import chain, shared_task
+from apps.core.models import Job
+from apps.modeling import example_aois, geoprocessing, tasks, views
 
 
 @shared_task
 def get_test_histogram():
     return {
-        'pixel_width': 33,
-        'histogram': [[
-            [[24, 2], 268],
-            [[24, 4], 279],
-            [[21, 4], 5],
-            [[22, 4], 16],
-            [[23, 4], 322],
-            [[22, 2], 35],
-            [[22, 1], 55],
-            [[23, 2], 339],
-            [[21, 1], 22],
-            [[24, 1], 537],
-            [[21, 2], 1],
-            [[23, 1], 773]]
-        ]
+        'List(21,1)': 22,
+        'List(21,2)': 1,
+        'List(21,4)': 5,
+        'List(22,1)': 55,
+        'List(22,2)': 35,
+        'List(22,4)': 16,
+        'List(23,1)': 773,
+        'List(23,2)': 339,
+        'List(23,4)': 322,
+        'List(24,1)': 537,
+        'List(24,2)': 268,
+        'List(24,4)': 279,
     }
 
 
 class ExerciseGeoprocessing(TestCase):
-    def setUp(self):
-        self.histogram = [
-            ((11, 1), 434),
-            ((82, 4), 202),
-            ((23, 4), 1957),
-            ((22, 1), 12977),
-            ((90, 2), 1090),
-            ((81, 2), 1716),
-            ((52, 2), 1090),
-            ((90, 1), 2190),
-            ((43, 4), 745),
-            ((11, 2), 162),
-            ((24, 4), 320),
-            ((71, 1), 91),
-            ((81, 4), 1717),
-            ((41, 1), 13731),
-            ((22, 4), 6470),
-            ((82, 1), 392),
-            ((21, 4), 12472),
-            ((31, 4), 20),
-            ((82, 2), 197),
-            ((24, 2), 352),
-            ((22, 2), 6484),
-            ((41, 2), 7140),
-            ((52, 1), 2103),
-            ((21, 2), 12763),
-            ((42, 4), 675),
-            ((21, 1), 24709),
-            ((71, 2), 54),
-            ((42, 1), 1406),
-            ((23, 2), 2026),
-            ((41, 4), 7231),
-            ((24, 1), 640),
-            ((52, 4), 1022),
-            ((71, 4), 46),
-            ((23, 1), 3886),
-            ((43, 1), 1490),
-            ((81, 1), 3298),
-            ((90, 4), 1093),
-            ((42, 2), 715),
-            ((11, 4), 132),
-            ((31, 2), 25),
-            ((31, 1), 37),
-            ((43, 2), 800)
-        ]
-
     def test_census(self):
-        expected = {
-            "distribution": {
-                "a:barren_land": {"cell_count": 37},
-                "b:deciduous_forest": {"cell_count": 7140},
-                "a:shrub": {"cell_count": 2103},
-                "b:mixed_forest": {"cell_count": 800},
-                "a:developed_open": {"cell_count": 24709},
-                "b:grassland": {"cell_count": 54},
-                "b:open_water": {"cell_count": 162},
-                "d:open_water": {"cell_count": 132},
-                "a:deciduous_forest": {"cell_count": 13731},
-                "a:developed_high": {"cell_count": 640},
-                "b:evergreen_forest": {"cell_count": 715},
-                "d:developed_open": {"cell_count": 12472},
-                "a:developed_low": {"cell_count": 12977},
-                "a:cultivated_crops": {"cell_count": 392},
-                "d:developed_high": {"cell_count": 320},
-                "b:woody_wetlands": {"cell_count": 1090},
-                "b:developed_med": {"cell_count": 2026},
-                "d:grassland": {"cell_count": 46},
-                "d:developed_low": {"cell_count": 6470},
-                "d:cultivated_crops": {"cell_count": 202},
-                "b:pasture": {"cell_count": 1716},
-                "a:evergreen_forest": {"cell_count": 1406},
-                "d:pasture": {"cell_count": 1717},
-                "a:open_water": {"cell_count": 434},
-                "b:cultivated_crops": {"cell_count": 197},
-                "a:mixed_forest": {"cell_count": 1490},
-                "d:barren_land": {"cell_count": 20},
-                "d:woody_wetlands": {"cell_count": 1093},
-                "b:barren_land": {"cell_count": 25},
-                "d:shrub": {"cell_count": 1022},
-                "b:developed_open": {"cell_count": 12763},
-                "b:developed_low": {"cell_count": 6484},
-                "d:mixed_forest": {"cell_count": 745},
-                "a:developed_med": {"cell_count": 3886},
-                "d:developed_med": {"cell_count": 1957},
-                "d:deciduous_forest": {"cell_count": 7231},
-                "a:pasture": {"cell_count": 3298},
-                "b:developed_high": {"cell_count": 352},
-                "a:grassland": {"cell_count": 91},
-                "a:woody_wetlands": {"cell_count": 2190},
-                "b:shrub": {"cell_count": 1090},
-                "d:evergreen_forest": {"cell_count": 675}
-            },
-            "cell_count": 136100
+        histogram = {
+            'List(11, 1)': 434,
+            'List(82, 4)': 202,
+            'List(23, 4)': 1957,
+            'List(22, 1)': 12977,
+            'List(90, 2)': 1090,
+            'List(81, 2)': 1716,
+            'List(52, 2)': 1090,
+            'List(90, 1)': 2190,
+            'List(43, 4)': 745,
+            'List(11, 2)': 162,
+            'List(24, 4)': 320,
+            'List(71, 1)': 91,
+            'List(81, 4)': 1717,
+            'List(41, 1)': 13731,
+            'List(22, 4)': 6470,
+            'List(82, 1)': 392,
+            'List(21, 4)': 12472,
+            'List(31, 4)': 20,
+            'List(82, 2)': 197,
+            'List(24, 2)': 352,
+            'List(22, 2)': 6484,
+            'List(41, 2)': 7140,
+            'List(52, 1)': 2103,
+            'List(21, 2)': 12763,
+            'List(42, 4)': 675,
+            'List(21, 1)': 24709,
+            'List(71, 2)': 54,
+            'List(42, 1)': 1406,
+            'List(23, 2)': 2026,
+            'List(41, 4)': 7231,
+            'List(24, 1)': 640,
+            'List(52, 4)': 1022,
+            'List(71, 4)': 46,
+            'List(23, 1)': 3886,
+            'List(43, 1)': 1490,
+            'List(81, 1)': 3298,
+            'List(90, 4)': 1093,
+            'List(42, 2)': 715,
+            'List(11, 4)': 132,
+            'List(31, 2)': 25,
+            'List(31, 1)': 37,
+            'List(43, 2)': 800
         }
-        actual = geoprocessing.data_to_census(self.histogram)
+
+        expected = [{
+            'cell_count': 136100,
+            'distribution': {
+                'a:barren_land': {'cell_count': 37},
+                'a:cultivated_crops': {'cell_count': 392},
+                'a:deciduous_forest': {'cell_count': 13731},
+                'a:developed_high': {'cell_count': 640},
+                'a:developed_low': {'cell_count': 12977},
+                'a:developed_med': {'cell_count': 3886},
+                'a:developed_open': {'cell_count': 24709},
+                'a:evergreen_forest': {'cell_count': 1406},
+                'a:grassland': {'cell_count': 91},
+                'a:mixed_forest': {'cell_count': 1490},
+                'a:open_water': {'cell_count': 434},
+                'a:pasture': {'cell_count': 3298},
+                'a:shrub': {'cell_count': 2103},
+                'a:woody_wetlands': {'cell_count': 2190},
+                'b:barren_land': {'cell_count': 25},
+                'b:cultivated_crops': {'cell_count': 197},
+                'b:deciduous_forest': {'cell_count': 7140},
+                'b:developed_high': {'cell_count': 352},
+                'b:developed_low': {'cell_count': 6484},
+                'b:developed_med': {'cell_count': 2026},
+                'b:developed_open': {'cell_count': 12763},
+                'b:evergreen_forest': {'cell_count': 715},
+                'b:grassland': {'cell_count': 54},
+                'b:mixed_forest': {'cell_count': 800},
+                'b:open_water': {'cell_count': 162},
+                'b:pasture': {'cell_count': 1716},
+                'b:shrub': {'cell_count': 1090},
+                'b:woody_wetlands': {'cell_count': 1090},
+                'd:barren_land': {'cell_count': 20},
+                'd:cultivated_crops': {'cell_count': 202},
+                'd:deciduous_forest': {'cell_count': 7231},
+                'd:developed_high': {'cell_count': 320},
+                'd:developed_low': {'cell_count': 6470},
+                'd:developed_med': {'cell_count': 1957},
+                'd:developed_open': {'cell_count': 12472},
+                'd:evergreen_forest': {'cell_count': 675},
+                'd:grassland': {'cell_count': 46},
+                'd:mixed_forest': {'cell_count': 745},
+                'd:open_water': {'cell_count': 132},
+                'd:pasture': {'cell_count': 1717},
+                'd:shrub': {'cell_count': 1022},
+                'd:woody_wetlands': {'cell_count': 1093}
+            }
+        }]
+        actual = tasks.nlcd_soil_census(histogram)
         self.assertEqual(actual, expected)
 
-    def test_survey(self):
+    def test_survey_land(self):
         self.maxDiff = None
-        expected = [
-            {
+        # NLCD Histogram of Little Neshaminy HUC-12
+        histogram = {
+            'List(11)': 39,
+            'List(21)': 40558,
+            'List(22)': 25230,
+            'List(23)': 10976,
+            'List(24)': 3793,
+            'List(31)': 364,
+            'List(41)': 19218,
+            'List(42)': 153,
+            'List(43)': 329,
+            'List(52)': 3309,
+            'List(71)': 684,
+            'List(81)': 8922,
+            'List(82)': 6345,
+            'List(90)': 3940,
+            'List(95)': 112,
+        }
+        expected = {
+            "survey": {
                 "displayName": "Land",
                 "name": "land",
                 "categories": [
                     {
-                        "code": "woody_wetlands",
-                        "nlcd": 90,
-                        "type": "Woody Wetlands",
-                        "coverage": 0.03213078618662748,
-                        "area": 4373
-                    },
-                    {
-                        "code": "developed_med",
-                        "nlcd": 23,
-                        "type": "Developed, Medium Intensity",
-                        "coverage": 0.057817781043350475,
-                        "area": 7869
-                    },
-                    {
-                        "code": "barren_land",
-                        "nlcd": 31,
-                        "type": "Barren Land (Rock/Sand/Clay)",
-                        "coverage": 0.0006024981631153563,
-                        "area": 82
-                    },
-                    {
-                        "code": "developed_low",
-                        "nlcd": 22,
-                        "type": "Developed, Low Intensity",
-                        "coverage": 0.19052902277736958,
-                        "area": 25931
-                    },
-                    {
-                        "nlcd": 95,
-                        'type': 'Emergent Herbaceous Wetlands',
-                        'coverage': 0.0,
-                        'area': 0
-                    },
-                    {
-                        "code": "deciduous_forest",
-                        "nlcd": 41,
-                        "type": "Deciduous Forest",
-                        "coverage": 0.20648052902277736,
-                        "area": 28102
-                    },
-                    {
-                        "code": "open_water",
-                        "nlcd": 11,
-                        "type": "Open Water",
-                        "coverage": 0.005349008082292432,
-                        "area": 728
-                    },
-                    {
+                        "area": 329,
                         "code": "mixed_forest",
+                        "coverage": 0.002653825057270997,
                         "nlcd": 43,
-                        "type": "Mixed Forest",
-                        "coverage": 0.022299779573842764,
-                        "area": 3035
+                        "type": "Mixed Forest"
                     },
                     {
-                        "nlcd": 12,
-                        'type': 'Perennial Ice/Snow',
-                        'coverage': 0.0,
-                        'area': 0
-                    },
-                    {
-                        "code": "developed_high",
-                        "nlcd": 24,
-                        "type": "Developed, High Intensity",
-                        "coverage": 0.009639970609845701,
-                        "area": 1312
-                    },
-                    {
-                        "code": "shrub",
-                        "nlcd": 52,
-                        "type": "Shrub/Scrub",
-                        "coverage": 0.03096987509184423,
-                        "area": 4215
-                    },
-                    {
-                        "code": "cultivated_crops",
-                        "nlcd": 82,
-                        "type": "Cultivated Crops",
-                        "coverage": 0.005811903012490816,
-                        "area": 791
-                    },
-                    {
+                        "area": 684,
                         "code": "grassland",
+                        "coverage": 0.005517374891104443,
                         "nlcd": 71,
-                        "type": "Grassland/Herbaceous",
-                        "coverage": 0.0014033798677443056,
-                        "area": 191
+                        "type": "Grassland/Herbaceous"
                     },
                     {
+                        "area": 19218,
+                        "code": "deciduous_forest",
+                        "coverage": 0.1550188752298906,
+                        "nlcd": 41,
+                        "type": "Deciduous Forest"
+                    },
+                    {
+                        "area": 153,
                         "code": "evergreen_forest",
+                        "coverage": 0.001234149646694415,
                         "nlcd": 42,
-                        "type": "Evergreen Forest",
-                        "coverage": 0.020543717854518737,
-                        "area": 2796
+                        "type": "Evergreen Forest"
                     },
                     {
-                        "code": "developed_open",
-                        "nlcd": 21,
-                        "type": "Developed, Open Space",
-                        "coverage": 0.3669654665686995,
-                        "area": 49944
+                        "area": 39,
+                        "code": "open_water",
+                        "coverage": 0.00031458716484367437,
+                        "nlcd": 11,
+                        "type": "Open Water"
                     },
                     {
+                        "area": 0,
+                        "code": "perennial_ice",
+                        "coverage": 0,
+                        "nlcd": 12,
+                        "type": "Perennial Ice/Snow"
+                    },
+                    {
+                        "area": 8922,
                         "code": "pasture",
+                        "coverage": 0.07196786371116058,
                         "nlcd": 81,
-                        "type": "Pasture/Hay",
-                        "coverage": 0.04945628214548126,
-                        "area": 6731
-                    }]
-            },
-            {
+                        "type": "Pasture/Hay"
+                    },
+                    {
+                        "area": 6345,
+                        "code": "cultivated_crops",
+                        "coverage": 0.051180911818797796,
+                        "nlcd": 82,
+                        "type": "Cultivated Crops"
+                    },
+                    {
+                        "area": 3309,
+                        "code": "shrub",
+                        "coverage": 0.026691510986351755,
+                        "nlcd": 52,
+                        "type": "Shrub/Scrub"
+                    },
+                    {
+                        "area": 40558,
+                        "code": "developed_open",
+                        "coverage": 0.32715451876230117,
+                        "nlcd": 21,
+                        "type": "Developed, Open Space"
+                    },
+                    {
+                        "area": 25230,
+                        "code": "developed_low",
+                        "coverage": 0.20351369664117705,
+                        "nlcd": 22,
+                        "type": "Developed, Low Intensity"
+                    },
+                    {
+                        "area": 10976,
+                        "code": "developed_med",
+                        "coverage": 0.0885361210595941,
+                        "nlcd": 23,
+                        "type": "Developed, Medium Intensity"
+                    },
+                    {
+                        "area": 3793,
+                        "code": "developed_high",
+                        "coverage": 0.030595618365437355,
+                        "nlcd": 24,
+                        "type": "Developed, High Intensity"
+                    },
+                    {
+                        "area": 3940,
+                        "code": "woody_wetlands",
+                        "coverage": 0.0317813699867712,
+                        "nlcd": 90,
+                        "type": "Woody Wetlands"
+                    },
+                    {
+                        "area": 112,
+                        "code": "herbaceous_wetlands",
+                        "coverage": 0.000903429806730552,
+                        "nlcd": 95,
+                        "type": "Emergent Herbaceous Wetlands"
+                    },
+                    {
+                        "area": 364,
+                        "code": "barren_land",
+                        "coverage": 0.0029361468718742943,
+                        "nlcd": 31,
+                        "type": "Barren Land (Rock/Sand/Clay)"
+                    }
+                ]
+            }
+        }
+
+        actual = tasks.analyze_nlcd(histogram)
+        self.assertEqual(actual, expected)
+
+    def test_survey_soil(self):
+        self.maxDiff = None
+
+        # Soil histogram of Little Neshaminy HUC-12
+        histogram = {
+            'List(-2147483648)': 47430,
+            'List(1)': 2905,
+            'List(2)': 14165,
+            'List(3)': 23288,
+            'List(4)': 23109,
+            'List(6)': 338,
+            'List(7)': 12737,
+        }
+        expected = {
+            "survey": {
                 "displayName": "Soil",
                 "name": "soil",
                 "categories": [
                     {
-                        "code": "b",
-                        "type": "B - Moderate Infiltration",
-                        "coverage": 0.25432770022042617,
-                        "area": 34614
-                    },
-                    {
+                        "area": 2905,
                         "code": "a",
-                        "type": "A - High Infiltration",
-                        "coverage": 0.49510653930933135,
-                        "area": 67384
+                        "coverage": 0.023432710612073693,
+                        "type": "A - High Infiltration"
                     },
                     {
+                        "area": 14165,
+                        "code": "b",
+                        "coverage": 0.11425967153873455,
+                        "type": "B - Moderate Infiltration"
+                    },
+                    {
+                        "area": 70718,
+                        "code": "c",
+                        "coverage": 0.5704352595747427,
+                        "type": "C - Slow Infiltration"
+                    },
+                    {
+                        "area": 23109,
                         "code": "d",
-                        "type": "D - Very Slow Infiltration",
-                        "coverage": 0.2505657604702425,
-                        "area": 34102
+                        "coverage": 0.1864049946762172,
+                        "type": "D - Very Slow Infiltration"
+                    },
+                    {
+                        "area": 0,
+                        "code": "ad",
+                        "coverage": 0,
+                        "type": "A/D - High/Very Slow Infiltration"
+                    },
+                    {
+                        "area": 338,
+                        "code": "bd",
+                        "coverage": 0.0027264220953118444,
+                        "type": "B/D - Medium/Very Slow Infiltration"
+                    },
+                    {
+                        "area": 12737,
+                        "code": "cd",
+                        "coverage": 0.10274094150292001,
+                        "type": "C/D - Medium/Very Slow Infiltration"
                     }
-                ]
-            }]
+                ],
+            }
+        }
 
-        actual = geoprocessing.data_to_survey(self.histogram)
+        actual = tasks.analyze_soil(histogram)
         self.assertEqual(actual, expected)
 
 
@@ -362,8 +423,8 @@ class TaskRunnerTestCase(TestCase):
                                                     self.job.id)
 
         # Make sure the chain is well-formed
-        self.assertTrue('tasks.start_histograms_job' in str(job_chain[0]))
-        self.assertTrue('tasks.get_histogram_job_results' in str(job_chain[1]))
+        self.assertTrue('geoprocessing.start' in str(job_chain[0]))
+        self.assertTrue('geoprocessing.finish' in str(job_chain[1]))
 
         # Modify the chain to prevent it from trying to talk to endpoint
         job_chain = [get_test_histogram.s()] + job_chain[2:]
@@ -399,8 +460,10 @@ class TaskRunnerTestCase(TestCase):
 
         job_chain = views._construct_tr55_job_chain(model_input,
                                                     self.job.id)
-        self.assertTrue('tasks.start_histograms_job' in str(job_chain[0]))
-        self.assertTrue('tasks.get_histogram_job_results' in str(job_chain[1]))
+
+        self.assertTrue('geoprocessing.start' in str(job_chain[0]))
+        self.assertTrue('geoprocessing.finish' in str(job_chain[1]))
+
         job_chain = [get_test_histogram.s()] + job_chain[2:]
 
         with self.assertRaises(Exception) as context:
@@ -449,9 +512,9 @@ class TaskRunnerTestCase(TestCase):
                                                     self.job.id)
 
         skipped_tasks = [
-            'start_histograms_job',
-            'get_histogram_job_results',
-            'histograms_to_censuses'
+            'start',
+            'finish',
+            'nlcd_soil_census'
         ]
 
         needed_tasks = [
@@ -487,9 +550,9 @@ class TaskRunnerTestCase(TestCase):
         # Job chain is the same as if no census exists because
         # we still need to generate modification censuses
         needed_tasks = [
-            'start_histograms_job',
-            'get_histogram_job_results',
-            'histograms_to_censuses',
+            'start',
+            'finish',
+            'nlcd_soil_census',
             'run_tr55'
         ]
 
@@ -534,9 +597,9 @@ class TaskRunnerTestCase(TestCase):
         self.model_input['modification_pieces'] = []
 
         skipped_tasks = [
-            'start_histograms_job',
-            'get_histogram_job_results',
-            'histograms_to_censuses',
+            'start',
+            'finish',
+            'nlcd_soil_census',
         ]
 
         needed_tasks = [
@@ -595,9 +658,9 @@ class TaskRunnerTestCase(TestCase):
         skipped_tasks = []
 
         needed_tasks = [
-            'start_histograms_job',
-            'get_histogram_job_results',
-            'histograms_to_censuses',
+            'start',
+            'finish',
+            'nlcd_soil_census',
             'run_tr55'
         ]
 
@@ -623,9 +686,9 @@ class TaskRunnerTestCase(TestCase):
         skipped_tasks = []
 
         needed_tasks = [
-            'start_histograms_job',
-            'get_histogram_job_results',
-            'histograms_to_censuses',
+            'start',
+            'finish',
+            'nlcd_soil_census',
             'run_tr55'
         ]
 
@@ -1057,26 +1120,30 @@ class NormalizeSingleRingPolygonTestCase(TestCase):
         self.multi_rwd_multi = example_aois.invalid_rwd_multi
 
     def test_valid_drawn_aoi_is_unmodified(self):
-        validated = tasks.parse_single_ring_multipolygon(self.drawn_aoi)
+        validated = geoprocessing.to_one_ring_multipolygon(self.drawn_aoi)
         self.assertEqual(self.drawn_aoi, validated)
 
     def test_valid_sq_km_aoi_is_unmodified(self):
-        validated = tasks.parse_single_ring_multipolygon(self.sq_km)
+        validated = geoprocessing.to_one_ring_multipolygon(self.sq_km)
         self.assertEqual(self.sq_km, validated)
 
     def test_multi_shape_frontend_aoi_is_unmodified(self):
-        validated = tasks.parse_single_ring_multipolygon(self.non_rwd_multi)
+        validated = geoprocessing.to_one_ring_multipolygon(self.non_rwd_multi)
         self.assertEqual(self.non_rwd_multi, validated)
 
     def test_single_ring_multipolygon_is_adjusted(self):
-        adjusted = tasks.parse_single_ring_multipolygon(self.single_rwd_multi)
+        adjusted = geoprocessing.to_one_ring_multipolygon(
+            self.single_rwd_multi
+        )
         self.assertEqual(len(adjusted['coordinates']), 1)
 
     def test_single_ring_unmodified_on_revalidation(self):
-        validated = tasks.parse_single_ring_multipolygon(self.single_rwd_multi)
-        revalidated = tasks.parse_single_ring_multipolygon(validated)
+        validated = geoprocessing.to_one_ring_multipolygon(
+            self.single_rwd_multi
+        )
+        revalidated = geoprocessing.to_one_ring_multipolygon(validated)
         self.assertEqual(validated, revalidated)
 
     def test_multi_ring_multipolygon_raises_exception(self):
         with self.assertRaises(Exception):
-            tasks.parse_single_ring_multipolygon(self.multi_rwd_multi)
+            geoprocessing.to_one_ring_multipolygon(self.multi_rwd_multi)

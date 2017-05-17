@@ -125,24 +125,8 @@ var ModelingController = {
                 scenarios: new models.ScenariosCollection()
             });
 
-            var analyzeTask = App.getAnalyzeCollection().findWhere({taskName:'analyze'});
-
             App.currentProject = project;
             lock.resolve();
-
-            analyzeTask
-                .fetchAnalysisIfNeeded()
-                .done(function() {
-                    App.currentProject.set(
-                        'aoi_census',
-                        JSON.parse(
-                            App.getAnalyzeCollection()
-                                .findWhere({taskName:'analyze'})
-                                .get('result')
-                        ).census
-                    );
-                })
-                .fail(projectErrorState);
 
             setupNewProjectScenarios(project);
             finishProjectSetup(project, lock);
@@ -327,13 +311,11 @@ function initScenarioEvents(project) {
 }
 
 function setupNewProjectScenarios(project) {
-    var aoiCensus = project.get('aoi_census');
     project.get('scenarios').add([
         new models.ScenarioModel({
             name: 'Current Conditions',
             is_current_conditions: true,
             active: true,
-            aoi_census: aoiCensus
         })
         // Silent is set to true because we don't actually want to save the
         // project without some user interaction. This initialization

@@ -3,7 +3,6 @@
 var App = require('../app'),
     router = require('../router').router,
     views = require('./views'),
-    models = require('./models'),
     utils = require('../core/utils'),
     settings = require('../core/settings');
 
@@ -49,9 +48,8 @@ var AnalyzeController = {
 
     analyze: function() {
         var analyzeCollection = App.getAnalyzeCollection(),
-            viewModels = models.createAnalyzeResultViewModelCollection(analyzeCollection),
             analyzeResults = new views.ResultsView({
-                collection: viewModels
+                collection: analyzeCollection
             });
 
         App.state.set({

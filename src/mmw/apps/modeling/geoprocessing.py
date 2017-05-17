@@ -3,15 +3,110 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
-from ast import literal_eval as make_tuple
-
-from django.conf import settings
-from django_statsd.clients import statsd
-from celery.exceptions import MaxRetriesExceededError
-from requests.exceptions import ConnectionError
-
 import requests
 import json
+
+from ast import literal_eval as make_tuple
+
+from celery import shared_task
+from celery.exceptions import MaxRetriesExceededError, Retry
+
+from requests.exceptions import ConnectionError
+
+from django_statsd.clients import statsd
+
+from django.conf import settings
+
+
+@shared_task(bind=True, default_retry_delay=1, max_retries=42)
+def start(self, opname, input_data):
+    """
+    Start a geoproessing operation.
+
+    Given an operation name and a dictionary of input data, looks up the
+    operation from the list of supported operations in settings.GEOP['json'],
+    combines it with input data, and submits it to Spark JobServer.
+
+    This task must always be succeeded by `finish` below.
+
+    All errors are passed along and not raised here, so that error handling can
+    be attached to the final task in the chain, without needing to be attached
+    to every task.
+
+    :param opname: Name of operation. Must exist in settings.GEOP['json']
+    :param input_data: Dictionary of values to extend base operation JSON with
+    :return: Dictionary containing either job_id if successful, error if not
+    """
+    if opname not in settings.GEOP['json']:
+        return {
+            'error': 'Unsupported operation {}'.format(opname)
+        }
+
+    if not input_data:
+        return {
+            'error': 'Input data cannot be empty'
+        }
+
+    data = settings.GEOP['json'][opname].copy()
+    data['input'].update(input_data)
+
+    try:
+        return {
+            'job_id': sjs_submit(data, retry=self.retry)
+        }
+    except Retry as r:
+        raise r
+    except Exception as x:
+        return {
+            'error': x.message
+        }
+
+
+@shared_task(bind=True, default_retry_delay=1, max_retries=42)
+def finish(self, incoming):
+    """
+    Retrieves results of geoprocessing.
+
+    To be used immediately after the `start` task, this takes the incoming
+    data and inspects it to see if there are any reported errors. If found,
+    the errors are passed through to the next task. Otherwise, the incoming
+    parameters are used to retrieve the job from Spark JobServer, and those
+    results are returned.
+
+    This task must always be preceeded by `start` above. The succeeding task
+    must take the raw JSON values and process them into information. The JSON
+    output will look like:
+
+        {
+            'List(1,2)': 3,
+            'List(4,5)': 6
+        }
+
+    where the values and number of items depend on the input.
+
+    All errors are passed along and not raised here, so that error handling can
+    be attached to the final task in the chain, without needing to be attached
+    to every task.
+
+    :param incoming: Dictionary containing job_id or error
+    :return: Dictionary of Spark JobServer results, or error
+    """
+    if 'error' in incoming:
+        return incoming
+
+    try:
+        return sjs_retrieve(retry=self.retry, **incoming)
+    except Retry as r:
+        # Celery throws a Retry exception when self.retry is called to stop
+        # the execution of any further code, and to indicate to the worker
+        # that the same task is going to be retried.
+        # We capture and re-raise Retry to continue this behavior, and ensure
+        # that it doesn't get passed to the next task like every other error.
+        raise r
+    except Exception as x:
+        return {
+            'error': x.message
+        }
 
 
 @statsd.timer(__name__ + '.sjs_submit')
@@ -123,169 +218,42 @@ def sjs_retrieve(job_id, retry=None):
                             'Details = {}'.format(job_id, status, delete.text))
 
 
-@statsd.timer(__name__ + '.histogram_start')
-def histogram_start(polygons, retry=None):
+def parse(sjs_result):
     """
-    Together, histogram_start and histogram_finish implement a
-    function which takes a list of polygons or multipolygons as input,
-    and returns histograms of the NLCD x soil pairs that occur in each
-    shape.
+    Converts raw JSON results from Spark JobServer to dictionary of tuples
 
-    This is the top-half of the function.
-    """
-    data = settings.GEOP['json']['nlcd_soil_census'].copy()
-    data['input']['polygon'] = polygons
+    If the input is this:
 
-    return sjs_submit(data, retry)
-
-
-@statsd.timer(__name__ + '.histogram_finish')
-def histogram_finish(job_id, retry):
-    """
-    This is the bottom-half of the function.
-    """
-    sjs_result = sjs_retrieve(job_id, retry)
-
-    # Convert string "List(3,4)" to tuples (3,4) and
-    # Map NODATA soil cells cells to 3
-    # This was previously done within the SummaryJob: https://github.com/WikiWatershed/mmw-geoprocessing/blob/0d95dee35e729d9fd2f58fb9e73a69dcbe61df61/summary/src/main/scala/SummaryJob.scala#L106  # NOQA
-    # but since MapshedJob doesn't support remapping, we do it here.
-    nlcd_soil_count = {}
-    for key, count in sjs_result.iteritems():
-        (n, s) = make_tuple(key[4:])  # Convert "List(3,4)" to (3, 4)
-        s2 = s if s != settings.NODATA else 3  # Map NODATA soil cells to 3
-        nlcd_soil_count[(n, s2)] = count + nlcd_soil_count.get((n, s2), 0)
-
-    # Convert to array for backwards compatibility
-    result = [(ns, count) for ns, count in nlcd_soil_count.items()]
-
-    return [result]
-
-
-def histogram_to_x(data, nucleus, update_rule, after_rule):
-    """
-    Transform a raw Geotrellis histogram into an object of the desired
-    form (dictated by the last three arguments).
-    """
-    retval = nucleus
-    total = 0
-
-    for ((nlcd, soil), count) in data:
-        total += count
-        update_rule(nlcd, soil, count, retval)
-
-    after_rule(total, retval)
-
-    return retval
-
-
-@statsd.timer(__name__ + '.data_to_censuses')
-def data_to_censuses(data):
-    return [data_to_census(subdata) for subdata in data]
-
-
-def data_to_census(data):
-    """
-    Turn raw data from Geotrellis into a census.
-    """
-    def update_rule(nlcd, soil, count, census):
-        dist = census['distribution']
-        if nlcd in settings.NLCD_MAPPING and soil in settings.SOIL_MAPPING:
-            nlcd_str = settings.NLCD_MAPPING[nlcd][0]
-            soil_str = settings.SOIL_MAPPING[soil][0]
-            if soil_str == 'ad':
-                soil_str = 'c'
-            elif soil_str == 'bd':
-                soil_str = 'c'
-            elif soil_str == 'cd':
-                soil_str = 'd'
-            key_str = '%s:%s' % (soil_str, nlcd_str)
-            dist[key_str] = {'cell_count': (
-                count + (dist[key_str]['cell_count'] if key_str in dist else 0)
-            )}
-
-    def after_rule(count, census):
-        census['cell_count'] = count
-
-    nucleus = {'distribution': {}}
-
-    return histogram_to_x(data, nucleus, update_rule, after_rule)
-
-
-@statsd.timer(__name__ + '.data_to_survey')
-def data_to_survey(data):
-    """
-    Turn raw data from Geotrellis into a survey.
-    """
-    def update_category(codeAndValue, count, categories):
-        code = codeAndValue[0]
-        value = codeAndValue[1]
-
-        if value in categories:
-            entry = categories[value]
-            entry['area'] += count
-        else:
-            categories[value] = {
-                'code': code,
-                'type': value,
-                'area': count,
-                'coverage': None
-            }
-
-    def update_pcts(entry, count):
-        area = entry['area']
-        entry['coverage'] = 0 if count == 0 else float(area) / count
-        return entry
-
-    def update_rule(nlcd, soil, count, survey):
-        landCategories = survey[0]['categories']
-        soilCategories = survey[1]['categories']
-
-        if nlcd in settings.NLCD_MAPPING:
-            update_category(settings.NLCD_MAPPING[nlcd], count, landCategories)
-        else:
-            update_category([nlcd, nlcd], count, landCategories)
-
-        if soil in settings.SOIL_MAPPING:
-            update_category(settings.SOIL_MAPPING[soil], count, soilCategories)
-        else:
-            update_category([soil, soil], count, soilCategories)
-
-    def after_rule(count, survey):
-        nlcd_names = [v[1] for v in settings.NLCD_MAPPING.values()]
-        nlcd_keys = settings.NLCD_MAPPING.keys()
-        used_nlcd_names = [k for k in survey[0]['categories'].keys()]
-
-        for index, name in enumerate(nlcd_names):
-            nlcd = nlcd_keys[index]
-
-            if (name not in used_nlcd_names):
-                survey[0]['categories'][name] = {
-                    'type': name,
-                    'coverage': None,
-                    'area': 0,
-                    'nlcd': nlcd
-                }
-            else:
-                survey[0]['categories'][name]['nlcd'] = nlcd
-
-        land = survey[0]['categories'].iteritems()
-        soil = survey[1]['categories'].iteritems()
-
-        survey[0]['categories'] = [update_pcts(v, count) for k, v in land]
-        survey[1]['categories'] = [update_pcts(v, count) for k, v in soil]
-
-    nucleus = [
         {
-            'name': 'land',
-            'displayName': 'Land',
-            'categories': {}
-        },
-        {
-            'name': 'soil',
-            'displayName': 'Soil',
-            'categories': {}
+            'List(1,2)': 3,
+            'List(4,5)': 6
         }
-    ]
 
-    return histogram_to_x(data, nucleus, update_rule, after_rule)
+    The output will be:
+
+        {
+            (1, 2): 3,
+            (4, 5): 6
+        }
+
+    :param sjs_result: Dictionary mapping strings like 'List(a,b,c)' to ints
+    :return: Dictionary mapping tuples of ints to ints
+    """
+    return {make_tuple(key[4:]): val for key, val in sjs_result.items()}
+
+
+def to_one_ring_multipolygon(area_of_interest):
+    """
+    Given a multipolygon comprising just a single ring structured in a
+    five-dimensional array, remove one level of nesting and make the AOI's
+    coordinates a four-dimensional array. Otherwise, no op.
+    """
+
+    if type(area_of_interest['coordinates'][0][0][0][0]) is list:
+        multipolygon_shapes = area_of_interest['coordinates'][0]
+        if len(multipolygon_shapes) > 1:
+            raise Exception('Unable to parse multi-ring RWD multipolygon')
+        else:
+            area_of_interest['coordinates'] = multipolygon_shapes
+
+    return area_of_interest

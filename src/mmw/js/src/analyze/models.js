@@ -21,6 +21,8 @@ var LayerCategoryCollection = Backbone.Collection.extend({
 
 var AnalyzeTaskModel = coreModels.TaskModel.extend({
     defaults: lodash.extend( {
+            name: 'analysis',
+            displayName: 'Analysis',
             area_of_interest: null,
             taskName: 'analyze',
             taskType: 'modeling'
@@ -60,21 +62,36 @@ var AnalyzeTaskCollection = Backbone.Collection.extend({
 
 function createAnalyzeTaskCollection(aoi) {
     return new AnalyzeTaskCollection([
-        { area_of_interest: aoi, taskName: 'analyze' },
-        { area_of_interest: aoi, taskName: 'analyze/animals' },
-        { area_of_interest: aoi, taskName: 'analyze/pointsource' },
-        { area_of_interest: aoi, taskName: 'analyze/catchment-water-quality' },
-    ]);
-}
-
-function createAnalyzeResultViewModelCollection(analyzeTaskCollection) {
-    return new Backbone.Collection([
-        { name: 'land', displayName: 'Land', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze' }) },
-        { name: 'soil', displayName: 'Soil', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze' }) },
-        { name: 'animals', displayName: 'Animals', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze/animals' }) },
-        { name: 'pointsource', displayName: 'Point Sources', taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze/pointsource' }) },
-        { name: 'catchment_water_quality', displayName: 'Water Quality',
-            taskRunner: analyzeTaskCollection.findWhere({ taskName: 'analyze/catchment-water-quality' }) },
+        {
+            name: "land",
+            displayName: "Land",
+            area_of_interest: aoi,
+            taskName: "analyze/land"
+        },
+        {
+            name: "soil",
+            displayName: "Soil",
+            area_of_interest: aoi,
+            taskName: "analyze/soil"
+        },
+        {
+            name: "animals",
+            displayName: "Animals",
+            area_of_interest: aoi,
+            taskName: "analyze/animals"
+        },
+        {
+            name: "pointsource",
+            displayName: "Point Sources",
+            area_of_interest: aoi,
+            taskName: "analyze/pointsource"
+        },
+        {
+            name: "catchment_water_quality",
+            displayName: "Water Quality",
+            area_of_interest: aoi,
+            taskName: "analyze/catchment-water-quality"
+        }
     ]);
 }
 
@@ -84,5 +101,4 @@ module.exports = {
     LayerCollection: LayerCollection,
     LayerCategoryCollection: LayerCategoryCollection,
     createAnalyzeTaskCollection: createAnalyzeTaskCollection,
-    createAnalyzeResultViewModelCollection: createAnalyzeResultViewModelCollection,
 };
