@@ -226,7 +226,8 @@ var MapView = Marionette.ItemView.extend({
         'change': 'updateView',
         'change:areaOfInterest': 'updateAreaOfInterest',
         'change:size': 'toggleMapSize',
-        'change:maskLayerApplied': 'toggleMask'
+        'change:maskLayerApplied': 'toggleMask',
+        'change:focusBounds': 'renderFocusBounds'
     },
 
     // L.Map instance.
@@ -239,6 +240,8 @@ var MapView = Marionette.ItemView.extend({
     // Scenario modification shapes drawn on top of area of interest.
     // L.FeatureGroup instance.
     _modificationsLayer: null,
+
+    _focusBoundsLayer: null,
 
     // Flag used to determine if AOI change should trigger a prompt.
     _areaOfInterestSet: false,
@@ -274,6 +277,8 @@ var MapView = Marionette.ItemView.extend({
         this._leafletMap = map;
         this._areaOfInterestLayer = new L.FeatureGroup();
         this._modificationsLayer = new L.FeatureGroup();
+        this._focusBoundsLayer = new L.FeatureGroup();
+
         if (!options.interactiveMode) {
             this.setMapToNonInteractive();
         }
@@ -310,6 +315,7 @@ var MapView = Marionette.ItemView.extend({
 
         map.addLayer(this._areaOfInterestLayer);
         map.addLayer(this._modificationsLayer);
+        map.addLayer(this._focusBoundsLayer);
     },
 
     setupGeoLocation: function(maxAge) {
@@ -673,6 +679,21 @@ var MapView = Marionette.ItemView.extend({
             }
         });
     },
+
+    renderFocusBounds: function() {
+        var bbox = this.model.get('focusBounds');
+        this._focusBoundsLayer.clearLayers();
+        if (bbox) {
+            var xmin = bbox[0],
+                ymin = bbox[1],
+                xmax = bbox[2],
+                ymax = bbox[3],
+                bounds = [[ymin, xmin], [ymax, xmax]],
+                rect = new L.Rectangle(bounds);
+            this._focusBoundsLayer.addLayer(rect);
+            this._leafletMap.fitBounds(bounds);
+        }
+    }
 });
 
 // Apply a mask over the entire map excluding bounds/shape specified.
