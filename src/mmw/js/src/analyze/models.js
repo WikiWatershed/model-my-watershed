@@ -3,6 +3,7 @@
 var $ = require('jquery'),
     lodash = require('lodash'),
     Backbone = require('../../shim/backbone'),
+    utils = require('../core/utils'),
     coreModels = require('../core/models');
 
 var LayerModel = Backbone.Model.extend({});
@@ -24,6 +25,7 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
             name: 'analysis',
             displayName: 'Analysis',
             area_of_interest: null,
+            wkaoi: null,
             taskName: 'analyze',
             taskType: 'modeling'
         }, coreModels.TaskModel.prototype.defaults
@@ -36,14 +38,19 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
     fetchAnalysisIfNeeded: function() {
         var self = this,
             aoi = self.get('area_of_interest'),
+            wkaoi = self.get('wkaoi'),
             result = self.get('result');
 
         if (aoi && !result && self.fetchAnalysisPromise === undefined) {
-            var promises = self.start({
-                postData: {
-                    'area_of_interest': JSON.stringify(aoi)
-                }
-            });
+            var analyzeInput = utils.isWKAoIValid(wkaoi) ?
+                                   JSON.stringify({ 'wkaoi': wkaoi }) :
+                                   JSON.stringify({ 'area_of_interest': aoi }),
+                promises = self.start({
+                    postData: {
+                        'analyze_input': analyzeInput
+                    }
+                });
+
             self.fetchAnalysisPromise = $.when(promises.startPromise,
                                                promises.pollingPromise);
             self.fetchAnalysisPromise
@@ -60,36 +67,41 @@ var AnalyzeTaskCollection = Backbone.Collection.extend({
     model: AnalyzeTaskModel
 });
 
-function createAnalyzeTaskCollection(aoi) {
+function createAnalyzeTaskCollection(aoi, wkaoi) {
     return new AnalyzeTaskCollection([
         {
             name: "land",
             displayName: "Land",
             area_of_interest: aoi,
+            wkaoi: wkaoi,
             taskName: "analyze/land"
         },
         {
             name: "soil",
             displayName: "Soil",
             area_of_interest: aoi,
+            wkaoi: wkaoi,
             taskName: "analyze/soil"
         },
         {
             name: "animals",
             displayName: "Animals",
             area_of_interest: aoi,
+            wkaoi: wkaoi,
             taskName: "analyze/animals"
         },
         {
             name: "pointsource",
             displayName: "Point Sources",
             area_of_interest: aoi,
+            wkaoi: wkaoi,
             taskName: "analyze/pointsource"
         },
         {
             name: "catchment_water_quality",
             displayName: "Water Quality",
             area_of_interest: aoi,
+            wkaoi: wkaoi,
             taskName: "analyze/catchment-water-quality"
         }
     ]);

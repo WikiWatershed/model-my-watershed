@@ -20,15 +20,17 @@ from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
 from django.conf import settings
 from django.db import connection
-from django.contrib.gis.geos import GEOSGeometry, WKBReader
+from django.contrib.gis.geos import WKBReader
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
 
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
 from apps.modeling import tasks, geoprocessing
-from apps.modeling.mapshed.tasks import (geop_tasks, collect_data, combine,
-                                         geop_task)
+from apps.modeling.mapshed.tasks import (geoprocessing_chains,
+                                         combine,
+                                         collect_data,
+                                         )
 from apps.modeling.models import Project, Scenario
 from apps.modeling.serializers import (ProjectSerializer,
                                        ProjectListingSerializer,
@@ -263,16 +265,15 @@ def _initiate_mapshed_job_chain(mapshed_input, job_id):
     errback = save_job_error.s(job_id).set(exchange=MAGIC_EXCHANGE,
                                            routing_key=get_worker())
 
-    geom = GEOSGeometry(json.dumps(mapshed_input['area_of_interest']),
-                        srid=4326)
+    area_of_interest, wkaoi = parse_input(mapshed_input)
 
-    job_chain = (group(
-        geop_task(t, geom, MAGIC_EXCHANGE, errback, get_worker)
-        for t in geop_tasks()) |
+    job_chain = (
+        group(geoprocessing_chains(area_of_interest, wkaoi,
+                                   MAGIC_EXCHANGE, errback, choose_worker)) |
         combine.s().set(
             exchange=MAGIC_EXCHANGE,
             routing_key=get_worker()) |
-        collect_data.s(geom.geojson).set(
+        collect_data.s(area_of_interest).set(
             link_error=errback,
             exchange=MAGIC_EXCHANGE,
             routing_key=get_worker()) |
@@ -308,13 +309,12 @@ def start_analyze_land(request, format=None):
     exchange = MAGIC_EXCHANGE
     routing_key = choose_worker()
 
-    area_of_interest = geoprocessing.to_one_ring_multipolygon(json.loads(
-        request.POST['area_of_interest']))
+    area_of_interest, wkaoi = parse_input(request.POST['analyze_input'])
 
-    geop_input = {'polygon': [json.dumps(area_of_interest)]}
+    geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
-        geoprocessing.start.s('nlcd', geop_input)
+        geoprocessing.start.s('nlcd', geop_input, wkaoi)
                      .set(exchange=exchange, routing_key=routing_key),
         geoprocessing.finish.s()
                      .set(exchange=exchange, routing_key=routing_key),
@@ -330,13 +330,12 @@ def start_analyze_soil(request, format=None):
     exchange = MAGIC_EXCHANGE
     routing_key = choose_worker()
 
-    area_of_interest = geoprocessing.to_one_ring_multipolygon(json.loads(
-        request.POST['area_of_interest']))
+    area_of_interest, wkaoi = parse_input(request.POST['analyze_input'])
 
-    geop_input = {'polygon': [json.dumps(area_of_interest)]}
+    geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
-        geoprocessing.start.s('soil', geop_input)
+        geoprocessing.start.s('soil', geop_input, wkaoi)
                      .set(exchange=exchange, routing_key=routing_key),
         geoprocessing.finish.s()
                      .set(exchange=exchange, routing_key=routing_key),
@@ -349,7 +348,7 @@ def start_analyze_soil(request, format=None):
 @decorators.permission_classes((AllowAny, ))
 def start_analyze_animals(request, format=None):
     user = request.user if request.user.is_authenticated() else None
-    area_of_interest = request.POST['area_of_interest']
+    area_of_interest, __ = parse_input(request.POST['analyze_input'])
     exchange = MAGIC_EXCHANGE
 
     return start_celery_job([
@@ -362,7 +361,7 @@ def start_analyze_animals(request, format=None):
 @decorators.permission_classes((AllowAny, ))
 def start_analyze_pointsource(request, format=None):
     user = request.user if request.user.is_authenticated() else None
-    area_of_interest = request.POST['area_of_interest']
+    area_of_interest, __ = parse_input(request.POST['analyze_input'])
     exchange = MAGIC_EXCHANGE
 
     return start_celery_job([
@@ -375,7 +374,7 @@ def start_analyze_pointsource(request, format=None):
 @decorators.permission_classes((AllowAny, ))
 def start_analyze_catchment_water_quality(request, format=None):
     user = request.user if request.user.is_authenticated() else None
-    area_of_interest = request.POST['area_of_interest']
+    area_of_interest, __ = parse_input(request.POST['analyze_input'])
     exchange = MAGIC_EXCHANGE
 
     return start_celery_job([
@@ -477,7 +476,7 @@ def _construct_tr55_job_chain(model_input, job_id):
 
     job_chain = []
 
-    aoi = model_input.get('area_of_interest')
+    aoi, wkaoi = parse_input(model_input, geojson=False)
     aoi_census = model_input.get('aoi_census')
     modification_censuses = model_input.get('modification_censuses')
     # Non-overlapping polygons derived from the modifications
@@ -497,7 +496,7 @@ def _construct_tr55_job_chain(model_input, job_id):
        census_hash == current_hash) or not pieces)):
         censuses = [aoi_census] + modification_census_items
 
-        job_chain.append(tasks.run_tr55.s(censuses, model_input)
+        job_chain.append(tasks.run_tr55.s(censuses, aoi, model_input)
                          .set(exchange=exchange, routing_key=choose_worker()))
     else:
         job_chain.append(geoprocessing.finish.s()
@@ -512,18 +511,21 @@ def _construct_tr55_job_chain(model_input, job_id):
             job_chain.insert(0, geoprocessing.start.s('nlcd_soil_census',
                                                       geop_input)
                              .set(exchange=exchange, routing_key=routing_key))
-            job_chain.append(tasks.run_tr55.s(model_input,
+            job_chain.append(tasks.run_tr55.s(aoi, model_input,
                                               cached_aoi_census=aoi_census)
                              .set(exchange=exchange,
                                   routing_key=choose_worker()))
         else:
             polygons = [aoi] + [m['shape']['geometry'] for m in pieces]
             geop_input = {'polygon': [json.dumps(p) for p in polygons]}
+            # Use WKAoI only if there are no pieces to modify the AoI
+            wkaoi = wkaoi if not pieces else None
 
             job_chain.insert(0, geoprocessing.start.s('nlcd_soil_census',
-                                                      geop_input)
+                                                      geop_input,
+                                                      wkaoi)
                              .set(exchange=exchange, routing_key=routing_key))
-            job_chain.append(tasks.run_tr55.s(model_input)
+            job_chain.append(tasks.run_tr55.s(aoi, model_input)
                              .set(exchange=exchange,
                                   routing_key=choose_worker()))
 
@@ -543,25 +545,12 @@ def _get_boundary_layer_by_code(code):
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
 def boundary_layer_detail(request, table_code, obj_id):
-    layer = _get_boundary_layer_by_code(table_code)
-    if not layer:
+    geojson = get_layer_shape(table_code, obj_id)
+
+    if geojson:
+        return Response(json.loads(geojson))
+    else:
         return Response(status=status.HTTP_404_NOT_FOUND)
-
-    table_name = layer['table_name']
-    json_field = layer.get('json_field', 'geom')
-
-    query = 'SELECT {field} FROM {table} WHERE id = %s'.format(
-            field=json_field, table=table_name)
-
-    with connection.cursor() as cursor:
-        cursor.execute(query, [int(obj_id)])
-        row = cursor.fetchone()
-
-        if row:
-            geojson = json.loads(GEOSGeometry(row[0]).geojson)
-            return Response(geojson)
-        else:
-            return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 def _get_boundary_search_query(search_term):
@@ -732,3 +721,80 @@ def start_celery_job(task_list, job_input, user=None,
             'status': 'started',
         }
     )
+
+
+def get_layer_shape(table_code, id):
+    """
+    Fetch shape of well known area of interest.
+
+    :param table_code: Code of table
+    :param id: ID of the shape
+    :return: GeoJSON of shape if found, None otherwise
+    """
+    layer = _get_boundary_layer_by_code(table_code)
+    if not layer:
+        return None
+
+    table = layer['table_name']
+    field = layer.get('json_field', 'geom')
+
+    sql = '''
+          SELECT ST_AsGeoJSON({field})
+          FROM {table}
+          WHERE id = %s
+          '''.format(field=field, table=table)
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [int(id)])
+        row = cursor.fetchone()
+
+        if row:
+            return row[0]
+        else:
+            return None
+
+
+def parse_input(model_input, geojson=True):
+    """
+    Parse input into tuple of AoI JSON and WKAoI id.
+
+    If the input has an 'area_of_interest' key, it is returned as the AoI JSON
+    and None as the WKAoI. If the input has a 'wkaoi' key, its shape is pulled
+    from the appropriate database, and returned with the value of 'wkaoi' as
+    the WKAoI.
+
+    If the geojson parameter is set to False, the area of interest is returned
+    as a dict instead of a JSON string.
+    """
+    if not model_input:
+        return Response('model_input cannot be empty',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    if isinstance(model_input, basestring):
+        # Input is string, assumed JSON. Convert to dict before proceeding
+        model_input = json.loads(model_input)
+
+    if 'area_of_interest' in model_input:
+        # Area of Interest is expected to be GeoJSON in 4326
+        shape = geoprocessing.to_one_ring_multipolygon(
+            model_input['area_of_interest']
+        )
+
+        result = json.dumps(shape) if geojson else shape
+        return result, None
+
+    if 'wkaoi' in model_input:
+        # WKAoI is expected to be in the format '{table}__{id}'
+        table, id = model_input['wkaoi'].split('__')
+        shape = get_layer_shape(table, id)
+
+        if shape:
+            result = shape if geojson else json.loads(shape)
+            return result, model_input['wkaoi']
+        else:
+            return Response('Invalid wkaoi: {}'.format(model_input['wkaoi']),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    # If neither 'area_of_interest' nor 'wkaoi' were found, report
+    return Response('model_input must have either area_of_interest or wkaoi',
+                    status=status.HTTP_400_BAD_REQUEST)

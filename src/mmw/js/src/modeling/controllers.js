@@ -121,6 +121,7 @@ var ModelingController = {
                 created_at: Date.now(),
                 area_of_interest: App.map.get('areaOfInterest'),
                 area_of_interest_name: App.map.get('areaOfInterestName'),
+                wkaoi: App.map.get('wellKnownAreaOfInterest'),
                 model_package: modelPackage,
                 scenarios: new models.ScenariosCollection()
             });

@@ -20,7 +20,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          ls_factors,
                                          p_factors,
                                          manure_spread,
-                                         streams,
+                                         streams_from_geojson,
                                          stream_length,
                                          point_source_discharge,
                                          weather_data,
@@ -410,47 +410,29 @@ def nlcd_kfactor(result):
     return output
 
 
-def geop_tasks():
-    return geop_task_defs.keys()
-
-
-geop_task_defs = {
-    'nlcd_streams': lambda geom: (
-        'nlcd_streams',
-        {'polygon': [geom.geojson], 'vector': streams(geom)},
-        nlcd_streams),
-    'nlcd_soils': lambda geom: (
-        'nlcd_soils',
-        {'polygon': [geom.geojson]},
-        nlcd_soils),
-    'gwn': lambda geom: ('gwn', {'polygon': [geom.geojson]}, gwn),
-    'avg_awc': lambda geom: (
-        'avg_awc',
-        {'polygon': [geom.geojson]},
-        avg_awc),
-    'nlcd_slope': lambda geom: (
-        'nlcd_slope',
-        {'polygon': [geom.geojson]},
-        nlcd_slope),
-    'slope': lambda geom: (
-        'slope',
-        {'polygon': [geom.geojson]},
-        slope),
-    'nlcd_kfactor': lambda geom: (
-        'nlcd_kfactor',
-        {'polygon': [geom.geojson]},
-        nlcd_kfactor)
-}
-
-
-def geop_task(taskName, geom, exchange, errback, choose_worker):
-    (opname, data, callback) = geop_task_defs[taskName](geom)
+def geoprocessing_chains(aoi, wkaoi, exchange, errback, choose_worker):
     worker = choose_worker()
-    return (start.s(opname, data).set(exchange=exchange, routing_key=worker) |
-            finish.s().set(exchange=exchange, routing_key=worker) |
-            callback.s().set(link_error=errback,
-                             exchange=exchange,
-                             routing_key=choose_worker()))
+    task_defs = [
+        ('nlcd_soils',   nlcd_soils,   {'polygon': [aoi]}),
+        ('gwn',          gwn,          {'polygon': [aoi]}),
+        ('avg_awc',      avg_awc,      {'polygon': [aoi]}),
+        ('nlcd_slope',   nlcd_slope,   {'polygon': [aoi]}),
+        ('slope',        slope,        {'polygon': [aoi]}),
+        ('nlcd_kfactor', nlcd_kfactor, {'polygon': [aoi]}),
+        ('nlcd_streams', nlcd_streams, {'polygon': [aoi],
+                                        'vector': streams_from_geojson(aoi)}),
+    ]
+
+    return [
+        start.s(opname, data, wkaoi).set(exchange=exchange,
+                                         routing_key=worker) |
+        finish.s().set(exchange=exchange,
+                       routing_key=worker) |
+        callback.s().set(link_error=errback,
+                         exchange=exchange,
+                         routing_key=choose_worker())
+        for (opname, callback, data) in task_defs
+    ]
 
 
 @shared_task

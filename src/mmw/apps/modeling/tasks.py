@@ -136,7 +136,7 @@ def format_runoff(model_output):
 
 
 @shared_task
-def run_tr55(censuses, model_input, cached_aoi_census=None):
+def run_tr55(censuses, aoi, model_input, cached_aoi_census=None):
     """
     A Celery wrapper around our TR55 implementation.
     censuses is either output from previous tasks in the job
@@ -154,7 +154,7 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
 
     # Normalize AOI to handle single-ring multipolygon
     # inputs sent from RWD as well as shapes sent from the front-end
-    aoi = to_one_ring_multipolygon(model_input.get('area_of_interest'))
+    aoi = to_one_ring_multipolygon(aoi)
 
     width = aoi_resolution(aoi)
     resolution = width * width
@@ -357,11 +357,11 @@ def nlcd_soil_census(result):
     for key, count in result.iteritems():
         # Extract (3, 4) from "List(3,4)"
         (n, s) = make_tuple(key[4:])
+        # Map [NODATA, ad, bd] to c, [cd] to d
+        s2 = 3 if s in [settings.NODATA, 5, 6] else 4 if s == 7 else s
         # Only count those values for which we have mappings
-        if n in settings.NLCD_MAPPING and s in settings.SOIL_MAPPING:
+        if n in settings.NLCD_MAPPING and s2 in settings.SOIL_MAPPING:
             total_count += count
-            # Map [NODATA, ad, bd] to c, [cd] to d
-            s2 = 3 if s in [settings.NODATA, 5, 6] else 4 if s == 7 else s
             label = '{soil}:{nlcd}'.format(soil=settings.SOIL_MAPPING[s2][0],
                                            nlcd=settings.NLCD_MAPPING[n][0])
             dist[label] = {'cell_count': (

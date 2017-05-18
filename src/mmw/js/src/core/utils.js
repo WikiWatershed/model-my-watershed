@@ -446,6 +446,13 @@ var utils = {
         }
 
         return minRows + Math.floor((screenHeight - minScreenHeight) / avgRowHeight);
+    },
+
+    isWKAoIValid: function(wkaoi) {
+        return wkaoi &&
+               wkaoi.includes('__') &&
+               !lodash.startsWith(wkaoi, '__') &&
+               !lodash.endsWith(wkaoi, '__');
     }
 };
 
