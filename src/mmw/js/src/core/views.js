@@ -29,7 +29,6 @@ var RootView = Marionette.LayoutView.extend({
     regions: {
         mainRegion: '#container',
         geocodeSearchRegion: '#geocode-search-region',
-        drawToolsRegion: '#draw-tools-region',
         layerPickerRegion: '#layer-picker-region',
         subHeaderRegion: '#sub-header',
         sidebarRegion: {
@@ -196,7 +195,7 @@ var HeaderView = Marionette.ItemView.extend({
 // Init the locate plugin button and add it to the map.
 function addLocateMeButton(map, maxZoom, maxAge) {
     var locateOptions = {
-        position: 'bottomright',
+        position: 'bottomleft',
         metric: false,
         drawCircle: false,
         showPopup: false,
@@ -281,21 +280,21 @@ var MapView = Marionette.ItemView.extend({
 
         var maxGeolocationAge = 60000;
 
-        if (options.addSidebarToggleControl) {
-            map.addControl(new SidebarToggleControl());
+        if (options.addZoomControl) {
+            map.addControl(new L.Control.Zoom({position: 'bottomleft'}));
+            // We're overriding css to display the zoom controls horizontally.
+            // Because the zoom-in div usally exists on top, we need to flip it
+            // with the zoom-out div, so when they're horizontal they appear as
+            // [ - | + ]
+            $('.leaflet-control-zoom-out').insertBefore('.leaflet-control-zoom-in');
         }
 
         if (options.addLocateMeButton) {
             addLocateMeButton(map, maxGeolocationAge);
         }
 
-        if (options.addZoomControl) {
-            map.addControl(new L.Control.Zoom({position: 'bottomright'}));
-            // We're overriding css to display the zoom controls horizontally.
-            // Because the zoom-in div usally exists on top, we need to flip it
-            // with the zoom-out div, so when they're horizontal they appear as
-            // [ - | + ]
-            $('.leaflet-control-zoom-out').insertBefore('.leaflet-control-zoom-in');
+        if (options.addSidebarToggleControl) {
+            map.addControl(new SidebarToggleControl({ model: options.model }));
         }
 
         this.setMapEvents();
@@ -594,19 +593,10 @@ var MapView = Marionette.ItemView.extend({
             size = this.model.get('size'),
             $container = this.$el.parent();
 
-        $container.toggleClass('map-container-top-1', !!size.top.single);
-        $container.toggleClass('map-container-top-2', !!size.top.double);
-
-        $container.toggleClass('map-container-bottom-1', !!size.bottom.min);
-        $container.toggleClass('map-container-bottom-2', !!size.bottom.small);
-        $container.toggleClass('map-container-bottom-3', !!size.bottom.med);
-        $container.toggleClass('map-container-bottom-4', !!size.bottom.large);
-
-        $container.toggleClass('map-container-top-sidebar', !!size.top.sidebar);
-        $container.toggleClass('map-container-bottom-sidebar', !!size.top.sidebar);
-
-        $container.toggleClass('map-container-top-sidebar-no-header', !!size.noHeader);
-        $container.toggleClass('-widesidebar', !!size.wideSidebar);
+        $container.toggleClass('-projectheader', !!size.hasProjectHeader);
+        $container.toggleClass('-sidebar', !!size.hasSidebar);
+        $container.toggleClass('-wide', !!size.hasSidebar &&
+            size.sidebarWidth === coreUtils.sidebarWide);
 
         _.delay(function() {
             self._leafletMap.invalidateSize();

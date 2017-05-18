@@ -949,19 +949,14 @@ var ResultsView = Marionette.LayoutView.extend({
             fit = _.isUndefined(fitToBounds) ? true : fitToBounds;
 
         this.$el.animate({ width: '400px' }, 200, function() {
-            App.map.setDoubleHeaderSidebarSize(fit);
+            App.map.setModelSize(fit);
             self.trigger('animateIn');
             triggerBarChartRefresh();
         });
     },
 
-    animateOut: function(fitToBounds) {
-        var self = this,
-            fit = _.isUndefined(fitToBounds) ? true : fitToBounds;
-
-        // Change map to full size first so there isn't empty space when
-        // results window animates out
-        App.map.setDoubleHeaderSmallFooterSize(fit);
+    animateOut: function() {
+        var self = this;
 
         this.$el.animate({ width: '0px' }, 200, function() {
             self.trigger('animateOut');

@@ -237,3 +237,34 @@
         display: inline;
     }
 }
+
+.select-model-dropdown {
+    width: 320px;
+    padding: 1rem;
+    > .select-model-dropdown-header {
+        margin-bottom: 12px;
+    }
+    > p {
+        font-size: $temp-p;
+        margin-bottom: 12px;
+    }
+    .select-model-dropdown-menu-item {
+        margin-bottom: 6px;
+        background-color: $ui-light;
+        border-radius: $radius-sm!important;
+
+        > .analyze-model-package-link {
+            white-space: normal;
+            padding: 0.5rem;
+            > .analyze-model-name {
+                        font-size: $temp-h3;
+                        color: $ui-primary;
+            }
+            > p {
+                font-size: $temp-p;
+                font-size: $temp-p;
+                color: $ui-grey;
+            }
+        }
+    }
+}

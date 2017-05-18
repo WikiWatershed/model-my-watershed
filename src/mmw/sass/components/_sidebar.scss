@@ -1,65 +1,7 @@
-.sidebar-tab-header {
-    height: $sidebar-header-height;
-    .nav-tabs > li.active > a,
-    .nav-tabs > li.active > a:hover,
-    .nav-tabs > li.active > a:focus {
-        background-color: $black-06;
-        border-radius: 0;
-        border: 0;
-        color: $black-74;
-        font-weight: 800;
-    }
-    .nav-tabs > li {
-        width: 50%;
-        margin-bottom: -1px;
-        float: left;
-    }
-    .nav-tabs > li > a {
-        margin: 0;
-        border-radius: 0;
-        border: 0;
-        background-color: $black-12;
-        height: $sidebar-tab-subheader-height;
-        line-height: $sidebar-tab-subheader-height;
-        padding-top: 0;
-        text-align: center;
-        color: $black-39;
-    }
-    .nav-tabs {
-        border-bottom: 0;
-    }
-}
-
-.sidebar-tab-header-label {
-    position: relative;
-    &:after {
-        content: "";
-        position: absolute;
-        border-bottom: 3px solid transparent;
-        padding-bottom: 0px;
-        top: 0;
-        height: $sidebar-tab-subheader-height;
-        line-height: $sidebar-tab-subheader-height;
-        width: 100%;
-        left: 0;
-        margin-top: 2px;
-    }
-}
-
-.sidebar-tab-header-label-icon {
-    color: rgba(0, 0, 0, 0.54);
-    margin-right: 8px;
-    position: absolute;
-    bottom: 0;
-    height: auto;
-    text-align: center;
-    width: 100%;
-}
-
 .results-content.downloadcsv-link,
 .downloadcsv-link {
-    padding-top: 10px;
-    padding-left: 5px;
+    margin-top: 14px;
+    margin-left: 7px;
     cursor: pointer;
     font-size: 0.7rem;
 }

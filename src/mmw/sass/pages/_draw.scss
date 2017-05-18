@@ -1,13 +1,26 @@
 #draw-window,
 #splash-window {
-    width: 460px;
-    padding: 15px;
-    position: absolute;
-    right: 0;
-    transition: all 200ms;
-    top: 44px;
-    bottom: 0px;
-    overflow-y: auto;
+  width: $sidebar-width;
+  padding: 15px;
+  transition: all 200ms;
+  overflow-y: auto;
+  position: absolute;
+  height: calc(100% - #{$height-lg});
+  & > h1, & > h2 {
+    font-size: $temp-h1;
+    font-weight: 800;
+  }
+  & > p {
+    font-size: $temp-h3;
+    margin: 10px 0;
+  }
+  padding-top: 30px;
+  #get-started {
+    font-size: $temp-h3;
+  }
+  h2 {
+    font-size: $temp-h2;
+  }
 }
 
 .splash-step {
@@ -15,23 +28,42 @@
 
   & .badge {
     margin-right: 10px;
+    width: 20px;
+    height: 20px;
+    background-color: #324376;
+  }
+
+  h2 {
+    font-size: $temp-h3;
   }
 
   & p {
     margin-left: 30px;
+    font-size: $temp-h4;
   }
 }
 
 #draw-pane-header-description {
   margin-top: 0.8rem;
+  font-size: $temp-p;
 }
 
 #draw-pane-buttons {
   margin-top: 1rem;
 
+  & .draw-button-group {
+      width: 100%;
+  }
+
   & .draw-tool-button {
     background-color: #d4d7d8;
-    margin-top: 10px;
+    padding: 0.1rem 0.6rem;
+    margin-top: 8px;
+    &.-hasselection {
+        margin-bottom: 0px;
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 0px;
+    }
   }
 
   & .reset-draw-button {
@@ -39,29 +71,31 @@
   }
 
   & .draw-tool-selection {
-    padding: 0.5rem 1.0rem;
+    padding: 0.5rem 0.6rem;
     background-color: $brand-primary;
+    font-size: $temp-p;
+    color: $paper;
+    font-weight: lighter;
 
     & i {
-      margin-top: 0.25rem;
+      margin-top: 0.1rem;
     }
   }
 
   & .draw-button-title {
-    font-size: 1rem;
+    font-size: $temp-h3;
+    text-align: left;
     font-weight: 400;
     color: black;
     line-height: 1.4;
     margin-top: 0.4rem;
+    float: none !important;
   }
 
   & .draw-button-subtitle {
-    font-size: 0.8rem;
+    font-size: $temp-h4;
+    text-align: left;
     margin-bottom: 0.4rem;
-  }
-
-  & .draw-button-icon {
-    margin-top: 1rem;
   }
 
   & #upload-file-region {
@@ -80,17 +114,18 @@
   & .draw-pane-list {
     text-align: left;
     font-size: 1rem;
+    width: 100%;
 
     & .draw-pane-list-item {
       list-style-type: none;
-      margin-top: 0.5rem;
-      margin-bottom: 0.5rem;
-      margin-left: 0.8rem;
-      font-size: 0.8rem;
+      font-size: $temp-h4;
 
       & .draw-pane-list-item-button {
         background: transparent;
-        border: none;
+        display: block;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        padding-left: 0.8rem;
       }
 
       & .draw-pane-list-item-button:disabled {
@@ -108,6 +143,7 @@
 
       & a.help {
         color: #999;
+        padding: 0.5rem 1rem;
 
         &:hover {
           color: inherit;

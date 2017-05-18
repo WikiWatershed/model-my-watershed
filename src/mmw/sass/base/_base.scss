@@ -67,43 +67,6 @@ p.info {
   }
 }
 
-#draw-tools-region,
-.draw-tools-container div {
-  display: inline-block;
-  text-transform: none;
-  // Override pointer-events: none in #search-map
-  pointer-events: auto;
-  padding-bottom: 0.2rem;
-
-  @media(max-width: 710px) {
-    display: block;
-  }
-
-  // Undo bootstrap input[type="range"] syling
-  #stream-slider {
-    display: inline-block;
-    width: auto;
-    vertical-align: bottom;
-  }
-}
-
-.draw-tools-container {
-  @media(max-width: 1200px) {
-    margin-top: 10px;
-  }
-
-  .dropdown-menu {
-    li {
-      a {
-        position: relative;
-        span {
-          display:inline-block;
-        }
-      }
-    }
-  }
-}
-
 #boundary-label {
   display: none;
   padding: 5px;

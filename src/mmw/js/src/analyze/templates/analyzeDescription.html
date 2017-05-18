@@ -1,3 +1,7 @@
-<div class="analyze-description">
-    {{ description }}
+<div class="analyze-title">{{ title }}</div>
+<div class="layer-region"></div>
+<div class="analyze-source">
+    {% if source %}
+        Source: {{ source }}
+    {% endif %}
 </div>

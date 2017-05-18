@@ -5,59 +5,67 @@
 #scenario-wrapper {
   position: relative;
   width: 100%;
+}
 
-  .nav-tabs {
-    font-weight: 500;
-    font-size: 0.6rem;
-    border-bottom: none!important;
-    background-color: $ui-secondary;
-    bottom: 0;
+.sidebar-tab-header-label {
+    position: relative;
+    &:after {
+        position: absolute;
+        left: 0;
+        content: "";
+        border-bottom: 2px solid transparent;
+        padding-bottom: 0px;
+        top: 0;
+        height: $sidebar-tab-subheader-height;
+        line-height: $sidebar-tab-subheader-height;
+        width: 100%;
+        margin-top: 2px;
+    }
+}
+
+.sidebar-tab-header-label-icon {
+    color: rgba(0, 0, 0, 0.54);
+    margin-right: 8px;
     position: absolute;
-    left: 8px;
+    bottom: 2px;
+    height: auto;
+    text-align: center;
+    width: 100%;
+    font-size: 8px;
+}
 
-    li a {
-      border-radius: 0!important;
-      border-top: none!important;
-      border-left: none!important;
-      border-right: none!important;
-      text-transform: uppercase;
+.model-stage-results-tab-pane {
+    .nav-tabs {
+        background-color: transparent;
     }
-
-    li.active > a {
-      color: $ui-secondary;
-      background-color: #D0D0D0
+    .tab-content {
+    // Set a specific height to allow y-scroll:
+    // Calc: height under the main header (height-lg), project header, model-toolbar,
+    // (height-xl) and sidebar nav tabs (sidebar-nav-tabs)
+      height: calc(100% - #{$height-xl} * 2 - #{$height-lg} - #{$sidebar-header-height}) !important;
     }
+}
 
-    li > a {
-      color: $ui-secondary;
-      padding: 0 1.8rem 0 0.8rem;
-      line-height: $height-md;
-      margin-right: 2px;
-      background-color: $paper-54;
 
-      &:hover {
-        background-color: $ui-light;
-        border-radius: 0!important;
-        color: $ui-secondary;
-      }
+.analyze-stage-results-tab-pane {
+    .nav-tabs {
+        background-color: $black-06;
     }
-  }
+    .tab-content {
+    // Set a specific height to allow y-scroll:
+    // Calc height under the main header (height-lg), aoi region (aoi-header-height),
+    // and analyze nav tabs (sidebar-header-height)
+    // and above the next-stage-region (2*height-lg).
+      height: calc(100% - #{$height-lg} * 3 - #{$aoi-header-height} - #{$sidebar-header-height}) !important;
+    }
 }
 
 //Model Output Tabs
 .output-tabs-wrapper {
-  position: absolute;
-  left: 0;
-  top: $sidebar-tab-subheader-height;
-  right: 0;
-  bottom: 0;
-
   .nav-tabs {
     font-weight: 500;
-    font-size: 0.6rem;
-    border-bottom: 3px solid $black-12;
-    background-color: transparent;
-    background-color: $black-06;
+    font-size: 0.56rem;
+    border-bottom: 1px solid $black-12;
 
     li a {
       border-radius: 0!important;
@@ -65,23 +73,12 @@
       border-left: none!important;
       border-right: none!important;
       text-transform: uppercase;
-    }
-
-    li.active > a {
-      color: $ui-secondary;
-      .sidebar-tab-header-label {
-        color: $brand-primary;
-        font-weight: 800;
-        &:after {
-          border-bottom-color: $brand-primary;
-        }
-      }
     }
 
     li > a {
       color: $ui-secondary;
       padding: 0 0.85rem;
-      line-height: $sidebar-tab-subheader-height;
+      line-height: 34px;
       background-color: transparent;
       height: $sidebar-tab-subheader-height;
 
@@ -97,14 +94,24 @@
         background-color: transparent;
       }
     }
+
+    li.active > a {
+      color: $ui-secondary;
+      .sidebar-tab-header-label {
+        color: $brand-primary;
+        font-weight: 800;
+        &:after {
+          border-bottom-color: $brand-primary;
+        }
+      }
+    }
   }
 
   .tab-content {
     position: absolute;
-    top: 62px;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    padding: 1rem;
+    overflow-y: auto;
+    width: $sidebar-width;
 
     img {
       width: 100%;
@@ -115,6 +122,9 @@
       position: relative;
       width: 100%;
     }
+  }
+  .tab-pane {
+      padding-bottom: 1rem;
   }
 }
 
@@ -157,4 +167,58 @@
       }
     }
   }
+}
+
+// Model Stage: Analyze - Model Toggle tabs
+.model-analyze-toggle-tab-header {
+    display: inline-block;
+    margin-left: 12px;
+    .nav-tabs {
+        height: auto;
+        border-bottom: 0;
+        background-color: $black-06;
+    }
+    .nav-tabs > li.active > a,
+    .nav-tabs > li.active > a:hover,
+    .nav-tabs > li.active > a:focus {
+        background-color: $brand-primary;
+        border-radius: 0;
+        border: 0;
+        font-weight: 600;
+        background-color: #389b9b !important;
+        color: $paper;
+    }
+    .nav-tabs > li {
+        width: 50%;
+        background-color: $ui-secondary;
+        margin-bottom: -1px;
+        float: left;
+        top: 6px;
+        position: relative;
+        &:first-child {
+            a {
+                float: right;
+            }
+        }
+        &:last-child {
+            a {
+                float: left;
+            }
+        }
+    }
+
+    .nav-tabs > li > a {
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+        border: 0;
+        background-color: $ui-secondary;
+        padding-top: 0;
+        font-size: $temp-h4;
+        font-weight: lighter;
+        text-align: center;
+        color: $paper;
+        height: 30px;
+        line-height: 30px;
+    }
 }

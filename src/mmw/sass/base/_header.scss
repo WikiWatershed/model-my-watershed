@@ -10,7 +10,7 @@ header {
 #app-header {
   background-color: $ui-primary;
   height: $height-lg;
-  padding: 0 1rem 0 0;
+  padding: 0 1rem;
 
   .brand {
     a {
@@ -100,7 +100,7 @@ header {
 //Model Header
 #model-header {
   background-color: $ui-secondary;
-  height: 104px;
+  height: $height-xl*2;
 
   .top {
     height: $height-xl;
@@ -113,6 +113,7 @@ header {
         display: inline-block;
         position: relative;
         margin-left: 18px;
+        vertical-align: top;
       }
     }
 

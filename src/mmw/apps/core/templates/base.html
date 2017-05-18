@@ -5,18 +5,17 @@
     {% block header %}
     {% endblock header %}
 
-    <div class="map-container map-container-top-sidebar map-container-bottom-sidebar
-                {% if not project %} map-container-top-sidebar-no-header {% endif %}">
+    <div id="sidebar">
+        <div id="sidebar-content"></div>
+    </div>
+
+    <div class="map-container {% if project %} -projectheader {% endif %} -sidebar">
         {% block map %}
         {% endblock map %}
 
         {# Used on registration/account pages, not on main app #}
         {% block content %}
         {% endblock content %}
-    </div>
-
-    <div id="sidebar">
-        <div id="sidebar-content"></div>
     </div>
 
     <div id="footer">

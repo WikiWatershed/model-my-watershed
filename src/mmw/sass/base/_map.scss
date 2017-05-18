@@ -5,66 +5,19 @@
   left: 0;
   right: 0;
   transition: all 200ms;
-  // Set top of map to height of initial header.
-  // Needs a more descriptive name.
-  &.map-container-top-1 {
-    top: $height-lg;
-  }
+
   // Set top of map to combined height of initial header and toolbar.
-  // Needs a more descriptive name.
-  &.map-container-top-2 {
-    top: $height-lg * 2 + $height-lg;
-  }
-  // Set bottom of map to height of default view, which is 0px.
-  // Needs a more descriptive name.
-  &.map-container-bottom-1 {
-    bottom: 0;
-  }
-  // Set bottom of map to height of output toolbar.
-  // Needs a more descriptive name.
-  &.map-container-bottom-2 {
-    bottom: $output-height;
-  }
-  // Set bottom of map to location description toolbar.
-  // Needs a more descriptive name.
-  &.map-container-bottom-3 {
-    bottom: $location-description-height;
-  }
-  // Set bottom of map to full standard footer height.
-  // Needs a more descriptive name.
-  &.map-container-bottom-4 {
-    bottom: $footer-height;
-  }
-  // Sets map to correct container size for sidebar.
-  &.map-container-top-sidebar {
+  &.-projectheader {
     top: $height-xl * 2 + $height-lg;
-    right: $sidebar-width;
-    @media(min-width: 1040px) {
-      right: 485px !important;
-    }
-  }
-  // Sets map to correct container size for sidebar
-  // with no header.
-  &.map-container-top-sidebar-no-header {
-    top: $height-lg;
-    right: $sidebar-width;
-    @media(min-width: 1040px) {
-      right: 485px !important;
-    }
-  }
-  &.-widesidebar {
-      @media(min-width: 1040px) {
-        right: 600px !important;
-      }
-  }
-  // Sets map to correct container size for sidebar.
-  &.map-container-bottom-sidebar {
-    bottom: 0 !important;
   }
 
-  // Sets map to correct container size for no sidebar
-  &.hidden-sidebar {
-    right: 0 !important;
+  // Sets map to correct container size for sidebar.
+  &.-sidebar {
+    left: $sidebar-width;
+
+    &.-wide {
+        left: $wide-sidebar-width !important;
+    }
   }
   .compare-scenarios-container & {
     top: 0;
@@ -113,61 +66,66 @@
 }
 
 
-// Override leaflet bottomright controls
-.leaflet-bottom.leaflet-right {
+// Override leaflet bottomleft controls
+.leaflet-bottom.leaflet-left {
     text-align: right;
 }
 
-.leaflet-bottom.leaflet-right > .leaflet-control {
+.leaflet-bottom.leaflet-left > .leaflet-control {
     display: inline-block;
     float: none;
-    margin: 2px 4px;
+    margin: 18px 4px;
     vertical-align: middle;
-    &:nth-last-child(2), &:last-child {
-        margin-right: 10px;
+    &:first-child {
+        margin-left: 10px;
     }
     &.leaflet-control-attribution {
        display: block;
     }
 
     &.leaflet-control-zoom {
-        width: 80px;
+        width: 68px;
        .leaflet-control-zoom-out {
            border-right: 2px #ccc solid;
        }
        .leaflet-control-zoom-out, .leaflet-control-zoom-in {
-           font-size: 24px;
-           line-height: 38px;
+        font-size: 24px;
+        line-height: 32px;
+        font-size: 21px !important;
+        font-weight: 900;
+        font-family: "roboto";
        }
        .leaflet-touch & {
-           width: 84px;
+           width: 72px;
+           height: 38px;
        }
     }
 }
 
-.leaflet-bottom.leaflet-right > .leaflet-bar,
+.leaflet-bottom.leaflet-left > .leaflet-bar,
 .layer-control-button-container.leaflet-bar {
-    height: 40px;
-    width: 40px;
+    height: 34px;
+    width: 34px;
     > a {
         display: inline-block;
         background-color: $ui-light;
         color: $ui-secondary;
         border-radius: 0px;
-        height: 40px;
-        width: 40px;
-        line-height: 40px;
+        height: 34px;
+        width: 34px;
+        line-height: 34px;
         border: none;
-        font-size: 18px;
+        font-size: 15px;
         box-shadow: none;
         float: none;
+        color: $gray-dark !important;
         &:hover {
             background-color: #ccc;
         }
     }
     .leaflet-touch & {
-        height: 44px;
-        width: 44px;
+        height: 38px;
+        width: 38px;
     }
 }
 
