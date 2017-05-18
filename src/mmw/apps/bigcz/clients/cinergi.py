@@ -6,7 +6,6 @@ from __future__ import division
 import requests
 import dateutil.parser
 
-from rest_framework.exceptions import ValidationError
 from apps.bigcz.models import Resource, ResourceLink, ResourceList, BBox
 
 
@@ -57,15 +56,14 @@ def search(**kwargs):
     from_date = kwargs.get('from_date')
     bbox = kwargs.get('bbox')
 
-    if not query:
-        raise ValidationError({
-            'error': 'Required argument: query'})
-
     params = {
-        'searchText': query,
-        'f': 'json',
+        'f': 'json'
     }
 
+    if query:
+        params.update({
+            'searchText': query
+        })
     if to_date:
         params.update({
             'before': prepare_date(to_date)
