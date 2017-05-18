@@ -1,7 +1,8 @@
 "use strict";
 
 var App = require('../app'),
-    utils = require('../core/utils'),
+    coreUtils = require('../core/utils'),
+    models = require('./models'),
     views = require('./views');
 
 var DataCatalogController = {
@@ -9,14 +10,15 @@ var DataCatalogController = {
         App.map.setDataCatalogSize();
 
         App.state.set({
-            'active_page': utils.dataCatalogPageTitle,
+            'active_page': coreUtils.dataCatalogPageTitle,
             'was_data_catalog_visible': true,
         });
 
-        var dataCatalogWindow = new views.DataCatalogWindow();
+        var searchModel = new models.DataCatalogModel();
+        var resources = new models.ResourceCollection();
 
-        App.rootView.sidebarRegion.show(dataCatalogWindow);
-
+        var view = new views.DataCatalogWindow(searchModel, resources);
+        App.rootView.sidebarRegion.show(view);
     }
 };
 

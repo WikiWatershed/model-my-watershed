@@ -1,6 +1,19 @@
-<div class="data-catalog-window">
-    <div class="data-catalog-title">
-        Data sources
-    </div>
-    <div id="data-catalog-searchbar-region"></div>
+<h2 class="data-catalog-title">
+    Data sources
+</h2>
+<div class="data-catalog-search">
+    <i class="data-catalog-search-icon fa fa-search"></i>
+    <input
+        class="data-catalog-search-input"
+        type="text"
+        placeholder="Search data sources"
+        value="{{ searchText }}"
+    />
+</div>
+<div class="data-catalog-sources">
+    <button data-catalog="hydroshare">Hydroshare</button>
+    <button data-catalog="cinergi">CINERGI</button>
+    <button data-catalog="cuahsi">CUAHSI</button>
+</div>
+<div class="data-catalog-results">
 </div>
