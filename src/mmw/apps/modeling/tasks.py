@@ -357,11 +357,11 @@ def nlcd_soil_census(result):
     for key, count in result.iteritems():
         # Extract (3, 4) from "List(3,4)"
         (n, s) = make_tuple(key[4:])
+        # Map [NODATA, ad, bd] to c, [cd] to d
+        s2 = 3 if s in [settings.NODATA, 5, 6] else 4 if s == 7 else s
         # Only count those values for which we have mappings
-        if n in settings.NLCD_MAPPING and s in settings.SOIL_MAPPING:
+        if n in settings.NLCD_MAPPING and s2 in settings.SOIL_MAPPING:
             total_count += count
-            # Map [NODATA, ad, bd] to c, [cd] to d
-            s2 = 3 if s in [settings.NODATA, 5, 6] else 4 if s == 7 else s
             label = '{soil}:{nlcd}'.format(soil=settings.SOIL_MAPPING[s2][0],
                                            nlcd=settings.NLCD_MAPPING[n][0])
             dist[label] = {'cell_count': (
