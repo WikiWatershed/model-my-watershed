@@ -10,6 +10,7 @@ envdir_config:
   MMW_CACHE_HOST: "{{ redis_host }}"
   MMW_CACHE_PORT: "{{ redis_port }}"
   MMW_TILER_HOST: "{{ tiler_host }}"
+  MMW_GEOPROCESSING_CACHE: "{{ geop_cache_enabled }}"
   MMW_GEOPROCESSING_HOST: "{{ sjs_host }}"
   MMW_GEOPROCESSING_PORT: "{{ sjs_port }}"
   MMW_GEOPROCESSING_VERSION: "{{ geop_version }}"
