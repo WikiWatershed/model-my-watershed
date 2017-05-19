@@ -608,7 +608,7 @@ var ScenarioModelToolbarView = Marionette.CompositeView.extend({
     childViewContainer: '.controls',
 
     tagName: 'div',
-    className: 'tab-pane',
+    className: 'tab-pane scenario-toolbar-tab-pane',
 
     childViewOptions: function(modelPackageControl) {
         var controlModel = this.getInputControlModel(modelPackageControl),
@@ -813,7 +813,7 @@ var GwlfeToolbarView = ScenarioModelToolbarView.extend({
 var ScenarioToolbarView = Marionette.CompositeView.extend({
     template: scenarioAddChangesButtonTmpl,
     collection: models.ScenariosCollection,
-    className: 'tab-content',
+    childViewContainer: '.tab-content.scenario-toolbar-tab-content',
 
     ui: {
         addChangesButton: '#add-changes',

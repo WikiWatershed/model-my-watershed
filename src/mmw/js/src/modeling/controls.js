@@ -24,7 +24,7 @@ var ControlView = Marionette.LayoutView.extend({
     model: models.ModelPackageControlModel,
 
     className: function() {
-        return 'inline ' + this.getControlName();
+        return 'inline control-item ' + this.getControlName();
     },
 
     initialize: function(options) {

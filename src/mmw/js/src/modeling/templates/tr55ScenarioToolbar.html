@@ -12,7 +12,7 @@
                 <span id="modification-number"><strong>{{ shapes|length }}</strong></span> Modifications
                 </button>
             {% endif %}
-            <div id="modifications" class="dropdown-menu menu-right" role="menu"> <!-- DropdownContent -->
+            <div id="modifications" class="dropdown-menu modification-dropdown menu-right" role="menu"> <!-- DropdownContent -->
                 {% for controlName, models in groupedShapes %}
                     <div class="pad-1 brd-bottom">
                         <table id="mod-{{ controlName|lower|replace(' ', '') }}" class="table modifications custom-hover">

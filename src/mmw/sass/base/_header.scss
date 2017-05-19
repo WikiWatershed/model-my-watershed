@@ -75,26 +75,6 @@ header {
       }
     }
   }
-
-  .toolbar {
-    position: absolute;
-    top: $height-xl;
-    left: 0;
-    right: 0;
-    padding: 0.7rem 0.15rem;
-    background-color: $paper;
-    height: $height-xl;
-
-    #modification-btn-wrapper {
-      float: right;
-    }
-
-    #advanced {
-      position: absolute;
-      top: 0;
-      right: 0;
-    }
-  }
 }
 
 //Model Header
@@ -116,21 +96,6 @@ header {
         vertical-align: top;
       }
     }
-
-    .top-bar {
-      position: absolute;
-      top: 0;
-      left: 240px;
-      right: 0;
-      padding: 8px 0 8px 8px;
-      height: inherit;
-
-      #scenarios-drop-down-region {
-        .dropdown-menu {
-          z-index: ($zindex-dropdown + 10);
-        }
-      }
-    }
   }
 
   .toolbar {
@@ -138,9 +103,20 @@ header {
     top: $height-xl;
     left: 0;
     right: 0;
-    padding: 0.15rem 0.7rem;
+    padding: 0rem $right-controls-margin 0 1rem;
     background-color: $ui-light;
     height: $height-xl;
+    line-height: $height-xl;
+    display: flex;
+    flex: 0 0 100%;
+    flex-direction: row;
+    flex-wrap: nowrap;
+
+    .tooltip-inner {
+        white-space: initial;
+        max-width: 100px;
+        width: 100px;
+    }
 
     #gwlfe-modifications-bar, #gwlfe-modifications-popup {
       padding: 5px;
@@ -160,9 +136,9 @@ header {
     }
 
     #gwlfe-modifications-bar {
-      top: 60px;
-      left: 0;
-      background-color: #D0D0D0;
+      top: $height-xl;
+      right: 0;
+      background-color: $ui-light;
       z-index: 1001;
 
       .title-icon {
@@ -172,7 +148,8 @@ header {
     }
 
     #gwlfe-modifications-popup {
-      left: 46px;
+      right: 56px;
+      left: auto;
       z-index: 1003;
 
       .popover-content {
@@ -191,7 +168,8 @@ header {
     }
 
     #modification-btn-wrapper {
-      float: right;
+      display: inline-block;
+      white-space: initial;
     }
 
     #modifications {
@@ -206,10 +184,29 @@ header {
 
     .inline {
       display: inline-block;
-      margin-right: 5px;
     }
 
+    #scenarios-region {
+        white-space: nowrap;
+    }
+
+    #toolbar-region {
+        margin-right: 0;
+        margin-left: auto;
+    }
+
+    .scenario-toolbar-tab-content,
+    .active.scenario-toolbar-tab-pane {
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+
     .controls {
+        .control-item {
+            margin-left: 5px;
+        }
+
       // Precipitation slider
       .precipitation {
         // Undo bootstrap input[type="range"] syling
