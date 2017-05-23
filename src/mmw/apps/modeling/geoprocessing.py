@@ -58,7 +58,7 @@ def start(self, opname, input_data, wkaoi=None):
     outgoing = {}
 
     if wkaoi and settings.GEOP['cache']:
-        key = '{}__{}'.format(wkaoi, opname)
+        key = 'geop_{}__{}'.format(wkaoi, opname)
         outgoing['key'] = key
         cached = cache.get(key)
         if cached:
