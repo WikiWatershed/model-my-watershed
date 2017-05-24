@@ -107,6 +107,7 @@
 
 //Drawing Tools Dropdown
 .thumb-select {
+  white-space: normal;
   padding: 0!important;
   min-width: 200px;
 
@@ -168,6 +169,7 @@
 
 .modification-dropdown {
   z-index: 1002;
+  white-space: normal;
 }
 
 .project-dropdown,
