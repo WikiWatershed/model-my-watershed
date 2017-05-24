@@ -121,6 +121,15 @@ Spark Job Server       | 8090 | [http://localhost:8090](http://localhost:8090)
 
 In order to speed up things up, you may want to consider leveraging the `vagrant-cachier` plugin. If installed, it is automatically used by Vagrant.
 
+To speed up geoprocessing, those requests are cached in Redis. To disable this caching for development purposes, set the value of `MMW_GEOPROCESSING_CACHE` to `0`:
+
+```bash
+$ vagrant ssh worker -c 'echo "0" | sudo tee /etc/mmw.d/env/MMW_GEOPROCESSING_CACHE'
+$ vagrant ssh worker -c 'sudo service celeryd restart'
+```
+
+To enable the geoprocessing cache simply set it to `1` and restart the `celeryd` service.
+
 ### Test Mode
 
 In order to run the app in test mode, which simulates the production static asset bundle, reprovision with `VAGRANT_ENV=TEST vagrant provision`.
