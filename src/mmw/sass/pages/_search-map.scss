@@ -41,7 +41,7 @@
     background-color: $black-54;
     border-radius: 2px;
     box-shadow: 0 0 6px $black-74;
-    font-size: 0.7rem;
+    font-size: $font-size-h4;
     padding: 0.5rem 1rem;
     margin-top: 6px;
     width: $search-width;
@@ -60,7 +60,7 @@
   right: $right-controls-margin;
   border-radius: 2px;
   box-shadow: 0 0 6px $black-74;
-  font-size: 0.7rem;
+  font-size: $font-size-h4;
   color: $black-54;
   background-color: $paper;
   margin-top: 6px;
@@ -77,7 +77,7 @@
   h1 {
     margin: 0.6rem 0.5rem 0.3rem;
     border-bottom: 1px solid #ccc;
-    font-size: 0.6rem;
+    font-size: $font-size-h4;
     color: #333;
     text-transform: uppercase;
     padding-bottom: 0.3rem;

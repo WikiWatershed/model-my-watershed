@@ -63,8 +63,8 @@
 //Model Output Tabs
 .output-tabs-wrapper {
   .nav-tabs {
-    font-weight: 500;
-    font-size: 0.56rem;
+    font-weight: 400;
+    font-size: $font-size-h5;
     border-bottom: 1px solid $black-12;
 
     li a {
@@ -72,20 +72,20 @@
       border-top: none!important;
       border-left: none!important;
       border-right: none!important;
-      text-transform: uppercase;
     }
 
     li > a {
       color: $ui-secondary;
-      padding: 0 0.85rem;
-      line-height: 34px;
+      padding: 0 0.7rem;
+      line-height: 42px;
       background-color: transparent;
-      height: $sidebar-tab-subheader-height;
+      height: 42px;
 
       i {
         color: $black-54;
         position: relative;
-        top: 0.85rem;
+        top: 1.4rem;
+        font-size: 0.8rem;
       }
 
       &:hover, &:focus {
@@ -135,7 +135,7 @@
 
   .nav-tabs {
     font-weight: 500;
-    font-size: 0.6rem;
+    font-size: $font-size-h4;
     border-bottom: none!important;
     background-color: $ui-secondary;
 
@@ -184,25 +184,30 @@
         background-color: $brand-primary;
         border-radius: 0;
         border: 0;
-        font-weight: 600;
-        background-color: #389b9b !important;
+        font-weight: 800;
         color: $paper;
     }
     .nav-tabs > li {
-        width: 50%;
-        background-color: $ui-secondary;
+        // width: 50%;
         margin-bottom: -1px;
         float: left;
         top: 6px;
         position: relative;
+        box-shadow: $box-shadow-primary;
         &:first-child {
             a {
                 float: right;
+                border-radius: 3px 0 0 3px;
+                width: 9.3rem;
+                transition: none;
             }
         }
         &:last-child {
             a {
                 float: left;
+                border-radius: 0 3px 3px 0;
+                width: 8rem;
+                transition: none;
             }
         }
     }
@@ -214,11 +219,31 @@
         border: 0;
         background-color: $ui-secondary;
         padding-top: 0;
-        font-size: $temp-h4;
+        font-size: $font-size-h4;
         font-weight: lighter;
         text-align: center;
         color: $paper;
         height: 30px;
         line-height: 30px;
+        padding-left: 17px;
+        padding-right: 17px;
     }
+}
+
+#sidebar {
+  .nav-tabs {
+    padding: 0 1rem;
+    li {
+      &:first-child {
+        a {
+          padding-left: 0;
+        }
+      }
+      &:last-child {
+        a {
+          padding-right: 0;
+        }
+      }
+    }
+  }
 }

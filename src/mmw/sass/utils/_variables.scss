@@ -13,14 +13,14 @@ $paper-74: rgba(255,255,255,.74);
 $paper: #ffffff;
 
 //Custom Colors
-$ui-primary: #273238; /*Dark Grey*/
-$ui-secondary: #394750; /*Medium Grey*/
+$ui-primary: #31313C; /*Dark Grey*/
+$ui-secondary: #61616D; /*Medium Grey*/
 $ui-light: #eceff1; /*Light Grey*/
 $ui-grey: #787878 ; /* Output Tab Bar */
 $ui-danger: #e0412d; /*Errors*/
 $ui-warning: #e4b72f; /*Warnings*/
 $active: #51dec2; /*Bright*/
-$brand-primary: #389b9b; /*Teal*/
+$brand-primary: #007B87; /*Teal*/
 $sky-blue: #bbe5f5; /*Sky*/
 $water: #49b8ea; /*Water*/
 $et: #c2d33c; /*Evapotranspiration*/
@@ -29,14 +29,14 @@ $r: #cf4300; /*Runoff*/
 
 //Heights
 $location-description-height: 68px;
-$aoi-header-height: 62px;
+$aoi-header-height: 54px;
 $output-height: 50px;
 $height-xl: 47px;
 $height-lg: 44px;
 $height-md: 36px;
 $height-sm: 28px;
 $height-xs: 18px;
-$sidebar-header-height: 40px;
+$sidebar-header-height: 21px;
 $sidebar-tab-subheader-height: 40px;
 
 //Widths
@@ -124,14 +124,20 @@ $catchmentWaterQualityColors: (
 }
 
 //Type
-$font-family: 'Roboto', helvetica, arial, sans-serif;
+$font-family: -apple-system, BlinkMacSystemFont, 'Roboto', helvetica, arial, sans-serif;
 $font-h1: 1.5rem;
 $font-h2: 1rem;
 $font-h3: 0.7rem;
+$line-height-base: 1.5;
 
-//Temporary type
-$temp-h1: 24px;
-$temp-h2: 20px;
-$temp-h3: 16px;
-$temp-h4: 14px;
-$temp-p: $temp-h4;
+//Transition type
+$font-size-h1: 24px;
+$font-size-h2: 21px;
+$font-size-h3: 18px;
+$font-size-h4: 15px;
+$font-size-h5: 13px;
+$font-size-p: $font-size-h4;
+
+//Shadow
+$box-shadow-primary: 0px 1px 3px rgba(0, 0, 0, 0.1);
+$box-shadow-secondary: 1px 1px 0px rgba(0, 0, 0, 0.4);

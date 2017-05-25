@@ -28,7 +28,7 @@
         color: $black-74;
         line-height: $height-md;
         padding: 0 0.5rem;
-        font-size: 0.7rem;
+        font-size: $font-size-h4;
         text-transform: capitalize!important;
 
         &:not(.disabled) {
@@ -175,21 +175,28 @@
 .project-dropdown,
 .project-dropdown:hover,
 .project-dropdown:focus {
-    font-size: $font-h2;
-    font-weight: lighter;
+    font-size: $font-size-h2;
+    font-weight: 400;
     color: $paper;
     background-color: transparent;
     padding-left: 0px;
     margin: 0;
+    max-width: 25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: none;
 }
 
 .scenario-dropdown, .scenario-dropdown:disabled {
     opacity: 1;
-    font-size: $font-h2;
-    font-weight: bolder;
+    font-size: $font-size-h3;
+    font-weight: 800;
     color: $ui-primary;
     background-color: transparent;
-    padding-left: 2px;
+    padding-left: 0;
+    position: relative;
+    top: -1px;
 }
 
 .scenario-dropdown > i,
@@ -216,7 +223,7 @@
     > i,
     > .more-options-region > .more-options > i {
         float: right;
-        font-size: 16px;
+        font-size: $font-size-h4;
         line-height: 35px;
         margin-left: 2px;
         margin-right: 0px !important;
@@ -242,12 +249,12 @@
 
 .select-model-dropdown {
     width: 320px;
-    padding: 1rem;
+    padding: 1.6rem;
     > .select-model-dropdown-header {
         margin-bottom: 12px;
     }
     > p {
-        font-size: $temp-p;
+        font-size: $font-size-p;
         margin-bottom: 12px;
     }
     .select-model-dropdown-menu-item {
@@ -257,16 +264,20 @@
 
         > .analyze-model-package-link {
             white-space: normal;
-            padding: 0.5rem;
+            padding: 1rem;
             > .analyze-model-name {
-                        font-size: $temp-h3;
-                        color: $ui-primary;
+                font-size: $font-size-h4;
+                color: $ui-primary;
+                font-weight: 600;
             }
             > p {
-                font-size: $temp-p;
-                font-size: $temp-p;
+                font-size: $font-size-h5;
                 color: $ui-grey;
             }
         }
     }
+}
+
+#draw-pane-buttons .dropdown-menu .divider {
+  margin: 6px 0;
 }

@@ -23,7 +23,7 @@
     border-top: 2px solid $ui-light;
     position: absolute;
     bottom: 0;
-    height: $height-lg * 2;
+    height: 68px;
     background: $paper;
     width: $sidebar-width;
     display: inline-flex;
@@ -42,16 +42,18 @@
 .aoi-region {
   height: $aoi-header-height;
   background-color: $black-06;
+  padding-top: 20px;
   h2 {
-    font-size: $temp-h2;
+    font-size: $font-size-h2;
     line-height: $aoi-header-height / 2;
   }
 }
 
 .aoi-area {
-  font-size: $temp-h4;
+  font-size: $font-size-h4;
   color: $black-39;
   margin-left: 10px;
+  font-weight: 400;
 }
 
 .analyze-message-region {
@@ -66,28 +68,32 @@
 }
 
 .analyze-message-text {
-  font-size: 0.6rem;
+  font-size: $font-size-h3;
 }
 
 .analyze-title {
     padding-top: 5px;
-    font-size: $temp-h4;
-    font-weight: 600;
+    font-size: $font-size-h4;
+    font-weight: 800;
 }
 .analyze-source {
+    &:empty {
+        display: none;
+    }
     padding-bottom: 6px;
 }
 
 .analyze-source,
 .analyze-layertoggle,
 .analyze-layermessage {
-    font-size: 0.7rem;
-    font-weight: lighter;
+    font-size: $font-size-h5;
+    font-weight: 400;
+    color: $black-54;
 }
 
 .layer-region {
     &:empty {
-        padding-top: 18px;
+        display: none;
     }
     .analyze-layertoggle, .analyze-layermessage {
         padding-left: 0px;
@@ -96,6 +102,7 @@
         display: inline;
         text-align: left;
         width: 100%;
+        padding-bottom: 2px;
     }
 
     .analyze-layertoggle.dropdown-toggle {

@@ -33,7 +33,7 @@
   svg {
     // Fit the charts into the sidebar, which has 1rem padding
     // on each side (1rem + 1rem + 0.1rem extra padding = 2.1rem)
-    width: calc(#{$sidebar-width} - 2.1rem);
+    width: $sidebar-width - 25px;
     height: 300px;
   }
 }

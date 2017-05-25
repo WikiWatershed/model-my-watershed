@@ -8,7 +8,7 @@
 
   .modal-content {
     border-radius: 0!important;
-    border: 1px solid $black-12;
+    border: 0px solid $black-12;
     box-shadow: 0 0 6px $black-24;
   }
 
@@ -66,7 +66,7 @@
       }
 
       p {
-        font-size: 0.7rem;
+        font-size: $font-size-h4;
         color: $paper;
         line-height: 1.6;
       }
@@ -103,7 +103,7 @@
       }
 
       p {
-        font-size: 0.7rem;
+        font-size: $font-size-h4;
         color: $paper-54;
         line-height: 1;
       }
@@ -130,7 +130,8 @@
 .resend {
   position: absolute;
   top: 1rem;
-  left: 6.25rem;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .forgot {
@@ -141,8 +142,8 @@
 
 .modal-popup {
     .fa {
-      font-size: 1.0rem;
-      padding: 0 0.1rem 0 0.1rem;
+      font-size: $font-size-h2;
+      padding: 1rem 0.4rem 0 0rem;
     }
 
     .fa-info-circle {
