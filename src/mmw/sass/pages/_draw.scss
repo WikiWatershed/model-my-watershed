@@ -185,24 +185,3 @@
     margin: 0.4rem 0 0.8rem;
   }
 }
-
-.leaflet-popup-content {
-  h3 {
-    margin-bottom: 10px;
-  }
-  table {
-    margin-bottom: 10px;
-    td {
-      padding: 4px !important;
-      &:first-child {
-        padding-left: 0 !important;
-      }
-      &:last-child {
-        padding-right: 0 !important;
-      }
-    }
-  }
-  .delete-modification {
-    padding: 0;
-  }
-}

@@ -226,3 +226,24 @@
 .marker-rwd-nearest-stream-point {
   background-color: #3498db;
 }
+
+.leaflet-popup-content {
+  h3 {
+    margin-bottom: 10px;
+  }
+  table {
+    margin-bottom: 10px;
+    td {
+      padding: 4px !important;
+      &:first-child {
+        padding-left: 0 !important;
+      }
+      &:last-child {
+        padding-right: 0 !important;
+      }
+    }
+  }
+  .delete-modification {
+    padding: 0;
+  }
+}
