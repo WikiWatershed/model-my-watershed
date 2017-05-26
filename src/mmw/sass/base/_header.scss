@@ -156,9 +156,10 @@ header {
       right: 56px;
       left: auto;
       z-index: 1003;
+      border-radius: 12px;
 
       .popover-content {
-        padding: 12px;
+        padding: 11px 14px;
 
         .table {
           margin-bottom: 10px;
@@ -216,7 +217,7 @@ header {
         .control-item {
             margin-left: 5px;
             label {
-              font-size: $font-size-h5
+              font-size: 12px;
             }
         }
 

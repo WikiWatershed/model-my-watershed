@@ -28,7 +28,7 @@
         color: $black-74;
         line-height: $height-md;
         padding: 0 0.5rem;
-        font-size: $font-size-h4;
+        font-size: $font-size-h5;
         text-transform: capitalize!important;
 
         &:not(.disabled) {
@@ -130,7 +130,7 @@
     li {
       float: left;
       display: block;
-      width: 60px;
+      width: 70px;
       margin-bottom: 0.2rem;
       transition: all 0.4s ease-out;
       margin-right: 1rem;
@@ -143,8 +143,10 @@
 
       .thumb {
         height: 60px;
+        width: 60px;
+        position: relative;
+        left: 5px;
         border: solid 2px transparent;
-        background-color: $ui-light;
         margin-bottom: 0.2rem;
         display: block;
 

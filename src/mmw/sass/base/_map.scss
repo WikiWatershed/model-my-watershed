@@ -227,8 +227,8 @@
   background-color: #3498db;
 }
 
-.leaflet-popup-content {
-  h3 {
+.leaflet-popup-content, #gwlfe-modifications-popup {
+  h3, h5 {
     margin-bottom: 10px;
   }
   table {
