@@ -7,19 +7,17 @@
   position: absolute;
   height: calc(100% - #{$height-lg});
   & > h1, & > h2 {
-    font-size: $temp-h1;
+    font-size: $font-size-h1;
     font-weight: 800;
   }
   & > p {
-    font-size: $temp-h3;
+    font-size: $font-size-h4;
     margin: 10px 0;
   }
   padding-top: 30px;
   #get-started {
-    font-size: $temp-h3;
-  }
-  h2 {
-    font-size: $temp-h2;
+    font-size: $font-size-h3;
+    font-weight: 800;
   }
 }
 
@@ -34,18 +32,18 @@
   }
 
   h2 {
-    font-size: $temp-h3;
+    font-size: $font-size-h3;
   }
 
   & p {
     margin-left: 30px;
-    font-size: $temp-h4;
+    font-size: $font-size-h4;
   }
 }
 
 #draw-pane-header-description {
   margin-top: 0.8rem;
-  font-size: $temp-p;
+  font-size: $font-size-p;
 }
 
 #draw-pane-buttons {
@@ -57,7 +55,7 @@
 
   & .draw-tool-button {
     background-color: #d4d7d8;
-    padding: 0.1rem 0.6rem;
+    padding: 0.6rem 1rem;
     margin-top: 8px;
     &.-hasselection {
         margin-bottom: 0px;
@@ -71,9 +69,9 @@
   }
 
   & .draw-tool-selection {
-    padding: 0.5rem 0.6rem;
+    padding: 1rem 1rem;
     background-color: $brand-primary;
-    font-size: $temp-p;
+    font-size: $font-size-p;
     color: $paper;
     font-weight: lighter;
 
@@ -83,17 +81,18 @@
   }
 
   & .draw-button-title {
-    font-size: $temp-h3;
+    font-size: $font-size-h3;
     text-align: left;
-    font-weight: 400;
+    font-weight: 500;
     color: black;
     line-height: 1.4;
     margin-top: 0.4rem;
     float: none !important;
+    margin-bottom: 0.4rem;
   }
 
   & .draw-button-subtitle {
-    font-size: $temp-h4;
+    font-size: $font-size-h4;
     text-align: left;
     margin-bottom: 0.4rem;
   }
@@ -118,7 +117,7 @@
 
     & .draw-pane-list-item {
       list-style-type: none;
-      font-size: $temp-h4;
+      font-size: $font-size-h4;
 
       & .draw-pane-list-item-button {
         background: transparent;
@@ -136,7 +135,7 @@
         margin-bottom: 1rem;
         > li {
             margin: 0.25rem 0;
-            font-size: 0.7rem;
+            font-size: $font-size-h4;
             list-style-type: disc;
         }
       }
@@ -162,4 +161,27 @@
   cursor: pointer;
   margin-right: 0.5rem;
   margin-top: 0.5rem;
+}
+
+.aoi-upload-dropdown {
+  background-color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 0 0 0 4px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+  padding: 1rem 1rem;
+}
+
+.draw-tools {
+  .thumb-select {
+    label {
+      font-size: $font-size-h5;
+    }
+  }
+}
+
+.dropdown-footer {
+  h2 {
+    font-size: $font-size-h3;
+    margin: 0.4rem 0 0.8rem;
+  }
 }

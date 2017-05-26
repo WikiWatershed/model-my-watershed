@@ -59,8 +59,8 @@
           }
 
           h3 {
-            text-transform: uppercase;
             display: inline-block;
+            font-size: $font-size-h4;
           }
 
           .fa-minus-square {
@@ -107,7 +107,15 @@
 
           .modeling-region {
             width: 100%;
-            height: 44vh;
+
+            label {
+              font-size: $font-size-h5;
+              margin-top: 4px;
+              input[type="range"] {
+                width: 80px;
+                display: inline;
+              }
+            }
 
             .modeling-container {
               position: relative;
@@ -117,7 +125,7 @@
 
               .fa-spin {
                 margin-left: 8px;
-                font-size: 14px;
+                font-size: $font-size-h4;
                 color: rgba(0, 0, 0, 0.54);
               }
 
@@ -170,8 +178,7 @@
 
           .modifications-region {
             width: 100%;
-            height: 25vh;
-            margin-top: 30px;
+            height: calc(100vh - 22vh - 481px);
 
             .modifications-container {
               position: relative;
@@ -181,10 +188,16 @@
               overflow-y: auto;
 
               .modifications-table {
-                font-size: 0.6rem;
+                font-size: $font-size-h4;
                 width: 100%;
                 td {
-                  padding: 8px;
+                  padding: 4px;
+                  &:first-child {
+                    padding-left: 0;
+                  }
+                  &:last-child {
+                    padding-right: 0;
+                  }
                 }
                 .modification-area {
                   color: $brand-primary;
@@ -247,3 +260,15 @@
     padding: 1rem;
   }
 }
+
+.compare-column {
+  .downloadcsv-link {
+    margin: 0 0 10px;
+  }
+  caption {
+    font-size: $font-size-h4;
+    font-weight: 800;
+    color: $black-74;
+  }
+}
+

@@ -1,19 +1,7 @@
 html {
-  font-size: 18px;
+  font-size: 62.5%;
   height: 100%;
   overflow: hidden;
-}
-
-@media (max-width: 400px) {
-  html { font-size: 16px; }
-}
-
-@media (max-width: 900px) {
-  html { font-size: 18px; }
-}
-
-@media(min-width: 1280px) {
-  html {font-size: 20px;}
 }
 
 body {
@@ -22,9 +10,7 @@ body {
   width: 100%;
   overflow: hidden;
   font-family: $font-family;
-  font-size: 1rem;
-  font-smoothing: subpixel-antialiased;
-  -webkit-font-smoothing: subpixel-antialiased;
+  font-size: 1.4em;
 }
 
 a {
@@ -36,7 +22,7 @@ a {
 }
 
 p.info {
-  font-size: 0.8rem;
+  font-size: $font-size-h5;
   margin-top: 20px;
 }
 

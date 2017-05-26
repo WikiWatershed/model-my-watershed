@@ -29,14 +29,14 @@
     width: 100%;
 
     .result-text {
-        margin-bottom: $temp-h4;
-        font-size: 14px;
+        margin-bottom: $font-size-h4;
+        font-size: $font-size-h4;
         font-weight: 600;
         color: #333333;
     }
 
     .mean-flow {
-      font-size: 16px;
+      font-size: $font-size-h4;
     }
 
     .runoff-chart-container {

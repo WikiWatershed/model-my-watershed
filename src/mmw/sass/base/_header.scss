@@ -16,8 +16,8 @@ header {
     a {
       float: left;
       line-height: $height-lg;
-      font-size: 0.7rem;
-      font-weight: 700;
+      font-size: $font-size-h4;
+      font-weight: 800;
       color: $paper;
 
       &:hover {
@@ -44,8 +44,8 @@ header {
 
       li.header-link {
         line-height: $height-lg !important;
-        font-size: 0.7rem;
-        font-weight: 300;
+        font-size: $font-size-h5;
+        font-weight: 400;
         margin-left: 1rem;
         display: inline-block;
         float: left;
@@ -89,10 +89,15 @@ header {
       background-color: $ui-primary;
       height: 100%;
 
+      .project {
+        position: relative;
+        top: -2px;
+      }
+
       .project-title {
         display: inline-block;
         position: relative;
-        margin-left: 18px;
+        margin-left: 1rem;
         vertical-align: top;
       }
     }
@@ -103,10 +108,10 @@ header {
     top: $height-xl;
     left: 0;
     right: 0;
-    padding: 0rem $right-controls-margin 0 1rem;
+    padding: 0rem 1rem 0 1rem;
     background-color: $ui-light;
     height: $height-xl;
-    line-height: $height-xl;
+    line-height: $height-xl - 2px;
     display: flex;
     flex: 0 0 100%;
     flex-direction: row;
@@ -151,9 +156,10 @@ header {
       right: 56px;
       left: auto;
       z-index: 1003;
+      border-radius: 12px;
 
       .popover-content {
-        padding: 12px;
+        padding: 11px 14px;
 
         .table {
           margin-bottom: 10px;
@@ -193,6 +199,11 @@ header {
     #toolbar-region {
         margin-right: 0;
         margin-left: auto;
+        #add-changes {
+          position: relative;
+          top: -2px;
+          color: $brand-primary;
+        }
     }
 
     .scenario-toolbar-tab-content,
@@ -205,6 +216,9 @@ header {
     .controls {
         .control-item {
             margin-left: 5px;
+            label {
+              font-size: 12px;
+            }
         }
 
       // Precipitation slider

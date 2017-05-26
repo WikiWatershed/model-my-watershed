@@ -7,7 +7,7 @@
   border-radius: $radius-sm;
   border: 0!important;
   box-shadow: 0 0 6px $black-74;
-  font-size: 0.7rem;
+  font-size: $font-size-h4;
   width: $search-width;
   height: 36px;
   padding: 0 0.7rem;
@@ -42,11 +42,11 @@
 //Text Inputs
 .custom-input-group {
   position: relative;
-  margin: 1rem 0;
+  margin: 4rem 0;
 
   input {
-    font-size: 0.9rem;
-    padding: 10px 10px 10px 5px;
+    font-size: $font-size-p;
+    padding: 10px 10px 10px 0;
     display: block;
     width: 100%;
     border: none;
@@ -57,11 +57,11 @@
   /* LABEL ======================================= */
   label          {
     color: $black-24;
-    font-size: 0.8rem;
+    font-size: $font-size-p;
     font-weight: normal;
     position: absolute;
     pointer-events: none;
-    left: 5px;
+    left: 0;
     top: 10px;
     transition: 0.2s ease all;
     -moz-transition: 0.2s ease all;
@@ -70,8 +70,8 @@
 
   /* active state */
   input:focus ~ label, input:valid ~ label    {
-    top: -8px;
-    font-size: 0.6rem;
+    top: -11px;
+    font-size: $font-size-h5;
     color: $active;
   }
 

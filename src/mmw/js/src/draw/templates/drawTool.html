@@ -34,8 +34,8 @@
     </div>
     {% if activeTitle %}
         <div class="draw-tool-selection">
-            {{ activeTitle }}: {{ activeDirections }}
             <i class="fa fa-times pull-right reset-draw-button"></i>
+            {{ activeTitle }}: {{ activeDirections }}
             {% if polling %}
                 <i class="fa fa-circle-o-notch pull-right fa-spin"></i>
             {% endif %}

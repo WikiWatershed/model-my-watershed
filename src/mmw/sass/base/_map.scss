@@ -89,11 +89,11 @@
            border-right: 2px #ccc solid;
        }
        .leaflet-control-zoom-out, .leaflet-control-zoom-in {
-        font-size: 24px;
+        font-size: $font-size-h1;
         line-height: 32px;
         font-size: 21px !important;
         font-weight: 900;
-        font-family: "roboto";
+        font-family: $font-family;
        }
        .leaflet-touch & {
            width: 72px;
@@ -179,7 +179,7 @@
     padding: 5px 15px;
 
     .modal-title {
-      font-size: 14px;
+      font-size: $font-size-h4;
      }
   }
 
@@ -190,7 +190,7 @@
   .close {
     text-shadow: none;
     color: $paper;
-    font-size: 24px;
+    font-size: $font-size-h1;
   }
 }
 
@@ -225,4 +225,25 @@
 
 .marker-rwd-nearest-stream-point {
   background-color: #3498db;
+}
+
+.leaflet-popup-content, #gwlfe-modifications-popup {
+  h3, h5 {
+    margin-bottom: 10px;
+  }
+  table {
+    margin-bottom: 10px;
+    td {
+      padding: 4px !important;
+      &:first-child {
+        padding-left: 0 !important;
+      }
+      &:last-child {
+        padding-right: 0 !important;
+      }
+    }
+  }
+  .delete-modification {
+    padding: 0;
+  }
 }

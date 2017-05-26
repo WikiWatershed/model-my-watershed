@@ -1,9 +1,9 @@
 //Paragraph Styles
 p {
-  font-size: 1rem;
-  font-weight: 300;
-  color: $black-54;
-  line-height: 1.4;
+  font-size: $font-size-p;
+  font-weight: 400;
+  color: $black-65;
+  line-height: $line-height-base;
   margin: 0;
 }
 
@@ -21,8 +21,8 @@ h1, h2, h3 {
 }
 
 h1 {
-  font-size: $font-h1;
-  font-weight: 500;
+  font-size: $font-size-h1;
+  font-weight: 800;
 
   &.precip {
     color: $water;
@@ -42,19 +42,19 @@ h1 {
 }
 
 h2 {
-  font-size: $font-h2;
-  font-weight: 500;
+  font-size: $font-size-h2;
+  font-weight: 800;
 }
 
 h3 {
-  font-size: $font-h3;
-  font-weight: 500;
+  font-size: $font-size-h3;
+  font-weight: 800;
 }
 
 //Label Styles
 label {
   font-weight: 500;
-  font-size: 0.6rem;
+  font-size: $font-size-h4;
   line-height: 1.2;
 
   &.paper {
@@ -74,6 +74,15 @@ label {
   }
 
   &.small {
-    font-size: 0.5rem;
+    font-size: $font-size-h5;
   }
+}
+
+.nvd3 text {
+  font-family: $font-family;
+  fill: $ui-primary;
+}
+
+small, .small {
+  font-size: $font-size-h5;
 }
