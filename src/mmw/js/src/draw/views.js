@@ -400,6 +400,13 @@ var AoIUploadView = Marionette.ItemView.extend({
                         if (result.done) { return; }
                         var geom = reproject.toWgs84(result.value, prj);
                         self.addPolygonToMap(geom);
+                        return source.read();
+                    })
+                    .then(function hasMore(result) {
+                        if (!result.done) {
+                            var msg = "This shapefile has multiple features and we've used just the first one.  If you'd like to use a different feature, please create a shapefile containing just that single one.";
+                            displayAlert(msg, modalModels.AlertTypes.warn);
+                        }
                     })
                     .catch(self.handleShapefileError);
             })
