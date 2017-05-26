@@ -16,8 +16,8 @@
         border-bottom: 2px solid transparent;
         padding-bottom: 0px;
         top: 0;
-        height: $sidebar-tab-subheader-height;
-        line-height: $sidebar-tab-subheader-height;
+        height: $analyze-tab-height;
+        line-height: $analyze-tab-height;
         width: 100%;
         margin-top: 2px;
     }
@@ -188,7 +188,6 @@
         color: $paper;
     }
     .nav-tabs > li {
-        // width: 50%;
         margin-bottom: -1px;
         float: left;
         top: 6px;
