@@ -35,7 +35,7 @@ If you cannot see columns for `Branch`, `Environment`, and `Service`, use the ge
 
 ## Release Testing
 
-After the `staging-deployment` job completes, `mmw-dev.azavea.com` should reflect the current release. Be sure to run any outstanding database migrations or data imports.
+After the `staging-deployment` job completes, `staging.app.wikiwatershed.org` and `staging.portal.bigcz.org` should reflect the current release. Be sure to run any outstanding database migrations or data imports.
 
 ## AMI Promotion
 
@@ -78,7 +78,7 @@ $ ./mmw_stack.py launch-stacks --aws-profile mmw-prd \
                                --activate-dns
 ```
 
-Within 60 seconds, `app.wikiwatershed.org` and `mmw.azavea.com` should reflect the current release.
+Within 60 seconds, `app.wikiwatershed.org` and `portal.bigcz.org` should reflect the current release.
 
 ## Repository & Jenkins Cleanup
 
