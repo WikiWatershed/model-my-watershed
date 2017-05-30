@@ -5,40 +5,88 @@ from __future__ import division
 
 import requests
 import dateutil.parser
+from django.contrib.gis.geos import Polygon
 
 from apps.bigcz.models import Resource, ResourceLink, ResourceList, BBox
 
 
 CATALOG_NAME = 'cinergi'
-GEOPORTAL_URL = 'http://cinergi.sdsc.edu/geoportal/rest/find/document'
-
-
-def parse_links(item):
-    result = []
-    links = item['links']
-    if links:
-        for link in links:
-            result.append(ResourceLink(link['type'], link['href']))
-    return result
+GEOPORTAL_URL = 'http://132.249.238.169:8080/geoportal/opensearch'
 
 
 def parse_date(value):
-    try:
-        # Some dates are 0-based?
-        return dateutil.parser.parse(value)
-    except ValueError:
+    return dateutil.parser.parse(value)
+
+
+def parse_envelope(envelope):
+    if 'coordinates' not in envelope:
+        raise ValueError('Expected envelope to contain coordinates')
+
+    coords = envelope['coordinates']
+
+    northwest = coords[0]
+    southeast = coords[1]
+
+    xmin, ymin = northwest
+    xmax, ymax = southeast
+
+    return Polygon.from_bbox((xmin, ymin, xmax, ymax))
+
+
+def parse_bbox(source):
+    """
+    Parse bbox from item source by doing a unary union of each
+    available envelope_geo object.
+
+    - envelope_geo may be absent, an object, or list of objects
+    """
+    envelope = source.get('envelope_geo')
+
+    if not envelope:
         return None
+
+    if isinstance(envelope, dict):
+        envelope = [envelope]
+
+    poly = parse_envelope(envelope[0])
+
+    for item in envelope[1:]:
+        poly |= parse_envelope(item)
+
+    # xmin, ymin, xmax, ymax
+    return poly.extent
+
+
+def parse_links(source):
+    """
+    Parse "links" from item source.
+
+    - links_s may be absent, a string, or list of strings
+    """
+    result = []
+    links = source.get('links_s', [])
+
+    if isinstance(links, basestring):
+        links = [links]
+
+    for url in links:
+        result.append(ResourceLink('details', url))
+
+    return result
 
 
 def parse_record(item):
+    source = item['_source']
+    bbox = parse_bbox(source)
+    links = parse_links(source)
     return Resource(
-        id=item['id'],
-        title=item['title'],
-        description=item['summary'],
-        bbox=item['bbox'],
-        links=parse_links(item),
-        created_at=None,
-        updated_at=parse_date(item['updated']))
+        id=item['_id'],
+        bbox=bbox,
+        description=source.get('description'),
+        links=links,
+        title=source['title'],
+        created_at=parse_date(source['sys_created_dt']),
+        updated_at=parse_date(source['src_lastupdate_dt']))
 
 
 def prepare_bbox(value):
@@ -48,6 +96,13 @@ def prepare_bbox(value):
 
 def prepare_date(value):
     return value.strftime('%Y-%m-%d')
+
+
+def prepare_time(from_date, to_date):
+    value = prepare_date(from_date)
+    if to_date:
+        value = '{}/{}'.format(value, prepare_date(to_date))
+    return value
 
 
 def search(**kwargs):
@@ -62,15 +117,11 @@ def search(**kwargs):
 
     if query:
         params.update({
-            'searchText': query
-        })
-    if to_date:
-        params.update({
-            'before': prepare_date(to_date)
+            'q': query
         })
     if from_date:
         params.update({
-            'after': prepare_date(from_date)
+            'time': prepare_time(from_date, to_date)
         })
     if bbox:
         params.update({
@@ -80,11 +131,11 @@ def search(**kwargs):
     response = requests.get(GEOPORTAL_URL, params=params)
     data = response.json()
 
-    if 'records' not in data:
+    if 'hits' not in data:
         raise ValueError(data)
 
-    results = data['records']
-    count = data['totalResults']
+    results = data['hits']['hits']
+    count = data['hits']['total']
 
     return ResourceList(
         api_url=response.url,
