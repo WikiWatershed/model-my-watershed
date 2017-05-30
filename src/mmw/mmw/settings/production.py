@@ -26,8 +26,8 @@ if not instance_metadata:
 ALLOWED_HOSTS = [
     'app.wikiwatershed.org',
     'staging.app.wikiwatershed.org',
-    'mmw.azavea.com',
-    'mmw-dev.azavea.com',
+    'portal.bigcz.org',
+    'staging.portal.bigcz.org',
     '.elb.amazonaws.com',
     'localhost'
 ]
