@@ -4,12 +4,20 @@ from __future__ import unicode_literals
 from __future__ import division
 
 
+class ResourceLink(object):
+    def __init__(self, type, href):
+        self.type = type
+        self.href = href
+
+
 class Resource(object):
-    def __init__(self, id, title, description, url, created_at, updated_at):
+    def __init__(self, id, title, description, bbox,
+                 links, created_at, updated_at):
         self.id = id
         self.title = title
         self.description = description
-        self.url = url
+        self.bbox = bbox
+        self.links = links
         self.created_at = created_at
         self.updated_at = updated_at
 
