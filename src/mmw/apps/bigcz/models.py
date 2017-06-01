@@ -11,22 +11,22 @@ class ResourceLink(object):
 
 
 class Resource(object):
-    def __init__(self, id, title, description, bbox,
-                 links, created_at, updated_at):
+    def __init__(self, id, bbox, description, links,
+                 title, created_at, updated_at):
         self.id = id
-        self.title = title
-        self.description = description
         self.bbox = bbox
+        self.description = description
         self.links = links
+        self.title = title
         self.created_at = created_at
         self.updated_at = updated_at
 
 
 class ResourceList(object):
-    def __init__(self, catalog, results, count):
+    def __init__(self, catalog, count, results):
         self.catalog = catalog
-        self.results = results
         self.count = count
+        self.results = results
 
 
 class BBox(object):

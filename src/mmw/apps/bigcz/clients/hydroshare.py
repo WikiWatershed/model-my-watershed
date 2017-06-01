@@ -21,12 +21,12 @@ def parse_date(value):
 def parse_record(item):
     return Resource(
         id=item['resource_id'],
-        title=item['resource_title'],
-        description=None,
         bbox=None,
+        description=None,
         links=[
             ResourceLink('details', item['resource_url'])
         ],
+        title=item['resource_title'],
         created_at=parse_date(item['date_created']),
         updated_at=parse_date(item['date_last_updated']))
 
@@ -71,8 +71,8 @@ def search(**kwargs):
         params.update(prepare_bbox(bbox))
 
     response = requests.get(HYDROSHARE_URL, params=params)
-
     data = response.json()
+
     if 'results' not in data:
         raise ValueError(data)
 

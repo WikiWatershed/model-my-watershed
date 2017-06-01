@@ -78,8 +78,8 @@ def search(**kwargs):
         })
 
     response = requests.get(GEOPORTAL_URL, params=params)
-
     data = response.json()
+
     if 'records' not in data:
         raise ValueError(data)
 
