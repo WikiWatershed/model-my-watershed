@@ -87,6 +87,7 @@ def search(**kwargs):
     count = data['totalResults']
 
     return ResourceList(
+        api_url=response.url,
         catalog=CATALOG_NAME,
         count=count,
         results=[parse_record(item) for item in results])

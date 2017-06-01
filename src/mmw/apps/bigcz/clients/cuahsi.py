@@ -100,6 +100,7 @@ def search(**kwargs):
     results = parse_records(sites, services)
 
     return ResourceList(
+        api_url=None,
         catalog=CATALOG_NAME,
         count=len(results),
         results=results)

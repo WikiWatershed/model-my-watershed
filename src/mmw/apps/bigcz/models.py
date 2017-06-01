@@ -23,7 +23,8 @@ class Resource(object):
 
 
 class ResourceList(object):
-    def __init__(self, catalog, count, results):
+    def __init__(self, api_url, catalog, count, results):
+        self.api_url = api_url
         self.catalog = catalog
         self.count = count
         self.results = results

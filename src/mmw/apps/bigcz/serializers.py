@@ -24,5 +24,6 @@ class ResourceSerializer(Serializer):
 
 class ResourceListSerializer(Serializer):
     catalog = CharField()
+    api_url = CharField()
     results = ResourceSerializer(many=True)
     count = IntegerField()
