@@ -11,15 +11,15 @@ class ResourceLink(object):
 
 
 class Resource(object):
-    def __init__(self, id, bbox, description, links,
-                 title, created_at, updated_at):
+    def __init__(self, id, description, links, title,
+                 created_at, updated_at, geom):
         self.id = id
-        self.bbox = bbox
         self.description = description
         self.links = links
         self.title = title
         self.created_at = created_at
         self.updated_at = updated_at
+        self.geom = geom
 
 
 class ResourceList(object):
@@ -31,6 +31,9 @@ class ResourceList(object):
 
 
 class BBox(object):
+    """
+    Bounding box from incoming search API request.
+    """
     def __init__(self, value):
         try:
             xmin, ymin, xmax, ymax = value.split(',')

@@ -5,6 +5,7 @@ from __future__ import division
 
 from suds.client import Client
 from rest_framework.exceptions import ValidationError
+from django.contrib.gis.geos import Point
 
 from apps.bigcz.models import Resource, ResourceLink, ResourceList, BBox
 
@@ -16,24 +17,24 @@ SOAP_URL = 'http://hiscentral.cuahsi.org/webservices/hiscentral.asmx?WSDL'
 client = Client(SOAP_URL)
 
 
-def parse_bbox(site):
+def parse_geom(site):
     lat = site['Latitude']
     lng = site['Longitude']
-    return [lng, lat, lng, lat]
+    return Point(lng, lat)
 
 
 def parse_record(site, service):
-    bbox = parse_bbox(site)
+    geom = parse_geom(site)
     return Resource(
         id=site['SiteCode'],
-        bbox=bbox,
         description=service['aabstract'],
         links=[
             ResourceLink('details', service['ServiceDescriptionURL'])
         ],
         title=site['SiteName'],
         created_at=None,
-        updated_at=None)
+        updated_at=None,
+        geom=geom)
 
 
 def find_service(services, service_code):

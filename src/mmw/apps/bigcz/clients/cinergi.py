@@ -15,7 +15,7 @@ GEOPORTAL_URL = 'http://132.249.238.169:8080/geoportal/opensearch'
 
 
 def parse_date(value):
-    return dateutil.parser.parse(value)
+    return dateutil.parser.parse(value) if value else None
 
 
 def parse_envelope(envelope):
@@ -33,10 +33,10 @@ def parse_envelope(envelope):
     return Polygon.from_bbox((xmin, ymin, xmax, ymax))
 
 
-def parse_bbox(source):
+def parse_geom(source):
     """
-    Parse bbox from item source by doing a unary union of each
-    available envelope_geo object.
+    Return Polygon or MultiPolygon from source by combining all
+    available envelope_geo objects.
 
     - envelope_geo may be absent, an object, or list of objects
     """
@@ -48,13 +48,12 @@ def parse_bbox(source):
     if isinstance(envelope, dict):
         envelope = [envelope]
 
-    poly = parse_envelope(envelope[0])
+    geom = parse_envelope(envelope[0])
 
     for item in envelope[1:]:
-        poly |= parse_envelope(item)
+        geom |= parse_envelope(item)
 
-    # xmin, ymin, xmax, ymax
-    return poly.extent
+    return geom
 
 
 def parse_links(source):
@@ -77,16 +76,16 @@ def parse_links(source):
 
 def parse_record(item):
     source = item['_source']
-    bbox = parse_bbox(source)
+    geom = parse_geom(source)
     links = parse_links(source)
     return Resource(
         id=item['_id'],
-        bbox=bbox,
         description=source.get('description'),
         links=links,
         title=source['title'],
-        created_at=parse_date(source['sys_created_dt']),
-        updated_at=parse_date(source['src_lastupdate_dt']))
+        created_at=parse_date(source.get('sys_created_dt')),
+        updated_at=parse_date(source.get('src_lastupdate_dt')),
+        geom=geom)
 
 
 def prepare_bbox(value):
