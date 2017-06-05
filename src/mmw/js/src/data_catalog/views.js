@@ -31,7 +31,7 @@ var DataCatalogWindow = Backbone.View.extend({
         this.$el.on('click', dom.expandLink, _.bind(this.expand, this));
         this.$el.on('click', dom.catalogButton, _.bind(this.onSelectCatalog, this));
         this.$el.on('keypress', dom.searchBox, _.bind(this.onKeyPress, this));
-        this.$el.on('mouseover', dom.resource, _.bind(this.onMouseOver, this));
+        this.$el.on('mouseover', dom.resource, _.bind(this.highlightResult, this));
     },
 
     onKeyPress: function(e) {
@@ -52,11 +52,11 @@ var DataCatalogWindow = Backbone.View.extend({
         this.collection.search(this.model);
     },
 
-    onMouseOver: function(e) {
+    highlightResult: function(e) {
         var cid = $(e.currentTarget).data('cid'),
             model = this.collection.get(cid),
-            bbox = model.get('bbox');
-        App.map.set('focusBounds', bbox);
+            geom = model.get('geom');
+        App.map.set('dataCatalogActiveResult', geom);
     },
 
     searchStarted: function() {
@@ -65,8 +65,10 @@ var DataCatalogWindow = Backbone.View.extend({
     },
 
     searchDone: function() {
+        var geoms = this.collection.pluck('geom');
         this.model.set('isSearching', false);
         this.renderResults();
+        App.map.set('dataCatalogResults', geoms);
     },
 
     expand: function(e) {
