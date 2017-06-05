@@ -3,6 +3,7 @@
 var _ = require('underscore'),
     $ = require('jquery'),
     Backbone = require('../../shim/backbone'),
+    App = require('../app'),
     dataCatalogWindowTmpl = require('./templates/window.html'),
     searchResultsTmpl = require('./templates/searchresults.html');
 
@@ -30,6 +31,7 @@ var DataCatalogWindow = Backbone.View.extend({
         this.$el.on('click', dom.expandLink, _.bind(this.expand, this));
         this.$el.on('click', dom.catalogButton, _.bind(this.onSelectCatalog, this));
         this.$el.on('keypress', dom.searchBox, _.bind(this.onKeyPress, this));
+        this.$el.on('mouseover', dom.resource, _.bind(this.onMouseOver, this));
     },
 
     onKeyPress: function(e) {
@@ -48,6 +50,13 @@ var DataCatalogWindow = Backbone.View.extend({
         var catalog = $(e.currentTarget).data('catalog');
         this.model.set('catalog', catalog);
         this.collection.search(this.model);
+    },
+
+    onMouseOver: function(e) {
+        var cid = $(e.currentTarget).data('cid'),
+            model = this.collection.get(cid),
+            bbox = model.get('bbox');
+        App.map.set('focusBounds', bbox);
     },
 
     searchStarted: function() {

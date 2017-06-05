@@ -16,17 +16,22 @@ SOAP_URL = 'http://hiscentral.cuahsi.org/webservices/hiscentral.asmx?WSDL'
 client = Client(SOAP_URL)
 
 
-def parse_record(site, service):
+def parse_bbox(site):
     lat = site['Latitude']
     lng = site['Longitude']
+    return [lng, lat, lng, lat]
+
+
+def parse_record(site, service):
+    bbox = parse_bbox(site)
     return Resource(
         id=site['SiteCode'],
-        title=site['SiteName'],
+        bbox=bbox,
         description=service['aabstract'],
-        bbox=[lng, lat, lng, lat],
         links=[
             ResourceLink('details', service['ServiceDescriptionURL'])
         ],
+        title=site['SiteName'],
         created_at=None,
         updated_at=None)
 
@@ -95,6 +100,7 @@ def search(**kwargs):
     results = parse_records(sites, services)
 
     return ResourceList(
+        api_url=None,
         catalog=CATALOG_NAME,
         count=len(results),
         results=results)
