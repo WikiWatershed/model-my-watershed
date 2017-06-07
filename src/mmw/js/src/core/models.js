@@ -21,7 +21,8 @@ var MapModel = Backbone.Model.extend({
         wellKnownAreaOfInterest: null,  // "{layerCode}__{id}"
         geolocationEnabled: true,
         previousAreaOfInterest: null,
-        focusBounds: null
+        dataCatalogResults: null,       // GeoJSON array
+        dataCatalogActiveResult: null   // GeoJSON
     },
 
     revertMaskLayer: function() {

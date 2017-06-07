@@ -20,6 +20,30 @@ var L = require('leaflet'),
 require('leaflet.locatecontrol');
 require('leaflet-plugins/layer/tile/Google');
 
+var dataCatalogPolygonStyle = {
+    stroke: true,
+    color: 'steelblue',
+    weight: 2,
+    opacity: 1,
+    fill: false
+};
+
+var dataCatalogPointStyle = _.assign({}, dataCatalogPolygonStyle, {
+    fill: true,
+    fillColor: 'steelblue',
+    fillOpacity: 0.2
+});
+
+var dataCatalogActiveStyle = {
+    stroke: true,
+    color: 'gold',
+    weight: 3,
+    opacity: 1,
+    fill: true,
+    fillColor: 'gold',
+    fillOpacity: 0.2
+};
+
 var RootView = Marionette.LayoutView.extend({
     el: 'body',
     ui: {
@@ -227,7 +251,8 @@ var MapView = Marionette.ItemView.extend({
         'change:areaOfInterest': 'updateAreaOfInterest',
         'change:size': 'toggleMapSize',
         'change:maskLayerApplied': 'toggleMask',
-        'change:focusBounds': 'renderFocusBounds'
+        'change:dataCatalogResults': 'renderDataCatalogResults',
+        'change:dataCatalogActiveResult': 'renderDataCatalogActiveResult'
     },
 
     // L.Map instance.
@@ -241,7 +266,8 @@ var MapView = Marionette.ItemView.extend({
     // L.FeatureGroup instance.
     _modificationsLayer: null,
 
-    _focusBoundsLayer: null,
+    _dataCatalogResultsLayer: null,
+    _dataCatalogActiveLayer: null,
 
     // Flag used to determine if AOI change should trigger a prompt.
     _areaOfInterestSet: false,
@@ -277,7 +303,8 @@ var MapView = Marionette.ItemView.extend({
         this._leafletMap = map;
         this._areaOfInterestLayer = new L.FeatureGroup();
         this._modificationsLayer = new L.FeatureGroup();
-        this._focusBoundsLayer = new L.FeatureGroup();
+        this._dataCatalogResultsLayer = new L.FeatureGroup();
+        this._dataCatalogActiveLayer = new L.FeatureGroup();
 
         if (!options.interactiveMode) {
             this.setMapToNonInteractive();
@@ -315,7 +342,8 @@ var MapView = Marionette.ItemView.extend({
 
         map.addLayer(this._areaOfInterestLayer);
         map.addLayer(this._modificationsLayer);
-        map.addLayer(this._focusBoundsLayer);
+        map.addLayer(this._dataCatalogResultsLayer);
+        map.addLayer(this._dataCatalogActiveLayer);
     },
 
     setupGeoLocation: function(maxAge) {
@@ -680,18 +708,38 @@ var MapView = Marionette.ItemView.extend({
         });
     },
 
-    renderFocusBounds: function() {
-        var bbox = this.model.get('focusBounds');
-        this._focusBoundsLayer.clearLayers();
-        if (bbox) {
-            var xmin = bbox[0],
-                ymin = bbox[1],
-                xmax = bbox[2],
-                ymax = bbox[3],
-                bounds = [[ymin, xmin], [ymax, xmax]],
-                rect = new L.Rectangle(bounds);
-            this._focusBoundsLayer.addLayer(rect);
-            this._leafletMap.fitBounds(bounds);
+    createDataCatalogShape: function(geom) {
+        if (geom.type === 'Point') {
+            var lng = geom.coordinates[0],
+                lat = geom.coordinates[1];
+            return new L.CircleMarker([lat, lng], dataCatalogPointStyle);
+        } else {
+            return new L.GeoJSON(geom, { style: dataCatalogPolygonStyle });
+        }
+    },
+
+    renderDataCatalogResults: function() {
+        var geoms = this.model.get('dataCatalogResults') || [];
+        geoms = _.filter(geoms);
+
+        this._dataCatalogResultsLayer.clearLayers();
+        this._dataCatalogActiveLayer.clearLayers();
+
+        for (var i = 0; i < geoms.length; i++) {
+            var layer = this.createDataCatalogShape(geoms[i]);
+            this._dataCatalogResultsLayer.addLayer(layer);
+        }
+    },
+
+    renderDataCatalogActiveResult: function() {
+        var geom = this.model.get('dataCatalogActiveResult');
+
+        this._dataCatalogActiveLayer.clearLayers();
+
+        if (geom) {
+            var layer = this.createDataCatalogShape(geom);
+            layer.setStyle(dataCatalogActiveStyle);
+            this._dataCatalogActiveLayer.addLayer(layer);
         }
     }
 });

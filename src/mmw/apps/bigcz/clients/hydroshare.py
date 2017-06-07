@@ -5,8 +5,8 @@ from __future__ import division
 
 import requests
 import dateutil.parser
-
 from rest_framework.exceptions import ValidationError
+
 from apps.bigcz.models import Resource, ResourceLink, ResourceList, BBox
 
 
@@ -21,14 +21,14 @@ def parse_date(value):
 def parse_record(item):
     return Resource(
         id=item['resource_id'],
-        bbox=None,
         description=None,
         links=[
             ResourceLink('details', item['resource_url'])
         ],
         title=item['resource_title'],
         created_at=parse_date(item['date_created']),
-        updated_at=parse_date(item['date_last_updated']))
+        updated_at=parse_date(item['date_last_updated']),
+        geom=None)
 
 
 def prepare_bbox(value):
