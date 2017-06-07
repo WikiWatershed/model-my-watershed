@@ -49,11 +49,17 @@ class BIGCZMiddleware(object):
     is specified. This can be reversed by a ?bigcz=false query parameter.
     """
     def process_request(self, request):
-        bigcz = request.GET.get(BIGCZ)
-        host = request.META.get('HTTP_HOST')
+        if BIGCZ not in request.session:
+            host = request.META.get('HTTP_HOST')
+            if settings.FLAG_HOSTS[BIGCZ] in host:
+                request.session[BIGCZ] = True
 
-        if bigcz == 'true' or settings.FLAG_HOSTS[BIGCZ] in host:
+            if settings.FLAG_HOSTS[MMW] in host:
+                request.session[BIGCZ] = False
+
+        bigcz = request.GET.get(BIGCZ)
+        if bigcz == 'true':
             request.session[BIGCZ] = True
 
-        if bigcz == 'false' or settings.FLAG_HOSTS[MMW] in host:
+        if bigcz == 'false':
             request.session[BIGCZ] = False
