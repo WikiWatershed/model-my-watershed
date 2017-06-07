@@ -9,8 +9,8 @@ from rest_framework.exceptions import ValidationError, ParseError
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from apps.bigcz.serializers import ResourceListSerializer
 from apps.bigcz.clients import SEARCH_FUNCTIONS
+from apps.bigcz.serializers import ResourceListSerializer
 
 
 def parse_date(value):
