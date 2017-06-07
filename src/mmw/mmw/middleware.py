@@ -2,6 +2,9 @@ from django.conf import settings
 from django.core.handlers.base import BaseHandler
 from django.core import urlresolvers
 
+BIGCZ = settings.BIGCZ_FLAG
+MMW = 'mmw'
+
 
 def bypass_middleware(view):
     view.bypass_middleware = True
@@ -38,3 +41,19 @@ class BypassMiddleware(object):
             response = handler.get_response(request)
 
             return response
+
+
+class BIGCZMiddleware(object):
+    """
+    Middleware for setting BiG-CZ session flags if ?bigcz=true query parameter
+    is specified. This can be reversed by a ?bigcz=false query parameter.
+    """
+    def process_request(self, request):
+        bigcz = request.GET.get(BIGCZ)
+        host = request.META.get('HTTP_HOST')
+
+        if bigcz == 'true' or settings.FLAG_HOSTS[BIGCZ] in host:
+            request.session[BIGCZ] = True
+
+        if bigcz == 'false' or settings.FLAG_HOSTS[MMW] in host:
+            request.session[BIGCZ] = False
