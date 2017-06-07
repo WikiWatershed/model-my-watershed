@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from . import hydroshare, cuahsi, cinergi
+from apps.bigcz.clients import hydroshare, cuahsi, cinergi
 
 
 SEARCH_FUNCTIONS = {
