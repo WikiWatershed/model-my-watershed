@@ -265,6 +265,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django_statsd.middleware.GraphiteRequestTimingMiddleware',
     'django_statsd.middleware.GraphiteMiddleware',
+    'mmw.middleware.BIGCZMiddleware',
     'apps.user.middleware.ItsiAuthenticationMiddleware',
 )
 # END MIDDLEWARE CONFIGURATION
@@ -357,13 +358,12 @@ OMGEO_SETTINGS = [[
 ]]
 
 # Feature flags
-MMW_BIGCZ_MODE = bool(environ.get('MMW_BIGCZ_MODE', False))
-if MMW_BIGCZ_MODE:
-    DATA_CATALOG_ENABLED = True
-    ITSI_ENABLED = False
-else:
-    DATA_CATALOG_ENABLED = False
-    ITSI_ENABLED = True
+BIGCZ_FLAG = 'bigcz'
+
+FLAG_HOSTS = {
+    'bigcz': 'portal.bigcz.org',
+    'mmw': 'app.wikiwatershed.org',
+}
 
 # ITSI Portal Settings
 ITSI = {
