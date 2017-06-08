@@ -101,6 +101,26 @@ $ ./scripts/manage.sh test
 envdir: fatal: unable to switch to directory /etc/mmw.d/env: access denied
 ```
 
+### Mounting RWD Data
+
+The worker VM mounts the `/opt/rwd-data` directory for use in the Rapid Watershed Delineation feature. You can set up a working development environment without the RWD data by making an empty `/opt/rwd-data` dir on your local machine.
+
+Linux users can mount RWD data from an external drive by symlinking the data from that drive to `/opt/rwd-data`. On OS X, developers can mount the data from an external drive by updating [the Worker's `synced_folder` in the Vagrantfile](https://github.com/WikiWatershed/model-my-watershed/blob/develop/Vagrantfile#L94) from
+
+```
+worker.vm.synced_folder "/opt/rwd-data", "/opt/rwd-data"
+```
+
+to
+
+```
+worker.vm.synced_folder "/Volumes/<EXTERNAL-DRIVE-NAME>/<RWD-DATA-DIR>", "/opt/rwd-data"
+```
+
+where `<EXTERNAL-DRIVE-NAME>` is the name of the external drive and `<RWD-DATA-DIR>` is the name of the directory storing the `Main_Watershed` and `Subwatershed_ALL` directories.
+
+If you've already created a Worker VM, you'll need to run `vagrant reload --provision worker` to have the change take effect.
+
 ### Ports
 
 The Vagrant configuration maps the following host ports to services running in the virtual machines.
