@@ -365,6 +365,9 @@ else:
     DATA_CATALOG_ENABLED = False
     ITSI_ENABLED = True
 
+# BiG-CZ Host, for enabling custom behavior.
+BIGCZ_HOST = 'portal.bigcz.org'
+
 # ITSI Portal Settings
 ITSI = {
     'client_id': environ.get('MMW_ITSI_CLIENT_ID', 'model-my-watershed'),

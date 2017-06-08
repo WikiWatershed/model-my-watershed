@@ -116,6 +116,9 @@ def set_url(layer):
 
 
 def get_client_settings(request):
+    # BiG-CZ mode applies when either request host contains predefined host, or
+    # ?bigcz query parameter is present. This covers staging sites, etc.
+    bigcz = settings.BIGCZ_HOST in request.get_host() or 'bigcz' in request.GET
     EMBED_FLAG = settings.ITSI['embed_flag']
     client_settings = {
         'client_settings': json.dumps({
@@ -132,8 +135,8 @@ def get_client_settings(request):
             'vizer_names': settings.VIZER_NAMES,
             'model_packages': get_model_packages(),
             'mapshed_max_area': settings.GWLFE_CONFIG['MaxAoIArea'],
-            'data_catalog_enabled': settings.DATA_CATALOG_ENABLED,
-            'itsi_enabled': settings.ITSI_ENABLED,
+            'data_catalog_enabled': bigcz,
+            'itsi_enabled': not bigcz,
         }),
         'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
     }
