@@ -1,0 +1,15 @@
+<a
+    aria-controls="home"
+    href="#{{ id }}"
+    role="tab"
+    data-toggle="tab">
+    <div class="sidebar-tab-header-label">
+        <div class="sidebar-tab-header-label-icon">
+            {% if loading %}<i class="fa fa-circle-o-notch fa-spin"></i>{% endif %}
+        </div>
+        {{ name }}
+        {% if resultCount > 0 %}
+            ({{ resultCount }})
+        {% endif %}
+    </div>
+</a>

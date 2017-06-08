@@ -14,10 +14,6 @@
   // Sets map to correct container size for sidebar.
   &.-sidebar {
     left: $sidebar-width;
-
-    &.-wide {
-        left: $wide-sidebar-width !important;
-    }
   }
   .compare-scenarios-container & {
     top: 0;
