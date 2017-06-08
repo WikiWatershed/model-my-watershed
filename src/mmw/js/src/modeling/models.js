@@ -720,7 +720,11 @@ var ScenarioModel = Backbone.Model.extend({
         delete response.inputs;
 
         if (!_.isEmpty(response.results)) {
-            this.get('results').reset(response.results);
+            if (this.get('waitToRefresh') === true) {
+                this.get('results').reset(response.results, {silent: true});
+            } else {
+                this.get('results').reset(response.results);
+            }
         }
 
         delete response.results;
@@ -805,6 +809,9 @@ var ScenarioModel = Backbone.Model.extend({
 
                 pollSuccess: function() {
                     self.setResults();
+                    if (self.get('waitToRefresh')) {
+                        self.get('results').trigger('reset');
+                    }
                 },
 
                 pollFailure: function() {
@@ -951,6 +958,7 @@ var ScenariosCollection = Backbone.Collection.extend({
             aoi_census: aoi_census
         });
 
+        scenario.set('waitToRefresh', true);
         this.add(scenario);
         this.setActiveScenarioByCid(scenario.cid);
     },
