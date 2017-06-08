@@ -17,6 +17,7 @@ class ResourceSerializer(Serializer):
     id = CharField()
     title = CharField()
     description = CharField()
+    author = CharField()
     links = ResourceLinkSerializer(many=True)
     created_at = DateTimeField()
     updated_at = DateTimeField()

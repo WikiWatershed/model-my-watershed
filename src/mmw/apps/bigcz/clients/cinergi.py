@@ -80,9 +80,10 @@ def parse_record(item):
     links = parse_links(source)
     return Resource(
         id=item['_id'],
-        description=source.get('description'),
-        links=links,
         title=source['title'],
+        description=source.get('description'),
+        author=None,
+        links=links,
         created_at=parse_date(source.get('sys_created_dt')),
         updated_at=parse_date(source.get('src_lastupdate_dt')),
         geom=geom)

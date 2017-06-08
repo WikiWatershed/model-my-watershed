@@ -21,11 +21,12 @@ def parse_date(value):
 def parse_record(item):
     return Resource(
         id=item['resource_id'],
+        title=item['resource_title'],
         description=None,
+        author=item['creator'],
         links=[
             ResourceLink('details', item['resource_url'])
         ],
-        title=item['resource_title'],
         created_at=parse_date(item['date_created']),
         updated_at=parse_date(item['date_last_updated']),
         geom=None)

@@ -27,11 +27,12 @@ def parse_record(site, service):
     geom = parse_geom(site)
     return Resource(
         id=site['SiteCode'],
+        title=site['SiteName'],
         description=service['aabstract'],
+        author=None,
         links=[
             ResourceLink('details', service['ServiceDescriptionURL'])
         ],
-        title=site['SiteName'],
         created_at=None,
         updated_at=None,
         geom=geom)
