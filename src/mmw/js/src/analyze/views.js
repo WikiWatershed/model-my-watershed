@@ -167,6 +167,14 @@ var ResultsView = Marionette.LayoutView.extend({
     tagName: 'div',
     template: resultsWindowTmpl,
 
+    ui: {
+        changeArea: '[data-action="change-area"]'
+    },
+
+    events: {
+        'click @ui.changeArea': 'changeArea'
+    },
+
     regions: {
         aoiRegion: '.aoi-region',
         analyzeRegion: '#analyze-tab-contents',
@@ -208,6 +216,15 @@ var ResultsView = Marionette.LayoutView.extend({
 
     showModelSelectionDropdown: function() {
         this.nextStageRegion.show(new ModelSelectionDropdownView());
+    },
+
+    changeArea: function() {
+        App.map.set({
+            'areaOfInterest': null,
+            'areaOfInterestName': '',
+            'wellKnownAreaOfInterest': null,
+        });
+        router.navigate('draw/', { trigger: true });
     },
 
     animateIn: function(fitToBounds) {
