@@ -107,7 +107,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
         print: '#print-project',
         save: '#save-project',
         privacy: '#project-privacy',
-        itsiClone: '#itsi-clone'
+        itsiClone: '#itsi-clone',
+        newProject: '#new-project',
     },
 
     events: {
@@ -117,7 +118,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
         'click @ui.print': 'printProject',
         'click @ui.save': 'saveProjectOrLoginUser',
         'click @ui.privacy': 'setProjectPrivacy',
-        'click @ui.itsiClone': 'getItsiEmbedLink'
+        'click @ui.itsiClone': 'getItsiEmbedLink',
+        'click @ui.newProject': 'createNewProject',
     },
 
     template: projectMenuTmpl,
@@ -265,6 +267,17 @@ var ProjectMenuView = Marionette.ItemView.extend({
             });
 
         modal.render();
+    },
+
+    createNewProject: function() {
+        App.map.set({
+            'areaOfInterest': null,
+            'areaOfInterestName': '',
+            'wellKnownAreaOfInterest': null,
+            'zoom': 4,
+        });
+        App.getMapView().fitToDefaultBounds();
+        router.navigate('draw/', { trigger: true });
     }
 });
 

@@ -294,17 +294,13 @@ var MapView = Marionette.ItemView.extend({
                 attributionControl: options.showLayerAttribution
             });
 
-        // Center the map on the U.S.
-        map.fitBounds([
-            [24.2, -126.4],
-            [49.8, -66.0]
-        ]);
-
         this._leafletMap = map;
         this._areaOfInterestLayer = new L.FeatureGroup();
         this._modificationsLayer = new L.FeatureGroup();
         this._dataCatalogResultsLayer = new L.FeatureGroup();
         this._dataCatalogActiveLayer = new L.FeatureGroup();
+
+        this.fitToDefaultBounds();
 
         if (!options.interactiveMode) {
             this.setMapToNonInteractive();
@@ -344,6 +340,14 @@ var MapView = Marionette.ItemView.extend({
         map.addLayer(this._modificationsLayer);
         map.addLayer(this._dataCatalogResultsLayer);
         map.addLayer(this._dataCatalogActiveLayer);
+    },
+
+    fitToDefaultBounds: function() {
+        // Center the map on the U.S.
+        this._leafletMap.fitBounds([
+            [24.2, -126.4],
+            [49.8, -66.0]
+        ]);
     },
 
     setupGeoLocation: function(maxAge) {
