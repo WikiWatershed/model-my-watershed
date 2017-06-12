@@ -97,8 +97,10 @@ def search(**kwargs):
             'error': 'Required argument: bbox'})
 
     box = BBox(bbox)
+    world = BBox('-180,-90,180,90')
+
     sites = get_sites_in_box(box)
-    services = get_services_in_box(box)
+    services = get_services_in_box(world)
     results = parse_records(sites, services)
 
     return ResourceList(
