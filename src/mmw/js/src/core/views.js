@@ -306,8 +306,6 @@ var MapView = Marionette.ItemView.extend({
             this.setMapToNonInteractive();
         }
 
-        var maxGeolocationAge = 60000;
-
         if (options.addZoomControl) {
             map.addControl(new L.Control.Zoom({position: 'bottomleft'}));
             // We're overriding css to display the zoom controls horizontally.
@@ -318,7 +316,7 @@ var MapView = Marionette.ItemView.extend({
         }
 
         if (options.addLocateMeButton) {
-            addLocateMeButton(map, maxGeolocationAge);
+            addLocateMeButton(map, coreUtils.MAX_GEOLOCATION_AGE);
         }
 
         if (options.addSidebarToggleControl) {
@@ -326,7 +324,7 @@ var MapView = Marionette.ItemView.extend({
         }
 
         this.setMapEvents();
-        this.setupGeoLocation(maxGeolocationAge);
+        this.setupGeoLocation();
 
         var initialLayer = options.initialLayerName ?
             this.layerTabCollection.findLayerWhere({ display: options.initialLayerName }) :
@@ -350,13 +348,21 @@ var MapView = Marionette.ItemView.extend({
         ]);
     },
 
-    setupGeoLocation: function(maxAge) {
+    /**
+    Attempt to locate the user and set the map to it
+    @param alwaysSetView -- override the map model setting `geolocationEnabled` (used to prevent
+                            geolocating after the user has already updated the map),
+                            and set the view to the geolocated area on success.
+                            Use when you need to do a one-off geolocation
+    **/
+    setupGeoLocation: function(alwaysSetView) {
         var self = this,
-            timeout = 30000;
+            timeout = 30000,
+            maxAge = coreUtils.MAX_GEOLOCATION_AGE;
 
         // Geolocation success handler
         function geolocation_success(position) {
-            if (self.model.get('geolocationEnabled')) {
+            if (alwaysSetView || self.model.get('geolocationEnabled')) {
                 var lng = position.coords.longitude,
                     lat = position.coords.latitude,
                     zoom = 12; // Regional zoom level

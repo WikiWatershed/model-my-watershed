@@ -19,6 +19,8 @@ var utils = {
         boundary_layers: 2
     },
 
+    MAX_GEOLOCATION_AGE: 60000,
+
     splashPageTitle: 'Model My Watershed',
 
     selectAreaPageTitle: 'Choose Area of Interest',

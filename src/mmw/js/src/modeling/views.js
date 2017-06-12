@@ -277,6 +277,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
             'zoom': 4,
         });
         App.getMapView().fitToDefaultBounds();
+        App.getMapView().setupGeoLocation(true);
         router.navigate('draw/', { trigger: true });
     }
 });
