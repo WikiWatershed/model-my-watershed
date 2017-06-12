@@ -637,10 +637,6 @@ var AreaOfInterestModel = GeoModel.extend({
 var AppStateModel = Backbone.Model.extend({
     defaults: {
         active_page: 'Select Area Of Interest',
-        was_analyze_visible: false,
-        was_data_catalog_visible: false,
-        was_model_visible: false,
-        was_compare_visible: false,
     }
 });
 

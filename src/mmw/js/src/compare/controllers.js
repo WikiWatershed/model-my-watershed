@@ -49,7 +49,6 @@ var CompareController = {
 
         App.state.set({
             'active_page': coreUtils.comparePageTitle,
-            'was_compare_visible': true,
         });
     },
 

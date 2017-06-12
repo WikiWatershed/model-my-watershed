@@ -11,7 +11,6 @@ var DataCatalogController = {
 
         App.state.set({
             'active_page': coreUtils.dataCatalogPageTitle,
-            'was_data_catalog_visible': true,
         });
 
         var searchModel = new models.DataCatalogModel();
