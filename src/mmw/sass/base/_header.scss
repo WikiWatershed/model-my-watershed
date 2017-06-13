@@ -98,6 +98,9 @@ header {
       .project-right {
           margin-right: 8px;
           margin-left: auto;
+          > .btn-secondary {
+              margin-left: 1rem;
+          }
       }
 
       .project-title {

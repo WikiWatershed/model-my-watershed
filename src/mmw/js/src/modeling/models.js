@@ -137,6 +137,8 @@ var ProjectModel = Backbone.Model.extend({
         gis_data: null,                 // Additionally gathered data, such as MapShed for GWLF-E
         needs_reset: false,             // Should we overwrite project data on next save?
         allow_save: true,               // Is allowed to save to the server - false in compare mode
+        is_saving: false,               // Is currently in the process of saving the project
+        has_saving_scenarios: false     // Has a scenario in the process of saving
     },
 
     initialize: function() {
@@ -152,6 +154,7 @@ var ProjectModel = Backbone.Model.extend({
         this.set('is_activity', settings.get('activityMode'));
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
+        this.listenTo(this.get('scenarios'), 'change:is_saving', this.updateHasSavingScenarios, this);
     },
 
     setProjectModel: function(modelPackage) {
@@ -204,42 +207,64 @@ var ProjectModel = Backbone.Model.extend({
         this.save(attrs, { patch: true });
     },
 
-    saveProjectAndScenarios: function() {
-        if (!this.get('allow_save') || !App.user.loggedInUserMatch(this.get('user_id'))) {
-            // Fail fast if the user can't save the project.
+    canSave: function() {
+        return this.get('allow_save') && App.user.loggedInUserMatch(this.get('user_id'));
+    },
+
+    updateHasSavingScenarios: function() {
+        var savingScenario = this.get('scenarios').findWhere({ is_saving: true });
+        this.set('has_saving_scenarios', !!savingScenario);
+    },
+
+    saveInitial: function() {
+        // If haven't saved the project before, save the project and then
+        // set the project ID on each scenario.
+
+        if (!this.canSave() || (this.isNew() && this.saveCalled)) {
+            // Fail fast if the user can't save the project or
+            // we are in the middle of our first save
             return;
         }
 
-        if (this.isNew() && this.saveCalled) {
-            // Fail fast if we are in the middle of our first save.
-            return;
-        } else if (this.isNew() && !this.saveCalled) {
-            // We haven't saved the project before, save the project and then
-            // set the project ID on each scenario.
-            var self = this;
-            this.saveCalled = true;
+        var self = this;
+        this.saveCalled = true;
 
-            this.save()
-                .done(function() {
-                    self.updateProjectScenarios(self.get('id'), self.get('scenarios'));
-                })
-                .fail(function() {
-                    console.log('Failed to save project');
-                });
-        } else {
-            this.save()
-                .fail(function() {
-                    console.log('Failed to save project');
-                });
+        this.set('is_saving', true);
+        this.save()
+            .done(function() {
+                self.updateProjectScenarios(self.get('id'), self.get('scenarios'));
+            })
+            .fail(function() {
+                console.log('Failed to save project');
+            })
+            .always(function() {
+                self.set('is_saving', false);
+            });
+    },
+
+    saveExistingProjectAndScenarios: function() {
+        if (!this.canSave() || this.isNew()) {
+            // Fail fast if the user can't save the project, or the
+            // project hasn't been saved before
+            return;
         }
+
+        var self = this;
+
+        this.set('is_saving', true);
+        this.save()
+            .fail(function() {
+                console.log('Failed to save project');
+            })
+            .always(function() {
+                self.set('is_saving', false);
+            });
     },
 
     addIdsToScenarios: function() {
         var projectId = this.get('id');
 
-        if (!projectId) {
-            this.saveProjectAndScenarios();
-        } else {
+        if (projectId) {
             this.updateProjectScenarios(projectId, this.get('scenarios'));
         }
     },
@@ -374,7 +399,7 @@ var ProjectModel = Backbone.Model.extend({
      */
     fetchGisDataIfNeeded: function() {
         var self = this,
-            saveProjectAndScenarios = _.bind(self.saveProjectAndScenarios, self);
+            saveExistingProjectAndScenarios = _.bind(self.saveExistingProjectAndScenarios, self);
 
         if (self.get('gis_data') === null && self.fetchGisDataPromise === undefined) {
             self.fetchGisDataPromise = self.fetchGisData();
@@ -382,7 +407,7 @@ var ProjectModel = Backbone.Model.extend({
                 .done(function(result) {
                     if (result) {
                         self.set('gis_data', result);
-                        saveProjectAndScenarios();
+                        saveExistingProjectAndScenarios();
                     }
                 })
                 .always(function() {
@@ -609,7 +634,8 @@ var ScenarioModel = Backbone.Model.extend({
         results: null, // ResultCollection
         aoi_census: null, // JSON blob
         modification_censuses: null, // JSON blob
-        allow_save: true // Is allowed to save to the server - false in compare mode
+        allow_save: true, // Is allowed to save to the server - false in compare mode
+        is_saving: false // Is in the process of saving
     },
 
     initialize: function(attrs) {
@@ -647,14 +673,11 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     attemptSave: function() {
-        if (!this.get('allow_save') || !App.user.loggedInUserMatch(this.get('user_id'))) {
-            // Fail fast if the user can't save the project.
-            return;
-        }
-
-        if (!this.get('project')) {
-            // TODO replace this with radio/wreqr or something less problematic than the global.
-            App.currentProject.saveProjectAndScenarios();
+        if (!this.get('project') ||
+            !this.get('allow_save') ||
+            !App.user.loggedInUserMatch(this.get('user_id'))) {
+            // Fail fast if there hasn't been an initial save on the project
+            // or the user can't save the project
             return;
         }
 
@@ -665,10 +688,16 @@ var ScenarioModel = Backbone.Model.extend({
             this.saveCalled = true;
         }
 
+        var self = this;
+
+        this.set('is_saving', true);
         // Save silently so server values don't trigger reload
         this.save(null, { silent: true })
             .fail(function() {
                 console.log('Failed to save scenario');
+            })
+            .always(function() {
+                self.set('is_saving', false);
             });
     },
 
