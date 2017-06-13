@@ -47,3 +47,7 @@ nunjucks.env.addFilter('filterNoData', utils.filterNoData);
 nunjucks.env.addFilter('toFriendlyDate', function(date) {
     return new Date(date).toLocaleString();
 });
+
+nunjucks.env.addFilter('toDateFullYear', function(date) {
+    return new Date(date).getFullYear();
+});

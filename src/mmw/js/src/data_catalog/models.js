@@ -5,74 +5,99 @@ var _ = require('underscore'),
     App = require('../app'),
     utils = require('./utils');
 
-var DESCRIPTION_LENGTH = 300;
+var DESCRIPTION_MAX_LENGTH = 100;
 
-var DataCatalogModel = Backbone.Model.extend({
+var Catalog = Backbone.Model.extend({
     defaults: {
-        catalog: '',
-        isSearching: false,
-        searchText: ''
+        id: '',
+        name: '',
+        description: '',
+        loading: false,
+        active: false,
+        results: null, // Results collection
+        resultCount: 0
+    },
+
+    search: function(query) {
+        var bounds = App.getLeafletMap().getBounds(),
+            bbox = utils.formatBounds(bounds),
+            data = {
+                catalog: this.id,
+                query: query,
+                bbox: bbox
+            };
+        return this.startSearch(data)
+            .always(_.bind(this.finishSearch, this));
+    },
+
+    startSearch: function(data) {
+        this.set('loading', true);
+        return this.get('results').fetch({ data: data });
+    },
+
+    finishSearch: function() {
+        this.set('loading', false);
+        this.set('resultCount', this.get('results').size());
     }
 });
 
-var ResourceModel = Backbone.Model.extend({
-    showExpandLink: function() {
-        return this.getDescription() !== this.getShortDescription();
+var Catalogs = Backbone.Collection.extend({
+    model: Catalog
+});
+
+var Result = Backbone.Model.extend({
+    defaults: {
+        id: '',
+        title: '',
+        description: '',
+        geom: null, // GeoJSON
+        links: null, // Array
+        created: '',
+        updated: ''
     },
 
-    getDescription: function() {
-        return this.get('description') || '';
-    },
-
-    getShortDescription: function() {
-        var text = this.getDescription();
-        if (text.length <= DESCRIPTION_LENGTH) {
+    getSummary: function() {
+        var text = this.get('description') || '';
+        if (text.length <= DESCRIPTION_MAX_LENGTH) {
             return text;
         }
         var truncated = text.substr(0,
-            text.indexOf(' ', DESCRIPTION_LENGTH));
-        return truncated + '... ';
+            text.indexOf(' ', DESCRIPTION_MAX_LENGTH));
+        return truncated + '&hellip;';
     },
 
-    getDetailUrl: function() {
-        var links = this.get('links'),
-            detailUrl = _.findWhere(links, { type: 'details' });
-        return detailUrl && detailUrl.href;
-    }
-});
-
-var ResourceCollection = Backbone.Collection.extend({
-    url: '/api/bigcz/search',
-    model: ResourceModel,
-
-    parse: function(response) {
-        return response.results;
+    getDetailsUrl: function() {
+        var links = this.get('links') || [],
+            detailsUrl = _.findWhere(links, { type: 'details' });
+        return detailsUrl && detailsUrl.href;
     },
 
-    search: function(searchModel) {
-        var searchText = searchModel.get('searchText'),
-            catalog = searchModel.get('catalog');
-
-        if (searchText.length < 3) {
-            this.reset(null);
-            return;
-        }
-
-        var bounds = App.getLeafletMap().getBounds();
-        var bbox = utils.formatBounds(bounds);
-
-        this.fetch({
-            data: {
-                bbox: bbox,
-                catalog: catalog,
-                query: searchText
-            }
+    toJSON: function() {
+        return _.assign({}, this.attributes, {
+            summary: this.getSummary(),
+            detailsUrl: this.getDetailsUrl()
         });
     }
 });
 
+var Results = Backbone.Collection.extend({
+    url: '/api/bigcz/search',
+    model: Result,
+    parse: function(response) {
+        return response.results;
+    }
+});
+
+var SearchForm = Backbone.Model.extend({
+    defaults: {
+        query: ''
+    }
+});
+
 module.exports = {
-    DataCatalogModel: DataCatalogModel,
-    ResourceCollection: ResourceCollection,
-    ResourceModel: ResourceModel
+    Catalog: Catalog,
+    Catalogs: Catalogs,
+    Result: Result,
+    Results: Results,
+    SearchForm: SearchForm
 };

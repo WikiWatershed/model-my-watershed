@@ -1,106 +1,213 @@
 "use strict";
 
-var _ = require('underscore'),
-    $ = require('jquery'),
-    Backbone = require('../../shim/backbone'),
+var Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
-    dataCatalogWindowTmpl = require('./templates/window.html'),
-    searchResultsTmpl = require('./templates/searchresults.html');
+    formTmpl = require('./templates/form.html'),
+    searchResultTmpl = require('./templates/searchResult.html'),
+    tabContentTmpl = require('./templates/tabContent.html'),
+    tabPanelTmpl = require('./templates/tabPanel.html'),
+    windowTmpl = require('./templates/window.html');
 
-var ENTER = 13;
+var ENTER_KEYCODE = 13;
 
-var dom = {
-    searchBox: '.data-catalog-search-input',
-    searchResults: '.data-catalog-results',
-    catalogButton: '.data-catalog-sources > button',
-    resource: '.data-catalog-results > .resource',
-    expandLink: '[data-action="expand"]'
-};
-
-var DataCatalogWindow = Backbone.View.extend({
-    tagName: 'div',
+var DataCatalogWindow = Marionette.LayoutView.extend({
+    template: windowTmpl,
     className: 'data-catalog-window',
 
-    initialize: function(model, collection) {
-        this.model = model;
-        this.collection = collection;
-
-        this.listenTo(collection, 'request', this.searchStarted);
-        this.listenTo(collection, 'sync error reset', this.searchDone);
-
-        this.$el.on('click', dom.expandLink, _.bind(this.expand, this));
-        this.$el.on('click', dom.catalogButton, _.bind(this.onSelectCatalog, this));
-        this.$el.on('keypress', dom.searchBox, _.bind(this.onKeyPress, this));
-        this.$el.on('mouseover', dom.resource, _.bind(this.highlightResult, this));
+    ui: {
+        introText: '.intro-text',
+        tabs: '.output-tabs-wrapper'
     },
 
-    onKeyPress: function(e) {
-        var $el = $(e.target),
-            searchText = $el.val();
+    regions: {
+        formRegion: '.form-region',
+        panelsRegion: '.tab-panels-region',
+        contentsRegion: '.tab-contents-region'
+    },
 
-        this.model.set('searchText', searchText);
+    childEvents: {
+        'search': 'doSearch',
+        'selectCatalog': 'onSelectCatalog'
+    },
 
-        if (e.keyCode === ENTER) {
-            e.preventDefault();
-            this.collection.search(this.model);
+    collectionEvents: {
+        'change:active, change:loading': 'updateMap'
+    },
+
+    onShow: function() {
+        this.formRegion.show(new FormView({
+            model: this.model
+        }));
+        this.panelsRegion.show(new TabPanelsView({
+            collection: this.collection
+        }));
+        this.contentsRegion.show(new TabContentsView({
+            collection: this.collection
+        }));
+    },
+
+    getActiveCatalog: function() {
+        return this.collection.findWhere({ active: true });
+    },
+
+    onSelectCatalog: function(childView, catalogId) {
+        // Deactiveate previous catalog
+        var prevCatalog = this.getActiveCatalog();
+        if (prevCatalog && prevCatalog.id !== catalogId) {
+            prevCatalog.set('active', false);
         }
+
+        // Activate selected catalog
+        var nextCatalog = this.collection.get(catalogId);
+        nextCatalog.set('active', true);
+
+        this.doSearch();
     },
 
-    onSelectCatalog: function(e) {
-        var catalog = $(e.currentTarget).data('catalog');
-        this.model.set('catalog', catalog);
-        this.collection.search(this.model);
+    doSearch: function() {
+        var catalog = this.getActiveCatalog();
+
+        // Disable intro text after first search request
+        this.ui.introText.addClass('hide');
+        this.ui.tabs.removeClass('hide');
+
+        catalog.search(this.model.get('query'));
     },
 
-    highlightResult: function(e) {
-        var cid = $(e.currentTarget).data('cid'),
-            model = this.collection.get(cid),
-            geom = model.get('geom');
-        App.map.set('dataCatalogActiveResult', geom);
-    },
-
-    searchStarted: function() {
-        this.model.set('isSearching', true);
-        this.renderResults();
-    },
-
-    searchDone: function() {
-        var geoms = this.collection.pluck('geom');
-        this.model.set('isSearching', false);
-        this.renderResults();
+    updateMap: function() {
+        var catalog = this.getActiveCatalog(),
+            geoms = catalog.get('results').pluck('geom');
         App.map.set('dataCatalogResults', geoms);
+    }
+});
+
+var FormView = Marionette.ItemView.extend({
+    template: formTmpl,
+    className: 'data-catalog-form',
+
+    ui: {
+        searchInput: '.data-catalog-search-input'
     },
 
-    expand: function(e) {
-        var $el = $(e.target);
-        var $resource = $el.parents('.resource');
-        $resource.addClass('expanded');
+    events: {
+        'keyup @ui.searchInput': 'onSearchInputChanged'
     },
 
-    getRenderContext: function() {
-        return {
-            results: this.collection.models,
-            isSearching: this.model.get('isSearching'),
-            searchText: this.model.get('searchText')
-        };
+    onSearchInputChanged: function(e) {
+        var query = this.ui.searchInput.val().trim();
+        if (e.keyCode === ENTER_KEYCODE) {
+            this.triggerMethod('search');
+        } else {
+            this.model.set('query', query);
+        }
+    }
+});
+
+var TabPanelView = Marionette.ItemView.extend({
+    tagName: 'li',
+    template: tabPanelTmpl,
+    attributes: {
+        role: 'presentation'
     },
 
-    renderSearch: function() {
-        var html = dataCatalogWindowTmpl.render(this.getRenderContext());
-        this.$el.html(html);
+    events: {
+        'click a': 'onTabClicked'
     },
 
-    renderResults: function() {
-        var html = searchResultsTmpl.render(this.getRenderContext());
-        this.$el.find(dom.searchResults).html(html);
+    modelEvents: {
+        'change': 'render'
     },
 
-    render: function() {
-        this.renderSearch();
-        this.renderResults();
+    onTabClicked: function() {
+        this.triggerMethod('selectCatalog', this.model.id);
+    },
+
+    onRender: function() {
+        this.$el.toggleClass('active', this.model.get('active'));
+    }
+});
+
+var TabPanelsView = Marionette.CollectionView.extend({
+    tagName: 'ul',
+    className: 'nav nav-tabs',
+    attributes: {
+        role: 'tablist'
+    },
+    childView: TabPanelView
+});
+
+var TabContentView = Marionette.LayoutView.extend({
+    className: function() {
+        return 'tab-pane' + (this.model.get('active') ? ' active' : '');
+    },
+    id: function() {
+        return this.model.id;
+    },
+    template: tabContentTmpl,
+    attributes: {
+        role: 'tabpanel'
+    },
+
+    ui: {
+        noResults: '.no-results-panel'
+    },
+
+    regions: {
+        resultRegion: '.result-region'
+    },
+
+    modelEvents: {
+        'change': 'update'
+    },
+
+    onShow: function() {
+        this.resultRegion.show(new ResultsView({
+            collection: this.model.get('results')
+        }));
+    },
+
+    update: function() {
+        this.ui.noResults.addClass('hide');
+        this.resultRegion.$el.addClass('hide');
+
+        // Don't show "no results" while search request is in progress
+        var showNoResults = !this.model.get('loading') &&
+            this.model.get('resultCount') === 0;
+
+        if (showNoResults) {
+            this.ui.noResults.removeClass('hide');
+        } else {
+            this.resultRegion.$el.removeClass('hide');
+        }
+    }
+});
+
+var TabContentsView = Marionette.CollectionView.extend({
+    className: 'tab-content',
+    childView: TabContentView
+});
+
+var ResultView = Marionette.ItemView.extend({
+    template: searchResultTmpl,
+    className: 'resource',
+
+    events: {
+        'mouseover': 'highlightResult'
+    },
+
+    highlightResult: function() {
+        App.map.set('dataCatalogActiveResult', this.model.get('geom'));
+    }
+});
+
+var ResultsView = Marionette.CollectionView.extend({
+    childView: ResultView,
+
+    modelEvents: {
+        'sync error': 'render'
     }
 });
 
 module.exports = {
-    DataCatalogWindow: DataCatalogWindow,
+    DataCatalogWindow: DataCatalogWindow
 };
