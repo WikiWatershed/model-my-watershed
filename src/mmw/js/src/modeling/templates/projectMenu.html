@@ -9,22 +9,50 @@
         {% if editable or is_new or itsi %}
             <ul class="dropdown-menu menu-right" role="menu">
                 {% if not is_new and editable %}
-                    <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="share-project">Share</a></li>
-                    <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="project-privacy">{% if is_private %}Make Public{% else %}Make Private{% endif %}</a></li>
-                    <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="delete-project">Delete</a></li>
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" data-toggle="modal" id="share-project">
+                            Share
+                        </a>
+                    </li>
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" data-toggle="modal" id="project-privacy">
+                            {% if is_private %}Make Public{% else %}Make Private{% endif %}
+                        </a>
+                    </li>
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" data-toggle="modal" id="delete-project">
+                            Delete
+                        </a>
+                    </li>
                 {% endif %}
                 {% if editable %}
-                    <li role="presentation"><a role="menuitem" tabindex="-1" data-toggle="modal" id="rename-project">Rename</a></li>
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" data-toggle="modal" id="rename-project">
+                            Rename
+                        </a>
+                    </li>
                 {% endif %}
                 {% if is_new %}
-                    <li role="presentation"><a role="menuitem" tabindex="-1" id="save-project">Save</a></li>
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" id="save-project">
+                            Save
+                        </a>
+                    </li>
                 {% endif %}
                 {% if itsi %}
-                    <li role="presentation"><a role="menuitem" tabindex="-1" id="itsi-clone">Embed in ITSI</a></li>
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" id="itsi-clone">
+                            Embed in ITSI
+                        </a>
+                    </li>
                 {% endif %}
                 {% if user and not itsi_embed %}
                     <li role="separator" class="divider"></li>
-                    <li role="presentation"><a role="menuitem" tabindex="-1" data-url="/projects/">My Projects</a></li>
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" data-url="/projects/">
+                            My Projects
+                        </a>
+                    </li>
                 {% endif %}
             </ul>
             {% endif %}
