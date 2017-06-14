@@ -147,7 +147,7 @@ var ProjectModel = Backbone.Model.extend({
             this.set('scenarios', new ScenariosCollection());
         }
 
-        this.set('user_id', App.user.get('id'));
+        this.setUserIdOnProjectAndScenarios();
 
         // If activity mode is enabled make sure to initialize the project as
         // an activity.
@@ -259,6 +259,14 @@ var ProjectModel = Backbone.Model.extend({
             .always(function() {
                 self.set('is_saving', false);
             });
+    },
+
+    setUserIdOnProjectAndScenarios: function() {
+        var userId = App.user.get('id');
+        this.set('user_id', userId);
+        this.get('scenarios').each(function(scenario) {
+            scenario.set('user_id', userId);
+        });
     },
 
     addIdsToScenarios: function() {
