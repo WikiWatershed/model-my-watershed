@@ -85,6 +85,24 @@
   }
 }
 
+.btn-secondary {
+    height: $height-md;
+    background-color: $ui-secondary;
+    color: $paper;
+    border: solid 1px darken($ui-secondary, 10%);
+
+    i {
+      color: $paper;
+      margin-right: 1px;
+    }
+
+    &:hover, &:focus {
+      color: $paper;
+      background-color: darken($ui-secondary, 5%);
+      border: solid 1px darken($ui-secondary, 15%);
+    }
+}
+
 //Specific Buttons
 .btn-cta {
   color: $paper;

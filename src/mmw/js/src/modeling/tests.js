@@ -283,7 +283,7 @@ describe('Modeling', function() {
 
                 assert.equal($('#sandbox .dropdown-menu > li').length, preSaveMenuItems.length);
                 $('#sandbox .dropdown-menu li').each(function() {
-                    assert.include(preSaveMenuItems, $(this).text());
+                    assert.include(preSaveMenuItems, $(this).text().trim());
                 });
             });
 
@@ -311,7 +311,7 @@ describe('Modeling', function() {
 
                 assert.equal($('#sandbox .dropdown-menu > li').length, postSaveMenuItems.length);
                 $('#sandbox .dropdown-menu > li').each(function() {
-                    assert.include(postSaveMenuItems, $(this).text());
+                    assert.include(postSaveMenuItems, $(this).text().trim());
                 });
             });
 
@@ -346,12 +346,12 @@ describe('Modeling', function() {
 
                 $(sandboxSelector).html(view.render().el);
 
-                assert.equal($('#sandbox #project-privacy').text(), 'Make Public');
+                assert.equal($('#sandbox #project-privacy').text().trim(), 'Make Public');
 
                 project.set('is_private', false);
                 $(sandboxSelector).html(view.render().el);
 
-                assert.equal($('#sandbox #project-privacy').text(), 'Make Private');
+                assert.equal($('#sandbox #project-privacy').text().trim(), 'Make Private');
             });
 
             it('shows "Embed in ITSI" link only for ITSI users', function() {
@@ -382,7 +382,7 @@ describe('Modeling', function() {
 
                 assert.equal($('#sandbox .dropdown-menu li').length, postSaveMenuItems.length);
                 $('#sandbox .dropdown-menu li').each(function() {
-                    assert.include(postSaveMenuItems, $(this).text());
+                    assert.include(postSaveMenuItems, $(this).text().trim());
                 });
             });
         });

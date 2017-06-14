@@ -294,23 +294,17 @@ var MapView = Marionette.ItemView.extend({
                 attributionControl: options.showLayerAttribution
             });
 
-        // Center the map on the U.S.
-        map.fitBounds([
-            [24.2, -126.4],
-            [49.8, -66.0]
-        ]);
-
         this._leafletMap = map;
         this._areaOfInterestLayer = new L.FeatureGroup();
         this._modificationsLayer = new L.FeatureGroup();
         this._dataCatalogResultsLayer = new L.FeatureGroup();
         this._dataCatalogActiveLayer = new L.FeatureGroup();
 
+        this.fitToDefaultBounds();
+
         if (!options.interactiveMode) {
             this.setMapToNonInteractive();
         }
-
-        var maxGeolocationAge = 60000;
 
         if (options.addZoomControl) {
             map.addControl(new L.Control.Zoom({position: 'bottomleft'}));
@@ -322,7 +316,7 @@ var MapView = Marionette.ItemView.extend({
         }
 
         if (options.addLocateMeButton) {
-            addLocateMeButton(map, maxGeolocationAge);
+            addLocateMeButton(map, coreUtils.MAX_GEOLOCATION_AGE);
         }
 
         if (options.addSidebarToggleControl) {
@@ -330,7 +324,7 @@ var MapView = Marionette.ItemView.extend({
         }
 
         this.setMapEvents();
-        this.setupGeoLocation(maxGeolocationAge);
+        this.setupGeoLocation();
 
         var initialLayer = options.initialLayerName ?
             this.layerTabCollection.findLayerWhere({ display: options.initialLayerName }) :
@@ -346,13 +340,29 @@ var MapView = Marionette.ItemView.extend({
         map.addLayer(this._dataCatalogActiveLayer);
     },
 
-    setupGeoLocation: function(maxAge) {
+    fitToDefaultBounds: function() {
+        // Center the map on the U.S.
+        this._leafletMap.fitBounds([
+            [24.2, -126.4],
+            [49.8, -66.0]
+        ]);
+    },
+
+    /**
+    Attempt to locate the user and set the map to it
+    @param alwaysSetView -- override the map model setting `geolocationEnabled` (used to prevent
+                            geolocating after the user has already updated the map),
+                            and set the view to the geolocated area on success.
+                            Use when you need to do a one-off geolocation
+    **/
+    setupGeoLocation: function(alwaysSetView) {
         var self = this,
-            timeout = 30000;
+            timeout = 30000,
+            maxAge = coreUtils.MAX_GEOLOCATION_AGE;
 
         // Geolocation success handler
         function geolocation_success(position) {
-            if (self.model.get('geolocationEnabled')) {
+            if (alwaysSetView || self.model.get('geolocationEnabled')) {
                 var lng = position.coords.longitude,
                     lat = position.coords.latitude,
                     zoom = 12; // Regional zoom level
