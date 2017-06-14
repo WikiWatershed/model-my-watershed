@@ -2,6 +2,7 @@
 
 var _ = require('lodash'),
     $ = require('jquery'),
+    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     settings = require('../core/settings'),
@@ -209,10 +210,15 @@ var ProjectMenuView = Marionette.ItemView.extend({
     saveProjectOrLoginUser: function() {
         if (App.user.get('guest')) {
             var self = this;
-            App.getUserOrShowLogin(function() {
-                self.model.setUserIdOnProjectAndScenarios();
-                self.model.saveInitial();
-            });
+
+            new modalViews.CreateAccountPersuasionModalView({
+                    model: new Backbone.Model(),
+                    onSuccess: function() {
+                        self.model.setUserIdOnProjectAndScenarios();
+                        self.model.saveInitial();
+                    },
+                    app: App,
+                }).render();
         } else {
             if (this.model.isNew()) {
                 this.model.saveInitial();
