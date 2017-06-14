@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import dateutil.parser
 from rest_framework import decorators
 from rest_framework.exceptions import ValidationError, ParseError
 from rest_framework.permissions import AllowAny
@@ -11,12 +10,7 @@ from rest_framework.response import Response
 
 from apps.bigcz.clients import SEARCH_FUNCTIONS
 from apps.bigcz.serializers import ResourceListSerializer
-
-
-def parse_date(value):
-    if not value:
-        return None
-    return dateutil.parser.parse(value)
+from apps.bigcz.utils import parse_date
 
 
 def _do_search(request):
