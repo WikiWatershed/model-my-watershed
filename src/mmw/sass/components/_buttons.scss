@@ -101,6 +101,12 @@
       background-color: darken($ui-secondary, 5%);
       border: solid 1px darken($ui-secondary, 15%);
     }
+
+    &:disabled {
+        background: none;
+        border: none;
+        color: $ui-light;
+    }
 }
 
 //Specific Buttons

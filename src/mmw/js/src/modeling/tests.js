@@ -276,7 +276,6 @@ describe('Modeling', function() {
                     view = new views.ProjectMenuView({ model: project }),
                     preSaveMenuItems = [
                         'Rename',
-                        'Save'
                     ];
 
                 $(sandboxSelector).html(view.render().el);
@@ -497,9 +496,26 @@ describe('Modeling', function() {
         });
 
         describe('ProjectModel', function() {
-            describe('#saveProjectAndScenarios', function() {
+            describe('#saveExistingProjectAndScenarios', function() {
                 beforeEach(function() {
                     App.user.set('id', 1);
+                });
+
+                it('doesn\'t save if there was no initial save', function () {
+                    var projectResponse = '{"id":57,"user":{"id":1,"username":"test","email":"test@azavea.com"},"name":"My Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}';
+                    this.server.respondWith('POST', '/api/modeling/projects/',
+                                            [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
+
+                    var project = getTestProject(getTestScenarioCollection()),
+                        projectSpy = sinon.spy(project, 'save'),
+                        scenario1Spy = sinon.spy(project.get('scenarios').at(0), 'save'),
+                        scenario2Spy = sinon.spy(project.get('scenarios').at(1), 'save');
+
+                    project.saveExistingProjectAndScenarios();
+
+                    assert.isFalse(projectSpy.calledOnce, 'Project was saved before initial save.');
+                    assert.isFalse(scenario1Spy.calledOnce, 'Scenario1 was saved before initial save');
+                    assert.isFalse(scenario2Spy.calledOnce, 'Scenario2 was saved before initial save.');
                 });
 
                 it('calls #save on the project and sets the id on every scenario that\'s part of the project', function() {
@@ -512,7 +528,7 @@ describe('Modeling', function() {
                         scenario1Spy = sinon.spy(project.get('scenarios').at(0), 'save'),
                         scenario2Spy = sinon.spy(project.get('scenarios').at(1), 'save');
 
-                    project.saveProjectAndScenarios();
+                    project.saveInitial();
 
                     assert.isTrue(projectSpy.calledOnce, 'Project was not saved once.');
                     assert.isTrue(scenario1Spy.calledOnce, 'Scenario1 was not saved once.');
@@ -530,7 +546,7 @@ describe('Modeling', function() {
 
                     var project = getTestProject(getTestScenarioCollection());
 
-                    project.saveProjectAndScenarios();
+                    project.saveInitial();
 
                     assert.equal(project.get('scenarios').at(0).get('project'), 21);
                     assert.equal(project.get('scenarios').at(1).get('project'), 21);

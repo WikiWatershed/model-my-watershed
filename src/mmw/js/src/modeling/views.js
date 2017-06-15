@@ -54,7 +54,6 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         // have user contextual controls.
         this.listenTo(App.user, 'change', this.reRender);
         this.listenTo(this.model, 'change:id', this.reRender);
-        this.listenTo(App.user, 'change:guest', this.saveAfterLogin);
     },
 
     reRender: function() {
@@ -83,17 +82,6 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
     onShow: function() {
         this.reRender();
     },
-
-    saveAfterLogin: function(user, guest) {
-        if (!guest && this.model.isNew()) {
-            var user_id = user.get('id');
-            this.model.set('user_id', user_id);
-            this.model.get('scenarios').each(function(scenario) {
-                scenario.set('user_id', user_id);
-            });
-            this.model.saveProjectAndScenarios();
-        }
-    }
 });
 
 // The drop down containing the project name
@@ -151,7 +139,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
         rename.on('update', function(val) {
             self.model.updateName(val);
-            self.model.saveProjectAndScenarios();
+            self.model.saveExistingProjectAndScenarios();
         });
     },
 
@@ -220,9 +208,17 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
     saveProjectOrLoginUser: function() {
         if (App.user.get('guest')) {
-            App.getUserOrShowLogin();
+            var self = this;
+            App.getUserOrShowLogin(function() {
+                self.model.setUserIdOnProjectAndScenarios();
+                self.model.saveInitial();
+            });
         } else {
-            this.model.saveProjectAndScenarios();
+            if (this.model.isNew()) {
+                this.model.saveInitial();
+            } else {
+                this.model.saveExistingProjectAndScenarios();
+            }
         }
     },
 
@@ -248,7 +244,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
         modal.on('confirmation', function() {
             self.model.set('is_private', !self.model.get('is_private'));
-            self.model.saveProjectAndScenarios();
+            self.model.saveExistingProjectAndScenarios();
         });
     },
 

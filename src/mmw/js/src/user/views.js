@@ -212,7 +212,9 @@ var LoginModalView = ModalBaseView.extend({
         this.$el.on('hidden.bs.modal', function() {
             new SignUpModalView({
                 app: self.app,
-                model: new models.SignUpFormModel({})
+                model: new models.SignUpFormModel({
+                    successCallback: self.model.get('successCallback'),
+                })
             }).render();
         });
     },
@@ -288,7 +290,7 @@ var SignUpModalView = ModalBaseView.extend({
     },
 
     dismissAction: function() {
-        this.app.showLoginModal();
+        this.app.showLoginModal(this.model.get('successCallback'));
     }
 });
 
