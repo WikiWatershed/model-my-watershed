@@ -61,7 +61,7 @@
   &:hover, &:focus {
     color: $black-74;
     background-color: darken($ui-light, 5%);
-    border: solid 0 darken($ui-light, 10%);
+    border: solid 1px darken($ui-light, 10%);
   }
 
   //For precip control
@@ -171,6 +171,13 @@
       color: $paper;
     }
   }
+}
+
+.btn-back-compare {
+    i {
+      margin-right: 4px;
+    }
+    font-size: $font-size-h3;
 }
 
 .btn-search-tool {

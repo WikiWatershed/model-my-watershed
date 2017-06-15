@@ -254,7 +254,6 @@ function setPageTitle() {
 
     App.state.set({
         'active_page': modelPackageDisplayName,
-        'was_model_visible': true,
     });
 }
 

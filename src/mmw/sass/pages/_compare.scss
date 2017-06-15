@@ -255,9 +255,12 @@
     padding: 8px;
   }
 
-  h3 {
-    display: inline-block;
-    padding: 1rem;
+  .back {
+      line-height: 50px;
+      height: 100%;
+      display: inline-block;
+      position: relative;
+      vertical-align: top;
   }
 }
 
@@ -271,4 +274,3 @@
     color: $black-74;
   }
 }
-

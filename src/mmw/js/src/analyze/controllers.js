@@ -54,8 +54,6 @@ var AnalyzeController = {
 
         App.state.set({
             'active_page': utils.analyzePageTitle,
-            'was_analyze_visible': true,
-            'was_compare_visible': false,
         });
 
         App.rootView.sidebarRegion.show(analyzeResults);

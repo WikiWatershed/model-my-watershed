@@ -44,7 +44,6 @@ var DrawController = {
         App.map.setDrawSize();
         App.state.set({
             'active_page': utils.splashPageTitle,
-            'was_analyze_visible': false
         });
     }
 };
