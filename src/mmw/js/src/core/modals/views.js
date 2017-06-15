@@ -13,7 +13,7 @@ var _ = require('underscore'),
     modalPlotTmpl = require('./templates/plotModal.html'),
     modalShareTmpl = require('./templates/shareModal.html'),
     modalAlertTmpl = require('./templates/alertModal.html'),
-    modalCreateAccountPersuasionTmpl = require('./templates/createAccountPersuasionModal.html'),
+    modalCreateAccountTmpl = require('./templates/createAccountModal.html'),
     vizerUrls = require('../settings').get('vizer_urls'),
 
     ENTER_KEYCODE = 13,
@@ -389,8 +389,8 @@ var PlotView = ModalBaseView.extend({
     }
 });
 
-var CreateAccountPersuasionModalView = ModalBaseView.extend({
-    template: modalCreateAccountPersuasionTmpl,
+var CreateAccountModalView = ModalBaseView.extend({
+    template: modalCreateAccountTmpl,
 
     ui: {
         'login': '[data-action="login"]',
@@ -416,7 +416,7 @@ var CreateAccountPersuasionModalView = ModalBaseView.extend({
 
 module.exports = {
     ShareView: ShareView,
-    CreateAccountPersuasionModalView: CreateAccountPersuasionModalView,
+    CreateAccountModalView: CreateAccountModalView,
     InputView: InputView,
     ConfirmView: ConfirmView,
     PlotView: PlotView,
