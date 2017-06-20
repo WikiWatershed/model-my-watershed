@@ -1,0 +1,31 @@
+{% if not is_new %}
+    <li class="scenario-options-dropdown-menu-item" role="presentation" role="presentation" data-action="share">
+        <i  class="fa fa-share-alt" title="Share"></i> Share
+    </li>
+{% endif %}
+{% if not is_current_conditions %}
+    <li class="scenario-options-dropdown-menu-item" role="presentation" li data-action="duplicate">
+        <i class="fa fa-copy" title="Duplicate"></i> Duplicate
+    </li>
+{% endif %}
+{% if not is_current_conditions %}
+    <li class="scenario-options-dropdown-menu-item" role="presentation" data-action="delete">
+        <i class="fa fa-trash" title="Delete"></i> Delete
+    </li>
+{% endif %}
+{% if is_gwlfe %}
+    <li class="scenario-options-dropdown-menu-item" role="presentation" data-action="export-gms">
+        <form id="export-gms-form" method="post" action="/api/modeling/export/gms/" target="_blank">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrftoken }}">
+            <input type="hidden" name="filename" class="gms-filename" value="export.gms">
+            <!-- Put `gis_data` in single quotes, to keep any unescaped chars from breaking the template -->
+            <input type="hidden" name="mapshed_data" value='{{ gis_data }}'>
+        </form>
+        <i class="fa fa-download" title="Export GMS"></i> Export GMS
+    </li>
+{% endif %}
+{% if not is_current_conditions %}
+    <li class="scenario-options-dropdown-menu-item" role="presentation" data-action="rename">
+        <i class="fa fa-pencil-square-o" title="Rename"></i> Rename
+    </li>
+{% endif %}

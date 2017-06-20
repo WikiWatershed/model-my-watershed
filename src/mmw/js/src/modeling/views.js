@@ -25,7 +25,7 @@ var _ = require('lodash'),
     scenariosBarButtonsTmpl = require('./templates/scenariosBarButtons.html'),
     scenarioMenuTmpl = require('./templates/scenarioMenu.html'),
     scenarioMenuItemTmpl = require('./templates/scenarioMenuItem.html'),
-    scenarioMenuItemMoreOptionsTmpl = require('./templates/scenarioMenuItemMoreOptions.html'),
+    scenarioMenuItemOptionsTmpl = require('./templates/scenarioMenuItemOptions.html'),
     projectMenuTmpl = require('./templates/projectMenu.html'),
     scenarioAddChangesButtonTmpl = require('./templates/scenarioAddChangesButton.html'),
     tr55ScenarioToolbarTmpl = require('./templates/tr55ScenarioToolbar.html'),
@@ -364,17 +364,27 @@ var ScenariosView = Marionette.LayoutView.extend({
 });
 
 // Additional action options to appear in the scenario dropdown menu item
-var ScenarioDropDownMenuMoreOptionsView = Marionette.ItemView.extend({
+var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
     model: models.ScenarioModel,
-    template: scenarioMenuItemMoreOptionsTmpl,
-    className: "more-options",
+    tagName: 'ul',
+    template: scenarioMenuItemOptionsTmpl,
+    className: 'dropdown-menu scenario-options-dropdown',
     ui: {
         share: '[data-action="share"]',
         duplicate: '[data-action="duplicate"]',
+        selectScenario: '[data-action="select"]',
+        destroyConfirm: '[data-action="delete"]',
+        rename: '[data-action="rename"]',
+        exportGms: '[data-action="export-gms"]',
+        exportGmsForm: '#export-gms-form',
     },
+
     events: {
         'click @ui.share': 'showShareModal',
         'click @ui.duplicate': 'duplicateScenario',
+        'click @ui.rename': 'renameScenario',
+        'click @ui.destroyConfirm': 'destroyConfirm',
+        'click @ui.exportGms': 'downloadGmsFile',
     },
 
     showShareModal: function() {
@@ -393,64 +403,6 @@ var ScenarioDropDownMenuMoreOptionsView = Marionette.ItemView.extend({
 
     duplicateScenario: function() {
         this.model.collection.duplicateScenario(this.model.cid);
-    },
-
-    templateHelpers: function() {
-        return {
-            is_new: this.model.isNew()
-        };
-    },
-});
-
-// The menu item for a scenario in the scenario drop down menu.
-var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
-    model: models.ScenarioModel,
-    tagName: 'li',
-    template: scenarioMenuItemTmpl,
-    regions: {
-        'moreOptions': '.more-options-region',
-    },
-    attributes: {
-        role: 'presentation'
-    },
-
-    modelEvents: {
-        'change': 'render',
-    },
-
-    ui: {
-        selectScenario: '[data-action="select"]',
-        destroyConfirm: '[data-action="delete"]',
-        rename: '[data-action="rename"]',
-        exportGms: '[data-action="export-gms"]',
-        exportGmsForm: '#export-gms-form',
-        nameField: '#scenario-name',
-        showMore: '[data-action="show-more"]',
-    },
-
-    events: {
-        'click @ui.selectScenario': 'selectScenario',
-        'click @ui.rename': 'renameScenario',
-        'click @ui.destroyConfirm': 'destroyConfirm',
-        'click @ui.exportGms': 'downloadGmsFile',
-        'click @ui.showMore': 'toggleMoreOptions',
-    },
-
-    toggleMoreOptions: function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (this.moreOptions.hasView()) {
-            this.moreOptions.empty();
-        } else {
-            this.moreOptions.show(new ScenarioDropDownMenuMoreOptionsView({
-                model: this.model,
-            }));
-        }
-    },
-
-    selectScenario: function(e) {
-        e.preventDefault();
-        this.model.collection.setActiveScenario(this.model);
     },
 
     renameScenario: function(e) {
@@ -582,6 +534,66 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
                 is_gwlfe: is_gwlfe,
                 csrftoken: csrf.getToken(),
                 gis_data: gis_data,
+                editable: isEditable(this.model),
+                is_new: this.model.isNew(),
+            };
+    },
+});
+
+// The menu item for a scenario in the scenario drop down menu.
+var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
+    model: models.ScenarioModel,
+    tagName: 'li',
+    template: scenarioMenuItemTmpl,
+    regions: {
+        'optionsDropdown': '.options-dropdown-region',
+    },
+    attributes: {
+        role: 'presentation'
+    },
+
+    modelEvents: {
+        'change': 'render',
+    },
+
+    ui: {
+        selectScenario: '[data-action="select"]',
+        showOptionsDropdown: '[data-action="show-options-dropdown"]',
+    },
+
+    events: {
+        'click @ui.selectScenario': 'selectScenario',
+        'click @ui.showOptionsDropdown': 'toggleOptionsDropdown',
+    },
+
+    toggleOptionsDropdown: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (this.optionsDropdown.hasView()) {
+            this.optionsDropdown.empty();
+        } else {
+            this.optionsDropdown.show(new ScenarioDropDownMenuOptionsView({
+                model: this.model,
+            }));
+        }
+    },
+
+    selectScenario: function(e) {
+        e.preventDefault();
+        this.model.collection.setActiveScenario(this.model);
+    },
+
+    templateHelpers: function() {
+        var gis_data = this.model.getGisData().model_input,
+            is_gwlfe = App.currentProject.get('model_package') === models.GWLFE &&
+                        gis_data !== null &&
+                        gis_data !== '{}' &&
+                        gis_data !== '';
+
+            return {
+                is_gwlfe: is_gwlfe,
+                gis_data: gis_data,
+                csrftoken: csrf.getToken(),
                 editable: isEditable(this.model),
                 is_new: this.model.isNew(),
             };

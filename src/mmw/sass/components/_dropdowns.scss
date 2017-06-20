@@ -24,7 +24,9 @@
 
     li {
 
-      a, .scenario-dropdown-menu-item {
+      a,
+      .scenario-dropdown-menu-item,
+      .scenario-options-dropdown-menu-item {
         color: $black-74;
         line-height: $height-md;
         padding: 0 0.5rem;
@@ -223,7 +225,7 @@
     float: right;
     clear: right;
     > i,
-    > .more-options-region > .more-options > i {
+    .scenario-options-dropdown .i {
         float: right;
         font-size: $font-size-h4;
         line-height: 35px;
@@ -243,9 +245,14 @@
     #export-gms-form {
         display: none;
     }
-    .more-options-region, .more-options {
+
+    .scenario-options-dropdown {
         float: right;
         display: inline;
+        // Bootstrap lines this sub dropdown up under the more-options icon
+        // Push it to the side of the dropdown item
+        left: 25px;
+        top: -25px;
     }
 }
 
