@@ -10,8 +10,6 @@ var _ = require('lodash'),
     mocks = require('./mocks'),
     utils = require('../core/utils'),
     models = require('./models'),
-    modalViews = require('../core/modals/views'),
-    modalModels = require('../core/modals/models'),
     views = require('./views'),
     App = require('../app.js'),
     testUtils = require('../core/testUtils'),
@@ -148,7 +146,7 @@ describe('Modeling', function() {
                     menuItems = $scenarioItemActions.map(function() {
                         return $(this).get(0).title;
                     }).get();
-                assert.deepEqual(menuItems.reverse(), expectedItems);
+                assert.deepEqual(menuItems, expectedItems);
             }
 
             it('renders action icons for editing if the user owns the project', function() {
@@ -158,10 +156,10 @@ describe('Modeling', function() {
 
                 project.get('scenarios').invoke('set', 'user_id', 1);
 
-                var view = new views.ScenarioDropDownMenuItemView({ model: collection.at(1) });
+                var view = new views.ScenarioDropDownMenuOptionsView({ model: collection.at(1) });
 
                 $(sandboxSelector).html(view.render().el);
-                checkMenuItemsMatch(['Rename', 'Delete', 'More...']);
+                checkMenuItemsMatch(['Share', 'Duplicate', 'Delete', 'Rename']);
             });
 
             it('renders no action icons if the user does not own the project', function() {
@@ -170,25 +168,10 @@ describe('Modeling', function() {
 
                 project.get('scenarios').invoke('set', 'user_id', 1);
 
-                var view = new views.ScenarioDropDownMenuItemView({  model: project.get('scenarios').at(0) });
+                var view = new views.ScenarioDropDownMenuOptionsView({  model: project.get('scenarios').at(0) });
 
                 $(sandboxSelector).html(view.render().el);
                 checkMenuItemsMatch([]);
-            });
-
-            it('renders tab dropdown for sharing if the scenario is saved', function() {
-                App.user.set('id', 1);
-                var project = getTestProject(),
-                    collection = getTestScenarioCollection();
-
-                // Simulate scenario that has been saved.
-                project.get('scenarios').invoke('set', 'id', 1);
-
-                var view = new views.ScenarioDropDownMenuItemView({ model: collection.at(1) });
-                view.render();
-                view.ui.showMore.trigger('click');
-                $(sandboxSelector).html(view.moreOptions.el);
-                checkMenuItemsMatch(['Duplicate', 'Share']);
             });
         });
 
@@ -950,105 +933,39 @@ describe('Modeling', function() {
                 });
             });
 
-            describe('#updateScenarioName', function() {
-                var spyAlert, spyView;
-
-                beforeEach(function() {
-                    spyAlert = sinon.spy(modalViews.AlertView.prototype, 'render');
-                    spyView = new modalViews.AlertView({
-                        model: new modalModels.AlertModel({
-                            alertMessage: 'Test',
-                            alertType: modalModels.AlertTypes.warn
-                        })
-                    });
-                });
-
-                afterEach(function() {
-                    modalViews.AlertView.prototype.render.restore();
-                });
-
-                it('trims whitespace from the provided new name', function() {
+            describe('#validateNewScenarioName', function() {
+                it ('returns null if valid rename', function() {
                     var collection = getTestScenarioCollection(),
-                        view = new views.ScenarioDropDownMenuItemView({ model: collection.at(1) });
+                        validationMessage = collection.validateNewScenarioName(collection.at(1),
+                                                'My New Unique Scenario Name');
 
-                    collection.updateScenarioName(collection.at(1), 'New Name       ');
-                    view.model.collection.updateScenarioName(view.model, 'New Name       ');
-                    view.render();
-
-                    view.ui.rename.trigger('click');
-                    view.ui.nameField.text('New Name         ');
-                    view.ui.nameField.trigger('blur');
-
-                    assert.isFalse(spyAlert.called);
-                    assert.equal(collection.at(1).get('name'), 'New Name');
+                    assert.equal(validationMessage, null);
                 });
 
                 it('ignores case when comparing the new name with existing names', function() {
                     var collection = getTestScenarioCollection(),
-                        view = new views.ScenarioDropDownMenuItemView({ model: collection.at(1) });
+                        validationMessage = collection.validateNewScenarioName(collection.at(1),
+                                                'cUrreNt condiTIONS');
 
-                    view.render();
-
-                    view.ui.rename.trigger('click');
-                    view.ui.nameField.text('cuRRENT conDITions');
-                    view.ui.nameField.trigger('blur');
-
-                    assert.isTrue(spyAlert.calledOnce);
-                    assert.equal(collection.at(1).get('name'), 'New Scenario 1');
+                    assert.notEqual(validationMessage, null);
                 });
 
-                it('will not rename the scenario if the new name matches an existing name', function() {
+                it('will not show error when leaving name as is', function() {
                     var collection = getTestScenarioCollection(),
-                        view = new views.ScenarioDropDownMenuItemView({ model: collection.at(1) });
-
-                    view.render();
-
-                    view.ui.rename.trigger('click');
-                    view.ui.nameField.text('Current Conditions');
-                    view.ui.nameField.trigger('blur');
-
-                    assert.isTrue(spyAlert.calledOnce);
-                    assert.equal(collection.at(1).get('name'), 'New Scenario 1');
+                        validationMessage = collection.validateNewScenarioName(collection.at(1),
+                                                'New Scenario 1');
+                    assert.equal(validationMessage, null);
                 });
+            });
 
-                it('will not show error when trying to save name as is', function() {
-                    var collection = getTestScenarioCollection(),
-                        view = new views.ScenarioDropDownMenuItemView({ model: collection.at(1) });
 
-                    view.render();
+            describe('#updateScenarioName', function() {
+                it('trims whitespace from the provided new name', function() {
+                    var collection = getTestScenarioCollection();
 
-                    view.ui.rename.trigger('click');
-                    view.ui.nameField.text('New Scenario 1');
-                    view.ui.nameField.trigger('blur');
+                    collection.updateScenarioName(collection.at(1), 'New Name       ');
 
-                    assert.isFalse(spyAlert.calledOnce);
-                    assert.equal(collection.at(1).get('name'), 'New Scenario 1');
-                });
-
-                it('resets name if set to empty string', function() {
-                    var collection = getTestScenarioCollection(),
-                        view = new views.ScenarioDropDownMenuItemView({ model: collection.at(1) });
-
-                    view.render();
-
-                    view.ui.rename.trigger('click');
-                    view.ui.nameField.text('');
-                    view.ui.nameField.trigger('blur');
-
-                    assert.equal(collection.at(1).get('name'), 'New Scenario 1');
-                });
-
-                it('resets name if set to just spaces', function() {
-                    var collection = getTestScenarioCollection(),
-                        view = new views.ScenarioDropDownMenuItemView({ model: collection.at(1) });
-
-                    view.render();
-
-                    view.ui.rename.trigger('click');
-                    view.ui.nameField.text(' ');
-                    view.ui.nameField.trigger('blur');
-
-                    assert.equal(collection.at(1).get('name'), 'New Scenario 1');
+                    assert.equal(collection.at(1).get('name'), 'New Name');
                 });
             });
 

@@ -1087,6 +1087,7 @@ module.exports = {
     ScenarioButtonsView: ScenarioButtonsView,
     ScenarioDropDownMenuView: ScenarioDropDownMenuView,
     ScenarioDropDownMenuItemView: ScenarioDropDownMenuItemView,
+    ScenarioDropDownMenuOptionsView: ScenarioDropDownMenuOptionsView,
     ScenarioToolbarView: ScenarioToolbarView,
     Tr55ToolbarView: Tr55ToolbarView,
     ProjectMenuView: ProjectMenuView,
