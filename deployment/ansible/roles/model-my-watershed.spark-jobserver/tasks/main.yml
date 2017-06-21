@@ -7,12 +7,6 @@
     - "{{ sjs_home }}"
     - "{{ sjs_data_dir }}"
 
-- name: Copy AWS Crendentials
-  copy: src=~/.aws/ dest=/aws
-  when: "['development', 'test'] | some_are_in(group_names)"
-  notify:
-    - Restart Spark Job Server
-
 - name: Configure Spark Job Server
   template: src="{{ item }}.j2"
             dest="/opt/spark-jobserver/{{ item }}"
