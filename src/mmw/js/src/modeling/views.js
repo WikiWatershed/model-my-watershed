@@ -35,10 +35,6 @@ var _ = require('lodash'),
     gwlfeRunoffViews = require('./gwlfe/runoff/views.js'),
     gwlfeQualityViews = require('./gwlfe/quality/views.js');
 
-var ENTER_KEYCODE = 13,
-    ESCAPE_KEYCODE = 27,
-    SPACE_KEYCODE = 32;
-
 // The entire modeling header.
 var ModelingHeaderView = Marionette.LayoutView.extend({
     model: models.ProjectModel,
@@ -405,110 +401,24 @@ var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
         this.model.collection.duplicateScenario(this.model.cid);
     },
 
-    renameScenario: function(e) {
-        e.preventDefault();
+    renameScenario: function() {
         var self = this,
-            updateScenarioName = function(model, newName) {
-                newName = newName.trim();
-
-                var match = self.model.collection.find(function(model) {
-                    return model.get('name').toLowerCase() === newName.toLowerCase();
-                });
-
-                if (model.get('name') === newName || !newName){
-                    return false;
-                } else if (match) {
-                    console.log('This name is already in use.');
-                    var alertView = new modalViews.AlertView({
-                        model: new modalModels.AlertModel({
-                            alertMessage: 'There is another scenario with the same name. ' +
-                                            'Please choose a unique name for this scenario.',
-                            alertType: modalModels.AlertTypes.warn
-                        })
-                    });
-
-                    alertView.render();
-                    return false;
-                } else {
-                    return model.set('name', newName);
-                }
-            },
-
-            setScenarioName = function(name) {
-                if (!updateScenarioName(self.model, name)) {
-                    self.render(); // resets view state
-                }
-            },
-
-            selectScenarioNameText = function() {
-                // Select scenario name's text
-                var range = document.createRange(),
-                    selection = window.getSelection();
-                range.selectNodeContents(self.ui.nameField[0]);
-                selection.removeAllRanges();
-                selection.addRange(range);
-            };
-
-        selectScenarioNameText();
-        e.stopImmediatePropagation();
-
-        this.ui.nameField.attr('contenteditable', true).focus();
-
-        this.ui.nameField.on('keyup', function(e) {
-            // Cancel on escape key.
-            if (e.keyCode === ESCAPE_KEYCODE) {
-                self.render();
-            }
-        });
-
-        this.ui.nameField.on('keydown', function(e) {
-            var keycode = (e.keyCode ? e.keyCode : e.which);
-            if (keycode === SPACE_KEYCODE) {
-                // bootstrap dropdown prevents space from getting entered into
-                // text
-                e.stopImmediatePropagation();
-                e.stopPropagation();
-            }
-        });
-
-        this.ui.nameField.on('keypress', function(e) {
-            var keycode = (e.keyCode ? e.keyCode : e.which);
-            if (keycode === ENTER_KEYCODE) {
-                // Don't add line returns to the text.
-                e.preventDefault();
-
-                setScenarioName($(this).text());
-            }
-        });
-
-        this.ui.nameField.on('click', function(e) {
-            // Don't let the outer <a> swallow clicks and exit rename mode
-            // Allows selecting text on double click
-            e.stopImmediatePropagation();
-        });
-
-        this.ui.nameField.on('blur', function() {
-            setScenarioName($(this).text());
-        });
-    },
-
-    destroyConfirm: function(e) {
-        e.preventDefault();
-
-        var self = this,
-            del = new modalViews.ConfirmView({
-                model: new modalModels.ConfirmModel({
-                    question: 'Are you sure you want to delete this scenario?',
-                    confirmLabel: 'Delete',
-                    cancelLabel: 'Cancel'
+            collection = self.model.collection,
+            validate = _.bind(collection.validateNewScenarioName, collection),
+            curriedValidationFunction = _.curry(validate)(this.model),
+            rename = new modalViews.InputView({
+                model: new modalModels.InputModel({
+                    initial: this.model.get('name'),
+                    title: 'Rename Scenario',
+                    fieldLabel: 'Scenario Name',
+                    validationFunction: curriedValidationFunction,
                 })
-            });
+        });
 
-        del.render();
+        rename.render();
 
-        del.on('confirmation', function() {
-            var modelIndex = self.model.collection.indexOf(self.model);
-            self.model.collection.remove(self.model, modelIndex);
+        rename.on('update', function(newName) {
+            collection.updateScenarioName(self.model, newName);
         });
     },
 

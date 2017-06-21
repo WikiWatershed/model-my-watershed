@@ -993,23 +993,36 @@ var ScenariosCollection = Backbone.Collection.extend({
         this.setActiveScenarioByCid(scenario.cid);
     },
 
-    updateScenarioName: function(model, newName) {
-        newName = newName.trim();
+    /** Validate the new scenario name
+    @param model - the model your trying to rename
+    @param newName the new name string
+    @returns If valid, null
+             If invalid, a string with the error
+    **/
+    validateNewScenarioName: function(model, newName) {
+        var trimmedNewName = newName.trim();
 
         // Bail early if the name actually didn't change.
-        if (model.get('name') === newName) {
-            return true;
+        if (model.get('name') === trimmedNewName) {
+            return null;
         }
 
         var match = this.find(function(model) {
-            return model.get('name').toLowerCase() === newName.toLowerCase();
+            return model.get('name').toLowerCase() === trimmedNewName.toLowerCase();
         });
 
         if (match) {
-            console.log('This name is already in use.');
-            return false;
-        } else if (model.get('name') !== newName) {
-            return model.set('name', newName);
+            return 'This name is already in use';
+        }
+
+        return null;
+    },
+
+    updateScenarioName: function(model, newName) {
+        var trimmedNewName = newName.trim();
+
+        if (model.get('name') !== trimmedNewName) {
+            return model.set('name', trimmedNewName);
         }
     },
 

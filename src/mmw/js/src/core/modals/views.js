@@ -129,13 +129,17 @@ var InputView = ModalBaseView.extend({
             return;
         }
 
-        var val = this.ui.input.val().trim();
+        var val = this.ui.input.val().trim(),
+            validationMessage = this.model.validate(val);
 
-        if (val) {
+        if (val && !validationMessage) {
             this.triggerMethod('update', val);
             this.hide();
         } else {
-            this.ui.error.text('Please enter a valid project name');
+            var inputType = this.model.get('fieldLabel').toLowerCase(),
+                errorText = validationMessage || ('Please enter a valid ' + inputType);
+            this.ui.error.text(errorText);
+            coreUtils.modalButtonToggle(this.model, this.ui.save, true);
         }
     }
 });
