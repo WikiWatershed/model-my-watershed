@@ -613,6 +613,14 @@ var ScenarioDropDownMenuView = Marionette.CompositeView.extend({
     childView: ScenarioDropDownMenuItemView,
     childViewContainer: 'ul',
 
+    ui: {
+        toggleDropdown: '[data-toggle="dropdown"]',
+    },
+
+    events: {
+        'click @ui.toggleDropdown': 'toggleDropdown',
+    },
+
     collectionEvents: {
         'change:active change:name': 'render',
         'remove': 'onChildRemoved',
@@ -625,6 +633,10 @@ var ScenarioDropDownMenuView = Marionette.CompositeView.extend({
         }
         model.destroy();
         this.render();
+   },
+
+   toggleDropdown: function() {
+       this.collection.closeAllOpenOptionMenus();
    },
 
     templateHelpers: function() {

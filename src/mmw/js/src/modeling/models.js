@@ -1050,19 +1050,26 @@ var ScenariosCollection = Backbone.Collection.extend({
     },
 
     toggleScenarioOptionsMenu: function(model) {
-        // Close all open scenarios
-        var openScenarios = this.where({ options_menu_is_open: true });
-        _.forEach(openScenarios, function(scenario) {
-            scenario.set('options_menu_is_open', false);
-        });
+        var prevOpenScenarios = this.closeAllOpenOptionMenus();
 
         // Open the selected scenario if it was not open already
-        var wasModelAlreadyOpen = _.some(openScenarios, function(scenario) {
+        var wasModelAlreadyOpen = _.some(prevOpenScenarios, function(scenario) {
             return scenario.cid === model.cid;
         });
         if (!wasModelAlreadyOpen) {
             model.set('options_menu_is_open', true);
         }
+    },
+
+    /** Closes all open scenario option menus
+        @return an array of all the scenarios that had open menus
+    **/
+    closeAllOpenOptionMenus: function() {
+        var openScenarios = this.where({ options_menu_is_open: true });
+        _.forEach(openScenarios, function(scenario) {
+            scenario.set('options_menu_is_open', false);
+        });
+        return openScenarios;
     }
 });
 
