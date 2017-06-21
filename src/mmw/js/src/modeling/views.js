@@ -553,7 +553,7 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
     },
 
     modelEvents: {
-        'change': 'render',
+        'change:options_menu_is_open': 'toggleOptionsDropdown',
     },
 
     ui: {
@@ -563,15 +563,20 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
 
     events: {
         'click @ui.selectScenario': 'selectScenario',
-        'click @ui.showOptionsDropdown': 'toggleOptionsDropdown',
+        'click @ui.showOptionsDropdown': 'onOptionsDropdownClick',
     },
 
-    toggleOptionsDropdown: function(e) {
+    onOptionsDropdownClick: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        if (this.optionsDropdown.hasView()) {
+
+        this.model.collection.toggleScenarioOptionsMenu(this.model);
+    },
+
+    toggleOptionsDropdown: function() {
+        if (this.optionsDropdown.hasView() && !this.model.get('options_menu_is_open')) {
             this.optionsDropdown.empty();
-        } else {
+        } else if (this.model.get('options_menu_is_open')) {
             this.optionsDropdown.show(new ScenarioDropDownMenuOptionsView({
                 model: this.model,
             }));

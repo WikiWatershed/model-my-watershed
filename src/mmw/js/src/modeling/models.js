@@ -643,7 +643,8 @@ var ScenarioModel = Backbone.Model.extend({
         aoi_census: null, // JSON blob
         modification_censuses: null, // JSON blob
         allow_save: true, // Is allowed to save to the server - false in compare mode
-        is_saving: false // Is in the process of saving
+        is_saving: false, // Is in the process of saving
+        options_menu_is_open: false // The sub-dropdown options menu for this scenario is open
     },
 
     initialize: function(attrs) {
@@ -1046,6 +1047,22 @@ var ScenariosCollection = Backbone.Collection.extend({
 
     getActiveScenario: function() {
         return this.findWhere({active: true});
+    },
+
+    toggleScenarioOptionsMenu: function(model) {
+        // Close all open scenarios
+        var openScenarios = this.where({ options_menu_is_open: true });
+        _.forEach(openScenarios, function(scenario) {
+            scenario.set('options_menu_is_open', false);
+        });
+
+        // Open the selected scenario if it was not open already
+        var wasModelAlreadyOpen = _.some(openScenarios, function(scenario) {
+            return scenario.cid === model.cid;
+        });
+        if (!wasModelAlreadyOpen) {
+            model.set('options_menu_is_open', true);
+        }
     }
 });
 
