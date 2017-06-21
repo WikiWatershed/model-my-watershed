@@ -922,7 +922,7 @@ var ScenarioModel = Backbone.Model.extend({
                     mergedGisData = JSON.parse(project.get('gis_data'));
 
                 modifications.forEach(function(mod) {
-                    Object.assign(mergedGisData, mod.get('output'));
+                    _.assign(mergedGisData, mod.get('output'));
                 });
 
                 return {
