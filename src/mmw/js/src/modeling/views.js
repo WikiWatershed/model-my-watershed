@@ -484,6 +484,9 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
     },
 
     toggleOptionsDropdown: function() {
+        // Render to show the "dropdown open" styling on the toggle icon
+        this.render();
+
         if (this.optionsDropdown.hasView() && !this.model.get('options_menu_is_open')) {
             this.optionsDropdown.empty();
         } else if (this.model.get('options_menu_is_open')) {
