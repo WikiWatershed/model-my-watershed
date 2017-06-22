@@ -160,7 +160,7 @@ var HeaderView = Marionette.ItemView.extend({
 // Init the locate plugin button and add it to the map.
 function addLocateMeButton(map, maxZoom, maxAge) {
     var locateOptions = {
-        position: 'bottomleft',
+        position: 'bottomright',
         metric: false,
         drawCircle: false,
         showPopup: false,
@@ -248,7 +248,7 @@ var MapView = Marionette.ItemView.extend({
         }
 
         if (options.addZoomControl) {
-            map.addControl(new L.Control.Zoom({position: 'bottomleft'}));
+            map.addControl(new L.Control.Zoom({position: 'bottomright'}));
             // We're overriding css to display the zoom controls horizontally.
             // Because the zoom-in div usally exists on top, we need to flip it
             // with the zoom-out div, so when they're horizontal they appear as

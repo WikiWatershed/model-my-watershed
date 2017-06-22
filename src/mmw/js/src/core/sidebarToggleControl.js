@@ -7,7 +7,7 @@ var L = require('leaflet'),
 
 module.exports = L.Control.extend({
     options: {
-        position: 'bottomleft'
+        position: 'bottomright'
     },
 
     initialize: function(options) {

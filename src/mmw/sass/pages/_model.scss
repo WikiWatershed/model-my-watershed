@@ -28,11 +28,17 @@
     height: 100%;
     width: 100%;
 
-    .result-text {
-        margin-bottom: $font-size-h4;
+    .result-title {
+        padding-top: 5px;
         font-size: $font-size-h4;
-        font-weight: 600;
-        color: #333333;
+        font-weight: 800;
+    }
+
+    .result-description {
+        font-size: $font-size-h5;
+        font-weight: 400;
+        color: $black-54;
+        margin-bottom: 4px;
     }
 
     .mean-flow {
