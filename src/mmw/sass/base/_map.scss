@@ -62,21 +62,23 @@
 }
 
 
-// Override leaflet bottomleft controls
-.leaflet-bottom.leaflet-left {
+// Override leaflet bottomright controls
+.leaflet-bottom.leaflet-right {
     text-align: right;
 }
 
-.leaflet-bottom.leaflet-left > .leaflet-control {
+.leaflet-bottom.leaflet-right > .leaflet-control {
     display: inline-block;
     float: none;
-    margin: 18px 4px;
     vertical-align: middle;
+    margin-bottom: 6px;
+
     &:first-child {
-        margin-left: 10px;
+        margin-right: 10px;
     }
     &.leaflet-control-attribution {
        display: block;
+       margin-bottom: 0px;
     }
 
     &.leaflet-control-zoom {
@@ -98,7 +100,7 @@
     }
 }
 
-.leaflet-bottom.leaflet-left > .leaflet-bar,
+.leaflet-bottom.leaflet-right > .leaflet-bar,
 .layer-control-button-container.leaflet-bar {
     height: 34px;
     width: 34px;

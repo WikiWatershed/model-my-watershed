@@ -5,7 +5,7 @@
   right: 0;
   z-index: 600;
   padding: 0.7rem;
-  padding-right: $right-controls-margin;
+  padding-right: $map-controls-margin;
 
   @media(max-width: 1200px) {
     max-width: 595px;
@@ -57,7 +57,7 @@
 
 #geocode-search-results-region {
   position: absolute;
-  right: $right-controls-margin;
+  right: $map-controls-margin;
   border-radius: 2px;
   box-shadow: 0 0 6px $black-74;
   font-size: $font-size-h4;
