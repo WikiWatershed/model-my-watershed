@@ -25,7 +25,7 @@ var _ = require('lodash'),
     scenariosBarButtonsTmpl = require('./templates/scenariosBarButtons.html'),
     scenarioMenuTmpl = require('./templates/scenarioMenu.html'),
     scenarioMenuItemTmpl = require('./templates/scenarioMenuItem.html'),
-    scenarioMenuItemMoreOptionsTmpl = require('./templates/scenarioMenuItemMoreOptions.html'),
+    scenarioMenuItemOptionsTmpl = require('./templates/scenarioMenuItemOptions.html'),
     projectMenuTmpl = require('./templates/projectMenu.html'),
     scenarioAddChangesButtonTmpl = require('./templates/scenarioAddChangesButton.html'),
     tr55ScenarioToolbarTmpl = require('./templates/tr55ScenarioToolbar.html'),
@@ -34,10 +34,6 @@ var _ = require('lodash'),
     tr55QualityViews = require('./tr55/quality/views.js'),
     gwlfeRunoffViews = require('./gwlfe/runoff/views.js'),
     gwlfeQualityViews = require('./gwlfe/quality/views.js');
-
-var ENTER_KEYCODE = 13,
-    ESCAPE_KEYCODE = 27,
-    SPACE_KEYCODE = 32;
 
 // The entire modeling header.
 var ModelingHeaderView = Marionette.LayoutView.extend({
@@ -364,17 +360,27 @@ var ScenariosView = Marionette.LayoutView.extend({
 });
 
 // Additional action options to appear in the scenario dropdown menu item
-var ScenarioDropDownMenuMoreOptionsView = Marionette.ItemView.extend({
+var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
     model: models.ScenarioModel,
-    template: scenarioMenuItemMoreOptionsTmpl,
-    className: "more-options",
+    tagName: 'ul',
+    template: scenarioMenuItemOptionsTmpl,
+    className: 'dropdown-menu scenario-options-dropdown',
     ui: {
         share: '[data-action="share"]',
         duplicate: '[data-action="duplicate"]',
+        selectScenario: '[data-action="select"]',
+        destroyConfirm: '[data-action="delete"]',
+        rename: '[data-action="rename"]',
+        exportGms: '[data-action="export-gms"]',
+        exportGmsForm: '#export-gms-form',
     },
+
     events: {
         'click @ui.share': 'showShareModal',
         'click @ui.duplicate': 'duplicateScenario',
+        'click @ui.rename': 'renameScenario',
+        'click @ui.destroyConfirm': 'destroyConfirm',
+        'click @ui.exportGms': 'downloadGmsFile',
     },
 
     showShareModal: function() {
@@ -395,168 +401,24 @@ var ScenarioDropDownMenuMoreOptionsView = Marionette.ItemView.extend({
         this.model.collection.duplicateScenario(this.model.cid);
     },
 
-    templateHelpers: function() {
-        return {
-            is_new: this.model.isNew()
-        };
-    },
-});
-
-// The menu item for a scenario in the scenario drop down menu.
-var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
-    model: models.ScenarioModel,
-    tagName: 'li',
-    template: scenarioMenuItemTmpl,
-    regions: {
-        'moreOptions': '.more-options-region',
-    },
-    attributes: {
-        role: 'presentation'
-    },
-
-    modelEvents: {
-        'change': 'render',
-    },
-
-    ui: {
-        selectScenario: '[data-action="select"]',
-        destroyConfirm: '[data-action="delete"]',
-        rename: '[data-action="rename"]',
-        exportGms: '[data-action="export-gms"]',
-        exportGmsForm: '#export-gms-form',
-        nameField: '#scenario-name',
-        showMore: '[data-action="show-more"]',
-    },
-
-    events: {
-        'click @ui.selectScenario': 'selectScenario',
-        'click @ui.rename': 'renameScenario',
-        'click @ui.destroyConfirm': 'destroyConfirm',
-        'click @ui.exportGms': 'downloadGmsFile',
-        'click @ui.showMore': 'toggleMoreOptions',
-    },
-
-    toggleMoreOptions: function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (this.moreOptions.hasView()) {
-            this.moreOptions.empty();
-        } else {
-            this.moreOptions.show(new ScenarioDropDownMenuMoreOptionsView({
-                model: this.model,
-            }));
-        }
-    },
-
-    selectScenario: function(e) {
-        e.preventDefault();
-        this.model.collection.setActiveScenario(this.model);
-    },
-
-    renameScenario: function(e) {
-        e.preventDefault();
+    renameScenario: function() {
         var self = this,
-            updateScenarioName = function(model, newName) {
-                newName = newName.trim();
-
-                var match = self.model.collection.find(function(model) {
-                    return model.get('name').toLowerCase() === newName.toLowerCase();
-                });
-
-                if (model.get('name') === newName || !newName){
-                    return false;
-                } else if (match) {
-                    console.log('This name is already in use.');
-                    var alertView = new modalViews.AlertView({
-                        model: new modalModels.AlertModel({
-                            alertMessage: 'There is another scenario with the same name. ' +
-                                            'Please choose a unique name for this scenario.',
-                            alertType: modalModels.AlertTypes.warn
-                        })
-                    });
-
-                    alertView.render();
-                    return false;
-                } else {
-                    return model.set('name', newName);
-                }
-            },
-
-            setScenarioName = function(name) {
-                if (!updateScenarioName(self.model, name)) {
-                    self.render(); // resets view state
-                }
-            },
-
-            selectScenarioNameText = function() {
-                // Select scenario name's text
-                var range = document.createRange(),
-                    selection = window.getSelection();
-                range.selectNodeContents(self.ui.nameField[0]);
-                selection.removeAllRanges();
-                selection.addRange(range);
-            };
-
-        selectScenarioNameText();
-        e.stopImmediatePropagation();
-
-        this.ui.nameField.attr('contenteditable', true).focus();
-
-        this.ui.nameField.on('keyup', function(e) {
-            // Cancel on escape key.
-            if (e.keyCode === ESCAPE_KEYCODE) {
-                self.render();
-            }
-        });
-
-        this.ui.nameField.on('keydown', function(e) {
-            var keycode = (e.keyCode ? e.keyCode : e.which);
-            if (keycode === SPACE_KEYCODE) {
-                // bootstrap dropdown prevents space from getting entered into
-                // text
-                e.stopImmediatePropagation();
-                e.stopPropagation();
-            }
-        });
-
-        this.ui.nameField.on('keypress', function(e) {
-            var keycode = (e.keyCode ? e.keyCode : e.which);
-            if (keycode === ENTER_KEYCODE) {
-                // Don't add line returns to the text.
-                e.preventDefault();
-
-                setScenarioName($(this).text());
-            }
-        });
-
-        this.ui.nameField.on('click', function(e) {
-            // Don't let the outer <a> swallow clicks and exit rename mode
-            // Allows selecting text on double click
-            e.stopImmediatePropagation();
-        });
-
-        this.ui.nameField.on('blur', function() {
-            setScenarioName($(this).text());
-        });
-    },
-
-    destroyConfirm: function(e) {
-        e.preventDefault();
-
-        var self = this,
-            del = new modalViews.ConfirmView({
-                model: new modalModels.ConfirmModel({
-                    question: 'Are you sure you want to delete this scenario?',
-                    confirmLabel: 'Delete',
-                    cancelLabel: 'Cancel'
+            collection = self.model.collection,
+            validate = _.bind(collection.validateNewScenarioName, collection),
+            curriedValidationFunction = _.curry(validate)(this.model),
+            rename = new modalViews.InputView({
+                model: new modalModels.InputModel({
+                    initial: this.model.get('name'),
+                    title: 'Rename Scenario',
+                    fieldLabel: 'Scenario Name',
+                    validationFunction: curriedValidationFunction,
                 })
-            });
+        });
 
-        del.render();
+        rename.render();
 
-        del.on('confirmation', function() {
-            var modelIndex = self.model.collection.indexOf(self.model);
-            self.model.collection.remove(self.model, modelIndex);
+        rename.on('update', function(newName) {
+            collection.updateScenarioName(self.model, newName);
         });
     },
 
@@ -585,6 +447,74 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
                 editable: isEditable(this.model),
                 is_new: this.model.isNew(),
             };
+    },
+});
+
+// The menu item for a scenario in the scenario drop down menu.
+var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
+    model: models.ScenarioModel,
+    tagName: 'li',
+    template: scenarioMenuItemTmpl,
+    regions: {
+        'optionsDropdown': '.options-dropdown-region',
+    },
+    attributes: {
+        role: 'presentation'
+    },
+
+    modelEvents: {
+        'change:options_menu_is_open': 'toggleOptionsDropdown',
+    },
+
+    ui: {
+        selectScenario: '[data-action="select"]',
+        showOptionsDropdown: '[data-action="show-options-dropdown"]',
+    },
+
+    events: {
+        'click @ui.selectScenario': 'selectScenario',
+        'click @ui.showOptionsDropdown': 'onOptionsDropdownClick',
+    },
+
+    onOptionsDropdownClick: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        this.model.collection.toggleScenarioOptionsMenu(this.model);
+    },
+
+    toggleOptionsDropdown: function() {
+        // Render to show the "dropdown open" styling on the toggle icon
+        this.render();
+
+        if (this.optionsDropdown.hasView() && !this.model.get('options_menu_is_open')) {
+            this.optionsDropdown.empty();
+        } else if (this.model.get('options_menu_is_open')) {
+            this.optionsDropdown.show(new ScenarioDropDownMenuOptionsView({
+                model: this.model,
+            }));
+        }
+    },
+
+    selectScenario: function(e) {
+        e.preventDefault();
+        this.model.collection.setActiveScenario(this.model);
+    },
+
+    templateHelpers: function() {
+        var gis_data = this.model.getGisData().model_input,
+            is_gwlfe = App.currentProject.get('model_package') === models.GWLFE &&
+                        gis_data !== null &&
+                        gis_data !== '{}' &&
+                        gis_data !== '';
+
+            return {
+                is_gwlfe: is_gwlfe,
+                gis_data: gis_data,
+                csrftoken: csrf.getToken(),
+                editable: isEditable(this.model),
+                is_new: this.model.isNew(),
+            };
         },
 });
 
@@ -595,6 +525,14 @@ var ScenarioDropDownMenuView = Marionette.CompositeView.extend({
     template: scenarioMenuTmpl,
     childView: ScenarioDropDownMenuItemView,
     childViewContainer: 'ul',
+
+    ui: {
+        toggleDropdown: '[data-toggle="dropdown"]',
+    },
+
+    events: {
+        'click @ui.toggleDropdown': 'toggleDropdown',
+    },
 
     collectionEvents: {
         'change:active change:name': 'render',
@@ -608,6 +546,10 @@ var ScenarioDropDownMenuView = Marionette.CompositeView.extend({
         }
         model.destroy();
         this.render();
+   },
+
+   toggleDropdown: function() {
+       this.collection.closeAllOpenOptionMenus();
    },
 
     templateHelpers: function() {
@@ -1148,6 +1090,7 @@ module.exports = {
     ScenarioButtonsView: ScenarioButtonsView,
     ScenarioDropDownMenuView: ScenarioDropDownMenuView,
     ScenarioDropDownMenuItemView: ScenarioDropDownMenuItemView,
+    ScenarioDropDownMenuOptionsView: ScenarioDropDownMenuOptionsView,
     ScenarioToolbarView: ScenarioToolbarView,
     Tr55ToolbarView: Tr55ToolbarView,
     ProjectMenuView: ProjectMenuView,

@@ -1,6 +1,7 @@
 "use strict";
 
-var Backbone = require('../../../shim/backbone');
+var Backbone = require('../../../shim/backbone'),
+    _ = require('lodash');
 
 var ConfirmModel = Backbone.Model.extend({
     defaults: {
@@ -14,7 +15,17 @@ var InputModel = Backbone.Model.extend({
     defaults: {
         initial: '',
         title: 'Input Value',
-        fieldLabel: ''
+        fieldLabel: '',
+        validationFunction: null, // a function that returns an error message string if the value
+                                  // isn't valid, and null if it is
+    },
+
+    validate: function(val) {
+        var validationFunction = this.get('validationFunction');
+        if (validationFunction && _.isFunction(validationFunction)) {
+            return validationFunction(val);
+        }
+        return null;
     }
 });
 

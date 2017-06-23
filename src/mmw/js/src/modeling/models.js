@@ -643,7 +643,8 @@ var ScenarioModel = Backbone.Model.extend({
         aoi_census: null, // JSON blob
         modification_censuses: null, // JSON blob
         allow_save: true, // Is allowed to save to the server - false in compare mode
-        is_saving: false // Is in the process of saving
+        is_saving: false, // Is in the process of saving
+        options_menu_is_open: false // The sub-dropdown options menu for this scenario is open
     },
 
     initialize: function(attrs) {
@@ -992,23 +993,36 @@ var ScenariosCollection = Backbone.Collection.extend({
         this.setActiveScenarioByCid(scenario.cid);
     },
 
-    updateScenarioName: function(model, newName) {
-        newName = newName.trim();
+    /** Validate the new scenario name
+    @param model - the model your trying to rename
+    @param newName the new name string
+    @returns If valid, null
+             If invalid, a string with the error
+    **/
+    validateNewScenarioName: function(model, newName) {
+        var trimmedNewName = newName.trim();
 
         // Bail early if the name actually didn't change.
-        if (model.get('name') === newName) {
-            return true;
+        if (model.get('name') === trimmedNewName) {
+            return null;
         }
 
         var match = this.find(function(model) {
-            return model.get('name').toLowerCase() === newName.toLowerCase();
+            return model.get('name').toLowerCase() === trimmedNewName.toLowerCase();
         });
 
         if (match) {
-            console.log('This name is already in use.');
-            return false;
-        } else if (model.get('name') !== newName) {
-            return model.set('name', newName);
+            return 'This name is already in use';
+        }
+
+        return null;
+    },
+
+    updateScenarioName: function(model, newName) {
+        var trimmedNewName = newName.trim();
+
+        if (model.get('name') !== trimmedNewName) {
+            return model.set('name', trimmedNewName);
         }
     },
 
@@ -1046,6 +1060,29 @@ var ScenariosCollection = Backbone.Collection.extend({
 
     getActiveScenario: function() {
         return this.findWhere({active: true});
+    },
+
+    toggleScenarioOptionsMenu: function(model) {
+        var prevOpenScenarios = this.closeAllOpenOptionMenus();
+
+        // Open the selected scenario if it was not open already
+        var wasModelAlreadyOpen = _.some(prevOpenScenarios, function(scenario) {
+            return scenario.cid === model.cid;
+        });
+        if (!wasModelAlreadyOpen) {
+            model.set('options_menu_is_open', true);
+        }
+    },
+
+    /** Closes all open scenario option menus
+        @return an array of all the scenarios that had open menus
+    **/
+    closeAllOpenOptionMenus: function() {
+        var openScenarios = this.where({ options_menu_is_open: true });
+        _.forEach(openScenarios, function(scenario) {
+            scenario.set('options_menu_is_open', false);
+        });
+        return openScenarios;
     }
 });
 
