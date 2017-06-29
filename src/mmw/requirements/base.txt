@@ -6,7 +6,7 @@ hiredis==0.1.6
 djangorestframework==3.1.1
 django-filter==0.9.2
 django-registration-redux==1.2
-python-omgeo==1.7.2
+python-omgeo==2.0.0
 rauth==0.7.1
 djangorestframework-gis==0.8.2
 tr55==1.2.1
