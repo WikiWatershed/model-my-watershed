@@ -272,15 +272,36 @@ var ProjectMenuView = Marionette.ItemView.extend({
     },
 
     createNewProject: function() {
-        App.map.set({
-            'areaOfInterest': null,
-            'areaOfInterestName': '',
-            'wellKnownAreaOfInterest': null,
-            'zoom': 4,
-        });
-        App.getMapView().fitToDefaultBounds();
-        App.getMapView().setupGeoLocation(true);
-        router.navigate('draw/', { trigger: true });
+        var self = this,
+            project = self.model,
+            showModal = project.isNew() ||
+                        project.get('is_saving') ||
+                        project.get('has_saving_scenarios'),
+            modal = new modalViews.ConfirmView({
+                model: new modalModels.ConfirmModel({
+                    question: 'Leave without saving current project?',
+                    confirmLabel: 'Leave',
+                    cancelLabel: 'Stay'
+                })
+            }),
+            resetAndGoToDraw = function() {
+                App.map.set({
+                    'areaOfInterest': null,
+                    'areaOfInterestName': '',
+                    'wellKnownAreaOfInterest': null,
+                    'zoom': 4,
+                });
+                App.getMapView().fitToDefaultBounds();
+                App.getMapView().setupGeoLocation(true);
+                router.navigate('draw/', { trigger: true });
+            };
+
+        if (showModal) {
+            modal.on('confirmation', resetAndGoToDraw);
+            modal.render();
+        } else {
+            resetAndGoToDraw();
+        }
     }
 });
 

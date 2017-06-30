@@ -105,6 +105,8 @@ var ModelingController = {
             }
             setPageTitle();
         }
+
+        setWarnBeforeLeaving(project);
     },
 
     makeNewProject: function(modelPackage) {
@@ -134,6 +136,8 @@ var ModelingController = {
             updateUrl();
             setPageTitle();
         }
+
+        setWarnBeforeLeaving(project);
     },
 
     projectCleanUp: function() {
@@ -275,6 +279,8 @@ function projectCleanUp() {
     App.getMapView().updateModifications(null);
     App.rootView.subHeaderRegion.empty();
     App.rootView.sidebarRegion.empty();
+
+    unsetWarnBeforeLeaving();
 }
 
 function projectErrorState() {
@@ -353,6 +359,40 @@ function reinstateProject(number, lock) {
         });
 
     return project;
+}
+
+// Kinda icky, but this event listener needs to be package scoped so that we
+// can attach and unattach it at different stages.
+var warnBeforeLeaveListener = null;
+
+function setWarnBeforeLeaving(project) {
+    if (!project || warnBeforeLeaveListener) {
+        // Either there is no current project to watch out for saving, or
+        // warnBeforeLeaveListener is already defined and attached. Quit.
+        return;
+    }
+
+    warnBeforeLeaveListener = function (e) {
+        if (project.isNew() ||
+            project.get('is_saving') ||
+            project.get('has_saving_scenarios')) {
+
+            // This message is hard coded in to Chrome and cannot be changed.
+            // See https://www.chromestatus.com/feature/5349061406228480
+            var message = 'Changes you made may not be saved.';
+            e.returnValue = message; // Gecko, Trident, Chrome >= 34
+            return message;          // Gecok, WebKit, Chrome < 34
+        }
+
+        return null;
+    };
+
+    window.addEventListener('beforeunload', warnBeforeLeaveListener);
+}
+
+function unsetWarnBeforeLeaving() {
+    window.removeEventListener('beforeunload', warnBeforeLeaveListener);
+    warnBeforeLeaveListener = null;
 }
 
 
