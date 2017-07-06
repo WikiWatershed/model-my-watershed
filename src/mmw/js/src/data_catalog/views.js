@@ -65,13 +65,15 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
     },
 
     doSearch: function() {
-        var catalog = this.getActiveCatalog();
+        var catalog = this.getActiveCatalog(),
+            query = this.model.get('query'),
+            bounds = App.getLeafletMap().getBounds();
 
         // Disable intro text after first search request
         this.ui.introText.addClass('hide');
         this.ui.tabs.removeClass('hide');
 
-        catalog.search(this.model.get('query'));
+        catalog.search(query, bounds);
     },
 
     updateMap: function() {

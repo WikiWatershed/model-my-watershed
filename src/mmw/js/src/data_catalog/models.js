@@ -2,7 +2,6 @@
 
 var _ = require('underscore'),
     Backbone = require('../../shim/backbone'),
-    App = require('../app'),
     utils = require('./utils');
 
 var DESCRIPTION_MAX_LENGTH = 100;
@@ -18,14 +17,14 @@ var Catalog = Backbone.Model.extend({
         resultCount: 0
     },
 
-    search: function(query) {
-        var bounds = App.getLeafletMap().getBounds(),
-            bbox = utils.formatBounds(bounds),
+    search: function(query, bounds) {
+        var bbox = utils.formatBounds(bounds),
             data = {
                 catalog: this.id,
                 query: query,
                 bbox: bbox
             };
+
         return this.startSearch(data)
             .always(_.bind(this.finishSearch, this));
     },
