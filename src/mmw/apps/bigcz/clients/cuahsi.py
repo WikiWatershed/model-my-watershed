@@ -7,12 +7,14 @@ from datetime import date
 
 from suds.client import Client
 from rest_framework.exceptions import ValidationError
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, Polygon
 
 from apps.bigcz.models import Resource, ResourceLink, ResourceList, BBox
 from apps.bigcz.utils import parse_date
 
 
+SQKM_PER_SQM = 0.000001
+MAX_AREA_SQKM = 1500
 CATALOG_NAME = 'cuahsi'
 SOAP_URL = 'http://hiscentral.cuahsi.org/webservices/hiscentral.asmx?WSDL'
 
@@ -160,6 +162,15 @@ def search(**kwargs):
     if not bbox:
         raise ValidationError({
             'error': 'Required argument: bbox'})
+
+    bbox_polygon = Polygon.from_bbox([float(i) for i in bbox.split(',')])
+    bbox_polygon.set_srid(4326)
+    bbox_area = bbox_polygon.transform(5070, clone=True).area * SQKM_PER_SQM
+    if bbox_area > MAX_AREA_SQKM:
+        raise ValidationError({
+            'error': 'bbox area of {} km² is too large. '
+                     'Current max limit is {} km²'
+                     .format(bbox_area, MAX_AREA_SQKM)})
 
     box = BBox(bbox)
     world = BBox('-180,-90,180,90')
