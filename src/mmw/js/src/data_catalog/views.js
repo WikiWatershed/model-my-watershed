@@ -2,13 +2,17 @@
 
 var Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
+    modalModels = require('../core/modals/models'),
+    modalViews = require('../core/modals/views'),
+    utils = require('./utils'),
     formTmpl = require('./templates/form.html'),
     searchResultTmpl = require('./templates/searchResult.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     tabPanelTmpl = require('./templates/tabPanel.html'),
     windowTmpl = require('./templates/window.html');
 
-var ENTER_KEYCODE = 13;
+var ENTER_KEYCODE = 13,
+    MAX_AREA_SQKM = 1500;  // Keep in sync with apps/bigcz/clients/cuahsi.py
 
 var DataCatalogWindow = Marionette.LayoutView.extend({
     template: windowTmpl,
@@ -67,7 +71,28 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
     doSearch: function() {
         var catalog = this.getActiveCatalog(),
             query = this.model.get('query'),
-            bounds = App.getLeafletMap().getBounds();
+            bounds = App.getLeafletMap().getBounds(),
+            area = utils.areaOfBounds(bounds);
+
+        // CUAHSI should not be fetched beyond a certain size
+        if (catalog.get('id') === 'cuahsi' && area > MAX_AREA_SQKM) {
+            var alertView = new modalViews.AlertView({
+                model: new modalModels.AlertModel({
+                    alertMessage: "Your query for " + Math.round(area) + " km² " +
+                                  "is larger than the current maximum area of " +
+                                  MAX_AREA_SQKM + " km² supported for WDC.",
+                    alertType: modalModels.AlertTypes.error
+                })
+            });
+            alertView.render();
+
+            // Reset results
+            catalog.get('results').reset();
+            catalog.set({ resultCount: 0 });
+            this.updateMap();
+
+            return;
+        }
 
         // Disable intro text after first search request
         this.ui.introText.addClass('hide');
