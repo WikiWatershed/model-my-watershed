@@ -5,7 +5,7 @@ var _ = require('underscore'),
     coreUtils = require('../utils.js'),
     HighstockChart = require('../../../shim/highstock'),
     Marionette = require('../../../shim/backbone.marionette'),
-    ZeroClipboard = require('zeroclipboard'),
+    Clipboard = require('Clipboard'),
     moment = require('moment'),
     models = require('./models'),
     modalConfirmTmpl = require('./templates/confirmModal.html'),
@@ -157,16 +157,12 @@ var ShareView = ModalBaseView.extend({
         'click @ui.signin': 'signIn'
     }, ModalBaseView.prototype.events),
 
-    initialize: function() {
-        this.zc = new ZeroClipboard();
-    },
-
-    // Override to attach ZeroClipboard to ui.copy button
+    // Override to attach Clipboard to ui.copy button
     onRender: function() {
         var self = this;
 
         this.$el.on('shown.bs.modal', function() {
-            self.zc.clip(self.ui.copy);
+            new Clipboard(self.ui.copy[0]);
         });
 
         if (this.model.get('is_private')) {

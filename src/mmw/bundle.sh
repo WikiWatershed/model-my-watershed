@@ -93,10 +93,6 @@ COPY_FONTS_COMMAND="cp -r \
     ./font/* \
     $STATIC_FONTS_DIR"
 
-COPY_ZEROCLIPBOARD_COMMAND="cp \
-    ./node_modules/zeroclipboard/dist/ZeroClipboard.swf \
-    $STATIC_JS_DIR"
-
 CONCAT_VENDOR_CSS_COMMAND="cat \
     ./node_modules/leaflet/dist/leaflet.css \
     ./node_modules/leaflet-draw/dist/leaflet.draw.css \
@@ -111,6 +107,7 @@ JS_DEPS=(backbone
          bootstrap
          bootstrap-select
          bootstrap-table/dist/bootstrap-table.js
+         clipboard
          d3
          iframe-phone
          ./js/shim/leaflet.utfgrid.js
@@ -138,8 +135,7 @@ JS_DEPS=(backbone
          turf-erase
          turf-intersect
          turf-kinks
-         underscore
-         zeroclipboard)
+         underscore)
 
 BROWSERIFY_EXT=""
 BROWSERIFY_REQ=""
@@ -173,7 +169,6 @@ if [ -n "$BUILD_VENDOR_BUNDLE" ]; then
     VENDOR_COMMAND="
         $COPY_IMAGES_COMMAND &
         $COPY_FONTS_COMMAND &
-        $COPY_ZEROCLIPBOARD_COMMAND &
         $CONCAT_VENDOR_CSS_COMMAND &
         $BROWSERIFY $BROWSERIFY_REQ \
             -o ${STATIC_JS_DIR}vendor.js $EXTRA_ARGS &
