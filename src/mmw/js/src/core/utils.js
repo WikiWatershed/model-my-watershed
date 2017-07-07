@@ -6,7 +6,8 @@ var L = require('leaflet'),
     md5 = require('blueimp-md5').md5,
     intersect = require('turf-intersect'),
     centroid = require('turf-centroid'),
-    papaparse = require('papaparse');
+    papaparse = require('papaparse'),
+    settings = require('./settings');
 
 var M2_IN_KM2 = 1000000;
 var noData = 'No Data';
@@ -21,7 +22,7 @@ var utils = {
 
     MAX_GEOLOCATION_AGE: 60000,
 
-    splashPageTitle: 'Model My Watershed',
+    splashPageTitle: settings.get('title'),
 
     selectAreaPageTitle: 'Choose Area of Interest',
 

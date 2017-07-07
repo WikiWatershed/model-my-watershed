@@ -3,6 +3,7 @@
 var _ = require('lodash');
 
 var defaultSettings = {
+    title: 'Model My Watershed',
     itsi_embed: false,
     itsi_enabled: true,
     data_catalog_enabled: false,

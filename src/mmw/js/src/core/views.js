@@ -103,6 +103,7 @@ var HeaderView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         return {
+            'title': settings.get('title'),
             'itsi_embed': settings.get('itsi_embed'),
         };
     },
