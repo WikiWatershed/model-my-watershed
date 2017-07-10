@@ -87,7 +87,7 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
             this.model.get('scenarios').each(function(scenario) {
                 scenario.set('user_id', user_id);
             });
-            this.model.saveExistingProjectAndScenarios();
+            this.model.saveProjectAndScenarios();
         }
     }
 });
@@ -147,7 +147,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
         rename.on('update', function(val) {
             self.model.updateName(val);
-            self.model.saveExistingProjectAndScenarios();
+            self.model.saveProjectAndScenarios();
         });
     },
 
@@ -216,16 +216,9 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
     saveProjectOrLoginUser: function() {
         if (App.user.get('guest')) {
-            var self = this;
-            App.getUserOrShowLogin(function() {
-                self.model.saveInitial();
-            });
+            App.getUserOrShowLogin();
         } else {
-            if (this.model.isNew()) {
-                this.model.saveInitial();
-            } else {
-                this.model.saveExistingProjectAndScenarios();
-            }
+            this.model.saveProjectAndScenarios();
         }
     },
 
@@ -251,7 +244,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
         modal.on('confirmation', function() {
             self.model.set('is_private', !self.model.get('is_private'));
-            self.model.saveExistingProjectAndScenarios();
+            self.model.saveProjectAndScenarios();
         });
     },
 

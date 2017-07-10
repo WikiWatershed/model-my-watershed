@@ -480,7 +480,7 @@ describe('Modeling', function() {
         });
 
         describe('ProjectModel', function() {
-            describe('#saveExistingProjectAndScenarios', function() {
+            describe('#saveProjectAndScenarios', function() {
                 beforeEach(function() {
                     App.user.set('id', 1);
                 });
@@ -495,7 +495,7 @@ describe('Modeling', function() {
                         scenario1Spy = sinon.spy(project.get('scenarios').at(0), 'save'),
                         scenario2Spy = sinon.spy(project.get('scenarios').at(1), 'save');
 
-                    project.saveExistingProjectAndScenarios();
+                    project.saveProjectAndScenarios();
 
                     assert.isTrue(projectSpy.calledOnce, 'Project was not saved once.');
                     assert.isTrue(scenario1Spy.calledOnce, 'Scenario1 was not saved once.');
@@ -513,7 +513,7 @@ describe('Modeling', function() {
 
                     var project = getTestProject(getTestScenarioCollection());
 
-                    project.saveExistingProjectAndScenarios();
+                    project.saveProjectAndScenarios();
 
                     assert.equal(project.get('scenarios').at(0).get('project'), 21);
                     assert.equal(project.get('scenarios').at(1).get('project'), 21);
