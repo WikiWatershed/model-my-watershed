@@ -21,7 +21,8 @@ from django.utils.timezone import now
 from django.conf import settings
 from django.db import connection
 from django.contrib.gis.geos import WKBReader
-from django.http import HttpResponse
+from django.http import (HttpResponse,
+                         Http404)
 from django.core.servers.basehttp import FileWrapper
 
 from apps.core.models import Job
@@ -386,12 +387,19 @@ def start_analyze_catchment_water_quality(request, format=None):
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
 def get_job(request, job_uuid, format=None):
-    # Get the user so that logged in users can only see jobs that they
-    # started.
     # TODO consider if we should have some sort of session id check to ensure
     # you can only view your own jobs.
+    try:
+        job = Job.objects.get(uuid=job_uuid)
+    except Job.DoesNotExist:
+        raise Http404("Not found.")
+
+    # Get the user so that logged in users can only see jobs that they started
+    # or anonymous ones
     user = request.user if request.user.is_authenticated() else None
-    job = get_object_or_404(Job, uuid=job_uuid, user=user)
+
+    if job.user and job.user != user:
+        raise Http404("Not found.")
 
     # TODO Should we return the error? Might leak info about the internal
     # workings that we don't want exposed.
