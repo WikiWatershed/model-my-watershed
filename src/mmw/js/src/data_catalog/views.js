@@ -79,9 +79,11 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         if (catalog.get('id') === 'cuahsi' && area > MAX_AREA_SQKM) {
             var alertView = new modalViews.AlertView({
                 model: new modalModels.AlertModel({
-                    alertMessage: "Your query for " + Math.round(area) + " km² " +
-                                  "is larger than the current maximum area of " +
-                                  MAX_AREA_SQKM + " km² supported for WDC.",
+                    alertMessage: "The bounding box of the current area of " +
+                                  "interest is " + Math.round(area) + " km², " +
+                                  "which is larger than the current maximum " +
+                                  "area of " + MAX_AREA_SQKM + " km² supported " +
+                                  "for WDC.",
                     alertType: modalModels.AlertTypes.error
                 })
             });
