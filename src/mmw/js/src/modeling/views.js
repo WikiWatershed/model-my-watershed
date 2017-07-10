@@ -208,7 +208,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
         App.user.fetch().always(function() {
             if (App.user.get('guest')) {
-                new modalViews.CreateAccountModalView({
+                new modalViews.CreateAccountPersuasionModalView({
                         model: new Backbone.Model(),
                         onSuccess: function() {
                             self.model.setUserIdOnProjectAndScenarios();
