@@ -118,10 +118,10 @@ var App = new Marionette.Application({
         }
     },
 
-    getUserOrShowLogin: function(onSuccess) {
+    getUserOrShowLogin: function() {
         this.user.fetch().always(function() {
             if (App.user.get('guest')) {
-                App.showLoginModal(onSuccess);
+                App.showLoginModal();
             }
         });
     },
