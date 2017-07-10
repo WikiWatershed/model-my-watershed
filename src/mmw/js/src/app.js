@@ -126,14 +126,6 @@ var App = new Marionette.Application({
         });
     },
 
-    getUserOrShowSignUp: function(onSuccess) {
-        this.user.fetch().always(function() {
-            if (App.user.get('guest')) {
-                App.showSignUpModal(onSuccess);
-            }
-        });
-    },
-
     showLoginModal: function(onSuccess) {
         new userViews.LoginModalView({
             model: new userModels.LoginFormModel({
@@ -141,16 +133,6 @@ var App = new Marionette.Application({
                 successCallback: onSuccess
             }),
             app: this
-        }).render();
-    },
-
-    showSignUpModal: function(onSuccess) {
-        new userViews.SignUpModalView({
-            model: new userModels.SignUpFormModel({
-                showItsiButton: settings.get('itsi_enabled'),
-                successCallback: onSuccess,
-            }),
-            app: this,
         }).render();
     }
 });
