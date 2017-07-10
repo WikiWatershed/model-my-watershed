@@ -50,6 +50,7 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         // have user contextual controls.
         this.listenTo(App.user, 'change', this.reRender);
         this.listenTo(this.model, 'change:id', this.reRender);
+        this.listenTo(App.user, 'change:guest', this.saveAfterLogin);
     },
 
     reRender: function() {
@@ -78,6 +79,17 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
     onShow: function() {
         this.reRender();
     },
+
+    saveAfterLogin: function(user, guest) {
+        if (!guest && this.model.isNew()) {
+            var user_id = user.get('id');
+            this.model.set('user_id', user_id);
+            this.model.get('scenarios').each(function(scenario) {
+                scenario.set('user_id', user_id);
+            });
+            this.model.saveExistingProjectAndScenarios();
+        }
+    }
 });
 
 // The drop down containing the project name
@@ -206,7 +218,6 @@ var ProjectMenuView = Marionette.ItemView.extend({
         if (App.user.get('guest')) {
             var self = this;
             App.getUserOrShowLogin(function() {
-                self.model.setUserIdOnProjectAndScenarios();
                 self.model.saveInitial();
             });
         } else {
