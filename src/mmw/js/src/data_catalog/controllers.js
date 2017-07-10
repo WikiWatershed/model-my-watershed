@@ -1,11 +1,19 @@
 "use strict";
 
 var App = require('../app'),
+    router = require('../router').router,
     coreUtils = require('../core/utils'),
     models = require('./models'),
     views = require('./views');
 
 var DataCatalogController = {
+    dataCatalogPrepare: function() {
+        if (!App.map.get('areaOfInterest')) {
+            router.navigate('', { trigger: true });
+            return false;
+        }
+    },
+
     dataCatalog: function() {
         App.map.setDataCatalogSize();
 

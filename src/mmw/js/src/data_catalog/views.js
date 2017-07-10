@@ -1,6 +1,7 @@
 "use strict";
 
-var Marionette = require('../../shim/backbone.marionette'),
+var L = require('leaflet'),
+    Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
@@ -71,7 +72,7 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
     doSearch: function() {
         var catalog = this.getActiveCatalog(),
             query = this.model.get('query'),
-            bounds = App.getLeafletMap().getBounds(),
+            bounds = L.geoJson(App.map.get('areaOfInterest')).getBounds(),
             area = utils.areaOfBounds(bounds);
 
         // CUAHSI should not be fetched beyond a certain size
