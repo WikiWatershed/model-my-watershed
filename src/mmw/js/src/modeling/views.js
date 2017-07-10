@@ -204,28 +204,24 @@ var ProjectMenuView = Marionette.ItemView.extend({
     },
 
     saveProjectOrLoginUser: function() {
-        var self = this;
+        if (App.user.get('guest')) {
+            var self = this;
 
-        App.user.fetch().always(function() {
-            if (App.user.get('guest')) {
-                new modalViews.CreateAccountPersuasionModalView({
-                        model: new Backbone.Model(),
-                        onSuccess: function() {
-                            self.model.setUserIdOnProjectAndScenarios();
-                            self.model.saveInitial();
-                        },
-                        app: App,
-                    }).render();
+            new modalViews.CreateAccountPersuasionModalView({
+                    model: new Backbone.Model(),
+                    onSuccess: function() {
+                        self.model.setUserIdOnProjectAndScenarios();
+                        self.model.saveInitial();
+                    },
+                    app: App,
+                }).render();
+        } else {
+            if (this.model.isNew()) {
+                this.model.saveInitial();
             } else {
-                self.model.setUserIdOnProjectAndScenarios();
-
-                if (self.model.isNew()) {
-                    self.model.saveInitial();
-                } else {
-                    self.model.saveExistingProjectAndScenarios();
-                }
+                this.model.saveExistingProjectAndScenarios();
             }
-        });
+        }
     },
 
     setProjectPrivacy: function() {
