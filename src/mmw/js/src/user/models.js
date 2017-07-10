@@ -111,8 +111,7 @@ var SignUpFormModel = ModalBaseModel.extend({
         password1: null,
         password2: null,
         email: null,
-        showItsiButton: true,
-        successCallback: null,
+        showItsiButton: true
     },
 
     url: '/user/sign_up',
