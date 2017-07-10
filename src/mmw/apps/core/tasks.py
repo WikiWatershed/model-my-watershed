@@ -3,9 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
-
 from django.utils.timezone import now
 from celery import shared_task
 from apps.core.models import Job
@@ -15,27 +12,6 @@ import logging
 
 
 logger = logging.getLogger(__name__)
-
-
-def get_job(request, job_uuid, format=None):
-    """ A generic view to get a job by id. Used
-    in apps with Celery tasks"""
-    # TODO consider if we should have some sort of session id check to ensure
-    # you can only view your own jobs.
-    job = get_object_or_404(Job, uuid=job_uuid, user=request.user)
-
-    # TODO Should we return the error? Might leak info about the internal
-    # workings that we don't want exposed.
-    return Response(
-        {
-            'job_uuid': job.uuid,
-            'status': job.status,
-            'result': job.result,
-            'error': job.error,
-            'started': job.created_at,
-            'finished': job.delivered_at,
-        }
-    )
 
 
 @shared_task(bind=True)
