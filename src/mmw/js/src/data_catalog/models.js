@@ -2,6 +2,7 @@
 
 var _ = require('underscore'),
     Backbone = require('../../shim/backbone'),
+    turfIntersect = require('turf-intersect'),
     App = require('../app'),
     utils = require('./utils');
 
@@ -18,14 +19,14 @@ var Catalog = Backbone.Model.extend({
         resultCount: 0
     },
 
-    search: function(query) {
-        var bounds = App.getLeafletMap().getBounds(),
-            bbox = utils.formatBounds(bounds),
+    search: function(query, bounds) {
+        var bbox = utils.formatBounds(bounds),
             data = {
                 catalog: this.id,
                 query: query,
                 bbox: bbox
             };
+
         return this.startSearch(data)
             .always(_.bind(this.finishSearch, this));
     },
@@ -84,7 +85,13 @@ var Results = Backbone.Collection.extend({
     url: '/api/bigcz/search',
     model: Result,
     parse: function(response) {
-        return response.results;
+        var aoi = App.map.get('areaOfInterest');
+
+        // Filter results to only include those without geometries (Hydroshare)
+        // and those that intersect the area of interest (CINERGI and CUAHSI).
+        return _.filter(response.results, function(r) {
+            return r.geom === null || turfIntersect(aoi, r.geom) !== undefined;
+        });
     }
 });
 
