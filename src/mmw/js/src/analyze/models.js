@@ -3,6 +3,7 @@
 var $ = require('jquery'),
     lodash = require('lodash'),
     Backbone = require('../../shim/backbone'),
+    settings = require('../core/settings'),
     utils = require('../core/utils'),
     coreModels = require('../core/models');
 
@@ -68,7 +69,7 @@ var AnalyzeTaskCollection = Backbone.Collection.extend({
 });
 
 function createAnalyzeTaskCollection(aoi, wkaoi) {
-    return new AnalyzeTaskCollection([
+    var tasks = [
         {
             name: "land",
             displayName: "Land",
@@ -83,28 +84,35 @@ function createAnalyzeTaskCollection(aoi, wkaoi) {
             wkaoi: wkaoi,
             taskName: "analyze/soil"
         },
-        {
-            name: "animals",
-            displayName: "Animals",
-            area_of_interest: aoi,
-            wkaoi: wkaoi,
-            taskName: "analyze/animals"
-        },
-        {
-            name: "pointsource",
-            displayName: "Point Sources",
-            area_of_interest: aoi,
-            wkaoi: wkaoi,
-            taskName: "analyze/pointsource"
-        },
-        {
-            name: "catchment_water_quality",
-            displayName: "Water Quality",
-            area_of_interest: aoi,
-            wkaoi: wkaoi,
-            taskName: "analyze/catchment-water-quality"
-        }
-    ]);
+    ];
+
+    if (!settings.get('data_catalog_enabled')) {
+        tasks.push(
+            {
+                name: "animals",
+                displayName: "Animals",
+                area_of_interest: aoi,
+                wkaoi: wkaoi,
+                taskName: "analyze/animals"
+            },
+            {
+                name: "pointsource",
+                displayName: "Point Sources",
+                area_of_interest: aoi,
+                wkaoi: wkaoi,
+                taskName: "analyze/pointsource"
+            },
+            {
+                name: "catchment_water_quality",
+                displayName: "Water Quality",
+                area_of_interest: aoi,
+                wkaoi: wkaoi,
+                taskName: "analyze/catchment-water-quality"
+            }
+        );
+    }
+
+    return new AnalyzeTaskCollection(tasks);
 }
 
 module.exports = {
