@@ -5,6 +5,10 @@ var App = require('../app'),
     coreUtils= require('../core/utils');
 
 var ProjectsController = {
+    projectsPrepare: function() {
+        App.rootView.geocodeSearchRegion.empty();
+    },
+
     projects: function() {
         App.rootView.footerRegion.show(
             new views.ProjectsView()
