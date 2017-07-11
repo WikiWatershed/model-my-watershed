@@ -448,6 +448,26 @@ var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
             is_new: this.model.isNew(),
         };
     },
+
+    destroyConfirm: function(e) {
+         e.preventDefault();
+
+         var self = this,
+             del = new modalViews.ConfirmView({
+                 model: new modalModels.ConfirmModel({
+                     question: 'Are you sure you want to delete this scenario?',
+                     confirmLabel: 'Delete',
+                     cancelLabel: 'Cancel'
+                 })
+             });
+
+         del.render();
+
+         del.on('confirmation', function() {
+             var modelIndex = self.model.collection.indexOf(self.model);
+             self.model.collection.remove(self.model, modelIndex);
+         });
+     }
 });
 
 // The menu item for a scenario in the scenario drop down menu.
