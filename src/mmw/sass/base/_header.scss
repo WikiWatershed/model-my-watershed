@@ -226,18 +226,19 @@ header {
             }
         }
 
-      // Precipitation slider
-      .precipitation {
-        // Undo bootstrap input[type="range"] syling
-        input {
-          display: inline-block;
-          width: 120px;
-          margin: 0 0.7rem;
-          padding: 0;
-          vertical-align: bottom;
-        }
-      }
     }
+  }
+}
+
+// Precipitation slider
+.precipitation {
+  width: 285px;
+  .precipitation-slider {
+    display: inline-block;
+    width: 120px;
+    margin: 0 0.7rem;
+    padding: 0;
+    vertical-align: middle;
   }
 }
 
