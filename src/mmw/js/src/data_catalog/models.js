@@ -6,6 +6,7 @@ var _ = require('underscore'),
     App = require('../app'),
     utils = require('./utils');
 
+var REQUEST_TIMED_OUT_CODE = 408;
 var DESCRIPTION_MAX_LENGTH = 100;
 
 var Catalog = Backbone.Model.extend({
@@ -16,7 +17,8 @@ var Catalog = Backbone.Model.extend({
         loading: false,
         active: false,
         results: null, // Results collection
-        resultCount: 0
+        resultCount: 0,
+        error: '',
     },
 
     search: function(query, bounds) {
@@ -28,12 +30,24 @@ var Catalog = Backbone.Model.extend({
             };
 
         return this.startSearch(data)
+            .fail(_.bind(this.failSearch, this))
             .always(_.bind(this.finishSearch, this));
     },
 
     startSearch: function(data) {
         this.set('loading', true);
+        this.set('error', false);
         return this.get('results').fetch({ data: data });
+    },
+
+    failSearch: function(response) {
+        if (response.status === REQUEST_TIMED_OUT_CODE){
+            this.set('error', "Searching took too long. " +
+                              "Consider trying a smaller area of interest " +
+                              "or a more specific search term.");
+        } else {
+            this.set('error', "Error");
+        }
     },
 
     finishSearch: function() {

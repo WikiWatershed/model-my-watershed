@@ -6,6 +6,7 @@ var L = require('leaflet'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
     utils = require('./utils'),
+    errorTmpl = require('./templates/error.html'),
     formTmpl = require('./templates/form.html'),
     searchResultTmpl = require('./templates/searchResult.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
@@ -166,6 +167,13 @@ var TabPanelsView = Marionette.CollectionView.extend({
     childView: TabPanelView
 });
 
+var ErrorView = Marionette.ItemView.extend({
+    template: errorTmpl,
+    modelEvents: {
+        'change:error': 'render',
+    },
+});
+
 var TabContentView = Marionette.LayoutView.extend({
     className: function() {
         return 'tab-pane' + (this.model.get('active') ? ' active' : '');
@@ -183,7 +191,8 @@ var TabContentView = Marionette.LayoutView.extend({
     },
 
     regions: {
-        resultRegion: '.result-region'
+        resultRegion: '.result-region',
+        errorRegion: '.error-region',
     },
 
     modelEvents: {
@@ -194,18 +203,26 @@ var TabContentView = Marionette.LayoutView.extend({
         this.resultRegion.show(new ResultsView({
             collection: this.model.get('results')
         }));
+
+        this.errorRegion.show(new ErrorView({
+            model: this.model,
+        }));
     },
 
     update: function() {
         this.ui.noResults.addClass('hide');
+        this.errorRegion.$el.addClass('hide');
         this.resultRegion.$el.addClass('hide');
 
-        // Don't show "no results" while search request is in progress
-        var showNoResults = !this.model.get('loading') &&
-            this.model.get('resultCount') === 0;
+        var error = this.model.get('error'),
+            // Don't show "no results" while search request is in progress
+            showNoResults = !this.model.get('loading') &&
+                            this.model.get('resultCount') === 0 && !error;
 
         if (showNoResults) {
             this.ui.noResults.removeClass('hide');
+        } else if (error) {
+            this.errorRegion.$el.removeClass('hide');
         } else {
             this.resultRegion.$el.removeClass('hide');
         }
