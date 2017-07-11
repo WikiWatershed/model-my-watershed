@@ -21,7 +21,12 @@ App.on('start', function() {
     });
     Backbone.history.start({ pushState: true });
 
-    this.user.fetch();
+    // Show login modal only if landing on home page
+    if (Backbone.history.getFragment() === '') {
+        this.getUserOrShowLoginIfNotItsiEmbed();
+    } else {
+        this.user.fetch();
+    }
 });
 
 App.start();

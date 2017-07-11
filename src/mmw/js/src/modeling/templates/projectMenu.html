@@ -32,6 +32,13 @@
                         </a>
                     </li>
                 {% endif %}
+                {% if is_new %}
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" id="save-project">
+                            Save
+                        </a>
+                    </li>
+                {% endif %}
                 {% if itsi %}
                     <li role="presentation">
                         <a role="menuitem" tabindex="-1" id="itsi-clone">
@@ -71,17 +78,4 @@
     <button class="btn btn-md btn-secondary" id="new-project">
         New Project
     </button>
-    {% if is_new %}
-        <button class="btn btn-md btn-secondary" id="save-project">
-            <i class="fa fa-cloud" aria-hidden="true"></i> Save
-        </button>
-    {% elif is_saving or has_saving_scenarios %}
-        <button class="btn btn-md btn-secondary" disabled>
-            Saving
-        </button>
-    {% else %}
-        <button class="btn btn-md btn-secondary" disabled>
-            Saved
-        </button>
-    {% endif %}
 </div>

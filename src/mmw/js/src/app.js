@@ -112,18 +112,16 @@ var App = new Marionette.Application({
         return this._mapView._leafletMap;
     },
 
-    getUserOrShowLogin: function(onSuccess) {
-        this.user.fetch().always(function() {
-            if (App.user.get('guest')) {
-                App.showLoginModal(onSuccess);
-            }
-        });
+    getUserOrShowLoginIfNotItsiEmbed: function() {
+        if (!settings.get('itsi_embed')) {
+            this.getUserOrShowLogin();
+        }
     },
 
-    getUserOrShowSignUp: function(onSuccess) {
+    getUserOrShowLogin: function() {
         this.user.fetch().always(function() {
             if (App.user.get('guest')) {
-                App.showSignUpModal(onSuccess);
+                App.showLoginModal();
             }
         });
     },
@@ -135,16 +133,6 @@ var App = new Marionette.Application({
                 successCallback: onSuccess
             }),
             app: this
-        }).render();
-    },
-
-    showSignUpModal: function(onSuccess) {
-        new userViews.SignUpModalView({
-            model: new userModels.SignUpFormModel({
-                showItsiButton: settings.get('itsi_enabled'),
-                successCallback: onSuccess,
-            }),
-            app: this,
         }).render();
     }
 });

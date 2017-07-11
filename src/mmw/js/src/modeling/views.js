@@ -2,7 +2,6 @@
 
 var _ = require('lodash'),
     $ = require('jquery'),
-    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     settings = require('../core/settings'),
@@ -51,6 +50,7 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         // have user contextual controls.
         this.listenTo(App.user, 'change', this.reRender);
         this.listenTo(this.model, 'change:id', this.reRender);
+        this.listenTo(App.user, 'change:guest', this.saveAfterLogin);
     },
 
     reRender: function() {
@@ -79,6 +79,17 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
     onShow: function() {
         this.reRender();
     },
+
+    saveAfterLogin: function(user, guest) {
+        if (!guest && this.model.isNew()) {
+            var user_id = user.get('id');
+            this.model.set('user_id', user_id);
+            this.model.get('scenarios').each(function(scenario) {
+                scenario.set('user_id', user_id);
+            });
+            this.model.saveProjectAndScenarios();
+        }
+    }
 });
 
 // The drop down containing the project name
@@ -136,7 +147,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
         rename.on('update', function(val) {
             self.model.updateName(val);
-            self.model.saveExistingProjectAndScenarios();
+            self.model.saveProjectAndScenarios();
         });
     },
 
@@ -204,28 +215,11 @@ var ProjectMenuView = Marionette.ItemView.extend({
     },
 
     saveProjectOrLoginUser: function() {
-        var self = this;
-
-        App.user.fetch().always(function() {
-            if (App.user.get('guest')) {
-                new modalViews.CreateAccountModalView({
-                        model: new Backbone.Model(),
-                        onSuccess: function() {
-                            self.model.setUserIdOnProjectAndScenarios();
-                            self.model.saveInitial();
-                        },
-                        app: App,
-                    }).render();
-            } else {
-                self.model.setUserIdOnProjectAndScenarios();
-
-                if (self.model.isNew()) {
-                    self.model.saveInitial();
-                } else {
-                    self.model.saveExistingProjectAndScenarios();
-                }
-            }
-        });
+        if (App.user.get('guest')) {
+            App.getUserOrShowLogin();
+        } else {
+            this.model.saveProjectAndScenarios();
+        }
     },
 
     setProjectPrivacy: function() {
@@ -250,7 +244,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
 
         modal.on('confirmation', function() {
             self.model.set('is_private', !self.model.get('is_private'));
-            self.model.saveExistingProjectAndScenarios();
+            self.model.saveProjectAndScenarios();
         });
     },
 

@@ -156,7 +156,7 @@ function saveAfterLogin(user, guest) {
         });
         // Save the origProject (as opposed to the currentProject)
         // to not include changes to inputs and results.
-        App.origProject.saveExistingProjectAndScenarios();
+        App.origProject.saveProjectAndScenarios();
     }
 }
 
