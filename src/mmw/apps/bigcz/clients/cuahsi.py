@@ -9,7 +9,7 @@ from socket import timeout
 
 from suds.client import Client
 from rest_framework.exceptions import ValidationError
-from django.contrib.gis.geos import Point, Polygon
+from django.contrib.gis.geos import Point
 
 from django.conf import settings
 
@@ -134,10 +134,10 @@ def make_request(request, **kwargs):
 
 def get_services_in_box(box):
     result = make_request(client.service.GetServicesInBox2,
-            xmin=box.xmin,
-            xmax=box.xmax,
-            ymin=box.ymin,
-            ymax=box.ymax)
+                          xmin=box.xmin,
+                          xmax=box.xmax,
+                          ymin=box.ymin,
+                          ymax=box.ymax)
 
     try:
         return result['ServiceInfo']
@@ -154,14 +154,14 @@ def get_series_catalog_in_box(box, from_date, to_date):
     to_date = to_date or DATE_MAX
 
     result = make_request(client.service.GetSeriesCatalogForBox2,
-        xmin=box.xmin,
-        xmax=box.xmax,
-        ymin=box.ymin,
-        ymax=box.ymax,
-        conceptKeyword='',
-        networkIDs='',
-        beginDate=from_date.strftime(DATE_FORMAT),
-        endDate=to_date.strftime(DATE_FORMAT))
+                          xmin=box.xmin,
+                          xmax=box.xmax,
+                          ymin=box.ymin,
+                          ymax=box.ymax,
+                          conceptKeyword='',
+                          networkIDs='',
+                          beginDate=from_date.strftime(DATE_FORMAT),
+                          endDate=to_date.strftime(DATE_FORMAT))
 
     try:
         return result['SeriesRecord']
