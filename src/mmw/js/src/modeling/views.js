@@ -434,19 +434,19 @@ var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
-            var gis_data = this.model.getGisData().model_input,
-                is_gwlfe = App.currentProject.get('model_package') === models.GWLFE &&
-                        gis_data !== null &&
-                        gis_data !== '{}' &&
-                        gis_data !== '';
+        var gis_data = this.model.getGisData().model_input,
+            is_gwlfe = App.currentProject.get('model_package') === models.GWLFE &&
+                    gis_data !== null &&
+                    gis_data !== '{}' &&
+                    gis_data !== '';
 
-            return {
-                is_gwlfe: is_gwlfe,
-                csrftoken: csrf.getToken(),
-                gis_data: gis_data,
-                editable: isEditable(this.model),
-                is_new: this.model.isNew(),
-            };
+        return {
+            is_gwlfe: is_gwlfe,
+            csrftoken: csrf.getToken(),
+            gis_data: gis_data,
+            editable: isEditable(this.model),
+            is_new: this.model.isNew(),
+        };
     },
 });
 
