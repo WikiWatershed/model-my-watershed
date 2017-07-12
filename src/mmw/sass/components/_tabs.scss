@@ -36,7 +36,7 @@
 
 .model-stage-results-tab-pane {
     .nav-tabs {
-        background-color: transparent;
+        background-color: $paper;
     }
     .tab-content {
     // Set a specific height to allow y-scroll:
@@ -48,9 +48,6 @@
 
 
 .analyze-stage-results-tab-pane {
-    .nav-tabs {
-        background-color: $black-06;
-    }
     .tab-content {
     // Set a specific height to allow y-scroll:
     // Calc height under the main header (height-lg), aoi region (aoi-header-height),

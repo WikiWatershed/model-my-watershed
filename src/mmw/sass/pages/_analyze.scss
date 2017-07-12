@@ -39,10 +39,13 @@
     height: 46px;
 }
 
+.tab-contents-region {
+    background-color: $black-06;
+}
+
 .aoi-region {
-  height: $aoi-header-height;
-  background-color: $black-06;
   padding-top: 20px;
+  padding-bottom: 0px !important;
   h2 {
     font-size: $font-size-h2;
     line-height: $aoi-header-height / 2;
@@ -57,6 +60,7 @@
 }
 
 .analyze-message-region {
+  background-color: $paper;
   position: relative;
   height: 100%;
   min-height: 200px;
