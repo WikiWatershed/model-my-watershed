@@ -1,10 +1,16 @@
+$compare-footer-height: 50px;
+$compare-map-height: 25vh;
+// Calculate the height between the header and footer, and below the map
+$compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-height} - #{$compare-map-height});
+
+
 .compare-scenarios-container {
   overflow: hidden;
   position: absolute;
   top: $height-lg;
   left: 0;
   right: 0;
-  bottom: 50px;
+  bottom: $compare-footer-height;
   z-index: 100;
   background-color: $ui-light;
   transition: 0.3s ease left, 0.3s ease right;
@@ -15,7 +21,7 @@
     .scenario-overlay {
       position: absolute;
       z-index: 100;
-      height: 22%;
+      height: $compare-map-height;
       width: 100%;
       background-color: black;
       opacity: 0.25;
@@ -68,7 +74,7 @@
           }
 
           .map-region {
-            height: 22%;
+            height: $compare-map-height;
             width: 100%;
 
             .map-container {
@@ -105,6 +111,12 @@
             }
           }
 
+          .chart-table-regions {
+            height: $compare-chart-table-height;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
           .modeling-region {
             width: 100%;
 
@@ -121,7 +133,7 @@
               position: relative;
               width: auto;
               height: 100%;
-              padding: 1rem;
+              padding: 1rem 1rem 0 1rem;
 
               .fa-spin {
                 margin-left: 8px;
@@ -178,20 +190,18 @@
 
           .modifications-region {
             width: 100%;
-            height: calc(100vh - 22vh - 481px);
 
             .modifications-container {
               position: relative;
               width: 100%;
               height: 100%;
-              padding: 1rem;
-              overflow-y: auto;
+              padding: 0.5rem 1rem;
 
               .modifications-table {
                 font-size: $font-size-h4;
                 width: 100%;
                 td {
-                  padding: 4px;
+                  padding: 2px;
                   &:first-child {
                     padding-left: 0;
                   }
@@ -246,7 +256,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 50px;
+  height: $compare-footer-height;
   background-color: $ui-light;
   z-index: 100;
 
