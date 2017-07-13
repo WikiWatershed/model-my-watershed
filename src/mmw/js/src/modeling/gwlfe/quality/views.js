@@ -13,6 +13,10 @@ var ResultView = Marionette.LayoutView.extend({
 
     template: resultTmpl,
 
+    ui: {
+        tooltip: 'a.model-results-tooltip'
+    },
+
     regions: {
         tableRegion: '.quality-table-region',
     },
@@ -29,6 +33,7 @@ var ResultView = Marionette.LayoutView.extend({
     onShow: function() {
         var result = this.model.get('result');
         this.tableRegion.reset();
+        this.activateTooltip();
 
         if (result && result.Loads) {
             if (!this.compareMode) {
@@ -37,6 +42,17 @@ var ResultView = Marionette.LayoutView.extend({
                 }));
             }
         }
+    },
+
+    onRender: function() {
+        this.activateTooltip();
+    },
+
+    activateTooltip: function() {
+        this.ui.tooltip.popover({
+            placement: 'top',
+            trigger: 'focus'
+        });
     }
 });
 

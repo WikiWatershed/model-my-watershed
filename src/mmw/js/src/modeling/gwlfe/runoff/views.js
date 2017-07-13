@@ -33,7 +33,8 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     ui: {
-        downloadCSV: '[data-action="download-csv"]'
+        downloadCSV: '[data-action="download-csv"]',
+        tooltip: 'a.model-results-tooltip'
     },
 
     events: {
@@ -55,6 +56,7 @@ var ResultView = Marionette.LayoutView.extend({
         this.selectorRegion.reset();
         this.tableRegion.reset();
         this.chartRegion.reset();
+        this.activateTooltip();
 
         if (this.model.get('result')) {
             if (!this.compareMode) {
@@ -75,6 +77,10 @@ var ResultView = Marionette.LayoutView.extend({
         }
     },
 
+    onRender: function() {
+        this.activateTooltip();
+    },
+
     downloadCSV: function() {
         var data = this.model.get('result').monthly,
             prefix = 'mapshed_hydrology_',
@@ -85,6 +91,13 @@ var ResultView = Marionette.LayoutView.extend({
 
         utils.downloadDataCSV(renamedData, filename);
     },
+
+    activateTooltip: function() {
+        this.ui.tooltip.popover({
+            placement: 'top',
+            trigger: 'focus'
+        });
+    }
 });
 
 var SelectorView = Marionette.ItemView.extend({
