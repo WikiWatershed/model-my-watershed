@@ -378,10 +378,13 @@ var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
     },
 
     showShareModal: function() {
-        var share = new modalViews.ShareView({
+        var link = window.location.origin +
+                   '/project/' + App.currentProject.id +
+                   '/scenario/' + this.model.get('id'),
+            share = new modalViews.ShareView({
                 model: new modalModels.ShareModel({
                     text: 'Scenario',
-                    url: window.location.href,
+                    url: link,
                     guest: App.user.get('guest'),
                     is_private: App.currentProject.get('is_private')
                 }),
