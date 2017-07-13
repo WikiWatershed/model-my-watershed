@@ -29,6 +29,7 @@
     width: 20px;
     height: 20px;
     background-color: #324376;
+    padding: 4px 6px;
   }
 
   h2 {
@@ -39,6 +40,12 @@
     margin-left: 30px;
     font-size: $font-size-h4;
   }
+}
+
+.splash-logo {
+    height: 52px;
+    margin-top: 1rem;
+    padding: 1rem;
 }
 
 #draw-pane-header-description {
