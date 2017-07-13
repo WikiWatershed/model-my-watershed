@@ -696,7 +696,7 @@ var GwlfeToolbarView = ScenarioModelToolbarView.extend({
 
     ui: {
         thumb: '#gwlfe-modifications-bar .thumb',
-        deleteButton: '.delete-button',
+        deleteButton: '.delete-modification',
         closeButton: 'button.close'
     },
 
