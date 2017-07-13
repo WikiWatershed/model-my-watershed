@@ -4,13 +4,17 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from datetime import date
+from urllib2 import URLError
+from socket import timeout
 
 from suds.client import Client
 from rest_framework.exceptions import ValidationError
-from django.contrib.gis.geos import Point, Polygon
+from django.contrib.gis.geos import Point
+
+from django.conf import settings
 
 from apps.bigcz.models import Resource, ResourceLink, ResourceList, BBox
-from apps.bigcz.utils import parse_date
+from apps.bigcz.utils import parse_date, RequestTimedOutError
 
 
 SQKM_PER_SQM = 0.000001
@@ -24,7 +28,7 @@ DATE_MAX = date(2100, 1, 1)
 DATE_FORMAT = '%m/%d/%Y'
 
 
-client = Client(SOAP_URL)
+client = Client(SOAP_URL, timeout=settings.BIGCZ_CLIENT_TIMEOUT)
 
 
 def parse_geom(record):
@@ -116,12 +120,25 @@ def group_series_by_location(series):
     return result.values()
 
 
+def make_request(request, **kwargs):
+    try:
+        return request(**kwargs)
+    except URLError, e:
+        if isinstance(e.reason, timeout):
+            raise RequestTimedOutError()
+        else:
+            raise
+    except timeout:
+        raise RequestTimedOutError()
+
+
 def get_services_in_box(box):
-    result = client.service.GetServicesInBox2(
-        xmin=box.xmin,
-        xmax=box.xmax,
-        ymin=box.ymin,
-        ymax=box.ymax)
+    result = make_request(client.service.GetServicesInBox2,
+                          xmin=box.xmin,
+                          xmax=box.xmax,
+                          ymin=box.ymin,
+                          ymax=box.ymax)
+
     try:
         return result['ServiceInfo']
     except KeyError:
@@ -135,15 +152,17 @@ def get_services_in_box(box):
 def get_series_catalog_in_box(box, from_date, to_date):
     from_date = from_date or DATE_MIN
     to_date = to_date or DATE_MAX
-    result = client.service.GetSeriesCatalogForBox2(
-        xmin=box.xmin,
-        xmax=box.xmax,
-        ymin=box.ymin,
-        ymax=box.ymax,
-        conceptKeyword='',
-        networkIDs='',
-        beginDate=from_date.strftime(DATE_FORMAT),
-        endDate=to_date.strftime(DATE_FORMAT))
+
+    result = make_request(client.service.GetSeriesCatalogForBox2,
+                          xmin=box.xmin,
+                          xmax=box.xmax,
+                          ymin=box.ymin,
+                          ymax=box.ymax,
+                          conceptKeyword='',
+                          networkIDs='',
+                          beginDate=from_date.strftime(DATE_FORMAT),
+                          endDate=to_date.strftime(DATE_FORMAT))
+
     try:
         return result['SeriesRecord']
     except KeyError:
@@ -162,15 +181,6 @@ def search(**kwargs):
     if not bbox:
         raise ValidationError({
             'error': 'Required argument: bbox'})
-
-    bbox_polygon = Polygon.from_bbox([float(i) for i in bbox.split(',')])
-    bbox_polygon.set_srid(4326)
-    bbox_area = bbox_polygon.transform(5070, clone=True).area * SQKM_PER_SQM
-    if bbox_area > MAX_AREA_SQKM:
-        raise ValidationError({
-            'error': 'bbox area of {} km² is too large. '
-                     'Current max limit is {} km²'
-                     .format(bbox_area, MAX_AREA_SQKM)})
 
     box = BBox(bbox)
     world = BBox('-180,-90,180,90')

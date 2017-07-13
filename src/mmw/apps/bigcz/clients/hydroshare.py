@@ -7,7 +7,10 @@ import requests
 import dateutil.parser
 from rest_framework.exceptions import ValidationError
 
+from django.conf import settings
+
 from apps.bigcz.models import Resource, ResourceLink, ResourceList, BBox
+from apps.bigcz.utils import RequestTimedOutError
 
 
 CATALOG_NAME = 'hydroshare'
@@ -71,7 +74,13 @@ def search(**kwargs):
     if bbox:
         params.update(prepare_bbox(bbox))
 
-    response = requests.get(HYDROSHARE_URL, params=params)
+    try:
+        response = requests.get(HYDROSHARE_URL,
+                                timeout=settings.BIGCZ_CLIENT_TIMEOUT,
+                                params=params)
+    except requests.Timeout:
+        raise RequestTimedOutError()
+
     data = response.json()
 
     if 'results' not in data:

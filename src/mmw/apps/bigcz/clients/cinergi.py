@@ -7,7 +7,10 @@ import requests
 import dateutil.parser
 from django.contrib.gis.geos import Polygon
 
+from django.conf import settings
+
 from apps.bigcz.models import Resource, ResourceLink, ResourceList, BBox
+from apps.bigcz.utils import RequestTimedOutError
 
 
 CATALOG_NAME = 'cinergi'
@@ -128,7 +131,13 @@ def search(**kwargs):
             'bbox': prepare_bbox(bbox)
         })
 
-    response = requests.get(GEOPORTAL_URL, params=params)
+    try:
+        response = requests.get(GEOPORTAL_URL,
+                                timeout=settings.BIGCZ_CLIENT_TIMEOUT,
+                                params=params)
+    except requests.Timeout:
+        raise RequestTimedOutError()
+
     data = response.json()
 
     if 'hits' not in data:
