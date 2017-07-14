@@ -20,7 +20,7 @@ from apps.bigcz.utils import parse_date, RequestTimedOutError
 SQKM_PER_SQM = 0.000001
 MAX_AREA_SQKM = 1500
 CATALOG_NAME = 'cuahsi'
-SOAP_URL = 'http://hiscentral.cuahsi.org/webservices/hiscentral.asmx?WSDL'
+CATALOG_URL = 'http://hiscentral.cuahsi.org/webservices/hiscentral.asmx?WSDL'
 
 
 DATE_MIN = date(1900, 1, 1)
@@ -28,7 +28,7 @@ DATE_MAX = date(2100, 1, 1)
 DATE_FORMAT = '%m/%d/%Y'
 
 
-client = Client(SOAP_URL, timeout=settings.BIGCZ_CLIENT_TIMEOUT)
+client = Client(CATALOG_URL, timeout=settings.BIGCZ_CLIENT_TIMEOUT)
 
 
 def parse_geom(record):

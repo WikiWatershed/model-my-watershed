@@ -14,7 +14,7 @@ from apps.bigcz.utils import RequestTimedOutError
 
 
 CATALOG_NAME = 'hydroshare'
-HYDROSHARE_URL = 'https://www.hydroshare.org/hsapi/resource/'
+CATALOG_URL = 'https://www.hydroshare.org/hsapi/resource/'
 
 
 def parse_date(value):
@@ -75,7 +75,7 @@ def search(**kwargs):
         params.update(prepare_bbox(bbox))
 
     try:
-        response = requests.get(HYDROSHARE_URL,
+        response = requests.get(CATALOG_URL,
                                 timeout=settings.BIGCZ_CLIENT_TIMEOUT,
                                 params=params)
     except requests.Timeout:
