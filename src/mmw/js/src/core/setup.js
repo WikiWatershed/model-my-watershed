@@ -23,6 +23,8 @@ require('../analyze/filters');
 require('bootstrap');
 require('bootstrap-select');
 require('bootstrap-table/dist/bootstrap-table.js');
+require('../../shim/tableExport.min.js');
+require('bootstrap-table/dist/extensions/export/bootstrap-table-export.min.js');
 
 var L = require('leaflet');
 require('leaflet-draw');
