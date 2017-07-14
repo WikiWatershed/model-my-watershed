@@ -61,7 +61,9 @@ var TableView = Marionette.CompositeView.extend({
 
     ui: {
         downloadLoadsCSV: '[data-action="download-csv-granular"]',
-        downloadSummaryLoadsCSV: '[data-action="download-csv-summary"]'
+        downloadSummaryLoadsCSV: '[data-action="download-csv-summary"]',
+        landuseTable: 'table.landuse',
+        summaryTable: 'table.summary'
     },
 
     events: {
@@ -91,8 +93,10 @@ var TableView = Marionette.CompositeView.extend({
             MeanFlowPerSecond: result.MeanFlowPerSecond,
             landUseColumns: landUseColumns,
             landUseRows: landUseRows,
+            landUseClassName: 'landuse',
             summaryColumns: summaryColumns,
             summaryRows: summaryRows,
+            summaryClassName: 'summary',
             renderPrecision: {
                 summaryTable: [
                     {source: 'Total Loads (kg)', precision: 1},
@@ -109,24 +113,19 @@ var TableView = Marionette.CompositeView.extend({
     },
 
     downloadCSVGranular: function() {
-        var data = this.model.get('result').Loads,
-            prefix = 'mapshed_water_quality_loads_',
-            nameMap = constants.waterQualityLoadsCSVColumnMap;
-        this.downloadCSV(data, prefix, nameMap);
+        var prefix = 'mapshed_water_quality_loads_',
+            timestamp = new Date().toISOString(),
+            filename = prefix + timestamp;
+
+        this.ui.landuseTable.tableExport({ type: 'csv', fileName: filename });
     },
 
     downloadCSVSummary: function() {
-        var data = this.model.get('result').SummaryLoads,
-            prefix = 'mapshed_water_quality_summary_loads_',
-            nameMap = constants.waterQualitySummaryLoadsCSVColumnMap;
-        this.downloadCSV(data, prefix, nameMap);
-    },
+        var prefix = 'mapshed_water_quality_summary_loads_',
+            timestamp = new Date().toISOString(),
+            filename = prefix + timestamp;
 
-    downloadCSV: function(data, filePrefix, nameMap) {
-        var timestamp = new Date().toISOString(),
-            filename = filePrefix + timestamp,
-            renamedData = utils.renameCSVColumns(data, nameMap);
-        utils.downloadDataCSV(renamedData, filename);
+        this.ui.summaryTable.tableExport({ type: 'csv', fileName: filename });
     }
 });
 

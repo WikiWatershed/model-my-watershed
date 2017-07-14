@@ -865,11 +865,14 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
     regions: {
         descriptionRegion: '.desc-region',
         chartRegion: '.chart-region',
-        tableRegion: '.table-region'
+        tableRegion: '.table-region',
+        printTableRegion: '.print-table-region'
     },
 
     ui: {
-        downloadCSV: '[data-action="download-csv"]'
+        downloadCSV: '[data-action="download-csv"]',
+        table: '.table-region',
+        printTable: '.print-table-region',
     },
 
     events: {
@@ -878,47 +881,61 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
 
     downloadCSV: function() {
         var data = this.model.get('categories'),
+            dataName = this.model.get('name'),
             timestamp = new Date().toISOString(),
-            filename,
-            nameMap,
-            renamedData;
+            filename = '';
 
-        switch (this.model.get('name')) {
+        switch (dataName) {
             case 'land':
-                filename = 'nlcd_land_cover_' + timestamp;
-                renamedData = utils.renameCSVColumns(data,
-                    constants.csvColumnMaps.nlcd);
+                filename = 'nlcd_land_cover_';
                 break;
             case 'soil':
-                filename = 'nlcd_soils_' + timestamp;
-                renamedData = utils.renameCSVColumns(data,
-                    constants.csvColumnMaps.soil);
+                filename = 'nlcd_soils_';
                 break;
             case 'animals':
-                filename = 'animal_estimate_' + timestamp;
-                renamedData = utils.renameCSVColumns(data,
-                    constants.csvColumnMaps.animals);
+                filename = 'animal_estimate_';
                 break;
             case 'pointsource':
-                filename = 'pointsource_' + timestamp;
-                renamedData = utils.renameCSVColumns(data,
-                    constants.csvColumnMaps.pointSource);
+                filename = 'pointsource_';
                 break;
             case 'catchment_water_quality':
-                filename = 'catchment_water_quality_' + timestamp;
-                renamedData = _.map(data, function(element) {
-                    return _.omit(element, 'geom');
-                });
-                renamedData = utils.renameCSVColumns(renamedData,
-                    constants.csvColumnMaps.waterQuality);
+                filename = 'catchment_water_quality_';
                 break;
             default:
-                filename = this.model.get('name') + '_' + timestamp;
-                nameMap = {};
-                renamedData = data;
+                filename = this.model.get('name');
+                break;
         }
 
-        utils.downloadDataCSV(renamedData, filename);
+        filename = filename + timestamp;
+
+        // Render an unpaginated table for tables that can be paginated.
+        if (dataName === 'pointsource' || dataName === 'catchment_water_quality') {
+            var largestArea = lodash.max(lodash.pluck(data, 'area')),
+                units = utils.magnitudeOfArea(largestArea),
+                census,
+                TableView;
+
+            if (dataName === 'pointsource') {
+                census = new coreModels.PointSourceCensusCollection(data);
+                TableView = PointSourceTableView;
+            } else if (dataName === 'catchment_water_quality') {
+                census = new coreModels.CatchmentWaterQualityCensusCollection(data);
+                TableView = CatchmentWaterQualityTableView;
+            }
+
+            // Ensure all the data is rendered
+            census.setPageSize(census.fullCollection.length);
+
+            this.printTableRegion.show(new TableView({
+                units: units,
+                collection: census
+            }));
+
+            this.ui.printTable.tableExport({ type: 'csv', fileName: filename });
+            this.printTableRegion.reset();
+        } else {
+            this.ui.table.tableExport({ type: 'csv', fileName: filename });
+        }
     },
 
     showAnalyzeResults: function(CategoriesToCensus, AnalyzeTableView,
