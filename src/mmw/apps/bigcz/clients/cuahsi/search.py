@@ -13,8 +13,10 @@ from django.contrib.gis.geos import Point
 
 from django.conf import settings
 
-from apps.bigcz.models import Resource, ResourceLink, ResourceList, BBox
+from apps.bigcz.models import ResourceLink, ResourceList, BBox
 from apps.bigcz.utils import parse_date, RequestTimedOutError
+
+from apps.bigcz.clients.cuahsi.models import CuahsiResource
 
 
 SQKM_PER_SQM = 0.000001
@@ -65,7 +67,7 @@ def parse_record(record, service):
     if details_url:
         links.append(ResourceLink('details', details_url))
 
-    return Resource(
+    return CuahsiResource(
         id=record['location'],
         title=record['Sitename'],
         description=service['aabstract'],
@@ -73,7 +75,8 @@ def parse_record(record, service):
         links=links,
         created_at=record['beginDate'],
         updated_at=None,
-        geom=geom)
+        geom=geom,
+        test_field="hello world")
 
 
 def find_service(services, service_code):
