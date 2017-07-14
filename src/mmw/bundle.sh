@@ -126,7 +126,6 @@ JS_DEPS=(backbone
          leaflet-plugins/layer/tile/Google
          lodash
          moment
-         papaparse
          nunjucks
          reproject
          shapefile

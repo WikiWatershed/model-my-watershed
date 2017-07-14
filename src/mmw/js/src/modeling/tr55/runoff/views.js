@@ -10,8 +10,7 @@ var $ = require('jquery'),
     AoiVolumeModel = require('../models').AoiVolumeModel,
     tableRowTmpl = require('./templates/tableRow.html'),
     tableTmpl = require('./templates/table.html'),
-    utils = require('../../../core/utils.js'),
-    constants = require('./constants');
+    utils = require('../../../core/utils.js');
 
 var ResultView = Marionette.LayoutView.extend({
     className: 'tab-pane',

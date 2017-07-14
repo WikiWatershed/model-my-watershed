@@ -6,7 +6,6 @@ var L = require('leaflet'),
     md5 = require('blueimp-md5').md5,
     intersect = require('turf-intersect'),
     centroid = require('turf-centroid'),
-    papaparse = require('papaparse'),
     settings = require('./settings');
 
 var M2_IN_KM2 = 1000000;
@@ -415,31 +414,6 @@ var utils = {
             geom.type = 'MultiPolygon';
         }
         return geom;
-    },
-
-    downloadDataCSV: function(data, filename) {
-        var csv = papaparse.unparse(JSON.stringify(data)),
-            blob = new Blob([csv], { type: 'text/csv' }),
-            url = window.URL.createObjectURL(blob),
-            tmpLink = document.createElement('a');
-
-        tmpLink.href = url;
-        tmpLink.setAttribute('download', filename + '.csv');
-        tmpLink.setAttribute('target', '_blank');
-        document.body.appendChild(tmpLink);
-        tmpLink.click();
-        document.body.removeChild(tmpLink);
-    },
-
-    renameCSVColumns: function(data, nameMap) {
-        return _.map(data, function(row) {
-            var newRow = {};
-            _.each(row, function(value, key) {
-                var newKey = nameMap[key] || key;
-                newRow[newKey] = value;
-            });
-            return newRow;
-        });
     },
 
     calculateVisibleRows: function(minScreenHeight, avgRowHeight, minRows) {

@@ -7,9 +7,7 @@ var $ = require('jquery'),
     barChartTmpl = require('../../../core/templates/barChart.html'),
     selectorTmpl = require('./templates/selector.html'),
     resultTmpl = require('./templates/result.html'),
-    tableTmpl = require('./templates/table.html'),
-    utils = require('../../../core/utils.js'),
-    constants = require('./constants');
+    tableTmpl = require('./templates/table.html');
 
 var runoffVars = [
         { name: 'AvPrecipitation', display: 'Precip' },

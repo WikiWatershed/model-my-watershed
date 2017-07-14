@@ -4,9 +4,7 @@ var $ = require('jquery'),
     _ = require('underscore'),
     Marionette = require('../../../../shim/backbone.marionette'),
     resultTmpl = require('./templates/result.html'),
-    tableTmpl = require('./templates/table.html'),
-    utils = require('../../../core/utils.js'),
-    constants = require('./constants');
+    tableTmpl = require('./templates/table.html');
 
 var ResultView = Marionette.LayoutView.extend({
     className: 'tab-pane',
