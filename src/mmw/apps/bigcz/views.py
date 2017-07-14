@@ -33,9 +33,12 @@ def _do_search(request):
     }
 
     search = CATALOGS[catalog]['search']
+    serializer = CATALOGS[catalog]['serializer']
 
     try:
-        return search(**search_kwargs)
+        result = ResourceListSerializer(search(**search_kwargs),
+                                        context={'serializer': serializer})
+        return result.data
     except ValueError as ex:
         raise ParseError(ex.message)
 
@@ -43,5 +46,4 @@ def _do_search(request):
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny,))
 def search(request):
-    result = ResourceListSerializer(_do_search(request))
-    return Response(result.data)
+    return Response(_do_search(request))
