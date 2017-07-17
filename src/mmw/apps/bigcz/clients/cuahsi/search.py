@@ -76,7 +76,15 @@ def parse_record(record, service):
         created_at=record['begin_date'],
         updated_at=None,
         geom=geom,
-        test_field="hello world")
+        details_url=details_url,
+        sample_mediums=record['sample_mediums'],
+        concept_keywords=record['concept_keywords'],
+        service_org=service['organization'],
+        service_code=record['ServCode'],
+        service_url=service['ServiceDescriptionURL'],
+        begin_date=record['begin_date'],
+        end_date=record['end_date']
+    )
 
 
 def find_service(services, service_code):
