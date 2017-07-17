@@ -13,7 +13,8 @@ var ToolbarModel = Backbone.Model.extend({
         pollError: false,
         activeDrawTool: null,
         activeDrawToolItem: null,
-        openDrawTool: null
+        openDrawTool: null,
+        leafletDrawTool: null,
     },
 
     reset: function() {
@@ -45,6 +46,13 @@ var ToolbarModel = Backbone.Model.extend({
         if (map && this.has('rwd-original-point')) {
             map.removeLayer(this.get('rwd-original-point'));
             this.unset('rwd-original-point');
+        }
+    },
+
+    disableLeafletDrawTool: function() {
+        var leafletDrawTool = this.get('leafletDrawTool');
+        if (leafletDrawTool) {
+            leafletDrawTool.disable();
         }
     }
 });
