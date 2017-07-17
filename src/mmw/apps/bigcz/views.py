@@ -38,7 +38,7 @@ def _do_search(request):
     try:
         result = ResourceListSerializer(search(**search_kwargs),
                                         context={'serializer': serializer})
-        return result.data
+        return [result.data]
     except ValueError as ex:
         raise ParseError(ex.message)
 
