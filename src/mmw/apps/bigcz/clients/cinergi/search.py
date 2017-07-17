@@ -14,7 +14,7 @@ from apps.bigcz.utils import RequestTimedOutError
 
 
 CATALOG_NAME = 'cinergi'
-GEOPORTAL_URL = 'http://132.249.238.169:8080/geoportal/opensearch'
+CATALOG_URL = 'http://132.249.238.169:8080/geoportal/opensearch'
 
 
 def parse_date(value):
@@ -132,7 +132,7 @@ def search(**kwargs):
         })
 
     try:
-        response = requests.get(GEOPORTAL_URL,
+        response = requests.get(CATALOG_URL,
                                 timeout=settings.BIGCZ_CLIENT_TIMEOUT,
                                 params=params)
     except requests.Timeout:

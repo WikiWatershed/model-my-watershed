@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from rest_framework.serializers import \
-    Serializer, CharField, DateTimeField, IntegerField
+    Serializer, CharField, DateTimeField, IntegerField, SerializerMethodField
 from rest_framework_gis.serializers import GeometryField
 
 
@@ -27,5 +27,9 @@ class ResourceSerializer(Serializer):
 class ResourceListSerializer(Serializer):
     catalog = CharField()
     api_url = CharField()
-    results = ResourceSerializer(many=True)
+    results = SerializerMethodField()
     count = IntegerField()
+
+    def get_results(self, obj):
+        serializer = self.context.get('serializer', ResourceSerializer)
+        return [serializer(r).data for r in obj.results]

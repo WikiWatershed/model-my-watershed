@@ -8,7 +8,7 @@ from rest_framework.exceptions import ValidationError, ParseError
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from apps.bigcz.clients import SEARCH_FUNCTIONS
+from apps.bigcz.clients import CATALOGS
 from apps.bigcz.serializers import ResourceListSerializer
 from apps.bigcz.utils import parse_date
 
@@ -20,6 +20,11 @@ def _do_search(request):
         raise ValidationError({
             'error': 'Required argument: catalog'})
 
+    if catalog not in CATALOGS:
+        raise ValidationError({
+            'error': 'Catalog must be one of: {}'
+                     .format(', '.join(CATALOGS.keys()))})
+
     search_kwargs = {
         'query': request.query_params.get('query'),
         'to_date': parse_date(request.query_params.get('to_date')),
@@ -27,22 +32,18 @@ def _do_search(request):
         'bbox': request.query_params.get('bbox'),
     }
 
-    search = SEARCH_FUNCTIONS.get(catalog)
+    search = CATALOGS[catalog]['search']
+    serializer = CATALOGS[catalog]['serializer']
 
-    if search:
-        try:
-            return search(**search_kwargs)
-        except ValueError as ex:
-            raise ParseError(ex.message)
-
-    raise ValidationError({
-        'error': 'Catalog must be one of: {}'
-                 .format(', '.join(SEARCH_FUNCTIONS.keys()))
-    })
+    try:
+        result = ResourceListSerializer(search(**search_kwargs),
+                                        context={'serializer': serializer})
+        return result.data
+    except ValueError as ex:
+        raise ParseError(ex.message)
 
 
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny,))
 def search(request):
-    result = ResourceListSerializer(_do_search(request))
-    return Response(result.data)
+    return Response(_do_search(request))
