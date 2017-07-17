@@ -73,7 +73,7 @@ def parse_record(record, service):
         description=service['aabstract'],
         author=None,
         links=links,
-        created_at=record['beginDate'],
+        created_at=record['begin_date'],
         updated_at=None,
         geom=geom,
         test_field="hello world")
@@ -102,25 +102,38 @@ def parse_records(series, services):
 def group_series_by_location(series):
     """
     Group series catalog results by location. Each result contains fields
-    common across all variables.
+    common across all variables, and some aggregations.
 
     Ref: https://github.com/WikiWatershed/model-my-watershed/issues/1931
     """
-    result = {}
+    groups = {}
     for record in series:
-        location = record['location']
-        if location not in result:
-            result[location] = {
-                'ServCode': record['ServCode'],
-                'ServURL': record['ServURL'],
-                'Sitename': record['Sitename'],
-                'latitude': record['latitude'],
-                'location': record['location'],
-                'longitude': record['longitude'],
-                'beginDate': parse_date(record['beginDate']),
-                'endDate': parse_date(record['endDate']),
-            }
-    return result.values()
+        group = groups.get(record['location'])
+        if not group:
+            groups[record['location']] = [record]
+        else:
+            group.append(record)
+
+    records = []
+    for location, group in groups.iteritems():
+        records.append({
+            'ServCode': group[0]['ServCode'],
+            'ServURL': group[0]['ServURL'],
+            'location': group[0]['location'],
+            'Sitename': group[0]['Sitename'],
+            'latitude': group[0]['latitude'],
+            'longitude': group[0]['longitude'],
+            'sample_mediums': ', '.join(sorted(set([r['samplemedium']
+                                                    for r in group]))),
+            'concept_keywords': '; '.join(sorted(set([r['conceptKeyword']
+                                                      for r in group]))),
+            'begin_date': min([parse_date(r['beginDate'])
+                               for r in group]),
+            'end_date': max([parse_date(r['endDate'])
+                             for r in group]),
+        })
+
+    return records
 
 
 def make_request(request, **kwargs):
