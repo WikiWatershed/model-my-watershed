@@ -70,7 +70,7 @@ def parse_record(record, service):
 
     return CuahsiResource(
         id=record['location'],
-        title=record['Sitename'],
+        title=record['site_name'],
         description=service['aabstract'],
         author=None,
         links=links,
@@ -81,7 +81,7 @@ def parse_record(record, service):
         sample_mediums=record['sample_mediums'],
         concept_keywords=record['concept_keywords'],
         service_org=service['organization'],
-        service_code=record['ServCode'],
+        service_code=record['serv_code'],
         service_url=service['ServiceDescriptionURL'],
         begin_date=record['begin_date'],
         end_date=record['end_date']
@@ -101,7 +101,7 @@ def parse_records(series, services):
     """
     result = []
     for record in series:
-        service = find_service(services, record['ServCode'])
+        service = find_service(services, record['serv_code'])
         if service:
             record = parse_record(record, service)
             result.append(record)
@@ -126,10 +126,10 @@ def group_series_by_location(series):
     records = []
     for location, group in groups.iteritems():
         records.append({
-            'ServCode': group[0]['ServCode'],
-            'ServURL': group[0]['ServURL'],
+            'serv_code': group[0]['ServCode'],
+            'serv_url': group[0]['ServURL'],
             'location': group[0]['location'],
-            'Sitename': group[0]['Sitename'],
+            'site_name': group[0]['Sitename'],
             'latitude': group[0]['latitude'],
             'longitude': group[0]['longitude'],
             'sample_mediums': ', '.join(sorted(set([r['samplemedium']
