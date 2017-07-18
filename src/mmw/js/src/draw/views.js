@@ -673,7 +673,8 @@ var DrawAreaView = DrawToolBaseView.extend({
     },
 
     enableDrawArea: function() {
-        var map = App.getLeafletMap(),
+        var self = this,
+            map = App.getLeafletMap(),
             revertLayer = clearAoiLayer();
 
         utils.drawPolygon(map)
@@ -684,11 +685,13 @@ var DrawAreaView = DrawToolBaseView.extend({
             }).fail(function(message) {
                 revertLayer();
                 displayAlert(message, modalModels.AlertTypes.error);
+                self.model.reset();
             });
     },
 
     enableStampTool: function() {
-        var map = App.getLeafletMap(),
+        var self = this,
+            map = App.getLeafletMap(),
             revertLayer = clearAoiLayer();
 
         utils.placeMarker(map).then(function(latlng) {
@@ -720,6 +723,7 @@ var DrawAreaView = DrawToolBaseView.extend({
         }).fail(function(message) {
             revertLayer();
             displayAlert(message, modalModels.AlertTypes.error);
+            self.model.reset();
         });
     }
 });
