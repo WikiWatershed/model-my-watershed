@@ -98,12 +98,18 @@ var Result = Backbone.Model.extend({
 var Results = Backbone.Collection.extend({
     url: '/api/bigcz/search',
     model: Result,
+
+    initialize: function(models, options) {
+        this.catalog = options.catalog;
+    },
+
     parse: function(response) {
-        var aoi = App.map.get('areaOfInterest');
+        var aoi = App.map.get('areaOfInterest'),
+            data = _.findWhere(response, { catalog: this.catalog });
 
         // Filter results to only include those without geometries (Hydroshare)
         // and those that intersect the area of interest (CINERGI and CUAHSI).
-        return _.filter(response.results, function(r) {
+        return _.filter(data.results, function(r) {
             return r.geom === null || turfIntersect(aoi, r.geom) !== undefined;
         });
     }

@@ -28,18 +28,18 @@ var DataCatalogController = {
                 id: 'cinergi',
                 name: 'CINERGI',
                 active: true,
-                results: new models.Results()
+                results: new models.Results(null, { catalog: 'cinergi' }),
             }),
             new models.Catalog({
                 id: 'hydroshare',
                 name: 'HydroShare',
-                results: new models.Results()
+                results: new models.Results(null, { catalog: 'hydroshare' }),
             }),
             new models.Catalog({
                 id: 'cuahsi',
                 name: 'WDC',
                 description: 'Optional catalog description here...',
-                results: new models.Results()
+                results: new models.Results(null, { catalog: 'cuahsi' }),
             })
         ]);
 

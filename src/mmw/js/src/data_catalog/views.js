@@ -9,12 +9,18 @@ var L = require('leaflet'),
     errorTmpl = require('./templates/error.html'),
     formTmpl = require('./templates/form.html'),
     searchResultTmpl = require('./templates/searchResult.html'),
+    cuahsiSearchResultTmpl = require('./templates/cuahsiSearchResult.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     tabPanelTmpl = require('./templates/tabPanel.html'),
     windowTmpl = require('./templates/window.html');
 
 var ENTER_KEYCODE = 13,
-    MAX_AREA_SQKM = 1500;  // Keep in sync with apps/bigcz/clients/cuahsi.py
+    MAX_AREA_SQKM = 1500,
+    CATALOG_RESULT_TEMPLATE = {
+        cinergi: searchResultTmpl,
+        hydroshare: searchResultTmpl,
+        cuahsi: cuahsiSearchResultTmpl,
+    };
 
 var DataCatalogWindow = Marionette.LayoutView.extend({
     template: windowTmpl,
@@ -201,7 +207,8 @@ var TabContentView = Marionette.LayoutView.extend({
 
     onShow: function() {
         this.resultRegion.show(new ResultsView({
-            collection: this.model.get('results')
+            collection: this.model.get('results'),
+            catalog: this.model.id,
         }));
 
         this.errorRegion.show(new ErrorView({
@@ -235,7 +242,10 @@ var TabContentsView = Marionette.CollectionView.extend({
 });
 
 var ResultView = Marionette.ItemView.extend({
-    template: searchResultTmpl,
+    getTemplate: function() {
+        return CATALOG_RESULT_TEMPLATE[this.options.catalog];
+    },
+
     className: 'resource',
 
     events: {
@@ -249,6 +259,12 @@ var ResultView = Marionette.ItemView.extend({
 
 var ResultsView = Marionette.CollectionView.extend({
     childView: ResultView,
+
+    childViewOptions: function() {
+        return {
+            catalog: this.options.catalog,
+        };
+    },
 
     modelEvents: {
         'sync error': 'render'
