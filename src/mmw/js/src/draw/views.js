@@ -198,8 +198,8 @@ var DrawWindow = Marionette.LayoutView.extend({
         this.model.clearRwdClickedPoint(App.getLeafletMap());
         this.rwdTaskModel.reset();
         this.model.reset();
-        utils.removeDrawEventListeners(App.getLeafletMap());
-        this.model.disableLeafletDrawTool();
+
+        utils.cancelDrawing(App.getLeafletMap());
         clearAoiLayer();
         clearBoundaryLayer(this.model);
     }
@@ -673,11 +673,10 @@ var DrawAreaView = DrawToolBaseView.extend({
     },
 
     enableDrawArea: function() {
-        var self = this,
-            map = App.getLeafletMap(),
+        var map = App.getLeafletMap(),
             revertLayer = clearAoiLayer();
 
-        utils.drawPolygon(map, self.model)
+        utils.drawPolygon(map)
             .then(validateShape)
             .then(function(shape) {
                 addLayer(shape);
@@ -685,16 +684,14 @@ var DrawAreaView = DrawToolBaseView.extend({
             }).fail(function(message) {
                 revertLayer();
                 displayAlert(message, modalModels.AlertTypes.error);
-                self.enableDrawArea();
             });
     },
 
     enableStampTool: function() {
-        var self = this,
-            map = App.getLeafletMap(),
+        var map = App.getLeafletMap(),
             revertLayer = clearAoiLayer();
 
-        utils.placeMarker(map, self.model).then(function(latlng) {
+        utils.placeMarker(map).then(function(latlng) {
             var point = L.marker(latlng).toGeoJSON(),
                 halfKmbufferPoints = _.map([-180, -90, 0, 90], function(bearing) {
                     var p = turfDestination(point, 0.5, bearing, 'kilometers');
@@ -723,7 +720,6 @@ var DrawAreaView = DrawToolBaseView.extend({
         }).fail(function(message) {
             revertLayer();
             displayAlert(message, modalModels.AlertTypes.error);
-            self.enableStampTool();
         });
     }
 });
