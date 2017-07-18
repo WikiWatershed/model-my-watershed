@@ -77,3 +77,9 @@
     .point-source .point-source-id {
   cursor: pointer;
 }
+
+.bootstrap-table {
+  .fixed-table-toolbar {
+    display: none;
+  }
+}

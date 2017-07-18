@@ -107,6 +107,7 @@ JS_DEPS=(backbone
          bootstrap
          bootstrap-select
          bootstrap-table/dist/bootstrap-table.js
+         bootstrap-table/dist/extensions/export/bootstrap-table-export.min.js
          clipboard
          d3
          iframe-phone
@@ -115,6 +116,7 @@ JS_DEPS=(backbone
          ./js/shim/shutterbug.js
          ./js/shim/highstock.js
          ./js/shim/nv.d3.js
+         ./js/shim/tableExport.min.js
          jquery
          jszip
          leaflet
@@ -124,7 +126,6 @@ JS_DEPS=(backbone
          leaflet-plugins/layer/tile/Google
          lodash
          moment
-         papaparse
          nunjucks
          reproject
          shapefile
