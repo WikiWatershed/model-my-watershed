@@ -1,7 +1,7 @@
 <div class="layerpicker-layer">
     <button
         class="{{layerClass}}"
-        {% if isDisabled %} disabled {% endif %}
+        {% if isDisabled %}title="This layer is unavailable at this location" disabled {% endif %}
     >
         {{ layerDisplay }}
     </button>
