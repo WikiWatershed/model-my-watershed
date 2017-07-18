@@ -6,6 +6,7 @@ from __future__ import division
 from datetime import date
 from urllib2 import URLError
 from socket import timeout
+from operator import attrgetter
 
 from suds.client import Client
 from rest_framework.exceptions import ValidationError
@@ -212,7 +213,9 @@ def search(**kwargs):
     series = get_series_catalog_in_box(box, from_date, to_date)
     series = group_series_by_location(series)
     services = get_services_in_box(world)
-    results = parse_records(series, services)
+    results = sorted(parse_records(series, services),
+                     key=attrgetter('end_date'),
+                     reverse=True)
 
     return ResourceList(
         api_url=None,
