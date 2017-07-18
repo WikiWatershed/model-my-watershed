@@ -18,23 +18,28 @@ var polygonDefaults = {
         color: '#E77471'
     };
 
-function drawPolygon(map, drawModel, drawOpts) {
+function drawPolygon(map, drawOpts) {
     var defer = $.Deferred(),
         tool = new L.Draw.Polygon(map, {
             allowIntersection: false,
             shapeOptions: _.defaults(drawOpts || {}, polygonDefaults)
         }),
+        clearEvents = function() {
+            map.off('draw:created');
+            map.off('draw:drawstop');
+        },
         drawCreated = function(e) {
             var layer = e.layer,
                 shape = layer.toGeoJSON();
+            clearEvents();
             defer.resolve(shape);
         },
         drawStop = function() {
             tool.disable();
+            clearEvents();
             defer.reject(CANCEL_DRAWING);
         };
 
-    drawModel.set('leafletDrawTool', tool);
     cancelDrawing(map);
 
     map.on('draw:created', drawCreated);
@@ -44,7 +49,7 @@ function drawPolygon(map, drawModel, drawOpts) {
     return defer.promise();
 }
 
-function placeMarker(map, drawModel, drawOpts) {
+function placeMarker(map, drawOpts) {
     var defer = $.Deferred(),
         tool = new L.Draw.Marker(map, { shapeOptions: drawOpts || {}}),
         clearEvents = function() {
@@ -62,7 +67,6 @@ function placeMarker(map, drawModel, drawOpts) {
             defer.reject(CANCEL_DRAWING);
         };
 
-    drawModel.set('leafletDrawTool', tool);
     cancelDrawing(map);
 
     map.on('draw:created', drawCreated);
@@ -82,11 +86,6 @@ function createRwdMarkerIcon(iconName) {
 // Cancel any previous draw action in progress.
 function cancelDrawing(map) {
     map.fire('draw:drawstop');
-}
-
-function removeDrawEventListeners(map) {
-    map.off('draw:created');
-    map.off('draw:drawstop');
 }
 
 function getGeoJsonLatLngs(shape) {
@@ -165,7 +164,6 @@ module.exports = {
     placeMarker: placeMarker,
     createRwdMarkerIcon: createRwdMarkerIcon,
     cancelDrawing: cancelDrawing,
-    removeDrawEventListeners: removeDrawEventListeners,
     polygonDefaults: polygonDefaults,
     shapeBoundingBoxArea: shapeBoundingBoxArea,
     isValidForAnalysis: isValidForAnalysis,

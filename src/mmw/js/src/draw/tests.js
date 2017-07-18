@@ -6,6 +6,7 @@ var $ = require('jquery'),
     _ = require('underscore'),
     L = require('leaflet'),
     assert = require('chai').assert,
+    sinon = require('sinon'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     models = require('./models'),
@@ -171,12 +172,13 @@ describe('Draw', function() {
         });
 
         it('removes in progress drawing on Reset', function() {
-            var setup = setupResetTestObject();
+            var setup = setupResetTestObject(),
+                spy = sinon.spy(utils, 'cancelDrawing');
 
-            utils.drawPolygon(setup.map, setup.view.model);
+            utils.drawPolygon(setup.map);
             setup.view.resetDrawingState();
 
-            assert.equal(setup.view.model.get('leafletDrawTool')._enabled, false);
+            assert.equal(spy.callCount, 1);
         });
     });
 });
