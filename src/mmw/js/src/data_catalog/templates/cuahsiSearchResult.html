@@ -1,19 +1,26 @@
 <h3 class="resource-title">
-    {{ title }}
+    {{ id }}
 </h3>
-<div class="resource-description">
-    {{ summary }}
+<div>
+    {% if details_url %}
+        <a href="{{ details_url }}" target="_blank" rel="noreferrer noopener">
+        {{ title }}</a>.
+    {% else %}
+        {{ title }}.
+    {% endif %}
+    Observations on {{ sample_mediums }}.
 </div>
-{% if created_at %}
-    <div class="resource-date">
-        {{ created_at|toDateFullYear }}
-    </div>
-{% endif %}
-{% if author %}
-    <div class="resource-author">
-        {{ author }}
-    </div>
-{% endif %}
-<div class="resource-test-field">
-    {{ test_field }}
+<div>
+    Variables: {{ concept_keywords }}
+</div>
+<div>
+    From <a href="{{ service_url }}" target="_blank" rel="noreferrer noopener">
+    {{ service_org }} - {{ service_code }}</a> web service.
+</div>
+<div>
+    {% if begin_date == end_date %}
+        Date for site: {{ begin_date|toFriendlyDate }}
+    {% else %}
+        Date range for site: {{ begin_date|toFriendlyDate }} - {{ end_date|toFriendlyDate }}
+    {% endif %}
 </div>

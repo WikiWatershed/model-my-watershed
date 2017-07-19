@@ -6,6 +6,7 @@ from __future__ import division
 from datetime import date
 from urllib2 import URLError
 from socket import timeout
+from operator import attrgetter
 
 from suds.client import Client
 from rest_framework.exceptions import ValidationError
@@ -69,14 +70,22 @@ def parse_record(record, service):
 
     return CuahsiResource(
         id=record['location'],
-        title=record['Sitename'],
+        title=record['site_name'],
         description=service['aabstract'],
         author=None,
         links=links,
-        created_at=record['beginDate'],
+        created_at=record['begin_date'],
         updated_at=None,
         geom=geom,
-        test_field="hello world")
+        details_url=details_url,
+        sample_mediums=record['sample_mediums'],
+        concept_keywords=record['concept_keywords'],
+        service_org=service['organization'],
+        service_code=record['serv_code'],
+        service_url=service['ServiceDescriptionURL'],
+        begin_date=record['begin_date'],
+        end_date=record['end_date']
+    )
 
 
 def find_service(services, service_code):
@@ -92,7 +101,7 @@ def parse_records(series, services):
     """
     result = []
     for record in series:
-        service = find_service(services, record['ServCode'])
+        service = find_service(services, record['serv_code'])
         if service:
             record = parse_record(record, service)
             result.append(record)
@@ -102,25 +111,38 @@ def parse_records(series, services):
 def group_series_by_location(series):
     """
     Group series catalog results by location. Each result contains fields
-    common across all variables.
+    common across all variables, and some aggregations.
 
     Ref: https://github.com/WikiWatershed/model-my-watershed/issues/1931
     """
-    result = {}
+    groups = {}
     for record in series:
-        location = record['location']
-        if location not in result:
-            result[location] = {
-                'ServCode': record['ServCode'],
-                'ServURL': record['ServURL'],
-                'Sitename': record['Sitename'],
-                'latitude': record['latitude'],
-                'location': record['location'],
-                'longitude': record['longitude'],
-                'beginDate': parse_date(record['beginDate']),
-                'endDate': parse_date(record['endDate']),
-            }
-    return result.values()
+        group = groups.get(record['location'])
+        if not group:
+            groups[record['location']] = [record]
+        else:
+            group.append(record)
+
+    records = []
+    for location, group in groups.iteritems():
+        records.append({
+            'serv_code': group[0]['ServCode'],
+            'serv_url': group[0]['ServURL'],
+            'location': group[0]['location'],
+            'site_name': group[0]['Sitename'],
+            'latitude': group[0]['latitude'],
+            'longitude': group[0]['longitude'],
+            'sample_mediums': ', '.join(sorted(set([r['samplemedium']
+                                                    for r in group]))),
+            'concept_keywords': '; '.join(sorted(set([r['conceptKeyword']
+                                                      for r in group]))),
+            'begin_date': min([parse_date(r['beginDate'])
+                               for r in group]),
+            'end_date': max([parse_date(r['endDate'])
+                             for r in group]),
+        })
+
+    return records
 
 
 def make_request(request, **kwargs):
@@ -191,7 +213,9 @@ def search(**kwargs):
     series = get_series_catalog_in_box(box, from_date, to_date)
     series = group_series_by_location(series)
     services = get_services_in_box(world)
-    results = parse_records(series, services)
+    results = sorted(parse_records(series, services),
+                     key=attrgetter('end_date'),
+                     reverse=True)
 
     return ResourceList(
         api_url=None,
