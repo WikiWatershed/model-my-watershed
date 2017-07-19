@@ -115,7 +115,8 @@ def search(**kwargs):
     bbox = kwargs.get('bbox')
 
     params = {
-        'f': 'json'
+        'f': 'json',
+        'sort': 'sys_modified_dt:desc',
     }
 
     if query:
