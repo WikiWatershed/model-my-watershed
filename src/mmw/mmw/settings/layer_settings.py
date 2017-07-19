@@ -193,13 +193,14 @@ LAYER_GROUPS = {
             'display': 'USGS Subbasin unit (HUC-8)',
             'short_display': 'HUC-8 Subbasin',
             'table_name': 'boundary_huc08',
-            'helptext': 'HUC stands for hydrologic unit code. The hydrologic '
-                        'unit hierarchy is indicated by the number of digits in '
-                        'groups of two (such as HUC-2, HUC-4, and HUC-6) within '
-                        'the HUC code. HUC 8 maps the subbasin level, analogous '
-                        'to medium-sized river basins. There are about 2200 '
-                        'nationwide. This tool allows you to pick a predefined '
-                        'HUC-8 to analyze.',
+            'helptext': 'US Geological Survey Hydrologic Units of the '
+                        'eight-digit level (Hydrologic Unit Code 8), averaging'
+                        ' 700 sq. mi. (1,813 km<sup>2</sup>).<br />'
+                        'For more information and data sources, see <a '
+                        'href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlay-boundary\' '
+                        'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
+                        'My Watershed Technical Documentation on Boundaries.'
+                        '</a>',
             'minZoom': 7,
             'selectable': True,
             'searchable': True,
@@ -210,13 +211,14 @@ LAYER_GROUPS = {
             'display': 'USGS Watershed unit (HUC-10)',
             'short_display': 'HUC-10 Watershed',
             'table_name': 'boundary_huc10',
-            'helptext': 'HUC stands for hydrologic unit code. The hydrologic '
-                        'unit hierarchy is indicated by the number of digits in '
-                        'groups of two (such as HUC-2, HUC-4, and HUC-6) within '
-                        'the HUC code. HUC-10 maps the watershed level, typically '
-                        'from (160-1010 square km) . There are about 22,000 '
-                        'nationwide. This tool allows you to pick a predefined '
-                        'HUC-10 to analyze.',
+            'helptext': 'US Geological Survey Hydrologic Units of the '
+                        'ten-digit level (Hydrologic Unit Code 10), averaging'
+                        ' 227 sq. mi. (588 km<sup>2</sup>).<br />'
+                        'For more information and data sources, see <a '
+                        'href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlay-boundary\' '
+                        'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
+                        'My Watershed Technical Documentation on Boundaries.'
+                        '</a>',
             'minZoom': 8,
             'selectable': True,
             'searchable': True,
@@ -228,13 +230,14 @@ LAYER_GROUPS = {
             'short_display': 'HUC-12 Subwatershed',
             'table_name': 'boundary_huc12',
             'json_field': 'geom_detailed',
-            'helptext': 'HUC stands for hydrologic unit code. The hydrologic '
-                        'unit hierarchy is indicated by the number of digits in '
-                        'groups of two (such as HUC-2, HUC-4, and HUC-6) within '
-                        'the HUC code. HUC-12 is a more local sub-watershed level '
-                        'that captures tributary systems. There are about 90,000 '
-                        'nationwide. This tool allows you to pick a predefined '
-                        'HUC-12 to analyze.',
+            'helptext': 'US Geological Survey Hydrologic Units of the '
+                        'twelve-digit level (Hydrologic Unit Code 12),'
+                        'averaging 40 sq. mi. (104 km<sup>2</sup>).<br />'
+                        'For more information and data sources, see <a '
+                        'href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlay-boundary\' '
+                        'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
+                        'My Watershed Technical Documentation on Boundaries.'
+                        '</a>',
             'minZoom': 9,
             'selectable': True,
             'searchable': True,
@@ -245,13 +248,13 @@ LAYER_GROUPS = {
             'display': 'County Lines',
             'short_display': 'County',
             'table_name': 'boundary_county',
-            'helptext': 'Counties in U.S. states are administrative divisions '
-                        'of the state in which their boundaries are drawn. 3,144 '
-                        'counties and county equivalents carve up the United '
-                        'States, ranging in quantity from 3 for Delaware to 254 '
-                        'for Texas. Where they exist, they are the intermediate '
-                        'tier of state government, between the statewide tier '
-                        'and the immediately local government tier',
+            'helptext': 'County lines for each state in the continental '
+                        'United States.<br />'
+                        'For more information and data sources, see <a '
+                        'href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlay-boundary\' '
+                        'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
+                        'My Watershed Technical Documentation on Boundaries.'
+                        '</a>',
             'minZoom': 9,
             'selectable': True,
         },
@@ -260,14 +263,14 @@ LAYER_GROUPS = {
             'display': 'Congressional Districts',
             'short_display': 'Congressional District',
             'table_name': 'boundary_district',
-            'helptext': 'There are 435 congressional districts in the United '
-                        'States House of Representatives, with each one '
-                        'representing approximately 700,000 people. In addition '
-                        'to the 435 congressional districts, the five inhabited '
-                        'U.S. territories and the federal district of Washington, '
-                        'D.C. This tool will allow you to select the boundary of '
-                        'a congressional district on which to perform water '
-                        'quality analysis.',
+            'helptext': 'Congressional Districts for the United States House '
+                        'of Representatives, for the 113th Congress: 1/3/2013'
+                        '&ndash;1/3/2015.<br />'
+                        'For more information and data sources, see <a '
+                        'href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlay-boundary\' '
+                        'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
+                        'My Watershed Technical Documentation on Boundaries.'
+                        '</a>',
             'minZoom': 6,
             'selectable': True,
         },
@@ -276,7 +279,13 @@ LAYER_GROUPS = {
             'display': 'School Districts',
             'short_display': 'School Districts',
             'table_name': 'boundary_school_district',
-            'helptext': 'U.S. school district boundaries.',
+            'helptext': 'Public School District boundaries in the '
+                        'continental United States.<br />'
+                        'For more information and data sources, see <a '
+                        'href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlay-boundary\' '
+                        'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
+                        'My Watershed Technical Documentation on Boundaries.'
+                        '</a>',
             'minZoom': 9,
             'selectable': True,
         },

@@ -535,12 +535,19 @@ MODEL_PACKAGES = [
     {
         'name': TR55_PACKAGE,
         'display_name': 'Site Storm Model',
-        'description': '',
+        'description': 'Simulates a hypothetical 24-hour storm by a hybrid of '
+                       'SLAMM, TR-55, and EPA\'s STEP-L model algorithms. '
+                       'Designed primarily for use with smaller, more '
+                       'developed areas.',
+        'help_link': 'https://wikiwatershed.org/documentation/mmw-tech/#site-storm-model',
     },
     {
         'name': GWLFE,
         'display_name': 'Watershed Multi-Year Model',
-        'description': '',
+        'description': 'Simulates 30-years of daily data by the GWLF-E '
+                       '(MapShed) model. Designed primarily for use with '
+                       'larger, more rural areas.',
+        'help_link': 'https://wikiwatershed.org/documentation/mmw-tech/#watershed-multi-year-model',
     },
 ]
 
