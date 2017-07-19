@@ -15,6 +15,7 @@ from apps.bigcz.utils import RequestTimedOutError
 
 CATALOG_NAME = 'cinergi'
 CATALOG_URL = 'http://132.249.238.169:8080/geoportal/opensearch'
+PAGE_SIZE = settings.BIGCZ_CLIENT_PAGE_SIZE
 
 
 def parse_date(value):
@@ -113,10 +114,12 @@ def search(**kwargs):
     to_date = kwargs.get('to_date')
     from_date = kwargs.get('from_date')
     bbox = kwargs.get('bbox')
+    page = kwargs.get('page')
 
     params = {
         'f': 'json',
         'sort': 'sys_modified_dt:desc',
+        'size': PAGE_SIZE,
     }
 
     if query:
@@ -130,6 +133,11 @@ def search(**kwargs):
     if bbox:
         params.update({
             'bbox': prepare_bbox(bbox)
+        })
+    if page:
+        params.update({
+            # page 1 is from 1, page 2 from 101, page 3 from 201, ...
+            'from': PAGE_SIZE * (page - 1) + 1
         })
 
     try:
