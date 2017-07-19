@@ -54,6 +54,7 @@ def search(**kwargs):
     to_date = kwargs.get('to_date')
     from_date = kwargs.get('from_date')
     bbox = kwargs.get('bbox')
+    page = kwargs.get('page')
 
     if not query:
         raise ValidationError({
@@ -73,6 +74,10 @@ def search(**kwargs):
         })
     if bbox:
         params.update(prepare_bbox(bbox))
+    if page:
+        params.update({
+            'page': page
+        })
 
     try:
         response = requests.get(CATALOG_URL,
