@@ -17,6 +17,7 @@ from utils.constants import (
     ALLOW_ALL_CIDR,
     EC2_INSTANCE_TYPES,
     HTTP,
+    HTTP_ALT,
     HTTPS,
     VPC_CIDR
 )
@@ -253,14 +254,14 @@ class VPC(StackNode):
                                           IpProtocol='tcp', CidrIp=VPC_CIDR,
                                           FromPort=p, ToPort=p
                                       )
-                                      for p in [HTTP, HTTPS]
+                                      for p in [HTTP, HTTP_ALT, HTTPS]
                                   ],
                                   SecurityGroupEgress=[
                                       ec2.SecurityGroupRule(
                                           IpProtocol='tcp',
                                           CidrIp=ALLOW_ALL_CIDR,
                                           FromPort=port, ToPort=port
-                                      ) for port in [HTTP, HTTPS]
+                                      ) for port in [HTTP, HTTP_ALT, HTTPS]
                                   ],
                                   Tags=self.get_tags(Name=nat_security_group_name)),  # NOQA
                                   'NATSecurityGroup'

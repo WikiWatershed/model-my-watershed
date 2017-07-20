@@ -3,15 +3,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
-from ast import literal_eval as make_tuple
-
 from celery import shared_task
-from celery.exceptions import Retry
 
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 
-from apps.modeling.geoprocessing import sjs_submit, sjs_retrieve
+from apps.modeling.geoprocessing import start, finish, parse
 from apps.modeling.mapshed.calcs import (day_lengths,
                                          nearest_weather_stations,
                                          growing_season,
@@ -23,7 +20,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          ls_factors,
                                          p_factors,
                                          manure_spread,
-                                         streams,
+                                         streams_from_geojson,
                                          stream_length,
                                          point_source_discharge,
                                          weather_data,
@@ -47,51 +44,6 @@ ACRES_PER_SQM = 0.000247105
 HECTARES_PER_SQM = 0.0001
 SQKM_PER_SQM = 0.000001
 NO_LAND_COVER = 'NO_LAND_COVER'
-
-
-@shared_task(bind=True, default_retry_delay=1, max_retries=42)
-def mapshed_start(self, opname, input_data):
-    host = settings.GEOP['host']
-    port = settings.GEOP['port']
-    args = settings.GEOP['args']['MapshedJob']
-
-    data = settings.GEOP['json'][opname].copy()
-    data['input'].update(input_data)
-
-    try:
-        job_id = sjs_submit(host, port, args, data, retry=self.retry)
-
-        return {
-            'host': host,
-            'port': port,
-            'job_id': job_id
-        }
-    except Retry as r:
-        raise r
-    except Exception as x:
-        return {
-            'error': x.message
-        }
-
-
-@shared_task(bind=True, default_retry_delay=1, max_retries=42)
-def mapshed_finish(self, incoming):
-    if 'error' in incoming:
-        return incoming
-
-    try:
-        return sjs_retrieve(retry=self.retry, **incoming)
-    except Retry as r:
-        # Celery throws a Retry exception when self.retry is called to stop
-        # the execution of any further code, and to indicate to the worker
-        # that the same task is going to be retried.
-        # We capture and re-raise Retry to continue this behavior, and ensure
-        # that it doesn't get passed to the next task like every other error.
-        raise r
-    except Exception as x:
-        return {
-            'error': x.message
-        }
 
 
 @shared_task
@@ -241,7 +193,7 @@ def nlcd_streams(sjs_result):
     # Parse SJS results
     # This can't be done in mapshed_finish because the keys may be tuples,
     # which are not JSON serializable and thus can't be shared between tasks
-    result = parse_sjs_result(sjs_result)
+    result = parse(sjs_result)
 
     ag_count = sum(result.get(nlcd, 0) for nlcd in AG_NLCD_CODES)
     low_urban_count = sum(result.get(nlcd, 0) for nlcd in [21, 22])
@@ -276,7 +228,7 @@ def nlcd_streams_drb(sjs_result):
     if 'error' in sjs_result:
         raise Exception('[nlcd_streams_drb] {}'.format(sjs_result['error']))
 
-    result = parse_sjs_result(sjs_result)
+    result = parse(sjs_result)
     total = sum(result.values())
 
     lu_stream_pct_drb = [0.0] * NLU
@@ -304,7 +256,7 @@ def nlcd_soils(sjs_result):
     if 'error' in sjs_result:
         raise Exception('[nlcd_soils] {}'.format(sjs_result['error']))
 
-    ngt_count = parse_sjs_result(sjs_result)
+    ngt_count = parse(sjs_result)
 
     # Raise exception if no NLCD values
     if len(ngt_count.values()) == 0:
@@ -339,7 +291,7 @@ def gwn(sjs_result):
         raise Exception('[gwn] {}'
                         .format(sjs_result['error']))
 
-    result = parse_sjs_result(sjs_result)
+    result = parse(sjs_result)
     gr_nitr_conc, gr_phos_conc = groundwater_nitrogen_conc(result)
 
     return {
@@ -359,7 +311,7 @@ def avg_awc(sjs_result):
         raise Exception('[awc] {}'
                         .format(sjs_result['error']))
 
-    result = parse_sjs_result(sjs_result)
+    result = parse(sjs_result)
 
     return {
         'avg_awc': result.values()[0]
@@ -371,7 +323,7 @@ def nlcd_slope(result):
     if 'error' in result:
         raise Exception('[nlcd_slope] {}'.format(result['error']))
 
-    result = parse_sjs_result(result)
+    result = parse(result)
 
     ag_slope_3_count = 0
     ag_slope_3_8_count = 0
@@ -415,7 +367,7 @@ def slope(result):
     if 'error' in result:
         raise Exception('[slope] {}'.format(result['error']))
 
-    result = parse_sjs_result(result)
+    result = parse(result)
 
     # average slope over the AOI
     # see Class1.vb#6252
@@ -433,7 +385,7 @@ def nlcd_kfactor(result):
     if 'error' in result:
         raise Exception('[nlcd_kfactor] {}'.format(result['error']))
 
-    result = parse_sjs_result(result)
+    result = parse(result)
 
     # average kfactor for each land use
     # see Class1.vb#6431
@@ -458,49 +410,29 @@ def nlcd_kfactor(result):
     return output
 
 
-def geop_tasks():
-    return geop_task_defs.keys()
+def geoprocessing_chains(aoi, wkaoi, exchange, errback, choose_worker):
+    worker = choose_worker()
+    task_defs = [
+        ('nlcd_soils',   nlcd_soils,   {'polygon': [aoi]}),
+        ('gwn',          gwn,          {'polygon': [aoi]}),
+        ('avg_awc',      avg_awc,      {'polygon': [aoi]}),
+        ('nlcd_slope',   nlcd_slope,   {'polygon': [aoi]}),
+        ('slope',        slope,        {'polygon': [aoi]}),
+        ('nlcd_kfactor', nlcd_kfactor, {'polygon': [aoi]}),
+        ('nlcd_streams', nlcd_streams, {'polygon': [aoi],
+                                        'vector': streams_from_geojson(aoi)}),
+    ]
 
-
-geop_task_defs = {
-    'nlcd_streams': lambda geom: (
-        'nlcd_streams',
-        {'polygon': [geom.geojson], 'vector': streams(geom)},
-        nlcd_streams),
-    'nlcd_soils': lambda geom: (
-        'nlcd_soils',
-        {'polygon': [geom.geojson]},
-        nlcd_soils),
-    'gwn': lambda geom: ('gwn', {'polygon': [geom.geojson]}, gwn),
-    'avg_awc': lambda geom: (
-        'avg_awc',
-        {'polygon': [geom.geojson]},
-        avg_awc),
-    'nlcd_slope': lambda geom: (
-        'nlcd_slope',
-        {'polygon': [geom.geojson]},
-        nlcd_slope),
-    'slope': lambda geom: (
-        'slope',
-        {'polygon': [geom.geojson]},
-        slope),
-    'nlcd_kfactor': lambda geom: (
-        'nlcd_kfactor',
-        {'polygon': [geom.geojson]},
-        nlcd_kfactor)
-}
-
-
-def geop_task(taskName, geom, exchange, errback, choose_worker):
-    (opname, data, callback) = geop_task_defs[taskName](geom)
-    geop_worker = choose_worker()
-    return (mapshed_start.s(opname, data).set(exchange=exchange,
-                                              routing_key=geop_worker) |
-            mapshed_finish.s().set(exchange=exchange,
-                                   routing_key=geop_worker) |
-            callback.s().set(link_error=errback,
-                             exchange=exchange,
-                             routing_key=choose_worker()))
+    return [
+        start.s(opname, data, wkaoi).set(exchange=exchange,
+                                         routing_key=worker) |
+        finish.s().set(exchange=exchange,
+                       routing_key=worker) |
+        callback.s().set(link_error=errback,
+                         exchange=exchange,
+                         routing_key=choose_worker())
+        for (opname, callback, data) in task_defs
+    ]
 
 
 @shared_task
@@ -514,11 +446,6 @@ def combine(geop_results):
     https://github.com/celery/celery/issues/3191
     """
     return {k: v for r in geop_results for k, v in r.items()}
-
-
-def parse_sjs_result(sjs_result):
-    # Convert string "List(1,2,3)" into tuple (1,2,3) for each key
-    return {make_tuple(key[4:]): val for key, val in sjs_result.items()}
 
 
 def get_lu_index(nlcd):

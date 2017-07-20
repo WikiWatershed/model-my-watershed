@@ -136,7 +136,7 @@ function renderHorizontalBarChart(chartEl, data, options) {
 
     options = options || {};
     _.defaults(options, {
-        margin: {top: 30, right: 30, bottom: 40, left: 200},
+        margin: {top: 30, right: 30, bottom: 40, left: 210},
         maxBarHeight: 150
     });
 

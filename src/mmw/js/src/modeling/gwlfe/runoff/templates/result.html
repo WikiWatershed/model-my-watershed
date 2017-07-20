@@ -1,8 +1,19 @@
-<p class="result-text text-muted">
-    Average monthly water fluxes in centimeters
+<div class="result-title">
+    Average monthly water fluxes (cm)
     from 30-years of daily water balance
-    simulated by the GWLF-E (MapShed) model.
+</div>
+<p class="result-description text-muted">
+    Simulated by the GWLF-E (MapShed) model <a
+        class="model-results-tooltip" data-toggle="popover" tabindex="0" data-html="true"
+        data-container="body" role="button"
+        data-content="Stream lengths presented here are for NHDplus v2 medium resolution flow lines. To make GWLF-E bank erosion calculations similar to those of the high resolution flow lines available for PA, and soon to be available nationwide with the NHDplus HR release, we used a sediment erosion adjustment factor of 1.4."
+        data-template="<div class='popover'><div class='popover-content'></div><div class='arrow'></div></div>">
+        <i class="fa fa-info-circle black"></i>
+    </a>
 </p>
 <div class="runoff-selector-region"></div>
 <div class="runoff-chart-region"></div>
 <div class="runoff-table-region"></div>
+<div class="downloadcsv-link" data-action="download-csv">
+    <i class="fa fa-download"></i> Download this data
+</div>

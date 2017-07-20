@@ -6,6 +6,7 @@ var _ = require('underscore'),
     Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     router = require('../router').router,
+    settings = require('../core/settings'),
     models = require('./models'),
     loginModalTmpl = require('./templates/loginModal.html'),
     signUpModalTmpl = require('./templates/signUpModal.html'),
@@ -28,6 +29,10 @@ var ModalBaseView = Marionette.ItemView.extend({
         'keydown input': 'handleKeyDownEvent',
         'click @ui.primary_button': 'validate',
         'click @ui.dismiss_button': 'dismissAction'
+    },
+
+    templateHelpers: {
+        'title': settings.get('title'),
     },
 
     // Initialize common routines and handlers.
@@ -192,6 +197,7 @@ var LoginModalView = ModalBaseView.extend({
     handleSuccess: function() {
         this.$el.modal('hide');
         this.app.user.set('guest', false);
+        this.model.onSuccess();
     },
 
     handleFailure: function(response) {

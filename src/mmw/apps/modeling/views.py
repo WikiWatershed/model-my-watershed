@@ -5,6 +5,11 @@ from __future__ import unicode_literals
 import json
 import random
 
+import celery
+from celery import chain, group
+
+from retry import retry
+
 from rest_framework.response import Response
 from rest_framework import decorators, status
 from rest_framework.permissions import (AllowAny,
@@ -15,20 +20,18 @@ from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
 from django.conf import settings
 from django.db import connection
-from django.contrib.gis.geos import GEOSGeometry
-from django.http import HttpResponse
+from django.contrib.gis.geos import WKBReader
+from django.http import (HttpResponse,
+                         Http404)
 from django.core.servers.basehttp import FileWrapper
-
-import celery
-from celery import chain, group
-
-from retry import retry
 
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
-from apps.modeling import tasks
-from apps.modeling.mapshed.tasks import (geop_tasks, collect_data, combine,
-                                         geop_task)
+from apps.modeling import tasks, geoprocessing
+from apps.modeling.mapshed.tasks import (geoprocessing_chains,
+                                         combine,
+                                         collect_data,
+                                         )
 from apps.modeling.models import Project, Scenario
 from apps.modeling.serializers import (ProjectSerializer,
                                        ProjectListingSerializer,
@@ -263,16 +266,15 @@ def _initiate_mapshed_job_chain(mapshed_input, job_id):
     errback = save_job_error.s(job_id).set(exchange=MAGIC_EXCHANGE,
                                            routing_key=get_worker())
 
-    geom = GEOSGeometry(json.dumps(mapshed_input['area_of_interest']),
-                        srid=4326)
+    area_of_interest, wkaoi = parse_input(mapshed_input)
 
-    job_chain = (group(
-        geop_task(t, geom, MAGIC_EXCHANGE, errback, get_worker)
-        for t in geop_tasks()) |
+    job_chain = (
+        group(geoprocessing_chains(area_of_interest, wkaoi,
+                                   MAGIC_EXCHANGE, errback, choose_worker)) |
         combine.s().set(
             exchange=MAGIC_EXCHANGE,
             routing_key=get_worker()) |
-        collect_data.s(geom.geojson).set(
+        collect_data.s(area_of_interest).set(
             link_error=errback,
             exchange=MAGIC_EXCHANGE,
             routing_key=get_worker()) |
@@ -303,18 +305,42 @@ def export_gms(request, format=None):
 
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
-def start_analyze(request, format=None):
+def start_analyze_land(request, format=None):
     user = request.user if request.user.is_authenticated() else None
-    area_of_interest = request.POST['area_of_interest']
     exchange = MAGIC_EXCHANGE
     routing_key = choose_worker()
 
+    area_of_interest, wkaoi = parse_input(request.POST['analyze_input'])
+
+    geop_input = {'polygon': [area_of_interest]}
+
     return start_celery_job([
-        tasks.start_histogram_job.s(area_of_interest)
-             .set(exchange=exchange, routing_key=routing_key),
-        tasks.get_histogram_job_results.s()
-             .set(exchange=exchange, routing_key=routing_key),
-        tasks.histogram_to_survey_census.s()
+        geoprocessing.start.s('nlcd', geop_input, wkaoi)
+                     .set(exchange=exchange, routing_key=routing_key),
+        geoprocessing.finish.s()
+                     .set(exchange=exchange, routing_key=routing_key),
+        tasks.analyze_nlcd.s(area_of_interest)
+             .set(exchange=exchange, routing_key=choose_worker())
+    ], area_of_interest, user)
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((AllowAny, ))
+def start_analyze_soil(request, format=None):
+    user = request.user if request.user.is_authenticated() else None
+    exchange = MAGIC_EXCHANGE
+    routing_key = choose_worker()
+
+    area_of_interest, wkaoi = parse_input(request.POST['analyze_input'])
+
+    geop_input = {'polygon': [area_of_interest]}
+
+    return start_celery_job([
+        geoprocessing.start.s('soil', geop_input, wkaoi)
+                     .set(exchange=exchange, routing_key=routing_key),
+        geoprocessing.finish.s()
+                     .set(exchange=exchange, routing_key=routing_key),
+        tasks.analyze_soil.s(area_of_interest)
              .set(exchange=exchange, routing_key=choose_worker())
     ], area_of_interest, user)
 
@@ -323,7 +349,7 @@ def start_analyze(request, format=None):
 @decorators.permission_classes((AllowAny, ))
 def start_analyze_animals(request, format=None):
     user = request.user if request.user.is_authenticated() else None
-    area_of_interest = request.POST['area_of_interest']
+    area_of_interest, __ = parse_input(request.POST['analyze_input'])
     exchange = MAGIC_EXCHANGE
 
     return start_celery_job([
@@ -336,7 +362,7 @@ def start_analyze_animals(request, format=None):
 @decorators.permission_classes((AllowAny, ))
 def start_analyze_pointsource(request, format=None):
     user = request.user if request.user.is_authenticated() else None
-    area_of_interest = request.POST['area_of_interest']
+    area_of_interest, __ = parse_input(request.POST['analyze_input'])
     exchange = MAGIC_EXCHANGE
 
     return start_celery_job([
@@ -349,7 +375,7 @@ def start_analyze_pointsource(request, format=None):
 @decorators.permission_classes((AllowAny, ))
 def start_analyze_catchment_water_quality(request, format=None):
     user = request.user if request.user.is_authenticated() else None
-    area_of_interest = request.POST['area_of_interest']
+    area_of_interest, __ = parse_input(request.POST['analyze_input'])
     exchange = MAGIC_EXCHANGE
 
     return start_celery_job([
@@ -361,12 +387,19 @@ def start_analyze_catchment_water_quality(request, format=None):
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
 def get_job(request, job_uuid, format=None):
-    # Get the user so that logged in users can only see jobs that they
-    # started.
     # TODO consider if we should have some sort of session id check to ensure
     # you can only view your own jobs.
+    try:
+        job = Job.objects.get(uuid=job_uuid)
+    except Job.DoesNotExist:
+        raise Http404("Not found.")
+
+    # Get the user so that logged in users can only see jobs that they started
+    # or anonymous ones
     user = request.user if request.user.is_authenticated() else None
-    job = get_object_or_404(Job, uuid=job_uuid, user=user)
+
+    if job.user and job.user != user:
+        raise Http404("Not found.")
 
     # TODO Should we return the error? Might leak info about the internal
     # workings that we don't want exposed.
@@ -451,7 +484,7 @@ def _construct_tr55_job_chain(model_input, job_id):
 
     job_chain = []
 
-    aoi = model_input.get('area_of_interest')
+    aoi, wkaoi = parse_input(model_input, geojson=False)
     aoi_census = model_input.get('aoi_census')
     modification_censuses = model_input.get('modification_censuses')
     # Non-overlapping polygons derived from the modifications
@@ -471,30 +504,36 @@ def _construct_tr55_job_chain(model_input, job_id):
        census_hash == current_hash) or not pieces)):
         censuses = [aoi_census] + modification_census_items
 
-        job_chain.append(tasks.run_tr55.s(censuses, model_input)
+        job_chain.append(tasks.run_tr55.s(censuses, aoi, model_input)
                          .set(exchange=exchange, routing_key=choose_worker()))
     else:
-        job_chain.append(tasks.get_histogram_job_results.s()
+        job_chain.append(geoprocessing.finish.s()
                          .set(exchange=exchange, routing_key=routing_key))
-        job_chain.append(tasks.histograms_to_censuses.s()
-                         .set(exchange=exchange, routing_key=routing_key))
+        job_chain.append(tasks.nlcd_soil_census.s()
+                         .set(exchange=exchange, routing_key=choose_worker()))
 
         if aoi_census and pieces:
             polygons = [m['shape']['geometry'] for m in pieces]
+            geop_input = {'polygon': [json.dumps(p) for p in polygons]}
 
-            job_chain.insert(0, tasks.start_histograms_job.s(polygons)
+            job_chain.insert(0, geoprocessing.start.s('nlcd_soil_census',
+                                                      geop_input)
                              .set(exchange=exchange, routing_key=routing_key))
-            job_chain.insert(len(job_chain),
-                             tasks.run_tr55.s(model_input,
+            job_chain.append(tasks.run_tr55.s(aoi, model_input,
                                               cached_aoi_census=aoi_census)
                              .set(exchange=exchange,
                                   routing_key=choose_worker()))
         else:
             polygons = [aoi] + [m['shape']['geometry'] for m in pieces]
+            geop_input = {'polygon': [json.dumps(p) for p in polygons]}
+            # Use WKAoI only if there are no pieces to modify the AoI
+            wkaoi = wkaoi if not pieces else None
 
-            job_chain.insert(0, tasks.start_histograms_job.s(polygons)
+            job_chain.insert(0, geoprocessing.start.s('nlcd_soil_census',
+                                                      geop_input,
+                                                      wkaoi)
                              .set(exchange=exchange, routing_key=routing_key))
-            job_chain.insert(len(job_chain), tasks.run_tr55.s(model_input)
+            job_chain.append(tasks.run_tr55.s(aoi, model_input)
                              .set(exchange=exchange,
                                   routing_key=choose_worker()))
 
@@ -504,30 +543,114 @@ def _construct_tr55_job_chain(model_input, job_id):
     return job_chain
 
 
+def _get_boundary_layer_by_code(code):
+    for layer in settings.LAYER_GROUPS['boundary']:
+        if layer.get('code') == code:
+            return layer
+    return False
+
+
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
 def boundary_layer_detail(request, table_code, obj_id):
-    try:
-        layers = [layer for layer in settings.LAYERS
-                  if layer.get('code') == table_code and
-                  layer.get('boundary')]
-        table_name = layers[0]['table_name']
-        json_field = layers[0].get('json_field', 'geom')
+    geojson = get_layer_shape(table_code, obj_id)
 
-        query = 'SELECT {field} FROM {table} WHERE id = %s'.format(
-                field=json_field, table=table_name)
-    except (KeyError, IndexError):
+    if geojson:
+        return Response(json.loads(geojson))
+    else:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    with connection.cursor() as cursor:
-        cursor.execute(query, [int(obj_id)])
-        row = cursor.fetchone()
 
-        if row:
-            geojson = json.loads(GEOSGeometry(row[0]).geojson)
-            return Response(geojson)
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+def _get_boundary_search_query(search_term):
+    """
+    Return raw SQL query to perform full text search against
+    all searchable boundary layers.
+    """
+    select_fmt = """
+        (SELECT id, '{code}' AS code, name, {rank} AS rank,
+            ST_Centroid(geom) as center
+        FROM {table}
+        WHERE UPPER(name) LIKE UPPER(%(term)s)
+        LIMIT 3)
+    """.strip()
+
+    selects = []
+    for layer in settings.LAYER_GROUPS['boundary']:
+        if not layer.get('searchable'):
+            continue
+
+        code = layer['code']
+        table_name = layer['table_name']
+        rank = layer.get('search_rank', 0)
+
+        selects.append(select_fmt.format(
+            code=code, table=table_name, rank=rank))
+
+    if len(selects) == 0:
+        raise Exception('No boundary layers are searchable')
+
+    subquery = ' UNION ALL '.join(selects)
+
+    return """
+        SELECT id, code, name, rank, center
+        FROM ({}) AS subquery
+        ORDER BY rank DESC, name
+    """.format(subquery)
+
+
+def _do_boundary_search(search_term):
+    """
+    Execute full text search against all searchable boundary layers.
+    """
+    result = []
+    query = _get_boundary_search_query(search_term)
+
+    with connection.cursor() as cursor:
+        wildcard_term = '%{}%'.format(search_term)
+        cursor.execute(query, {'term': wildcard_term})
+
+        wkb_r = WKBReader()
+
+        for row in cursor.fetchall():
+            id = row[0]
+            code = row[1]
+            name = row[2]
+            rank = row[3]
+            point = wkb_r.read(row[4])
+
+            layer = _get_boundary_layer_by_code(code)
+
+            result.append({
+                'id': id,
+                'code': code,
+                'text': name,
+                'label': layer['short_display'],
+                'rank': rank,
+                'y': point.y,
+                'x': point.x,
+            })
+
+    return result
+
+
+def _boundary_search_context(search_term):
+    suggestions = [] if len(search_term) < 3 else \
+        _do_boundary_search(search_term)
+    # Data format should match the ArcGIS API suggest endpoint response
+    return {
+        'suggestions': suggestions,
+    }
+
+
+@decorators.api_view(['GET'])
+@decorators.permission_classes((AllowAny, ))
+def boundary_layer_search(request):
+    search_term = request.query_params.get('text')
+    if not search_term:
+        return Response('Missing query string param: text',
+                        status=status.HTTP_400_BAD_REQUEST)
+    result = _boundary_search_context(search_term)
+    return Response(result)
 
 
 @decorators.api_view(['GET'])
@@ -606,3 +729,80 @@ def start_celery_job(task_list, job_input, user=None,
             'status': 'started',
         }
     )
+
+
+def get_layer_shape(table_code, id):
+    """
+    Fetch shape of well known area of interest.
+
+    :param table_code: Code of table
+    :param id: ID of the shape
+    :return: GeoJSON of shape if found, None otherwise
+    """
+    layer = _get_boundary_layer_by_code(table_code)
+    if not layer:
+        return None
+
+    table = layer['table_name']
+    field = layer.get('json_field', 'geom')
+
+    sql = '''
+          SELECT ST_AsGeoJSON({field})
+          FROM {table}
+          WHERE id = %s
+          '''.format(field=field, table=table)
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [int(id)])
+        row = cursor.fetchone()
+
+        if row:
+            return row[0]
+        else:
+            return None
+
+
+def parse_input(model_input, geojson=True):
+    """
+    Parse input into tuple of AoI JSON and WKAoI id.
+
+    If the input has an 'area_of_interest' key, it is returned as the AoI JSON
+    and None as the WKAoI. If the input has a 'wkaoi' key, its shape is pulled
+    from the appropriate database, and returned with the value of 'wkaoi' as
+    the WKAoI.
+
+    If the geojson parameter is set to False, the area of interest is returned
+    as a dict instead of a JSON string.
+    """
+    if not model_input:
+        return Response('model_input cannot be empty',
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    if isinstance(model_input, basestring):
+        # Input is string, assumed JSON. Convert to dict before proceeding
+        model_input = json.loads(model_input)
+
+    if 'area_of_interest' in model_input:
+        # Area of Interest is expected to be GeoJSON in 4326
+        shape = geoprocessing.to_one_ring_multipolygon(
+            model_input['area_of_interest']
+        )
+
+        result = json.dumps(shape) if geojson else shape
+        return result, None
+
+    if 'wkaoi' in model_input:
+        # WKAoI is expected to be in the format '{table}__{id}'
+        table, id = model_input['wkaoi'].split('__')
+        shape = get_layer_shape(table, id)
+
+        if shape:
+            result = shape if geojson else json.loads(shape)
+            return result, model_input['wkaoi']
+        else:
+            return Response('Invalid wkaoi: {}'.format(model_input['wkaoi']),
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    # If neither 'area_of_interest' nor 'wkaoi' were found, report
+    return Response('model_input must have either area_of_interest or wkaoi',
+                    status=status.HTTP_400_BAD_REQUEST)

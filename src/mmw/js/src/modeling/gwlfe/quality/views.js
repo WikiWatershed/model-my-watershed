@@ -4,12 +4,18 @@ var $ = require('jquery'),
     _ = require('underscore'),
     Marionette = require('../../../../shim/backbone.marionette'),
     resultTmpl = require('./templates/result.html'),
-    tableTmpl = require('./templates/table.html');
+    tableTmpl = require('./templates/table.html'),
+    utils = require('../../../core/utils.js'),
+    constants = require('./constants');
 
 var ResultView = Marionette.LayoutView.extend({
     className: 'tab-pane',
 
     template: resultTmpl,
+
+    ui: {
+        tooltip: 'a.model-results-tooltip'
+    },
 
     regions: {
         tableRegion: '.quality-table-region',
@@ -27,6 +33,7 @@ var ResultView = Marionette.LayoutView.extend({
     onShow: function() {
         var result = this.model.get('result');
         this.tableRegion.reset();
+        this.activateTooltip();
 
         if (result && result.Loads) {
             if (!this.compareMode) {
@@ -35,11 +42,32 @@ var ResultView = Marionette.LayoutView.extend({
                 }));
             }
         }
+    },
+
+    onRender: function() {
+        this.activateTooltip();
+    },
+
+    activateTooltip: function() {
+        this.ui.tooltip.popover({
+            placement: 'top',
+            trigger: 'focus'
+        });
     }
 });
 
 var TableView = Marionette.CompositeView.extend({
     template: tableTmpl,
+
+    ui: {
+        downloadLoadsCSV: '[data-action="download-csv-granular"]',
+        downloadSummaryLoadsCSV: '[data-action="download-csv-summary"]'
+    },
+
+    events: {
+        'click @ui.downloadLoadsCSV': 'downloadCSVGranular',
+        'click @ui.downloadSummaryLoadsCSV': 'downloadCSVSummary'
+    },
 
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
@@ -78,6 +106,27 @@ var TableView = Marionette.CompositeView.extend({
                 landUseTable: 1,
             },
         };
+    },
+
+    downloadCSVGranular: function() {
+        var data = this.model.get('result').Loads,
+            prefix = 'mapshed_water_quality_loads_',
+            nameMap = constants.waterQualityLoadsCSVColumnMap;
+        this.downloadCSV(data, prefix, nameMap);
+    },
+
+    downloadCSVSummary: function() {
+        var data = this.model.get('result').SummaryLoads,
+            prefix = 'mapshed_water_quality_summary_loads_',
+            nameMap = constants.waterQualitySummaryLoadsCSVColumnMap;
+        this.downloadCSV(data, prefix, nameMap);
+    },
+
+    downloadCSV: function(data, filePrefix, nameMap) {
+        var timestamp = new Date().toISOString(),
+            filename = filePrefix + timestamp,
+            renamedData = utils.renameCSVColumns(data, nameMap);
+        utils.downloadDataCSV(renamedData, filename);
     }
 });
 

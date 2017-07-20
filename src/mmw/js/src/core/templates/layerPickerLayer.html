@@ -1,0 +1,19 @@
+<div class="layerpicker-layer">
+    <button
+        class="{{layerClass}}"
+        {% if isDisabled %} disabled {% endif %}
+    >
+        {{ layerDisplay }}
+    </button>
+    {% if not isDisabled and legendMapping %}
+        <a
+            tabindex="-1"
+            role="button"
+            data-html="true"
+            data-toggle="popover"
+            class="layerpicker-info"
+            data-layer-help-icon="{{layerDisplay}}"
+        >
+        </a>
+    {% endif %}
+</div>

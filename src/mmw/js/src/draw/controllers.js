@@ -3,62 +3,54 @@
 var App = require('../app'),
     geocoder = require('../geocode/views'),
     views = require('./views'),
-    coreModels = require('../core/models'),
-    coreViews = require('../core/views'),
     settings = require('../core/settings'),
     modelingModels = require('../modeling/models'),
+    models = require('./models'),
+    _ = require('underscore'),
+    utils = require('../core/utils'),
     models = require('./models');
 
-
 var DrawController = {
-    drawPrepare: function() {
-        App.map.revertMaskLayer();
-        if (!App.map.get('areaOfInterest')) {
-            App.map.setDrawSize(true);
-        }
-    },
+    drawPrepare: prepareView,
 
     draw: function() {
         var geocodeSearch = new geocoder.GeocoderView(),
-            toolbarModel = new models.ToolbarModel(),
-            toolbarView = new views.ToolbarView({
-                model: toolbarModel
-            });
+            toolbarModel = new models.ToolbarModel();
 
-        toolbarModel.set('predefinedShapeTypes', settings.get('boundary_layers'));
+        toolbarModel.set('predefinedShapeTypes',
+            _.filter(settings.get('boundary_layers'), { selectable: true }));
 
         App.rootView.geocodeSearchRegion.show(geocodeSearch);
-        App.rootView.drawToolsRegion.show(toolbarView);
+        App.rootView.sidebarRegion.show(new views.DrawWindow({
+            model: toolbarModel
+        }));
 
         enableSingleProjectModeIfActivity();
 
-        var aoiView = new coreViews.AreaOfInterestView({
-                id: 'aoi-header-wrapper',
-                App: App,
-                model: new coreModels.AreaOfInterestModel({
-                    can_go_back: false,
-                    next_label: 'Analyze',
-                    url: 'analyze',
-                    shape: App.map.get('areaOfInterest'),
-                    place: App.map.get('areaOfInterestName')
-                })
-        });
-
-        App.rootView.footerRegion.show(aoiView);
-
-        if (App.map.get('areaOfInterest')) {
-            App.map.setDrawWithBarSize(true);
-        }
-
-        App.state.set('current_page_title', 'Choose Area of Interest');
+        App.map.setDrawSize();
+        App.state.set('active_page', utils.selectAreaPageTitle);
     },
 
     drawCleanUp: function() {
         App.rootView.geocodeSearchRegion.empty();
-        App.rootView.drawToolsRegion.empty();
         App.rootView.footerRegion.empty();
+    },
+
+    splashPrepare: prepareView,
+
+    splash: function() {
+        App.rootView.geocodeSearchRegion.show(new geocoder.GeocoderView());
+        App.rootView.sidebarRegion.show(new views.SplashWindow());
+        App.map.setDrawSize();
+        App.state.set({
+            'active_page': utils.splashPageTitle,
+        });
     }
 };
+
+function prepareView() {
+    App.map.revertMaskLayer();
+}
 
 /**
  * If we are in embed mode then the project is an activity and we want to keep

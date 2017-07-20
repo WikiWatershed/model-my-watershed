@@ -24,11 +24,13 @@
 
     li {
 
-      a {
+      a,
+      .scenario-dropdown-menu-item,
+      .scenario-options-dropdown-menu-item {
         color: $black-74;
         line-height: $height-md;
         padding: 0 0.5rem;
-        font-size: 0.7rem;
+        font-size: $font-size-h5;
         text-transform: capitalize!important;
 
         &:not(.disabled) {
@@ -107,6 +109,7 @@
 
 //Drawing Tools Dropdown
 .thumb-select {
+  white-space: normal;
   padding: 0!important;
   min-width: 200px;
 
@@ -129,7 +132,7 @@
     li {
       float: left;
       display: block;
-      width: 60px;
+      width: 70px;
       margin-bottom: 0.2rem;
       transition: all 0.4s ease-out;
       margin-right: 1rem;
@@ -142,8 +145,10 @@
 
       .thumb {
         height: 60px;
+        width: 60px;
+        position: relative;
+        left: 5px;
         border: solid 2px transparent;
-        background-color: $ui-light;
         margin-bottom: 0.2rem;
         display: block;
 
@@ -168,4 +173,127 @@
 
 .modification-dropdown {
   z-index: 1002;
+  white-space: normal;
+}
+
+.project-dropdown,
+.project-dropdown:hover,
+.project-dropdown:focus {
+    font-size: $font-size-h2;
+    font-weight: 400;
+    color: $paper;
+    background-color: transparent;
+    padding-left: 0px;
+    margin: 0;
+    max-width: 25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: none;
+}
+
+.scenario-dropdown, .scenario-dropdown:disabled {
+    opacity: 1;
+    font-size: $font-size-h3;
+    font-weight: 800;
+    color: $ui-primary;
+    background-color: transparent;
+    padding-left: 0;
+    position: relative;
+    top: -1px;
+}
+
+.scenario-dropdown > i,
+.project-dropdown > i {
+    margin-left: 4px;
+    font-size: 12px;
+}
+
+.scenario-dropdown-menu-item {
+    width: 300px;
+    height: 100%;
+    .-active {
+        color: $brand-primary;
+    }
+}
+.scenario-dropdown-menu-item > #scenario-name {
+    text-transform: initial;
+    display: block;
+}
+
+.scenario-dropdown-menu-item > .scenario-dropdown-actions {
+    float: right;
+    clear: right;
+    > i {
+        font-size: $font-size-h4;
+        line-height: 35px;
+        margin-left: 2px;
+        margin-right: 0px !important;
+        padding: 0rem 5px;
+        &:hover {
+            color: $ui-primary !important;
+        }
+    }
+
+    &.-open > i {
+        background: $black-12;
+        margin-top: 7px;
+        margin-bottom: 0px;
+        height: 22px;
+        padding: 0px 5px;
+        line-height: 22px;
+    }
+
+    // This icon doesn't look in line with the other at the same line-height
+    > i.fa.fa-pencil-square-o {
+        line-height: 36px;
+    }
+
+    #export-gms-form {
+        display: none;
+    }
+
+    .scenario-options-dropdown {
+        float: right;
+        display: inline;
+        // Bootstrap lines this sub dropdown up under the more-options icon
+        // Push it to the side of the dropdown item
+        left: 31px;
+        top: -25px;
+    }
+}
+
+.select-model-dropdown {
+    width: 320px;
+    padding: 1.6rem;
+    > .select-model-dropdown-header {
+        margin-bottom: 12px;
+    }
+    > p {
+        font-size: $font-size-p;
+        margin-bottom: 12px;
+    }
+    .select-model-dropdown-menu-item {
+        margin-bottom: 6px;
+        background-color: $ui-light;
+        border-radius: $radius-sm!important;
+
+        > .analyze-model-package-link {
+            white-space: normal;
+            padding: 1rem;
+            > .analyze-model-name {
+                font-size: $font-size-h4;
+                color: $ui-primary;
+                font-weight: 600;
+            }
+            > p {
+                font-size: $font-size-h5;
+                color: $ui-grey;
+            }
+        }
+    }
+}
+
+#draw-pane-buttons .dropdown-menu .divider {
+  margin: 6px 0;
 }

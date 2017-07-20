@@ -1,0 +1,24 @@
+{% if not isDisabled %}
+    {% if message %}
+        <div class="analyze-layermessage">
+            {{ message }}
+        </div>
+    {% else %}
+        <button class="analyze-layertoggle">
+                Related Layer: {{ layerDisplay }}
+                <div class="on-off-toggle">
+                    {% if isLayerOn %}
+                        <i class="fa fa-times" aria-hidden="true"></i>
+                        Turn off
+                    {% else %}
+                        <i class="fa fa-check" aria-hidden="true"></i>
+                        Turn on
+                    {% endif %}
+                </div>
+        </button>
+    {% endif %}
+{% else %}
+    <span class="analyze-layertoggle">
+        No layers available for this area
+    </span>
+{% endif %}

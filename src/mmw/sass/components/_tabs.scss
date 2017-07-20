@@ -5,66 +5,91 @@
 #scenario-wrapper {
   position: relative;
   width: 100%;
+}
 
-  .nav-tabs {
-    font-weight: 500;
-    font-size: 0.6rem;
-    border-bottom: none!important;
-    background-color: $ui-secondary;
-    bottom: 0;
+.sidebar-tab-header-label {
+    position: relative;
+    &:after {
+        position: absolute;
+        left: 0;
+        content: "";
+        border-bottom: 2px solid transparent;
+        padding-bottom: 0px;
+        top: 0;
+        height: $analyze-tab-height;
+        line-height: $analyze-tab-height;
+        width: 100%;
+        margin-top: 2px;
+    }
+}
+
+.sidebar-tab-header-label-icon {
+    color: rgba(0, 0, 0, 0.54);
+    margin-right: 8px;
     position: absolute;
-    left: 8px;
+    bottom: 2px;
+    height: auto;
+    text-align: center;
+    width: 100%;
+    font-size: 8px;
+}
 
-    li a {
-      border-radius: 0!important;
-      border-top: none!important;
-      border-left: none!important;
-      border-right: none!important;
-      text-transform: uppercase;
+.model-stage-results-tab-pane {
+    .nav-tabs {
+        background-color: $paper;
     }
-
-    li.active > a {
-      color: $ui-secondary;
-      background-color: #D0D0D0
+    .tab-content {
+    // Set a specific height to allow y-scroll:
+    // Calc: height under the main header (height-lg), project header, model-toolbar,
+    // (height-xl) and sidebar nav tabs (sidebar-nav-tabs)
+      height: calc(100% - #{$height-xl} * 2 - #{$height-lg} - #{$sidebar-header-height}) !important;
     }
+}
 
-    li > a {
-      color: $ui-secondary;
-      padding: 0 1.8rem 0 0.8rem;
-      line-height: $height-md;
-      margin-right: 2px;
-      background-color: $paper-54;
 
-      &:hover {
-        background-color: $ui-light;
-        border-radius: 0!important;
-        color: $ui-secondary;
-      }
+.analyze-stage-results-tab-pane {
+    .tab-content {
+    // Set a specific height to allow y-scroll:
+    // Calc height under the main header (height-lg), aoi region (aoi-header-height),
+    // and analyze nav tabs (sidebar-header-height)
+    // and above the next-stage-region (2*height-lg).
+      height: calc(100% - #{$height-lg} * 3 - #{$aoi-header-height} - #{$sidebar-header-height}) !important;
     }
-  }
 }
 
 //Model Output Tabs
 .output-tabs-wrapper {
-  position: absolute;
-  left: 0;
-  top: $sidebar-tab-subheader-height;
-  right: 0;
-  bottom: 0;
-
   .nav-tabs {
-    font-weight: 500;
-    font-size: 0.6rem;
-    border-bottom: 3px solid $black-12;
-    background-color: transparent;
-    background-color: $black-06;
+    font-weight: 400;
+    font-size: $font-size-h5;
+    border-bottom: 1px solid $black-12;
 
     li a {
       border-radius: 0!important;
       border-top: none!important;
       border-left: none!important;
       border-right: none!important;
-      text-transform: uppercase;
+    }
+
+    li > a {
+      color: $ui-secondary;
+      padding: 0 0.7rem;
+      line-height: 42px;
+      background-color: transparent;
+      height: 42px;
+
+      i {
+        color: $black-54;
+        position: relative;
+        top: 1.4rem;
+        font-size: 0.8rem;
+      }
+
+      &:hover, &:focus {
+        border-radius: 0!important;
+        color: $ui-secondary;
+        background-color: transparent;
+      }
     }
 
     li.active > a {
@@ -77,34 +102,13 @@
         }
       }
     }
-
-    li > a {
-      color: $ui-secondary;
-      padding: 0 0.85rem;
-      line-height: $sidebar-tab-subheader-height;
-      background-color: transparent;
-      height: $sidebar-tab-subheader-height;
-
-      i {
-        color: $black-54;
-        position: relative;
-        top: 0.85rem;
-      }
-
-      &:hover, &:focus {
-        border-radius: 0!important;
-        color: $ui-secondary;
-        background-color: transparent;
-      }
-    }
   }
 
   .tab-content {
     position: absolute;
-    top: 62px;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    padding: 1rem;
+    overflow-y: auto;
+    width: $sidebar-width;
 
     img {
       width: 100%;
@@ -116,6 +120,9 @@
       width: 100%;
     }
   }
+  .tab-pane {
+      padding-bottom: 1rem;
+  }
 }
 
 //Compare Scenario Tabs
@@ -125,7 +132,7 @@
 
   .nav-tabs {
     font-weight: 500;
-    font-size: 0.6rem;
+    font-size: $font-size-h4;
     border-bottom: none!important;
     background-color: $ui-secondary;
 
@@ -154,6 +161,84 @@
         background-color: $paper-12;
         border-radius: 0!important;
         color: $paper;
+      }
+    }
+  }
+}
+
+// Model Stage: Analyze - Model Toggle tabs
+.model-analyze-toggle-tab-header {
+    display: inline-block;
+    margin-left: 12px;
+    .nav-tabs {
+        height: auto;
+        border-bottom: 0;
+        background-color: $black-06;
+    }
+    .nav-tabs > li.active > a,
+    .nav-tabs > li.active > a:hover,
+    .nav-tabs > li.active > a:focus {
+        background-color: $brand-primary;
+        border-radius: 0;
+        border: 0;
+        font-weight: 800;
+        color: $paper;
+    }
+    .nav-tabs > li {
+        margin-bottom: -1px;
+        float: left;
+        top: 6px;
+        position: relative;
+        box-shadow: $box-shadow-primary;
+        &:first-child {
+            a {
+                float: right;
+                border-radius: 3px 0 0 3px;
+                width: 9.3rem;
+                transition: none;
+            }
+        }
+        &:last-child {
+            a {
+                float: left;
+                border-radius: 0 3px 3px 0;
+                width: 8rem;
+                transition: none;
+            }
+        }
+    }
+
+    .nav-tabs > li > a {
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+        border: 0;
+        background-color: $ui-secondary;
+        padding-top: 0;
+        font-size: $font-size-h4;
+        font-weight: lighter;
+        text-align: center;
+        color: $paper;
+        height: 30px;
+        line-height: 30px;
+        padding-left: 17px;
+        padding-right: 17px;
+    }
+}
+
+#sidebar {
+  .nav-tabs {
+    padding: 0 1rem;
+    li {
+      &:first-child {
+        a {
+          padding-left: 0;
+        }
+      }
+      &:last-child {
+        a {
+          padding-right: 0;
+        }
       }
     }
   }

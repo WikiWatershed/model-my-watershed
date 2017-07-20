@@ -10,12 +10,17 @@ module.exports = L.Control.extend({
         position: 'bottomright'
     },
 
+    initialize: function(options) {
+        this.mapModel = options.model;
+    },
+
     onAdd: function() {
-        return new SidebarToggleControlButton({}).render().el;
+        return new SidebarToggleControlButton({ model: this.mapModel }).render().el;
     }
 });
 
 var SidebarToggleControlButton = Marionette.ItemView.extend({
+    // model: MapModel,
     template: sidebarToggleControlButtonTmpl,
     className: 'leaflet-control leaflet-control-sidebar-toggle',
 
@@ -29,18 +34,17 @@ var SidebarToggleControlButton = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         return {
-            hidden: this.$sidebar.hasClass('hidden-sidebar')
+            hidden: this.$sidebar.hasClass('hidden')
         };
     },
 
     initialize: function() {
         this.$sidebar = $('#sidebar');
-        this.$mapContainer = $('body>div.map-container');
     },
 
     toggle: function() {
-        this.$sidebar.toggleClass('hidden-sidebar');
-        this.$mapContainer.toggleClass('hidden-sidebar');
+        this.$sidebar.toggleClass('hidden');
+        this.model.toggleSidebar();
 
         this.render();
     }

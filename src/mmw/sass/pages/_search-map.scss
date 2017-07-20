@@ -2,8 +2,10 @@
 #search-map {
   position: absolute;
   top: 0;
-  z-index: 100;
-  padding: 1rem;
+  right: 0;
+  z-index: 600;
+  padding: 0.7rem;
+  padding-right: $map-controls-margin;
 
   @media(max-width: 1200px) {
     max-width: 595px;
@@ -18,11 +20,11 @@
   }
 
   .search-icon {
-    font-size: 0.8rem;
+    font-size: $font-size-p;
     color: $black-54;
     position: absolute;
-    top: 30px;
-    left: 293px;
+    top: 17px;
+    right: 20px;
 
     &.empty {
       color: $black-24;
@@ -39,10 +41,10 @@
     background-color: $black-54;
     border-radius: 2px;
     box-shadow: 0 0 6px $black-74;
-    font-size: 0.7rem;
+    font-size: $font-size-h4;
     padding: 0.5rem 1rem;
     margin-top: 6px;
-    width: 300px;
+    width: $search-width;
 
     &.dismiss {
       float: right;
@@ -53,44 +55,50 @@
   }
 }
 
-#aoi-header-wrapper {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: $paper;
-  z-index: 100;
-  width: 100%;
-}
-
 #geocode-search-results-region {
   position: absolute;
+  right: $map-controls-margin;
+  border-radius: 2px;
+  box-shadow: 0 0 6px $black-74;
+  font-size: $font-size-h4;
+  color: $black-54;
+  background-color: $paper;
+  margin-top: 6px;
+  min-width: $search-width;
+  max-height: 600px;
+  overflow: hidden;
+  overflow-y: auto;
+  z-index: 700;
+
+  & .geocode-suggestions {
+    padding-top: 0.3rem;
+  }
+
+  h1 {
+    margin: 0.6rem 0.5rem 0.3rem;
+    border-bottom: 1px solid #ccc;
+    font-size: $font-size-h4;
+    color: #333;
+    text-transform: uppercase;
+    padding-bottom: 0.3rem;
+  }
 
   ul {
     list-style-type: none;
-    position: absolute;
-    border-radius: 2px;
-    box-shadow: 0 0 6px $black-74;
-    font-size: 0.8rem;
-    padding: 0.5rem 0;
-    color: $black-54;
-    background-color: $paper;
-    margin-top: 6px;
-    min-width: 300px;
-    z-index: 10;
+    margin: 0;
+    padding: 0;
+
     & > li {
       cursor: pointer;
-      padding: 0.5rem 1rem;
-      border-bottom: solid 1px $black-12;
-
-      &:last-child {
-        border: none;
-      }
+      padding: 0.2rem 0.5rem;
 
       &:hover {
         color: $ui-primary;
       }
     }
   }
+}
 
+.boundary-suggestions {
+  padding-bottom: 0.3rem;
 }

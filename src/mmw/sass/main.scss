@@ -5,7 +5,7 @@
  * Google Font Library
  * Only used if not called in head
  */
-@import url(https://fonts.googleapis.com/css?family=Roboto:400,500,700,900,300,400italic);
+@import url(https://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic);
 
 /**
  * Vendor style importing
@@ -14,7 +14,9 @@
  */
 @import
   "animate",
-  "bootstrap";
+  "bootstrap",
+  "../fonts/fontello/css/mmw.css",
+  "../fonts/fontello/css/animation.css";
 
 /**
  * All sass tools, utilities and helpers
@@ -59,16 +61,21 @@
   "components/slider-native",
   "components/tables",
   "components/observations",
-  "components/sidebar";
+  "components/sidebar",
+  "components/global-navigation",
+  "components/layerpicker",
+  "components/slider";
 
 /**
  * Pages
  */
 @import
   "pages/search-map",
+  "pages/draw",
   "pages/analyze",
   "pages/model",
   "pages/compare",
   "pages/projects",
   "pages/water-balance",
-  "pages/registration";
+  "pages/registration",
+  "pages/data-catalog";

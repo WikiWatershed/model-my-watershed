@@ -93,6 +93,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Path to RWD data (ex. /media/passport/rwd-nhd)
     worker.vm.synced_folder ENV.fetch("RWD_DATA", "/tmp"), "/opt/rwd-data"
 
+    # AWS
+    worker.vm.synced_folder "~/.aws", "/aws"
+
     # Docker
     worker.vm.network "forwarded_port", {
       guest: 2375,

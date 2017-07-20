@@ -119,6 +119,7 @@ var CompareScenarioView = Marionette.LayoutView.extend({
 
     onShow: function() {
         this.mapModel = new coreModels.MapModel({});
+        this.LayerTabCollection = new coreModels.LayerTabCollection();
         this.mapModel.set({
             'areaOfInterest': this.projectModel.get('area_of_interest'),
             'areaOfInterestName': this.projectModel.get('area_of_interest_name')
@@ -128,9 +129,10 @@ var CompareScenarioView = Marionette.LayoutView.extend({
             el: $(this.el).find('.map-container').get(),
             addZoomControl: false,
             addLocateMeButton: false,
-            addLayerSelector: false,
+            addSidebarToggleControl: false,
             showLayerAttribution: false,
-            initialLayerName: App.getMapView().getActiveBaseLayerName(),
+            initialLayerName: App.getLayerTabCollection().getCurrentActiveBaseLayerName(),
+            layerTabCollection: this.LayerTabCollection,
             interactiveMode: false
         });
 
@@ -249,7 +251,7 @@ var CompareModelingView = Marionette.LayoutView.extend({
 
         // TODO this needs to be generalized if we want the compare view
         // to work with GWLF-E
-        this.controlsRegion.show(new modelingViews.Tr55ToolbarTabContentView({
+        this.controlsRegion.show(new modelingViews.Tr55ToolbarView({
             model: this.model,
             collection: controls,
             compareMode: true

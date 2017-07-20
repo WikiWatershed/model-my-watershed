@@ -20,6 +20,7 @@ from utils.constants import (
     EC2_INSTANCE_TYPES,
     GRAPHITE,
     HTTP,
+    HTTP_ALT,
     HTTPS,
     POSTGRESQL,
     REDIS,
@@ -159,7 +160,7 @@ class Application(StackNode):
         self.app_server_auto_scaling_schedule_start_recurrence = self.add_parameter(  # NOQA
             Parameter(
                 'AppServerAutoScalingScheduleStartRecurrence', Type='String',
-                Default='0 13 * * 1-5',
+                Default='0 12 * * 1-5',
                 Description='Application server ASG schedule start recurrence'
             ), 'AppServerAutoScalingScheduleStartRecurrence')
 
@@ -173,7 +174,7 @@ class Application(StackNode):
         self.app_server_auto_scaling_schedule_end_recurrence = self.add_parameter(  # NOQA
             Parameter(
                 'AppServerAutoScalingScheduleEndRecurrence', Type='String',
-                Default='0 1 * * *',
+                Default='0 0 * * *',
                 Description='Application server ASG schedule end recurrence'
             ), 'AppServerAutoScalingScheduleEndRecurrence')
 
@@ -331,7 +332,7 @@ class Application(StackNode):
                     IpProtocol='tcp', CidrIp=ALLOW_ALL_CIDR, FromPort=p,
                     ToPort=p
                 )
-                for p in [HTTP, HTTPS]
+                for p in [HTTP, HTTP_ALT, HTTPS]
             ],
             Tags=self.get_tags(Name=app_server_security_group_name)
         ))

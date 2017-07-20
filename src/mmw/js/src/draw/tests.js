@@ -3,6 +3,7 @@
 require('../core/setup');
 
 var $ = require('jquery'),
+    _ = require('underscore'),
     L = require('leaflet'),
     assert = require('chai').assert,
     sinon = require('sinon'),
@@ -53,28 +54,52 @@ describe('Draw', function() {
         testUtils.resetApp(App);
     });
 
-    describe('ToolbarView', function() {
+    describe('DrawWindow', function() {
         // Setup the toolbar controls, enable/disable them, and verify
         // the correct CSS classes are applied.
-        it('enables/disables toolbar controls when the model enableTools/disableTools methods are called', function() {
+        it('open draw-tool-selection in correct place when activeDrawToolItem is set ', function() {
             var sandbox = new SandboxRegion(),
                 $el = sandbox.$el,
                 model = new models.ToolbarModel(),
-                view = new views.ToolbarView({
+                view = new views.DrawWindow({
                     model: model
                 });
 
-            sandbox.show(view);
-            populateSelectAreaDropdown($el, model);
+            model.set('predefinedShapeTypes', [
+                {
+                    code: 'huc8',
+                    display: 'title',
+                    helptext: 'helptext',
+                    minZoom: 0
+                }
+            ]);
 
-            // Nothing should be disabled at this point.
-            // Test that toggling the `toolsEnabled` property on the model
-            // will disable all drawing tools.
-            assert.equal($el.find('.disabled').size(), 0);
-            model.disableTools();
-            assert.equal($el.find('.disabled').size(), 3);
-            model.enableTools();
-            assert.equal($el.find('.disabled').size(), 0);
+            sandbox.show(view);
+            assertDrawToolIsVisible($el, null);
+
+            model.set({
+                activeDrawTool: views.selectBoundary,
+                activeDrawToolItem: 'huc8'
+            });
+            assertDrawToolIsVisible($el, '#select-boundary-region');
+
+            model.set({
+                activeDrawTool: views.drawArea,
+                activeDrawToolItem: views.freeDraw
+            });
+            assertDrawToolIsVisible($el, '#draw-area-region');
+
+            model.set({
+                activeDrawTool: views.delineateWatershed,
+                activeDrawToolItem: utils.DRB,
+            });
+            assertDrawToolIsVisible($el, '#watershed-delineation-region');
+
+            model.set({
+                activeDrawTool: null,
+                activeDrawToolItem: null
+            });
+            assertDrawToolIsVisible($el, null);
         });
 
         it('adds an AOI to the map after calling getShapeAndAnalyze', function(done) {
@@ -119,7 +144,7 @@ describe('Draw', function() {
             var setup = setupResetTestObject();
 
             App.map.set('areaOfInterest', TEST_SHAPE);
-            setup.resetRegion.currentView.resetDrawingState();
+            setup.view.resetDrawingState();
 
             assert.isNull(App.map.get('areaOfInterest',
                                       'Area of Interest was not removed on reset from the map'));
@@ -141,7 +166,7 @@ describe('Draw', function() {
             assert.equal(ofg.getLayers().length, 1);
 
             setup.model.set('outlineFeatureGroup', ofg);
-            setup.resetRegion.currentView.resetDrawingState();
+            setup.view.resetDrawingState();
             assert.equal(ofg.getLayers().length, 0,
                          'Boundary Layer should have been removed from layer group');
         });
@@ -151,7 +176,7 @@ describe('Draw', function() {
                 spy = sinon.spy(utils, 'cancelDrawing');
 
             utils.drawPolygon(setup.map);
-            setup.resetRegion.currentView.resetDrawingState();
+            setup.view.resetDrawingState();
 
             assert.equal(spy.callCount, 1);
         });
@@ -161,7 +186,7 @@ describe('Draw', function() {
 function setupGetShapeAndAnalyze(successCount) {
     var sandbox = new SandboxRegion(),
         model = new models.ToolbarModel(),
-        view = new views.ToolbarView({
+        view = new views.DrawWindow({
             model: model
         }),
         shapeId = 1,
@@ -191,13 +216,11 @@ function setupGetShapeAndAnalyze(successCount) {
 }
 
 function setupResetTestObject() {
-
     var sandbox = new SandboxRegion(),
         model = new models.ToolbarModel(),
-        view = new views.ToolbarView({
+        view = new views.DrawWindow({
             model: model
         }),
-        resetRegion = view.getRegion('resetRegion'),
         map = App.getLeafletMap();
 
         sandbox.show(view);
@@ -206,28 +229,19 @@ function setupResetTestObject() {
         sandbox: sandbox,
         model: model,
         view: view,
-        resetRegion: resetRegion,
         map: map
     };
 }
 
-function assertTextEqual($el, sel, text) {
-    assert.equal($el.find(sel).text().trim(), text);
-}
+function assertDrawToolIsVisible($el, drawToolRegion) {
+    var regions = ['#select-boundary-region', '#draw-region', '#place-marker-region'],
+        inactiveRegions = drawToolRegion ? _.without(regions, drawToolRegion) : regions;
 
-function populateSelectAreaDropdown($el, toolbarModel) {
-    // This control should start off in a Loading state.
-    assertTextEqual($el, '#select-area-region button', 'Loading...');
+    if (drawToolRegion) {
+        assert.equal($el.find(drawToolRegion + ' .draw-tool-selection').size(), 1);
+    }
 
-    // Load some shapes...
-    toolbarModel.set('predefinedShapeTypes', [
-    {
-        "endpoint": "http://localhost:4000/0/{z}/{x}/{y}",
-        "display": "Congressional Districts",
-        "name": "tiles"
-    }]);
-
-    // This dropdown should now be populated.
-    assertTextEqual($el, '#select-area-region button', 'Select by Boundary');
-    assertTextEqual($el, '#select-area-region li', 'Congressional Districts');
+    _.each(inactiveRegions, function (inactiveDrawToolRegion) {
+        assert.equal($el.find(inactiveDrawToolRegion + ' .draw-tool-region').size(), 0);
+    });
 }

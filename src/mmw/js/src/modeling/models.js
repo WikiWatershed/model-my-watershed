@@ -129,6 +129,7 @@ var ProjectModel = Backbone.Model.extend({
         created_at: null,               // Date
         area_of_interest: null,         // GeoJSON
         area_of_interest_name: null,    // Human readable string for AOI.
+        wkaoi: null,                    // Well Known Area of Interest ID "{code}__{id}"
         model_package: TR55_PACKAGE,    // Package name
         scenarios: null,                // ScenariosCollection
         user_id: 0,                     // User that created the project
@@ -136,7 +137,6 @@ var ProjectModel = Backbone.Model.extend({
         gis_data: null,                 // Additionally gathered data, such as MapShed for GWLF-E
         needs_reset: false,             // Should we overwrite project data on next save?
         allow_save: true,               // Is allowed to save to the server - false in compare mode
-        aoi_census: null                // JSON blob
     },
 
     initialize: function() {
@@ -323,13 +323,15 @@ var ProjectModel = Backbone.Model.extend({
     fetchGisData: function() {
         if (this.get('model_package') === GWLFE) {
             var aoi = this.get('area_of_interest'),
+                wkaoi = this.get('wkaoi'),
                 promise = $.Deferred(),
+                mapshedInput = utils.isWKAoIValid(wkaoi) ?
+                                   JSON.stringify({ 'wkaoi': wkaoi }) :
+                                   JSON.stringify({ 'area_of_interest': aoi }),
                 taskModel = createTaskModel(MAPSHED),
                 taskHelper = {
                     postData: {
-                        mapshed_input: JSON.stringify({
-                            area_of_interest: aoi
-                        })
+                        mapshed_input: mapshedInput
                     },
 
                     onStart: function() {
@@ -607,7 +609,8 @@ var ScenarioModel = Backbone.Model.extend({
         results: null, // ResultCollection
         aoi_census: null, // JSON blob
         modification_censuses: null, // JSON blob
-        allow_save: true // Is allowed to save to the server - false in compare mode
+        allow_save: true, // Is allowed to save to the server - false in compare mode
+        options_menu_is_open: false // The sub-dropdown options menu for this scenario is open
     },
 
     initialize: function(attrs) {
@@ -848,24 +851,32 @@ var ScenarioModel = Backbone.Model.extend({
 
     getGisData: function() {
         var self = this,
-            project = App.currentProject;
+            project = App.currentProject,
+            aoi = project.get('area_of_interest'),
+            wkaoi = project.get('wkaoi');
 
         switch(App.currentProject.get('model_package')) {
             case TR55_PACKAGE:
                 var nonZeroModifications = self.get('modifications').filter(function(mod) {
-                    return mod.get('effectiveArea') > 0;
-                });
-
-                return {
-                    model_input: JSON.stringify({
+                        return mod.get('effectiveArea') > 0;
+                    }),
+                    modelInput = {
                         inputs: self.get('inputs').toJSON(),
                         modification_pieces: alterModifications(nonZeroModifications, self.get('modification_hash')),
-                        area_of_interest: project.get('area_of_interest'),
                         aoi_census: self.get('aoi_census'),
                         modification_censuses: self.get('modification_censuses'),
                         inputmod_hash: self.get('inputmod_hash'),
                         modification_hash: self.get('modification_hash')
-                    })
+                    };
+
+                if (utils.isWKAoIValid(wkaoi)) {
+                    modelInput.wkaoi = wkaoi;
+                } else {
+                    modelInput.area_of_interest = aoi;
+                }
+
+                return {
+                    model_input: JSON.stringify(modelInput)
                 };
 
             case GWLFE:
@@ -875,7 +886,7 @@ var ScenarioModel = Backbone.Model.extend({
                     mergedGisData = JSON.parse(project.get('gis_data'));
 
                 modifications.forEach(function(mod) {
-                    Object.assign(mergedGisData, mod.get('output'));
+                    _.assign(mergedGisData, mod.get('output'));
                 });
 
                 return {
@@ -945,23 +956,36 @@ var ScenariosCollection = Backbone.Collection.extend({
         this.setActiveScenarioByCid(scenario.cid);
     },
 
-    updateScenarioName: function(model, newName) {
-        newName = newName.trim();
+    /** Validate the new scenario name
+    @param model - the model your trying to rename
+    @param newName the new name string
+    @returns If valid, null
+             If invalid, a string with the error
+    **/
+    validateNewScenarioName: function(model, newName) {
+        var trimmedNewName = newName.trim();
 
         // Bail early if the name actually didn't change.
-        if (model.get('name') === newName) {
-            return true;
+        if (model.get('name') === trimmedNewName) {
+            return null;
         }
 
         var match = this.find(function(model) {
-            return model.get('name').toLowerCase() === newName.toLowerCase();
+            return model.get('name').toLowerCase() === trimmedNewName.toLowerCase();
         });
 
         if (match) {
-            console.log('This name is already in use.');
-            return false;
-        } else if (model.get('name') !== newName) {
-            return model.set('name', newName);
+            return 'This name is already in use';
+        }
+
+        return null;
+    },
+
+    updateScenarioName: function(model, newName) {
+        var trimmedNewName = newName.trim();
+
+        if (model.get('name') !== trimmedNewName) {
+            return model.set('name', trimmedNewName);
         }
     },
 
@@ -999,6 +1023,29 @@ var ScenariosCollection = Backbone.Collection.extend({
 
     getActiveScenario: function() {
         return this.findWhere({active: true});
+    },
+
+    toggleScenarioOptionsMenu: function(model) {
+        var prevOpenScenarios = this.closeAllOpenOptionMenus();
+
+        // Open the selected scenario if it was not open already
+        var wasModelAlreadyOpen = _.some(prevOpenScenarios, function(scenario) {
+            return scenario.cid === model.cid;
+        });
+        if (!wasModelAlreadyOpen) {
+            model.set('options_menu_is_open', true);
+        }
+    },
+
+    /** Closes all open scenario option menus
+        @return an array of all the scenarios that had open menus
+    **/
+    closeAllOpenOptionMenus: function() {
+        var openScenarios = this.where({ options_menu_is_open: true });
+        _.forEach(openScenarios, function(scenario) {
+            scenario.set('options_menu_is_open', false);
+        });
+        return openScenarios;
     }
 });
 

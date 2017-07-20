@@ -1,0 +1,31 @@
+<div>
+    <button
+        class="btn btn-lg btn-block draw-tool-button dropdown-toggle"
+        type="button" aria-haspopup="true" aria-expanded="false">
+        <p class="draw-button-title">
+            Upload file
+        </p>
+        <p class="draw-button-subtitle">
+            Upload a polygon for your area
+        </p>
+    </button>
+    {% if activeDrawTool == 'aoiUpload' %}
+        <div class="aoi-upload-dropdown">
+            <i class="fa fa-times pull-right reset-draw-button"></i>
+            <span
+                  id="dropbox">
+                <div class="draw-button-title">Drag and drop a file</div>
+                <ul class="draw-pane-description-list">
+                    <li>Must be a shapefile (zip containing shp and prj files) or geojson</li>
+                    <li>Only the first feature is used</li>
+                </ul>
+                <button
+                    class="btn btn-primary"
+                    id="draw-tool-file-upload-button">
+                    Select a file
+                </button>
+                <input id="draw-tool-file-upload-input" type="file" style="display: none;" />
+            </span>
+        </div>
+    {% endif %}
+</div>

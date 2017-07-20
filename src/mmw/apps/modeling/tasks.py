@@ -6,19 +6,28 @@ from __future__ import absolute_import
 import os
 import logging
 import json
-import requests
 
-from math import sqrt
+from ast import literal_eval as make_tuple
+
 from StringIO import StringIO
+
+import requests
 
 from celery import shared_task
 
-from apps.modeling.geoprocessing import histogram_start, histogram_finish, \
-    data_to_survey, data_to_census, data_to_censuses
+from django.conf import settings
 
 from apps.modeling.calcs import (animal_population,
                                  point_source_pollution,
-                                 catchment_water_quality)
+                                 catchment_water_quality,
+                                 )
+
+from apps.modeling.geoprocessing import to_one_ring_multipolygon
+
+from apps.modeling.tr55.utils import (aoi_resolution,
+                                      precipitation,
+                                      apply_modifications_to_census,
+                                      )
 
 from tr55.model import simulate_day
 from gwlfe import gwlfe, parser
@@ -62,93 +71,12 @@ def start_rwd_job(location, snapping, data_source):
     return response_json
 
 
-@shared_task(bind=True, default_retry_delay=1, max_retries=42)
-def start_histogram_job(self, json_polygon):
-    """ Calls the histogram_start function to
-    kick off the SJS job to generate a histogram
-    of the provided polygon (i.e. AoI).
-    Returns the id of the job so we can poll later
-    for the results, as well as the pixel width of
-    the polygon so that areas can be calculated from
-    the results.
-    """
-
-    # Normalize AOI to handle single-ring multipolygon
-    # inputs sent from RWD as well as shapes sent from the front-end
-    polygon = parse_single_ring_multipolygon(json.loads(json_polygon))
-
-    return {
-        'pixel_width': aoi_resolution(polygon),
-        'sjs_job_id': histogram_start([json.dumps(polygon)], self.retry)
-    }
-
-
-@shared_task(bind=True, default_retry_delay=1, max_retries=42)
-def start_histograms_job(self, polygons):
-    """ Calls the histogram_start function to
-    kick off the SJS job to generate a histogram
-    of the provided polygons (i.e. AoI + modifications,
-    or just modifications).
-    Returns the id of the job so we can poll later
-    for the results. pixel_width is None because the
-    results are eventually provided to TR-55 and areas
-    do not need to be calculated.
-    """
-    json_polygons = [json.dumps(p) for p in polygons]
-
-    return {
-        'pixel_width': None,
-        'sjs_job_id': histogram_start(json_polygons, self.retry)
-    }
-
-
-@shared_task(bind=True, default_retry_delay=1, max_retries=42)
-def get_histogram_job_results(self, incoming):
-    """ Calls a function that polls SJS for the results
-    of the given Job. Self here is Celery.
-    """
-    pixel_width = incoming['pixel_width']
-    histogram = histogram_finish(incoming['sjs_job_id'], self.retry)
-
-    return {
-        'pixel_width': pixel_width,
-        'histogram': histogram
-    }
-
-
-@shared_task
-def histogram_to_survey_census(incoming):
-    """
-    Converts the histogram results (aka analyze results)
-    to a survey & census of land use, which are rendered in the UI.
-    """
-    pixel_width = incoming['pixel_width']
-    data = incoming['histogram'][0]
-    census = data_to_census(data)
-    survey = data_to_survey(data)
-    convert_result_areas(pixel_width, survey)
-
-    return {'survey': survey, 'census': census}
-
-
-@shared_task
-def histograms_to_censuses(incoming):
-    """
-    Converts the histogram results to censuses,
-    which are provided to TR-55.
-    """
-    data = incoming['histogram']
-    results = data_to_censuses(data)
-
-    return results
-
-
 @shared_task
 def analyze_animals(area_of_interest):
     """
     Given an area of interest, returns the animal population within it.
     """
-    return {'survey': [animal_population(area_of_interest)]}
+    return {'survey': animal_population(area_of_interest)}
 
 
 @shared_task
@@ -156,7 +84,7 @@ def analyze_pointsource(area_of_interest):
     """
     Given an area of interest, returns point sources of pollution within it.
     """
-    return {'survey': [point_source_pollution(area_of_interest)]}
+    return {'survey': point_source_pollution(area_of_interest)}
 
 
 @shared_task
@@ -165,46 +93,7 @@ def analyze_catchment_water_quality(area_of_interest):
     Given an area of interest in the DRB, returns catchment water quality data
     within it.
     """
-    return {'survey': [catchment_water_quality(area_of_interest)]}
-
-
-def parse_single_ring_multipolygon(area_of_interest):
-    """
-    Given a multipolygon comprising just a single ring structured in a
-    five-dimensional array, remove one level of nesting and make the AOI's
-    coordinates a four-dimensional array. Otherwise, no op.
-    """
-
-    if type(area_of_interest['coordinates'][0][0][0][0]) is list:
-        multipolygon_shapes = area_of_interest['coordinates'][0]
-        if len(multipolygon_shapes) > 1:
-            raise Exception('Unable to parse multi-ring RWD multipolygon')
-        else:
-            area_of_interest['coordinates'] = multipolygon_shapes
-
-    return area_of_interest
-
-
-def aoi_resolution(area_of_interest):
-    pairs = area_of_interest['coordinates'][0][0]
-
-    average_lat = reduce(lambda total, p: total+p[1], pairs, 0) / len(pairs)
-
-    max_lat = 48.7
-    max_lat_count = 1116  # Number of pixels found in sq km at max lat
-    min_lat = 25.2
-    min_lat_count = 1112  # Number of pixels found in sq km at min lat
-
-    # Because the tile CRS is Conus Albers @ 30m, the number of pixels per
-    # square kilometer is roughly (but no exactly) 1100 everywhere
-    # in the CONUS.  Iterpolate the number of cells at the current lat along
-    # the range defined above.
-    x = (average_lat - min_lat) / (max_lat - min_lat)
-    x = min(max(x, 0.0), 1.0)
-    pixels_per_sq_kilometer = ((1 - x) * min_lat_count) + (x * max_lat_count)
-    pixels_per_sq_meter = pixels_per_sq_kilometer / 1000000
-
-    return 1.0/sqrt(pixels_per_sq_meter)
+    return {'survey': catchment_water_quality(area_of_interest)}
 
 
 def format_quality(model_output):
@@ -213,15 +102,19 @@ def format_quality(model_output):
                 'Total Phosphorus']
     codes = ['tss', 'tn', 'tp']
 
-    def fn(input):
-        measure, code = input
-        return {
-            'measure': measure,
-            'load': model_output['modified'][code] * KG_PER_POUND,
-            'runoff': model_output['modified']['runoff']  # Already CM
-        }
+    quality = {}
+    for key in model_output:
+        def map_and_convert_units(input):
+            measure, code = input
+            return {
+                'measure': measure,
+                'load': model_output[key][code] * KG_PER_POUND,
+                'runoff': model_output[key]['runoff']  # Already CM
+            }
 
-    return map(fn, zip(measures, codes))
+        quality[key] = map(map_and_convert_units, zip(measures, codes))
+
+    return quality
 
 
 def format_runoff(model_output):
@@ -243,7 +136,7 @@ def format_runoff(model_output):
 
 
 @shared_task
-def run_tr55(censuses, model_input, cached_aoi_census=None):
+def run_tr55(censuses, aoi, model_input, cached_aoi_census=None):
     """
     A Celery wrapper around our TR55 implementation.
     censuses is either output from previous tasks in the job
@@ -257,11 +150,11 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
     """
 
     # Get precipitation and cell resolution
-    precip = get_precip(model_input)
+    precip = precipitation(model_input)
 
     # Normalize AOI to handle single-ring multipolygon
     # inputs sent from RWD as well as shapes sent from the front-end
-    aoi = parse_single_ring_multipolygon(model_input.get('area_of_interest'))
+    aoi = to_one_ring_multipolygon(aoi)
 
     width = aoi_resolution(aoi)
     resolution = width * width
@@ -292,21 +185,18 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
         else:
             area_sums[kind] = area
 
-    area_bmps = {k: v for k, v in area_sums.iteritems()}
-
     # The area of interest census
     aoi_census = cached_aoi_census if cached_aoi_census else censuses[0]
 
-    modifications = []
-    if (modification_pieces and not modification_censuses):
+    if modification_pieces and not modification_censuses:
         raise Exception('Missing censuses for modifications')
-    elif (modification_censuses and not modification_pieces):
+    elif modification_censuses and not modification_pieces:
         modification_censuses = []
 
-    modifications = build_tr55_modification_input(modification_pieces,
+    modifications = apply_modifications_to_census(modification_pieces,
                                                   modification_censuses)
     aoi_census['modifications'] = modifications
-    aoi_census['BMPs'] = area_bmps
+    aoi_census['BMPs'] = area_sums
 
     # Run the model under both current conditions and Pre-Columbian
     # conditions.
@@ -325,8 +215,6 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
         quality = format_quality(model_output)
 
     except KeyError as e:
-        model_output = None
-        precolumbian_output = None
         runoff = {}
         quality = []
         logger.error('Bad input data to TR55: %s' % e)
@@ -346,51 +234,6 @@ def run_tr55(censuses, model_input, cached_aoi_census=None):
         'runoff': runoff,
         'quality': quality
     }
-
-
-def get_precip(model_input):
-    try:
-        precips = [item for item in model_input['inputs']
-                   if item['name'] == 'precipitation']
-        return precips[0]['value']
-    except Exception:
-        return None
-
-
-def convert_result_areas(pixel_width, results):
-    """
-    Updates area values on the survey results. The survey gives area as a
-    number of pixels in a geotiff. This converts the area to square meters.
-    """
-    for i in range(len(results)):
-        categories = results[i]['categories']
-        for j in range(len(categories)):
-            categories[j]['area'] = (categories[j]['area'] * pixel_width *
-                                     pixel_width)
-
-
-def build_tr55_modification_input(pieces, censuses):
-    """ Applying modifications to the AoI census.
-    In other words, preparing part of the model input
-    for TR-55 that contains the "this area was converted
-    from developed to forest" directives, for example.
-    """
-    def change_key(modification):
-        name = modification['name']
-        value = modification['value']
-
-        if name == 'landcover':
-            return {'change': ':%s:' % value['reclass']}
-        elif name == 'conservation_practice':
-            return {'change': '::%s' % value['bmp']}
-        elif name == 'both':
-            return {'change': ':%s:%s' % (value['reclass'], value['bmp'])}
-
-    changes = [change_key(piece) for piece in pieces]
-    for (census, change) in zip(censuses, changes):
-        census.update(change)
-
-    return censuses
 
 
 @shared_task
@@ -432,3 +275,100 @@ def to_gms_file(mapshed_data):
     output.seek(0)
 
     return output
+
+
+@shared_task(throws=Exception)
+def analyze_nlcd(result, area_of_interest=None):
+    if 'error' in result:
+        raise Exception('[analyze_nlcd] {}'.format(result['error']))
+
+    pixel_width = aoi_resolution(area_of_interest) if area_of_interest else 1
+
+    histogram = {}
+    total_count = 0
+    categories = []
+
+    # Convert results to histogram, calculate total
+    for key, count in result.iteritems():
+        total_count += count
+        histogram[make_tuple(key[4:])] = count  # Change {"List(1)":5} to {1:5}
+
+    for nlcd, (code, name) in settings.NLCD_MAPPING.iteritems():
+        categories.append({
+            'area': histogram.get(nlcd, 0) * pixel_width * pixel_width,
+            'code': code,
+            'coverage': float(histogram.get(nlcd, 0)) / total_count,
+            'nlcd': nlcd,
+            'type': name,
+        })
+
+    return {
+        'survey': {
+            'name': 'land',
+            'displayName': 'Land',
+            'categories': categories,
+        }
+    }
+
+
+@shared_task(throws=Exception)
+def analyze_soil(result, area_of_interest=None):
+    if 'error' in result:
+        raise Exception('[analyze_soil] {}'.format(result['error']))
+
+    pixel_width = aoi_resolution(area_of_interest) if area_of_interest else 1
+
+    histogram = {}
+    total_count = 0
+    categories = []
+
+    # Convert results to histogram, calculate total
+    for key, count in result.iteritems():
+        total_count += count
+        s = make_tuple(key[4:])  # Change {"List(1)":5} to {1:5}
+        s = s if s != settings.NODATA else 3  # Map NODATA to 3
+        histogram[s] = count + histogram.get(s, 0)
+
+    for soil, (code, name) in settings.SOIL_MAPPING.iteritems():
+        categories.append({
+            'area': histogram.get(soil, 0) * pixel_width * pixel_width,
+            'code': code,
+            'coverage': float(histogram.get(soil, 0)) / total_count,
+            'type': name,
+        })
+
+    return {
+        'survey': {
+            'name': 'soil',
+            'displayName': 'Soil',
+            'categories': categories,
+        }
+    }
+
+
+@shared_task(throws=Exception)
+def nlcd_soil_census(result):
+    if 'error' in result:
+        raise Exception('[nlcd_soil_census] {}'.format(result['error']))
+
+    dist = {}
+    total_count = 0
+
+    for key, count in result.iteritems():
+        # Extract (3, 4) from "List(3,4)"
+        (n, s) = make_tuple(key[4:])
+        # Map [NODATA, ad, bd] to c, [cd] to d
+        s2 = 3 if s in [settings.NODATA, 5, 6] else 4 if s == 7 else s
+        # Only count those values for which we have mappings
+        if n in settings.NLCD_MAPPING and s2 in settings.SOIL_MAPPING:
+            total_count += count
+            label = '{soil}:{nlcd}'.format(soil=settings.SOIL_MAPPING[s2][0],
+                                           nlcd=settings.NLCD_MAPPING[n][0])
+            dist[label] = {'cell_count': (
+                count + (dist[label]['cell_count'] if label in dist else 0)
+            )}
+
+    return [{
+        'cell_count': total_count,
+        'distribution': dist,
+    }]

@@ -1,0 +1,31 @@
+.global-navigation {
+  float: left;
+  list-style: none;
+  padding: 0;
+  margin-left: 0;
+  margin-bottom: 0;
+  @include clearfix;
+
+  &>li:first-child:after {
+    content: none;
+  }
+}
+
+.global-navigation-item {
+  float: left;
+  position: relative;
+  button {
+    font-weight: 800;
+    background: none;
+    background-color: transparent;
+    color: #fff;
+    border: 0;
+    font-size: $font-size-h4;
+    line-height: 44px;
+    padding: 0 16px 0 0;
+    &::-moz-focus-inner {
+      border: 0;
+      padding: 0;
+    }
+  }
+}

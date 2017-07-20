@@ -1,0 +1,69 @@
+.data-catalog-window {
+    width: $sidebar-width;
+    transition: all 200ms;
+    overflow-y: auto;
+    background-color: $ui-light;
+
+    .data-catalog-title {
+        margin: 0.5em 0;
+        padding: 0.5em;
+        font-size: 0.8em;
+        text-transform: uppercase;
+    }
+
+    .data-catalog-form {
+        position: relative;
+        padding: 0.5em;
+
+        .data-catalog-search-input {
+            width: 100%;
+            height: 38px;
+            border: none;
+            padding-left: 38px;
+            font-size: 0.8em;
+        }
+        .data-catalog-search-icon {
+            color: $ui-grey;
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 18px;
+        }
+    }
+
+    .intro-text {
+        padding: 10px;
+    }
+
+    .tab-content {
+        padding: 0;
+        background: $ui-light;
+
+        .loading-panel,
+        .no-results-panel {
+            text-align: center;
+            font-size: larger;
+            padding: 10px;
+        }
+    }
+
+    .catalog-description {
+        padding: 10px;
+    }
+
+    .resource {
+        background: $paper;
+        padding: 10px;
+        margin-bottom: 1px;
+
+        &:hover {
+            background: $paper-12;
+        }
+
+        .resource-title {
+            font-size: 1em;
+            font-weight: 500;
+            margin-bottom: 0.5em;
+        }
+    }
+}

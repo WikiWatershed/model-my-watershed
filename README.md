@@ -121,6 +121,15 @@ Spark Job Server       | 8090 | [http://localhost:8090](http://localhost:8090)
 
 In order to speed up things up, you may want to consider leveraging the `vagrant-cachier` plugin. If installed, it is automatically used by Vagrant.
 
+To speed up geoprocessing, those requests are cached in Redis. To disable this caching for development purposes, set the value of `MMW_GEOPROCESSING_CACHE` to `0`:
+
+```bash
+$ vagrant ssh worker -c 'echo "0" | sudo tee /etc/mmw.d/env/MMW_GEOPROCESSING_CACHE'
+$ vagrant ssh worker -c 'sudo service celeryd restart'
+```
+
+To enable the geoprocessing cache simply set it to `1` and restart the `celeryd` service.
+
 ### Test Mode
 
 In order to run the app in test mode, which simulates the production static asset bundle, reprovision with `VAGRANT_ENV=TEST vagrant provision`.
@@ -134,6 +143,12 @@ $ ./scripts/test.sh
 ```
 
 ##### Python
+
+To check for Python lint:
+
+```bash
+$ ./scripts/check.sh
+```
 
 To run all the tests on the Django app:
 
@@ -150,6 +165,12 @@ $ ./scripts/manage.sh test apps.app_name.tests
 More info [here](https://docs.djangoproject.com/en/1.8/topics/testing/).
 
 ##### JavaScript
+
+To check for JavaScript lint:
+
+```bash
+$ ./scripts/npm.sh run lint
+```
 
 When creating new tests or debugging old tests, it may be easier to open the testem page, which polls for changes to the test bundle and updates the test state dynamically.
 
@@ -203,7 +224,7 @@ This flag is for troubleshooting purposes only.
 
 #### Adding JS dependencies
 
-To add a new JS depenency, update the `JS_DEPS` array in `bundle.sh`, and `package.json` accordingly.
+To add a new JS dependency, update the `JS_DEPS` array in `bundle.sh`, and `package.json` accordingly.
 Because our dependencies are shrinkwrapped, follow the [instructions](https://docs.npmjs.com/cli/shrinkwrap#building-shrinkwrapped-packages) for adding a dependency to a shrinkwrapped package.
 Rebuild the vendor bundle using `./scripts/bundle.sh --vendor`.
 `npm` commands can be run using `./scripts/npm.sh`.

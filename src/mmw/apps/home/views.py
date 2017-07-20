@@ -5,6 +5,7 @@ from __future__ import division
 
 import json
 from urlparse import urljoin
+from copy import deepcopy
 
 from django.http import Http404
 from django.shortcuts import render_to_response, get_object_or_404, redirect
@@ -43,7 +44,10 @@ def project(request, proj_id=None, scenario_id=None):
         if project.user != request.user and project.is_private:
             raise Http404
 
-        return render_to_response('home/home.html', get_context(request))
+        context = get_context(request)
+        context.update({'project': True})
+
+        return render_to_response('home/home.html', context)
     else:
         return redirect('/projects/')
 
@@ -79,26 +83,6 @@ def project_clone(request, proj_id=None):
     return redirect('/project/{0}'.format(project.id))
 
 
-def get_layer_config(layerKeys):
-    """ Retrieves the configuration for the provided
-    layer types. layerKeys is an array of strings that
-    contains keys. Layers with these keys set to True
-    will be returned.
-    """
-    selected_layers = []
-
-    for layer in settings.LAYERS:
-        if all(key in layer for key in layerKeys):
-            # Populate the layer url for layers that we host
-            if 'url' not in layer and 'table_name' in layer:
-                layer['url'] = get_layer_url(layer)
-
-            # Add only the layers we want based on layerKey
-            selected_layers.append(layer)
-
-    return selected_layers
-
-
 def get_layer_url(layer):
     """ For layers that are served off our tile server,
     the URL depends on the environment. Therefore, we
@@ -120,17 +104,30 @@ def get_model_packages():
     return settings.MODEL_PACKAGES
 
 
-def get_client_settings(request):
-    EMBED_FLAG = settings.ITSI['embed_flag']
+def create_layer_config_with_urls(layer_type):
+    layers = deepcopy(settings.LAYER_GROUPS[layer_type])
+    [set_url(layer) for layer in layers
+        if 'url' not in layer and 'table_name' in layer]
+    return layers
 
+
+def set_url(layer):
+    layer.update({'url': get_layer_url(layer)})
+
+
+def get_client_settings(request):
+    # BiG-CZ mode applies when either request host contains predefined host, or
+    # ?bigcz query parameter is present. This covers staging sites, etc.
+    bigcz = settings.BIGCZ_HOST in request.get_host() or 'bigcz' in request.GET
+    title = 'Critical Zone Data Explorer' if bigcz else 'Model My Watershed'
+    EMBED_FLAG = settings.ITSI['embed_flag']
     client_settings = {
         'client_settings': json.dumps({
             EMBED_FLAG: request.session.get(EMBED_FLAG, False),
-            'base_layers': get_layer_config(['basemap']),
-            'boundary_layers': get_layer_config(['boundary']),
-            'vector_layers': get_layer_config(['vector', 'overlay']),
-            'raster_layers': get_layer_config(['raster', 'overlay']),
-            'stream_layers': get_layer_config(['stream', 'overlay']),
+            'base_layers': create_layer_config_with_urls('basemap'),
+            'boundary_layers': create_layer_config_with_urls('boundary'),
+            'coverage_layers': create_layer_config_with_urls('coverage'),
+            'stream_layers': create_layer_config_with_urls('stream'),
             'nhd_perimeter': settings.NHD_REGION2_PERIMETER,
             'draw_tools': settings.DRAW_TOOLS,
             'map_controls': settings.MAP_CONTROLS,
@@ -138,9 +135,13 @@ def get_client_settings(request):
             'vizer_ignore': settings.VIZER_IGNORE,
             'vizer_names': settings.VIZER_NAMES,
             'model_packages': get_model_packages(),
-            'mapshed_max_area': settings.GWLFE_CONFIG['MaxAoIArea']
+            'mapshed_max_area': settings.GWLFE_CONFIG['MaxAoIArea'],
+            'data_catalog_enabled': bigcz,
+            'itsi_enabled': not bigcz,
+            'title': title,
         }),
         'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
+        'title': title,
     }
 
     return client_settings

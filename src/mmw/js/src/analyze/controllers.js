@@ -3,7 +3,7 @@
 var App = require('../app'),
     router = require('../router').router,
     views = require('./views'),
-    models = require('./models'),
+    utils = require('../core/utils'),
     settings = require('../core/settings');
 
 var AnalyzeController = {
@@ -44,24 +44,23 @@ var AnalyzeController = {
             // Modelling Controller.
             App.currentProject = null;
         }
-        App.getMapView().addSidebarToggleControl();
     },
 
     analyze: function() {
         var analyzeCollection = App.getAnalyzeCollection(),
-            viewModels = models.createAnalyzeResultViewModelCollection(analyzeCollection),
             analyzeResults = new views.ResultsView({
-                collection: viewModels
+                collection: analyzeCollection
             });
 
-        App.state.set('current_page_title', 'Geospatial Analysis');
+        App.state.set({
+            'active_page': utils.analyzePageTitle,
+        });
 
         App.rootView.sidebarRegion.show(analyzeResults);
     },
 
     analyzeCleanUp: function() {
         App.rootView.sidebarRegion.empty();
-        App.getMapView().removeSidebarToggleControl();
     }
 };
 

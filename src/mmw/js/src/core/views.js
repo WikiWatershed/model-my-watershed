@@ -6,23 +6,43 @@ var L = require('leaflet'),
     router = require('../router.js').router,
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
-    drawUtils = require('../draw/utils'),
     coreUtils = require('./utils'),
+    drawUtils = require('../draw/utils'),
     modificationConfigUtils = require('../modeling/modificationConfigUtils'),
     headerTmpl = require('./templates/header.html'),
     messageTmpl = require('./templates/message.html'),
     modificationPopupTmpl = require('./templates/modificationPopup.html'),
-    areaOfInterestTmpl = require('./templates/areaOfInterestHeader.html'),
     modalModels = require('./modals/models'),
     modalViews = require('./modals/views'),
     settings = require('./settings'),
-    LayerControl = require('./layerControl'),
-    OpacityControl = require('./opacityControl'),
-    SidebarToggleControl = require('./sidebarToggleControl'),
-    VizerLayers = require('./vizerLayers');
+    SidebarToggleControl = require('./sidebarToggleControl');
 
 require('leaflet.locatecontrol');
 require('leaflet-plugins/layer/tile/Google');
+
+var dataCatalogPolygonStyle = {
+    stroke: true,
+    color: 'steelblue',
+    weight: 2,
+    opacity: 1,
+    fill: false
+};
+
+var dataCatalogPointStyle = _.assign({}, dataCatalogPolygonStyle, {
+    fill: true,
+    fillColor: 'steelblue',
+    fillOpacity: 0.2
+});
+
+var dataCatalogActiveStyle = {
+    stroke: true,
+    color: 'gold',
+    weight: 3,
+    opacity: 1,
+    fill: true,
+    fillColor: 'gold',
+    fillOpacity: 0.2
+};
 
 var RootView = Marionette.LayoutView.extend({
     el: 'body',
@@ -33,7 +53,7 @@ var RootView = Marionette.LayoutView.extend({
     regions: {
         mainRegion: '#container',
         geocodeSearchRegion: '#geocode-search-region',
-        drawToolsRegion: '#draw-tools-region',
+        layerPickerRegion: '#layer-picker-region',
         subHeaderRegion: '#sub-header',
         sidebarRegion: {
             regionClass: TransitionRegion,
@@ -82,11 +102,9 @@ var HeaderView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
-        var self = this;
-
         return {
+            'title': settings.get('title'),
             'itsi_embed': settings.get('itsi_embed'),
-            'current_page_title': self.appState.get('current_page_title')
         };
     },
 
@@ -143,7 +161,7 @@ var HeaderView = Marionette.ItemView.extend({
 // Init the locate plugin button and add it to the map.
 function addLocateMeButton(map, maxZoom, maxAge) {
     var locateOptions = {
-        position: 'topright',
+        position: 'bottomright',
         metric: false,
         drawCircle: false,
         showPopup: false,
@@ -174,7 +192,9 @@ var MapView = Marionette.ItemView.extend({
         'change': 'updateView',
         'change:areaOfInterest': 'updateAreaOfInterest',
         'change:size': 'toggleMapSize',
-        'change:maskLayerApplied': 'toggleMask'
+        'change:maskLayerApplied': 'toggleMask',
+        'change:dataCatalogResults': 'renderDataCatalogResults',
+        'change:dataCatalogActiveResult': 'renderDataCatalogActiveResult'
     },
 
     // L.Map instance.
@@ -188,6 +208,9 @@ var MapView = Marionette.ItemView.extend({
     // L.FeatureGroup instance.
     _modificationsLayer: null,
 
+    _dataCatalogResultsLayer: null,
+    _dataCatalogActiveLayer: null,
+
     // Flag used to determine if AOI change should trigger a prompt.
     _areaOfInterestSet: false,
     _didRevert: false,
@@ -196,115 +219,92 @@ var MapView = Marionette.ItemView.extend({
     _googleMaps: (window.google ? window.google.maps : null),
 
     initialize: function(options) {
-        var defaultLayer = _.findWhere(settings.get('base_layers'), function(layer) {
-                return layer.default === true;
-            }),
-            defaultLayerName = defaultLayer ? defaultLayer['display'] : 'Streets',
-            map_controls = settings.get('map_controls');
+        var map_controls = settings.get('map_controls');
+
+        this.layerTabCollection = options.layerTabCollection;
 
         _.defaults(options, {
             addZoomControl: _.contains(map_controls, 'ZoomControl'),
+            addSidebarToggleControl: _.contains(map_controls, 'SidebarToggleControl'),
             addLocateMeButton: _.contains(map_controls, 'LocateMeButton'),
-            addLayerSelector: _.contains(map_controls, 'LayerSelector'),
             showLayerAttribution: _.contains(map_controls, 'LayerAttribution'),
-            initialLayerName: defaultLayerName,
             interactiveMode: true // True if clicking on map does stuff
         });
 
-        var self = this,
-            map = new L.Map(this.el, {
+        var map = new L.Map(this.el, {
                 zoomControl: false,
                 attributionControl: options.showLayerAttribution
-            }),
-            overlayLayers = this.prepareOverlayLayers(),
-            vizer = new VizerLayers(),
-            observationsDeferred = vizer.getLayers();
-
-        // Center the map on the U.S.
-        map.fitBounds([
-            [24.2, -126.4],
-            [49.8, -66.0]
-        ]);
+            });
 
         this._leafletMap = map;
         this._areaOfInterestLayer = new L.FeatureGroup();
         this._modificationsLayer = new L.FeatureGroup();
-        this.baseLayers = this.buildLayers(settings.get('base_layers'));
-        this.overlayLayers = this.buildLayers(overlayLayers, map);
+        this._dataCatalogResultsLayer = new L.FeatureGroup();
+        this._dataCatalogActiveLayer = new L.FeatureGroup();
+
+        this.fitToDefaultBounds();
 
         if (!options.interactiveMode) {
             this.setMapToNonInteractive();
         }
 
         if (options.addZoomControl) {
-            map.addControl(new L.Control.Zoom({position: 'topright'}));
+            map.addControl(new L.Control.Zoom({position: 'bottomright'}));
+            // We're overriding css to display the zoom controls horizontally.
+            // Because the zoom-in div usally exists on top, we need to flip it
+            // with the zoom-out div, so when they're horizontal they appear as
+            // [ - | + ]
+            $('.leaflet-control-zoom-out').insertBefore('.leaflet-control-zoom-in');
         }
 
-        var maxGeolocationAge = 60000;
         if (options.addLocateMeButton) {
-            addLocateMeButton(map, maxGeolocationAge);
+            addLocateMeButton(map, coreUtils.MAX_GEOLOCATION_AGE);
         }
 
-        if (options.addLayerSelector) {
-            var layerOptions = {
-                autoZIndex: false,
-                position: 'topright',
-                collapsed: false
-            };
-
-            self.layerControl = new LayerControl(
-                self.baseLayers, self.overlayLayers, observationsDeferred, layerOptions
-            );
-
-            self.layerControl.addTo(map);
+        if (options.addSidebarToggleControl) {
+            map.addControl(new SidebarToggleControl({ model: options.model }));
         }
 
         this.setMapEvents();
-        this.setupGeoLocation(maxGeolocationAge);
+        this.setupGeoLocation();
 
-        var initialLayer = this.baseLayers[options.initialLayerName] ||
-                           this.baseLayers[defaultLayerName];
+        var initialLayer = options.initialLayerName ?
+            this.layerTabCollection.findLayerWhere({ display: options.initialLayerName }) :
+            this.layerTabCollection.getBaseLayerTab().findLayerWhere({ active: true });
 
         if (initialLayer) {
-            map.addLayer(initialLayer);
+            map.addLayer(initialLayer.get('leafletLayer'));
         }
 
         map.addLayer(this._areaOfInterestLayer);
         map.addLayer(this._modificationsLayer);
+        map.addLayer(this._dataCatalogResultsLayer);
+        map.addLayer(this._dataCatalogActiveLayer);
     },
 
-    prepareOverlayLayers: function() {
-        // For each type of overlay, create an empty "layer" used for
-        // the "None" option and order the actual defined layer configs
-        // after it.
-        var overlayTypes = ['stream', 'vector', 'raster'],
-            overlayLayers = _.map(overlayTypes, function(type) {
-                var nullLayer =  {
-                    display: 'null' + type,
-                    empty: true
-                };
-
-                nullLayer[type] = true;
-
-                // Layers may be null in testing
-                var layers = settings.get(type + '_layers');
-                if (!_.isEmpty(layers)) {
-                    return [nullLayer].concat(layers);
-                } else {
-                    return [nullLayer];
-                }
-            });
-
-        return _.flatten(overlayLayers);
+    fitToDefaultBounds: function() {
+        // Center the map on the U.S.
+        this._leafletMap.fitBounds([
+            [24.2, -126.4],
+            [49.8, -66.0]
+        ]);
     },
 
-    setupGeoLocation: function(maxAge) {
+    /**
+    Attempt to locate the user and set the map to it
+    @param alwaysSetView -- override the map model setting `geolocationEnabled` (used to prevent
+                            geolocating after the user has already updated the map),
+                            and set the view to the geolocated area on success.
+                            Use when you need to do a one-off geolocation
+    **/
+    setupGeoLocation: function(alwaysSetView) {
         var self = this,
-            timeout = 30000;
+            timeout = 30000,
+            maxAge = coreUtils.MAX_GEOLOCATION_AGE;
 
         // Geolocation success handler
         function geolocation_success(position) {
-            if (self.model.get('geolocationEnabled')) {
+            if (alwaysSetView || self.model.get('geolocationEnabled')) {
                 var lng = position.coords.longitude,
                     lat = position.coords.latitude,
                     zoom = 12; // Regional zoom level
@@ -360,7 +360,7 @@ var MapView = Marionette.ItemView.extend({
 
         // The max available zoom level changes based on the active base layer
         this._leafletMap.on('baselayerchange', this.updateCurrentZoomLevel);
-        this._leafletMap.on('baselayerchange', this.updateDrbLayerZoomLevel);
+        this._leafletMap.on('baselayerchange', this.updateDrbLayerZoomLevel, this);
 
         // Some Google layers have a dynamic max zoom that we need to handle.
         // Check that Google Maps API library is available before implementing
@@ -377,103 +377,6 @@ var MapView = Marionette.ItemView.extend({
             // Get the maximum zoom level for the initial location
             this.updateGoogleMaxZoom({ target: this._leafletMap });
         }
-    },
-
-    buildLayers: function(layerConfig, map) {
-        var self = this,
-            layers = {};
-
-        _.each(layerConfig, function(layer) {
-            var leafletLayer;
-
-            // Check to see if the google api service has been loaded
-            // before creating a google layer
-            if (self._googleMaps && layer.type === 'google') {
-                leafletLayer = new L.Google(layer.googleType, {
-                    maxZoom: layer.maxZoom
-                });
-            } else if (!layer.empty) {
-                var tileUrl = (layer.url.match(/png/) === null ?
-                                layer.url + '.png' : layer.url),
-                    zIndex = determineZIndex(layer);
-
-                _.defaults(layer, {
-                    zIndex: zIndex,
-                    attribution: '',
-                    minZoom: 0});
-                leafletLayer = new L.TileLayer(tileUrl, layer);
-                if (layer.has_opacity_slider) {
-                    var slider = new OpacityControl({position: 'topright'});
-
-                    slider.setOpacityLayer(leafletLayer);
-                    leafletLayer.slider = slider;
-                }
-            } else {
-                leafletLayer = new L.TileLayer('', layer);
-            }
-
-            layers[layer['display']] = leafletLayer;
-        });
-
-        function determineZIndex(layer) {
-            // ZIndex rules to keep coverages under the boundary lines
-            //  basemaps: 0
-            //  overlay::raster: 1
-            //  overlay::vector: 2
-
-            if (!layer.overlay) {
-                return 0;
-            } else if (layer.raster) {
-                return 1;
-            } else {
-                return 2;
-            }
-        }
-
-        function actOnUI(datum, bool) {
-            var code = datum.code,
-                $el = $('#overlays-layer-list #' + code);
-            $el.attr('disabled', bool);
-            if (bool) {
-                $el.siblings('span').addClass('disabled');
-            } else {
-                $el.siblings('span').removeClass('disabled');
-            }
-        }
-
-        function actOnLayer(datum) {
-            var display = datum.display;
-            if (display) {
-                // Work-around to prevent after-image when zooming
-                // out.  Not worried about this when zooming in --
-                // actually it is desirable in that case.  Derived
-                // from https://github.com/Leaflet/Leaflet/issues/1905.
-                layers[display]._clearBgBuffer();
-            }
-        }
-
-        if (map) {
-            // Toggle UI entries in response to zoom changes and make
-            // sure that layers which are invisible due to their
-            // minZoom being larger than the current zoom level are
-            // cleared from the map.
-            coreUtils.zoomToggle(map, layerConfig, actOnUI, actOnLayer);
-
-            coreUtils.perimeterToggle(map, layerConfig, actOnUI, actOnLayer);
-        }
-
-        return layers;
-    },
-
-    getActiveBaseLayerName: function() {
-        var activeBaseLayerName,
-            self = this;
-
-        activeBaseLayerName = _.findKey(self.baseLayers, function(layer) {
-            return self._leafletMap.hasLayer(layer);
-        });
-
-        return activeBaseLayerName;
     },
 
     onBeforeDestroy: function() {
@@ -676,18 +579,10 @@ var MapView = Marionette.ItemView.extend({
             size = this.model.get('size'),
             $container = this.$el.parent();
 
-        $container.toggleClass('map-container-top-1', !!size.top.single);
-        $container.toggleClass('map-container-top-2', !!size.top.double);
-
-        $container.toggleClass('map-container-bottom-1', !!size.bottom.min);
-        $container.toggleClass('map-container-bottom-2', !!size.bottom.small);
-        $container.toggleClass('map-container-bottom-3', !!size.bottom.med);
-        $container.toggleClass('map-container-bottom-4', !!size.bottom.large);
-
-        $container.toggleClass('map-container-top-sidebar', !!size.top.sidebar);
-        $container.toggleClass('map-container-bottom-sidebar', !!size.top.sidebar);
-
-        $container.toggleClass('map-container-top-sidebar-no-header', !!size.noHeader);
+        $container.toggleClass('-projectheader', !!size.hasProjectHeader);
+        $container.toggleClass('-sidebar', !!size.hasSidebar);
+        $container.toggleClass('-wide', !!size.hasSidebar &&
+            size.sidebarWidth === coreUtils.sidebarWide);
 
         _.delay(function() {
             self._leafletMap.invalidateSize();
@@ -712,8 +607,8 @@ var MapView = Marionette.ItemView.extend({
         }
     },
 
-    updateCurrentZoomLevel: function(e) {
-        var layerMaxZoom = e.layer.options.maxZoom,
+    updateCurrentZoomLevel: function(layer) {
+        var layerMaxZoom = layer.options.maxZoom,
             map = this,
             currentZoom = map.getZoom();
 
@@ -729,27 +624,10 @@ var MapView = Marionette.ItemView.extend({
         }
     },
 
-    updateDrbLayerZoomLevel: function(e) {
-        var layerMaxZoom = e.layer.options.maxZoom;
-        var adjSettings = 
-            _.map(settings.get('stream_layers'),
-                  function(o) {
-                      if (o.code === 'drb_streams_v2') {
-                          o.maxZoom = layerMaxZoom;
-                          return o;
-                      } else {
-                          return o;
-                      }
-                  }
-            );
-
-        settings.set('stream_layers', adjSettings);
-
-        _.each(this._layers, function(layer) {
-          if (layer.options !== undefined && layer.options.code==='drb_streams_v2'){
-              layer.options.maxZoom = layerMaxZoom;
-          }
-        });
+    updateDrbLayerZoomLevel: function(layer) {
+        var layerMaxZoom = layer.options.maxZoom;
+        var drbStreamLayer = this.layerTabCollection.findLayerWhere({ code: 'drb_streams_v2' });
+        drbStreamLayer.get('leafletLayer').options.maxZoom = layerMaxZoom;
     },
 
     // The max zoom for a Google layer that uses satellite imagery
@@ -766,24 +644,54 @@ var MapView = Marionette.ItemView.extend({
                 return;
             } else {
                 // Set layer zoom level to the max for the current area
-                _.each(self.baseLayers, function(layer) {
-                    if (layer._type === 'HYBRID' || layer._type === 'SATELLITE') {
-                        layer.options.maxZoom = response.zoom;
-                    }
+                self.layerTabCollection.getBaseLayerTab().get('layerGroups').forEach(function(layerGroup) {
+                    layerGroup.get('layers').forEach(function(layer) {
+                        if (layer.get('googleType')) {
+                            var leafletLayer = layer.get('leafletLayer');
+                            if (leafletLayer) {
+                                if (leafletLayer._type === 'HYBRID' || leafletLayer._type === 'SATELLITE') {
+                                    leafletLayer.options.maxZoom = response.zoom;
+                                }
+                            }
+                        }
+                    });
                 });
             }
         });
     },
 
-    addSidebarToggleControl: function() {
-        this._sidebarToggleControl = new SidebarToggleControl();
-        this._leafletMap.addControl(this._sidebarToggleControl);
+    createDataCatalogShape: function(geom) {
+        if (geom.type === 'Point') {
+            var lng = geom.coordinates[0],
+                lat = geom.coordinates[1];
+            return new L.CircleMarker([lat, lng], dataCatalogPointStyle);
+        } else {
+            return new L.GeoJSON(geom, { style: dataCatalogPolygonStyle });
+        }
     },
 
-    removeSidebarToggleControl: function() {
-        if (this._sidebarToggleControl) {
-            this._leafletMap.removeControl(this._sidebarToggleControl);
-            delete this._sidebarToggleControl;
+    renderDataCatalogResults: function() {
+        var geoms = this.model.get('dataCatalogResults') || [];
+        geoms = _.filter(geoms);
+
+        this._dataCatalogResultsLayer.clearLayers();
+        this._dataCatalogActiveLayer.clearLayers();
+
+        for (var i = 0; i < geoms.length; i++) {
+            var layer = this.createDataCatalogShape(geoms[i]);
+            this._dataCatalogResultsLayer.addLayer(layer);
+        }
+    },
+
+    renderDataCatalogActiveResult: function() {
+        var geom = this.model.get('dataCatalogActiveResult');
+
+        this._dataCatalogActiveLayer.clearLayers();
+
+        if (geom) {
+            var layer = this.createDataCatalogShape(geom);
+            layer.setStyle(dataCatalogActiveStyle);
+            this._dataCatalogActiveLayer.addLayer(layer);
         }
     }
 });
@@ -861,23 +769,6 @@ var ModificationPopupView = Marionette.ItemView.extend({
     }
 });
 
-var AreaOfInterestView = Marionette.ItemView.extend({
-    template: areaOfInterestTmpl,
-    initialize: function() {
-        this.map = this.options.App.map;
-        this.listenTo(this.map, 'change:areaOfInterest', this.syncArea);
-    },
-
-    modelEvents: { 'change:shape': 'render' },
-
-    syncArea: function() {
-        this.model.set({
-            'shape': this.map.get('areaOfInterest'),
-            'place': this.map.get('areaOfInterestName'),
-        });
-    }
-});
-
 var TaskMessageView = Marionette.ItemView.extend({
     template: messageTmpl,
     className: 'analyze-message-region'
@@ -887,7 +778,6 @@ module.exports = {
     HeaderView: HeaderView,
     MapView: MapView,
     RootView: RootView,
-    AreaOfInterestView: AreaOfInterestView,
     TaskMessageView: TaskMessageView,
     ModificationPopupView: ModificationPopupView
 };

@@ -8,7 +8,7 @@
                 <p>Sorry, only saved {{ text }}s are able to be shared.  Please log in to share your work.</p>
             {% else %}
                 <div class="custom-input-group">
-                  <input type="text" required value="{{ url }}">
+                  <input id="share-url" type="text" required value="{{ url }}">
                   <span class="highlight"></span>
                   <span class="bar"></span>
                   <label>URL</label>
@@ -21,7 +21,7 @@
                 <button type="button" class="btn btn-md btn-default signin" data-dismiss="modal">Sign In</button>
             {% else %}
                 <button type="button" class="btn btn-md btn-default" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-md btn-default copy" data-dismiss="modal" data-clipboard-text="{{ url }}">Copy Link</button>
+                <button type="button" class="btn btn-md btn-default copy" data-dismiss="modal" data-clipboard-target="#share-url">Copy Link</button>
             {% endif %}
         </div>
     </div>

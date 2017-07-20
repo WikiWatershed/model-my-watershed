@@ -15,7 +15,6 @@ var ModelingController = {
             router.navigate('', { trigger: true });
             return false;
         }
-        App.getMapView().addSidebarToggleControl();
     },
 
     project: function(projectId, scenarioParam) {
@@ -70,7 +69,7 @@ var ModelingController = {
                     App.currentProject = null;
                 });
 
-            App.state.set('current_page_title', 'Modeling');
+            App.state.set('active_page', 'Modeling');
         } else {
             if (App.currentProject && settings.get('activityMode')) {
                 project = App.currentProject;
@@ -104,7 +103,7 @@ var ModelingController = {
 
                 finishProjectSetup(project, lock);
             }
-            setPageTitle();            
+            setPageTitle();
         }
     },
 
@@ -114,7 +113,6 @@ var ModelingController = {
             project = App.currentProject;
             project.set('model_package', modelPackage);
             itsiResetProject(project);
-            App.getMapView().addSidebarToggleControl();
             setPageTitle();
         } else {
             var lock = $.Deferred();
@@ -123,33 +121,17 @@ var ModelingController = {
                 created_at: Date.now(),
                 area_of_interest: App.map.get('areaOfInterest'),
                 area_of_interest_name: App.map.get('areaOfInterestName'),
+                wkaoi: App.map.get('wellKnownAreaOfInterest'),
                 model_package: modelPackage,
                 scenarios: new models.ScenariosCollection()
             });
 
-            var analyzeTask = App.getAnalyzeCollection().findWhere({taskName:'analyze'});
-
             App.currentProject = project;
             lock.resolve();
-
-            analyzeTask
-                .fetchAnalysisIfNeeded()
-                .done(function() {
-                    App.currentProject.set(
-                        'aoi_census',
-                        JSON.parse(
-                            App.getAnalyzeCollection()
-                                .findWhere({taskName:'analyze'})
-                                .get('result')
-                        ).census
-                    );
-                })
-                .fail(projectErrorState);
 
             setupNewProjectScenarios(project);
             finishProjectSetup(project, lock);
             updateUrl();
-            App.getMapView().addSidebarToggleControl();
             setPageTitle();
         }
     },
@@ -270,7 +252,9 @@ function setPageTitle() {
         modelPackages = settings.get('model_packages'),
         modelPackageDisplayName = _.find(modelPackages, {name: modelPackageName}).display_name;
 
-    App.state.set('current_page_title', modelPackageDisplayName);
+    App.state.set({
+        'active_page': modelPackageDisplayName,
+    });
 }
 
 function projectCleanUp() {
@@ -288,7 +272,6 @@ function projectCleanUp() {
         App.projectNumber = scenarios.at(0).get('project');
     }
 
-    App.getMapView().removeSidebarToggleControl();
     App.getMapView().updateModifications(null);
     App.rootView.subHeaderRegion.empty();
     App.rootView.sidebarRegion.empty();
@@ -328,17 +311,11 @@ function initScenarioEvents(project) {
 }
 
 function setupNewProjectScenarios(project) {
-    var aoiCensus = project.get('aoi_census');
     project.get('scenarios').add([
         new models.ScenarioModel({
             name: 'Current Conditions',
             is_current_conditions: true,
-            aoi_census: aoiCensus
-        }),
-        new models.ScenarioModel({
-            name: 'New Scenario',
             active: true,
-            aoi_census: aoiCensus
         })
         // Silent is set to true because we don't actually want to save the
         // project without some user interaction. This initialization

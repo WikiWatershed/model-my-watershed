@@ -1,10 +1,15 @@
 "use strict";
 
+var _ = require('lodash');
+
 var defaultSettings = {
+    title: 'Model My Watershed',
     itsi_embed: false,
+    itsi_enabled: true,
+    data_catalog_enabled: false,
     base_layers: {},
     stream_layers: {},
-    stream_drb_layers: {},
+    coverage_layers: {},
     boundary_layers: {},
     draw_tools: [],
     map_controls: [],
@@ -17,6 +22,10 @@ var defaultSettings = {
 var settings = (function() {
     return window.clientSettings ? window.clientSettings : defaultSettings;
 })();
+
+function isLayerSelectorEnabled() {
+    return _.contains(settings['map_controls'], 'LayerSelector');
+}
 
 function set(key, value) {
     settings[key] = value;
@@ -32,6 +41,7 @@ function get(key) {
 }
 
 module.exports = {
+    isLayerSelectorEnabled: isLayerSelectorEnabled,
     get: get,
     set: set
 };

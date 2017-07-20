@@ -3,11 +3,15 @@
 var $ = require('jquery'),
     L = require('leaflet'),
     _ = require('lodash'),
+    JSZip = require('jszip'),
     turfArea = require('turf-area'),
+    turfBboxPolygon = require('turf-bbox-polygon'),
     coreUtils = require('../core/utils');
 
+var CANCEL_DRAWING = 'CANCEL_DRAWING';
+
 // Keep in sync with src/api/main.py in rapid-watershed-delineation.
-var MAX_AREA = 112700; // About the size of a large state (in km^2)
+var MAX_AREA = 75000; // About the size of West Virginia (in km^2)
 
 var polygonDefaults = {
         fillColor: '#E77471',
@@ -33,7 +37,7 @@ function drawPolygon(map, drawOpts) {
         drawStop = function() {
             tool.disable();
             clearEvents();
-            defer.reject();
+            defer.reject(CANCEL_DRAWING);
         };
 
     cancelDrawing(map);
@@ -60,7 +64,7 @@ function placeMarker(map, drawOpts) {
         drawStop = function() {
             tool.disable();
             clearEvents();
-            defer.reject();
+            defer.reject(CANCEL_DRAWING);
         };
 
     cancelDrawing(map);
@@ -84,15 +88,72 @@ function cancelDrawing(map) {
     map.fire('draw:drawstop');
 }
 
+function getGeoJsonLatLngs(shape) {
+    if (shape.coordinates) {
+        return L.GeoJSON.coordsToLatLngs(shape.coordinates, 2);
+    } else if (shape.geometry) {
+        return L.GeoJSON.coordsToLatLngs(shape.geometry.coordinates, 1);
+    } else if (shape.features) {
+        var coordinates = [];
+        _.forEach(shape.features, function(feature) {
+            coordinates.push(feature.geometry.coordinates);
+        });
+        return L.GeoJSON.coordsToLatLngs(coordinates, 2);
+    }
+    return null;
+}
+
 // Return shape area in km2.
 function shapeArea(shape) {
     return coreUtils.changeOfAreaUnits(turfArea(shape),
             'm<sup>2</sup>', 'km<sup>2</sup>');
 }
 
+// Get the bounding box of the shape and return its area in km2
+function shapeBoundingBoxArea(shape) {
+    var shapeLatLngPoints = getGeoJsonLatLngs(shape),
+        latLngBounds = L.latLngBounds(shapeLatLngPoints),
+        boundingBox = [
+            latLngBounds.getWest(),
+            latLngBounds.getSouth(),
+            latLngBounds.getEast(),
+            latLngBounds.getNorth()
+        ],
+        boundingBoxPolygon = turfBboxPolygon(boundingBox);
+    return shapeArea(boundingBoxPolygon);
+}
+
+function getFileFromZipObjects(zipObjects, extension) {
+    return _.find(zipObjects.files, function(zipObject) {
+        var fileExtension = zipObject.name.substr(zipObject.name.lastIndexOf(".") + 1);
+        return fileExtension.toLowerCase() === extension;
+    });
+}
+
+function loadAsyncShpFilesFromZip(zipfile) {
+    return JSZip.loadAsync(zipfile)
+        .then(function(zipObjects) {
+            var shpFileZipObject = getFileFromZipObjects(zipObjects, 'shp'),
+                prjFileZipObject = getFileFromZipObjects(zipObjects, 'prj');
+
+                if (!shpFileZipObject) {
+                    throw "Zip file must contain a .shp file.";
+                }
+
+                if (!prjFileZipObject) {
+                    throw "Zip file must contain a .prj file.";
+                }
+
+            var shpPromise = zipObjects.file(shpFileZipObject.name).async("arraybuffer"),
+                prjPromise = zipObjects.file(prjFileZipObject.name).async("string");
+
+            return JSZip.external.Promise.all([shpPromise, prjPromise]);
+        });
+}
+
 function isValidForAnalysis(shape) {
     if (shape) {
-        var area = shapeArea(shape);
+        var area = shapeBoundingBoxArea(shape);
         return area > 0 && area <= MAX_AREA;
     }
     return false;
@@ -104,9 +165,11 @@ module.exports = {
     createRwdMarkerIcon: createRwdMarkerIcon,
     cancelDrawing: cancelDrawing,
     polygonDefaults: polygonDefaults,
-    shapeArea: shapeArea,
+    shapeBoundingBoxArea: shapeBoundingBoxArea,
     isValidForAnalysis: isValidForAnalysis,
+    loadAsyncShpFilesFromZip: loadAsyncShpFilesFromZip,
     NHD: 'nhd',
     DRB: 'drb',
+    CANCEL_DRAWING: CANCEL_DRAWING,
     MAX_AREA: MAX_AREA
 };

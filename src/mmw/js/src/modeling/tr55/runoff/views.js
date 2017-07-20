@@ -9,7 +9,9 @@ var $ = require('jquery'),
     resultTmpl = require('./templates/result.html'),
     AoiVolumeModel = require('../models').AoiVolumeModel,
     tableRowTmpl = require('./templates/tableRow.html'),
-    tableTmpl = require('./templates/table.html');
+    tableTmpl = require('./templates/table.html'),
+    utils = require('../../../core/utils.js'),
+    constants = require('./constants');
 
 var ResultView = Marionette.LayoutView.extend({
     className: 'tab-pane',
@@ -25,6 +27,14 @@ var ResultView = Marionette.LayoutView.extend({
     regions: {
         tableRegion: '.runoff-table-region',
         chartRegion: '.runoff-chart-region'
+    },
+
+    ui: {
+        downloadCSV: '[data-action="download-csv"]'
+    },
+
+    events: {
+        'click @ui.downloadCSV': 'downloadCSV'
     },
 
     modelEvents: {
@@ -59,6 +69,16 @@ var ResultView = Marionette.LayoutView.extend({
                 compareMode: this.compareMode
             }));
         }
+    },
+
+    downloadCSV: function() {
+        var data = this.model.get('result').runoff.modified,
+            prefix = 'tr55_runoff_',
+            timestamp = new Date().toISOString(),
+            filename = prefix + timestamp,
+            renamedData = _.map(_.pick(data, 'et', 'inf', 'runoff'),
+                constants.tr55RunoffCSVColumnMap);
+        utils.downloadDataCSV(renamedData, filename);
     }
 });
 
@@ -105,22 +125,14 @@ var ChartView = Marionette.ItemView.extend({
         $(chartEl).empty();
 
         if (result) {
+            var resultKey = utils.getTR55ResultKey(this.scenario);
+            labelNames = [resultKey];
             if (this.compareMode) {
-                var target_result = 'modified';
-                if (this.scenario.get('is_current_conditions')) {
-                    target_result = 'unmodified';
-                }
-                if (this.scenario.get('is_pre_columbian')) {
-                    target_result = 'pc_unmodified';
-                }
-                labelNames = [target_result];
                 labelDisplayNames = [''];
                 this.$el.addClass('current-conditions');
             } else if (this.scenario.get('is_current_conditions')) {
-                labelNames = ['unmodified'];
                 labelDisplayNames = ['Current Conditions'];
             } else {
-                labelNames = ['modified'];
                 labelDisplayNames = ['Modified'];
             }
 

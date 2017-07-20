@@ -12,10 +12,11 @@ from os import environ
 from os.path import abspath, basename, dirname, join, normpath
 from sys import path
 
-from layer_settings import (LAYERS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
+from layer_settings import (LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
                             NHD_REGION2_PERIMETER, DRB_PERIMETER)  # NOQA
 from gwlfe_settings import (GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, # NOQA
-                            SOILP, CURVE_NUMBER)  # NOQA
+                            SOILP, CURVE_NUMBER, NODATA)  # NOQA
+from tr55_settings import (NLCD_MAPPING, SOIL_MAPPING)
 
 # Normally you should not import ANYTHING from Django directly
 # into your settings, but ImproperlyConfigured is an exception.
@@ -317,6 +318,7 @@ AUTHENTICATION_BACKENDS = (
 
 # Apps specific for this project go here.
 LOCAL_APPS = (
+    'apps.bigcz',
     'apps.core',
     'apps.modeling',
     'apps.home',
@@ -354,6 +356,10 @@ OMGEO_SETTINGS = [[
     }
 ]]
 
+# BiG-CZ Host, for enabling custom behavior.
+BIGCZ_HOST = 'portal.bigcz.org'
+BIGCZ_CLIENT_TIMEOUT = 5  # timeout in seconds
+
 # ITSI Portal Settings
 ITSI = {
     'client_id': environ.get('MMW_ITSI_CLIENT_ID', 'model-my-watershed'),
@@ -368,22 +374,47 @@ ITSI = {
 
 # Geoprocessing Settings
 GEOP = {
+    'cache': bool(int(environ.get('MMW_GEOPROCESSING_CACHE', 1))),
     'host': environ.get('MMW_GEOPROCESSING_HOST', 'localhost'),
     'port': environ.get('MMW_GEOPROCESSING_PORT', '8090'),
-    'args': {
-        'SummaryJob': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.SummaryJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),  # NOQA
-        'MapshedJob': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.MapshedJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),  # NOQA
-    },
+    'args': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.MapshedJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),  # NOQA
     'json': {
-        'nlcdSoilCensus': {
+        'nlcd': {
             'input': {
-                'geometry': None,
-                'tileCRS': 'ConusAlbers',
-                'polyCRS': 'LatLng',
-                'nlcdLayer': 'nlcd-2011-30m-epsg5070-0.10.0',
-                'soilLayer': 'ssurgo-hydro-groups-30m-epsg5070-0.10.0',
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'nlcd-2011-30m-epsg5070-0.10.0'
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedCount',
                 'zoom': 0
-            },
+            }
+        },
+        'soil': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'ssurgo-hydro-groups-30m-epsg5070-0.10.0'
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedCount',
+                'zoom': 0
+            }
+        },
+        'nlcd_soil_census': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'nlcd-2011-30m-epsg5070-0.10.0',
+                    'ssurgo-hydro-groups-30m-epsg5070-0.10.0'
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedCount',
+                'zoom': 0
+            }
         },
         'nlcd_streams': {
             'input': {
@@ -494,6 +525,7 @@ MAP_CONTROLS = [
     'LayerSelector',
     'LocateMeButton',
     'ZoomControl',
+    'SidebarToggleControl',
 ]
 
 GWLFE = 'gwlfe'
@@ -503,12 +535,19 @@ MODEL_PACKAGES = [
     {
         'name': TR55_PACKAGE,
         'display_name': 'Site Storm Model',
-        'description': '',
+        'description': 'Simulates a hypothetical 24-hour storm by a hybrid of '
+                       'SLAMM, TR-55, and EPA\'s STEP-L model algorithms. '
+                       'Designed primarily for use with smaller, more '
+                       'developed areas.',
+        'help_link': 'https://wikiwatershed.org/documentation/mmw-tech/#site-storm-model',
     },
     {
         'name': GWLFE,
         'display_name': 'Watershed Multi-Year Model',
-        'description': '',
+        'description': 'Simulates 30-years of daily data by the GWLF-E '
+                       '(MapShed) model. Designed primarily for use with '
+                       'larger, more rural areas.',
+        'help_link': 'https://wikiwatershed.org/documentation/mmw-tech/#watershed-multi-year-model',
     },
 ]
 

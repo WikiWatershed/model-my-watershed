@@ -1,21 +1,97 @@
 "use strict";
 
-var _ = require('underscore'),
+var L = require('leaflet'),
+    _ = require('underscore'),
     lodash = require('lodash'),
     md5 = require('blueimp-md5').md5,
     intersect = require('turf-intersect'),
-    centroid = require('turf-centroid');
+    centroid = require('turf-centroid'),
+    papaparse = require('papaparse'),
+    settings = require('./settings');
 
 var M2_IN_KM2 = 1000000;
 var noData = 'No Data';
 
 var utils = {
+    layerGroupZIndices: {
+        base_layers: 0,
+        coverage_layers: 1,
+        stream_layers: 2,
+        boundary_layers: 2
+    },
+
+    MAX_GEOLOCATION_AGE: 60000,
+
+    splashPageTitle: settings.get('title'),
+
+    selectAreaPageTitle: 'Choose Area of Interest',
+
+    analyzePageTitle: 'Geospatial Analysis',
+
+    dataCatalogPageTitle: 'Search Data Sources',
+
+    comparePageTitle: 'Compare',
+
+    projectsPageTitle: 'Projects',
+
+    sidebarWide: 'wide',
+
     filterNoData: function(data) {
         if (data && !isNaN(data) && isFinite(data)) {
             return data.toFixed(3);
         } else {
             return noData;
         }
+    },
+
+    // If the google layer wasn't ready to set up when the model was initialized,
+    // initialize it
+    loadGoogleLayer: function(layer) {
+        if (window.google) {
+            layer.set('leafletLayer', new L.Google(layer.get('googleType'), {
+                maxZoom: layer.get('maxZoom')
+            }));
+        }
+    },
+
+    toggleLayer: function(selectedLayer, map, layerGroup) {
+        var layers = layerGroup.get('layers');
+        if (!selectedLayer.get('leafletLayer') && selectedLayer.get('googleType')) {
+            this.loadGoogleLayer(selectedLayer);
+        }
+        var currentActiveLayers = layers.where({ active: true });
+        var isInCurrentActive = _.includes(currentActiveLayers, selectedLayer);
+        if (currentActiveLayers.length > 0) {
+            // Works like a checkbox
+            if (layerGroup.get('canSelectMultiple')) {
+                if (isInCurrentActive) {
+                    selectedLayer.set('active', false);
+                    map.removeLayer(selectedLayer.get('leafletLayer'));
+                } else {
+                    selectedLayer.set('active', true);
+                    map.addLayer(selectedLayer.get('leafletLayer'));
+                }
+            // Works like radio buttons
+            } else {
+                if (isInCurrentActive && !layerGroup.get('mustHaveActive')) {
+                    selectedLayer.set('active', false);
+                    map.removeLayer(selectedLayer.get('leafletLayer'));
+                } else {
+                    var currentActiveLayer = currentActiveLayers[0];
+                    currentActiveLayer.set('active', false);
+                    map.removeLayer(currentActiveLayer.get('leafletLayer'));
+                    selectedLayer.set('active', true);
+                    map.addLayer(selectedLayer.get('leafletLayer'));
+                }
+            }
+        } else {
+            selectedLayer.set('active', true);
+            map.addLayer(selectedLayer.get('leafletLayer'));
+        }
+        if (layerGroup.get('name') === "Basemaps") {
+            map.fireEvent('baselayerchange', selectedLayer.get('leafletLayer'));
+        }
+        layerGroup.trigger('toggle:layer');
     },
 
     // A function for enabling/disabling modal buttons.  In additiion
@@ -266,6 +342,24 @@ var utils = {
         return element.measure !== "Biochemical Oxygen Demand";
     },
 
+
+    // TR-55 runoff and water quality results are in the format:
+    // {
+    //     modified: ...,
+    //     unmodified: ...,
+    //     pc_unmodified: ...,
+    // }
+    // Use the scenario attributes to figure out which subresult should be
+    // accessed.
+    getTR55ResultKey: function(scenario) {
+        if (scenario.get('is_current_conditions')) {
+            return 'unmodified';
+        } else if (scenario.get('is_pre_columbian')) {
+            return 'pc_unmodified';
+        }
+        return 'modified';
+    },
+
     // Reverse sorting of a Backbone Collection.
     // Taken from http://stackoverflow.com/a/12220415/2053314
     reverseSortBy: function(sortByFunction) {
@@ -321,6 +415,47 @@ var utils = {
             geom.type = 'MultiPolygon';
         }
         return geom;
+    },
+
+    downloadDataCSV: function(data, filename) {
+        var csv = papaparse.unparse(JSON.stringify(data)),
+            blob = new Blob([csv], { type: 'text/csv' }),
+            url = window.URL.createObjectURL(blob),
+            tmpLink = document.createElement('a');
+
+        tmpLink.href = url;
+        tmpLink.setAttribute('download', filename + '.csv');
+        tmpLink.setAttribute('target', '_blank');
+        document.body.appendChild(tmpLink);
+        tmpLink.click();
+        document.body.removeChild(tmpLink);
+    },
+
+    renameCSVColumns: function(data, nameMap) {
+        return _.map(data, function(row) {
+            var newRow = {};
+            _.each(row, function(value, key) {
+                var newKey = nameMap[key] || key;
+                newRow[newKey] = value;
+            });
+            return newRow;
+        });
+    },
+
+    calculateVisibleRows: function(minScreenHeight, avgRowHeight, minRows) {
+        var screenHeight = document.documentElement.clientHeight;
+        if (screenHeight <= minScreenHeight) {
+            return minRows;
+        }
+
+        return minRows + Math.floor((screenHeight - minScreenHeight) / avgRowHeight);
+    },
+
+    isWKAoIValid: function(wkaoi) {
+        return wkaoi &&
+               wkaoi.includes('__') &&
+               !lodash.startsWith(wkaoi, '__') &&
+               !lodash.endsWith(wkaoi, '__');
     }
 };
 

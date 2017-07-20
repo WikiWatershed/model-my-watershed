@@ -24,7 +24,7 @@ var ControlView = Marionette.LayoutView.extend({
     model: models.ModelPackageControlModel,
 
     className: function() {
-        return 'inline ' + this.getControlName();
+        return 'inline control-item ' + this.getControlName();
     },
 
     initialize: function(options) {
@@ -67,6 +67,7 @@ var ThumbSelectView = Marionette.ItemView.extend({
 
     events: {
         'click @ui.drawControl': 'onThumbClick',
+        'touchstart @ui.thumb': 'onThumbClick',
         'mouseenter @ui.thumb': 'onThumbHover'
     },
 

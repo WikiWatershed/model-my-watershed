@@ -1,0 +1,19 @@
+{% if geocodeSuggestions.size() %}
+<div class="geocode-suggestions">
+<ul>
+{% for model in geocodeSuggestions.models %}
+  <li data-cid="{{ model.cid }}">{{ model.get('text') }}</li>
+{% endfor %}
+</ul>
+</div>
+{% endif %}
+<div class="boundary-suggestions">
+{% for label, models in boundarySuggestions %}
+<h1>{{ label }}</h1>
+<ul>
+  {% for model in models %}
+  <li data-cid="{{ model.cid }}">{{ model.get('text') }}</li>
+  {% endfor %}
+</ul>
+{% endfor %}
+</div>

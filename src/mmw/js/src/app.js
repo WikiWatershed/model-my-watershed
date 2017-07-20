@@ -4,6 +4,7 @@ var $ = require('jquery'),
     Marionette = require('../shim/backbone.marionette'),
     shutterbug = require('../shim/shutterbug'),
     views = require('./core/views'),
+    LayerPickerView = require('./core/layerPicker'),
     models = require('./core/models'),
     settings = require('./core/settings'),
     itsi = require('./core/itsiEmbed'),
@@ -15,10 +16,12 @@ var App = new Marionette.Application({
     initialize: function() {
         this.restApi = new RestAPI();
         this.map = new models.MapModel();
+        this.layerTabs = new models.LayerTabCollection(null);
         this.state = new models.AppStateModel();
 
         // If in embed mode we are by default in activity mode.
-        var activityMode = settings.get('itsi_embed');
+        var activityMode = settings.get('itsi_enabled') &&
+                settings.get('itsi_embed');
         settings.set('activityMode', activityMode);
 
         // Initialize embed interface if in activity mode
@@ -30,12 +33,15 @@ var App = new Marionette.Application({
         // This view is intentionally not attached to any region.
         this._mapView = new views.MapView({
             model: this.map,
+            layerTabCollection: this.layerTabs,
             el: '#map'
         });
 
         this._mapView.on('change:needs_reset', function(needs) {
             App.currentProject.set('needs_reset', needs);
         });
+
+        this.layerTabs.disableLayersOnZoomAndPan(this.getLeafletMap());
 
         this.rootView = new views.RootView({app: this});
         this.user = new userModels.UserModel({});
@@ -47,6 +53,10 @@ var App = new Marionette.Application({
         });
 
         this.header.render();
+
+        if (settings.isLayerSelectorEnabled()) {
+            this.showLayerPicker();
+        }
 
         // Not set until modeling/controllers.js creates a
         // new project.
@@ -67,9 +77,24 @@ var App = new Marionette.Application({
         }
     },
 
+    getLayerTabCollection: function() {
+        return this.layerTabs;
+    },
+
+    showLayerPicker: function() {
+        this.layerPickerView = new LayerPickerView({
+            collection: this.layerTabs,
+            leafletMap: this.getLeafletMap(),
+        });
+        this.rootView.layerPickerRegion.show(this.layerPickerView);
+    },
+
     getAnalyzeCollection: function() {
         if (!this.analyzeCollection) {
-            this.analyzeCollection = analyzeModels.createAnalyzeTaskCollection(this.map.get('areaOfInterest'));
+            var aoi = this.map.get('areaOfInterest'),
+                wkaoi = this.map.get('wellKnownAreaOfInterest');
+
+            this.analyzeCollection = analyzeModels.createAnalyzeTaskCollection(aoi, wkaoi);
         }
 
         return this.analyzeCollection;
@@ -101,9 +126,12 @@ var App = new Marionette.Application({
         });
     },
 
-    showLoginModal: function() {
+    showLoginModal: function(onSuccess) {
         new userViews.LoginModalView({
-            model: new userModels.LoginFormModel({}),
+            model: new userModels.LoginFormModel({
+                showItsiButton: settings.get('itsi_enabled'),
+                successCallback: onSuccess
+            }),
             app: this
         }).render();
     }
@@ -131,9 +159,8 @@ function initializeShutterbug() {
                 'width': window.innerWidth
             });
 
-            var mapView = App.getMapView(),
-                activeBaseLayer = mapView.baseLayers[mapView.getActiveBaseLayerName()],
-                googleLayerVisible = !!activeBaseLayer._google;
+            var activeBaseLayer = App.getLayerTabCollection().getCurrentActiveBaseLayer(),
+                googleLayerVisible = !!activeBaseLayer.get('leafletLayer')._google;
 
             if (googleLayerVisible) {
                 // Convert Google Maps CSS Transforms to Left / Right
@@ -161,9 +188,8 @@ function initializeShutterbug() {
                 'width': ''
             });
 
-            var mapView = App.getMapView(),
-                activeBaseLayer = mapView.baseLayers[mapView.getActiveBaseLayerName()],
-                googleLayerVisible = !!activeBaseLayer._google;
+            var activeBaseLayer = App.getLayerTabCollection().getCurrentActiveBaseLayer(),
+                googleLayerVisible = !!activeBaseLayer.get('leafletLayer')._google;
 
             if (googleLayerVisible) {
                 var $googleTileLayer = $(googleTileLayerSelector),

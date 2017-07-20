@@ -4,9 +4,12 @@ var Backbone = require('../../shim/backbone'),
     $ = require('jquery'),
     _ = require('lodash'),
     turfArea = require('turf-area'),
+    L = require('leaflet'),
     utils = require('./utils'),
-    drawUtils = require('../draw/utils');
-
+    pointSourceLayer = require('../core/pointSourceLayer'),
+    drawUtils = require('../draw/utils'),
+    settings = require('./settings'),
+    VizerLayers = require('./vizerLayers');
 
 var MapModel = Backbone.Model.extend({
     defaults: {
@@ -15,9 +18,11 @@ var MapModel = Backbone.Model.extend({
         zoom: 0,
         areaOfInterest: null,           // GeoJSON
         areaOfInterestName: '',
-        halfSize: false,
+        wellKnownAreaOfInterest: null,  // "{layerCode}__{id}"
         geolocationEnabled: true,
-        previousAreaOfInterest: null
+        previousAreaOfInterest: null,
+        dataCatalogResults: null,       // GeoJSON array
+        dataCatalogActiveResult: null   // GeoJSON
     },
 
     revertMaskLayer: function() {
@@ -50,39 +55,364 @@ var MapModel = Backbone.Model.extend({
         this.set('areaOfInterest', _.clone(this.get('previousAreaOfInterest')));
     },
 
-    setDoubleHeaderSmallFooterSize: function(fit) {
-        this._setSizeOptions({ double: true  }, { small: true }, fit);
-    },
-
-    setDoubleHeaderHalfFooterSize: function(fit) {
-        this._setSizeOptions({ sidebar: true  }, { sidebar: true }, fit);
-    },
-
-    setDoubleHeaderSidebarSize: function(fit) {
-        this._setSizeOptions({ sidebar: true  }, { sidebar: true }, fit);
-    },
-
-    setNoHeaderSidebarSize: function(fit) {
-        var noHeader = true;
-        this._setSizeOptions({ sidebar: true  }, { sidebar: true }, fit, noHeader);
+    setNoHeaderSidebarSize: function(fit, sidebarWidth) {
+        var hasSidebar = true,
+            hasProjectHeader = false;
+        this._setSizeOptions(fit, hasProjectHeader, hasSidebar, sidebarWidth);
     },
 
     setDrawSize: function(fit) {
-        this._setSizeOptions({ single: true }, { min: true }, fit);
-    },
-
-    setDrawWithBarSize: function(fit) {
-        this._setSizeOptions({ single: true  }, { med: true }, fit);
+        this.setNoHeaderSidebarSize(fit);
     },
 
     setAnalyzeSize: function(fit) {
-        this._setSizeOptions({ single: true  }, { large: true }, fit);
+        this.setNoHeaderSidebarSize(fit);
     },
 
-    _setSizeOptions: function(top, bottom, fit, noHeader) {
-        this.set('size', { top: top, bottom: bottom, fit: !!fit, noHeader: noHeader });
+    setDataCatalogSize: function(fit) {
+        this.setNoHeaderSidebarSize(fit, utils.sidebarWide);
+    },
+
+    setModelSize: function(fit) {
+        var hasSidebar = true,
+            hasProjectHeader = true;
+        this._setSizeOptions(fit, hasProjectHeader, hasSidebar);
+    },
+
+    toggleSidebar: function() {
+        var sizeCopy = _.clone(this.get('size')),
+            updatedSize =_.merge(sizeCopy, {
+                hasSidebar: !sizeCopy.hasSidebar
+            });
+        this.set('size', updatedSize);
+    },
+
+// Set the sizing options for the map
+//      param: fit                  - bool, true if should fit the map to the AoI
+//      param: hasProjectHeader     - bool, true if the -projectheader class should
+//                                    be on the map container
+//      param: hasSidebar           - bool, true if the -sidebar class should
+//                                    be on the map container
+//      param: sidebarWidth         - string, if matches width option (eg 'wide'),
+//                                    and `hasSidebar === true`, map will add
+//                                    class to container accordingly.
+//                                    If option doesn't exist or is falsey, no
+//                                    class will be added, and map container will
+//                                    use the default sidebar size if `hasSidebar`
+    _setSizeOptions: function(fit, hasProjectHeader, hasSidebar, sidebarWidth) {
+        this.set('size', {
+            fit: fit,
+            hasProjectHeader: hasProjectHeader,
+            hasSidebar: hasSidebar,
+            sidebarWidth: sidebarWidth,
+        });
     }
 
+});
+
+var LayerModel = Backbone.Model.extend({
+    defaults: {
+        leafletLayer: null,
+        layerType: null,
+        display: null,
+        shortDisplay: null,
+        code: null,
+        perimeter: null,
+        maxZoom: null,
+        minZoom: null,
+        googleType: false,
+        disabled: false,
+        hasOpacitySlider: false,
+        legendMapping: null,
+        cssClassPrefix: null,
+        active: false,
+    },
+
+    buildLayer: function(layerSettings, layerType, initialActive) {
+        var leafletLayer,
+            googleMaps = (window.google ? window.google.maps : null);
+
+        // Check to see if the google api service has been loaded
+        // before creating a google layer
+        if (layerSettings.googleType){
+            if (googleMaps) {
+                leafletLayer = new L.Google(layerSettings.googleType, {
+                    maxZoom: layerSettings.maxZoom
+                });
+            }
+        } else {
+            var tileUrl = (layerSettings.url.match(/png/) === null ?
+                            layerSettings.url + '.png' : layerSettings.url);
+            _.defaults(layerSettings, {
+                zIndex: utils.layerGroupZIndices[layerType],
+                attribution: '',
+                minZoom: 0});
+            leafletLayer = new L.TileLayer(tileUrl, layerSettings);
+        }
+
+        this.set({
+            leafletLayer: leafletLayer,
+            layerType: layerType,
+            display: layerSettings.display,
+            shortDisplay: layerSettings.short_display,
+            code: layerSettings.code,
+            perimeter: layerSettings.perimeter,
+            maxZoom: layerSettings.maxZoom,
+            minZoom: layerSettings.minZoom,
+            googleType: layerSettings.googleType,
+            disabled: false,
+            hasOpacitySlider: layerSettings.has_opacity_slider,
+            legendMapping: layerSettings.legend_mapping,
+            cssClassPrefix: layerSettings.css_class_prefix,
+            active: layerSettings.display === initialActive ? true : false,
+        });
+    }
+});
+
+var LayersCollection = Backbone.Collection.extend({
+    model: LayerModel,
+
+    initialize: function(model, options) {
+        var self = this;
+        if (options) {
+            _.each(settings.get(options.type), function(layer) {
+                var layerModel = new LayerModel();
+                layerModel.buildLayer(layer, options.type, options.initialActive);
+                self.add(layerModel);
+            });
+        }
+    },
+
+    updateDisabled: function(layer, shouldDisable) {
+        this.findWhere({ display: layer.display })
+            .set('disabled', shouldDisable);
+    },
+
+    clearBgBufferOnLayer: function(layer) {
+        var leafletLayer = this.findWhere({ display: layer.display})
+            .get('leafletLayer');
+        if (leafletLayer) {
+            leafletLayer._clearBgBuffer();
+        }
+    },
+});
+
+var LayerGroupModel = Backbone.Model.extend({
+    defaults: {
+        name: null,
+        layerType: null,
+        layers: null,
+        mustHaveActive: false,
+        canSelectMultiple: false,
+    },
+});
+
+var ObservationsLayerGroupModel = LayerGroupModel.extend({
+    defaults: {
+        name: 'Observations',
+        layerType: 'observations',
+        canSelectMultiple: true,
+        polling: false,
+        error: null,
+        layers: null,
+    },
+
+    fetchLayers: function(map) {
+        var self = this,
+            pointSrcAPIUrl = '/api/modeling/point-source/';
+        var vizer = new VizerLayers();
+        this.set('polling', true);
+
+        $.when(vizer.getLayers(), $.ajax({ 'url': pointSrcAPIUrl, 'type': 'GET'}))
+            .done(function(observationLayers, pointSourceData) {
+                self.set({
+                    'polling': false,
+                    'error': null,
+                });
+
+                var observationLayerObjects =_.map(observationLayers, function(leafletLayer, display) {
+                        return {
+                                leafletLayer: leafletLayer,
+                                display: display,
+                                active: false,
+                                layerType: 'observations'
+                            };
+                    }),
+                    observationLayersCollection = new Backbone.Collection(observationLayerObjects);
+
+                if (pointSourceData) {
+                    try {
+                        var parsedPointSource = JSON.parse(pointSourceData[0]),
+                            numberOfPoints = parsedPointSource.features.length;
+                        observationLayersCollection.add({
+                            leafletLayer: pointSourceLayer.Layer.createLayer(pointSourceData[0], map),
+                            display: 'EPA Permitted Point Sources (' + numberOfPoints + ')',
+                            active: false,
+                            code: 'pointsource',
+                            layerType: 'observations'
+                        });
+                    } catch (e) {
+                        console.error('Unable to parse point source data');
+                    }
+                }
+
+                self.set('layers', observationLayersCollection);
+            })
+            .fail(function() {
+                self.set({
+                    'polling': false,
+                    'error': 'Could not load observations',
+                });
+            });
+    },
+});
+
+var LayerTabModel = Backbone.Model.extend({
+    defaults: {
+        name: '',
+        iconClass: '',
+        layerGroups: null,
+    },
+
+    findLayerWhere: function(attributes) {
+        var layerContext = { layer: null };
+        this.get('layerGroups').find(function(layerGroup) {
+            var layers = layerGroup.get('layers');
+            if (layers) {
+                this.layer = layers.findWhere(attributes);
+                return this.layer;
+            }
+        }, layerContext);
+        return layerContext.layer;
+    },
+});
+
+var LayerTabCollection = Backbone.Collection.extend({
+    model: LayerTabModel,
+
+    initialize: function() {
+        var defaultBaseLayer = _.findWhere(settings.get('base_layers'), function(layer) {
+                return layer.default === true;
+            }),
+            defaultBaseLayerName = defaultBaseLayer ? defaultBaseLayer['display'] : 'Streets';
+
+
+        this.set([
+            new LayerTabModel({
+                name: 'Streams',
+                    iconClass: 'icon-streams',
+                    layerGroups: new Backbone.Collection([
+                        new LayerGroupModel({
+                            name: 'Streams',
+                            layerType: 'stream_layers',
+                            layers: new LayersCollection(null, {
+                                type: 'stream_layers'
+                            }),
+                        }),
+                    ]),
+            }),
+            new LayerTabModel({
+                name: 'Coverage Grid',
+                iconClass: 'icon-coverage',
+                layerGroups: new Backbone.Collection([
+                    new LayerGroupModel({
+                        name: 'Coverage Grid',
+                        layerType: 'coverage_layers',
+                        layers: new LayersCollection(null, {
+                            type: 'coverage_layers'
+                        }),
+                    }),
+                ])
+            }),
+            new LayerTabModel({
+                name: 'Boundary',
+                iconClass: 'icon-boundary',
+                layerGroups: new Backbone.Collection([
+                    new LayerGroupModel({
+                        name: 'Boundary',
+                        layerType: 'boundary_layers',
+                        layers: new LayersCollection(null, {
+                            type: 'boundary_layers'
+                        }),
+                    }),
+                ])
+            }),
+            new LayerTabModel({
+                name: 'Observations',
+                iconClass: 'icon-observations',
+                layerType: 'observations',
+                layerGroups: new LayersCollection([
+                    new ObservationsLayerGroupModel(),
+                ])
+            }),
+            new LayerTabModel({
+                name: 'Basemaps',
+                iconClass: 'icon-basemaps',
+                layerGroups: new Backbone.Collection([
+                    new LayerGroupModel({
+                        name: 'Basemaps',
+                        layerType: 'base_layers',
+                        mustHaveActive: true,
+                        layers: new LayersCollection(null, {
+                            type: 'base_layers',
+                            initialActive: defaultBaseLayerName,
+                        }),
+                    }),
+                ])
+            }),
+        ]);
+    },
+
+    disableLayersOnZoomAndPan: function(leafletMap) {
+        this.forEach(function(layerTab) {
+            layerTab.get('layerGroups').forEach(function(layerGroup) {
+                var layers = layerGroup.get('layers');
+                if (layers)  {
+                    utils.zoomToggle(leafletMap, layers.toJSON(),
+                        _.bind(layers.updateDisabled, layers),
+                        _.bind(layers.clearBgBufferOnLayer, layers));
+                    utils.perimeterToggle(leafletMap, layers.toJSON(),
+                        _.bind(layers.updateDisabled, layers),
+                        _.bind(layers.clearBgBufferOnLayer, layers));
+                }
+            });
+        });
+    },
+
+    findLayerWhere: function(attributes) {
+        var layerContext = { layer: null };
+        this.find(function(layerTab) {
+            this.layer = layerTab.findLayerWhere(attributes);
+            return this.layer;
+        }, layerContext);
+        return layerContext.layer;
+    },
+
+    findLayerGroup: function(layerType) {
+        var layerGroupContext = { layerGroup: null };
+        this.find(function(layerTab) {
+            this.layerGroup = layerTab.get('layerGroups').findWhere({ layerType: layerType });
+            return this.layerGroup;
+        }, layerGroupContext);
+        return layerGroupContext.layerGroup;
+    },
+
+    getObservationLayerGroup: function() {
+        return this.findWhere({ name: 'Observations' })
+            .get('layerGroups').first();
+    },
+
+    getBaseLayerTab: function() {
+        return this.findWhere({ name: 'Basemaps'});
+    },
+
+    getCurrentActiveBaseLayer: function() {
+        return this.getBaseLayerTab().findLayerWhere({ 'active': true });
+    },
+
+    getCurrentActiveBaseLayerName: function() {
+        return this.getCurrentActiveBaseLayer().get('display');
+    }
 });
 
 var TaskModel = Backbone.Model.extend({
@@ -242,13 +572,13 @@ var AnimalCensusCollection = Backbone.Collection.extend({
 var PointSourceCensusCollection = Backbone.PageableCollection.extend({
     comparator: 'city',
     mode: 'client',
-    state: { pageSize: 50, firstPage: 1 }
+    state: { pageSize: 3, firstPage: 1 }
 });
 
 var CatchmentWaterQualityCensusCollection = Backbone.PageableCollection.extend({
     comparator: 'nord',
     mode: 'client',
-    state: { pageSize: 50, firstPage: 1 }
+    state: { pageSize: 5, firstPage: 1 }
 });
 
 var GeoModel = Backbone.Model.extend({
@@ -306,12 +636,13 @@ var AreaOfInterestModel = GeoModel.extend({
 
 var AppStateModel = Backbone.Model.extend({
     defaults: {
-        current_page_title: 'Select Area of Interest'
+        active_page: 'Select Area Of Interest',
     }
 });
 
 module.exports = {
     MapModel: MapModel,
+    LayerTabCollection: LayerTabCollection,
     TaskModel: TaskModel,
     TaskMessageViewModel: TaskMessageViewModel,
     LandUseCensusCollection: LandUseCensusCollection,

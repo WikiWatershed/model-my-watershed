@@ -6,7 +6,7 @@ var PRECISION = 5;
 
 module.exports = L.Control.extend({
     options: {
-        position: 'bottomleft'
+        position: 'bottomright'
     },
 
     onAdd: function(map) {

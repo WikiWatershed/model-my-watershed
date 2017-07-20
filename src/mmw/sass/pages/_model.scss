@@ -1,33 +1,12 @@
 //Layout
 #model-output-wrapper {
-  position: absolute;
-  right: 0;
-  top: $height-lg * 2 + $toolbar-height;
-  bottom: 0;
   width: $sidebar-width !important;
-  @media(min-width: 1040px) {
-    width: 485px !important;
-  }
-  min-height: 300px;
-  height: auto !important;
   background-color: $paper;
   z-index: 100;
-  transform: translateX(0%);
-
-  .hidden-sidebar & {
-    transform: translateX(100%);
-  }
-
-  .back-button {
-      display: inline-block;
-  }
+  height: 100%;
 
   .disabled {
       text-decoration: none;
-  }
-
-  &.analyze {
-    top: $height-lg;
   }
 
   .title-row {
@@ -49,13 +28,21 @@
     height: 100%;
     width: 100%;
 
-    .result-text {
-        font-size: 0.8rem;
-        margin-bottom: 20px;
+    .result-title {
+        padding-top: 5px;
+        font-size: $font-size-h4;
+        font-weight: 800;
+    }
+
+    .result-description {
+        font-size: $font-size-h5;
+        font-weight: 400;
+        color: $black-54;
+        margin-bottom: 4px;
     }
 
     .mean-flow {
-      font-size: 16px;
+      font-size: $font-size-h4;
     }
 
     .runoff-chart-container {
@@ -75,12 +62,11 @@
     }
   }
 
-  .tab-content {
-    overflow-y: auto;
-    padding: 1rem;
+  .model-results-tooltip {
+    color: #333333;
 
-    .row {
-      width: 100%;
+    i {
+      width: 15px;
     }
   }
 }

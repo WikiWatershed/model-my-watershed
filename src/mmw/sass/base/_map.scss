@@ -5,61 +5,15 @@
   left: 0;
   right: 0;
   transition: all 200ms;
-  // Set top of map to height of initial header.
-  // Needs a more descriptive name.
-  &.map-container-top-1 {
-    top: $height-lg;
-  }
+
   // Set top of map to combined height of initial header and toolbar.
-  // Needs a more descriptive name.
-  &.map-container-top-2 {
-    top: $height-lg * 2 + $toolbar-height;
-  }
-  // Set bottom of map to height of default view, which is 0px.
-  // Needs a more descriptive name.
-  &.map-container-bottom-1 {
-    bottom: 0;
-  }
-  // Set bottom of map to height of output toolbar.
-  // Needs a more descriptive name.
-  &.map-container-bottom-2 {
-    bottom: $output-height;
-  }
-  // Set bottom of map to location description toolbar.
-  // Needs a more descriptive name.
-  &.map-container-bottom-3 {
-    bottom: $location-description-height;
-  }
-  // Set bottom of map to full standard footer height.
-  // Needs a more descriptive name.
-  &.map-container-bottom-4 {
-    bottom: $footer-height;
-  }
-  // Sets map to correct container size for sidebar.
-  &.map-container-top-sidebar {
-    top: $height-lg * 2 + $toolbar-height;
-    right: $sidebar-width;
-    @media(min-width: 1040px) {
-      right: 485px !important;
-    }
-  }
-  // Sets map to correct container size for sidebar
-  // with no header.
-  &.map-container-top-sidebar-no-header {
-    top: $height-lg;
-    right: $sidebar-width;
-    @media(min-width: 1040px) {
-      right: 485px !important;
-    }
-  }
-  // Sets map to correct container size for sidebar.
-  &.map-container-bottom-sidebar {
-    bottom: 0 !important;
+  &.-projectheader {
+    top: $height-xl * 2 + $height-lg;
   }
 
-  // Sets map to correct container size for no sidebar
-  &.hidden-sidebar {
-    right: 0 !important;
+  // Sets map to correct container size for sidebar.
+  &.-sidebar {
+    left: $sidebar-width;
   }
   .compare-scenarios-container & {
     top: 0;
@@ -105,6 +59,72 @@
 .leaflet-control-layers-expanded {
   padding: 0;
   background-color: transparent;
+}
+
+
+// Override leaflet bottomright controls
+.leaflet-bottom.leaflet-right {
+    text-align: right;
+}
+
+.leaflet-bottom.leaflet-right > .leaflet-control {
+    display: inline-block;
+    float: none;
+    vertical-align: middle;
+    margin-bottom: 6px;
+
+    &:first-child {
+        margin-right: 10px;
+    }
+    &.leaflet-control-attribution {
+       display: block;
+       margin-bottom: 0px;
+    }
+
+    &.leaflet-control-zoom {
+        width: 68px;
+       .leaflet-control-zoom-out {
+           border-right: 2px #ccc solid;
+       }
+       .leaflet-control-zoom-out, .leaflet-control-zoom-in {
+        font-size: $font-size-h1;
+        line-height: 32px;
+        font-size: 21px !important;
+        font-weight: 900;
+        font-family: $font-family;
+       }
+       .leaflet-touch & {
+           width: 72px;
+           height: 38px;
+       }
+    }
+}
+
+.leaflet-bottom.leaflet-right > .leaflet-bar,
+.layer-control-button-container.leaflet-bar {
+    height: 34px;
+    width: 34px;
+    > a {
+        display: inline-block;
+        background-color: $ui-light;
+        color: $ui-secondary;
+        border-radius: 0px;
+        height: 34px;
+        width: 34px;
+        line-height: 34px;
+        border: none;
+        font-size: 15px;
+        box-shadow: none;
+        float: none;
+        color: $gray-dark !important;
+        &:hover {
+            background-color: #ccc;
+        }
+    }
+    .leaflet-touch & {
+        height: 38px;
+        width: 38px;
+    }
 }
 
 .leaflet-control {
@@ -157,7 +177,7 @@
     padding: 5px 15px;
 
     .modal-title {
-      font-size: 14px;
+      font-size: $font-size-h4;
      }
   }
 
@@ -168,7 +188,7 @@
   .close {
     text-shadow: none;
     color: $paper;
-    font-size: 24px;
+    font-size: $font-size-h1;
   }
 }
 
@@ -203,4 +223,25 @@
 
 .marker-rwd-nearest-stream-point {
   background-color: #3498db;
+}
+
+.leaflet-popup-content, #gwlfe-modifications-popup {
+  h3, h5 {
+    margin-bottom: 10px;
+  }
+  table {
+    margin-bottom: 10px;
+    td {
+      padding: 4px !important;
+      &:first-child {
+        padding-left: 0 !important;
+      }
+      &:last-child {
+        padding-right: 0 !important;
+      }
+    }
+  }
+  .delete-modification {
+    padding: 0;
+  }
 }
