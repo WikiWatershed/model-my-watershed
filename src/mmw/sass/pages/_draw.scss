@@ -107,6 +107,10 @@
   & #upload-file-region {
     height: 10rem;
 
+    .aoi-upload-dropdown.drag {
+      background-color: #D1ECEE;
+    }
+
     & #file-upload-title {
       margin-top: 0;
     }
@@ -191,4 +195,8 @@
     font-size: $font-size-h3;
     margin: 0.4rem 0 0.8rem;
   }
+}
+
+body.processing {
+  opacity: 0.6;
 }
