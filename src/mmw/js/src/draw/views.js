@@ -529,7 +529,7 @@ var SelectBoundaryView = DrawToolBaseView.extend({
         var toolData = {
                 id: this.id,
                 title: 'Select boundary',
-                info: 'Lorem ipsum dolor it amet, consectetur'
+                info: 'Choose a predefined boundary from several types'
             },
             shapeTypes = this.model.get('predefinedShapeTypes'),
             directions = 'Click on a boundary.',
@@ -636,19 +636,31 @@ var DrawAreaView = DrawToolBaseView.extend({
         return {
             id: this.id,
             title: 'Draw area',
-            info: 'Lorem ipsum dolor it amet, consectetur',
+            info: 'Free draw an area or place a square kilometer',
             items: [
                 {
                     id: freeDraw,
                     title: 'Free draw',
-                    info: 'Draw a custom area on which you want to perform water quality analysis.',
+                    info: 'Free draw an area of interest polygon, by clicking ' +
+                          'on the map and repeatedly clicking at boundary corners. ' +
+                          'Close the polygon by double clicking on the last ' +
+                          'point or clicking on the first point.<br />' +
+                          'For more information, see ' +
+                          '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#draw-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
+                          'Model My Watershed Technical Documentation on ' +
+                          'Draw Area.</a>',
                     minZoom: 0,
                     directions: 'Draw a boundary.'
                 },
                 {
                     id: squareKm,
                     title: 'Square Km',
-                    info: 'Draw a predefined one kilometer square with a center at the point you choose.',
+                    info: 'Draw a perfect square with one kilometer sides, by ' +
+                          'clicking on the map where the square’s center will be.<br />' +
+                          'For more information, see ' +
+                          '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#draw-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
+                          'Model My Watershed Technical Documentation on ' +
+                          'Draw Area.</a>',
                     minZoom: 0,
                     directions: 'Click a point.'
                 }
@@ -673,7 +685,8 @@ var DrawAreaView = DrawToolBaseView.extend({
     },
 
     enableDrawArea: function() {
-        var map = App.getLeafletMap(),
+        var self = this,
+            map = App.getLeafletMap(),
             revertLayer = clearAoiLayer();
 
         utils.drawPolygon(map)
@@ -684,11 +697,13 @@ var DrawAreaView = DrawToolBaseView.extend({
             }).fail(function(message) {
                 revertLayer();
                 displayAlert(message, modalModels.AlertTypes.error);
+                self.model.reset();
             });
     },
 
     enableStampTool: function() {
-        var map = App.getLeafletMap(),
+        var self = this,
+            map = App.getLeafletMap(),
             revertLayer = clearAoiLayer();
 
         utils.placeMarker(map).then(function(latlng) {
@@ -720,6 +735,7 @@ var DrawAreaView = DrawToolBaseView.extend({
         }).fail(function(message) {
             revertLayer();
             displayAlert(message, modalModels.AlertTypes.error);
+            self.model.reset();
         });
     }
 });
@@ -735,29 +751,40 @@ var WatershedDelineationView = DrawToolBaseView.extend({
         return {
             id: this.id,
             title: 'Delineate watershed',
-            info: 'Lorem ipsum dolor it amet, consectetur',
+            info: 'Automatically delineate a watershed from any point',
             items: [
                 {
-                    id: utils.DRB,
-                    dataSource: utils.DRB,
-                    title: 'Delaware High Resolution',
-                    info: 'Snaps to the nearest downhill point on the Delaware River Basin' +
-                        ' high resolution stream network and calculates the watershed upstream of this point using a' +
-                        ' 1/3 arc second (10m) resolution digital elevation model. The stream network was' +
-                        ' delineated using <a href=\'http://hydrology.usu.edu/taudem/taudem5/index.html\' target=\'_blank\'>TauDEM</a>.',
+                    id: utils.NHD,
+                    dataSource: utils.NHD,
+                    title: 'Continental US Medium Resolution',
+                    info: 'Click on the map to select the nearest downhill ' +
+                          'point on the medium resolution flow lines of the ' +
+                          'National Hydrography Dataset (NHDplus v2). The ' +
+                          'watershed area upstream of this point is ' +
+                          'automatically delineated using the 30 m resolution ' +
+                          'flow direction grid.<br />' +
+                          'For more information, see ' +
+                          '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#delineate-watershed\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
+                          'Model My Watershed Technical Documentation on ' +
+                          'Delineate Watershed.</a>',
                     shapeType: 'stream',
                     snappingOn: true,
                     minZoom: 0,
                     directions: 'Click a point to delineate a watershed.'
                 },
                 {
-                    id: utils.NHD,
-                    dataSource: utils.NHD,
-                    title: 'Continental US Medium Resolution',
-                    info: ' Snaps to the nearest downhill point on the medium' +
-                        ' resolution flow lines of the National Hydrography Dataset and calculates the' +
-                        ' watershed upstream of this point using the 30m resolution NHDPlus flow direction grid.' +
-                        ' Learn more about NHDPlus <a href=\'http://www.horizon-systems.com/nhdplus/\' target=\'_blank\'>here</a>.',
+                    id: utils.DRB,
+                    dataSource: utils.DRB,
+                    title: 'Delaware High Resolution',
+                    info: 'Click on the map to select the nearest downhill ' +
+                          'point on our Delaware River Basin high resolution ' +
+                          'stream network. The watershed area upstream of this ' +
+                          'point is automatically delineated using the 10 m ' +
+                          'resolution national elevation model.<br />' +
+                          'For more information, see ' +
+                          '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#delineate-watershed\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
+                          'Model My Watershed Technical Documentation on ' +
+                          'Delineate Watershed.</a>',
                     shapeType: 'stream',
                     snappingOn: true,
                     minZoom: 0,

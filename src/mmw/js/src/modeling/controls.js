@@ -67,6 +67,7 @@ var ThumbSelectView = Marionette.ItemView.extend({
 
     events: {
         'click @ui.drawControl': 'onThumbClick',
+        'touchstart @ui.thumb': 'onThumbClick',
         'mouseenter @ui.thumb': 'onThumbHover'
     },
 
