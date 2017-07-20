@@ -85,6 +85,11 @@
         display: none;
     }
     padding-bottom: 6px;
+
+    .help > i {
+      color: #333333;
+      width: 15px;
+    }
 }
 
 .analyze-source,
