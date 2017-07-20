@@ -642,7 +642,7 @@ var DrawAreaView = DrawToolBaseView.extend({
                     id: freeDraw,
                     title: 'Free draw',
                     info: 'Free draw an area of interest polygon, by clicking ' +
-                          'on map and repeatedly clicking at boundary corners. ' +
+                          'on the map and repeatedly clicking at boundary corners. ' +
                           'Close the polygon by double clicking on the last ' +
                           'point or clicking on the first point.<br />' +
                           'For more information, see ' +
@@ -656,7 +656,7 @@ var DrawAreaView = DrawToolBaseView.extend({
                     id: squareKm,
                     title: 'Square Km',
                     info: 'Draw a perfect square with one kilometer sides, by ' +
-                          'clicking on map at the square’s center.<br />' +
+                          'clicking on the map where the square’s center will be.<br />' +
                           'For more information, see ' +
                           '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#draw-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
                           'Model My Watershed Technical Documentation on ' +

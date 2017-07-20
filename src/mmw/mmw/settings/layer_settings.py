@@ -195,7 +195,7 @@ LAYER_GROUPS = {
             'table_name': 'boundary_huc08',
             'helptext': 'US Geological Survey Hydrologic Units of the '
                         'eight-digit level (Hydrologic Unit Code 8), averaging'
-                        ' 700 sq. mi. (1,813 km<sup>2</sup>).<br />'
+                        ' 700 sq. mi. (1,813&nbsp;km<sup>2</sup>).<br />'
                         'For more information and data sources, see <a '
                         'href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlay-boundary\' '
                         'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
@@ -213,7 +213,7 @@ LAYER_GROUPS = {
             'table_name': 'boundary_huc10',
             'helptext': 'US Geological Survey Hydrologic Units of the '
                         'ten-digit level (Hydrologic Unit Code 10), averaging'
-                        ' 227 sq. mi. (588 km<sup>2</sup>).<br />'
+                        ' 227 sq. mi. (588&nbsp;km<sup>2</sup>).<br />'
                         'For more information and data sources, see <a '
                         'href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlay-boundary\' '
                         'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
@@ -231,8 +231,8 @@ LAYER_GROUPS = {
             'table_name': 'boundary_huc12',
             'json_field': 'geom_detailed',
             'helptext': 'US Geological Survey Hydrologic Units of the '
-                        'twelve-digit level (Hydrologic Unit Code 12),'
-                        'averaging 40 sq. mi. (104 km<sup>2</sup>).<br />'
+                        'twelve-digit level (Hydrologic Unit Code 12), '
+                        'averaging 40 sq. mi. (104&nbsp;km<sup>2</sup>).<br />'
                         'For more information and data sources, see <a '
                         'href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlay-boundary\' '
                         'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
