@@ -606,6 +606,7 @@ var ScenarioModel = Backbone.Model.extend({
         modification_hash: null, // MD5 string
         active: false,
         job_id: null,
+        poll_error: null,
         results: null, // ResultCollection
         aoi_census: null, // JSON blob
         modification_censuses: null, // JSON blob
@@ -801,6 +802,7 @@ var ScenarioModel = Backbone.Model.extend({
                 postData: gisData,
 
                 onStart: function() {
+                    self.set('poll_error', null);
                     results.setPolling(true);
                 },
 
@@ -808,8 +810,9 @@ var ScenarioModel = Backbone.Model.extend({
                     self.setResults();
                 },
 
-                pollFailure: function() {
+                pollFailure: function(error) {
                     console.log('Failed to get modeling results.');
+                    self.set('poll_error', error);
                     results.setNullResults();
                 },
 
@@ -820,11 +823,12 @@ var ScenarioModel = Backbone.Model.extend({
 
                 startFailure: function(response) {
                     console.log('Failed to start modeling job.');
-
+                    var error = 'Failed to start modeling job';
                     if (response.responseJSON && response.responseJSON.error) {
                         console.log(response.responseJSON.error);
+                        error = response.responseJSON.error;
                     }
-
+                    self.set('poll_error', error);
                     results.setNullResults();
                     results.setPolling(false);
                 }

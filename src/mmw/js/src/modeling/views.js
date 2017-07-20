@@ -861,41 +861,8 @@ var ResultsView = Marionette.LayoutView.extend({
             this.lock = options.lock;
         }
 
-        this.fetchGisDataPromise = this.model.fetchGisDataIfNeeded();
-        this.fetchResultsPromise = this.model.fetchResultsIfNeeded();
-    },
-
-    onShow: function() {
-        var self = this,
-            analyzeCollection = App.getAnalyzeCollection(),
-            tmvModel = new coreModels.TaskMessageViewModel(),
-            errorHandler = function(err) {
-                if (err && err.timeout) {
-                    tmvModel.setTimeoutError();
-                } else {
-                    var message = err.error === 'NO_LAND_COVER' ?
-                        'Selected area of interest doesn\'t include any land ' +
-                        'cover to run the model' : 'Error';
-                    tmvModel.setError(message);
-                }
-                self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
-            };
-
-        this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
-            collection: analyzeCollection
-        }));
-
-        tmvModel.setWorking('Gathering Data');
-        self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
-
-        self.fetchGisDataPromise.done(function() {
-            tmvModel.setWorking('Calculating Results');
-            self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
-        }).fail(errorHandler);
-
-        self.fetchResultsPromise.done(function() {
-            self.showDetailsRegion();
-        }).fail(errorHandler);
+        this.model.fetchGisDataIfNeeded();
+        this.model.fetchResultsIfNeeded();
     },
 
     onRender: function() {
@@ -906,9 +873,14 @@ var ResultsView = Marionette.LayoutView.extend({
         this.$el.find('.tab-pane:last').addClass('active');
     },
 
-    showDetailsRegion: function() {
+    onShow: function() {
         var scenarios = this.model.get('scenarios'),
-            scenario = scenarios.getActiveScenario();
+            scenario = scenarios.getActiveScenario(),
+            analyzeCollection = App.getAnalyzeCollection();
+
+        this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
+            collection: analyzeCollection
+        }));
 
         if (scenario) {
             this.modelingRegion.show(new ResultsDetailsView({
@@ -1023,6 +995,10 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
         resultRegion: '.result-region'
     },
 
+    modelEvents: {
+        'change:polling change:result': 'onShow',
+    },
+
     id: function() {
         return this.model.get('name');
     },
@@ -1032,15 +1008,44 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        var modelPackage = App.currentProject.get('model_package'),
+        var self = this,
+            modelPackage = App.currentProject.get('model_package'),
             resultName = this.model.get('name'),
-            ResultView = getResultView(modelPackage, resultName);
+            ResultView = getResultView(modelPackage, resultName),
+            tmvModel = new coreModels.TaskMessageViewModel(),
+            polling = this.model.get('polling'),
+            result = this.model.get('result'),
+            error = self.scenario.get('poll_error');
 
-        this.resultRegion.show(new ResultView({
-            model: this.model,
-            areaOfInterest: this.options.areaOfInterest,
-            scenario: this.scenario
-        }));
+        if (result) {
+            this.resultRegion.show(new ResultView({
+                model: this.model,
+                areaOfInterest: this.options.areaOfInterest,
+                scenario: this.scenario,
+            }));
+            return;
+        }
+
+        // Only show this on the initial polling. On subsequent polling, we
+        // keep showing the current results.
+        tmvModel.setWorking('Gathering Data');
+
+        if (error) {
+            if (error.timeout) {
+                tmvModel.setTimeoutError();
+            } else {
+                var message = error === 'NO_LAND_COVER' ?
+                    'Selected area of interest doesn\'t include any land cover to run the model' :
+                    'Error';
+                tmvModel.setError(message);
+            }
+        }
+
+        if (polling) {
+            tmvModel.setWorking('Calculating Results');
+        }
+
+        self.resultRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
     }
 });
 
