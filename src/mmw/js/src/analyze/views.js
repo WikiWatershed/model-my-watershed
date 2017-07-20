@@ -492,6 +492,9 @@ var AnalyzeLayerToggleDropdownView = Marionette.ItemView.extend({
 
 var AnalyzeDescriptionView = Marionette.LayoutView.extend({
     template: AnalyzeDescriptionTmpl,
+    ui: {
+        helptextIcon: 'a.help',
+    },
     regions: {
         layerToggleRegion: '.layer-region',
     },
@@ -512,6 +515,12 @@ var AnalyzeDescriptionView = Marionette.LayoutView.extend({
                     })),
                 }));
             }
+        }
+        if (this.model.get('helpText')) {
+            this.ui.helptextIcon.popover({
+                placement: 'right',
+                trigger: 'focus'
+            });
         }
     }
 });
@@ -922,7 +931,7 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
     },
 
     showAnalyzeResults: function(CategoriesToCensus, AnalyzeTableView,
-        AnalyzeChartView, title, source, associatedLayerCodes, pageSize) {
+        AnalyzeChartView, title, source, helpText, associatedLayerCodes, pageSize) {
         var categories = this.model.get('categories'),
             largestArea = lodash.max(lodash.pluck(categories, 'area')),
             units = utils.magnitudeOfArea(largestArea),
@@ -950,6 +959,7 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
                     title: title,
                     associatedLayerCodes: associatedLayerCodes,
                     source: source,
+                    helpText: helpText,
                 })
             }));
         }
@@ -960,9 +970,10 @@ var LandResultView  = AnalyzeResultView.extend({
     onShow: function() {
         var title = 'Land cover distribution',
             source = 'National Land Cover Database (NLCD 2011)',
+            helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
             associatedLayerCodes = ['nlcd'];
         this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView,
-            ChartView, title, source, associatedLayerCodes);
+            ChartView, title, source, helpText, associatedLayerCodes);
     }
 });
 
@@ -970,18 +981,21 @@ var SoilResultView  = AnalyzeResultView.extend({
     onShow: function() {
         var title = 'Hydrologic soil group distribution',
             source = 'USDA (gSSURGO 2016)',
+            helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
             associatedLayerCodes = ['soil'];
         this.showAnalyzeResults(coreModels.SoilCensusCollection, TableView,
-            ChartView, title, source, associatedLayerCodes);
+            ChartView, title, source, helpText, associatedLayerCodes);
     }
 });
 
 var AnimalsResultView = AnalyzeResultView.extend({
     onShow: function() {
         var title = 'Estimated number of farm animals',
+            source = 'USDA',
+            helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#additional-data-layers\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Additional Data Layers</a>',
             chart = null;
         this.showAnalyzeResults(coreModels.AnimalCensusCollection, AnimalTableView,
-            chart, title);
+            chart, title, source, helpText);
     }
 });
 
@@ -989,22 +1003,23 @@ var PointSourceResultView = AnalyzeResultView.extend({
     onShow: function() {
         var title = 'Discharge Monitoring Report annual averages',
             source = 'EPA NPDES',
+            helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#additional-data-layers\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Additional Data Layers</a>',
             associatedLayerCodes = ['pointsource'],
             avgRowHeight = 30,  // Most rows are between 2-3 lines, 12px per line
             minScreenHeight = 768 + 45, // height of landscape iPad + extra content below the table
             pageSize = utils.calculateVisibleRows(minScreenHeight, avgRowHeight, 3),
             chart = null;
         this.showAnalyzeResults(coreModels.PointSourceCensusCollection,
-            PointSourceTableView, chart, title, source, associatedLayerCodes, pageSize);
+            PointSourceTableView, chart, title, source, helpText, associatedLayerCodes, pageSize);
     }
 });
 
 var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
     onShow: function() {
-        var title = 'Delaware River Basin only: <a target="_blank" ' +
-                   'href="https://www.arcgis.com/home/item.html?id=260d7e17039d48a6beee0f0b640eb754">' +
-                   'Stream Reach Assessment Tool</a> model estimates',
-            source = null,
+        var title = 'Delaware River Basin only: Calibrated GWLF-E ' +
+                    '(MapShed) model estimates',
+            source = 'Stream Reach Assessment Tool (SRAT)',
+            helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
             associatedLayerCodes = [
                 'drb_catchment_water_quality_tn',
                 'drb_catchment_water_quality_tp',
@@ -1015,8 +1030,8 @@ var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
             pageSize = utils.calculateVisibleRows(minScreenHeight, avgRowHeight, 5),
             chart = null;
         this.showAnalyzeResults(coreModels.CatchmentWaterQualityCensusCollection,
-            CatchmentWaterQualityTableView, chart, title, source, associatedLayerCodes,
-            pageSize);
+            CatchmentWaterQualityTableView, chart, title, source, helpText,
+            associatedLayerCodes, pageSize);
     }
 });
 
