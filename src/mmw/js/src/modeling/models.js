@@ -608,6 +608,7 @@ var ScenarioModel = Backbone.Model.extend({
         job_id: null,
         poll_error: null,
         results: null, // ResultCollection
+        has_fetched_results: false,
         aoi_census: null, // JSON blob
         modification_censuses: null, // JSON blob
         allow_save: true, // Is allowed to save to the server - false in compare mode
@@ -639,10 +640,9 @@ var ScenarioModel = Backbone.Model.extend({
 
         this.on('change:project change:name', this.attemptSave, this);
         this.get('modifications').on('add remove change', this.updateModificationHash, this);
-
-        var debouncedFetchResults = _.debounce(_.bind(this.fetchResults, this), 500);
-        this.get('inputs').on('add', debouncedFetchResults);
-        this.get('modifications').on('add remove', debouncedFetchResults);
+        this.debouncedFetchResults = _.debounce(_.bind(this.fetchResults, this), 500);
+        this.get('inputs').on('add', _.bind(this.fetchResultsAfterInitial, this));
+        this.get('modifications').on('add remove', _.bind(this.fetchResultsAfterInitial, this));
 
         this.set('taskModel', App.currentProject.createTaskModel());
         this.set('results', App.currentProject.createTaskResultCollection());
@@ -808,6 +808,7 @@ var ScenarioModel = Backbone.Model.extend({
 
                 pollSuccess: function() {
                     self.setResults();
+                    self.set('has_fetched_results', true);
                 },
 
                 pollFailure: function(error) {
@@ -835,6 +836,10 @@ var ScenarioModel = Backbone.Model.extend({
             };
 
         return taskModel.start(taskHelper);
+    },
+
+    fetchResultsAfterInitial: function() {
+        this.fetchResultsIfNeeded().done(this.debouncedFetchResults);
     },
 
     updateInputModHash: function() {
