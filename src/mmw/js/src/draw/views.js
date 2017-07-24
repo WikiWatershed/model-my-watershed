@@ -312,12 +312,13 @@ var AoIUploadView = Marionette.ItemView.extend({
     },
 
     drop: function(e) {
-        this.toggleProcessingUI();
         this.removeDropzoneHighlight(e);
         this.validateAndReadFile(e.dataTransfer.files[0]);
     },
 
     validateAndReadFile: function(file) {
+        this.addProcessingUI();
+
         var validationInfo = this.validateFile(file);
 
         if (validationInfo.valid) {
@@ -361,8 +362,12 @@ var AoIUploadView = Marionette.ItemView.extend({
         e.preventDefault();
     },
 
-    toggleProcessingUI: function() {
-        $(document.body).toggleClass('processing');
+    addProcessingUI: function() {
+        $(document.body).addClass('processing');
+    },
+
+    removeProcessingUI: function() {
+        $(document.body).removeClass('processing');
     },
 
     readFile: function(file, fileExtension){
@@ -404,7 +409,7 @@ var AoIUploadView = Marionette.ItemView.extend({
 
                 self.reprojectAndAddFeature(shp, prj);
             })
-            .catch(self.handleShapefileError);
+            .catch(_.bind(self.handleShapefileError, self));
     },
 
     reprojectAndAddFeature: function(shp, prj) {
@@ -426,9 +431,9 @@ var AoIUploadView = Marionette.ItemView.extend({
                             displayAlert(msg, modalModels.AlertTypes.warn);
                         }
                     })
-                    .catch(self.handleShapefileError);
+                    .catch(_.bind(self.handleShapefileError, self));
             })
-            .catch(self.handleShapefileError);
+            .catch(_.bind(self.handleShapefileError, self));
     },
 
     handleShapefileError: function(err) {
@@ -449,8 +454,8 @@ var AoIUploadView = Marionette.ItemView.extend({
             .done(function() {
                 clearAoiLayer();
                 addLayer(polygon);
+                self.removeProcessingUI();
                 navigateToAnalyze();
-                self.toggleProcessingUI();
             })
             .fail(function(message) {
                 addLayer(polygon);
@@ -459,8 +464,8 @@ var AoIUploadView = Marionette.ItemView.extend({
     },
 
     failUpload: function(message, modalType) {
-        this.toggleProcessingUI();
         displayAlert(message, modalType);
+        this.removeProcessingUI();
     }
 });
 
