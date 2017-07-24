@@ -191,7 +191,10 @@ var DrawWindow = Marionette.LayoutView.extend({
             })
         );
 
-        this.uploadFileRegion.show(new AoIUploadView({ model: this.model }));
+        this.uploadFileRegion.show(new AoIUploadView({
+            model: this.model,
+            resetDrawingState: resetDrawingState,
+        }));
     },
 
     resetDrawingState: function() {
@@ -275,8 +278,9 @@ var AoIUploadView = Marionette.ItemView.extend({
         change: 'render'
     },
 
-    initialize: function() {
+    initialize: function(options) {
         this.id = aoiUpload;
+        this.resetDrawingState = options.resetDrawingState;
     },
 
     reset: function() {
@@ -284,6 +288,7 @@ var AoIUploadView = Marionette.ItemView.extend({
     },
 
     selectDrawToolItem: function() {
+        this.resetDrawingState();
         this.model.selectDrawToolItem(this.id, this.id);
     },
 
