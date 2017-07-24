@@ -17,6 +17,8 @@ var Catalog = Backbone.Model.extend({
         id: '',
         name: '',
         description: '',
+        fromDate: null,
+        toDate: null,
         query: '',
         bbox: '',
         loading: false,
@@ -27,10 +29,12 @@ var Catalog = Backbone.Model.extend({
         error: '',
     },
 
-    search: function(query, bounds) {
+    search: function(query, fromDate, toDate, bounds) {
         this.set({
             query: query,
             bbox: utils.formatBounds(bounds),
+            fromDate: fromDate,
+            toDate: toDate,
         });
 
         return this.startSearch(1);
@@ -43,6 +47,8 @@ var Catalog = Backbone.Model.extend({
                 catalog: this.id,
                 query: this.get('query'),
                 bbox: this.get('bbox'),
+                from_date: this.get('fromDate'),
+                to_date: this.get('toDate'),
             };
 
         if (thisPage > 1 && thisPage <= lastPage) {
@@ -166,7 +172,11 @@ var Results = Backbone.Collection.extend({
 
 var SearchForm = Backbone.Model.extend({
     defaults: {
-        query: ''
+        fromDate: null,
+        toDate: null,
+        query: '',
+        showingFilters: false,
+        isValid: true,
     }
 });
 

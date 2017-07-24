@@ -16,18 +16,38 @@
         padding: 0.5em;
 
         .data-catalog-search-input {
-            width: 100%;
+            width: 99%;
             height: 38px;
             border: none;
+            border-radius: 0;
             padding-left: 38px;
             font-size: 0.8em;
         }
+        .data-catalog-date-input {
+            width: 46%;
+            height: 38px;
+            border: none;
+            border-radius: 0;
+            display: inline;
+        }
+        .data-catalog-validation-msg {
+          color: $ui-danger;
+          margin-top: 8px;
+        }
         .data-catalog-search-icon {
             color: $ui-grey;
-            position: absolute;
-            top: 15px;
-            left: 15px;
+            position: relative;
+            top: 30px;
+            left: 8px;
             font-size: 18px;
+        }
+        .form-group {
+          margin-right: 15px;
+        }
+        .date-filter-toggle {
+          position: absolute;
+          right: 0;
+          top: -30px;
         }
     }
 
