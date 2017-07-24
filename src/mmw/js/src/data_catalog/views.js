@@ -5,9 +5,11 @@ var L = require('leaflet'),
     App = require('../app'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
+    settings = require('../core/settings'),
     utils = require('./utils'),
     errorTmpl = require('./templates/error.html'),
     formTmpl = require('./templates/form.html'),
+    pagerTmpl = require('./templates/pager.html'),
     searchResultTmpl = require('./templates/searchResult.html'),
     cuahsiSearchResultTmpl = require('./templates/cuahsiSearchResult.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
@@ -16,6 +18,7 @@ var L = require('leaflet'),
 
 var ENTER_KEYCODE = 13,
     MAX_AREA_SQKM = 1500,
+    PAGE_SIZE = settings.get('data_catalog_page_size'),
     CATALOG_RESULT_TEMPLATE = {
         cinergi: searchResultTmpl,
         hydroshare: searchResultTmpl,
@@ -197,6 +200,7 @@ var TabContentView = Marionette.LayoutView.extend({
     },
 
     regions: {
+        pagerRegion: '.pager-region',
         resultRegion: '.result-region',
         errorRegion: '.error-region',
     },
@@ -214,12 +218,20 @@ var TabContentView = Marionette.LayoutView.extend({
         this.errorRegion.show(new ErrorView({
             model: this.model,
         }));
+
+        // CUAHSI does not support pagination, but others do
+        if (this.model.id !== 'cuahsi') {
+            this.pagerRegion.show(new PagerView({
+                model: this.model,
+            }));
+        }
     },
 
     update: function() {
         this.ui.noResults.addClass('hide');
         this.errorRegion.$el.addClass('hide');
         this.resultRegion.$el.addClass('hide');
+        this.pagerRegion.$el.addClass('hide');
 
         var error = this.model.get('error'),
             // Don't show "no results" while search request is in progress
@@ -232,6 +244,7 @@ var TabContentView = Marionette.LayoutView.extend({
             this.errorRegion.$el.removeClass('hide');
         } else {
             this.resultRegion.$el.removeClass('hide');
+            this.pagerRegion.$el.removeClass('hide');
         }
     }
 });
@@ -268,6 +281,44 @@ var ResultsView = Marionette.CollectionView.extend({
 
     modelEvents: {
         'sync error': 'render'
+    }
+});
+
+var PagerView = Marionette.ItemView.extend({
+    template: pagerTmpl,
+
+    ui: {
+        previous: '#pager-previous',
+        next: '#pager-next',
+    },
+
+    events: {
+        'click @ui.previous': 'previousPage',
+        'click @ui.next': 'nextPage',
+    },
+
+    modelEvents: {
+        'change:page change:resultCount': 'render',
+    },
+
+    templateHelpers: function() {
+         var resultCount = this.model.get('resultCount'),
+             page = this.model.get('page'),
+             lastPage = Math.ceil(resultCount / PAGE_SIZE);
+
+         return {
+             has_results: resultCount > 0,
+             has_previous: page > 1,
+             has_next: page < lastPage,
+         };
+    },
+
+    previousPage: function() {
+        return this.model.previousPage();
+    },
+
+    nextPage: function() {
+        return this.model.nextPage();
     }
 });
 

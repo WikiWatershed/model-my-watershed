@@ -10,15 +10,18 @@ CATALOGS = {
         'model': cinergi.model,
         'serializer': cinergi.serializer,
         'search': cinergi.search,
+        'is_pageable': True,
     },
     hydroshare.CATALOG_NAME: {
         'model': hydroshare.model,
         'serializer': hydroshare.serializer,
         'search': hydroshare.search,
+        'is_pageable': True,
     },
     cuahsi.CATALOG_NAME: {
         'model': cuahsi.model,
         'serializer': cuahsi.serializer,
         'search': cuahsi.search,
+        'is_pageable': False,
     },
 }

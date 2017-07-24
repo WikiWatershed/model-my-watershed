@@ -1,43 +1,71 @@
 "use strict";
 
-var _ = require('underscore'),
+var $ = require('jquery'),
+    _ = require('underscore'),
     Backbone = require('../../shim/backbone'),
     turfIntersect = require('turf-intersect'),
     App = require('../app'),
+    settings = require('../core/settings'),
     utils = require('./utils');
 
 var REQUEST_TIMED_OUT_CODE = 408;
 var DESCRIPTION_MAX_LENGTH = 100;
+var PAGE_SIZE = settings.get('data_catalog_page_size');
 
 var Catalog = Backbone.Model.extend({
     defaults: {
         id: '',
         name: '',
         description: '',
+        query: '',
+        bbox: '',
         loading: false,
         active: false,
         results: null, // Results collection
         resultCount: 0,
+        page: 1,
         error: '',
     },
 
     search: function(query, bounds) {
-        var bbox = utils.formatBounds(bounds),
-            data = {
-                catalog: this.id,
-                query: query,
-                bbox: bbox
-            };
+        this.set({
+            query: query,
+            bbox: utils.formatBounds(bounds),
+        });
 
-        return this.startSearch(data)
-            .fail(_.bind(this.failSearch, this))
-            .always(_.bind(this.finishSearch, this));
+        return this.startSearch(1);
     },
 
-    startSearch: function(data) {
+    startSearch: function(page) {
+        var lastPage = Math.ceil(this.get('resultCount') / PAGE_SIZE),
+            thisPage = parseInt(page) || 1,
+            data = {
+                catalog: this.id,
+                query: this.get('query'),
+                bbox: this.get('bbox'),
+            };
+
+        if (thisPage > 1 && thisPage <= lastPage) {
+            _.assign(data, { page: thisPage });
+        }
+
         this.set('loading', true);
         this.set('error', false);
-        return this.get('results').fetch({ data: data });
+
+        return this.get('results')
+                   .fetch({ data: data })
+                   .done(_.bind(this.doneSearch, this))
+                   .fail(_.bind(this.failSearch, this))
+                   .always(_.bind(this.finishSearch, this));
+    },
+
+    doneSearch: function(response) {
+        var data = _.findWhere(response, { catalog: this.id });
+
+        this.set({
+            page: data.page || 1,
+            resultCount: data.count,
+        });
     },
 
     failSearch: function(response) {
@@ -51,8 +79,29 @@ var Catalog = Backbone.Model.extend({
     },
 
     finishSearch: function() {
-        this.set('loading', false);
-        this.set('resultCount', this.get('results').size());
+        this.set({ loading: false });
+    },
+
+    previousPage: function() {
+        var page = this.get('page');
+
+        if (page > 1) {
+            return this.startSearch(page - 1);
+        } else {
+            return $.when();
+        }
+    },
+
+    nextPage: function() {
+        var page = this.get('page'),
+            count = this.get('resultCount'),
+            lastPage = Math.ceil(count / PAGE_SIZE);
+
+        if (page < lastPage) {
+            return this.startSearch(page + 1);
+        } else {
+            return $.when();
+        }
     }
 });
 
