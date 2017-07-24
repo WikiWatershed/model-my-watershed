@@ -44,6 +44,11 @@
       "from": "https://registry.npmjs.org/bootstrap/-/bootstrap-3.3.4.tgz",
       "resolved": "https://registry.npmjs.org/bootstrap/-/bootstrap-3.3.4.tgz"
     },
+    "bootstrap-datepicker": {
+      "version": "1.7.1",
+      "from": "bootstrap-datepicker@*",
+      "resolved": "https://registry.npmjs.org/bootstrap-datepicker/-/bootstrap-datepicker-1.7.1.tgz"
+    },
     "bootstrap-select": {
       "version": "1.6.4",
       "from": "../../tmp/npm-25360-e04608df/1472064034158-0.4662157059647143/f1755efa102a41e43fc367ba36ce905b8f2b90e1",
