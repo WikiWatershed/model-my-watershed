@@ -59,6 +59,7 @@ var RootView = Marionette.LayoutView.extend({
             regionClass: TransitionRegion,
             selector: '#sidebar-content'
         },
+        compareRegion: '#compare',
         footerRegion: '#footer'
     },
     events: {
