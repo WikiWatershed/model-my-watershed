@@ -21,6 +21,7 @@ require('../modeling/filters');
 require('../analyze/filters');
 
 require('bootstrap');
+require('bootstrap-datepicker');
 require('bootstrap-select');
 require('bootstrap-table/dist/bootstrap-table.js');
 require('../../shim/tableExport.min.js');

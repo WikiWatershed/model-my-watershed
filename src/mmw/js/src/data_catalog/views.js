@@ -1,7 +1,9 @@
 "use strict";
 
-var L = require('leaflet'),
+var $ = require('jquery'),
+    L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
+    moment = require('moment'),
     App = require('../app'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
@@ -18,6 +20,7 @@ var L = require('leaflet'),
 
 var ENTER_KEYCODE = 13,
     MAX_AREA_SQKM = 1500,
+    MAX_AREA_FORMATTED = MAX_AREA_SQKM.toLocaleString(),
     PAGE_SIZE = settings.get('data_catalog_page_size'),
     CATALOG_RESULT_TEMPLATE = {
         cinergi: searchResultTmpl,
@@ -82,18 +85,21 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
     doSearch: function() {
         var catalog = this.getActiveCatalog(),
             query = this.model.get('query'),
+            fromDate = this.model.get('fromDate'),
+            toDate = this.model.get('toDate'),
             bounds = L.geoJson(App.map.get('areaOfInterest')).getBounds(),
             area = utils.areaOfBounds(bounds);
 
         // CUAHSI should not be fetched beyond a certain size
         if (catalog.get('id') === 'cuahsi' && area > MAX_AREA_SQKM) {
-            var alertView = new modalViews.AlertView({
+            var formattedArea = Math.round(area).toLocaleString(),
+                alertView = new modalViews.AlertView({
                 model: new modalModels.AlertModel({
                     alertMessage: "The bounding box of the current area of " +
-                                  "interest is " + Math.round(area) + " km², " +
+                                  "interest is " + formattedArea + "&nbsp;km², " +
                                   "which is larger than the current maximum " +
-                                  "area of " + MAX_AREA_SQKM + " km² supported " +
-                                  "for WDC.",
+                                  "area of " + MAX_AREA_FORMATTED + "&nbsp;km² " +
+                                  "supported for WDC.",
                     alertType: modalModels.AlertTypes.error
                 })
             });
@@ -111,7 +117,7 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         this.ui.introText.addClass('hide');
         this.ui.tabs.removeClass('hide');
 
-        catalog.search(query, bounds);
+        catalog.search(query, fromDate, toDate, bounds);
     },
 
     updateMap: function() {
@@ -126,20 +132,95 @@ var FormView = Marionette.ItemView.extend({
     className: 'data-catalog-form',
 
     ui: {
-        searchInput: '.data-catalog-search-input'
+        dateInput: '.data-catalog-date-input',
+        filterToggle: '.date-filter-toggle',
+        searchInput: '.data-catalog-search-input',
+        clearable: '.data-catalog-clearable-input a',
+    },
+
+    modelEvents: {
+        'change:showingFilters change:isValid change:toDate change:fromDate': 'render'
     },
 
     events: {
-        'keyup @ui.searchInput': 'onSearchInputChanged'
+        'keyup @ui.searchInput': 'onSearchInputChanged',
+        'click @ui.filterToggle': 'onFilterToggle',
+        'change @ui.dateInput': 'onDateInputChanged',
+        'keyup @ui.dateInput': 'onDateInputKeyup',
+        'click @ui.clearable': 'onClearInput',
+    },
+
+    onRender: function() {
+        $('.data-catalog-date-input').datepicker();
+    },
+
+    onClearInput: function(e) {
+        var $el = $(e.currentTarget).siblings('input').val('');
+        this.updateDateInput($el);
     },
 
     onSearchInputChanged: function(e) {
         var query = this.ui.searchInput.val().trim();
         if (e.keyCode === ENTER_KEYCODE) {
-            this.triggerMethod('search');
+            this.triggerSearch();
         } else {
             this.model.set('query', query);
         }
+    },
+
+    onDateInputKeyup: function(e) {
+        if (e.keyCode === ENTER_KEYCODE) {
+            this.triggerSearch();
+        }
+    },
+
+    onDateInputChanged: function(e) {
+        this.updateDateInput($(e.currentTarget));
+    },
+
+    onFilterToggle: function() {
+        var newVal = !this.model.get('showingFilters');
+        this.model.set('showingFilters', newVal);
+    },
+
+    updateDateInput: function($dateEl) {
+        var isFromDate = $dateEl.hasClass('from-date'),
+            attr = isFromDate ? 'fromDate' : 'toDate';
+
+        this.model.set(attr, $dateEl.val());
+    },
+
+    triggerSearch: function() {
+        if (this.validate()) {
+            this.triggerMethod('search');
+        }
+    },
+
+    validate: function() {
+        // Only need to validate if there are two dates.  Ensure that
+        // before is earlier than after
+        var dateFormat = "MM/DD/YYYY",
+            toDate = this.model.get('toDate'),
+            fromDate = this.model.get('fromDate'),
+            isValid = false;
+
+        if (!toDate || !fromDate) {
+            isValid = true;
+        } else {
+            isValid = moment(fromDate, dateFormat)
+                        .isBefore(moment(toDate, dateFormat));
+        }
+
+        this.model.set('isValid', isValid);
+        return isValid;
+    },
+
+    templateHelpers: function() {
+        var showingFilters = this.model.get('showingFilters');
+
+        return {
+            filterText: showingFilters ? 'Hide Filters' : 'Show Filters',
+        };
     }
 });
 

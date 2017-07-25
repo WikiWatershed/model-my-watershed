@@ -98,6 +98,7 @@ CONCAT_VENDOR_CSS_COMMAND="cat \
     ./node_modules/leaflet-draw/dist/leaflet.draw.css \
     ./node_modules/font-awesome/css/font-awesome.min.css \
     ./node_modules/bootstrap-table/dist/bootstrap-table.min.css \
+    ./node_modules/bootstrap-datepicker/dist/css/bootstrap-datepicker3.min.css \
     ./css/shim/nv.d3.min.css \
     > $VENDOR_CSS_FILE"
 
@@ -105,6 +106,7 @@ JS_DEPS=(backbone
          backbone.marionette
          blueimp-md5
          bootstrap
+         bootstrap-datepicker
          bootstrap-select
          bootstrap-table/dist/bootstrap-table.js
          bootstrap-table/dist/extensions/export/bootstrap-table-export.min.js
