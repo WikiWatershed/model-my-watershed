@@ -1,59 +1,28 @@
-<div class="pageable-table-container">
-{% if totalPages > 1 %}
-<div class="row paging-ctl-row">
-    {% if hasPreviousPage %}
-        <button
-            class="btn-prev-page btn btn-primary col-sm-1 col-sm-offset-3"
-            data-toggle="tooltip"
-            title="Previous Page"
-            data-placement="right"
-        >
-            <span aria-hidden="true">&larr;</span>
-        </button>
-    {% endif %}
-    <p class="col-sm-3 {{ "col-sm-offset-4" if not hasPreviousPage else "" }}">
-        {{currentPage}} of {{totalPages}}
-    </p>
-    {% if hasNextPage %}
-        <button
-            class="btn-next-page btn btn-primary col-sm-1"
-            data-toggle="tooltip"
-            title="Next Page"
-            data-placement="right"
-        >
-            <span aria-hidden="true">&rarr;</span>
-        </button>
-    {% endif %}
-</div>
-{% endif %}
-  <table class="table custom-hover catchment-water-quality pageable-table-size" data-toggle="table">
-      <thead>
-          <tr>
-              <th data-sortable="true">Id</th>
-              <th data-sortable="true" data-sorter="window.noDataSort"> Area (ha)</th>
-              <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
-                  Total N (kg/ha)
-              </th>
-              <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
-                  Total P (kg/ha)
-              </th>
-              <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
-                  Total SS (kg/ha)
-              </th>
-              <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
-                  Avg TN (mg/l)
-              </th>
-              <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
-                  Avg TP (mg/l)
-              </th>
-              <th class="text-right" data-sortable="true" data-sorter="window.noDataSort">
-                  Avg TSS (mg/l)
-              </th>
-          </tr>
-      </thead>
-      <tbody>
-      </tbody>
-      <tfoot>
-      </tfoot>
-  </table>
-</div>
+<table class="table custom-hover catchment-water-quality pageable-table-size" data-toggle="table">
+    <thead>
+        <tr>
+            <th data-sortable="true" data-field="nord">Id</th>
+            <th data-sortable="true" data-field="areaha" data-sorter="window.noDataSort"> Area (ha)</th>
+            <th class="text-right" data-field="tn_tot_kgy" data-sortable="true" data-sorter="window.noDataSort">
+                Total N (kg/ha)
+            </th>
+            <th class="text-right" data-field="tp_tot_kgy" data-sortable="true" data-sorter="window.noDataSort">
+                Total P (kg/ha)
+            </th>
+            <th class="text-right" data-field="tss_tot_kg" data-sortable="true" data-sorter="window.noDataSort">
+                Total SS (kg/ha)
+            </th>
+            <th class="text-right" data-field="tn_yr_avg_" data-sortable="true" data-sorter="window.noDataSort">
+                Avg TN (mg/l)
+            </th>
+            <th class="text-right" data-field="tp_yr_avg_" data-sortable="true" data-sorter="window.noDataSort">
+                Avg TP (mg/l)
+            </th>
+            <th class="text-right"  data-field="tss_concmg" data-sortable="true" data-sorter="window.noDataSort">
+                Avg TSS (mg/l)
+            </th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+    <tfoot></tfoot>
+</table>
