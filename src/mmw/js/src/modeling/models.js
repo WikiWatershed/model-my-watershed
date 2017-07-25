@@ -606,7 +606,9 @@ var ScenarioModel = Backbone.Model.extend({
         modification_hash: null, // MD5 string
         active: false,
         job_id: null,
+        poll_error: null,
         results: null, // ResultCollection
+        has_fetched_results: false,
         aoi_census: null, // JSON blob
         modification_censuses: null, // JSON blob
         allow_save: true, // Is allowed to save to the server - false in compare mode
@@ -638,10 +640,9 @@ var ScenarioModel = Backbone.Model.extend({
 
         this.on('change:project change:name', this.attemptSave, this);
         this.get('modifications').on('add remove change', this.updateModificationHash, this);
-
-        var debouncedFetchResults = _.debounce(_.bind(this.fetchResults, this), 500);
-        this.get('inputs').on('add', debouncedFetchResults);
-        this.get('modifications').on('add remove', debouncedFetchResults);
+        this.debouncedFetchResults = _.debounce(_.bind(this.fetchResults, this), 500);
+        this.get('inputs').on('add', _.bind(this.fetchResultsAfterInitial, this));
+        this.get('modifications').on('add remove', _.bind(this.fetchResultsAfterInitial, this));
 
         this.set('taskModel', App.currentProject.createTaskModel());
         this.set('results', App.currentProject.createTaskResultCollection());
@@ -801,15 +802,18 @@ var ScenarioModel = Backbone.Model.extend({
                 postData: gisData,
 
                 onStart: function() {
+                    self.set('poll_error', null);
                     results.setPolling(true);
                 },
 
                 pollSuccess: function() {
                     self.setResults();
+                    self.set('has_fetched_results', true);
                 },
 
-                pollFailure: function() {
+                pollFailure: function(error) {
                     console.log('Failed to get modeling results.');
+                    self.set('poll_error', error);
                     results.setNullResults();
                 },
 
@@ -820,17 +824,22 @@ var ScenarioModel = Backbone.Model.extend({
 
                 startFailure: function(response) {
                     console.log('Failed to start modeling job.');
-
+                    var error = 'Failed to start modeling job';
                     if (response.responseJSON && response.responseJSON.error) {
                         console.log(response.responseJSON.error);
+                        error = response.responseJSON.error;
                     }
-
+                    self.set('poll_error', error);
                     results.setNullResults();
                     results.setPolling(false);
                 }
             };
 
         return taskModel.start(taskHelper);
+    },
+
+    fetchResultsAfterInitial: function() {
+        this.fetchResultsIfNeeded().done(this.debouncedFetchResults);
     },
 
     updateInputModHash: function() {
