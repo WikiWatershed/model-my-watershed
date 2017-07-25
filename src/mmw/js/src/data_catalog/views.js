@@ -20,6 +20,7 @@ var $ = require('jquery'),
 
 var ENTER_KEYCODE = 13,
     MAX_AREA_SQKM = 1500,
+    MAX_AREA_FORMATTED = MAX_AREA_SQKM.toLocaleString(),
     PAGE_SIZE = settings.get('data_catalog_page_size'),
     CATALOG_RESULT_TEMPLATE = {
         cinergi: searchResultTmpl,
@@ -91,7 +92,8 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
 
         // CUAHSI should not be fetched beyond a certain size
         if (catalog.get('id') === 'cuahsi' && area > MAX_AREA_SQKM) {
-            var alertView = new modalViews.AlertView({
+            var formattedArea = Math.round(area).toLocaleString(),
+                alertView = new modalViews.AlertView({
                 model: new modalModels.AlertModel({
                     alertMessage: "The bounding box of the current area of " +
                                   "interest is " + formattedArea + "&nbsp;km², " +
