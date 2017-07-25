@@ -134,22 +134,29 @@ var FormView = Marionette.ItemView.extend({
     ui: {
         dateInput: '.data-catalog-date-input',
         filterToggle: '.date-filter-toggle',
-        searchInput: '.data-catalog-search-input'
+        searchInput: '.data-catalog-search-input',
+        clearable: '.data-catalog-clearable-input a',
     },
 
     modelEvents: {
-        'change:showingFilters change:isValid': 'render'
+        'change:showingFilters change:isValid change:toDate change:fromDate': 'render'
     },
 
     events: {
         'keyup @ui.searchInput': 'onSearchInputChanged',
         'click @ui.filterToggle': 'onFilterToggle',
         'change @ui.dateInput': 'onDateInputChanged',
-        'keyup @ui.dateInput': 'onDateInputKeyup'
+        'keyup @ui.dateInput': 'onDateInputKeyup',
+        'click @ui.clearable': 'onClearInput',
     },
 
     onRender: function() {
         $('.data-catalog-date-input').datepicker();
+    },
+
+    onClearInput: function(e) {
+        var $el = $(e.currentTarget).siblings('input').val('');
+        this.updateDateInput($el);
     },
 
     onSearchInputChanged: function(e) {
@@ -168,16 +175,19 @@ var FormView = Marionette.ItemView.extend({
     },
 
     onDateInputChanged: function(e) {
-        var dateControl = $(e.currentTarget),
-            isFromDate = dateControl.hasClass('from-date'),
-            attr = isFromDate ? 'fromDate' : 'toDate';
-
-        this.model.set(attr, dateControl.val());
+        this.updateDateInput($(e.currentTarget));
     },
 
     onFilterToggle: function() {
         var newVal = !this.model.get('showingFilters');
         this.model.set('showingFilters', newVal);
+    },
+
+    updateDateInput: function($dateEl) {
+        var isFromDate = $dateEl.hasClass('from-date'),
+            attr = isFromDate ? 'fromDate' : 'toDate';
+
+        this.model.set(attr, $dateEl.val());
     },
 
     triggerSearch: function() {

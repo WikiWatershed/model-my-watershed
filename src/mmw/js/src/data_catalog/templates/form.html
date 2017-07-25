@@ -3,15 +3,29 @@
 {% if showingFilters %}
     <div class="data-catalog-search-dates">
         <h5>Data collected between:</h5>
-        <input
-            class="data-catalog-date-input from-date form-control"
-            value="{{fromDate}}"
-        />
+        <div class="data-catalog-clearable-input">
+            <input
+                class="data-catalog-date-input from-date form-control"
+                value="{{fromDate}}"
+            />
+            {% if fromDate %}
+            <a href="javascript:0;" class="data-catalog-clear-icon" title="Clear">
+                <i class=" fa fa-times"></i>
+            </a>
+            {% endif %}
+        </div>
         <span>and</span>
-        <input
-            class="data-catalog-date-input to-date form-control"
-            value="{{toDate}}"
-        />
+        <div class="data-catalog-clearable-input">
+            <input
+                class="data-catalog-date-input to-date form-control"
+                value="{{toDate}}"
+            />
+            {% if toDate %}
+            <a href="javascript:0;" title="Clear">
+                <i class="data-catalog-clear-icon fa fa-times"></i>
+            </a>
+            {% endif %}
+        </div>
     </div>
 
     {% if not isValid %}

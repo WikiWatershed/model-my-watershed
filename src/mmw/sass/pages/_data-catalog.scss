@@ -21,12 +21,24 @@
             padding-left: 38px;
             font-size: 0.8em;
         }
+        .data-catalog-clearable-input {
+            display: inline;
+        }
         .data-catalog-date-input {
-            width: 46%;
+            width: 42%;
             height: 38px;
             border: none;
             border-radius: 0;
             display: inline;
+        }
+        .data-catalog-clear-icon {
+            color: $ui-grey;
+            position: relative;
+            right: 25px;
+            font-size: 18px;
+        }
+        &:hover {
+            text-decoration: none;
         }
         .data-catalog-validation-msg {
           color: $ui-danger;
