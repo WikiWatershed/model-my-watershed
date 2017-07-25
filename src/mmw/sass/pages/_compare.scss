@@ -1,3 +1,4 @@
+$compare-padding: 20px;
 $compare-footer-height: 50px;
 $compare-map-height: 25vh;
 // Calculate the height between the header and footer, and below the map
@@ -282,5 +283,260 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
     font-size: $font-size-h4;
     font-weight: 800;
     color: $black-74;
+  }
+}
+
+#compare-new {
+  background-color: #fff;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 8000;
+  display: flex;
+  flex-direction: column;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 20px;
+  max-width: 1200px;
+  max-height: calc(100% - 20px);
+
+  @media screen and (max-width: 1300px) {
+    max-width: 1000px;
+  }
+
+  @media screen and (max-width: 1000px) {
+    margin-top: 0;
+    max-height: 100%;
+  }
+
+  .compare-actions {
+    padding-top: 20px;
+    @include clearfix;
+  }
+
+  .compare-sections {
+    flex: 1;
+    overflow: auto;
+  }
+
+  .compare-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+
+    button {
+      background: none;
+      border: none;
+      padding: 0;
+    }
+  }
+
+  .compare-tabs {
+    float: left;
+    @include clearfix;
+  }
+
+  .compare-tab {
+    float: left;
+    position: relative;
+    color: #999;
+    text-decoration: none;
+
+    &.active {
+      color: $brand-primary;
+      font-weight: 800;
+
+      &:after {
+        border-bottom-color: $brand-primary;
+      }
+    }
+    &:after {
+      position: absolute;
+      left: 0;
+      content: "";
+      border-bottom: 2px solid transparent;
+      padding-bottom: 0px;
+      top: 0;
+      height: 30px;
+      line-height: 30px;
+      width: 100%;
+      margin-top: 2px;
+    }
+    &:not(:last-child) {
+      margin-right: 20px;
+    }
+  }
+
+  .compare-scenarios {
+    @include clearfix;
+    padding: $compare-padding 0;
+    display: flex;
+    width: 100%;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .compare-table-row {
+    @include clearfix;
+    padding: $compare-padding 0;
+    display: flex;
+    width: 100%;
+    flex-shrink: 0;
+    position: relative;
+    border-bottom: 1px solid #ccc;
+
+    .compare-column {
+      text-align: right;
+    }
+  }
+
+  .compare-scenario-gradient {
+    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.8) 80%, rgba(255, 255, 255, 1) 100%);
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100px;
+    position: absolute;
+    z-index: 200;
+  }
+
+  .compare-section {
+    padding: $compare-padding 0;
+    border-bottom: 1px solid #cccccc;
+    display: flex;
+    width: 100%;
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  .compare-header {
+    padding: $compare-padding $compare-padding 11px;
+    background-color: #eee;
+    border-bottom: 1px solid #ccc;
+    z-index: 300;
+
+    .fa {
+      font-size: 15px;
+    }
+  }
+
+  .compare-scenario-row-description {
+    width: 240px;
+    min-width: 240px;
+    padding: 0 $compare-padding;
+
+    h2 {
+      margin-bottom: 10px;
+    }
+  }
+
+  .compare-scenario-row-content-container {
+    overflow: hidden;
+  }
+
+  .compare-scenario-row-content {
+    flex: 1;
+    display: flex;
+    flex-wrap: nowrap;
+  }
+
+  .compare-scenario-samplechartplaceholder {
+    min-width: 790px;
+    background-color: #aaa;
+    height: 210px;
+  }
+
+  .compare-column {
+    min-width: 120px;
+    width: 120px;
+
+    h3 {
+      font-size: $font-size-h5;
+      font-weight: 400;
+    }
+
+    &:not(:last-child) {
+      margin-right: 14px;
+    }
+  }
+
+  .compare-scenarios {
+    border-bottom: 1px solid #cccccc;
+  }
+
+  .scenario-badge {
+    height: 12px;
+    width: 12px;
+    border-radius: 100%;
+    background-color: #333;
+    position: relative;
+    top: 1px;
+    display: inline-block;
+    margin-right: 4px;
+  }
+
+  .compare-scenario-buttons {
+    position: absolute;
+    right: 0;
+    top: 44px;
+    right: 6px;
+    z-index: 200;
+
+    button {
+      background-color: $brand-primary;
+      color: #fff;
+      border-radius: 100%;
+      border: none;
+      height: 40px;
+      width: 40px;
+      font-size: $font-size-h4;
+      box-shadow: 1px 1px rgba(117, 117, 117, 0.6);
+
+      &:not(.active) {
+        background-color: #666;
+      }
+
+      &:not(.visible) {
+        display: none;
+      }
+    }
+  }
+
+  .compare-mapplaceholder {
+    height: 90px;
+    background-color: #aaa;
+    margin-bottom: 10px;
+    width: 120px;
+  }
+
+  .compare-inputs {
+    float: right;
+    margin-right: -5px;
+    @include clearfix;
+
+    button {
+      padding: 1px 4px;
+      margin-top: -4px;
+      background-color: transparent;
+      border: 0;
+
+      &.active {
+        background-color: #666;
+        color: #fff;
+      }
+    }
+  }
+
+  .compare-input {
+    float: left;
+    &:not(:last-child) {
+      margin-right: 12px;
+    }
+
+    &.compare-precipitation {
+      margin-right: 20px;
+    }
   }
 }
