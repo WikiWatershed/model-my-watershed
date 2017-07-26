@@ -20,7 +20,20 @@ var _ = require('lodash'),
 
 var CompareWindow2 = Marionette.LayoutView.extend({
     template: compareWindow2Tmpl,
+
     id: 'compare-new',
+
+    ui: {
+        closeButton: '.compare-close > button',
+    },
+
+    events: {
+        'click @ui.closeButton': 'closeView',
+    },
+
+
+    closeView: function() {
+        App.rootView.compareRegion.empty();
 });
 
 var CompareWindow = Marionette.LayoutView.extend({
