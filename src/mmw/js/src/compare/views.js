@@ -14,6 +14,7 @@ var _ = require('lodash'),
     compareWindow2Tmpl = require('./templates/compareWindow2.html'),
     compareTabPanelTmpl = require('./templates/compareTabPanel.html'),
     compareInputsTmpl = require('./templates/compareInputs.html'),
+    compareScenarioItemTmpl = require('./templates/compareScenarioItem.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
     compareModelingTmpl = require('./templates/compareModeling.html'),
@@ -36,6 +37,7 @@ var CompareWindow2 = Marionette.LayoutView.extend({
     regions: {
         tabRegion: '.compare-tabs',
         inputsRegion: '.compare-inputs',
+        scenariosRegion: '#compare-title-row',
     },
 
     onShow: function() {
@@ -44,6 +46,9 @@ var CompareWindow2 = Marionette.LayoutView.extend({
         }));
         this.inputsRegion.show(new InputsView({
             model: this.model,
+        }));
+        this.scenariosRegion.show(new ScenariosRowView({
+            collection: this.model.get('scenarios'),
         }));
     },
 
@@ -87,6 +92,16 @@ var TabPanelsView = Marionette.CollectionView.extend({
 
 var InputsView = Marionette.ItemView.extend({
     template: compareInputsTmpl,
+});
+
+var ScenarioItemView = Marionette.ItemView.extend({
+    className: 'compare-column',
+    template: compareScenarioItemTmpl,
+});
+
+var ScenariosRowView = Marionette.CollectionView.extend({
+    className: 'compare-scenario-row-content',
+    childView: ScenarioItemView,
 });
 
 var CompareWindow = Marionette.LayoutView.extend({
