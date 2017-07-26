@@ -298,14 +298,7 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
     },
 
     addScenario: function() {
-        var first = this.collection.first();
-
-        if (first) {
-            var aoi_census = first.get('aoi_census');
-            this.collection.createNewScenario(aoi_census);
-        } else {
-            this.collection.createNewScenario();
-        }
+        this.collection.createNewScenario();
     },
 
     templateHelpers: function() {
