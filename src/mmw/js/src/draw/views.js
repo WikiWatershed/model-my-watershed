@@ -191,7 +191,10 @@ var DrawWindow = Marionette.LayoutView.extend({
             })
         );
 
-        this.uploadFileRegion.show(new AoIUploadView({ model: this.model }));
+        this.uploadFileRegion.show(new AoIUploadView({
+            model: this.model,
+            resetDrawingState: resetDrawingState,
+        }));
     },
 
     resetDrawingState: function() {
@@ -246,24 +249,38 @@ var AoIUploadView = Marionette.ItemView.extend({
         drawToolButton: '.draw-tool-button',
         selectFileInput: '#draw-tool-file-upload-input',
         selectFileButton: '#draw-tool-file-upload-button',
-        resetDrawButton: '.reset-draw-button'
+        resetDrawButton: '.reset-draw-button',
+        aoiUploadArea: '.aoi-upload-dropdown'
     },
 
     events: {
-        'dragenter': 'stopEvents',
-        'dragover': 'stopEvents',
+        'dragenter': 'addDropzoneHighlight',
+        'dragover': 'addDropzoneHighlight',
+        'dragexit': 'removeDropzoneHighlight',
+        'dragleave': 'removeDropzoneHighlight',
         'click @ui.selectFileButton': 'onSelectFileButtonClick',
         'change @ui.selectFileInput': 'selectFile',
         'click @ui.drawToolButton': 'selectDrawToolItem',
         'click @ui.resetDrawButton': 'reset'
     },
 
+    addDropzoneHighlight: function(e) {
+        $(this.ui.aoiUploadArea).addClass('drag');
+        this.stopEvents(e);
+    },
+
+    removeDropzoneHighlight: function(e) {
+        $(this.ui.aoiUploadArea).removeClass('drag');
+        this.stopEvents(e);
+    },
+
     modelEvents: {
         change: 'render'
     },
 
-    initialize: function() {
+    initialize: function(options) {
         this.id = aoiUpload;
+        this.resetDrawingState = options.resetDrawingState;
     },
 
     reset: function() {
@@ -271,6 +288,7 @@ var AoIUploadView = Marionette.ItemView.extend({
     },
 
     selectDrawToolItem: function() {
+        this.resetDrawingState();
         this.model.selectDrawToolItem(this.id, this.id);
     },
 
@@ -294,17 +312,19 @@ var AoIUploadView = Marionette.ItemView.extend({
     },
 
     drop: function(e) {
-        this.stopEvents(e);
+        this.removeDropzoneHighlight(e);
         this.validateAndReadFile(e.dataTransfer.files[0]);
     },
 
     validateAndReadFile: function(file) {
+        this.addProcessingUI();
+
         var validationInfo = this.validateFile(file);
 
         if (validationInfo.valid) {
             this.readFile(file, validationInfo.extension);
         } else {
-            displayAlert(validationInfo.message, modalModels.AlertTypes.error);
+            this.failUpload(validationInfo.message, modalModels.AlertTypes.error);
         }
 
         // If the upload fails, the user may choose to upload another file.
@@ -340,6 +360,14 @@ var AoIUploadView = Marionette.ItemView.extend({
     stopEvents: function(e) {
         e.stopPropagation();
         e.preventDefault();
+    },
+
+    addProcessingUI: function() {
+        $(document.body).addClass('processing');
+    },
+
+    removeProcessingUI: function() {
+        $(document.body).removeClass('processing');
     },
 
     readFile: function(file, fileExtension){
@@ -381,7 +409,7 @@ var AoIUploadView = Marionette.ItemView.extend({
 
                 self.reprojectAndAddFeature(shp, prj);
             })
-            .catch(self.handleShapefileError);
+            .catch(_.bind(self.handleShapefileError, self));
     },
 
     reprojectAndAddFeature: function(shp, prj) {
@@ -403,9 +431,9 @@ var AoIUploadView = Marionette.ItemView.extend({
                             displayAlert(msg, modalModels.AlertTypes.warn);
                         }
                     })
-                    .catch(self.handleShapefileError);
+                    .catch(_.bind(self.handleShapefileError, self));
             })
-            .catch(self.handleShapefileError);
+            .catch(_.bind(self.handleShapefileError, self));
     },
 
     handleShapefileError: function(err) {
@@ -415,20 +443,29 @@ var AoIUploadView = Marionette.ItemView.extend({
         if (typeof err === "string") {
             msg = err;
         }
-        displayAlert(msg, modalModels.AlertTypes.error);
+
+        this.failUpload(msg, modalModels.AlertTypes.error);
     },
 
     addPolygonToMap: function(polygon) {
+        var self = this;
+
         validateShape(polygon)
             .done(function() {
                 clearAoiLayer();
                 addLayer(polygon);
+                self.removeProcessingUI();
                 navigateToAnalyze();
             })
             .fail(function(message) {
                 addLayer(polygon);
-                displayAlert(message, modalModels.AlertTypes.error);
+                self.failUpload(message, modalModels.AlertTypes.error);
             });
+    },
+
+    failUpload: function(message, modalType) {
+        displayAlert(message, modalType);
+        this.removeProcessingUI();
     }
 });
 
