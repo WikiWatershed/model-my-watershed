@@ -13,6 +13,7 @@ var _ = require('lodash'),
     compareWindowTmpl = require('./templates/compareWindow.html'),
     compareWindow2Tmpl = require('./templates/compareWindow2.html'),
     compareTabPanelTmpl = require('./templates/compareTabPanel.html'),
+    compareInputsTmpl = require('./templates/compareInputs.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
     compareModelingTmpl = require('./templates/compareModeling.html'),
@@ -34,11 +35,15 @@ var CompareWindow2 = Marionette.LayoutView.extend({
 
     regions: {
         tabRegion: '.compare-tabs',
+        inputsRegion: '.compare-inputs',
     },
 
     onShow: function() {
         this.tabRegion.show(new TabPanelsView({
             collection: this.collection,
+        }));
+        this.inputsRegion.show(new InputsView({
+            model: this.model,
         }));
     },
 
@@ -78,6 +83,10 @@ var TabPanelView = Marionette.ItemView.extend({
 
 var TabPanelsView = Marionette.CollectionView.extend({
     childView: TabPanelView,
+});
+
+var InputsView = Marionette.ItemView.extend({
+    template: compareInputsTmpl,
 });
 
 var CompareWindow = Marionette.LayoutView.extend({
