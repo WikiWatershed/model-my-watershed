@@ -14,6 +14,7 @@ var _ = require('lodash'),
     analyzeViews = require('../analyze/views.js'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
+    compareModels = require('../compare/models'),
     compareViews = require('../compare/views'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultsDetailsTmpl = require('./templates/resultsDetails.html'),
@@ -322,8 +323,14 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
     },
 
     showCompare: function() {
+        var compareTabsCollection = new compareModels.CompareTabsCollection([
+            { name: 'Runoff', active: true },
+            { name: 'Water Quality' },
+        ]);
+
         App.rootView.compareRegion.show(new compareViews.CompareWindow2({
             model: this.projectModel,
+            collection: compareTabsCollection,
         }));
     },
 });

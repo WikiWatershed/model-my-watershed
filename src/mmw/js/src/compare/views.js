@@ -12,6 +12,7 @@ var _ = require('lodash'),
     modConfigUtils = require('../modeling/modificationConfigUtils'),
     compareWindowTmpl = require('./templates/compareWindow.html'),
     compareWindow2Tmpl = require('./templates/compareWindow2.html'),
+    compareTabPanelTmpl = require('./templates/compareTabPanel.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
     compareModelingTmpl = require('./templates/compareModeling.html'),
@@ -31,9 +32,52 @@ var CompareWindow2 = Marionette.LayoutView.extend({
         'click @ui.closeButton': 'closeView',
     },
 
+    regions: {
+        tabRegion: '.compare-tabs',
+    },
+
+    onShow: function() {
+        this.tabRegion.show(new TabPanelsView({
+            collection: this.collection,
+        }));
+    },
 
     closeView: function() {
         App.rootView.compareRegion.empty();
+    },
+});
+
+var TabPanelView = Marionette.ItemView.extend({
+    template: compareTabPanelTmpl,
+    tagName: 'a',
+    className: 'compare-tab',
+    attributes: {
+        href: '',
+        role: 'tab',
+    },
+
+    events: {
+        'click': 'selectTab',
+    },
+
+    onRender: function() {
+        if (this.model.get('active')) {
+            this.$el.addClass('active');
+        } else {
+            this.$el.removeClass('active');
+        }
+    },
+
+    selectTab: function(e) {
+        // TODO: Make this select the tab
+
+        e.preventDefault();
+        return false;
+    },
+});
+
+var TabPanelsView = Marionette.CollectionView.extend({
+    childView: TabPanelView,
 });
 
 var CompareWindow = Marionette.LayoutView.extend({
