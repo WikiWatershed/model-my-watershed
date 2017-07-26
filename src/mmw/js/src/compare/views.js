@@ -6,6 +6,7 @@ var _ = require('lodash'),
     App = require('../app'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
+    models = require('./models'),
     modelingModels = require('../modeling/models'),
     modelingViews = require('../modeling/views'),
     modelingControls = require('../modeling/controls'),
@@ -15,6 +16,7 @@ var _ = require('lodash'),
     compareTabPanelTmpl = require('./templates/compareTabPanel.html'),
     compareInputsTmpl = require('./templates/compareInputs.html'),
     compareScenarioItemTmpl = require('./templates/compareScenarioItem.html'),
+    compareTableRowTmpl = require('./templates/compareTableRow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
     compareModelingTmpl = require('./templates/compareModeling.html'),
@@ -34,22 +36,42 @@ var CompareWindow2 = Marionette.LayoutView.extend({
         'click @ui.closeButton': 'closeView',
     },
 
+    modelEvents: {
+        'change:mode': 'showSectionsView',
+    },
+
     regions: {
         tabRegion: '.compare-tabs',
         inputsRegion: '.compare-inputs',
         scenariosRegion: '#compare-title-row',
+        sectionsRegion: '.compare-sections',
     },
 
     onShow: function() {
         this.tabRegion.show(new TabPanelsView({
-            collection: this.collection,
+            collection: this.model.get('tabs'),
         }));
         this.inputsRegion.show(new InputsView({
             model: this.model,
         }));
         this.scenariosRegion.show(new ScenariosRowView({
-            collection: this.model.get('scenarios'),
+            collection: App.currentProject.get('scenarios'),
         }));
+
+        this.showSectionsView();
+    },
+
+    showSectionsView: function() {
+        if (this.model.get('mode') === models.constants.CHART) {
+            // TODO: Show Chart View
+            this.sectionsRegion.empty();
+        } else {
+            this.sectionsRegion.show(new TableView({
+                collection: this.model.get('tabs')
+                                .findWhere({ active: true })
+                                .get('table'),
+            }));
+        }
     },
 
     closeView: function() {
@@ -92,6 +114,24 @@ var TabPanelsView = Marionette.CollectionView.extend({
 
 var InputsView = Marionette.ItemView.extend({
     template: compareInputsTmpl,
+
+    ui: {
+        chartButton: '#compare-input-button-chart',
+        tableButton: '#compare-input-button-table',
+    },
+
+    events: {
+        'click @ui.chartButton': 'setChartView',
+        'click @ui.tableButton': 'setTableView',
+    },
+
+    setChartView: function() {
+        this.model.set({ mode: models.constants.CHART });
+    },
+
+    setTableView: function() {
+        this.model.set({ mode: models.constants.TABLE });
+    },
 });
 
 var ScenarioItemView = Marionette.ItemView.extend({
@@ -102,6 +142,15 @@ var ScenarioItemView = Marionette.ItemView.extend({
 var ScenariosRowView = Marionette.CollectionView.extend({
     className: 'compare-scenario-row-content',
     childView: ScenarioItemView,
+});
+
+var TableRowView = Marionette.ItemView.extend({
+    className: 'compare-table-row',
+    template: compareTableRowTmpl,
+});
+
+var TableView = Marionette.CollectionView.extend({
+    childView: TableRowView,
 });
 
 var CompareWindow = Marionette.LayoutView.extend({

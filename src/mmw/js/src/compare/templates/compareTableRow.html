@@ -1,0 +1,12 @@
+<div class="compare-scenario-row-description">
+    <h2>{{ name }}</h2>
+</div>
+<div class="compare-scenario-row-content-container">
+    <div class="compare-scenario-row-content">
+        {% for value in values %}
+            <div class="compare-column">
+                {{ value|round(3)|toLocaleString }}&nbsp;{{ unit }}
+            </div>
+        {% endfor %}
+    </div>
+</div>

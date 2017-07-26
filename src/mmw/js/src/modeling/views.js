@@ -323,14 +323,52 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
     },
 
     showCompare: function() {
-        var compareTabsCollection = new compareModels.CompareTabsCollection([
-            { name: 'Runoff', active: true },
-            { name: 'Water Quality' },
-        ]);
+        var scenarios = this.projectModel.get('scenarios'),
+            // TODO Move this to somewhere within Compare that specializes
+            // in TR-55 Runoff rendering. Also see if this can be made less
+            // brittle by accounting for cases when there are no results,
+            // or results are pending.
+            runoffTable = [
+                {
+                    name: "Runoff",
+                    unit: "cm",
+                    values: scenarios.map(function(s) {
+                        return s.get('results')
+                                .findWhere({ name: "runoff" })
+                                .get('result')
+                                .runoff.modified.runoff;
+                    })
+                },
+                {
+                    name: "Evapotranspiration",
+                    unit: "cm",
+                    values: scenarios.map(function(s) {
+                        return s.get('results')
+                            .findWhere({ name: "runoff" })
+                            .get('result')
+                            .runoff.modified.et;
+                    })
+                },
+                {
+                    name: "Inflitration",
+                    unit: "cm",
+                    values: scenarios.map(function(s) {
+                        return s.get('results')
+                            .findWhere({ name: "runoff" })
+                            .get('result')
+                            .runoff.modified.inf;
+                    })
+                },
+            ],
+            compareModel = new compareModels.WindowModel({
+            tabs: [
+                { name: 'Runoff', active: true, table: runoffTable },
+                { name: 'Water Quality' },
+            ],
+        });
 
         App.rootView.compareRegion.show(new compareViews.CompareWindow2({
-            model: this.projectModel,
-            collection: compareTabsCollection,
+            model: compareModel,
         }));
     },
 });
