@@ -109,6 +109,9 @@ function validateShape(polygon) {
                       'selected, but the maximum supported size is ' +
                       'currently ' + maxArea + '&nbsp;km².';
         d.reject(message);
+    } else if (!utils.withinConus(polygon)) {
+        var conusMessage = 'The shape drawn is not within the Continental US.';
+        d.reject(conusMessage);
     } else {
         d.resolve(polygon);
     }
