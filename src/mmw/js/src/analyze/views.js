@@ -659,6 +659,9 @@ var PageableTableBaseView = Marionette.LayoutView.extend({
                 self.collection.fullCollection.comparator = sortOrder === -1 ?
                                                             sortAscending : sortDescending;
                 self.collection.fullCollection.sort();
+
+                self.collection.getFirstPage();
+
                 self.render();
             }
         });
