@@ -132,6 +132,9 @@
 
     .resource-detail {
         font-size: $font-size-h5;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .resource {
@@ -155,10 +158,5 @@
             text-align: center;
             margin-right: 4px;
         }
-    }
-    .truncate {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
 }
