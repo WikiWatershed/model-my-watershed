@@ -110,7 +110,7 @@ function validateShape(polygon) {
                       'currently ' + maxArea + '&nbsp;km².';
         d.reject(message);
     } else if (!utils.withinConus(polygon)) {
-        var conusMessage = 'The shape drawn is not within the Continental US.';
+        var conusMessage = 'The area of interest must be within the Continental US.';
         d.reject(conusMessage);
     } else {
         d.resolve(polygon);
@@ -770,7 +770,9 @@ var DrawAreaView = DrawToolBaseView.extend({
                 return [parseFloat(coord[0]), parseFloat(coord[1])];
             });
 
-            addLayer(box, '1 Square Km');
+            return box;
+        }).then(validateShape).then(function(polygon) {
+            addLayer(polygon, '1 Square Km');
             navigateToAnalyze();
         }).fail(function(message) {
             revertLayer();
@@ -946,7 +948,12 @@ var WatershedDelineationView = DrawToolBaseView.extend({
             }
         };
 
-        this.rwdTaskModel.start(taskHelper);
+        if (!utils.withinConus(point)) {
+            deferred.reject('The area of interest must be within the Continental US.');
+        } else {
+            this.rwdTaskModel.start(taskHelper);
+        }
+
         return deferred;
     },
 
