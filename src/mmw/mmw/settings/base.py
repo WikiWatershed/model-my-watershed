@@ -359,7 +359,7 @@ OMGEO_SETTINGS = [[
 # BiG-CZ Host, for enabling custom behavior.
 BIGCZ_HOST = 'portal.bigcz.org'
 BIGCZ_CLIENT_TIMEOUT = 5  # timeout in seconds
-BIGCZ_CLIENT_PAGE_SIZE = 20
+BIGCZ_CLIENT_PAGE_SIZE = 100
 
 # ITSI Portal Settings
 ITSI = {
