@@ -1,25 +1,48 @@
 .data-catalog-window {
     width: $sidebar-width;
     transition: all 200ms;
-    overflow-y: auto;
-    background-color: $ui-light;
+    background-color: #E6E6E6;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    bottom: 0;
+    top: 44px;
+
+    .tab-contents-region {
+        background-color: rgba(0, 0, 0, 0.06);
+        flex: 1;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .result-region {
+        padding-top: 6px;
+    }
+
+    .pager-region {
+        padding: 10px 0;
+        background-color: #e6e6e6;
+
+        .row {
+            margin-left: -5px !important;
+            margin-right: -5px !important;
+        }
+    }
 
     .data-catalog-title {
-        margin: 0.5em 0;
-        padding: 0.5em;
+        margin: 10px 0 0;
+        padding: 10px;
     }
 
     .data-catalog-form {
         position: relative;
-        padding: 0.5em;
+        padding: 4px 10px;
 
         .data-catalog-search-input {
             width: 99%;
             height: 38px;
             border: none;
-            border-radius: 0;
-            padding-left: 38px;
-            font-size: 0.8em;
+            padding-left: 31px;
         }
         .data-catalog-clearable-input {
             display: inline;
@@ -46,9 +69,9 @@
         }
         .data-catalog-search-icon {
             color: $ui-grey;
-            position: relative;
-            top: 30px;
-            left: 8px;
+            position: absolute;
+            top: 14px;
+            left: 17px;
             font-size: 18px;
         }
         .form-group {
@@ -65,10 +88,25 @@
         padding: 10px;
     }
 
+    .output-tabs-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    .tab-pane {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+    }
+
     .tab-content {
         padding: 0;
-        background: $ui-light;
-        height: 100vh;
+        background: #E6E6E6;
+        top: 0;
+        bottom: 0;
 
         .loading-panel,
         .no-results-panel {
@@ -82,19 +120,45 @@
         padding: 10px;
     }
 
+    .resource-description {
+        color: $ui-grey;
+        font-size: $font-size-h5;
+        padding-bottom: 3px;
+    }
+
+    .resource-date {
+        font-size: $font-size-h5;
+    }
+
+    .resource-detail {
+        font-size: $font-size-h5;
+    }
+
     .resource {
         background: $paper;
         padding: 10px;
-        margin-bottom: 1px;
+        margin: 0 10px 3px 10px;
+        cursor: pointer;
 
         &:hover {
-            background: $paper-12;
+            background: #F3F3F3;
         }
 
         .resource-title {
-            font-size: 1em;
-            font-weight: 500;
-            margin-bottom: 0.5em;
+            font-size: $font-size-h4;
+            font-weight: 600;
+            margin-bottom: 4px;
         }
+
+        i.fa {
+            width: 14px;
+            text-align: center;
+            margin-right: 4px;
+        }
+    }
+    .truncate {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }
