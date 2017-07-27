@@ -608,7 +608,6 @@ var ScenarioModel = Backbone.Model.extend({
         job_id: null,
         poll_error: null,
         results: null, // ResultCollection
-        has_fetched_results: false,
         aoi_census: null, // JSON blob
         modification_censuses: null, // JSON blob
         allow_save: true, // Is allowed to save to the server - false in compare mode
@@ -633,7 +632,13 @@ var ScenarioModel = Backbone.Model.extend({
         _.defaults(attrs, defaultMods);
 
         this.set('inputs', new ModificationsCollection(attrs.inputs));
-        this.set('modifications', new ModificationsCollection(attrs.modifications));
+
+        var modifications =
+            App.currentProject.get('model_package') === TR55_PACKAGE ?
+            new ModificationsCollection(attrs.modifications) :
+            new Backbone.Collection(attrs.modifications);
+
+        this.set('modifications', modifications);
 
         this.updateModificationHash();
         this.updateInputModHash();
@@ -645,7 +650,9 @@ var ScenarioModel = Backbone.Model.extend({
         this.get('modifications').on('add remove', _.bind(this.fetchResultsAfterInitial, this));
 
         this.set('taskModel', App.currentProject.createTaskModel());
-        this.set('results', App.currentProject.createTaskResultCollection());
+        this.set('results', attrs.results ?
+            new ResultCollection(attrs.results) :
+            App.currentProject.createTaskResultCollection());
     },
 
     attemptSave: function() {
@@ -808,7 +815,6 @@ var ScenarioModel = Backbone.Model.extend({
 
                 pollSuccess: function() {
                     self.setResults();
-                    self.set('has_fetched_results', true);
                 },
 
                 pollFailure: function(error) {
@@ -955,11 +961,16 @@ var ScenariosCollection = Backbone.Collection.extend({
         return this.setActiveScenario(this.get({ cid: cid }));
     },
 
-    createNewScenario: function(aoi_census) {
-        var scenario = new ScenarioModel({
-            name: this.makeNewScenarioName('New Scenario'),
-            aoi_census: aoi_census
-        });
+    createNewScenario: function() {
+        var currentConditions = this.findWhere({ 'is_current_conditions': true }),
+            scenario = new ScenarioModel({
+                is_current_conditions: false,
+                name: this.makeNewScenarioName('New Scenario'),
+                aoi_census: currentConditions.get('aoi_census'),
+                results: currentConditions.get('results').toJSON(),
+                inputmod_hash: currentConditions.get('inputmod_hash'),
+                inputs: currentConditions.get('inputs').toJSON(),
+            });
 
         this.add(scenario);
         this.setActiveScenarioByCid(scenario.cid);
@@ -1003,8 +1014,17 @@ var ScenariosCollection = Backbone.Collection.extend({
             newModel = new ScenarioModel({
                 is_current_conditions: false,
                 name: this.makeNewScenarioName('Copy of ' + source.get('name')),
+                user_id: source.get('user_id'),
                 inputs: source.get('inputs').toJSON(),
-                modifications: source.get('modifications').toJSON()
+                inputmod_hash: source.get('inputmod_hash'),
+                modifications: source.get('modifications').toJSON(),
+                modification_hash: source.get('modification_hash'),
+                job_id: source.get('job_id'),
+                poll_error: source.get('poll_error'),
+                results: source.get('results').toJSON(),
+                aoi_census: source.get('aoi_census'),
+                modification_censuses: source.get('modification_censuses'),
+                allow_save: source.get('allow_save'),
             });
 
         this.add(newModel);
