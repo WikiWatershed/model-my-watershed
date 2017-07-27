@@ -28,6 +28,7 @@ var $ = require('jquery'),
     tableRowTmpl = require('./templates/tableRow.html'),
     animalTableTmpl = require('./templates/animalTable.html'),
     animalTableRowTmpl = require('./templates/animalTableRow.html'),
+    pageableTableTmpl = require('./templates/pageableTable.html'),
     pointSourceTableTmpl = require('./templates/pointSourceTable.html'),
     pointSourceTableRowTmpl = require('./templates/pointSourceTableRow.html'),
     catchmentWaterQualityTableTmpl = require('./templates/catchmentWaterQualityTable.html'),
@@ -590,6 +591,122 @@ var AnimalTableView = Marionette.CompositeView.extend({
     }
 });
 
+var PageableTableBaseView = Marionette.LayoutView.extend({
+    tableView: null, // a View that renders a bootstrap table. Required
+
+    template: pageableTableTmpl,
+    regions: {
+        'bootstrapTableRegion': '#bootstrap-table-region',
+    },
+
+    ui: {
+        'nextPageBtn': '.btn-next-page',
+        'prevPageBtn': '.btn-prev-page',
+    },
+
+    events: {
+        'click @ui.nextPageBtn': 'nextPage',
+        'click @ui.prevPageBtn': 'prevPage',
+    },
+
+    templateHelpers: function() {
+        return {
+            hasNextPage: this.collection.hasNextPage(),
+            hasPreviousPage: this.collection.hasPreviousPage(),
+            currentPage: this.collection.state.currentPage,
+            totalPages: this.collection.state.totalPages,
+        };
+    },
+
+    renderBootstrapTable: function() {
+        var self = this,
+            sortOrderClass = this.collection.state.order  === -1 ? 'asc' : 'desc',
+            tableHeaderSelector = '[data-toggle="table"]' +
+                                  '[data-field="' + this.collection.state.sortKey +'"]';
+
+        // We handle sorting for the collection. The bootstrap table handles
+        // sorting per page. Set its sort order to the collections
+        $(tableHeaderSelector).data("sortOrder", sortOrderClass);
+
+        $('[data-toggle="table"]').bootstrapTable({
+            // `name` will be the column's `data-field`
+            onSort: function(name) {
+                var prevSortKey = self.collection.state.sortKey,
+                    shouldSwitchDirection = prevSortKey === name,
+                    sortOrder = shouldSwitchDirection ?
+                                self.collection.state.order * -1 : 1,
+
+                    sortAscending = function(row) {
+                        var data = row.get(name);
+                        if (data === utils.noData) {
+                            return -Infinity;
+                        }
+                        if (typeof data === "string") {
+                            return utils.negateString(data);
+                        }
+                        return -row.get(name);
+                    },
+
+                    sortDescending = function(row) {
+                        var data = row.get(name);
+                        if (data === utils.noData) {
+                            return -Infinity;
+                        }
+                        return row.get(name);
+                    };
+
+                self.collection.setSorting(name, sortOrder);
+                self.collection.fullCollection.comparator = sortOrder === -1 ?
+                                                            sortAscending : sortDescending;
+                self.collection.fullCollection.sort();
+
+                self.collection.getFirstPage();
+
+                self.render();
+            }
+        });
+
+        this.addSortedColumnStyling();
+    },
+
+    // Ensure the bootstrap table shows the appropriate "sorting caret" (up or down)
+    // based on the collection's sort order.
+    addSortedColumnStyling: function() {
+        var currentSortKey = this.collection.state.sortKey,
+            sortOrderClass = this.collection.state.order === -1 ? 'asc' : 'desc',
+            headerSelector = '[data-field="' + currentSortKey +'"]';
+
+        $(headerSelector + ' > div.th-inner').addClass(sortOrderClass);
+    },
+
+    nextPage: function() {
+        if (this.collection.hasNextPage()) {
+            this.collection.getNextPage();
+            this.render();
+        }
+    },
+
+    prevPage: function() {
+        if (this.collection.hasPreviousPage()) {
+            this.collection.getPreviousPage();
+            this.render();
+        }
+    },
+
+    onAttach: function() {
+        this.renderBootstrapTable();
+    },
+
+    onRender: function() {
+        this.bootstrapTableRegion.show(new this.tableView({
+                collection: this.collection,
+                units: this.options.units,
+            })
+        );
+        this.renderBootstrapTable();
+    },
+});
+
 var PointSourceTableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
     className: 'point-source',
@@ -612,31 +729,20 @@ var PointSourceTableView = Marionette.CompositeView.extend({
     },
     templateHelpers: function() {
         return {
-            headerUnits: this.options.units,
             totalMGD: utils.totalForPointSourceCollection(
                 this.collection.fullCollection.models, 'mgd'),
             totalKGN: utils.totalForPointSourceCollection(
                 this.collection.fullCollection.models, 'kgn_yr'),
             totalKGP: utils.totalForPointSourceCollection(
                 this.collection.fullCollection.models, 'kgp_yr'),
-            hasNextPage: this.collection.hasNextPage(),
-            hasPreviousPage: this.collection.hasPreviousPage(),
-            currentPage: this.collection.state.currentPage,
-            totalPages: this.collection.state.totalPages,
         };
     },
     childViewContainer: 'tbody',
     template: pointSourceTableTmpl,
 
-    onAttach: function() {
-        $('[data-toggle="table"]').bootstrapTable();
-    },
-
     ui: {
         'pointSourceTR': 'tr.point-source',
         'pointSourceId': '.point-source-id',
-        'pointSourceTblNext': '.btn-next-page',
-        'pointSourceTblPrev': '.btn-prev-page'
     },
 
     events: {
@@ -644,8 +750,6 @@ var PointSourceTableView = Marionette.CompositeView.extend({
         'mouseout @ui.pointSourceId': 'removePointSourceMarker',
         'mouseover @ui.pointSourceTR': 'addPointSourceMarkerToMap',
         'mouseout @ui.pointSourceTR': 'removePointSourceMarker',
-        'click @ui.pointSourceTblNext': 'nextPage',
-        'click @ui.pointSourceTblPrev': 'prevPage'
     },
 
     createPointSourceMarker: function(data) {
@@ -658,22 +762,6 @@ var PointSourceTableView = Marionette.CompositeView.extend({
         }).bindPopup(new pointSourceLayer.PointSourcePopupView({
           model: new Backbone.Model(data)
       }).render().el, { closeButton: false });
-    },
-
-    nextPage: function() {
-        if (this.collection.hasNextPage()) {
-            this.collection.getNextPage();
-            this.render();
-            $('[data-toggle="table"]').bootstrapTable();
-        }
-    },
-
-    prevPage: function() {
-        if (this.collection.hasPreviousPage()) {
-            this.collection.getPreviousPage();
-            this.render();
-            $('[data-toggle="table"]').bootstrapTable();
-        }
     },
 
     addPointSourceMarkerToMap: function(e) {
@@ -707,6 +795,10 @@ var PointSourceTableView = Marionette.CompositeView.extend({
     }
 });
 
+var PointSourcePageableTableView = PageableTableBaseView.extend({
+    tableView: PointSourceTableView,
+});
+
 var CatchmentWaterQualityTableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
     className: 'catchment-water-quality',
@@ -730,24 +822,14 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
     templateHelpers: function() {
         return {
             headerUnits: this.options.units,
-            hasNextPage: this.collection.hasNextPage(),
-            hasPreviousPage: this.collection.hasPreviousPage(),
-            currentPage: this.collection.state.currentPage,
-            totalPages: this.collection.state.totalPages,
         };
     },
     childViewContainer: 'tbody',
     template: catchmentWaterQualityTableTmpl,
 
-    onAttach: function() {
-        $('[data-toggle="table"]').bootstrapTable();
-    },
-
     ui: {
         'catchmentWaterQualityTR': 'tr.catchment-water-quality',
         'catchmentWaterQualityId': '.catchment-water-quality-id',
-        'catchmentWaterQualityTblNext': '.btn-next-page',
-        'catchmentWaterQualityTblPrev': '.btn-prev-page',
     },
 
     events: {
@@ -755,24 +837,6 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
         'mouseout @ui.catchmentWaterQualityId': 'removeCatchmentPolygon',
         'mouseover @ui.catchmentWaterQualityTR': 'addCatchmentToMap',
         'mouseout @ui.catchmentWaterQualityTR': 'removeCatchmentPolygon',
-        'click @ui.catchmentWaterQualityTblNext': 'nextPage',
-        'click @ui.catchmentWaterQualityTblPrev': 'prevPage',
-    },
-
-    nextPage: function() {
-        if (this.collection.hasNextPage()) {
-            this.collection.getNextPage();
-            this.render();
-            $('[data-toggle="table"]').bootstrapTable();
-        }
-    },
-
-    prevPage: function() {
-        if (this.collection.hasPreviousPage()) {
-            this.collection.getPreviousPage();
-            this.render();
-            $('[data-toggle="table"]').bootstrapTable();
-        }
     },
 
     createCatchmentPolygon: function(data) {
@@ -825,6 +889,10 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
             map.removeLayer(this.catchmentPolygon);
         }
     }
+});
+
+var CatchmentWaterQualityPageableTableView = PageableTableBaseView.extend({
+    tableView: CatchmentWaterQualityTableView,
 });
 
 var ChartView = Marionette.ItemView.extend({
@@ -925,10 +993,10 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
 
             if (dataName === 'pointsource') {
                 census = new coreModels.PointSourceCensusCollection(data);
-                TableView = PointSourceTableView;
+                TableView = PointSourcePageableTableView;
             } else if (dataName === 'catchment_water_quality') {
                 census = new coreModels.CatchmentWaterQualityCensusCollection(data);
-                TableView = CatchmentWaterQualityTableView;
+                TableView = CatchmentWaterQualityPageableTableView;
             }
 
             // Ensure all the data is rendered
@@ -1026,7 +1094,7 @@ var PointSourceResultView = AnalyzeResultView.extend({
             pageSize = utils.calculateVisibleRows(minScreenHeight, avgRowHeight, 3),
             chart = null;
         this.showAnalyzeResults(coreModels.PointSourceCensusCollection,
-            PointSourceTableView, chart, title, source, helpText, associatedLayerCodes, pageSize);
+            PointSourcePageableTableView, chart, title, source, helpText, associatedLayerCodes, pageSize);
     }
 });
 
@@ -1046,7 +1114,7 @@ var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
             pageSize = utils.calculateVisibleRows(minScreenHeight, avgRowHeight, 5),
             chart = null;
         this.showAnalyzeResults(coreModels.CatchmentWaterQualityCensusCollection,
-            CatchmentWaterQualityTableView, chart, title, source, helpText,
+            CatchmentWaterQualityPageableTableView, chart, title, source, helpText,
             associatedLayerCodes, pageSize);
     }
 });

@@ -193,6 +193,15 @@ var utils = {
         return utils.numericSort(x, y);
     },
 
+    negateString: function(str) {
+        // From https://stackoverflow.com/a/5639070
+        return String.fromCharCode.apply(String,
+            _.map(str.split(""), function (c) {
+                return 0xffff - c.charCodeAt();
+            })
+        );
+    },
+
     // Parse query strings for Backbone
     // Takes queryString of format "key1=value1&key2=value2"
     // Returns object of format {key1: value1, key2: value2}
