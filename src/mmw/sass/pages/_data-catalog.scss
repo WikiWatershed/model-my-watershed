@@ -34,9 +34,24 @@
         padding: 10px;
     }
 
+    .data-catalog-search-dates {
+        background-color: #D8D8D8;
+        padding: 12px 10px;
+        margin: 0 -10px 10px;
+
+        h5 {
+            margin-top: 0;
+            font-weight: 600;
+        }
+    }
+
     .data-catalog-form {
         position: relative;
         padding: 4px 10px;
+
+        .data-catalog-search-component {
+            position: relative;
+        }
 
         .data-catalog-search-input {
             width: 99%;
@@ -45,20 +60,23 @@
             padding-left: 31px;
         }
         .data-catalog-clearable-input {
-            display: inline;
+            display: inline-block;
+            position: relative;
         }
         .data-catalog-date-input {
-            width: 42%;
+            width: 202px;
             height: 38px;
             border: none;
             border-radius: 0;
             display: inline;
         }
         .data-catalog-clear-icon {
-            color: $ui-grey;
+            color: $ui-secondary;
             position: relative;
-            right: 25px;
-            font-size: 18px;
+            font-size: 13px;
+            position: absolute;
+            right: 10px;
+            top: 10px;
         }
         &:hover {
             text-decoration: none;
@@ -70,8 +88,8 @@
         .data-catalog-search-icon {
             color: $ui-grey;
             position: absolute;
-            top: 14px;
-            left: 17px;
+            top: 10px;
+            left: 8px;
             font-size: 18px;
         }
         .form-group {
@@ -80,7 +98,8 @@
         .date-filter-toggle {
           position: absolute;
           right: 0;
-          top: -45px;
+          top: -36px;
+          color: $brand-primary;
         }
     }
 
