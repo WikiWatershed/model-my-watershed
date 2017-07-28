@@ -14,7 +14,6 @@ var _ = require('lodash'),
     analyzeViews = require('../analyze/views.js'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
-    compareModels = require('../compare/models'),
     compareViews = require('../compare/views'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultsDetailsTmpl = require('./templates/resultsDetails.html'),
@@ -323,53 +322,7 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
     },
 
     showCompare: function() {
-        var scenarios = this.projectModel.get('scenarios'),
-            // TODO Move this to somewhere within Compare that specializes
-            // in TR-55 Runoff rendering. Also see if this can be made less
-            // brittle by accounting for cases when there are no results,
-            // or results are pending.
-            runoffTable = [
-                {
-                    name: "Runoff",
-                    unit: "cm",
-                    values: scenarios.map(function(s) {
-                        return s.get('results')
-                                .findWhere({ name: "runoff" })
-                                .get('result')
-                                .runoff.modified.runoff;
-                    })
-                },
-                {
-                    name: "Evapotranspiration",
-                    unit: "cm",
-                    values: scenarios.map(function(s) {
-                        return s.get('results')
-                            .findWhere({ name: "runoff" })
-                            .get('result')
-                            .runoff.modified.et;
-                    })
-                },
-                {
-                    name: "Inflitration",
-                    unit: "cm",
-                    values: scenarios.map(function(s) {
-                        return s.get('results')
-                            .findWhere({ name: "runoff" })
-                            .get('result')
-                            .runoff.modified.inf;
-                    })
-                },
-            ],
-            compareModel = new compareModels.WindowModel({
-            tabs: [
-                { name: 'Runoff', active: true, table: runoffTable },
-                { name: 'Water Quality' },
-            ],
-        });
-
-        App.rootView.compareRegion.show(new compareViews.CompareWindow2({
-            model: compareModel,
-        }));
+        compareViews.showCompare();
     },
 });
 

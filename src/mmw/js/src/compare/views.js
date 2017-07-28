@@ -419,7 +419,105 @@ var CompareModificationsView = Marionette.ItemView.extend({
     }
 });
 
+function getTr55Tabs(scenarios) {
+    // TODO Account for loading and error scenarios
+    var runoffTable = [
+            {
+                name: "Runoff",
+                unit: "cm",
+                values: scenarios.map(function(s) {
+                    // TODO Make less brittle
+                    return s.get('results')
+                            .findWhere({ name: "runoff" })
+                            .get('result')
+                            .runoff.modified.runoff;
+                })
+            },
+            {
+                name: "Evapotranspiration",
+                unit: "cm",
+                values: scenarios.map(function(s) {
+                    return s.get('results')
+                        .findWhere({ name: "runoff" })
+                        .get('result')
+                        .runoff.modified.et;
+                })
+            },
+            {
+                name: "Inflitration",
+                unit: "cm",
+                values: scenarios.map(function(s) {
+                    return s.get('results')
+                        .findWhere({ name: "runoff" })
+                        .get('result')
+                        .runoff.modified.inf;
+                })
+            },
+        ],
+        // TODO Make Runoff charts
+        runoffCharts = [],
+        // TODO Calculate Water Quality table
+        qualityTable = [],
+        // TODO Calculate Water Quality charts
+        qualityCharts = [];
+
+    return [
+        {
+            name: 'Runoff',
+            table: runoffTable,
+            charts: runoffCharts,
+            active: true,
+        },
+        {
+            name: 'Water Quality',
+            table: qualityTable,
+            charts: qualityCharts,
+        },
+    ];
+}
+
+function getGwlfeTabs(scenarios) {
+    // TODO Implement
+    var hydrologyTable = [],
+        hydrologyCharts = [],
+        qualityTable = [],
+        qualityCharts = [];
+
+    // TODO Remove once scenarios is actually used.
+    // This is to pacify the linter.
+    scenarios.findWhere({ active: true});
+
+    return [
+        {
+            name: 'Hydrology',
+            table: hydrologyTable,
+            charts: hydrologyCharts,
+            active: true,
+        },
+        {
+            name: 'Water Quality',
+            table: qualityTable,
+            charts: qualityCharts,
+        },
+    ];
+}
+
+function showCompare() {
+    var model_package = App.currentProject.get('model_package'),
+        scenarios = App.currentProject.get('scenarios'),
+        tabs = model_package === modelingModels.TR55_PACKAGE ?
+               getTr55Tabs(scenarios) : getGwlfeTabs(scenarios),
+        compareModel = new models.WindowModel({
+            tabs: tabs,
+        });
+
+    App.rootView.compareRegion.show(new CompareWindow2({
+        model: compareModel,
+    }));
+}
+
 module.exports = {
+    showCompare: showCompare,
     CompareWindow2: CompareWindow2,
     CompareWindow: CompareWindow
 };
