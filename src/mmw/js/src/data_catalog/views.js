@@ -6,6 +6,7 @@ var $ = require('jquery'),
     moment = require('moment'),
     App = require('../app'),
     settings = require('../core/settings'),
+    utils = require('./utils'),
     errorTmpl = require('./templates/error.html'),
     formTmpl = require('./templates/form.html'),
     pagerTmpl = require('./templates/pager.html'),
@@ -82,13 +83,14 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
             query = this.model.get('query'),
             fromDate = this.model.get('fromDate'),
             toDate = this.model.get('toDate'),
-            bounds = L.geoJson(App.map.get('areaOfInterest')).getBounds();
+            aoiGeoJson = L.geoJson(App.map.get('areaOfInterest')),
+            bounds = utils.formatBounds(aoiGeoJson.getBounds());
 
         // Disable intro text after first search request
         this.ui.introText.addClass('hide');
         this.ui.tabs.removeClass('hide');
 
-        catalog.search(query, fromDate, toDate, bounds);
+        catalog.searchIfNeeded(query, fromDate, toDate, bounds);
     },
 
     updateMap: function() {

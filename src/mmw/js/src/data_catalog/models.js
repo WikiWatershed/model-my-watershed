@@ -5,8 +5,7 @@ var $ = require('jquery'),
     Backbone = require('../../shim/backbone'),
     turfIntersect = require('turf-intersect'),
     App = require('../app'),
-    settings = require('../core/settings'),
-    utils = require('./utils');
+    settings = require('../core/settings');
 
 var REQUEST_TIMED_OUT_CODE = 408;
 var DESCRIPTION_MAX_LENGTH = 100;
@@ -29,10 +28,34 @@ var Catalog = Backbone.Model.extend({
         error: '',
     },
 
-    search: function(query, fromDate, toDate, bounds) {
+    searchIfNeeded: function(query, fromDate, toDate, bbox) {
+        var self = this,
+            isSameSearch = query === this.get('query') &&
+                           fromDate === this.get('fromDate') &&
+                           toDate === this.get('toDate') &&
+                           bbox === this.get('bbox');
+
+        if (!isSameSearch) {
+            this.cancelSearch();
+            this.searchPromise = this.search(query, fromDate, toDate, bbox)
+                                     .always(function() {
+                                        delete self.searchPromise;
+                                     });
+        }
+
+        return this.searchPromise || $.when();
+    },
+
+    cancelSearch: function() {
+        if (this.searchPromise) {
+            this.searchPromise.abort();
+        }
+    },
+
+    search: function(query, fromDate, toDate, bbox) {
         this.set({
             query: query,
-            bbox: utils.formatBounds(bounds),
+            bbox: bbox,
             fromDate: fromDate,
             toDate: toDate,
         });
@@ -74,7 +97,12 @@ var Catalog = Backbone.Model.extend({
         });
     },
 
-    failSearch: function(response) {
+    failSearch: function(response, textStatus) {
+        if (textStatus === "abort") {
+            // Do nothing if the search failed because it
+            // was purposefully cancelled
+            return;
+        }
         if (response.status === REQUEST_TIMED_OUT_CODE){
             this.set('error', "Searching took too long. " +
                               "Consider trying a smaller area of interest " +
