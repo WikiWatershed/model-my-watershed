@@ -14,6 +14,7 @@ var _ = require('lodash'),
     analyzeViews = require('../analyze/views.js'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
+    compareViews = require('../compare/views'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultsDetailsTmpl = require('./templates/resultsDetails.html'),
     resultsTabPanelTmpl = require('./templates/resultsTabPanel.html'),
@@ -287,10 +288,12 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
 
     ui: {
         addScenario: '#add-scenario',
+        showCompare: '#show-compare',
     },
 
     events: {
         'click @ui.addScenario': 'addScenario',
+        'click @ui.showCompare': 'showCompare',
     },
 
     initialize: function(options) {
@@ -316,6 +319,10 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
             showCompare: showCompare,
             compareUrl: compareUrl
         };
+    },
+
+    showCompare: function() {
+        compareViews.showCompare();
     },
 });
 

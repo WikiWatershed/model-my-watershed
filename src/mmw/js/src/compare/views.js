@@ -6,16 +6,152 @@ var _ = require('lodash'),
     App = require('../app'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
+    models = require('./models'),
     modelingModels = require('../modeling/models'),
     modelingViews = require('../modeling/views'),
     modelingControls = require('../modeling/controls'),
     modConfigUtils = require('../modeling/modificationConfigUtils'),
     compareWindowTmpl = require('./templates/compareWindow.html'),
+    compareWindow2Tmpl = require('./templates/compareWindow2.html'),
+    compareTabPanelTmpl = require('./templates/compareTabPanel.html'),
+    compareInputsTmpl = require('./templates/compareInputs.html'),
+    compareScenarioItemTmpl = require('./templates/compareScenarioItem.html'),
+    compareTableRowTmpl = require('./templates/compareTableRow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
     compareModelingTmpl = require('./templates/compareModeling.html'),
     compareModificationsTmpl = require('./templates/compareModifications.html'),
     synchronizer = modelingControls.PrecipitationSynchronizer;
+
+var CompareWindow2 = Marionette.LayoutView.extend({
+    template: compareWindow2Tmpl,
+
+    id: 'compare-new',
+
+    ui: {
+        closeButton: '.compare-close > button',
+    },
+
+    events: {
+        'click @ui.closeButton': 'closeView',
+    },
+
+    modelEvents: {
+        'change:mode': 'showSectionsView',
+    },
+
+    regions: {
+        tabRegion: '.compare-tabs',
+        inputsRegion: '.compare-inputs',
+        scenariosRegion: '#compare-title-row',
+        sectionsRegion: '.compare-sections',
+    },
+
+    onShow: function() {
+        this.tabRegion.show(new TabPanelsView({
+            collection: this.model.get('tabs'),
+        }));
+        this.inputsRegion.show(new InputsView({
+            model: this.model,
+        }));
+        this.scenariosRegion.show(new ScenariosRowView({
+            collection: App.currentProject.get('scenarios'),
+        }));
+
+        this.showSectionsView();
+    },
+
+    showSectionsView: function() {
+        if (this.model.get('mode') === models.constants.CHART) {
+            // TODO: Show Chart View
+            this.sectionsRegion.empty();
+        } else {
+            this.sectionsRegion.show(new TableView({
+                collection: this.model.get('tabs')
+                                .findWhere({ active: true })
+                                .get('table'),
+            }));
+        }
+    },
+
+    closeView: function() {
+        App.rootView.compareRegion.empty();
+    },
+});
+
+var TabPanelView = Marionette.ItemView.extend({
+    template: compareTabPanelTmpl,
+    tagName: 'a',
+    className: 'compare-tab',
+    attributes: {
+        href: '',
+        role: 'tab',
+    },
+
+    events: {
+        'click': 'selectTab',
+    },
+
+    onRender: function() {
+        if (this.model.get('active')) {
+            this.$el.addClass('active');
+        } else {
+            this.$el.removeClass('active');
+        }
+    },
+
+    selectTab: function(e) {
+        // TODO: Make this select the tab
+
+        e.preventDefault();
+        return false;
+    },
+});
+
+var TabPanelsView = Marionette.CollectionView.extend({
+    childView: TabPanelView,
+});
+
+var InputsView = Marionette.ItemView.extend({
+    template: compareInputsTmpl,
+
+    ui: {
+        chartButton: '#compare-input-button-chart',
+        tableButton: '#compare-input-button-table',
+    },
+
+    events: {
+        'click @ui.chartButton': 'setChartView',
+        'click @ui.tableButton': 'setTableView',
+    },
+
+    setChartView: function() {
+        this.model.set({ mode: models.constants.CHART });
+    },
+
+    setTableView: function() {
+        this.model.set({ mode: models.constants.TABLE });
+    },
+});
+
+var ScenarioItemView = Marionette.ItemView.extend({
+    className: 'compare-column',
+    template: compareScenarioItemTmpl,
+});
+
+var ScenariosRowView = Marionette.CollectionView.extend({
+    className: 'compare-scenario-row-content',
+    childView: ScenarioItemView,
+});
+
+var TableRowView = Marionette.ItemView.extend({
+    className: 'compare-table-row',
+    template: compareTableRowTmpl,
+});
+
+var TableView = Marionette.CollectionView.extend({
+    childView: TableRowView,
+});
 
 var CompareWindow = Marionette.LayoutView.extend({
     //model: modelingModels.ProjectModel,
@@ -283,6 +419,105 @@ var CompareModificationsView = Marionette.ItemView.extend({
     }
 });
 
+function getTr55Tabs(scenarios) {
+    // TODO Account for loading and error scenarios
+    var runoffTable = [
+            {
+                name: "Runoff",
+                unit: "cm",
+                values: scenarios.map(function(s) {
+                    // TODO Make less brittle
+                    return s.get('results')
+                            .findWhere({ name: "runoff" })
+                            .get('result')
+                            .runoff.modified.runoff;
+                })
+            },
+            {
+                name: "Evapotranspiration",
+                unit: "cm",
+                values: scenarios.map(function(s) {
+                    return s.get('results')
+                        .findWhere({ name: "runoff" })
+                        .get('result')
+                        .runoff.modified.et;
+                })
+            },
+            {
+                name: "Inflitration",
+                unit: "cm",
+                values: scenarios.map(function(s) {
+                    return s.get('results')
+                        .findWhere({ name: "runoff" })
+                        .get('result')
+                        .runoff.modified.inf;
+                })
+            },
+        ],
+        // TODO Make Runoff charts
+        runoffCharts = [],
+        // TODO Calculate Water Quality table
+        qualityTable = [],
+        // TODO Calculate Water Quality charts
+        qualityCharts = [];
+
+    return [
+        {
+            name: 'Runoff',
+            table: runoffTable,
+            charts: runoffCharts,
+            active: true,
+        },
+        {
+            name: 'Water Quality',
+            table: qualityTable,
+            charts: qualityCharts,
+        },
+    ];
+}
+
+function getGwlfeTabs(scenarios) {
+    // TODO Implement
+    var hydrologyTable = [],
+        hydrologyCharts = [],
+        qualityTable = [],
+        qualityCharts = [];
+
+    // TODO Remove once scenarios is actually used.
+    // This is to pacify the linter.
+    scenarios.findWhere({ active: true});
+
+    return [
+        {
+            name: 'Hydrology',
+            table: hydrologyTable,
+            charts: hydrologyCharts,
+            active: true,
+        },
+        {
+            name: 'Water Quality',
+            table: qualityTable,
+            charts: qualityCharts,
+        },
+    ];
+}
+
+function showCompare() {
+    var model_package = App.currentProject.get('model_package'),
+        scenarios = App.currentProject.get('scenarios'),
+        tabs = model_package === modelingModels.TR55_PACKAGE ?
+               getTr55Tabs(scenarios) : getGwlfeTabs(scenarios),
+        compareModel = new models.WindowModel({
+            tabs: tabs,
+        });
+
+    App.rootView.compareRegion.show(new CompareWindow2({
+        model: compareModel,
+    }));
+}
+
 module.exports = {
+    showCompare: showCompare,
+    CompareWindow2: CompareWindow2,
     CompareWindow: CompareWindow
 };
