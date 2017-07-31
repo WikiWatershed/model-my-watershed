@@ -6,11 +6,11 @@
 </div>
 {% if created_at %}
 <div class="resource-date">
-    {{ created_at|toDateFullYear }}
+    <i class="fa fa-calendar"></i> {{ created_at|toDateFullYear }}
 </div>
 {% endif %}
 {% if author %}
 <div class="resource-author">
-    {{ author }}
+    <i class="fa fa-user"></i> {{ author }}
 </div>
 {% endif %}

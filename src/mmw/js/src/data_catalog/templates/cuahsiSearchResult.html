@@ -1,26 +1,22 @@
 <h3 class="resource-title">
     {{ id }}
 </h3>
-<div>
-    {% if details_url %}
-        <a href="{{ details_url }}" target="_blank" rel="noreferrer noopener">
-        {{ title }}</a>.
-    {% else %}
-        {{ title }}.
-    {% endif %}
-    Observations on {{ sample_mediums }}.
+<div class="resource-detail">
+    <i class="fa fa-map-marker"></i> {{ title }}
 </div>
-<div>
-    Variables: {{ concept_keywords }}
+<div class="resource-detail">
+    <i class="fa fa-eyedropper"></i> {{ sample_mediums }}
 </div>
-<div>
-    From <a href="{{ service_url }}" target="_blank" rel="noreferrer noopener">
-    {{ service_org }} - {{ service_code }}</a> web service.
+<div class="resource-detail">
+    <i class="fa fa-subscript"></i> {{ concept_keywords }}
 </div>
-<div>
+<div class="resource-detail">
+    <i class="fa fa-file-text-o"></i> {{ service_org }}<!-- , {{ service_code }} -->
+</div>
+<div class="resource-detail">
     {% if begin_date == end_date %}
-        Date for site: {{ begin_date|toFriendlyDate }}
+        <i class="fa fa-calendar"></i> {{ begin_date|toFriendlyDate }}
     {% else %}
-        Date range for site: {{ begin_date|toFriendlyDate }} - {{ end_date|toFriendlyDate }}
+        <i class="fa fa-calendar"></i> {{ begin_date|toFriendlyDate }}-{{ end_date|toFriendlyDate }}
     {% endif %}
 </div>

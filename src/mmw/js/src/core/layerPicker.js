@@ -180,7 +180,7 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
         if (this.model.get('error')) {
             message = this.model.get('error');
         } else if (this.model.get('polling')) {
-            message = 'Loading...';
+            message = '<div class="layerpicker-loading">Loading...</div>';
         }
         return {
             layerGroupName: this.model.get('name'),
