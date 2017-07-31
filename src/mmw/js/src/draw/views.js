@@ -1016,8 +1016,14 @@ function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
                 clearBoundaryLayer(model);
                 navigateToAnalyze();
                 deferred.resolve();
-            }).fail(function() {
-                console.log('Shape endpoint failed');
+            }).fail(function(message) {
+                if (typeof(message) === "string") {
+                    // When validation fails with an error message
+                    displayAlert(message, modalModels.AlertTypes.error);
+                } else {
+                    // When AJAX fails with an XHR object
+                    console.log('Shape endpoint failed');
+                }
                 deferred.reject();
             });
     }
