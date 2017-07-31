@@ -6,12 +6,12 @@ var $ = require('jquery'),
     JSZip = require('jszip'),
     turfArea = require('turf-area'),
     turfBboxPolygon = require('turf-bbox-polygon'),
+    settings = require('../core/settings'),
     coreUtils = require('../core/utils');
 
 var CANCEL_DRAWING = 'CANCEL_DRAWING';
 
-// Keep in sync with src/api/main.py in rapid-watershed-delineation.
-var MAX_AREA = 75000; // About the size of West Virginia (in km^2)
+var MAX_AREA = settings.get('max_area');
 
 var polygonDefaults = {
         fillColor: '#E77471',
