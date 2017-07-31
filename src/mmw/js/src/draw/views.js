@@ -104,10 +104,10 @@ function validateShape(polygon) {
     } else if (!utils.isValidForAnalysis(polygon)) {
         var maxArea = utils.MAX_AREA.toLocaleString(),
             selectedBoundingBoxArea = Math.floor(utils.shapeBoundingBoxArea(polygon)).toLocaleString(),
-            message = 'Sorry, the bounding box of the area you have delineated is too large ' +
-                      'to analyze or model. ' + selectedBoundingBoxArea + ' km² were ' +
+            message = 'Sorry, the bounding box of the selected area is too large ' +
+                      'to analyze or model. ' + selectedBoundingBoxArea + '&nbsp;km² were ' +
                       'selected, but the maximum supported size is ' +
-                      'currently ' + maxArea + ' km².';
+                      'currently ' + maxArea + '&nbsp;km².';
         d.reject(message);
     } else {
         d.resolve(polygon);
@@ -874,7 +874,7 @@ var WatershedDelineationView = DrawToolBaseView.extend({
                 navigateToAnalyze();
             })
             .fail(function(message) {
-                displayAlert(message, modalModels.AlertTypes.warn);
+                displayAlert(message, modalModels.AlertTypes.error);
                 self.resetDrawingState();
             })
             .always(function() {
