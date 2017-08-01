@@ -276,6 +276,7 @@ var TabContentView = Marionette.LayoutView.extend({
 
         // CUAHSI does not support pagination, but others do
         if (this.model.id !== 'cuahsi') {
+            this.resultRegion.$el.addClass('paginated');
             this.pagerRegion.show(new PagerView({
                 model: this.model,
             }));

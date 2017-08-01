@@ -16,16 +16,29 @@
     }
 
     .result-region {
-        padding-top: 6px;
+        padding: 6px 0px;
+
+        &.paginated {
+            position: absolute;
+            overflow-y: auto;
+            top: 0px;
+            bottom: 54px;  // .pager-region height + padding-top
+        }
     }
 
     .pager-region {
-        padding: 10px 0;
-        background-color: #e6e6e6;
+        > div {
+            padding: 10px 0;
+            background-color: #e6e6e6;
+            border-top: 1px solid $black-12;
+            position: fixed;
+            bottom: 0px;
+            width: $sidebar-width;
 
-        .row {
-            margin-left: -5px !important;
-            margin-right: -5px !important;
+            .row {
+                margin-left: -5px !important;
+                margin-right: -5px !important;
+            }
         }
     }
 
