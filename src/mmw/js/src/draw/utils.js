@@ -91,7 +91,8 @@ function cancelDrawing(map) {
 
 function getGeoJsonLatLngs(shape) {
     if (shape.coordinates) {
-        return L.GeoJSON.coordsToLatLngs(shape.coordinates, 2);
+        var nesting = shape.type === "MultiPolygon" ? 2 : 1;
+        return L.GeoJSON.coordsToLatLngs(shape.coordinates, nesting);
     } else if (shape.geometry) {
         return L.GeoJSON.coordsToLatLngs(shape.geometry.coordinates, 1);
     } else if (shape.features) {
@@ -110,10 +111,13 @@ function shapeArea(shape) {
             'm<sup>2</sup>', 'km<sup>2</sup>');
 }
 
+function shapeBoundingBox(shape) {
+    return L.latLngBounds(getGeoJsonLatLngs(shape));
+}
+
 // Get the bounding box of the shape and return its area in km2
 function shapeBoundingBoxArea(shape) {
-    var shapeLatLngPoints = getGeoJsonLatLngs(shape),
-        latLngBounds = L.latLngBounds(shapeLatLngPoints),
+    var latLngBounds = shapeBoundingBox(shape),
         boundingBox = [
             latLngBounds.getWest(),
             latLngBounds.getSouth(),
@@ -170,6 +174,7 @@ module.exports = {
     createRwdMarkerIcon: createRwdMarkerIcon,
     cancelDrawing: cancelDrawing,
     polygonDefaults: polygonDefaults,
+    shapeBoundingBox: shapeBoundingBox,
     shapeBoundingBoxArea: shapeBoundingBoxArea,
     isValidForAnalysis: isValidForAnalysis,
     withinConus: withinConus,

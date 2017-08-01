@@ -314,11 +314,16 @@ var ResultView = Marionette.ItemView.extend({
     className: 'resource',
 
     events: {
-        'mouseover': 'highlightResult'
+        'mouseover': 'highlightResult',
+        'mouseout': 'unHighlightResult',
     },
 
     highlightResult: function() {
         App.map.set('dataCatalogActiveResult', this.model.get('geom'));
+    },
+
+    unHighlightResult: function() {
+        App.map.set({ dataCatalogActiveResult: null });
     }
 });
 

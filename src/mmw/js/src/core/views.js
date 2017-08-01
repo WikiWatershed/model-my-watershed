@@ -685,14 +685,21 @@ var MapView = Marionette.ItemView.extend({
     },
 
     renderDataCatalogActiveResult: function() {
-        var geom = this.model.get('dataCatalogActiveResult');
+        var geom = this.model.get('dataCatalogActiveResult'),
+            mapBounds = this._leafletMap.getBounds();
 
         this._dataCatalogActiveLayer.clearLayers();
+        this.$el.removeClass('bigcz-highlight-map');
 
         if (geom) {
-            var layer = this.createDataCatalogShape(geom);
-            layer.setStyle(dataCatalogActiveStyle);
-            this._dataCatalogActiveLayer.addLayer(layer);
+            if ((geom.type === 'MultiPolygon' || geom.type === 'Polygon') &&
+                drawUtils.shapeBoundingBox(geom).contains(mapBounds)) {
+                this.$el.addClass('bigcz-highlight-map');
+            } else {
+                var layer = this.createDataCatalogShape(geom);
+                layer.setStyle(dataCatalogActiveStyle);
+                this._dataCatalogActiveLayer.addLayer(layer);
+            }
         }
     }
 });
