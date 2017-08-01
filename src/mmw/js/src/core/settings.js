@@ -11,6 +11,7 @@ var defaultSettings = {
     stream_layers: {},
     coverage_layers: {},
     boundary_layers: {},
+    conus_perimeter: {},
     draw_tools: [],
     map_controls: [],
     vizer_urls: {},

@@ -13,7 +13,7 @@ from os.path import abspath, basename, dirname, join, normpath
 from sys import path
 
 from layer_settings import (LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
-                            NHD_REGION2_PERIMETER, DRB_PERIMETER)  # NOQA
+                            NHD_REGION2_PERIMETER, DRB_PERIMETER, CONUS_PERIMETER)  # NOQA
 from gwlfe_settings import (GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, # NOQA
                             SOILP, CURVE_NUMBER, NODATA)  # NOQA
 from tr55_settings import (NLCD_MAPPING, SOIL_MAPPING)

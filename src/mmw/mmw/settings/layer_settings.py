@@ -33,6 +33,12 @@ pa_perimeter_path = join(dirname(abspath(__file__)), 'data/pa_perimeter.json')
 pa_perimeter_file = open(pa_perimeter_path)
 pa_perimeter = json.load(pa_perimeter_file)
 
+# Simplified perimeter of the continental US, used to prevent non-CONUS
+# AoIs from being sent to the API
+conus_perimeter_path = join(dirname(abspath(__file__)), 'data/conus_perimeter.json')
+conus_perimeter_file = open(conus_perimeter_path)
+CONUS_PERIMETER = json.load(conus_perimeter_file)
+
 # Buffered with QGIS [buffer distance = 0.10] and simplified [factor=0.01]
 # perimeter of the NHD Mid Atlantic Region (02)
 # Not a visible layer, but used for to detect if a point will work for RWD.

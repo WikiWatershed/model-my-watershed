@@ -130,6 +130,7 @@ def get_client_settings(request):
             'coverage_layers': create_layer_config_with_urls('coverage'),
             'stream_layers': create_layer_config_with_urls('stream'),
             'nhd_perimeter': settings.NHD_REGION2_PERIMETER,
+            'conus_perimeter': settings.CONUS_PERIMETER,
             'draw_tools': settings.DRAW_TOOLS,
             'map_controls': settings.MAP_CONTROLS,
             'vizer_urls': settings.VIZER_URLS,

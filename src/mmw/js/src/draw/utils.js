@@ -6,8 +6,9 @@ var $ = require('jquery'),
     JSZip = require('jszip'),
     turfArea = require('turf-area'),
     turfBboxPolygon = require('turf-bbox-polygon'),
-    settings = require('../core/settings'),
-    coreUtils = require('../core/utils');
+    coreUtils = require('../core/utils'),
+    intersect = require('turf-intersect'),
+    settings = require('../core/settings');
 
 var CANCEL_DRAWING = 'CANCEL_DRAWING';
 
@@ -159,6 +160,10 @@ function isValidForAnalysis(shape) {
     return false;
 }
 
+function withinConus(shape) {
+    return intersect(settings.get('conus_perimeter'), shape);
+}
+
 module.exports = {
     drawPolygon: drawPolygon,
     placeMarker: placeMarker,
@@ -167,6 +172,7 @@ module.exports = {
     polygonDefaults: polygonDefaults,
     shapeBoundingBoxArea: shapeBoundingBoxArea,
     isValidForAnalysis: isValidForAnalysis,
+    withinConus: withinConus,
     loadAsyncShpFilesFromZip: loadAsyncShpFilesFromZip,
     NHD: 'nhd',
     DRB: 'drb',
