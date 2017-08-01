@@ -21,7 +21,6 @@ from apps.bigcz.clients.cuahsi.models import CuahsiResource
 
 
 SQKM_PER_SQM = 0.000001
-MAX_AREA_SQKM = 1500
 CATALOG_NAME = 'cuahsi'
 CATALOG_URL = 'http://hiscentral.cuahsi.org/webservices/hiscentral.asmx?WSDL'
 

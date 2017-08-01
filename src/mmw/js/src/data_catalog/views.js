@@ -5,10 +5,7 @@ var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     moment = require('moment'),
     App = require('../app'),
-    modalModels = require('../core/modals/models'),
-    modalViews = require('../core/modals/views'),
     settings = require('../core/settings'),
-    utils = require('./utils'),
     errorTmpl = require('./templates/error.html'),
     formTmpl = require('./templates/form.html'),
     pagerTmpl = require('./templates/pager.html'),
@@ -19,8 +16,6 @@ var $ = require('jquery'),
     windowTmpl = require('./templates/window.html');
 
 var ENTER_KEYCODE = 13,
-    MAX_AREA_SQKM = 1500,
-    MAX_AREA_FORMATTED = MAX_AREA_SQKM.toLocaleString(),
     PAGE_SIZE = settings.get('data_catalog_page_size'),
     CATALOG_RESULT_TEMPLATE = {
         cinergi: searchResultTmpl,
@@ -87,31 +82,7 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
             query = this.model.get('query'),
             fromDate = this.model.get('fromDate'),
             toDate = this.model.get('toDate'),
-            bounds = L.geoJson(App.map.get('areaOfInterest')).getBounds(),
-            area = utils.areaOfBounds(bounds);
-
-        // CUAHSI should not be fetched beyond a certain size
-        if (catalog.get('id') === 'cuahsi' && area > MAX_AREA_SQKM) {
-            var formattedArea = Math.round(area).toLocaleString(),
-                alertView = new modalViews.AlertView({
-                model: new modalModels.AlertModel({
-                    alertMessage: "The bounding box of the current area of " +
-                                  "interest is " + formattedArea + "&nbsp;km², " +
-                                  "which is larger than the current maximum " +
-                                  "area of " + MAX_AREA_FORMATTED + "&nbsp;km² " +
-                                  "supported for WDC.",
-                    alertType: modalModels.AlertTypes.error
-                })
-            });
-            alertView.render();
-
-            // Reset results
-            catalog.get('results').reset();
-            catalog.set({ resultCount: 0 });
-            this.updateMap();
-
-            return;
-        }
+            bounds = L.geoJson(App.map.get('areaOfInterest')).getBounds();
 
         // Disable intro text after first search request
         this.ui.introText.addClass('hide');

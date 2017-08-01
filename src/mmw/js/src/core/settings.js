@@ -16,7 +16,8 @@ var defaultSettings = {
     vizer_urls: {},
     vizer_ignore: [],
     vizer_names: {},
-    model_packages: []
+    model_packages: [],
+    max_area: 75000,
 };
 
 var settings = (function() {

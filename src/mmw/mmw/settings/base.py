@@ -356,8 +356,11 @@ OMGEO_SETTINGS = [[
     }
 ]]
 
-# BiG-CZ Host, for enabling custom behavior.
-BIGCZ_HOST = 'portal.bigcz.org'
+# Keep in sync with src/api/main.py in rapid-watershed-delineation.
+MMW_MAX_AREA = 75000  # Max area in km2, about the size of West Virginia
+
+BIGCZ_HOST = 'portal.bigcz.org'  # BiG-CZ Host, for enabling custom behavior
+BIGCZ_MAX_AREA = 1500  # Max area in km2, limited by CUAHSI
 BIGCZ_CLIENT_TIMEOUT = 5  # timeout in seconds
 BIGCZ_CLIENT_PAGE_SIZE = 100
 
