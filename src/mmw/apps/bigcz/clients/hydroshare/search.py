@@ -74,6 +74,9 @@ def search(**kwargs):
         })
     if bbox:
         params.update(prepare_bbox(bbox))
+        params.update({
+            'coverage_type': 'box'
+        })
     if page:
         params.update({
             'page': page
