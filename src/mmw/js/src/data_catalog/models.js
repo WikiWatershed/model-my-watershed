@@ -30,12 +30,13 @@ var Catalog = Backbone.Model.extend({
 
     searchIfNeeded: function(query, fromDate, toDate, bbox) {
         var self = this,
+            error = this.get('error'),
             isSameSearch = query === this.get('query') &&
                            fromDate === this.get('fromDate') &&
                            toDate === this.get('toDate') &&
                            bbox === this.get('bbox');
 
-        if (!isSameSearch) {
+        if (!isSameSearch || error) {
             this.cancelSearch();
             this.searchPromise = this.search(query, fromDate, toDate, bbox)
                                      .always(function() {
