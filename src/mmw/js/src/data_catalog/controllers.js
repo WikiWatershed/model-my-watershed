@@ -55,6 +55,11 @@ var DataCatalogController = {
             dataCatalogResults: null,
             dataCatalogActiveResult: null,
         });
+        App.rootView.sidebarRegion.currentView.collection.forEach(
+            function(catalogModel) {
+                catalogModel.cancelSearch();
+            }
+        );
     }
 };
 
