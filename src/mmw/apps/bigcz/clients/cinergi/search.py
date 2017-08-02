@@ -118,7 +118,6 @@ def search(**kwargs):
 
     params = {
         'f': 'json',
-        'sort': 'sys_modified_dt:desc',
         'size': PAGE_SIZE,
     }
 
