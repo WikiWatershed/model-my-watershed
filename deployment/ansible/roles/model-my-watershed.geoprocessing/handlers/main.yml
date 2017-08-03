@@ -1,0 +1,3 @@
+---
+- name: Restart geoprocessing service
+  service: name=geoprocessing state=restarted

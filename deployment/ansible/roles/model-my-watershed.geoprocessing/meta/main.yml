@@ -1,8 +1,9 @@
 ---
 dependencies:
-  - { role: "model-my-watershed.spark-jobserver" }
   - {
       role: "azavea.java",
       java_major_version: "8",
       java_version: "8u141*"
     }
+  - { role: "model-my-watershed.base" }
+  - { role: "model-my-watershed.nginx" }
