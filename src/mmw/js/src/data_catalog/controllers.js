@@ -48,6 +48,18 @@ var DataCatalogController = {
             collection: catalogs
         });
         App.rootView.sidebarRegion.show(view);
+    },
+
+    dataCatalogCleanUp: function() {
+        App.map.set({
+            dataCatalogResults: null,
+            dataCatalogActiveResult: null,
+        });
+        App.rootView.sidebarRegion.currentView.collection.forEach(
+            function(catalogModel) {
+                catalogModel.cancelSearch();
+            }
+        );
     }
 };
 
