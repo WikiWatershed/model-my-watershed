@@ -39,6 +39,7 @@ var DataCatalogController = {
                 id: 'cuahsi',
                 name: 'WDC',
                 description: 'Optional catalog description here...',
+                is_pageable: false,
                 results: new models.Results(null, { catalog: 'cuahsi' }),
             })
         ]);

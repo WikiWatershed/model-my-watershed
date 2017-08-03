@@ -24,6 +24,7 @@ var Catalog = Backbone.Model.extend({
         active: false,
         results: null, // Results collection
         resultCount: 0,
+        is_pageable: true,
         page: 1,
         error: '',
     },
