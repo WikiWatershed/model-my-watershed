@@ -6,6 +6,7 @@ var $ = require('jquery'),
     moment = require('moment'),
     App = require('../app'),
     settings = require('../core/settings'),
+    utils = require('./utils'),
     errorTmpl = require('./templates/error.html'),
     formTmpl = require('./templates/form.html'),
     pagerTmpl = require('./templates/pager.html'),
@@ -44,7 +45,7 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
     },
 
     collectionEvents: {
-        'change:active, change:loading': 'updateMap'
+        'change:active change:loading': 'updateMap'
     },
 
     onShow: function() {
@@ -82,18 +83,19 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
             query = this.model.get('query'),
             fromDate = this.model.get('fromDate'),
             toDate = this.model.get('toDate'),
-            bounds = L.geoJson(App.map.get('areaOfInterest')).getBounds();
+            aoiGeoJson = L.geoJson(App.map.get('areaOfInterest')),
+            bounds = utils.formatBounds(aoiGeoJson.getBounds());
 
         // Disable intro text after first search request
         this.ui.introText.addClass('hide');
         this.ui.tabs.removeClass('hide');
 
-        catalog.search(query, fromDate, toDate, bounds);
+        catalog.searchIfNeeded(query, fromDate, toDate, bounds);
     },
 
     updateMap: function() {
         var catalog = this.getActiveCatalog(),
-            geoms = catalog.get('results').pluck('geom');
+            geoms = catalog && catalog.get('results').pluck('geom');
         App.map.set('dataCatalogResults', geoms);
     }
 });
@@ -236,9 +238,7 @@ var ErrorView = Marionette.ItemView.extend({
 });
 
 var TabContentView = Marionette.LayoutView.extend({
-    className: function() {
-        return 'tab-pane' + (this.model.get('active') ? ' active' : '');
-    },
+    className: 'tab-pane',
     id: function() {
         return this.model.id;
     },
@@ -258,10 +258,13 @@ var TabContentView = Marionette.LayoutView.extend({
     },
 
     modelEvents: {
-        'change': 'update'
+        'change': 'update',
+        'change:active': 'toggleActiveClass',
     },
 
     onShow: function() {
+        this.toggleActiveClass();
+
         this.resultRegion.show(new ResultsView({
             collection: this.model.get('results'),
             catalog: this.model.id,
@@ -277,6 +280,10 @@ var TabContentView = Marionette.LayoutView.extend({
                 model: this.model,
             }));
         }
+    },
+
+    toggleActiveClass: function() {
+        this.$el.toggleClass('active', this.model.get('active'));
     },
 
     update: function() {
