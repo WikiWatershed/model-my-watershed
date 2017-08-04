@@ -9,7 +9,6 @@ var _ = require('lodash'),
     models = require('./models'),
     modelingModels = require('../modeling/models'),
     modelingViews = require('../modeling/views'),
-    modelingControls = require('../modeling/controls'),
     modConfigUtils = require('../modeling/modificationConfigUtils'),
     compareWindowTmpl = require('./templates/compareWindow.html'),
     compareWindow2Tmpl = require('./templates/compareWindow2.html'),
@@ -20,8 +19,7 @@ var _ = require('lodash'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
     compareModelingTmpl = require('./templates/compareModeling.html'),
-    compareModificationsTmpl = require('./templates/compareModifications.html'),
-    synchronizer = modelingControls.PrecipitationSynchronizer;
+    compareModificationsTmpl = require('./templates/compareModifications.html');
 
 var CompareWindow2 = Marionette.LayoutView.extend({
     template: compareWindow2Tmpl,
@@ -225,7 +223,6 @@ var CompareWindow = Marionette.LayoutView.extend({
             model: this.model,
             collection: this.model.get('scenarios')
          }));
-        synchronizer.sync();
     }
 });
 
