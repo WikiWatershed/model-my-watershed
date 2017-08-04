@@ -537,6 +537,9 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
 
     &.compare-precipitation {
       margin-right: 20px;
+      label {
+        font-size: 12px;
+      }
     }
   }
 }
