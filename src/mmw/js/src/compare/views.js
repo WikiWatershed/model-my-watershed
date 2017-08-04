@@ -129,19 +129,19 @@ var InputsView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        var setPrecipitationValue = _.bind(this.setPrecipitationValue, this),
+        var addOrReplaceInput = _.bind(this.model.addOrReplaceInput, this.model),
+            controlModel = this.model.get('scenarios')
+                               .findWhere({ active: true })
+                               .get('inputs')
+                               .findWhere({ name: 'precipitation' }),
             precipitationModel = this.model.get('controls')
                                      .findWhere({ name: 'precipitation' });
 
         this.precipitationRegion.show(new PrecipitationView({
             model: precipitationModel,
-            addOrReplaceInput: setPrecipitationValue,
+            controlModel: controlModel,
+            addOrReplaceInput: addOrReplaceInput,
         }));
-    },
-
-    setPrecipitationValue: function(input) {
-        // TODO Make this set the precipitation value for all scenarios
-        console.log(input);
     },
 
     setChartView: function() {
@@ -585,6 +585,14 @@ function showCompare() {
         });
 
     compareModel.set({ scenarios: scenarios });
+
+    if (isTr55) {
+        // Set compare model to have same precipitation as active scenario
+        compareModel.addOrReplaceInput(
+            scenarios.findWhere({ active: true })
+                     .get('inputs')
+                     .findWhere({ name: 'precipitation' }));
+    }
 
     App.rootView.compareRegion.show(new CompareWindow2({
         model: compareModel,

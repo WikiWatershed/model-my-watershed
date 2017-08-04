@@ -53,6 +53,12 @@ var WindowModel = Backbone.Model.extend({
             controls: new ControlsCollection(attrs.controls),
             tabs: new TabsCollection(attrs.tabs),
         });
+    },
+
+    addOrReplaceInput: function(input) {
+        this.get('scenarios').each(function(scenario) {
+            scenario.addOrReplaceInput(input);
+        });
     }
 });
 
