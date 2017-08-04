@@ -42,6 +42,7 @@ var WindowModel = Backbone.Model.extend({
     defaults: {
         controls: null, // ModelPackageControlsCollection
         mode: TABLE, // or CHART
+        scenarios: null, // ScenariosCollection
         tabs: null,  // TabsCollection
     },
 
