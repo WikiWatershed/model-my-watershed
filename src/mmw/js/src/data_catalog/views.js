@@ -365,15 +365,15 @@ var PagerView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
-         var resultCount = this.model.get('resultCount'),
-             page = this.model.get('page'),
-             lastPage = Math.ceil(resultCount / PAGE_SIZE);
+        var resultCount = this.model.get('resultCount'),
+            page = this.model.get('page'),
+            lastPage = Math.ceil(resultCount / PAGE_SIZE);
 
-         return {
-             has_results: resultCount > 0,
-             has_previous: page > 1,
-             has_next: page < lastPage,
-         };
+        return {
+            has_results: resultCount > 0,
+            has_previous: page > 1,
+            has_next: page < lastPage,
+        };
     },
 
     previousPage: function() {
