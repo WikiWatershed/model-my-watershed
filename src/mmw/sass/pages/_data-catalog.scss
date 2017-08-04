@@ -6,7 +6,7 @@
     flex-direction: column;
     position: absolute;
     bottom: 0;
-    top: 44px;
+    top: 90px;
 
     .tab-contents-region {
         background-color: rgba(0, 0, 0, 0.06);
@@ -16,6 +16,8 @@
     }
 
     .result-region {
+        height: auto !important;
+        width: auto !important;
         padding: 6px 0px;
 
         &.paginated {

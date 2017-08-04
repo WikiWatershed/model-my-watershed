@@ -82,6 +82,10 @@ header {
   background-color: $ui-secondary;
   height: $height-xl*2;
 
+  &.bigcz {
+    height: $height-xl;
+  }
+
     .project {
       position: relative;
       top: -15px;

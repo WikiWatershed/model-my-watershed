@@ -5,6 +5,7 @@ var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     moment = require('moment'),
     App = require('../app'),
+    analyzeViews = require('../analyze/views.js'),
     settings = require('../core/settings'),
     utils = require('./utils'),
     errorTmpl = require('./templates/error.html'),
@@ -14,7 +15,9 @@ var $ = require('jquery'),
     cuahsiSearchResultTmpl = require('./templates/cuahsiSearchResult.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     tabPanelTmpl = require('./templates/tabPanel.html'),
-    windowTmpl = require('./templates/window.html');
+    headerTmpl = require('./templates/header.html'),
+    windowTmpl = require('./templates/window.html'),
+    resultsWindowTmpl = require('./templates/resultsWindow.html');
 
 var ENTER_KEYCODE = 13,
     PAGE_SIZE = settings.get('data_catalog_page_size'),
@@ -23,6 +26,44 @@ var ENTER_KEYCODE = 13,
         hydroshare: searchResultTmpl,
         cuahsi: cuahsiSearchResultTmpl,
     };
+
+var HeaderView = Marionette.LayoutView.extend({
+    template: headerTmpl,
+
+    templateHelpers: function() {
+        return {
+            aoiName: App.map.get('areaOfInterestName')
+        };
+    }
+});
+
+var ResultsWindow = Marionette.LayoutView.extend({
+    id: 'model-output-wrapper',
+    tagName: 'div',
+    template: resultsWindowTmpl,
+
+    regions: {
+        analyzeRegion: '#analyze-tab-contents',
+        dataCatalogRegion: '#data-catalog-tab-contents'
+    },
+
+    onShow: function() {
+        var analyzeCollection = App.getAnalyzeCollection();
+
+        this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
+            collection: analyzeCollection
+        }));
+
+        this.dataCatalogRegion.show(new DataCatalogWindow({
+            model: this.model,
+            collection: this.collection
+        }));
+    },
+
+    onRender: function() {
+        this.$el.find('.tab-pane:last').addClass('active');
+    }
+});
 
 var DataCatalogWindow = Marionette.LayoutView.extend({
     template: windowTmpl,
@@ -386,5 +427,6 @@ var PagerView = Marionette.ItemView.extend({
 });
 
 module.exports = {
-    DataCatalogWindow: DataCatalogWindow
+    HeaderView: HeaderView,
+    ResultsWindow: ResultsWindow
 };
