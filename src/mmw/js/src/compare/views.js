@@ -9,6 +9,7 @@ var _ = require('lodash'),
     models = require('./models'),
     modelingModels = require('../modeling/models'),
     modelingViews = require('../modeling/views'),
+    PrecipitationView = require('../modeling/controls').PrecipitationView,
     modConfigUtils = require('../modeling/modificationConfigUtils'),
     compareWindowTmpl = require('./templates/compareWindow.html'),
     compareWindow2Tmpl = require('./templates/compareWindow2.html'),
@@ -110,7 +111,7 @@ var TabPanelsView = Marionette.CollectionView.extend({
     childView: TabPanelView,
 });
 
-var InputsView = Marionette.ItemView.extend({
+var InputsView = Marionette.LayoutView.extend({
     template: compareInputsTmpl,
 
     ui: {
@@ -121,6 +122,26 @@ var InputsView = Marionette.ItemView.extend({
     events: {
         'click @ui.chartButton': 'setChartView',
         'click @ui.tableButton': 'setTableView',
+    },
+
+    regions: {
+        precipitationRegion: '.compare-precipitation',
+    },
+
+    onShow: function() {
+        var setPrecipitationValue = _.bind(this.setPrecipitationValue, this),
+            precipitationModel = this.model.get('controls')
+                                     .findWhere({ name: 'precipitation' });
+
+        this.precipitationRegion.show(new PrecipitationView({
+            model: precipitationModel,
+            addOrReplaceInput: setPrecipitationValue,
+        }));
+    },
+
+    setPrecipitationValue: function(input) {
+        // TODO Make this set the precipitation value for all scenarios
+        console.log(input);
     },
 
     setChartView: function() {
@@ -502,9 +523,11 @@ function getGwlfeTabs(scenarios) {
 function showCompare() {
     var model_package = App.currentProject.get('model_package'),
         scenarios = App.currentProject.get('scenarios'),
-        tabs = model_package === modelingModels.TR55_PACKAGE ?
-               getTr55Tabs(scenarios) : getGwlfeTabs(scenarios),
+        isTr55 = model_package === modelingModels.TR55_PACKAGE,
+        tabs = isTr55 ? getTr55Tabs(scenarios) : getGwlfeTabs(scenarios),
+        controls = isTr55 ? [{ name: 'precipitation' }] : [],
         compareModel = new models.WindowModel({
+            controls: controls,
             tabs: tabs,
         });
 
