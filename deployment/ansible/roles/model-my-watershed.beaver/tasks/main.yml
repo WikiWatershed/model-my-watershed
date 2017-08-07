@@ -6,9 +6,9 @@
     - celery
     - django
     - docker
+    - geoprocessing
     - gunicorn
     - nginx
-    - spark-jobserver
     - windshaft
   notify:
     - Restart Beaver

@@ -3,6 +3,28 @@
   file: path="{{ geop_home }}"
         state=directory
 
-- name: Download Spark Job Server geoprocessing JAR
+- name: Download mmw-geoprocessing JAR
   get_url: url="{{ geop_jar_url }}"
            dest="{{ geop_home }}/mmw-geoprocessing-{{ geop_version }}.jar"
+
+- name: Configure Nginx site
+  template: src=nginx-geoprocessing.conf.j2
+            dest=/etc/nginx/sites-available/geoprocessing.conf
+  notify:
+    - Restart Nginx
+
+- name: Enable Nginx site
+  file: src=/etc/nginx/sites-available/geoprocessing.conf
+        dest=/etc/nginx/sites-enabled/geoprocessing
+        state=link
+  notify:
+    - Restart Nginx
+
+- name: Configure geoprocessing service definition
+  template: src=upstart-geoprocessing.conf.j2
+            dest=/etc/init/geoprocessing.conf
+  notify:
+    - Restart geoprocessing service
+
+- name: Ensure geoprocessing service is running
+  service: name=geoprocessing state=started

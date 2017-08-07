@@ -2,7 +2,7 @@ server {
   listen *:80;
   server_name _;
 
-  access_log /var/log/nginx/spark-jobserver.access.log logstash_json;
+  access_log /var/log/nginx/geoprocessing.access.log logstash_json;
 
   {% if ['packer'] | is_in(group_names) -%}
   location /version.txt {
@@ -15,6 +15,6 @@ server {
     proxy_set_header Host $http_host;
     proxy_redirect off;
 
-    proxy_pass http://127.0.0.1:8090/healthz;
+    proxy_pass http://127.0.0.1:8090/ping;
   }
 }
