@@ -6,6 +6,22 @@ var Backbone = require('../../shim/backbone'),
 var CHART = 'chart',
     TABLE = 'table';
 
+var ChartRowModel = Backbone.Model.extend({
+    defaults: {
+        name: '',
+        chartDiv: '',
+        seriesColors: [],
+        legendItems: null,
+        values: [],
+        unit: '',
+        precipitation: null,
+    },
+});
+
+var ChartRowsCollection = Backbone.Collection.extend({
+    model: ChartRowModel,
+});
+
 var TableRowModel = Backbone.Model.extend({
     defaults: {
         name: '',
@@ -23,6 +39,7 @@ var TabModel = Backbone.Model.extend({
         name: '',
         active: false,
         table: null,  // TableRowsCollection
+        charts: null, // ChartRowCollection
     },
 
     initialize: function(attrs) {
@@ -30,6 +47,7 @@ var TabModel = Backbone.Model.extend({
 
         this.set({
             table: new TableRowsCollection(attrs.table),
+            charts: new ChartRowsCollection(attrs.charts),
         });
     },
 });
@@ -41,7 +59,7 @@ var TabsCollection = Backbone.Collection.extend({
 var WindowModel = Backbone.Model.extend({
     defaults: {
         controls: null, // ModelPackageControlsCollection
-        mode: TABLE, // or CHART
+        mode: CHART, // or TABLE
         scenarios: null, // ScenariosCollection
         tabs: null,  // TabsCollection
     },
@@ -52,6 +70,7 @@ var WindowModel = Backbone.Model.extend({
         this.set({
             controls: new ControlsCollection(attrs.controls),
             tabs: new TabsCollection(attrs.tabs),
+            scenarios: attrs.scenarios,
         });
     },
 
@@ -63,6 +82,8 @@ var WindowModel = Backbone.Model.extend({
 });
 
 module.exports = {
+    ChartRowModel: ChartRowModel,
+    ChartRowsCollection: ChartRowsCollection,
     TableRowModel: TableRowModel,
     TableRowsCollection: TableRowsCollection,
     TabModel: TabModel,
