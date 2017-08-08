@@ -57,6 +57,13 @@
     }
 }
 
+.data-catalog-stage-results-tab-pane {
+    .tab-content {
+      // Set a specific height to allow y-scroll:
+      height: 100% !important;
+    }
+}
+
 //Model Output Tabs
 .output-tabs-wrapper {
   .nav-tabs {

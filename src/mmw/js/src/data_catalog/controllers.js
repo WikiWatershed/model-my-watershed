@@ -44,11 +44,14 @@ var DataCatalogController = {
             })
         ]);
 
-        var view = new views.DataCatalogWindow({
-            model: form,
-            collection: catalogs
-        });
-        App.rootView.sidebarRegion.show(view);
+        var resultsWindow = new views.ResultsWindow({
+                model: form,
+                collection: catalogs
+            }),
+            header = new views.HeaderView();
+
+        App.rootView.subHeaderRegion.show(header);
+        App.rootView.sidebarRegion.show(resultsWindow);
     },
 
     dataCatalogCleanUp: function() {
