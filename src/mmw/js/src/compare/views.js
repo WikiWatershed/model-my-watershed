@@ -9,7 +9,7 @@ var _ = require('lodash'),
     models = require('./models'),
     modelingModels = require('../modeling/models'),
     modelingViews = require('../modeling/views'),
-    modelingControls = require('../modeling/controls'),
+    PrecipitationView = require('../modeling/controls').PrecipitationView,
     modConfigUtils = require('../modeling/modificationConfigUtils'),
     compareWindowTmpl = require('./templates/compareWindow.html'),
     compareWindow2Tmpl = require('./templates/compareWindow2.html'),
@@ -20,8 +20,7 @@ var _ = require('lodash'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
     compareModelingTmpl = require('./templates/compareModeling.html'),
-    compareModificationsTmpl = require('./templates/compareModifications.html'),
-    synchronizer = modelingControls.PrecipitationSynchronizer;
+    compareModificationsTmpl = require('./templates/compareModifications.html');
 
 var CompareWindow2 = Marionette.LayoutView.extend({
     template: compareWindow2Tmpl,
@@ -55,7 +54,7 @@ var CompareWindow2 = Marionette.LayoutView.extend({
             model: this.model,
         }));
         this.scenariosRegion.show(new ScenariosRowView({
-            collection: App.currentProject.get('scenarios'),
+            collection: this.model.get('scenarios'),
         }));
 
         this.showSectionsView();
@@ -112,7 +111,7 @@ var TabPanelsView = Marionette.CollectionView.extend({
     childView: TabPanelView,
 });
 
-var InputsView = Marionette.ItemView.extend({
+var InputsView = Marionette.LayoutView.extend({
     template: compareInputsTmpl,
 
     ui: {
@@ -123,6 +122,26 @@ var InputsView = Marionette.ItemView.extend({
     events: {
         'click @ui.chartButton': 'setChartView',
         'click @ui.tableButton': 'setTableView',
+    },
+
+    regions: {
+        precipitationRegion: '.compare-precipitation',
+    },
+
+    onShow: function() {
+        var addOrReplaceInput = _.bind(this.model.addOrReplaceInput, this.model),
+            controlModel = this.model.get('scenarios')
+                               .findWhere({ active: true })
+                               .get('inputs')
+                               .findWhere({ name: 'precipitation' }),
+            precipitationModel = this.model.get('controls')
+                                     .findWhere({ name: 'precipitation' });
+
+        this.precipitationRegion.show(new PrecipitationView({
+            model: precipitationModel,
+            controlModel: controlModel,
+            addOrReplaceInput: addOrReplaceInput,
+        }));
     },
 
     setChartView: function() {
@@ -225,7 +244,6 @@ var CompareWindow = Marionette.LayoutView.extend({
             model: this.model,
             collection: this.model.get('scenarios')
          }));
-        synchronizer.sync();
     }
 });
 
@@ -502,14 +520,79 @@ function getGwlfeTabs(scenarios) {
     ];
 }
 
+function copyScenario(scenario, aoi_census) {
+    var newScenario = new modelingModels.ScenarioModel({}),
+        fetchResults = _.bind(newScenario.fetchResults, newScenario),
+        debouncedFetchResults = _.debounce(fetchResults, 500);
+
+    newScenario.set({
+        name: scenario.get('name'),
+        is_current_conditions: scenario.get('is_current_conditions'),
+        aoi_census: aoi_census,
+        modifications: scenario.get('modifications'),
+        modification_hash: scenario.get('modification_hash'),
+        modification_censuses: scenario.get('modification_censuses'),
+        results: new modelingModels.ResultCollection(scenario.get('results').toJSON()),
+        inputs: new modelingModels.ModificationsCollection(scenario.get('inputs').toJSON()),
+        inputmod_hash: scenario.get('inputmod_hash'),
+        allow_save: false,
+        active: scenario.get('active'),
+    });
+
+    newScenario.get('inputs').on('add', debouncedFetchResults);
+
+    return newScenario;
+}
+
+
+// Makes a sandboxed copy of project scenarios which can be safely
+// edited and experimented in the Compare Window, and discarded on close.
+function getCompareScenarios(isTr55) {
+    var trueScenarios = App.currentProject.get('scenarios'),
+        tempScenarios = new modelingModels.ScenariosCollection(),
+        ccScenario = trueScenarios.findWhere({ is_current_conditions: true }),
+        aoi_census = ccScenario.get('aoi_census');
+
+    if (isTr55) {
+        // Add 100% Forest Cover scenario
+        var forestScenario = copyScenario(ccScenario, aoi_census);
+
+        forestScenario.set({
+            name: '100% Forest Cover',
+            is_current_conditions: false,
+            is_pre_columbian: true,
+        });
+
+        tempScenarios.add(forestScenario);
+    }
+
+    trueScenarios.forEach(function(scenario) {
+        tempScenarios.add(copyScenario(scenario, aoi_census));
+    });
+
+    return tempScenarios;
+}
+
 function showCompare() {
     var model_package = App.currentProject.get('model_package'),
-        scenarios = App.currentProject.get('scenarios'),
-        tabs = model_package === modelingModels.TR55_PACKAGE ?
-               getTr55Tabs(scenarios) : getGwlfeTabs(scenarios),
+        isTr55 = model_package === modelingModels.TR55_PACKAGE,
+        scenarios = getCompareScenarios(isTr55),
+        tabs = isTr55 ? getTr55Tabs(scenarios) : getGwlfeTabs(scenarios),
+        controls = isTr55 ? [{ name: 'precipitation' }] : [],
         compareModel = new models.WindowModel({
+            controls: controls,
             tabs: tabs,
         });
+
+    compareModel.set({ scenarios: scenarios });
+
+    if (isTr55) {
+        // Set compare model to have same precipitation as active scenario
+        compareModel.addOrReplaceInput(
+            scenarios.findWhere({ active: true })
+                     .get('inputs')
+                     .findWhere({ name: 'precipitation' }));
+    }
 
     App.rootView.compareRegion.show(new CompareWindow2({
         model: compareModel,

@@ -444,72 +444,6 @@ var GwlfeConservationPracticeView = ModificationsView.extend({
     }
 });
 
-var PrecipitationSynchronizer = (function() {
-    var isEnabled = false,
-        precipViews = [];
-
-    // Add a view to the list of views to be kept syncrhonized
-    function add(precipView) {
-        if (isEnabled) {
-            precipViews.push(precipView);
-        }
-    }
-
-    // Remove a view from the list
-    function remove(precipView) {
-        if (isEnabled) {
-            precipViews = _.without(precipViews, precipView);
-        }
-    }
-
-    // Turn synchronization on
-    function on() {
-        precipViews = [];
-        isEnabled = true;
-    }
-
-    // Turn synchronization off
-    function off() {
-        isEnabled = false;
-        precipViews = [];
-    }
-
-    // Synchronize the group to the given slider
-    function syncTo(precipView) {
-        if (isEnabled) {
-            var value = precipView.ui.slider.val();
-
-            isEnabled = false;
-
-            precipViews.forEach(function(otherPrecipView) {
-                var otherValue = otherPrecipView.ui.slider.val();
-                if (otherValue !== value) {
-                    otherPrecipView.ui.slider.val(value);
-                    otherPrecipView.onSliderChanged();
-                }
-            });
-
-            isEnabled = true;
-        }
-    }
-
-    // Synchronize the group to the first slider
-    function sync() {
-        if (precipViews.length > 0) {
-            syncTo(precipViews[0]);
-        }
-    }
-
-    return {
-        add: add,
-        remove: remove,
-        on: on,
-        off: off,
-        sync: sync,
-        syncTo: syncTo
-    };
-})();
-
 var PrecipitationView = ControlView.extend({
     template: precipitationTmpl,
 
@@ -554,17 +488,7 @@ var PrecipitationView = ControlView.extend({
         this.ui.slider.attr('value', value);
         this.ui.displayValue.text(this.getDisplayValue(value));
 
-        PrecipitationSynchronizer.syncTo(this);
-
         this.addOrReplaceInput(modification);
-    },
-
-    onAttach: function() {
-        PrecipitationSynchronizer.add(this);
-    },
-
-    onBeforeDestroy: function() {
-        PrecipitationSynchronizer.remove(this);
     },
 
     onRender: function() {
@@ -600,5 +524,4 @@ module.exports = {
     GwlfeConservationPracticeView: GwlfeConservationPracticeView,
     PrecipitationView: PrecipitationView,
     getControlView: getControlView,
-    PrecipitationSynchronizer: PrecipitationSynchronizer
 };

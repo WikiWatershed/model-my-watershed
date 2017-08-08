@@ -5,15 +5,9 @@ var _ = require('lodash'),
     router = require('../router').router,
     views = require('./views'),
     modelingModels = require('../modeling/models.js'),
-    modelingControls = require('../modeling/controls'),
-    coreUtils = require('../core/utils'),
-    synchronizer = modelingControls.PrecipitationSynchronizer;
+    coreUtils = require('../core/utils');
 
 var CompareController = {
-    comparePrepare: function() {
-        synchronizer.on();
-    },
-
     compare: function(projectId) {
         var first = null,
             aoi_census = null;
@@ -53,7 +47,6 @@ var CompareController = {
     },
 
     compareCleanUp: function() {
-        synchronizer.off();
         App.user.off('change:guest', saveAfterLogin);
         App.origProject.off('change:id', updateUrl);
 

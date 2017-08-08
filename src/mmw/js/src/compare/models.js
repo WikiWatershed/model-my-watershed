@@ -1,6 +1,7 @@
 "use strict";
 
-var Backbone = require('../../shim/backbone');
+var Backbone = require('../../shim/backbone'),
+    ControlsCollection = require('../modeling/models').ModelPackageControlsCollection;
 
 var CHART = 'chart',
     TABLE = 'table';
@@ -39,7 +40,9 @@ var TabsCollection = Backbone.Collection.extend({
 
 var WindowModel = Backbone.Model.extend({
     defaults: {
+        controls: null, // ModelPackageControlsCollection
         mode: TABLE, // or CHART
+        scenarios: null, // ScenariosCollection
         tabs: null,  // TabsCollection
     },
 
@@ -47,7 +50,14 @@ var WindowModel = Backbone.Model.extend({
         Backbone.Model.prototype.initialize.apply(this, arguments);
 
         this.set({
+            controls: new ControlsCollection(attrs.controls),
             tabs: new TabsCollection(attrs.tabs),
+        });
+    },
+
+    addOrReplaceInput: function(input) {
+        this.get('scenarios').each(function(scenario) {
+            scenario.addOrReplaceInput(input);
         });
     }
 });
