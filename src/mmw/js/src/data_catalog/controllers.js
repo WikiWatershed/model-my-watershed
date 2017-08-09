@@ -64,6 +64,7 @@ var DataCatalogController = {
                 catalogModel.cancelSearch();
             }
         );
+        App.rootView.subHeaderRegion.empty();
     }
 };
 
