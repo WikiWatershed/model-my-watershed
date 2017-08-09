@@ -51,3 +51,17 @@ nunjucks.env.addFilter('toFriendlyDate', function(date) {
 nunjucks.env.addFilter('toDateFullYear', function(date) {
     return new Date(date).getFullYear();
 });
+
+nunjucks.env.addFilter('toDateWithoutTime', function(date) {
+    var fullDate = new Date(date);
+
+    return fullDate.getUTCMonth() + '/' +
+           fullDate.getUTCDate() + '/' +
+           fullDate.getUTCFullYear();
+});
+
+nunjucks.env.addFilter('split', function(str, splitChar, indexToReturn) {
+    var items = str.split(splitChar);
+
+    return items[indexToReturn];
+});
