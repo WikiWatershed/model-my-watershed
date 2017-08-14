@@ -6,6 +6,7 @@ var _ = require('lodash'),
     App = require('../app'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
+    chart = require('../core/chart.js'),
     models = require('./models'),
     modelingModels = require('../modeling/models'),
     modelingViews = require('../modeling/views'),
@@ -16,6 +17,7 @@ var _ = require('lodash'),
     compareTabPanelTmpl = require('./templates/compareTabPanel.html'),
     compareInputsTmpl = require('./templates/compareInputs.html'),
     compareScenarioItemTmpl = require('./templates/compareScenarioItem.html'),
+    compareChartRowTmpl = require('./templates/compareChartRow.html'),
     compareTableRowTmpl = require('./templates/compareTableRow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
@@ -62,8 +64,11 @@ var CompareWindow2 = Marionette.LayoutView.extend({
 
     showSectionsView: function() {
         if (this.model.get('mode') === models.constants.CHART) {
-            // TODO: Show Chart View
-            this.sectionsRegion.empty();
+            this.sectionsRegion.show(new ChartView({
+                collection: this.model.get('tabs')
+                                .findWhere({ active: true })
+                                .get('charts'),
+            }));
         } else {
             this.sectionsRegion.show(new TableView({
                 collection: this.model.get('tabs')
@@ -221,6 +226,9 @@ var TableRowView = Marionette.ItemView.extend({
 
 var TableView = Marionette.CollectionView.extend({
     childView: TableRowView,
+    collectionEvents: {
+        'change': 'render',
+    },
 });
 
 var CompareWindow = Marionette.LayoutView.extend({
@@ -490,47 +498,60 @@ var CompareModificationsView = Marionette.ItemView.extend({
 
 function getTr55Tabs(scenarios) {
     // TODO Account for loading and error scenarios
-    var runoffTable = [
+    var runoffTable = new models.Tr55RunoffTable({ scenarios: scenarios }),
+        runoffCharts = new models.Tr55RunoffCharts([
             {
-                name: "Runoff",
-                unit: "cm",
-                values: scenarios.map(function(s) {
-                    // TODO Make less brittle
-                    return s.get('results')
-                            .findWhere({ name: "runoff" })
-                            .get('result')
-                            .runoff.modified.runoff;
-                })
+                key: 'combined',
+                name: 'Combined Hydrology',
+                chartDiv: 'combined-hydrology-chart',
+                seriesColors: ['#F8AA00', '#CF4300', '#C2D33C'],
+                legendItems: [
+                    {
+                        name: 'Evapotranspiration',
+                        badgeId: 'evapotranspiration-badge',
+                    },
+                    {
+                        name: 'Runoff',
+                        badgeId: 'runoff-badge',
+                    },
+                    {
+                        name: 'Infiltration',
+                        badgeId: 'infiltration-badge',
+                    },
+                ],
+                unit: 'cm',
             },
             {
-                name: "Evapotranspiration",
-                unit: "cm",
-                values: scenarios.map(function(s) {
-                    return s.get('results')
-                        .findWhere({ name: "runoff" })
-                        .get('result')
-                        .runoff.modified.et;
-                })
+                key: 'et',
+                name: 'Evapotranspiration',
+                chartDiv: 'evapotranspiration-chart',
+                seriesColors: ['#C2D33C'],
+                legendItems: null,
+                unit: 'cm',
             },
             {
-                name: "Inflitration",
-                unit: "cm",
-                values: scenarios.map(function(s) {
-                    return s.get('results')
-                        .findWhere({ name: "runoff" })
-                        .get('result')
-                        .runoff.modified.inf;
-                })
+                key: 'runoff',
+                name: 'Runoff',
+                chartDiv: 'runoff-chart',
+                seriesColors: ['#CF4300'],
+                legendItems: null,
+                unit: 'cm',
             },
-        ],
-        // TODO Make Runoff charts
-        runoffCharts = [],
+            {
+                key: 'inf',
+                name: 'Infiltration',
+                chartDiv: 'infiltration-chart',
+                seriesColors: ['#F8AA00'],
+                legendItems: null,
+                unit: 'cm',
+            }
+        ], { scenarios: scenarios }),
         // TODO Calculate Water Quality table
         qualityTable = [],
         // TODO Calculate Water Quality charts
         qualityCharts = [];
 
-    return [
+    return new models.TabsCollection([
         {
             name: 'Runoff',
             table: runoffTable,
@@ -542,7 +563,7 @@ function getTr55Tabs(scenarios) {
             table: qualityTable,
             charts: qualityCharts,
         },
-    ];
+    ]);
 }
 
 function getGwlfeTabs(scenarios) {
@@ -556,7 +577,7 @@ function getGwlfeTabs(scenarios) {
     // This is to pacify the linter.
     scenarios.findWhere({ active: true});
 
-    return [
+    return new models.TabsCollection([
         {
             name: 'Hydrology',
             table: hydrologyTable,
@@ -568,7 +589,7 @@ function getGwlfeTabs(scenarios) {
             table: qualityTable,
             charts: qualityCharts,
         },
-    ];
+    ]);
 }
 
 function copyScenario(scenario, aoi_census) {
@@ -629,13 +650,13 @@ function showCompare() {
         isTr55 = model_package === modelingModels.TR55_PACKAGE,
         scenarios = getCompareScenarios(isTr55),
         tabs = isTr55 ? getTr55Tabs(scenarios) : getGwlfeTabs(scenarios),
-        controls = isTr55 ? [{ name: 'precipitation' }] : [],
+        controlsJson = isTr55 ? [{ name: 'precipitation' }] : [],
+        controls = new models.ControlsCollection(controlsJson),
         compareModel = new models.WindowModel({
             controls: controls,
             tabs: tabs,
+            scenarios: scenarios,
         });
-
-    compareModel.set({ scenarios: scenarios });
 
     if (isTr55) {
         // Set compare model to have same precipitation as active scenario
