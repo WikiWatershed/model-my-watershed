@@ -1,0 +1,20 @@
+<div class="compare-scenario-row-description compare-chart-row-description">
+    <h2>
+        {{ name }}
+    </h2>
+    {% if legendItems %}
+        <div>
+            {% for item in legendItems %}
+                <div>
+                    <span class="scenario-badge" id={{ item.badgeId }}></span>
+                    {{ item.name }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+<div class="compare-scenario-row-content-container">
+    <div class="compare-scenario-row-content">
+        <div class="compare-bar-chart" id={{ chartDiv }}></div>
+    </div>
+</div>

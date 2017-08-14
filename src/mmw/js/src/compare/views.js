@@ -163,6 +163,57 @@ var ScenariosRowView = Marionette.CollectionView.extend({
     childView: ScenarioItemView,
 });
 
+var ChartRowView = Marionette.ItemView.extend({
+    model: models.ChartRowModel,
+    className: 'compare-chart-row',
+    template: compareChartRowTmpl,
+
+    modelEvents: {
+        'change:values': 'renderChart',
+    },
+
+    onAttach: function() {
+        this.renderChart();
+    },
+
+    renderChart: function() {
+        var chartDiv = this.model.get('chartDiv'),
+            chartEl = document.getElementById(chartDiv),
+            name = this.model.get('name'),
+            label = 'Level (' + this.model.get('unit') + ')',
+            colors = this.model.get('seriesColors'),
+            stacked = name.indexOf('Hydrology') > -1,
+            yMax = stacked ? this.model.get('precipitation') : null,
+            values = this.model.get('values'),
+            data = stacked ? ['inf', 'runoff', 'et'].map(function(key) {
+                    return {
+                        key: key,
+                        values: values.map(function(value, index) {
+                            return {
+                                x: 'Series ' + index,
+                                y: value[key],
+                            };
+                        })
+                    };
+                }) : [{
+                    key: name,
+                    values: values.map(function(value, index) {
+                        return {
+                            x: 'Series ' + index,
+                            y: value,
+                        };
+                    }),
+                }];
+
+        chart.renderCompareMultibarChart(
+            chartEl, name, label, colors, stacked, yMax, data);
+    },
+});
+
+var ChartView = Marionette.CollectionView.extend({
+    childView: ChartRowView,
+});
+
 var TableRowView = Marionette.ItemView.extend({
     className: 'compare-table-row',
     template: compareTableRowTmpl,
