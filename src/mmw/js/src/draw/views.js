@@ -1114,6 +1114,8 @@ module.exports = {
     DrawWindow: DrawWindow,
     getShapeAndAnalyze: getShapeAndAnalyze,
     addLayer: addLayer,
+    validateShape: validateShape,
+    displayAlert: displayAlert,
     clearAoiLayer: clearAoiLayer,
     selectBoundary: selectBoundary,
     drawArea: drawArea,

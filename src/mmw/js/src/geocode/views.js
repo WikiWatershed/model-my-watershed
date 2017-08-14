@@ -7,6 +7,7 @@ var _ = require('underscore'),
     App = require('../app'),
     router = require('../router').router,
     drawViews = require('../draw/views'),
+    modalModels = require('../core/modals/models'),
     models = require('./models'),
     geocoderTmpl = require('./templates/geocoder.html'),
     searchTmpl = require('./templates/search.html'),
@@ -27,12 +28,18 @@ var MSG_DEFAULT = '',
 
 
 function addBoundaryLayer(model) {
+    var layerCode = model.get('code'),
+        shapeId = model.get('id'),
+        shapeName = model.get('text'),
+        layerName = model.get('label');
+
     App.restApi.getPolygon({
-            layerCode: model.get('code'),
-            shapeId: model.get('id')
+            layerCode: layerCode,
+            shapeId: shapeId
         })
         .then(function(shape) {
-            drawViews.addLayer(shape);
+            var wkaoi = layerCode + '__' + shapeId;
+            drawViews.addLayer(shape, shapeName, layerName, wkaoi);
         });
 }
 
@@ -71,16 +78,18 @@ var SearchBoxView = Marionette.LayoutView.extend({
         'searchIcon': '.search-icon',
         'message': '.message',
         'messageDismiss': '.dismiss',
-        'resultsRegion': '#geocode-search-results-region'
+        'resultsRegion': '#geocode-search-results-region',
+        'selectButton': '.search-select-btn'
     },
 
     events: {
         'keyup @ui.searchBox': 'processSearchInputEvent',
         'click @ui.messageDismiss': 'dismissAction',
+        'click @ui.selectButton': 'validateShapeAndGoToAnalyze'
     },
 
     modelEvents: {
-        'change:query change:selectedLocation': 'render'
+        'change:query change:selectedSuggestion': 'render'
     },
 
     regions: {
@@ -232,7 +241,7 @@ var SearchBoxView = Marionette.LayoutView.extend({
 
     selectSuggestion: function(suggestionModel) {
         this.dismissAction();
-        this.model.set('selectedLocation', suggestionModel.get('text'));
+        this.model.set('selectedSuggestion', suggestionModel);
         selectSearchSuggestion(suggestionModel);
     },
 
