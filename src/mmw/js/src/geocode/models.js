@@ -7,6 +7,7 @@ var _ = require('underscore'),
 
 var GeocoderModel = Backbone.Model.extend({
     defaults: {
+        selectedLocation: '',
         query: ''
     }
 });

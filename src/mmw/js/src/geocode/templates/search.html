@@ -1,4 +1,10 @@
-<input class="search-input" id="geocoder-search" type="text" placeholder="Jump to location or HUC"/>
+<input class="search-input" id="geocoder-search" type="text"
+       {%- if selectedLocation %}
+       placeholder="{{selectedLocation}}"
+       {%- else %}
+       placeholder="Jump to location or HUC"
+       {% endif -%}
+>
 <i class="search-icon fa fa-search"></i>
 <div id="geocode-search-results-region"></div>
 <div class="message hidden">
