@@ -20,7 +20,8 @@ var _ = require('lodash'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
     compareModelingTmpl = require('./templates/compareModeling.html'),
-    compareModificationsTmpl = require('./templates/compareModifications.html');
+    compareModificationsTmpl = require('./templates/compareModifications.html'),
+    compareModificationsPopoverTmpl = require('./templates/compareModificationsPopover.html');
 
 var CompareWindow2 = Marionette.LayoutView.extend({
     template: compareWindow2Tmpl,
@@ -153,6 +154,22 @@ var InputsView = Marionette.LayoutView.extend({
     },
 });
 
+var CompareModificationsPopoverView = Marionette.ItemView.extend({
+    template: compareModificationsPopoverTmpl,
+
+    templateHelpers: function() {
+        return {
+            conservationPractices: this.model.filter(function(modification) {
+                return modification.get('name') === 'conservation_practice';
+            }),
+            landCovers: this.model.filter(function(modification) {
+                return modification.get('name') === 'landcover';
+            }),
+            modConfigUtils: modConfigUtils
+        };
+    }
+});
+
 var ScenarioItemView = Marionette.ItemView.extend({
     className: 'compare-column',
     template: compareScenarioItemTmpl,
@@ -180,6 +197,20 @@ var ScenarioItemView = Marionette.ItemView.extend({
         mapView.updateModifications(this.model.get('modifications'));
         mapView.fitToModificationsOrAoi();
         mapView.render();
+    },
+
+    onRender: function() {
+        var modifications = this.model.get('modifications');
+
+        if (modifications.length > 0) {
+            this.ui.mapContainer.popover({
+                placement: 'bottom',
+                trigger: 'hover focus',
+                content: new CompareModificationsPopoverView({
+                    model: this.model.get('modifications')
+                }).render().el
+            });
+        }
     }
 });
 

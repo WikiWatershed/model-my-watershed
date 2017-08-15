@@ -452,7 +452,7 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
     min-width: 120px;
     width: 120px;
 
-    h3 {
+    .compare-scenario-title {
       font-size: $font-size-h5;
       font-weight: 400;
     }
@@ -505,10 +505,23 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
   }
 
   .compare-map-container {
-    height: 90px;
-    background-color: #aaa;
-    margin-bottom: 10px;
-    width: 120px;
+      cursor: pointer !important;
+      height: 90px;
+      background-color: #aaa;
+      margin-bottom: 10px;
+      width: 120px;
+  }
+
+  .compare-modifications-table {
+      font-size: $font-size-h5;
+      width: 100%;
+      .modification-value {
+          padding-right: 12px;
+      }
+      .modification-area {
+          color: $brand-primary;
+          text-align: right;
+      }
   }
 
   .compare-inputs {
