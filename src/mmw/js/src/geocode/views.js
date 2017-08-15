@@ -27,26 +27,30 @@ var MSG_DEFAULT = '',
     MSG_ERROR   = 'Oops! Something went wrong.';
 
 
-function addBoundaryLayer(model) {
-    var layerCode = model.get('code'),
-        shapeId = model.get('id'),
-        shapeName = model.get('text'),
-        layerName = model.get('label');
+function addBoundaryLayer(suggestionModel, shape) {
+    var layerCode = suggestionModel.get('code'),
+        shapeId = suggestionModel.get('id'),
+        shapeName = suggestionModel.get('text'),
+        layerName = suggestionModel.get('label'),
+        wkaoi = layerCode + '__' + shapeId;
 
+   drawViews.addLayer(shape, shapeName, layerName, wkaoi);
+}
+
+function addGeocoderBoundaryLayer(suggestionModel) {
     App.restApi.getPolygon({
-            layerCode: layerCode,
-            shapeId: shapeId
+            layerCode: suggestionModel.get('code'),
+            shapeId: suggestionModel.get('id')
         })
         .then(function(shape) {
-            var wkaoi = layerCode + '__' + shapeId;
-            drawViews.addLayer(shape, shapeName, layerName, wkaoi);
+            App.map.set('selectedGeocoderArea', shape);
         });
 }
 
 function selectSearchSuggestion(model) {
     model.setMapViewToLocation();
     if (model.get('isBoundaryLayer')) {
-        addBoundaryLayer(model);
+        addGeocoderBoundaryLayer(model);
         router.navigate('draw/', { trigger: true });
     } else {
         drawViews.clearAoiLayer();
@@ -94,6 +98,10 @@ var SearchBoxView = Marionette.LayoutView.extend({
 
     regions: {
         'resultsRegion': '#geocode-search-results-region'
+    },
+
+    onDestroy: function() {
+        App.map.set('selectedGeocoderArea', null);
     },
 
     setIcon: function(icon) {
@@ -252,7 +260,7 @@ var SearchBoxView = Marionette.LayoutView.extend({
             selectedSuggestion: null,
         });
         this.emptyResultsRegion();
-        drawViews.clearAoiLayer();
+        App.map.set('selectedGeocoderArea', null);
     },
 
     dismissAction: function() {
@@ -261,12 +269,24 @@ var SearchBoxView = Marionette.LayoutView.extend({
     },
 
     validateShapeAndGoToAnalyze: function() {
-        drawViews.validateShape(App.map.get('areaOfInterest'))
+        var selectedBoundary = this.model.get('selectedSuggestion'),
+            selectedBoundaryShape = App.map.get('selectedGeocoderArea');
+
+        if (!selectedBoundary.get('isBoundaryLayer') ||
+            !selectedBoundaryShape) {
+            // Fail early if there's no selected geocoder result on the map
+            // or the selected suggestion isn't a boundary layer
+            return false;
+        }
+
+        drawViews.validateShape(selectedBoundaryShape)
             .fail(function(message) {
                 drawViews.displayAlert(message, modalModels.AlertTypes.error);
             })
             .done(function() {
-                router.navigate('/analyze', { trigger: true });
+                App.map.set('selectedGeocoderArea', null);
+                addBoundaryLayer(selectedBoundary, selectedBoundaryShape);
+                router.navigate('/analyze', { trigger: true});
             });
     }
 });

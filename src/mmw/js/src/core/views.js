@@ -44,6 +44,16 @@ var dataCatalogActiveStyle = {
     fillOpacity: 0.2
 };
 
+var selectedGeocoderAreaStyle = {
+    stroke: true,
+    fill: true,
+    weight: 3,
+    opacity: 0.5,
+    fillOpacity: 0.2,
+    fillColor: '#E77471',
+    color: '#E77471'
+};
+
 var RootView = Marionette.LayoutView.extend({
     el: 'body',
     ui: {
@@ -195,7 +205,8 @@ var MapView = Marionette.ItemView.extend({
         'change:size': 'toggleMapSize',
         'change:maskLayerApplied': 'toggleMask',
         'change:dataCatalogResults': 'renderDataCatalogResults',
-        'change:dataCatalogActiveResult': 'renderDataCatalogActiveResult'
+        'change:dataCatalogActiveResult': 'renderDataCatalogActiveResult',
+        'change:selectedGeocoderArea': 'renderSelectedGeocoderArea',
     },
 
     // L.Map instance.
@@ -209,8 +220,14 @@ var MapView = Marionette.ItemView.extend({
     // L.FeatureGroup instance.
     _modificationsLayer: null,
 
+    // Shapes for the active data catalog tab's results.
+    // L.FeatureGroup instance
     _dataCatalogResultsLayer: null,
     _dataCatalogActiveLayer: null,
+
+    // The shape for a selected geocoder boundary result
+    // L.FeatureGroup instance
+    _selectedGeocoderAreaLayer: null,
 
     // Flag used to determine if AOI change should trigger a prompt.
     _areaOfInterestSet: false,
@@ -242,6 +259,7 @@ var MapView = Marionette.ItemView.extend({
         this._modificationsLayer = new L.FeatureGroup();
         this._dataCatalogResultsLayer = new L.FeatureGroup();
         this._dataCatalogActiveLayer = new L.FeatureGroup();
+        this._selectedGeocoderAreaLayer = new L.FeatureGroup();
 
         this.fitToDefaultBounds();
 
@@ -281,6 +299,7 @@ var MapView = Marionette.ItemView.extend({
         map.addLayer(this._modificationsLayer);
         map.addLayer(this._dataCatalogResultsLayer);
         map.addLayer(this._dataCatalogActiveLayer);
+        map.addLayer(this._selectedGeocoderAreaLayer);
     },
 
     fitToDefaultBounds: function() {
@@ -700,6 +719,20 @@ var MapView = Marionette.ItemView.extend({
                 layer.setStyle(dataCatalogActiveStyle);
                 this._dataCatalogActiveLayer.addLayer(layer);
             }
+        }
+    },
+
+    renderSelectedGeocoderArea: function() {
+        var geom = this.model.get('selectedGeocoderArea');
+
+        this._selectedGeocoderAreaLayer.clearLayers();
+
+        if (geom) {
+            this.disableGeolocation();
+
+            var layer = new L.GeoJSON(geom, { style: selectedGeocoderAreaStyle });
+            this._leafletMap.fitBounds(layer.getBounds(), { reset: true });
+            this._selectedGeocoderAreaLayer.addLayer(layer);
         }
     }
 });
