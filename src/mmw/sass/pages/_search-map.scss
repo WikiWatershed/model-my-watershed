@@ -35,6 +35,16 @@
     }
   }
 
+  .search-select-btn {
+      font-size: $font-size-p;
+      position: absolute;
+      top: 12px;
+      right: 42px;
+      background-color: $brand-primary;
+      color: $paper;
+      border: none;
+  }
+
   .message {
     position: absolute;
     color: $paper-74;

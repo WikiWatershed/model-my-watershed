@@ -20,7 +20,10 @@ var DrawController = {
         toolbarModel.set('predefinedShapeTypes',
             _.filter(settings.get('boundary_layers'), { selectable: true }));
 
-        App.rootView.geocodeSearchRegion.show(geocodeSearch);
+        if (!App.rootView.geocodeSearchRegion.hasView()) {
+            App.rootView.geocodeSearchRegion.show(geocodeSearch);
+        }
+
         App.rootView.sidebarRegion.show(new views.DrawWindow({
             model: toolbarModel
         }));
