@@ -608,6 +608,16 @@ var MapView = Marionette.ItemView.extend({
         }
     },
 
+    fitToModificationsOrAoi: function() {
+        var modificationsBounds = this._modificationsLayer.getBounds();
+
+        if (modificationsBounds.isValid()) {
+            this._leafletMap.fitBounds(modificationsBounds, { reset: true });
+        } else {
+            this.fitToAoi();
+        }
+    },
+
     updateCurrentZoomLevel: function(layer) {
         var layerMaxZoom = layer.options.maxZoom,
             map = this,

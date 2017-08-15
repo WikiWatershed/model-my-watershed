@@ -156,6 +156,31 @@ var InputsView = Marionette.LayoutView.extend({
 var ScenarioItemView = Marionette.ItemView.extend({
     className: 'compare-column',
     template: compareScenarioItemTmpl,
+
+    ui: {
+        'mapContainer': '.compare-map-container',
+    },
+
+    onShow: function() {
+        var mapView = new coreViews.MapView({
+            model: new coreModels.MapModel({
+                'areaOfInterest': App.currentProject.get('area_of_interest'),
+                'areaOfInterestName': App.currentProject.get('area_of_interest_name'),
+            }),
+            el: this.ui.mapContainer,
+            addZoomControl: false,
+            addLocateMeButton: false,
+            addSidebarToggleControl: false,
+            showLayerAttribution: false,
+            initialLayerName: App.getLayerTabCollection().getCurrentActiveBaseLayerName(),
+            layerTabCollection: new coreModels.LayerTabCollection(),
+            interactiveMode: false,
+        });
+        mapView.updateAreaOfInterest();
+        mapView.updateModifications(this.model.get('modifications'));
+        mapView.fitToModificationsOrAoi();
+        mapView.render();
+    }
 });
 
 var ScenariosRowView = Marionette.CollectionView.extend({
