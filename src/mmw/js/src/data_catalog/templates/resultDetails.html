@@ -1,0 +1,35 @@
+<div class="result">
+    <div class="result-detail-header">
+        <h2>
+            {{ title }}
+        </h2>
+        <button type="button" class="close" aria-label="Close">
+            <span aria-hidden="true">×</span>
+        </button>
+        <a href="#"><i class="fa fa-search-plus"></i> Zoom to extent</a>
+    </div>
+    <hr>
+    {% if author %}
+        <p>
+            <i class="fa fa-user"></i>{{ author }}
+        </p>
+    {% endif %}
+    {% if activeCatalog != 'cuahsi' %}
+        <p>
+            <i class="fa fa-calendar"></i> {{ created_at|toDateFullYear }}
+        </p>
+    {% else %}
+        {% if begin_date == end_date %}
+            <p>
+                <i class="fa fa-calendar"></i> {{ begin_date|toDateWithoutTime }}
+            </p>
+        {% else %}
+            <p>
+                <i class="fa fa-calendar"></i> {{ begin_date|toDateWithoutTime }} - {{ end_date|toDateWithoutTime }}
+            </p>
+        {% endif %}
+    {% endif %}
+    <p>
+        {{ description }}
+    </p>
+</div>
