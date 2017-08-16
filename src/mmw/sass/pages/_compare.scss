@@ -524,6 +524,13 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
       }
   }
 
+  .compare-no-mods-popover {
+      width: 189px;
+      > .compare-no-mod-title {
+          margin-bottom: 2px;
+      }
+  }
+
   .compare-inputs {
     float: right;
     margin-right: -5px;

@@ -1,0 +1,16 @@
+{% if is_pre_columbian %}
+    <h3 class="compare-no-mod-title">{{name}}</h3>
+    <p>
+        Lorem ipsum this scenario shows the tr55 model results under pre columbian conditions...
+    </p>
+{% elif is_current_conditions %}
+    <h3 class="compare-no-mod-title">{{name}}</h3>
+    <p>
+        Lorem ipsum this is the model run under current conditions
+    </p>
+{% else %}
+    <h3 class="compare-no-mod-title">No modifications</h3>
+    <p>
+        To add modifications, close this modal and select "Land cover" or "Conservation practices" lorem ipsum dolor sit
+    </p>
+{% endif %}

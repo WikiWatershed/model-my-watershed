@@ -21,7 +21,8 @@ var _ = require('lodash'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
     compareModelingTmpl = require('./templates/compareModeling.html'),
     compareModificationsTmpl = require('./templates/compareModifications.html'),
-    compareModificationsPopoverTmpl = require('./templates/compareModificationsPopover.html');
+    compareModificationsPopoverTmpl = require('./templates/compareModificationsPopover.html'),
+    compareDescriptionPopoverTmpl = require('./templates/compareDescriptionPopover.html');
 
 var CompareWindow2 = Marionette.LayoutView.extend({
     template: compareWindow2Tmpl,
@@ -155,6 +156,7 @@ var InputsView = Marionette.LayoutView.extend({
 });
 
 var CompareModificationsPopoverView = Marionette.ItemView.extend({
+    // model: ModificationsCollection
     template: compareModificationsPopoverTmpl,
 
     templateHelpers: function() {
@@ -168,6 +170,12 @@ var CompareModificationsPopoverView = Marionette.ItemView.extend({
             modConfigUtils: modConfigUtils
         };
     }
+});
+
+var CompareDescriptionPopoverView = Marionette.ItemView.extend({
+    // model: ScenarioModel
+    template: compareDescriptionPopoverTmpl,
+    className: 'compare-no-mods-popover'
 });
 
 var ScenarioItemView = Marionette.ItemView.extend({
@@ -200,17 +208,20 @@ var ScenarioItemView = Marionette.ItemView.extend({
     },
 
     onRender: function() {
-        var modifications = this.model.get('modifications');
+        var modifications = this.model.get('modifications'),
+            popOverView = modifications.length > 0 ?
+                              new CompareModificationsPopoverView({
+                                  model: modifications
+                              }) :
+                              new CompareDescriptionPopoverView({
+                                  model: this.model
+                              });
 
-        if (modifications.length > 0) {
-            this.ui.mapContainer.popover({
-                placement: 'bottom',
-                trigger: 'hover focus',
-                content: new CompareModificationsPopoverView({
-                    model: this.model.get('modifications')
-                }).render().el
-            });
-        }
+        this.ui.mapContainer.popover({
+            placement: 'bottom',
+            trigger: 'hover focus',
+            content: popOverView.render().el
+        });
     }
 });
 
