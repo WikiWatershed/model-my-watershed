@@ -314,8 +314,86 @@ function renderLineChart(chartEl, data, options) {
     });
 }
 
+function renderCompareMultibarChart(chartEl, name, label, colors, stacked, data, precipitation) {
+    var options = {
+            margin: {
+                top: 20,
+                bottom: 20,
+                left: 60,
+            },
+            minBarWidth: 120,
+            maxBarWidth: 150,
+        },
+        chart = nv.models.multiBarChart(),
+        svg = makeSvg(chartEl),
+        $svg = $(svg);
+
+    function setChartWidth() {
+        var scenariosWidth = (document.getElementById('compare-title-row').offsetWidth + 100);
+        chartEl.style.width = scenariosWidth + "px";
+
+        chart.width(chartEl.offsetWidth);
+    }
+
+    var yDomainMax = 1,
+        tickCount = 3;
+
+    if (!stacked) {
+        var maxValue = data.length ?
+            Math.max.apply(null, data[0].values.map(function(value) {
+                return value.y;
+            })) : null;
+
+        if (maxValue) {
+            yDomainMax = maxValue * 1.2;
+        }
+
+        if (maxValue <= 0.1) {
+            tickCount = 1;
+        }
+    } else {
+        if (precipitation) {
+            yDomainMax = precipitation;
+        } else {
+            tickCount = 1;
+        }
+    }
+
+    nv.addGraph(function() {
+        chart.showLegend(false)
+             .showControls(false)
+             .stacked(stacked)
+             .reduceXTicks(false)
+             .staggerLabels($svg.width() < widthCutoff)
+             .duration(0)
+             .margin(options.margin)
+             .color(colors)
+             .showXAxis(false)
+             .id(name)
+             .yDomain([0, yDomainMax]);
+
+
+
+        chart.yAxis
+             .axisLabel(label)
+             .ticks(tickCount)
+             .showMaxMin(true);
+
+        chart.tooltip.enabled(false);
+
+        setChartWidth();
+
+        d3.select(svg)
+          .datum(data)
+          .call(chart);
+
+        return chart;
+    });
+}
+
 module.exports = {
     renderHorizontalBarChart: renderHorizontalBarChart,
     renderVerticalBarChart: renderVerticalBarChart,
-    renderLineChart: renderLineChart
+    renderLineChart: renderLineChart,
+    renderCompareMultibarChart: renderCompareMultibarChart
 };

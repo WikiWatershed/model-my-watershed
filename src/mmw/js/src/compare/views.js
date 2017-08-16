@@ -6,6 +6,7 @@ var _ = require('lodash'),
     App = require('../app'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
+    chart = require('../core/chart.js'),
     models = require('./models'),
     modelingModels = require('../modeling/models'),
     modelingViews = require('../modeling/views'),
@@ -16,6 +17,7 @@ var _ = require('lodash'),
     compareTabPanelTmpl = require('./templates/compareTabPanel.html'),
     compareInputsTmpl = require('./templates/compareInputs.html'),
     compareScenarioItemTmpl = require('./templates/compareScenarioItem.html'),
+    compareChartRowTmpl = require('./templates/compareChartRow.html'),
     compareTableRowTmpl = require('./templates/compareTableRow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
@@ -36,7 +38,7 @@ var CompareWindow2 = Marionette.LayoutView.extend({
     },
 
     modelEvents: {
-        'change:mode': 'showSectionsView',
+        'change:mode change:tabs': 'showSectionsView',
     },
 
     regions: {
@@ -44,6 +46,18 @@ var CompareWindow2 = Marionette.LayoutView.extend({
         inputsRegion: '.compare-inputs',
         scenariosRegion: '#compare-title-row',
         sectionsRegion: '.compare-sections',
+    },
+
+    initialize: function() {
+        var self = this;
+        this.model.get('scenarios').forEach(function(scenario) {
+            scenario.get('results').on('change', function(r) {
+                if (r.get('name') === 'runoff' && !r.get('polling')) {
+                    self.model.set('tabs', new models.TabsCollection(
+                        formatTr55CompareData(self.model.get('scenarios'))));
+                }
+            });
+        });
     },
 
     onShow: function() {
@@ -62,8 +76,11 @@ var CompareWindow2 = Marionette.LayoutView.extend({
 
     showSectionsView: function() {
         if (this.model.get('mode') === models.constants.CHART) {
-            // TODO: Show Chart View
-            this.sectionsRegion.empty();
+            this.sectionsRegion.show(new ChartView({
+                collection: this.model.get('tabs')
+                                .findWhere({ active: true })
+                                .get('charts'),
+            }));
         } else {
             this.sectionsRegion.show(new TableView({
                 collection: this.model.get('tabs')
@@ -161,6 +178,53 @@ var ScenarioItemView = Marionette.ItemView.extend({
 var ScenariosRowView = Marionette.CollectionView.extend({
     className: 'compare-scenario-row-content',
     childView: ScenarioItemView,
+});
+
+var ChartRowView = Marionette.ItemView.extend({
+    model: models.ChartRowModel,
+    className: 'compare-chart-row',
+    template: compareChartRowTmpl,
+
+    onAttach: function() {
+        this.addChart();
+    },
+
+    addChart: function() {
+        var chartDiv = this.model.get("chartDiv"),
+            chartEl = document.getElementById(chartDiv),
+            name = this.model.get("name"),
+            label = "Level (" + this.model.get("unit") + ")",
+            colors = this.model.get("seriesColors"),
+            stacked = name.indexOf("Hydrology") > -1,
+            precipitation = this.model.get("precipitation"),
+            values = this.model.get("values"),
+            data = stacked ? ["et", "runoff", "inf"].map(function(key) {
+                    return {
+                        key: key,
+                        values: values.map(function(value, index) {
+                            return {
+                                x: "Series " + index,
+                                y: value[key],
+                            };
+                        })
+                    };
+                }) : [{
+                    key: name,
+                    values: values.map(function(value, index) {
+                        return {
+                            x: 'Series ' + index,
+                            y: value,
+                        };
+                    }),
+                }];
+
+        chart.renderCompareMultibarChart(chartEl, name, label, colors, stacked,
+            data, precipitation);
+    },
+});
+
+var ChartView = Marionette.CollectionView.extend({
+    childView: ChartRowView,
 });
 
 var TableRowView = Marionette.ItemView.extend({
@@ -437,7 +501,18 @@ var CompareModificationsView = Marionette.ItemView.extend({
     }
 });
 
-function getTr55Tabs(scenarios) {
+function getPrecipitationFromScenarios(scenarios) {
+    return scenarios
+        .findWhere({ active: true })
+        .get('inputs')
+        .findWhere({ name: 'precipitation' });
+}
+
+function formatTr55CompareData(scenarios) {
+    // Convert value from inches to centimeters
+    var precipitation = getPrecipitationFromScenarios(scenarios)
+        .get('value') * 2.54;
+
     // TODO Account for loading and error scenarios
     var runoffTable = [
             {
@@ -472,8 +547,78 @@ function getTr55Tabs(scenarios) {
                 })
             },
         ],
-        // TODO Make Runoff charts
-        runoffCharts = [],
+        runoffCharts = [
+            {
+                name: "Combined Hydrology",
+                chartDiv: "combined-hydrology-chart",
+                seriesColors: ['#F8AA00', '#CF4300', '#C2D33C'],
+                legendItems: [
+                    {
+                        name: "Evapotranspiration",
+                        badgeId: "evapotranspiration-badge",
+                    },
+                    {
+                        name: "Runoff",
+                        badgeId: "runoff-badge",
+                    },
+                    {
+                        name: "Infiltration",
+                        badgeId: "infiltration-badge",
+                    },
+                ],
+                unit: "cm",
+                // TODO: adjust values for combined hydrology
+                values: scenarios.map(function(s) {
+                    return s.get('results')
+                        .findWhere({ name: "runoff" })
+                        .get('result')
+                        .runoff.modified;
+                }),
+                precipitation: precipitation,
+            },
+            {
+                name: "Evapotranspiration",
+                chartDiv: "evapotranspiration-chart",
+                seriesColors: ['#C2D33C'],
+                legendItems: null,
+                unit: "cm",
+                values: scenarios.map(function(s) {
+                    return s.get('results')
+                        .findWhere({ name: "runoff" })
+                        .get('result')
+                        .runoff.modified.et;
+                }),
+                precipitation: precipitation,
+            },
+            {
+                name: "Runoff",
+                chartDiv: "runoff-chart",
+                seriesColors: ['#CF4300'],
+                legendItems: null,
+                unit: "cm",
+                values: scenarios.map(function(s) {
+                    return s.get('results')
+                        .findWhere({ name: "runoff" })
+                        .get('result')
+                        .runoff.modified.runoff;
+                }),
+                precipitation: precipitation,
+            },
+            {
+                name: "Infiltration",
+                chartDiv: "infiltration-chart",
+                seriesColors: ['#F8AA00'],
+                legendItems: null,
+                unit: "cm",
+                values: scenarios.map(function(s) {
+                    return s.get('results')
+                        .findWhere({ name: "runoff" })
+                        .get('result')
+                        .runoff.modified.inf;
+                }),
+                precipitation: precipitation,
+            }
+        ],
         // TODO Calculate Water Quality table
         qualityTable = [],
         // TODO Calculate Water Quality charts
@@ -577,21 +722,17 @@ function showCompare() {
     var model_package = App.currentProject.get('model_package'),
         isTr55 = model_package === modelingModels.TR55_PACKAGE,
         scenarios = getCompareScenarios(isTr55),
-        tabs = isTr55 ? getTr55Tabs(scenarios) : getGwlfeTabs(scenarios),
+        tabs = isTr55 ? formatTr55CompareData(scenarios) : getGwlfeTabs(scenarios),
         controls = isTr55 ? [{ name: 'precipitation' }] : [],
         compareModel = new models.WindowModel({
             controls: controls,
             tabs: tabs,
+            scenarios: scenarios,
         });
-
-    compareModel.set({ scenarios: scenarios });
 
     if (isTr55) {
         // Set compare model to have same precipitation as active scenario
-        compareModel.addOrReplaceInput(
-            scenarios.findWhere({ active: true })
-                     .get('inputs')
-                     .findWhere({ name: 'precipitation' }));
+        compareModel.addOrReplaceInput(getPrecipitationFromScenarios(scenarios));
     }
 
     App.rootView.compareRegion.show(new CompareWindow2({
