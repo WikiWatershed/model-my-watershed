@@ -14,7 +14,7 @@ from apps.bigcz.utils import RequestTimedOutError
 
 
 CATALOG_NAME = 'cinergi'
-CATALOG_URL = 'http://132.249.238.169:8080/geoportal/opensearch'
+CATALOG_URL = 'http://cinergi.sdsc.edu/geoportal/opensearch'
 PAGE_SIZE = settings.BIGCZ_CLIENT_PAGE_SIZE
 
 
