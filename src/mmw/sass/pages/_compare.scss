@@ -300,6 +300,7 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
   margin-top: 20px;
   max-width: 1200px;
   max-height: calc(100% - 20px);
+  -webkit-font-smoothing: antialiased;
 
   @media screen and (max-width: 1300px) {
     max-width: 1000px;
