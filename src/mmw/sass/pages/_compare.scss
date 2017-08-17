@@ -316,7 +316,7 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
   }
 
   .compare-sections {
-    flex: 1;
+    flex: 0 1 auto;
     overflow: auto;
   }
 
@@ -391,6 +391,59 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
     }
   }
 
+  .compare-chart-row {
+    @include clearfix;
+    padding: $compare-padding 0;
+    display: flex;
+    width: 100%;
+    flex-shrink: 0;
+    position: relative;
+    border-bottom: 1px solid #ccc;
+
+    .compare-chart-row-description {
+      width: 180px;
+      min-width: 180px;
+      padding-right: 5px;
+    }
+
+    #evapotranspiration-badge {
+      background-color: #C2D33C;
+    }
+
+    #runoff-badge {
+      background-color:#CF4300;
+    }
+
+    #infiltration-badge {
+      background-color: #F8AA00;
+    }
+
+    .compare-column {
+      text-align: right;
+    }
+
+    .compare-bar-chart {
+      display: block;
+      height: 300px;
+      vertical-align: baseline;
+      vertical-align: bottom;
+
+      .nv-bar .positive {
+        width: 120px !important;
+        margin-right: 14px !important;
+      }
+
+      svg {
+        width: 100%;
+        height: 300px;
+      }
+    }
+
+    .nv-x .tick line {
+      display: none;
+    }
+  }
+
   .compare-scenario-gradient {
     background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.8) 80%, rgba(255, 255, 255, 1) 100%);
     top: 0;
@@ -423,8 +476,8 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
   }
 
   .compare-scenario-row-description {
-    width: 240px;
-    min-width: 240px;
+    width: 250px;
+    min-width: 250px;
     padding: 0 $compare-padding;
 
     h2 {

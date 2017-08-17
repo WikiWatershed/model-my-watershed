@@ -314,8 +314,62 @@ function renderLineChart(chartEl, data, options) {
     });
 }
 
+function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax, data) {
+    var options = {
+            margin: {
+                top: 20,
+                bottom: 20,
+                left: 60,
+            },
+            minBarWidth: 120,
+            maxBarWidth: 150,
+        },
+        chart = nv.models.multiBarChart(),
+        svg = makeSvg(chartEl),
+        $svg = $(svg);
+
+    function setChartWidth() {
+        var scenariosWidth = (document.getElementById('compare-title-row').offsetWidth + 100);
+        chartEl.style.width = scenariosWidth + "px";
+
+        chart.width(chartEl.offsetWidth);
+    }
+
+    nv.addGraph(function() {
+        chart.showLegend(false)
+             .showControls(false)
+             .stacked(stacked)
+             .reduceXTicks(false)
+             .staggerLabels($svg.width() < widthCutoff)
+             .duration(0)
+             .margin(options.margin)
+             .color(colors)
+             .showXAxis(false)
+             .id(name);
+
+        chart.yAxis
+             .axisLabel(label)
+             .showMaxMin(false);
+
+        chart.tooltip.enabled(true);
+
+        setChartWidth();
+
+        if (yMax !== null) {
+            chart.yDomain([0, yMax]);
+        }
+
+        d3.select(svg)
+          .datum(data)
+          .call(chart);
+
+        return chart;
+    });
+}
+
 module.exports = {
     renderHorizontalBarChart: renderHorizontalBarChart,
     renderVerticalBarChart: renderVerticalBarChart,
-    renderLineChart: renderLineChart
+    renderLineChart: renderLineChart,
+    renderCompareMultibarChart: renderCompareMultibarChart
 };
