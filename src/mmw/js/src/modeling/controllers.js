@@ -275,6 +275,7 @@ function projectCleanUp() {
     App.getMapView().updateModifications(null);
     App.rootView.subHeaderRegion.empty();
     App.rootView.sidebarRegion.empty();
+    App.rootView.compareRegion.empty();
 }
 
 function projectErrorState() {
