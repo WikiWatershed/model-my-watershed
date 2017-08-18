@@ -20,6 +20,88 @@ from django.conf import settings
 
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=42)
+def run(self, opname, input_data, wkaoi=None):
+    """
+    Run a geoprocessing operation.
+
+    Given an operation name and a dictionary of input data, looks up the
+    operation from the list of supported operations in settings.GEOP['json'],
+    combines it with input data, and submits it to the Geoprocessing Service.
+
+    All errors are passed along and not raised here, so that error handling can
+    be attached to the final task in the chain, without needing to be attached
+    to every task.
+
+    If a well-known area of interest id is specified in wkaoi, checks to see
+    if there is a cached result for that wkaoi and operation. If so, returns
+    that immediately. If not, starts the geoprocessing operation, and saves the
+    results to they key before passing them on.
+
+    :param opname: Name of operation. Must exist in settings.GEOP['json']
+    :param input_data: Dictionary of values to extend base operation JSON with
+    :param wkaoi: String id of well-known area of interest. "{table}__{id}"
+    :return: Dictionary containing either results if successful, error if not
+    """
+    if opname not in settings.GEOP['json']:
+        return {
+            'error': 'Unsupported operation {}'.format(opname)
+        }
+
+    if not input_data:
+        return {
+            'error': 'Input data cannot be empty'
+        }
+
+    key = ''
+
+    if wkaoi and settings.GEOP['cache']:
+        key = 'geop_{}__{}'.format(wkaoi, opname)
+        cached = cache.get(key)
+        if cached:
+            return cached
+
+    data = settings.GEOP['json'][opname].copy()
+    data['input'].update(input_data)
+
+    try:
+        result = geoprocess(data, self.retry)
+        if key:
+            cache.set(key, result, None)
+        return result
+    except Retry as r:
+        raise r
+    except Exception as x:
+        return {
+            'error': x.message
+        }
+
+
+@statsd.timer(__name__ + '.geop_run')
+def geoprocess(data, retry=None):
+    """
+    Submit a request to the geoprocessing service. Returns its result.
+    """
+    host = settings.GEOP['host']
+    port = settings.GEOP['port']
+
+    geop_url = 'http://{}:{}/run'.format(host, port)
+
+    try:
+        response = requests.post(geop_url,
+                                 data=json.dumps(data),
+                                 headers={'Content-Type': 'application/json'})
+    except ConnectionError as exc:
+        if retry is not None:
+            retry(exc=exc)
+
+    if response.ok:
+        return response.json()['result']
+    else:
+        raise Exception('Geoprocessing Error.\n'
+                        'Details: {}'.format(response.text))
+
+
+@shared_task(bind=True, default_retry_delay=1, max_retries=42)
 def start(self, opname, input_data, wkaoi=None):
     """
     Start a geoproessing operation.
