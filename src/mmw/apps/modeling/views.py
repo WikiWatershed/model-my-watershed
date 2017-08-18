@@ -315,9 +315,7 @@ def start_analyze_land(request, format=None):
     geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
-        geoprocessing.start.s('nlcd', geop_input, wkaoi)
-                     .set(exchange=exchange, routing_key=routing_key),
-        geoprocessing.finish.s()
+        geoprocessing.run.s('nlcd', geop_input, wkaoi)
                      .set(exchange=exchange, routing_key=routing_key),
         tasks.analyze_nlcd.s(area_of_interest)
              .set(exchange=exchange, routing_key=choose_worker())
@@ -336,9 +334,7 @@ def start_analyze_soil(request, format=None):
     geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
-        geoprocessing.start.s('soil', geop_input, wkaoi)
-                     .set(exchange=exchange, routing_key=routing_key),
-        geoprocessing.finish.s()
+        geoprocessing.run.s('soil', geop_input, wkaoi)
                      .set(exchange=exchange, routing_key=routing_key),
         tasks.analyze_soil.s(area_of_interest)
              .set(exchange=exchange, routing_key=choose_worker())
@@ -507,8 +503,6 @@ def _construct_tr55_job_chain(model_input, job_id):
         job_chain.append(tasks.run_tr55.s(censuses, aoi, model_input)
                          .set(exchange=exchange, routing_key=choose_worker()))
     else:
-        job_chain.append(geoprocessing.finish.s()
-                         .set(exchange=exchange, routing_key=routing_key))
         job_chain.append(tasks.nlcd_soil_census.s()
                          .set(exchange=exchange, routing_key=choose_worker()))
 
@@ -516,8 +510,8 @@ def _construct_tr55_job_chain(model_input, job_id):
             polygons = [m['shape']['geometry'] for m in pieces]
             geop_input = {'polygon': [json.dumps(p) for p in polygons]}
 
-            job_chain.insert(0, geoprocessing.start.s('nlcd_soil_census',
-                                                      geop_input)
+            job_chain.insert(0, geoprocessing.run.s('nlcd_soil_census',
+                                                    geop_input)
                              .set(exchange=exchange, routing_key=routing_key))
             job_chain.append(tasks.run_tr55.s(aoi, model_input,
                                               cached_aoi_census=aoi_census)
@@ -529,9 +523,9 @@ def _construct_tr55_job_chain(model_input, job_id):
             # Use WKAoI only if there are no pieces to modify the AoI
             wkaoi = wkaoi if not pieces else None
 
-            job_chain.insert(0, geoprocessing.start.s('nlcd_soil_census',
-                                                      geop_input,
-                                                      wkaoi)
+            job_chain.insert(0, geoprocessing.run.s('nlcd_soil_census',
+                                                    geop_input,
+                                                    wkaoi)
                              .set(exchange=exchange, routing_key=routing_key))
             job_chain.append(tasks.run_tr55.s(aoi, model_input)
                              .set(exchange=exchange,
