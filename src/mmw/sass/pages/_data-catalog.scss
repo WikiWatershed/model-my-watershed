@@ -15,6 +15,31 @@
         position: relative;
     }
 
+    .result-details-region {
+        .result {
+            padding: 10px;
+            bottom: 0px;
+            top: 0px;
+            width: 100%;
+            position: absolute;
+            z-index: 10000;
+            background-color: #fff;
+            overflow: auto;
+
+            .result-detail-header {
+              h2 {
+                  display: inline-block;
+                  margin: 4px 0;
+                  max-width: 95%;
+              }
+
+              a {
+                display: block;
+              }
+            }
+        }
+    }
+
     .result-region {
         height: auto !important;
         width: auto !important;

@@ -17,6 +17,7 @@ var $ = require('jquery'),
     tabPanelTmpl = require('./templates/tabPanel.html'),
     headerTmpl = require('./templates/header.html'),
     windowTmpl = require('./templates/window.html'),
+    resultDetailsTmpl = require('./templates/resultDetails.html'),
     resultsWindowTmpl = require('./templates/resultsWindow.html');
 
 var ENTER_KEYCODE = 13,
@@ -77,12 +78,15 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
     regions: {
         formRegion: '.form-region',
         panelsRegion: '.tab-panels-region',
-        contentsRegion: '.tab-contents-region'
+        contentsRegion: '.tab-contents-region',
+        detailsRegion: '.result-details-region'
     },
 
     childEvents: {
         'search': 'doSearch',
-        'selectCatalog': 'onSelectCatalog'
+        'selectCatalog': 'onSelectCatalog',
+        'selectResult': 'onSelectResult',
+        'closeDetails': 'onCloseDetails'
     },
 
     collectionEvents: {
@@ -96,7 +100,7 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         this.panelsRegion.show(new TabPanelsView({
             collection: this.collection
         }));
-        this.contentsRegion.show(new TabContentsView({
+        this.showChildView('contentsRegion', new TabContentsView({
             collection: this.collection
         }));
     },
@@ -117,6 +121,19 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         nextCatalog.set('active', true);
 
         this.doSearch();
+    },
+
+    onSelectResult: function(childView, result) {
+        var activeCatalog = this.getActiveCatalog();
+
+        this.detailsRegion.show(new ResultDetailsView({
+            model: result,
+            activeCatalog: activeCatalog.id
+        }));
+    },
+
+    onCloseDetails: function() {
+        this.detailsRegion.empty();
     },
 
     doSearch: function() {
@@ -303,6 +320,14 @@ var TabContentView = Marionette.LayoutView.extend({
         'change:active': 'toggleActiveClass',
     },
 
+    childEvents: {
+        'selectResult': 'handleChildSelectResult'
+    },
+
+    handleChildSelectResult: function(view, result) {
+        this.triggerMethod('selectResult', result);
+    },
+
     onShow: function() {
         this.toggleActiveClass();
 
@@ -363,6 +388,11 @@ var ResultView = Marionette.ItemView.extend({
     events: {
         'mouseover': 'highlightResult',
         'mouseout': 'unHighlightResult',
+        'click': 'selectResult'
+    },
+
+    selectResult: function() {
+        this.triggerMethod('selectResult', this.model);
     },
 
     highlightResult: function() {
@@ -383,8 +413,42 @@ var ResultsView = Marionette.CollectionView.extend({
         };
     },
 
+    childEvents: {
+        'selectResult': 'handleChildSelectResult'
+    },
+
+    handleChildSelectResult: function(view, result) {
+        this.triggerMethod('selectResult', result);
+    },
+
     modelEvents: {
         'sync error': 'render'
+    }
+});
+
+var ResultDetailsView = Marionette.ItemView.extend({
+    template: resultDetailsTmpl,
+
+    ui: {
+        closeDetails: '.close'
+    },
+
+    events: {
+        'click @ui.closeDetails': 'closeDetails'
+    },
+
+    initialize: function(options) {
+        this.activeCatalog = options.activeCatalog;
+    },
+
+    templateHelpers: function() {
+        return {
+            activeCatalog: this.activeCatalog
+        };
+    },
+
+    closeDetails: function() {
+        this.triggerMethod('closeDetails');
     }
 });
 
