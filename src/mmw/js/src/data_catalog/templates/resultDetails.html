@@ -32,4 +32,12 @@
     <p>
         {{ description }}
     </p>
+    <p>
+        {% if activeCatalog == 'cinergi' %}
+        <a class="btn btn-secondary" href="{{ cinergi_url }}"
+           target="_blank" rel="noreferrer noopener">
+            <i class="fa fa-external-link-square"></i>&nbsp;Repository
+        </a>
+        {% endif %}
+    </p>
 </div>
