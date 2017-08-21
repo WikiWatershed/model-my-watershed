@@ -190,12 +190,22 @@ var Results = Backbone.Collection.extend({
 
     parse: function(response) {
         var aoi = App.map.get('areaOfInterest'),
-            data = _.findWhere(response, { catalog: this.catalog });
+            data = _.findWhere(response, { catalog: this.catalog }),
+            // Filter results to only include those without geometries (Hydroshare)
+            // and those that intersect the area of interest (CINERGI and CUAHSI).
+            filteredResults = _.filter(data.results, function(r) {
+                return r.geom === null || turfIntersect(aoi, r.geom) !== undefined;
+            });
 
-        // Filter results to only include those without geometries (Hydroshare)
-        // and those that intersect the area of interest (CINERGI and CUAHSI).
-        return _.filter(data.results, function(r) {
-            return r.geom === null || turfIntersect(aoi, r.geom) !== undefined;
+        // Add the result's id onto the geojson's geom so the map can keep
+        // track of which shape came from where
+        return _.map(filteredResults, function(r) {
+            if (r.geom) {
+                r.geom.properties = {
+                    id: r.id
+                };
+            }
+            return r;
         });
     }
 });

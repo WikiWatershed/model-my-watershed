@@ -18,7 +18,8 @@ var $ = require('jquery'),
     headerTmpl = require('./templates/header.html'),
     windowTmpl = require('./templates/window.html'),
     resultDetailsTmpl = require('./templates/resultDetails.html'),
-    resultsWindowTmpl = require('./templates/resultsWindow.html');
+    resultsWindowTmpl = require('./templates/resultsWindow.html'),
+    resultMapPopoverTmpl = require('./templates/resultMapPopover.html');
 
 var ENTER_KEYCODE = 13,
     PAGE_SIZE = settings.get('data_catalog_page_size'),
@@ -155,6 +156,9 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         var catalog = this.getActiveCatalog(),
             geoms = catalog && catalog.get('results').pluck('geom');
         App.map.set('dataCatalogResults', geoms);
+        if (catalog) {
+            App.getMapView().bindDataCatalogPopovers(ResultMapPopoverView, catalog.get('results'));
+        }
     }
 });
 
@@ -450,6 +454,10 @@ var ResultDetailsView = Marionette.ItemView.extend({
     closeDetails: function() {
         this.triggerMethod('closeDetails');
     }
+});
+
+var ResultMapPopoverView = Marionette.ItemView.extend({
+    template: resultMapPopoverTmpl,
 });
 
 var PagerView = Marionette.ItemView.extend({
