@@ -300,6 +300,7 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
   margin-top: 20px;
   max-width: 1200px;
   max-height: calc(100% - 20px);
+  -webkit-font-smoothing: antialiased;
 
   @media screen and (max-width: 1300px) {
     max-width: 1000px;
@@ -505,7 +506,7 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
     min-width: 120px;
     width: 120px;
 
-    h3 {
+    .compare-scenario-title {
       font-size: $font-size-h5;
       font-weight: 400;
     }
@@ -557,11 +558,31 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
     }
   }
 
-  .compare-mapplaceholder {
-    height: 90px;
-    background-color: #aaa;
-    margin-bottom: 10px;
-    width: 120px;
+  .compare-map-container {
+      cursor: pointer !important;
+      height: 90px;
+      background-color: #aaa;
+      margin-bottom: 10px;
+      width: 120px;
+  }
+
+  .compare-modifications-table {
+      font-size: $font-size-h5;
+      width: 100%;
+      .modification-value {
+          padding-right: 12px;
+      }
+      .modification-area {
+          color: $brand-primary;
+          text-align: right;
+      }
+  }
+
+  .compare-no-mods-popover {
+      width: 189px;
+      > .compare-no-mod-title {
+          margin-bottom: 2px;
+      }
   }
 
   .compare-inputs {

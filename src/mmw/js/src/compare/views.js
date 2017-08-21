@@ -22,7 +22,9 @@ var _ = require('lodash'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
     compareModelingTmpl = require('./templates/compareModeling.html'),
-    compareModificationsTmpl = require('./templates/compareModifications.html');
+    compareModificationsTmpl = require('./templates/compareModifications.html'),
+    compareModificationsPopoverTmpl = require('./templates/compareModificationsPopover.html'),
+    compareDescriptionPopoverTmpl = require('./templates/compareDescriptionPopover.html');
 
 var CompareWindow2 = Marionette.LayoutView.extend({
     template: compareWindow2Tmpl,
@@ -158,9 +160,74 @@ var InputsView = Marionette.LayoutView.extend({
     },
 });
 
+var CompareModificationsPopoverView = Marionette.ItemView.extend({
+    // model: ModificationsCollection
+    template: compareModificationsPopoverTmpl,
+
+    templateHelpers: function() {
+        return {
+            conservationPractices: this.model.filter(function(modification) {
+                return modification.get('name') === 'conservation_practice';
+            }),
+            landCovers: this.model.filter(function(modification) {
+                return modification.get('name') === 'landcover';
+            }),
+            modConfigUtils: modConfigUtils
+        };
+    }
+});
+
+var CompareDescriptionPopoverView = Marionette.ItemView.extend({
+    // model: ScenarioModel
+    template: compareDescriptionPopoverTmpl,
+    className: 'compare-no-mods-popover'
+});
+
 var ScenarioItemView = Marionette.ItemView.extend({
     className: 'compare-column',
     template: compareScenarioItemTmpl,
+
+    ui: {
+        'mapContainer': '.compare-map-container',
+    },
+
+    onShow: function() {
+        var mapView = new coreViews.MapView({
+            model: new coreModels.MapModel({
+                'areaOfInterest': App.currentProject.get('area_of_interest'),
+                'areaOfInterestName': App.currentProject.get('area_of_interest_name'),
+            }),
+            el: this.ui.mapContainer,
+            addZoomControl: false,
+            addLocateMeButton: false,
+            addSidebarToggleControl: false,
+            showLayerAttribution: false,
+            initialLayerName: App.getLayerTabCollection().getCurrentActiveBaseLayerName(),
+            layerTabCollection: new coreModels.LayerTabCollection(),
+            interactiveMode: false,
+        });
+        mapView.updateAreaOfInterest();
+        mapView.updateModifications(this.model.get('modifications'));
+        mapView.fitToModificationsOrAoi();
+        mapView.render();
+    },
+
+    onRender: function() {
+        var modifications = this.model.get('modifications'),
+            popOverView = modifications.length > 0 ?
+                              new CompareModificationsPopoverView({
+                                  model: modifications
+                              }) :
+                              new CompareDescriptionPopoverView({
+                                  model: this.model
+                              });
+
+        this.ui.mapContainer.popover({
+            placement: 'bottom',
+            trigger: 'hover focus',
+            content: popOverView.render().el
+        });
+    }
 });
 
 var ScenariosRowView = Marionette.CollectionView.extend({
