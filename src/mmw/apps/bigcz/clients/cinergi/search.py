@@ -13,8 +13,10 @@ from apps.bigcz.models import Resource, ResourceLink, ResourceList, BBox
 from apps.bigcz.utils import RequestTimedOutError
 
 
+
+CINERGI_HOST = 'http://cinergi.sdsc.edu'
 CATALOG_NAME = 'cinergi'
-CATALOG_URL = 'http://cinergi.sdsc.edu/geoportal/opensearch'
+CATALOG_URL = '{}/geoportal/opensearch'.format(CINERGI_HOST)
 PAGE_SIZE = settings.BIGCZ_CLIENT_PAGE_SIZE
 
 
@@ -78,11 +80,19 @@ def parse_links(source):
     return result
 
 
+def parse_cinergi_url(fileid):
+    """
+    Convert fileid to URL in CINERGI Portal
+    """
+
+    return '{}/geoportal/?filter=%22{}%22'.format(CINERGI_HOST, fileid)
+
+
 def parse_record(item):
     source = item['_source']
     geom = parse_geom(source)
     links = parse_links(source)
-    return Resource(
+    return CinergiResource(
         id=item['_id'],
         title=source['title'],
         description=source.get('description'),
