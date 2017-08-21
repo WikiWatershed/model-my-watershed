@@ -253,3 +253,13 @@
     padding: 0;
   }
 }
+
+
+div.leaflet-popup.data-catalog-popover.leaflet-zoom-animated
+div.leaflet-popup-content-wrapper {
+    border-radius: 0px;
+    div.leaflet-popup-content {
+        margin-left: 10px;
+        margin-bottom: 10px;
+    }
+}

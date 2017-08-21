@@ -86,12 +86,11 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
     childEvents: {
         'search': 'doSearch',
         'selectCatalog': 'onSelectCatalog',
-        'selectResult': 'onSelectResult',
-        'closeDetails': 'onCloseDetails'
     },
 
     collectionEvents: {
-        'change:active change:loading': 'updateMap'
+        'change:active change:loading': 'updateMap',
+        'change:detail_result': 'onDetailResultChange'
     },
 
     onShow: function() {
@@ -124,16 +123,21 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         this.doSearch();
     },
 
-    onSelectResult: function(childView, result) {
-        var activeCatalog = this.getActiveCatalog();
+    onDetailResultChange: function() {
+        var activeCatalog = this.getActiveCatalog(),
+            detailResult = activeCatalog.get('detail_result');
 
-        this.detailsRegion.show(new ResultDetailsView({
-            model: result,
-            activeCatalog: activeCatalog.id
-        }));
+        if (!detailResult) {
+            this.closeDetails();
+        } else {
+            this.detailsRegion.show(new ResultDetailsView({
+                model: detailResult,
+                activeCatalog: activeCatalog.id
+            }));
+        }
     },
 
-    onCloseDetails: function() {
+    closeDetails: function() {
         this.detailsRegion.empty();
     },
 
@@ -157,7 +161,7 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
             geoms = catalog && catalog.get('results').pluck('geom');
         App.map.set('dataCatalogResults', geoms);
         if (catalog) {
-            App.getMapView().bindDataCatalogPopovers(ResultMapPopoverView, catalog.get('results'));
+            App.getMapView().bindDataCatalogPopovers(ResultMapPopoverView, catalog.id, catalog.get('results'));
         }
     }
 });
@@ -324,14 +328,6 @@ var TabContentView = Marionette.LayoutView.extend({
         'change:active': 'toggleActiveClass',
     },
 
-    childEvents: {
-        'selectResult': 'handleChildSelectResult'
-    },
-
-    handleChildSelectResult: function(view, result) {
-        this.triggerMethod('selectResult', result);
-    },
-
     onShow: function() {
         this.toggleActiveClass();
 
@@ -396,7 +392,7 @@ var ResultView = Marionette.ItemView.extend({
     },
 
     selectResult: function() {
-        this.triggerMethod('selectResult', this.model);
+        this.model.collection.showDetail(this.model);
     },
 
     highlightResult: function() {
@@ -415,14 +411,6 @@ var ResultsView = Marionette.CollectionView.extend({
         return {
             catalog: this.options.catalog,
         };
-    },
-
-    childEvents: {
-        'selectResult': 'handleChildSelectResult'
-    },
-
-    handleChildSelectResult: function(view, result) {
-        this.triggerMethod('selectResult', result);
     },
 
     modelEvents: {
@@ -452,12 +440,37 @@ var ResultDetailsView = Marionette.ItemView.extend({
     },
 
     closeDetails: function() {
-        this.triggerMethod('closeDetails');
+        this.model.collection.closeDetail();
     }
 });
 
-var ResultMapPopoverView = Marionette.ItemView.extend({
+var ResultMapPopoverView = Marionette.LayoutView.extend({
     template: resultMapPopoverTmpl,
+
+    regions: {
+        'resultRegion': '.data-catalog-popover-result-region'
+    },
+
+    className: 'data-catalog-resource-popover',
+
+    ui: {
+        'detailsButton': '.data-catalog-popover-details-btn'
+    },
+
+    events: {
+        'click @ui.detailsButton': 'selectResult'
+    },
+
+    onRender: function() {
+        this.resultRegion.show(new ResultView({
+            model: this.model,
+            catalog: this.options.catalog,
+        }));
+    },
+
+    selectResult: function() {
+        this.model.collection.showDetail(this.model);
+    }
 });
 
 var PagerView = Marionette.ItemView.extend({

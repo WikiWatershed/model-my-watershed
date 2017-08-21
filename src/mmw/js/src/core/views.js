@@ -731,11 +731,12 @@ var MapView = Marionette.ItemView.extend({
         }
     },
 
-    bindDataCatalogPopovers: function(PopoverView, resultModels) {
+    bindDataCatalogPopovers: function(PopoverView, catalogId, resultModels) {
         this._dataCatalogResultsLayer.eachLayer(function(layer) {
                 layer.bindPopup(new PopoverView({
-                    model: resultModels.findWhere({ id: layer.options.id })
-                }).render().el, { closeButton: false });
+                    model: resultModels.findWhere({ id: layer.options.id }),
+                    catalog: catalogId
+                }).render().el, { className: 'data-catalog-popover' });
         });
     },
 

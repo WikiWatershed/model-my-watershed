@@ -27,6 +27,14 @@ var Catalog = Backbone.Model.extend({
         is_pageable: true,
         page: 1,
         error: '',
+        detail_result: null
+    },
+
+    initialize: function() {
+        var self = this;
+        this.get('results').on('change:show_detail', function() {
+            self.set('detail_result', self.get('results').getDetail());
+        });
     },
 
     searchIfNeeded: function(query, fromDate, toDate, bbox) {
@@ -153,7 +161,8 @@ var Result = Backbone.Model.extend({
         geom: null, // GeoJSON
         links: null, // Array
         created: '',
-        updated: ''
+        updated: '',
+        show_detail: false // Show this result as the detail view?
     },
 
     getSummary: function() {
@@ -207,6 +216,36 @@ var Results = Backbone.Collection.extend({
             }
             return r;
         });
+    },
+
+    getDetail: function() {
+        return this.findWhere({ show_detail: true});
+    },
+
+    showDetail: function(result) {
+        var currentDetail = this.getDetail();
+
+        if (currentDetail) {
+            // Do nothing if the selected result is already the detail shown
+            if (currentDetail.get('id') === result.get('id')) {
+                return;
+            }
+            // Turn off the actively shown detail. There should only be
+            // one with `show_detail` true at a time
+            currentDetail.set('show_detail', false);
+        }
+
+        result.set('show_detail', true);
+    },
+
+    closeDetail: function() {
+        var currentDetail = this.getDetail();
+
+        if (!currentDetail) {
+            return;
+        }
+
+        currentDetail.set('show_detail', false);
     }
 });
 
