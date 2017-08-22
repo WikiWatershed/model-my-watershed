@@ -172,9 +172,12 @@ var DrawWindow = Marionette.LayoutView.extend({
 
     onShow: function() {
         var self = this,
-            resetDrawingState = function() {
-                self.resetDrawingState();
-            };
+            resetRwdDrawingState = function() {
+                self.resetDrawingState({
+                    clearOnFailure: false
+                });
+            },
+            resetDrawingState = _.bind(self.resetDrawingState, self);
 
         this.selectBoundaryRegion.show(new SelectBoundaryView({
             model: this.model,
@@ -189,24 +192,34 @@ var DrawWindow = Marionette.LayoutView.extend({
         this.watershedDelineationRegion.show(
             new WatershedDelineationView({
                 model: this.model,
-                resetDrawingState: resetDrawingState,
+                resetDrawingState: resetRwdDrawingState,
                 rwdTaskModel: this.rwdTaskModel
             })
         );
 
         this.uploadFileRegion.show(new AoIUploadView({
             model: this.model,
-            resetDrawingState: resetDrawingState,
+            resetDrawingState: resetDrawingState
         }));
     },
 
-    resetDrawingState: function() {
-        this.model.clearRwdClickedPoint(App.getLeafletMap());
+    resetDrawingState: function(options) {
+        var opts = _.extend({
+            clearOnFailure: true,
+        }, options);
+
         this.rwdTaskModel.reset();
         this.model.reset();
 
         utils.cancelDrawing(App.getLeafletMap());
-        clearAoiLayer();
+
+        // RWD typically does not clear the AoI generated, even if it
+        // not possible to move to analyze
+        if (opts.clearOnFailure) {
+            clearAoiLayer();
+            this.model.clearRwdClickedPoint(App.getLeafletMap());
+        }
+
         clearBoundaryLayer(this.model);
     }
 });
