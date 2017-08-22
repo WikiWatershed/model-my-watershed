@@ -34,6 +34,7 @@ var ChartRowsCollection = Backbone.Collection.extend({
         var update = _.bind(this.update, this);
 
         this.scenarios = options.scenarios;
+        this.aoiVolumeModel = options.aoiVolumeModel;
 
         this.scenarios.forEach(function(scenario) {
             scenario.get('results').on('change', update);
@@ -70,6 +71,31 @@ var Tr55RunoffCharts = ChartRowsCollection.extend({
             chart.set({
                 precipitation: precipitation,
                 values: values
+            });
+        });
+    }
+});
+
+var Tr55QualityCharts = ChartRowsCollection.extend({
+    update: function() {
+        var aoivm = this.aoiVolumeModel,
+            results = this.scenarios.map(function(scenario) {
+                return scenario.get('results')
+                               .findWhere({ name: 'quality' })
+                               .get('result');
+            });
+
+        this.forEach(function(chart) {
+            var name = chart.get('name'),
+                values = _.map(results, function(result) {
+                    var measures = result.quality.modified,
+                        load = _.find(measures, { measure: name }).load;
+
+                    return aoivm.getLoadingRate(load);
+                });
+
+            chart.set({
+                values: values,
             });
         });
     }
@@ -189,6 +215,7 @@ var WindowModel = Backbone.Model.extend({
 module.exports = {
     ControlsCollection: ControlsCollection,
     Tr55QualityTable: Tr55QualityTable,
+    Tr55QualityCharts: Tr55QualityCharts,
     Tr55RunoffTable: Tr55RunoffTable,
     Tr55RunoffCharts: Tr55RunoffCharts,
     TabsCollection: TabsCollection,

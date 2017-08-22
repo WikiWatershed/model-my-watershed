@@ -620,8 +620,29 @@ function getTr55Tabs(scenarios) {
             scenarios: scenarios,
             aoiVolumeModel: aoiVolumeModel,
         }),
-        // TODO Calculate Water Quality charts
-        qualityCharts = [];
+        qualityCharts = new models.Tr55QualityCharts([
+            {
+                name: 'Total Suspended Solids',
+                chartDiv: 'tss-chart',
+                seriesColors: ['#389b9b'],
+                legendItems: null,
+                unit: 'kg/ha',
+            },
+            {
+                name: 'Total Nitrogen',
+                chartDiv: 'tn-chart',
+                seriesColors: ['#389b9b'],
+                legendItems: null,
+                unit: 'kg/ha',
+            },
+            {
+                name: 'Total Phosphorus',
+                chartDiv: 'tp-chart',
+                seriesColors: ['#389b9b'],
+                legendItems: null,
+                unit: 'kg/ha',
+            }
+        ], { scenarios: scenarios, aoiVolumeModel: aoiVolumeModel });
 
     return new models.TabsCollection([
         {
