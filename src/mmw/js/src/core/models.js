@@ -573,13 +573,13 @@ var AnimalCensusCollection = Backbone.Collection.extend({
 var PointSourceCensusCollection = Backbone.PageableCollection.extend({
     comparator: 'city',
     mode: 'client',
-    state: { pageSize: 3, firstPage: 1 }
+    state: { pageSize: 6, firstPage: 1 }
 });
 
 var CatchmentWaterQualityCensusCollection = Backbone.PageableCollection.extend({
     comparator: 'nord',
     mode: 'client',
-    state: { pageSize: 5, firstPage: 1 }
+    state: { pageSize: 6, firstPage: 1 }
 });
 
 var GeoModel = Backbone.Model.extend({

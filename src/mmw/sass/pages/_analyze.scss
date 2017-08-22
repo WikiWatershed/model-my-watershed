@@ -141,6 +141,11 @@
 .pageable-table-container {
   overflow: visible;
   padding-bottom:10%;
+
+  tbody {
+    white-space: nowrap;
+  }
+
   @media (max-height: 884px) {
     padding-bottom:0px;
   }

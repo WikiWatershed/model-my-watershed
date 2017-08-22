@@ -1091,7 +1091,7 @@ var PointSourceResultView = AnalyzeResultView.extend({
             associatedLayerCodes = ['pointsource'],
             avgRowHeight = 30,  // Most rows are between 2-3 lines, 12px per line
             minScreenHeight = 768 + 45, // height of landscape iPad + extra content below the table
-            pageSize = utils.calculateVisibleRows(minScreenHeight, avgRowHeight, 3),
+            pageSize = utils.calculateVisibleRows(minScreenHeight, avgRowHeight, 6),
             chart = null;
         this.showAnalyzeResults(coreModels.PointSourceCensusCollection,
             PointSourcePageableTableView, chart, title, source, helpText, associatedLayerCodes, pageSize);
@@ -1111,7 +1111,7 @@ var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
             ],
             avgRowHeight = 18,  // Most rows are between 1-2 lines, 12px per line
             minScreenHeight = 768 + 45, // height of landscape iPad + extra content below the table
-            pageSize = utils.calculateVisibleRows(minScreenHeight, avgRowHeight, 5),
+            pageSize = utils.calculateVisibleRows(minScreenHeight, avgRowHeight, 6),
             chart = null;
         this.showAnalyzeResults(coreModels.CatchmentWaterQualityCensusCollection,
             CatchmentWaterQualityPageableTableView, chart, title, source, helpText,
