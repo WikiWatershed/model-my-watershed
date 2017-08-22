@@ -169,10 +169,14 @@ var InputsView = Marionette.LayoutView.extend({
     },
 
     setChartView: function() {
+        this.ui.chartButton.addClass('active');
+        this.ui.tableButton.removeClass('active');
         this.model.set({ mode: models.constants.CHART });
     },
 
     setTableView: function() {
+        this.ui.chartButton.removeClass('active');
+        this.ui.tableButton.addClass('active');
         this.model.set({ mode: models.constants.TABLE });
     },
 });
