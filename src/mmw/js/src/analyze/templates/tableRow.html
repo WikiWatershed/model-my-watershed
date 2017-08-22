@@ -1,3 +1,6 @@
 <td>{{ type }}</td>
+{% if isLandTable %}
+    <td class="hidden-analyze-table-column" data-tableexport-display="always">{{ code }}</td>
+{% endif %}
 <td class="strong text-right">{{ scaledArea|round(2)|toLocaleString(2) }}</td>
 <td class="strong text-right">{{ coveragePct|toFixed(1) }}</td>
