@@ -17,6 +17,7 @@ var ChartRowModel = Backbone.Model.extend({
         legendItems: null,
         values: [],
         unit: '',
+        unitLabel: '',
         precipitation: null,
     },
 });
@@ -214,6 +215,7 @@ var WindowModel = Backbone.Model.extend({
 
 module.exports = {
     ControlsCollection: ControlsCollection,
+    ChartRowModel: ChartRowModel,
     Tr55QualityTable: Tr55QualityTable,
     Tr55QualityCharts: Tr55QualityCharts,
     Tr55RunoffTable: Tr55RunoffTable,

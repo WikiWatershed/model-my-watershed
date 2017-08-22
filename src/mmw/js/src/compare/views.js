@@ -253,7 +253,8 @@ var ChartRowView = Marionette.ItemView.extend({
         var chartDiv = this.model.get('chartDiv'),
             chartEl = document.getElementById(chartDiv),
             name = this.model.get('name'),
-            label = 'Level (' + this.model.get('unit') + ')',
+            label = this.model.get('unitLabel') +
+                    ' (' + this.model.get('unit') + ')',
             colors = this.model.get('seriesColors'),
             stacked = name.indexOf('Hydrology') > -1,
             yMax = stacked ? this.model.get('precipitation') : null,
@@ -590,6 +591,7 @@ function getTr55Tabs(scenarios) {
                     },
                 ],
                 unit: 'cm',
+                unitLabel: 'Level',
             },
             {
                 key: 'et',
@@ -598,6 +600,7 @@ function getTr55Tabs(scenarios) {
                 seriesColors: ['#C2D33C'],
                 legendItems: null,
                 unit: 'cm',
+                unitLabel: 'Level',
             },
             {
                 key: 'runoff',
@@ -606,6 +609,7 @@ function getTr55Tabs(scenarios) {
                 seriesColors: ['#CF4300'],
                 legendItems: null,
                 unit: 'cm',
+                unitLabel: 'Level',
             },
             {
                 key: 'inf',
@@ -614,6 +618,7 @@ function getTr55Tabs(scenarios) {
                 seriesColors: ['#F8AA00'],
                 legendItems: null,
                 unit: 'cm',
+                unitLabel: 'Level',
             }
         ], { scenarios: scenarios }),
         qualityTable = new models.Tr55QualityTable({
@@ -627,6 +632,7 @@ function getTr55Tabs(scenarios) {
                 seriesColors: ['#389b9b'],
                 legendItems: null,
                 unit: 'kg/ha',
+                unitLabel: 'Loading Rate',
             },
             {
                 name: 'Total Nitrogen',
@@ -634,6 +640,7 @@ function getTr55Tabs(scenarios) {
                 seriesColors: ['#389b9b'],
                 legendItems: null,
                 unit: 'kg/ha',
+                unitLabel: 'Loading Rate',
             },
             {
                 name: 'Total Phosphorus',
@@ -641,6 +648,7 @@ function getTr55Tabs(scenarios) {
                 seriesColors: ['#389b9b'],
                 legendItems: null,
                 unit: 'kg/ha',
+                unitLabel: 'Loading Rate',
             }
         ], { scenarios: scenarios, aoiVolumeModel: aoiVolumeModel });
 
