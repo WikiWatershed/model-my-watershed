@@ -10,6 +10,7 @@ var _ = require('lodash'),
     models = require('./models'),
     modelingModels = require('../modeling/models'),
     modelingViews = require('../modeling/views'),
+    tr55Models = require('../modeling/tr55/models'),
     PrecipitationView = require('../modeling/controls').PrecipitationView,
     modConfigUtils = require('../modeling/modificationConfigUtils'),
     compareWindowTmpl = require('./templates/compareWindow.html'),
@@ -565,7 +566,9 @@ var CompareModificationsView = Marionette.ItemView.extend({
 
 function getTr55Tabs(scenarios) {
     // TODO Account for loading and error scenarios
-    var runoffTable = new models.Tr55RunoffTable({ scenarios: scenarios }),
+    var aoi = App.currentProject.get('area_of_interest'),
+        aoiVolumeModel = new tr55Models.AoiVolumeModel({ areaOfInterest: aoi }),
+        runoffTable = new models.Tr55RunoffTable({ scenarios: scenarios }),
         runoffCharts = new models.Tr55RunoffCharts([
             {
                 key: 'combined',
@@ -613,8 +616,10 @@ function getTr55Tabs(scenarios) {
                 unit: 'cm',
             }
         ], { scenarios: scenarios }),
-        // TODO Calculate Water Quality table
-        qualityTable = [],
+        qualityTable = new models.Tr55QualityTable({
+            scenarios: scenarios,
+            aoiVolumeModel: aoiVolumeModel,
+        }),
         // TODO Calculate Water Quality charts
         qualityCharts = [];
 

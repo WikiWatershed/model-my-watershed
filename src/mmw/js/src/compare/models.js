@@ -96,6 +96,7 @@ var TableRowsCollection = Backbone.Collection.extend({
         var update = _.bind(this.update, this);
 
         this.scenarios = attrs.scenarios;
+        this.aoiVolumeModel = attrs.aoiVolumeModel;
 
         this.scenarios.forEach(function(scenario) {
             scenario.get('results').on('change', update);
@@ -122,6 +123,35 @@ var Tr55RunoffTable = TableRowsCollection.extend({
                 { name: "Runoff"            , unit: "cm", values: runoff },
                 { name: "Evapotranspiration", unit: "cm", values: et     },
                 { name: "Infiltration"      , unit: "cm", values: inf    },
+            ];
+
+        this.reset(rows);
+    }
+});
+
+var Tr55QualityTable = TableRowsCollection.extend({
+    update: function() {
+        var aoivm = this.aoiVolumeModel,
+            results = this.scenarios.map(function(scenario) {
+                return scenario.get('results')
+                               .findWhere({ name: 'quality' })
+                               .get('result');
+            }),
+            get = function(key) {
+                return function(result) {
+                    var measures = result.quality.modified,
+                        load = _.find(measures, { measure: key }).load;
+
+                    return aoivm.getLoadingRate(load);
+                };
+            },
+            tss  = _.map(results, get('Total Suspended Solids')),
+            tn   = _.map(results, get('Total Nitrogen')),
+            tp   = _.map(results, get('Total Phosphorus')),
+            rows = [
+                { name: "Total Suspended Solids", unit: "kg/ha", values: tss },
+                { name: "Total Nitrogen"        , unit: "kg/ha", values: tn  },
+                { name: "Total Phosphorus"      , unit: "kg/ha", values: tp  },
             ];
 
         this.reset(rows);
@@ -158,6 +188,7 @@ var WindowModel = Backbone.Model.extend({
 
 module.exports = {
     ControlsCollection: ControlsCollection,
+    Tr55QualityTable: Tr55QualityTable,
     Tr55RunoffTable: Tr55RunoffTable,
     Tr55RunoffCharts: Tr55RunoffCharts,
     TabsCollection: TabsCollection,
