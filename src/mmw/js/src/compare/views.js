@@ -52,9 +52,14 @@ var CompareWindow2 = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        this.tabRegion.show(new TabPanelsView({
-            collection: this.model.get('tabs'),
-        }));
+        var tabPanelsView = new TabPanelsView({
+                collection: this.model.get('tabs'),
+            }),
+            showSectionsView = _.bind(this.showSectionsView, this);
+
+        tabPanelsView.on('renderTabs', showSectionsView);
+
+        this.tabRegion.show(tabPanelsView);
         this.inputsRegion.show(new InputsView({
             model: this.model,
         }));
@@ -62,7 +67,7 @@ var CompareWindow2 = Marionette.LayoutView.extend({
             collection: this.model.get('scenarios'),
         }));
 
-        this.showSectionsView();
+        showSectionsView();
     },
 
     showSectionsView: function() {
@@ -95,8 +100,12 @@ var TabPanelView = Marionette.ItemView.extend({
         role: 'tab',
     },
 
-    events: {
-        'click': 'selectTab',
+    modelEvents: {
+        'change': 'render',
+    },
+
+    triggers: {
+        'click': 'tab:clicked',
     },
 
     onRender: function() {
@@ -106,17 +115,24 @@ var TabPanelView = Marionette.ItemView.extend({
             this.$el.removeClass('active');
         }
     },
-
-    selectTab: function(e) {
-        // TODO: Make this select the tab
-
-        e.preventDefault();
-        return false;
-    },
 });
 
 var TabPanelsView = Marionette.CollectionView.extend({
     childView: TabPanelView,
+
+    onChildviewTabClicked: function(view) {
+        if (view.model.get('active')) {
+            // Active tab clicked. Do nothing.
+            return;
+        }
+
+        this.collection.findWhere({ active: true })
+                       .set({ active: false });
+
+        view.model.set({ active: true });
+
+        this.triggerMethod('renderTabs');
+    },
 });
 
 var InputsView = Marionette.LayoutView.extend({
