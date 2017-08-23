@@ -732,8 +732,16 @@ var MapView = Marionette.ItemView.extend({
     },
 
     bindDataCatalogPopovers: function(PopoverView, catalogId, resultModels) {
+        var self = this;
         this._dataCatalogResultsLayer.eachLayer(function(layer) {
-                layer.bindPopup(new PopoverView({
+            var result = resultModels.findWhere({ id: layer.options.id });
+            layer.on('popupopen', function() {
+                self.model.set('dataCatalogActiveResult', result.get('geom'));
+            });
+            layer.on('popupclose', function() {
+                self.model.set('dataCatalogActiveResult', null);
+            });
+            layer.bindPopup(new PopoverView({
                     model: resultModels.findWhere({ id: layer.options.id }),
                     catalog: catalogId
                 }).render().el, { className: 'data-catalog-popover' });

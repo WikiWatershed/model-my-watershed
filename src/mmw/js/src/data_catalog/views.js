@@ -129,11 +129,13 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
 
         if (!detailResult) {
             this.closeDetails();
+            App.map.set('dataCatalogActiveResult', null);
         } else {
             this.detailsRegion.show(new ResultDetailsView({
                 model: detailResult,
                 activeCatalog: activeCatalog.id
             }));
+            App.map.set('dataCatalogActiveResult', detailResult.get('geom'));
         }
     },
 
@@ -378,13 +380,15 @@ var TabContentsView = Marionette.CollectionView.extend({
     childView: TabContentView
 });
 
-var ResultView = Marionette.ItemView.extend({
+var StaticResultView = Marionette.ItemView.extend({
     getTemplate: function() {
         return CATALOG_RESULT_TEMPLATE[this.options.catalog];
     },
 
-    className: 'resource',
+    className: 'resource'
+});
 
+var ResultView = StaticResultView.extend({
     events: {
         'mouseover': 'highlightResult',
         'mouseout': 'unHighlightResult',
@@ -462,13 +466,14 @@ var ResultMapPopoverView = Marionette.LayoutView.extend({
     },
 
     onRender: function() {
-        this.resultRegion.show(new ResultView({
+        this.resultRegion.show(new StaticResultView({
             model: this.model,
             catalog: this.options.catalog,
         }));
     },
 
     selectResult: function() {
+        App.getLeafletMap().closePopup();
         this.model.collection.showDetail(this.model);
     }
 });
