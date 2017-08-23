@@ -45,6 +45,6 @@
 - src: azavea.beaver
   version: 1.0.1
 - src: azavea.java
-  version: 0.5.0
+  version: 0.6.1
 - src: azavea.docker
   version: 1.0.2
