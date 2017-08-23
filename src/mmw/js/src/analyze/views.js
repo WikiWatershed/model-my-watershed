@@ -530,13 +530,17 @@ var TableRowView = Marionette.ItemView.extend({
     template: tableRowTmpl,
     templateHelpers: function() {
         var area = this.model.get('area'),
-            units = this.options.units;
+            units = this.options.units,
+            isLandTable = this.options.isLandTable,
+            code = isLandTable ? this.model.get('nlcd') : null;
 
         return {
             // Convert coverage to percentage for display.
             coveragePct: (this.model.get('coverage') * 100),
             // Scale the area to display units.
-            scaledArea: utils.changeOfAreaUnits(area, 'm<sup>2</sup>', units)
+            scaledArea: utils.changeOfAreaUnits(area, 'm<sup>2</sup>', units),
+            code: code,
+            isLandTable: isLandTable
         };
     }
 });
@@ -545,12 +549,14 @@ var TableView = Marionette.CompositeView.extend({
     childView: TableRowView,
     childViewOptions: function() {
         return {
-            units: this.options.units
+            units: this.options.units,
+            isLandTable: this.options.modelName === 'land'
         };
     },
     templateHelpers: function() {
         return {
-            headerUnits: this.options.units
+            headerUnits: this.options.units,
+            isLandTable: this.options.modelName === 'land'
         };
     },
     childViewContainer: 'tbody',
@@ -1027,7 +1033,8 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
 
         this.tableRegion.show(new AnalyzeTableView({
             units: units,
-            collection: census
+            collection: census,
+            modelName: this.model.get('name')
         }));
 
         if (AnalyzeChartView) {

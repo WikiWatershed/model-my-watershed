@@ -2,6 +2,9 @@
     <thead>
         <tr>
             <th data-sortable="true">Type</th>
+            {% if isLandTable %}
+                <th class="hidden-analyze-table-column" data-tableexport-display="always">NLCD Code</th>
+            {% endif %}
             <th class="text-right" data-sortable="true" data-sorter="window.numericSort">Area ({{ headerUnits }})</th>
             <th class="text-right" data-sortable="true" data-sorter="window.numericSort">Coverage (%)</th>
         </tr>
