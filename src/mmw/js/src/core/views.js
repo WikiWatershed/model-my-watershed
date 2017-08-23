@@ -691,13 +691,22 @@ var MapView = Marionette.ItemView.extend({
     },
 
     createDataCatalogShape: function(geom) {
+        var geomId = geom && geom.properties.id,
+            style = dataCatalogPolygonStyle,
+            pointToLayer = null;
+
         if (geom.type === 'Point') {
-            var lng = geom.coordinates[0],
-                lat = geom.coordinates[1];
-            return new L.CircleMarker([lat, lng], dataCatalogPointStyle);
-        } else {
-            return new L.GeoJSON(geom, { style: dataCatalogPolygonStyle });
+            style = dataCatalogPointStyle;
+            pointToLayer = function (feature, latlng) {
+                return L.circleMarker(latlng);
+            };
         }
+
+        return new L.GeoJSON(geom, {
+            style: style,
+            id: geomId,
+            pointToLayer: pointToLayer
+        });
     },
 
     renderDataCatalogResults: function() {
@@ -730,6 +739,23 @@ var MapView = Marionette.ItemView.extend({
                 this._dataCatalogActiveLayer.addLayer(layer);
             }
         }
+    },
+
+    bindDataCatalogPopovers: function(PopoverView, catalogId, resultModels) {
+        var self = this;
+        this._dataCatalogResultsLayer.eachLayer(function(layer) {
+            var result = resultModels.findWhere({ id: layer.options.id });
+            layer.on('popupopen', function() {
+                self.model.set('dataCatalogActiveResult', result.get('geom'));
+            });
+            layer.on('popupclose', function() {
+                self.model.set('dataCatalogActiveResult', null);
+            });
+            layer.bindPopup(new PopoverView({
+                    model: resultModels.findWhere({ id: layer.options.id }),
+                    catalog: catalogId
+                }).render().el, { className: 'data-catalog-popover' });
+        });
     },
 
     renderSelectedGeocoderArea: function() {
