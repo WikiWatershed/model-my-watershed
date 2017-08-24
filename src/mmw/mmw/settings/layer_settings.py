@@ -330,10 +330,10 @@ LAYER_GROUPS = {
             'css_class_prefix': 'stream',
             # Defined in tiler/server.js
             'legend_mapping': {
-                1: 'Less than 1 kg/y',
-                2: 'Less than 2 kg/y',
-                3: 'Less than 3 kg/y',
-                4: 'Less than 4 kg/y',
+                1: 'Less than 1 mg/L',
+                2: 'Less than 2 mg/L',
+                3: 'Less than 3 mg/L',
+                4: 'Less than 4 mg/L',
                 'NA': 'No Data'
             }
         },
@@ -346,10 +346,10 @@ LAYER_GROUPS = {
             'css_class_prefix': 'stream',
             # Defined in tiler/server.js
             'legend_mapping': {
-                1: 'Less than 0.03 kg/y',
-                2: 'Less than 0.06 kg/y',
-                3: 'Less than 0.09 kg/y',
-                4: 'Less than 0.12 kg/y',
+                1: 'Less than 0.03 mg/L',
+                2: 'Less than 0.06 mg/L',
+                3: 'Less than 0.09 mg/L',
+                4: 'Less than 0.12 mg/L',
                 'NA': 'No Data'
             }
         },
@@ -362,10 +362,10 @@ LAYER_GROUPS = {
             'css_class_prefix': 'stream',
             # Defined in tiler/server.js
             'legend_mapping': {
-                1: 'Less than 50 kg/y',
-                2: 'Less than 100 kg/y',
-                3: 'Less than 150 kg/y',
-                4: 'Less than 200 kg/y',
+                1: 'Less than 50 mg/L',
+                2: 'Less than 100 mg/L',
+                3: 'Less than 150 mg/L',
+                4: 'Less than 200 mg/L',
                 'NA': 'No Data'
             }
         },
