@@ -324,6 +324,7 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
             minBarWidth: 120,
             maxBarWidth: 150,
         },
+        yTickFormat = stacked ? '0.1f' : yFormat(),
         chart = nv.models.multiBarChart(),
         svg = makeSvg(chartEl),
         $svg = $(svg);
@@ -333,6 +334,24 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
         chartEl.style.width = scenariosWidth + "px";
 
         chart.width(chartEl.offsetWidth);
+    }
+
+    function yFormat() {
+        var getYs = function(d) { return _.map(d.values, 'y'); },
+            nonZero = function(x) { return x > 0; },
+            ys = _(data).map(getYs).flatten().filter(nonZero).value(),
+            minY = Math.min.apply(null, ys);
+
+        if (minY > 1) {
+            return '0.1f';
+        }
+
+        // Count decimal places to most significant digit, up to 4
+        for (var i = 0; minY < 1 && i < 4; i++) {
+            minY *= 10;
+        }
+
+        return '0.0' + i + 'f';
     }
 
     nv.addGraph(function() {
@@ -349,6 +368,7 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
 
         chart.yAxis
              .axisLabel(label)
+             .tickFormat(d3.format(yTickFormat))
              .showMaxMin(false);
 
         chart.tooltip.enabled(true);

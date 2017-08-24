@@ -10,6 +10,7 @@ var _ = require('lodash'),
     models = require('./models'),
     modelingModels = require('../modeling/models'),
     modelingViews = require('../modeling/views'),
+    tr55Models = require('../modeling/tr55/models'),
     PrecipitationView = require('../modeling/controls').PrecipitationView,
     modConfigUtils = require('../modeling/modificationConfigUtils'),
     compareWindowTmpl = require('./templates/compareWindow.html'),
@@ -51,9 +52,14 @@ var CompareWindow2 = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        this.tabRegion.show(new TabPanelsView({
-            collection: this.model.get('tabs'),
-        }));
+        var tabPanelsView = new TabPanelsView({
+                collection: this.model.get('tabs'),
+            }),
+            showSectionsView = _.bind(this.showSectionsView, this);
+
+        tabPanelsView.on('renderTabs', showSectionsView);
+
+        this.tabRegion.show(tabPanelsView);
         this.inputsRegion.show(new InputsView({
             model: this.model,
         }));
@@ -61,7 +67,7 @@ var CompareWindow2 = Marionette.LayoutView.extend({
             collection: this.model.get('scenarios'),
         }));
 
-        this.showSectionsView();
+        showSectionsView();
     },
 
     showSectionsView: function() {
@@ -94,8 +100,12 @@ var TabPanelView = Marionette.ItemView.extend({
         role: 'tab',
     },
 
-    events: {
-        'click': 'selectTab',
+    modelEvents: {
+        'change': 'render',
+    },
+
+    triggers: {
+        'click': 'tab:clicked',
     },
 
     onRender: function() {
@@ -105,17 +115,24 @@ var TabPanelView = Marionette.ItemView.extend({
             this.$el.removeClass('active');
         }
     },
-
-    selectTab: function(e) {
-        // TODO: Make this select the tab
-
-        e.preventDefault();
-        return false;
-    },
 });
 
 var TabPanelsView = Marionette.CollectionView.extend({
     childView: TabPanelView,
+
+    onChildviewTabClicked: function(view) {
+        if (view.model.get('active')) {
+            // Active tab clicked. Do nothing.
+            return;
+        }
+
+        this.collection.findWhere({ active: true })
+                       .set({ active: false });
+
+        view.model.set({ active: true });
+
+        this.triggerMethod('renderTabs');
+    },
 });
 
 var InputsView = Marionette.LayoutView.extend({
@@ -152,10 +169,14 @@ var InputsView = Marionette.LayoutView.extend({
     },
 
     setChartView: function() {
+        this.ui.chartButton.addClass('active');
+        this.ui.tableButton.removeClass('active');
         this.model.set({ mode: models.constants.CHART });
     },
 
     setTableView: function() {
+        this.ui.chartButton.removeClass('active');
+        this.ui.tableButton.addClass('active');
         this.model.set({ mode: models.constants.TABLE });
     },
 });
@@ -252,7 +273,8 @@ var ChartRowView = Marionette.ItemView.extend({
         var chartDiv = this.model.get('chartDiv'),
             chartEl = document.getElementById(chartDiv),
             name = this.model.get('name'),
-            label = 'Level (' + this.model.get('unit') + ')',
+            label = this.model.get('unitLabel') +
+                    ' (' + this.model.get('unit') + ')',
             colors = this.model.get('seriesColors'),
             stacked = name.indexOf('Hydrology') > -1,
             yMax = stacked ? this.model.get('precipitation') : null,
@@ -565,7 +587,9 @@ var CompareModificationsView = Marionette.ItemView.extend({
 
 function getTr55Tabs(scenarios) {
     // TODO Account for loading and error scenarios
-    var runoffTable = new models.Tr55RunoffTable({ scenarios: scenarios }),
+    var aoi = App.currentProject.get('area_of_interest'),
+        aoiVolumeModel = new tr55Models.AoiVolumeModel({ areaOfInterest: aoi }),
+        runoffTable = new models.Tr55RunoffTable({ scenarios: scenarios }),
         runoffCharts = new models.Tr55RunoffCharts([
             {
                 key: 'combined',
@@ -587,6 +611,7 @@ function getTr55Tabs(scenarios) {
                     },
                 ],
                 unit: 'cm',
+                unitLabel: 'Level',
             },
             {
                 key: 'et',
@@ -595,6 +620,7 @@ function getTr55Tabs(scenarios) {
                 seriesColors: ['#C2D33C'],
                 legendItems: null,
                 unit: 'cm',
+                unitLabel: 'Level',
             },
             {
                 key: 'runoff',
@@ -603,6 +629,7 @@ function getTr55Tabs(scenarios) {
                 seriesColors: ['#CF4300'],
                 legendItems: null,
                 unit: 'cm',
+                unitLabel: 'Level',
             },
             {
                 key: 'inf',
@@ -611,12 +638,39 @@ function getTr55Tabs(scenarios) {
                 seriesColors: ['#F8AA00'],
                 legendItems: null,
                 unit: 'cm',
+                unitLabel: 'Level',
             }
         ], { scenarios: scenarios }),
-        // TODO Calculate Water Quality table
-        qualityTable = [],
-        // TODO Calculate Water Quality charts
-        qualityCharts = [];
+        qualityTable = new models.Tr55QualityTable({
+            scenarios: scenarios,
+            aoiVolumeModel: aoiVolumeModel,
+        }),
+        qualityCharts = new models.Tr55QualityCharts([
+            {
+                name: 'Total Suspended Solids',
+                chartDiv: 'tss-chart',
+                seriesColors: ['#389b9b'],
+                legendItems: null,
+                unit: 'kg/ha',
+                unitLabel: 'Loading Rate',
+            },
+            {
+                name: 'Total Nitrogen',
+                chartDiv: 'tn-chart',
+                seriesColors: ['#389b9b'],
+                legendItems: null,
+                unit: 'kg/ha',
+                unitLabel: 'Loading Rate',
+            },
+            {
+                name: 'Total Phosphorus',
+                chartDiv: 'tp-chart',
+                seriesColors: ['#389b9b'],
+                legendItems: null,
+                unit: 'kg/ha',
+                unitLabel: 'Loading Rate',
+            }
+        ], { scenarios: scenarios, aoiVolumeModel: aoiVolumeModel });
 
     return new models.TabsCollection([
         {
