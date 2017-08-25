@@ -493,7 +493,7 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
   .compare-scenario-row-content {
     flex: 1;
     display: flex;
-    flex-wrap: nowrap;
+    flex-flow: row nowrap;
   }
 
   .compare-scenario-samplechartplaceholder {
