@@ -6,7 +6,9 @@ var _ = require('lodash'),
     ControlsCollection = require('../modeling/models').ModelPackageControlsCollection;
 
 var CHART = 'chart',
-    TABLE = 'table';
+    TABLE = 'table',
+    CHART_AXIS_WIDTH = 82,
+    COMPARE_COLUMN_WIDTH = 134;
 
 var ChartRowModel = Backbone.Model.extend({
     defaults: {
@@ -225,5 +227,7 @@ module.exports = {
     constants: {
         CHART: CHART,
         TABLE: TABLE,
+        CHART_AXIS_WIDTH: CHART_AXIS_WIDTH,
+        COMPARE_COLUMN_WIDTH: COMPARE_COLUMN_WIDTH,
     },
 };

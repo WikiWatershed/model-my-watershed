@@ -35,10 +35,14 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
 
     ui: {
         closeButton: '.compare-close > button',
+        nextButton: '.compare-scenario-buttons > .btn-next-scenario',
+        prevButton: '.compare-scenario-buttons > .btn-prev-scenario',
     },
 
     events: _.defaults({
         'click @ui.closeButton': 'hide',
+        'click @ui.nextButton' : 'nextScenario',
+        'click @ui.prevButton' : 'prevScenario',
     }, modalViews.ModalBaseView.prototype.events),
 
     modelEvents: {
@@ -89,6 +93,69 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
 
     onModalHidden: function() {
         App.rootView.compareRegion.empty();
+    },
+
+    nextScenario: function() {
+        var currMargin =
+                parseInt(
+                    $('.compare-scenario-row-content-container' +
+                      ' > .compare-scenario-row-content', this.$el)
+                        .css('margin-left')),
+            parentWidth =
+                parseInt(
+                    $('.compare-scenario-row-content-container', this.$el)
+                        .css('width')),
+            componentWidth =
+                (this.model.get('scenarios').length * models.constants.COMPARE_COLUMN_WIDTH);
+
+        if ((componentWidth - 14) > parentWidth) {
+            var newMargin = _.max(
+                [currMargin - models.constants.COMPARE_COLUMN_WIDTH,
+                 -(componentWidth * (1 / (componentWidth / parentWidth)))]);
+
+            $('.compare-scenarios' +
+              ' > .compare-scenario-row-content-container' +
+              ' > .compare-scenario-row-content', this.$el)
+                .css({
+                    'margin-left': newMargin.toString() + 'px',
+                    'transition': 'all 0.3s ease-in-out',
+                });
+
+            $('.compare-chart-row' +
+                ' > .compare-scenario-row-content-container' +
+                ' > .compare-scenario-row-content', this.$el)
+                .css({
+                    'margin-left': newMargin.toString() + 'px',
+                    'transition': 'all 0.3s ease-in-out',
+                });
+        }
+    },
+
+    prevScenario: function() {
+        var currMargin =
+                parseInt(
+                    $('.compare-scenario-row-content-container' +
+                        ' > .compare-scenario-row-content', this.$el)
+                        .css('margin-left'));
+
+        var maxMargin = 0;
+        var newMargin = _.min([currMargin + models.constants.COMPARE_COLUMN_WIDTH, maxMargin]);
+
+        $('.compare-scenarios' +
+            ' > .compare-scenario-row-content-container' +
+            ' > .compare-scenario-row-content', this.$el)
+            .css({
+                'margin-left': newMargin.toString() + 'px',
+                'transition': 'all 0.3s ease-in-out',
+            });
+
+        $('.compare-chart-row' +
+            ' > .compare-scenario-row-content-container' +
+            ' > .compare-scenario-row-content', this.$el)
+            .css({
+                'margin-left': newMargin.toString() + 'px',
+                'transition': 'all 0.3s ease-in-out',
+            });
     },
 });
 
@@ -300,8 +367,9 @@ var ChartRowView = Marionette.ItemView.extend({
                     }),
                 }];
 
+        $(chartEl.parentNode).css({ 'width': ((_.size(this.model.get('values')) * models.constants.COMPARE_COLUMN_WIDTH + models.constants.CHART_AXIS_WIDTH)  + 'px') });
         chart.renderCompareMultibarChart(
-            chartEl, name, label, colors, stacked, yMax, data);
+            chartEl, name, label, colors, stacked, yMax, data, models.constants.COMPARE_COLUMN_WIDTH, models.constants.CHART_AXIS_WIDTH);
     },
 });
 
