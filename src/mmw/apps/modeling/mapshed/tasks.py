@@ -410,8 +410,7 @@ def nlcd_kfactor(result):
     return output
 
 
-def geoprocessing_chains(aoi, wkaoi, exchange, errback, choose_worker):
-    worker = choose_worker()
+def geoprocessing_chains(aoi, wkaoi, errback):
     task_defs = [
         ('nlcd_soils',   nlcd_soils,   {'polygon': [aoi]}),
         ('gwn',          gwn,          {'polygon': [aoi]}),
@@ -424,11 +423,8 @@ def geoprocessing_chains(aoi, wkaoi, exchange, errback, choose_worker):
     ]
 
     return [
-        run.s(opname, data, wkaoi).set(exchange=exchange,
-                                       routing_key=worker) |
-        callback.s().set(link_error=errback,
-                         exchange=exchange,
-                         routing_key=choose_worker())
+        run.s(opname, data, wkaoi) |
+        callback.s().set(link_error=errback)
         for (opname, callback, data) in task_defs
     ]
 

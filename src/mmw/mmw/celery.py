@@ -24,8 +24,6 @@ def add_unlock_chord_task_shim(app):
     from celery.exceptions import ChordError
     from celery.result import allow_join_result, result_from_tuple
 
-    from apps.modeling.views import choose_worker, MAGIC_EXCHANGE
-
     logger = logging.getLogger(__name__)
 
     MAX_RETRIES = settings.CELERY_CHORD_UNLOCK_MAX_RETRIES
@@ -53,14 +51,10 @@ def add_unlock_chord_task_shim(app):
             ready = deps.ready()
         except Exception as exc:
             raise self.retry(
-                exc=exc, countdown=interval, max_retries=max_retries,
-                exchange=MAGIC_EXCHANGE, routing_key=choose_worker()
-            )
+                exc=exc, countdown=interval, max_retries=max_retries)
         else:
             if not ready:
-                raise self.retry(countdown=interval, max_retries=max_retries,
-                                 exchange=MAGIC_EXCHANGE,
-                                 routing_key=choose_worker())
+                raise self.retry(countdown=interval, max_retries=max_retries)
 
         callback = maybe_signature(callback, app=app)
         try:
