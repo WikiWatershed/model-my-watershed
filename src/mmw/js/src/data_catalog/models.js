@@ -160,8 +160,8 @@ var Result = Backbone.Model.extend({
         description: '',
         geom: null, // GeoJSON
         links: null, // Array
-        created: '',
-        updated: '',
+        created_at: '',
+        updated_at: '',
         show_detail: false // Show this result as the detail view?
     },
 
