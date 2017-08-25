@@ -314,15 +314,13 @@ function renderLineChart(chartEl, data, options) {
     });
 }
 
-function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax, data) {
+function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax, data, columnWidth, xAxisWidth) {
     var options = {
             margin: {
                 top: 20,
                 bottom: 20,
                 left: 60,
             },
-            minBarWidth: 120,
-            maxBarWidth: 150,
         },
         yTickFormat = stacked ? '0.1f' : yFormat(),
         chart = nv.models.multiBarChart(),
@@ -330,9 +328,10 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
         $svg = $(svg);
 
     function setChartWidth() {
-        var scenariosWidth = (document.getElementById('compare-title-row').offsetWidth + 100);
-        chartEl.style.width = scenariosWidth + "px";
+        var scenarioCount = _.size(_.head(data).values),
+            scenariosWidth = scenarioCount * columnWidth + xAxisWidth;
 
+        chartEl.style.width = scenariosWidth + "px";
         chart.width(chartEl.offsetWidth);
     }
 
