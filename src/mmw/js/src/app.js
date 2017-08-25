@@ -85,6 +85,7 @@ var App = new Marionette.Application({
         this.layerPickerView = new LayerPickerView({
             collection: this.layerTabs,
             leafletMap: this.getLeafletMap(),
+            timeSliderRegion: this.rootView.layerPickerSliderRegion,
         });
         this.rootView.layerPickerRegion.show(this.layerPickerView);
     },

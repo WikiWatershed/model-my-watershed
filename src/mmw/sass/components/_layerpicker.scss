@@ -13,6 +13,34 @@
   }
 }
 
+#layer-picker-slider-region {
+  z-index: 500;
+  position: absolute;
+  left: 265px;
+  bottom: 23px;
+  width: 150px;
+  padding: 10px;
+  background-color: #fff;
+  box-shadow: 0 0 6px $black-74;
+  font-size: 13px;
+  &:empty {
+    display: none;
+  }
+}
+
+input.time-slider {
+  padding: 5px 0 5px 0;
+}
+
+.time-slider-short-name {
+  font-weight: bold;
+}
+
+span.time-slider-end {
+    position: absolute;
+    right: 10px;
+}
+
 .layerpicker-header {
     background-color: $ui-primary;
     color: $paper;

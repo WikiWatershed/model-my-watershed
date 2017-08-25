@@ -1,0 +1,15 @@
+<div class="time-slider-display">
+    <span class="time-slider-short-name">{{ shortDisplay }},</span>
+    <span class="time-slider-month">{{ month }}</span>
+</div>
+
+<input title="Drag to change time period."
+   type="range"
+   min="{{ min }}"
+   max="{{ max }}"
+   step="1"
+   class="time-slider slider-leaflet custom-slider"
+   value="{{ selectedTimeLayerIdx }}"
+>
+<span class="time-slider-start">Jan</span>
+<span class="time-slider-end">Dec</span>
