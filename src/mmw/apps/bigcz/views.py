@@ -32,6 +32,7 @@ def _do_search(request):
         'to_date': parse_date(request.query_params.get('to_date')),
         'from_date': parse_date(request.query_params.get('from_date')),
         'bbox': request.query_params.get('bbox'),
+        'options': request.query_params.get('options', ''),
         'page': page,
     }
 
