@@ -7,6 +7,7 @@ var _ = require('lodash'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
     chart = require('../core/chart.js'),
+    modalViews = require('../core/modals/views'),
     models = require('./models'),
     modelingModels = require('../modeling/models'),
     modelingViews = require('../modeling/views'),
@@ -27,7 +28,7 @@ var _ = require('lodash'),
     compareModificationsPopoverTmpl = require('./templates/compareModificationsPopover.html'),
     compareDescriptionPopoverTmpl = require('./templates/compareDescriptionPopover.html');
 
-var CompareWindow2 = Marionette.LayoutView.extend({
+var CompareWindow2 = modalViews.ModalBaseView.extend({
     template: compareWindow2Tmpl,
 
     id: 'compare-new',
@@ -36,9 +37,9 @@ var CompareWindow2 = Marionette.LayoutView.extend({
         closeButton: '.compare-close > button',
     },
 
-    events: {
-        'click @ui.closeButton': 'closeView',
-    },
+    events: _.defaults({
+        'click @ui.closeButton': 'hide',
+    }, modalViews.ModalBaseView.prototype.events),
 
     modelEvents: {
         'change:mode': 'showSectionsView',
@@ -86,7 +87,7 @@ var CompareWindow2 = Marionette.LayoutView.extend({
         }
     },
 
-    closeView: function() {
+    onModalHidden: function() {
         App.rootView.compareRegion.empty();
     },
 });
