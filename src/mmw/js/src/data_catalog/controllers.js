@@ -38,7 +38,8 @@ var DataCatalogController = {
             new models.Catalog({
                 id: 'cuahsi',
                 name: 'WDC',
-                description: 'Optional catalog description here...',
+                has_filters: true,
+                options: new models.SearchOptions([{ id: 'gridded' }]),
                 is_pageable: false,
                 results: new models.Results(null, { catalog: 'cuahsi' }),
             })

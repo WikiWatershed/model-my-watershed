@@ -352,6 +352,13 @@ var TabContentView = Marionette.LayoutView.extend({
 
         if (model.get('has_filters')) {
             // TODO Generalize for different types of filters
+            if (model.id === 'cuahsi') {
+                $('input#gridded').change(function() {
+                    model.get('options')
+                         .findWhere({ id: 'gridded' })
+                         .set({ active: this.checked });
+                });
+            }
         }
     },
 
