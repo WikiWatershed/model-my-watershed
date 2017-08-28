@@ -321,6 +321,7 @@ LOCAL_APPS = (
     'apps.bigcz',
     'apps.core',
     'apps.modeling',
+    'apps.geoprocessing_api',
     'apps.home',
     'apps.geocode',
     'apps.water_balance',
