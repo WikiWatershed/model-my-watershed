@@ -7,6 +7,7 @@ var _ = require('lodash'),
 
 var CHART = 'chart',
     TABLE = 'table',
+    MIN_VISIBLE_SCENARIOS = 3,
     CHART_AXIS_WIDTH = 82,
     COMPARE_COLUMN_WIDTH = 134;
 
@@ -228,6 +229,7 @@ module.exports = {
     constants: {
         CHART: CHART,
         TABLE: TABLE,
+        MIN_VISIBLE_SCENARIOS: MIN_VISIBLE_SCENARIOS,
         CHART_AXIS_WIDTH: CHART_AXIS_WIDTH,
         COMPARE_COLUMN_WIDTH: COMPARE_COLUMN_WIDTH,
     },

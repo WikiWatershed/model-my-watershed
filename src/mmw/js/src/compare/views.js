@@ -60,6 +60,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
     highlightButtons: function() {
         var i = this.model.get('visibleScenarioIndex'),
             total = this.model.get('scenarios').length,
+            minScenarios = models.constants.MIN_VISIBLE_SCENARIOS,
             prevButton = this.ui.prevButton,
             nextButton = this.ui.nextButton;
 
@@ -69,7 +70,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
             prevButton.addClass('active');
         }
 
-        if (i + 1 >= total) {
+        if (i + minScenarios >= total) {
             nextButton.removeClass('active');
         } else {
             nextButton.addClass('active');
@@ -120,7 +121,8 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
 
     nextScenario: function() {
         var visibleScenarioIndex = this.model.get('visibleScenarioIndex'),
-            last = this.model.get('scenarios').length - 1;
+            last = Math.max(0, this.model.get('scenarios').length -
+                               models.constants.MIN_VISIBLE_SCENARIOS);
 
         this.model.set({
             visibleScenarioIndex: Math.min(++visibleScenarioIndex, last)
