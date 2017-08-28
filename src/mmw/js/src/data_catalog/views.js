@@ -331,6 +331,8 @@ var TabContentView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
+        var model = this.model;
+
         this.toggleActiveClass();
 
         this.resultRegion.show(new ResultsView({
@@ -346,6 +348,10 @@ var TabContentView = Marionette.LayoutView.extend({
             this.pagerRegion.show(new PagerView({
                 model: this.model,
             }));
+        }
+
+        if (model.get('has_filters')) {
+            // TODO Generalize for different types of filters
         }
     },
 
