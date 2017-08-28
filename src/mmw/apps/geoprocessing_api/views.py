@@ -25,11 +25,11 @@ def start_rwd(request, format=None):
     """
     user = request.user if request.user.is_authenticated() else None
     created = now()
-    location = request.POST['location']
-    data_source = request.POST.get('dataSource', 'drb')
+    location = request.data['location']
+    data_source = request.data.get('dataSource', 'drb')
 
     # Parse out the JS style T/F to a boolean
-    snappingParam = request.POST['snappingOn']
+    snappingParam = request.data['snappingOn']
     snapping = True if snappingParam == 'true' else False
 
     job = Job.objects.create(created_at=created, result='', error='',
@@ -54,7 +54,7 @@ def start_rwd(request, format=None):
 def start_analyze_land(request, format=None):
     user = request.user if request.user.is_authenticated() else None
 
-    area_of_interest, wkaoi = parse_input(request.POST['analyze_input'])
+    area_of_interest, wkaoi = parse_input(request.data['analyze_input'])
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -69,7 +69,7 @@ def start_analyze_land(request, format=None):
 def start_analyze_soil(request, format=None):
     user = request.user if request.user.is_authenticated() else None
 
-    area_of_interest, wkaoi = parse_input(request.POST['analyze_input'])
+    area_of_interest, wkaoi = parse_input(request.data['analyze_input'])
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -83,7 +83,7 @@ def start_analyze_soil(request, format=None):
 @decorators.permission_classes((AllowAny, ))
 def start_analyze_animals(request, format=None):
     user = request.user if request.user.is_authenticated() else None
-    area_of_interest, __ = parse_input(request.POST['analyze_input'])
+    area_of_interest, __ = parse_input(request.data['analyze_input'])
 
     return start_celery_job([
         tasks.analyze_animals.s(area_of_interest)
@@ -94,7 +94,7 @@ def start_analyze_animals(request, format=None):
 @decorators.permission_classes((AllowAny, ))
 def start_analyze_pointsource(request, format=None):
     user = request.user if request.user.is_authenticated() else None
-    area_of_interest, __ = parse_input(request.POST['analyze_input'])
+    area_of_interest, __ = parse_input(request.data['analyze_input'])
 
     return start_celery_job([
         tasks.analyze_pointsource.s(area_of_interest)
@@ -105,7 +105,7 @@ def start_analyze_pointsource(request, format=None):
 @decorators.permission_classes((AllowAny, ))
 def start_analyze_catchment_water_quality(request, format=None):
     user = request.user if request.user.is_authenticated() else None
-    area_of_interest, __ = parse_input(request.POST['analyze_input'])
+    area_of_interest, __ = parse_input(request.data['analyze_input'])
 
     return start_celery_job([
         tasks.analyze_catchment_water_quality.s(area_of_interest)
