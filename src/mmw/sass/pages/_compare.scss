@@ -443,6 +443,14 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
     .nv-x .tick line {
       display: none;
     }
+
+    .nvd3.nv-wrap.nv-axis {
+      transition: transform 0.3s ease-in-out;
+    }
+
+    rect {
+      transition: opacity 0.3s ease-in-out;
+    }
   }
 
   .compare-scenario-gradient {
@@ -494,6 +502,7 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
     flex: 1;
     display: flex;
     flex-flow: row nowrap;
+    transition: margin 0.3s ease-in-out;
   }
 
   .compare-scenario-samplechartplaceholder {

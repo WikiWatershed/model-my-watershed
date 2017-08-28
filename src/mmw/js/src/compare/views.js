@@ -112,14 +112,13 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
         if ((componentWidth - 14) > parentWidth) {
             var newMargin = _.max(
                 [currMargin - models.constants.COMPARE_COLUMN_WIDTH,
-                 -(componentWidth * (1 / (componentWidth / parentWidth)))]);
+                 -(parentWidth)]);
 
             $('.compare-scenarios' +
               ' > .compare-scenario-row-content-container' +
               ' > .compare-scenario-row-content', this.$el)
                 .css({
                     'margin-left': newMargin.toString() + 'px',
-                    'transition': 'all 0.3s ease-in-out',
                 });
 
             $('.compare-chart-row' +
@@ -127,17 +126,14 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
                 ' > .compare-scenario-row-content', this.$el)
                 .css({
                     'margin-left': newMargin.toString() + 'px',
-                    'transition': 'all 0.3s ease-in-out',
                 });
 
             this.$('.nvd3.nv-wrap.nv-axis').css({
                 'transform': 'translate(' + (-newMargin).toString() + 'px)',
-                'transition': 'all 0.3s ease-in-out',
             });
 
             this.$('.nv-group > rect:nth-child(-1n + ' + hiddenCols.toString() + ')').css({
                 'opacity': 0,
-                'transition': 'all 0.3s ease-in-out',
             });
         }
     },
@@ -159,7 +155,6 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
             ' > .compare-scenario-row-content', this.$el)
             .css({
                 'margin-left': newMargin.toString() + 'px',
-                'transition': 'all 0.3s ease-in-out',
             });
 
         $('.compare-chart-row' +
@@ -167,17 +162,14 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
             ' > .compare-scenario-row-content', this.$el)
             .css({
                 'margin-left': newMargin.toString() + 'px',
-                'transition': 'all 0.3s ease-in-out',
             });
 
         this.$('.nvd3.nv-wrap.nv-axis').css({
             'transform': 'translate(' + (-newMargin).toString() + 'px)',
-            'transition': 'all 0.3s ease-in-out',
         });
 
         this.$('.nv-group > rect:nth-child(n + ' + shownCols.toString() + ')').css({
             'opacity': 1,
-            'transition': 'all 0.3s ease-in-out',
         });
     },
 });
