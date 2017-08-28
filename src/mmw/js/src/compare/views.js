@@ -47,6 +47,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
 
     modelEvents: {
         'change:mode': 'showSectionsView',
+        'change:visibleScenarioIndex': 'highlightButtons',
     },
 
     regions: {
@@ -54,6 +55,25 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
         inputsRegion: '.compare-inputs',
         scenariosRegion: '#compare-title-row',
         sectionsRegion: '.compare-sections',
+    },
+
+    highlightButtons: function() {
+        var i = this.model.get('visibleScenarioIndex'),
+            total = this.model.get('scenarios').length,
+            prevButton = this.ui.prevButton,
+            nextButton = this.ui.nextButton;
+
+        if (i < 1) {
+            prevButton.removeClass('active');
+        } else {
+            prevButton.addClass('active');
+        }
+
+        if (i + 1 >= total) {
+            nextButton.removeClass('active');
+        } else {
+            nextButton.addClass('active');
+        }
     },
 
     onShow: function() {
@@ -74,6 +94,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
         }));
 
         showSectionsView();
+        this.highlightButtons();
     },
 
     showSectionsView: function() {
