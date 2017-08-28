@@ -350,6 +350,11 @@ var ChartView = Marionette.CollectionView.extend({
         'change:visibleScenarioIndex': 'slide',
     },
 
+    onRender: function() {
+        // To initialize chart correctly when switching between tabs
+        this.slide();
+    },
+
     slide: function() {
         var i = this.model.get('visibleScenarioIndex'),
             width = models.constants.COMPARE_COLUMN_WIDTH,
