@@ -336,17 +336,17 @@ var TabContentView = Marionette.LayoutView.extend({
         this.toggleActiveClass();
 
         this.resultRegion.show(new ResultsView({
-            collection: this.model.get('results'),
-            catalog: this.model.id,
+            collection: model.get('results'),
+            catalog: model.id,
         }));
 
         this.errorRegion.show(new ErrorView({
-            model: this.model,
+            model: model,
         }));
 
-        if (this.model.get('is_pageable')) {
+        if (model.get('is_pageable')) {
             this.pagerRegion.show(new PagerView({
-                model: this.model,
+                model: model,
             }));
         }
 
