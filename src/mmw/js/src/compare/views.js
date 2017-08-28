@@ -79,6 +79,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
     showSectionsView: function() {
         if (this.model.get('mode') === models.constants.CHART) {
             this.sectionsRegion.show(new ChartView({
+                model: this.model,
                 collection: this.model.get('tabs')
                                 .findWhere({ active: true })
                                 .get('charts'),
@@ -97,74 +98,19 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
     },
 
     nextScenario: function() {
-        var currMargin =
-                parseInt(
-                    $('.compare-scenario-row-content-container' +
-                      ' > .compare-scenario-row-content', this.$el)
-                        .css('margin-left')),
-            parentWidth =
-                parseInt(
-                    $('.compare-scenario-row-content-container', this.$el)
-                        .css('width')),
-            componentWidth =
-                (this.model.get('scenarios').length * models.constants.COMPARE_COLUMN_WIDTH),
-            lastScenario = this.model.get('scenarios').length - 1,
-            visibleScenarioIndex = this.model.get('visibleScenarioIndex'),
-            hiddenCols = parseInt(-1 * currMargin / models.constants.COMPARE_COLUMN_WIDTH + 1);
+        var visibleScenarioIndex = this.model.get('visibleScenarioIndex'),
+            last = this.model.get('scenarios').length - 1;
 
-        this.model.set({ visibleScenarioIndex: Math.min(++visibleScenarioIndex, lastScenario) });
-
-        if ((componentWidth - 14) > parentWidth) {
-            var newMargin = _.max(
-                [currMargin - models.constants.COMPARE_COLUMN_WIDTH,
-                 -(parentWidth)]);
-
-            $('.compare-chart-row' +
-                ' > .compare-scenario-row-content-container' +
-                ' > .compare-scenario-row-content', this.$el)
-                .css({
-                    'margin-left': newMargin.toString() + 'px',
-                });
-
-            this.$('.nvd3.nv-wrap.nv-axis').css({
-                'transform': 'translate(' + (-newMargin).toString() + 'px)',
-            });
-
-            this.$('.nv-group > rect:nth-child(-1n + ' + hiddenCols.toString() + ')').css({
-                'opacity': 0,
-            });
-        }
+        this.model.set({
+            visibleScenarioIndex: Math.min(++visibleScenarioIndex, last)
+        });
     },
 
     prevScenario: function() {
-        var currMargin =
-                parseInt(
-                    $('.compare-scenario-row-content-container' +
-                        ' > .compare-scenario-row-content', this.$el)
-                        .css('margin-left'));
-
-        var maxMargin = 0;
-        var newMargin = _.min([currMargin + models.constants.COMPARE_COLUMN_WIDTH, maxMargin]);
-
         var visibleScenarioIndex = this.model.get('visibleScenarioIndex');
 
-        var shownCols = parseInt(-1 * currMargin / models.constants.COMPARE_COLUMN_WIDTH);
-
-        this.model.set({ visibleScenarioIndex: Math.max(--visibleScenarioIndex, 0) });
-
-        $('.compare-chart-row' +
-            ' > .compare-scenario-row-content-container' +
-            ' > .compare-scenario-row-content', this.$el)
-            .css({
-                'margin-left': newMargin.toString() + 'px',
-            });
-
-        this.$('.nvd3.nv-wrap.nv-axis').css({
-            'transform': 'translate(' + (-newMargin).toString() + 'px)',
-        });
-
-        this.$('.nv-group > rect:nth-child(n + ' + shownCols.toString() + ')').css({
-            'opacity': 1,
+        this.model.set({
+            visibleScenarioIndex: Math.max(--visibleScenarioIndex, 0)
         });
     },
 });
@@ -399,6 +345,36 @@ var ChartRowView = Marionette.ItemView.extend({
 
 var ChartView = Marionette.CollectionView.extend({
     childView: ChartRowView,
+
+    modelEvents: {
+        'change:visibleScenarioIndex': 'slide',
+    },
+
+    slide: function() {
+        var i = this.model.get('visibleScenarioIndex'),
+            width = models.constants.COMPARE_COLUMN_WIDTH,
+            marginLeft = -i * width;
+
+        // Slide charts
+        this.$('.compare-scenario-row-content').css({
+            'margin-left': marginLeft + 'px',
+        });
+
+        // Slide axis
+        this.$('.nvd3.nv-wrap.nv-axis').css({
+            'transform': 'translate(' + (-marginLeft) + 'px)',
+        });
+
+        // Show charts from visibleScenarioIndex
+        this.$('.nv-group > rect:nth-child(n + ' + (i+1) + ')').css({
+            'opacity': 1,
+        });
+
+        // Hide charts up to visibleScenarioIndex
+        this.$('.nv-group > rect:nth-child(-n + ' + i + ')').css({
+            'opacity': 0,
+        });
+    },
 });
 
 var TableRowView = Marionette.ItemView.extend({
