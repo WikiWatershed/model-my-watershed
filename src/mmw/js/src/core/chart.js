@@ -314,7 +314,7 @@ function renderLineChart(chartEl, data, options) {
     });
 }
 
-function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax, data, columnWidth, xAxisWidth) {
+function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax, data, columnWidth, xAxisWidth, callback) {
     var options = {
             margin: {
                 top: 20,
@@ -322,6 +322,7 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
                 left: 60,
             },
         },
+        onRenderComplete = (callback) ? callback : _.noop,
         yTickFormat = stacked ? '0.1f' : yFormat(),
         chart = nv.models.multiBarChart(),
         svg = makeSvg(chartEl),
@@ -383,7 +384,7 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
           .call(chart);
 
         return chart;
-    });
+    }, onRenderComplete);
 }
 
 module.exports = {

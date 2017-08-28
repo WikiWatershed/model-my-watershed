@@ -308,7 +308,8 @@ var ChartRowView = Marionette.ItemView.extend({
     },
 
     renderChart: function() {
-        var chartDiv = this.model.get('chartDiv'),
+        var self = this,
+            chartDiv = this.model.get('chartDiv'),
             chartEl = document.getElementById(chartDiv),
             name = this.model.get('name'),
             label = this.model.get('unitLabel') +
@@ -335,11 +336,15 @@ var ChartRowView = Marionette.ItemView.extend({
                             y: value,
                         };
                     }),
-                }];
+                }],
+            onRenderComplete = function() {
+                self.triggerMethod('chart:rendered');
+            };
 
         $(chartEl.parentNode).css({ 'width': ((_.size(this.model.get('values')) * models.constants.COMPARE_COLUMN_WIDTH + models.constants.CHART_AXIS_WIDTH)  + 'px') });
         chart.renderCompareMultibarChart(
-            chartEl, name, label, colors, stacked, yMax, data, models.constants.COMPARE_COLUMN_WIDTH, models.constants.CHART_AXIS_WIDTH);
+            chartEl, name, label, colors, stacked, yMax, data,
+            models.constants.COMPARE_COLUMN_WIDTH, models.constants.CHART_AXIS_WIDTH, onRenderComplete);
     },
 });
 
@@ -352,6 +357,11 @@ var ChartView = Marionette.CollectionView.extend({
 
     onRender: function() {
         // To initialize chart correctly when switching between tabs
+        this.slide();
+    },
+
+    onChildviewChartRendered: function() {
+        // Update chart status after it is rendered
         this.slide();
     },
 
