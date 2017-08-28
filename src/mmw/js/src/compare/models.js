@@ -206,6 +206,7 @@ var WindowModel = Backbone.Model.extend({
         mode: CHART, // or TABLE
         scenarios: null, // ScenariosCollection
         tabs: null,  // TabsCollection
+        visibleScenarioIndex: 0, // Index of the first visible scenario
     },
 
     addOrReplaceInput: function(input) {

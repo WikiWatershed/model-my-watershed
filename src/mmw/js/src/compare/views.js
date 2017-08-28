@@ -69,6 +69,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
             model: this.model,
         }));
         this.scenariosRegion.show(new ScenariosRowView({
+            model: this.model,
             collection: this.model.get('scenarios'),
         }));
 
@@ -107,19 +108,16 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
                         .css('width')),
             componentWidth =
                 (this.model.get('scenarios').length * models.constants.COMPARE_COLUMN_WIDTH),
+            lastScenario = this.model.get('scenarios').length - 1,
+            visibleScenarioIndex = this.model.get('visibleScenarioIndex'),
             hiddenCols = parseInt(-1 * currMargin / models.constants.COMPARE_COLUMN_WIDTH + 1);
+
+        this.model.set({ visibleScenarioIndex: Math.min(++visibleScenarioIndex, lastScenario) });
 
         if ((componentWidth - 14) > parentWidth) {
             var newMargin = _.max(
                 [currMargin - models.constants.COMPARE_COLUMN_WIDTH,
                  -(parentWidth)]);
-
-            $('.compare-scenarios' +
-              ' > .compare-scenario-row-content-container' +
-              ' > .compare-scenario-row-content', this.$el)
-                .css({
-                    'margin-left': newMargin.toString() + 'px',
-                });
 
             $('.compare-chart-row' +
                 ' > .compare-scenario-row-content-container' +
@@ -148,14 +146,11 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
         var maxMargin = 0;
         var newMargin = _.min([currMargin + models.constants.COMPARE_COLUMN_WIDTH, maxMargin]);
 
+        var visibleScenarioIndex = this.model.get('visibleScenarioIndex');
+
         var shownCols = parseInt(-1 * currMargin / models.constants.COMPARE_COLUMN_WIDTH);
 
-        $('.compare-scenarios' +
-            ' > .compare-scenario-row-content-container' +
-            ' > .compare-scenario-row-content', this.$el)
-            .css({
-                'margin-left': newMargin.toString() + 'px',
-            });
+        this.model.set({ visibleScenarioIndex: Math.max(--visibleScenarioIndex, 0) });
 
         $('.compare-chart-row' +
             ' > .compare-scenario-row-content-container' +
@@ -337,6 +332,20 @@ var ScenarioItemView = Marionette.ItemView.extend({
 var ScenariosRowView = Marionette.CollectionView.extend({
     className: 'compare-scenario-row-content',
     childView: ScenarioItemView,
+
+    modelEvents: {
+        'change:visibleScenarioIndex': 'slide',
+    },
+
+    slide: function() {
+        var i = this.model.get('visibleScenarioIndex'),
+            width = models.constants.COMPARE_COLUMN_WIDTH,
+            marginLeft = -i * width;
+
+        this.$el.css({
+            'margin-left': marginLeft + 'px',
+        });
+    }
 });
 
 var ChartRowView = Marionette.ItemView.extend({
