@@ -29,10 +29,10 @@ urlpatterns = patterns(
                                namespace='rest_framework')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^accounts/', include(registration.backends.default.urls)),
-    url(r'^api/bigcz/', include(apps.bigcz.urls)),
-    url(r'^api/geocode/', include(apps.geocode.urls)),
-    url(r'^api/modeling/', include(apps.modeling.urls)),
-    url(r'^api/geoprocessing/', include(apps.geoprocessing_api.urls)),
+    url(r'^bigcz/', include(apps.bigcz.urls)),
+    url(r'^mmw/geocode/', include(apps.geocode.urls)),
+    url(r'^mmw/modeling/', include(apps.modeling.urls)),
+    url(r'^api/', include(apps.geoprocessing_api.urls)),
     url(r'^micro/', include(apps.water_balance.urls)),
     url(r'^user/', include(apps.user.urls))
 )

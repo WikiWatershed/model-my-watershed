@@ -49,7 +49,7 @@ var Tr55TaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
         {
             taskName: TR55_TASK,
-            taskType: 'modeling'
+            taskType: 'mmw/modeling'
         },
         coreModels.TaskModel.prototype.defaults
     )
@@ -59,7 +59,7 @@ var MapshedTaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
         {
             taskName: MAPSHED,
-            taskType: 'modeling'
+            taskType: 'mmw/modeling'
         },
         coreModels.TaskModel.prototype.defaults
     )
@@ -69,7 +69,7 @@ var GwlfeTaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
         {
             taskName: GWLFE,
-            taskType: 'modeling'
+            taskType: 'mmw/modeling'
         },
         coreModels.TaskModel.prototype.defaults
     )
@@ -122,7 +122,7 @@ var ResultCollection = Backbone.Collection.extend({
 });
 
 var ProjectModel = Backbone.Model.extend({
-    urlRoot: '/api/modeling/projects/',
+    urlRoot: '/mmw/modeling/projects/',
 
     defaults: {
         name: '',
@@ -398,7 +398,7 @@ var ProjectModel = Backbone.Model.extend({
 });
 
 var ProjectCollection = Backbone.Collection.extend({
-    url: '/api/modeling/projects/',
+    url: '/mmw/modeling/projects/',
 
     model: ProjectModel
 });
@@ -594,7 +594,7 @@ var GwlfeModificationModel = Backbone.Model.extend({
 });
 
 var ScenarioModel = Backbone.Model.extend({
-    urlRoot: '/api/modeling/scenarios/',
+    urlRoot: '/mmw/modeling/scenarios/',
 
     defaults: {
         name: '',

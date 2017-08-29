@@ -261,7 +261,7 @@ var scenarios = {
             "started": "2015-07-14T21:46:01.997Z",
             "status": "complete",
             "taskName": "tr55",
-            "taskType": "modeling",
+            "taskType": "mmw/modeling",
             "timeout": 5000
         },
         "user_id": 1

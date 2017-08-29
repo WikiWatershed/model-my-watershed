@@ -141,7 +141,7 @@ var App = new Marionette.Application({
 function RestAPI() {
     return {
         getPolygon: function(args) {
-            var url = '/api/modeling/boundary-layers/' + args.layerCode + '/' + args.shapeId;
+            var url = '/mmw/modeling/boundary-layers/' + args.layerCode + '/' + args.shapeId;
             return $.ajax({
                 'url': url,
                 'type': 'GET'

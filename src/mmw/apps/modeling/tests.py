@@ -513,21 +513,21 @@ class APIAccessTestCase(TestCase):
     def test_project_owner_can_get_private_project(self):
         self.create_private_project()
 
-        response = self.c.get('/api/modeling/projects/')
+        response = self.c.get('/mmw/modeling/projects/')
 
         self.assertEqual(response.status_code, 200)
 
     def test_project_owner_can_get_public_project(self):
         self.create_public_project()
 
-        response = self.c.get('/api/modeling/projects/')
+        response = self.c.get('/mmw/modeling/projects/')
 
         self.assertEqual(response.status_code, 200)
 
     def test_project_owner_can_put_private_project(self):
         project_id = self.create_private_project()
 
-        response = self.c.put('/api/modeling/projects/' + project_id,
+        response = self.c.put('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 200)
@@ -535,7 +535,7 @@ class APIAccessTestCase(TestCase):
     def test_project_owner_can_put_public_project(self):
         project_id = self.create_public_project()
 
-        response = self.c.put('/api/modeling/projects/' + project_id,
+        response = self.c.put('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 200)
@@ -543,7 +543,7 @@ class APIAccessTestCase(TestCase):
     def test_project_owner_can_delete_private_project(self):
         project_id = self.create_private_project()
 
-        response = self.c.delete('/api/modeling/projects/' + project_id,
+        response = self.c.delete('/mmw/modeling/projects/' + project_id,
                                  self.project, format='json')
 
         self.assertEqual(response.status_code, 204)
@@ -551,7 +551,7 @@ class APIAccessTestCase(TestCase):
     def test_project_owner_can_delete_public_project(self):
         project_id = self.create_public_project()
 
-        response = self.c.delete('/api/modeling/projects/' + project_id,
+        response = self.c.delete('/mmw/modeling/projects/' + project_id,
                                  self.project, format='json')
 
         self.assertEqual(response.status_code, 204)
@@ -562,7 +562,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.get('/api/modeling/projects/' + str(project_id))
+        response = self.c.get('/mmw/modeling/projects/' + str(project_id))
 
         self.assertEqual(response.status_code, 200)
 
@@ -572,7 +572,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.put('/api/modeling/projects/' + project_id,
+        response = self.c.put('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -583,7 +583,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.delete('/api/modeling/projects/' + project_id,
+        response = self.c.delete('/mmw/modeling/projects/' + project_id,
                                  self.project, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -594,7 +594,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.get('/api/modeling/projects/' + project_id,
+        response = self.c.get('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -605,7 +605,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.put('/api/modeling/projects/' + project_id,
+        response = self.c.put('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -616,7 +616,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.delete('/api/modeling/projects/' + project_id,
+        response = self.c.delete('/mmw/modeling/projects/' + project_id,
                                  self.project, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -626,7 +626,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.get('/api/modeling/projects/' + project_id,
+        response = self.c.get('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -636,7 +636,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.put('/api/modeling/projects/' + project_id,
+        response = self.c.put('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -646,7 +646,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.delete('/api/modeling/projects/' + project_id,
+        response = self.c.delete('/mmw/modeling/projects/' + project_id,
                                  self.project, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -656,7 +656,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.get('/api/modeling/projects/' + project_id,
+        response = self.c.get('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 200)
@@ -666,7 +666,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.put('/api/modeling/projects/' + project_id,
+        response = self.c.put('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -676,7 +676,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.delete('/api/modeling/projects/' + project_id,
+        response = self.c.delete('/mmw/modeling/projects/' + project_id,
                                  self.project, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -684,21 +684,21 @@ class APIAccessTestCase(TestCase):
     def test_project_owner_can_get_private_scenario(self):
         scenario_id = self.create_private_scenario()
 
-        response = self.c.get('/api/modeling/scenarios/' + scenario_id)
+        response = self.c.get('/mmw/modeling/scenarios/' + scenario_id)
 
         self.assertEqual(response.status_code, 200)
 
     def test_project_owner_can_get_public_scenario(self):
         scenario_id = self.create_public_scenario()
 
-        response = self.c.get('/api/modeling/scenarios/' + scenario_id)
+        response = self.c.get('/mmw/modeling/scenarios/' + scenario_id)
 
         self.assertEqual(response.status_code, 200)
 
     def test_project_owner_can_put_private_scenario(self):
         scenario_id = self.create_private_scenario()
 
-        response = self.c.put('/api/modeling/scenarios/' + scenario_id,
+        response = self.c.put('/mmw/modeling/scenarios/' + scenario_id,
                               self.scenario, format='json')
 
         self.assertEqual(response.status_code, 200)
@@ -706,7 +706,7 @@ class APIAccessTestCase(TestCase):
     def test_project_owner_can_put_public_scenario(self):
         scenario_id = self.create_public_scenario()
 
-        response = self.c.put('/api/modeling/scenarios/' + scenario_id,
+        response = self.c.put('/mmw/modeling/scenarios/' + scenario_id,
                               self.scenario, format='json')
 
         self.assertEqual(response.status_code, 200)
@@ -714,14 +714,14 @@ class APIAccessTestCase(TestCase):
     def test_project_owner_can_delete_private_scenario(self):
         scenario_id = self.create_private_scenario()
 
-        response = self.c.delete('/api/modeling/scenarios/' + scenario_id)
+        response = self.c.delete('/mmw/modeling/scenarios/' + scenario_id)
 
         self.assertEqual(response.status_code, 204)
 
     def test_project_owner_can_delete_public_scenario(self):
         scenario_id = self.create_public_scenario()
 
-        response = self.c.delete('/api/modeling/scenarios/' + scenario_id)
+        response = self.c.delete('/mmw/modeling/scenarios/' + scenario_id)
 
         self.assertEqual(response.status_code, 204)
 
@@ -731,7 +731,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.get('/api/modeling/scenarios/' + str(scenario_id))
+        response = self.c.get('/mmw/modeling/scenarios/' + str(scenario_id))
 
         self.assertEqual(response.status_code, 200)
 
@@ -741,7 +741,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.put('/api/modeling/scenarios/' + str(scenario_id),
+        response = self.c.put('/mmw/modeling/scenarios/' + str(scenario_id),
                               self.scenario, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -752,7 +752,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.delete('/api/modeling/scenarios/' + str(scenario_id))
+        response = self.c.delete('/mmw/modeling/scenarios/' + str(scenario_id))
 
         self.assertEqual(response.status_code, 404)
 
@@ -762,7 +762,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.get('/api/modeling/scenarios/' + str(scenario_id))
+        response = self.c.get('/mmw/modeling/scenarios/' + str(scenario_id))
 
         self.assertEqual(response.status_code, 404)
 
@@ -772,7 +772,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.put('/api/modeling/scenarios/' + str(scenario_id),
+        response = self.c.put('/mmw/modeling/scenarios/' + str(scenario_id),
                               self.scenario, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -783,7 +783,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.delete('/api/modeling/scenarios/' + str(scenario_id),
+        response = self.c.delete('/mmw/modeling/scenarios/' + str(scenario_id),
                                  self.scenario, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -793,7 +793,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.get('/api/modeling/scenarios/' + str(scenario_id))
+        response = self.c.get('/mmw/modeling/scenarios/' + str(scenario_id))
 
         self.assertEqual(response.status_code, 404)
 
@@ -802,7 +802,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.put('/api/modeling/scenarios/' + str(scenario_id),
+        response = self.c.put('/mmw/modeling/scenarios/' + str(scenario_id),
                               self.scenario, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -812,7 +812,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.delete('/api/modeling/scenarios/' + str(scenario_id),
+        response = self.c.delete('/mmw/modeling/scenarios/' + str(scenario_id),
                                  self.scenario, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -822,7 +822,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.get('/api/modeling/scenarios/' + str(scenario_id))
+        response = self.c.get('/mmw/modeling/scenarios/' + str(scenario_id))
 
         self.assertEqual(response.status_code, 200)
 
@@ -831,7 +831,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.put('/api/modeling/scenarios/' + str(scenario_id),
+        response = self.c.put('/mmw/modeling/scenarios/' + str(scenario_id),
                               self.scenario, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -841,7 +841,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.delete('/api/modeling/scenarios/' + str(scenario_id),
+        response = self.c.delete('/mmw/modeling/scenarios/' + str(scenario_id),
                                  self.scenario, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -854,7 +854,7 @@ class APIAccessTestCase(TestCase):
 
     def create_public_project(self):
         self.project['is_private'] = False
-        response = self.c.post('/api/modeling/projects/', self.project,
+        response = self.c.post('/mmw/modeling/projects/', self.project,
                                format='json')
 
         project_id = str(response.data['id'])
@@ -862,7 +862,7 @@ class APIAccessTestCase(TestCase):
         return project_id
 
     def create_private_project(self):
-        response = self.c.post('/api/modeling/projects/', self.project,
+        response = self.c.post('/mmw/modeling/projects/', self.project,
                                format='json')
 
         project_id = str(response.data['id'])
@@ -873,7 +873,7 @@ class APIAccessTestCase(TestCase):
         project_id = self.create_public_project()
         self.scenario['project'] = project_id
 
-        response = self.c.post('/api/modeling/scenarios/', self.scenario,
+        response = self.c.post('/mmw/modeling/scenarios/', self.scenario,
                                format='json')
 
         scenario_id = str(response.data['id'])
@@ -884,7 +884,7 @@ class APIAccessTestCase(TestCase):
         project_id = self.create_private_project()
         self.scenario['project'] = project_id
 
-        response = self.c.post('/api/modeling/scenarios/', self.scenario,
+        response = self.c.post('/mmw/modeling/scenarios/', self.scenario,
                                format='json')
 
         scenario_id = str(response.data['id'])

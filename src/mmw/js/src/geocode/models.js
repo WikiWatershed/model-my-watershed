@@ -13,7 +13,7 @@ var GeocoderModel = Backbone.Model.extend({
 });
 
 var SuggestionModel = Backbone.Model.extend({
-    url: '/api/geocode/',
+    url: '/mmw/geocode/',
     idAttribute: 'magicKey',
 
     defaults: {
@@ -84,7 +84,7 @@ var GeocodeSuggestions = Backbone.Collection.extend({
 
 var BoundarySuggestions = GeocodeSuggestions.extend({
     model: BoundarySuggestionModel,
-    url: '/api/modeling/boundary-layers-search'
+    url: '/mmw/modeling/boundary-layers-search'
 });
 
 // Composite collection which merges the results from
