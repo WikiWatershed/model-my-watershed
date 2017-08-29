@@ -8,6 +8,7 @@ from celery import chain, group
 
 from rest_framework.response import Response
 from rest_framework import decorators, status
+from rest_framework.exceptions import ParseError
 from rest_framework.permissions import (AllowAny,
                                         IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
@@ -253,6 +254,7 @@ def export_gms(request, format=None):
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
 def start_tr55(request, format=None):
+
     user = request.user if request.user.is_authenticated() else None
     created = now()
 
@@ -280,7 +282,8 @@ def _construct_tr55_job_chain(model_input, job_id):
 
     job_chain = []
 
-    aoi, wkaoi = parse_input(model_input, geojson=False)
+    aoi_json_str, wkaoi = parse_input(model_input)
+    aoi = json.loads(aoi_json_str)
     aoi_census = model_input.get('aoi_census')
     modification_censuses = model_input.get('modification_censuses')
     # Non-overlapping polygons derived from the modifications
@@ -540,7 +543,63 @@ def get_layer_shape(table_code, id):
             return None
 
 
-def parse_input(model_input, geojson=True):
+def parse_area_of_interest(area_of_interest):
+    """
+    Returns a geojson string of the provided area of interest, formatted
+    as a one-ring multipolygon if necessary.
+
+    Args:
+       area_of_interest (dict): valid geojson. If MultiPolygon, can only have a
+                                single ring.
+    """
+    try:
+        shape = geoprocessing.to_one_ring_multipolygon(area_of_interest)
+    except:
+        raise ParseError(detail='Area of interest must be valid GeoJSON')
+
+    return json.dumps(shape)
+
+
+def load_wkaoi(wkaoi):
+    """
+    Returns a geojson string of a wellknown AoI's shape
+
+    Args:
+       wkaoi (string): '{table}__{id}', where table is the table to look up the
+                       wellknown AOIs shape in, and id is the shape's id
+    """
+    table, id = wkaoi.split('__')
+    shape = get_layer_shape(table, id)
+
+    if not shape:
+        raise ParseError(detail='Invalid wkaoi: {}'.format(wkaoi))
+
+    return shape
+
+
+def load_area_of_interest(aoi_geojson=None, wkaoi=None):
+    """
+    Returns a geojson string of the area of interest, either loaded from the
+    wkaoi, or processed from the aoi_geojson
+
+    Args:
+       aoi_geojson (dict): valid GeoJSON. If MultiPolygon can only have
+                           a single ring.
+                           No re-projection, expects EPSG: 4326
+       wkaoi (string):     '{table}__{id}'
+    """
+    if (aoi_geojson):
+        return parse_area_of_interest(aoi_geojson)
+
+    if (wkaoi):
+        return load_wkaoi(wkaoi)
+
+    raise ParseError(detail='Must supply either ' +
+                            'the area of interest (GeoJSON), ' +
+                            'or a WKAoI ID.')
+
+
+def parse_input(model_input):
     """
     Parse input into tuple of AoI JSON and WKAoI id.
 
@@ -549,38 +608,16 @@ def parse_input(model_input, geojson=True):
     from the appropriate database, and returned with the value of 'wkaoi' as
     the WKAoI.
 
-    If the geojson parameter is set to False, the area of interest is returned
-    as a dict instead of a JSON string.
+    Args:
+        model_input: a dictionary, only one of the keys is necessary
+                         {
+                            'area_of_interest': { <geojson dict> }
+                            'wkaoi': '{table}__{id}',
+                         }
     """
     if not model_input:
-        return Response('model_input cannot be empty',
-                        status=status.HTTP_400_BAD_REQUEST)
+        raise ParseError(detail='model_input cannot be empty')
 
-    if isinstance(model_input, basestring):
-        # Input is string, assumed JSON. Convert to dict before proceeding
-        model_input = json.loads(model_input)
-
-    if 'area_of_interest' in model_input:
-        # Area of Interest is expected to be GeoJSON in 4326
-        shape = geoprocessing.to_one_ring_multipolygon(
-            model_input['area_of_interest']
-        )
-
-        result = json.dumps(shape) if geojson else shape
-        return result, None
-
-    if 'wkaoi' in model_input:
-        # WKAoI is expected to be in the format '{table}__{id}'
-        table, id = model_input['wkaoi'].split('__')
-        shape = get_layer_shape(table, id)
-
-        if shape:
-            result = shape if geojson else json.loads(shape)
-            return result, model_input['wkaoi']
-        else:
-            return Response('Invalid wkaoi: {}'.format(model_input['wkaoi']),
-                            status=status.HTTP_400_BAD_REQUEST)
-
-    # If neither 'area_of_interest' nor 'wkaoi' were found, report
-    return Response('model_input must have either area_of_interest or wkaoi',
-                    status=status.HTTP_400_BAD_REQUEST)
+    wkaoi = model_input.get('wkaoi', None)
+    return load_area_of_interest(model_input.get('area_of_interest', None),
+                                 wkaoi), wkaoi

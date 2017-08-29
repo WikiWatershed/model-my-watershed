@@ -450,11 +450,12 @@ var TaskModel = Backbone.Model.extend({
         timeout: 45000,
     },
 
-    url: function() {
+    url: function(queryParams) {
+        var encodedQueryParams = queryParams ? '?' + $.param(queryParams) : '';
         if (this.get('job')) {
             return '/' + this.get('taskType') + '/jobs/' + this.get('job') + '/';
         } else {
-            return '/' + this.get('taskType') + '/' + this.get('taskName') + '/';
+            return '/' + this.get('taskType') + '/' + this.get('taskName') + '/' + encodedQueryParams;
         }
     },
 
@@ -486,8 +487,10 @@ var TaskModel = Backbone.Model.extend({
         }
         var self = this,
             startDefer = self.fetch({
+                url: self.url(taskHelper.queryParams),
                 method: 'POST',
-                data: taskHelper.postData
+                data: taskHelper.postData,
+                contentType: taskHelper.contentType
             }),
             pollingDefer = $.Deferred();
 

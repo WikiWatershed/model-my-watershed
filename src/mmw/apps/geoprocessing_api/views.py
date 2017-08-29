@@ -14,7 +14,7 @@ from django.core.urlresolvers import reverse
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
 from apps.modeling import geoprocessing
-from apps.modeling.views import parse_input
+from apps.modeling.views import load_area_of_interest
 from apps.geoprocessing_api import tasks
 
 
@@ -56,7 +56,8 @@ def start_rwd(request, format=None):
 def start_analyze_land(request, format=None):
     user = request.user if request.user.is_authenticated() else None
 
-    area_of_interest, wkaoi = parse_input(request.data['analyze_input'])
+    wkaoi = request.query_params.get('wkaoi', None)
+    area_of_interest = load_area_of_interest(request.data, wkaoi)
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -71,7 +72,8 @@ def start_analyze_land(request, format=None):
 def start_analyze_soil(request, format=None):
     user = request.user if request.user.is_authenticated() else None
 
-    area_of_interest, wkaoi = parse_input(request.data['analyze_input'])
+    wkaoi = request.query_params.get('wkaoi', None)
+    area_of_interest = load_area_of_interest(request.data, wkaoi)
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -85,7 +87,9 @@ def start_analyze_soil(request, format=None):
 @decorators.permission_classes((AllowAny, ))
 def start_analyze_animals(request, format=None):
     user = request.user if request.user.is_authenticated() else None
-    area_of_interest, __ = parse_input(request.data['analyze_input'])
+
+    wkaoi = request.query_params.get('wkaoi', None)
+    area_of_interest = load_area_of_interest(request.data, wkaoi)
 
     return start_celery_job([
         tasks.analyze_animals.s(area_of_interest)
@@ -96,7 +100,9 @@ def start_analyze_animals(request, format=None):
 @decorators.permission_classes((AllowAny, ))
 def start_analyze_pointsource(request, format=None):
     user = request.user if request.user.is_authenticated() else None
-    area_of_interest, __ = parse_input(request.data['analyze_input'])
+
+    wkaoi = request.query_params.get('wkaoi', None)
+    area_of_interest = load_area_of_interest(request.data, wkaoi)
 
     return start_celery_job([
         tasks.analyze_pointsource.s(area_of_interest)
@@ -107,7 +113,9 @@ def start_analyze_pointsource(request, format=None):
 @decorators.permission_classes((AllowAny, ))
 def start_analyze_catchment_water_quality(request, format=None):
     user = request.user if request.user.is_authenticated() else None
-    area_of_interest, __ = parse_input(request.data['analyze_input'])
+
+    wkaoi = request.query_params.get('wkaoi', None)
+    area_of_interest = load_area_of_interest(request.data, wkaoi)
 
     return start_celery_job([
         tasks.analyze_catchment_water_quality.s(area_of_interest)
