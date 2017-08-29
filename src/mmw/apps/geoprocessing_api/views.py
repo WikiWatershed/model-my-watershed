@@ -9,6 +9,7 @@ from rest_framework import decorators
 from rest_framework.permissions import AllowAny
 
 from django.utils.timezone import now
+from django.core.urlresolvers import reverse
 
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
@@ -45,7 +46,8 @@ def start_rwd(request, format=None):
         {
             'job': task_list.id,
             'status': 'started',
-        }
+        },
+        headers={'Location': reverse('get_job', args=[task_list.id])}
     )
 
 
@@ -150,5 +152,6 @@ def start_celery_job(task_list, job_input, user=None):
         {
             'job': task_chain.id,
             'status': 'started',
-        }
+        },
+        headers={'Location': reverse('get_job', args=[task_chain.id])}
     )
