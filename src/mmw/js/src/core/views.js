@@ -44,6 +44,16 @@ var dataCatalogActiveStyle = {
     fillOpacity: 0.2
 };
 
+var dataCatalogDetailStyle = {
+    stroke: true,
+    color: 'steelblue',
+    weight: 3,
+    opacity: 1,
+    fill: true,
+    fillColor: 'steelblue',
+    fillOpacity: 0.5
+};
+
 var selectedGeocoderAreaStyle = {
     stroke: true,
     fill: true,
@@ -207,6 +217,7 @@ var MapView = Marionette.ItemView.extend({
         'change:maskLayerApplied': 'toggleMask',
         'change:dataCatalogResults': 'renderDataCatalogResults',
         'change:dataCatalogActiveResult': 'renderDataCatalogActiveResult',
+        'change:dataCatalogDetailResult': 'renderDataCatalogDetailResult',
         'change:selectedGeocoderArea': 'renderSelectedGeocoderArea',
     },
 
@@ -225,6 +236,7 @@ var MapView = Marionette.ItemView.extend({
     // L.FeatureGroup instance
     _dataCatalogResultsLayer: null,
     _dataCatalogActiveLayer: null,
+    _dataCatalogDetailLayer: null,
 
     // The shape for a selected geocoder boundary result
     // L.FeatureGroup instance
@@ -260,6 +272,7 @@ var MapView = Marionette.ItemView.extend({
         this._modificationsLayer = new L.FeatureGroup();
         this._dataCatalogResultsLayer = new L.FeatureGroup();
         this._dataCatalogActiveLayer = new L.FeatureGroup();
+        this._dataCatalogDetailLayer = new L.FeatureGroup();
         this._selectedGeocoderAreaLayer = new L.FeatureGroup();
 
         this.fitToDefaultBounds();
@@ -300,6 +313,7 @@ var MapView = Marionette.ItemView.extend({
         map.addLayer(this._modificationsLayer);
         map.addLayer(this._dataCatalogResultsLayer);
         map.addLayer(this._dataCatalogActiveLayer);
+        map.addLayer(this._dataCatalogDetailLayer);
         map.addLayer(this._selectedGeocoderAreaLayer);
     },
 
@@ -397,6 +411,11 @@ var MapView = Marionette.ItemView.extend({
 
             // Get the maximum zoom level for the initial location
             this.updateGoogleMaxZoom({ target: this._leafletMap });
+        }
+
+        if (settings.get('data_catalog_enabled')) {
+            this._leafletMap.on('zoomend', this.renderDataCatalogDetailResult, this);
+            this._leafletMap.on('moveend', this.renderDataCatalogDetailResult, this);
         }
     },
 
@@ -724,20 +743,33 @@ var MapView = Marionette.ItemView.extend({
     },
 
     renderDataCatalogActiveResult: function() {
-        var geom = this.model.get('dataCatalogActiveResult'),
-            mapBounds = this._leafletMap.getBounds();
+        var geom = this.model.get('dataCatalogActiveResult');
 
-        this._dataCatalogActiveLayer.clearLayers();
-        this.$el.removeClass('bigcz-highlight-map');
+        this._renderDataCatalogResult(geom, this._dataCatalogActiveLayer,
+            'bigcz-highlight-map', dataCatalogActiveStyle);
+    },
+
+    renderDataCatalogDetailResult: function() {
+        var geom = this.model.get('dataCatalogDetailResult');
+
+        this._renderDataCatalogResult(geom, this._dataCatalogDetailLayer,
+            'bigcz-detail-map', dataCatalogDetailStyle);
+    },
+
+    _renderDataCatalogResult: function(geom, featureGroup, className, style) {
+        var mapBounds = this._leafletMap.getBounds();
+
+        featureGroup.clearLayers();
+        this.$el.removeClass(className);
 
         if (geom) {
             if ((geom.type === 'MultiPolygon' || geom.type === 'Polygon') &&
                 drawUtils.shapeBoundingBox(geom).contains(mapBounds)) {
-                this.$el.addClass('bigcz-highlight-map');
+                this.$el.addClass(className);
             } else {
                 var layer = this.createDataCatalogShape(geom);
-                layer.setStyle(dataCatalogActiveStyle);
-                this._dataCatalogActiveLayer.addLayer(layer);
+                layer.setStyle(style);
+                featureGroup.addLayer(layer);
             }
         }
     },

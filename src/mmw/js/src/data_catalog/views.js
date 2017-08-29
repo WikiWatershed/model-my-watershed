@@ -129,18 +129,22 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
 
         if (!detailResult) {
             this.closeDetails();
-            App.map.set('dataCatalogActiveResult', null);
+            App.map.set('dataCatalogDetailResult', null);
         } else {
             this.detailsRegion.show(new ResultDetailsView({
                 model: detailResult,
                 activeCatalog: activeCatalog.id
             }));
-            App.map.set('dataCatalogActiveResult', detailResult.get('geom'));
+            App.map.set({
+                'dataCatalogResults': null,
+                'dataCatalogDetailResult': detailResult.get('geom')
+            });
         }
     },
 
     closeDetails: function() {
         this.detailsRegion.empty();
+        this.updateMap();
     },
 
     doSearch: function() {

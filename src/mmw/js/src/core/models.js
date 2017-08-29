@@ -23,6 +23,7 @@ var MapModel = Backbone.Model.extend({
         previousAreaOfInterest: null,
         dataCatalogResults: null,       // GeoJSON array
         dataCatalogActiveResult: null,  // GeoJSON
+        dataCatalogDetailResult: null,  // GeoJSON
         selectedGeocoderArea: null,     // GeoJSON
     },
 
