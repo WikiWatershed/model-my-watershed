@@ -17,7 +17,7 @@ var SuggestionModel = Backbone.Model.extend({
     idAttribute: 'magicKey',
 
     defaults: {
-        zoom: 18,
+        zoom: 14,
         isBoundaryLayer: false
     },
 
