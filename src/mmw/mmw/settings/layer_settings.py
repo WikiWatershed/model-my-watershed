@@ -12,10 +12,14 @@ For basemaps, maxZoom must be defined.
 
 from os.path import join, dirname, abspath
 from collections import OrderedDict
+
 import json
 
 from django.contrib.gis.geos import GEOSGeometry
 from tr55_settings import NLCD_MAPPING, SOIL_MAPPING
+
+# [01, 02, ...] style list for layer time sliders
+MONTH_CODES = [str(m).zfill(2) for m in range(1, 13)]
 
 # Full perimeter of the Delaware River Basin (DRB).
 drb_perimeter_path = join(dirname(abspath(__file__)), 'data/drb_perimeter.json')
@@ -121,6 +125,32 @@ LAYER_GROUPS = {
                 SOIL_MAPPING[7],
                 SOIL_MAPPING[4],
             ]),
+        },
+        {
+            'code': 'mean_ppt',
+            'display': 'Mean Monthly Precipitation',
+            'short_display': 'Mean Precip',
+            'css_class_prefix': 'ppt',
+            'helptext': 'PRISM monthly mean precipitation.',
+            'url': 'https://{s}.tiles.azavea.com/climate/ppt_{month}/{z}/{x}/{y}.png',  # noqa
+            'maxNativeZoom': 10,
+            'maxZoom': 18,
+            'opacity': 0.85,
+            'has_opacity_slider': True,
+            'time_slider_values': MONTH_CODES,
+        },
+        {
+            'code': 'mean_temp',
+            'display': 'Mean Monthly Temperature',
+            'short_display': 'Mean Temp',
+            'css_class_prefix': 'ppt',
+            'helptext': 'PRISM monthly mean temperature.',
+            'url': 'https://{s}.tiles.azavea.com/climate/tmean_{month}/{z}/{x}/{y}.png',  # noqa
+            'maxNativeZoom': 10,
+            'maxZoom': 18,
+            'opacity': 0.85,
+            'has_opacity_slider': True,
+            'time_slider_values': MONTH_CODES,
         },
         {
             'code': 'urban_areas',

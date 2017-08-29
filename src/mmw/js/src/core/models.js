@@ -124,6 +124,8 @@ var LayerModel = Backbone.Model.extend({
         googleType: false,
         disabled: false,
         hasOpacitySlider: false,
+        hasTimeSlider: false,
+        timeLayers: null,
         legendMapping: null,
         cssClassPrefix: null,
         active: false,
@@ -131,6 +133,7 @@ var LayerModel = Backbone.Model.extend({
 
     buildLayer: function(layerSettings, layerType, initialActive) {
         var leafletLayer,
+            timeLayers,
             googleMaps = (window.google ? window.google.maps : null);
 
         // Check to see if the google api service has been loaded
@@ -151,6 +154,22 @@ var LayerModel = Backbone.Model.extend({
             leafletLayer = new L.TileLayer(tileUrl, layerSettings);
         }
 
+        if (layerSettings.time_slider_values) {
+            // A tile layer which provides the url based on a current setting
+            timeLayers = layerSettings.time_slider_values.map(function(period) {
+                var monthUrl = tileUrl.replace(/{month}/, period);
+
+                _.defaults(layerSettings, {
+                    zIndex: utils.layerGroupZIndices[layerType],
+                    attribution: '',
+                    minZoom: 0});
+
+                return new L.TileLayer(monthUrl, layerSettings);
+            });
+
+            leafletLayer = timeLayers[0];
+        }
+
         this.set({
             leafletLayer: leafletLayer,
             layerType: layerType,
@@ -163,6 +182,8 @@ var LayerModel = Backbone.Model.extend({
             googleType: layerSettings.googleType,
             disabled: false,
             hasOpacitySlider: layerSettings.has_opacity_slider,
+            hasTimeSlider: !!layerSettings.time_slider_values,
+            timeLayers: timeLayers,
             legendMapping: layerSettings.legend_mapping,
             cssClassPrefix: layerSettings.css_class_prefix,
             active: layerSettings.display === initialActive ? true : false,
@@ -205,6 +226,7 @@ var LayerGroupModel = Backbone.Model.extend({
         layers: null,
         mustHaveActive: false,
         canSelectMultiple: false,
+        selectedTimeLayerIdx: 0,
     },
 });
 

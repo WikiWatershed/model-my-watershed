@@ -58,39 +58,87 @@ var utils = {
         if (!selectedLayer.get('leafletLayer') && selectedLayer.get('googleType')) {
             this.loadGoogleLayer(selectedLayer);
         }
-        var currentActiveLayers = layers.where({ active: true });
-        var isInCurrentActive = _.includes(currentActiveLayers, selectedLayer);
+        var currentActiveLayers = layers.where({ active: true }),
+             isInCurrentActive = _.includes(currentActiveLayers, selectedLayer);
+
         if (currentActiveLayers.length > 0) {
             // Works like a checkbox
             if (layerGroup.get('canSelectMultiple')) {
                 if (isInCurrentActive) {
-                    selectedLayer.set('active', false);
-                    map.removeLayer(selectedLayer.get('leafletLayer'));
+                    this._removeLayer(selectedLayer, map);
                 } else {
-                    selectedLayer.set('active', true);
-                    map.addLayer(selectedLayer.get('leafletLayer'));
+                    this._addLayer(selectedLayer, layerGroup, map);
                 }
             // Works like radio buttons
             } else {
                 if (isInCurrentActive && !layerGroup.get('mustHaveActive')) {
-                    selectedLayer.set('active', false);
-                    map.removeLayer(selectedLayer.get('leafletLayer'));
+                    this._removeLayer(selectedLayer, map);
                 } else {
                     var currentActiveLayer = currentActiveLayers[0];
-                    currentActiveLayer.set('active', false);
-                    map.removeLayer(currentActiveLayer.get('leafletLayer'));
-                    selectedLayer.set('active', true);
-                    map.addLayer(selectedLayer.get('leafletLayer'));
+                    this._removeLayer(currentActiveLayer, map);
+                    this._addLayer(selectedLayer, layerGroup, map);
                 }
             }
         } else {
-            selectedLayer.set('active', true);
-            map.addLayer(selectedLayer.get('leafletLayer'));
+            this._addLayer(selectedLayer, layerGroup, map);
         }
+
         if (layerGroup.get('name') === "Basemaps") {
             map.fireEvent('baselayerchange', selectedLayer.get('leafletLayer'));
         }
         layerGroup.trigger('toggle:layer');
+    },
+
+    /**
+     * Toggles a time period layer from the current layer's time period to the
+     * the index stored in the group layer state.
+     *
+     * @param {LayerModel} layer - The selected layer model to add to the map
+     * @param {LayerGroupModel} layerGroup - The layer group this layer belongs to
+     * @param {Leaflet.Map} map - The map to add this layer to
+     */
+    toggleTimeLayer: function(selectedLayer, map, layerGroup) {
+        this._removeLayer(selectedLayer, map);
+        this._addLayer(selectedLayer, layerGroup, map);
+
+        // Maintain the opacity value from the other time periods in the group
+        var groupOpacity = layerGroup.get('selectedOpacityValue') / 100;
+        selectedLayer.get('leafletLayer').setOpacity(groupOpacity);
+    },
+
+    /**
+     * Remove a layer from the map.
+     *
+     * @param {LayerModel} layer - The selected layer model to remove
+     * @param {Leaflet.Map} map - The map from which to remove
+     */
+    _removeLayer: function(layer, map) {
+        layer.set('active', false);
+        map.removeLayer(layer.get('leafletLayer'));
+    },
+
+    /**
+     * Set the new layer on the map.  If there are multiple time series layers
+     * uses the most recently selected time period.
+     *
+     * @param {LayerModel} layer - The selected layer model to add to the map
+     * @param {LayerGroupModel} layerGroup - The layer group this layer belongs to
+     * @param {Leaflet.Map} map - The map to add this layer to
+     */
+    _addLayer: function(layer, layerGroup, map) {
+        var hasTimeSlider = layer.get('hasTimeSlider'),
+            leafletLayer = layer.get('leafletLayer');
+
+        if (hasTimeSlider) {
+            // If the layer has multiple time periods, use the most recently set
+            // time period on the group for continuity.
+            var timeLayerIdx = layerGroup.get('selectedTimeLayerIdx');
+            leafletLayer = layer.get('timeLayers')[timeLayerIdx];
+            layer.set('leafletLayer', leafletLayer);
+        }
+
+        layer.set('active', true);
+        map.addLayer(leafletLayer);
     },
 
     // A function for enabling/disabling modal buttons.  In additiion
