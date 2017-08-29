@@ -108,6 +108,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
             }));
         } else {
             this.sectionsRegion.show(new TableView({
+                model: this.model,
                 collection: this.model.get('tabs')
                                 .findWhere({ active: true })
                                 .get('table'),
@@ -425,6 +426,26 @@ var TableView = Marionette.CollectionView.extend({
     collectionEvents: {
         'change': 'render',
     },
+
+    modelEvents: {
+        'change:visibleScenarioIndex': 'slide',
+    },
+
+    onRender: function() {
+        // To initialize table correctly when switching between tabs,
+        // and when receiving new values from server
+        this.slide();
+    },
+
+    slide: function() {
+        var i = this.model.get('visibleScenarioIndex'),
+            width = models.constants.COMPARE_COLUMN_WIDTH,
+            marginLeft = -i * width;
+
+        this.$('.compare-scenario-row-content').css({
+            'margin-left': marginLeft + 'px',
+        });
+    }
 });
 
 var CompareWindow = Marionette.LayoutView.extend({
