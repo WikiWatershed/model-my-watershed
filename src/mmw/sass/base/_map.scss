@@ -6,9 +6,14 @@
   right: 0;
   transition: all 200ms;
 
-  // Set top of map to combined height of initial header and toolbar.
-  &.-projectheader {
+  // Set top of map to combined height of initial header and model toolbar + project toolbar
+  &.-toolbarheader {
     top: $height-xl * 2 + $height-lg;
+  }
+
+  // Set top of map to combined height of initial header and project toolbar
+  &.-projectheader {
+      top: $height-xl + $height-lg;
   }
 
   // Sets map to correct container size for sidebar.

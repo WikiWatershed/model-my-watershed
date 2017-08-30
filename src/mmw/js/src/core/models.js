@@ -57,9 +57,11 @@ var MapModel = Backbone.Model.extend({
     },
 
     setNoHeaderSidebarSize: function(fit, sidebarWidth) {
-        var hasSidebar = true,
-            hasProjectHeader = false;
-        this._setSizeOptions(fit, hasProjectHeader, hasSidebar, sidebarWidth);
+        this._setSizeOptions({
+            fit: fit,
+            hasSidebar: true,
+            sidebarWidth: sidebarWidth,
+        });
     },
 
     setDrawSize: function(fit) {
@@ -70,14 +72,24 @@ var MapModel = Backbone.Model.extend({
         this.setNoHeaderSidebarSize(fit);
     },
 
+    setAnalyzeModelSize: function(fit) {
+        this._setSizeOptions({
+            fit: fit,
+            hasProjectHeader: true,
+            hasSidebar: true,
+        });
+    },
+
     setDataCatalogSize: function(fit) {
         this.setNoHeaderSidebarSize(fit, utils.sidebarWide);
     },
 
     setModelSize: function(fit) {
-        var hasSidebar = true,
-            hasProjectHeader = true;
-        this._setSizeOptions(fit, hasProjectHeader, hasSidebar);
+        this._setSizeOptions({
+            fit: fit,
+            hasToolbarHeader: true,
+            hasSidebar: true,
+        });
     },
 
     toggleSidebar: function() {
@@ -88,25 +100,22 @@ var MapModel = Backbone.Model.extend({
         this.set('size', updatedSize);
     },
 
-// Set the sizing options for the map
-//      param: fit                  - bool, true if should fit the map to the AoI
-//      param: hasProjectHeader     - bool, true if the -projectheader class should
-//                                    be on the map container
-//      param: hasSidebar           - bool, true if the -sidebar class should
-//                                    be on the map container
-//      param: sidebarWidth         - string, if matches width option (eg 'wide'),
-//                                    and `hasSidebar === true`, map will add
-//                                    class to container accordingly.
-//                                    If option doesn't exist or is falsey, no
-//                                    class will be added, and map container will
-//                                    use the default sidebar size if `hasSidebar`
-    _setSizeOptions: function(fit, hasProjectHeader, hasSidebar, sidebarWidth) {
-        this.set('size', {
-            fit: fit,
-            hasProjectHeader: hasProjectHeader,
-            hasSidebar: hasSidebar,
-            sidebarWidth: sidebarWidth,
-        });
+// Set the sizing options for the map. `options` are...
+//      fit                  - bool, true if should fit the map to the AoI
+//      hasProjectHeader     - bool, true if the -projectheader class should
+//                             be on the map container
+//      hasToolbarHeader     - bool, true if the -toolbarheader class should
+//                             be on the map container
+//      hasSidebar           - bool, true if the -sidebar class should
+//                             be on the map container
+//      barWidth             - string, if matches width option (eg 'wide'),
+//                             and `hasSidebar === true`, map will add
+//                             class to container accordingly.
+//                             If option doesn't exist or is falsey, no
+//                             class will be added, and map container will
+//                             use the default sidebar size if `hasSidebar`
+    _setSizeOptions: function(options) {
+        this.set('size', options);
     }
 
 });

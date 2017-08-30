@@ -79,12 +79,15 @@ header {
 
 //Model Header
 #model-header {
-  background-color: $ui-secondary;
-  height: $height-xl*2;
+    background-color: $ui-secondary;
 
-  &.bigcz {
-    height: $height-xl;
-  }
+    &.bigcz {
+        height: $height-xl;
+    }
+
+    #project-menu-region {
+        height: $height-xl;
+    }
 
     .project {
       position: relative;
@@ -112,19 +115,18 @@ header {
       }
     }
 
-  .toolbar {
-    position: absolute;
-    top: $height-xl;
-    left: 0;
-    right: 0;
-    padding: 0rem 1rem 0 1rem;
-    background-color: $ui-light;
-    height: $height-xl;
-    line-height: $height-xl - 2px;
-    display: flex;
-    flex: 0 0 100%;
-    flex-direction: row;
-    flex-wrap: nowrap;
+    .toolbar {
+        height: $height-xl;
+        left: 0;
+        right: 0;
+        padding: 0rem 1rem 0 1rem;
+        background-color: $ui-light;
+        height: $height-xl;
+        line-height: $height-xl - 2px;
+        display: flex;
+        flex: 0 0 100%;
+        flex-direction: row;
+        flex-wrap: nowrap;
 
     .tooltip-inner {
         white-space: normal;

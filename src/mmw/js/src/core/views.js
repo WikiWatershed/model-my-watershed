@@ -601,6 +601,7 @@ var MapView = Marionette.ItemView.extend({
             $container = this.$el.parent();
 
         $container.toggleClass('-projectheader', !!size.hasProjectHeader);
+        $container.toggleClass('-toolbarheader', !!size.hasToolbarHeader);
         $container.toggleClass('-sidebar', !!size.hasSidebar);
         $container.toggleClass('-wide', !!size.hasSidebar &&
             size.sidebarWidth === coreUtils.sidebarWide);

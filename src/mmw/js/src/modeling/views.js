@@ -40,10 +40,18 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
     model: models.ProjectModel,
     template: modelingHeaderTmpl,
 
+    ui: {
+        scenarioAndToolbarContainer: '.toolbar'
+    },
+
     regions: {
         projectMenuRegion: '#project-menu-region',
         scenariosRegion: '#scenarios-region',
         toolbarRegion: '#toolbar-region'
+    },
+
+    modelEvents: {
+        'change:showing_analyze': 'toggleToolbar',
     },
 
     initialize: function() {
@@ -52,6 +60,16 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         this.listenTo(App.user, 'change', this.reRender);
         this.listenTo(this.model, 'change:id', this.reRender);
         this.listenTo(App.user, 'change:guest', this.saveAfterLogin);
+    },
+
+    toggleToolbar: function() {
+        this.ui.scenarioAndToolbarContainer.toggleClass('hidden');
+
+        if (this.model.get('showing_analyze')) {
+            App.map.setAnalyzeModelSize();
+        } else {
+            App.map.setModelSize();
+        }
     },
 
     reRender: function() {
@@ -106,6 +124,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
         privacy: '#project-privacy',
         itsiClone: '#itsi-clone',
         newProject: '#new-project',
+        showAnalyze: '#show-analyze',
+        showModel: '#show-model',
     },
 
     events: {
@@ -117,6 +137,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
         'click @ui.privacy': 'setProjectPrivacy',
         'click @ui.itsiClone': 'getItsiEmbedLink',
         'click @ui.newProject': 'createNewProject',
+        'click @ui.showAnalyze': 'showAnalyze',
+        'click @ui.showModel': 'showModel',
     },
 
     template: projectMenuTmpl,
@@ -276,6 +298,14 @@ var ProjectMenuView = Marionette.ItemView.extend({
         App.getMapView().fitToDefaultBounds();
         App.getMapView().setupGeoLocation(true);
         router.navigate('draw/', { trigger: true });
+    },
+
+    showAnalyze: function() {
+        this.model.set('showing_analyze', true);
+    },
+
+    showModel: function() {
+        this.model.set('showing_analyze', false);
     }
 });
 
