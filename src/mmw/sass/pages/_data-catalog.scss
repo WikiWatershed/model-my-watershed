@@ -179,6 +179,20 @@
         padding: 10px;
     }
 
+    .resource {
+        background: $paper;
+        padding: 10px;
+        margin: 0 10px 3px 10px;
+        cursor: pointer;
+
+        &:hover {
+            background: #F3F3F3;
+        }
+    }
+}
+
+.data-catalog-window,
+.data-catalog-resource-popover {
     .resource-description {
         color: $ui-grey;
         font-size: $font-size-h5;
@@ -196,16 +210,20 @@
         text-overflow: ellipsis;
     }
 
-    .resource {
-        background: $paper;
-        padding: 10px;
-        margin: 0 10px 3px 10px;
-        cursor: pointer;
-
-        &:hover {
-            background: #F3F3F3;
+    .resource-detail.-showall {
+        display: flex;
+        white-space: normal;
+        overflow: auto;
+        text-overflow: initial;
+        > i {
+            flex: 0 0 18px;
         }
+        > .detail-text {
+            display: inline;
+        }
+    }
 
+    .resource {
         .resource-title {
             font-size: $font-size-h4;
             font-weight: 600;
