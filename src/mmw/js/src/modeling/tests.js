@@ -61,7 +61,7 @@ describe('Modeling', function() {
                     collection = projectModel.get('scenarios'),
                     view = new views.ScenarioToolbarView({
                         collection: collection,
-                        model_package: "tr-55"
+                        model: projectModel,
                     });
 
                 $(sandboxSelector).html(view.render().el);
@@ -73,16 +73,17 @@ describe('Modeling', function() {
         });
 
         describe('ScenarioToolbarView', function() {
-            it('does not show the add changes button when there are non-current condition scenario', function() {
+            it('does not show the non-current condition scenario buttons', function() {
                 var collection = getTestScenarioCollection(),
                     view = new views.ScenarioToolbarView({
                         collection: collection,
-                        model_package: "tr-55"
+                        model: getTestProject(),
                     });
 
                 $(sandboxSelector).html(view.render().el);
 
                 assert.equal($('#sandbox #add-changes').text(), '');
+                assert.equal($('#sandbox #download-cc-gms').text(), '');
             });
         });
 

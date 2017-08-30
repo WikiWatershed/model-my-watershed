@@ -72,7 +72,7 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         App.currentProject.fetchGisDataIfNeeded().done(function() {
             self.toolbarRegion.show(new ScenarioToolbarView({
                 collection: self.model.get('scenarios'),
-                model_package: self.model.get('model_package')
+                model: self.model
             }));
         });
     },
@@ -432,10 +432,7 @@ var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         var gis_data = this.model.getGisData().model_input,
-            is_gwlfe = App.currentProject.get('model_package') === models.GWLFE &&
-                    gis_data !== null &&
-                    gis_data !== '{}' &&
-                    gis_data !== '';
+            is_gwlfe = App.currentProject.get('model_package') === models.GWLFE && !_.isEmpty(gis_data);
 
         return {
             is_gwlfe: is_gwlfe,
@@ -793,13 +790,17 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
     template: scenarioAddChangesButtonTmpl,
     collection: models.ScenariosCollection,
     childViewContainer: '.tab-content.scenario-toolbar-tab-content',
+    className: 'toolbar-container',
 
     ui: {
         addChangesButton: '#add-changes',
+        downloadGmsFile: '#download-cc-gms',
+        exportGmsForm: '#export-gms-form',
     },
 
     events: {
         'click @ui.addChangesButton': 'onAddChangesClick',
+        'click @ui.downloadGmsFile': 'onGmsDownloadClick',
     },
 
     collectionEvents: {
@@ -807,38 +808,59 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
     },
 
     getChildView: function() {
-        var isGwlfe = App.currentProject.get('model_package') === 'gwlfe';
+        var isGwlfe = this.modelPackage === models.GWLFE;
+
         if (isGwlfe) {
             return GwlfeToolbarView;
         } else {
             return Tr55ToolbarView;
         }
     },
+
     childViewOptions: function(model) {
         var controls = models.getControlsForModelPackage(
-            this.options.model_package,
-            {is_current_conditions: model.get('is_current_conditions')}
-        );
+                this.modelPackage,
+                {is_current_conditions: model.get('is_current_conditions')}
+            );
 
         return {
             collection: controls
         };
     },
 
-    initialize: function(options) {
-        this.mergeOptions(options, ['model_package']);
+    initialize: function() {
+        this.modelPackage = this.model.get('model_package');
+        this.currentConditions= this.collection.findWhere({is_current_conditions: true});
     },
 
     onAddChangesClick: function() {
         this.collection.createNewScenario();
     },
 
+    onGmsDownloadClick: function() {
+        // We can't download a file from an AJAX call. One either has to
+        // load the data in an iframe, or submit a form that responds with
+        // Content-Disposition: attachment. We prefer submitting a form.
+        var filename = App.currentProject.get('name').replace(/\s/g, '_') +
+                       '__' + this.currentConditions.get('name').replace(/\s/g, '_');
+
+        this.ui.exportGmsForm.find('.gms-filename').val(filename);
+        this.ui.exportGmsForm.submit();
+    },
+
     templateHelpers: function() {
+        var gisData = this.currentConditions.getGisData().model_input,
+            isGwlfe = this.modelPackage === models.GWLFE && !_.isEmpty(gisData),
+            isOnlyCurrentConditions = this.collection.length === 1 &&
+                this.collection.first().get('is_current_conditions');
+
         return {
-            isOnlyCurrentConditions: this.collection.length === 1 &&
-                this.collection.first().get('is_current_conditions'),
+            isOnlyCurrentConditions: isOnlyCurrentConditions,
+            isGwlfe: isGwlfe,
+            csrftoken: csrf.getToken(),
+            gis_data: gisData,
         };
-    }
+    },
 });
 
 var ResultsView = Marionette.LayoutView.extend({
