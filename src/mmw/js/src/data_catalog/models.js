@@ -1,7 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     Backbone = require('../../shim/backbone'),
     turfIntersect = require('turf-intersect'),
     App = require('../app'),
@@ -10,6 +10,17 @@ var $ = require('jquery'),
 var REQUEST_TIMED_OUT_CODE = 408;
 var DESCRIPTION_MAX_LENGTH = 100;
 var PAGE_SIZE = settings.get('data_catalog_page_size');
+
+var SearchOption = Backbone.Model.extend({
+    defaults: {
+        id: '',
+        active: false,
+    },
+});
+
+var SearchOptions = Backbone.Collection.extend({
+    model: SearchOption,
+});
 
 var Catalog = Backbone.Model.extend({
     defaults: {
@@ -24,6 +35,8 @@ var Catalog = Backbone.Model.extend({
         active: false,
         results: null, // Results collection
         resultCount: 0,
+        has_filters: false, // If local filters apply
+        options: null,      // SearchOptions collection
         is_pageable: true,
         page: 1,
         error: '',
@@ -34,6 +47,14 @@ var Catalog = Backbone.Model.extend({
         var self = this;
         this.get('results').on('change:show_detail', function() {
             self.set('detail_result', self.get('results').getDetail());
+        });
+
+        // Initialize and listen to options for changes
+        if (this.get('options') === null) {
+            this.set({ options: new SearchOptions() });
+        }
+        this.get('options').on('change:active', function() {
+            self.startSearch(1);
         });
     },
 
@@ -76,6 +97,9 @@ var Catalog = Backbone.Model.extend({
     startSearch: function(page) {
         var lastPage = Math.ceil(this.get('resultCount') / PAGE_SIZE),
             thisPage = parseInt(page) || 1,
+            has_filters = this.get('has_filters'),
+            options = this.get('options'),
+            id = function(option) { return option.id; },
             data = {
                 catalog: this.id,
                 query: this.get('query'),
@@ -86,6 +110,12 @@ var Catalog = Backbone.Model.extend({
 
         if (thisPage > 1 && thisPage <= lastPage) {
             _.assign(data, { page: thisPage });
+        }
+
+        if (has_filters && options) {
+            _.assign(data, {
+                options: options.where({ active: true }).map(id).join(',')
+            });
         }
 
         this.set('loading', true);
@@ -160,8 +190,8 @@ var Result = Backbone.Model.extend({
         description: '',
         geom: null, // GeoJSON
         links: null, // Array
-        created: '',
-        updated: '',
+        created_at: '',
+        updated_at: '',
         show_detail: false // Show this result as the detail view?
     },
 
@@ -260,6 +290,8 @@ var SearchForm = Backbone.Model.extend({
 });
 
 module.exports = {
+    SearchOption: SearchOption,
+    SearchOptions: SearchOptions,
     Catalog: Catalog,
     Catalogs: Catalogs,
     Result: Result,

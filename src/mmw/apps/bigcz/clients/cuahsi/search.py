@@ -29,8 +29,33 @@ DATE_MIN = date(1900, 1, 1)
 DATE_MAX = date(2100, 1, 1)
 DATE_FORMAT = '%m/%d/%Y'
 
+GRIDDED = [
+    'NWS-WGRFC_Hourly_MPE',
+    'NWS_WGRFC_Daily_MPE_Recent_Values',
+    'LMRFC_Data',
+    'GLDAS_NOAH',
+    'NLDAS_FORA',
+    'NLDAS_NOAH',
+    'TRMM_3B42_7',
+]
 
 client = Client(CATALOG_URL, timeout=settings.BIGCZ_CLIENT_TIMEOUT)
+
+
+def filter_networkIDs(services, gridded=False):
+    """
+    Transforms list of services to list of ServiceIDs, with respect to
+    given options.
+
+    If gridded=False, then GRIDDED services will not be included.
+
+    If no filters apply, we return an empty list to disable filtering.
+    """
+    if not gridded:
+        return [str(s.ServiceID) for s in services
+                if s.NetworkName not in GRIDDED]
+
+    return []
 
 
 def parse_geom(record):
@@ -173,7 +198,7 @@ def get_services_in_box(box):
         return []
 
 
-def get_series_catalog_in_box(box, from_date, to_date):
+def get_series_catalog_in_box(box, from_date, to_date, networkIDs):
     from_date = from_date or DATE_MIN
     to_date = to_date or DATE_MAX
 
@@ -183,7 +208,7 @@ def get_series_catalog_in_box(box, from_date, to_date):
                           ymin=box.ymin,
                           ymax=box.ymax,
                           conceptKeyword='',
-                          networkIDs='',
+                          networkIDs=','.join(networkIDs),
                           beginDate=from_date.strftime(DATE_FORMAT),
                           endDate=to_date.strftime(DATE_FORMAT))
 
@@ -201,6 +226,7 @@ def search(**kwargs):
     bbox = kwargs.get('bbox')
     to_date = kwargs.get('to_date')
     from_date = kwargs.get('from_date')
+    gridded = 'gridded' in kwargs.get('options')
 
     if not bbox:
         raise ValidationError({
@@ -209,9 +235,10 @@ def search(**kwargs):
     box = BBox(bbox)
     world = BBox('-180,-90,180,90')
 
-    series = get_series_catalog_in_box(box, from_date, to_date)
-    series = group_series_by_location(series)
     services = get_services_in_box(world)
+    networkIDs = filter_networkIDs(services, gridded)
+    series = get_series_catalog_in_box(box, from_date, to_date, networkIDs)
+    series = group_series_by_location(series)
     results = sorted(parse_records(series, services),
                      key=attrgetter('end_date'),
                      reverse=True)
