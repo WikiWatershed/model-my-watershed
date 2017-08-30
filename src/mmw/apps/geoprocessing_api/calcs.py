@@ -51,7 +51,7 @@ def animal_population(geojson):
 def point_source_pollution(geojson):
     """
     Given a GeoJSON shape, retrieve point source pollution data
-    from the `ms_pointsource` or `ms_pointsource_drb table to display
+    from the `ms_pointsource` or `ms_pointsource_drb` table to display
     in the Analyze tab.
 
     Returns a dictionary to append to the outgoing JSON for analysis
