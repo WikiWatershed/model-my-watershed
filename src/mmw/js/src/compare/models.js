@@ -6,7 +6,10 @@ var _ = require('lodash'),
     ControlsCollection = require('../modeling/models').ModelPackageControlsCollection;
 
 var CHART = 'chart',
-    TABLE = 'table';
+    TABLE = 'table',
+    MIN_VISIBLE_SCENARIOS = 3,
+    CHART_AXIS_WIDTH = 82,
+    COMPARE_COLUMN_WIDTH = 134;
 
 var ChartRowModel = Backbone.Model.extend({
     defaults: {
@@ -204,6 +207,7 @@ var WindowModel = Backbone.Model.extend({
         mode: CHART, // or TABLE
         scenarios: null, // ScenariosCollection
         tabs: null,  // TabsCollection
+        visibleScenarioIndex: 0, // Index of the first visible scenario
     },
 
     addOrReplaceInput: function(input) {
@@ -225,5 +229,8 @@ module.exports = {
     constants: {
         CHART: CHART,
         TABLE: TABLE,
+        MIN_VISIBLE_SCENARIOS: MIN_VISIBLE_SCENARIOS,
+        CHART_AXIS_WIDTH: CHART_AXIS_WIDTH,
+        COMPARE_COLUMN_WIDTH: COMPARE_COLUMN_WIDTH,
     },
 };

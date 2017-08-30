@@ -35,14 +35,19 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
 
     ui: {
         closeButton: '.compare-close > button',
+        nextButton: '.compare-scenario-buttons > .btn-next-scenario',
+        prevButton: '.compare-scenario-buttons > .btn-prev-scenario',
     },
 
     events: _.defaults({
         'click @ui.closeButton': 'hide',
+        'click @ui.nextButton' : 'nextScenario',
+        'click @ui.prevButton' : 'prevScenario',
     }, modalViews.ModalBaseView.prototype.events),
 
     modelEvents: {
         'change:mode': 'showSectionsView',
+        'change:visibleScenarioIndex': 'highlightButtons',
     },
 
     regions: {
@@ -50,6 +55,26 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
         inputsRegion: '.compare-inputs',
         scenariosRegion: '#compare-title-row',
         sectionsRegion: '.compare-sections',
+    },
+
+    highlightButtons: function() {
+        var i = this.model.get('visibleScenarioIndex'),
+            total = this.model.get('scenarios').length,
+            minScenarios = models.constants.MIN_VISIBLE_SCENARIOS,
+            prevButton = this.ui.prevButton,
+            nextButton = this.ui.nextButton;
+
+        if (i < 1) {
+            prevButton.removeClass('active');
+        } else {
+            prevButton.addClass('active');
+        }
+
+        if (i + minScenarios >= total) {
+            nextButton.removeClass('active');
+        } else {
+            nextButton.addClass('active');
+        }
     },
 
     onShow: function() {
@@ -65,21 +90,25 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
             model: this.model,
         }));
         this.scenariosRegion.show(new ScenariosRowView({
+            model: this.model,
             collection: this.model.get('scenarios'),
         }));
 
         showSectionsView();
+        this.highlightButtons();
     },
 
     showSectionsView: function() {
         if (this.model.get('mode') === models.constants.CHART) {
             this.sectionsRegion.show(new ChartView({
+                model: this.model,
                 collection: this.model.get('tabs')
                                 .findWhere({ active: true })
                                 .get('charts'),
             }));
         } else {
             this.sectionsRegion.show(new TableView({
+                model: this.model,
                 collection: this.model.get('tabs')
                                 .findWhere({ active: true })
                                 .get('table'),
@@ -89,6 +118,24 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
 
     onModalHidden: function() {
         App.rootView.compareRegion.empty();
+    },
+
+    nextScenario: function() {
+        var visibleScenarioIndex = this.model.get('visibleScenarioIndex'),
+            last = Math.max(0, this.model.get('scenarios').length -
+                               models.constants.MIN_VISIBLE_SCENARIOS);
+
+        this.model.set({
+            visibleScenarioIndex: Math.min(++visibleScenarioIndex, last)
+        });
+    },
+
+    prevScenario: function() {
+        var visibleScenarioIndex = this.model.get('visibleScenarioIndex');
+
+        this.model.set({
+            visibleScenarioIndex: Math.max(--visibleScenarioIndex, 0)
+        });
     },
 });
 
@@ -255,6 +302,20 @@ var ScenarioItemView = Marionette.ItemView.extend({
 var ScenariosRowView = Marionette.CollectionView.extend({
     className: 'compare-scenario-row-content',
     childView: ScenarioItemView,
+
+    modelEvents: {
+        'change:visibleScenarioIndex': 'slide',
+    },
+
+    slide: function() {
+        var i = this.model.get('visibleScenarioIndex'),
+            width = models.constants.COMPARE_COLUMN_WIDTH,
+            marginLeft = -i * width;
+
+        this.$el.css({
+            'margin-left': marginLeft + 'px',
+        });
+    }
 });
 
 var ChartRowView = Marionette.ItemView.extend({
@@ -271,7 +332,8 @@ var ChartRowView = Marionette.ItemView.extend({
     },
 
     renderChart: function() {
-        var chartDiv = this.model.get('chartDiv'),
+        var self = this,
+            chartDiv = this.model.get('chartDiv'),
             chartEl = document.getElementById(chartDiv),
             name = this.model.get('name'),
             label = this.model.get('unitLabel') +
@@ -298,15 +360,60 @@ var ChartRowView = Marionette.ItemView.extend({
                             y: value,
                         };
                     }),
-                }];
+                }],
+            onRenderComplete = function() {
+                self.triggerMethod('chart:rendered');
+            };
 
+        $(chartEl.parentNode).css({ 'width': ((_.size(this.model.get('values')) * models.constants.COMPARE_COLUMN_WIDTH + models.constants.CHART_AXIS_WIDTH)  + 'px') });
         chart.renderCompareMultibarChart(
-            chartEl, name, label, colors, stacked, yMax, data);
+            chartEl, name, label, colors, stacked, yMax, data,
+            models.constants.COMPARE_COLUMN_WIDTH, models.constants.CHART_AXIS_WIDTH, onRenderComplete);
     },
 });
 
 var ChartView = Marionette.CollectionView.extend({
     childView: ChartRowView,
+
+    modelEvents: {
+        'change:visibleScenarioIndex': 'slide',
+    },
+
+    onRender: function() {
+        // To initialize chart correctly when switching between tabs
+        this.slide();
+    },
+
+    onChildviewChartRendered: function() {
+        // Update chart status after it is rendered
+        this.slide();
+    },
+
+    slide: function() {
+        var i = this.model.get('visibleScenarioIndex'),
+            width = models.constants.COMPARE_COLUMN_WIDTH,
+            marginLeft = -i * width;
+
+        // Slide charts
+        this.$('.compare-scenario-row-content').css({
+            'margin-left': marginLeft + 'px',
+        });
+
+        // Slide axis
+        this.$('.nvd3.nv-wrap.nv-axis').css({
+            'transform': 'translate(' + (-marginLeft) + 'px)',
+        });
+
+        // Show charts from visibleScenarioIndex
+        this.$('.nv-group > rect:nth-child(n + ' + (i+1) + ')').css({
+            'opacity': 1,
+        });
+
+        // Hide charts up to visibleScenarioIndex
+        this.$('.nv-group > rect:nth-child(-n + ' + i + ')').css({
+            'opacity': 0,
+        });
+    },
 });
 
 var TableRowView = Marionette.ItemView.extend({
@@ -319,6 +426,26 @@ var TableView = Marionette.CollectionView.extend({
     collectionEvents: {
         'change': 'render',
     },
+
+    modelEvents: {
+        'change:visibleScenarioIndex': 'slide',
+    },
+
+    onRender: function() {
+        // To initialize table correctly when switching between tabs,
+        // and when receiving new values from server
+        this.slide();
+    },
+
+    slide: function() {
+        var i = this.model.get('visibleScenarioIndex'),
+            width = models.constants.COMPARE_COLUMN_WIDTH,
+            marginLeft = -i * width;
+
+        this.$('.compare-scenario-row-content').css({
+            'margin-left': marginLeft + 'px',
+        });
+    }
 });
 
 var CompareWindow = Marionette.LayoutView.extend({
