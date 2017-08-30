@@ -753,7 +753,7 @@ var MapView = Marionette.ItemView.extend({
                 self.model.set('dataCatalogActiveResult', null);
             });
             layer.bindPopup(new PopoverView({
-                    model: resultModels.findWhere({ id: layer.options.id }),
+                    model: result,
                     catalog: catalogId
                 }).render().el, { className: 'data-catalog-popover' });
         });
