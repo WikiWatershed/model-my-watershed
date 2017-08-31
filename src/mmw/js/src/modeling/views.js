@@ -900,8 +900,13 @@ var ResultsView = Marionette.LayoutView.extend({
     template: resultsWindowTmpl,
 
     regions: {
+        aoiRegion: '.aoi-region',
         analyzeRegion: '#analyze-tab-contents',
         modelingRegion: '#modeling-tab-contents'
+    },
+
+    modelEvents: {
+        'change:showing_analyze': 'toggleAoiRegion',
     },
 
     initialize: function(options) {
@@ -940,6 +945,25 @@ var ResultsView = Marionette.LayoutView.extend({
                 collection: scenario.get('results'),
                 scenario: scenario
             }));
+        }
+    },
+
+    showAoiRegion: function() {
+        this.aoiRegion.show(new analyzeViews.AoiView({
+            model: new coreModels.GeoModel({
+                place: App.map.get('areaOfInterestName'),
+                shape: App.map.get('areaOfInterest')
+            })
+        }));
+    },
+
+    toggleAoiRegion: function() {
+        this.aoiRegion.$el.toggleClass('hidden');
+
+        if (this.model.get('showing_analyze')) {
+            this.showAoiRegion();
+        } else {
+            this.aoiRegion.empty();
         }
     },
 
@@ -1012,7 +1036,7 @@ var ResultsTabPanelView = Marionette.ItemView.extend({
 var ResultsTabPanelsView = Marionette.CollectionView.extend({
     collection: models.ResultCollection,
     tagName: 'ul',
-    className: 'nav nav-tabs',
+    className: 'nav nav-tabs model-nav-tabs',
     attributes: {
         role: 'tablist'
     },
@@ -1105,7 +1129,7 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
 var ResultsTabContentsView = Marionette.CollectionView.extend({
     collection: models.ResultCollection,
     tagName: 'div',
-    className: 'tab-content',
+    className: 'tab-content model-tab-content',
     childView: ResultsTabContentView,
     childViewOptions: function() {
         return {

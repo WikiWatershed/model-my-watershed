@@ -35,14 +35,21 @@
 }
 
 .model-stage-results-tab-pane {
-    .nav-tabs {
+    .model-nav-tabs {
         background-color: $paper;
     }
-    .tab-content {
+    .model-tab-content {
     // Set a specific height to allow y-scroll:
     // Calc: height under the main header (height-lg), project header, model-toolbar,
     // (height-xl) and sidebar nav tabs (sidebar-nav-tabs)
       height: calc(100% - #{$height-xl} * 2 - #{$height-lg} - #{$sidebar-header-height}) !important;
+    }
+
+    .analyze-tab-content {
+        // Set a specific height to allow y-scroll:
+        // Calc: height under the main header (height-lg), project header,
+        // (height-xl, aoi region (aoi-header-height) and sidebar nav tabs (sidebar-nav-tabs)
+        height: calc(100% - #{$height-xl} - #{$height-lg} - #{$aoi-header-height} - #{$sidebar-header-height}) !important;
     }
 }
 
