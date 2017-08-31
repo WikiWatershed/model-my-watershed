@@ -8,7 +8,7 @@ from celery import shared_task
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 
-from apps.modeling.geoprocessing import start, finish, parse
+from apps.modeling.geoprocessing import run, parse
 from apps.modeling.mapshed.calcs import (day_lengths,
                                          nearest_weather_stations,
                                          growing_season,
@@ -410,8 +410,7 @@ def nlcd_kfactor(result):
     return output
 
 
-def geoprocessing_chains(aoi, wkaoi, exchange, errback, choose_worker):
-    worker = choose_worker()
+def geoprocessing_chains(aoi, wkaoi, errback):
     task_defs = [
         ('nlcd_soils',   nlcd_soils,   {'polygon': [aoi]}),
         ('gwn',          gwn,          {'polygon': [aoi]}),
@@ -424,13 +423,8 @@ def geoprocessing_chains(aoi, wkaoi, exchange, errback, choose_worker):
     ]
 
     return [
-        start.s(opname, data, wkaoi).set(exchange=exchange,
-                                         routing_key=worker) |
-        finish.s().set(exchange=exchange,
-                       routing_key=worker) |
-        callback.s().set(link_error=errback,
-                         exchange=exchange,
-                         routing_key=choose_worker())
+        run.s(opname, data, wkaoi) |
+        callback.s().set(link_error=errback)
         for (opname, callback, data) in task_defs
     ]
 

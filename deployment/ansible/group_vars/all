@@ -42,11 +42,10 @@ docker_version: "1.9.*"
 docker_py_version: "1.2.3"
 docker_options: "--storage-driver=aufs"
 
-sjs_host: "localhost"
-sjs_port: 8090
-sjs_container_image: "quay.io/azavea/spark-jobserver:0.6.1"
+geop_host: "localhost"
+geop_port: 8090
 
-geop_version: "2.1.0"
+geop_version: "3.0.0-beta-1"
 geop_cache_enabled: 1
 
 nginx_cache_dir: "/var/cache/nginx"

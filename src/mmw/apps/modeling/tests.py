@@ -423,11 +423,10 @@ class TaskRunnerTestCase(TestCase):
                                                     self.job.id)
 
         # Make sure the chain is well-formed
-        self.assertTrue('geoprocessing.start' in str(job_chain[0]))
-        self.assertTrue('geoprocessing.finish' in str(job_chain[1]))
+        self.assertTrue('geoprocessing.run' in str(job_chain[0]))
 
         # Modify the chain to prevent it from trying to talk to endpoint
-        job_chain = [get_test_histogram.s()] + job_chain[2:]
+        job_chain = [get_test_histogram.s()] + job_chain[1:]
         task_list = chain(job_chain).apply_async()
 
         found_job = Job.objects.get(uuid=task_list.id)
@@ -461,8 +460,7 @@ class TaskRunnerTestCase(TestCase):
         job_chain = views._construct_tr55_job_chain(model_input,
                                                     self.job.id)
 
-        self.assertTrue('geoprocessing.start' in str(job_chain[0]))
-        self.assertTrue('geoprocessing.finish' in str(job_chain[1]))
+        self.assertTrue('geoprocessing.run' in str(job_chain[0]))
 
         job_chain = [get_test_histogram.s()] + job_chain[2:]
 
@@ -512,8 +510,7 @@ class TaskRunnerTestCase(TestCase):
                                                     self.job.id)
 
         skipped_tasks = [
-            'start',
-            'finish',
+            'run',
             'nlcd_soil_census'
         ]
 
@@ -550,8 +547,7 @@ class TaskRunnerTestCase(TestCase):
         # Job chain is the same as if no census exists because
         # we still need to generate modification censuses
         needed_tasks = [
-            'start',
-            'finish',
+            'run',
             'nlcd_soil_census',
             'run_tr55'
         ]
@@ -576,7 +572,7 @@ class TaskRunnerTestCase(TestCase):
                             else False for t in needed_tasks]),
                         'missing necessary job in chain')
 
-        self.assertTrue(cached_argument in str(job_chain[3]))
+        self.assertTrue(cached_argument in str(job_chain[2]))
 
     def test_tr55_chain_doesnt_generate_aoi_census_if_it_exists_and_no_mods(self):  # noqa
         """If the AoI census exists in the model input, and there are no modifications,
@@ -597,8 +593,7 @@ class TaskRunnerTestCase(TestCase):
         self.model_input['modification_pieces'] = []
 
         skipped_tasks = [
-            'start',
-            'finish',
+            'run',
             'nlcd_soil_census',
         ]
 
@@ -658,8 +653,7 @@ class TaskRunnerTestCase(TestCase):
         skipped_tasks = []
 
         needed_tasks = [
-            'start',
-            'finish',
+            'run',
             'nlcd_soil_census',
             'run_tr55'
         ]
@@ -686,8 +680,7 @@ class TaskRunnerTestCase(TestCase):
         skipped_tasks = []
 
         needed_tasks = [
-            'start',
-            'finish',
+            'run',
             'nlcd_soil_census',
             'run_tr55'
         ]
