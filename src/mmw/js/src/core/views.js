@@ -41,7 +41,8 @@ var dataCatalogActiveStyle = {
     opacity: 1,
     fill: true,
     fillColor: 'gold',
-    fillOpacity: 0.2
+    fillOpacity: 0.2,
+    pointerEvents: 'none'
 };
 
 var selectedGeocoderAreaStyle = {
