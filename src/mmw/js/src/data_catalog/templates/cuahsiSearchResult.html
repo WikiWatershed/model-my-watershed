@@ -12,8 +12,11 @@
 <div class="resource-detail">
     <i class="fa fa-file-text-o"></i> {{ service_org }}<!-- , {{ service_code }} -->
 </div>
-<div class="resource-detail">
-    <i class="fa fa-subscript"></i> {{ concept_keywords }}
+<div class="resource-detail -showall">
+    <i class="fa fa-subscript"></i>
+    <div class="detail-text">
+        {{ concept_keywords }}
+    </div>
 </div>
 <div class="resource-detail">
     {% if begin_date == end_date %}
