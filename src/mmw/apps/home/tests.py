@@ -147,7 +147,7 @@ class RouteAccessTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         cloned_project_id = response.url.rsplit('/', 1)[1]
 
-        clone_response = self.c.get('/api/modeling/projects/' +
+        clone_response = self.c.get('/mmw/modeling/projects/' +
                                     cloned_project_id, format='json')
 
         self.assertEqual(clone_response.status_code, 200)
@@ -162,7 +162,7 @@ class RouteAccessTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         cloned_project_id = response.url.rsplit('/', 1)[1]
 
-        clone_response = self.c.get('/api/modeling/projects/' +
+        clone_response = self.c.get('/mmw/modeling/projects/' +
                                     cloned_project_id, format='json')
 
         self.assertEqual(clone_response.status_code, 200)
@@ -170,7 +170,7 @@ class RouteAccessTestCase(TestCase):
 
     def create_public_project(self):
         self.project['is_private'] = False
-        response = self.c.post('/api/modeling/projects/', self.project,
+        response = self.c.post('/mmw/modeling/projects/', self.project,
                                format='json')
 
         project_id = str(response.data['id'])
@@ -178,7 +178,7 @@ class RouteAccessTestCase(TestCase):
         return project_id
 
     def create_private_project(self):
-        response = self.c.post('/api/modeling/projects/', self.project,
+        response = self.c.post('/mmw/modeling/projects/', self.project,
                                format='json')
 
         project_id = str(response.data['id'])

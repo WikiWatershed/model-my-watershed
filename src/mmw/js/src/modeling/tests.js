@@ -285,7 +285,7 @@ describe('Modeling', function() {
                         'My Projects'
                     ];
 
-                this.server.respondWith('POST', '/api/modeling/projects/',
+                this.server.respondWith('POST', '/mmw/modeling/projects/',
                                         [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
 
                 project.save();
@@ -305,7 +305,7 @@ describe('Modeling', function() {
                     view = new views.ProjectMenuView({ model: project }),
                     projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[],"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}';
 
-                this.server.respondWith('POST', '/api/modeling/projects/',
+                this.server.respondWith('POST', '/mmw/modeling/projects/',
                                         [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
 
                 project.save();
@@ -356,7 +356,7 @@ describe('Modeling', function() {
                         'My Projects'
                     ];
 
-                this.server.respondWith('POST', '/api/modeling/projects/',
+                this.server.respondWith('POST', '/mmw/modeling/projects/',
                             [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
 
                 project.save();
@@ -487,7 +487,7 @@ describe('Modeling', function() {
 
                 it('calls #save on the project and sets the id on every scenario that\'s part of the project', function() {
                     var projectResponse = '{"id":57,"user":{"id":1,"username":"test","email":"test@azavea.com"},"name":"My Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}';
-                    this.server.respondWith('POST', '/api/modeling/projects/',
+                    this.server.respondWith('POST', '/mmw/modeling/projects/',
                                             [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
 
                     var project = getTestProject(getTestScenarioCollection()),
@@ -506,9 +506,9 @@ describe('Modeling', function() {
                     var projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}',
                         scenarioResponse = '{"id":32,"name":"Current Conditions","is_current_conditions":true,"modifications":[],"modification_hash":null,"results":null,"created_at":"2015-06-03T20:09:12.161075Z","modified_at":"2015-06-03T20:09:12.161117Z","project":21}';
 
-                    this.server.respondWith('POST', '/api/modeling/projects/',
+                    this.server.respondWith('POST', '/mmw/modeling/projects/',
                                             [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
-                    this.server.respondWith('POST', '/api/modeling/scenarios/',
+                    this.server.respondWith('POST', '/mmw/modeling/scenarios/',
                                             [ 200, { 'Content-Type': 'application/json' }, scenarioResponse ]);
 
                     var project = getTestProject(getTestScenarioCollection());
@@ -524,7 +524,7 @@ describe('Modeling', function() {
                 it('correctly constructs the nested project model from the server response', function(done) {
                     var projectResponse = '{"id":22,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[{"id":28,"name":"Current Conditions","is_current_conditions":true,"modifications":[],"modification_hash":null,"results":null,"created_at":"2015-06-01T20:23:37.689469Z","modified_at":"2015-06-03T19:09:17.795635Z","project":22},{"id":30,"name":"New Scenario 1","is_current_conditions":false,"modifications":[],"modification_hash":null,"results":null,"created_at":"2015-06-03T15:46:46.794796Z","modified_at":"2015-06-03T19:09:17.902091Z","project":22},{"id":31,"name":"New Scenario","is_current_conditions":false,"modifications":[],"modification_hash":null,"results":null,"created_at":"2015-06-03T19:09:17.983346Z","modified_at":"2015-06-03T19:09:17.983386Z","project":22}],"name":"real deal","area_of_interest":{"type":"MultiPolygon","coordinates":[[[[-76.28631591796875,40.32037295438762],[-76.28219604492188,39.97817244470628],[-75.15609741210938,39.9602803542957],[-75.1519775390625,40.31827882257792],[-76.28631591796875,40.32037295438762]]]]},"is_private":true,"model_package":"tr-55","created_at":"2015-06-01T20:23:37.535349Z","modified_at":"2015-06-03T19:09:17.670821Z"}';
 
-                    this.server.respondWith('GET', '/api/modeling/projects/22',
+                    this.server.respondWith('GET', '/mmw/modeling/projects/22',
                                             [ 200, { 'Content-Type': 'application/json' }, projectResponse ]);
 
                     var project = new models.ProjectModel({ id: 22 });
@@ -732,9 +732,9 @@ describe('Modeling', function() {
                     this.clock = sinon.useFakeTimers();
 
                     var model = getTestScenarioModel();
-                    this.server.respondWith('POST', '/api/modeling/start/tr55/',
+                    this.server.respondWith('POST', '/mmw/modeling/start/tr55/',
                                             [200, { 'Content-Type': 'application/json' }, mocks.polling.getTR55Started]);
-                    this.server.respondWith('GET', '/api/modeling/jobs/8aef636e-2079-4f87-98dc-471d090141ad/',
+                    this.server.respondWith('GET', '/mmw/modeling/jobs/8aef636e-2079-4f87-98dc-471d090141ad/',
                                             [200, { 'Content-Type': 'application/json' }, mocks.polling.getJobSuccess]);
                     model.addModification(new models.ModificationModel(mocks.modifications.sample1));
 
@@ -747,9 +747,9 @@ describe('Modeling', function() {
                     this.clock = sinon.useFakeTimers();
 
                     var model = getTestScenarioModel();
-                    this.server.respondWith('POST', '/api/modeling/start/tr55/',
+                    this.server.respondWith('POST', '/mmw/modeling/start/tr55/',
                                             [200, { 'Content-Type': 'application/json' }, mocks.polling.getTR55Started]);
-                    this.server.respondWith('GET', '/api/modeling/jobs/8aef636e-2079-4f87-98dc-471d090141ad/',
+                    this.server.respondWith('GET', '/mmw/modeling/jobs/8aef636e-2079-4f87-98dc-471d090141ad/',
                                             [400, { 'Content-Type': 'application/json' }, mocks.polling.getJobFailure]);
 
                     model.addModification(new models.ModificationModel(mocks.modifications.sample1));
@@ -774,12 +774,12 @@ describe('Modeling', function() {
                     this.startResponse = {
                         job: this.startJob
                     };
-                    this.server.respondWith('POST', '/api/modeling/start/tr55/',
+                    this.server.respondWith('POST', '/mmw/modeling/tr55/',
                                             [ 200,
                                               { 'Content-Type': 'application/json' },
                                               JSON.stringify(this.startResponse) ]);
                     this.pollingResponse = mocks.polling.getJobSuccess;
-                    this.server.respondWith('GET', '/api/modeling/jobs/1/',
+                    this.server.respondWith('GET', '/mmw/modeling/jobs/1/',
                                             [ 200,
                                               { 'Content-Type': 'application/json' },
                                               this.pollingResponse ]);
@@ -794,7 +794,7 @@ describe('Modeling', function() {
 
                 it('sets results to null on start failure', function(done) {
                     var self = this;
-                    self.server.respondWith('POST', '/api/modeling/start/tr55/',
+                    self.server.respondWith('POST', '/mmw/modeling/tr55/',
                                             [ 400, // Make request fail.
                                               { 'Content-Type': 'application/json' },
                                               JSON.stringify(self.startResponse) ]);
@@ -810,7 +810,7 @@ describe('Modeling', function() {
 
                 it('sets results to null on polling failure', function(done) {
                     var self = this;
-                    this.server.respondWith('GET', '/api/modeling/jobs/1/',
+                    this.server.respondWith('GET', '/mmw/modeling/jobs/1/',
                                             [ 400, // Make request fail.
                                               { 'Content-Type': 'application/json' },
                                               JSON.stringify(this.pollingResponse) ]);

@@ -951,14 +951,16 @@ var WatershedDelineationView = DrawToolBaseView.extend({
                 deferred.reject(message);
             },
 
-            postData: {
-                'location': JSON.stringify([
+            postData: JSON.stringify({
+                'location': [
                     point.geometry.coordinates[1],
                     point.geometry.coordinates[0]
-                ]),
+                ],
                 'snappingOn': snappingOn,
                 'dataSource': dataSource,
-            }
+            }),
+
+            contentType: 'application/json'
         };
 
         if (!utils.withinConus(point)) {

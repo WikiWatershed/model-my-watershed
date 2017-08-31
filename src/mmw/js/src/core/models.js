@@ -242,7 +242,7 @@ var ObservationsLayerGroupModel = LayerGroupModel.extend({
 
     fetchLayers: function(map) {
         var self = this,
-            pointSrcAPIUrl = '/api/modeling/point-source/';
+            pointSrcAPIUrl = '/mmw/modeling/point-source/';
         var vizer = new VizerLayers();
         this.set('polling', true);
 
@@ -447,14 +447,15 @@ var TaskModel = Backbone.Model.extend({
            front-end before it does in the back-end and the we would
            like them to finish at approximately the same time (with the
            back-end finishing earlier if they are not synced). */
-        timeout: 45000
+        timeout: 45000,
     },
 
-    url: function() {
+    url: function(queryParams) {
+        var encodedQueryParams = queryParams ? '?' + $.param(queryParams) : '';
         if (this.get('job')) {
-            return '/api/' + this.get('taskType') + '/jobs/' + this.get('job') + '/';
+            return '/' + this.get('taskType') + '/jobs/' + this.get('job') + '/';
         } else {
-            return '/api/' + this.get('taskType') + '/start/' + this.get('taskName') + '/';
+            return '/' + this.get('taskType') + '/' + this.get('taskName') + '/' + encodedQueryParams;
         }
     },
 
@@ -486,8 +487,10 @@ var TaskModel = Backbone.Model.extend({
         }
         var self = this,
             startDefer = self.fetch({
+                url: self.url(taskHelper.queryParams),
                 method: 'POST',
-                data: taskHelper.postData
+                data: taskHelper.postData,
+                contentType: taskHelper.contentType
             }),
             pollingDefer = $.Deferred();
 

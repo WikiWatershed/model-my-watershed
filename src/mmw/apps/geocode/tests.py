@@ -12,7 +12,7 @@ class GeocodeTestCase(TestCase):
     def assert_candidate_exists_for(self, address):
         try:
             response = requests.get(
-                'http://localhost:80/api/geocode/?search=%s' % address).json()
+                'http://localhost:80/mmw/geocode/?search=%s' % address).json()
         except requests.RequestException:
             response = {}
 

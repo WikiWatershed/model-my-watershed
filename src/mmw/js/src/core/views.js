@@ -147,7 +147,7 @@ var HeaderView = Marionette.ItemView.extend({
         view.on('update', function(projectId) {
             var cloneUrlFragment = '/project/' + projectId + '/clone',
                 cloneUrl = window.location.origin + cloneUrlFragment,
-                testUrl = '/api/modeling/projects/' + projectId;
+                testUrl = '/mmw/modeling/projects/' + projectId;
 
             $.ajax(testUrl)
                 .done(function() {

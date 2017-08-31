@@ -220,7 +220,7 @@ var Result = Backbone.Model.extend({
 });
 
 var Results = Backbone.Collection.extend({
-    url: '/api/bigcz/search',
+    url: '/bigcz/search',
     model: Result,
 
     initialize: function(models, options) {
