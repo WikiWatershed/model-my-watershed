@@ -5,7 +5,6 @@ from __future__ import absolute_import
 
 import os
 import logging
-import json
 
 from ast import literal_eval as make_tuple
 
@@ -40,7 +39,6 @@ def start_rwd_job(location, snapping, data_source):
     the response unless there is an out-of-watershed error
     which raises an exception.
     """
-    location = json.loads(location)
     lat, lng = location
     end_point = 'rwd' if data_source == DRB else 'rwd-nhd'
     rwd_url = 'http://%s:%s/%s/%f/%f' % (RWD_HOST, RWD_PORT, end_point,

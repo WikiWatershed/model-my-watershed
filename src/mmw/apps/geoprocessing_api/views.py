@@ -29,9 +29,7 @@ def start_rwd(request, format=None):
     location = request.data['location']
     data_source = request.data.get('dataSource', 'drb')
 
-    # Parse out the JS style T/F to a boolean
-    snappingParam = request.data['snappingOn']
-    snapping = True if snappingParam == 'true' else False
+    snapping = request.data['snappingOn']
 
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
