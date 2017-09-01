@@ -66,26 +66,27 @@
             {% include "./modelDetailsDropdown.html" %}
         </div>
     </div>
-    <div class="model-analyze-toggle-tab-header" role="tabpanel">
-        <ul class="nav nav-tabs" role="tablist">
-            <li {%- if showing_analyze %} class="active" {% endif %}
-                role="presentation">
-                <a aria-controls="home" aria-expanded="false"
-                   data-toggle="tab" href="#analyze-tab-contents" role="tab"
-                   id="show-analyze">
-                    <div> Analyze </div>
-                </a>
-            </li>
-            <li {%- if not showing_analyze %} class="active" {% endif %}
-                role="presentation">
-                <a aria-controls="home" aria-expanded="true"
-                   data-toggle="tab" href="#modeling-tab-contents" role="tab"
-                   id="show-model">
-                    <div> Model </div>
-                </a>
-            </li>
-        </ul>
-    </div>
+</div>
+
+<div class="model-analyze-toggle-tab-header project-center" role="tabpanel">
+    <ul class="nav nav-tabs" role="tablist">
+        <li {%- if showing_analyze %} class="active" {% endif %}
+            role="presentation">
+            <a aria-controls="home" aria-expanded="false"
+               data-toggle="tab" href="#analyze-tab-contents" role="tab"
+               id="show-analyze">
+                <div> Analyze </div>
+            </a>
+        </li>
+        <li {%- if not showing_analyze %} class="active" {% endif %}
+            role="presentation">
+            <a aria-controls="home" aria-expanded="true"
+               data-toggle="tab" href="#modeling-tab-contents" role="tab"
+               id="show-model">
+                <div> Model </div>
+            </a>
+        </li>
+    </ul>
 </div>
 
 <div class="project-right">
