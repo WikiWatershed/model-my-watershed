@@ -124,6 +124,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
         privacy: '#project-privacy',
         itsiClone: '#itsi-clone',
         newProject: '#new-project',
+        changeAoI: '#change-aoi',
         showAnalyze: '#show-analyze',
         showModel: '#show-model',
     },
@@ -137,6 +138,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
         'click @ui.privacy': 'setProjectPrivacy',
         'click @ui.itsiClone': 'getItsiEmbedLink',
         'click @ui.newProject': 'createNewProject',
+        'click @ui.changeAoI': 'createNewProject',
         'click @ui.showAnalyze': 'showAnalyze',
         'click @ui.showModel': 'showModel',
     },
@@ -144,11 +146,21 @@ var ProjectMenuView = Marionette.ItemView.extend({
     template: projectMenuTmpl,
 
     templateHelpers: function() {
+        var modelPackages = settings.get('model_packages'),
+            modelPackageName = this.model.get('model_package'),
+            modelDisplayName = _.find(modelPackages,
+                                           {name: modelPackageName}).display_name,
+            aoiModel = new coreModels.GeoModel({
+                shape: App.map.get('areaOfInterest'),
+                place: App.map.get('areaOfInterestName')
+            });
         return {
             itsi: App.user.get('itsi'),
             itsi_embed: settings.get('itsi_embed'),
             editable: isEditable(this.model),
-            is_new: this.model.isNew()
+            is_new: this.model.isNew(),
+            modelName: modelDisplayName,
+            aoiModel: aoiModel
         };
     },
 

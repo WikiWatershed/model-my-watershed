@@ -73,5 +73,32 @@
 
 // Hidden form for GMS file downloads
 #export-gms-form {
-  display: none;
+    display: none;
+}
+
+.model-details-dropdown {
+    width: 240px;
+    padding: 1rem;
+    z-index: 600;
+
+    > h3 {
+        margin: 10px 0;
+        font-weight: bold;
+    }
+
+    > .edit-btn {
+        cursor: pointer;
+        font-size: $font-size-h6;
+        padding: 0px;
+        border: none;
+        background: none;
+        color: $brand-primary;
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    > .aoi-area {
+        margin-left: 0;
+    }
 }
