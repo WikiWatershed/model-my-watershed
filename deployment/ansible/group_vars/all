@@ -45,7 +45,7 @@ docker_options: "--storage-driver=aufs"
 geop_host: "localhost"
 geop_port: 8090
 
-geop_version: "3.0.0-beta-1"
+geop_version: "3.0.0-beta-2"
 geop_cache_enabled: 1
 
 nginx_cache_dir: "/var/cache/nginx"
