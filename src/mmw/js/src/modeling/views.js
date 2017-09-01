@@ -127,6 +127,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
         changeAoI: '#change-aoi',
         showAnalyze: '#show-analyze',
         showModel: '#show-model',
+        modelDescriptionIcon: '#model-desc-icon'
     },
 
     events: {
@@ -148,8 +149,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
     templateHelpers: function() {
         var modelPackages = settings.get('model_packages'),
             modelPackageName = this.model.get('model_package'),
-            modelDisplayName = _.find(modelPackages,
-                                           {name: modelPackageName}).display_name,
+            modelPackage = _.find(modelPackages,
+                                  {name: modelPackageName}),
             aoiModel = new coreModels.GeoModel({
                 shape: App.map.get('areaOfInterest'),
                 place: App.map.get('areaOfInterestName')
@@ -159,13 +160,25 @@ var ProjectMenuView = Marionette.ItemView.extend({
             itsi_embed: settings.get('itsi_embed'),
             editable: isEditable(this.model),
             is_new: this.model.isNew(),
-            modelName: modelDisplayName,
+            modelPackage: modelPackage,
             aoiModel: aoiModel
         };
     },
 
     modelEvents: {
         'change': 'render'
+    },
+
+    onShow: function() {
+        this.ui.modelDescriptionIcon.popover({
+            placement: 'right',
+            trigger: 'focus'
+        });
+        // Popover toggle is inside a dropdown that will close on any click
+        // Stop popover toggle from closing dropdown
+        this.ui.modelDescriptionIcon.on('click', function (e) {
+            e.stopPropagation();
+        });
     },
 
     renameProject: function() {

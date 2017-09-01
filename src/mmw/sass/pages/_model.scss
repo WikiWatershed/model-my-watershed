@@ -84,6 +84,12 @@
     > h3 {
         margin: 10px 0;
         font-weight: bold;
+        i {
+            font-size: 12px;
+            vertical-align: middle;
+            margin-left: 4px;
+            color: black;
+        }
     }
 
     > .edit-btn {
