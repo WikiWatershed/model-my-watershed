@@ -205,13 +205,29 @@ header {
         white-space: nowrap;
     }
 
+
     #toolbar-region {
-        margin-right: 0;
-        margin-left: auto;
+        width: 100%;
+    }
+
+    #toolbar-region > .toolbar-container {
+        display: flex;
+        flex-basis: 100%;
+        flex-direction: row;
+        height: 100%;
+
+        .right-controls-container {
+            margin-left: auto;
+        }
+
         #add-changes {
-          position: relative;
-          top: -2px;
-          color: $brand-primary;
+            color: $brand-primary;
+            height: 100%;
+        }
+
+        #download-cc-gms {
+            font-size: 13px;
+            color: inherit;
         }
     }
 
