@@ -55,7 +55,7 @@ nunjucks.env.addFilter('toDateFullYear', function(date) {
 nunjucks.env.addFilter('toDateWithoutTime', function(date) {
     var fullDate = new Date(date);
 
-    return fullDate.getUTCMonth() + '/' +
+    return (fullDate.getUTCMonth() + 1) + '/' +
            fullDate.getUTCDate() + '/' +
            fullDate.getUTCFullYear();
 });
