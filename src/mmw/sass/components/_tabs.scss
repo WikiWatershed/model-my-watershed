@@ -35,14 +35,21 @@
 }
 
 .model-stage-results-tab-pane {
-    .nav-tabs {
+    .model-nav-tabs {
         background-color: $paper;
     }
-    .tab-content {
+    .model-tab-content {
     // Set a specific height to allow y-scroll:
     // Calc: height under the main header (height-lg), project header, model-toolbar,
     // (height-xl) and sidebar nav tabs (sidebar-nav-tabs)
       height: calc(100% - #{$height-xl} * 2 - #{$height-lg} - #{$sidebar-header-height}) !important;
+    }
+
+    .analyze-tab-content {
+        // Set a specific height to allow y-scroll:
+        // Calc: height under the main header (height-lg), project header,
+        // (height-xl, aoi region (aoi-header-height) and sidebar nav tabs (sidebar-nav-tabs)
+        height: calc(100% - #{$height-xl} - #{$height-lg} * 2 - #{$aoi-header-height} - #{$sidebar-header-height}) !important;
     }
 }
 
@@ -175,10 +182,13 @@
 
 // Model Stage: Analyze - Model Toggle tabs
 .model-analyze-toggle-tab-header {
+    height: $height-md;
     display: inline-block;
     margin-left: 12px;
+    border: 1px solid transparent;
+
     .nav-tabs {
-        height: auto;
+        height: 100%;
         border-bottom: 0;
         background-color: $black-06;
     }
@@ -186,15 +196,12 @@
     .nav-tabs > li.active > a:hover,
     .nav-tabs > li.active > a:focus {
         background-color: $brand-primary;
-        border-radius: 0;
         border: 0;
         font-weight: 800;
         color: $paper;
     }
     .nav-tabs > li {
-        margin-bottom: -1px;
         float: left;
-        top: 6px;
         position: relative;
         box-shadow: $box-shadow-primary;
         &:first-child {
@@ -226,8 +233,8 @@
         font-weight: lighter;
         text-align: center;
         color: $paper;
-        height: 30px;
-        line-height: 30px;
+        height: 34px;
+        line-height: 34px;
         padding-left: 17px;
         padding-right: 17px;
     }

@@ -1,0 +1,18 @@
+<div class="model-details-dropdown">
+    <span>Area of Interest</span> (<button class="edit-btn" id="change-aoi">Edit</button>)
+    <h3>{{ aoiModel.get('place') }}</h3>
+    <span class="aoi-area">{{ aoiModel.get('area')|round|toLocaleString }} {{ aoiModel.get('units') }}</span>
+
+    <hr/>
+
+    <span>Model</span> (<a class="edit-btn" data-url="/analyze" id="change-model">Edit</a>)
+    <h3>{{modelPackage.display_name}}
+        <a id="model-desc-icon" class="help" data-toggle="popover" tabindex="0" data-html="true"
+           data-container="body" role="button" data-content="{{modelPackage.description}}"
+           data-template="<div class='popover'><div class='pull-right'
+                  id='popover-close-button'><i class='fa fa-times' /></div><div
+                  class='popover-content'></div><div class='arrow'></div></div>">
+            <i class="fa fa-info-circle black"></i>
+        </a>
+    </h3>
+</div>

@@ -353,7 +353,7 @@ var TabContentView = Marionette.LayoutView.extend({
 });
 
 var TabContentsView = Marionette.CollectionView.extend({
-    className: 'tab-content',
+    className: 'tab-content analyze-tab-content',
     childView: TabContentView,
     onRender: function() {
         this.$el.find('.tab-pane:first').addClass('active');
@@ -1138,4 +1138,5 @@ module.exports = {
     ResultsView: ResultsView,
     AnalyzeWindow: AnalyzeWindow,
     AnalyzeResultViews: AnalyzeResultViews,
+    AoiView: AoiView,
 };

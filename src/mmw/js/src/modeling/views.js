@@ -40,10 +40,18 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
     model: models.ProjectModel,
     template: modelingHeaderTmpl,
 
+    ui: {
+        scenarioAndToolbarContainer: '.toolbar'
+    },
+
     regions: {
         projectMenuRegion: '#project-menu-region',
         scenariosRegion: '#scenarios-region',
         toolbarRegion: '#toolbar-region'
+    },
+
+    modelEvents: {
+        'change:showing_analyze': 'toggleToolbar',
     },
 
     initialize: function() {
@@ -52,6 +60,16 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         this.listenTo(App.user, 'change', this.reRender);
         this.listenTo(this.model, 'change:id', this.reRender);
         this.listenTo(App.user, 'change:guest', this.saveAfterLogin);
+    },
+
+    toggleToolbar: function() {
+        this.ui.scenarioAndToolbarContainer.toggleClass('hidden');
+
+        if (this.model.get('showing_analyze')) {
+            App.map.setAnalyzeModelSize();
+        } else {
+            App.map.setModelSize();
+        }
     },
 
     reRender: function() {
@@ -106,6 +124,10 @@ var ProjectMenuView = Marionette.ItemView.extend({
         privacy: '#project-privacy',
         itsiClone: '#itsi-clone',
         newProject: '#new-project',
+        changeAoI: '#change-aoi',
+        showAnalyze: '#show-analyze',
+        showModel: '#show-model',
+        modelDescriptionIcon: '#model-desc-icon'
     },
 
     events: {
@@ -117,21 +139,46 @@ var ProjectMenuView = Marionette.ItemView.extend({
         'click @ui.privacy': 'setProjectPrivacy',
         'click @ui.itsiClone': 'getItsiEmbedLink',
         'click @ui.newProject': 'createNewProject',
+        'click @ui.changeAoI': 'createNewProject',
+        'click @ui.showAnalyze': 'showAnalyze',
+        'click @ui.showModel': 'showModel',
     },
 
     template: projectMenuTmpl,
 
     templateHelpers: function() {
+        var modelPackages = settings.get('model_packages'),
+            modelPackageName = this.model.get('model_package'),
+            modelPackage = _.find(modelPackages,
+                                  {name: modelPackageName}),
+            aoiModel = new coreModels.GeoModel({
+                shape: App.map.get('areaOfInterest'),
+                place: App.map.get('areaOfInterestName')
+            });
         return {
             itsi: App.user.get('itsi'),
             itsi_embed: settings.get('itsi_embed'),
             editable: isEditable(this.model),
-            is_new: this.model.isNew()
+            is_new: this.model.isNew(),
+            modelPackage: modelPackage,
+            aoiModel: aoiModel
         };
     },
 
     modelEvents: {
         'change': 'render'
+    },
+
+    onShow: function() {
+        this.ui.modelDescriptionIcon.popover({
+            placement: 'right',
+            trigger: 'focus'
+        });
+        // Popover toggle is inside a dropdown that will close on any click
+        // Stop popover toggle from closing dropdown
+        this.ui.modelDescriptionIcon.on('click', function (e) {
+            e.stopPropagation();
+        });
     },
 
     renameProject: function() {
@@ -276,6 +323,14 @@ var ProjectMenuView = Marionette.ItemView.extend({
         App.getMapView().fitToDefaultBounds();
         App.getMapView().setupGeoLocation(true);
         router.navigate('draw/', { trigger: true });
+    },
+
+    showAnalyze: function() {
+        this.model.set('showing_analyze', true);
+    },
+
+    showModel: function() {
+        this.model.set('showing_analyze', false);
     }
 });
 
@@ -870,8 +925,13 @@ var ResultsView = Marionette.LayoutView.extend({
     template: resultsWindowTmpl,
 
     regions: {
+        aoiRegion: '.aoi-region',
         analyzeRegion: '#analyze-tab-contents',
         modelingRegion: '#modeling-tab-contents'
+    },
+
+    modelEvents: {
+        'change:showing_analyze': 'toggleAoiRegion',
     },
 
     initialize: function(options) {
@@ -910,6 +970,25 @@ var ResultsView = Marionette.LayoutView.extend({
                 collection: scenario.get('results'),
                 scenario: scenario
             }));
+        }
+    },
+
+    showAoiRegion: function() {
+        this.aoiRegion.show(new analyzeViews.AoiView({
+            model: new coreModels.GeoModel({
+                place: App.map.get('areaOfInterestName'),
+                shape: App.map.get('areaOfInterest')
+            })
+        }));
+    },
+
+    toggleAoiRegion: function() {
+        this.aoiRegion.$el.toggleClass('hidden');
+
+        if (this.model.get('showing_analyze')) {
+            this.showAoiRegion();
+        } else {
+            this.aoiRegion.empty();
         }
     },
 
@@ -982,7 +1061,7 @@ var ResultsTabPanelView = Marionette.ItemView.extend({
 var ResultsTabPanelsView = Marionette.CollectionView.extend({
     collection: models.ResultCollection,
     tagName: 'ul',
-    className: 'nav nav-tabs',
+    className: 'nav nav-tabs model-nav-tabs',
     attributes: {
         role: 'tablist'
     },
@@ -1075,7 +1154,7 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
 var ResultsTabContentsView = Marionette.CollectionView.extend({
     collection: models.ResultCollection,
     tagName: 'div',
-    className: 'tab-content',
+    className: 'tab-content model-tab-content',
     childView: ResultsTabContentView,
     childViewOptions: function() {
         return {

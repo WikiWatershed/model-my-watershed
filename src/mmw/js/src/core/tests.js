@@ -147,6 +147,7 @@ describe('Core', function() {
                 model.setAnalyzeSize();
                 assert.isTrue($container.hasClass('-sidebar'));
                 assert.isFalse($container.hasClass('-projectheader'));
+                assert.isFalse($container.hasClass('-toolbarheader'));
 
                 view.destroy();
             });
@@ -163,7 +164,7 @@ describe('Core', function() {
 
                 model.setModelSize();
                 assert.isTrue($container.hasClass('-sidebar'));
-                assert.isTrue($container.hasClass('-projectheader'));
+                assert.isTrue($container.hasClass('-toolbarheader'));
 
                 view.destroy();
             });
