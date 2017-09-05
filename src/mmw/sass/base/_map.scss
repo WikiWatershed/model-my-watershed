@@ -37,6 +37,14 @@
     height: 100%;
     position: absolute;
   }
+
+  &.bigcz-detail-map:after {
+    content: "";
+    border: 3px solid steelblue;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+  }
 }
 
 #overlay-subclass-vector .disabled, #overlay-subclass-raster .disabled {
