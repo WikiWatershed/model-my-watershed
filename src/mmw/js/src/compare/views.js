@@ -48,6 +48,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
     modelEvents: {
         'change:mode': 'showSectionsView',
         'change:visibleScenarioIndex': 'highlightButtons',
+        'change:polling': 'setPolling',
     },
 
     regions: {
@@ -136,6 +137,14 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
         this.model.set({
             visibleScenarioIndex: Math.max(--visibleScenarioIndex, 0)
         });
+    },
+
+    setPolling: function() {
+        if (this.model.get('polling')) {
+            this.sectionsRegion.$el.addClass('polling');
+        } else {
+            this.sectionsRegion.$el.removeClass('polling');
+        }
     },
 });
 
@@ -406,7 +415,7 @@ var ChartView = Marionette.CollectionView.extend({
 
         // Show charts from visibleScenarioIndex
         this.$('.nv-group > rect:nth-child(n + ' + (i+1) + ')').css({
-            'opacity': 1,
+            'opacity': '',
         });
 
         // Hide charts up to visibleScenarioIndex
