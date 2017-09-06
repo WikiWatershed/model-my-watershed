@@ -405,6 +405,10 @@ var StaticResultView = Marionette.ItemView.extend({
         return CATALOG_RESULT_TEMPLATE[this.options.catalog];
     },
 
+    modelEvents: {
+        'change:active': 'render'
+    },
+
     className: 'resource'
 });
 

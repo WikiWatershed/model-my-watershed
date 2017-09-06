@@ -714,9 +714,9 @@ var MapView = Marionette.ItemView.extend({
 
     createDataCatalogShape: function(result) {
         var geom = result.get('geom'),
-            geomId = geom && geom.properties.id,
             style = dataCatalogPolygonStyle,
-            pointToLayer = null;
+            pointToLayer = null,
+            self = this;
 
         if (geom.type === 'Point') {
             style = dataCatalogPointStyle;
@@ -727,8 +727,32 @@ var MapView = Marionette.ItemView.extend({
 
         return new L.GeoJSON(geom, {
             style: style,
-            id: geomId,
-            pointToLayer: pointToLayer
+            id: result.get('id'),
+            pointToLayer: pointToLayer,
+            onEachFeature: function(feature, layer) {
+                layer.on('mouseover', function() {
+                    // Only highlight the layer if detail mode is not active
+                    if (self._dataCatalogDetailLayer.getLayers().length === 0) {
+                        layer.setStyle(dataCatalogActiveStyle);
+                        result.set('active', true);
+                    }
+                });
+
+                layer.on('mouseout', function() {
+                    if (self._dataCatalogDetailLayer.getLayers().length === 0) {
+                        if (geom.type === 'Point') {
+                            // Preserve highlight of marker if popup is open.
+                            // It will get restyled when the popup is closed.
+                            if (!layer._popup._isOpen) {
+                                layer.setStyle(dataCatalogPointStyle);
+                                result.set('active', false);
+                            }
+                        } else {
+                            layer.setStyle(dataCatalogPolygonStyle);
+                        }
+                    }
+                });
+            }
         });
     },
 
@@ -783,14 +807,15 @@ var MapView = Marionette.ItemView.extend({
     },
 
     bindDataCatalogPopovers: function(PopoverView, catalogId, resultModels) {
-        var self = this;
         this._dataCatalogResultsLayer.eachLayer(function(layer) {
             var result = resultModels.findWhere({ id: layer.options.id });
             layer.on('popupopen', function() {
-                self.model.set('dataCatalogActiveResult', result.get('geom'));
+                layer.setStyle(dataCatalogActiveStyle);
+                result.set('active', true);
             });
             layer.on('popupclose', function() {
-                self.model.set('dataCatalogActiveResult', null);
+                layer.setStyle(dataCatalogPointStyle);
+                result.set('active', false);
             });
             layer.bindPopup(new PopoverView({
                     model: result,
