@@ -37,6 +37,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
         closeButton: '.compare-close > button',
         nextButton: '.compare-scenario-buttons > .btn-next-scenario',
         prevButton: '.compare-scenario-buttons > .btn-prev-scenario',
+        spinner: '.spinner',
     },
 
     events: _.defaults({
@@ -141,8 +142,10 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
 
     setPolling: function() {
         if (this.model.get('polling')) {
+            this.ui.spinner.removeClass('hidden');
             this.sectionsRegion.$el.addClass('polling');
         } else {
+            this.ui.spinner.addClass('hidden');
             this.sectionsRegion.$el.removeClass('polling');
         }
     },

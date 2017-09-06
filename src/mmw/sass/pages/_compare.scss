@@ -327,6 +327,12 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
     }
   }
 
+  .spinner {
+    position: absolute;
+    top: 53px;
+    right: 50%;
+  }
+
   .compare-close {
     position: absolute;
     top: 20px;
