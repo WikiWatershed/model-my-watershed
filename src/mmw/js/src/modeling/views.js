@@ -169,7 +169,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
         'change': 'render'
     },
 
-    onShow: function() {
+    onRender: function() {
         this.ui.modelDescriptionIcon.popover({
             placement: 'right',
             trigger: 'focus'
