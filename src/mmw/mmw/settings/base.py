@@ -291,6 +291,7 @@ DJANGO_APPS = (
 
 THIRD_PARTY_APPS = (
     'rest_framework',
+    'rest_framework_swagger',
     'registration',
 )
 
@@ -303,6 +304,26 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ]
+}
+
+SWAGGER_SETTINGS = {
+    'exclude_namespaces': ['bigcz',
+                           'mmw',
+                           'user'],
+    'doc_expansion': 'list',
+    'info': {
+        'description': 'The Model My Watershed API allows '
+                       'you to delineate watersheds and analyze '
+                       'geo-data for watersheds and arbitrary areas. '
+                       'You can read more about the work at '
+                       '<a href="http://www.wikiwatershed.org/">'
+                       'WikiWatershed</a> '
+                       'or use the <a href="https://www.app.wikiwatershed.org">'
+                       'web app.',
+        'license': 'Apache 2.0',
+        'licenseUrl': 'http://www.apache.org/licenses/LICENSE-2.0.html',
+        'title': 'Model My Watershed API',
+    },
 }
 
 # registration
