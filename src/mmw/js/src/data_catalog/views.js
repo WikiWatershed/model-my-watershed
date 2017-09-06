@@ -137,7 +137,7 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
             }));
             App.map.set({
                 'dataCatalogResults': null,
-                'dataCatalogDetailResult': detailResult.get('geom')
+                'dataCatalogDetailResult': detailResult
             });
         }
     },
@@ -163,11 +163,14 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
     },
 
     updateMap: function() {
-        var catalog = this.getActiveCatalog(),
-            geoms = catalog && catalog.get('results').pluck('geom');
-        App.map.set('dataCatalogResults', geoms);
+        var catalog = this.getActiveCatalog();
+
+        App.map.set('dataCatalogResults', null);
+
         if (catalog) {
-            App.getMapView().bindDataCatalogPopovers(ResultMapPopoverView, catalog.id, catalog.get('results'));
+            App.map.set('dataCatalogResults', catalog.get('results'));
+            App.getMapView().bindDataCatalogPopovers(ResultMapPopoverView,
+                catalog.id, catalog.get('results'));
         }
     }
 });
@@ -417,11 +420,11 @@ var ResultView = StaticResultView.extend({
     },
 
     highlightResult: function() {
-        App.map.set('dataCatalogActiveResult', this.model.get('geom'));
+        App.map.set('dataCatalogActiveResult', this.model);
     },
 
     unHighlightResult: function() {
-        App.map.set({ dataCatalogActiveResult: null });
+        App.map.set('dataCatalogActiveResult', null);
     }
 });
 

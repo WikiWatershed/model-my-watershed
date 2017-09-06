@@ -712,8 +712,9 @@ var MapView = Marionette.ItemView.extend({
         });
     },
 
-    createDataCatalogShape: function(geom) {
-        var geomId = geom && geom.properties.id,
+    createDataCatalogShape: function(result) {
+        var geom = result.get('geom'),
+            geomId = geom && geom.properties.id,
             style = dataCatalogPolygonStyle,
             pointToLayer = null;
 
@@ -732,44 +733,49 @@ var MapView = Marionette.ItemView.extend({
     },
 
     renderDataCatalogResults: function() {
-        var geoms = this.model.get('dataCatalogResults') || [];
-        geoms = _.filter(geoms);
+        var results = this.model.get('dataCatalogResults') || [];
 
         this._dataCatalogResultsLayer.clearLayers();
         this._dataCatalogActiveLayer.clearLayers();
 
-        for (var i = 0; i < geoms.length; i++) {
-            var layer = this.createDataCatalogShape(geoms[i]);
-            this._dataCatalogResultsLayer.addLayer(layer);
-        }
+        results.forEach(function(result) {
+            if (result.get('geom')) {
+                var layer = this.createDataCatalogShape(result);
+                this._dataCatalogResultsLayer.addLayer(layer);
+            }
+        }, this);
     },
 
     renderDataCatalogActiveResult: function() {
-        var geom = this.model.get('dataCatalogActiveResult');
+        var result = this.model.get('dataCatalogActiveResult');
 
-        this._renderDataCatalogResult(geom, this._dataCatalogActiveLayer,
+        this._renderDataCatalogResult(result, this._dataCatalogActiveLayer,
             'bigcz-highlight-map', dataCatalogActiveStyle);
     },
 
     renderDataCatalogDetailResult: function() {
-        var geom = this.model.get('dataCatalogDetailResult');
+        var result = this.model.get('dataCatalogDetailResult');
 
-        this._renderDataCatalogResult(geom, this._dataCatalogDetailLayer,
+        this._renderDataCatalogResult(result, this._dataCatalogDetailLayer,
             'bigcz-detail-map', dataCatalogDetailStyle);
     },
 
-    _renderDataCatalogResult: function(geom, featureGroup, className, style) {
-        var mapBounds = this._leafletMap.getBounds();
-
+    _renderDataCatalogResult: function(result, featureGroup, className, style) {
         featureGroup.clearLayers();
         this.$el.removeClass(className);
+
+        // If nothing is selected, exit early
+        if (!result) { return; }
+
+        var mapBounds = this._leafletMap.getBounds(),
+            geom = result.get('geom');
 
         if (geom) {
             if ((geom.type === 'MultiPolygon' || geom.type === 'Polygon') &&
                 drawUtils.shapeBoundingBox(geom).contains(mapBounds)) {
                 this.$el.addClass(className);
             } else {
-                var layer = this.createDataCatalogShape(geom);
+                var layer = this.createDataCatalogShape(result);
                 layer.setStyle(style);
                 featureGroup.addLayer(layer);
             }
