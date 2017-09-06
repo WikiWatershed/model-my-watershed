@@ -28,8 +28,7 @@ def start_rwd(request, format=None):
     created = now()
     location = request.data['location']
     data_source = request.data.get('dataSource', 'drb')
-
-    snapping = request.data['snappingOn']
+    snapping = request.data.get('snappingOn', False)
 
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
