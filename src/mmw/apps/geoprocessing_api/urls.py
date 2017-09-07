@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.conf.urls import patterns, url
+from django.conf.urls import include, patterns, url
 
 from apps.modeling.views import get_job
 from apps.modeling.urls import uuid_regex
@@ -11,6 +11,7 @@ from apps.geoprocessing_api import views
 
 urlpatterns = patterns(
     '',
+    url(r'^docs/', include('rest_framework_swagger.urls')),
     url(r'analyze/land/$', views.start_analyze_land,
         name='start_analyze_land'),
     url(r'analyze/soil/$', views.start_analyze_soil,

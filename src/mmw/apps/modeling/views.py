@@ -484,6 +484,32 @@ def drb_point_sources(request):
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
 def get_job(request, job_uuid, format=None):
+    """
+    Get a job's status. If it's complete, get its result.
+
+    ---
+    type:
+      job_uuid:
+        required: true
+        type: string
+      status:
+        required: true
+        type: string
+      started:
+        required: true
+        type: datetime
+      finished:
+        required: true
+        type: datetime
+      result:
+        required: true
+        type: object
+      error:
+        required: true
+        type: string
+
+    omit_serializer: true
+    """
     # TODO consider if we should have some sort of session id check to ensure
     # you can only view your own jobs.
     try:
