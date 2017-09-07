@@ -192,6 +192,7 @@ var Result = Backbone.Model.extend({
         links: null, // Array
         created_at: '',
         updated_at: '',
+        active: false,
         show_detail: false // Show this result as the detail view?
     },
 
@@ -236,16 +237,7 @@ var Results = Backbone.Collection.extend({
                 return r.geom === null || turfIntersect(aoi, r.geom) !== undefined;
             });
 
-        // Add the result's id onto the geojson's geom so the map can keep
-        // track of which shape came from where
-        return _.map(filteredResults, function(r) {
-            if (r.geom) {
-                r.geom.properties = {
-                    id: r.id
-                };
-            }
-            return r;
-        });
+        return filteredResults;
     },
 
     getDetail: function() {

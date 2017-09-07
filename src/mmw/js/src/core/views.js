@@ -712,10 +712,11 @@ var MapView = Marionette.ItemView.extend({
         });
     },
 
-    createDataCatalogShape: function(geom) {
-        var geomId = geom && geom.properties.id,
+    createDataCatalogShape: function(result) {
+        var geom = result.get('geom'),
             style = dataCatalogPolygonStyle,
-            pointToLayer = null;
+            pointToLayer = null,
+            self = this;
 
         if (geom.type === 'Point') {
             style = dataCatalogPointStyle;
@@ -726,50 +727,79 @@ var MapView = Marionette.ItemView.extend({
 
         return new L.GeoJSON(geom, {
             style: style,
-            id: geomId,
-            pointToLayer: pointToLayer
+            id: result.get('id'),
+            pointToLayer: pointToLayer,
+            onEachFeature: function(feature, layer) {
+                layer.on('mouseover', function() {
+                    // Only highlight the layer if detail mode is not active
+                    if (self._dataCatalogDetailLayer.getLayers().length === 0) {
+                        layer.setStyle(dataCatalogActiveStyle);
+                        result.set('active', true);
+                    }
+                });
+
+                layer.on('mouseout', function() {
+                    if (self._dataCatalogDetailLayer.getLayers().length === 0) {
+                        if (geom.type === 'Point') {
+                            // Preserve highlight of marker if popup is open.
+                            // It will get restyled when the popup is closed.
+                            if (!layer._popup._isOpen) {
+                                layer.setStyle(dataCatalogPointStyle);
+                                result.set('active', false);
+                            }
+                        } else {
+                            layer.setStyle(dataCatalogPolygonStyle);
+                        }
+                    }
+                });
+            }
         });
     },
 
     renderDataCatalogResults: function() {
-        var geoms = this.model.get('dataCatalogResults') || [];
-        geoms = _.filter(geoms);
+        var results = this.model.get('dataCatalogResults') || [];
 
         this._dataCatalogResultsLayer.clearLayers();
         this._dataCatalogActiveLayer.clearLayers();
 
-        for (var i = 0; i < geoms.length; i++) {
-            var layer = this.createDataCatalogShape(geoms[i]);
-            this._dataCatalogResultsLayer.addLayer(layer);
-        }
+        results.forEach(function(result) {
+            if (result.get('geom')) {
+                var layer = this.createDataCatalogShape(result);
+                this._dataCatalogResultsLayer.addLayer(layer);
+            }
+        }, this);
     },
 
     renderDataCatalogActiveResult: function() {
-        var geom = this.model.get('dataCatalogActiveResult');
+        var result = this.model.get('dataCatalogActiveResult');
 
-        this._renderDataCatalogResult(geom, this._dataCatalogActiveLayer,
+        this._renderDataCatalogResult(result, this._dataCatalogActiveLayer,
             'bigcz-highlight-map', dataCatalogActiveStyle);
     },
 
     renderDataCatalogDetailResult: function() {
-        var geom = this.model.get('dataCatalogDetailResult');
+        var result = this.model.get('dataCatalogDetailResult');
 
-        this._renderDataCatalogResult(geom, this._dataCatalogDetailLayer,
+        this._renderDataCatalogResult(result, this._dataCatalogDetailLayer,
             'bigcz-detail-map', dataCatalogDetailStyle);
     },
 
-    _renderDataCatalogResult: function(geom, featureGroup, className, style) {
-        var mapBounds = this._leafletMap.getBounds();
-
+    _renderDataCatalogResult: function(result, featureGroup, className, style) {
         featureGroup.clearLayers();
         this.$el.removeClass(className);
+
+        // If nothing is selected, exit early
+        if (!result) { return; }
+
+        var mapBounds = this._leafletMap.getBounds(),
+            geom = result.get('geom');
 
         if (geom) {
             if ((geom.type === 'MultiPolygon' || geom.type === 'Polygon') &&
                 drawUtils.shapeBoundingBox(geom).contains(mapBounds)) {
                 this.$el.addClass(className);
             } else {
-                var layer = this.createDataCatalogShape(geom);
+                var layer = this.createDataCatalogShape(result);
                 layer.setStyle(style);
                 featureGroup.addLayer(layer);
             }
@@ -777,14 +807,15 @@ var MapView = Marionette.ItemView.extend({
     },
 
     bindDataCatalogPopovers: function(PopoverView, catalogId, resultModels) {
-        var self = this;
         this._dataCatalogResultsLayer.eachLayer(function(layer) {
             var result = resultModels.findWhere({ id: layer.options.id });
             layer.on('popupopen', function() {
-                self.model.set('dataCatalogActiveResult', result.get('geom'));
+                layer.setStyle(dataCatalogActiveStyle);
+                result.set('active', true);
             });
             layer.on('popupclose', function() {
-                self.model.set('dataCatalogActiveResult', null);
+                layer.setStyle(dataCatalogPointStyle);
+                result.set('active', false);
             });
             layer.bindPopup(new PopoverView({
                     model: result,
