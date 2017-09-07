@@ -3,8 +3,6 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     Backbone = require('../../shim/backbone'),
-    turfIntersect = require('turf-intersect'),
-    App = require('../app'),
     settings = require('../core/settings');
 
 var REQUEST_TIMED_OUT_CODE = 408;
@@ -236,15 +234,7 @@ var Results = Backbone.Collection.extend({
     },
 
     parse: function(response) {
-        var aoi = App.map.get('areaOfInterest'),
-            data = _.findWhere(response, { catalog: this.catalog }),
-            // Filter results to only include those without geometries (Hydroshare)
-            // and those that intersect the area of interest (CINERGI and CUAHSI).
-            filteredResults = _.filter(data.results, function(r) {
-                return r.geom === null || turfIntersect(aoi, r.geom) !== undefined;
-            });
-
-        return filteredResults;
+        return _.findWhere(response, { catalog: this.catalog }).results;
     },
 
     getDetail: function() {

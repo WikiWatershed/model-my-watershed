@@ -3,18 +3,37 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import json
+
 from django.contrib.gis.geos import GEOSGeometry
+from django.conf import settings
 from rest_framework import decorators
 from rest_framework.exceptions import ValidationError, ParseError
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from apps.bigcz.clients import CATALOGS
-from apps.bigcz.models import BBox
 from apps.bigcz.serializers import ResourceListSerializer
-from apps.bigcz.utils import parse_date
+from apps.bigcz.utils import (parse_date, get_bounds,
+                              filter_aoi_intersection)
 
-import json
+
+def filter_results(results, aoi, is_pageable):
+    # Post process the raw search results to further filter out
+    # geometries which aren't in the AoI
+    filtered_results = filter_aoi_intersection(aoi, results.results)
+
+    # If this isn't a paged query, we know how many results
+    # have been filtered via post processing.  If it's paged,
+    # the number is likely lower than reported, but we can't know
+    # it unless we fetch all pages and filter.  However, if it's paged
+    # and the count is less than the page size, we do know the total count
+    cnt = results.count
+    if not is_pageable or (is_pageable and
+                           results.count <= settings.BIGCZ_CLIENT_PAGE_SIZE):
+        cnt = len(filtered_results)
+
+    return filtered_results, cnt
 
 
 def _do_search(request):
@@ -33,18 +52,13 @@ def _do_search(request):
                      .format(', '.join(CATALOGS.keys()))})
 
     # Use a proper GEOS shape and calculate the bbox
-    geom = GEOSGeometry(json.dumps(params.get('geom')))
-    bounds = geom.boundary.coords[0]
-    x_coords = {coord[0] for coord in bounds}
-    y_coords = {coord[1] for coord in bounds}
-
-    bbox = BBox(min(x_coords), min(y_coords), max(x_coords), max(y_coords))
+    aoi = GEOSGeometry(json.dumps(params.get('geom')))
+    bbox = get_bounds(aoi)
 
     search_kwargs = {
         'query': params.get('query'),
         'to_date': parse_date(params.get('to_date')),
         'from_date': parse_date(params.get('from_date')),
-        'geom': geom,
         'bbox': bbox,
         'options': params.get('options', ''),
         'page': page,
@@ -55,12 +69,19 @@ def _do_search(request):
     is_pageable = CATALOGS[catalog]['is_pageable']
 
     try:
-        result = ResourceListSerializer(search(**search_kwargs),
+        results = search(**search_kwargs)
+
+        filtered_results, cnt = filter_results(results, aoi, is_pageable)
+        results.results = filtered_results
+        results.count = cnt
+
+        result = ResourceListSerializer(results,
                                         context={
                                             'page': page,
                                             'is_pageable': is_pageable,
                                             'request_uri': request_uri,
                                             'serializer': serializer})
+
         return [result.data]
     except ValueError as ex:
         raise ParseError(ex.message)
