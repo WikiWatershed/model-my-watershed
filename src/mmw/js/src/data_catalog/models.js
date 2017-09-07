@@ -30,7 +30,7 @@ var Catalog = Backbone.Model.extend({
         fromDate: null,
         toDate: null,
         query: '',
-        bbox: '',
+        geom: '',
         loading: false,
         active: false,
         results: null, // Results collection
@@ -58,17 +58,17 @@ var Catalog = Backbone.Model.extend({
         });
     },
 
-    searchIfNeeded: function(query, fromDate, toDate, bbox) {
+    searchIfNeeded: function(query, fromDate, toDate, geom) {
         var self = this,
             error = this.get('error'),
             isSameSearch = query === this.get('query') &&
                            fromDate === this.get('fromDate') &&
                            toDate === this.get('toDate') &&
-                           bbox === this.get('bbox');
+                           geom === this.get('geom');
 
         if (!isSameSearch || error) {
             this.cancelSearch();
-            this.searchPromise = this.search(query, fromDate, toDate, bbox)
+            this.searchPromise = this.search(query, fromDate, toDate, geom)
                                      .always(function() {
                                         delete self.searchPromise;
                                      });
@@ -83,10 +83,10 @@ var Catalog = Backbone.Model.extend({
         }
     },
 
-    search: function(query, fromDate, toDate, bbox) {
+    search: function(query, fromDate, toDate, geom) {
         this.set({
             query: query,
-            bbox: bbox,
+            geom: geom,
             fromDate: fromDate,
             toDate: toDate,
         });
@@ -103,7 +103,7 @@ var Catalog = Backbone.Model.extend({
             data = {
                 catalog: this.id,
                 query: this.get('query'),
-                bbox: this.get('bbox'),
+                geom: this.get('geom'),
                 from_date: this.get('fromDate'),
                 to_date: this.get('toDate'),
             };
@@ -121,8 +121,15 @@ var Catalog = Backbone.Model.extend({
         this.set('loading', true);
         this.set('error', false);
 
+        var request = {
+            data: JSON.stringify(data),
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json'
+        };
+
         return this.get('results')
-                   .fetch({ data: data })
+                   .fetch(request)
                    .done(_.bind(this.doneSearch, this))
                    .fail(_.bind(this.failSearch, this))
                    .always(_.bind(this.finishSearch, this));

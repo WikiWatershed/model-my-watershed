@@ -232,12 +232,11 @@ def search(**kwargs):
         raise ValidationError({
             'error': 'Required argument: bbox'})
 
-    box = BBox(bbox)
-    world = BBox('-180,-90,180,90')
+    world = BBox(-180, -90, 180, 90)
 
     services = get_services_in_box(world)
     networkIDs = filter_networkIDs(services, gridded)
-    series = get_series_catalog_in_box(box, from_date, to_date, networkIDs)
+    series = get_series_catalog_in_box(bbox, from_date, to_date, networkIDs)
     series = group_series_by_location(series)
     results = sorted(parse_records(series, services),
                      key=attrgetter('end_date'),

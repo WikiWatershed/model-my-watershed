@@ -3,19 +3,24 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from django.contrib.gis.geos import GEOSGeometry
 from rest_framework import decorators
 from rest_framework.exceptions import ValidationError, ParseError
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from apps.bigcz.clients import CATALOGS
+from apps.bigcz.models import BBox
 from apps.bigcz.serializers import ResourceListSerializer
 from apps.bigcz.utils import parse_date
 
+import json
+
 
 def _do_search(request):
-    catalog = request.query_params.get('catalog')
-    page = int(request.query_params.get('page', 1))
+    params = json.loads(request.body)
+    catalog = params.get('catalog')
+    page = int(params.get('page', 1))
     request_uri = request.build_absolute_uri()
 
     if not catalog:
@@ -27,12 +32,21 @@ def _do_search(request):
             'error': 'Catalog must be one of: {}'
                      .format(', '.join(CATALOGS.keys()))})
 
+    # Use a proper GEOS shape and calculate the bbox
+    geom = GEOSGeometry(json.dumps(params.get('geom')))
+    bounds = geom.boundary.coords[0]
+    x_coords = {coord[0] for coord in bounds}
+    y_coords = {coord[1] for coord in bounds}
+
+    bbox = BBox(min(x_coords), min(y_coords), max(x_coords), max(y_coords))
+
     search_kwargs = {
-        'query': request.query_params.get('query'),
-        'to_date': parse_date(request.query_params.get('to_date')),
-        'from_date': parse_date(request.query_params.get('from_date')),
-        'bbox': request.query_params.get('bbox'),
-        'options': request.query_params.get('options', ''),
+        'query': params.get('query'),
+        'to_date': parse_date(params.get('to_date')),
+        'from_date': parse_date(params.get('from_date')),
+        'geom': geom,
+        'bbox': bbox,
+        'options': params.get('options', ''),
         'page': page,
     }
 
@@ -52,7 +66,7 @@ def _do_search(request):
         raise ParseError(ex.message)
 
 
-@decorators.api_view(['GET'])
+@decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny,))
 def search(request):
     return Response(_do_search(request))

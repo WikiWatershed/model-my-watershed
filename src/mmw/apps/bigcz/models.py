@@ -35,11 +35,7 @@ class BBox(object):
     """
     Bounding box from incoming search API request.
     """
-    def __init__(self, value):
-        try:
-            xmin, ymin, xmax, ymax = value.split(',')
-        except ValueError:
-            raise ValueError('Expected bbox format: xmin,ymin,xmax,ymax')
+    def __init__(self, xmin, ymin, xmax, ymax):
         self.xmin = xmin
         self.xmax = xmax
         self.ymin = ymin

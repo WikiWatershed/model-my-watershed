@@ -9,7 +9,7 @@ from django.contrib.gis.geos import Polygon
 
 from django.conf import settings
 
-from apps.bigcz.models import ResourceLink, ResourceList, BBox
+from apps.bigcz.models import ResourceLink, ResourceList
 from apps.bigcz.utils import RequestTimedOutError
 
 from apps.bigcz.clients.cinergi.models import CinergiResource
@@ -105,8 +105,7 @@ def parse_record(item):
         cinergi_url=parse_cinergi_url(source.get('fileid')))
 
 
-def prepare_bbox(value):
-    box = BBox(value)
+def prepare_bbox(box):
     return '{},{},{},{}'.format(box.xmin, box.ymin, box.xmax, box.ymax)
 
 
