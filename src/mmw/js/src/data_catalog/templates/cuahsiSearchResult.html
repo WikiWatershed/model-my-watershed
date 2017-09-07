@@ -1,16 +1,9 @@
 <h3 class="resource-title">
-    <a href="{{service_url}}" target="_blank">{{ service_code }}</a> {{ id | split(":", 1) }}
+    {{ service_code }} {{ id | split(":", 1) }},
+    {{ title }}
 </h3>
 <div class="resource-detail">
-    <i class="fa fa-map-marker"></i>
-    {% if details_url %}
-        <a href="{{ details_url }}" target="_blank" rel="noreferrer noopener">{{ title }}</a>.
-    {% else %}
-        {{ title }}
-    {% endif %}
-</div>
-<div class="resource-detail">
-    <i class="fa fa-file-text-o"></i> {{ service_org }}<!-- , {{ service_code }} -->
+    <i class="fa fa-file-text-o"></i> {{ service_org }}
 </div>
 <div class="resource-detail -showall">
     <i class="fa fa-subscript"></i>
