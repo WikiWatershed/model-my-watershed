@@ -529,6 +529,28 @@ GEOP = {
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0
             }
+        },
+        'ppt': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [],
+                'targetRaster': 'climatology-ppt-{:02d}-epsg5070',
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
+        },
+        'tmean': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [],
+                'targetRaster': 'climatology-tmean-{:02d}-epsg5070',
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
         }
     }
 }
