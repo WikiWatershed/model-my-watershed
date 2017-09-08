@@ -48,7 +48,8 @@ var ProjectsView = Marionette.LayoutView.extend({
         App.projectNumber = undefined;
         App.map.set({
             'areaOfInterest': null,
-            'areaOfInterestName': null
+            'areaOfInterestName': null,
+            'wellKnownAreaOfInterest': null,
         });
 
         router.navigate('', { trigger: true });
@@ -170,7 +171,8 @@ var ProjectRowView = Marionette.ItemView.extend({
         App.clearAnalyzeCollection();
         App.map.set({
             'areaOfInterest': null,
-            'areaOfInterestName': ''
+            'areaOfInterestName': '',
+            'wellKnownAreaOfInterest': null,
         });
         router.navigate('/project/' + this.model.id, { trigger: true });
     }
