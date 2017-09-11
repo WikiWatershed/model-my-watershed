@@ -30,6 +30,14 @@
       background-color: $ui-light;
     }
   }
+
+  tfoot th {
+    border-left: 1px solid #ddd;
+
+    &:first-child {
+      border-left: none;
+    }
+  }
 }
 
 //Modification Table

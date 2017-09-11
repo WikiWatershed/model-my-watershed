@@ -28,6 +28,8 @@ var $ = require('jquery'),
     tableRowTmpl = require('./templates/tableRow.html'),
     animalTableTmpl = require('./templates/animalTable.html'),
     animalTableRowTmpl = require('./templates/animalTableRow.html'),
+    climateTableTmpl = require('./templates/climateTable.html'),
+    climateTableRowTmpl = require('./templates/climateTableRow.html'),
     pageableTableTmpl = require('./templates/pageableTable.html'),
     pointSourceTableTmpl = require('./templates/pointSourceTable.html'),
     pointSourceTableRowTmpl = require('./templates/pointSourceTableRow.html'),
@@ -597,6 +599,31 @@ var AnimalTableView = Marionette.CompositeView.extend({
     }
 });
 
+var ClimateTableRowView = Marionette.ItemView.extend({
+    tagName: 'tr',
+    template: climateTableRowTmpl,
+});
+
+var ClimateTableView = Marionette.CompositeView.extend({
+    childView: ClimateTableRowView,
+    childViewContainer: 'tbody',
+    template: climateTableTmpl,
+    templateHelpers: function() {
+        var data = this.collection.toJSON(),
+            totalPpt = lodash(data).pluck('ppt').sum(),
+            avgTmean = lodash(data).pluck('tmean').sum() / 12;
+
+        return {
+            totalPpt: totalPpt,
+            avgTmean: avgTmean,
+        };
+    },
+
+    onAttach: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    }
+});
+
 var PageableTableBaseView = Marionette.LayoutView.extend({
     tableView: null, // a View that renders a bootstrap table. Required
 
@@ -1126,12 +1153,28 @@ var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
     }
 });
 
+var ClimateResultView = AnalyzeResultView.extend({
+    onShow: function() {
+        var title = 'Mean Monthly Precipitation and Temperature',
+            source = 'PRISM Climate Group',
+            helpText = 'For more information on the data source, see <a href=\'http://prism.nacse.org\' target=\'_blank\' rel=\'noreferrer noopener\'>PRISM Climate Group website</a>',
+            associatedLayerCodes = [
+                'mean_ppt',
+                'mean_temp',
+            ],
+            chart = null;
+        this.showAnalyzeResults(coreModels.ClimateCensusCollection, ClimateTableView,
+            chart, title, source, helpText, associatedLayerCodes);
+    }
+});
+
 var AnalyzeResultViews = {
     land: LandResultView,
     soil: SoilResultView,
     animals: AnimalsResultView,
     pointsource: PointSourceResultView,
     catchment_water_quality: CatchmentWaterQualityResultView,
+    climate: ClimateResultView,
 };
 
 module.exports = {
