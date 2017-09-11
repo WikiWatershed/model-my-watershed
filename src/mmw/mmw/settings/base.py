@@ -308,6 +308,7 @@ REST_FRAMEWORK = {
 }
 
 SWAGGER_SETTINGS = {
+    'exclude_url_names': ['authtoken'],
     'exclude_namespaces': ['bigcz',
                            'mmw',
                            'user'],
