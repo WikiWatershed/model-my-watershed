@@ -20,7 +20,7 @@ from django.conf import settings
 
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=42)
-def run(self, opname, input_data, wkaoi=None):
+def run(self, opname, input_data, wkaoi=None, cache_key=''):
     """
     Run a geoprocessing operation.
 
@@ -37,9 +37,14 @@ def run(self, opname, input_data, wkaoi=None):
     that immediately. If not, starts the geoprocessing operation, and saves the
     results to they key before passing them on.
 
+    When using a parameterizable operation, such as 'ppt' or 'tmean', a special
+    cache_key can be provided which will be used for caching instead of the
+    opname, which in this case is not unique to the operation.
+
     :param opname: Name of operation. Must exist in settings.GEOP['json']
     :param input_data: Dictionary of values to extend base operation JSON with
     :param wkaoi: String id of well-known area of interest. "{table}__{id}"
+    :param cache_key: String to use for caching instead of opname. Optional.
     :return: Dictionary containing either results if successful, error if not
     """
     if opname not in settings.GEOP['json']:
@@ -55,7 +60,7 @@ def run(self, opname, input_data, wkaoi=None):
     key = ''
 
     if wkaoi and settings.GEOP['cache']:
-        key = 'geop_{}__{}'.format(wkaoi, opname)
+        key = 'geop_{}__{}{}'.format(wkaoi, opname, cache_key)
         cached = cache.get(key)
         if cached:
             return cached

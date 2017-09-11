@@ -801,9 +801,9 @@ def start_analyze_climate(request, format=None):
                        'targetRaster': tmean_raster.format(i)}
 
         geotasks.extend([
-            geoprocessing.run.s('ppt', ppt_input, wkaoi) |
+            geoprocessing.run.s('ppt', ppt_input, wkaoi, i) |
             tasks.analyze_climate.s('ppt', i),
-            geoprocessing.run.s('tmean', tmean_input, wkaoi) |
+            geoprocessing.run.s('tmean', tmean_input, wkaoi, i) |
             tasks.analyze_climate.s('tmean', i)
         ])
 
