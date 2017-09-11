@@ -380,8 +380,202 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
         }
 
         d3.select(svg)
-          .datum(data)
-          .call(chart);
+            .datum(data)
+            .call(chart);
+
+        // filter definition for drop shadows
+        var filter =
+            d3.select(svg)
+                .selectAll("defs")
+                .append("filter")
+                .attr("id","drop-shadow")
+                .attr("height", "120%");
+
+        filter.append("feGaussianBlur")
+            .attr("in", "SourceAlpha")
+            .attr("stdDeviation", 2)
+            .attr("result", "blur");
+
+        filter.append("feOffset")
+            .attr("in", "blur")
+            .attr("dx", 2)
+            .attr("dy", 2)
+            .attr("result", "offsetBlur");
+
+        var feMerge = filter.append("feMerge");
+        feMerge.append("feMergeNode")
+            .attr("in", "offsetBlur");
+        feMerge.append("feMergeNode")
+            .attr("in", "SourceGraphic");
+
+        var chartContainerId = chartEl.id + "-chart-container";
+
+        // iterate over the series names to add the svg elements to the chart
+        _.forEach(["nv-series-0", "nv-series-1", "nv-series-2"],
+            function(el) {
+                d3.select("#" + chartEl.id).select("svg").selectAll("g." + el).each(function() {
+                    var g = d3.select(this);
+                    var parentG = d3.select(this.parentNode);
+                    parentG.attr("id", chartContainerId);
+
+                    g.selectAll(".nv-bar").each(function(bar) {
+                        var b = d3.select(this);
+                        var barWidth = b.attr("width");
+                        var bgWidth = 40.0;
+                        var bgHeight = 20.0;
+                        var bgVertOffset = -20.0;
+
+                        var dialogTickSize = 5.0;
+
+                        // add drop-shadow
+                        parentG.append("rect")
+                            .each(function () {
+                                d3.select(this).attr({
+                                    "transform": b.attr("transform"),
+                                    "y": (parseFloat(b.attr("y")) + bgVertOffset - 1),
+                                    "x": (parseFloat(b.attr("x")) + (parseFloat(barWidth) / 2) - (bgWidth / 2) - 1),
+                                    "width": bgWidth + 2,
+                                    "height": bgHeight + 2,
+                                    "stroke": 1,
+                                    "class": ("bar-value-text-bg-shadow_" + el)
+                                });
+
+                                d3.select(this).style({
+                                    "fill": "#aaaaaa",
+                                    "opacity": 0,
+                                    "fill-opacity": 0,
+                                    "filter": "url(#drop-shadow)"
+                                });
+                            });
+
+                        // add background shape
+                        parentG.append("rect")
+                            .each(function() {
+                                d3.select(this).attr({
+                                    "transform": b.attr("transform"),
+                                    "y": (parseFloat(b.attr("y")) + bgVertOffset),
+                                    "x": (parseFloat(b.attr("x")) + (parseFloat(barWidth) / 2) - (bgWidth / 2)),
+                                    "width": bgWidth,
+                                    "height": bgHeight,
+                                    "stroke": "#aaaaaa",
+                                    "stroke-width": 0.5,
+                                    "class": ("bar-value-text-bg_" + el)
+                                });
+
+                                d3.select(this).style({
+                                    "fill": "white",
+                                    "opacity": "0",
+                                    "fill-opacity": "0",
+                                    "stroke-opacity": 0.75
+                                });
+                            });
+
+                        // add tick mark under shape
+                        parentG.append("rect")
+                            .each(function() {
+                                var rotatedX = parseFloat(b.attr("x")) + parseFloat(barWidth) / 2;
+                                var rotatedY = parseFloat(b.attr("y")) + bgHeight + bgVertOffset - (dialogTickSize / 2);
+                                d3.select(this).attr({
+                                    "transform": (b.attr("transform") + " rotate(45," + rotatedX +"," + rotatedY + ")"),
+                                    "y": (parseFloat(b.attr("y")) + bgHeight + bgVertOffset - dialogTickSize),
+                                    "x": (parseFloat(b.attr("x")) + (parseFloat(barWidth) / 2)),
+                                    "width": dialogTickSize,
+                                    "height": dialogTickSize,
+                                    "class": ("bar-value-text-bg-tick_" + el)
+                                });
+
+                                d3.select(this).style({
+                                    "fill": "white",
+                                    "fill-opacity": "0",
+                                    "opacity": "0"
+                                });
+                            });
+
+                        // add the text value
+                        parentG.append("text")
+                            .each(function() {
+                                d3.select(this).text(function() {
+                                    if (bar.y === 0) {
+                                        return;
+                                    }
+                                    return parseFloat(bar.y).toFixed(2);
+                                });
+
+                                var width = this.getBBox().width;
+
+                                d3.select(this).attr({
+                                    "transform": b.attr("transform"),
+                                    "y": (parseFloat(b.attr("y")) + 15 + bgVertOffset),
+                                    "x": (parseFloat(b.attr("x")) + (parseFloat(barWidth) / 2) - (width / 2)),
+                                    "font-size": "0.8rem",
+                                    "font-weight": "normal",
+                                    "font-family": "helvetica",
+                                    "class": ("bar-value-text_" + el)
+                                });
+
+                                d3.select(this).style({
+                                    "stroke": "black",
+                                    "stroke-width": 0.2,
+                                    "opacity": 0,
+                                    "font-weight": "normal",
+                                    "font-family": "arial"
+                                });
+
+                            });
+                    });
+                });
+
+                d3.select(svg)
+                    .select("#" + chartContainerId)
+                    .selectAll("g." + el)
+                    .selectAll("rect.nv-bar")
+                    .on("mouseover", function () {
+                        d3.select("#" + chartContainerId)
+                            .selectAll(".bar-value-text_" + el)
+                            .style("opacity", "1");
+
+                        d3.select("#" + chartContainerId)
+                            .selectAll(".bar-value-text-bg-shadow_" + el)
+                            .style("opacity", "0.5")
+                            .style("fill-opacity", "0.5");
+
+                        d3.select("#" + chartContainerId)
+                            .selectAll(".bar-value-text-bg_" + el)
+                            .style("opacity", "1")
+                            .style("fill-opacity", "1");
+
+                        d3.select("#" + chartContainerId)
+                            .selectAll(".bar-value-text-bg-tick_" + el)
+                            .style("opacity", "1")
+                            .style("fill-opacity", "1");
+                    });
+
+                d3.select(svg)
+                    .select("#" + chartContainerId)
+                    .selectAll("g." + el)
+                    .selectAll("rect.nv-bar")
+                    .on("mouseout", function () {
+                        d3.select("#" + chartContainerId)
+                            .selectAll(".bar-value-text_" + el)
+                            .style("opacity", "0");
+
+                        d3.select("#" + chartContainerId)
+                            .selectAll(".bar-value-text-bg-shadow_" + el)
+                            .style("opacity", "0")
+                            .style("fill-opacity", "0");
+
+                        d3.select("#" + chartContainerId)
+                            .selectAll(".bar-value-text-bg_" + el)
+                            .style("opacity", "0")
+                            .style("fill-opacity", "0");
+
+                        d3.select("#" + chartContainerId)
+                            .selectAll(".bar-value-text-bg-tick_" + el)
+                            .style("opacity", "0")
+                            .style("fill-opacity", "0");
+                    });
+            });
+
 
         return chart;
     }, onRenderComplete);
