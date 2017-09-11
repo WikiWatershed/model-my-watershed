@@ -9,6 +9,8 @@ from celery import chain, group
 from rest_framework.response import Response
 from rest_framework import decorators, status
 from rest_framework.exceptions import ParseError
+from rest_framework.authentication import (SessionAuthentication,
+                                           TokenAuthentication)
 from rest_framework.permissions import (AllowAny,
                                         IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
@@ -25,6 +27,7 @@ from django.core.servers.basehttp import FileWrapper
 
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
+from apps.core.permissions import IsTokenAuthenticatedOrClientApp
 from apps.modeling import tasks, geoprocessing
 from apps.modeling.mapshed.tasks import (geoprocessing_chains,
                                          combine,
@@ -482,7 +485,9 @@ def drb_point_sources(request):
 
 
 @decorators.api_view(['GET'])
-@decorators.permission_classes((AllowAny, ))
+@decorators.authentication_classes((TokenAuthentication,
+                                    SessionAuthentication, ))
+@decorators.permission_classes((IsTokenAuthenticatedOrClientApp, ))
 def get_job(request, job_uuid, format=None):
     """
     Get a job's status. If it's complete, get its result.
@@ -509,6 +514,12 @@ def get_job(request, job_uuid, format=None):
         type: string
 
     omit_serializer: true
+    parameters:
+       - name: Authorization
+         paramType: header
+         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
+                      Swagger you may wish to set this for all requests via
+                      the field at the top right of the page.
     """
     # TODO consider if we should have some sort of session id check to ensure
     # you can only view your own jobs.
@@ -520,7 +531,6 @@ def get_job(request, job_uuid, format=None):
     # Get the user so that logged in users can only see jobs that they started
     # or anonymous ones
     user = request.user if request.user.is_authenticated() else None
-
     if job.user and job.user != user:
         raise Http404("Not found.")
 

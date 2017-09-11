@@ -15,7 +15,7 @@ urlpatterns = patterns(
     '',
     url(r'^docs/', include('rest_framework_swagger.urls')),
     url(r'^api-token-auth/', rest_framework.authtoken.views.obtain_auth_token,
-                             name="authtoken"),
+        name="authtoken"),
     url(r'analyze/land/$', views.start_analyze_land,
         name='start_analyze_land'),
     url(r'analyze/soil/$', views.start_analyze_soil,
