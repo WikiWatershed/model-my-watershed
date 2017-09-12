@@ -1,13 +1,11 @@
 "use strict";
 
 var $ = require('jquery'),
-    L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
     moment = require('moment'),
     App = require('../app'),
     analyzeViews = require('../analyze/views.js'),
     settings = require('../core/settings'),
-    utils = require('./utils'),
     errorTmpl = require('./templates/error.html'),
     formTmpl = require('./templates/form.html'),
     pagerTmpl = require('./templates/pager.html'),
@@ -152,14 +150,13 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
             query = this.model.get('query'),
             fromDate = this.model.get('fromDate'),
             toDate = this.model.get('toDate'),
-            aoiGeoJson = L.geoJson(App.map.get('areaOfInterest')),
-            bounds = utils.formatBounds(aoiGeoJson.getBounds());
+            aoiGeoJson = App.map.get('areaOfInterest');
 
         // Disable intro text after first search request
         this.ui.introText.addClass('hide');
         this.ui.tabs.removeClass('hide');
 
-        catalog.searchIfNeeded(query, fromDate, toDate, bounds);
+        catalog.searchIfNeeded(query, fromDate, toDate, aoiGeoJson);
     },
 
     updateMap: function() {

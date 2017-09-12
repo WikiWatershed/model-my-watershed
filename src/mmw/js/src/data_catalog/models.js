@@ -3,8 +3,6 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     Backbone = require('../../shim/backbone'),
-    turfIntersect = require('turf-intersect'),
-    App = require('../app'),
     settings = require('../core/settings');
 
 var REQUEST_TIMED_OUT_CODE = 408;
@@ -30,7 +28,7 @@ var Catalog = Backbone.Model.extend({
         fromDate: null,
         toDate: null,
         query: '',
-        bbox: '',
+        geom: '',
         loading: false,
         active: false,
         results: null, // Results collection
@@ -58,17 +56,17 @@ var Catalog = Backbone.Model.extend({
         });
     },
 
-    searchIfNeeded: function(query, fromDate, toDate, bbox) {
+    searchIfNeeded: function(query, fromDate, toDate, geom) {
         var self = this,
             error = this.get('error'),
             isSameSearch = query === this.get('query') &&
                            fromDate === this.get('fromDate') &&
                            toDate === this.get('toDate') &&
-                           bbox === this.get('bbox');
+                           geom === this.get('geom');
 
         if (!isSameSearch || error) {
             this.cancelSearch();
-            this.searchPromise = this.search(query, fromDate, toDate, bbox)
+            this.searchPromise = this.search(query, fromDate, toDate, geom)
                                      .always(function() {
                                         delete self.searchPromise;
                                      });
@@ -83,10 +81,10 @@ var Catalog = Backbone.Model.extend({
         }
     },
 
-    search: function(query, fromDate, toDate, bbox) {
+    search: function(query, fromDate, toDate, geom) {
         this.set({
             query: query,
-            bbox: bbox,
+            geom: geom,
             fromDate: fromDate,
             toDate: toDate,
         });
@@ -103,7 +101,7 @@ var Catalog = Backbone.Model.extend({
             data = {
                 catalog: this.id,
                 query: this.get('query'),
-                bbox: this.get('bbox'),
+                geom: this.get('geom'),
                 from_date: this.get('fromDate'),
                 to_date: this.get('toDate'),
             };
@@ -121,8 +119,15 @@ var Catalog = Backbone.Model.extend({
         this.set('loading', true);
         this.set('error', false);
 
+        var request = {
+            data: JSON.stringify(data),
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json'
+        };
+
         return this.get('results')
-                   .fetch({ data: data })
+                   .fetch(request)
                    .done(_.bind(this.doneSearch, this))
                    .fail(_.bind(this.failSearch, this))
                    .always(_.bind(this.finishSearch, this));
@@ -229,15 +234,7 @@ var Results = Backbone.Collection.extend({
     },
 
     parse: function(response) {
-        var aoi = App.map.get('areaOfInterest'),
-            data = _.findWhere(response, { catalog: this.catalog }),
-            // Filter results to only include those without geometries (Hydroshare)
-            // and those that intersect the area of interest (CINERGI and CUAHSI).
-            filteredResults = _.filter(data.results, function(r) {
-                return r.geom === null || turfIntersect(aoi, r.geom) !== undefined;
-            });
-
-        return filteredResults;
+        return _.findWhere(response, { catalog: this.catalog }).results;
     },
 
     getDetail: function() {

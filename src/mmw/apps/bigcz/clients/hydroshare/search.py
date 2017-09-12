@@ -9,7 +9,7 @@ from rest_framework.exceptions import ValidationError
 
 from django.conf import settings
 
-from apps.bigcz.models import Resource, ResourceLink, ResourceList, BBox
+from apps.bigcz.models import Resource, ResourceLink, ResourceList
 from apps.bigcz.utils import RequestTimedOutError
 
 
@@ -35,8 +35,7 @@ def parse_record(item):
         geom=None)
 
 
-def prepare_bbox(value):
-    box = BBox(value)
+def prepare_bbox(box):
     return {
         'west': box.xmin,
         'east': box.xmax,
