@@ -43,6 +43,10 @@ class Project(models.Model):
         null=True,
         help_text='Serialized JSON representation of additional'
                   ' data gathering steps, such as MapShed.')
+    wkaoi = models.CharField(
+        null=True,
+        max_length=255,
+        help_text='Well-Known Area of Interest ID for faster geoprocessing')
 
     def __unicode__(self):
         return self.name

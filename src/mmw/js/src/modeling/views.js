@@ -227,7 +227,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
                 App.projectNumber = undefined;
                 App.map.set({
                     'areaOfInterest': null,
-                    'areaOfInterestName': null
+                    'areaOfInterestName': null,
+                    'wellKnownAreaOfInterest': null,
                 });
 
                 router.navigate('projects/', { trigger: true });

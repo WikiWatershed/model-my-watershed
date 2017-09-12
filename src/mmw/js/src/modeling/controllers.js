@@ -34,7 +34,8 @@ var ModelingController = {
 
                     App.map.set({
                         'areaOfInterest': project.get('area_of_interest'),
-                        'areaOfInterestName': project.get('area_of_interest_name')
+                        'areaOfInterestName': project.get('area_of_interest_name'),
+                        'wellKnownAreaOfInterest': project.get('wkaoi'),
                     });
                     initScenarioEvents(project);
                     initViews(project, lock);
@@ -168,7 +169,8 @@ var ModelingController = {
             .done(function() {
                 App.map.set({
                     'areaOfInterest': project.get('area_of_interest'),
-                    'areaOfInterestName': project.get('area_of_interest_name')
+                    'areaOfInterestName': project.get('area_of_interest_name'),
+                    'wellKnownAreaOfInterest': project.get('wkaoi'),
                 });
                 if (project.get('scenarios').isEmpty()) {
                     // No scenarios available. Set the `needs_reset` flag so
@@ -197,6 +199,7 @@ function itsiResetProject(project) {
         'user_id': App.user.get('id'),
         'area_of_interest': App.map.get('areaOfInterest'),
         'area_of_interest_name': App.map.get('areaOfInterestName'),
+        'wkaoi': App.map.get('wellKnownAreaOfInterest'),
         'needs_reset': false
     });
 
@@ -276,6 +279,7 @@ function projectCleanUp() {
     App.rootView.subHeaderRegion.empty();
     App.rootView.sidebarRegion.empty();
     App.rootView.compareRegion.empty();
+    App.clearAnalyzeCollection();
 }
 
 function projectErrorState() {
@@ -347,7 +351,8 @@ function reinstateProject(number, lock) {
         .done(function() {
             App.map.set({
                 'areaOfInterest': project.get('area_of_interest'),
-                'areaOfInterestName': project.get('area_of_interest_name')
+                'areaOfInterestName': project.get('area_of_interest_name'),
+                'wellKnownAreaOfInterest': project.get('wkaoi'),
             });
             setPageTitle();
             lock.resolve();
