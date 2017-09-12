@@ -419,9 +419,15 @@ var AnalyzeLayerToggleView = Marionette.ItemView.extend({
     },
 
     toggleLayer: function() {
-        utils.toggleLayer(this.model, App.getLeafletMap(),
-            App.getLayerTabCollection().findLayerGroup(this.model.get('layerType')));
-        App.getLayerTabCollection().trigger('toggle:layer');
+        var layer = this.model,
+            layerTabCollection = App.getLayerTabCollection(),
+            layerGroup = layerTabCollection.findLayerGroup(layer.get('layerType'));
+
+        utils.toggleLayer(layer, App.getLeafletMap(), layerGroup);
+        layerTabCollection.findWhere({ active: true })
+                          .set({ active: false });
+        layerTabCollection.findWhere({ name: layerGroup.get('name') })
+                          .set({ active: true });
     },
 
     templateHelpers: function() {
@@ -471,7 +477,10 @@ var AnalyzeLayerToggleDropdownView = Marionette.ItemView.extend({
             layerGroup = layerTabCollection.findLayerGroup(layer.get('layerType'));
 
         utils.toggleLayer(layer, App.getLeafletMap(), layerGroup);
-        layerTabCollection.trigger('toggle:layer');
+        layerTabCollection.findWhere({ active: true })
+                          .set({ active: false });
+        layerTabCollection.findWhere({ name: layerGroup.get('name') })
+                          .set({ active: true });
     },
 
     renderIfNotDestroyed: function() {
