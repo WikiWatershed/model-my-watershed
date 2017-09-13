@@ -1,12 +1,15 @@
 "use strict";
 
 var $ = require('jquery'),
+    _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
-    moment = require('moment'),
     App = require('../app'),
     analyzeViews = require('../analyze/views.js'),
     settings = require('../core/settings'),
     errorTmpl = require('./templates/error.html'),
+    dateFilterTmpl = require('./templates/dateFilter.html'),
+    checkboxFilterTmpl = require('./templates/checkboxFilter.html'),
+    filterSidebarTmpl = require('./templates/filterSidebar.html'),
     formTmpl = require('./templates/form.html'),
     pagerTmpl = require('./templates/pager.html'),
     searchResultTmpl = require('./templates/searchResult.html'),
@@ -78,7 +81,7 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         formRegion: '.form-region',
         panelsRegion: '.tab-panels-region',
         contentsRegion: '.tab-contents-region',
-        detailsRegion: '.result-details-region'
+        detailsRegion: '.result-details-region',
     },
 
     childEvents: {
@@ -93,7 +96,8 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
 
     onShow: function() {
         this.formRegion.show(new FormView({
-            model: this.model
+            model: this.model,
+            collection: this.collection
         }));
         this.panelsRegion.show(new TabPanelsView({
             collection: this.collection
@@ -103,13 +107,9 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         }));
     },
 
-    getActiveCatalog: function() {
-        return this.collection.findWhere({ active: true });
-    },
-
     onSelectCatalog: function(childView, catalogId) {
         // Deactiveate previous catalog
-        var prevCatalog = this.getActiveCatalog();
+        var prevCatalog = this.collection.getActiveCatalog();
         if (prevCatalog && prevCatalog.id !== catalogId) {
             prevCatalog.set('active', false);
         }
@@ -122,7 +122,7 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
     },
 
     onDetailResultChange: function() {
-        var activeCatalog = this.getActiveCatalog(),
+        var activeCatalog = this.collection.getActiveCatalog(),
             detailResult = activeCatalog.get('detail_result');
 
         if (!detailResult) {
@@ -146,21 +146,19 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
     },
 
     doSearch: function() {
-        var catalog = this.getActiveCatalog(),
+        var catalog = this.collection.getActiveCatalog(),
             query = this.model.get('query'),
-            fromDate = this.model.get('fromDate'),
-            toDate = this.model.get('toDate'),
             aoiGeoJson = App.map.get('areaOfInterest');
 
         // Disable intro text after first search request
         this.ui.introText.addClass('hide');
         this.ui.tabs.removeClass('hide');
 
-        catalog.searchIfNeeded(query, fromDate, toDate, aoiGeoJson);
+        catalog.searchIfNeeded(query, aoiGeoJson);
     },
 
     updateMap: function() {
-        var catalog = this.getActiveCatalog();
+        var catalog = this.collection.getActiveCatalog();
 
         App.map.set('dataCatalogResults', null);
 
@@ -173,35 +171,42 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
 });
 
 var FormView = Marionette.ItemView.extend({
+    // model: FormModel
+    // collection: Catalogs
+
     template: formTmpl,
     className: 'data-catalog-form',
 
     ui: {
-        dateInput: '.data-catalog-date-input',
-        filterToggle: '.date-filter-toggle',
+        filterToggle: '.filter-sidebar-toggle',
         searchInput: '.data-catalog-search-input',
-        clearable: '.data-catalog-clearable-input a',
-    },
-
-    modelEvents: {
-        'change:showingFilters change:isValid change:toDate change:fromDate': 'render'
     },
 
     events: {
         'keyup @ui.searchInput': 'onSearchInputChanged',
         'click @ui.filterToggle': 'onFilterToggle',
-        'change @ui.dateInput': 'onDateInputChanged',
-        'keyup @ui.dateInput': 'onDateInputKeyup',
-        'click @ui.clearable': 'onClearInput',
     },
 
-    onRender: function() {
-        $('.data-catalog-date-input').datepicker();
+    initialize: function() {
+        var updateFilterSidebar = _.bind(function() {
+            if (App.rootView.secondarySidebarRegion.hasView()) {
+                this.showFilterSidebar();
+            }
+
+        }, this);
+
+        // Update the filter sidebar when there's a new active catalog
+        this.collection.on('change:active', updateFilterSidebar);
     },
 
-    onClearInput: function(e) {
-        var $el = $(e.currentTarget).siblings('input').val('');
-        this.updateDateInput($el);
+    getFilters: function() {
+        var activeCatalog = this.collection.getActiveCatalog();
+
+        if (!activeCatalog) {
+            return null;
+        }
+
+        return activeCatalog.get('filters');
     },
 
     onSearchInputChanged: function(e) {
@@ -213,58 +218,46 @@ var FormView = Marionette.ItemView.extend({
         }
     },
 
-    onDateInputKeyup: function(e) {
-        if (e.keyCode === ENTER_KEYCODE) {
-            this.triggerSearch();
+    onFilterToggle: function() {
+        App.map.toggleSecondarySidebar();
+        if (App.rootView.secondarySidebarRegion.hasView()) {
+            App.rootView.secondarySidebarRegion.empty();
+        } else {
+            this.showFilterSidebar();
         }
     },
 
-    onDateInputChanged: function(e) {
-        this.updateDateInput($(e.currentTarget));
-    },
+    showFilterSidebar: function() {
+        var filters = this.getFilters();
 
-    onFilterToggle: function() {
-        var newVal = !this.model.get('showingFilters');
-        this.model.set('showingFilters', newVal);
-    },
+        if (!filters) {
+            return;
+        }
 
-    updateDateInput: function($dateEl) {
-        var isFromDate = $dateEl.hasClass('from-date'),
-            attr = isFromDate ? 'fromDate' : 'toDate';
+        filters.on('change', this.render);
 
-        this.model.set(attr, $dateEl.val());
+        App.rootView.secondarySidebarRegion.show(new FilterSidebar({
+            collection: filters
+        }));
     },
 
     triggerSearch: function() {
-        if (this.validate()) {
-            this.triggerMethod('search');
-        }
-    },
-
-    validate: function() {
-        // Only need to validate if there are two dates.  Ensure that
-        // before is earlier than after
-        var dateFormat = "MM/DD/YYYY",
-            toDate = this.model.get('toDate'),
-            fromDate = this.model.get('fromDate'),
-            isValid = false;
-
-        if (!toDate || !fromDate) {
-            isValid = true;
-        } else {
-            isValid = moment(fromDate, dateFormat)
-                        .isBefore(moment(toDate, dateFormat));
-        }
-
-        this.model.set('isValid', isValid);
-        return isValid;
+        this.triggerMethod('search');
     },
 
     templateHelpers: function() {
-        var showingFilters = this.model.get('showingFilters');
+        var filters = this.getFilters();
+
+        if (!filters) {
+            return { filterNumText: '' };
+        }
+
+        var numActiveFilters = filters.countActive();
 
         return {
-            filterText: showingFilters ? 'Hide Filters' : 'Show Filters',
+            filterNumText: numActiveFilters > 0 ?
+                '(' + numActiveFilters + ')' :
+                null
         };
     }
 });
@@ -352,17 +345,6 @@ var TabContentView = Marionette.LayoutView.extend({
             this.pagerRegion.show(new PagerView({
                 model: model,
             }));
-        }
-
-        if (model.get('has_filters')) {
-            // TODO Generalize for different types of filters
-            if (model.id === 'cuahsi') {
-                $('input#gridded').change(function() {
-                    model.get('options')
-                         .findWhere({ id: 'gridded' })
-                         .set({ active: this.checked });
-                });
-            }
         }
     },
 
@@ -536,6 +518,106 @@ var PagerView = Marionette.ItemView.extend({
         return this.model.nextPage();
     }
 });
+
+var FilterBaseView = Marionette.ItemView.extend({
+    className: 'data-catalog-filter-group'
+});
+
+var DateFilterView = FilterBaseView.extend({
+    // model: DateFilterModel
+    template: dateFilterTmpl,
+
+    ui: {
+        dateInput: '.data-catalog-date-input',
+        clearable: '.data-catalog-clearable-input a'
+    },
+
+    events: {
+        'change @ui.dateInput': 'onDateInputChanged',
+        'click @ui.clearable': 'onClearInput'
+    },
+
+    modelEvents: {
+        'change': 'render'
+    },
+
+    onRender: function() {
+        this.ui.dateInput.datepicker();
+    },
+
+    onClearInput: function(e) {
+        var $el = $(e.currentTarget).siblings('input').val('');
+        this.updateDateInput($el);
+    },
+
+    onDateInputChanged: function(e) {
+        this.updateDateInput($(e.currentTarget));
+    },
+
+    updateDateInput: function($dateEl) {
+        var isFromDate = $dateEl.hasClass('from-date'),
+            attr = isFromDate ? 'fromDate' : 'toDate';
+
+        this.model.set(attr, $dateEl.val());
+    }
+});
+
+var CheckboxFilterView = FilterBaseView.extend({
+    // model: CheckboxFilterModel
+
+    template: checkboxFilterTmpl,
+
+    ui: {
+        checkbox: 'input',
+    },
+
+    events: {
+        'change @ui.checkbox': 'toggleState'
+    },
+
+    modelEvents: {
+        'change:active': 'render'
+    },
+
+    toggleState: function() {
+        this.model.set('active', !this.model.get('active'));
+    }
+});
+
+
+var FilterSidebar = Marionette.CompositeView.extend({
+    // collection: FilterCollection
+
+    className: 'data-catalog-filter-window',
+    template: filterSidebarTmpl,
+
+    ui: {
+        reset: '[data-action="reset-filters"]'
+    },
+
+    events: {
+        'click @ui.reset': 'clearFilters'
+    },
+
+    getChildView: function(item) {
+        var type = item.get('type');
+        if  (type === 'date') {
+            return DateFilterView;
+        } else if (type === 'checkbox'){
+            return CheckboxFilterView;
+        }
+
+        window.console.error("Filter model type",
+                             type, " unsupported.",
+                             "Write it a view.");
+        return null;
+    },
+
+    clearFilters: function() {
+        this.collection.forEach(function(model) { model.reset(); });
+    }
+});
+
 
 module.exports = {
     HeaderView: HeaderView,

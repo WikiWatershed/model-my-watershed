@@ -40,10 +40,6 @@
         }
     }
 
-    .filters-region {
-        padding: 6px 10px 0 10px;
-    }
-
     .result-region {
         height: auto !important;
         width: auto !important;
@@ -78,20 +74,13 @@
         padding: 10px;
     }
 
-    .data-catalog-search-dates {
-        background-color: #D8D8D8;
-        padding: 12px 10px;
-        margin: 0 -10px 10px;
-
-        h5 {
-            margin-top: 0;
-            font-weight: 600;
-        }
-    }
-
     .data-catalog-form {
         position: relative;
         padding: 4px 10px;
+
+        &:hover {
+            text-decoration: none;
+        }
 
         .data-catalog-search-component {
             position: relative;
@@ -103,32 +92,6 @@
             border: none;
             padding-left: 31px;
         }
-        .data-catalog-clearable-input {
-            display: inline-block;
-            position: relative;
-        }
-        .data-catalog-date-input {
-            width: 202px;
-            height: 38px;
-            border: none;
-            border-radius: 0;
-            display: inline;
-        }
-        .data-catalog-clear-icon {
-            color: $ui-secondary;
-            position: relative;
-            font-size: 13px;
-            position: absolute;
-            right: 10px;
-            top: 10px;
-        }
-        &:hover {
-            text-decoration: none;
-        }
-        .data-catalog-validation-msg {
-          color: $ui-danger;
-          margin-top: 8px;
-        }
         .data-catalog-search-icon {
             color: $ui-grey;
             position: absolute;
@@ -139,11 +102,10 @@
         .form-group {
           margin-right: 15px;
         }
-        .date-filter-toggle {
+        .filter-sidebar-toggle {
           position: absolute;
-          right: 0;
+          right: 1.5rem;
           top: -36px;
-          color: $brand-primary;
         }
     }
 
@@ -259,5 +221,89 @@
     .data-catalog-popover-details-btn {
         border-radius: 0px;
         margin-top: 10px;
+    }
+}
+
+.data-catalog-filter-window {
+    padding: 1rem;
+    padding-top: 2rem;
+    left: $sidebar-width;
+    width: $secondary-sidebar-width;
+    transition: all 200ms;
+    background-color: #D8D8D8;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    bottom: 0;
+    top: 90px;
+}
+
+.data-catalog-filter-window > .data-catalog-filters-header {
+    display: flex;
+    flex-direction: row;
+    > .filter-title {
+        line-height: $height-md;
+    }
+    > .btn-reset {
+        margin-left: auto;
+        font-weight: 600;
+        color: $brand-primary;
+    }
+}
+
+.data-catalog-filter-window > .data-catalog-filter-group {
+    h5 {
+        text-transform: uppercase;
+        font-weight: 800;
+    }
+}
+
+.data-catalog-filter-group .data-catalog-filter-checkbox {
+    input[type=checkbox] {
+      position: relative;
+      margin-right: 5px;
+    }
+
+    label {
+      font-size: $font-size-h4;
+    }
+}
+
+.data-catalog-filter-group .data-catalog-search-dates {
+    padding: 12px 10px;
+    margin: 0 -10px 10px;
+
+    label {
+        text-transform: uppercase;
+        display: block;
+        font-size: $font-size-h5;
+    }
+}
+
+.data-catalog-filter-group {
+    .data-catalog-clearable-input {
+        width: 100%;
+        display: inline-block;
+        position: relative;
+    }
+    .data-catalog-date-input {
+        height: 38px;
+        border: none;
+        border-radius: 0;
+        display: inline;
+        margin-bottom: 12px;
+    }
+    .data-catalog-clear-icon {
+        color: $ui-secondary;
+        position: relative;
+        font-size: 13px;
+        position: absolute;
+        right: 10px;
+        top: 10px;
+    }
+
+    .data-catalog-validation-msg {
+        color: $ui-danger;
+        margin-top: 8px;
     }
 }

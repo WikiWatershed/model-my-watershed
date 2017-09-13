@@ -20,6 +20,12 @@
   &.-sidebar {
     left: $sidebar-width;
   }
+
+  // Sets map to correct container size for sidebar + secondary sidebar
+  &.-sidebar.-double {
+      left: calc(#{$sidebar-width} + #{$secondary-sidebar-width});
+  }
+
   .compare-scenarios-container & {
     top: 0;
   }

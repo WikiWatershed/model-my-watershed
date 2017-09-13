@@ -3,21 +3,110 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     Backbone = require('../../shim/backbone'),
+    moment = require('moment'),
     settings = require('../core/settings');
 
 var REQUEST_TIMED_OUT_CODE = 408;
 var DESCRIPTION_MAX_LENGTH = 100;
 var PAGE_SIZE = settings.get('data_catalog_page_size');
 
-var SearchOption = Backbone.Model.extend({
+
+var FilterModel = Backbone.Model.extend({
     defaults: {
         id: '',
-        active: false,
+        type: '',
+        isValid: true
     },
+
+    reset: function() {
+        // Clear all model attributes and set back any defaults.
+        // Once we've called `.clear()` we lose the ability to detect
+        // actual changed attributes after the `.set()`.
+        // Store the prev state to check if a change event
+        // should fire
+        var prevAttr = _.clone(this.attributes);
+        this.clear({ silent: true }).set(this.defaults,
+                                         { silent: true });
+        if (!_.isEqual(this.attributes, prevAttr)) {
+            this.trigger("change", this);
+        }
+    },
+
+    validate: function() {
+        return true;
+    },
+
+    isActive: function() {
+        window.console.error("Use of unimplemented function",
+                             "FilterModel.isActive");
+        return false;
+    }
 });
 
-var SearchOptions = Backbone.Collection.extend({
-    model: SearchOption,
+var SearchOption = FilterModel.extend({
+    defaults: _.defaults({
+        active: false,
+    }, FilterModel.prototype.defaults),
+
+    isActive: function() {
+        return this.get('active');
+    }
+});
+
+var GriddedServicesFilter = SearchOption.extend({
+    defaults: _.defaults({
+        id: 'gridded',
+        type: 'checkbox',
+        label: 'Gridded Services',
+    }, SearchOption.prototype.defaults)
+});
+
+var DateFilter = FilterModel.extend({
+    defaults: _.defaults({
+        id: 'date',
+        type: 'date',
+        fromDate: null,
+        toDate: null,
+    }, FilterModel.prototype.defaults),
+
+    isActive: function() {
+        return this.get('fromDate') || this.get('toDate');
+    },
+
+    validate: function() {
+        // Only need to validate if there are two dates.  Ensure that
+        // before is earlier than after
+        var dateFormat = "MM/DD/YYYY",
+            toDate = this.get('toDate'),
+            fromDate = this.get('fromDate'),
+            isValid = true;
+
+        if (toDate && !moment(toDate, dateFormat).isValid()) {
+            isValid = false;
+        }
+
+        if (fromDate && !moment(fromDate, dateFormat).isValid()) {
+            isValid = false;
+        }
+
+        if (toDate && fromDate){
+            isValid = moment(fromDate, dateFormat)
+                .isBefore(moment(toDate, dateFormat));
+        }
+
+        this.set('isValid', isValid);
+        return isValid;
+    }
+});
+
+var FilterCollection = Backbone.Collection.extend({
+    model: FilterModel,
+
+    countActive: function() {
+        var isActive = function(filter) { return filter.isActive(); };
+
+        return this.filter(isActive).length;
+    },
 });
 
 var Catalog = Backbone.Model.extend({
@@ -25,16 +114,13 @@ var Catalog = Backbone.Model.extend({
         id: '',
         name: '',
         description: '',
-        fromDate: null,
-        toDate: null,
         query: '',
         geom: '',
         loading: false,
         active: false,
         results: null, // Results collection
         resultCount: 0,
-        has_filters: false, // If local filters apply
-        options: null,      // SearchOptions collection
+        filters: null, // FiltersCollection
         is_pageable: true,
         page: 1,
         error: '',
@@ -47,26 +133,26 @@ var Catalog = Backbone.Model.extend({
             self.set('detail_result', self.get('results').getDetail());
         });
 
-        // Initialize and listen to options for changes
-        if (this.get('options') === null) {
-            this.set({ options: new SearchOptions() });
+        // Initialize and listen to filters for changes
+        if (this.get('filters') === null) {
+            this.set({ filters: new FilterCollection() });
         }
-        this.get('options').on('change:active', function() {
-            self.startSearch(1);
+        this.get('filters').on('change', function() {
+            if (self.isSearchValid()) {
+                self.startSearch(1);
+            }
         });
     },
 
-    searchIfNeeded: function(query, fromDate, toDate, geom) {
+    searchIfNeeded: function(query, geom) {
         var self = this,
             error = this.get('error'),
             isSameSearch = query === this.get('query') &&
-                           fromDate === this.get('fromDate') &&
-                           toDate === this.get('toDate') &&
                            geom === this.get('geom');
 
         if (!isSameSearch || error) {
             this.cancelSearch();
-            this.searchPromise = this.search(query, fromDate, toDate, geom)
+            this.searchPromise = this.search(query, geom)
                                      .always(function() {
                                         delete self.searchPromise;
                                      });
@@ -81,38 +167,55 @@ var Catalog = Backbone.Model.extend({
         }
     },
 
-    search: function(query, fromDate, toDate, geom) {
+    search: function(query, geom) {
         this.set({
             query: query,
             geom: geom,
-            fromDate: fromDate,
-            toDate: toDate,
         });
 
         return this.startSearch(1);
     },
 
+    isSearchValid: function() {
+        var query = this.get('query'),
+            validate = function(filter) { return filter.validate(); },
+            valid = this.get('filters').map(validate);
+
+        return query && _.every(valid);
+    },
+
     startSearch: function(page) {
+        var filters = this.get('filters'),
+            dateFilter = filters.findWhere({ id: 'date' }),
+            fromDate = null,
+            toDate = null;
+
+        if (dateFilter) {
+            fromDate = dateFilter.get('fromDate');
+            toDate = dateFilter.get('toDate');
+        }
+
         var lastPage = Math.ceil(this.get('resultCount') / PAGE_SIZE),
             thisPage = parseInt(page) || 1,
-            has_filters = this.get('has_filters'),
-            options = this.get('options'),
-            id = function(option) { return option.id; },
+            isSearchOption = function(filter) { return filter instanceof SearchOption; },
+            searchOptions = filters.filter(isSearchOption),
             data = {
                 catalog: this.id,
                 query: this.get('query'),
                 geom: this.get('geom'),
-                from_date: this.get('fromDate'),
-                to_date: this.get('toDate'),
+                from_date: fromDate,
+                to_date: toDate,
             };
 
         if (thisPage > 1 && thisPage <= lastPage) {
             _.assign(data, { page: thisPage });
         }
 
-        if (has_filters && options) {
+        if (searchOptions && searchOptions.length > 0) {
+            var isActive = function(option) { return option.isActive(); },
+                id = function(option) { return option.get('id'); };
             _.assign(data, {
-                options: options.where({ active: true }).map(id).join(',')
+                options: _.map(_.filter(searchOptions, isActive), id).join(',')
             });
         }
 
@@ -185,7 +288,11 @@ var Catalog = Backbone.Model.extend({
 });
 
 var Catalogs = Backbone.Collection.extend({
-    model: Catalog
+    model: Catalog,
+
+    getActiveCatalog: function() {
+        return this.findWhere({ active: true });
+    }
 });
 
 var Result = Backbone.Model.extend({
@@ -270,17 +377,14 @@ var Results = Backbone.Collection.extend({
 
 var SearchForm = Backbone.Model.extend({
     defaults: {
-        fromDate: null,
-        toDate: null,
         query: '',
-        showingFilters: false,
-        isValid: true,
     }
 });
 
 module.exports = {
-    SearchOption: SearchOption,
-    SearchOptions: SearchOptions,
+    GriddedServicesFilter: GriddedServicesFilter,
+    DateFilter: DateFilter,
+    FilterCollection: FilterCollection,
     Catalog: Catalog,
     Catalogs: Catalogs,
     Result: Result,
