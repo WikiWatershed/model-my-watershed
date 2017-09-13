@@ -605,6 +605,10 @@ var AnimalCensusCollection = Backbone.Collection.extend({
     comparator: 'type'
 });
 
+var ClimateCensusCollection = Backbone.Collection.extend({
+    comparator: 'monthidx'
+});
+
 var PointSourceCensusCollection = Backbone.PageableCollection.extend({
     comparator: 'city',
     mode: 'client',
@@ -684,6 +688,7 @@ module.exports = {
     LandUseCensusCollection: LandUseCensusCollection,
     SoilCensusCollection: SoilCensusCollection,
     AnimalCensusCollection: AnimalCensusCollection,
+    ClimateCensusCollection: ClimateCensusCollection,
     PointSourceCensusCollection: PointSourceCensusCollection,
     CatchmentWaterQualityCensusCollection: CatchmentWaterQualityCensusCollection,
     GeoModel: GeoModel,

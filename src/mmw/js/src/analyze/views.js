@@ -28,6 +28,8 @@ var $ = require('jquery'),
     tableRowTmpl = require('./templates/tableRow.html'),
     animalTableTmpl = require('./templates/animalTable.html'),
     animalTableRowTmpl = require('./templates/animalTableRow.html'),
+    climateTableTmpl = require('./templates/climateTable.html'),
+    climateTableRowTmpl = require('./templates/climateTableRow.html'),
     pageableTableTmpl = require('./templates/pageableTable.html'),
     pointSourceTableTmpl = require('./templates/pointSourceTable.html'),
     pointSourceTableRowTmpl = require('./templates/pointSourceTableRow.html'),
@@ -417,9 +419,15 @@ var AnalyzeLayerToggleView = Marionette.ItemView.extend({
     },
 
     toggleLayer: function() {
-        utils.toggleLayer(this.model, App.getLeafletMap(),
-            App.getLayerTabCollection().findLayerGroup(this.model.get('layerType')));
-        App.getLayerTabCollection().trigger('toggle:layer');
+        var layer = this.model,
+            layerTabCollection = App.getLayerTabCollection(),
+            layerGroup = layerTabCollection.findLayerGroup(layer.get('layerType'));
+
+        utils.toggleLayer(layer, App.getLeafletMap(), layerGroup);
+        layerTabCollection.findWhere({ active: true })
+                          .set({ active: false });
+        layerTabCollection.findWhere({ name: layerGroup.get('name') })
+                          .set({ active: true });
     },
 
     templateHelpers: function() {
@@ -469,7 +477,10 @@ var AnalyzeLayerToggleDropdownView = Marionette.ItemView.extend({
             layerGroup = layerTabCollection.findLayerGroup(layer.get('layerType'));
 
         utils.toggleLayer(layer, App.getLeafletMap(), layerGroup);
-        layerTabCollection.trigger('toggle:layer');
+        layerTabCollection.findWhere({ active: true })
+                          .set({ active: false });
+        layerTabCollection.findWhere({ name: layerGroup.get('name') })
+                          .set({ active: true });
     },
 
     renderIfNotDestroyed: function() {
@@ -591,6 +602,31 @@ var AnimalTableView = Marionette.CompositeView.extend({
     },
     childViewContainer: 'tbody',
     template: animalTableTmpl,
+
+    onAttach: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    }
+});
+
+var ClimateTableRowView = Marionette.ItemView.extend({
+    tagName: 'tr',
+    template: climateTableRowTmpl,
+});
+
+var ClimateTableView = Marionette.CompositeView.extend({
+    childView: ClimateTableRowView,
+    childViewContainer: 'tbody',
+    template: climateTableTmpl,
+    templateHelpers: function() {
+        var data = this.collection.toJSON(),
+            totalPpt = lodash(data).pluck('ppt').sum(),
+            avgTmean = lodash(data).pluck('tmean').sum() / 12;
+
+        return {
+            totalPpt: totalPpt,
+            avgTmean: avgTmean,
+        };
+    },
 
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
@@ -1126,12 +1162,28 @@ var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
     }
 });
 
+var ClimateResultView = AnalyzeResultView.extend({
+    onShow: function() {
+        var title = 'Mean Monthly Precipitation and Temperature',
+            source = 'PRISM Climate Group',
+            helpText = 'For more information on the data source, see <a href=\'http://prism.nacse.org\' target=\'_blank\' rel=\'noreferrer noopener\'>PRISM Climate Group website</a>',
+            associatedLayerCodes = [
+                'mean_ppt',
+                'mean_temp',
+            ],
+            chart = null;
+        this.showAnalyzeResults(coreModels.ClimateCensusCollection, ClimateTableView,
+            chart, title, source, helpText, associatedLayerCodes);
+    }
+});
+
 var AnalyzeResultViews = {
     land: LandResultView,
     soil: SoilResultView,
     animals: AnimalsResultView,
     pointsource: PointSourceResultView,
     catchment_water_quality: CatchmentWaterQualityResultView,
+    climate: ClimateResultView,
 };
 
 module.exports = {

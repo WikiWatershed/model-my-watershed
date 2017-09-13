@@ -2,7 +2,7 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from celery import chain
+from celery import chain, group
 
 from rest_framework.response import Response
 from rest_framework import decorators
@@ -10,6 +10,7 @@ from rest_framework.permissions import AllowAny
 
 from django.utils.timezone import now
 from django.core.urlresolvers import reverse
+from django.conf import settings
 
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
@@ -775,6 +776,41 @@ def start_analyze_catchment_water_quality(request, format=None):
 
     return start_celery_job([
         tasks.analyze_catchment_water_quality.s(area_of_interest)
+    ], area_of_interest, user)
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((AllowAny, ))
+def start_analyze_climate(request, format=None):
+    """
+    Start Climate Analyze job
+    """
+    user = request.user if request.user.is_authenticated() else None
+
+    wkaoi = request.query_params.get('wkaoi', None)
+    area_of_interest = load_area_of_interest(request.data, wkaoi)
+
+    geotasks = []
+    ppt_raster = settings.GEOP['json']['ppt']['input']['targetRaster']
+    tmean_raster = settings.GEOP['json']['tmean']['input']['targetRaster']
+
+    for i in xrange(1, 13):
+        ppt_input = {'polygon': [area_of_interest],
+                     'targetRaster': ppt_raster.format(i)}
+        tmean_input = {'polygon': [area_of_interest],
+                       'targetRaster': tmean_raster.format(i)}
+
+        geotasks.extend([
+            geoprocessing.run.s('ppt', ppt_input, wkaoi, i) |
+            tasks.analyze_climate.s('ppt', i),
+            geoprocessing.run.s('tmean', tmean_input, wkaoi, i) |
+            tasks.analyze_climate.s('tmean', i)
+        ])
+
+    return start_celery_job([
+        group(geotasks),
+        tasks.combine_climate.s(),
+        tasks.collect_climate.s(),
     ], area_of_interest, user)
 
 
