@@ -586,6 +586,7 @@ def start_analyze_animals(request, format=None):
          paramType: body
          type: object
        - name: wkaoi
+         paramType: query
          description: The table and ID for a well-known area of interest,
                       such as a HUC.
                       Format "table__id", eg. "huc12__55174" will analyze
