@@ -10,7 +10,7 @@ var $ = require('jquery'),
     formTmpl = require('./templates/form.html'),
     pagerTmpl = require('./templates/pager.html'),
     searchResultTmpl = require('./templates/searchResult.html'),
-    cuahsiSearchResultTmpl = require('./templates/cuahsiSearchResult.html'),
+    searchResultCuahsiTmpl = require('./templates/searchResultCuahsi.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     tabPanelTmpl = require('./templates/tabPanel.html'),
     headerTmpl = require('./templates/header.html'),
@@ -24,7 +24,7 @@ var ENTER_KEYCODE = 13,
     CATALOG_RESULT_TEMPLATE = {
         cinergi: searchResultTmpl,
         hydroshare: searchResultTmpl,
-        cuahsi: cuahsiSearchResultTmpl,
+        cuahsi: searchResultCuahsiTmpl,
     };
 
 var HeaderView = Marionette.LayoutView.extend({
@@ -131,7 +131,7 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         } else {
             this.detailsRegion.show(new ResultDetailsView({
                 model: detailResult,
-                activeCatalog: activeCatalog.id
+                catalog: activeCatalog.id
             }));
             App.map.set({
                 'dataCatalogResults': null,
@@ -455,12 +455,12 @@ var ResultDetailsView = Marionette.ItemView.extend({
     },
 
     initialize: function(options) {
-        this.activeCatalog = options.activeCatalog;
+        this.catalog = options.catalog;
     },
 
     templateHelpers: function() {
         return {
-            activeCatalog: this.activeCatalog
+            catalog: this.catalog
         };
     },
 
