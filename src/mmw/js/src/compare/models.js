@@ -208,6 +208,25 @@ var WindowModel = Backbone.Model.extend({
         scenarios: null, // ScenariosCollection
         tabs: null,  // TabsCollection
         visibleScenarioIndex: 0, // Index of the first visible scenario
+        polling: false,  // If any results are polling
+    },
+
+    initialize: function() {
+        var setPolling = _.bind(this.setPolling, this);
+
+        this.get('scenarios').forEach(function(scenario) {
+            scenario.get('results').on('change', setPolling);
+        });
+    },
+
+    setPolling: function() {
+        var getPolling = function(scenario) {
+                return scenario.get('results').pluck('polling');
+            },
+            scenarios = this.get('scenarios'),
+            polling = _(scenarios.map(getPolling)).flatten().some();
+
+        this.set({ polling: polling });
     },
 
     addOrReplaceInput: function(input) {

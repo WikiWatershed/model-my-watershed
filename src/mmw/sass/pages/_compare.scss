@@ -319,6 +319,18 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
   .compare-sections {
     flex: 0 1 auto;
     overflow: auto;
+
+    &.polling {
+      .compare-column, rect {
+        opacity: 0.25;
+      }
+    }
+  }
+
+  .spinner {
+    position: absolute;
+    top: 53px;
+    right: 50%;
   }
 
   .compare-close {
@@ -514,6 +526,7 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
   .compare-column {
     min-width: 120px;
     width: 120px;
+    transition: opacity 0.3s ease-in-out;
 
     .compare-scenario-title {
       font-size: $font-size-h5;
