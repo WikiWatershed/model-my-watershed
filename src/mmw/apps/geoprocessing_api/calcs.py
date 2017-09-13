@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+import json
+
 from django.contrib.gis.geos import GEOSGeometry
 
 from django.conf import settings
@@ -123,12 +125,12 @@ def catchment_water_quality(geojson):
             columns = [col[0] for col in cursor.description]
             catchment_water_quality_results = [
                 # The TN, TP, and TSS values return as type Decimal,
-                # but we want floats.
+                # but we want floats.  For geom (22), we want a JSON object
                 dict(zip(columns,
                          ([int(row[0]) if row[0] else None] +
                           [float(value) if value else None
                            for value in row[1:22]] +
-                          [row[22]])))
+                          [json.loads(row[22])])))
                 for row in cursor.fetchall()
             ]
         else:

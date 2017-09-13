@@ -913,12 +913,7 @@ var WatershedDelineationView = DrawToolBaseView.extend({
             pollSuccess: function(response) {
                 self.model.set('polling', false);
 
-                var result;
-                try {
-                    result = JSON.parse(response.result);
-                } catch (ex) {
-                    return this.pollFailure();
-                }
+                var result = response.result;
 
                 if (result.watershed) {
                     // Convert watershed to MultiPolygon to pass shape validation.

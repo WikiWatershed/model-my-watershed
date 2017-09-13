@@ -40,6 +40,7 @@ class ProjectSerializer(gis_serializers.GeoModelSerializer):
         geo_field = 'area_of_interest'
 
     user = UserSerializer(default=serializers.CurrentUserDefault())
+    gis_data = JsonField()
     scenarios = ScenarioSerializer(many=True, read_only=True)
 
 

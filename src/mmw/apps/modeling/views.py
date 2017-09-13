@@ -526,11 +526,18 @@ def get_job(request, job_uuid, format=None):
 
     # TODO Should we return the error? Might leak info about the internal
     # workings that we don't want exposed.
+
+    # Parse results to json if it is valid json
+    try:
+        result = json.loads(job.result)
+    except ValueError:
+        result = job.result
+
     return Response(
         {
             'job_uuid': job.uuid,
             'status': job.status,
-            'result': job.result,
+            'result': result,
             'error': job.error,
             'started': job.created_at,
             'finished': job.delivered_at,

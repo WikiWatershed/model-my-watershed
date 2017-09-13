@@ -433,7 +433,7 @@ var GwlfeConservationPracticeView = ModificationsView.extend({
                     rows: [['urban_buffer_strips', 'urban_streambank_stabilization', 'water_retention', 'infiltration']]
                 }
             ],
-            dataModel: gwlfeConfig.cleanDataModel(JSON.parse(App.currentProject.get('gis_data'))),
+            dataModel: gwlfeConfig.cleanDataModel(App.currentProject.get('gis_data')),
             errorMessages: null,
             infoMessages: null
         });
