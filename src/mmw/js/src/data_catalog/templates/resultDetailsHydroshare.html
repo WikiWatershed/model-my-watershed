@@ -1,0 +1,23 @@
+<div class="result">
+    <div class="result-detail-header">
+        <h2>
+            {{ title }}
+        </h2>
+        <button type="button" class="close" aria-label="Close">
+            <span aria-hidden="true">×</span>
+        </button>
+        <a href="#"><i class="fa fa-search-plus"></i> Zoom to extent</a>
+    </div>
+    <hr>
+    {% if author %}
+        <p>
+            <i class="fa fa-user"></i>{{ author }}
+        </p>
+    {% endif %}
+        <p>
+            <i class="fa fa-calendar"></i> {{ created_at|toDateFullYear }}
+        </p>
+    <p>
+        {{ description }}
+    </p>
+</div>

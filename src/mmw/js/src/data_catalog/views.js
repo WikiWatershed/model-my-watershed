@@ -15,7 +15,9 @@ var $ = require('jquery'),
     tabPanelTmpl = require('./templates/tabPanel.html'),
     headerTmpl = require('./templates/header.html'),
     windowTmpl = require('./templates/window.html'),
-    resultDetailsTmpl = require('./templates/resultDetails.html'),
+    resultDetailsCinergiTmpl = require('./templates/resultDetailsCinergi.html'),
+    resultDetailsHydroshareTmpl = require('./templates/resultDetailsHydroshare.html'),
+    resultDetailsCuahsiTmpl = require('./templates/resultDetailsCuahsi.html'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultMapPopoverTmpl = require('./templates/resultMapPopover.html');
 
@@ -25,6 +27,11 @@ var ENTER_KEYCODE = 13,
         cinergi: searchResultTmpl,
         hydroshare: searchResultTmpl,
         cuahsi: searchResultCuahsiTmpl,
+    },
+    CATALOG_RESULT_DETAILS_TEMPLATE = {
+        cinergi: resultDetailsCinergiTmpl,
+        hydroshare: resultDetailsHydroshareTmpl,
+        cuahsi: resultDetailsCuahsiTmpl,
     };
 
 var HeaderView = Marionette.LayoutView.extend({
@@ -444,7 +451,9 @@ var ResultsView = Marionette.CollectionView.extend({
 });
 
 var ResultDetailsView = Marionette.ItemView.extend({
-    template: resultDetailsTmpl,
+    getTemplate: function() {
+        return CATALOG_RESULT_DETAILS_TEMPLATE[this.catalog];
+    },
 
     ui: {
         closeDetails: '.close'
