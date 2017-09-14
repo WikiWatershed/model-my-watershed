@@ -536,6 +536,7 @@ GEOP = {
                 'polygonCRS': 'LatLng',
                 'rasters': [],
                 'targetRaster': 'climatology-ppt-{:02d}-epsg5070',
+                'pixelIsArea': True,
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0
@@ -547,6 +548,7 @@ GEOP = {
                 'polygonCRS': 'LatLng',
                 'rasters': [],
                 'targetRaster': 'climatology-tmean-{:02d}-epsg5070',
+                'pixelIsArea': True,
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0
