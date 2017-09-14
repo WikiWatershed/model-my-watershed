@@ -156,10 +156,10 @@ def group_series_by_location(series):
             'site_name': group[0]['Sitename'],
             'latitude': group[0]['latitude'],
             'longitude': group[0]['longitude'],
-            'sample_mediums': ', '.join(sorted(set([r['samplemedium']
-                                                    for r in group]))),
-            'concept_keywords': '; '.join(sorted(set([r['conceptKeyword']
-                                                      for r in group]))),
+            'sample_mediums': sorted(set([r['samplemedium']
+                                          for r in group])),
+            'concept_keywords': sorted(set([r['conceptKeyword']
+                                            for r in group])),
             'begin_date': min([parse_date(r['beginDate'])
                                for r in group]),
             'end_date': max([parse_date(r['endDate'])
