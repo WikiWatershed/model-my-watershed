@@ -107,6 +107,8 @@ def parse_record(record, service):
         service_org=service['organization'],
         service_code=record['serv_code'],
         service_url=service['ServiceDescriptionURL'],
+        service_title=service['Title'],
+        service_citation=service['citation'],
         begin_date=record['begin_date'],
         end_date=record['end_date']
     )

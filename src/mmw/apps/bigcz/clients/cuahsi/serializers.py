@@ -18,5 +18,7 @@ class CuahsiResourceSerializer(ResourceSerializer):
     service_org = CharField()
     service_code = CharField()
     service_url = CharField()
+    service_title = CharField()
+    service_citation = CharField()
     begin_date = DateTimeField()
     end_date = DateTimeField()
