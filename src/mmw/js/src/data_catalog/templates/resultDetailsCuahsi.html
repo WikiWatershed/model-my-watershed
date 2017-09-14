@@ -1,14 +1,21 @@
 <div class="result">
     <div class="result-detail-header">
-        <h2>
-            {{ title }}
-        </h2>
         <button type="button" class="close" aria-label="Close">
             <span aria-hidden="true">×</span>
         </button>
-        <a href="#"><i class="fa fa-search-plus"></i> Zoom to extent</a>
+        <h2>
+            Site: {{ location }} {{ title }}
+        </h2>
+        <p>
+            Source: {{ service_org }} {{ service_title }}
+            <a data-toggle="popover" tabindex="0"
+               data-html="true" data-container="body" role="button"
+               data-content="{{ description }}"
+               data-template="<div class='popover'><div class='pull-right' id='popover-close-button'><i class='fa fa-times' /></div><div class='popover-content'></div><div class='arrow'></div></div>">
+                <i class="fa fa-info-circle black"></i>
+            </a>
+        </p>
     </div>
-    <hr>
     {% if author %}
         <p>
             <i class="fa fa-user"></i>{{ author }}
@@ -16,14 +23,51 @@
     {% endif %}
     {% if begin_date == end_date %}
         <p>
-            <i class="fa fa-calendar"></i> {{ begin_date|toDateWithoutTime }}
+            Data collected on: {{ begin_date|toDateWithoutTime }}
         </p>
     {% else %}
         <p>
-            <i class="fa fa-calendar"></i> {{ begin_date|toDateWithoutTime }} - {{ end_date|toDateWithoutTime }}
+            Data collected between: {{ begin_date|toDateWithoutTime }} - {{ end_date|toDateWithoutTime }}
         </p>
     {% endif %}
     <p>
-        {{ description }}
+        Medium: {{ sample_mediums|join(", ") }}
     </p>
+    <p>
+        {% if details_url %}
+            <a class="btn btn-secondary" href="{{ details_url }}"
+               target="_blank" rel="noreferrer noopener">
+                <i class="fa fa-external-link-square"></i>&nbsp;Source Data
+            </a>
+        {% endif %}
+        <a class="btn btn-secondary" href="{{ service_url }}"
+           target="_blank" rel="noreferrer noopener">
+            <i class="fa fa-globe"></i>&nbsp;Web Services
+        </a>
+    </p>
+    <hr />
+    <p>
+        Last collected value {{ end_date|toTimeAgo }}:
+    </p>
+    <table class="table custom-hover" data-toggle="table">
+        <thead>
+            <tr>
+                <th>Variable</th>
+                <th class="text-right">Value</th>
+                <th>Units</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ck in concept_keywords %}
+                <tr>
+                    <td>{{ ck }}</td>
+                    <td class="text-right"><!-- TODO Fetch Values --></td>
+                    <td><!-- TODO Fetch Units --></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <!-- TODO Insert Chart https://github.com/WikiWatershed/model-my-watershed/issues/2238 -->
+    <hr />
+    <p>Citation: {{ service_citation }}</p>
 </div>

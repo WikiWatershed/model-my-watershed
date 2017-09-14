@@ -467,9 +467,20 @@ var ResultDetailsView = Marionette.ItemView.extend({
         this.catalog = options.catalog;
     },
 
+    onAttach: function() {
+        this.$('[data-toggle="popover"]').popover({
+            placement: 'right',
+            trigger: 'focus',
+        });
+        this.$('[data-toggle="table"]').bootstrapTable();
+    },
+
     templateHelpers: function() {
+        var id = this.model.get('id'),
+            location = id.substring(id.indexOf(':') + 1);
+
         return {
-            catalog: this.catalog
+            location: location,
         };
     },
 

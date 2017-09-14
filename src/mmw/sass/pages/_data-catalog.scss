@@ -22,9 +22,13 @@
             top: 0px;
             width: 100%;
             position: absolute;
-            z-index: 10000;
+            z-index: 1000;
             background-color: #fff;
             overflow: auto;
+
+            p {
+                margin: 5px 0 0 0;
+            }
 
             .result-detail-header {
               h2 {
@@ -33,7 +37,7 @@
                   max-width: 95%;
               }
 
-              a {
+              a.zoom {
                 display: block;
               }
             }
