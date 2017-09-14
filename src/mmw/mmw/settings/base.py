@@ -410,7 +410,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-0.10.0'
+                    'nlcd-2011-30m-epsg5070-512-int8'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -422,7 +422,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'ssurgo-hydro-groups-30m-epsg5070-0.10.0'
+                    'ssurgo-hydro-groups-30m-epsg5070-512-int8'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -434,8 +434,8 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-0.10.0',
-                    'ssurgo-hydro-groups-30m-epsg5070-0.10.0'
+                    'nlcd-2011-30m-epsg5070-512-int8',
+                    'ssurgo-hydro-groups-30m-epsg5070-512-int8'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -449,7 +449,7 @@ GEOP = {
                 'vector': [],
                 'vectorCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-0.10.0'
+                    'nlcd-2011-30m-epsg5070-512-int8'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterLinesJoin',
@@ -461,9 +461,9 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-0.10.0',
-                    'ssurgo-hydro-groups-30m-epsg5070-0.10.0',
-                    'us-ssugro-texture-id-30m-epsg5070'
+                    'nlcd-2011-30m-epsg5070-512-int8',
+                    'ssurgo-hydro-groups-30m-epsg5070-512-int8',
+                    'us-ssurgo-texture-id-30m-epsg5070-512'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -475,7 +475,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'us-groundwater-nitrogen-30m-epsg5070'
+                    'us-groundwater-nitrogen-30m-epsg5070-512'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -485,7 +485,7 @@ GEOP = {
         'avg_awc': {
             'input': {
                 'polygon': [],
-                'targetRaster': 'us-ssugro-aws100-30m-epsg5070',
+                'targetRaster': 'us-ssurgo-aws100-30m-epsg5070-512',
                 'rasters': [],
                 'rasterCRS': 'ConusAlbers',
                 'polygonCRS': 'LatLng',
@@ -498,8 +498,8 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-0.10.0',
-                    'us-percent-slope-30m-epsg5070',
+                    'nlcd-2011-30m-epsg5070-512-int8',
+                    'us-percent-slope-30m-epsg5070-512'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -511,7 +511,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [],
-                'targetRaster': 'us-percent-slope-30m-epsg5070',
+                'targetRaster': 'us-percent-slope-30m-epsg5070-512',
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0
@@ -522,9 +522,9 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-0.10.0'
+                    'nlcd-2011-30m-epsg5070-512-int8'
                 ],
-                'targetRaster': 'us-ssugro-kfactor-30m-epsg5070',
+                'targetRaster': 'us-ssugro-kfactor-30m-epsg5070-512',
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0
