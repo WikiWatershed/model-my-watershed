@@ -553,6 +553,18 @@ GEOP = {
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0
             }
+        },
+        'soiln': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [],
+                'targetRaster': 'soiln-epsg5070',
+                'pixelIsArea': True,
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
         }
     }
 }

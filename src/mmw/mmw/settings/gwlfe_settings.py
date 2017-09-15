@@ -59,7 +59,6 @@ GWLFE_DEFAULTS = {
     'SoilPFlag': b.YES,  # Flag: Soil P Layer Detected (0 No; 1 Yes)
     'GWNFlag': b.YES,  # Flag: Groundwater N Layer Detected (0 No; 1 Yes)
     'SedAAdjust': 1.4,  # Default Percent ET
-    'SedNitr': 2000,  # Soil Concentration: N (mg/l)
     'BankNFrac': 0.25,  # % Bank N Fraction (0 - 1)
     'BankPFrac': 0.25,  # % Bank P Fraction (0 - 1)
     'ManuredAreas': 2,  # Manure Spreading Periods (Default = 2)

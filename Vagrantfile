@@ -101,7 +101,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       guest: 2375,
       host: 2375
     }.merge(VAGRANT_NETWORK_OPTIONS)
-    # SJS
+    # Geoprocessing Service
     worker.vm.network "forwarded_port", {
       guest: 8090,
       host: 8090
