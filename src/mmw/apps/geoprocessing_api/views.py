@@ -820,10 +820,87 @@ def start_analyze_catchment_water_quality(request, format=None):
 
 
 @decorators.api_view(['POST'])
-@decorators.permission_classes((AllowAny, ))
+@decorators.authentication_classes((TokenAuthentication, ))
+@decorators.permission_classes((IsTokenAuthenticatedOrClientApp, ))
 def start_analyze_climate(request, format=None):
     """
-    Start Climate Analyze job
+    Start a job to calculate the monthly climate (precipitation
+    and mean temperature) of a given area.
+
+    Source PRISM Climate Group
+
+    For more information, see
+    the [technical documentation](https://wikiwatershed.org/
+    documentation/mmw-tech/#overlays-tab-coverage)
+
+    ## Response
+
+    You can use the url provided in the response's `location`
+    header to poll for the job's results.
+
+    <summary>
+       **Example of a completed job's `result`**
+    </summary>
+
+    <details>
+
+        {
+            "survey": {
+                 "displayName": "Climate",
+                 "name": "climate",
+                 "categories": [
+                     {
+                         "ppt": 66.84088134765625,
+                         "tmean": -2.4587886333465576,
+                         "monthidx": 1,
+                         "month": "January"
+                     },
+                     {
+                         "ppt": 59.17946434020996,
+                         "tmean": -1.8310737609863281,
+                         "monthidx": 2,
+                         "month": "February"
+                     }, ...
+                 ]
+            }
+        }
+
+    </details>
+
+    ---
+    type:
+      job:
+        required: true
+        type: string
+      status:
+        required: true
+        type: string
+
+    omit_serializer: true
+    parameters:
+       - name: body
+         description: A valid single-ringed Multipolygon GeoJSON
+                      representation of the shape to analyze.
+                      See the GeoJSON spec
+                      https://tools.ietf.org/html/rfc7946#section-3.1.7
+         paramType: body
+         type: object
+       - name: wkaoi
+         paramType: query
+         description: The table and ID for a well-known area of interest,
+                      such as a HUC.
+                      Format "table__id", eg. "huc12__55174" will analyze
+                      the HUC-12 City of Philadelphia-Schuylkill River.
+       - name: Authorization
+         paramType: header
+         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
+                      Swagger you may wish to set this for all requests via
+                      the field at the top right of the page.
+    consumes:
+        - application/json
+    produces:
+        - application/json
+
     """
     user = request.user if request.user.is_authenticated() else None
 
