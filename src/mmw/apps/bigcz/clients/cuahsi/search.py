@@ -9,6 +9,7 @@ from socket import timeout
 from operator import attrgetter
 
 from suds.client import Client
+from suds.sudsobject import asdict
 from rest_framework.exceptions import ValidationError
 from django.contrib.gis.geos import Point
 
@@ -42,6 +43,27 @@ GRIDDED = [
 client = Client(CATALOG_URL, timeout=settings.BIGCZ_CLIENT_TIMEOUT)
 
 
+def recursive_asdict(d):
+    """
+    Convert Suds object into serializable format, so it can be cached.
+    From https://gist.github.com/robcowie/a6a56cf5b17a86fdf461
+    """
+    out = {}
+    for k, v in asdict(d).iteritems():
+        if hasattr(v, '__keylist__'):
+            out[k] = recursive_asdict(v)
+        elif isinstance(v, list):
+            out[k] = []
+            for item in v:
+                if hasattr(item, '__keylist__'):
+                    out[k].append(recursive_asdict(item))
+                else:
+                    out[k].append(item)
+        else:
+            out[k] = v
+    return out
+
+
 def filter_networkIDs(services, gridded=False):
     """
     Transforms list of services to list of ServiceIDs, with respect to
@@ -52,8 +74,8 @@ def filter_networkIDs(services, gridded=False):
     If no filters apply, we return an empty list to disable filtering.
     """
     if not gridded:
-        return [str(s.ServiceID) for s in services
-                if s.NetworkName not in GRIDDED]
+        return [str(s['ServiceID']) for s in services
+                if s['NetworkName'] not in GRIDDED]
 
     return []
 
@@ -173,7 +195,8 @@ def group_series_by_location(series):
 
 def make_request(request, **kwargs):
     try:
-        return request(**kwargs)
+        response = recursive_asdict(request(**kwargs))
+        return response
     except URLError, e:
         if isinstance(e.reason, timeout):
             raise RequestTimedOutError()
