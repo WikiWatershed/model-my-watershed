@@ -15,7 +15,7 @@ from sys import path
 from layer_settings import (LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
                             NHD_REGION2_PERIMETER, DRB_PERIMETER, CONUS_PERIMETER)  # NOQA
 from gwlfe_settings import (GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, # NOQA
-                            SOILP, CURVE_NUMBER, NODATA)  # NOQA
+                            CURVE_NUMBER, NODATA)  # NOQA
 from tr55_settings import (NLCD_MAPPING, SOIL_MAPPING)
 
 # Normally you should not import ANYTHING from Django directly
@@ -567,6 +567,19 @@ GEOP = {
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0
             }
+        },
+        'soilp': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [],
+                'targetRaster': 'soilpallland2-epsg5070',
+                'pixelIsArea': True,
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
+        },
         'recess_coef': {
             'input': {
                 'polygon': [],

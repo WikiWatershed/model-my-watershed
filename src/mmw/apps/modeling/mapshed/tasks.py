@@ -25,7 +25,6 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          point_source_discharge,
                                          weather_data,
                                          curve_number,
-                                         sediment_phosphorus,
                                          phosphorus_conc,
                                          groundwater_nitrogen_conc,
                                          sediment_delivery_ratio,
@@ -106,7 +105,7 @@ def collect_data(geop_result, geojson):
     z['n46f'] = geop_result['low_urban_stream_pct'] * z['StreamLength'] / 1000
 
     z['CN'] = geop_result['cn']
-    z['SedPhos'] = geop_result['sed_phos']
+    z['SedPhos'] = geop_result['soilp'] * 1.6
     z['Area'] = [percent * area * HECTARES_PER_SQM
                  for percent in geop_result['landuse_pcts']]
 
@@ -270,10 +269,8 @@ def nlcd_soils(result):
     # Reduce [(n, g, t): c] to
     n_count = {}   # [n: sum(c)]
     ng_count = {}  # [(n, g): sum(c)]
-    nt_count = {}  # [(n, t): sum(c)]
     for (n, g, t), count in ngt_count.iteritems():
         n_count[n] = count + n_count.get(n, 0)
-        nt_count[(n, t)] = count + nt_count.get((n, t), 0)
 
         # Map soil group values to usable subset
         g2 = settings.SOIL_GROUP[g]
@@ -281,7 +278,6 @@ def nlcd_soils(result):
 
     return {
         'cn': curve_number(n_count, ng_count),
-        'sed_phos': sediment_phosphorus(nt_count),
         'landuse_pcts': landuse_pcts(n_count),
     }
 
@@ -319,6 +315,24 @@ def avg_awc(result):
 
     return {
         'avg_awc': result.values()[0]
+    }
+
+
+@shared_task(throws=Exception)
+def soilp(result):
+    """
+    Get `SoilP` from MMW-Geoprocessing endpoint
+
+    Originally calculated via lookup table at Class1.vb@1.3.0:8975-8988
+    """
+    if 'error' in result:
+        raise Exception('[soilp] {}'
+                        .format(result['error']))
+
+    result = parse(result)
+
+    return {
+        'soilp': result.values()[0]
     }
 
 
@@ -454,6 +468,7 @@ def geoprocessing_chains(aoi, wkaoi, errback):
     task_defs = [
         ('nlcd_soils',   nlcd_soils,   {'polygon': [aoi]}),
         ('soiln',        soiln,        {'polygon': [aoi]}),
+        ('soilp',        soilp,        {'polygon': [aoi]}),
         ('recess_coef',  recess_coef,  {'polygon': [aoi]}),
         ('gwn',          gwn,          {'polygon': [aoi]}),
         ('avg_awc',      avg_awc,      {'polygon': [aoi]}),
