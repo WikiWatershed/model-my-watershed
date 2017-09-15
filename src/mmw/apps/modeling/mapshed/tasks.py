@@ -156,7 +156,7 @@ def collect_data(geop_result, geojson):
 
 
 @shared_task(throws=Exception)
-def nlcd_streams(sjs_result):
+def nlcd_streams(result):
     """
     From a dictionary mapping NLCD codes to the count of stream pixels on
     each, return a dictionary with keys 'ag_stream_pct', 'low_urban_stream_pct'
@@ -189,13 +189,12 @@ def nlcd_streams(sjs_result):
     This task should be used as a template for making other geoprocessing
     post-processing tasks, to be used in geop_tasks.
     """
-    if 'error' in sjs_result:
-        raise Exception('[nlcd_streams] {}'.format(sjs_result['error']))
+    if 'error' in result:
+        raise Exception('[nlcd_streams] {}'.format(result['error']))
 
-    # Parse SJS results
-    # This can't be done in mapshed_finish because the keys may be tuples,
+    # This can't be done in geoprocessing.run because the keys may be tuples,
     # which are not JSON serializable and thus can't be shared between tasks
-    result = parse(sjs_result)
+    result = parse(result)
 
     ag_count = sum(result.get(nlcd, 0) for nlcd in AG_NLCD_CODES)
     low_urban_count = sum(result.get(nlcd, 0) for nlcd in [21, 22])
@@ -222,15 +221,15 @@ def nlcd_streams(sjs_result):
 
 
 @shared_task(throws=Exception)
-def nlcd_streams_drb(sjs_result):
+def nlcd_streams_drb(result):
     """
     This callback is run when the geometry falls within the DRB. We calculate
     the percentage of DRB streams in each land use type.
     """
-    if 'error' in sjs_result:
-        raise Exception('[nlcd_streams_drb] {}'.format(sjs_result['error']))
+    if 'error' in result:
+        raise Exception('[nlcd_streams_drb] {}'.format(result['error']))
 
-    result = parse(sjs_result)
+    result = parse(result)
     total = sum(result.values())
 
     lu_stream_pct_drb = [0.0] * NLU
@@ -245,7 +244,7 @@ def nlcd_streams_drb(sjs_result):
 
 
 @shared_task(throws=Exception)
-def nlcd_soils(sjs_result):
+def nlcd_soils(result):
     """
     Results are expected to be in the format:
     {
@@ -255,10 +254,10 @@ def nlcd_soils(sjs_result):
     We calculate a number of values relying on various combinations
     of these raster datasets.
     """
-    if 'error' in sjs_result:
-        raise Exception('[nlcd_soils] {}'.format(sjs_result['error']))
+    if 'error' in result:
+        raise Exception('[nlcd_soils] {}'.format(result['error']))
 
-    ngt_count = parse(sjs_result)
+    ngt_count = parse(result)
 
     # Raise exception if no NLCD values
     if len(ngt_count.values()) == 0:
@@ -285,15 +284,15 @@ def nlcd_soils(sjs_result):
 
 
 @shared_task(throws=Exception)
-def gwn(sjs_result):
+def gwn(result):
     """
     Derive Groundwater Nitrogen and Phosphorus
     """
-    if 'error' in sjs_result:
+    if 'error' in result:
         raise Exception('[gwn] {}'
-                        .format(sjs_result['error']))
+                        .format(result['error']))
 
-    result = parse(sjs_result)
+    result = parse(result)
     gr_nitr_conc, gr_phos_conc = groundwater_nitrogen_conc(result)
 
     return {
@@ -303,17 +302,17 @@ def gwn(sjs_result):
 
 
 @shared_task(throws=Exception)
-def avg_awc(sjs_result):
+def avg_awc(result):
     """
     Get `AvgAwc` from MMW-Geoprocessing endpoint
 
     Original at Class1.vb@1.3.0:4150
     """
-    if 'error' in sjs_result:
+    if 'error' in result:
         raise Exception('[awc] {}'
-                        .format(sjs_result['error']))
+                        .format(result['error']))
 
-    result = parse(sjs_result)
+    result = parse(result)
 
     return {
         'avg_awc': result.values()[0]
@@ -321,17 +320,17 @@ def avg_awc(sjs_result):
 
 
 @shared_task(throws=Exception)
-def soiln(sjs_result):
+def soiln(result):
     """
     Get `SoilN` from MMW-Geoprocessing endpoint
 
     Originally a static value of 2000 at Class1.vb@1.3.0:9587
     """
-    if 'error' in sjs_result:
+    if 'error' in result:
         raise Exception('[soiln] {}'
-                        .format(sjs_result['error']))
+                        .format(result['error']))
 
-    result = parse(sjs_result)
+    result = parse(result)
 
     return {
         'soiln': result.values()[0]

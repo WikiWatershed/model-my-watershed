@@ -106,7 +106,7 @@ def geoprocess(data, retry=None):
                         'Details: {}'.format(response.text))
 
 
-def parse(sjs_result):
+def parse(result):
     """
     Converts raw JSON results from Spark JobServer to dictionary of tuples
 
@@ -124,10 +124,10 @@ def parse(sjs_result):
             (4, 5): 6
         }
 
-    :param sjs_result: Dictionary mapping strings like 'List(a,b,c)' to ints
+    :param result: Dictionary mapping strings like 'List(a,b,c)' to ints
     :return: Dictionary mapping tuples of ints to ints
     """
-    return {make_tuple(key[4:]): val for key, val in sjs_result.items()}
+    return {make_tuple(key[4:]): val for key, val in result.items()}
 
 
 def to_one_ring_multipolygon(area_of_interest):
