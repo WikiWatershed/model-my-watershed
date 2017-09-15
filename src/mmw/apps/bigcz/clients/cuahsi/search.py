@@ -13,6 +13,7 @@ from suds.sudsobject import asdict
 from rest_framework.exceptions import ValidationError
 from django.contrib.gis.geos import Point
 
+from django.core.cache import cache
 from django.conf import settings
 
 from apps.bigcz.models import ResourceLink, ResourceList, BBox
@@ -193,9 +194,16 @@ def group_series_by_location(series):
     return records
 
 
-def make_request(request, **kwargs):
+def make_request(request, expiry, **kwargs):
+    key = 'bigcz_{}_{}'.format(request.method.name,
+                               hash(frozenset(kwargs.items())))
+    cached = cache.get(key)
+    if cached:
+        return cached
+
     try:
         response = recursive_asdict(request(**kwargs))
+        cache.set(key, response, timeout=expiry)
         return response
     except URLError, e:
         if isinstance(e.reason, timeout):
@@ -208,6 +216,7 @@ def make_request(request, **kwargs):
 
 def get_services_in_box(box):
     result = make_request(client.service.GetServicesInBox2,
+                          604800,  # Cache for one week
                           xmin=box.xmin,
                           xmax=box.xmax,
                           ymin=box.ymin,
@@ -228,6 +237,7 @@ def get_series_catalog_in_box(box, from_date, to_date, networkIDs):
     to_date = to_date or DATE_MAX
 
     result = make_request(client.service.GetSeriesCatalogForBox2,
+                          300,  # Cache for 5 minutes
                           xmin=box.xmin,
                           xmax=box.xmax,
                           ymin=box.ymin,
