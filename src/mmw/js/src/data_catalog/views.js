@@ -10,12 +10,14 @@ var $ = require('jquery'),
     formTmpl = require('./templates/form.html'),
     pagerTmpl = require('./templates/pager.html'),
     searchResultTmpl = require('./templates/searchResult.html'),
-    cuahsiSearchResultTmpl = require('./templates/cuahsiSearchResult.html'),
+    searchResultCuahsiTmpl = require('./templates/searchResultCuahsi.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     tabPanelTmpl = require('./templates/tabPanel.html'),
     headerTmpl = require('./templates/header.html'),
     windowTmpl = require('./templates/window.html'),
-    resultDetailsTmpl = require('./templates/resultDetails.html'),
+    resultDetailsCinergiTmpl = require('./templates/resultDetailsCinergi.html'),
+    resultDetailsHydroshareTmpl = require('./templates/resultDetailsHydroshare.html'),
+    resultDetailsCuahsiTmpl = require('./templates/resultDetailsCuahsi.html'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultMapPopoverTmpl = require('./templates/resultMapPopover.html');
 
@@ -24,7 +26,12 @@ var ENTER_KEYCODE = 13,
     CATALOG_RESULT_TEMPLATE = {
         cinergi: searchResultTmpl,
         hydroshare: searchResultTmpl,
-        cuahsi: cuahsiSearchResultTmpl,
+        cuahsi: searchResultCuahsiTmpl,
+    },
+    CATALOG_RESULT_DETAILS_TEMPLATE = {
+        cinergi: resultDetailsCinergiTmpl,
+        hydroshare: resultDetailsHydroshareTmpl,
+        cuahsi: resultDetailsCuahsiTmpl,
     };
 
 var HeaderView = Marionette.LayoutView.extend({
@@ -131,7 +138,7 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         } else {
             this.detailsRegion.show(new ResultDetailsView({
                 model: detailResult,
-                activeCatalog: activeCatalog.id
+                catalog: activeCatalog.id
             }));
             App.map.set({
                 'dataCatalogResults': null,
@@ -444,7 +451,9 @@ var ResultsView = Marionette.CollectionView.extend({
 });
 
 var ResultDetailsView = Marionette.ItemView.extend({
-    template: resultDetailsTmpl,
+    getTemplate: function() {
+        return CATALOG_RESULT_DETAILS_TEMPLATE[this.catalog];
+    },
 
     ui: {
         closeDetails: '.close'
@@ -455,12 +464,23 @@ var ResultDetailsView = Marionette.ItemView.extend({
     },
 
     initialize: function(options) {
-        this.activeCatalog = options.activeCatalog;
+        this.catalog = options.catalog;
+    },
+
+    onAttach: function() {
+        this.$('[data-toggle="popover"]').popover({
+            placement: 'right',
+            trigger: 'click',
+        });
+        this.$('[data-toggle="table"]').bootstrapTable();
     },
 
     templateHelpers: function() {
+        var id = this.model.get('id'),
+            location = id.substring(id.indexOf(':') + 1);
+
         return {
-            activeCatalog: this.activeCatalog
+            location: location,
         };
     },
 
