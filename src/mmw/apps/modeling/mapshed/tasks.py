@@ -150,6 +150,8 @@ def collect_data(geop_result, geojson):
 
     z['P'] = p_factors(z['AvSlope'], ag_lscp)
 
+    z['SedNitr'] = geop_result['soiln'] * 4.0
+
     return z
 
 
@@ -319,6 +321,24 @@ def avg_awc(sjs_result):
 
 
 @shared_task(throws=Exception)
+def soiln(sjs_result):
+    """
+    Get `SoilN` from MMW-Geoprocessing endpoint
+
+    Originally a static value of 2000 at Class1.vb@1.3.0:9587
+    """
+    if 'error' in sjs_result:
+        raise Exception('[soiln] {}'
+                        .format(sjs_result['error']))
+
+    result = parse(sjs_result)
+
+    return {
+        'soiln': result.values()[0]
+    }
+
+
+@shared_task(throws=Exception)
 def nlcd_slope(result):
     if 'error' in result:
         raise Exception('[nlcd_slope] {}'.format(result['error']))
@@ -413,6 +433,7 @@ def nlcd_kfactor(result):
 def geoprocessing_chains(aoi, wkaoi, errback):
     task_defs = [
         ('nlcd_soils',   nlcd_soils,   {'polygon': [aoi]}),
+        ('soiln',        soiln,        {'polygon': [aoi]}),
         ('gwn',          gwn,          {'polygon': [aoi]}),
         ('avg_awc',      avg_awc,      {'polygon': [aoi]}),
         ('nlcd_slope',   nlcd_slope,   {'polygon': [aoi]}),
