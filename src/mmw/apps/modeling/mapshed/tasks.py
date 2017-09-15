@@ -152,6 +152,9 @@ def collect_data(geop_result, geojson):
 
     z['SedNitr'] = geop_result['soiln'] * 4.0
 
+    recess_coef = geop_result['recess_coef'] * -0.0015 + 0.1103
+    z['RecessionCoef'] = recess_coef if recess_coef >= 0 else 0.01
+
     return z
 
 
@@ -320,6 +323,24 @@ def avg_awc(result):
 
 
 @shared_task(throws=Exception)
+def recess_coef(result):
+    """
+    Get `RecessCoef` from MMW-Geoprocessing endpoint
+
+    Originally a static value 0.06 Class1.vb@1.3.0:10333
+    """
+    if 'error' in result:
+        raise Exception('[recess_coef] {}'
+                        .format(result['error']))
+
+    result = parse(result)
+
+    return {
+        'recess_coef': result.values()[0]
+    }
+
+
+@shared_task(throws=Exception)
 def soiln(result):
     """
     Get `SoilN` from MMW-Geoprocessing endpoint
@@ -433,6 +454,7 @@ def geoprocessing_chains(aoi, wkaoi, errback):
     task_defs = [
         ('nlcd_soils',   nlcd_soils,   {'polygon': [aoi]}),
         ('soiln',        soiln,        {'polygon': [aoi]}),
+        ('recess_coef',  recess_coef,  {'polygon': [aoi]}),
         ('gwn',          gwn,          {'polygon': [aoi]}),
         ('avg_awc',      avg_awc,      {'polygon': [aoi]}),
         ('nlcd_slope',   nlcd_slope,   {'polygon': [aoi]}),

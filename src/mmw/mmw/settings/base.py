@@ -567,6 +567,17 @@ GEOP = {
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0
             }
+        'recess_coef': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [],
+                'targetRaster': 'bfi48grd-epsg5070',
+                'pixelIsArea': True,
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
         }
     }
 }
