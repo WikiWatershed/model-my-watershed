@@ -64,6 +64,11 @@ var App = new Marionette.Application({
 
         // Enable screenshot functionality
         initializeShutterbug();
+
+        // Enabling hiding popovers from within them
+        window.closePopover = function() {
+            $('[data-toggle="popover"]').popover('hide');
+        };
     },
 
     load: function(data) {

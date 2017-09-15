@@ -470,7 +470,7 @@ var ResultDetailsView = Marionette.ItemView.extend({
     onAttach: function() {
         this.$('[data-toggle="popover"]').popover({
             placement: 'right',
-            trigger: 'focus',
+            trigger: 'click',
         });
         this.$('[data-toggle="table"]').bootstrapTable();
     },
