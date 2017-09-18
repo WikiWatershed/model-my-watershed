@@ -1163,6 +1163,10 @@ var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
 });
 
 var ClimateResultView = AnalyzeResultView.extend({
+    initialize: function() {
+        this.model.set('activeVar', 'ppt');
+    },
+
     onShow: function() {
         var title = 'Mean Monthly Precipitation and Temperature',
             source = 'PRISM Climate Group',
