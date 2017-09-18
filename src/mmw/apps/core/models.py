@@ -21,3 +21,34 @@ class Job(models.Model):
 
     def __unicode__(self):
         return unicode(self.uuid)
+
+
+class RequestLog(models.Model):
+    user = models.ForeignKey(AUTH_USER_MODEL,
+                             on_delete=models.SET_NULL,
+                             null=True)
+    job_uuid = models.UUIDField(
+        null=True,
+        help_text='If async request, the uuid of the submitted job')
+    requested_at = models.DateTimeField(
+        help_text='When the request was made')
+    response_ms = models.PositiveIntegerField(
+        help_text='How long the response took in ms')
+    path = models.CharField(
+        max_length=400,
+        help_text='The requested URI')
+    query_params = models.TextField(
+        null=True,
+        help_text='Stringified requested query params dictionary')
+    status_code = models.PositiveIntegerField(
+        help_text='HTTP status code sent back')
+    method = models.CharField(
+        max_length=255,
+        help_text='HTTP method')
+    host = models.URLField(
+        help_text='The host from which the request was sent')
+    remote_addr = models.GenericIPAddressField(
+        help_text='The IP address from which the request was sent')
+
+    def __unicode__(self):
+        return self.user + " " + self.path
