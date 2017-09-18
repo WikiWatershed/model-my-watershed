@@ -120,6 +120,25 @@ def prepare_time(from_date, to_date):
     return value
 
 
+def prepare_query(query):
+    """
+    Prepare query to always AND all search terms
+
+    Spaces will be replaced with AND. Existing ANDs and ORs will be preserved.
+    """
+    def intersperse_and(phrase):
+        # For a given phrase, intersperse AND between all words,
+        # except "and" which is removed
+        return ' AND '.join([word for word in phrase.split()
+                             if word != 'and'])
+
+    # If the query has any ORs, split it into phrases to be ANDed
+    phrases = query.split(' or ')
+
+    # AND words in each phrase, and OR all phrases together
+    return ' OR '.join(map(intersperse_and, phrases))
+
+
 def search(**kwargs):
     query = kwargs.get('query')
     to_date = kwargs.get('to_date')
@@ -134,7 +153,7 @@ def search(**kwargs):
 
     if query:
         params.update({
-            'q': query
+            'q': prepare_query(query.lower())
         })
     if from_date:
         params.update({
