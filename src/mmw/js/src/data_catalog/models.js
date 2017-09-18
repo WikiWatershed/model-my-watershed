@@ -117,6 +117,7 @@ var Catalog = Backbone.Model.extend({
         query: '',
         geom: '',
         loading: false,
+        stale: false, // Should search run when catalog becomes active?
         active: false,
         results: null, // Results collection
         resultCount: 0,
@@ -139,7 +140,11 @@ var Catalog = Backbone.Model.extend({
         }
         this.get('filters').on('change', function() {
             if (self.isSearchValid()) {
-                self.startSearch(1);
+                if (self.get('active')) {
+                    self.startSearch(1);
+                } else {
+                    self.set('stale', true);
+                }
             }
         });
     },
@@ -147,10 +152,11 @@ var Catalog = Backbone.Model.extend({
     searchIfNeeded: function(query, geom) {
         var self = this,
             error = this.get('error'),
+            stale = this.get('stale'),
             isSameSearch = query === this.get('query') &&
                            geom === this.get('geom');
 
-        if (!isSameSearch || error) {
+        if (!isSameSearch || stale || error) {
             this.cancelSearch();
             this.searchPromise = this.search(query, geom)
                                      .always(function() {
@@ -261,7 +267,10 @@ var Catalog = Backbone.Model.extend({
     },
 
     finishSearch: function() {
-        this.set({ loading: false });
+        this.set({
+            loading: false,
+            stale: false,
+        });
     },
 
     previousPage: function() {
