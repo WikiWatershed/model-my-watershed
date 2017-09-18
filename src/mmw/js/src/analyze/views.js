@@ -30,6 +30,7 @@ var $ = require('jquery'),
     animalTableRowTmpl = require('./templates/animalTableRow.html'),
     climateTableTmpl = require('./templates/climateTable.html'),
     climateTableRowTmpl = require('./templates/climateTableRow.html'),
+    selectorTmpl = require('./templates/selector.html'),
     pageableTableTmpl = require('./templates/pageableTable.html'),
     pointSourceTableTmpl = require('./templates/pointSourceTable.html'),
     pointSourceTableRowTmpl = require('./templates/pointSourceTableRow.html'),
@@ -982,6 +983,7 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
     template: analyzeResultsTmpl,
     regions: {
         descriptionRegion: '.desc-region',
+        selectorRegion: '.selector-region',
         chartRegion: '.chart-region',
         tableRegion: '.table-region',
         printTableRegion: '.print-table-region'
@@ -1162,6 +1164,38 @@ var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
     }
 });
 
+var SelectorView = Marionette.ItemView.extend({
+    template: selectorTmpl,
+
+    ui: {
+        selector: 'select',
+    },
+
+    events: {
+        'change @ui.selector': 'updateActiveVar',
+    },
+
+    modelEvents: {
+        'change:activeVar': 'render',
+    },
+
+    initialize: function(options) {
+        this.keys = options.keys;
+    },
+
+    templateHelpers: function() {
+        return {
+            keys: this.keys,
+        };
+    },
+
+    updateActiveVar: function() {
+        var activeVar = this.ui.selector.val();
+
+        this.model.set({ activeVar: activeVar });
+    }
+});
+
 var ClimateResultView = AnalyzeResultView.extend({
     initialize: function() {
         this.model.set('activeVar', 'ppt');
@@ -1178,6 +1212,14 @@ var ClimateResultView = AnalyzeResultView.extend({
             chart = null;
         this.showAnalyzeResults(coreModels.ClimateCensusCollection, ClimateTableView,
             chart, title, source, helpText, associatedLayerCodes);
+
+        this.selectorRegion.show(new SelectorView({
+            model: this.model,
+            keys: [
+                { name: 'ppt', label: 'Mean Precipitation' },
+                { name: 'tmean', label: 'Mean Temperature' },
+            ],
+        }));
     }
 });
 
