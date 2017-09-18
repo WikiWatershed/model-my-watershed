@@ -43,6 +43,9 @@ var $ = require('jquery'),
     modelSelectionDropdownTmpl = require('./templates/modelSelectionDropdown.html'),
     dataSourceButtonTmpl = require('./templates/dataSourceButton.html');
 
+var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 var ModelSelectionDropdownView = Marionette.ItemView.extend({
     template: modelSelectionDropdownTmpl,
 
@@ -1196,6 +1199,43 @@ var SelectorView = Marionette.ItemView.extend({
     }
 });
 
+var ClimateChartView = ChartView.extend({
+    modelEvents: {
+        'change:activeVar': 'addChart',
+    },
+
+    addChart: function() {
+        var chartEl = this.$('.bar-chart').get(0),
+            activeVar = this.model.get('activeVar'),
+            config = activeVar === 'ppt' ?
+                {label: 'Water Depth (mm)', unit: 'mm', key: 'Mean Precipitation'} :
+                {label: 'Temperature (°C)', unit: '°C', key: 'Mean Temperature'  },
+            data = [
+                {
+                    key: config.key,
+                    values: this.collection.map(function(model, idx) {
+                        return {
+                            x: idx,
+                            y: model.get(activeVar)
+                        };
+                    }),
+                },
+            ],
+            chartOptions = {
+                yAxisLabel: config.label,
+                yAxisUnit: config.unit,
+                xAxisLabel: function(x) {
+                    return monthNames[x];
+                },
+                xTickValues: lodash.range(12),
+            };
+
+        $(chartEl).empty();
+
+        chart.renderLineChart(chartEl, data, chartOptions);
+    }
+});
+
 var ClimateResultView = AnalyzeResultView.extend({
     initialize: function() {
         this.model.set('activeVar', 'ppt');
@@ -1208,10 +1248,10 @@ var ClimateResultView = AnalyzeResultView.extend({
             associatedLayerCodes = [
                 'mean_ppt',
                 'mean_temp',
-            ],
-            chart = null;
+            ];
+
         this.showAnalyzeResults(coreModels.ClimateCensusCollection, ClimateTableView,
-            chart, title, source, helpText, associatedLayerCodes);
+            ClimateChartView, title, source, helpText, associatedLayerCodes);
 
         this.selectorRegion.show(new SelectorView({
             model: this.model,
