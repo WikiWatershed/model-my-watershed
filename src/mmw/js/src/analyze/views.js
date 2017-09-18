@@ -1208,7 +1208,7 @@ var ClimateChartView = ChartView.extend({
         var chartEl = this.$('.bar-chart').get(0),
             activeVar = this.model.get('activeVar'),
             config = activeVar === 'ppt' ?
-                {label: 'Water Depth (mm)', unit: 'mm', key: 'Mean Precipitation'} :
+                {label: 'Water Depth (cm)', unit: 'cm', key: 'Mean Precipitation'} :
                 {label: 'Temperature (°C)', unit: '°C', key: 'Mean Temperature'  },
             data = [
                 {
