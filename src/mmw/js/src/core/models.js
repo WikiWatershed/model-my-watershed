@@ -82,7 +82,7 @@ var MapModel = Backbone.Model.extend({
     },
 
     setDataCatalogSize: function(fit) {
-        this.setNoHeaderSidebarSize(fit, utils.sidebarWide);
+        this.setNoHeaderSidebarSize(fit);
     },
 
     setModelSize: function(fit) {
@@ -101,6 +101,14 @@ var MapModel = Backbone.Model.extend({
         this.set('size', updatedSize);
     },
 
+    toggleSecondarySidebar: function() {
+        var sizeCopy = _.clone(this.get('size')),
+            updatedSize =_.merge(sizeCopy, {
+                hasSecondarySidebar: !sizeCopy.hasSecondarySidebar
+            });
+        this.set('size', updatedSize);
+    },
+
 // Set the sizing options for the map. `options` are...
 //      fit                  - bool, true if should fit the map to the AoI
 //      hasProjectHeader     - bool, true if the -projectheader class should
@@ -109,12 +117,9 @@ var MapModel = Backbone.Model.extend({
 //                             be on the map container
 //      hasSidebar           - bool, true if the -sidebar class should
 //                             be on the map container
-//      barWidth             - string, if matches width option (eg 'wide'),
-//                             and `hasSidebar === true`, map will add
-//                             class to container accordingly.
-//                             If option doesn't exist or is falsey, no
-//                             class will be added, and map container will
-//                             use the default sidebar size if `hasSidebar`
+//      hasSecondarySidebar  - bool, true if the -double class
+//                             should be on the map. Will on apply if `hasSidebar`
+
     _setSizeOptions: function(options) {
         this.set('size', options);
     }

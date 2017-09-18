@@ -1,0 +1,33 @@
+<div class="data-catalog-search-dates">
+    <h5>Data collected between</h5>
+    <label for="from-date">From Date</label>
+    <div class="data-catalog-clearable-input">
+        <input
+            id="from-date"
+            class="data-catalog-date-input from-date form-control"
+            value="{{fromDate}}"
+        />
+        {% if fromDate %}
+        <a href="javascript:0;" class="data-catalog-clear-icon" title="Clear">
+            <i class="fa fa-times"></i>
+        </a>
+        {% endif %}
+    </div>
+    <label for="to-date">To Date</label>
+    <div class="data-catalog-clearable-input">
+        <input
+            id="to-date"
+            class="data-catalog-date-input to-date form-control"
+            value="{{toDate}}"
+        />
+        {% if toDate %}
+        <a href="javascript:0;" class="data-catalog-clear-icon" title="Clear">
+            <i class="fa fa-times"></i>
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if not isValid %}
+<div class="small data-catalog-validation-msg">From date must be earlier than To date</div>
+{% endif %}

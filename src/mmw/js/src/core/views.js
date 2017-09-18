@@ -69,7 +69,8 @@ var RootView = Marionette.LayoutView.extend({
     el: 'body',
     ui: {
         mapContainer: '.map-container',
-        sidebar: '#sidebar'
+        sidebar: '#sidebar',
+        secondarySidebar: '#secondary-sidebar'
     },
     regions: {
         mainRegion: '#container',
@@ -80,6 +81,10 @@ var RootView = Marionette.LayoutView.extend({
         sidebarRegion: {
             regionClass: TransitionRegion,
             selector: '#sidebar-content'
+        },
+        secondarySidebarRegion: {
+            regionClass: TransitionRegion,
+            selector: '#secondary-sidebar-content'
         },
         compareRegion: '#compare',
         footerRegion: '#footer'
@@ -623,8 +628,7 @@ var MapView = Marionette.ItemView.extend({
         $container.toggleClass('-projectheader', !!size.hasProjectHeader);
         $container.toggleClass('-toolbarheader', !!size.hasToolbarHeader);
         $container.toggleClass('-sidebar', !!size.hasSidebar);
-        $container.toggleClass('-wide', !!size.hasSidebar &&
-            size.sidebarWidth === coreUtils.sidebarWide);
+        $container.toggleClass('-double', !!size.hasSecondarySidebar);
 
         _.delay(function() {
             self._leafletMap.invalidateSize();

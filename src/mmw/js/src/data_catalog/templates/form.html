@@ -1,38 +1,12 @@
-<button class="btn btn-link date-filter-toggle small">{{filterText}}</button>
-
-{% if showingFilters %}
-    <div class="data-catalog-search-dates">
-        <h5>Data collected between:</h5>
-        <div class="data-catalog-clearable-input">
-            <input
-                class="data-catalog-date-input from-date form-control"
-                value="{{fromDate}}"
-            />
-            {% if fromDate %}
-            <a href="javascript:0;" class="data-catalog-clear-icon" title="Clear">
-                <i class="fa fa-times"></i>
-            </a>
-            {% endif %}
-        </div>
-        <span>and</span>
-        <div class="data-catalog-clearable-input">
-            <input
-                class="data-catalog-date-input to-date form-control"
-                value="{{toDate}}"
-            />
-            {% if toDate %}
-            <a href="javascript:0;" class="data-catalog-clear-icon" title="Clear">
-                <i class="fa fa-times"></i>
-            </a>
-            {% endif %}
-        </div>
-    </div>
-
-    {% if not isValid %}
-    <div class="small data-catalog-validation-msg">From date must be earlier than To date</div>
-    {% endif %}
-
-{% endif %}
+<button class="btn
+               {% if filterNumText %}
+               btn-secondary
+               {% else %}
+               btn-active
+               {% endif %}
+               btn-md filter-sidebar-toggle">
+    Filters {{filterNumText}}
+</button>
 
 <div class="data-catalog-search-component">
     <i class="data-catalog-search-icon fa fa-search"></i>
@@ -43,3 +17,5 @@
         value="{{query}}"
     />
 </div>
+
+<div class="filter-sidebar-region"></div>

@@ -1,16 +1,3 @@
-{% if has_filters %}
-    <div class="filters-region">
-        {% if id == 'cuahsi' %}
-            <div class="checkbox">
-                <label>
-                    <input name="gridded" type="checkbox" id="gridded">
-                    Include Gridded
-                </label>
-            </div>
-        {% endif %}
-    </div>
-{% endif %}
-
 {% if description %}
 <div class="catalog-description">
     {{ description }}
