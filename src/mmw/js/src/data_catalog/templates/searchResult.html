@@ -2,9 +2,11 @@
     <h3 class="resource-title">
         {{ title }}
     </h3>
+    {% if not (summary == "REQUIRED FIELD") %}
     <div class="resource-description">
         {{ summary }}
     </div>
+    {% endif %}
     {% if created_at %}
     <div class="resource-date">
         <i class="fa fa-calendar"></i> {{ created_at|toDateFullYear }}
