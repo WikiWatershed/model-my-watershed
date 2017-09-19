@@ -234,7 +234,7 @@ def _initiate_mapshed_job_chain(mapshed_input, job_id):
         collect_data.s(area_of_interest).set(link_error=errback) |
         save_job_result.s(job_id, mapshed_input))
 
-    return chain(job_chain).apply_async(link_error=errback)
+    return chain(job_chain).apply_async()
 
 
 @decorators.api_view(['POST'])
