@@ -17,9 +17,11 @@
         <p>
             <i class="fa fa-calendar"></i> {{ created_at|toDateFullYear }}
         </p>
+    {% if not (description == "REQUIRED FIELD") %}
     <p>
         {{ description }}
     </p>
+    {% endif %}
     <p>
         <a class="btn btn-secondary" href="{{ cinergi_url }}"
            target="_blank" rel="noreferrer noopener">
