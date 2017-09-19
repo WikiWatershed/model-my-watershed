@@ -30,6 +30,7 @@ var $ = require('jquery'),
     animalTableRowTmpl = require('./templates/animalTableRow.html'),
     climateTableTmpl = require('./templates/climateTable.html'),
     climateTableRowTmpl = require('./templates/climateTableRow.html'),
+    selectorTmpl = require('./templates/selector.html'),
     pageableTableTmpl = require('./templates/pageableTable.html'),
     pointSourceTableTmpl = require('./templates/pointSourceTable.html'),
     pointSourceTableRowTmpl = require('./templates/pointSourceTableRow.html'),
@@ -41,6 +42,9 @@ var $ = require('jquery'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     modelSelectionDropdownTmpl = require('./templates/modelSelectionDropdown.html'),
     dataSourceButtonTmpl = require('./templates/dataSourceButton.html');
+
+var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 var ModelSelectionDropdownView = Marionette.ItemView.extend({
     template: modelSelectionDropdownTmpl,
@@ -982,6 +986,7 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
     template: analyzeResultsTmpl,
     regions: {
         descriptionRegion: '.desc-region',
+        selectorRegion: '.selector-region',
         chartRegion: '.chart-region',
         tableRegion: '.table-region',
         printTableRegion: '.print-table-region'
@@ -1162,7 +1167,80 @@ var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
     }
 });
 
+var SelectorView = Marionette.ItemView.extend({
+    template: selectorTmpl,
+
+    ui: {
+        selector: 'select',
+    },
+
+    events: {
+        'change @ui.selector': 'updateActiveVar',
+    },
+
+    modelEvents: {
+        'change:activeVar': 'render',
+    },
+
+    initialize: function(options) {
+        this.keys = options.keys;
+    },
+
+    templateHelpers: function() {
+        return {
+            keys: this.keys,
+        };
+    },
+
+    updateActiveVar: function() {
+        var activeVar = this.ui.selector.val();
+
+        this.model.set({ activeVar: activeVar });
+    }
+});
+
+var ClimateChartView = ChartView.extend({
+    modelEvents: {
+        'change:activeVar': 'addChart',
+    },
+
+    addChart: function() {
+        var chartEl = this.$('.bar-chart').get(0),
+            activeVar = this.model.get('activeVar'),
+            config = activeVar === 'ppt' ?
+                {label: 'Water Depth (cm)', unit: 'cm', key: 'Mean Precipitation'} :
+                {label: 'Temperature (°C)', unit: '°C', key: 'Mean Temperature'  },
+            data = [
+                {
+                    key: config.key,
+                    values: this.collection.map(function(model, idx) {
+                        return {
+                            x: idx,
+                            y: model.get(activeVar)
+                        };
+                    }),
+                },
+            ],
+            chartOptions = {
+                yAxisLabel: config.label,
+                yAxisUnit: config.unit,
+                xAxisLabel: function(x) {
+                    return monthNames[x];
+                },
+                xTickValues: lodash.range(12),
+            };
+
+        $(chartEl).empty();
+
+        chart.renderLineChart(chartEl, data, chartOptions);
+    }
+});
+
 var ClimateResultView = AnalyzeResultView.extend({
+    initialize: function() {
+        this.model.set('activeVar', 'ppt');
+    },
+
     onShow: function() {
         var title = 'Mean Monthly Precipitation and Temperature',
             source = 'PRISM Climate Group',
@@ -1170,10 +1248,18 @@ var ClimateResultView = AnalyzeResultView.extend({
             associatedLayerCodes = [
                 'mean_ppt',
                 'mean_temp',
-            ],
-            chart = null;
+            ];
+
         this.showAnalyzeResults(coreModels.ClimateCensusCollection, ClimateTableView,
-            chart, title, source, helpText, associatedLayerCodes);
+            ClimateChartView, title, source, helpText, associatedLayerCodes);
+
+        this.selectorRegion.show(new SelectorView({
+            model: this.model,
+            keys: [
+                { name: 'ppt', label: 'Mean Precipitation' },
+                { name: 'tmean', label: 'Mean Temperature' },
+            ],
+        }));
     }
 });
 

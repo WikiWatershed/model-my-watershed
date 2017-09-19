@@ -31,6 +31,7 @@ RWD_HOST = os.environ.get('RWD_HOST', 'localhost')
 RWD_PORT = os.environ.get('RWD_PORT', '5000')
 
 ACRES_PER_SQM = 0.000247105
+CM_PER_MM = 0.1
 
 
 @shared_task
@@ -204,7 +205,7 @@ def collect_climate(results):
     categories = [{
         'monthidx': i,
         'month': month_name[i],
-        'ppt': results['ppt'][str(i)],
+        'ppt': results['ppt'][str(i)] * CM_PER_MM,
         'tmean': results['tmean'][str(i)],
     } for i in xrange(1, 13)]
 
