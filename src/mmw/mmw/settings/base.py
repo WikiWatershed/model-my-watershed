@@ -292,6 +292,7 @@ DJANGO_APPS = (
 THIRD_PARTY_APPS = (
     'rest_framework',
     'rest_framework_swagger',
+    'rest_framework.authtoken',
     'registration',
 )
 
@@ -307,6 +308,7 @@ REST_FRAMEWORK = {
 }
 
 SWAGGER_SETTINGS = {
+    'exclude_url_names': ['authtoken'],
     'exclude_namespaces': ['bigcz',
                            'mmw',
                            'user'],
@@ -323,7 +325,7 @@ SWAGGER_SETTINGS = {
         'license': 'Apache 2.0',
         'licenseUrl': 'http://www.apache.org/licenses/LICENSE-2.0.html',
         'title': 'Model My Watershed API',
-    },
+    }
 }
 
 # registration

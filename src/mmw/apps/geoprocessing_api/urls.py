@@ -4,14 +4,18 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.conf.urls import include, patterns, url
+import rest_framework.authtoken.views
 
 from apps.modeling.views import get_job
 from apps.modeling.urls import uuid_regex
 from apps.geoprocessing_api import views
 
+
 urlpatterns = patterns(
     '',
     url(r'^docs/', include('rest_framework_swagger.urls')),
+    url(r'^api-token-auth/', rest_framework.authtoken.views.obtain_auth_token,
+        name="authtoken"),
     url(r'analyze/land/$', views.start_analyze_land,
         name='start_analyze_land'),
     url(r'analyze/soil/$', views.start_analyze_soil,

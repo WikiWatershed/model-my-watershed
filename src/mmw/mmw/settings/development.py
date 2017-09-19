@@ -19,6 +19,7 @@ ALLOWED_HOSTS = [
     '.internal.azavea.com',
     '.local',
     'localhost',
+    '127.0.0.1',
 ]
 # END SITE CONFIGURATION
 

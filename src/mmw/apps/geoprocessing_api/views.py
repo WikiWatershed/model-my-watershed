@@ -6,21 +6,24 @@ from celery import chain, group
 
 from rest_framework.response import Response
 from rest_framework import decorators
-from rest_framework.permissions import AllowAny
+from rest_framework.authentication import TokenAuthentication
 
 from django.utils.timezone import now
 from django.core.urlresolvers import reverse
 from django.conf import settings
 
 from apps.core.models import Job
-from apps.core.tasks import save_job_error, save_job_result
+from apps.core.tasks import (save_job_error,
+                             save_job_result)
+from apps.core.permissions import IsTokenAuthenticatedOrClientApp
 from apps.modeling import geoprocessing
 from apps.modeling.views import load_area_of_interest
 from apps.geoprocessing_api import tasks
 
 
 @decorators.api_view(['POST'])
-@decorators.permission_classes((AllowAny, ))
+@decorators.authentication_classes((TokenAuthentication, ))
+@decorators.permission_classes((IsTokenAuthenticatedOrClientApp, ))
 def start_rwd(request, format=None):
     """
     Starts a job to run Rapid Watershed Delineation on a point-based location.
@@ -145,6 +148,11 @@ def start_rwd(request, format=None):
        - name: body
          required: true
          paramType: body
+       - name: Authorization
+         paramType: header
+         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
+                      Swagger you may wish to set this for all requests via
+                      the field at the top right of the page.
     consumes:
         - application/json
     produces:
@@ -175,7 +183,8 @@ def start_rwd(request, format=None):
 
 
 @decorators.api_view(['POST'])
-@decorators.permission_classes((AllowAny, ))
+@decorators.authentication_classes((TokenAuthentication, ))
+@decorators.permission_classes((IsTokenAuthenticatedOrClientApp, ))
 def start_analyze_land(request, format=None):
     """
     Starts a job to produce a land-use histogram for a given area.
@@ -344,7 +353,11 @@ def start_analyze_land(request, format=None):
                       the HUC-12 City of Philadelphia-Schuylkill River.
          type: string
          paramType: query
-
+       - name: Authorization
+         paramType: header
+         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
+                      Swagger you may wish to set this for all requests via
+                      the field at the top right of the page.
     consumes:
         - application/json
     produces:
@@ -364,7 +377,8 @@ def start_analyze_land(request, format=None):
 
 
 @decorators.api_view(['POST'])
-@decorators.permission_classes((AllowAny, ))
+@decorators.authentication_classes((TokenAuthentication, ))
+@decorators.permission_classes((IsTokenAuthenticatedOrClientApp, ))
 def start_analyze_soil(request, format=None):
     """
     Starts a job to produce a soil-type histogram for a given area.
@@ -465,6 +479,11 @@ def start_analyze_soil(request, format=None):
          type: string
          paramType: query
 
+       - name: Authorization
+         paramType: header
+         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
+                      Swagger you may wish to set this for all requests via
+                      the field at the top right of the page.
     consumes:
         - application/json
     produces:
@@ -484,7 +503,8 @@ def start_analyze_soil(request, format=None):
 
 
 @decorators.api_view(['POST'])
-@decorators.permission_classes((AllowAny, ))
+@decorators.authentication_classes((TokenAuthentication, ))
+@decorators.permission_classes((IsTokenAuthenticatedOrClientApp, ))
 def start_analyze_animals(request, format=None):
     """
     Starts a job to produce counts for animals in a given area.
@@ -566,10 +586,17 @@ def start_analyze_animals(request, format=None):
          paramType: body
          type: object
        - name: wkaoi
+         paramType: query
          description: The table and ID for a well-known area of interest,
                       such as a HUC.
                       Format "table__id", eg. "huc12__55174" will analyze
                       the HUC-12 City of Philadelphia-Schuylkill River.
+
+       - name: Authorization
+         paramType: header
+         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
+                      Swagger you may wish to set this for all requests via
+                      the field at the top right of the page.
     consumes:
         - application/json
     produces:
@@ -586,7 +613,8 @@ def start_analyze_animals(request, format=None):
 
 
 @decorators.api_view(['POST'])
-@decorators.permission_classes((AllowAny, ))
+@decorators.authentication_classes((TokenAuthentication, ))
+@decorators.permission_classes((IsTokenAuthenticatedOrClientApp, ))
 def start_analyze_pointsource(request, format=None):
     """
     Starts a job to analyze the discharge monitoring report annual
@@ -653,6 +681,11 @@ def start_analyze_pointsource(request, format=None):
                       such as a HUC.
                       Format "table__id", eg. "huc12__55174" will analyze
                       the HUC-12 City of Philadelphia-Schuylkill River.
+       - name: Authorization
+         paramType: header
+         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
+                      Swagger you may wish to set this for all requests via
+                      the field at the top right of the page.
     consumes:
         - application/json
     produces:
@@ -669,7 +702,8 @@ def start_analyze_pointsource(request, format=None):
 
 
 @decorators.api_view(['POST'])
-@decorators.permission_classes((AllowAny, ))
+@decorators.authentication_classes((TokenAuthentication, ))
+@decorators.permission_classes((IsTokenAuthenticatedOrClientApp, ))
 def start_analyze_catchment_water_quality(request, format=None):
     """
     Starts a job to calculate the calibrated GWLF-E (MapShed) model
@@ -760,10 +794,16 @@ def start_analyze_catchment_water_quality(request, format=None):
          paramType: body
          type: object
        - name: wkaoi
+         paramType: query
          description: The table and ID for a well-known area of interest,
                       such as a HUC.
                       Format "table__id", eg. "huc12__55174" will analyze
                       the HUC-12 City of Philadelphia-Schuylkill River.
+       - name: Authorization
+         paramType: header
+         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
+                      Swagger you may wish to set this for all requests via
+                      the field at the top right of the page.
     consumes:
         - application/json
     produces:
@@ -780,10 +820,87 @@ def start_analyze_catchment_water_quality(request, format=None):
 
 
 @decorators.api_view(['POST'])
-@decorators.permission_classes((AllowAny, ))
+@decorators.authentication_classes((TokenAuthentication, ))
+@decorators.permission_classes((IsTokenAuthenticatedOrClientApp, ))
 def start_analyze_climate(request, format=None):
     """
-    Start Climate Analyze job
+    Start a job to calculate the monthly climate (precipitation
+    and mean temperature) of a given area.
+
+    Source PRISM Climate Group
+
+    For more information, see
+    the [technical documentation](https://wikiwatershed.org/
+    documentation/mmw-tech/#overlays-tab-coverage)
+
+    ## Response
+
+    You can use the url provided in the response's `location`
+    header to poll for the job's results.
+
+    <summary>
+       **Example of a completed job's `result`**
+    </summary>
+
+    <details>
+
+        {
+            "survey": {
+                 "displayName": "Climate",
+                 "name": "climate",
+                 "categories": [
+                     {
+                         "ppt": 66.84088134765625,
+                         "tmean": -2.4587886333465576,
+                         "monthidx": 1,
+                         "month": "January"
+                     },
+                     {
+                         "ppt": 59.17946434020996,
+                         "tmean": -1.8310737609863281,
+                         "monthidx": 2,
+                         "month": "February"
+                     }, ...
+                 ]
+            }
+        }
+
+    </details>
+
+    ---
+    type:
+      job:
+        required: true
+        type: string
+      status:
+        required: true
+        type: string
+
+    omit_serializer: true
+    parameters:
+       - name: body
+         description: A valid single-ringed Multipolygon GeoJSON
+                      representation of the shape to analyze.
+                      See the GeoJSON spec
+                      https://tools.ietf.org/html/rfc7946#section-3.1.7
+         paramType: body
+         type: object
+       - name: wkaoi
+         paramType: query
+         description: The table and ID for a well-known area of interest,
+                      such as a HUC.
+                      Format "table__id", eg. "huc12__55174" will analyze
+                      the HUC-12 City of Philadelphia-Schuylkill River.
+       - name: Authorization
+         paramType: header
+         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
+                      Swagger you may wish to set this for all requests via
+                      the field at the top right of the page.
+    consumes:
+        - application/json
+    produces:
+        - application/json
+
     """
     user = request.user if request.user.is_authenticated() else None
 
