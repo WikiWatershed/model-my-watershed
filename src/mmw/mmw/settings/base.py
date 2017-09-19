@@ -431,7 +431,7 @@ GEOP = {
                 'zoom': 0
             }
         },
-        'nlcd_soil_census': {
+        'nlcd_soil': {
             'input': {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
@@ -455,20 +455,6 @@ GEOP = {
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterLinesJoin',
-                'zoom': 0
-            }
-        },
-        'nlcd_soils': {
-            'input': {
-                'polygon': [],
-                'polygonCRS': 'LatLng',
-                'rasters': [
-                    'nlcd-2011-30m-epsg5070-512-int8',
-                    'ssurgo-hydro-groups-30m-epsg5070-512-int8',
-                    'us-ssurgo-texture-id-30m-epsg5070-512'
-                ],
-                'rasterCRS': 'ConusAlbers',
-                'operationType': 'RasterGroupedCount',
                 'zoom': 0
             }
         },

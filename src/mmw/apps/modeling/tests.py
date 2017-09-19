@@ -128,7 +128,7 @@ class ExerciseGeoprocessing(TestCase):
                 'd:woody_wetlands': {'cell_count': 1093}
             }
         }]
-        actual = tasks.nlcd_soil_census(histogram)
+        actual = tasks.nlcd_soil(histogram)
         self.assertEqual(actual, expected)
 
 
@@ -300,7 +300,7 @@ class TaskRunnerTestCase(TestCase):
 
         skipped_tasks = [
             'run',
-            'nlcd_soil_census'
+            'nlcd_soil'
         ]
 
         needed_tasks = [
@@ -337,7 +337,7 @@ class TaskRunnerTestCase(TestCase):
         # we still need to generate modification censuses
         needed_tasks = [
             'run',
-            'nlcd_soil_census',
+            'nlcd_soil',
             'run_tr55'
         ]
 
@@ -383,7 +383,7 @@ class TaskRunnerTestCase(TestCase):
 
         skipped_tasks = [
             'run',
-            'nlcd_soil_census',
+            'nlcd_soil',
         ]
 
         needed_tasks = [
@@ -443,7 +443,7 @@ class TaskRunnerTestCase(TestCase):
 
         needed_tasks = [
             'run',
-            'nlcd_soil_census',
+            'nlcd_soil',
             'run_tr55'
         ]
 
@@ -470,7 +470,7 @@ class TaskRunnerTestCase(TestCase):
 
         needed_tasks = [
             'run',
-            'nlcd_soil_census',
+            'nlcd_soil',
             'run_tr55'
         ]
 

@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 
 from celery import shared_task
-
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 
@@ -246,38 +245,38 @@ def nlcd_streams_drb(result):
 
 
 @shared_task(throws=Exception)
-def nlcd_soils(result):
+def nlcd_soil(result):
     """
     Results are expected to be in the format:
     {
-      (NLCD ID, Soil Group ID, Soil Texture ID): Count,
+      (NLCD ID, Soil Group ID): Count,
     }
 
     We calculate a number of values relying on various combinations
     of these raster datasets.
     """
     if 'error' in result:
-        raise Exception('[nlcd_soils] {}'.format(result['error']))
+        raise Exception('[nlcd_soil] {}'.format(result['error']))
 
-    ngt_count = parse(result)
+    ng_count = parse(result)
 
     # Raise exception if no NLCD values
-    if len(ngt_count.values()) == 0:
+    if len(ng_count.values()) == 0:
         raise Exception(NO_LAND_COVER)
 
     # Split combined counts into separate ones for processing
     # Reduce [(n, g, t): c] to
     n_count = {}   # [n: sum(c)]
-    ng_count = {}  # [(n, g): sum(c)]
-    for (n, g, t), count in ngt_count.iteritems():
+    ng2_count = {}  # [(n, g): sum(c)]
+    for (n, g), count in ng_count.iteritems():
         n_count[n] = count + n_count.get(n, 0)
 
         # Map soil group values to usable subset
         g2 = settings.SOIL_GROUP[g]
-        ng_count[(n, g2)] = count + ng_count.get((n, g2), 0)
+        ng2_count[(n, g2)] = count + ng2_count.get((n, g2), 0)
 
     return {
-        'cn': curve_number(n_count, ng_count),
+        'cn': curve_number(n_count, ng2_count),
         'landuse_pcts': landuse_pcts(n_count),
     }
 
@@ -466,7 +465,7 @@ def nlcd_kfactor(result):
 
 def geoprocessing_chains(aoi, wkaoi, errback):
     task_defs = [
-        ('nlcd_soils',   nlcd_soils,   {'polygon': [aoi]}),
+        ('nlcd_soil',    nlcd_soil,    {'polygon': [aoi]}),
         ('soiln',        soiln,        {'polygon': [aoi]}),
         ('soilp',        soilp,        {'polygon': [aoi]}),
         ('recess_coef',  recess_coef,  {'polygon': [aoi]}),

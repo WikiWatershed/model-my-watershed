@@ -308,13 +308,13 @@ def _construct_tr55_job_chain(model_input, job_id):
 
         job_chain.append(tasks.run_tr55.s(censuses, aoi, model_input))
     else:
-        job_chain.append(tasks.nlcd_soil_census.s())
+        job_chain.append(tasks.nlcd_soil.s())
 
         if aoi_census and pieces:
             polygons = [m['shape']['geometry'] for m in pieces]
             geop_input = {'polygon': [json.dumps(p) for p in polygons]}
 
-            job_chain.insert(0, geoprocessing.run.s('nlcd_soil_census',
+            job_chain.insert(0, geoprocessing.run.s('nlcd_soil',
                                                     geop_input))
             job_chain.append(tasks.run_tr55.s(aoi, model_input,
                                               cached_aoi_census=aoi_census))
@@ -324,7 +324,7 @@ def _construct_tr55_job_chain(model_input, job_id):
             # Use WKAoI only if there are no pieces to modify the AoI
             wkaoi = wkaoi if not pieces else None
 
-            job_chain.insert(0, geoprocessing.run.s('nlcd_soil_census',
+            job_chain.insert(0, geoprocessing.run.s('nlcd_soil',
                                                     geop_input,
                                                     wkaoi))
             job_chain.append(tasks.run_tr55.s(aoi, model_input))
