@@ -5,8 +5,6 @@ from __future__ import unicode_literals
 from rest_framework.permissions import BasePermission
 from rest_framework.authentication import TokenAuthentication
 
-from django.conf import settings
-
 
 class IsTokenAuthenticatedOrNotSwagger(BasePermission):
     """
