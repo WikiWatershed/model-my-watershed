@@ -8,19 +8,19 @@ from rest_framework.authentication import TokenAuthentication
 from django.conf import settings
 
 
-class IsTokenAuthenticatedOrClientApp(BasePermission):
+class IsTokenAuthenticatedOrNotSwagger(BasePermission):
     """
-    Global permission check for request being
-    (a) from a whitelisted IP
-      ie. is this our own client web app and not the swagger docs?
-    (b) from a user authenticated via auth token
+    TODO This is just to test the token authentication
+    Only anonymous requests from the client app should
+    be allowed:
+    https://github.com/WikiWatershed/model-my-watershed/issues/2270
+    Currently all anonymous requests are allowed, unless you're using
+    swagger
     """
 
     def has_permission(self, request, view):
-        ip_addr = request.META['REMOTE_ADDR']
         from_swagger = 'api/docs' in request.META['HTTP_REFERER'] \
                        if 'HTTP_REFERER' in request.META else False
-        whitelisted = ip_addr in settings.ALLOWED_HOSTS
         token_authenticated = type(request.successful_authenticator) \
             is TokenAuthentication
-        return (not from_swagger and whitelisted) or token_authenticated
+        return not from_swagger or token_authenticated
