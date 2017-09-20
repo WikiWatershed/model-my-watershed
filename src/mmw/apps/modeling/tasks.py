@@ -69,9 +69,9 @@ def format_runoff(model_output):
 
 
 @shared_task(throws=Exception)
-def nlcd_soil_census(result):
+def nlcd_soil(result):
     if 'error' in result:
-        raise Exception('[nlcd_soil_census] {}'.format(result['error']))
+        raise Exception('[nlcd_soil] {}'.format(result['error']))
 
     dist = {}
     total_count = 0

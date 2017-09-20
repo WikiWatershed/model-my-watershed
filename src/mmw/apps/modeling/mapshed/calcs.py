@@ -509,36 +509,6 @@ def curve_number(n_count, ng_count):
     ]
 
 
-def sediment_phosphorus(nt_count):
-    """
-    Given a dictionary mapping pairs of NLCD Codes and Soil Textures to counts
-    of cells, returns the average concentration of phosphorus in the soil by
-    looking up the value in the SOILP table. NLCD Codes 81 and 82 correspond to
-    agricultural values, and the rest to non-agricultural ones.
-
-    Original at Class1.vb@1.3.0:8975-8988
-    """
-
-    ag_textures = {}
-    nag_textures = {}
-    total = sum(nt_count.values())
-
-    for (n, t), count in nt_count.iteritems():
-        if n in AG_NLCD_CODES:
-            ag_textures[t] = count + ag_textures.get(t, 0)
-        else:
-            nag_textures[t] = count + nag_textures.get(t, 0)
-
-    ag_sedp = sum(count * settings.SOILP[t][0]
-                  for t, count in ag_textures.iteritems())
-    nag_sedp = sum(count * settings.SOILP[t][1]
-                   for t, count in nag_textures.iteritems())
-
-    sedp = float(ag_sedp + nag_sedp) / total
-
-    return sedp * 1.6
-
-
 def groundwater_nitrogen_conc(gwn_dict):
     """
     Calculate GwN and GwP from a dictionary of NLCD land use keys

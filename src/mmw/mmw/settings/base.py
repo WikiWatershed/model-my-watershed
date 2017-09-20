@@ -15,7 +15,7 @@ from sys import path
 from layer_settings import (LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
                             NHD_REGION2_PERIMETER, DRB_PERIMETER, CONUS_PERIMETER)  # NOQA
 from gwlfe_settings import (GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, # NOQA
-                            SOILP, CURVE_NUMBER, NODATA)  # NOQA
+                            CURVE_NUMBER, NODATA)  # NOQA
 from tr55_settings import (NLCD_MAPPING, SOIL_MAPPING)
 
 # Normally you should not import ANYTHING from Django directly
@@ -431,7 +431,7 @@ GEOP = {
                 'zoom': 0
             }
         },
-        'nlcd_soil_census': {
+        'nlcd_soil': {
             'input': {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
@@ -455,20 +455,6 @@ GEOP = {
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterLinesJoin',
-                'zoom': 0
-            }
-        },
-        'nlcd_soils': {
-            'input': {
-                'polygon': [],
-                'polygonCRS': 'LatLng',
-                'rasters': [
-                    'nlcd-2011-30m-epsg5070-512-int8',
-                    'ssurgo-hydro-groups-30m-epsg5070-512-int8',
-                    'us-ssurgo-texture-id-30m-epsg5070-512'
-                ],
-                'rasterCRS': 'ConusAlbers',
-                'operationType': 'RasterGroupedCount',
                 'zoom': 0
             }
         },
@@ -562,6 +548,30 @@ GEOP = {
                 'polygonCRS': 'LatLng',
                 'rasters': [],
                 'targetRaster': 'soiln-epsg5070',
+                'pixelIsArea': True,
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
+        },
+        'soilp': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [],
+                'targetRaster': 'soilpallland2-epsg5070',
+                'pixelIsArea': True,
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
+        },
+        'recess_coef': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [],
+                'targetRaster': 'bfi48grd-epsg5070',
                 'pixelIsArea': True,
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
