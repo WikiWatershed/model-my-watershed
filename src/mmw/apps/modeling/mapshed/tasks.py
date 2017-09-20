@@ -104,7 +104,7 @@ def collect_data(geop_result, geojson):
     z['n46f'] = geop_result['low_urban_stream_pct'] * z['StreamLength'] / 1000
 
     z['CN'] = geop_result['cn']
-    z['SedPhos'] = geop_result['soilp'] * 1.6
+    z['SedPhos'] = geop_result['soilp']
     z['Area'] = [percent * area * HECTARES_PER_SQM
                  for percent in geop_result['landuse_pcts']]
 
@@ -148,10 +148,9 @@ def collect_data(geop_result, geojson):
 
     z['P'] = p_factors(z['AvSlope'], ag_lscp)
 
-    z['SedNitr'] = geop_result['soiln'] * 4.0
+    z['SedNitr'] = geop_result['soiln']
 
-    recess_coef = geop_result['recess_coef'] * -0.0015 + 0.1103
-    z['RecessionCoef'] = recess_coef if recess_coef >= 0 else 0.01
+    z['RecessionCoef'] = geop_result['recess_coef']
 
     return z
 
@@ -330,8 +329,10 @@ def soilp(result):
 
     result = parse(result)
 
+    soilp = result.values()[0] * 1.6
+
     return {
-        'soilp': result.values()[0]
+        'soilp': soilp
     }
 
 
@@ -348,8 +349,11 @@ def recess_coef(result):
 
     result = parse(result)
 
+    recess_coef = result.values()[0] * -0.0015 + 0.1103
+    recess_coef = recess_coef if recess_coef >= 0 else 0.01
+
     return {
-        'recess_coef': result.values()[0]
+        'recess_coef': recess_coef
     }
 
 
@@ -366,8 +370,10 @@ def soiln(result):
 
     result = parse(result)
 
+    soiln = result.values()[0] * 4.0
+
     return {
-        'soiln': result.values()[0]
+        'soiln': soiln
     }
 
 
