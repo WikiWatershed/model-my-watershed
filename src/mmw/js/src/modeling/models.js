@@ -769,12 +769,11 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     setResults: function() {
-        var rawServerResults = this.get('taskModel').get('result');
+        var serverResults = this.get('taskModel').get('result');
 
-        if (rawServerResults === '' || rawServerResults === null) {
+        if (_.isEmpty(serverResults)) {
             this.get('results').setNullResults();
         } else {
-            var serverResults = JSON.parse(rawServerResults);
             this.get('results').forEach(function(resultModel) {
                 var resultName = resultModel.get('name');
 
@@ -899,7 +898,7 @@ var ScenarioModel = Backbone.Model.extend({
                 // Merge the values that came back from Mapshed with the values
                 // in the modifications from the user.
                 var modifications = self.get('modifications'),
-                    mergedGisData = JSON.parse(project.get('gis_data'));
+                    mergedGisData = project.get('gis_data');
 
                 modifications.forEach(function(mod) {
                     _.assign(mergedGisData, mod.get('output'));

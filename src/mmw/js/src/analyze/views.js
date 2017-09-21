@@ -70,9 +70,9 @@ var ModelSelectionDropdownView = Marionette.ItemView.extend({
                 shape: App.map.get('areaOfInterest'),
                 place: App.map.get('areaOfInterestName')
             }),
-            analysisResults = JSON.parse(App.getAnalyzeCollection()
-                                            .findWhere({taskName: 'analyze/land'})
-                                            .get('result') || "{}"),
+            analysisResults = App.getAnalyzeCollection()
+                                  .findWhere({taskName: 'analyze/land'})
+                                  .get('result') || {},
             landResults = analysisResults.survey;
 
         if (modelPackageName === 'gwlfe' && settings.get('mapshed_max_area')) {
@@ -341,7 +341,7 @@ var TabContentView = Marionette.LayoutView.extend({
 
     showResults: function() {
         var name = this.model.get('name'),
-            result = JSON.parse(this.model.get('result')).survey,
+            result = this.model.get('result').survey,
             resultModel = new models.LayerModel(result),
             ResultView = AnalyzeResultViews[name];
 
@@ -890,7 +890,7 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
             'nord', data.nord);
         var geoJson = {
             "type": "Feature",
-            "geometry": JSON.parse(geom),
+            "geometry": geom,
         };
         this.catchmentPolygon = L.geoJson(geoJson, {
             style: {
