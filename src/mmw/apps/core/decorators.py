@@ -6,8 +6,15 @@ import sys
 import rollbar
 
 from django.utils.timezone import now
+from django.conf import settings
 
 from apps.core.models import RequestLog
+
+
+rollbar_settings = getattr(settings, 'ROLLBAR', {})
+if rollbar_settings:
+    rollbar.init(rollbar_settings.get('access_token'),
+                 rollbar_settings.get('environment'))
 
 
 def log_request(view):
@@ -39,7 +46,8 @@ def log_request(view):
         try:
             log.save()
         except Exception:
-            pass
+            if rollbar_settings:
+                rollbar.report_exc_info(sys.exc_info(), request)
 
         return view_result
 
