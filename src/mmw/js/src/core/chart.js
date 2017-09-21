@@ -495,9 +495,6 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
                         parentG.append("text")
                             .each(function() {
                                 d3.select(this).text(function() {
-                                    if (bar.y === 0) {
-                                        return;
-                                    }
                                     return parseFloat(bar.y).toFixed(2);
                                 });
 
