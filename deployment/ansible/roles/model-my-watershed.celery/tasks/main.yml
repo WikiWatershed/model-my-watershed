@@ -2,5 +2,5 @@
 - name: Install Celery
   pip: name="{{ item.name }}" version={{ item.version }} state=present
   with_items:
-    - { name: "celery[redis]", version: "{{ celery_version }}" }
+    - { name: "celery[redis]", version: "4.1.0" }
     - { name: "django-celery", version: "{{ djcelery_version }}" }
