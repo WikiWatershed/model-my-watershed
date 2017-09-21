@@ -16,6 +16,7 @@ from apps.core.models import Job
 from apps.core.tasks import (save_job_error,
                              save_job_result)
 from apps.core.permissions import IsTokenAuthenticatedOrNotSwagger
+from apps.core.decorators import log_request
 from apps.modeling import geoprocessing
 from apps.modeling.views import load_area_of_interest
 from apps.geoprocessing_api import tasks
@@ -24,6 +25,7 @@ from apps.geoprocessing_api import tasks
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
 @decorators.permission_classes((IsTokenAuthenticatedOrNotSwagger, ))
+@log_request
 def start_rwd(request, format=None):
     """
     Starts a job to run Rapid Watershed Delineation on a point-based location.
@@ -185,6 +187,7 @@ def start_rwd(request, format=None):
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
 @decorators.permission_classes((IsTokenAuthenticatedOrNotSwagger, ))
+@log_request
 def start_analyze_land(request, format=None):
     """
     Starts a job to produce a land-use histogram for a given area.
@@ -379,6 +382,7 @@ def start_analyze_land(request, format=None):
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
 @decorators.permission_classes((IsTokenAuthenticatedOrNotSwagger, ))
+@log_request
 def start_analyze_soil(request, format=None):
     """
     Starts a job to produce a soil-type histogram for a given area.
@@ -505,6 +509,7 @@ def start_analyze_soil(request, format=None):
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
 @decorators.permission_classes((IsTokenAuthenticatedOrNotSwagger, ))
+@log_request
 def start_analyze_animals(request, format=None):
     """
     Starts a job to produce counts for animals in a given area.
@@ -615,6 +620,7 @@ def start_analyze_animals(request, format=None):
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
 @decorators.permission_classes((IsTokenAuthenticatedOrNotSwagger, ))
+@log_request
 def start_analyze_pointsource(request, format=None):
     """
     Starts a job to analyze the discharge monitoring report annual
@@ -704,6 +710,7 @@ def start_analyze_pointsource(request, format=None):
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
 @decorators.permission_classes((IsTokenAuthenticatedOrNotSwagger, ))
+@log_request
 def start_analyze_catchment_water_quality(request, format=None):
     """
     Starts a job to calculate the calibrated GWLF-E (MapShed) model
@@ -822,6 +829,7 @@ def start_analyze_catchment_water_quality(request, format=None):
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
 @decorators.permission_classes((IsTokenAuthenticatedOrNotSwagger, ))
+@log_request
 def start_analyze_climate(request, format=None):
     """
     Start a job to calculate the monthly climate (precipitation
