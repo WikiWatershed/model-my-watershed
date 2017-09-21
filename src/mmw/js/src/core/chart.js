@@ -437,7 +437,7 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
                                     "width": bgWidth + 2,
                                     "height": bgHeight + 2,
                                     "stroke": 1,
-                                    "class": ("bar-value-text-bg-shadow_" + el)
+                                    "class": ("bar-value-text-bg-shadow " + el)
                                 });
 
                                 d3.select(this).style({
@@ -459,7 +459,7 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
                                     "height": bgHeight,
                                     "stroke": "#aaaaaa",
                                     "stroke-width": 0.5,
-                                    "class": ("bar-value-text-bg_" + el)
+                                    "class": ("bar-value-text-bg " + el)
                                 });
 
                                 d3.select(this).style({
@@ -481,7 +481,7 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
                                     "x": (parseFloat(b.attr("x")) + (parseFloat(barWidth) / 2)),
                                     "width": dialogTickSize,
                                     "height": dialogTickSize,
-                                    "class": ("bar-value-text-bg-tick_" + el)
+                                    "class": ("bar-value-text-bg-tick " + el)
                                 });
 
                                 d3.select(this).style({
@@ -510,7 +510,7 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
                                     "font-size": "0.8rem",
                                     "font-weight": "normal",
                                     "font-family": "helvetica",
-                                    "class": ("bar-value-text_" + el)
+                                    "class": ("bar-value-text " + el)
                                 });
 
                                 d3.select(this).style({
@@ -531,21 +531,21 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
                     .selectAll("rect.nv-bar")
                     .on("mouseover", function () {
                         d3.select("#" + chartContainerId)
-                            .selectAll(".bar-value-text_" + el)
+                            .selectAll(".bar-value-text." + el)
                             .style("opacity", "1");
 
                         d3.select("#" + chartContainerId)
-                            .selectAll(".bar-value-text-bg-shadow_" + el)
+                            .selectAll(".bar-value-text-bg-shadow." + el)
                             .style("opacity", "0.5")
                             .style("fill-opacity", "0.5");
 
                         d3.select("#" + chartContainerId)
-                            .selectAll(".bar-value-text-bg_" + el)
+                            .selectAll(".bar-value-text-bg." + el)
                             .style("opacity", "1")
                             .style("fill-opacity", "1");
 
                         d3.select("#" + chartContainerId)
-                            .selectAll(".bar-value-text-bg-tick_" + el)
+                            .selectAll(".bar-value-text-bg-tick." + el)
                             .style("opacity", "1")
                             .style("fill-opacity", "1");
                     });
@@ -556,21 +556,21 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
                     .selectAll("rect.nv-bar")
                     .on("mouseout", function () {
                         d3.select("#" + chartContainerId)
-                            .selectAll(".bar-value-text_" + el)
+                            .selectAll(".bar-value-text." + el)
                             .style("opacity", "0");
 
                         d3.select("#" + chartContainerId)
-                            .selectAll(".bar-value-text-bg-shadow_" + el)
+                            .selectAll(".bar-value-text-bg-shadow." + el)
                             .style("opacity", "0")
                             .style("fill-opacity", "0");
 
                         d3.select("#" + chartContainerId)
-                            .selectAll(".bar-value-text-bg_" + el)
+                            .selectAll(".bar-value-text-bg." + el)
                             .style("opacity", "0")
                             .style("fill-opacity", "0");
 
                         d3.select("#" + chartContainerId)
-                            .selectAll(".bar-value-text-bg-tick_" + el)
+                            .selectAll(".bar-value-text-bg-tick." + el)
                             .style("opacity", "0")
                             .style("fill-opacity", "0");
                     });
