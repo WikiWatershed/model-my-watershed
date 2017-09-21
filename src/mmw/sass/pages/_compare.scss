@@ -451,6 +451,13 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
     rect {
       transition: opacity 0.3s ease-in-out;
     }
+
+    .bar-value-text-bg-shadow,
+    .bar-value-text-bg,
+    .bar-value-text-bg-tick,
+    .bar-value-text {
+        pointer-events: none;
+    }
   }
 
   .compare-scenario-gradient {
