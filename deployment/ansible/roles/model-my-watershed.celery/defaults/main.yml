@@ -1,3 +1,2 @@
 ---
 celery_version: 4.1.0
-djcelery_version: 3.1.16
