@@ -936,7 +936,7 @@ def start_analyze_climate(request, format=None):
         group(geotasks),
         tasks.combine_climate.s(),
         tasks.collect_climate.s(),
-    ], area_of_interest, user)
+    ], area_of_interest, user, link_error=False)
 
 
 def _initiate_rwd_job_chain(location, snapping, data_source,
@@ -948,7 +948,7 @@ def _initiate_rwd_job_chain(location, snapping, data_source,
         .apply_async(link_error=errback)
 
 
-def start_celery_job(task_list, job_input, user=None):
+def start_celery_job(task_list, job_input, user=None, link_error=True):
     """
     Given a list of Celery tasks and it's input, starts a Celery async job with
     those tasks, adds save_job_result and save_job_error handlers, and returns
@@ -957,6 +957,7 @@ def start_celery_job(task_list, job_input, user=None):
     :param task_list: A list of Celery tasks to execute. Is made into a chain
     :param job_input: Input to the first task, used in recording started jobs
     :param user: The user requesting the job. Optional.
+    :param link_error: Whether or not to apply error handler to entire chain
     :return: A Response contianing the job id, marked as 'started'
     """
     created = now()
@@ -968,7 +969,10 @@ def start_celery_job(task_list, job_input, user=None):
     error = save_job_error.s(job.id)
 
     task_list.append(success)
-    task_chain = chain(task_list).apply_async(link_error=error)
+    if link_error:
+        task_chain = chain(task_list).apply_async(link_error=error)
+    else:
+        task_chain = chain(task_list).apply_async()
 
     job.uuid = task_chain.id
     job.save()
