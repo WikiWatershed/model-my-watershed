@@ -932,11 +932,13 @@ def start_analyze_climate(request, format=None):
             tasks.analyze_climate.s('tmean', i)
         ])
 
+    add_errback = False
+
     return start_celery_job([
         group(geotasks),
         tasks.combine_climate.s(),
         tasks.collect_climate.s(),
-    ], area_of_interest, user)
+    ], area_of_interest, user, add_errback)
 
 
 def _initiate_rwd_job_chain(location, snapping, data_source,
@@ -948,7 +950,7 @@ def _initiate_rwd_job_chain(location, snapping, data_source,
         .apply_async(link_error=errback)
 
 
-def start_celery_job(task_list, job_input, user=None):
+def start_celery_job(task_list, job_input, user=None, add_errback=True):
     """
     Given a list of Celery tasks and it's input, starts a Celery async job with
     those tasks, adds save_job_result and save_job_error handlers, and returns
@@ -965,10 +967,14 @@ def start_celery_job(task_list, job_input, user=None):
                              model_input=job_input)
 
     success = save_job_result.s(job.id, job_input)
-    error = save_job_error.s(job.id)
-
     task_list.append(success)
-    task_chain = chain(task_list).apply_async(link_error=error)
+
+    # Conditional to circumvent "Cannot add link to group" error in Celery 4.1
+    if (add_errback):
+        error = save_job_error.s(job.id)
+        task_chain = chain(task_list).apply_async(link_error=error)
+    else:
+        task_chain = chain(task_list).apply_async()
 
     job.uuid = task_chain.id
     job.save()

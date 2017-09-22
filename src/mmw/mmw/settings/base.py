@@ -115,14 +115,12 @@ POSTGIS_VERSION = tuple(
 
 
 # CELERY CONFIGURATION
-BROKER_URL = 'redis://{0}:{1}/2'.format(
+CELERY_BROKER_URL = 'redis://{0}:{1}/2'.format(
     environ.get('MMW_CACHE_HOST', 'localhost'),
     environ.get('MMW_CACHE_PORT', 6379))
 
-CELERY_IMPORTS = ('celery.task.http',
-                  # Submodule task is not always autodiscovered
-                  'apps.modeling.mapshed.tasks',
-                  )
+# Submodule task is not always autodiscovered
+CELERY_IMPORTS = ('apps.modeling.mapshed.tasks')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -130,7 +128,6 @@ CELERY_RESULT_BACKEND = 'djcelery.backends.cache:CacheBackend'
 STATSD_CELERY_SIGNALS = True
 CELERY_CREATE_MISSING_QUEUES = True
 CELERY_CHORD_PROPAGATES = True
-CELERY_CHORD_UNLOCK_MAX_RETRIES = 60
 CELERY_DEFAULT_QUEUE = STACK_COLOR
 CELERY_DEFAULT_ROUTING_KEY = "task.%s" % STACK_COLOR
 # END CELERY CONFIGURATION
@@ -294,6 +291,7 @@ THIRD_PARTY_APPS = (
     'rest_framework_swagger',
     'rest_framework.authtoken',
     'registration',
+    'django_celery_results',
 )
 
 # THIRD-PARTY CONFIGURATION
