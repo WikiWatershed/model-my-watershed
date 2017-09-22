@@ -158,7 +158,7 @@ function loadAsyncShpFilesFromZip(zipfile) {
 
 function isValidForAnalysis(shape) {
     if (shape) {
-        var area = shapeBoundingBoxArea(shape);
+        var area = shapeArea(shape);
         return area > 0 && area <= MAX_AREA;
     }
     return false;
@@ -174,6 +174,7 @@ module.exports = {
     createRwdMarkerIcon: createRwdMarkerIcon,
     cancelDrawing: cancelDrawing,
     polygonDefaults: polygonDefaults,
+    shapeArea: shapeArea,
     shapeBoundingBox: shapeBoundingBox,
     shapeBoundingBoxArea: shapeBoundingBoxArea,
     isValidForAnalysis: isValidForAnalysis,
