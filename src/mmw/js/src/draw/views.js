@@ -516,12 +516,11 @@ var DrawToolBaseView = Marionette.ItemView.extend({
             }
         });
 
-        this.listenTo(App.getLeafletMap(), 'zoomend', _.bind(this.render, this));
+        this.listenTo(App.getLeafletMap(), 'zoomend', _.bind(this.onMapZoom, this));
     },
 
     templateHelpers: function() {
         var activeDrawTool = this.model.get('activeDrawTool'),
-            activeDrawToolItem = this.model.get('activeDrawToolItem'),
             currentZoomLevel = App.getLeafletMap().getZoom(),
             openDrawTool = this.model.get('openDrawTool'),
             activeTitle = null,
@@ -529,9 +528,7 @@ var DrawToolBaseView = Marionette.ItemView.extend({
             toolData = this.getToolData();
 
         if (activeDrawTool === toolData.id) {
-            var activeItem = _.find(toolData.items, function(item) {
-                return item.id === activeDrawToolItem;
-            });
+            var activeItem = this.getActiveToolDataItem();
             activeTitle = activeItem.title;
             activeDirections = activeItem.directions;
         }
@@ -551,6 +548,21 @@ var DrawToolBaseView = Marionette.ItemView.extend({
 
     onRender: function() {
         this.activatePopovers();
+    },
+
+    onMapZoom: function() {
+        var activeItem = this.getActiveToolDataItem();
+        if (activeItem && App.getLeafletMap().getZoom() < activeItem.minZoom) {
+            this.resetDrawingState();
+        }
+        this.render();
+    },
+
+    getActiveToolDataItem: function() {
+        var activeDrawToolItem = this.model.get('activeDrawToolItem');
+        return _.find(this.getToolData().items, function(item) {
+            return item.id === activeDrawToolItem;
+        });
     },
 
     openDrawTool: function() {
