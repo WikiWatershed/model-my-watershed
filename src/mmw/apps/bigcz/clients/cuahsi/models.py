@@ -10,7 +10,8 @@ class CuahsiResource(Resource):
     def __init__(self, id, description, author, links, title,
                  created_at, updated_at, geom, details_url, sample_mediums,
                  concept_keywords, service_org, service_code, service_url,
-                 service_title, service_citation, begin_date, end_date):
+                 service_title, service_citation, service_wsdl,
+                 begin_date, end_date):
         super(CuahsiResource, self).__init__(id, description, author, links,
                                              title, created_at, updated_at,
                                              geom)
@@ -23,5 +24,6 @@ class CuahsiResource(Resource):
         self.service_url = service_url
         self.service_title = service_title
         self.service_citation = service_citation
+        self.service_wsdl = service_wsdl
         self.begin_date = begin_date
         self.end_date = end_date
