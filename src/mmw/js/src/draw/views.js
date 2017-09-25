@@ -515,6 +515,8 @@ var DrawToolBaseView = Marionette.ItemView.extend({
                 self.model.closeDrawTool();
             }
         });
+
+        this.listenTo(App.getLeafletMap(), 'zoomend', _.bind(this.render, this));
     },
 
     templateHelpers: function() {
