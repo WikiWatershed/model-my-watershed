@@ -5,6 +5,7 @@ from __future__ import absolute_import
 
 import os
 import logging
+import urllib
 
 from ast import literal_eval as make_tuple
 from calendar import month_name
@@ -35,7 +36,7 @@ CM_PER_MM = 0.1
 
 
 @shared_task
-def start_rwd_job(location, snapping, data_source):
+def start_rwd_job(location, snapping, simplify, data_source):
     """
     Calls the Rapid Watershed Delineation endpoint
     that is running in the Docker container, and returns
@@ -47,9 +48,21 @@ def start_rwd_job(location, snapping, data_source):
     rwd_url = 'http://%s:%s/%s/%f/%f' % (RWD_HOST, RWD_PORT, end_point,
                                          lat, lng)
 
+    params = {}
+
     # The Webserver defaults to enable snapping, uses 1 (true) 0 (false)
     if not snapping:
-        rwd_url += '?snapping=0'
+        params['snapping'] = 0
+
+    # RWD also defaults to simplify the shape according to a tolerance.
+    # Passing it `?simplify=0` returns the unsimplified result.
+    if simplify is not False:
+        params['simplify'] = simplify
+
+    query_string = urllib.urlencode(params)
+
+    if query_string:
+        rwd_url += ('?%s' % query_string)
 
     logger.debug('rwd request: %s' % rwd_url)
 
