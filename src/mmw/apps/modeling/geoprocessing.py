@@ -75,6 +75,10 @@ def run(self, opname, input_data, wkaoi=None, cache_key=''):
         return result
     except Retry as r:
         raise r
+    except ConnectionError:
+        return {
+            'error': 'Could not reach the geoprocessing service'
+        }
     except Exception as x:
         return {
             'error': str(x)
