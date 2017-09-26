@@ -45,7 +45,9 @@ NO_LAND_COVER = 'NO_LAND_COVER'
 
 
 @shared_task
-def collect_data(geop_result, geojson):
+def collect_data(geop_results, geojson):
+    geop_result = {k: v for r in geop_results for k, v in r.items()}
+
     geom = GEOSGeometry(geojson, srid=4326)
     area = geom.transform(5070, clone=True).area  # Square Meters
 
@@ -489,19 +491,6 @@ def geoprocessing_chains(aoi, wkaoi, errback):
         callback.s().set(link_error=errback)
         for (opname, callback, data) in task_defs
     ]
-
-
-@shared_task
-def combine(geop_results):
-    """
-    Flattens the incoming results dictionaries into one
-    which has all the keys of the components.
-
-    This could be a part of collect_data, but we need
-    a buffer in a chord as a workaround to
-    https://github.com/celery/celery/issues/3191
-    """
-    return {k: v for r in geop_results for k, v in r.items()}
 
 
 def get_lu_index(nlcd):

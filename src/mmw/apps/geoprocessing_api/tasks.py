@@ -175,38 +175,28 @@ def analyze_climate(result, category, month):
 
 
 @shared_task
-def combine_climate(results):
+def collect_climate(results):
     """
     Given an array of dictionaries resulting from multiple analyze_climate
     calls, combines them so that the 'ppt' values are grouped together and
     'tmean' together. Each group is a dictionary where the keys are strings
     of the month '1', '2', ..., '12', and the values the average in the
     area of interest.
+
+    Then, transforms these dictionaries into a final result of the format used
+    for all other Analyze operations. The 'categories' contain twelve objects,
+    one for each month, with a 'month' field containing the name of the month,
+    and 'ppt' and 'tmean' fields with corresponding values. The 'index' can be
+    used for sorting purposes on the client side.
     """
     ppt = {k[5:]: v for r in results for k, v in r.items() if 'ppt' in k}
     tmean = {k[7:]: v for r in results for k, v in r.items() if 'tmean' in k}
 
-    return {
-        'ppt': ppt,
-        'tmean': tmean,
-    }
-
-
-@shared_task
-def collect_climate(results):
-    """
-    Given the two dictionaries from combine_climate, transforms them into a
-    final result of the format used for all other Analyze operations. The
-    'categories' contain twelve objects, one for each month, with a 'month'
-    field containing the name of the month, and 'ppt' and 'tmean' fields with
-    corresponding values. The 'index' can be used for sorting purposes on the
-    client side.
-    """
     categories = [{
         'monthidx': i,
         'month': month_name[i],
-        'ppt': results['ppt'][str(i)] * CM_PER_MM,
-        'tmean': results['tmean'][str(i)],
+        'ppt': ppt[str(i)] * CM_PER_MM,
+        'tmean': tmean[str(i)],
     } for i in xrange(1, 13)]
 
     return {
