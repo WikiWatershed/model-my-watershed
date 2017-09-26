@@ -19,7 +19,7 @@ from django.core.cache import cache
 from django.conf import settings
 
 
-@shared_task(bind=True, default_retry_delay=1, max_retries=42)
+@shared_task(bind=True, default_retry_delay=1, max_retries=6)
 def run(self, opname, input_data, wkaoi=None, cache_key=''):
     """
     Run a geoprocessing operation.
@@ -75,9 +75,13 @@ def run(self, opname, input_data, wkaoi=None, cache_key=''):
         return result
     except Retry as r:
         raise r
+    except ConnectionError:
+        return {
+            'error': 'Could not reach the geoprocessing service'
+        }
     except Exception as x:
         return {
-            'error': x.message
+            'error': str(x)
         }
 
 

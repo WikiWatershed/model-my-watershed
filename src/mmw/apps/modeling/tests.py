@@ -202,7 +202,7 @@ class TaskRunnerTestCase(TestCase):
                                       status='started')
         self.job.save()
 
-    @override_settings(CELERY_ALWAYS_EAGER=True)
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_tr55_job_runs_in_chain(self):
         # For the purposes of this test, there are no modifications
         self.model_input['modification_pieces'] = []
@@ -228,7 +228,7 @@ class TaskRunnerTestCase(TestCase):
                          'complete',
                          'Job found but incomplete.')
 
-    @override_settings(CELERY_ALWAYS_EAGER=True)
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_tr55_job_error_in_chain(self):
         model_input = {
             'inputs': [],
@@ -401,7 +401,7 @@ class TaskRunnerTestCase(TestCase):
                             else False for t in needed_tasks]),
                         'missing necessary job in chain')
 
-    @override_settings(CELERY_ALWAYS_EAGER=True)
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_tr55_chain_generates_modification_censuses_if_they_are_old(self):
         """If they modification censuses exist in the model input, but the
         hash stored with the censuses does not match the hash passed in
@@ -455,7 +455,7 @@ class TaskRunnerTestCase(TestCase):
                             else False for t in needed_tasks]),
                         'missing necessary job in chain')
 
-    @override_settings(CELERY_ALWAYS_EAGER=True)
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_tr55_chain_generates_both_censuses_if_they_are_missing(self):
         """If neither the AoI censuses or the modification censuses exist,
         they are both generated.
