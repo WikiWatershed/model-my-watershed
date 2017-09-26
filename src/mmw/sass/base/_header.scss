@@ -53,6 +53,7 @@ header {
         .dropdown-menu {
           left: auto;
           right: 0px;
+          z-index: 1010;
           a {
             color: $ui-secondary;
 
