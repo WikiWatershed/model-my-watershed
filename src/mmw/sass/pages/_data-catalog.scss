@@ -44,12 +44,16 @@
             .result-detail-header {
               h2 {
                   display: inline-block;
-                  margin: 4px 0;
+                  margin: 10px 0 4px;
                   max-width: 95%;
               }
 
               a.zoom {
                 display: block;
+              }
+
+              .close {
+                opacity: 0.6;
               }
             }
 
@@ -419,5 +423,31 @@
     .data-catalog-validation-msg {
         color: $ui-danger;
         margin-top: 8px;
+    }
+}
+
+.result-details-region {
+    p,
+    .btn {
+        font-size: $font-size-h5;
+    }
+}
+
+.table-data-detail {
+    font-size: $font-size-h5;
+    margin: 14px 0 6px;
+
+    td,
+    th {
+        vertical-align: top;
+        padding-bottom: 10px;
+    }
+
+    td {
+        color: #777;
+    }
+
+    th {
+        padding-right: 20px;
     }
 }
