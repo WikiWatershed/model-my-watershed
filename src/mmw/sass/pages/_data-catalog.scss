@@ -42,7 +42,14 @@
               }
 
               .close {
-                opacity: 0.6;
+                float: none;
+                display: block;
+                opacity: 1;
+                color: #389b9b;
+                text-shadow: none;
+                font-size: 13px;
+                font-weight: 400;
+                padding: 6px 0 2px;
               }
             }
         }
@@ -174,6 +181,14 @@
 
 .data-catalog-window,
 .data-catalog-resource-popover {
+    .btn-secondary {
+        height: auto;
+    }
+
+    h3 {
+        margin-bottom: 7px;
+    }
+
     .resource-description {
         color: $ui-grey;
         font-size: $font-size-h5;

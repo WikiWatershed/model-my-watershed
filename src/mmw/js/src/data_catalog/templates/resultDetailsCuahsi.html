@@ -1,7 +1,7 @@
 <div class="result">
     <div class="result-detail-header">
         <button type="button" class="close" aria-label="Close">
-            <span aria-hidden="true">×</span>
+            <i class="fa fa-arrow-left black"></i> Back
         </button>
         <h2>
             Site: {{ location }} {{ title }}
@@ -41,6 +41,10 @@
                     {{ sample_mediums|join(", ") }}
                 </td>
             </tr>
+            <tr>
+                <th>Catalog</th>
+                <td>Water Data Center</td>
+            </tr>
         </table>
     </div>
     <p>
@@ -58,7 +62,7 @@
     <hr>
     <h3>Source Data</h3>
     <p>
-        Last collected value {{ end_date|toTimeAgo }}:
+        Last collected value {{ end_date|toTimeAgo }}
     </p>
     <table class="table custom-hover" data-toggle="table">
         <thead>
