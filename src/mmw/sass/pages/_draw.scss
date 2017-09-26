@@ -127,12 +127,16 @@
     width: 100%;
 
     & .draw-pane-list-item {
-      list-style-type: none;
-      font-size: $font-size-h4;
+        list-style-type: none;
+        font-size: $font-size-h4;
+        display: flex;
 
       & .draw-pane-list-item-button {
         background: transparent;
         display: block;
+        width: 100%;
+        text-align: left;
+        border: none;
         padding-top: 0.5rem;
         padding-bottom: 0.5rem;
         padding-left: 0.8rem;
@@ -154,6 +158,8 @@
       & a.help {
         color: #999;
         padding: 0.5rem 1rem;
+        margin-right: 0;
+        margin-left: auto;
 
         &:hover {
           color: inherit;
