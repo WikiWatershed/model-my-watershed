@@ -77,7 +77,7 @@ def run(self, opname, input_data, wkaoi=None, cache_key=''):
         raise r
     except Exception as x:
         return {
-            'error': x.message
+            'error': str(x)
         }
 
 
