@@ -1,7 +1,7 @@
 <div class="result">
     <div class="result-detail-header">
         <button type="button" class="close" aria-label="Close">
-            <span aria-hidden="true">×</span>
+            <i class="fa fa-arrow-left black"></i> Back
         </button>
         <h2>
             Site: {{ location }} {{ title }}
@@ -41,6 +41,10 @@
                     {{ sample_mediums|join(", ") }}
                 </td>
             </tr>
+            <tr>
+                <th>Catalog</th>
+                <td>Water Data Center</td>
+            </tr>
         </table>
     </div>
     <p>
@@ -66,7 +70,7 @@
         <button id="cuahsi-button-table" class="{{ 'active' if mode == 'table' }}"><i class="fa fa-table"></i></button>
     </div>
     <p>
-        Last value collected {{ last_date|toTimeAgo }}:
+        Last value collected {{ last_date|toTimeAgo }}
     </p>
     <div id="cuahsi-values-region"></div>
     <!-- TODO Insert Chart https://github.com/WikiWatershed/model-my-watershed/issues/2238 -->

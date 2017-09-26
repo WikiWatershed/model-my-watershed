@@ -53,7 +53,14 @@
               }
 
               .close {
-                opacity: 0.6;
+                float: none;
+                display: block;
+                opacity: 1;
+                color: #389b9b;
+                text-shadow: none;
+                font-size: 13px;
+                font-weight: 400;
+                padding: 6px 0 2px;
               }
             }
 
