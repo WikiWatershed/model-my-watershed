@@ -19,7 +19,7 @@ from django.core.cache import cache
 from django.conf import settings
 
 
-@shared_task(bind=True, default_retry_delay=1, max_retries=42)
+@shared_task(bind=True, default_retry_delay=1, max_retries=6)
 def run(self, opname, input_data, wkaoi=None, cache_key=''):
     """
     Run a geoprocessing operation.
