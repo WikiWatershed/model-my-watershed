@@ -66,16 +66,21 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
             prevButton = this.ui.prevButton,
             nextButton = this.ui.nextButton;
 
-        if (i < 1) {
-            prevButton.removeClass('active');
+        if (total <= minScenarios) {
+            prevButton.hide();
+            nextButton.hide();
         } else {
-            prevButton.addClass('active');
-        }
+            if (i < 1) {
+                prevButton.removeClass('active');
+            } else {
+                prevButton.addClass('active');
+            }
 
-        if (i + minScenarios >= total) {
-            nextButton.removeClass('active');
-        } else {
-            nextButton.addClass('active');
+            if (i + minScenarios >= total) {
+                nextButton.removeClass('active');
+            } else {
+                nextButton.addClass('active');
+            }
         }
     },
 
