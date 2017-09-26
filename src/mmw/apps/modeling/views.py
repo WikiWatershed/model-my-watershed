@@ -31,7 +31,6 @@ from apps.core.permissions import IsTokenAuthenticatedOrNotSwagger
 from apps.core.decorators import log_request
 from apps.modeling import tasks, geoprocessing
 from apps.modeling.mapshed.tasks import (geoprocessing_chains,
-                                         combine,
                                          collect_data,
                                          )
 from apps.modeling.models import Project, Scenario
@@ -230,7 +229,6 @@ def _initiate_mapshed_job_chain(mapshed_input, job_id):
 
     job_chain = (
         group(geoprocessing_chains(area_of_interest, wkaoi, errback)) |
-        combine.s() |
         collect_data.s(area_of_interest).set(link_error=errback) |
         save_job_result.s(job_id, mapshed_input))
 

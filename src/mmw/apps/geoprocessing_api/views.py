@@ -934,7 +934,6 @@ def start_analyze_climate(request, format=None):
 
     return start_celery_job([
         group(geotasks),
-        tasks.combine_climate.s(),
         tasks.collect_climate.s(),
     ], area_of_interest, user, link_error=False)
 
