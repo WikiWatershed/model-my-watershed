@@ -6,15 +6,22 @@ from __future__ import division
 from rest_framework.serializers import (CharField,
                                         DateTimeField,
                                         ListField,
+                                        Serializer,
                                         )
 
 from apps.bigcz.serializers import ResourceSerializer
 
 
+class CuahsiVariableSetSerializer(Serializer):
+    code = CharField()
+    name = CharField()
+    concept_keyword = CharField()
+
+
 class CuahsiResourceSerializer(ResourceSerializer):
     details_url = CharField()
     sample_mediums = ListField(child=CharField())
-    concept_keywords = ListField(child=CharField())
+    variables = ListField(child=CuahsiVariableSetSerializer())
     service_org = CharField()
     service_code = CharField()
     service_url = CharField()

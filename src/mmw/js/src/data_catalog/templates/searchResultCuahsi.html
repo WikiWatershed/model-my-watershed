@@ -9,7 +9,10 @@
     <div class="resource-detail -showall">
         <i class="fa fa-subscript"></i>
         <div class="detail-text">
-            {{ concept_keywords|join("; ") }}
+            {% set semicolon = joiner(";") %}
+            {% for var in variables %}
+                {{ semicolon() }} {{ var.concept_keyword }}
+            {% endfor %}
         </div>
     </div>
     <div class="resource-detail">
