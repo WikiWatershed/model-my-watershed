@@ -14,7 +14,7 @@ from apps.bigcz.utils import RequestTimedOutError
 
 
 CATALOG_NAME = 'hydroshare'
-CATALOG_URL = 'https://playground.hydroshare.org/hsapi/resource/'
+CATALOG_URL = 'https://www.hydroshare.org/hsapi/resource/'
 
 
 def parse_date(value):
