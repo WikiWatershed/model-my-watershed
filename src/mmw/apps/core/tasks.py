@@ -14,8 +14,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True)
-def save_job_error(self, uuid, job_id):
+@shared_task
+def save_job_error(request, exc, traceback, job_id):
     """
     A handler task attached to the Celery chain. Any exception thrown along the
     chain will trigger this task, which logs the failure to the Job row so that
@@ -24,15 +24,14 @@ def save_job_error(self, uuid, job_id):
     To see failing task in Flower, follow instructions here:
     https://github.com/WikiWatershed/model-my-watershed/pull/551#issuecomment-119333146
     """
-    result = self.app.AsyncResult(uuid)
     error_message = 'Task {0} run from job {1} raised exception: {2}\n{3}'
-    logger.error(error_message.format(str(uuid), str(job_id),
-                                      str(result.result),
-                                      str(result.traceback)))
+    logger.error(error_message.format(str(request.id), str(job_id),
+                                      str(exc),
+                                      str(traceback)))
     try:
         job = Job.objects.get(id=job_id)
-        job.error = result.result
-        job.traceback = result.traceback
+        job.error = exc
+        job.traceback = traceback
         job.delivered_at = now()
         job.status = 'failed'
         job.save()
