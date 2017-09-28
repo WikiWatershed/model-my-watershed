@@ -737,7 +737,9 @@ var MapView = Marionette.ItemView.extend({
             onEachFeature: function(feature, layer) {
                 layer.on('mouseover', function() {
                     // Only highlight the layer if detail mode is not active
-                    if (self._dataCatalogDetailLayer.getLayers().length === 0) {
+                    // and the layer bounds are within the viewport
+                    if (self._dataCatalogDetailLayer.getLayers().length === 0 &&
+                        self._leafletMap.getBounds().contains(layer.getBounds())) {
                         layer.setStyle(dataCatalogActiveStyle);
                         result.set('active', true);
                     }
@@ -748,7 +750,7 @@ var MapView = Marionette.ItemView.extend({
                         if (geom.type === 'Point') {
                             // Preserve highlight of marker if popup is open.
                             // It will get restyled when the popup is closed.
-                            if (!layer._popup._isOpen) {
+                            if (!layer._popup || !layer._popup._isOpen) {
                                 layer.setStyle(dataCatalogPointStyle);
                                 result.set('active', false);
                             }
@@ -812,21 +814,70 @@ var MapView = Marionette.ItemView.extend({
     },
 
     bindDataCatalogPopovers: function(PopoverView, catalogId, resultModels) {
-        this._dataCatalogResultsLayer.eachLayer(function(layer) {
-            var result = resultModels.findWhere({ id: layer.options.id });
-            layer.on('popupopen', function() {
-                layer.setStyle(dataCatalogActiveStyle);
-                result.set('active', true);
-            });
-            layer.on('popupclose', function() {
-                layer.setStyle(dataCatalogPointStyle);
-                result.set('active', false);
-            });
-            layer.bindPopup(new PopoverView({
+        var handleClick = function(e) {
+            var clickPoint = e.layerPoint,
+                clickLatLng = e.latlng,
+
+                intersectsClickBounds = function(layer) {
+                    var shape = layer.getLayers()[0];
+
+                    if (shape instanceof L.Polygon) {
+                        return shape.getBounds().contains(clickLatLng);
+                    }
+
+                    if (shape instanceof L.Circle) {
+                        return shape._point.distanceTo(clickPoint) <= shape._radius;
+                    }
+
+                    return false;
+                },
+
+                // Get a list of results intersecting the clicked point
+                intersectingFeatures = _.reduce(
+                    e.target._layers,
+                    function(intersectingFeatures, layer) {
+                        if (intersectsClickBounds(layer)) {
+                            intersectingFeatures.push(layer);
+                        }
+                        return intersectingFeatures;
+                    }, []);
+
+            // If nothing intersected the clicked point, finish
+            if (intersectingFeatures.length === 0) {
+                return;
+            }
+
+            // If only a single feature intersected the clicked point
+            // show its detail popup, put active styling on the feature
+            if (intersectingFeatures.length === 1) {
+                var layer = intersectingFeatures[0],
+                    result = resultModels.findWhere({ id: layer.options.id });
+
+                layer.bindPopup(new PopoverView({
                     model: result,
                     catalog: catalogId
-                }).render().el, { className: 'data-catalog-popover' });
-        });
+                }).render().el, { className: 'data-catalog-popover'});
+
+                layer.openPopup();
+                layer.setStyle(dataCatalogActiveStyle);
+                result.set('active', true);
+
+                layer.on('popupclose', function() {
+                    layer.setStyle(dataCatalogPointStyle);
+                    result.set('active', false);
+                });
+
+                return;
+            }
+
+            console.log("Click intersects multiple features", intersectingFeatures);
+        };
+
+        // Remove all existing event listeners that might be from the other catalogs
+        this._dataCatalogResultsLayer.removeEventListener();
+
+        // Listen for clicks on the currently active layer
+        this._dataCatalogResultsLayer.on('click', handleClick);
     },
 
     renderSelectedGeocoderArea: function() {
