@@ -57,11 +57,17 @@ def start_rwd(request, format=None):
 
     `snappingOn` (`boolean`): Snap to the nearest stream? Default is false
 
+    `simplify` (`number`): Simplify tolerance for delineated watershed shape in
+                response. Use `0` to receive an unsimplified shape. When this
+                parameter is not supplied, `simplify` defaults to `0.0001` for
+                "drb" and is a function of the shape's area for "nhd".
+
     **Example**
 
         {
-            "location": [39.97185812402583,-75.16742706298828],
+            "location": [39.67185812402583,-75.76742706298828],
             "snappingOn": true,
+            "simplify": 0,
             "dataSource":"nhd"
         }
 
@@ -86,12 +92,12 @@ def start_rwd(request, format=None):
                             "coordinates": [
                                 [
                                     [
-                                        -75.24776006176894,
-                                        39.98166667527191
+                                        -75.24776,
+                                        39.98166
                                     ],
                                     [
-                                        -75.24711191361516,
-                                        39.98166667527191
+                                        -75.24711,
+                                        39.98166
                                     ]
                                 ], ...
                             ]
@@ -119,8 +125,8 @@ def start_rwd(request, format=None):
                         "geometry": {
                             "type": "Point",
                             "coordinates": [
-                                -75.24938043215342,
-                                39.97875000854888
+                                -75.24938,
+                                39.97875
                             ]
                         },
                         "type": "Feature",
@@ -165,12 +171,13 @@ def start_rwd(request, format=None):
     location = request.data['location']
     data_source = request.data.get('dataSource', 'drb')
     snapping = request.data.get('snappingOn', False)
+    simplify = request.data.get('simplify', False)
 
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
 
-    task_list = _initiate_rwd_job_chain(location, snapping, data_source,
-                                        job.id)
+    task_list = _initiate_rwd_job_chain(location, snapping, simplify,
+                                        data_source, job.id)
 
     job.uuid = task_list.id
     job.save()
@@ -938,12 +945,12 @@ def start_analyze_climate(request, format=None):
     ], area_of_interest, user, link_error=False)
 
 
-def _initiate_rwd_job_chain(location, snapping, data_source,
+def _initiate_rwd_job_chain(location, snapping, simplify, data_source,
                             job_id, testing=False):
     errback = save_job_error.s(job_id)
 
-    return chain(tasks.start_rwd_job.s(location, snapping, data_source),
-                 save_job_result.s(job_id, location)) \
+    return chain(tasks.start_rwd_job.s(location, snapping, simplify,
+                 data_source), save_job_result.s(job_id, location)) \
         .apply_async(link_error=errback)
 
 
