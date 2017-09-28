@@ -25,7 +25,8 @@ var dataCatalogPolygonStyle = {
     color: 'steelblue',
     weight: 2,
     opacity: 1,
-    fill: false
+    fill: true,
+    fillOpacity: 0,
 };
 
 var dataCatalogPointStyle = _.assign({}, dataCatalogPolygonStyle, {
