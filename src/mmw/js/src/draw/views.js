@@ -507,7 +507,10 @@ var DrawToolBaseView = Marionette.ItemView.extend({
 
     initialize: function(options) {
         this.resetDrawingState = options.resetDrawingState;
-        var self = this;
+        this.onMapZoom = _.bind(this.onMapZoom, this);
+
+        var self = this,
+            map = App.getLeafletMap();
 
         $(document).on('mouseup', function(e) {
             var isTargetOutside = $(e.target).parents('.dropdown-menu').length === 0;
@@ -516,7 +519,7 @@ var DrawToolBaseView = Marionette.ItemView.extend({
             }
         });
 
-        this.listenTo(App.getLeafletMap(), 'zoomend', _.bind(this.onMapZoom, this));
+        map.on('zoomend', this.onMapZoom);
     },
 
     templateHelpers: function() {
@@ -574,6 +577,12 @@ var DrawToolBaseView = Marionette.ItemView.extend({
             placement: 'top',
             trigger: 'focus'
         });
+    },
+
+    onDestroy: function() {
+        var map = App.getLeafletMap();
+
+        map.off('zoomend', this.onMapZoom);
     }
 });
 
