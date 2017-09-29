@@ -103,11 +103,10 @@ function validateShape(polygon) {
         d.reject(errorMsg);
     } else if (!utils.isValidForAnalysis(polygon)) {
         var maxArea = utils.MAX_AREA.toLocaleString(),
-            selectedBoundingBoxArea = Math.floor(utils.shapeBoundingBoxArea(polygon)).toLocaleString(),
-            message = 'Sorry, the bounding box of the selected area is too large ' +
-                      'to analyze or model. ' + selectedBoundingBoxArea + '&nbsp;km² were ' +
-                      'selected, but the maximum supported size is ' +
-                      'currently ' + maxArea + '&nbsp;km².';
+            selectedAOIArea = Math.floor(utils.shapeArea(polygon)).toLocaleString(),
+            message = 'Sorry, the selected area is too large to analyze or model. ' +
+                      selectedAOIArea + '&nbsp;km² were selected but the maximum ' +
+                      'supported size is currently ' + maxArea + '&nbsp;km².';
         d.reject(message);
     } else if (!utils.withinConus(polygon)) {
         var conusMessage = 'The area of interest must be within the Continental US.';
