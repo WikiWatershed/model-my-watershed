@@ -554,6 +554,14 @@ var ResultMapPopoverControllerView = Marionette.LayoutView.extend({
         container: '.data-catalog-popover-container'
     },
 
+    ui: {
+        back: '.data-catalog-popover-back-btn'
+    },
+
+    events: {
+        'click @ui.back': 'backToList'
+    },
+
     initialize: function() {
         this.model = new models.PopoverControllerModel();
         this.model.on('change:activeResult', this.render);
@@ -573,8 +581,11 @@ var ResultMapPopoverControllerView = Marionette.LayoutView.extend({
                 catalog: this.options.catalog
             }));
         }
-    }
+    },
 
+    backToList: function() {
+        this.model.set('activeResult', null);
+    }
 });
 
 var PagerView = Marionette.ItemView.extend({

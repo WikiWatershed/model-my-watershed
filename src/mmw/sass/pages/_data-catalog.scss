@@ -239,7 +239,15 @@
 
 .data-catalog-popover-container
 .data-catalog-resource-popover {
+    padding: 0 10px 10px 10px;
+}
+
+.data-catalog-popover-back-btn {
+    color: $brand-primary;
+    border: none;
+    background: none;
     padding: 10px;
+    font-size: $font-size-h5;
 }
 
 .data-catalog-popover-result-list {
