@@ -22,6 +22,7 @@ CATALOGS = {
         'model': cuahsi.model,
         'serializer': cuahsi.serializer,
         'search': cuahsi.search,
+        'details': cuahsi.details,
         'is_pageable': False,
     },
 }
