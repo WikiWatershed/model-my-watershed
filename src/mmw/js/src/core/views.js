@@ -4,10 +4,10 @@ var L = require('leaflet'),
     $ = require('jquery'),
     _ = require('underscore'),
     router = require('../router.js').router,
-    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
     coreUtils = require('./utils'),
+    models = require('./models'),
     drawUtils = require('../draw/utils'),
     modificationConfigUtils = require('../modeling/modificationConfigUtils'),
     headerTmpl = require('./templates/header.html'),
@@ -883,7 +883,8 @@ var MapView = Marionette.ItemView.extend({
 
                 self._leafletMap.openPopup(
                     new ListPopoverView({
-                        collection: new Backbone.Collection(intersectingResults),
+                        collection:
+                        new models.DataCatalogPopoverResultCollection(intersectingResults),
                         catalog: catalogId
                     }).render().el,
                     clickLatLng,

@@ -254,11 +254,28 @@
     padding: 0px;
 }
 
+.data-catalog-popover-pagination {
+    text-align: center;
+}
+
+.data-catalog-popover-pagination
+.data-catalog-popover-pagination-btn {
+    border: none;
+    background: none;
+    &:disabled {
+        color: $ui-light;
+    }
+}
+
+.data-catalog-popover-pagination-btn,
 .data-catalog-popover-num-results {
-    color: $ui-secondary;
     // Important because leaflet popup title
     // tries to add a margin-bottom
     margin-bottom: 0 !important;
+}
+
+.data-catalog-popover-num-results {
+    color: $ui-secondary;
     font-weight: 800;
     padding: 6px;
     padding-top: 0;

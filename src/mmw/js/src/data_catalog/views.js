@@ -539,10 +539,34 @@ var ResultMapPopoverListView = Marionette.CompositeView.extend({
         };
     },
 
+    ui: {
+        prevPage: '[data-action="prev-page"]',
+        nextPage: '[data-action="next-page"]'
+    },
+
+    events: {
+        'click @ui.prevPage': 'prevPage',
+        'click @ui.nextPage': 'nextPage'
+    },
+
     templateHelpers: function() {
         return {
-            numResults: this.collection.length
+            numResults: this.collection.fullCollection.length,
+            pageNum: this.collection.state.currentPage,
+            numPages: this.collection.state.totalPages,
+            hasNextPage: this.collection.hasNextPage(),
+            hasPrevPage: this.collection.hasPreviousPage()
         };
+    },
+
+    prevPage: function() {
+        this.collection.getPreviousPage();
+        this.render();
+    },
+
+    nextPage: function() {
+        this.collection.getNextPage();
+        this.render();
     }
 });
 
