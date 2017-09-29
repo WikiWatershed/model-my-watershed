@@ -11,4 +11,5 @@ urlpatterns = patterns(
     '',
     url(r'^search$', views.search, name='bigcz_search'),
     url(r'^details$', views.details, name='bigcz_details'),
+    url(r'^values$', views.values, name='bigcz_values'),
 )

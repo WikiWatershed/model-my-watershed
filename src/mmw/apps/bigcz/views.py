@@ -118,6 +118,40 @@ def _get_details(request):
         raise ParseError(ex.message)
 
 
+def _get_values(request):
+    params = request.query_params
+    catalog = params.get('catalog')
+
+    if not catalog:
+        raise ValidationError({
+            'error': 'Required argument: catalog'})
+
+    if catalog not in CATALOGS:
+        raise ValidationError({
+            'error': 'Catalog must be one of: {}'
+                     .format(', '.join(CATALOGS.keys()))})
+
+    values = CATALOGS[catalog]['values']
+
+    if not values:
+        raise NotFound({
+            'error': 'No values endpoint for {}'
+                     .format(catalog)})
+
+    values_kwargs = {
+        'wsdl': params.get('wsdl'),
+        'site': params.get('site'),
+        'variable': params.get('variable'),
+        'from_date': params.get('from_date'),
+        'to_date': params.get('to_date'),
+    }
+
+    try:
+        return values(**values_kwargs)
+    except ValueError as ex:
+        raise ParseError(ex.message)
+
+
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny,))
 def search(request):
@@ -128,3 +162,9 @@ def search(request):
 @decorators.permission_classes((AllowAny,))
 def details(request):
     return Response(_get_details(request))
+
+
+@decorators.api_view(['GET'])
+@decorators.permission_classes((AllowAny,))
+def values(request):
+    return Response(_get_values(request))
