@@ -474,6 +474,14 @@ var TaskModel = Backbone.Model.extend({
         }
     },
 
+    headers: function() {
+        var token = this.get('token');
+        if (token) {
+            return { 'Authorization': 'Token ' + token };
+        }
+        return null;
+    },
+
     // Cancels any currently running jobs. The promise returned
     // by previous calls to pollForResults will be rejected.
     reset: function() {
@@ -505,7 +513,8 @@ var TaskModel = Backbone.Model.extend({
                 url: self.url(taskHelper.queryParams),
                 method: 'POST',
                 data: taskHelper.postData,
-                contentType: taskHelper.contentType
+                contentType: taskHelper.contentType,
+                headers: self.headers()
             }),
             pollingDefer = $.Deferred();
 
@@ -554,7 +563,7 @@ var TaskModel = Backbone.Model.extend({
                 return;
             }
 
-            self.fetch()
+            self.fetch({ headers: self.headers() })
                 .done(function(response) {
                     console.log('Polling ' + self.url());
                     if (response.status === 'started') {

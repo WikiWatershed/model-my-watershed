@@ -28,7 +28,8 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
             area_of_interest: null,
             wkaoi: null,
             taskName: 'analyze',
-            taskType: 'api'
+            taskType: 'api',
+            token: settings.get('api_token')
         }, coreModels.TaskModel.prototype.defaults
     ),
 
