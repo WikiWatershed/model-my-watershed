@@ -246,6 +246,17 @@
     padding: 0px;
 }
 
+.data-catalog-popover-num-results {
+    color: $ui-secondary;
+    // Important because leaflet popup title
+    // tries to add a margin-bottom
+    margin-bottom: 0 !important;
+    font-weight: 800;
+    padding: 6px;
+    padding-top: 0;
+    border-bottom: 1px solid $ui-light;
+}
+
 .data-catalog-popover-list-item {
     display: block;
     .data-catalog-popover-list-item-btn {

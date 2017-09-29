@@ -537,6 +537,12 @@ var ResultMapPopoverListView = Marionette.CompositeView.extend({
             popoverModel: this.options.popoverModel,
             catalog: this.options.catalog
         };
+    },
+
+    templateHelpers: function() {
+        return {
+            numResults: this.collection.length
+        };
     }
 });
 
