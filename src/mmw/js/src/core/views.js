@@ -4,6 +4,7 @@ var L = require('leaflet'),
     $ = require('jquery'),
     _ = require('underscore'),
     router = require('../router.js').router,
+    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
     coreUtils = require('./utils'),
@@ -813,64 +814,74 @@ var MapView = Marionette.ItemView.extend({
         }
     },
 
-    bindDataCatalogPopovers: function(PopoverView, catalogId, resultModels) {
-        var handleClick = function(e) {
-            var clickPoint = e.layerPoint,
-                clickLatLng = e.latlng,
+    bindDataCatalogPopovers: function(SinglePopoverView, ListPopoverView,
+                                      catalogId, resultModels) {
+        var self = this,
+            handleClick = function(e) {
+                var clickPoint = e.layerPoint,
+                    clickLatLng = e.latlng,
 
-                intersectsClickBounds = function(layer) {
-                    var shape = layer.getLayers()[0];
+                    intersectsClickBounds = function(layer) {
+                        var shape = layer.getLayers()[0];
 
-                    if (shape instanceof L.Polygon) {
-                        return shape.getBounds().contains(clickLatLng);
-                    }
-
-                    if (shape instanceof L.Circle) {
-                        return shape._point.distanceTo(clickPoint) <= shape._radius;
-                    }
-
-                    return false;
-                },
-
-                // Get a list of results intersecting the clicked point
-                intersectingFeatures = _.reduce(
-                    e.target._layers,
-                    function(intersectingFeatures, layer) {
-                        if (intersectsClickBounds(layer)) {
-                            intersectingFeatures.push(layer);
+                        if (shape instanceof L.Polygon) {
+                            return shape.getBounds().contains(clickLatLng);
                         }
-                        return intersectingFeatures;
-                    }, []);
 
-            // If nothing intersected the clicked point, finish
-            if (intersectingFeatures.length === 0) {
-                return;
-            }
+                        if (shape instanceof L.Circle) {
+                            return shape._point.distanceTo(clickPoint) <= shape._radius;
+                        }
 
-            // If only a single feature intersected the clicked point
-            // show its detail popup, put active styling on the feature
-            if (intersectingFeatures.length === 1) {
-                var layer = intersectingFeatures[0],
-                    result = resultModels.findWhere({ id: layer.options.id });
+                        return false;
+                    },
 
-                layer.bindPopup(new PopoverView({
-                    model: result,
-                    catalog: catalogId
-                }).render().el, { className: 'data-catalog-popover'});
+                    // Get a list of results intersecting the clicked point
+                    intersectingFeatures = _.filter(e.target._layers,
+                                                    intersectsClickBounds);
 
-                layer.openPopup();
-                layer.setStyle(dataCatalogActiveStyle);
-                result.set('active', true);
+                // If nothing intersected the clicked point, finish
+                if (intersectingFeatures.length === 0) {
+                    return;
+                }
 
-                layer.on('popupclose', function() {
-                    layer.setStyle(dataCatalogPointStyle);
-                    result.set('active', false);
-                });
+                // If only a single feature intersected the clicked point
+                // show its detail popup, put active styling on the feature
+                if (intersectingFeatures.length === 1) {
+                    var layer = intersectingFeatures[0],
+                        result = resultModels.findWhere({ id: layer.options.id });
 
-                return;
-            }
+                    layer.bindPopup(new SinglePopoverView({
+                        model: result,
+                        catalog: catalogId
+                    }).render().el, { className: 'data-catalog-popover'});
 
-            console.log("Click intersects multiple features", intersectingFeatures);
+                    layer.openPopup();
+                    layer.setStyle(dataCatalogActiveStyle);
+                    result.set('active', true);
+
+                    layer.once('popupclose', function() {
+                        layer.setStyle(dataCatalogPointStyle);
+                        result.set('active', false);
+                    });
+
+                    return;
+                }
+
+                // For multiple intersecting features, show the list popup
+                var id = function(layer) { return layer.options.id; },
+                    intersectingFeatureIds = _.map(intersectingFeatures, id),
+                    resultIntersects = function(result) {
+                        return _.includes(intersectingFeatureIds, result.get('id'));
+                    },
+                    intersectingResults = resultModels.filter(resultIntersects);
+
+                self._leafletMap.openPopup(
+                    new ListPopoverView({
+                        collection: new Backbone.Collection(intersectingResults),
+                        catalog: catalogId
+                    }).render().el,
+                    clickLatLng,
+                    { className: 'data-catalog-popover-list' });
         };
 
         // Remove all existing event listeners that might be from the other catalogs

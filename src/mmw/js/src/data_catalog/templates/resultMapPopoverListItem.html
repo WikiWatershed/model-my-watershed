@@ -1,0 +1,33 @@
+<li class="data-catalog-popover-list-item">
+    <button class="data-catalog-popover-list-item-btn resource">
+
+        {% if catalog == "cuahsi" %}
+
+        <h3 class="list-item-title resource-title">
+            {{ service_code }} {{ id | split(":", 1) }},
+            {{ title }}
+        </h3>
+
+        <div class="data-catalog-popover-list-item-date">
+            {% if begin_date and begin_date == end_date %}
+            {{ begin_date|toDateWithoutTime }}
+            {% else %}
+            {{ begin_date|toDateWithoutTime }} - {{ end_date|toDateWithoutTime }}
+            {% endif %}
+        </div>
+
+        {% else %}
+
+        <h3 class="list-item-title resource-title">
+            {{ title }}
+        </h3>
+
+        {% if created_at %}
+        <div class="data-catalog-popover-list-item-date">
+            {{ created_at|toDateFullYear }}
+        </div>
+        {% endif %}
+
+        {% endif %}
+    </button>
+</li>

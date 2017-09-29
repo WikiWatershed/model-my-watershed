@@ -390,6 +390,12 @@ var SearchForm = Backbone.Model.extend({
     }
 });
 
+var PopoverControllerModel = Backbone.Model.extend({
+    defaults: {
+        activeResult: null // Result
+    }
+});
+
 module.exports = {
     GriddedServicesFilter: GriddedServicesFilter,
     DateFilter: DateFilter,
@@ -398,5 +404,6 @@ module.exports = {
     Catalogs: Catalogs,
     Result: Result,
     Results: Results,
-    SearchForm: SearchForm
+    SearchForm: SearchForm,
+    PopoverControllerModel: PopoverControllerModel,
 };
