@@ -7,7 +7,7 @@ var _ = require('lodash'),
 
 var CHART = 'chart',
     TABLE = 'table',
-    MIN_VISIBLE_SCENARIOS = 3,
+    MIN_VISIBLE_SCENARIOS = 5,
     CHART_AXIS_WIDTH = 82,
     COMPARE_COLUMN_WIDTH = 134;
 
