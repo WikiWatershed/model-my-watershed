@@ -65,16 +65,16 @@ def recursive_asdict(d):
     return out
 
 
-def filter_networkIDs(services, gridded=False):
+def filter_networkIDs(services, exclude_gridded=False):
     """
     Transforms list of services to list of ServiceIDs, with respect to
     given options.
 
-    If gridded=False, then GRIDDED services will not be included.
+    If exclude_gridded=True, then GRIDDED services will not be included.
 
     If no filters apply, we return an empty list to disable filtering.
     """
-    if not gridded:
+    if exclude_gridded:
         return [str(s['ServiceID']) for s in services
                 if s['NetworkName'] not in GRIDDED]
 
@@ -261,7 +261,7 @@ def search(**kwargs):
     bbox = kwargs.get('bbox')
     to_date = kwargs.get('to_date')
     from_date = kwargs.get('from_date')
-    gridded = 'gridded' in kwargs.get('options')
+    exclude_gridded = 'exclude_gridded' in kwargs.get('options')
 
     if not bbox:
         raise ValidationError({
@@ -270,7 +270,7 @@ def search(**kwargs):
     world = BBox(-180, -90, 180, 90)
 
     services = get_services_in_box(world)
-    networkIDs = filter_networkIDs(services, gridded)
+    networkIDs = filter_networkIDs(services, exclude_gridded)
     series = get_series_catalog_in_box(bbox, from_date, to_date, networkIDs)
     series = group_series_by_location(series)
     results = sorted(parse_records(series, services),

@@ -596,7 +596,7 @@ var CheckboxFilterView = FilterBaseView.extend({
     },
 
     modelEvents: {
-        'change:active': 'render'
+        'change': 'render'
     },
 
     toggleState: function() {

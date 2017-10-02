@@ -55,9 +55,10 @@ var SearchOption = FilterModel.extend({
 
 var GriddedServicesFilter = SearchOption.extend({
     defaults: _.defaults({
-        id: 'gridded',
+        id: 'exclude_gridded',
         type: 'checkbox',
-        label: 'Gridded Services',
+        label: 'Exclude Gridded Services',
+        active: true,
     }, SearchOption.prototype.defaults)
 });
 
