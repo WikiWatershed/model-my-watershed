@@ -353,6 +353,7 @@ var ChartRowView = Marionette.ItemView.extend({
             chartDiv = this.model.get('chartDiv'),
             chartEl = document.getElementById(chartDiv),
             name = this.model.get('name'),
+            chartName = name.replace(/\s/g, ''),
             label = this.model.get('unitLabel') +
                     ' (' + this.model.get('unit') + ')',
             colors = this.model.get('seriesColors'),
@@ -384,7 +385,7 @@ var ChartRowView = Marionette.ItemView.extend({
 
         $(chartEl.parentNode).css({ 'width': ((_.size(this.model.get('values')) * models.constants.COMPARE_COLUMN_WIDTH + models.constants.CHART_AXIS_WIDTH)  + 'px') });
         chart.renderCompareMultibarChart(
-            chartEl, name, label, colors, stacked, yMax, data,
+            chartEl, chartName, label, colors, stacked, yMax, data,
             models.constants.COMPARE_COLUMN_WIDTH, models.constants.CHART_AXIS_WIDTH, onRenderComplete);
     },
 });
