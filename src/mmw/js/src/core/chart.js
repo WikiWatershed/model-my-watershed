@@ -383,6 +383,17 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
             .datum(data)
             .call(chart);
 
+        // The clipPath that nvd3 creates wraps the bars,
+        // not the bars+tooltip. Scale and move the clipPath
+        // so it doesn't cut the tooltip off
+        d3.select(svg)
+            .selectAll("defs")
+            .selectAll("clipPath")
+            .selectAll("rect")
+            .attr("height", "100%")
+            .attr("width", "100%")
+            .attr("transform", "translate(0, -30)");
+
         // filter definition for drop shadows
         var filter =
             d3.select(svg)

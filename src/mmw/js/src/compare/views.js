@@ -422,6 +422,13 @@ var ChartView = Marionette.CollectionView.extend({
             'transform': 'translate(' + (-marginLeft) + 'px)',
         });
 
+        // Slide clipPath so tooltips don't show outside charts
+        // It doesn't matter too much what the y-translate is
+        // so long as its sufficiently large
+        this.$('defs > clipPath > rect').attr({
+            'transform': 'translate(' + (-marginLeft) + ', -30)',
+        });
+
         // Show charts from visibleScenarioIndex
         this.$('.nv-group > rect:nth-child(n + ' + (i+1) + ')').css({
             'opacity': '',
