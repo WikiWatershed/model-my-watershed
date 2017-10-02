@@ -200,6 +200,8 @@ var FormView = Marionette.ItemView.extend({
                 this.showFilterSidebar();
             }
 
+            this.render();
+
         }, this);
 
         // Update the filter sidebar when there's a new active catalog
