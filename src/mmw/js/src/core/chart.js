@@ -430,6 +430,12 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
                     parentG.attr("id", chartContainerId);
 
                     g.selectAll(".nv-bar").each(function(bar) {
+                        // If the value is zero, and the chart
+                        // is stacked, don't show any tooltip
+                        if (stacked && parseFloat(bar.y) === 0) {
+                            return;
+                        }
+
                         var b = d3.select(this);
                         var barWidth = b.attr("width");
                         var bgWidth = 40.0;
