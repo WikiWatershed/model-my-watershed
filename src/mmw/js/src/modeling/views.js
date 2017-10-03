@@ -457,14 +457,13 @@ var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
     renameScenario: function() {
         var self = this,
             collection = self.model.collection,
-            validate = _.bind(collection.validateNewScenarioName, collection),
-            curriedValidationFunction = _.curry(validate)(this.model),
+            validate = _.bind(collection.validateNewScenarioName, self.model),
             rename = new modalViews.InputView({
                 model: new modalModels.InputModel({
                     initial: this.model.get('name'),
                     title: 'Rename Scenario',
                     fieldLabel: 'Scenario Name',
-                    validationFunction: curriedValidationFunction,
+                    validationFunction: validate,
                 })
         });
 
