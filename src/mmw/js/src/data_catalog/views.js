@@ -34,11 +34,6 @@ var ENTER_KEYCODE = 13,
         cinergi: searchResultTmpl,
         hydroshare: searchResultTmpl,
         cuahsi: searchResultCuahsiTmpl,
-    },
-    CATALOG_RESULT_DETAILS_TEMPLATE = {
-        cinergi: resultDetailsCinergiTmpl,
-        hydroshare: resultDetailsHydroshareTmpl,
-        cuahsi: resultDetailsCuahsiTmpl,
     };
 
 var HeaderView = Marionette.LayoutView.extend({
@@ -134,6 +129,7 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
 
     onDetailResultChange: function() {
         var activeCatalog = this.collection.getActiveCatalog(),
+            ResultDetailsView = CATALOG_RESULT_DETAILS_VIEW[activeCatalog.id],
             detailResult = activeCatalog.get('detail_result');
 
         if (!detailResult) {
@@ -437,11 +433,7 @@ var ResultsView = Marionette.CollectionView.extend({
     }
 });
 
-var ResultDetailsView = Marionette.ItemView.extend({
-    getTemplate: function() {
-        return CATALOG_RESULT_DETAILS_TEMPLATE[this.catalog];
-    },
-
+var ResultDetailsBaseView = Marionette.LayoutView.extend({
     ui: {
         closeDetails: '.close'
     },
@@ -462,6 +454,22 @@ var ResultDetailsView = Marionette.ItemView.extend({
         this.$('[data-toggle="table"]').bootstrapTable();
     },
 
+    closeDetails: function() {
+        this.model.collection.closeDetail();
+    }
+});
+
+var ResultDetailsCinergiView = ResultDetailsBaseView.extend({
+    template: resultDetailsCinergiTmpl,
+});
+
+var ResultDetailsHydroshareView = ResultDetailsBaseView.extend({
+    template: resultDetailsHydroshareTmpl,
+});
+
+var ResultDetailsCuahsiView = ResultDetailsBaseView.extend({
+    template: resultDetailsCuahsiTmpl,
+
     templateHelpers: function() {
         var id = this.model.get('id'),
             location = id.substring(id.indexOf(':') + 1);
@@ -470,11 +478,13 @@ var ResultDetailsView = Marionette.ItemView.extend({
             location: location,
         };
     },
-
-    closeDetails: function() {
-        this.model.collection.closeDetail();
-    }
 });
+
+var CATALOG_RESULT_DETAILS_VIEW = {
+    cinergi: ResultDetailsCinergiView,
+    hydroshare: ResultDetailsHydroshareView,
+    cuahsi: ResultDetailsCuahsiView,
+};
 
 var ResultMapPopoverDetailView = Marionette.LayoutView.extend({
     template: resultMapPopoverDetailTmpl,
