@@ -1,0 +1,13 @@
+<td>
+    {{ display_name }}
+    {% if name %}
+    <a data-toggle="popover" tabindex="0"
+       data-html="true" data-container="body" role="button"
+       data-content="{{ name }}"
+       data-template="<div class='popover'><div class='popover-content'></div><div class='arrow'></div></div>">
+        <i class="fa fa-info-circle black"></i>
+    </a>
+    {% endif %}
+</td>
+<td class="text-right">{{ most_recent_value|round(1)|toLocaleString(1) }}</td>
+<td>{{ units }}</td>

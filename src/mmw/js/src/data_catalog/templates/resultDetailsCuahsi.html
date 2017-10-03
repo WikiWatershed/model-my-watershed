@@ -47,26 +47,9 @@
     </p>
     <hr />
     <p>
-        Last collected value {{ end_date|toTimeAgo }}:
+        Last collected value {{ last_date|toTimeAgo }}:
     </p>
-    <table class="table custom-hover" data-toggle="table">
-        <thead>
-            <tr>
-                <th>Variable</th>
-                <th class="text-right">Value</th>
-                <th>Units</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for var in variables %}
-                <tr>
-                    <td>{{ var.concept_keyword }}</td>
-                    <td class="text-right"><!-- TODO Fetch Values --></td>
-                    <td><!-- TODO Fetch Units --></td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div id="cuahsi-values-region"></div>
     <!-- TODO Insert Chart https://github.com/WikiWatershed/model-my-watershed/issues/2238 -->
     <hr />
     <p>Citation: {{ service_citation }}</p>

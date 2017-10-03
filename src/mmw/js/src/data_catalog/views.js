@@ -22,6 +22,8 @@ var $ = require('jquery'),
     resultDetailsCinergiTmpl = require('./templates/resultDetailsCinergi.html'),
     resultDetailsHydroshareTmpl = require('./templates/resultDetailsHydroshare.html'),
     resultDetailsCuahsiTmpl = require('./templates/resultDetailsCuahsi.html'),
+    resultDetailsCuahsiTableTmpl = require('./templates/resultDetailsCuahsiTable.html'),
+    resultDetailsCuahsiTableRowTmpl = require('./templates/resultDetailsCuahsiTableRow.html'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultMapPopoverDetailTmpl = require('./templates/resultMapPopoverDetail.html'),
     resultMapPopoverListTmpl = require('./templates/resultMapPopoverList.html'),
@@ -451,7 +453,6 @@ var ResultDetailsBaseView = Marionette.LayoutView.extend({
             placement: 'right',
             trigger: 'click',
         });
-        this.$('[data-toggle="table"]').bootstrapTable();
     },
 
     closeDetails: function() {
@@ -472,12 +473,68 @@ var ResultDetailsCuahsiView = ResultDetailsBaseView.extend({
 
     templateHelpers: function() {
         var id = this.model.get('id'),
-            location = id.substring(id.indexOf(':') + 1);
+            location = id.substring(id.indexOf(':') + 1),
+            fetching = this.model.get('fetching'),
+            last_date = this.model.get('end_date');
+
+        if (!fetching) {
+            var variables = this.model.get('variables'),
+                last_dates = variables.map(function(v) {
+                        var values = v.get('values');
+
+                        return new Date(values.at(values.length - 1).get('datetime'));
+                    });
+
+            last_date = Math.max.apply(null, last_dates);
+        }
 
         return {
             location: location,
+            last_date: last_date,
         };
     },
+
+    regions: {
+        valuesRegion: '#cuahsi-values-region',
+    },
+
+    modelEvents: {
+        'change:fetching': 'render',
+    },
+
+    initialize: function() {
+        var site = this.model.get('id'),
+            wsdl = this.model.get('service_wsdl'),
+            variables = this.model.get('variables').map(function(v) {
+                return {
+                    id: v.code,
+                    display_name: v.concept_keyword,
+                    units: v.units,
+                    site: site,
+                    wsdl: wsdl,
+                };
+            }),
+            render = _.bind(this.render, this),
+            fetchComplete = _.bind(this.fetchComplete, this);
+
+        this.model.set('fetching', true);
+        this.model.set('variables', new models.CuahsiVariables(variables));
+        this.model.get('variables')
+                  .search({
+                      onEachPromise: render,
+                  })
+                  .then(fetchComplete);
+    },
+
+    fetchComplete: function() {
+        this.model.set('fetching', false);
+    },
+
+    onRender: function() {
+        this.valuesRegion.show(new CuahsiTableView({
+            collection: this.model.get('variables')
+        }));
+    }
 });
 
 var CATALOG_RESULT_DETAILS_VIEW = {
@@ -485,6 +542,31 @@ var CATALOG_RESULT_DETAILS_VIEW = {
     hydroshare: ResultDetailsHydroshareView,
     cuahsi: ResultDetailsCuahsiView,
 };
+
+var CuahsiTableRowView = Marionette.ItemView.extend({
+    tagName: 'tr',
+    template: resultDetailsCuahsiTableRowTmpl,
+});
+
+var CuahsiTableView = Marionette.CompositeView.extend({
+    tagName: 'table',
+    className: 'table custom-hover',
+    attributes: {
+        'data-toggle': 'table',
+    },
+    template: resultDetailsCuahsiTableTmpl,
+
+    childView: CuahsiTableRowView,
+    childViewContainer: 'tbody',
+
+    onAttach: function() {
+        this.$('[data-toggle="table"]').bootstrapTable();
+        this.$('[data-toggle="popover"]').popover({
+            placement: 'right',
+            trigger: 'hover',
+        });
+    }
+});
 
 var ResultMapPopoverDetailView = Marionette.LayoutView.extend({
     template: resultMapPopoverDetailTmpl,
