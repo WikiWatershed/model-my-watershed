@@ -512,7 +512,7 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
                         parentG.append("text")
                             .each(function() {
                                 d3.select(this).text(function() {
-                                    return parseFloat(bar.y).toFixed(2);
+                                    return parseFloat(bar.y).toFixed(3);
                                 });
 
                                 var width = this.getBBox().width;
