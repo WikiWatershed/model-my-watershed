@@ -396,6 +396,93 @@ var PopoverControllerModel = Backbone.Model.extend({
     }
 });
 
+var CuahsiValue = Backbone.Model.extend({
+    defaults: {
+        source_id: '',
+        source_code: '',
+        quality_control_level_code: '',
+        value: null,
+        datetime: '',
+        date_time_utc: '',
+        time_offset: '',
+    }
+});
+
+var CuahsiValues = Backbone.Collection.extend({
+    model: CuahsiValue,
+});
+
+var CuahsiVariable = Backbone.Model.extend({
+    url: '/bigcz/values',
+
+    defaults: {
+        id: '',
+        name: '',
+        units: '',
+        display_name: '',
+        wsdl: '',
+        site: '',
+        values: null, // CuahsiValues Collection
+        most_recent_value: null,
+    },
+
+    initialize: function() {
+        this.set('values', new CuahsiValues());
+    },
+
+    search: function(from_date, to_date) {
+        var params = {
+                catalog: 'cuahsi',
+                wsdl: this.get('wsdl'),
+                site: this.get('site'),
+                variable: this.get('id'),
+                from_date: from_date,
+                to_date: to_date,
+            };
+
+        return this.fetch({
+            data: params,
+            processData: true,
+        });
+    },
+
+    parse: function(response) {
+        var mrv = null;
+
+        if (response.values) {
+            var values = this.get('values');
+
+            values.reset(response.values);
+            mrv = response.values[response.values.length - 1].value
+
+            delete response.values;
+        }
+
+        return {
+            name: response.variable.name,
+            units: response.variable.units.abbreviation,
+            most_recent_value: mrv,
+        };
+    }
+});
+
+var CuahsiVariables = Backbone.Collection.extend({
+    model: CuahsiVariable,
+
+    search: function(opts) {
+        var searches = this.map(function(v) {
+                // We attach `onEachPromise` handler via `done`
+                // rather than `then` because we want to return
+                // the `search` promise, not the `onEachPromise`
+                // promise.
+                return v.search(opts.from_date, opts.to_date)
+                        .done(opts.onEachPromise);
+            });
+
+        return $.when.apply($, searches);
+    }
+});
+
 module.exports = {
     GriddedServicesFilter: GriddedServicesFilter,
     DateFilter: DateFilter,
@@ -406,4 +493,8 @@ module.exports = {
     Results: Results,
     SearchForm: SearchForm,
     PopoverControllerModel: PopoverControllerModel,
+    CuahsiValue: CuahsiValue,
+    CuahsiValues: CuahsiValues,
+    CuahsiVariable: CuahsiVariable,
+    CuahsiVariables: CuahsiVariables,
 };
