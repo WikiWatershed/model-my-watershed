@@ -800,7 +800,7 @@ var MapView = Marionette.ItemView.extend({
 
     _renderDataCatalogResult: function(result, featureGroup, className, style) {
         featureGroup.clearLayers();
-        this.$el.removeClass(className);
+        $("div.map-highlight").remove();
 
         // If nothing is selected, exit early
         if (!result) { return; }
@@ -811,7 +811,11 @@ var MapView = Marionette.ItemView.extend({
         if (geom) {
             if ((geom.type === 'MultiPolygon' || geom.type === 'Polygon') &&
                 drawUtils.shapeBoundingBox(geom).contains(mapBounds)) {
-                this.$el.addClass(className);
+
+                $(".map-container")
+                    .append('<div class="map-highlight ' +
+                            className +
+                            '"></div>');
             } else {
                 var layer = this.createDataCatalogShape(result);
                 layer.setStyle(style);

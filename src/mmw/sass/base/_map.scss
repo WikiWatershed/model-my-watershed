@@ -40,22 +40,6 @@
   right: 0;
   left: 0;
   height: 100%;
-
-  &.bigcz-highlight-map:after {
-    content: "";
-    border: 3px solid gold;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-  }
-
-  &.bigcz-detail-map:after {
-    content: "";
-    border: 3px solid steelblue;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-  }
 }
 
 #overlay-subclass-vector .disabled, #overlay-subclass-raster .disabled {
@@ -296,4 +280,21 @@ div.leaflet-popup-content-wrapper {
     div.leaflet-popup-content {
         margin: 0;
     }
+}
+
+.map-highlight.bigcz-highlight-map,
+.map-highlight.bigcz-detail-map {
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    z-index: 100;
+}
+
+.map-highlight.bigcz-highlight-map {
+    border: 3px solid gold;
+}
+
+.map-highlight.bigcz-detail-map {
+    border: 3px solid steelblue;
 }

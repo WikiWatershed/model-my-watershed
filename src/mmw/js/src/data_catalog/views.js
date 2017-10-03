@@ -514,7 +514,9 @@ var ResultMapPopoverListItemView = Marionette.ItemView.extend({
     },
 
     events: {
-        'click @ui.selectButton': 'selectItem'
+        'click @ui.selectButton': 'selectItem',
+        'mouseover': 'highlightResult',
+        'mouseout': 'unHighlightResult'
     },
 
     templateHelpers: function() {
@@ -525,6 +527,16 @@ var ResultMapPopoverListItemView = Marionette.ItemView.extend({
 
     selectItem: function() {
         this.options.popoverModel.set('activeResult', this.model);
+    },
+
+    highlightResult: function() {
+        App.map.set('dataCatalogActiveResult', this.model);
+        this.model.set('active', true);
+    },
+
+    unHighlightResult: function() {
+        App.map.set('dataCatalogActiveResult', null);
+        this.model.set('active', false);
     }
 });
 
@@ -599,6 +611,8 @@ var ResultMapPopoverControllerView = Marionette.LayoutView.extend({
                 catalog: this.options.catalog
             }));
         } else {
+            App.map.set('dataCatalogActiveResult', null);
+            this.model.set('active', false);
             this.container.show(new ResultMapPopoverListView({
                 collection: this.collection,
                 popoverModel: this.model,
