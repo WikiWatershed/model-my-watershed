@@ -699,15 +699,16 @@ var ScenarioModel = Backbone.Model.extend({
         modifications.add(modification);
     },
 
-    addOrReplaceInput: function(input) {
+    addOrReplaceInput: function(input, compareInputsHaveSameValues) {
         var inputsColl = this.get('inputs'),
             existing = inputsColl.findWhere({ name: input.get('name') });
 
-        if (existing) {
-            inputsColl.remove(existing);
+        if (!compareInputsHaveSameValues) {
+            if (existing) {
+                inputsColl.remove(existing);
+            }
+            inputsColl.add(input);
         }
-
-        inputsColl.add(input);
     },
 
     parse: function(response, options) {

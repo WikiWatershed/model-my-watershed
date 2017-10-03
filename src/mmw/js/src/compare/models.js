@@ -229,9 +229,9 @@ var WindowModel = Backbone.Model.extend({
         this.set({ polling: polling });
     },
 
-    addOrReplaceInput: function(input) {
+    addOrReplaceInput: function(input, compareInputsHaveSameValues) {
         this.get('scenarios').each(function(scenario) {
-            scenario.addOrReplaceInput(input);
+            scenario.addOrReplaceInput(input, (!!compareInputsHaveSameValues));
         });
     }
 });
