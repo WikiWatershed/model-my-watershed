@@ -30,6 +30,11 @@
                 margin: 5px 0 0 0;
             }
 
+            .spinner:after {
+              top: 44px;
+              right: 7px;
+            }
+
             .result-detail-header {
               h2 {
                   display: inline-block;
