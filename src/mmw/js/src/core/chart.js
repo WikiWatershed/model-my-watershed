@@ -383,6 +383,17 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
             .datum(data)
             .call(chart);
 
+        // The clipPath that nvd3 creates wraps the bars,
+        // not the bars+tooltip. Scale and move the clipPath
+        // so it doesn't cut the tooltip off
+        d3.select(svg)
+            .selectAll("defs")
+            .selectAll("clipPath")
+            .selectAll("rect")
+            .attr("height", "100%")
+            .attr("width", "100%")
+            .attr("transform", "translate(0, -30)");
+
         // filter definition for drop shadows
         var filter =
             d3.select(svg)
@@ -419,6 +430,12 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
                     parentG.attr("id", chartContainerId);
 
                     g.selectAll(".nv-bar").each(function(bar) {
+                        // If the value is zero, and the chart
+                        // is stacked, don't show any tooltip
+                        if (stacked && parseFloat(bar.y) === 0) {
+                            return;
+                        }
+
                         var b = d3.select(this);
                         var barWidth = b.attr("width");
                         var bgWidth = 40.0;
@@ -495,7 +512,7 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
                         parentG.append("text")
                             .each(function() {
                                 d3.select(this).text(function() {
-                                    return parseFloat(bar.y).toFixed(2);
+                                    return parseFloat(bar.y).toFixed(3);
                                 });
 
                                 var width = this.getBBox().width;
