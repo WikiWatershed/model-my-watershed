@@ -76,12 +76,12 @@
   position: relative;
   display: inline-block;
   background-color: $brand-primary !important;
-  border: darken($brand-primary, 5%);
+  border-color: darken($brand-primary, 5%);
 
   &:hover, &:focus {
     color: $paper!important;
     background-color: darken($brand-primary, 5%);
-    border: darken($brand-primary, 10%);
+    border-color: darken($brand-primary, 10%);
   }
 }
 
