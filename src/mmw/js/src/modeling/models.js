@@ -977,20 +977,20 @@ var ScenariosCollection = Backbone.Collection.extend({
     },
 
     /** Validate the new scenario name
-    @param model - the model your trying to rename
+    The value of *this* is the scenario model.
     @param newName the new name string
     @returns If valid, null
              If invalid, a string with the error
     **/
-    validateNewScenarioName: function(model, newName) {
+    validateNewScenarioName: function(newName) {
         var trimmedNewName = newName.trim();
 
         // Bail early if the name actually didn't change.
-        if (model.get('name') === trimmedNewName) {
+        if (this.get('name') === trimmedNewName) {
             return null;
         }
 
-        var match = this.find(function(model) {
+        var match = this.collection.find(function(model) {
             return model.get('name').toLowerCase() === trimmedNewName.toLowerCase();
         });
 
