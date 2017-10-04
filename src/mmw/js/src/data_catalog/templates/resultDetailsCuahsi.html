@@ -47,6 +47,10 @@
     </p>
     <div class="spinner {{ "hidden" if not fetching }}"></div>
     <hr />
+    <div class="cuahsi-buttons pull-right {{ "hidden" if fetching }}">
+        <button id="cuahsi-button-chart" class="{{ 'active' if mode == 'chart' }}"><i class="fa fa-bar-chart"></i></button>
+        <button id="cuahsi-button-table" class="{{ 'active' if mode == 'table' }}"><i class="fa fa-table"></i></button>
+    </div>
     <p>
         Last collected value {{ last_date|toTimeAgo }}:
     </p>

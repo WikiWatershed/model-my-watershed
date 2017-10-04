@@ -22,6 +22,7 @@ var $ = require('jquery'),
     resultDetailsCinergiTmpl = require('./templates/resultDetailsCinergi.html'),
     resultDetailsHydroshareTmpl = require('./templates/resultDetailsHydroshare.html'),
     resultDetailsCuahsiTmpl = require('./templates/resultDetailsCuahsi.html'),
+    resultDetailsCuahsiChartTmpl = require('./templates/resultDetailsCuahsiChart.html'),
     resultDetailsCuahsiTableTmpl = require('./templates/resultDetailsCuahsiTable.html'),
     resultDetailsCuahsiTableRowTmpl = require('./templates/resultDetailsCuahsiTableRow.html'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
@@ -498,8 +499,19 @@ var ResultDetailsCuahsiView = ResultDetailsBaseView.extend({
         valuesRegion: '#cuahsi-values-region',
     },
 
+    ui: _.defaults({
+        chartButton: '#cuahsi-button-chart',
+        tableButton: '#cuahsi-button-table',
+    }, ResultDetailsBaseView.prototype.ui),
+
+    events: _.defaults({
+        'click @ui.chartButton': 'setChartMode',
+        'click @ui.tableButton': 'setTableMode',
+    }, ResultDetailsBaseView.prototype.events),
+
     modelEvents: {
         'change:fetching': 'render',
+        'change:mode': 'showValuesRegion',
     },
 
     initialize: function() {
@@ -514,14 +526,15 @@ var ResultDetailsCuahsiView = ResultDetailsBaseView.extend({
                     wsdl: wsdl,
                 };
             }),
-            render = _.bind(this.render, this),
+            showValuesRegion = _.bind(this.showValuesRegion, this),
             fetchComplete = _.bind(this.fetchComplete, this);
 
         this.model.set('fetching', true);
+        this.model.set('mode', 'table');
         this.model.set('variables', new models.CuahsiVariables(variables));
         this.model.get('variables')
                   .search({
-                      onEachPromise: render,
+                      onEachPromise: showValuesRegion,
                   })
                   .then(fetchComplete);
     },
@@ -531,9 +544,29 @@ var ResultDetailsCuahsiView = ResultDetailsBaseView.extend({
     },
 
     onRender: function() {
-        this.valuesRegion.show(new CuahsiTableView({
-            collection: this.model.get('variables')
-        }));
+        this.showValuesRegion();
+    },
+
+    showValuesRegion: function() {
+        var mode = this.model.get('mode'),
+            variables = this.model.get('variables'),
+            view = mode === 'table' ?
+                   new CuahsiTableView({ collection: variables }) :
+                   new CuahsiChartView({ collection: variables });
+
+        this.valuesRegion.show(view);
+    },
+
+    setChartMode: function() {
+        this.model.set('mode', 'chart');
+        this.ui.chartButton.addClass('active');
+        this.ui.tableButton.removeClass('active');
+    },
+
+    setTableMode: function() {
+        this.model.set('mode', 'table');
+        this.ui.tableButton.addClass('active');
+        this.ui.chartButton.removeClass('active');
     }
 });
 
@@ -566,6 +599,10 @@ var CuahsiTableView = Marionette.CompositeView.extend({
             trigger: 'hover',
         });
     }
+});
+
+var CuahsiChartView = Marionette.ItemView.extend({
+    template: resultDetailsCuahsiChartTmpl,
 });
 
 var ResultMapPopoverDetailView = Marionette.LayoutView.extend({

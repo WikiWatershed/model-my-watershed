@@ -46,6 +46,20 @@
                 display: block;
               }
             }
+
+            .cuahsi-buttons {
+                button {
+                    padding: 1px 4px;
+                    margin-top: -4px;
+                    background-color: transparent;
+                    border: 0;
+
+                    &.active {
+                        color: $paper;
+                        background-color: $black-54;
+                    }
+                }
+            }
         }
     }
 
