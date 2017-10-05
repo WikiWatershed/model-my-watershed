@@ -46,6 +46,9 @@
         </a>
     </p>
     <div class="spinner {{ "hidden" if not fetching }}"></div>
+    <div class="error {{ "hidden" if not error }}">
+        <i class="fa fa-exclamation-triangle"></i>
+    </div>
     <hr />
     <div class="cuahsi-buttons pull-right {{ "hidden" if fetching }}">
         <button id="cuahsi-button-chart" class="{{ 'active' if mode == 'chart' }}"><i class="fa fa-bar-chart"></i></button>

@@ -476,9 +476,10 @@ var ResultDetailsCuahsiView = ResultDetailsBaseView.extend({
         var id = this.model.get('id'),
             location = id.substring(id.indexOf(':') + 1),
             fetching = this.model.get('fetching'),
+            error = this.model.get('error'),
             last_date = this.model.get('end_date');
 
-        if (!fetching) {
+        if (!fetching && !error) {
             var variables = this.model.get('variables'),
                 last_dates = variables.map(function(v) {
                         var values = v.get('values');
@@ -527,20 +528,26 @@ var ResultDetailsCuahsiView = ResultDetailsBaseView.extend({
                 };
             }),
             showValuesRegion = _.bind(this.showValuesRegion, this),
-            fetchComplete = _.bind(this.fetchComplete, this);
+            fetchComplete = _.bind(this.fetchComplete, this),
+            fetchError = _.bind(this.fetchError, this);
 
-        this.model.set('fetching', true);
+        this.model.set({ fetching: true, error: false });
         this.model.set('mode', 'table');
         this.model.set('variables', new models.CuahsiVariables(variables));
         this.model.get('variables')
                   .search({
                       onEachPromise: showValuesRegion,
                   })
-                  .then(fetchComplete);
+                  .done(fetchComplete)
+                  .fail(fetchError);
     },
 
     fetchComplete: function() {
-        this.model.set('fetching', false);
+        this.model.set({ fetching: false, error: false });
+    },
+
+    fetchError: function() {
+        this.model.set({ fetching: false, error: true });
     },
 
     onRender: function() {
