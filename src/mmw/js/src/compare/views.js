@@ -59,6 +59,21 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
         sectionsRegion: '.compare-sections',
     },
 
+    initialize: function() {
+        var self = this;
+
+        // Show the scenario row only after the bootstrap
+        // modal has fired its shown event. The map
+        // set up in the scenarios row needs to happen
+        // after it has fully rendered
+        this.$el.on('shown.bs.modal', function() {
+            self.scenariosRegion.show(new ScenariosRowView({
+                model: self.model,
+                collection: self.model.get('scenarios'),
+            }));
+        });
+    },
+
     highlightButtons: function() {
         var i = this.model.get('visibleScenarioIndex'),
             total = this.model.get('scenarios').length,
@@ -95,10 +110,6 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
         this.tabRegion.show(tabPanelsView);
         this.inputsRegion.show(new InputsView({
             model: this.model,
-        }));
-        this.scenariosRegion.show(new ScenariosRowView({
-            model: this.model,
-            collection: this.model.get('scenarios'),
         }));
 
         showSectionsView();
