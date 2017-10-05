@@ -382,11 +382,12 @@ var ChartRowView = Marionette.ItemView.extend({
             onRenderComplete = function() {
                 self.triggerMethod('chart:rendered');
             };
-
+        debugger;
         $(chartEl.parentNode).css({ 'width': ((_.size(this.model.get('values')) * models.constants.COMPARE_COLUMN_WIDTH + models.constants.CHART_AXIS_WIDTH)  + 'px') });
         chart.renderCompareMultibarChart(
             chartEl, chartName, label, colors, stacked, yMax, data,
             models.constants.COMPARE_COLUMN_WIDTH, models.constants.CHART_AXIS_WIDTH, onRenderComplete);
+        window.console.log('chart values ->', values);
     },
 });
 
@@ -934,12 +935,22 @@ function showCompare() {
 
     if (isTr55) {
         // Set compare model to have same precipitation as active scenario
+        // if they have don't already have the same value
+        var shouldAdjustPrecipitation = _.uniq(scenarios.map(function(scenario) {
+            return scenario
+                .get('inputs')
+                .findWhere({ name: 'precipitation' })
+                .get('value');
+        })).length > 1;
+
         compareModel.addOrReplaceInput(
             scenarios.findWhere({ active: true })
-                     .get('inputs')
-                     .findWhere({ name: 'precipitation' }));
+                    .get('inputs')
+                    .findWhere({ name: 'precipitation' }),
+            (!shouldAdjustPrecipitation));
     }
-
+    window.console.log(compareModel);
+    debugger;
     App.rootView.compareRegion.show(new CompareWindow2({
         model: compareModel,
     }));
