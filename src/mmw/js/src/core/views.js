@@ -893,6 +893,13 @@ var MapView = Marionette.ItemView.extend({
                     }).render().el,
                     clickLatLng,
                     { className: 'data-catalog-popover-list' });
+
+                self._leafletMap.once('popupclose', function() {
+                    self.model.set('dataCatalogActiveResult', null);
+                    _.forEach(intersectingResults, function(result) {
+                        result.set('active', false);
+                    });
+                });
         };
 
         // Remove all existing event listeners/popups that might be from the other catalogs
