@@ -656,3 +656,24 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
     }
   }
 }
+
+.itsi-compare-modal {
+  max-width: 100% !important;
+  max-height: 100% !important;
+}
+
+.itsi-compare-row {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+
+.itsi-compare-dialog {
+  margin-left: 3% !important;
+  max-width: 70% !important;
+  max-height: 100% !important;
+  width: 70% !important;
+  height: 100% !important;
+}
