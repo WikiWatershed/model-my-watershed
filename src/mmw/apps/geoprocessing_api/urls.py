@@ -30,5 +30,5 @@ urlpatterns = patterns(
     url(r'analyze/climate/$', views.start_analyze_climate,
         name='start_analyze_climate'),
     url(r'jobs/' + uuid_regex, get_job, name='get_job'),
-    url(r'rwd/$', views.start_rwd, name='start_rwd'),
+    url(r'watershed/$', views.start_rwd, name='start_rwd'),
 )
