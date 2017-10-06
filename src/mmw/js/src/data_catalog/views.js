@@ -409,6 +409,16 @@ var ResultView = StaticResultView.extend({
         'click': 'selectResult'
     },
 
+    templateHelpers: function() {
+        if (this.options.catalog === 'cuahsi') {
+            return {
+                'concept_keywords': this.model.get('variables')
+                                              .pluck('concept_keyword')
+                                              .join('; '),
+            };
+        }
+    },
+
     selectResult: function() {
         this.model.collection.showDetail(this.model);
     },
@@ -516,38 +526,11 @@ var ResultDetailsCuahsiView = ResultDetailsBaseView.extend({
     },
 
     initialize: function() {
-        var site = this.model.get('id'),
-            wsdl = this.model.get('service_wsdl'),
-            variables = this.model.get('variables').map(function(v) {
-                return {
-                    id: v.code,
-                    display_name: v.concept_keyword,
-                    units: v.units,
-                    site: site,
-                    wsdl: wsdl,
-                };
-            }),
-            showValuesRegion = _.bind(this.showValuesRegion, this),
-            fetchComplete = _.bind(this.fetchComplete, this),
-            fetchError = _.bind(this.fetchError, this);
+        var showValuesRegion = _.bind(this.showValuesRegion, this);
 
-        this.model.set({ fetching: true, error: false });
-        this.model.set('mode', 'table');
-        this.model.set('variables', new models.CuahsiVariables(variables));
-        this.model.get('variables')
-                  .search({
-                      onEachPromise: showValuesRegion,
-                  })
-                  .done(fetchComplete)
-                  .fail(fetchError);
-    },
-
-    fetchComplete: function() {
-        this.model.set({ fetching: false, error: false });
-    },
-
-    fetchError: function() {
-        this.model.set({ fetching: false, error: true });
+        this.model.getCuahsiValues({
+            onEachSearchDone: showValuesRegion,
+        });
     },
 
     onRender: function() {

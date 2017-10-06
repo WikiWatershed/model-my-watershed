@@ -46,4 +46,7 @@ def values(wsdl, site, variable, from_date=None, to_date=None):
         from_date = (date.today() -
                      timedelta(days=7)).strftime(DATE_FORMAT)
 
+    if not wsdl.upper().endswith('?WSDL'):
+        wsdl += '?WSDL'
+
     return wof.get_values(wsdl, site, variable, from_date, to_date)

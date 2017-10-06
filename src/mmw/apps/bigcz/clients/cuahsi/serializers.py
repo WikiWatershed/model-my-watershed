@@ -13,9 +13,11 @@ from apps.bigcz.serializers import ResourceSerializer
 
 
 class CuahsiVariableSetSerializer(Serializer):
-    code = CharField()
+    id = CharField()
     name = CharField()
     concept_keyword = CharField()
+    site = CharField()
+    wsdl = CharField()
 
 
 class CuahsiResourceSerializer(ResourceSerializer):
@@ -27,6 +29,5 @@ class CuahsiResourceSerializer(ResourceSerializer):
     service_url = CharField()
     service_title = CharField()
     service_citation = CharField()
-    service_wsdl = CharField()
     begin_date = DateTimeField()
     end_date = DateTimeField()

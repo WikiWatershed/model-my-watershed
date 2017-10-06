@@ -314,7 +314,36 @@ var Result = Backbone.Model.extend({
         created_at: '',
         updated_at: '',
         active: false,
-        show_detail: false // Show this result as the detail view?
+        show_detail: false, // Show this result as the detail view?
+        variables: null,  // CuahsiVariables Collection
+        fetching: false,
+        error: false,
+        mode: 'table',
+    },
+
+    initialize: function(attrs) {
+        // For CUAHSI
+        if (attrs.variables) {
+            this.set('variables', new CuahsiVariables(attrs.variables));
+        }
+    },
+
+    getCuahsiValues: function(opts) {
+        this.set('fetching', true);
+
+        var self = this,
+            onEachSearchDone = opts.onEachSearchDone || _.noop,
+            onEachSearchFail = opts.onEachSearchFail || _.noop,
+            searches = this.get('variables').map(function(v) {
+                return v.search(opts.from_date, opts.to_date)
+                        .done(onEachSearchDone)
+                        .fail(onEachSearchFail);
+            });
+
+        return $.when.apply($, searches)
+                     .done(function() { self.set('error', false); })
+                     .fail(function() { self.set('error', true); })
+                     .always(function() { self.set('fetching', false); });
     },
 
     getSummary: function() {
@@ -419,7 +448,7 @@ var CuahsiVariable = Backbone.Model.extend({
         id: '',
         name: '',
         units: '',
-        display_name: '',
+        concept_keyword: '',
         wsdl: '',
         site: '',
         values: null, // CuahsiValues Collection
@@ -468,19 +497,6 @@ var CuahsiVariable = Backbone.Model.extend({
 
 var CuahsiVariables = Backbone.Collection.extend({
     model: CuahsiVariable,
-
-    search: function(opts) {
-        var searches = this.map(function(v) {
-                // We attach `onEachPromise` handler via `done`
-                // rather than `then` because we want to return
-                // the `search` promise, not the `onEachPromise`
-                // promise.
-                return v.search(opts.from_date, opts.to_date)
-                        .done(opts.onEachPromise);
-            });
-
-        return $.when.apply($, searches);
-    }
 });
 
 module.exports = {

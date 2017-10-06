@@ -115,10 +115,6 @@ def parse_record(record, service):
     if details_url:
         links.append(ResourceLink('details', details_url))
 
-    wsdl_url = record['serv_url']
-    if not wsdl_url.upper().endswith('?WSDL'):
-        wsdl_url += '?WSDL'
-
     return CuahsiResource(
         id=record['location'],
         title=record['site_name'],
@@ -136,7 +132,6 @@ def parse_record(record, service):
         service_url=service['ServiceDescriptionURL'],
         service_title=service['Title'],
         service_citation=service['citation'],
-        service_wsdl=wsdl_url,
         begin_date=record['begin_date'],
         end_date=record['end_date']
     )
@@ -195,9 +190,11 @@ def group_series_by_location(series):
             'end_date': max([parse_date(r['endDate'])
                              for r in group]),
             'variables': sorted([{
-                'code': r['VarCode'],
+                'id': r['VarCode'],
                 'name': r['VarName'],
                 'concept_keyword': r['conceptKeyword'],
+                'site': r['location'],
+                'wsdl': r['ServURL'],
             } for r in group], key=itemgetter('concept_keyword'))
         })
 
