@@ -6,6 +6,7 @@ var $ = require('jquery'),
     App = require('../app'),
     analyzeViews = require('../analyze/views.js'),
     settings = require('../core/settings'),
+    models = require('./models'),
     errorTmpl = require('./templates/error.html'),
     dateFilterTmpl = require('./templates/dateFilter.html'),
     checkboxFilterTmpl = require('./templates/checkboxFilter.html'),
@@ -22,7 +23,10 @@ var $ = require('jquery'),
     resultDetailsHydroshareTmpl = require('./templates/resultDetailsHydroshare.html'),
     resultDetailsCuahsiTmpl = require('./templates/resultDetailsCuahsi.html'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
-    resultMapPopoverTmpl = require('./templates/resultMapPopover.html');
+    resultMapPopoverDetailTmpl = require('./templates/resultMapPopoverDetail.html'),
+    resultMapPopoverListTmpl = require('./templates/resultMapPopoverList.html'),
+    resultMapPopoverListItemTmpl = require('./templates/resultMapPopoverListItem.html'),
+    resultMapPopoverControllerTmpl = require('./templates/resultMapPopoverController.html');
 
 var ENTER_KEYCODE = 13,
     PAGE_SIZE = settings.get('data_catalog_page_size'),
@@ -171,7 +175,8 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
 
         if (catalog) {
             App.map.set('dataCatalogResults', catalog.get('results'));
-            App.getMapView().bindDataCatalogPopovers(ResultMapPopoverView,
+            App.getMapView().bindDataCatalogPopovers(
+                ResultMapPopoverDetailView, ResultMapPopoverControllerView,
                 catalog.id, catalog.get('results'));
         }
     }
@@ -471,8 +476,8 @@ var ResultDetailsView = Marionette.ItemView.extend({
     }
 });
 
-var ResultMapPopoverView = Marionette.LayoutView.extend({
-    template: resultMapPopoverTmpl,
+var ResultMapPopoverDetailView = Marionette.LayoutView.extend({
+    template: resultMapPopoverDetailTmpl,
 
     regions: {
         'resultRegion': '.data-catalog-popover-result-region'
@@ -498,6 +503,126 @@ var ResultMapPopoverView = Marionette.LayoutView.extend({
     selectResult: function() {
         App.getLeafletMap().closePopup();
         this.model.collection.showDetail(this.model);
+    }
+});
+
+var ResultMapPopoverListItemView = Marionette.ItemView.extend({
+    template: resultMapPopoverListItemTmpl,
+
+    ui: {
+        selectButton: '.data-catalog-popover-list-item-btn'
+    },
+
+    events: {
+        'click @ui.selectButton': 'selectItem',
+        'mouseover': 'highlightResult',
+        'mouseout': 'unHighlightResult'
+    },
+
+    templateHelpers: function() {
+        return {
+            catalog: this.options.catalog
+        };
+    },
+
+    selectItem: function() {
+        this.options.popoverModel.set('activeResult', this.model);
+    },
+
+    highlightResult: function() {
+        App.map.set('dataCatalogActiveResult', this.model);
+        this.model.set('active', true);
+    },
+
+    unHighlightResult: function() {
+        App.map.set('dataCatalogActiveResult', null);
+        this.model.set('active', false);
+    }
+});
+
+var ResultMapPopoverListView = Marionette.CompositeView.extend({
+    template: resultMapPopoverListTmpl,
+    childView: ResultMapPopoverListItemView,
+    childViewContainer: '.data-catalog-popover-result-list',
+    childViewOptions: function() {
+        return {
+            popoverModel: this.options.popoverModel,
+            catalog: this.options.catalog
+        };
+    },
+
+    ui: {
+        prevPage: '[data-action="prev-page"]',
+        nextPage: '[data-action="next-page"]'
+    },
+
+    events: {
+        'click @ui.prevPage': 'prevPage',
+        'click @ui.nextPage': 'nextPage'
+    },
+
+    templateHelpers: function() {
+        return {
+            numResults: this.collection.fullCollection.length,
+            pageNum: this.collection.state.currentPage,
+            numPages: this.collection.state.totalPages,
+            hasNextPage: this.collection.hasNextPage(),
+            hasPrevPage: this.collection.hasPreviousPage()
+        };
+    },
+
+    prevPage: function() {
+        this.collection.getPreviousPage();
+        this.render();
+    },
+
+    nextPage: function() {
+        this.collection.getNextPage();
+        this.render();
+    }
+});
+
+var ResultMapPopoverControllerView = Marionette.LayoutView.extend({
+    // model: PopoverControllerModel
+    template: resultMapPopoverControllerTmpl,
+
+    regions: {
+        container: '.data-catalog-popover-container'
+    },
+
+    ui: {
+        back: '.data-catalog-popover-back-btn'
+    },
+
+    events: {
+        'click @ui.back': 'backToList'
+    },
+
+    initialize: function() {
+        this.model = new models.PopoverControllerModel();
+        this.model.on('change:activeResult', this.render);
+    },
+
+    onRender: function() {
+        var activeResult = this.model.get('activeResult');
+        if (activeResult) {
+            this.container.show(new ResultMapPopoverDetailView({
+                model: activeResult,
+                catalog: this.options.catalog
+            }));
+        } else {
+            App.map.set('dataCatalogActiveResult', null);
+            this.model.set('active', false);
+            this.container.show(new ResultMapPopoverListView({
+                collection: this.collection,
+                popoverModel: this.model,
+                catalog: this.options.catalog
+            }));
+        }
+    },
+
+    backToList: function() {
+        this.model.set('activeResult', null);
     }
 });
 

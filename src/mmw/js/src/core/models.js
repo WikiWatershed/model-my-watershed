@@ -635,6 +635,11 @@ var CatchmentWaterQualityCensusCollection = Backbone.PageableCollection.extend({
     state: { pageSize: 6, firstPage: 1 }
 });
 
+var DataCatalogPopoverResultCollection = Backbone.PageableCollection.extend({
+    mode: 'client',
+    state: { pageSize: 3, firstPage: 1, currentPage: 1 }
+});
+
 var GeoModel = Backbone.Model.extend({
     M_IN_KM: 1000000,
 
@@ -705,6 +710,7 @@ module.exports = {
     ClimateCensusCollection: ClimateCensusCollection,
     PointSourceCensusCollection: PointSourceCensusCollection,
     CatchmentWaterQualityCensusCollection: CatchmentWaterQualityCensusCollection,
+    DataCatalogPopoverResultCollection: DataCatalogPopoverResultCollection,
     GeoModel: GeoModel,
     AreaOfInterestModel: AreaOfInterestModel,
     AppStateModel: AppStateModel

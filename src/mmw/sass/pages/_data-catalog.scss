@@ -169,7 +169,16 @@
 }
 
 .data-catalog-window,
-.data-catalog-resource-popover {
+.data-catalog-resource-popover,
+.data-catalog-popover-list-item {
+    .btn-secondary {
+        height: auto;
+    }
+
+    h3 {
+        margin-bottom: 7px;
+    }
+
     .resource-description {
         color: $ui-grey;
         font-size: $font-size-h5;
@@ -225,6 +234,82 @@
     .data-catalog-popover-details-btn {
         border-radius: 0px;
         margin-top: 10px;
+    }
+}
+
+.data-catalog-popover-container
+.data-catalog-resource-popover {
+    padding: 0 10px 10px 10px;
+}
+
+.data-catalog-popover-back-btn {
+    color: $brand-primary;
+    border: none;
+    background: none;
+    padding: 10px;
+    font-size: $font-size-h5;
+}
+
+.data-catalog-popover-result-list {
+    padding: 0px;
+}
+
+.data-catalog-popover-pagination {
+    text-align: center;
+}
+
+.data-catalog-popover-pagination
+.data-catalog-popover-pagination-btn {
+    border: none;
+    background: none;
+    &:disabled {
+        color: $ui-light;
+    }
+}
+
+.data-catalog-popover-pagination-btn,
+.data-catalog-popover-num-results {
+    // Important because leaflet popup title
+    // tries to add a margin-bottom
+    margin-bottom: 0 !important;
+}
+
+.data-catalog-popover-num-results {
+    color: $ui-secondary;
+    font-weight: 800;
+    padding: 6px;
+    padding-top: 0;
+    border-bottom: 1px solid $ui-light;
+}
+
+.data-catalog-popover-list-item {
+    display: block;
+    .data-catalog-popover-list-item-btn {
+        border: none;
+        border-bottom: 1px solid $ui-light;
+        padding: 6px;
+        background: none;
+        text-align: left;
+        width: 100%;
+
+        &:hover {
+            background: #f3f3f3;
+        }
+    }
+
+    .data-catalog-popover-list-item-btn
+    .list-item-title {
+        color: $brand-primary;
+        height: 17px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    .data-catalog-popover-list-item-btn
+    .data-catalog-popover-list-item-date {
+        color: $ui-grey;
+        font-size: $font-size-h5;
     }
 }
 
