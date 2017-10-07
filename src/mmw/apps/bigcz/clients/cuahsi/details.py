@@ -21,6 +21,9 @@ def details(wsdl, site):
         raise ValidationError({
             'error': 'Required argument: site'})
 
+    if not wsdl.upper().endswith('?WSDL'):
+        wsdl += '?WSDL'
+
     return wof.get_site_info(wsdl, site)
 
 

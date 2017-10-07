@@ -11,6 +11,7 @@ var DESCRIPTION_MAX_LENGTH = 100;
 var PAGE_SIZE = settings.get('data_catalog_page_size');
 
 var DATE_FORMAT = 'MM/DD/YYYY';
+var WATERML_VARIABLE_TIME_INTERVAL = '{http://www.cuahsi.org/water_ml/1.1/}variable_time_interval';
 
 
 var FilterModel = Backbone.Model.extend({
@@ -330,21 +331,50 @@ var Result = Backbone.Model.extend({
     },
 
     getCuahsiValues: function(opts) {
-        this.set('fetching', true);
+        if (this.fetchPromise && !this.get('error')) {
+            return this.fetchPromise;
+        }
 
         var self = this,
             onEachSearchDone = opts.onEachSearchDone || _.noop,
             onEachSearchFail = opts.onEachSearchFail || _.noop,
-            searches = this.get('variables').map(function(v) {
-                return v.search(opts.from_date, opts.to_date)
-                        .done(onEachSearchDone)
-                        .fail(onEachSearchFail);
-            });
+            variables = self.get('variables'),
+            runSearches = function() {
+                return variables.map(function(v) {
+                        return v.search(opts.from_date, opts.to_date)
+                                .done(onEachSearchDone)
+                                .fail(onEachSearchFail);
+                    });
+                };
 
-        return $.when.apply($, searches)
-                     .done(function() { self.set('error', false); })
-                     .fail(function() { self.set('error', true); })
-                     .always(function() { self.set('fetching', false); });
+        this.set('fetching', true);
+        this.fetchPromise = $.get('/bigcz/details', {
+                    catalog: 'cuahsi',
+                    wsdl: variables.first().get('wsdl'),
+                    site: self.get('id'),
+                })
+                .then(function(response) {
+                    variables.forEach(function(v) {
+                        var info = response.series[v.get('id')] || null,
+                            interval = info && info[WATERML_VARIABLE_TIME_INTERVAL];
+
+                        if (interval) {
+                            v.set({
+                                'units': info.variable.units.abbreviation,
+                                'begin_date': new Date(interval.begin_date_time),
+                                'end_date': new Date(interval.end_date_time),
+                            });
+                        }
+                    });
+                })
+                .then(function() {
+                    return $.when.apply($, runSearches())
+                                 .done(function() { self.set('error', false); })
+                                 .fail(function() { self.set('error', true); })
+                                 .always(function() { self.set('fetching', false); });
+                });
+
+        return this.fetchPromise;
     },
 
     getSummary: function() {
@@ -454,21 +484,45 @@ var CuahsiVariable = Backbone.Model.extend({
         site: '',
         values: null, // CuahsiValues Collection
         most_recent_value: null,
+        begin_date: '',
+        end_date: '',
     },
 
     initialize: function() {
         this.set('values', new CuahsiValues());
     },
 
-    search: function(from_date, to_date) {
-        var params = {
+    search: function(from, to) {
+        var begin_date = moment(this.get('begin_date')),
+            end_date = moment(this.get('end_date')),
+            params = {
                 catalog: 'cuahsi',
                 wsdl: this.get('wsdl'),
                 site: this.get('site'),
                 variable: this.get('id'),
-                from_date: from_date,
-                to_date: to_date,
             };
+
+        // If neither from date nor to date is specified, set time interval
+        // to be either from begin date to end date, or 1 week up to end date,
+        // whichever is shorter.
+        if (!from || moment(from).isBefore(begin_date)) {
+            if (end_date.diff(begin_date, 'weeks', true) > 1) {
+                params.from_date = end_date.subtract(7, 'days');
+            } else {
+                params.from_date = begin_date;
+            }
+        } else {
+            params.from_date = moment(from);
+        }
+
+        if (!to || moment(to).isAfter(end_date)) {
+            params.to_date = end_date;
+        } else {
+            params.to_date = moment(to);
+        }
+
+        params.from_date = params.from_date.format(DATE_FORMAT);
+        params.to_date = params.to_date.format(DATE_FORMAT);
 
         return this.fetch({
             data: params,
