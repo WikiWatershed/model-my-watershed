@@ -494,9 +494,14 @@ var ResultDetailsCuahsiView = ResultDetailsBaseView.extend({
                 last_dates = variables.map(function(v) {
                         var values = v.get('values');
 
-                        return new Date(values.at(values.length - 1).get('datetime'));
+                        if (values.length > 0) {
+                            return new Date(values.last().get('datetime'));
+                        } else {
+                            return new Date('01/01/1900');
+                        }
                     });
 
+            last_dates.push(new Date(last_date));
             last_date = Math.max.apply(null, last_dates);
         }
 

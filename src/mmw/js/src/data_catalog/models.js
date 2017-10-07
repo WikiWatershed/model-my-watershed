@@ -533,11 +533,11 @@ var CuahsiVariable = Backbone.Model.extend({
     parse: function(response) {
         var mrv = null;
 
-        if (response.values) {
+        if (response.values && response.values.length > 0) {
             var values = this.get('values');
 
             values.reset(response.values);
-            mrv = response.values[response.values.length - 1].value
+            mrv = response.values[response.values.length - 1].value;
 
             delete response.values;
         }
