@@ -10,6 +10,8 @@ var REQUEST_TIMED_OUT_CODE = 408;
 var DESCRIPTION_MAX_LENGTH = 100;
 var PAGE_SIZE = settings.get('data_catalog_page_size');
 
+var DATE_FORMAT = 'MM/DD/YYYY';
+
 
 var FilterModel = Backbone.Model.extend({
     defaults: {
@@ -76,22 +78,21 @@ var DateFilter = FilterModel.extend({
     validate: function() {
         // Only need to validate if there are two dates.  Ensure that
         // before is earlier than after
-        var dateFormat = "MM/DD/YYYY",
-            toDate = this.get('toDate'),
+        var toDate = this.get('toDate'),
             fromDate = this.get('fromDate'),
             isValid = true;
 
-        if (toDate && !moment(toDate, dateFormat).isValid()) {
+        if (toDate && !moment(toDate, DATE_FORMAT).isValid()) {
             isValid = false;
         }
 
-        if (fromDate && !moment(fromDate, dateFormat).isValid()) {
+        if (fromDate && !moment(fromDate, DATE_FORMAT).isValid()) {
             isValid = false;
         }
 
         if (toDate && fromDate){
-            isValid = moment(fromDate, dateFormat)
-                .isBefore(moment(toDate, dateFormat));
+            isValid = moment(fromDate, DATE_FORMAT)
+                .isBefore(moment(toDate, DATE_FORMAT));
         }
 
         this.set('isValid', isValid);
