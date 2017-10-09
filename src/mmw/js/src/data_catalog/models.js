@@ -397,6 +397,95 @@ var PopoverControllerModel = Backbone.Model.extend({
     }
 });
 
+var CuahsiVariable = Backbone.Model.extend({
+    url: '/bigcz/values',
+
+    defaults: {
+        id: '',
+        name: '',
+        units: '',
+        concept_keyword: '',
+        speciation: '',
+        sample_medium: '',
+        wsdl: '',
+        site: '',
+        values: null, // CuahsiValues Collection
+        most_recent_value: null,
+        begin_date: '',
+        end_date: '',
+        error: null,
+    },
+
+    search: function(from, to) {
+        var self = this,
+            begin_date = moment(this.get('begin_date')),
+            end_date = moment(this.get('end_date')),
+            params = {
+                catalog: 'cuahsi',
+                wsdl: this.get('wsdl'),
+                site: this.get('site'),
+                variable: this.get('id'),
+            };
+
+        // If neither from date nor to date is specified, set time interval
+        // to be either from begin date to end date, or 1 week up to end date,
+        // whichever is shorter.
+        if (!from || moment(from).isBefore(begin_date)) {
+            if (end_date.diff(begin_date, 'weeks', true) > 1) {
+                params.from_date = end_date.subtract(7, 'days');
+            } else {
+                params.from_date = begin_date;
+            }
+        } else {
+            params.from_date = moment(from);
+        }
+
+        if (!to || moment(to).isAfter(end_date)) {
+            params.to_date = end_date;
+        } else {
+            params.to_date = moment(to);
+        }
+
+        params.from_date = params.from_date.format(DATE_FORMAT);
+        params.to_date = params.to_date.format(DATE_FORMAT);
+
+        this.set('error', null);
+
+        return this.fetch({
+                data: params,
+                processData: true,
+            })
+            .fail(function(error) {
+                self.set('error', 'Error ' + error.status + ' during fetch');
+            });
+    },
+
+    parse: function(response) {
+        var mrv = null;
+
+        if (response.values && response.values.length > 0) {
+            var values = this.get('values');
+
+            values.reset(response.values);
+            mrv = response.values[response.values.length - 1].value;
+
+            delete response.values;
+        } else {
+            this.set('error', 'No values returned from API');
+        }
+
+        return {
+            name: response.variable.name,
+            units: response.variable.units.abbreviation,
+            most_recent_value: mrv,
+        };
+    }
+});
+
+var CuahsiVariables = Backbone.Collection.extend({
+    model: CuahsiVariable,
+});
+
 module.exports = {
     GriddedServicesFilter: GriddedServicesFilter,
     DateFilter: DateFilter,
@@ -407,4 +496,6 @@ module.exports = {
     Results: Results,
     SearchForm: SearchForm,
     PopoverControllerModel: PopoverControllerModel,
+    CuahsiVariable: CuahsiVariable,
+    CuahsiVariables: CuahsiVariables,
 };
