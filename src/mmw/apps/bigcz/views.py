@@ -8,7 +8,7 @@ import json
 from django.contrib.gis.geos import GEOSGeometry
 from django.conf import settings
 from rest_framework import decorators
-from rest_framework.exceptions import ValidationError, ParseError
+from rest_framework.exceptions import ValidationError, ParseError, NotFound
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
@@ -87,7 +87,84 @@ def _do_search(request):
         raise ParseError(ex.message)
 
 
+def _get_details(request):
+    params = request.query_params
+    catalog = params.get('catalog')
+
+    if not catalog:
+        raise ValidationError({
+            'error': 'Required argument: catalog'})
+
+    if catalog not in CATALOGS:
+        raise ValidationError({
+            'error': 'Catalog must be one of: {}'
+                     .format(', '.join(CATALOGS.keys()))})
+
+    details = CATALOGS[catalog]['details']
+
+    if not details:
+        raise NotFound({
+            'error': 'No details endpoint for {}'
+                     .format(catalog)})
+
+    details_kwargs = {
+        'wsdl': params.get('wsdl'),
+        'site': params.get('site'),
+    }
+
+    try:
+        return details(**details_kwargs)
+    except ValueError as ex:
+        raise ParseError(ex.message)
+
+
+def _get_values(request):
+    params = request.query_params
+    catalog = params.get('catalog')
+
+    if not catalog:
+        raise ValidationError({
+            'error': 'Required argument: catalog'})
+
+    if catalog not in CATALOGS:
+        raise ValidationError({
+            'error': 'Catalog must be one of: {}'
+                     .format(', '.join(CATALOGS.keys()))})
+
+    values = CATALOGS[catalog]['values']
+
+    if not values:
+        raise NotFound({
+            'error': 'No values endpoint for {}'
+                     .format(catalog)})
+
+    values_kwargs = {
+        'wsdl': params.get('wsdl'),
+        'site': params.get('site'),
+        'variable': params.get('variable'),
+        'from_date': params.get('from_date'),
+        'to_date': params.get('to_date'),
+    }
+
+    try:
+        return values(**values_kwargs)
+    except ValueError as ex:
+        raise ParseError(ex.message)
+
+
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny,))
 def search(request):
     return Response(_do_search(request))
+
+
+@decorators.api_view(['GET'])
+@decorators.permission_classes((AllowAny,))
+def details(request):
+    return Response(_get_details(request))
+
+
+@decorators.api_view(['GET'])
+@decorators.permission_classes((AllowAny,))
+def values(request):
+    return Response(_get_values(request))
