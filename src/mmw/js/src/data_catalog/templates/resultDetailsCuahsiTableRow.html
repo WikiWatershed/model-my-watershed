@@ -6,6 +6,12 @@
         <i class="fa fa-info-circle black"></i>
     </a>
     {% endif %}
+    {% if error %}
+    <a data-toggle="popover" tabindex="0"
+       role="button" data-content="{{ error }}">
+        <i class="fa fa-exclamation-triangle ui-danger"></i>
+    </a>
+    {% endif %}
 </td>
 <td class="text-right">
     {{ most_recent_value|round(1)|toLocaleString(1) if most_recent_value else "" }}

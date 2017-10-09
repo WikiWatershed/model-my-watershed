@@ -486,6 +486,7 @@ var CuahsiVariable = Backbone.Model.extend({
         most_recent_value: null,
         begin_date: '',
         end_date: '',
+        error: null,
     },
 
     initialize: function() {
@@ -493,7 +494,8 @@ var CuahsiVariable = Backbone.Model.extend({
     },
 
     search: function(from, to) {
-        var begin_date = moment(this.get('begin_date')),
+        var self = this,
+            begin_date = moment(this.get('begin_date')),
             end_date = moment(this.get('end_date')),
             params = {
                 catalog: 'cuahsi',
@@ -524,10 +526,15 @@ var CuahsiVariable = Backbone.Model.extend({
         params.from_date = params.from_date.format(DATE_FORMAT);
         params.to_date = params.to_date.format(DATE_FORMAT);
 
+        this.set('error', null);
+
         return this.fetch({
-            data: params,
-            processData: true,
-        });
+                data: params,
+                processData: true,
+            })
+            .fail(function(_, status) {
+                self.set('error', 'Error ' + status + ' during fetch');
+            });
     },
 
     parse: function(response) {
@@ -540,6 +547,8 @@ var CuahsiVariable = Backbone.Model.extend({
             mrv = response.values[response.values.length - 1].value;
 
             delete response.values;
+        } else {
+            this.set('error', 'No values returned from API');
         }
 
         return {
