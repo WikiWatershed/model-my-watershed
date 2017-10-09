@@ -11,6 +11,7 @@ var DESCRIPTION_MAX_LENGTH = 100;
 var PAGE_SIZE = settings.get('data_catalog_page_size');
 
 var DATE_FORMAT = 'MM/DD/YYYY';
+var WATERML_VARIABLE_TIME_INTERVAL = '{http://www.cuahsi.org/water_ml/1.1/}variable_time_interval';
 
 
 var FilterModel = Backbone.Model.extend({
@@ -315,7 +316,105 @@ var Result = Backbone.Model.extend({
         created_at: '',
         updated_at: '',
         active: false,
-        show_detail: false // Show this result as the detail view?
+        show_detail: false, // Show this result as the detail view?
+        variables: null,  // CuahsiVariables Collection
+        fetching: false,
+        error: false,
+    },
+
+    initialize: function(attrs) {
+        // For CUAHSI
+        if (attrs.variables) {
+            this.set('variables', new CuahsiVariables(attrs.variables));
+        }
+    },
+
+    parse: function(response) {
+        // For CUAHSI
+        if (response.variables) {
+            var variables = this.get('variables');
+            if (variables instanceof CuahsiVariables) {
+                variables.reset(response.variables);
+                delete response.variables;
+            }
+        }
+
+        return response;
+    },
+
+    fetchCuahsiValues: function(opts) {
+        if (this.fetchPromise && !this.get('error')) {
+            return this.fetchPromise;
+        }
+
+        opts = _.defaults(opts || {}, {
+            onEachSearchDone: _.noop,
+            onEachSearchFail: _.noop,
+            from_date: null,
+            to_date: null,
+        });
+
+        var self = this,
+            variables = self.get('variables'),
+            runSearches = function() {
+                    return variables.map(function(v) {
+                            return v.search(opts.from_date, opts.to_date)
+                                    .done(opts.onEachSearchDone)
+                                    .fail(opts.onEachSearchFail);
+                        });
+                },
+            setSuccess = function() {
+                    self.set('error', false);
+                },
+            setError = function() {
+                    self.set('error', true);
+                },
+            startFetch = function() {
+                    self.set('fetching', true);
+                },
+            endFetch = function() {
+                    self.set('fetching', false);
+                };
+
+        startFetch();
+        this.fetchPromise = $.get('/bigcz/details', {
+                    catalog: 'cuahsi',
+                    wsdl: variables.first().get('wsdl'),
+                    site: self.get('id'),
+                })
+                .then(function(response) {
+                    variables.forEach(function(v) {
+                        var info = response.series[v.get('id')] || null,
+                            interval = info && info[WATERML_VARIABLE_TIME_INTERVAL];
+
+                        if (info) {
+                            v.set({
+                                'units': info.variable.units.abbreviation,
+                                'speciation': info.variable.speciation,
+                                'sample_medium': info.variable.sample_medium,
+                            });
+
+                            if (interval) {
+                                v.set({
+                                    'begin_date': new Date(interval.begin_date_time),
+                                    'end_date': new Date(interval.end_date_time),
+                                });
+                            }
+                        }
+                    });
+                }, function() {
+                    // Handle error in /details/
+                    setError();
+                    endFetch();
+                })
+                .then(function() {
+                    return $.when.apply($, runSearches())
+                                 .done(setSuccess)
+                                 .fail(setError)  // Handle error in /values/
+                                 .always(endFetch);
+                });
+
+        return this.fetchPromise;
     },
 
     getSummary: function() {
@@ -488,14 +587,13 @@ var CuahsiVariable = Backbone.Model.extend({
 
             values.reset(response.values);
             mrv = response.values[response.values.length - 1].value;
-
-            delete response.values;
         } else {
             this.set('error', 'No values returned from API');
         }
 
         return {
             name: response.variable.name,
+            sample_medium: response.variable.sample_medium,
             units: response.variable.units.abbreviation,
             most_recent_value: mrv,
         };
