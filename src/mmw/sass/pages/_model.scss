@@ -108,3 +108,11 @@
         margin-left: 0;
     }
 }
+
+.itsi-model-toolbar {
+  display: -webkit-box !important;
+  display: -webkit-flex !important;
+  display: flex !important;
+  -webkit-flex-wrap: nowrap !important;
+  flex-wrap: nowrap !important;
+}

@@ -155,6 +155,31 @@ function RestAPI() {
     };
 }
 
+function adjustModelViewBeforeITSIScreenshot() {
+    toggleModelViewForITSIScreenshot(true);
+}
+
+function adjustModelViewAfterITSIScreenshot() {
+    toggleModelViewForITSIScreenshot(false);
+}
+
+function toggleModelViewForITSIScreenshot(adjustForScreenshot) {
+    var modelHeaderProject = '.project',
+        modelHeaderToolbar = '.toolbar',
+        modelToolbarContainer = '.toolbar-container',
+        itsiModelToolbar = 'itsi-model-toolbar';
+
+    if (adjustForScreenshot) {
+        $(modelHeaderProject).addClass(itsiModelToolbar);
+        $(modelHeaderToolbar).addClass(itsiModelToolbar);
+        $(modelToolbarContainer).addClass(itsiModelToolbar);
+    } else {
+        $(modelHeaderProject).removeClass(itsiModelToolbar);
+        $(modelHeaderToolbar).removeClass(itsiModelToolbar);
+        $(modelToolbarContainer).removeClass(itsiModelToolbar);
+    }
+}
+
 function adjustCompareViewBeforeITSIScreenshot() {
     toggleCompareViewForITSIScreenshot(true);
 }
@@ -242,6 +267,10 @@ function initializeShutterbug() {
             if ($('#compare-new').length) {
                 adjustCompareViewBeforeITSIScreenshot();
             }
+
+            if ($('.project')) {
+                adjustModelViewBeforeITSIScreenshot();
+            }
         })
         .on('shutterbug-asyouwere', function() {
             // Reset after screenshot has been taken
@@ -267,6 +296,10 @@ function initializeShutterbug() {
 
             if ($('#compare-new').length) {
                 adjustCompareViewAfterITSIScreenshot();
+            }
+
+            if ($('.project')) {
+                adjustModelViewAfterITSIScreenshot();
             }
         });
 
