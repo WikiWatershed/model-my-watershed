@@ -7,5 +7,7 @@
     </a>
     {% endif %}
 </td>
-<td class="text-right">{{ most_recent_value|round(1)|toLocaleString(1) }}</td>
+<td class="text-right">
+    {{ most_recent_value|round(1)|toLocaleString(1) if most_recent_value else "" }}
+</td>
 <td>{{ units }}</td>
