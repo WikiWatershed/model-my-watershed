@@ -990,6 +990,9 @@ var ResultsView = Marionette.LayoutView.extend({
         } else {
             this.aoiRegion.empty();
         }
+
+        this.analyzeRegion.$el.toggleClass('active');
+        this.modelingRegion.$el.toggleClass('active');
     },
 
     transitionInCss: {
