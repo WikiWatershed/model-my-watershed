@@ -396,6 +396,16 @@ var StaticResultView = Marionette.ItemView.extend({
         return CATALOG_RESULT_TEMPLATE[this.options.catalog];
     },
 
+    templateHelpers: function() {
+        if (this.options.catalog === 'cuahsi') {
+            return {
+                'concept_keywords': this.model.get('variables')
+                                              .pluck('concept_keyword')
+                                              .join('; '),
+            };
+        }
+    },
+
     modelEvents: {
         'change:active': 'render'
     },
