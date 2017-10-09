@@ -1,0 +1,19 @@
+{{ concept_keyword }}
+{% if name %}
+    <a class="variable-popover" tabindex="0"
+        role="button" data-container="body"
+        data-html="true" data-content="
+            <p>{{ name }}</p>
+            {% if speciation != "Not Applicable" %}
+            <p><strong>Speciation:</strong> {{ speciation }}</p>
+            {% endif %}
+            <p><strong>Medium:</strong> {{ sample_medium }}</p>">
+        <i class="fa fa-info-circle black"></i>
+    </a>
+{% endif %}
+{% if error %}
+    <a class="variable-popover" tabindex="0"
+        role="button" data-content="{{ error }}">
+        <i class="fa fa-exclamation-triangle ui-danger"></i>
+    </a>
+{% endif %}

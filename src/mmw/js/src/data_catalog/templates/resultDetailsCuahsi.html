@@ -45,28 +45,19 @@
             <i class="fa fa-globe"></i>&nbsp;Web Services
         </a>
     </p>
+    <div class="spinner {{ "hidden" if not fetching }}"></div>
+    <div class="error {{ "hidden" if not error }}">
+        <i class="fa fa-exclamation-triangle"></i>
+    </div>
     <hr />
+    <div class="cuahsi-buttons pull-right {{ "hidden" if fetching }}">
+        <button id="cuahsi-button-chart" class="{{ 'active' if mode == 'chart' }}"><i class="fa fa-bar-chart"></i></button>
+        <button id="cuahsi-button-table" class="{{ 'active' if mode == 'table' }}"><i class="fa fa-table"></i></button>
+    </div>
     <p>
-        Last value collected {{ end_date|toTimeAgo }}:
+        Last value collected {{ last_date|toTimeAgo }}:
     </p>
-    <table class="table custom-hover" data-toggle="table">
-        <thead>
-            <tr>
-                <th>Variable</th>
-                <th class="text-right">Value</th>
-                <th>Units</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for ck in concept_keywords %}
-                <tr>
-                    <td>{{ ck }}</td>
-                    <td class="text-right"><!-- TODO Fetch Values --></td>
-                    <td><!-- TODO Fetch Units --></td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div id="cuahsi-values-region"></div>
     <!-- TODO Insert Chart https://github.com/WikiWatershed/model-my-watershed/issues/2238 -->
     <hr />
     <p>Citation: {{ service_citation }}</p>

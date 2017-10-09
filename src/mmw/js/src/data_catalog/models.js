@@ -320,6 +320,7 @@ var Result = Backbone.Model.extend({
         variables: null,  // CuahsiVariables Collection
         fetching: false,
         error: false,
+        mode: 'table',
     },
 
     initialize: function(attrs) {
