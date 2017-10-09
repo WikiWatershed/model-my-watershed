@@ -8,6 +8,7 @@ import dateutil.parser
 from rest_framework.exceptions import ValidationError
 
 from django.conf import settings
+from django.contrib.gis.geos import Polygon
 
 from apps.bigcz.models import Resource, ResourceLink, ResourceList
 from apps.bigcz.utils import RequestTimedOutError
@@ -21,6 +22,21 @@ def parse_date(value):
     return dateutil.parser.parse(value)
 
 
+def parse_geom(coverages):
+    if coverages:
+        box = [c['value'] for c in coverages if c['type'] == 'box'][0]
+        if box:
+            return Polygon((
+                (float(box['westlimit']), float(box['northlimit'])),
+                (float(box['eastlimit']), float(box['northlimit'])),
+                (float(box['eastlimit']), float(box['southlimit'])),
+                (float(box['westlimit']), float(box['southlimit'])),
+                (float(box['westlimit']), float(box['northlimit'])),
+            ))
+
+    return None
+
+
 def parse_record(item):
     return Resource(
         id=item['resource_id'],
@@ -32,7 +48,7 @@ def parse_record(item):
         ],
         created_at=parse_date(item['date_created']),
         updated_at=parse_date(item['date_last_updated']),
-        geom=None)
+        geom=parse_geom(item['coverages']))
 
 
 def prepare_bbox(box):
