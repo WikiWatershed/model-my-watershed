@@ -542,6 +542,14 @@ var ResultDetailsCuahsiView = ResultDetailsBaseView.extend({
         this.showValuesRegion();
     },
 
+    onDomRefresh: function() {
+        window.closePopover();
+        this.$('[data-toggle="popover"]').popover({
+            placement: 'right',
+            trigger: 'click',
+        });
+    },
+
     showValuesRegion: function() {
         if (!this.valuesRegion) {
             // Don't attempt to display values if this view

@@ -68,6 +68,7 @@ var App = new Marionette.Application({
         // Enabling hiding popovers from within them
         window.closePopover = function() {
             $('[data-toggle="popover"]').popover('hide');
+            $('.popover').remove();
         };
     },
 
