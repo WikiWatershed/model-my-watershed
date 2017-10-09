@@ -543,6 +543,11 @@ var ResultDetailsCuahsiView = ResultDetailsBaseView.extend({
     },
 
     showValuesRegion: function() {
+        if (!this.valuesRegion) {
+            // Don't attempt to display values if this view
+            // has been unloaded.
+            return;
+        }
         var mode = this.model.get('mode'),
             variables = this.model.get('variables'),
             view = mode === 'table' ?
@@ -591,7 +596,7 @@ var CuahsiTableView = Marionette.CompositeView.extend({
         this.$('[data-toggle="table"]').bootstrapTable();
         this.$('[data-toggle="popover"]').popover({
             placement: 'right',
-            trigger: 'hover',
+            trigger: 'focus',
         });
     }
 });

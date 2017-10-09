@@ -2,9 +2,7 @@
     {{ concept_keyword }}
     {% if name %}
     <a data-toggle="popover" tabindex="0"
-       data-html="true" data-container="body" role="button"
-       data-content="{{ name }}"
-       data-template="<div class='popover'><div class='popover-content'></div><div class='arrow'></div></div>">
+       role="button" data-content="{{ name }}">
         <i class="fa fa-info-circle black"></i>
     </a>
     {% endif %}
