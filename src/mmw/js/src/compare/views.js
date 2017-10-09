@@ -959,5 +959,6 @@ function showCompare() {
 module.exports = {
     showCompare: showCompare,
     CompareWindow2: CompareWindow2,
-    CompareWindow: CompareWindow
+    CompareWindow: CompareWindow,
+    getTr55Tabs: getTr55Tabs
 };
