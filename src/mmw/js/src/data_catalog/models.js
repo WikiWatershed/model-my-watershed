@@ -397,6 +397,22 @@ var PopoverControllerModel = Backbone.Model.extend({
     }
 });
 
+var CuahsiValue = Backbone.Model.extend({
+    defaults: {
+        source_id: '',
+        source_code: '',
+        quality_control_level_code: '',
+        value: null,
+        datetime: '',
+        date_time_utc: '',
+        time_offset: '',
+    }
+});
+
+var CuahsiValues = Backbone.Collection.extend({
+    model: CuahsiValue,
+});
+
 var CuahsiVariable = Backbone.Model.extend({
     url: '/bigcz/values',
 
@@ -414,6 +430,10 @@ var CuahsiVariable = Backbone.Model.extend({
         begin_date: '',
         end_date: '',
         error: null,
+    },
+
+    initialize: function() {
+        this.set('values', new CuahsiValues());
     },
 
     search: function(from, to) {
@@ -496,6 +516,8 @@ module.exports = {
     Results: Results,
     SearchForm: SearchForm,
     PopoverControllerModel: PopoverControllerModel,
+    CuahsiValue: CuahsiValue,
+    CuahsiValues: CuahsiValues,
     CuahsiVariable: CuahsiVariable,
     CuahsiVariables: CuahsiVariables,
 };
