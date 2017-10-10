@@ -6,7 +6,7 @@ from __future__ import division
 from datetime import date
 from urllib2 import URLError
 from socket import timeout
-from operator import attrgetter
+from operator import attrgetter, itemgetter
 
 from suds.client import Client
 from suds.sudsobject import asdict
@@ -126,7 +126,7 @@ def parse_record(record, service):
         geom=geom,
         details_url=details_url,
         sample_mediums=record['sample_mediums'],
-        concept_keywords=record['concept_keywords'],
+        variables=record['variables'],
         service_org=service['organization'],
         service_code=record['serv_code'],
         service_url=service['ServiceDescriptionURL'],
@@ -189,6 +189,13 @@ def group_series_by_location(series):
                                for r in group]),
             'end_date': max([parse_date(r['endDate'])
                              for r in group]),
+            'variables': sorted([{
+                'id': r['VarCode'],
+                'name': r['VarName'],
+                'concept_keyword': r['conceptKeyword'],
+                'site': r['location'],
+                'wsdl': r['ServURL'],
+            } for r in group], key=itemgetter('concept_keyword'))
         })
 
     return records
