@@ -6,8 +6,10 @@ from celery import chain, group
 
 from rest_framework.response import Response
 from rest_framework import decorators
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authentication import (TokenAuthentication,
+                                           SessionAuthentication)
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authtoken.models import Token
 
 from django.utils.timezone import now
 from django.core.urlresolvers import reverse
@@ -20,6 +22,41 @@ from apps.core.decorators import log_request
 from apps.modeling import geoprocessing
 from apps.modeling.views import load_area_of_interest
 from apps.geoprocessing_api import tasks
+from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
+
+
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((AuthTokenSerializerAuthentication,
+                                    SessionAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+def get_auth_token(request, format=None):
+    """
+    Get your API key
+
+
+    ## Request Body
+
+        {
+            "username": "your_username",
+            "password": "your_password"
+        }
+
+    ## Sample Response
+
+        {
+           "token": "ea467ed7f67c53cfdd313198647a1d187b4d3ab9",
+           "created_at": "2017-09-11T14:50:54.738Z"
+        }
+    ---
+    omit_serializer: true
+    consumes:
+        - application/json
+    produces:
+        - application/json
+    """
+    token, created = Token.objects.get_or_create(user=request.user)
+    return Response({'token': token.key,
+                     'created_at': token.created})
 
 
 @decorators.api_view(['POST'])
