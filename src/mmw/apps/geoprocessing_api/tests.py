@@ -32,14 +32,16 @@ class ExerciseManageApiToken(LiveServerTestCase):
         return c
 
     def get_api_token(self, username='', password='',
-                      session=None):
+                      session=None, regenerate=False):
         if not session:
             session = Client()
 
-        payload = None
+        payload = {}
         if username or password:
-            payload = {'username': username,
-                       'password': password}
+            payload.update({'username': username,
+                            'password': password})
+        if regenerate:
+            payload.update({'regenerate': True})
 
         return session.post(self.TOKEN_URL,
                             data=payload)
@@ -87,6 +89,45 @@ class ExerciseManageApiToken(LiveServerTestCase):
                          Expected to get token for user
                          given in request body %s, but got %s
                          """ % (bob_token, response_token))
+
+    def test_get_api_token_doesnt_regenerate_token(self):
+        bob_user = User.objects.get(username='bob')
+        bob_token_before = Token.objects.get(user=bob_user)
+
+        response = self.get_api_token('bob', 'bob')
+
+        response_token = json.loads(response.content)['token']
+
+        self.assertEqual(str(response_token), str(bob_token_before),
+                         """ Expected request token to be the same
+                         as token before the request was made
+                         (%s), but got %s
+                         """ % (bob_token_before, response_token))
+
+        bob_token_after = Token.objects.get(user=bob_user)
+        self.assertEqual(bob_token_before, bob_token_after,
+                         """ Expected token to be the same
+                         as it was before the request was made
+                         (%s), but got %s
+                         """ % (bob_token_before, bob_token_after))
+
+    def test_get_api_token_can_regenerate_token(self):
+        bob_user = User.objects.get(username='bob')
+        old_bob_token = Token.objects.get(user=bob_user)
+
+        response = self.get_api_token('bob', 'bob', regenerate=True)
+
+        response_token = json.loads(response.content)['token']
+        new_bob_token = Token.objects.get(user=bob_user)
+
+        self.assertEqual(str(response_token), str(new_bob_token),
+                         """ Expected regenerated response token to
+                         be the same as stored token (%s), but got %s
+                         """ % (new_bob_token, response_token))
+
+        self.assertTrue(old_bob_token is not new_bob_token,
+                        """ Expected new token to be created
+                        but token is the same""")
 
 
 class ExerciseAnalyze(TestCase):

@@ -36,6 +36,20 @@ def get_auth_token(request, format=None):
 
     ## Request Body
 
+    **Required**
+
+    `username` (`string`): Your username
+
+    `password` (`string`): Your password
+
+
+    **Optional**
+
+    `regenerate` (`boolean`): Regenerate your API token?
+                              Default is `false`.
+
+    **Example**
+
         {
             "username": "your_username",
             "password": "your_password"
@@ -54,6 +68,11 @@ def get_auth_token(request, format=None):
     produces:
         - application/json
     """
+
+    should_regenerate = request.data.get('regenerate', False)
+    if should_regenerate:
+        Token.objects.filter(user=request.user).delete()
+
     token, created = Token.objects.get_or_create(user=request.user)
     return Response({'token': token.key,
                      'created_at': token.created})
