@@ -11,7 +11,24 @@ var ProfileView = Marionette.ItemView.extend({
 });
 
 var AccountView = Marionette.ItemView.extend({
-    template: accountTmpl
+    // model ApiTokenModel
+    template: accountTmpl,
+
+    ui: {
+        regenerateKey: '[data-action="regeneratekey"]'
+    },
+
+    events: {
+        'click @ui.regenerateKey': 'regenerateApiKey'
+    },
+
+    modelEvents: {
+        'change': 'render'
+    },
+
+    regenerateApiKey: function() {
+        this.model.regenerateToken();
+    }
 });
 
 var AccountContainerView = Marionette.LayoutView.extend({
@@ -37,6 +54,10 @@ var AccountContainerView = Marionette.LayoutView.extend({
         infoContainer: '.account-page-container'
     },
 
+    initialize: function() {
+        this.tokenModel = new models.ApiTokenModel();
+    },
+
     showActivePage: function() {
         var activePage = this.model.get('active_page');
 
@@ -45,7 +66,9 @@ var AccountContainerView = Marionette.LayoutView.extend({
                 this.infoContainer.show(new ProfileView());
                 break;
             case models.ACCOUNT:
-                this.infoContainer.show(new AccountView());
+                this.infoContainer.show(new AccountView({
+                    model: this.tokenModel
+                }));
                 break;
             default:
                 console.error("Account page, ", activePage,

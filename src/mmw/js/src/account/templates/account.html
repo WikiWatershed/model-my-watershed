@@ -1,1 +1,15 @@
-<h3>Account</h3>
+<h2>Account</h2>
+
+<h4 class="account-section-title">API Key</h4>
+<p>You can use your API Key to make up to 2 requests per minute</p>
+<section class="account-api-key-section">
+    <div>
+        {{ api_key }}
+    </div>
+    <p class="detail">
+        Created at {{ created_at }}
+    </p>
+    <button class="btn btn-md btn-active" data-action="regeneratekey">
+        Regenerate API Key
+    </button>
+</section>
