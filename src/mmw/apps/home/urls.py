@@ -11,6 +11,7 @@ urlpatterns = patterns(
     '',
     url(r'^$', home_page, name='home_page'),
     url(r'^draw/?$', home_page, name='home_page'),
+    url(r'^account/?$', home_page, name='account'),
     url(r'^projects/$', projects, name='projects'),
     url(r'^project/$', project, name='project'),
     url(r'^project/new/', project, name='project'),
