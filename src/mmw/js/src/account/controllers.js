@@ -3,6 +3,7 @@
 var App = require('../app'),
     views = require('./views'),
     models = require('./models'),
+    router = require('../router').router,
     coreUtils= require('../core/utils');
 
 var AccountController = {
@@ -11,15 +12,7 @@ var AccountController = {
     },
 
     account: function() {
-        App.rootView.footerRegion.show(
-            new views.AccountContainerView({
-                model: new models.AccountContainerModel()
-            })
-        );
-
-        App.rootView.layerPickerRegion.empty();
-
-        App.state.set('active_page', coreUtils.accountPageTitle);
+        showLoginOrAccountView();
     },
 
     accountCleanUp: function() {
@@ -27,6 +20,32 @@ var AccountController = {
         App.showLayerPicker();
     }
 };
+
+function showAccountView() {
+    App.rootView.footerRegion.show(
+        new views.AccountContainerView({
+            model: new models.AccountContainerModel()
+        })
+    );
+    App.rootView.layerPickerRegion.empty();
+
+    App.state.set('active_page', coreUtils.accountPageTitle);
+}
+
+function showLoginOrAccountView() {
+    App.user.fetch().always(function() {
+        if (App.user.get('guest')) {
+            var loginSuccess = function() {
+                router.navigate("/account", { trigger: true });
+            };
+            App.showLoginModal(loginSuccess);
+            // Until the user has logged in, show the main page
+            router.navigate("/", { trigger: true });
+        } else {
+            showAccountView();
+        }
+    });
+}
 
 module.exports = {
     AccountController: AccountController
