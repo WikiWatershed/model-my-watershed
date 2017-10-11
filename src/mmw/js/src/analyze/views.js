@@ -1228,6 +1228,7 @@ var ClimateChartView = ChartView.extend({
                     return monthNames[x];
                 },
                 xTickValues: lodash.range(12),
+                yTickFormat: '0.01f',
             };
 
         $(chartEl).empty();
