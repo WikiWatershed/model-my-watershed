@@ -38,7 +38,7 @@ describe('Compare', function() {
             });
 
             describe('#update', function() {
-                it('uses precolumbian results for 100% forest cover scenario',
+                it('uses precolumbian results for Predominantly Forested scenario',
                    function() {
                        var precolumbianResult =
                                this.scenarios
@@ -125,7 +125,7 @@ describe('Compare', function() {
             });
 
             describe('#update', function() {
-                it('uses precolumbian results for 100% forest cover scenario',
+                it('uses precolumbian results for Predominantly Forested scenario',
                    function() {
                        var precolumbianResult =
                                this.scenarios
@@ -221,13 +221,13 @@ function getTestScenarioCollection() {
     });
 
     forestCover.set({
-        name: '100% Forest Cover',
+        name: 'Predominantly Forested',
         id: 2,
         is_pre_columbian: true,
         is_current_conditions: false,
     });
 
-    // Tests assume [0] == 100% forest cover
+    // Tests assume [0] == Predominantly Forested
     //              [1] == current conditions
     //              [2] == user's scenario
     return new modelingModels.ScenariosCollection([

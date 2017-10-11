@@ -911,11 +911,11 @@ function getCompareScenarios(isTr55) {
         aoi_census = ccScenario.get('aoi_census');
 
     if (isTr55) {
-        // Add 100% Forest Cover scenario
+        // Add Predominantly Forested scenario
         var forestScenario = copyScenario(ccScenario, aoi_census);
 
         forestScenario.set({
-            name: '100% Forest Cover',
+            name: 'Predominantly Forested',
             is_current_conditions: false,
             is_pre_columbian: true,
         });
