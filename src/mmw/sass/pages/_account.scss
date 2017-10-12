@@ -58,3 +58,24 @@
         margin: 1rem 0;
     }
 }
+
+.account-api-key-section > .api-key-row {
+    display: flex;
+    flex: 1 1 auto;
+
+    .copiable-input, .btn-copy {
+        border: 1px solid $ui-medium-light;
+    }
+
+    .copiable-input {
+        padding-left: 0.5rem;
+        width: 345px;
+        border-radius: 2px 0 0 2px;
+        border-right: none;
+    }
+
+    .btn-copy {
+        background: $ui-light;
+        border-radius: 0 2px 2px 0;
+    }
+}

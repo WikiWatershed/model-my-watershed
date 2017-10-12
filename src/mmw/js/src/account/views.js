@@ -1,6 +1,7 @@
 "use strict";
 
-var Marionette = require('../../shim/backbone.marionette'),
+var Clipboard = require('clipboard'),
+    Marionette = require('../../shim/backbone.marionette'),
     moment = require('moment'),
     models = require('./models'),
     containerTmpl = require('./templates/container.html'),
@@ -16,7 +17,8 @@ var AccountView = Marionette.ItemView.extend({
     template: accountTmpl,
 
     ui: {
-        regenerateKey: '[data-action="regeneratekey"]'
+        regenerateKey: '[data-action="regeneratekey"]',
+        copyKey: '[data-action="copykey"]'
     },
 
     events: {
@@ -25,6 +27,10 @@ var AccountView = Marionette.ItemView.extend({
 
     modelEvents: {
         'change': 'render'
+    },
+
+    onRender: function() {
+        new Clipboard(this.ui.copyKey[0]);
     },
 
     templateHelpers: function() {
