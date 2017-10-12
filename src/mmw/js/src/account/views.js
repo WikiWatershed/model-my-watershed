@@ -3,6 +3,8 @@
 var Clipboard = require('clipboard'),
     Marionette = require('../../shim/backbone.marionette'),
     moment = require('moment'),
+    modalViews = require('../core/modals/views'),
+    modalModels = require('../core/modals/models'),
     models = require('./models'),
     containerTmpl = require('./templates/container.html'),
     profileTmpl = require('./templates/profile.html'),
@@ -43,7 +45,25 @@ var AccountView = Marionette.ItemView.extend({
     },
 
     regenerateApiKey: function() {
-        this.model.regenerateToken();
+        var self = this,
+            titleText = 'Do you definitely want to do this?',
+            detailText = 'Resetting your API key will invalidate ' +
+                         'your previous one',
+            modal = new modalViews.ConfirmView({
+                model: new modalModels.ConfirmModel({
+                    titleText: titleText,
+                    className: 'modal-content-danger modal-content-padded',
+                    question: detailText,
+                    confirmLabel: 'Yes, reset API key',
+                    cancelLabel: 'No, keep current key'
+                })
+            });
+
+        modal.render();
+
+        modal.on('confirmation', function() {
+            self.model.regenerateToken();
+        });
     }
 });
 
