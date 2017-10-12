@@ -22,6 +22,9 @@ var $ = require('jquery'),
     resultDetailsCinergiTmpl = require('./templates/resultDetailsCinergi.html'),
     resultDetailsHydroshareTmpl = require('./templates/resultDetailsHydroshare.html'),
     resultDetailsCuahsiTmpl = require('./templates/resultDetailsCuahsi.html'),
+    resultDetailsCuahsiChartTmpl = require('./templates/resultDetailsCuahsiChart.html'),
+    resultDetailsCuahsiTableTmpl = require('./templates/resultDetailsCuahsiTable.html'),
+    resultDetailsCuahsiTableRowVariableColTmpl = require('./templates/resultDetailsCuahsiTableRowVariableCol.html'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultMapPopoverDetailTmpl = require('./templates/resultMapPopoverDetail.html'),
     resultMapPopoverListTmpl = require('./templates/resultMapPopoverList.html'),
@@ -34,11 +37,6 @@ var ENTER_KEYCODE = 13,
         cinergi: searchResultTmpl,
         hydroshare: searchResultTmpl,
         cuahsi: searchResultCuahsiTmpl,
-    },
-    CATALOG_RESULT_DETAILS_TEMPLATE = {
-        cinergi: resultDetailsCinergiTmpl,
-        hydroshare: resultDetailsHydroshareTmpl,
-        cuahsi: resultDetailsCuahsiTmpl,
     };
 
 var HeaderView = Marionette.LayoutView.extend({
@@ -134,6 +132,7 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
 
     onDetailResultChange: function() {
         var activeCatalog = this.collection.getActiveCatalog(),
+            ResultDetailsView = CATALOG_RESULT_DETAILS_VIEW[activeCatalog.id],
             detailResult = activeCatalog.get('detail_result');
 
         if (!detailResult) {
@@ -396,6 +395,16 @@ var StaticResultView = Marionette.ItemView.extend({
         return CATALOG_RESULT_TEMPLATE[this.options.catalog];
     },
 
+    templateHelpers: function() {
+        if (this.options.catalog === 'cuahsi') {
+            return {
+                'concept_keywords': this.model.get('variables')
+                                              .pluck('concept_keyword')
+                                              .join('; '),
+            };
+        }
+    },
+
     modelEvents: {
         'change:active': 'render'
     },
@@ -437,11 +446,7 @@ var ResultsView = Marionette.CollectionView.extend({
     }
 });
 
-var ResultDetailsView = Marionette.ItemView.extend({
-    getTemplate: function() {
-        return CATALOG_RESULT_DETAILS_TEMPLATE[this.catalog];
-    },
-
+var ResultDetailsBaseView = Marionette.LayoutView.extend({
     ui: {
         closeDetails: '.close'
     },
@@ -459,21 +464,191 @@ var ResultDetailsView = Marionette.ItemView.extend({
             placement: 'right',
             trigger: 'click',
         });
-        this.$('[data-toggle="table"]').bootstrapTable();
-    },
-
-    templateHelpers: function() {
-        var id = this.model.get('id'),
-            location = id.substring(id.indexOf(':') + 1);
-
-        return {
-            location: location,
-        };
     },
 
     closeDetails: function() {
         this.model.collection.closeDetail();
     }
+});
+
+var ResultDetailsCinergiView = ResultDetailsBaseView.extend({
+    template: resultDetailsCinergiTmpl,
+});
+
+var ResultDetailsHydroshareView = ResultDetailsBaseView.extend({
+    template: resultDetailsHydroshareTmpl,
+});
+
+var ResultDetailsCuahsiView = ResultDetailsBaseView.extend({
+    template: resultDetailsCuahsiTmpl,
+
+    templateHelpers: function() {
+        var id = this.model.get('id'),
+            location = id.substring(id.indexOf(':') + 1),
+            fetching = this.model.get('fetching'),
+            error = this.model.get('error'),
+            last_date = this.model.get('end_date');
+
+        if (!fetching && !error) {
+            var variables = this.model.get('variables'),
+                last_dates = variables.map(function(v) {
+                        var values = v.get('values');
+
+                        if (values.length > 0) {
+                            return new Date(values.last().get('datetime'));
+                        } else {
+                            return new Date('07/04/1776');
+                        }
+                    });
+
+            last_dates.push(new Date(last_date));
+            last_date = Math.max.apply(null, last_dates);
+        }
+
+        return {
+            location: location,
+            last_date: last_date,
+        };
+    },
+
+    regions: {
+        valuesRegion: '#cuahsi-values-region',
+    },
+
+    ui: _.defaults({
+        chartButton: '#cuahsi-button-chart',
+        tableButton: '#cuahsi-button-table',
+    }, ResultDetailsBaseView.prototype.ui),
+
+    events: _.defaults({
+        'click @ui.chartButton': 'setChartMode',
+        'click @ui.tableButton': 'setTableMode',
+    }, ResultDetailsBaseView.prototype.events),
+
+    modelEvents: {
+        'change:fetching': 'render',
+        'change:mode': 'showValuesRegion',
+    },
+
+    initialize: function() {
+        this.model.fetchCuahsiValues();
+    },
+
+    onRender: function() {
+        this.showValuesRegion();
+    },
+
+    onDomRefresh: function() {
+        window.closePopover();
+        this.$('[data-toggle="popover"]').popover({
+            placement: 'right',
+            trigger: 'click',
+        });
+    },
+
+    showValuesRegion: function() {
+        if (!this.valuesRegion) {
+            // Don't attempt to display values if this view
+            // has been unloaded.
+            return;
+        }
+
+        var mode = this.model.get('mode'),
+            variables = this.model.get('variables'),
+            view = mode === 'table' ?
+                   new CuahsiTableView({ collection: variables }) :
+                   new CuahsiChartView({ collection: variables });
+
+        this.valuesRegion.show(view);
+    },
+
+    setChartMode: function() {
+        this.model.set('mode', 'chart');
+        this.ui.chartButton.addClass('active');
+        this.ui.tableButton.removeClass('active');
+    },
+
+    setTableMode: function() {
+        this.model.set('mode', 'table');
+        this.ui.tableButton.addClass('active');
+        this.ui.chartButton.removeClass('active');
+    }
+});
+
+var CATALOG_RESULT_DETAILS_VIEW = {
+    cinergi: ResultDetailsCinergiView,
+    hydroshare: ResultDetailsHydroshareView,
+    cuahsi: ResultDetailsCuahsiView,
+};
+
+var CuahsiTableView = Marionette.ItemView.extend({
+    tagName: 'table',
+    className: 'table custom-hover',
+    attributes: {
+        'data-toggle': 'table',
+    },
+    template: resultDetailsCuahsiTableTmpl,
+
+    initialize: function() {
+        var self = this;
+
+        this.variableColumnTmpl = resultDetailsCuahsiTableRowVariableColTmpl;
+
+        this.collection.forEach(function(v, index) {
+            self.listenTo(v, 'change', _.partial(self.onVariableUpdate, index));
+        });
+    },
+
+    onAttach: function() {
+        var data = this.collection.toJSON(),
+            variableColumnFormatter = _.bind(this.variableColumnFormatter, this),
+            enablePopovers = _.bind(this.enablePopovers, this);
+
+        this.$el.bootstrapTable({
+            data: data,
+            columns: [
+                {
+                    field: 'concept_keyword',
+                    formatter: variableColumnFormatter,
+                },
+                {
+                    field: 'most_recent_value',
+                },
+                {
+                    field: 'units',
+                }
+            ],
+            onPostBody: enablePopovers,
+        });
+
+        enablePopovers();
+    },
+
+    enablePopovers: function() {
+        this.$('.variable-popover').popover({
+            placement: 'right',
+            trigger: 'focus',
+        });
+    },
+
+    variableColumnFormatter: function(value, row, index) {
+        return this.variableColumnTmpl.render(
+            this.collection.at(index).toJSON()
+        );
+    },
+
+    onVariableUpdate: function(index) {
+        var row = this.collection.at(index).toJSON();
+
+        this.$el.bootstrapTable('updateRow', {
+            index: index,
+            row: row,
+        });
+    }
+});
+
+var CuahsiChartView = Marionette.ItemView.extend({
+    template: resultDetailsCuahsiChartTmpl,
 });
 
 var ResultMapPopoverDetailView = Marionette.LayoutView.extend({

@@ -257,6 +257,10 @@ def get_series_catalog_in_box(box, from_date, to_date, networkIDs):
     try:
         return result['SeriesRecord']
     except KeyError:
+        # Empty object can mean "No results"
+        if not result:
+            return []
+
         # Missing key may indicate a server-side error
         raise ValueError(result)
     except TypeError:

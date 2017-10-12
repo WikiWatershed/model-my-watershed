@@ -30,16 +30,52 @@
                 margin: 5px 0 0 0;
             }
 
+            .spinner:after {
+              top: 22px;
+              right: 7px;
+            }
+
+            .error {
+                position: absolute;
+                top: 11px;
+                right: 10px;
+            }
+
             .result-detail-header {
               h2 {
                   display: inline-block;
-                  margin: 4px 0;
+                  margin: 10px 0 4px;
                   max-width: 95%;
               }
 
               a.zoom {
                 display: block;
               }
+
+              .close {
+                float: none;
+                display: block;
+                opacity: 1;
+                color: #389b9b;
+                text-shadow: none;
+                font-size: 13px;
+                font-weight: 400;
+                padding: 6px 0 2px;
+              }
+            }
+
+            .cuahsi-buttons {
+                button {
+                    padding: 1px 4px;
+                    margin-top: -4px;
+                    background-color: transparent;
+                    border: 0;
+
+                    &.active {
+                        color: $paper;
+                        background-color: $black-54;
+                    }
+                }
             }
         }
     }
@@ -394,5 +430,31 @@
     .data-catalog-validation-msg {
         color: $ui-danger;
         margin-top: 8px;
+    }
+}
+
+.result-details-region {
+    p,
+    .btn {
+        font-size: $font-size-h5;
+    }
+}
+
+.table-data-detail {
+    font-size: $font-size-h5;
+    margin: 14px 0 6px;
+
+    td,
+    th {
+        vertical-align: top;
+        padding-bottom: 10px;
+    }
+
+    td {
+        color: #777;
+    }
+
+    th {
+        padding-right: 20px;
     }
 }
