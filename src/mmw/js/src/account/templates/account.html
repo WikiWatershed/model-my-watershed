@@ -2,6 +2,11 @@
 
 <h4 class="account-section-title">API Key</h4>
 <p>You can use your API Key to make up to 2 requests per minute</p>
+{% if error %}
+<p class="error">
+    <i class="fa fa-warning account-inline-error-icon" aria-hidden="true"></i>{{error}}
+</p>
+{% endif %}
 <section class="account-api-key-section">
     <div class="api-key-row">
         <input class="copiable-input"
@@ -12,10 +17,15 @@
                value="{{ api_key }}"
         >
         <button type="button"
+                {{'disabled' if fetching}}
                 data-action="copykey"
                 class="btn btn-md btn-copy"
                 data-clipboard-target="#api-key">
+            {% if fetching %}
+            <div class="spinner"></div>
+            {% else %}
             <i class="fa fa-clipboard" aria-hidden="true"></i>
+            {% endif %}
         </button>
     </div>
     <p class="detail">

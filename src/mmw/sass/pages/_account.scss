@@ -44,6 +44,13 @@
     h2 {
         margin-bottom: 2rem;
     }
+
+    .error {
+        color: $ui-danger;
+        > .account-inline-error-icon {
+            margin-right: 5px;
+        }
+    }
 }
 
 .account-api-key-section {
@@ -77,5 +84,12 @@
     .btn-copy {
         background: $ui-light;
         border-radius: 0 2px 2px 0;
+        height: 40px;
+        width: 40px;
+    }
+
+    .btn-copy > .spinner:after {
+        top: auto;
+        right: auto;
     }
 }

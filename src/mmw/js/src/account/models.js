@@ -43,8 +43,10 @@ var ApiTokenModel = Backbone.Model.extend({
                 contentType: 'application/json'
             },
 
-            failFetch = _.bind(function(error) {
-                this.set('error', error);
+            failFetch = _.bind(function() {
+                var messageVerb = regenerate ? 'regenerate' : 'get';
+                this.set('error',
+                         'Unable to ' + messageVerb + ' API Key');
             }, this),
 
             finishFetch = _.bind(function() {
