@@ -924,7 +924,7 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
                     'nord', data.nord);
         this.catchmentPolygon.addTo(map);
         map.panInsideBounds(this.catchmentPolygon.getBounds());
-        var popUpLocationGeoJSON = utils.findCenterOfShapeIntersection(JSON.parse(geom), App.map.get('areaOfInterest'));
+        var popUpLocationGeoJSON = utils.findCenterOfShapeIntersection(geom, App.map.get('areaOfInterest'));
         this.catchmentPolygon.openPopup(L.GeoJSON.coordsToLatLng(popUpLocationGeoJSON.geometry.coordinates));
     },
 
