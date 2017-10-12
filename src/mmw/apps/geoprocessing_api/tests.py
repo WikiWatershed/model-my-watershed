@@ -3,9 +3,131 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.test import TestCase
+import json
+
+from django.test import (Client,
+                         TestCase,
+                         LiveServerTestCase)
+from django.contrib.auth.models import User
+
+from rest_framework.authtoken.models import Token
 
 from apps.geoprocessing_api import tasks
+
+
+class ExerciseManageApiToken(LiveServerTestCase):
+    TOKEN_URL = 'http://localhost:8081/api/token/'
+
+    def setUp(self):
+        User.objects.create_user(username='bob', email='bob@azavea.com',
+                                 password='bob')
+
+        User.objects.create_user(username='nono', email='nono@azavea.com',
+                                 password='nono')
+
+    def get_logged_in_session(self, username, password):
+        c = Client()
+        c.login(username=username,
+                password=password)
+        return c
+
+    def get_api_token(self, username='', password='',
+                      session=None, regenerate=False):
+        if not session:
+            session = Client()
+
+        payload = {}
+        if username or password:
+            payload.update({'username': username,
+                            'password': password})
+        if regenerate:
+            payload.update({'regenerate': True})
+
+        return session.post(self.TOKEN_URL,
+                            data=payload)
+
+    def test_get_api_token_no_credentials_returns_400(self):
+        response = self.get_api_token()
+        self.assertEqual(response.status_code, 403,
+                         'Incorrect server response. Expected 403 found %s %s'
+                         % (response.status_code, response.content))
+
+    def test_get_api_token_bad_body_credentials_returns_400(self):
+        response = self.get_api_token('bad', 'bad')
+        self.assertEqual(response.status_code, 400,
+                         'Incorrect server response. Expected 400 found %s %s'
+                         % (response.status_code, response.content))
+
+    def test_get_api_token_good_body_credentials_returns_200(self):
+        response = self.get_api_token('bob', 'bob')
+        self.assertEqual(response.status_code, 200,
+                         'Incorrect server response. Expected 200 found %s %s'
+                         % (response.status_code, response.content))
+
+    def test_get_api_token_good_session_credentials_returns_200(self):
+        s = self.get_logged_in_session('bob', 'bob')
+        response = self.get_api_token(session=s)
+        self.assertEqual(response.status_code, 200,
+                         'Incorrect server response. Expected 200 found %s %s'
+                         % (response.status_code, response.content))
+
+    def test_get_api_token_uses_body_credentials_over_session(self):
+        bob_user = User.objects.get(username='bob')
+        bob_token = Token.objects.get(user=bob_user)
+
+        s = self.get_logged_in_session('nono', 'nono')
+        response = self.get_api_token('bob', 'bob', s)
+
+        self.assertEqual(response.status_code, 200,
+                         'Incorrect server response. Expected 200 found %s %s'
+                         % (response.status_code, response.content))
+
+        response_token = json.loads(response.content)['token']
+
+        self.assertEqual(str(response_token), str(bob_token),
+                         """ Incorrect server response.
+                         Expected to get token for user
+                         given in request body %s, but got %s
+                         """ % (bob_token, response_token))
+
+    def test_get_api_token_doesnt_regenerate_token(self):
+        bob_user = User.objects.get(username='bob')
+        bob_token_before = Token.objects.get(user=bob_user)
+
+        response = self.get_api_token('bob', 'bob')
+
+        response_token = json.loads(response.content)['token']
+
+        self.assertEqual(str(response_token), str(bob_token_before),
+                         """ Expected request token to be the same
+                         as token before the request was made
+                         (%s), but got %s
+                         """ % (bob_token_before, response_token))
+
+        bob_token_after = Token.objects.get(user=bob_user)
+        self.assertEqual(bob_token_before, bob_token_after,
+                         """ Expected token to be the same
+                         as it was before the request was made
+                         (%s), but got %s
+                         """ % (bob_token_before, bob_token_after))
+
+    def test_get_api_token_can_regenerate_token(self):
+        bob_user = User.objects.get(username='bob')
+        old_bob_token = Token.objects.get(user=bob_user)
+
+        response = self.get_api_token('bob', 'bob', regenerate=True)
+
+        response_token = json.loads(response.content)['token']
+        new_bob_token = Token.objects.get(user=bob_user)
+
+        self.assertEqual(str(response_token), str(new_bob_token),
+                         """ Expected regenerated response token to
+                         be the same as stored token (%s), but got %s
+                         """ % (new_bob_token, response_token))
+
+        self.assertTrue(old_bob_token is not new_bob_token,
+                        """ Expected new token to be created
+                        but token is the same""")
 
 
 class ExerciseAnalyze(TestCase):
