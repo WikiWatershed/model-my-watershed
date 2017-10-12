@@ -1,6 +1,7 @@
 "use strict";
 
 var Marionette = require('../../shim/backbone.marionette'),
+    moment = require('moment'),
     models = require('./models'),
     containerTmpl = require('./templates/container.html'),
     profileTmpl = require('./templates/profile.html'),
@@ -24,6 +25,15 @@ var AccountView = Marionette.ItemView.extend({
 
     modelEvents: {
         'change': 'render'
+    },
+
+    templateHelpers: function() {
+        var dateFormat = 'MMM D, YYYY, h:mm A',
+            formattedCreatedAt = moment(this.model.get('created_at'))
+                                        .format(dateFormat);
+        return {
+            created_at_formatted: formattedCreatedAt
+        };
     },
 
     regenerateApiKey: function() {
