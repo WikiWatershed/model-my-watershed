@@ -5,7 +5,7 @@
     >
         {{ layerDisplay }}
     </button>
-    {% if not isDisabled and legendMapping %}
+    {% if not isDisabled and (legendMapping or useColorRamp) %}
         <a
             tabindex="-1"
             role="button"

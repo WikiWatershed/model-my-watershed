@@ -144,6 +144,10 @@ var LayerModel = Backbone.Model.extend({
         legendMapping: null,
         cssClassPrefix: null,
         active: false,
+        useColorRamp: false,
+        colorRampId: null,
+        legendUnitsLabel: null,
+        legendUnitBreaks: null,
     },
 
     buildLayer: function(layerSettings, layerType, initialActive) {
@@ -202,6 +206,10 @@ var LayerModel = Backbone.Model.extend({
             legendMapping: layerSettings.legend_mapping,
             cssClassPrefix: layerSettings.css_class_prefix,
             active: layerSettings.display === initialActive ? true : false,
+            useColorRamp: layerSettings.use_color_ramp || false,
+            colorRampId: layerSettings.color_ramp_id || null,
+            legendUnitsLabel: layerSettings.legend_units_label || null,
+            legendUnitBreaks: layerSettings.legend_unit_breaks || null,
         });
     }
 });
