@@ -1,12 +1,14 @@
 from uuid import uuid1
 
 from django.contrib.auth import (authenticate,
+                                 update_session_auth_hash,
                                  logout as auth_logout,
                                  login as auth_login)
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
-from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.forms import (PasswordResetForm,
+                                       PasswordChangeForm)
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.sites.shortcuts import get_current_site
 from django.conf import settings
@@ -17,7 +19,8 @@ from registration.backends.default.views import RegistrationView
 
 from rest_framework import decorators, status
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import (AllowAny,
+                                        IsAuthenticated)
 
 from apps.user.models import ItsiUser
 from apps.user.itsi import ItsiService
@@ -288,6 +291,22 @@ def forgot(request):
             status_code = status.HTTP_400_BAD_REQUEST
     else:
         response_data = {'errors': ["Email is invalid"]}
+        status_code = status.HTTP_400_BAD_REQUEST
+
+    return Response(data=response_data, status=status_code)
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((IsAuthenticated, ))
+def change_password(request):
+    form = PasswordChangeForm(user=request.user, data=request.POST)
+    if form.is_valid():
+        form.save()
+        update_session_auth_hash(request, form.user)
+        response_data = {'result': 'success'}
+        status_code = status.HTTP_200_OK
+    else:
+        response_data = {'errors': form.errors.values()}
         status_code = status.HTTP_400_BAD_REQUEST
 
     return Response(data=response_data, status=status_code)
