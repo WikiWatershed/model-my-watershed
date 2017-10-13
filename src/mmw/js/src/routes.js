@@ -4,6 +4,7 @@ var router = require('./router').router,
     settings = require('./core/settings'),
     DrawController = require('./draw/controllers').DrawController,
     AnalyzeController = require('./analyze/controllers').AnalyzeController,
+    AccountController = require('./account/controllers').AccountController,
     DataCatalogController = require('./data_catalog/controllers').DataCatalogController,
     ModelingController = require('./modeling/controllers').ModelingController,
     CompareController = require('./compare/controllers').CompareController,
@@ -14,6 +15,7 @@ var router = require('./router').router,
 router.addRoute(/^/, DrawController, 'splash');
 router.addRoute(/^draw/, DrawController, 'draw');
 router.addRoute(/^analyze/, AnalyzeController, 'analyze');
+router.addRoute(/^account/, AccountController, 'account');
 router.addRoute('project/new/:modelPackage(/)', ModelingController, 'makeNewProject');
 router.addRoute('project(/:projectId)(/scenario/:scenarioId)(/)', ModelingController, 'project');
 router.addRoute('project/:projectId/clone(/)', ModelingController, 'projectClone');

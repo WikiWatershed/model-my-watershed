@@ -1,0 +1,43 @@
+#account-container {
+    padding: 2em;
+    display: flex;
+    flex-direction: row;
+    position: absolute;
+    top: 44px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    background-color: #eceff1;
+    transition: 0.3s ease left, 0.3s ease right;
+
+    > .page-toggle-column {
+        width: 100px;
+    }
+
+    > .account-page-column {
+        flex-grow: 1;
+    }
+}
+
+#account-container .page-toggle-button {
+    background: none;
+    border: none;
+    display: block;
+    font-size: $font-size-h4;
+    font-weight: lighter;
+
+    &.active {
+        font-weight: bolder;
+        color: $brand-primary;
+    }
+}
+
+#account-container .account-page-container {
+    background: $paper;
+    padding: 2rem;
+    box-sizing: content-box;
+    box-shadow: 1px 1px 1px 0px rgba(0, 0, 0, 0.5);
+    margin-left: 8em;
+    max-width: 700px;
+}

@@ -33,6 +33,8 @@ var utils = {
 
     projectsPageTitle: 'Projects',
 
+    accountPageTitle: 'Account',
+
     filterNoData: function(data) {
         if (data && !isNaN(data) && isFinite(data)) {
             return data.toFixed(3);
