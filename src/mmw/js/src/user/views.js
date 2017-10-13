@@ -12,6 +12,8 @@ var _ = require('underscore'),
     signUpModalTmpl = require('./templates/signUpModal.html'),
     resendModalTmpl = require('./templates/resendModal.html'),
     forgotModalTmpl = require('./templates/forgotModal.html'),
+    changePasswordModalTmpl =
+        require('./templates/changePasswordModal.html'),
     itsiSignUpModalTmpl = require('./templates/itsiSignUpModal.html');
 
 var ENTER_KEYCODE = 13;
@@ -385,10 +387,37 @@ var ItsiSignUpModalView = ModalBaseView.extend({
     }
 });
 
+var ChangePasswordModalView = ModalBaseView.extend({
+    template: changePasswordModalTmpl,
+
+    ui: _.defaults({
+        'oldPassword': '#old_password',
+        'password1': '#new_password1',
+        'password2': '#new_password2'
+    }, ModalBaseView.prototype.ui),
+
+    onModalShown: function() {
+        this.ui.oldPassword.focus();
+    },
+
+    onValidationError: function() {
+        this.ui.oldPassword.focus();
+    },
+
+    setFields: function() {
+        this.model.set({
+            old_password: $(this.ui.oldPassword.selector).val(),
+            new_password1: $(this.ui.password1.selector).val(),
+            new_password2: $(this.ui.password2.selector).val(),
+        }, { silent: true });
+    }
+});
+
 module.exports = {
     LoginModalView: LoginModalView,
     SignUpModalView: SignUpModalView,
     ResendModalView: ResendModalView,
     ForgotModalView: ForgotModalView,
+    ChangePasswordModalView: ChangePasswordModalView,
     ItsiSignUpModalView: ItsiSignUpModalView
 };

@@ -3,6 +3,8 @@
 var Clipboard = require('clipboard'),
     Marionette = require('../../shim/backbone.marionette'),
     moment = require('moment'),
+    userViews = require('../user/views'),
+    userModels = require('../user/models'),
     modalViews = require('../core/modals/views'),
     modalModels = require('../core/modals/models'),
     models = require('./models'),
@@ -20,11 +22,13 @@ var AccountView = Marionette.ItemView.extend({
 
     ui: {
         regenerateKey: '[data-action="regeneratekey"]',
-        copyKey: '[data-action="copykey"]'
+        copyKey: '[data-action="copykey"]',
+        resetPassword: '[data-action="resetpassword"]'
     },
 
     events: {
-        'click @ui.regenerateKey': 'regenerateApiKey'
+        'click @ui.regenerateKey': 'regenerateApiKey',
+        'click @ui.resetPassword': 'resetPassword'
     },
 
     modelEvents: {
@@ -64,6 +68,15 @@ var AccountView = Marionette.ItemView.extend({
         modal.on('confirmation', function() {
             self.model.regenerateToken();
         });
+    },
+
+    resetPassword: function() {
+        var resetPasswordModal =
+            new userViews.ChangePasswordModalView({
+                model: new userModels.ChangePasswordFormModel()
+            });
+
+        resetPasswordModal.render();
     }
 });
 
