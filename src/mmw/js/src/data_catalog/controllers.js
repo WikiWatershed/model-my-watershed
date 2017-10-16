@@ -64,6 +64,7 @@ var DataCatalogController = {
         App.map.set({
             dataCatalogResults: null,
             dataCatalogActiveResult: null,
+            dataCatalogDetailResult: null,
         });
         App.rootView.sidebarRegion.currentView.collection.forEach(
             function(catalogModel) {
