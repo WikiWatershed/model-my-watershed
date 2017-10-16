@@ -198,6 +198,10 @@ var FormView = Marionette.ItemView.extend({
         'click @ui.filterToggle': 'onFilterToggle',
     },
 
+    onBeforeDestroy: function() {
+        App.rootView.secondarySidebarRegion.empty();
+    },
+
     initialize: function() {
         var updateFilterSidebar = _.bind(function() {
             if (App.rootView.secondarySidebarRegion.hasView()) {
