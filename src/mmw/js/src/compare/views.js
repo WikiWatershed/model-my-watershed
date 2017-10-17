@@ -59,6 +59,21 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
         sectionsRegion: '.compare-sections',
     },
 
+    initialize: function() {
+        var self = this;
+
+        // Show the scenario row only after the bootstrap
+        // modal has fired its shown event. The map
+        // set up in the scenarios row needs to happen
+        // after it has fully rendered
+        this.$el.on('shown.bs.modal', function() {
+            self.scenariosRegion.show(new ScenariosRowView({
+                model: self.model,
+                collection: self.model.get('scenarios'),
+            }));
+        });
+    },
+
     highlightButtons: function() {
         var i = this.model.get('visibleScenarioIndex'),
             total = this.model.get('scenarios').length,
@@ -66,16 +81,21 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
             prevButton = this.ui.prevButton,
             nextButton = this.ui.nextButton;
 
-        if (i < 1) {
-            prevButton.removeClass('active');
+        if (total <= minScenarios) {
+            prevButton.hide();
+            nextButton.hide();
         } else {
-            prevButton.addClass('active');
-        }
+            if (i < 1) {
+                prevButton.removeClass('active');
+            } else {
+                prevButton.addClass('active');
+            }
 
-        if (i + minScenarios >= total) {
-            nextButton.removeClass('active');
-        } else {
-            nextButton.addClass('active');
+            if (i + minScenarios >= total) {
+                nextButton.removeClass('active');
+            } else {
+                nextButton.addClass('active');
+            }
         }
     },
 
@@ -90,10 +110,6 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
         this.tabRegion.show(tabPanelsView);
         this.inputsRegion.show(new InputsView({
             model: this.model,
-        }));
-        this.scenariosRegion.show(new ScenariosRowView({
-            model: this.model,
-            collection: this.model.get('scenarios'),
         }));
 
         showSectionsView();
@@ -348,6 +364,7 @@ var ChartRowView = Marionette.ItemView.extend({
             chartDiv = this.model.get('chartDiv'),
             chartEl = document.getElementById(chartDiv),
             name = this.model.get('name'),
+            chartName = name.replace(/\s/g, ''),
             label = this.model.get('unitLabel') +
                     ' (' + this.model.get('unit') + ')',
             colors = this.model.get('seriesColors'),
@@ -379,7 +396,7 @@ var ChartRowView = Marionette.ItemView.extend({
 
         $(chartEl.parentNode).css({ 'width': ((_.size(this.model.get('values')) * models.constants.COMPARE_COLUMN_WIDTH + models.constants.CHART_AXIS_WIDTH)  + 'px') });
         chart.renderCompareMultibarChart(
-            chartEl, name, label, colors, stacked, yMax, data,
+            chartEl, chartName, label, colors, stacked, yMax, data,
             models.constants.COMPARE_COLUMN_WIDTH, models.constants.CHART_AXIS_WIDTH, onRenderComplete);
     },
 });
@@ -414,6 +431,13 @@ var ChartView = Marionette.CollectionView.extend({
         // Slide axis
         this.$('.nvd3.nv-wrap.nv-axis').css({
             'transform': 'translate(' + (-marginLeft) + 'px)',
+        });
+
+        // Slide clipPath so tooltips don't show outside charts
+        // It doesn't matter too much what the y-translate is
+        // so long as its sufficiently large
+        this.$('defs > clipPath > rect').attr({
+            'transform': 'translate(' + (-marginLeft) + ', -30)',
         });
 
         // Show charts from visibleScenarioIndex
@@ -887,11 +911,11 @@ function getCompareScenarios(isTr55) {
         aoi_census = ccScenario.get('aoi_census');
 
     if (isTr55) {
-        // Add 100% Forest Cover scenario
+        // Add Predominantly Forested scenario
         var forestScenario = copyScenario(ccScenario, aoi_census);
 
         forestScenario.set({
-            name: '100% Forest Cover',
+            name: 'Predominantly Forested',
             is_current_conditions: false,
             is_pre_columbian: true,
         });
@@ -935,5 +959,6 @@ function showCompare() {
 module.exports = {
     showCompare: showCompare,
     CompareWindow2: CompareWindow2,
-    CompareWindow: CompareWindow
+    CompareWindow: CompareWindow,
+    getTr55Tabs: getTr55Tabs
 };

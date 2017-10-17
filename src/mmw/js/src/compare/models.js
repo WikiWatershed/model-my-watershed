@@ -7,7 +7,7 @@ var _ = require('lodash'),
 
 var CHART = 'chart',
     TABLE = 'table',
-    MIN_VISIBLE_SCENARIOS = 3,
+    MIN_VISIBLE_SCENARIOS = 5,
     CHART_AXIS_WIDTH = 82,
     COMPARE_COLUMN_WIDTH = 134;
 
@@ -43,6 +43,16 @@ var ChartRowsCollection = Backbone.Collection.extend({
         this.scenarios.forEach(function(scenario) {
             scenario.get('results').on('change', update);
         });
+    },
+
+    getScenarioResults: function(typeKey) {
+        return this.scenarios.map(function(scenario) {
+            var resultKey = coreUtils.getTR55ResultKey(scenario),
+                result = scenario.get('results')
+                                 .findWhere({ name: typeKey })
+                                 .get('result');
+            return result[typeKey][resultKey];
+        });
     }
 });
 
@@ -52,23 +62,17 @@ var Tr55RunoffCharts = ChartRowsCollection.extend({
                                                .get('inputs')
                                                .findWhere({ name: 'precipitation' }),
             precipitation = coreUtils.convertToMetric(precipitationInput.get('value'), 'in'),
-            results = this.scenarios.map(function(scenario) {
-                return scenario.get('results')
-                               .findWhere({ name: 'runoff' })
-                               .get('result');
-            });
+            results = this.getScenarioResults('runoff');
 
         this.forEach(function(chart) {
             var key = chart.get('key'),
                 values = [];
 
             if (key === 'combined') {
-                values = _.map(results, function(result) {
-                    return result.runoff.modified;
-                });
+                values = results;
             } else {
                 values = _.map(results, function(result) {
-                    return result.runoff.modified[key];
+                    return result[key];
                 });
             }
 
@@ -83,17 +87,12 @@ var Tr55RunoffCharts = ChartRowsCollection.extend({
 var Tr55QualityCharts = ChartRowsCollection.extend({
     update: function() {
         var aoivm = this.aoiVolumeModel,
-            results = this.scenarios.map(function(scenario) {
-                return scenario.get('results')
-                               .findWhere({ name: 'quality' })
-                               .get('result');
-            });
+            results = this.getScenarioResults('quality');
 
         this.forEach(function(chart) {
             var name = chart.get('name'),
                 values = _.map(results, function(result) {
-                    var measures = result.quality.modified,
-                        load = _.find(measures, { measure: name }).load;
+                    var load = _.find(result, { measure: name }).load;
 
                     return aoivm.getLoadingRate(load);
                 });

@@ -204,6 +204,8 @@ var FormView = Marionette.ItemView.extend({
                 this.showFilterSidebar();
             }
 
+            this.render();
+
         }, this);
 
         // Update the filter sidebar when there's a new active catalog
@@ -896,7 +898,7 @@ var CheckboxFilterView = FilterBaseView.extend({
     },
 
     modelEvents: {
-        'change:active': 'render'
+        'change': 'render'
     },
 
     toggleState: function() {

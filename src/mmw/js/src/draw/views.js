@@ -507,7 +507,10 @@ var DrawToolBaseView = Marionette.ItemView.extend({
 
     initialize: function(options) {
         this.resetDrawingState = options.resetDrawingState;
-        var self = this;
+        this.onMapZoom = _.bind(this.onMapZoom, this);
+
+        var self = this,
+            map = App.getLeafletMap();
 
         $(document).on('mouseup', function(e) {
             var isTargetOutside = $(e.target).parents('.dropdown-menu').length === 0;
@@ -515,11 +518,12 @@ var DrawToolBaseView = Marionette.ItemView.extend({
                 self.model.closeDrawTool();
             }
         });
+
+        map.on('zoomend', this.onMapZoom);
     },
 
     templateHelpers: function() {
         var activeDrawTool = this.model.get('activeDrawTool'),
-            activeDrawToolItem = this.model.get('activeDrawToolItem'),
             currentZoomLevel = App.getLeafletMap().getZoom(),
             openDrawTool = this.model.get('openDrawTool'),
             activeTitle = null,
@@ -527,9 +531,7 @@ var DrawToolBaseView = Marionette.ItemView.extend({
             toolData = this.getToolData();
 
         if (activeDrawTool === toolData.id) {
-            var activeItem = _.find(toolData.items, function(item) {
-                return item.id === activeDrawToolItem;
-            });
+            var activeItem = this.getActiveToolDataItem();
             activeTitle = activeItem.title;
             activeDirections = activeItem.directions;
         }
@@ -551,6 +553,21 @@ var DrawToolBaseView = Marionette.ItemView.extend({
         this.activatePopovers();
     },
 
+    onMapZoom: function() {
+        var activeItem = this.getActiveToolDataItem();
+        if (activeItem && App.getLeafletMap().getZoom() < activeItem.minZoom) {
+            this.resetDrawingState();
+        }
+        this.render();
+    },
+
+    getActiveToolDataItem: function() {
+        var activeDrawToolItem = this.model.get('activeDrawToolItem');
+        return _.find(this.getToolData().items, function(item) {
+            return item.id === activeDrawToolItem;
+        });
+    },
+
     openDrawTool: function() {
         this.model.openDrawTool(this.id);
     },
@@ -560,6 +577,12 @@ var DrawToolBaseView = Marionette.ItemView.extend({
             placement: 'top',
             trigger: 'focus'
         });
+    },
+
+    onDestroy: function() {
+        var map = App.getLeafletMap();
+
+        map.off('zoomend', this.onMapZoom);
     }
 });
 

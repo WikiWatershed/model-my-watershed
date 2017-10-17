@@ -237,7 +237,7 @@ LAYER_GROUPS = {
                         'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
                         'My Watershed Technical Documentation on Boundaries.'
                         '</a>',
-            'minZoom': 7,
+            'minZoom': 6,
             'selectable': True,
             'searchable': True,
             'search_rank': 30,
@@ -274,7 +274,7 @@ LAYER_GROUPS = {
                         'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
                         'My Watershed Technical Documentation on Boundaries.'
                         '</a>',
-            'minZoom': 9,
+            'minZoom': 8,
             'selectable': True,
             'searchable': True,
             'search_rank': 10,
@@ -291,7 +291,7 @@ LAYER_GROUPS = {
                         'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
                         'My Watershed Technical Documentation on Boundaries.'
                         '</a>',
-            'minZoom': 9,
+            'minZoom': 6,
             'selectable': True,
         },
         {
@@ -307,7 +307,7 @@ LAYER_GROUPS = {
                         'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
                         'My Watershed Technical Documentation on Boundaries.'
                         '</a>',
-            'minZoom': 6,
+            'minZoom': 5,
             'selectable': True,
         },
         {
@@ -322,7 +322,7 @@ LAYER_GROUPS = {
                         'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
                         'My Watershed Technical Documentation on Boundaries.'
                         '</a>',
-            'minZoom': 9,
+            'minZoom': 8,
             'selectable': True,
         },
         {
@@ -330,7 +330,7 @@ LAYER_GROUPS = {
             'table_name': 'dep_municipalities',
             'display': 'PA Municipalities',
             'short_display': 'PA Municipalities',
-            'minZoom': 7,
+            'minZoom': 6,
             'perimeter': pa_perimeter,
         },
     ],

@@ -287,20 +287,21 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
 }
 
 #compare-new {
-  background-color: #fff;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 8000;
-  display: flex;
-  flex-direction: column;
-  margin-left: auto;
-  margin-right: auto;
-  margin-top: 20px;
-  max-width: 1200px;
-  max-height: calc(100% - 20px);
-  -webkit-font-smoothing: antialiased;
+    overflow-y: hidden;
+    padding-left: 0 !important;
+}
+
+#compare-new-dialog {
+    z-index: 8000;
+    display: flex;
+    flex-direction: column;
+    margin-left: auto;
+    margin-right: auto;
+    width: auto;
+    height: auto;
+    margin-top: 20px;
+    max-width: 1200px;
+    height: calc(100% - 20px);
 
   @media screen and (max-width: 1300px) {
     max-width: 1000px;
@@ -309,6 +310,14 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
   @media screen and (max-width: 1000px) {
     margin-top: 0;
     max-height: 100%;
+  }
+
+  .compare-modal-content {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: calc(100% - 20px);
+      -webkit-font-smoothing: antialiased;
   }
 
   .compare-actions {
@@ -493,6 +502,7 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
   }
 
   .compare-header {
+    position: relative;
     padding: $compare-padding $compare-padding 11px;
     background-color: #eee;
     border-bottom: 1px solid #ccc;
@@ -645,4 +655,25 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
       }
     }
   }
+}
+
+.itsi-compare-modal {
+  max-width: 100% !important;
+  max-height: 100% !important;
+}
+
+.itsi-compare-row {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+
+.itsi-compare-dialog {
+  margin-left: 3% !important;
+  max-width: 70% !important;
+  max-height: 100% !important;
+  width: 70% !important;
+  height: 100% !important;
 }

@@ -116,14 +116,14 @@ function copyProject(project, aoi_census) {
     });
 }
 
-// Adds special 100% Forest Cover Scenario for the Compare View
+// Adds special Predominantly Forested Scenario for the Compare View
 function addForestCoverScenario(aoi_census) {
     var project = App.currentProject,
         forestCoverScenario = new modelingModels.ScenarioModel({}),
         currentConditions = project.get('scenarios').findWhere({ is_current_conditions: true });
 
     forestCoverScenario.set({
-        name: '100% Forest Cover',
+        name: 'Predominantly Forested',
         is_current_conditions: false,
         is_pre_columbian: true,
         modifications: currentConditions.get('modifications'),

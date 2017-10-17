@@ -921,24 +921,25 @@ describe('Modeling', function() {
             describe('#validateNewScenarioName', function() {
                 it ('returns null if valid rename', function() {
                     var collection = getTestScenarioCollection(),
-                        validationMessage = collection.validateNewScenarioName(collection.at(1),
-                                                'My New Unique Scenario Name');
+                        boundFunc = _.bind(collection.validateNewScenarioName, collection.at(1)),
+                        validationMessage = boundFunc('My New Unique Scenario Name');
 
                     assert.equal(validationMessage, null);
                 });
 
                 it('ignores case when comparing the new name with existing names', function() {
                     var collection = getTestScenarioCollection(),
-                        validationMessage = collection.validateNewScenarioName(collection.at(1),
-                                                'cUrreNt condiTIONS');
+                        boundFunc = _.bind(collection.validateNewScenarioName, collection.at(1)),
+                        validationMessage = boundFunc('cUrreNt condiTIONS');
 
                     assert.notEqual(validationMessage, null);
                 });
 
                 it('will not show error when leaving name as is', function() {
                     var collection = getTestScenarioCollection(),
-                        validationMessage = collection.validateNewScenarioName(collection.at(1),
-                                                'New Scenario 1');
+                        boundFunc = _.bind(collection.validateNewScenarioName, collection.at(1)),
+                        validationMessage = boundFunc('New Scenario 1');
+
                     assert.equal(validationMessage, null);
                 });
             });
