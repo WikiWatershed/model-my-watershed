@@ -36,7 +36,21 @@ var AccountView = Marionette.ItemView.extend({
     },
 
     onRender: function() {
-        new Clipboard(this.ui.copyKey[0]);
+        var copyKeyBtn = this.ui.copyKey,
+            clipboard = new Clipboard(copyKeyBtn[0]);
+
+        clipboard.on('success', function() {
+            var beforeTitle = copyKeyBtn.data('original-title');
+
+            copyKeyBtn.attr('title', 'Copied!')
+                      .tooltip('fixTitle')
+                      .tooltip('show');
+
+            copyKeyBtn.attr('title', beforeTitle)
+                      .tooltip('fixTitle');
+        });
+
+        this.activateTooltip();
     },
 
     templateHelpers: function() {
@@ -77,6 +91,12 @@ var AccountView = Marionette.ItemView.extend({
             });
 
         resetPasswordModal.render();
+    },
+
+    activateTooltip: function() {
+        this.ui.copyKey.tooltip({
+            trigger: 'hover'
+        });
     }
 });
 

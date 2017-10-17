@@ -19,6 +19,9 @@
         <button type="button"
                 {{'disabled' if fetching}}
                 data-action="copykey"
+                data-toggle="tooltip"
+                title="Copy to clipboard"
+                data-placement="bottom"
                 class="btn btn-md btn-copy"
                 data-clipboard-target="#api-key">
             {% if fetching %}
