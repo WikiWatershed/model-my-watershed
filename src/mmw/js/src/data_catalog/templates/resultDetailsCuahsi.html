@@ -59,21 +59,12 @@
             <i class="fa fa-globe"></i>&nbsp;Web Services
         </a>
     </p>
-    <div class="spinner {{ "hidden" if not fetching }}"></div>
-    <div class="error {{ "hidden" if not error }}">
-        <i class="fa fa-exclamation-triangle"></i>
-    </div>
+    <div id="cuahsi-status-region"></div>
     <hr />
     <h3>Source Data</h3>
-    <div class="cuahsi-buttons pull-right {{ "hidden" if fetching }}">
-        <button id="cuahsi-button-chart" class="{{ 'active' if mode == 'chart' }}"><i class="fa fa-bar-chart"></i></button>
-        <button id="cuahsi-button-table" class="{{ 'active' if mode == 'table' }}"><i class="fa fa-table"></i></button>
-    </div>
-    <p>
-        Last value collected {{ last_date|toTimeAgo }}
-    </p>
-    <div id="cuahsi-values-region"></div>
-    <!-- TODO Insert Chart https://github.com/WikiWatershed/model-my-watershed/issues/2238 -->
+    <div id="cuahsi-switcher-region"></div>
+    <div id="cuahsi-table-region" class="{{ 'hidden' if mode != 'table' }}"></div>
+    <div id="cuahsi-chart-region" class="{{ 'hidden' if mode != 'chart' }}"></div>
     <hr />
     <h3>Citation</h3>
     <p>{{ service_citation }}</p>
