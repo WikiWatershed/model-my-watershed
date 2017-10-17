@@ -551,8 +551,8 @@ var CuahsiVariable = Backbone.Model.extend({
         // to be either from begin date to end date, or 1 week up to end date,
         // whichever is shorter.
         if (!from || moment(from).isBefore(begin_date)) {
-            if (end_date.diff(begin_date, 'weeks', true) > 1) {
-                params.from_date = end_date.subtract(7, 'days');
+            if (end_date.diff(begin_date, 'months', true) > 1) {
+                params.from_date = moment(end_date).subtract(1, 'months');
             } else {
                 params.from_date = begin_date;
             }
