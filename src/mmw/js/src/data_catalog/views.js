@@ -2,7 +2,9 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
+    HighstockChart = require('../../shim/highstock'),
     App = require('../app'),
     analyzeViews = require('../analyze/views.js'),
     settings = require('../core/settings'),
@@ -681,6 +683,121 @@ var CuahsiTableView = Marionette.ItemView.extend({
 
 var CuahsiChartView = Marionette.ItemView.extend({
     template: resultDetailsCuahsiChartTmpl,
+
+    ui: {
+        'chartDiv': '#cuahsi-variable-chart',
+        'select': 'select',
+    },
+
+    events: {
+        'change @ui.select': 'selectVariable',
+    },
+
+    modelEvents: {
+        'change:selected': 'renderChart',
+    },
+
+    templateHelpers: function() {
+        var variables = this.collection.map(function(v) {
+                return {
+                    id: v.get('id'),
+                    concept_keyword: v.get('concept_keyword'),
+                };
+            });
+
+        return {
+            variables: variables,
+        };
+    },
+
+    initialize: function(attrs) {
+        var selected = this.collection.first().get('id');
+
+        this.model = new Backbone.Model();
+        this.model.set({
+            selected: selected,
+            result: attrs.result,
+        });
+    },
+
+    selectVariable: function() {
+        var selected = this.ui.select.val();
+
+        this.model.set('selected', selected);
+    },
+
+    onShow: function() {
+        this.renderChart();
+    },
+
+    initializeChart: function(variable) {
+        var chart = new HighstockChart({
+                chart: {
+                    renderTo: 'cuahsi-variable-chart',
+                },
+
+                rangeSelector: {
+                    selected: 1,
+                    buttons: [
+                        { type: 'week', count: 1, text: '1w' },
+                        { type: 'week', count: 2, text: '2w' },
+                        { type: 'month', count: 1, text: '1m' },
+                    ],
+                },
+
+                xAxis: {
+                    ordinal: false,
+                },
+
+                yAxis: {
+                    title: {
+                        text: variable.get('units'),
+                    }
+                },
+
+                // TODO Check why this isn't working
+                lang: {
+                    thousandsSep: ','
+                },
+
+                title : {
+                    text : null
+                },
+
+                series : [{
+                    name : variable.get('concept_keyword'),
+                    data : variable.getChartData(),
+                    color: '#389b9b',
+                    tooltip: {
+                        valueSuffix: ' ' + variable.get('units'),
+                        valueDecimals: 2,
+                    },
+                }]
+            });
+
+        return chart;
+    },
+
+    renderChart: function() {
+        var id = this.model.get('selected'),
+            variable = this.collection.findWhere({ id: id });
+
+        if (!this.chart) {
+            this.chart = this.initializeChart(variable);
+        } else {
+            this.chart.yAxis[0].setTitle({
+                text: variable.get('units'),
+            });
+
+            this.chart.series[0].update({
+                name: variable.get('concept_keyword'),
+                data: variable.getChartData(),
+                tooltip: {
+                    valueSuffix: ' ' + variable.get('units'),
+                },
+            });
+        }
+    }
 });
 
 var ResultMapPopoverDetailView = Marionette.LayoutView.extend({

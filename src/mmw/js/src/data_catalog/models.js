@@ -598,6 +598,15 @@ var CuahsiVariable = Backbone.Model.extend({
             units: response.variable.units.abbreviation,
             most_recent_value: mrv,
         };
+    },
+
+    getChartData: function() {
+        return this.get('values').map(function(v) {
+            return [
+                moment(v.get('datetime')).valueOf(),
+                parseFloat(v.get('value'))
+            ];
+        });
     }
 });
 
