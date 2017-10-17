@@ -120,6 +120,7 @@ def get_client_settings(request):
     # ?bigcz query parameter is present. This covers staging sites, etc.
     bigcz = settings.BIGCZ_HOST in request.get_host() or 'bigcz' in request.GET
     title = 'Critical Zone Data Explorer' if bigcz else 'Model My Watershed'
+    max_area = settings.BIGCZ_MAX_AREA if bigcz else settings.MMW_MAX_AREA
     EMBED_FLAG = settings.ITSI['embed_flag']
     client_settings = {
         'client_settings': json.dumps({
@@ -129,14 +130,17 @@ def get_client_settings(request):
             'coverage_layers': create_layer_config_with_urls('coverage'),
             'stream_layers': create_layer_config_with_urls('stream'),
             'nhd_perimeter': settings.NHD_REGION2_PERIMETER,
+            'conus_perimeter': settings.CONUS_PERIMETER,
             'draw_tools': settings.DRAW_TOOLS,
             'map_controls': settings.MAP_CONTROLS,
             'vizer_urls': settings.VIZER_URLS,
             'vizer_ignore': settings.VIZER_IGNORE,
             'vizer_names': settings.VIZER_NAMES,
             'model_packages': get_model_packages(),
+            'max_area': max_area,
             'mapshed_max_area': settings.GWLFE_CONFIG['MaxAoIArea'],
             'data_catalog_enabled': bigcz,
+            'data_catalog_page_size': settings.BIGCZ_CLIENT_PAGE_SIZE,
             'itsi_enabled': not bigcz,
             'title': title,
         }),

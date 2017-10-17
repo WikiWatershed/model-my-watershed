@@ -70,3 +70,49 @@
     }
   }
 }
+
+// Hidden form for GMS file downloads
+#export-gms-form {
+    display: none;
+}
+
+.model-details-dropdown {
+    width: 240px;
+    padding: 1rem;
+    z-index: 600;
+
+    > h3 {
+        margin: 10px 0;
+        font-weight: bold;
+        i {
+            font-size: 12px;
+            vertical-align: middle;
+            margin-left: 4px;
+            color: black;
+        }
+    }
+
+    > .edit-btn {
+        cursor: pointer;
+        font-size: $font-size-h6;
+        padding: 0px;
+        border: none;
+        background: none;
+        color: $brand-primary;
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    > .aoi-area {
+        margin-left: 0;
+    }
+}
+
+.itsi-model-toolbar {
+  display: -webkit-box !important;
+  display: -webkit-flex !important;
+  display: flex !important;
+  -webkit-flex-wrap: nowrap !important;
+  flex-wrap: nowrap !important;
+}

@@ -94,14 +94,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     worker.vm.synced_folder ENV.fetch("RWD_DATA", "/tmp"), "/opt/rwd-data"
 
     # AWS
-    worker.vm.synced_folder "~/.aws", "/aws"
+    worker.vm.synced_folder "~/.aws", "/var/lib/mmw/.aws"
 
     # Docker
     worker.vm.network "forwarded_port", {
       guest: 2375,
       host: 2375
     }.merge(VAGRANT_NETWORK_OPTIONS)
-    # SJS
+    # Geoprocessing Service
     worker.vm.network "forwarded_port", {
       guest: 8090,
       host: 8090

@@ -6,15 +6,26 @@
   right: 0;
   transition: all 200ms;
 
-  // Set top of map to combined height of initial header and toolbar.
-  &.-projectheader {
+  // Set top of map to combined height of initial header and model toolbar + project toolbar
+  &.-toolbarheader {
     top: $height-xl * 2 + $height-lg;
+  }
+
+  // Set top of map to combined height of initial header and project toolbar
+  &.-projectheader {
+      top: $height-xl + $height-lg;
   }
 
   // Sets map to correct container size for sidebar.
   &.-sidebar {
     left: $sidebar-width;
   }
+
+  // Sets map to correct container size for sidebar + secondary sidebar
+  &.-sidebar.-double {
+      left: calc(#{$sidebar-width} + #{$secondary-sidebar-width});
+  }
+
   .compare-scenarios-container & {
     top: 0;
   }
@@ -29,6 +40,22 @@
   right: 0;
   left: 0;
   height: 100%;
+
+  &.bigcz-highlight-map:after {
+    content: "";
+    border: 3px solid gold;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+  }
+
+  &.bigcz-detail-map:after {
+    content: "";
+    border: 3px solid steelblue;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+  }
 }
 
 #overlay-subclass-vector .disabled, #overlay-subclass-raster .disabled {
@@ -244,4 +271,14 @@
   .delete-modification {
     padding: 0;
   }
+}
+
+
+div.leaflet-popup.data-catalog-popover.leaflet-zoom-animated
+div.leaflet-popup-content-wrapper {
+    border-radius: 0px;
+    div.leaflet-popup-content {
+        margin-left: 10px;
+        margin-bottom: 10px;
+    }
 }

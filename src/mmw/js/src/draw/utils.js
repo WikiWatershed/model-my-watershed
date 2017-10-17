@@ -6,12 +6,13 @@ var $ = require('jquery'),
     JSZip = require('jszip'),
     turfArea = require('turf-area'),
     turfBboxPolygon = require('turf-bbox-polygon'),
-    coreUtils = require('../core/utils');
+    coreUtils = require('../core/utils'),
+    intersect = require('turf-intersect'),
+    settings = require('../core/settings');
 
 var CANCEL_DRAWING = 'CANCEL_DRAWING';
 
-// Keep in sync with src/api/main.py in rapid-watershed-delineation.
-var MAX_AREA = 75000; // About the size of West Virginia (in km^2)
+var MAX_AREA = settings.get('max_area');
 
 var polygonDefaults = {
         fillColor: '#E77471',
@@ -90,7 +91,8 @@ function cancelDrawing(map) {
 
 function getGeoJsonLatLngs(shape) {
     if (shape.coordinates) {
-        return L.GeoJSON.coordsToLatLngs(shape.coordinates, 2);
+        var nesting = shape.type === "MultiPolygon" ? 2 : 1;
+        return L.GeoJSON.coordsToLatLngs(shape.coordinates, nesting);
     } else if (shape.geometry) {
         return L.GeoJSON.coordsToLatLngs(shape.geometry.coordinates, 1);
     } else if (shape.features) {
@@ -109,10 +111,13 @@ function shapeArea(shape) {
             'm<sup>2</sup>', 'km<sup>2</sup>');
 }
 
+function shapeBoundingBox(shape) {
+    return L.latLngBounds(getGeoJsonLatLngs(shape));
+}
+
 // Get the bounding box of the shape and return its area in km2
 function shapeBoundingBoxArea(shape) {
-    var shapeLatLngPoints = getGeoJsonLatLngs(shape),
-        latLngBounds = L.latLngBounds(shapeLatLngPoints),
+    var latLngBounds = shapeBoundingBox(shape),
         boundingBox = [
             latLngBounds.getWest(),
             latLngBounds.getSouth(),
@@ -159,14 +164,20 @@ function isValidForAnalysis(shape) {
     return false;
 }
 
+function withinConus(shape) {
+    return intersect(settings.get('conus_perimeter'), shape);
+}
+
 module.exports = {
     drawPolygon: drawPolygon,
     placeMarker: placeMarker,
     createRwdMarkerIcon: createRwdMarkerIcon,
     cancelDrawing: cancelDrawing,
     polygonDefaults: polygonDefaults,
+    shapeBoundingBox: shapeBoundingBox,
     shapeBoundingBoxArea: shapeBoundingBoxArea,
     isValidForAnalysis: isValidForAnalysis,
+    withinConus: withinConus,
     loadAsyncShpFilesFromZip: loadAsyncShpFilesFromZip,
     NHD: 'nhd',
     DRB: 'drb',

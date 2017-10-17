@@ -5,13 +5,16 @@ var _ = require('underscore'),
     Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
+    router = require('../router').router,
     drawViews = require('../draw/views'),
+    modalModels = require('../core/modals/models'),
     models = require('./models'),
     geocoderTmpl = require('./templates/geocoder.html'),
     searchTmpl = require('./templates/search.html'),
     suggestionsTmpl = require('./templates/suggestions.html');
 
-var ENTER_KEYCODE = 13;
+var ENTER_KEYCODE = 13,
+    ESC_KEYCODE = 27;
 
 var ICON_BASE = 'search-icon fa ',
     ICON_DEFAULT = 'fa-search',
@@ -24,20 +27,31 @@ var MSG_DEFAULT = '',
     MSG_ERROR   = 'Oops! Something went wrong.';
 
 
-function addBoundaryLayer(model) {
+function addBoundaryLayer(suggestionModel, shape) {
+    var layerCode = suggestionModel.get('code'),
+        shapeId = suggestionModel.get('id'),
+        shapeName = suggestionModel.get('text'),
+        layerName = suggestionModel.get('label'),
+        wkaoi = layerCode + '__' + shapeId;
+
+   drawViews.addLayer(shape, shapeName, layerName, wkaoi);
+}
+
+function addGeocoderBoundaryLayer(suggestionModel) {
     App.restApi.getPolygon({
-            layerCode: model.get('code'),
-            shapeId: model.get('id')
+            layerCode: suggestionModel.get('code'),
+            shapeId: suggestionModel.get('id')
         })
         .then(function(shape) {
-            drawViews.addLayer(shape);
+            App.map.set('selectedGeocoderArea', shape);
         });
 }
 
 function selectSearchSuggestion(model) {
     model.setMapViewToLocation();
     if (model.get('isBoundaryLayer')) {
-        addBoundaryLayer(model);
+        addGeocoderBoundaryLayer(model);
+        router.navigate('draw/', { trigger: true });
     } else {
         drawViews.clearAoiLayer();
     }
@@ -68,20 +82,26 @@ var SearchBoxView = Marionette.LayoutView.extend({
         'searchIcon': '.search-icon',
         'message': '.message',
         'messageDismiss': '.dismiss',
-        'resultsRegion': '#geocode-search-results-region'
+        'resultsRegion': '#geocode-search-results-region',
+        'selectButton': '.search-select-btn'
     },
 
     events: {
         'keyup @ui.searchBox': 'processSearchInputEvent',
         'click @ui.messageDismiss': 'dismissAction',
+        'click @ui.selectButton': 'validateShapeAndGoToAnalyze'
     },
 
     modelEvents: {
-        'change:query': 'render'
+        'change:query change:selectedSuggestion': 'render'
     },
 
     regions: {
         'resultsRegion': '#geocode-search-results-region'
+    },
+
+    onDestroy: function() {
+        App.map.set('selectedGeocoderArea', null);
     },
 
     setIcon: function(icon) {
@@ -119,7 +139,12 @@ var SearchBoxView = Marionette.LayoutView.extend({
     },
 
     processSearchInputEvent: function(e) {
-        var query = $(e.target).val().trim();
+        var query = this.ui.searchBox.val().trim();
+
+        if (e.keyCode === ESC_KEYCODE) {
+            this.dismissAction();
+            return false;
+        }
 
         if (query === '') {
             this.setStateDefault();
@@ -191,9 +216,8 @@ var SearchBoxView = Marionette.LayoutView.extend({
             .first()
             .select()
                 .done(function() {
-                    self.setStateDefault();
                     var model = self.collection.first();
-                    selectSearchSuggestion(model);
+                    self.selectSuggestion(model);
                 })
                 .fail(_.bind(this.setStateError, this))
                 .always(_.bind(this.reset, this));
@@ -209,9 +233,8 @@ var SearchBoxView = Marionette.LayoutView.extend({
         this.listenTo(view, 'suggestion:select:in-progress', function() {
             this.setStateWorking();
         });
-        this.listenTo(view, 'suggestion:select:success', function() {
-            this.reset();
-            this.setStateDefault();
+        this.listenTo(view, 'suggestion:select:success', function(suggestionModel) {
+            this.selectSuggestion(suggestionModel);
         });
         this.listenTo(view, 'suggestion:select:failure', function() {
             this.setStateError();
@@ -224,14 +247,47 @@ var SearchBoxView = Marionette.LayoutView.extend({
         this.getRegion('resultsRegion').empty();
     },
 
+    selectSuggestion: function(suggestionModel) {
+        this.dismissAction();
+        this.model.set('selectedSuggestion', suggestionModel);
+        selectSearchSuggestion(suggestionModel);
+    },
+
     reset: function() {
-        this.model.set('query', '');
+        this.ui.searchBox.val('');
+        this.model.set({
+            query: '',
+            selectedSuggestion: null,
+        });
         this.emptyResultsRegion();
+        App.map.set('selectedGeocoderArea', null);
     },
 
     dismissAction: function() {
         this.reset();
         this.setStateDefault();
+    },
+
+    validateShapeAndGoToAnalyze: function() {
+        var selectedBoundary = this.model.get('selectedSuggestion'),
+            selectedBoundaryShape = App.map.get('selectedGeocoderArea');
+
+        if (!selectedBoundary.get('isBoundaryLayer') ||
+            !selectedBoundaryShape) {
+            // Fail early if there's no selected geocoder result on the map
+            // or the selected suggestion isn't a boundary layer
+            return false;
+        }
+
+        drawViews.validateShape(selectedBoundaryShape)
+            .fail(function(message) {
+                drawViews.displayAlert(message, modalModels.AlertTypes.error);
+            })
+            .done(function() {
+                App.map.set('selectedGeocoderArea', null);
+                addBoundaryLayer(selectedBoundary, selectedBoundaryShape);
+                router.navigate('/analyze', { trigger: true});
+            });
     }
 });
 
@@ -254,8 +310,7 @@ var SuggestionsView = Backbone.View.extend({
     },
 
     selectSuccess: function(model) {
-        selectSearchSuggestion(model);
-        this.trigger('suggestion:select:success');
+        this.trigger('suggestion:select:success', model);
     },
 
     selectFail: function() {

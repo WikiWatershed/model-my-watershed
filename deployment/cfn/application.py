@@ -20,7 +20,6 @@ from utils.constants import (
     EC2_INSTANCE_TYPES,
     GRAPHITE,
     HTTP,
-    HTTP_ALT,
     HTTPS,
     POSTGRESQL,
     REDIS,
@@ -332,7 +331,7 @@ class Application(StackNode):
                     IpProtocol='tcp', CidrIp=ALLOW_ALL_CIDR, FromPort=p,
                     ToPort=p
                 )
-                for p in [HTTP, HTTP_ALT, HTTPS]
+                for p in [HTTP, HTTPS]
             ],
             Tags=self.get_tags(Name=app_server_security_group_name)
         ))

@@ -64,6 +64,11 @@ var App = new Marionette.Application({
 
         // Enable screenshot functionality
         initializeShutterbug();
+
+        // Enabling hiding popovers from within them
+        window.closePopover = function() {
+            $('[data-toggle="popover"]').popover('hide');
+        };
     },
 
     load: function(data) {
@@ -85,6 +90,7 @@ var App = new Marionette.Application({
         this.layerPickerView = new LayerPickerView({
             collection: this.layerTabs,
             leafletMap: this.getLeafletMap(),
+            timeSliderRegion: this.rootView.layerPickerSliderRegion,
         });
         this.rootView.layerPickerRegion.show(this.layerPickerView);
     },
@@ -140,13 +146,89 @@ var App = new Marionette.Application({
 function RestAPI() {
     return {
         getPolygon: function(args) {
-            var url = '/api/modeling/boundary-layers/' + args.layerCode + '/' + args.shapeId;
+            var url = '/mmw/modeling/boundary-layers/' + args.layerCode + '/' + args.shapeId;
             return $.ajax({
                 'url': url,
                 'type': 'GET'
             });
         }
     };
+}
+
+function adjustModelViewBeforeITSIScreenshot() {
+    toggleModelViewForITSIScreenshot(true);
+}
+
+function adjustModelViewAfterITSIScreenshot() {
+    toggleModelViewForITSIScreenshot(false);
+}
+
+function toggleModelViewForITSIScreenshot(adjustForScreenshot) {
+    var modelHeaderProject = '.project',
+        modelHeaderToolbar = '.toolbar',
+        modelToolbarContainer = '.toolbar-container',
+        itsiModelToolbar = 'itsi-model-toolbar';
+
+    if (adjustForScreenshot) {
+        $(modelHeaderProject).addClass(itsiModelToolbar);
+        $(modelHeaderToolbar).addClass(itsiModelToolbar);
+        $(modelToolbarContainer).addClass(itsiModelToolbar);
+    } else {
+        $(modelHeaderProject).removeClass(itsiModelToolbar);
+        $(modelHeaderToolbar).removeClass(itsiModelToolbar);
+        $(modelToolbarContainer).removeClass(itsiModelToolbar);
+    }
+}
+
+function adjustCompareViewBeforeITSIScreenshot() {
+    toggleCompareViewForITSIScreenshot(true);
+}
+
+function adjustCompareViewAfterITSIScreenshot() {
+    toggleCompareViewForITSIScreenshot(false);
+}
+
+function toggleCompareViewForITSIScreenshot(adjustForScreenshot) {
+    var itsiCompareDialog = 'itsi-compare-dialog',
+        itsiCompareModal = 'itsi-compare-modal',
+        itsiCompareRow = 'itsi-compare-row',
+        compareDialog = '#compare-new-dialog',
+        compareModalContent = '.compare-modal-content',
+        compareCloseButton = '.compare-close',
+        compareChartButton = '#compare-input-button-chart',
+        compareTableButton = '#compare-input-button-table',
+        compareChartRow = '.compare-chart-row',
+        compareTableRow = '.compare-table-row',
+        compareScenariosRow = '.compare-scenarios',
+        compareMapsRow = '.compare-scenario-row-content';
+
+    if (adjustForScreenshot) {
+        $(compareDialog).addClass(itsiCompareDialog);
+        $(compareModalContent).addClass(itsiCompareModal);
+        $(compareCloseButton).hide();
+        $(compareChartButton).hide();
+        $(compareTableButton).hide();
+        $(compareScenariosRow).addClass(itsiCompareRow);
+        $(compareMapsRow).addClass(itsiCompareRow);
+        if ($(compareChartRow).length) {
+            $(compareChartRow).addClass(itsiCompareRow);
+        } else if ($(compareTableRow).length) {
+            $(compareTableRow).addClass(itsiCompareRow);
+        }
+    } else {
+        $(compareDialog).removeClass(itsiCompareDialog);
+        $(compareModalContent).removeClass(itsiCompareModal);
+        $(compareCloseButton).show();
+        $(compareChartButton).show();
+        $(compareTableButton).show();
+        $(compareScenariosRow).removeClass(itsiCompareRow);
+        $(compareMapsRow).removeClass(itsiCompareRow);
+        if ($(compareChartRow)) {
+            $(compareChartRow).removeClass(itsiCompareRow);
+        } else if ($(compareTableRow).length) {
+            $(compareTableRow).removeClass(itsiCompareRow);
+        }
+    }
 }
 
 function initializeShutterbug() {
@@ -181,6 +263,14 @@ function initializeShutterbug() {
             // '/' then to empty string, which leaves a '#' in the URL.
             document.location.hash = '/';
             document.location.hash = '';
+
+            if ($('#compare-new').length) {
+                adjustCompareViewBeforeITSIScreenshot();
+            }
+
+            if ($('.project')) {
+                adjustModelViewBeforeITSIScreenshot();
+            }
         })
         .on('shutterbug-asyouwere', function() {
             // Reset after screenshot has been taken
@@ -202,6 +292,14 @@ function initializeShutterbug() {
                     left: '',
                     top: '',
                 });
+            }
+
+            if ($('#compare-new').length) {
+                adjustCompareViewAfterITSIScreenshot();
+            }
+
+            if ($('.project')) {
+                adjustModelViewAfterITSIScreenshot();
             }
         });
 

@@ -22,7 +22,9 @@ var MapModel = Backbone.Model.extend({
         geolocationEnabled: true,
         previousAreaOfInterest: null,
         dataCatalogResults: null,       // GeoJSON array
-        dataCatalogActiveResult: null   // GeoJSON
+        dataCatalogActiveResult: null,  // Model
+        dataCatalogDetailResult: null,  // Model
+        selectedGeocoderArea: null,     // GeoJSON
     },
 
     revertMaskLayer: function() {
@@ -56,9 +58,11 @@ var MapModel = Backbone.Model.extend({
     },
 
     setNoHeaderSidebarSize: function(fit, sidebarWidth) {
-        var hasSidebar = true,
-            hasProjectHeader = false;
-        this._setSizeOptions(fit, hasProjectHeader, hasSidebar, sidebarWidth);
+        this._setSizeOptions({
+            fit: fit,
+            hasSidebar: true,
+            sidebarWidth: sidebarWidth,
+        });
     },
 
     setDrawSize: function(fit) {
@@ -69,14 +73,24 @@ var MapModel = Backbone.Model.extend({
         this.setNoHeaderSidebarSize(fit);
     },
 
+    setAnalyzeModelSize: function(fit) {
+        this._setSizeOptions({
+            fit: fit,
+            hasProjectHeader: true,
+            hasSidebar: true,
+        });
+    },
+
     setDataCatalogSize: function(fit) {
-        this.setNoHeaderSidebarSize(fit, utils.sidebarWide);
+        this.setNoHeaderSidebarSize(fit);
     },
 
     setModelSize: function(fit) {
-        var hasSidebar = true,
-            hasProjectHeader = true;
-        this._setSizeOptions(fit, hasProjectHeader, hasSidebar);
+        this._setSizeOptions({
+            fit: fit,
+            hasToolbarHeader: true,
+            hasSidebar: true,
+        });
     },
 
     toggleSidebar: function() {
@@ -87,25 +101,27 @@ var MapModel = Backbone.Model.extend({
         this.set('size', updatedSize);
     },
 
-// Set the sizing options for the map
-//      param: fit                  - bool, true if should fit the map to the AoI
-//      param: hasProjectHeader     - bool, true if the -projectheader class should
-//                                    be on the map container
-//      param: hasSidebar           - bool, true if the -sidebar class should
-//                                    be on the map container
-//      param: sidebarWidth         - string, if matches width option (eg 'wide'),
-//                                    and `hasSidebar === true`, map will add
-//                                    class to container accordingly.
-//                                    If option doesn't exist or is falsey, no
-//                                    class will be added, and map container will
-//                                    use the default sidebar size if `hasSidebar`
-    _setSizeOptions: function(fit, hasProjectHeader, hasSidebar, sidebarWidth) {
-        this.set('size', {
-            fit: fit,
-            hasProjectHeader: hasProjectHeader,
-            hasSidebar: hasSidebar,
-            sidebarWidth: sidebarWidth,
-        });
+    toggleSecondarySidebar: function() {
+        var sizeCopy = _.clone(this.get('size')),
+            updatedSize =_.merge(sizeCopy, {
+                hasSecondarySidebar: !sizeCopy.hasSecondarySidebar
+            });
+        this.set('size', updatedSize);
+    },
+
+// Set the sizing options for the map. `options` are...
+//      fit                  - bool, true if should fit the map to the AoI
+//      hasProjectHeader     - bool, true if the -projectheader class should
+//                             be on the map container
+//      hasToolbarHeader     - bool, true if the -toolbarheader class should
+//                             be on the map container
+//      hasSidebar           - bool, true if the -sidebar class should
+//                             be on the map container
+//      hasSecondarySidebar  - bool, true if the -double class
+//                             should be on the map. Will on apply if `hasSidebar`
+
+    _setSizeOptions: function(options) {
+        this.set('size', options);
     }
 
 });
@@ -123,6 +139,8 @@ var LayerModel = Backbone.Model.extend({
         googleType: false,
         disabled: false,
         hasOpacitySlider: false,
+        hasTimeSlider: false,
+        timeLayers: null,
         legendMapping: null,
         cssClassPrefix: null,
         active: false,
@@ -130,6 +148,7 @@ var LayerModel = Backbone.Model.extend({
 
     buildLayer: function(layerSettings, layerType, initialActive) {
         var leafletLayer,
+            timeLayers,
             googleMaps = (window.google ? window.google.maps : null);
 
         // Check to see if the google api service has been loaded
@@ -150,6 +169,22 @@ var LayerModel = Backbone.Model.extend({
             leafletLayer = new L.TileLayer(tileUrl, layerSettings);
         }
 
+        if (layerSettings.time_slider_values) {
+            // A tile layer which provides the url based on a current setting
+            timeLayers = layerSettings.time_slider_values.map(function(period) {
+                var monthUrl = tileUrl.replace(/{month}/, period);
+
+                _.defaults(layerSettings, {
+                    zIndex: utils.layerGroupZIndices[layerType],
+                    attribution: '',
+                    minZoom: 0});
+
+                return new L.TileLayer(monthUrl, layerSettings);
+            });
+
+            leafletLayer = timeLayers[0];
+        }
+
         this.set({
             leafletLayer: leafletLayer,
             layerType: layerType,
@@ -162,6 +197,8 @@ var LayerModel = Backbone.Model.extend({
             googleType: layerSettings.googleType,
             disabled: false,
             hasOpacitySlider: layerSettings.has_opacity_slider,
+            hasTimeSlider: !!layerSettings.time_slider_values,
+            timeLayers: timeLayers,
             legendMapping: layerSettings.legend_mapping,
             cssClassPrefix: layerSettings.css_class_prefix,
             active: layerSettings.display === initialActive ? true : false,
@@ -204,6 +241,7 @@ var LayerGroupModel = Backbone.Model.extend({
         layers: null,
         mustHaveActive: false,
         canSelectMultiple: false,
+        selectedTimeLayerIdx: 0,
     },
 });
 
@@ -219,7 +257,7 @@ var ObservationsLayerGroupModel = LayerGroupModel.extend({
 
     fetchLayers: function(map) {
         var self = this,
-            pointSrcAPIUrl = '/api/modeling/point-source/';
+            pointSrcAPIUrl = '/mmw/modeling/point-source/';
         var vizer = new VizerLayers();
         this.set('polling', true);
 
@@ -424,14 +462,15 @@ var TaskModel = Backbone.Model.extend({
            front-end before it does in the back-end and the we would
            like them to finish at approximately the same time (with the
            back-end finishing earlier if they are not synced). */
-        timeout: 45000
+        timeout: 45000,
     },
 
-    url: function() {
+    url: function(queryParams) {
+        var encodedQueryParams = queryParams ? '?' + $.param(queryParams) : '';
         if (this.get('job')) {
-            return '/api/' + this.get('taskType') + '/jobs/' + this.get('job') + '/';
+            return '/' + this.get('taskType') + '/jobs/' + this.get('job') + '/';
         } else {
-            return '/api/' + this.get('taskType') + '/start/' + this.get('taskName') + '/';
+            return '/' + this.get('taskType') + '/' + this.get('taskName') + '/' + encodedQueryParams;
         }
     },
 
@@ -463,8 +502,10 @@ var TaskModel = Backbone.Model.extend({
         }
         var self = this,
             startDefer = self.fetch({
+                url: self.url(taskHelper.queryParams),
                 method: 'POST',
-                data: taskHelper.postData
+                data: taskHelper.postData,
+                contentType: taskHelper.contentType
             }),
             pollingDefer = $.Deferred();
 
@@ -569,16 +610,20 @@ var AnimalCensusCollection = Backbone.Collection.extend({
     comparator: 'type'
 });
 
+var ClimateCensusCollection = Backbone.Collection.extend({
+    comparator: 'monthidx'
+});
+
 var PointSourceCensusCollection = Backbone.PageableCollection.extend({
     comparator: 'city',
     mode: 'client',
-    state: { pageSize: 3, firstPage: 1 }
+    state: { pageSize: 6, firstPage: 1 }
 });
 
 var CatchmentWaterQualityCensusCollection = Backbone.PageableCollection.extend({
     comparator: 'nord',
     mode: 'client',
-    state: { pageSize: 5, firstPage: 1 }
+    state: { pageSize: 6, firstPage: 1 }
 });
 
 var GeoModel = Backbone.Model.extend({
@@ -648,6 +693,7 @@ module.exports = {
     LandUseCensusCollection: LandUseCensusCollection,
     SoilCensusCollection: SoilCensusCollection,
     AnimalCensusCollection: AnimalCensusCollection,
+    ClimateCensusCollection: ClimateCensusCollection,
     PointSourceCensusCollection: PointSourceCensusCollection,
     CatchmentWaterQualityCensusCollection: CatchmentWaterQualityCensusCollection,
     GeoModel: GeoModel,

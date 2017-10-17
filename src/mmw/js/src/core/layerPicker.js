@@ -3,6 +3,7 @@
 var $ = require('jquery'),
     Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
+    moment = require('moment'),
     _ = require('underscore'),
     utils = require('./utils'),
     layerPickerTmpl = require('./templates/layerPicker.html'),
@@ -10,7 +11,62 @@ var $ = require('jquery'),
     layerPickerLayerTmpl = require('./templates/layerPickerLayer.html'),
     layerPickerLegendTmpl = require('./templates/layerPickerLegend.html'),
     layerPickerNavTmpl = require('./templates/layerPickerNav.html'),
-    opacityControlTmpl = require('./templates/opacityControl.html');
+    opacityControlTmpl = require('./templates/opacityControl.html'),
+    timeSliderTmpl = require('./templates/timeSliderControl.html');
+
+
+var LayerTimeSliderView = Marionette.LayoutView.extend({
+    template: timeSliderTmpl,
+
+    ui: {
+        slider: 'input',
+        monthLabel: '.time-slider-month',
+    },
+
+    events: {
+        'mousedown @ui.slider': 'onMouseDown',
+        'mouseup @ui.slider': 'onMouseUp',
+        'input @ui.slider': 'sliderMove',
+        'change @ui.slider': 'sliderMove', // IE only event
+    },
+
+    initialize: function(options) {
+        this.leafletMap = options.leafletMap;
+        this.layer = options.layer;
+
+    },
+
+    sliderMove: function(e) {
+        var sliderValue = $(e.target).val(),
+            month = moment(Number(sliderValue) + 1, 'M').format('MMM');
+
+        this.ui.monthLabel.text(month);
+    },
+
+    onMouseDown: function() {
+        this.leafletMap.dragging.disable();
+    },
+
+    onMouseUp: function(e) {
+        this.leafletMap.dragging.enable();
+        var el = $(e.target),
+        sliderValue = el.val();
+
+        this.model.set('selectedTimeLayerIdx', Number(sliderValue));
+    },
+
+    templateHelpers: function() {
+        var idx = this.model.get('selectedTimeLayerIdx') + 1,
+            month = moment(idx, 'M').format('MMM');
+
+        return {
+            min: 0,
+            max: this.layer.get('timeLayers').length - 1,
+            month: month,
+            shortDisplay: this.layer.get('shortDisplay'),
+        };
+    }
+});
 
 var LayerOpacitySliderView = Marionette.ItemView.extend({
     template: opacityControlTmpl,
@@ -35,6 +91,7 @@ var LayerOpacitySliderView = Marionette.ItemView.extend({
         sliderValue = el.val();
         this.layer.get('leafletLayer').setOpacity(sliderValue / 100);
         el.attr('value', sliderValue);
+        this.model.set('selectedOpacityValue', Number(sliderValue));
     },
 
     templateHelpers: function() {
@@ -97,7 +154,8 @@ var LayerPickerLayerView = Marionette.ItemView.extend({
 var LayerPickerLayerListView = Marionette.CollectionView.extend({
     childView: LayerPickerLayerView,
     modelEvents: {
-        'change': 'renderIfNotDestroyed'
+        'change': 'renderIfNotDestroyed',
+        'change:selectedTimeLayerIdx': 'updateTimePeriod',
     },
     collectionEvents: {
         'change': 'renderIfNotDestroyed',
@@ -126,6 +184,11 @@ var LayerPickerLayerListView = Marionette.CollectionView.extend({
         utils.toggleLayer(selectedLayer, this.leafletMap, this.model);
         this.triggerMethod('select:layer');
     },
+
+    updateTimePeriod: function() {
+        var layer = this.collection.findWhere({'active': true});
+        utils.toggleTimeLayer(layer, this.leafletMap, this.model);
+    },
 });
 
 /* The layer picker group view. Renders the layer group's title and a collection view
@@ -139,12 +202,12 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
     },
 
     modelEvents: {
-        'change': 'render',
-        'toggle:layer': 'addOpacityControl',
+        'toggle:layer': 'addLayerControls',
     },
 
     initialize: function(options) {
         this.leafletMap = options.leafletMap;
+        this.timeSliderRegion = options.timeSliderRegion;
     },
 
     onRender: function() {
@@ -156,19 +219,46 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
                 model: this.model,
                 leafletMap: this.leafletMap,
             }));
-            this.addOpacityControl();
+            this.addLayerControls();
         }
     },
 
-    addOpacityControl: function() {
-        var currentActiveOpacityLayer = this.model.get('layers').findWhere({
+    addLayerControls: function() {
+        // Add opacity or time sliders if this newly selected layer has them enabled
+        var activeLayer = this.model.get('layers').findWhere({
             active: true,
-            hasOpacitySlider: true,
         });
-        if (currentActiveOpacityLayer) {
+
+        if (activeLayer) {
+            this.addOpacityControl(activeLayer);
+            this.addTimeSliderControl(activeLayer);
+        } else {
+            // Always remove the time slider control when there is no active layer
+            this.hideTimeSliderRegion();
+        }
+    },
+
+    addTimeSliderControl: function(layer) {
+        if (layer.get('hasTimeSlider')) {
+            var timeSlider = new LayerTimeSliderView({
+                leafletMap: this.leafletMap,
+                model: this.model,
+                layer: layer,
+            });
+
+            this.showTimeSliderRegion(timeSlider);
+        } else {
+            this.hideTimeSliderRegion();
+        }
+
+    },
+
+    addOpacityControl: function(layer) {
+        if (layer.get('hasOpacitySlider')) {
             this.showChildView('opacityControl', new LayerOpacitySliderView({
                 leafletMap: this.leafletMap,
-                layer: currentActiveOpacityLayer,
+                layer: layer,
+                model: this.model,
             }));
         } else {
             this.opacityControl.empty();
@@ -180,12 +270,22 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
         if (this.model.get('error')) {
             message = this.model.get('error');
         } else if (this.model.get('polling')) {
-            message = 'Loading...';
+            message = '<div class="layerpicker-loading">Loading...</div>';
         }
         return {
             layerGroupName: this.model.get('name'),
             message: message,
         };
+    },
+
+    showTimeSliderRegion: function(timeSlider) {
+        if (!this.timeSliderRegion) { return; }
+        this.timeSliderRegion.show(timeSlider);
+    },
+
+    hideTimeSliderRegion: function() {
+        if (!this.timeSliderRegion) { return; }
+        this.timeSliderRegion.empty();
     }
 });
 
@@ -194,11 +294,13 @@ var LayerPickerTabView = Marionette.CollectionView.extend({
     childViewOptions: function() {
         return {
             leafletMap: this.leafletMap,
+            timeSliderRegion: this.timeSliderRegion,
         };
     },
 
     initialize: function(options) {
         this.leafletMap = options.leafletMap;
+        this.timeSliderRegion = options.timeSliderRegion;
     }
 });
 
@@ -281,6 +383,7 @@ var LayerPickerView = Marionette.LayoutView.extend({
     regions: {
         layerTab: '#layerpicker-tab',
         layerTabNav: '.layerpicker-nav',
+        tileSlider: '.ghostmouse',
     },
 
     ui: {
@@ -305,6 +408,7 @@ var LayerPickerView = Marionette.LayoutView.extend({
         layerToMakeActive.set('active', true);
 
         this.leafletMap = options.leafletMap;
+        this.timeSliderRegion = options.timeSliderRegion;
         this.model = new Backbone.Model({
             isOpen: true,
         });
@@ -323,7 +427,8 @@ var LayerPickerView = Marionette.LayoutView.extend({
         if (activeLayerGroups && isOpen) {
             this.layerTab.show(new LayerPickerTabView({
                 collection: activeLayerGroups,
-                leafletMap: this.leafletMap
+                leafletMap: this.leafletMap,
+                timeSliderRegion: this.timeSliderRegion,
             }));
         }
     },

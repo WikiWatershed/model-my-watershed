@@ -11,12 +11,14 @@ var defaultSettings = {
     stream_layers: {},
     coverage_layers: {},
     boundary_layers: {},
+    conus_perimeter: {},
     draw_tools: [],
     map_controls: [],
     vizer_urls: {},
     vizer_ignore: [],
     vizer_names: {},
-    model_packages: []
+    model_packages: [],
+    max_area: 75000,
 };
 
 var settings = (function() {

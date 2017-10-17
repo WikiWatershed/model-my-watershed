@@ -50,6 +50,14 @@
     font-size: $font-size-h2;
     line-height: $aoi-header-height / 2;
   }
+
+  &:empty {
+      display: none;
+  }
+
+  &.-bottom-padded {
+      padding-bottom: 20px !important;
+  }
 }
 
 .aoi-area {
@@ -141,6 +149,11 @@
 .pageable-table-container {
   overflow: visible;
   padding-bottom:10%;
+
+  tbody {
+    white-space: nowrap;
+  }
+
   @media (max-height: 884px) {
     padding-bottom:0px;
   }
@@ -150,4 +163,12 @@
   width: 650px !important;
   max-width: 650px !important;
   height: 100%;
+}
+
+.hidden-analyze-table-column {
+  display: none;
+}
+
+#climate select.form-control {
+  margin: 10px 0;
 }

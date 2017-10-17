@@ -1,33 +1,126 @@
 .data-catalog-window {
     width: $sidebar-width;
     transition: all 200ms;
-    overflow-y: auto;
-    background-color: $ui-light;
+    background-color: #E6E6E6;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    bottom: 0;
+    top: 90px;
+
+    .tab-contents-region {
+        background-color: rgba(0, 0, 0, 0.06);
+        flex: 1;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .result-details-region {
+        .result {
+            padding: 10px;
+            bottom: 0px;
+            top: 0px;
+            width: 100%;
+            position: absolute;
+            z-index: 1000;
+            background-color: #fff;
+            overflow: auto;
+
+            p {
+                margin: 5px 0 0 0;
+            }
+
+            .result-detail-header {
+              h2 {
+                  display: inline-block;
+                  margin: 10px 0 4px;
+                  max-width: 95%;
+              }
+
+              a.zoom {
+                display: block;
+              }
+
+              .close {
+                float: none;
+                display: block;
+                opacity: 1;
+                color: #389b9b;
+                text-shadow: none;
+                font-size: 13px;
+                font-weight: 400;
+                padding: 6px 0 2px;
+              }
+            }
+        }
+    }
+
+    .result-region {
+        height: auto !important;
+        width: auto !important;
+        padding: 6px 0px;
+
+        &.paginated {
+            position: absolute;
+            overflow-y: auto;
+            top: 0px;
+            bottom: 54px;  // .pager-region height + padding-top
+        }
+    }
+
+    .pager-region {
+        > div {
+            padding: 10px 0;
+            background-color: #e6e6e6;
+            border-top: 1px solid $black-12;
+            position: fixed;
+            bottom: 0px;
+            width: $sidebar-width;
+
+            .row {
+                margin-left: -5px !important;
+                margin-right: -5px !important;
+            }
+        }
+    }
 
     .data-catalog-title {
-        margin: 0.5em 0;
-        padding: 0.5em;
-        font-size: 0.8em;
-        text-transform: uppercase;
+        margin: 10px 0 0;
+        padding: 10px;
     }
 
     .data-catalog-form {
         position: relative;
-        padding: 0.5em;
+        padding: 4px 10px;
+
+        &:hover {
+            text-decoration: none;
+        }
+
+        .data-catalog-search-component {
+            position: relative;
+        }
 
         .data-catalog-search-input {
-            width: 100%;
+            width: 99%;
             height: 38px;
             border: none;
-            padding-left: 38px;
-            font-size: 0.8em;
+            padding-left: 31px;
         }
         .data-catalog-search-icon {
             color: $ui-grey;
             position: absolute;
-            top: 15px;
-            left: 15px;
+            top: 10px;
+            left: 8px;
             font-size: 18px;
+        }
+        .form-group {
+          margin-right: 15px;
+        }
+        .filter-sidebar-toggle {
+          position: absolute;
+          right: 1.5rem;
+          top: -42px;
         }
     }
 
@@ -35,9 +128,25 @@
         padding: 10px;
     }
 
+    .output-tabs-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+    }
+
+    .tab-pane {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+    }
+
     .tab-content {
         padding: 0;
-        background: $ui-light;
+        background: #E6E6E6;
+        top: 0;
+        bottom: 0;
 
         .loading-panel,
         .no-results-panel {
@@ -53,17 +162,249 @@
 
     .resource {
         background: $paper;
-        padding: 10px;
-        margin-bottom: 1px;
+        margin: 0 10px 3px 10px;
+        cursor: pointer;
 
         &:hover {
-            background: $paper-12;
+            background: #F3F3F3;
         }
 
-        .resource-title {
-            font-size: 1em;
-            font-weight: 500;
-            margin-bottom: 0.5em;
+        .resource-wrapper {
+          padding: 10px;
+
+          &.active {
+              background: #F3F3F3;
+          }
         }
     }
+}
+
+.data-catalog-window,
+.data-catalog-resource-popover {
+    .btn-secondary {
+        height: auto;
+    }
+
+    h3 {
+        margin-bottom: 7px;
+    }
+
+    .resource-description {
+        color: $ui-grey;
+        font-size: $font-size-h5;
+        padding-bottom: 3px;
+    }
+
+    .resource-date {
+        font-size: $font-size-h5;
+    }
+
+    .resource-detail {
+        font-size: $font-size-h5;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .resource-detail.-showall {
+        display: flex;
+        white-space: normal;
+        overflow: auto;
+        text-overflow: initial;
+        > i {
+            flex: 0 0 18px;
+        }
+        > .detail-text {
+            display: inline;
+        }
+    }
+
+    .resource {
+        .resource-title {
+            font-size: $font-size-h4;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        i.fa {
+            width: 14px;
+            text-align: center;
+            margin-right: 4px;
+        }
+    }
+}
+
+.data-catalog-resource-popover {
+    .resource .resource-description {
+        color: #787878;
+        font-size: 13px;
+        padding-bottom: 3px;
+    }
+
+    .data-catalog-popover-details-btn {
+        border-radius: 0px;
+        margin-top: 10px;
+    }
+}
+
+.data-catalog-filter-window {
+    padding: 1rem;
+    padding-top: 1.4rem;
+    left: $sidebar-width;
+    width: $secondary-sidebar-width;
+    transition: all 200ms;
+    background-color: #D8D8D8;
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    bottom: 0;
+    top: 90px;
+}
+
+.data-catalog-filter-window > .data-catalog-filters-header {
+    display: flex;
+    flex-direction: row;
+    padding-bottom: 6px;
+    > .filter-title {
+        line-height: $height-md;
+    }
+    > .btn-reset {
+        margin-left: auto;
+        font-weight: 600;
+        color: $brand-primary;
+        padding: 0;
+        font-size: 13px;
+        position: relative;
+        top: 0px;
+    }
+}
+
+.data-catalog-filter-window > .data-catalog-filter-group {
+    & > h5,
+    & > label {
+        font-weight: 700;
+        margin-top: 4px;
+        font-size: 12px;
+        color: #4d6d82;
+    }
+}
+
+.data-catalog-filter-group .data-catalog-filter-checkbox {
+    input[type=checkbox] {
+      position: relative;
+      margin-right: 5px;
+      display: none;
+      &:checked + .checkbox--styled {
+        background-color: $brand-primary;
+        border-color: $brand-primary;
+        text-align: center;
+        &:after {
+            content: "\f00c";
+            font-family: FontAwesome;
+            color: #fff;
+            position: absolute;
+            left: 0;
+            right: 0;
+            line-height: 18px;
+        }
+      }
+    }
+
+    .checkbox--styled {
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border: 0;
+        border-radius: 2px;
+        position: relative;
+        margin-right: 3px;
+        top: 3px;
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        background-color: #fff;
+    }
+
+    input, .checkbox--styled {
+        border: 1px solid #ccc;
+    }
+
+    label {
+      font-size: $font-size-h4;
+    }
+}
+
+.data-catalog-filter-group .data-catalog-search-dates {
+    padding: 0 10px;
+    margin: 0 -10px 0;
+
+    label {
+        display: block;
+        font-size: $font-size-h5;
+    }
+}
+
+.data-catalog-filter-group {
+    .data-catalog-clearable-input {
+        width: 100%;
+        display: inline-block;
+        position: relative;
+    }
+    .data-catalog-date-input {
+        height: 38px;
+        border-radius: 0;
+        display: inline;
+        margin-bottom: 12px;
+    }
+    .data-catalog-clear-icon {
+        color: $ui-secondary;
+        position: relative;
+        font-size: 13px;
+        position: absolute;
+        right: 10px;
+        top: 10px;
+    }
+
+    .data-catalog-validation-msg {
+        color: $ui-danger;
+        margin-top: 8px;
+    }
+}
+
+.result-details-region {
+    p,
+    .btn {
+        font-size: $font-size-h5;
+    }
+}
+
+.table-data-detail {
+    font-size: $font-size-h5;
+    margin: 14px 0 6px;
+
+    td,
+    th {
+        vertical-align: top;
+        padding-bottom: 10px;
+    }
+
+    td {
+        color: #777;
+    }
+
+    th {
+        padding-right: 20px;
+    }
+}
+
+.data-catalog-search-dates label {
+    font-weight: 600;
+    color: #555;
+    font-size: 13px;
+    margin: 10px 0px 12px;
+}
+
+.data-catalog-filter-group .data-catalog-filter-checkbox label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #555;
+    padding-left: 0;
 }

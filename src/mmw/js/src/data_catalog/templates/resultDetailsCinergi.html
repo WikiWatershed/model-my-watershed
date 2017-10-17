@@ -1,0 +1,30 @@
+<div class="result">
+    <div class="result-detail-header">
+        <button type="button" class="close" aria-label="Close">
+            <i class="fa fa-arrow-left black"></i> Back
+        </button>
+        <h2>
+            {{ title }}
+        </h2>
+    </div>
+    <hr>
+    {% if author %}
+        <p>
+            <i class="fa fa-user"></i>{{ author }}
+        </p>
+    {% endif %}
+    <p>
+        <i class="fa fa-calendar"></i> {{ created_at|toDateFullYear }}
+    </p>
+    {% if not (description == "REQUIRED FIELD") %}
+    <p>
+        {{ description }}
+    </p>
+    {% endif %}
+    <p>
+        <a class="btn btn-secondary" href="{{ cinergi_url }}"
+           target="_blank" rel="noreferrer noopener">
+            <i class="fa fa-external-link-square"></i>&nbsp;Repository
+        </a>
+    </p>
+</div>

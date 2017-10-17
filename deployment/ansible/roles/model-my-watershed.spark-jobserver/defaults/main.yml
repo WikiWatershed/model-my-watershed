@@ -1,4 +1,0 @@
----
-sjs_home: "/opt/spark-jobserver"
-sjs_driver_memory: "1G"
-sjs_data_dir: "/opt/spark-jobserver/data"

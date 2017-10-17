@@ -1,5 +1,5 @@
-{% macro table(columnNames, rows, isSortable, round_rows, default_precision) %}
-<table class="table custom-hover" data-toggle="table">
+{% macro table(columnNames, rows, isSortable, round_rows, default_precision, className) %}
+<table class="table custom-hover {{ className }}" data-toggle="table">
     <thead>
         <tr>
             {% for columnName in columnNames %}
@@ -36,11 +36,11 @@
 <div class="mean-flow">
     Mean Flow: {{ MeanFlow|round(0)|toLocaleString }} (m<sup>3</sup>/year) and {{ MeanFlowPerSecond|round(2)|toLocaleString }} (m<sup>3</sup>/s)
 </div>
-{{ table(landUseColumns, landUseRows, true, renderPrecision.landUseTable, defaultPrecision.landUseTable) }}
+{{ table(landUseColumns, landUseRows, true, renderPrecision.landUseTable, defaultPrecision.landUseTable, landUseClassName) }}
 <div class="downloadcsv-link" data-action="download-csv-granular">
     <i class="fa fa-download"></i> Download this data
 </div>
-{{ table(summaryColumns, summaryRows, false, renderPrecision.summaryTable, defaultPrecision.summaryTable) }}
+{{ table(summaryColumns, summaryRows, false, renderPrecision.summaryTable, defaultPrecision.summaryTable, summaryClassName) }}
 <div class="downloadcsv-link" data-action="download-csv-summary">
     <i class="fa fa-download"></i> Download this data
 </div>

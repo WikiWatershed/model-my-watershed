@@ -147,6 +147,7 @@ describe('Core', function() {
                 model.setAnalyzeSize();
                 assert.isTrue($container.hasClass('-sidebar'));
                 assert.isFalse($container.hasClass('-projectheader'));
+                assert.isFalse($container.hasClass('-toolbarheader'));
 
                 view.destroy();
             });
@@ -163,7 +164,7 @@ describe('Core', function() {
 
                 model.setModelSize();
                 assert.isTrue($container.hasClass('-sidebar'));
-                assert.isTrue($container.hasClass('-projectheader'));
+                assert.isTrue($container.hasClass('-toolbarheader'));
 
                 view.destroy();
             });
@@ -270,7 +271,7 @@ describe('Core', function() {
                 this.taskModel = new models.TaskModel({
                     pollInterval: 100,
                     timeout: 200,
-                    taskType: 'modeling',
+                    taskType: 'mmw/modeling',
                     taskName: 'tr55',
                     job: this.startJob
                 });
@@ -296,11 +297,11 @@ describe('Core', function() {
                 this.pollingResponse = {
                     status: 'complete'
                 };
-                this.server.respondWith('POST', '/api/modeling/start/tr55/',
+                this.server.respondWith('POST', '/mmw/modeling/tr55/',
                                         [ 200,
                                           { 'Content-Type': 'application/json' },
                                           JSON.stringify(this.startResponse) ]);
-                this.server.respondWith('GET', '/api/modeling/jobs/1/',
+                this.server.respondWith('GET', '/mmw/modeling/jobs/1/',
                                         [ 200,
                                           { 'Content-Type': 'application/json' },
                                           JSON.stringify(this.pollingResponse) ]);
@@ -326,7 +327,7 @@ describe('Core', function() {
                     self.pollingResponse = {
                         status: '' // Status is never complete, so times out.
                     };
-                    self.server.respondWith('GET', '/api/modeling/jobs/1/',
+                    self.server.respondWith('GET', '/mmw/modeling/jobs/1/',
                                        [ 200,
                                          { 'Content-Type': 'application/json' },
                                          JSON.stringify(self.pollingResponse) ]);
@@ -346,7 +347,7 @@ describe('Core', function() {
                     self.pollingResponse = {
                         status: ''
                     };
-                    self.server.respondWith('GET', '/api/modeling/jobs/1/',
+                    self.server.respondWith('GET', '/mmw/modeling/jobs/1/',
                                             [ 200,
                                               { 'Content-Type': 'application/json' },
                                               JSON.stringify(self.pollingResponse) ]);
@@ -365,7 +366,7 @@ describe('Core', function() {
 
                 it('rejects promise when request is bad', function(done) {
                     var self = this;
-                    self.server.respondWith('GET', '/api/modeling/jobs/1/',
+                    self.server.respondWith('GET', '/mmw/modeling/jobs/1/',
                                             [ 400, // Bad request
                                               { 'Content-Type': 'application/json' },
                                               JSON.stringify(self.pollingResponse) ]);
@@ -384,7 +385,7 @@ describe('Core', function() {
             describe('#start', function() {
                 it('calls onStart and startFailure if initial fetch fails', function(done) {
                     var self = this;
-                    self.server.respondWith('POST', '/api/modeling/start/tr55/',
+                    self.server.respondWith('POST', '/mmw/modeling/tr55/',
                                        [ 400, // Make initial fetch fail.
                                          { 'Content-Type': 'application/json' },
                                          JSON.stringify(self.startResponse) ]);
@@ -418,7 +419,7 @@ describe('Core', function() {
 
                 it('calls pollFailure and pollEnd if polling fails', function(done) {
                     var self = this;
-                    self.server.respondWith('GET', '/api/modeling/jobs/1/',
+                    self.server.respondWith('GET', '/mmw/modeling/jobs/1/',
                                        [ 400, // Make polling fail
                                          { 'Content-Type': 'application/json' },
                                          JSON.stringify(self.pollingResponse) ]);

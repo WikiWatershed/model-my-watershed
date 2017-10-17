@@ -1,0 +1,16 @@
+{% if is_pre_columbian %}
+    <h3 class="compare-no-mod-title">{{name}}</h3>
+    <p>
+        Model simulation of a pre-development landscape, where forest replaces all agricultural and urban landcover.
+    </p>
+{% elif is_current_conditions %}
+    <h3 class="compare-no-mod-title">{{name}}</h3>
+    <p>
+        Model results based on 2011 NLCD land and 2016 gSSURGO soil datasets.
+    </p>
+{% else %}
+    <h3 class="compare-no-mod-title">No modifications</h3>
+    <p>
+        To add modifications, close this modal and select "Land cover" or "Conservation practices".
+    </p>
+{% endif %}

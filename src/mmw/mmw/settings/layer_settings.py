@@ -12,10 +12,14 @@ For basemaps, maxZoom must be defined.
 
 from os.path import join, dirname, abspath
 from collections import OrderedDict
+
 import json
 
 from django.contrib.gis.geos import GEOSGeometry
 from tr55_settings import NLCD_MAPPING, SOIL_MAPPING
+
+# [01, 02, ...] style list for layer time sliders
+MONTH_CODES = [str(m).zfill(2) for m in range(1, 13)]
 
 # Full perimeter of the Delaware River Basin (DRB).
 drb_perimeter_path = join(dirname(abspath(__file__)), 'data/drb_perimeter.json')
@@ -32,6 +36,12 @@ drb_simple_perimeter = json.load(drb_simple_perimeter_file)
 pa_perimeter_path = join(dirname(abspath(__file__)), 'data/pa_perimeter.json')
 pa_perimeter_file = open(pa_perimeter_path)
 pa_perimeter = json.load(pa_perimeter_file)
+
+# Simplified perimeter of the continental US, used to prevent non-CONUS
+# AoIs from being sent to the API
+conus_perimeter_path = join(dirname(abspath(__file__)), 'data/conus_perimeter.json')
+conus_perimeter_file = open(conus_perimeter_path)
+CONUS_PERIMETER = json.load(conus_perimeter_file)
 
 # Buffered with QGIS [buffer distance = 0.10] and simplified [factor=0.01]
 # perimeter of the NHD Mid Atlantic Region (02)
@@ -115,6 +125,32 @@ LAYER_GROUPS = {
                 SOIL_MAPPING[7],
                 SOIL_MAPPING[4],
             ]),
+        },
+        {
+            'code': 'mean_ppt',
+            'display': 'Mean Monthly Precipitation',
+            'short_display': 'Mean Precip',
+            'css_class_prefix': 'ppt',
+            'helptext': 'PRISM monthly mean precipitation.',
+            'url': 'https://{s}.tiles.azavea.com/climate/ppt_{month}/{z}/{x}/{y}.png',  # noqa
+            'maxNativeZoom': 10,
+            'maxZoom': 18,
+            'opacity': 0.85,
+            'has_opacity_slider': True,
+            'time_slider_values': MONTH_CODES,
+        },
+        {
+            'code': 'mean_temp',
+            'display': 'Mean Monthly Temperature',
+            'short_display': 'Mean Temp',
+            'css_class_prefix': 'ppt',
+            'helptext': 'PRISM monthly mean temperature.',
+            'url': 'https://{s}.tiles.azavea.com/climate/tmean_{month}/{z}/{x}/{y}.png',  # noqa
+            'maxNativeZoom': 10,
+            'maxZoom': 18,
+            'opacity': 0.85,
+            'has_opacity_slider': True,
+            'time_slider_values': MONTH_CODES,
         },
         {
             'code': 'urban_areas',
@@ -201,7 +237,7 @@ LAYER_GROUPS = {
                         'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
                         'My Watershed Technical Documentation on Boundaries.'
                         '</a>',
-            'minZoom': 7,
+            'minZoom': 6,
             'selectable': True,
             'searchable': True,
             'search_rank': 30,
@@ -238,7 +274,7 @@ LAYER_GROUPS = {
                         'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
                         'My Watershed Technical Documentation on Boundaries.'
                         '</a>',
-            'minZoom': 9,
+            'minZoom': 8,
             'selectable': True,
             'searchable': True,
             'search_rank': 10,
@@ -255,7 +291,7 @@ LAYER_GROUPS = {
                         'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
                         'My Watershed Technical Documentation on Boundaries.'
                         '</a>',
-            'minZoom': 9,
+            'minZoom': 6,
             'selectable': True,
         },
         {
@@ -271,7 +307,7 @@ LAYER_GROUPS = {
                         'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
                         'My Watershed Technical Documentation on Boundaries.'
                         '</a>',
-            'minZoom': 6,
+            'minZoom': 5,
             'selectable': True,
         },
         {
@@ -286,7 +322,7 @@ LAYER_GROUPS = {
                         'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
                         'My Watershed Technical Documentation on Boundaries.'
                         '</a>',
-            'minZoom': 9,
+            'minZoom': 8,
             'selectable': True,
         },
         {
@@ -294,7 +330,7 @@ LAYER_GROUPS = {
             'table_name': 'dep_municipalities',
             'display': 'PA Municipalities',
             'short_display': 'PA Municipalities',
-            'minZoom': 7,
+            'minZoom': 6,
             'perimeter': pa_perimeter,
         },
     ],
@@ -324,10 +360,10 @@ LAYER_GROUPS = {
             'css_class_prefix': 'stream',
             # Defined in tiler/server.js
             'legend_mapping': {
-                1: 'Less than 1 kg/y',
-                2: 'Less than 2 kg/y',
-                3: 'Less than 3 kg/y',
-                4: 'Less than 4 kg/y',
+                1: 'Less than 1 mg/L',
+                2: 'Less than 2 mg/L',
+                3: 'Less than 3 mg/L',
+                4: 'Less than 4 mg/L',
                 'NA': 'No Data'
             }
         },
@@ -340,10 +376,10 @@ LAYER_GROUPS = {
             'css_class_prefix': 'stream',
             # Defined in tiler/server.js
             'legend_mapping': {
-                1: 'Less than 0.03 kg/y',
-                2: 'Less than 0.06 kg/y',
-                3: 'Less than 0.09 kg/y',
-                4: 'Less than 0.12 kg/y',
+                1: 'Less than 0.03 mg/L',
+                2: 'Less than 0.06 mg/L',
+                3: 'Less than 0.09 mg/L',
+                4: 'Less than 0.12 mg/L',
                 'NA': 'No Data'
             }
         },
@@ -356,10 +392,10 @@ LAYER_GROUPS = {
             'css_class_prefix': 'stream',
             # Defined in tiler/server.js
             'legend_mapping': {
-                1: 'Less than 50 kg/y',
-                2: 'Less than 100 kg/y',
-                3: 'Less than 150 kg/y',
-                4: 'Less than 200 kg/y',
+                1: 'Less than 50 mg/L',
+                2: 'Less than 100 mg/L',
+                3: 'Less than 150 mg/L',
+                4: 'Less than 200 mg/L',
                 'NA': 'No Data'
             }
         },

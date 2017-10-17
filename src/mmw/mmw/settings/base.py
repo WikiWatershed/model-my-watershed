@@ -13,9 +13,9 @@ from os.path import abspath, basename, dirname, join, normpath
 from sys import path
 
 from layer_settings import (LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
-                            NHD_REGION2_PERIMETER, DRB_PERIMETER)  # NOQA
+                            NHD_REGION2_PERIMETER, DRB_PERIMETER, CONUS_PERIMETER)  # NOQA
 from gwlfe_settings import (GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, # NOQA
-                            SOILP, CURVE_NUMBER, NODATA)  # NOQA
+                            CURVE_NUMBER, NODATA)  # NOQA
 from tr55_settings import (NLCD_MAPPING, SOIL_MAPPING)
 
 # Normally you should not import ANYTHING from Django directly
@@ -115,24 +115,23 @@ POSTGIS_VERSION = tuple(
 
 
 # CELERY CONFIGURATION
-BROKER_URL = 'redis://{0}:{1}/2'.format(
+CELERY_BROKER_URL = 'redis://{0}:{1}/2'.format(
     environ.get('MMW_CACHE_HOST', 'localhost'),
     environ.get('MMW_CACHE_PORT', 6379))
 
-CELERY_IMPORTS = ('celery.task.http',
-                  # Submodule task is not always autodiscovered
-                  'apps.modeling.mapshed.tasks',
-                  )
+CELERY_IMPORTS = (
+    # Submodule task is not always autodiscovered
+    'apps.modeling.mapshed.tasks',
+)
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-CELERY_RESULT_BACKEND = 'djcelery.backends.cache:CacheBackend'
+CELERY_RESULT_BACKEND = 'django-cache'
 STATSD_CELERY_SIGNALS = True
-CELERY_WORKER_DIRECT = True
 CELERY_CREATE_MISSING_QUEUES = True
 CELERY_CHORD_PROPAGATES = True
-CELERY_CHORD_UNLOCK_MAX_RETRIES = 60
-# CELERYD_CONCURRENCY = 2
+CELERY_DEFAULT_QUEUE = STACK_COLOR
+CELERY_DEFAULT_ROUTING_KEY = "task.%s" % STACK_COLOR
 # END CELERY CONFIGURATION
 
 
@@ -291,7 +290,10 @@ DJANGO_APPS = (
 
 THIRD_PARTY_APPS = (
     'rest_framework',
+    'rest_framework_swagger',
+    'rest_framework.authtoken',
     'registration',
+    'django_celery_results',
 )
 
 # THIRD-PARTY CONFIGURATION
@@ -303,6 +305,27 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ]
+}
+
+SWAGGER_SETTINGS = {
+    'exclude_url_names': ['authtoken'],
+    'exclude_namespaces': ['bigcz',
+                           'mmw',
+                           'user'],
+    'doc_expansion': 'list',
+    'info': {
+        'description': 'The Model My Watershed API allows '
+                       'you to delineate watersheds and analyze '
+                       'geo-data for watersheds and arbitrary areas. '
+                       'You can read more about the work at '
+                       '<a href="http://www.wikiwatershed.org/">'
+                       'WikiWatershed</a> '
+                       'or use the <a href="https://www.app.wikiwatershed.org">'
+                       'web app.',
+        'license': 'Apache 2.0',
+        'licenseUrl': 'http://www.apache.org/licenses/LICENSE-2.0.html',
+        'title': 'Model My Watershed API',
+    }
 }
 
 # registration
@@ -321,6 +344,7 @@ LOCAL_APPS = (
     'apps.bigcz',
     'apps.core',
     'apps.modeling',
+    'apps.geoprocessing_api',
     'apps.home',
     'apps.geocode',
     'apps.water_balance',
@@ -356,9 +380,13 @@ OMGEO_SETTINGS = [[
     }
 ]]
 
-# BiG-CZ Host, for enabling custom behavior.
-BIGCZ_HOST = 'portal.bigcz.org'
+# Keep in sync with src/api/main.py in rapid-watershed-delineation.
+MMW_MAX_AREA = 75000  # Max area in km2, about the size of West Virginia
+
+BIGCZ_HOST = 'portal.bigcz.org'  # BiG-CZ Host, for enabling custom behavior
+BIGCZ_MAX_AREA = 1500  # Max area in km2, limited by CUAHSI
 BIGCZ_CLIENT_TIMEOUT = 5  # timeout in seconds
+BIGCZ_CLIENT_PAGE_SIZE = 100
 
 # ITSI Portal Settings
 ITSI = {
@@ -384,7 +412,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-0.10.0'
+                    'nlcd-2011-30m-epsg5070-512-int8'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -396,20 +424,20 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'ssurgo-hydro-groups-30m-epsg5070-0.10.0'
+                    'ssurgo-hydro-groups-30m-epsg5070-512-int8'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
                 'zoom': 0
             }
         },
-        'nlcd_soil_census': {
+        'nlcd_soil': {
             'input': {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-0.10.0',
-                    'ssurgo-hydro-groups-30m-epsg5070-0.10.0'
+                    'nlcd-2011-30m-epsg5070-512-int8',
+                    'ssurgo-hydro-groups-30m-epsg5070-512-int8'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -423,24 +451,10 @@ GEOP = {
                 'vector': [],
                 'vectorCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-0.10.0'
+                    'nlcd-2011-30m-epsg5070-512-int8'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterLinesJoin',
-                'zoom': 0
-            }
-        },
-        'nlcd_soils': {
-            'input': {
-                'polygon': [],
-                'polygonCRS': 'LatLng',
-                'rasters': [
-                    'nlcd-2011-30m-epsg5070-0.10.0',
-                    'ssurgo-hydro-groups-30m-epsg5070-0.10.0',
-                    'us-ssugro-texture-id-30m-epsg5070'
-                ],
-                'rasterCRS': 'ConusAlbers',
-                'operationType': 'RasterGroupedCount',
                 'zoom': 0
             }
         },
@@ -449,7 +463,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'us-groundwater-nitrogen-30m-epsg5070'
+                    'us-groundwater-nitrogen-30m-epsg5070-512'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -459,7 +473,7 @@ GEOP = {
         'avg_awc': {
             'input': {
                 'polygon': [],
-                'targetRaster': 'us-ssugro-aws100-30m-epsg5070',
+                'targetRaster': 'us-ssurgo-aws100-30m-epsg5070-512',
                 'rasters': [],
                 'rasterCRS': 'ConusAlbers',
                 'polygonCRS': 'LatLng',
@@ -472,8 +486,8 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-0.10.0',
-                    'us-percent-slope-30m-epsg5070',
+                    'nlcd-2011-30m-epsg5070-512-int8',
+                    'us-percent-slope-30m-epsg5070-512'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -485,7 +499,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [],
-                'targetRaster': 'us-percent-slope-30m-epsg5070',
+                'targetRaster': 'us-percent-slope-30m-epsg5070-512',
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0
@@ -496,9 +510,69 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-0.10.0'
+                    'nlcd-2011-30m-epsg5070-512-int8'
                 ],
-                'targetRaster': 'us-ssugro-kfactor-30m-epsg5070',
+                'targetRaster': 'us-ssugro-kfactor-30m-epsg5070-512',
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
+        },
+        'ppt': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [],
+                'targetRaster': 'climatology-ppt-{:02d}-epsg5070',
+                'pixelIsArea': True,
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
+        },
+        'tmean': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [],
+                'targetRaster': 'climatology-tmean-{:02d}-epsg5070',
+                'pixelIsArea': True,
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
+        },
+        'soiln': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [],
+                'targetRaster': 'soiln-epsg5070',
+                'pixelIsArea': True,
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
+        },
+        'soilp': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [],
+                'targetRaster': 'soilpallland2-epsg5070',
+                'pixelIsArea': True,
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedAverage',
+                'zoom': 0
+            }
+        },
+        'recess_coef': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [],
+                'targetRaster': 'bfi48grd-epsg5070',
+                'pixelIsArea': True,
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0

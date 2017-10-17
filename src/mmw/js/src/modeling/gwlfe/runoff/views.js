@@ -7,9 +7,7 @@ var $ = require('jquery'),
     barChartTmpl = require('../../../core/templates/barChart.html'),
     selectorTmpl = require('./templates/selector.html'),
     resultTmpl = require('./templates/result.html'),
-    tableTmpl = require('./templates/table.html'),
-    utils = require('../../../core/utils.js'),
-    constants = require('./constants');
+    tableTmpl = require('./templates/table.html');
 
 var runoffVars = [
         { name: 'AvPrecipitation', display: 'Precip' },
@@ -34,7 +32,8 @@ var ResultView = Marionette.LayoutView.extend({
 
     ui: {
         downloadCSV: '[data-action="download-csv"]',
-        tooltip: 'a.model-results-tooltip'
+        tooltip: 'a.model-results-tooltip',
+        table: '.runoff-table-region'
     },
 
     events: {
@@ -82,14 +81,11 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     downloadCSV: function() {
-        var data = this.model.get('result').monthly,
-            prefix = 'mapshed_hydrology_',
+        var prefix = 'mapshed_hydrology_',
             timestamp = new Date().toISOString(),
-            filename = prefix + timestamp,
-            nameMap = constants.hydrologyCSVColumnMap,
-            renamedData = utils.renameCSVColumns(data, nameMap);
+            filename = prefix + timestamp;
 
-        utils.downloadDataCSV(renamedData, filename);
+        this.ui.table.tableExport({ type: 'csv', fileName: filename });
     },
 
     activateTooltip: function() {

@@ -57,23 +57,38 @@
             </ul>
             {% endif %}
     </div>
-    <div class="model-analyze-toggle-tab-header" role="tabpanel">
-        <ul class="nav nav-tabs" role="tablist">
-            <li role="presentation">
-                <a aria-controls="home" aria-expanded="false"
-                   data-toggle="tab" href="#analyze-tab-contents" role="tab">
-                    <div> Analyze </div>
-                </a>
-            </li>
-            <li class="active" role="presentation">
-                <a aria-controls="home" aria-expanded="true"
-                   data-toggle="tab" href="#modeling-tab-contents" role="tab">
-                    <div> Model </div>
-                </a>
-            </li>
-        </ul>
+    <div class="dropdown">
+        <button class="btn btn-md btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-expanded="true">
+            <i class="fa fa-file-text-o"></i>
+            Details
+        </button>
+        <div class="dropdown-menu menu-left" role="menu">
+            {% include "./modelDetailsDropdown.html" %}
+        </div>
     </div>
 </div>
+
+<div class="model-analyze-toggle-tab-header project-center" role="tabpanel">
+    <ul class="nav nav-tabs" role="tablist">
+        <li {%- if showing_analyze %} class="active" {% endif %}
+            role="presentation">
+            <a aria-controls="home" aria-expanded="false"
+               data-toggle="tab" href="#analyze-tab-contents" role="tab"
+               id="show-analyze">
+                <div> Analyze </div>
+            </a>
+        </li>
+        <li {%- if not showing_analyze %} class="active" {% endif %}
+            role="presentation">
+            <a aria-controls="home" aria-expanded="true"
+               data-toggle="tab" href="#modeling-tab-contents" role="tab"
+               id="show-model">
+                <div> Model </div>
+            </a>
+        </li>
+    </ul>
+</div>
+
 <div class="project-right">
     <button class="btn btn-md btn-secondary" id="new-project">
         New Project

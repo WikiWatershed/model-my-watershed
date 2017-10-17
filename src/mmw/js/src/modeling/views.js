@@ -14,6 +14,7 @@ var _ = require('lodash'),
     analyzeViews = require('../analyze/views.js'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
+    compareViews = require('../compare/views'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultsDetailsTmpl = require('./templates/resultsDetails.html'),
     resultsTabPanelTmpl = require('./templates/resultsTabPanel.html'),
@@ -39,10 +40,18 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
     model: models.ProjectModel,
     template: modelingHeaderTmpl,
 
+    ui: {
+        scenarioAndToolbarContainer: '.toolbar'
+    },
+
     regions: {
         projectMenuRegion: '#project-menu-region',
         scenariosRegion: '#scenarios-region',
         toolbarRegion: '#toolbar-region'
+    },
+
+    modelEvents: {
+        'change:showing_analyze': 'toggleToolbar',
     },
 
     initialize: function() {
@@ -51,6 +60,16 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         this.listenTo(App.user, 'change', this.reRender);
         this.listenTo(this.model, 'change:id', this.reRender);
         this.listenTo(App.user, 'change:guest', this.saveAfterLogin);
+    },
+
+    toggleToolbar: function() {
+        this.ui.scenarioAndToolbarContainer.toggleClass('hidden');
+
+        if (this.model.get('showing_analyze')) {
+            App.map.setAnalyzeModelSize();
+        } else {
+            App.map.setModelSize();
+        }
     },
 
     reRender: function() {
@@ -71,7 +90,7 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
         App.currentProject.fetchGisDataIfNeeded().done(function() {
             self.toolbarRegion.show(new ScenarioToolbarView({
                 collection: self.model.get('scenarios'),
-                model_package: self.model.get('model_package')
+                model: self.model
             }));
         });
     },
@@ -105,6 +124,10 @@ var ProjectMenuView = Marionette.ItemView.extend({
         privacy: '#project-privacy',
         itsiClone: '#itsi-clone',
         newProject: '#new-project',
+        changeAoI: '#change-aoi',
+        showAnalyze: '#show-analyze',
+        showModel: '#show-model',
+        modelDescriptionIcon: '#model-desc-icon'
     },
 
     events: {
@@ -116,21 +139,46 @@ var ProjectMenuView = Marionette.ItemView.extend({
         'click @ui.privacy': 'setProjectPrivacy',
         'click @ui.itsiClone': 'getItsiEmbedLink',
         'click @ui.newProject': 'createNewProject',
+        'click @ui.changeAoI': 'createNewProject',
+        'click @ui.showAnalyze': 'showAnalyze',
+        'click @ui.showModel': 'showModel',
     },
 
     template: projectMenuTmpl,
 
     templateHelpers: function() {
+        var modelPackages = settings.get('model_packages'),
+            modelPackageName = this.model.get('model_package'),
+            modelPackage = _.find(modelPackages,
+                                  {name: modelPackageName}),
+            aoiModel = new coreModels.GeoModel({
+                shape: App.map.get('areaOfInterest'),
+                place: App.map.get('areaOfInterestName')
+            });
         return {
             itsi: App.user.get('itsi'),
             itsi_embed: settings.get('itsi_embed'),
             editable: isEditable(this.model),
-            is_new: this.model.isNew()
+            is_new: this.model.isNew(),
+            modelPackage: modelPackage,
+            aoiModel: aoiModel
         };
     },
 
     modelEvents: {
         'change': 'render'
+    },
+
+    onRender: function() {
+        this.ui.modelDescriptionIcon.popover({
+            placement: 'right',
+            trigger: 'focus'
+        });
+        // Popover toggle is inside a dropdown that will close on any click
+        // Stop popover toggle from closing dropdown
+        this.ui.modelDescriptionIcon.on('click', function (e) {
+            e.stopPropagation();
+        });
     },
 
     renameProject: function() {
@@ -179,7 +227,8 @@ var ProjectMenuView = Marionette.ItemView.extend({
                 App.projectNumber = undefined;
                 App.map.set({
                     'areaOfInterest': null,
-                    'areaOfInterestName': null
+                    'areaOfInterestName': null,
+                    'wellKnownAreaOfInterest': null,
                 });
 
                 router.navigate('projects/', { trigger: true });
@@ -275,6 +324,14 @@ var ProjectMenuView = Marionette.ItemView.extend({
         App.getMapView().fitToDefaultBounds();
         App.getMapView().setupGeoLocation(true);
         router.navigate('draw/', { trigger: true });
+    },
+
+    showAnalyze: function() {
+        this.model.set('showing_analyze', true);
+    },
+
+    showModel: function() {
+        this.model.set('showing_analyze', false);
     }
 });
 
@@ -287,10 +344,12 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
 
     ui: {
         addScenario: '#add-scenario',
+        showCompare: '#show-compare',
     },
 
     events: {
         'click @ui.addScenario': 'addScenario',
+        'click @ui.showCompare': 'showCompare',
     },
 
     initialize: function(options) {
@@ -298,14 +357,7 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
     },
 
     addScenario: function() {
-        var first = this.collection.first();
-
-        if (first) {
-            var aoi_census = first.get('aoi_census');
-            this.collection.createNewScenario(aoi_census);
-        } else {
-            this.collection.createNewScenario();
-        }
+        this.collection.createNewScenario();
     },
 
     templateHelpers: function() {
@@ -323,6 +375,10 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
             showCompare: showCompare,
             compareUrl: compareUrl
         };
+    },
+
+    showCompare: function() {
+        compareViews.showCompare();
     },
 });
 
@@ -401,14 +457,13 @@ var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
     renameScenario: function() {
         var self = this,
             collection = self.model.collection,
-            validate = _.bind(collection.validateNewScenarioName, collection),
-            curriedValidationFunction = _.curry(validate)(this.model),
+            validate = _.bind(collection.validateNewScenarioName, self.model),
             rename = new modalViews.InputView({
                 model: new modalModels.InputModel({
                     initial: this.model.get('name'),
                     title: 'Rename Scenario',
                     fieldLabel: 'Scenario Name',
-                    validationFunction: curriedValidationFunction,
+                    validationFunction: validate,
                 })
         });
 
@@ -432,10 +487,7 @@ var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         var gis_data = this.model.getGisData().model_input,
-            is_gwlfe = App.currentProject.get('model_package') === models.GWLFE &&
-                    gis_data !== null &&
-                    gis_data !== '{}' &&
-                    gis_data !== '';
+            is_gwlfe = App.currentProject.get('model_package') === models.GWLFE && !_.isEmpty(gis_data);
 
         return {
             is_gwlfe: is_gwlfe,
@@ -793,13 +845,17 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
     template: scenarioAddChangesButtonTmpl,
     collection: models.ScenariosCollection,
     childViewContainer: '.tab-content.scenario-toolbar-tab-content',
+    className: 'toolbar-container',
 
     ui: {
         addChangesButton: '#add-changes',
+        downloadGmsFile: '#download-cc-gms',
+        exportGmsForm: '#export-gms-form',
     },
 
     events: {
         'click @ui.addChangesButton': 'onAddChangesClick',
+        'click @ui.downloadGmsFile': 'onGmsDownloadClick',
     },
 
     collectionEvents: {
@@ -807,38 +863,59 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
     },
 
     getChildView: function() {
-        var isGwlfe = App.currentProject.get('model_package') === 'gwlfe';
+        var isGwlfe = this.modelPackage === models.GWLFE;
+
         if (isGwlfe) {
             return GwlfeToolbarView;
         } else {
             return Tr55ToolbarView;
         }
     },
+
     childViewOptions: function(model) {
         var controls = models.getControlsForModelPackage(
-            this.options.model_package,
-            {is_current_conditions: model.get('is_current_conditions')}
-        );
+                this.modelPackage,
+                {is_current_conditions: model.get('is_current_conditions')}
+            );
 
         return {
             collection: controls
         };
     },
 
-    initialize: function(options) {
-        this.mergeOptions(options, ['model_package']);
+    initialize: function() {
+        this.modelPackage = this.model.get('model_package');
+        this.currentConditions= this.collection.findWhere({is_current_conditions: true});
     },
 
     onAddChangesClick: function() {
         this.collection.createNewScenario();
     },
 
+    onGmsDownloadClick: function() {
+        // We can't download a file from an AJAX call. One either has to
+        // load the data in an iframe, or submit a form that responds with
+        // Content-Disposition: attachment. We prefer submitting a form.
+        var filename = App.currentProject.get('name').replace(/\s/g, '_') +
+                       '__' + this.currentConditions.get('name').replace(/\s/g, '_');
+
+        this.ui.exportGmsForm.find('.gms-filename').val(filename);
+        this.ui.exportGmsForm.submit();
+    },
+
     templateHelpers: function() {
+        var gisData = this.currentConditions.getGisData().model_input,
+            isGwlfe = this.modelPackage === models.GWLFE && !_.isEmpty(gisData),
+            isOnlyCurrentConditions = this.collection.length === 1 &&
+                this.collection.first().get('is_current_conditions');
+
         return {
-            isOnlyCurrentConditions: this.collection.length === 1 &&
-                this.collection.first().get('is_current_conditions'),
+            isOnlyCurrentConditions: isOnlyCurrentConditions,
+            isGwlfe: isGwlfe,
+            csrftoken: csrf.getToken(),
+            gis_data: gisData,
         };
-    }
+    },
 });
 
 var ResultsView = Marionette.LayoutView.extend({
@@ -848,8 +925,13 @@ var ResultsView = Marionette.LayoutView.extend({
     template: resultsWindowTmpl,
 
     regions: {
+        aoiRegion: '.aoi-region',
         analyzeRegion: '#analyze-tab-contents',
         modelingRegion: '#modeling-tab-contents'
+    },
+
+    modelEvents: {
+        'change:showing_analyze': 'toggleAoiRegion',
     },
 
     initialize: function(options) {
@@ -861,41 +943,8 @@ var ResultsView = Marionette.LayoutView.extend({
             this.lock = options.lock;
         }
 
-        this.fetchGisDataPromise = this.model.fetchGisDataIfNeeded();
-        this.fetchResultsPromise = this.model.fetchResultsIfNeeded();
-    },
-
-    onShow: function() {
-        var self = this,
-            analyzeCollection = App.getAnalyzeCollection(),
-            tmvModel = new coreModels.TaskMessageViewModel(),
-            errorHandler = function(err) {
-                if (err && err.timeout) {
-                    tmvModel.setTimeoutError();
-                } else {
-                    var message = err.error === 'NO_LAND_COVER' ?
-                        'Selected area of interest doesn\'t include any land ' +
-                        'cover to run the model' : 'Error';
-                    tmvModel.setError(message);
-                }
-                self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
-            };
-
-        this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
-            collection: analyzeCollection
-        }));
-
-        tmvModel.setWorking('Gathering Data');
-        self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
-
-        self.fetchGisDataPromise.done(function() {
-            tmvModel.setWorking('Calculating Results');
-            self.modelingRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
-        }).fail(errorHandler);
-
-        self.fetchResultsPromise.done(function() {
-            self.showDetailsRegion();
-        }).fail(errorHandler);
+        this.model.fetchGisDataIfNeeded();
+        this.model.fetchResultsIfNeeded();
     },
 
     onRender: function() {
@@ -906,9 +955,14 @@ var ResultsView = Marionette.LayoutView.extend({
         this.$el.find('.tab-pane:last').addClass('active');
     },
 
-    showDetailsRegion: function() {
+    onShow: function() {
         var scenarios = this.model.get('scenarios'),
-            scenario = scenarios.getActiveScenario();
+            scenario = scenarios.getActiveScenario(),
+            analyzeCollection = App.getAnalyzeCollection();
+
+        this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
+            collection: analyzeCollection
+        }));
 
         if (scenario) {
             this.modelingRegion.show(new ResultsDetailsView({
@@ -917,6 +971,28 @@ var ResultsView = Marionette.LayoutView.extend({
                 scenario: scenario
             }));
         }
+    },
+
+    showAoiRegion: function() {
+        this.aoiRegion.show(new analyzeViews.AoiView({
+            model: new coreModels.GeoModel({
+                place: App.map.get('areaOfInterestName'),
+                shape: App.map.get('areaOfInterest')
+            })
+        }));
+    },
+
+    toggleAoiRegion: function() {
+        this.aoiRegion.$el.toggleClass('hidden');
+
+        if (this.model.get('showing_analyze')) {
+            this.showAoiRegion();
+        } else {
+            this.aoiRegion.empty();
+        }
+
+        this.analyzeRegion.$el.toggleClass('active');
+        this.modelingRegion.$el.toggleClass('active');
     },
 
     transitionInCss: {
@@ -988,7 +1064,7 @@ var ResultsTabPanelView = Marionette.ItemView.extend({
 var ResultsTabPanelsView = Marionette.CollectionView.extend({
     collection: models.ResultCollection,
     tagName: 'ul',
-    className: 'nav nav-tabs',
+    className: 'nav nav-tabs model-nav-tabs',
     attributes: {
         role: 'tablist'
     },
@@ -1023,6 +1099,10 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
         resultRegion: '.result-region'
     },
 
+    modelEvents: {
+        'change:polling change:result': 'onShow',
+    },
+
     id: function() {
         return this.model.get('name');
     },
@@ -1032,15 +1112,44 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        var modelPackage = App.currentProject.get('model_package'),
+        var self = this,
+            modelPackage = App.currentProject.get('model_package'),
             resultName = this.model.get('name'),
-            ResultView = getResultView(modelPackage, resultName);
+            ResultView = getResultView(modelPackage, resultName),
+            tmvModel = new coreModels.TaskMessageViewModel(),
+            polling = this.model.get('polling'),
+            result = this.model.get('result'),
+            error = self.scenario.get('poll_error');
 
-        this.resultRegion.show(new ResultView({
-            model: this.model,
-            areaOfInterest: this.options.areaOfInterest,
-            scenario: this.scenario
-        }));
+        if (result) {
+            this.resultRegion.show(new ResultView({
+                model: this.model,
+                areaOfInterest: this.options.areaOfInterest,
+                scenario: this.scenario,
+            }));
+            return;
+        }
+
+        // Only show this on the initial polling. On subsequent polling, we
+        // keep showing the current results.
+        tmvModel.setWorking('Gathering Data');
+
+        if (error) {
+            if (error.timeout) {
+                tmvModel.setTimeoutError();
+            } else {
+                var message = error === 'NO_LAND_COVER' ?
+                    'Selected area of interest doesn\'t include any land cover to run the model' :
+                    'Error';
+                tmvModel.setError(message);
+            }
+        }
+
+        if (polling) {
+            tmvModel.setWorking('Calculating Results');
+        }
+
+        self.resultRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
     }
 });
 
@@ -1048,7 +1157,7 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
 var ResultsTabContentsView = Marionette.CollectionView.extend({
     collection: models.ResultCollection,
     tagName: 'div',
-    className: 'tab-content',
+    className: 'tab-content model-tab-content',
     childView: ResultsTabContentView,
     childViewOptions: function() {
         return {

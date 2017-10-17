@@ -12,7 +12,7 @@ var LayerModel = Backbone.Model.extend({});
 // Each layer returned from the analyze endpoint.
 // Land, soil, etc.
 var LayerCollection = Backbone.Collection.extend({
-    url: '/api/modeling/',
+    url: '/api/',
     model: LayerModel
 });
 
@@ -28,7 +28,7 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
             area_of_interest: null,
             wkaoi: null,
             taskName: 'analyze',
-            taskType: 'modeling'
+            taskType: 'api'
         }, coreModels.TaskModel.prototype.defaults
     ),
 
@@ -43,14 +43,13 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
             result = self.get('result');
 
         if (aoi && !result && self.fetchAnalysisPromise === undefined) {
-            var analyzeInput = utils.isWKAoIValid(wkaoi) ?
-                                   JSON.stringify({ 'wkaoi': wkaoi }) :
-                                   JSON.stringify({ 'area_of_interest': aoi }),
-                promises = self.start({
-                    postData: {
-                        'analyze_input': analyzeInput
-                    }
-                });
+            var isWkaoi = utils.isWKAoIValid(wkaoi),
+                taskHelper = {
+                    contentType: 'application/json',
+                    queryParams: isWkaoi ? { wkaoi: wkaoi } : null,
+                    postData: isWkaoi ? null : JSON.stringify(aoi)
+                },
+                promises = self.start(taskHelper);
 
             self.fetchAnalysisPromise = $.when(promises.startPromise,
                                                promises.pollingPromise);
@@ -87,6 +86,7 @@ function createAnalyzeTaskCollection(aoi, wkaoi) {
     ];
 
     if (!settings.get('data_catalog_enabled')) {
+        // MMW Analyses
         tasks.push(
             {
                 name: "animals",
@@ -108,6 +108,17 @@ function createAnalyzeTaskCollection(aoi, wkaoi) {
                 area_of_interest: aoi,
                 wkaoi: wkaoi,
                 taskName: "analyze/catchment-water-quality"
+            }
+        );
+    } else {
+        // BiG-CZ Analyses
+        tasks.push(
+            {
+                name: "climate",
+                displayName: "Climate",
+                area_of_interest: aoi,
+                wkaoi: wkaoi,
+                taskName: "analyze/climate"
             }
         );
     }

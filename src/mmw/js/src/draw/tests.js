@@ -42,6 +42,39 @@ describe('Draw', function() {
             'PlaceMarker',  // Delineate Watershed
             'ResetDraw',
         ]);
+
+        // add Conus perimeter to settings; this is a very rough box for brevity
+        settings.set('conus_perimeter', {
+            'type': 'Feature',
+            'properties': {},
+            'geometry': {
+                'type': 'Polygon',
+                'coordinates': [
+                    [
+                        [
+                            -124.541015625,
+                            24.44714958973082
+                        ],
+                        [
+                            -61.87499999999999,
+                            24.44714958973082
+                        ],
+                        [
+                            -61.87499999999999,
+                            48.86471476180277
+                        ],
+                        [
+                            -124.541015625,
+                            48.86471476180277
+                        ],
+                        [
+                            -124.541015625,
+                            24.44714958973082
+                        ]
+                    ]
+                ]
+            }
+        });
     });
 
     beforeEach(function() {

@@ -53,6 +53,7 @@ header {
         .dropdown-menu {
           left: auto;
           right: 0px;
+          z-index: 1010;
           a {
             color: $ui-secondary;
 
@@ -79,8 +80,15 @@ header {
 
 //Model Header
 #model-header {
-  background-color: $ui-secondary;
-  height: $height-xl*2;
+    background-color: $ui-secondary;
+
+    &.bigcz {
+        height: $height-xl;
+    }
+
+    #project-menu-region {
+        height: $height-xl;
+    }
 
     .project {
       position: relative;
@@ -94,36 +102,37 @@ header {
       .project-right, .project-left {
         display: flex;
       }
-
+      .project-center {
+          margin-left: auto;
+          margin-right: auto;
+      }
       .project-right {
           margin-right: 8px;
-          margin-left: auto;
       }
 
       .project-title {
         display: inline-block;
         position: relative;
-        margin-left: 1rem;
+        margin: 0 1rem;
         vertical-align: top;
       }
     }
 
-  .toolbar {
-    position: absolute;
-    top: $height-xl;
-    left: 0;
-    right: 0;
-    padding: 0rem 1rem 0 1rem;
-    background-color: $ui-light;
-    height: $height-xl;
-    line-height: $height-xl - 2px;
-    display: flex;
-    flex: 0 0 100%;
-    flex-direction: row;
-    flex-wrap: nowrap;
+    .toolbar {
+        height: $height-xl;
+        left: 0;
+        right: 0;
+        padding: 0rem 1rem 0 1rem;
+        background-color: $ui-light;
+        height: $height-xl;
+        line-height: $height-xl - 2px;
+        display: flex;
+        flex: 0 0 100%;
+        flex-direction: row;
+        flex-wrap: nowrap;
 
     .tooltip-inner {
-        white-space: initial;
+        white-space: normal;
         max-width: 100px;
         width: 100px;
     }
@@ -201,13 +210,29 @@ header {
         white-space: nowrap;
     }
 
+
     #toolbar-region {
-        margin-right: 0;
-        margin-left: auto;
+        width: 100%;
+    }
+
+    #toolbar-region > .toolbar-container {
+        display: flex;
+        flex-basis: 100%;
+        flex-direction: row;
+        height: 100%;
+
+        .right-controls-container {
+            margin-left: auto;
+        }
+
         #add-changes {
-          position: relative;
-          top: -2px;
-          color: $brand-primary;
+            color: $brand-primary;
+            height: 100%;
+        }
+
+        #download-cc-gms {
+            font-size: 13px;
+            color: inherit;
         }
     }
 

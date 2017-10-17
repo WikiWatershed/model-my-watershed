@@ -3,15 +3,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import json
-import random
 
-import celery
 from celery import chain, group
-
-from retry import retry
 
 from rest_framework.response import Response
 from rest_framework import decorators, status
+from rest_framework.exceptions import ParseError
+from rest_framework.authentication import (SessionAuthentication,
+                                           TokenAuthentication)
 from rest_framework.permissions import (AllowAny,
                                         IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
@@ -22,14 +21,16 @@ from django.conf import settings
 from django.db import connection
 from django.contrib.gis.geos import WKBReader
 from django.http import (HttpResponse,
-                         Http404)
+                         Http404,
+                         )
 from django.core.servers.basehttp import FileWrapper
 
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
+from apps.core.permissions import IsTokenAuthenticatedOrNotSwagger
+from apps.core.decorators import log_request
 from apps.modeling import tasks, geoprocessing
 from apps.modeling.mapshed.tasks import (geoprocessing_chains,
-                                         combine,
                                          collect_data,
                                          )
 from apps.modeling.models import Project, Scenario
@@ -37,11 +38,6 @@ from apps.modeling.serializers import (ProjectSerializer,
                                        ProjectListingSerializer,
                                        ProjectUpdateSerializer,
                                        ScenarioSerializer)
-
-
-# When CELERY_WORKER_DIRECT = True, this exchange is automatically
-# created to allow direct communication with workers.
-MAGIC_EXCHANGE = 'C.dq'
 
 
 @decorators.api_view(['GET', 'POST'])
@@ -167,38 +163,6 @@ def scenario(request, scen_id):
 
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
-def start_rwd(request, format=None):
-    """
-    Starts a job to run Rapid Watershed Delineation on a point-based location.
-    """
-    user = request.user if request.user.is_authenticated() else None
-    created = now()
-    location = request.POST['location']
-    data_source = request.POST.get('dataSource', 'drb')
-
-    # Parse out the JS style T/F to a boolean
-    snappingParam = request.POST['snappingOn']
-    snapping = True if snappingParam == 'true' else False
-
-    job = Job.objects.create(created_at=created, result='', error='',
-                             traceback='', user=user, status='started')
-
-    task_list = _initiate_rwd_job_chain(location, snapping, data_source,
-                                        job.id)
-
-    job.uuid = task_list.id
-    job.save()
-
-    return Response(
-        {
-            'job': task_list.id,
-            'status': 'started',
-        }
-    )
-
-
-@decorators.api_view(['POST'])
-@decorators.permission_classes((AllowAny, ))
 def start_gwlfe(request, format=None):
     """
     Starts a job to run GWLF-E.
@@ -225,11 +189,9 @@ def start_gwlfe(request, format=None):
 
 def _initiate_gwlfe_job_chain(model_input, inputmod_hash, job_id):
     chain = (tasks.run_gwlfe.s(model_input, inputmod_hash)
-             .set(exchange=MAGIC_EXCHANGE, routing_key=choose_worker()) |
-             save_job_result.s(job_id, model_input)
-             .set(exchange=MAGIC_EXCHANGE, routing_key=choose_worker()))
-    errback = save_job_error.s(job_id).set(exchange=MAGIC_EXCHANGE,
-                                           routing_key=choose_worker())
+             | save_job_result.s(job_id, model_input))
+
+    errback = save_job_error.s(job_id)
 
     return chain.apply_async(link_error=errback)
 
@@ -261,28 +223,16 @@ def start_mapshed(request, format=None):
 
 
 def _initiate_mapshed_job_chain(mapshed_input, job_id):
-    workers = get_living_workers()
-    get_worker = lambda: random.choice(workers)
-    errback = save_job_error.s(job_id).set(exchange=MAGIC_EXCHANGE,
-                                           routing_key=get_worker())
+    errback = save_job_error.s(job_id)
 
     area_of_interest, wkaoi = parse_input(mapshed_input)
 
     job_chain = (
-        group(geoprocessing_chains(area_of_interest, wkaoi,
-                                   MAGIC_EXCHANGE, errback, choose_worker)) |
-        combine.s().set(
-            exchange=MAGIC_EXCHANGE,
-            routing_key=get_worker()) |
-        collect_data.s(area_of_interest).set(
-            link_error=errback,
-            exchange=MAGIC_EXCHANGE,
-            routing_key=get_worker()) |
-        save_job_result.s(job_id, mapshed_input).set(
-            exchange=MAGIC_EXCHANGE,
-            routing_key=get_worker()))
+        group(geoprocessing_chains(area_of_interest, wkaoi, errback)) |
+        collect_data.s(area_of_interest).set(link_error=errback) |
+        save_job_result.s(job_id, mapshed_input))
 
-    return chain(job_chain).apply_async(link_error=errback)
+    return chain(job_chain).apply_async()
 
 
 @decorators.api_view(['POST'])
@@ -305,155 +255,8 @@ def export_gms(request, format=None):
 
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
-def start_analyze_land(request, format=None):
-    user = request.user if request.user.is_authenticated() else None
-    exchange = MAGIC_EXCHANGE
-    routing_key = choose_worker()
-
-    area_of_interest, wkaoi = parse_input(request.POST['analyze_input'])
-
-    geop_input = {'polygon': [area_of_interest]}
-
-    return start_celery_job([
-        geoprocessing.start.s('nlcd', geop_input, wkaoi)
-                     .set(exchange=exchange, routing_key=routing_key),
-        geoprocessing.finish.s()
-                     .set(exchange=exchange, routing_key=routing_key),
-        tasks.analyze_nlcd.s(area_of_interest)
-             .set(exchange=exchange, routing_key=choose_worker())
-    ], area_of_interest, user)
-
-
-@decorators.api_view(['POST'])
-@decorators.permission_classes((AllowAny, ))
-def start_analyze_soil(request, format=None):
-    user = request.user if request.user.is_authenticated() else None
-    exchange = MAGIC_EXCHANGE
-    routing_key = choose_worker()
-
-    area_of_interest, wkaoi = parse_input(request.POST['analyze_input'])
-
-    geop_input = {'polygon': [area_of_interest]}
-
-    return start_celery_job([
-        geoprocessing.start.s('soil', geop_input, wkaoi)
-                     .set(exchange=exchange, routing_key=routing_key),
-        geoprocessing.finish.s()
-                     .set(exchange=exchange, routing_key=routing_key),
-        tasks.analyze_soil.s(area_of_interest)
-             .set(exchange=exchange, routing_key=choose_worker())
-    ], area_of_interest, user)
-
-
-@decorators.api_view(['POST'])
-@decorators.permission_classes((AllowAny, ))
-def start_analyze_animals(request, format=None):
-    user = request.user if request.user.is_authenticated() else None
-    area_of_interest, __ = parse_input(request.POST['analyze_input'])
-    exchange = MAGIC_EXCHANGE
-
-    return start_celery_job([
-        tasks.analyze_animals.s(area_of_interest)
-             .set(exchange=exchange, routing_key=choose_worker())
-    ], area_of_interest, user)
-
-
-@decorators.api_view(['POST'])
-@decorators.permission_classes((AllowAny, ))
-def start_analyze_pointsource(request, format=None):
-    user = request.user if request.user.is_authenticated() else None
-    area_of_interest, __ = parse_input(request.POST['analyze_input'])
-    exchange = MAGIC_EXCHANGE
-
-    return start_celery_job([
-        tasks.analyze_pointsource.s(area_of_interest)
-             .set(exchange=exchange, routing_key=choose_worker())
-    ], area_of_interest, user)
-
-
-@decorators.api_view(['POST'])
-@decorators.permission_classes((AllowAny, ))
-def start_analyze_catchment_water_quality(request, format=None):
-    user = request.user if request.user.is_authenticated() else None
-    area_of_interest, __ = parse_input(request.POST['analyze_input'])
-    exchange = MAGIC_EXCHANGE
-
-    return start_celery_job([
-        tasks.analyze_catchment_water_quality.s(area_of_interest)
-             .set(exchange=exchange, routing_key=choose_worker())
-    ], area_of_interest, user)
-
-
-@decorators.api_view(['GET'])
-@decorators.permission_classes((AllowAny, ))
-def get_job(request, job_uuid, format=None):
-    # TODO consider if we should have some sort of session id check to ensure
-    # you can only view your own jobs.
-    try:
-        job = Job.objects.get(uuid=job_uuid)
-    except Job.DoesNotExist:
-        raise Http404("Not found.")
-
-    # Get the user so that logged in users can only see jobs that they started
-    # or anonymous ones
-    user = request.user if request.user.is_authenticated() else None
-
-    if job.user and job.user != user:
-        raise Http404("Not found.")
-
-    # TODO Should we return the error? Might leak info about the internal
-    # workings that we don't want exposed.
-    return Response(
-        {
-            'job_uuid': job.uuid,
-            'status': job.status,
-            'result': job.result,
-            'error': job.error,
-            'started': job.created_at,
-            'finished': job.delivered_at,
-        }
-    )
-
-
-def get_living_workers():
-    def predicate(worker_name):
-        return settings.STACK_COLOR in worker_name or 'debug' in worker_name
-
-    @retry(Exception, delay=0.5, backoff=2, tries=3)
-    def get_list_of_workers():
-        workers = celery.current_app.control.inspect().ping()
-
-        if workers is None:
-            raise Exception('Unable to receive a PONG from any workers')
-
-        return workers.keys()
-
-    workers = filter(predicate,
-                     get_list_of_workers())
-    return workers
-
-
-def choose_worker():
-    return random.choice(get_living_workers())
-
-
-def _initiate_rwd_job_chain(location, snapping, data_source,
-                            job_id, testing=False):
-    exchange = MAGIC_EXCHANGE
-    routing_key = choose_worker()
-    errback = save_job_error.s(job_id).set(exchange=MAGIC_EXCHANGE,
-                                           routing_key=choose_worker())
-
-    return chain(tasks.start_rwd_job.s(location, snapping, data_source)
-                 .set(exchange=exchange, routing_key=routing_key),
-                 save_job_result.s(job_id, location)
-                 .set(exchange=exchange, routing_key=choose_worker())) \
-        .apply_async(link_error=errback)
-
-
-@decorators.api_view(['POST'])
-@decorators.permission_classes((AllowAny, ))
 def start_tr55(request, format=None):
+
     user = request.user if request.user.is_authenticated() else None
     created = now()
 
@@ -472,19 +275,17 @@ def start_tr55(request, format=None):
 
 def _initiate_tr55_job_chain(model_input, job_id):
     job_chain = _construct_tr55_job_chain(model_input, job_id)
-    errback = save_job_error.s(job_id).set(exchange=MAGIC_EXCHANGE,
-                                           routing_key=choose_worker())
+    errback = save_job_error.s(job_id)
 
     return chain(job_chain).apply_async(link_error=errback)
 
 
 def _construct_tr55_job_chain(model_input, job_id):
-    exchange = MAGIC_EXCHANGE
-    routing_key = choose_worker()
 
     job_chain = []
 
-    aoi, wkaoi = parse_input(model_input, geojson=False)
+    aoi_json_str, wkaoi = parse_input(model_input)
+    aoi = json.loads(aoi_json_str)
     aoi_census = model_input.get('aoi_census')
     modification_censuses = model_input.get('modification_censuses')
     # Non-overlapping polygons derived from the modifications
@@ -504,41 +305,30 @@ def _construct_tr55_job_chain(model_input, job_id):
        census_hash == current_hash) or not pieces)):
         censuses = [aoi_census] + modification_census_items
 
-        job_chain.append(tasks.run_tr55.s(censuses, aoi, model_input)
-                         .set(exchange=exchange, routing_key=choose_worker()))
+        job_chain.append(tasks.run_tr55.s(censuses, aoi, model_input))
     else:
-        job_chain.append(geoprocessing.finish.s()
-                         .set(exchange=exchange, routing_key=routing_key))
-        job_chain.append(tasks.nlcd_soil_census.s()
-                         .set(exchange=exchange, routing_key=choose_worker()))
+        job_chain.append(tasks.nlcd_soil.s())
 
         if aoi_census and pieces:
             polygons = [m['shape']['geometry'] for m in pieces]
             geop_input = {'polygon': [json.dumps(p) for p in polygons]}
 
-            job_chain.insert(0, geoprocessing.start.s('nlcd_soil_census',
-                                                      geop_input)
-                             .set(exchange=exchange, routing_key=routing_key))
+            job_chain.insert(0, geoprocessing.run.s('nlcd_soil',
+                                                    geop_input))
             job_chain.append(tasks.run_tr55.s(aoi, model_input,
-                                              cached_aoi_census=aoi_census)
-                             .set(exchange=exchange,
-                                  routing_key=choose_worker()))
+                                              cached_aoi_census=aoi_census))
         else:
             polygons = [aoi] + [m['shape']['geometry'] for m in pieces]
             geop_input = {'polygon': [json.dumps(p) for p in polygons]}
             # Use WKAoI only if there are no pieces to modify the AoI
             wkaoi = wkaoi if not pieces else None
 
-            job_chain.insert(0, geoprocessing.start.s('nlcd_soil_census',
-                                                      geop_input,
-                                                      wkaoi)
-                             .set(exchange=exchange, routing_key=routing_key))
-            job_chain.append(tasks.run_tr55.s(aoi, model_input)
-                             .set(exchange=exchange,
-                                  routing_key=choose_worker()))
+            job_chain.insert(0, geoprocessing.run.s('nlcd_soil',
+                                                    geop_input,
+                                                    wkaoi))
+            job_chain.append(tasks.run_tr55.s(aoi, model_input))
 
-    job_chain.append(save_job_result.s(job_id, model_input)
-                     .set(exchange=exchange, routing_key=choose_worker()))
+    job_chain.append(save_job_result.s(job_id, model_input))
 
     return job_chain
 
@@ -693,40 +483,74 @@ def drb_point_sources(request):
                     headers={'Cache-Control': 'max-age: 604800'})
 
 
-def start_celery_job(task_list, job_input, user=None,
-                     exchange=MAGIC_EXCHANGE, routing_key=None):
+@decorators.api_view(['GET'])
+@decorators.authentication_classes((TokenAuthentication,
+                                    SessionAuthentication, ))
+@decorators.permission_classes((IsTokenAuthenticatedOrNotSwagger, ))
+@log_request
+def get_job(request, job_uuid, format=None):
     """
-    Given a list of Celery tasks and it's input, starts a Celery async job with
-    those tasks, adds save_job_result and save_job_error handlers, and returns
-    the job's id which is used to query status and retrieve results via get_job
+    Get a job's status. If it's complete, get its result.
 
-    :param task_list: A list of Celery tasks to execute. Is made into a chain
-    :param job_input: Input to the first task, used in recording started jobs
-    :param user: The user requesting the job. Optional.
-    :param exchange: Allows restricting jobs to specific exchange. Optional.
-    :param routing_key: Allows restricting jobs to specific workers. Optional.
-    :return: A Response contianing the job id, marked as 'started'
+    ---
+    type:
+      job_uuid:
+        required: true
+        type: string
+      status:
+        required: true
+        type: string
+      started:
+        required: true
+        type: datetime
+      finished:
+        required: true
+        type: datetime
+      result:
+        required: true
+        type: object
+      error:
+        required: true
+        type: string
+
+    omit_serializer: true
+    parameters:
+       - name: Authorization
+         paramType: header
+         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
+                      Swagger you may wish to set this for all requests via
+                      the field at the top right of the page.
     """
-    created = now()
-    job = Job.objects.create(created_at=created, result='', error='',
-                             traceback='', user=user, status='started',
-                             model_input=job_input)
-    routing_key = routing_key if routing_key else choose_worker()
-    success = save_job_result.s(job.id, job_input).set(exchange=exchange,
-                                                       routing_key=routing_key)
-    error = save_job_error.s(job.id).set(exchange=exchange,
-                                         routing_key=routing_key)
+    # TODO consider if we should have some sort of session id check to ensure
+    # you can only view your own jobs.
+    try:
+        job = Job.objects.get(uuid=job_uuid)
+    except Job.DoesNotExist:
+        raise Http404("Not found.")
 
-    task_list.append(success)
-    task_chain = chain(task_list).apply_async(link_error=error)
+    # Get the user so that logged in users can only see jobs that they started
+    # or anonymous ones
+    user = request.user if request.user.is_authenticated() else None
+    if job.user and job.user != user:
+        raise Http404("Not found.")
 
-    job.uuid = task_chain.id
-    job.save()
+    # TODO Should we return the error? Might leak info about the internal
+    # workings that we don't want exposed.
+
+    # Parse results to json if it is valid json
+    try:
+        result = json.loads(job.result)
+    except ValueError:
+        result = job.result
 
     return Response(
         {
-            'job': task_chain.id,
-            'status': 'started',
+            'job_uuid': job.uuid,
+            'status': job.status,
+            'result': result,
+            'error': job.error,
+            'started': job.created_at,
+            'finished': job.delivered_at,
         }
     )
 
@@ -762,7 +586,63 @@ def get_layer_shape(table_code, id):
             return None
 
 
-def parse_input(model_input, geojson=True):
+def parse_area_of_interest(area_of_interest):
+    """
+    Returns a geojson string of the provided area of interest, formatted
+    as a one-ring multipolygon if necessary.
+
+    Args:
+       area_of_interest (dict): valid geojson. If MultiPolygon, can only have a
+                                single ring.
+    """
+    try:
+        shape = geoprocessing.to_one_ring_multipolygon(area_of_interest)
+    except:
+        raise ParseError(detail='Area of interest must be valid GeoJSON')
+
+    return json.dumps(shape)
+
+
+def load_wkaoi(wkaoi):
+    """
+    Returns a geojson string of a wellknown AoI's shape
+
+    Args:
+       wkaoi (string): '{table}__{id}', where table is the table to look up the
+                       wellknown AOIs shape in, and id is the shape's id
+    """
+    table, id = wkaoi.split('__')
+    shape = get_layer_shape(table, id)
+
+    if not shape:
+        raise ParseError(detail='Invalid wkaoi: {}'.format(wkaoi))
+
+    return shape
+
+
+def load_area_of_interest(aoi_geojson=None, wkaoi=None):
+    """
+    Returns a geojson string of the area of interest, either loaded from the
+    wkaoi, or processed from the aoi_geojson
+
+    Args:
+       aoi_geojson (dict): valid GeoJSON. If MultiPolygon can only have
+                           a single ring.
+                           No re-projection, expects EPSG: 4326
+       wkaoi (string):     '{table}__{id}'
+    """
+    if (aoi_geojson):
+        return parse_area_of_interest(aoi_geojson)
+
+    if (wkaoi):
+        return load_wkaoi(wkaoi)
+
+    raise ParseError(detail='Must supply either ' +
+                            'the area of interest (GeoJSON), ' +
+                            'or a WKAoI ID.')
+
+
+def parse_input(model_input):
     """
     Parse input into tuple of AoI JSON and WKAoI id.
 
@@ -771,38 +651,16 @@ def parse_input(model_input, geojson=True):
     from the appropriate database, and returned with the value of 'wkaoi' as
     the WKAoI.
 
-    If the geojson parameter is set to False, the area of interest is returned
-    as a dict instead of a JSON string.
+    Args:
+        model_input: a dictionary, only one of the keys is necessary
+                         {
+                            'area_of_interest': { <geojson dict> }
+                            'wkaoi': '{table}__{id}',
+                         }
     """
     if not model_input:
-        return Response('model_input cannot be empty',
-                        status=status.HTTP_400_BAD_REQUEST)
+        raise ParseError(detail='model_input cannot be empty')
 
-    if isinstance(model_input, basestring):
-        # Input is string, assumed JSON. Convert to dict before proceeding
-        model_input = json.loads(model_input)
-
-    if 'area_of_interest' in model_input:
-        # Area of Interest is expected to be GeoJSON in 4326
-        shape = geoprocessing.to_one_ring_multipolygon(
-            model_input['area_of_interest']
-        )
-
-        result = json.dumps(shape) if geojson else shape
-        return result, None
-
-    if 'wkaoi' in model_input:
-        # WKAoI is expected to be in the format '{table}__{id}'
-        table, id = model_input['wkaoi'].split('__')
-        shape = get_layer_shape(table, id)
-
-        if shape:
-            result = shape if geojson else json.loads(shape)
-            return result, model_input['wkaoi']
-        else:
-            return Response('Invalid wkaoi: {}'.format(model_input['wkaoi']),
-                            status=status.HTTP_400_BAD_REQUEST)
-
-    # If neither 'area_of_interest' nor 'wkaoi' were found, report
-    return Response('model_input must have either area_of_interest or wkaoi',
-                    status=status.HTTP_400_BAD_REQUEST)
+    wkaoi = model_input.get('wkaoi', None)
+    return load_area_of_interest(model_input.get('area_of_interest', None),
+                                 wkaoi), wkaoi

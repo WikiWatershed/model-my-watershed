@@ -18,7 +18,7 @@ var _ = require('underscore'),
     ENTER_KEYCODE = 13,
     BASIC_MODAL_CLASS = 'modal modal-basic fade';
 
-var ModalBaseView = Marionette.ItemView.extend({
+var ModalBaseView = Marionette.LayoutView.extend({
     className: BASIC_MODAL_CLASS,
 
     attributes: function() {
@@ -389,6 +389,7 @@ var PlotView = ModalBaseView.extend({
 });
 
 module.exports = {
+    ModalBaseView: ModalBaseView,
     ShareView: ShareView,
     InputView: InputView,
     ConfirmView: ConfirmView,

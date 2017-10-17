@@ -13,6 +13,34 @@
   }
 }
 
+#layer-picker-slider-region {
+  z-index: 400;
+  position: absolute;
+  left: 265px;
+  bottom: 23px;
+  width: 150px;
+  padding: 10px;
+  background-color: #fff;
+  box-shadow: 0 0 6px $black-74;
+  font-size: 13px;
+  &:empty {
+    display: none;
+  }
+}
+
+input.time-slider {
+  padding: 5px 0 5px 0;
+}
+
+.time-slider-short-name {
+  font-weight: bold;
+}
+
+span.time-slider-end {
+    position: absolute;
+    right: 10px;
+}
+
 .layerpicker-header {
     background-color: $ui-primary;
     color: $paper;
@@ -48,7 +76,7 @@
   border: 0;
   outline: 0;
   background: none;
-  color: #999;
+  color: $ui-primary;
   &:hover {
     color: inherit;
   }
@@ -56,7 +84,7 @@
     color: $brand-primary;
   }
   &:disabled {
-      color: $ui-light;
+      color: $ui-medium-light;
   }
 }
 
@@ -171,4 +199,9 @@
         right: 12px;
         top: 6px;
     }
+}
+
+.layerpicker-loading {
+  font-size: 13px;
+  padding: 0 0 8px 6px;
 }

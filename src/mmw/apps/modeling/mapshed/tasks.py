@@ -4,11 +4,10 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 
 from celery import shared_task
-
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 
-from apps.modeling.geoprocessing import start, finish, parse
+from apps.modeling.geoprocessing import run, parse
 from apps.modeling.mapshed.calcs import (day_lengths,
                                          nearest_weather_stations,
                                          growing_season,
@@ -25,7 +24,6 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          point_source_discharge,
                                          weather_data,
                                          curve_number,
-                                         sediment_phosphorus,
                                          phosphorus_conc,
                                          groundwater_nitrogen_conc,
                                          sediment_delivery_ratio,
@@ -47,7 +45,9 @@ NO_LAND_COVER = 'NO_LAND_COVER'
 
 
 @shared_task
-def collect_data(geop_result, geojson):
+def collect_data(geop_results, geojson):
+    geop_result = {k: v for r in geop_results for k, v in r.items()}
+
     geom = GEOSGeometry(geojson, srid=4326)
     area = geom.transform(5070, clone=True).area  # Square Meters
 
@@ -106,7 +106,7 @@ def collect_data(geop_result, geojson):
     z['n46f'] = geop_result['low_urban_stream_pct'] * z['StreamLength'] / 1000
 
     z['CN'] = geop_result['cn']
-    z['SedPhos'] = geop_result['sed_phos']
+    z['SedPhos'] = geop_result['soilp']
     z['Area'] = [percent * area * HECTARES_PER_SQM
                  for percent in geop_result['landuse_pcts']]
 
@@ -150,11 +150,15 @@ def collect_data(geop_result, geojson):
 
     z['P'] = p_factors(z['AvSlope'], ag_lscp)
 
+    z['SedNitr'] = geop_result['soiln']
+
+    z['RecessionCoef'] = geop_result['recess_coef']
+
     return z
 
 
 @shared_task(throws=Exception)
-def nlcd_streams(sjs_result):
+def nlcd_streams(result):
     """
     From a dictionary mapping NLCD codes to the count of stream pixels on
     each, return a dictionary with keys 'ag_stream_pct', 'low_urban_stream_pct'
@@ -187,13 +191,12 @@ def nlcd_streams(sjs_result):
     This task should be used as a template for making other geoprocessing
     post-processing tasks, to be used in geop_tasks.
     """
-    if 'error' in sjs_result:
-        raise Exception('[nlcd_streams] {}'.format(sjs_result['error']))
+    if 'error' in result:
+        raise Exception('[nlcd_streams] {}'.format(result['error']))
 
-    # Parse SJS results
-    # This can't be done in mapshed_finish because the keys may be tuples,
+    # This can't be done in geoprocessing.run because the keys may be tuples,
     # which are not JSON serializable and thus can't be shared between tasks
-    result = parse(sjs_result)
+    result = parse(result)
 
     ag_count = sum(result.get(nlcd, 0) for nlcd in AG_NLCD_CODES)
     low_urban_count = sum(result.get(nlcd, 0) for nlcd in [21, 22])
@@ -220,15 +223,15 @@ def nlcd_streams(sjs_result):
 
 
 @shared_task(throws=Exception)
-def nlcd_streams_drb(sjs_result):
+def nlcd_streams_drb(result):
     """
     This callback is run when the geometry falls within the DRB. We calculate
     the percentage of DRB streams in each land use type.
     """
-    if 'error' in sjs_result:
-        raise Exception('[nlcd_streams_drb] {}'.format(sjs_result['error']))
+    if 'error' in result:
+        raise Exception('[nlcd_streams_drb] {}'.format(result['error']))
 
-    result = parse(sjs_result)
+    result = parse(result)
     total = sum(result.values())
 
     lu_stream_pct_drb = [0.0] * NLU
@@ -243,55 +246,52 @@ def nlcd_streams_drb(sjs_result):
 
 
 @shared_task(throws=Exception)
-def nlcd_soils(sjs_result):
+def nlcd_soil(result):
     """
     Results are expected to be in the format:
     {
-      (NLCD ID, Soil Group ID, Soil Texture ID): Count,
+      (NLCD ID, Soil Group ID): Count,
     }
 
     We calculate a number of values relying on various combinations
     of these raster datasets.
     """
-    if 'error' in sjs_result:
-        raise Exception('[nlcd_soils] {}'.format(sjs_result['error']))
+    if 'error' in result:
+        raise Exception('[nlcd_soil] {}'.format(result['error']))
 
-    ngt_count = parse(sjs_result)
+    ng_count = parse(result)
 
     # Raise exception if no NLCD values
-    if len(ngt_count.values()) == 0:
+    if len(ng_count.values()) == 0:
         raise Exception(NO_LAND_COVER)
 
     # Split combined counts into separate ones for processing
     # Reduce [(n, g, t): c] to
     n_count = {}   # [n: sum(c)]
-    ng_count = {}  # [(n, g): sum(c)]
-    nt_count = {}  # [(n, t): sum(c)]
-    for (n, g, t), count in ngt_count.iteritems():
+    ng2_count = {}  # [(n, g): sum(c)]
+    for (n, g), count in ng_count.iteritems():
         n_count[n] = count + n_count.get(n, 0)
-        nt_count[(n, t)] = count + nt_count.get((n, t), 0)
 
         # Map soil group values to usable subset
         g2 = settings.SOIL_GROUP[g]
-        ng_count[(n, g2)] = count + ng_count.get((n, g2), 0)
+        ng2_count[(n, g2)] = count + ng2_count.get((n, g2), 0)
 
     return {
-        'cn': curve_number(n_count, ng_count),
-        'sed_phos': sediment_phosphorus(nt_count),
+        'cn': curve_number(n_count, ng2_count),
         'landuse_pcts': landuse_pcts(n_count),
     }
 
 
 @shared_task(throws=Exception)
-def gwn(sjs_result):
+def gwn(result):
     """
     Derive Groundwater Nitrogen and Phosphorus
     """
-    if 'error' in sjs_result:
+    if 'error' in result:
         raise Exception('[gwn] {}'
-                        .format(sjs_result['error']))
+                        .format(result['error']))
 
-    result = parse(sjs_result)
+    result = parse(result)
     gr_nitr_conc, gr_phos_conc = groundwater_nitrogen_conc(result)
 
     return {
@@ -301,20 +301,81 @@ def gwn(sjs_result):
 
 
 @shared_task(throws=Exception)
-def avg_awc(sjs_result):
+def avg_awc(result):
     """
     Get `AvgAwc` from MMW-Geoprocessing endpoint
 
     Original at Class1.vb@1.3.0:4150
     """
-    if 'error' in sjs_result:
+    if 'error' in result:
         raise Exception('[awc] {}'
-                        .format(sjs_result['error']))
+                        .format(result['error']))
 
-    result = parse(sjs_result)
+    result = parse(result)
 
     return {
         'avg_awc': result.values()[0]
+    }
+
+
+@shared_task(throws=Exception)
+def soilp(result):
+    """
+    Get `SoilP` from MMW-Geoprocessing endpoint
+
+    Originally calculated via lookup table at Class1.vb@1.3.0:8975-8988
+    """
+    if 'error' in result:
+        raise Exception('[soilp] {}'
+                        .format(result['error']))
+
+    result = parse(result)
+
+    soilp = result.values()[0] * 1.6
+
+    return {
+        'soilp': soilp
+    }
+
+
+@shared_task(throws=Exception)
+def recess_coef(result):
+    """
+    Get `RecessCoef` from MMW-Geoprocessing endpoint
+
+    Originally a static value 0.06 Class1.vb@1.3.0:10333
+    """
+    if 'error' in result:
+        raise Exception('[recess_coef] {}'
+                        .format(result['error']))
+
+    result = parse(result)
+
+    recess_coef = result.values()[0] * -0.0015 + 0.1103
+    recess_coef = recess_coef if recess_coef >= 0 else 0.01
+
+    return {
+        'recess_coef': recess_coef
+    }
+
+
+@shared_task(throws=Exception)
+def soiln(result):
+    """
+    Get `SoilN` from MMW-Geoprocessing endpoint
+
+    Originally a static value of 2000 at Class1.vb@1.3.0:9587
+    """
+    if 'error' in result:
+        raise Exception('[soiln] {}'
+                        .format(result['error']))
+
+    result = parse(result)
+
+    soiln = result.values()[0] * 4.0
+
+    return {
+        'soiln': soiln
     }
 
 
@@ -410,10 +471,12 @@ def nlcd_kfactor(result):
     return output
 
 
-def geoprocessing_chains(aoi, wkaoi, exchange, errback, choose_worker):
-    worker = choose_worker()
+def geoprocessing_chains(aoi, wkaoi, errback):
     task_defs = [
-        ('nlcd_soils',   nlcd_soils,   {'polygon': [aoi]}),
+        ('nlcd_soil',    nlcd_soil,    {'polygon': [aoi]}),
+        ('soiln',        soiln,        {'polygon': [aoi]}),
+        ('soilp',        soilp,        {'polygon': [aoi]}),
+        ('recess_coef',  recess_coef,  {'polygon': [aoi]}),
         ('gwn',          gwn,          {'polygon': [aoi]}),
         ('avg_awc',      avg_awc,      {'polygon': [aoi]}),
         ('nlcd_slope',   nlcd_slope,   {'polygon': [aoi]}),
@@ -424,28 +487,10 @@ def geoprocessing_chains(aoi, wkaoi, exchange, errback, choose_worker):
     ]
 
     return [
-        start.s(opname, data, wkaoi).set(exchange=exchange,
-                                         routing_key=worker) |
-        finish.s().set(exchange=exchange,
-                       routing_key=worker) |
-        callback.s().set(link_error=errback,
-                         exchange=exchange,
-                         routing_key=choose_worker())
+        run.s(opname, data, wkaoi) |
+        callback.s().set(link_error=errback)
         for (opname, callback, data) in task_defs
     ]
-
-
-@shared_task
-def combine(geop_results):
-    """
-    Flattens the incoming results dictionaries into one
-    which has all the keys of the components.
-
-    This could be a part of collect_data, but we need
-    a buffer in a chord as a workaround to
-    https://github.com/celery/celery/issues/3191
-    """
-    return {k: v for r in geop_results for k, v in r.items()}
 
 
 def get_lu_index(nlcd):

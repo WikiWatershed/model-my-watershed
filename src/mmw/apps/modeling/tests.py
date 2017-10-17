@@ -128,218 +128,7 @@ class ExerciseGeoprocessing(TestCase):
                 'd:woody_wetlands': {'cell_count': 1093}
             }
         }]
-        actual = tasks.nlcd_soil_census(histogram)
-        self.assertEqual(actual, expected)
-
-    def test_survey_land(self):
-        self.maxDiff = None
-        # NLCD Histogram of Little Neshaminy HUC-12
-        histogram = {
-            'List(11)': 39,
-            'List(21)': 40558,
-            'List(22)': 25230,
-            'List(23)': 10976,
-            'List(24)': 3793,
-            'List(31)': 364,
-            'List(41)': 19218,
-            'List(42)': 153,
-            'List(43)': 329,
-            'List(52)': 3309,
-            'List(71)': 684,
-            'List(81)': 8922,
-            'List(82)': 6345,
-            'List(90)': 3940,
-            'List(95)': 112,
-        }
-        expected = {
-            "survey": {
-                "displayName": "Land",
-                "name": "land",
-                "categories": [
-                    {
-                        "area": 329,
-                        "code": "mixed_forest",
-                        "coverage": 0.002653825057270997,
-                        "nlcd": 43,
-                        "type": "Mixed Forest"
-                    },
-                    {
-                        "area": 684,
-                        "code": "grassland",
-                        "coverage": 0.005517374891104443,
-                        "nlcd": 71,
-                        "type": "Grassland/Herbaceous"
-                    },
-                    {
-                        "area": 19218,
-                        "code": "deciduous_forest",
-                        "coverage": 0.1550188752298906,
-                        "nlcd": 41,
-                        "type": "Deciduous Forest"
-                    },
-                    {
-                        "area": 153,
-                        "code": "evergreen_forest",
-                        "coverage": 0.001234149646694415,
-                        "nlcd": 42,
-                        "type": "Evergreen Forest"
-                    },
-                    {
-                        "area": 39,
-                        "code": "open_water",
-                        "coverage": 0.00031458716484367437,
-                        "nlcd": 11,
-                        "type": "Open Water"
-                    },
-                    {
-                        "area": 0,
-                        "code": "perennial_ice",
-                        "coverage": 0,
-                        "nlcd": 12,
-                        "type": "Perennial Ice/Snow"
-                    },
-                    {
-                        "area": 8922,
-                        "code": "pasture",
-                        "coverage": 0.07196786371116058,
-                        "nlcd": 81,
-                        "type": "Pasture/Hay"
-                    },
-                    {
-                        "area": 6345,
-                        "code": "cultivated_crops",
-                        "coverage": 0.051180911818797796,
-                        "nlcd": 82,
-                        "type": "Cultivated Crops"
-                    },
-                    {
-                        "area": 3309,
-                        "code": "shrub",
-                        "coverage": 0.026691510986351755,
-                        "nlcd": 52,
-                        "type": "Shrub/Scrub"
-                    },
-                    {
-                        "area": 40558,
-                        "code": "developed_open",
-                        "coverage": 0.32715451876230117,
-                        "nlcd": 21,
-                        "type": "Developed, Open Space"
-                    },
-                    {
-                        "area": 25230,
-                        "code": "developed_low",
-                        "coverage": 0.20351369664117705,
-                        "nlcd": 22,
-                        "type": "Developed, Low Intensity"
-                    },
-                    {
-                        "area": 10976,
-                        "code": "developed_med",
-                        "coverage": 0.0885361210595941,
-                        "nlcd": 23,
-                        "type": "Developed, Medium Intensity"
-                    },
-                    {
-                        "area": 3793,
-                        "code": "developed_high",
-                        "coverage": 0.030595618365437355,
-                        "nlcd": 24,
-                        "type": "Developed, High Intensity"
-                    },
-                    {
-                        "area": 3940,
-                        "code": "woody_wetlands",
-                        "coverage": 0.0317813699867712,
-                        "nlcd": 90,
-                        "type": "Woody Wetlands"
-                    },
-                    {
-                        "area": 112,
-                        "code": "herbaceous_wetlands",
-                        "coverage": 0.000903429806730552,
-                        "nlcd": 95,
-                        "type": "Emergent Herbaceous Wetlands"
-                    },
-                    {
-                        "area": 364,
-                        "code": "barren_land",
-                        "coverage": 0.0029361468718742943,
-                        "nlcd": 31,
-                        "type": "Barren Land (Rock/Sand/Clay)"
-                    }
-                ]
-            }
-        }
-
-        actual = tasks.analyze_nlcd(histogram)
-        self.assertEqual(actual, expected)
-
-    def test_survey_soil(self):
-        self.maxDiff = None
-
-        # Soil histogram of Little Neshaminy HUC-12
-        histogram = {
-            'List(-2147483648)': 47430,
-            'List(1)': 2905,
-            'List(2)': 14165,
-            'List(3)': 23288,
-            'List(4)': 23109,
-            'List(6)': 338,
-            'List(7)': 12737,
-        }
-        expected = {
-            "survey": {
-                "displayName": "Soil",
-                "name": "soil",
-                "categories": [
-                    {
-                        "area": 2905,
-                        "code": "a",
-                        "coverage": 0.023432710612073693,
-                        "type": "A - High Infiltration"
-                    },
-                    {
-                        "area": 14165,
-                        "code": "b",
-                        "coverage": 0.11425967153873455,
-                        "type": "B - Moderate Infiltration"
-                    },
-                    {
-                        "area": 70718,
-                        "code": "c",
-                        "coverage": 0.5704352595747427,
-                        "type": "C - Slow Infiltration"
-                    },
-                    {
-                        "area": 23109,
-                        "code": "d",
-                        "coverage": 0.1864049946762172,
-                        "type": "D - Very Slow Infiltration"
-                    },
-                    {
-                        "area": 0,
-                        "code": "ad",
-                        "coverage": 0,
-                        "type": "A/D - High/Very Slow Infiltration"
-                    },
-                    {
-                        "area": 338,
-                        "code": "bd",
-                        "coverage": 0.0027264220953118444,
-                        "type": "B/D - Medium/Very Slow Infiltration"
-                    },
-                    {
-                        "area": 12737,
-                        "code": "cd",
-                        "coverage": 0.10274094150292001,
-                        "type": "C/D - Medium/Very Slow Infiltration"
-                    }
-                ],
-            }
-        }
-
-        actual = tasks.analyze_soil(histogram)
+        actual = tasks.nlcd_soil(histogram)
         self.assertEqual(actual, expected)
 
 
@@ -413,7 +202,7 @@ class TaskRunnerTestCase(TestCase):
                                       status='started')
         self.job.save()
 
-    @override_settings(CELERY_ALWAYS_EAGER=True)
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_tr55_job_runs_in_chain(self):
         # For the purposes of this test, there are no modifications
         self.model_input['modification_pieces'] = []
@@ -423,11 +212,10 @@ class TaskRunnerTestCase(TestCase):
                                                     self.job.id)
 
         # Make sure the chain is well-formed
-        self.assertTrue('geoprocessing.start' in str(job_chain[0]))
-        self.assertTrue('geoprocessing.finish' in str(job_chain[1]))
+        self.assertTrue('geoprocessing.run' in str(job_chain[0]))
 
         # Modify the chain to prevent it from trying to talk to endpoint
-        job_chain = [get_test_histogram.s()] + job_chain[2:]
+        job_chain = [get_test_histogram.s()] + job_chain[1:]
         task_list = chain(job_chain).apply_async()
 
         found_job = Job.objects.get(uuid=task_list.id)
@@ -440,7 +228,7 @@ class TaskRunnerTestCase(TestCase):
                          'complete',
                          'Job found but incomplete.')
 
-    @override_settings(CELERY_ALWAYS_EAGER=True)
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_tr55_job_error_in_chain(self):
         model_input = {
             'inputs': [],
@@ -461,8 +249,7 @@ class TaskRunnerTestCase(TestCase):
         job_chain = views._construct_tr55_job_chain(model_input,
                                                     self.job.id)
 
-        self.assertTrue('geoprocessing.start' in str(job_chain[0]))
-        self.assertTrue('geoprocessing.finish' in str(job_chain[1]))
+        self.assertTrue('geoprocessing.run' in str(job_chain[0]))
 
         job_chain = [get_test_histogram.s()] + job_chain[2:]
 
@@ -512,9 +299,8 @@ class TaskRunnerTestCase(TestCase):
                                                     self.job.id)
 
         skipped_tasks = [
-            'start',
-            'finish',
-            'nlcd_soil_census'
+            'run',
+            'nlcd_soil'
         ]
 
         needed_tasks = [
@@ -550,9 +336,8 @@ class TaskRunnerTestCase(TestCase):
         # Job chain is the same as if no census exists because
         # we still need to generate modification censuses
         needed_tasks = [
-            'start',
-            'finish',
-            'nlcd_soil_census',
+            'run',
+            'nlcd_soil',
             'run_tr55'
         ]
 
@@ -576,7 +361,7 @@ class TaskRunnerTestCase(TestCase):
                             else False for t in needed_tasks]),
                         'missing necessary job in chain')
 
-        self.assertTrue(cached_argument in str(job_chain[3]))
+        self.assertTrue(cached_argument in str(job_chain[2]))
 
     def test_tr55_chain_doesnt_generate_aoi_census_if_it_exists_and_no_mods(self):  # noqa
         """If the AoI census exists in the model input, and there are no modifications,
@@ -597,9 +382,8 @@ class TaskRunnerTestCase(TestCase):
         self.model_input['modification_pieces'] = []
 
         skipped_tasks = [
-            'start',
-            'finish',
-            'nlcd_soil_census',
+            'run',
+            'nlcd_soil',
         ]
 
         needed_tasks = [
@@ -617,7 +401,7 @@ class TaskRunnerTestCase(TestCase):
                             else False for t in needed_tasks]),
                         'missing necessary job in chain')
 
-    @override_settings(CELERY_ALWAYS_EAGER=True)
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_tr55_chain_generates_modification_censuses_if_they_are_old(self):
         """If they modification censuses exist in the model input, but the
         hash stored with the censuses does not match the hash passed in
@@ -658,9 +442,8 @@ class TaskRunnerTestCase(TestCase):
         skipped_tasks = []
 
         needed_tasks = [
-            'start',
-            'finish',
-            'nlcd_soil_census',
+            'run',
+            'nlcd_soil',
             'run_tr55'
         ]
 
@@ -672,7 +455,7 @@ class TaskRunnerTestCase(TestCase):
                             else False for t in needed_tasks]),
                         'missing necessary job in chain')
 
-    @override_settings(CELERY_ALWAYS_EAGER=True)
+    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_tr55_chain_generates_both_censuses_if_they_are_missing(self):
         """If neither the AoI censuses or the modification censuses exist,
         they are both generated.
@@ -686,9 +469,8 @@ class TaskRunnerTestCase(TestCase):
         skipped_tasks = []
 
         needed_tasks = [
-            'start',
-            'finish',
-            'nlcd_soil_census',
+            'run',
+            'nlcd_soil',
             'run_tr55'
         ]
 
@@ -731,21 +513,21 @@ class APIAccessTestCase(TestCase):
     def test_project_owner_can_get_private_project(self):
         self.create_private_project()
 
-        response = self.c.get('/api/modeling/projects/')
+        response = self.c.get('/mmw/modeling/projects/')
 
         self.assertEqual(response.status_code, 200)
 
     def test_project_owner_can_get_public_project(self):
         self.create_public_project()
 
-        response = self.c.get('/api/modeling/projects/')
+        response = self.c.get('/mmw/modeling/projects/')
 
         self.assertEqual(response.status_code, 200)
 
     def test_project_owner_can_put_private_project(self):
         project_id = self.create_private_project()
 
-        response = self.c.put('/api/modeling/projects/' + project_id,
+        response = self.c.put('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 200)
@@ -753,7 +535,7 @@ class APIAccessTestCase(TestCase):
     def test_project_owner_can_put_public_project(self):
         project_id = self.create_public_project()
 
-        response = self.c.put('/api/modeling/projects/' + project_id,
+        response = self.c.put('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 200)
@@ -761,7 +543,7 @@ class APIAccessTestCase(TestCase):
     def test_project_owner_can_delete_private_project(self):
         project_id = self.create_private_project()
 
-        response = self.c.delete('/api/modeling/projects/' + project_id,
+        response = self.c.delete('/mmw/modeling/projects/' + project_id,
                                  self.project, format='json')
 
         self.assertEqual(response.status_code, 204)
@@ -769,7 +551,7 @@ class APIAccessTestCase(TestCase):
     def test_project_owner_can_delete_public_project(self):
         project_id = self.create_public_project()
 
-        response = self.c.delete('/api/modeling/projects/' + project_id,
+        response = self.c.delete('/mmw/modeling/projects/' + project_id,
                                  self.project, format='json')
 
         self.assertEqual(response.status_code, 204)
@@ -780,7 +562,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.get('/api/modeling/projects/' + str(project_id))
+        response = self.c.get('/mmw/modeling/projects/' + str(project_id))
 
         self.assertEqual(response.status_code, 200)
 
@@ -790,7 +572,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.put('/api/modeling/projects/' + project_id,
+        response = self.c.put('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -801,7 +583,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.delete('/api/modeling/projects/' + project_id,
+        response = self.c.delete('/mmw/modeling/projects/' + project_id,
                                  self.project, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -812,7 +594,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.get('/api/modeling/projects/' + project_id,
+        response = self.c.get('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -823,7 +605,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.put('/api/modeling/projects/' + project_id,
+        response = self.c.put('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -834,7 +616,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.delete('/api/modeling/projects/' + project_id,
+        response = self.c.delete('/mmw/modeling/projects/' + project_id,
                                  self.project, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -844,7 +626,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.get('/api/modeling/projects/' + project_id,
+        response = self.c.get('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -854,7 +636,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.put('/api/modeling/projects/' + project_id,
+        response = self.c.put('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -864,7 +646,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.delete('/api/modeling/projects/' + project_id,
+        response = self.c.delete('/mmw/modeling/projects/' + project_id,
                                  self.project, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -874,7 +656,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.get('/api/modeling/projects/' + project_id,
+        response = self.c.get('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 200)
@@ -884,7 +666,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.put('/api/modeling/projects/' + project_id,
+        response = self.c.put('/mmw/modeling/projects/' + project_id,
                               self.project, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -894,7 +676,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.delete('/api/modeling/projects/' + project_id,
+        response = self.c.delete('/mmw/modeling/projects/' + project_id,
                                  self.project, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -902,21 +684,21 @@ class APIAccessTestCase(TestCase):
     def test_project_owner_can_get_private_scenario(self):
         scenario_id = self.create_private_scenario()
 
-        response = self.c.get('/api/modeling/scenarios/' + scenario_id)
+        response = self.c.get('/mmw/modeling/scenarios/' + scenario_id)
 
         self.assertEqual(response.status_code, 200)
 
     def test_project_owner_can_get_public_scenario(self):
         scenario_id = self.create_public_scenario()
 
-        response = self.c.get('/api/modeling/scenarios/' + scenario_id)
+        response = self.c.get('/mmw/modeling/scenarios/' + scenario_id)
 
         self.assertEqual(response.status_code, 200)
 
     def test_project_owner_can_put_private_scenario(self):
         scenario_id = self.create_private_scenario()
 
-        response = self.c.put('/api/modeling/scenarios/' + scenario_id,
+        response = self.c.put('/mmw/modeling/scenarios/' + scenario_id,
                               self.scenario, format='json')
 
         self.assertEqual(response.status_code, 200)
@@ -924,7 +706,7 @@ class APIAccessTestCase(TestCase):
     def test_project_owner_can_put_public_scenario(self):
         scenario_id = self.create_public_scenario()
 
-        response = self.c.put('/api/modeling/scenarios/' + scenario_id,
+        response = self.c.put('/mmw/modeling/scenarios/' + scenario_id,
                               self.scenario, format='json')
 
         self.assertEqual(response.status_code, 200)
@@ -932,14 +714,14 @@ class APIAccessTestCase(TestCase):
     def test_project_owner_can_delete_private_scenario(self):
         scenario_id = self.create_private_scenario()
 
-        response = self.c.delete('/api/modeling/scenarios/' + scenario_id)
+        response = self.c.delete('/mmw/modeling/scenarios/' + scenario_id)
 
         self.assertEqual(response.status_code, 204)
 
     def test_project_owner_can_delete_public_scenario(self):
         scenario_id = self.create_public_scenario()
 
-        response = self.c.delete('/api/modeling/scenarios/' + scenario_id)
+        response = self.c.delete('/mmw/modeling/scenarios/' + scenario_id)
 
         self.assertEqual(response.status_code, 204)
 
@@ -949,7 +731,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.get('/api/modeling/scenarios/' + str(scenario_id))
+        response = self.c.get('/mmw/modeling/scenarios/' + str(scenario_id))
 
         self.assertEqual(response.status_code, 200)
 
@@ -959,7 +741,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.put('/api/modeling/scenarios/' + str(scenario_id),
+        response = self.c.put('/mmw/modeling/scenarios/' + str(scenario_id),
                               self.scenario, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -970,7 +752,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.delete('/api/modeling/scenarios/' + str(scenario_id))
+        response = self.c.delete('/mmw/modeling/scenarios/' + str(scenario_id))
 
         self.assertEqual(response.status_code, 404)
 
@@ -980,7 +762,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.get('/api/modeling/scenarios/' + str(scenario_id))
+        response = self.c.get('/mmw/modeling/scenarios/' + str(scenario_id))
 
         self.assertEqual(response.status_code, 404)
 
@@ -990,7 +772,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.put('/api/modeling/scenarios/' + str(scenario_id),
+        response = self.c.put('/mmw/modeling/scenarios/' + str(scenario_id),
                               self.scenario, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -1001,7 +783,7 @@ class APIAccessTestCase(TestCase):
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.delete('/api/modeling/scenarios/' + str(scenario_id),
+        response = self.c.delete('/mmw/modeling/scenarios/' + str(scenario_id),
                                  self.scenario, format='json')
 
         self.assertEqual(response.status_code, 404)
@@ -1011,7 +793,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.get('/api/modeling/scenarios/' + str(scenario_id))
+        response = self.c.get('/mmw/modeling/scenarios/' + str(scenario_id))
 
         self.assertEqual(response.status_code, 404)
 
@@ -1020,7 +802,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.put('/api/modeling/scenarios/' + str(scenario_id),
+        response = self.c.put('/mmw/modeling/scenarios/' + str(scenario_id),
                               self.scenario, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -1030,7 +812,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.delete('/api/modeling/scenarios/' + str(scenario_id),
+        response = self.c.delete('/mmw/modeling/scenarios/' + str(scenario_id),
                                  self.scenario, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -1040,7 +822,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.get('/api/modeling/scenarios/' + str(scenario_id))
+        response = self.c.get('/mmw/modeling/scenarios/' + str(scenario_id))
 
         self.assertEqual(response.status_code, 200)
 
@@ -1049,7 +831,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.put('/api/modeling/scenarios/' + str(scenario_id),
+        response = self.c.put('/mmw/modeling/scenarios/' + str(scenario_id),
                               self.scenario, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -1059,7 +841,7 @@ class APIAccessTestCase(TestCase):
 
         self.c.logout()
 
-        response = self.c.delete('/api/modeling/scenarios/' + str(scenario_id),
+        response = self.c.delete('/mmw/modeling/scenarios/' + str(scenario_id),
                                  self.scenario, format='json')
 
         self.assertEqual(response.status_code, 403)
@@ -1072,7 +854,7 @@ class APIAccessTestCase(TestCase):
 
     def create_public_project(self):
         self.project['is_private'] = False
-        response = self.c.post('/api/modeling/projects/', self.project,
+        response = self.c.post('/mmw/modeling/projects/', self.project,
                                format='json')
 
         project_id = str(response.data['id'])
@@ -1080,7 +862,7 @@ class APIAccessTestCase(TestCase):
         return project_id
 
     def create_private_project(self):
-        response = self.c.post('/api/modeling/projects/', self.project,
+        response = self.c.post('/mmw/modeling/projects/', self.project,
                                format='json')
 
         project_id = str(response.data['id'])
@@ -1091,7 +873,7 @@ class APIAccessTestCase(TestCase):
         project_id = self.create_public_project()
         self.scenario['project'] = project_id
 
-        response = self.c.post('/api/modeling/scenarios/', self.scenario,
+        response = self.c.post('/mmw/modeling/scenarios/', self.scenario,
                                format='json')
 
         scenario_id = str(response.data['id'])
@@ -1102,7 +884,7 @@ class APIAccessTestCase(TestCase):
         project_id = self.create_private_project()
         self.scenario['project'] = project_id
 
-        response = self.c.post('/api/modeling/scenarios/', self.scenario,
+        response = self.c.post('/mmw/modeling/scenarios/', self.scenario,
                                format='json')
 
         scenario_id = str(response.data['id'])

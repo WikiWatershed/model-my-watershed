@@ -1,0 +1,89 @@
+<div class="result">
+    <div class="result-detail-header">
+        <button type="button" class="close" aria-label="Close">
+            <i class="fa fa-arrow-left black"></i> Back
+        </button>
+        <h2>
+            Site: {{ location }} {{ title }}
+        </h2>
+        <table class="table-data-detail">
+            <tr>
+                <th>Source</th>
+                <td>{{ service_org }}<br>{{ service_title }}
+                    <a data-toggle="popover" tabindex="0"
+                       data-html="true" data-container="body" role="button"
+                       data-content="{{ description }}"
+                       data-template="<div class='popover'><div class='pull-right' id='popover-close-button' onclick='closePopover()'><i class='fa fa-times' /></div><div class='popover-content'></div><div class='arrow'></div></div>">
+                        <i class="fa fa-info-circle black"></i>
+                    </a>
+                </td>
+            </tr>
+            {% if author %}
+                <tr>
+                    <th>Author</th>
+                    <td>
+                        {{ author }}
+                    </td>
+                </tr>
+            {% endif %}
+            <tr>
+                {% if begin_date == end_date %}
+                    <th>Data collected on</th>
+                    <td>{{ begin_date|toDateWithoutTime }}</td>
+                {% else %}
+                    <th>Data collected between</th>
+                    <td>{{ begin_date|toDateWithoutTime }}&ensp;&ndash;&ensp;{{ end_date|toDateWithoutTime }}</td>
+                {% endif %}
+            </tr>
+            <tr>
+                <th>Medium</th>
+                <td>
+                    {{ sample_mediums|join(", ") }}
+                </td>
+            </tr>
+            <tr>
+                <th>Catalog</th>
+                <td>Water Data Center</td>
+            </tr>
+        </table>
+    </div>
+    <p>
+        {% if details_url %}
+            <a class="btn btn-secondary" href="{{ details_url }}"
+               target="_blank" rel="noreferrer noopener">
+                <i class="fa fa-external-link-square"></i>&nbsp;Source Data
+            </a>
+        {% endif %}
+        <a class="btn btn-secondary" href="{{ service_url }}"
+           target="_blank" rel="noreferrer noopener">
+            <i class="fa fa-globe"></i>&nbsp;Web Services
+        </a>
+    </p>
+    <hr>
+    <h3>Source Data</h3>
+    <p>
+        Last collected value {{ end_date|toTimeAgo }}
+    </p>
+    <table class="table custom-hover" data-toggle="table">
+        <thead>
+            <tr>
+                <th>Variable</th>
+                <th class="text-right">Value</th>
+                <th>Units</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ck in concept_keywords %}
+                <tr>
+                    <td>{{ ck }}</td>
+                    <td class="text-right"><!-- TODO Fetch Values --></td>
+                    <td><!-- TODO Fetch Units --></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <!-- TODO Insert Chart https://github.com/WikiWatershed/model-my-watershed/issues/2238 -->
+    <hr>
+    <h3>Citation</h3>
+    <p>{{ service_citation }}</p>
+</div>

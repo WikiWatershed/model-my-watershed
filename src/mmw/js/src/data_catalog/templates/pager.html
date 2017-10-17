@@ -1,0 +1,14 @@
+{% if has_results %}
+<div class="row">
+    <div class="col-xs-6">
+        <button id="pager-previous" class="btn btn-block" {{ "disabled" if not has_previous }}>
+            <i class="fa fa-arrow-left"></i> Previous
+        </button>
+    </div>
+    <div class="col-xs-6">
+        <button id="pager-next" class="btn btn-block" {{ "disabled" if not has_next }}>
+            Next <i class="fa fa-arrow-right"></i>
+        </button>
+    </div>
+</div>
+{% endif %}

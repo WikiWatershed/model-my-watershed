@@ -1,6 +1,21 @@
-<i class="data-catalog-search-icon fa fa-search"></i>
-<input
-    class="data-catalog-search-input"
-    type="text"
-    placeholder="Search data sources"
-/>
+<button class="btn
+               {% if filterNumText %}
+               btn-secondary
+               {% else %}
+               btn-active
+               {% endif %}
+               btn-md filter-sidebar-toggle">
+    Filters {{filterNumText}}
+</button>
+
+<div class="data-catalog-search-component">
+    <i class="data-catalog-search-icon fa fa-search"></i>
+    <input
+        class="data-catalog-search-input"
+        type="text"
+        placeholder="Search data sources"
+        value="{{query}}"
+    />
+</div>
+
+<div class="filter-sidebar-region"></div>

@@ -7,7 +7,7 @@
 - src: azavea.git
   version: 0.1.0
 - src: azavea.nginx
-  version: 0.2.1
+  version: 0.3.1
 - src: azavea.daemontools
   version: 0.1.0
 - src: azavea.postgresql-support
@@ -45,6 +45,6 @@
 - src: azavea.beaver
   version: 1.0.1
 - src: azavea.java
-  version: 0.2.5
+  version: 0.6.1
 - src: azavea.docker
   version: 1.0.2

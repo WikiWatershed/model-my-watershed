@@ -49,7 +49,7 @@ var Tr55TaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
         {
             taskName: TR55_TASK,
-            taskType: 'modeling'
+            taskType: 'mmw/modeling'
         },
         coreModels.TaskModel.prototype.defaults
     )
@@ -59,7 +59,7 @@ var MapshedTaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
         {
             taskName: MAPSHED,
-            taskType: 'modeling'
+            taskType: 'mmw/modeling'
         },
         coreModels.TaskModel.prototype.defaults
     )
@@ -69,7 +69,7 @@ var GwlfeTaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
         {
             taskName: GWLFE,
-            taskType: 'modeling'
+            taskType: 'mmw/modeling'
         },
         coreModels.TaskModel.prototype.defaults
     )
@@ -122,7 +122,7 @@ var ResultCollection = Backbone.Collection.extend({
 });
 
 var ProjectModel = Backbone.Model.extend({
-    urlRoot: '/api/modeling/projects/',
+    urlRoot: '/mmw/modeling/projects/',
 
     defaults: {
         name: '',
@@ -137,6 +137,7 @@ var ProjectModel = Backbone.Model.extend({
         gis_data: null,                 // Additionally gathered data, such as MapShed for GWLF-E
         needs_reset: false,             // Should we overwrite project data on next save?
         allow_save: true,               // Is allowed to save to the server - false in compare mode
+        show_analyze: false,            // Show analyze results in the sidebar?
     },
 
     initialize: function() {
@@ -398,7 +399,7 @@ var ProjectModel = Backbone.Model.extend({
 });
 
 var ProjectCollection = Backbone.Collection.extend({
-    url: '/api/modeling/projects/',
+    url: '/mmw/modeling/projects/',
 
     model: ProjectModel
 });
@@ -594,7 +595,7 @@ var GwlfeModificationModel = Backbone.Model.extend({
 });
 
 var ScenarioModel = Backbone.Model.extend({
-    urlRoot: '/api/modeling/scenarios/',
+    urlRoot: '/mmw/modeling/scenarios/',
 
     defaults: {
         name: '',
@@ -606,6 +607,7 @@ var ScenarioModel = Backbone.Model.extend({
         modification_hash: null, // MD5 string
         active: false,
         job_id: null,
+        poll_error: null,
         results: null, // ResultCollection
         aoi_census: null, // JSON blob
         modification_censuses: null, // JSON blob
@@ -631,20 +633,27 @@ var ScenarioModel = Backbone.Model.extend({
         _.defaults(attrs, defaultMods);
 
         this.set('inputs', new ModificationsCollection(attrs.inputs));
-        this.set('modifications', new ModificationsCollection(attrs.modifications));
+
+        var modifications =
+            App.currentProject.get('model_package') === TR55_PACKAGE ?
+            new ModificationsCollection(attrs.modifications) :
+            new Backbone.Collection(attrs.modifications);
+
+        this.set('modifications', modifications);
 
         this.updateModificationHash();
         this.updateInputModHash();
 
         this.on('change:project change:name', this.attemptSave, this);
         this.get('modifications').on('add remove change', this.updateModificationHash, this);
-
-        var debouncedFetchResults = _.debounce(_.bind(this.fetchResults, this), 500);
-        this.get('inputs').on('add', debouncedFetchResults);
-        this.get('modifications').on('add remove', debouncedFetchResults);
+        this.debouncedFetchResults = _.debounce(_.bind(this.fetchResults, this), 500);
+        this.get('inputs').on('add', _.bind(this.fetchResultsAfterInitial, this));
+        this.get('modifications').on('add remove', _.bind(this.fetchResultsAfterInitial, this));
 
         this.set('taskModel', App.currentProject.createTaskModel());
-        this.set('results', App.currentProject.createTaskResultCollection());
+        this.set('results', attrs.results ?
+            new ResultCollection(attrs.results) :
+            App.currentProject.createTaskResultCollection());
     },
 
     attemptSave: function() {
@@ -760,12 +769,11 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     setResults: function() {
-        var rawServerResults = this.get('taskModel').get('result');
+        var serverResults = this.get('taskModel').get('result');
 
-        if (rawServerResults === '' || rawServerResults === null) {
+        if (_.isEmpty(serverResults)) {
             this.get('results').setNullResults();
         } else {
-            var serverResults = JSON.parse(rawServerResults);
             this.get('results').forEach(function(resultModel) {
                 var resultName = resultModel.get('name');
 
@@ -801,6 +809,7 @@ var ScenarioModel = Backbone.Model.extend({
                 postData: gisData,
 
                 onStart: function() {
+                    self.set('poll_error', null);
                     results.setPolling(true);
                 },
 
@@ -808,8 +817,9 @@ var ScenarioModel = Backbone.Model.extend({
                     self.setResults();
                 },
 
-                pollFailure: function() {
+                pollFailure: function(error) {
                     console.log('Failed to get modeling results.');
+                    self.set('poll_error', error);
                     results.setNullResults();
                 },
 
@@ -820,17 +830,22 @@ var ScenarioModel = Backbone.Model.extend({
 
                 startFailure: function(response) {
                     console.log('Failed to start modeling job.');
-
+                    var error = 'Failed to start modeling job';
                     if (response.responseJSON && response.responseJSON.error) {
                         console.log(response.responseJSON.error);
+                        error = response.responseJSON.error;
                     }
-
+                    self.set('poll_error', error);
                     results.setNullResults();
                     results.setPolling(false);
                 }
             };
 
         return taskModel.start(taskHelper);
+    },
+
+    fetchResultsAfterInitial: function() {
+        this.fetchResultsIfNeeded().done(this.debouncedFetchResults);
     },
 
     updateInputModHash: function() {
@@ -883,7 +898,7 @@ var ScenarioModel = Backbone.Model.extend({
                 // Merge the values that came back from Mapshed with the values
                 // in the modifications from the user.
                 var modifications = self.get('modifications'),
-                    mergedGisData = JSON.parse(project.get('gis_data'));
+                    mergedGisData = project.get('gis_data');
 
                 modifications.forEach(function(mod) {
                     _.assign(mergedGisData, mod.get('output'));
@@ -946,31 +961,36 @@ var ScenariosCollection = Backbone.Collection.extend({
         return this.setActiveScenario(this.get({ cid: cid }));
     },
 
-    createNewScenario: function(aoi_census) {
-        var scenario = new ScenarioModel({
-            name: this.makeNewScenarioName('New Scenario'),
-            aoi_census: aoi_census
-        });
+    createNewScenario: function() {
+        var currentConditions = this.findWhere({ 'is_current_conditions': true }),
+            scenario = new ScenarioModel({
+                is_current_conditions: false,
+                name: this.makeNewScenarioName('New Scenario'),
+                aoi_census: currentConditions.get('aoi_census'),
+                results: currentConditions.get('results').toJSON(),
+                inputmod_hash: currentConditions.get('inputmod_hash'),
+                inputs: currentConditions.get('inputs').toJSON(),
+            });
 
         this.add(scenario);
         this.setActiveScenarioByCid(scenario.cid);
     },
 
     /** Validate the new scenario name
-    @param model - the model your trying to rename
+    The value of *this* is the scenario model.
     @param newName the new name string
     @returns If valid, null
              If invalid, a string with the error
     **/
-    validateNewScenarioName: function(model, newName) {
+    validateNewScenarioName: function(newName) {
         var trimmedNewName = newName.trim();
 
         // Bail early if the name actually didn't change.
-        if (model.get('name') === trimmedNewName) {
+        if (this.get('name') === trimmedNewName) {
             return null;
         }
 
-        var match = this.find(function(model) {
+        var match = this.collection.find(function(model) {
             return model.get('name').toLowerCase() === trimmedNewName.toLowerCase();
         });
 
@@ -994,8 +1014,17 @@ var ScenariosCollection = Backbone.Collection.extend({
             newModel = new ScenarioModel({
                 is_current_conditions: false,
                 name: this.makeNewScenarioName('Copy of ' + source.get('name')),
+                user_id: source.get('user_id'),
                 inputs: source.get('inputs').toJSON(),
-                modifications: source.get('modifications').toJSON()
+                inputmod_hash: source.get('inputmod_hash'),
+                modifications: source.get('modifications').toJSON(),
+                modification_hash: source.get('modification_hash'),
+                job_id: source.get('job_id'),
+                poll_error: source.get('poll_error'),
+                results: source.get('results').toJSON(),
+                aoi_census: source.get('aoi_census'),
+                modification_censuses: source.get('modification_censuses'),
+                allow_save: source.get('allow_save'),
             });
 
         this.add(newModel);

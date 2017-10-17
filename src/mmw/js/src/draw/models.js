@@ -53,7 +53,7 @@ var ToolbarModel = Backbone.Model.extend({
 var RwdTaskModel = coreModels.TaskModel.extend({
     defaults: _.extend( {
             taskName: 'rwd',
-            taskType: 'modeling'
+            taskType: 'api'
         }, coreModels.TaskModel.prototype.defaults
     )
 });

@@ -68,12 +68,18 @@ function testAnalysisType(type) {
         resultView.listenTo(resultView, 'show', function() {
             var expectedTableHeaders = tableHeaders[type],
                 expectedTableRows = tableRows(type, result),
-                actualTableHeaders = $('table thead th').map(function() {
+                actualTableHeaders = _.compact($('table thead th').map(function() {
+                    if ($(this).hasClass('hidden-analyze-table-column')) {
+                        return null;
+                    }
                     return $(this).text().trim();
-                }).toArray(),
-                actualTableRows = $('table tbody td').map(function() {
+                }).toArray()),
+                actualTableRows = _.compact($('table tbody td').map(function() {
+                    if ($(this).hasClass('hidden-analyze-table-column')) {
+                        return null;
+                    }
                     return $(this).text().trim();
-                }).toArray();
+                }).toArray());
 
             assert.deepEqual(expectedTableHeaders, actualTableHeaders);
             assert.deepEqual(expectedTableRows, actualTableRows);

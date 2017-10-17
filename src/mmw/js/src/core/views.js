@@ -41,24 +41,52 @@ var dataCatalogActiveStyle = {
     opacity: 1,
     fill: true,
     fillColor: 'gold',
-    fillOpacity: 0.2
+    fillOpacity: 0.2,
+    pointerEvents: 'none'
+};
+
+var dataCatalogDetailStyle = {
+    stroke: true,
+    color: 'steelblue',
+    weight: 3,
+    opacity: 1,
+    fill: true,
+    fillColor: 'steelblue',
+    fillOpacity: 0.5
+};
+
+var selectedGeocoderAreaStyle = {
+    stroke: true,
+    fill: true,
+    weight: 3,
+    opacity: 0.5,
+    fillOpacity: 0.2,
+    fillColor: '#E77471',
+    color: '#E77471'
 };
 
 var RootView = Marionette.LayoutView.extend({
     el: 'body',
     ui: {
         mapContainer: '.map-container',
-        sidebar: '#sidebar'
+        sidebar: '#sidebar',
+        secondarySidebar: '#secondary-sidebar'
     },
     regions: {
         mainRegion: '#container',
         geocodeSearchRegion: '#geocode-search-region',
         layerPickerRegion: '#layer-picker-region',
+        layerPickerSliderRegion: '#layer-picker-slider-region',
         subHeaderRegion: '#sub-header',
         sidebarRegion: {
             regionClass: TransitionRegion,
             selector: '#sidebar-content'
         },
+        secondarySidebarRegion: {
+            regionClass: TransitionRegion,
+            selector: '#secondary-sidebar-content'
+        },
+        compareRegion: '#compare',
         footerRegion: '#footer'
     },
     events: {
@@ -135,7 +163,7 @@ var HeaderView = Marionette.ItemView.extend({
         view.on('update', function(projectId) {
             var cloneUrlFragment = '/project/' + projectId + '/clone',
                 cloneUrl = window.location.origin + cloneUrlFragment,
-                testUrl = '/api/modeling/projects/' + projectId;
+                testUrl = '/mmw/modeling/projects/' + projectId;
 
             $.ajax(testUrl)
                 .done(function() {
@@ -194,7 +222,9 @@ var MapView = Marionette.ItemView.extend({
         'change:size': 'toggleMapSize',
         'change:maskLayerApplied': 'toggleMask',
         'change:dataCatalogResults': 'renderDataCatalogResults',
-        'change:dataCatalogActiveResult': 'renderDataCatalogActiveResult'
+        'change:dataCatalogActiveResult': 'renderDataCatalogActiveResult',
+        'change:dataCatalogDetailResult': 'renderDataCatalogDetailResult',
+        'change:selectedGeocoderArea': 'renderSelectedGeocoderArea',
     },
 
     // L.Map instance.
@@ -208,8 +238,15 @@ var MapView = Marionette.ItemView.extend({
     // L.FeatureGroup instance.
     _modificationsLayer: null,
 
+    // Shapes for the active data catalog tab's results.
+    // L.FeatureGroup instance
     _dataCatalogResultsLayer: null,
     _dataCatalogActiveLayer: null,
+    _dataCatalogDetailLayer: null,
+
+    // The shape for a selected geocoder boundary result
+    // L.FeatureGroup instance
+    _selectedGeocoderAreaLayer: null,
 
     // Flag used to determine if AOI change should trigger a prompt.
     _areaOfInterestSet: false,
@@ -241,6 +278,8 @@ var MapView = Marionette.ItemView.extend({
         this._modificationsLayer = new L.FeatureGroup();
         this._dataCatalogResultsLayer = new L.FeatureGroup();
         this._dataCatalogActiveLayer = new L.FeatureGroup();
+        this._dataCatalogDetailLayer = new L.FeatureGroup();
+        this._selectedGeocoderAreaLayer = new L.FeatureGroup();
 
         this.fitToDefaultBounds();
 
@@ -280,6 +319,8 @@ var MapView = Marionette.ItemView.extend({
         map.addLayer(this._modificationsLayer);
         map.addLayer(this._dataCatalogResultsLayer);
         map.addLayer(this._dataCatalogActiveLayer);
+        map.addLayer(this._dataCatalogDetailLayer);
+        map.addLayer(this._selectedGeocoderAreaLayer);
     },
 
     fitToDefaultBounds: function() {
@@ -376,6 +417,11 @@ var MapView = Marionette.ItemView.extend({
 
             // Get the maximum zoom level for the initial location
             this.updateGoogleMaxZoom({ target: this._leafletMap });
+        }
+
+        if (settings.get('data_catalog_enabled')) {
+            this._leafletMap.on('zoomend', this.renderDataCatalogDetailResult, this);
+            this._leafletMap.on('moveend', this.renderDataCatalogDetailResult, this);
         }
     },
 
@@ -580,9 +626,9 @@ var MapView = Marionette.ItemView.extend({
             $container = this.$el.parent();
 
         $container.toggleClass('-projectheader', !!size.hasProjectHeader);
+        $container.toggleClass('-toolbarheader', !!size.hasToolbarHeader);
         $container.toggleClass('-sidebar', !!size.hasSidebar);
-        $container.toggleClass('-wide', !!size.hasSidebar &&
-            size.sidebarWidth === coreUtils.sidebarWide);
+        $container.toggleClass('-double', !!size.hasSecondarySidebar);
 
         _.delay(function() {
             self._leafletMap.invalidateSize();
@@ -604,6 +650,16 @@ var MapView = Marionette.ItemView.extend({
         if (areaOfInterest) {
             var layer = new L.GeoJSON(areaOfInterest);
             this._leafletMap.fitBounds(layer.getBounds(), { reset: true });
+        }
+    },
+
+    fitToModificationsOrAoi: function() {
+        var modificationsBounds = this._modificationsLayer.getBounds();
+
+        if (modificationsBounds.isValid()) {
+            this._leafletMap.fitBounds(modificationsBounds, { reset: true });
+        } else {
+            this.fitToAoi();
         }
     },
 
@@ -660,38 +716,129 @@ var MapView = Marionette.ItemView.extend({
         });
     },
 
-    createDataCatalogShape: function(geom) {
+    createDataCatalogShape: function(result) {
+        var geom = result.get('geom'),
+            style = dataCatalogPolygonStyle,
+            pointToLayer = null,
+            self = this;
+
         if (geom.type === 'Point') {
-            var lng = geom.coordinates[0],
-                lat = geom.coordinates[1];
-            return new L.CircleMarker([lat, lng], dataCatalogPointStyle);
-        } else {
-            return new L.GeoJSON(geom, { style: dataCatalogPolygonStyle });
+            style = dataCatalogPointStyle;
+            pointToLayer = function (feature, latlng) {
+                return L.circleMarker(latlng);
+            };
         }
+
+        return new L.GeoJSON(geom, {
+            style: style,
+            id: result.get('id'),
+            pointToLayer: pointToLayer,
+            onEachFeature: function(feature, layer) {
+                layer.on('mouseover', function() {
+                    // Only highlight the layer if detail mode is not active
+                    if (self._dataCatalogDetailLayer.getLayers().length === 0) {
+                        layer.setStyle(dataCatalogActiveStyle);
+                        result.set('active', true);
+                    }
+                });
+
+                layer.on('mouseout', function() {
+                    if (self._dataCatalogDetailLayer.getLayers().length === 0) {
+                        if (geom.type === 'Point') {
+                            // Preserve highlight of marker if popup is open.
+                            // It will get restyled when the popup is closed.
+                            if (!layer._popup._isOpen) {
+                                layer.setStyle(dataCatalogPointStyle);
+                                result.set('active', false);
+                            }
+                        } else {
+                            layer.setStyle(dataCatalogPolygonStyle);
+                        }
+                    }
+                });
+            }
+        });
     },
 
     renderDataCatalogResults: function() {
-        var geoms = this.model.get('dataCatalogResults') || [];
-        geoms = _.filter(geoms);
+        var results = this.model.get('dataCatalogResults') || [];
 
         this._dataCatalogResultsLayer.clearLayers();
         this._dataCatalogActiveLayer.clearLayers();
 
-        for (var i = 0; i < geoms.length; i++) {
-            var layer = this.createDataCatalogShape(geoms[i]);
-            this._dataCatalogResultsLayer.addLayer(layer);
-        }
+        results.forEach(function(result) {
+            if (result.get('geom')) {
+                var layer = this.createDataCatalogShape(result);
+                this._dataCatalogResultsLayer.addLayer(layer);
+            }
+        }, this);
     },
 
     renderDataCatalogActiveResult: function() {
-        var geom = this.model.get('dataCatalogActiveResult');
+        var result = this.model.get('dataCatalogActiveResult');
 
-        this._dataCatalogActiveLayer.clearLayers();
+        this._renderDataCatalogResult(result, this._dataCatalogActiveLayer,
+            'bigcz-highlight-map', dataCatalogActiveStyle);
+    },
+
+    renderDataCatalogDetailResult: function() {
+        var result = this.model.get('dataCatalogDetailResult');
+
+        this._renderDataCatalogResult(result, this._dataCatalogDetailLayer,
+            'bigcz-detail-map', dataCatalogDetailStyle);
+    },
+
+    _renderDataCatalogResult: function(result, featureGroup, className, style) {
+        featureGroup.clearLayers();
+        this.$el.removeClass(className);
+
+        // If nothing is selected, exit early
+        if (!result) { return; }
+
+        var mapBounds = this._leafletMap.getBounds(),
+            geom = result.get('geom');
 
         if (geom) {
-            var layer = this.createDataCatalogShape(geom);
-            layer.setStyle(dataCatalogActiveStyle);
-            this._dataCatalogActiveLayer.addLayer(layer);
+            if ((geom.type === 'MultiPolygon' || geom.type === 'Polygon') &&
+                drawUtils.shapeBoundingBox(geom).contains(mapBounds)) {
+                this.$el.addClass(className);
+            } else {
+                var layer = this.createDataCatalogShape(result);
+                layer.setStyle(style);
+                featureGroup.addLayer(layer);
+            }
+        }
+    },
+
+    bindDataCatalogPopovers: function(PopoverView, catalogId, resultModels) {
+        this._dataCatalogResultsLayer.eachLayer(function(layer) {
+            var result = resultModels.findWhere({ id: layer.options.id });
+            layer.on('popupopen', function() {
+                layer.setStyle(dataCatalogActiveStyle);
+                result.set('active', true);
+            });
+            layer.on('popupclose', function() {
+                layer.setStyle(dataCatalogPointStyle);
+                result.set('active', false);
+            });
+            layer.bindPopup(new PopoverView({
+                    model: result,
+                    catalog: catalogId
+                }).render().el, { className: 'data-catalog-popover' });
+        });
+    },
+
+    renderSelectedGeocoderArea: function() {
+        var geom = this.model.get('selectedGeocoderArea');
+
+        this._selectedGeocoderAreaLayer.clearLayers();
+
+        if (geom) {
+            this.disableGeolocation();
+
+            var layer = new L.GeoJSON(geom, { style: selectedGeocoderAreaStyle });
+            this._leafletMap.fitBounds(layer.getBounds(), { reset: true });
+            this._selectedGeocoderAreaLayer.addLayer(layer);
         }
     }
 });

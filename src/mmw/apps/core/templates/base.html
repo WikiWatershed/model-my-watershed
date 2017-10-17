@@ -7,6 +7,9 @@
 
     <div id="sidebar">
         <div id="sidebar-content"></div>
+        <div id="secondary-sidebar">
+            <div id="secondary-sidebar-content"></div>
+        </div>
     </div>
 
     <div class="map-container {% if project %} -projectheader {% endif %} -sidebar">
@@ -22,6 +25,8 @@
         {% block footer %}
         {% endblock footer %}
     </div>
+
+    <div id="compare"></div>
 
     {% block modals %}
     {% endblock modals %}

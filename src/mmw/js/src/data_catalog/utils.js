@@ -12,17 +12,6 @@ function areaOfBounds(bounds) {
     return area * SQKM_PER_SQM;
 }
 
-// Convert LatLngBounds to BBox format
-function formatBounds(bounds) {
-    return [
-        bounds.getWest(),
-        bounds.getSouth(),
-        bounds.getEast(),
-        bounds.getNorth()
-    ].join(',');
-}
-
 module.exports = {
     areaOfBounds: areaOfBounds,
-    formatBounds: formatBounds
 };

@@ -1,46 +1,263 @@
 "use strict";
 
-var _ = require('underscore'),
+var $ = require('jquery'),
+    _ = require('lodash'),
     Backbone = require('../../shim/backbone'),
-    turfIntersect = require('turf-intersect'),
-    App = require('../app'),
-    utils = require('./utils');
+    moment = require('moment'),
+    settings = require('../core/settings');
 
 var REQUEST_TIMED_OUT_CODE = 408;
 var DESCRIPTION_MAX_LENGTH = 100;
+var PAGE_SIZE = settings.get('data_catalog_page_size');
+
+
+var FilterModel = Backbone.Model.extend({
+    defaults: {
+        id: '',
+        type: '',
+        isValid: true
+    },
+
+    reset: function() {
+        // Clear all model attributes and set back any defaults.
+        // Once we've called `.clear()` we lose the ability to detect
+        // actual changed attributes after the `.set()`.
+        // Store the prev state to check if a change event
+        // should fire
+        var prevAttr = _.clone(this.attributes);
+        this.clear({ silent: true }).set(this.defaults,
+                                         { silent: true });
+        if (!_.isEqual(this.attributes, prevAttr)) {
+            this.trigger("change", this);
+        }
+    },
+
+    validate: function() {
+        return true;
+    },
+
+    isActive: function() {
+        window.console.error("Use of unimplemented function",
+                             "FilterModel.isActive");
+        return false;
+    }
+});
+
+var SearchOption = FilterModel.extend({
+    defaults: _.defaults({
+        active: false,
+    }, FilterModel.prototype.defaults),
+
+    isActive: function() {
+        return this.get('active');
+    }
+});
+
+var GriddedServicesFilter = SearchOption.extend({
+    defaults: _.defaults({
+        id: 'exclude_gridded',
+        type: 'checkbox',
+        label: 'Exclude Gridded Services',
+        active: true,
+    }, SearchOption.prototype.defaults)
+});
+
+var DateFilter = FilterModel.extend({
+    defaults: _.defaults({
+        id: 'date',
+        type: 'date',
+        fromDate: null,
+        toDate: null,
+    }, FilterModel.prototype.defaults),
+
+    isActive: function() {
+        return this.get('fromDate') || this.get('toDate');
+    },
+
+    validate: function() {
+        // Only need to validate if there are two dates.  Ensure that
+        // before is earlier than after
+        var dateFormat = "MM/DD/YYYY",
+            toDate = this.get('toDate'),
+            fromDate = this.get('fromDate'),
+            isValid = true;
+
+        if (toDate && !moment(toDate, dateFormat).isValid()) {
+            isValid = false;
+        }
+
+        if (fromDate && !moment(fromDate, dateFormat).isValid()) {
+            isValid = false;
+        }
+
+        if (toDate && fromDate){
+            isValid = moment(fromDate, dateFormat)
+                .isBefore(moment(toDate, dateFormat));
+        }
+
+        this.set('isValid', isValid);
+        return isValid;
+    }
+});
+
+var FilterCollection = Backbone.Collection.extend({
+    model: FilterModel,
+
+    countActive: function() {
+        var isActive = function(filter) { return filter.isActive(); };
+
+        return this.filter(isActive).length;
+    },
+});
 
 var Catalog = Backbone.Model.extend({
     defaults: {
         id: '',
         name: '',
         description: '',
+        query: '',
+        geom: '',
         loading: false,
+        stale: false, // Should search run when catalog becomes active?
         active: false,
         results: null, // Results collection
         resultCount: 0,
+        filters: null, // FiltersCollection
+        is_pageable: true,
+        page: 1,
         error: '',
+        detail_result: null
     },
 
-    search: function(query, bounds) {
-        var bbox = utils.formatBounds(bounds),
+    initialize: function() {
+        var self = this;
+        this.get('results').on('change:show_detail', function() {
+            self.set('detail_result', self.get('results').getDetail());
+        });
+
+        // Initialize and listen to filters for changes
+        if (this.get('filters') === null) {
+            this.set({ filters: new FilterCollection() });
+        }
+        this.get('filters').on('change', function() {
+            if (self.isSearchValid()) {
+                if (self.get('active')) {
+                    self.startSearch(1);
+                } else {
+                    self.set('stale', true);
+                }
+            }
+        });
+    },
+
+    searchIfNeeded: function(query, geom) {
+        var self = this,
+            error = this.get('error'),
+            stale = this.get('stale'),
+            isSameSearch = query === this.get('query') &&
+                           geom === this.get('geom');
+
+        if (!isSameSearch || stale || error) {
+            this.cancelSearch();
+            this.searchPromise = this.search(query, geom)
+                                     .always(function() {
+                                        delete self.searchPromise;
+                                     });
+        }
+
+        return this.searchPromise || $.when();
+    },
+
+    cancelSearch: function() {
+        if (this.searchPromise) {
+            this.searchPromise.abort();
+        }
+    },
+
+    search: function(query, geom) {
+        this.set({
+            query: query,
+            geom: geom,
+        });
+
+        return this.startSearch(1);
+    },
+
+    isSearchValid: function() {
+        var query = this.get('query'),
+            validate = function(filter) { return filter.validate(); },
+            valid = this.get('filters').map(validate);
+
+        return query && _.every(valid);
+    },
+
+    startSearch: function(page) {
+        var filters = this.get('filters'),
+            dateFilter = filters.findWhere({ id: 'date' }),
+            fromDate = null,
+            toDate = null;
+
+        if (dateFilter) {
+            fromDate = dateFilter.get('fromDate');
+            toDate = dateFilter.get('toDate');
+        }
+
+        var lastPage = Math.ceil(this.get('resultCount') / PAGE_SIZE),
+            thisPage = parseInt(page) || 1,
+            isSearchOption = function(filter) { return filter instanceof SearchOption; },
+            searchOptions = filters.filter(isSearchOption),
             data = {
                 catalog: this.id,
-                query: query,
-                bbox: bbox
+                query: this.get('query'),
+                geom: this.get('geom'),
+                from_date: fromDate,
+                to_date: toDate,
             };
 
-        return this.startSearch(data)
-            .fail(_.bind(this.failSearch, this))
-            .always(_.bind(this.finishSearch, this));
-    },
+        if (thisPage > 1 && thisPage <= lastPage) {
+            _.assign(data, { page: thisPage });
+        }
 
-    startSearch: function(data) {
+        if (searchOptions && searchOptions.length > 0) {
+            var isActive = function(option) { return option.isActive(); },
+                id = function(option) { return option.get('id'); };
+            _.assign(data, {
+                options: _.map(_.filter(searchOptions, isActive), id).join(',')
+            });
+        }
+
         this.set('loading', true);
         this.set('error', false);
-        return this.get('results').fetch({ data: data });
+
+        var request = {
+            data: JSON.stringify(data),
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json'
+        };
+
+        return this.get('results')
+                   .fetch(request)
+                   .done(_.bind(this.doneSearch, this))
+                   .fail(_.bind(this.failSearch, this))
+                   .always(_.bind(this.finishSearch, this));
     },
 
-    failSearch: function(response) {
+    doneSearch: function(response) {
+        var data = _.findWhere(response, { catalog: this.id });
+
+        this.set({
+            page: data.page || 1,
+            resultCount: data.count,
+        });
+    },
+
+    failSearch: function(response, textStatus) {
+        if (textStatus === "abort") {
+            // Do nothing if the search failed because it
+            // was purposefully cancelled
+            return;
+        }
         if (response.status === REQUEST_TIMED_OUT_CODE){
             this.set('error', "Searching took too long. " +
                               "Consider trying a smaller area of interest " +
@@ -51,13 +268,41 @@ var Catalog = Backbone.Model.extend({
     },
 
     finishSearch: function() {
-        this.set('loading', false);
-        this.set('resultCount', this.get('results').size());
+        this.set({
+            loading: false,
+            stale: false,
+        });
+    },
+
+    previousPage: function() {
+        var page = this.get('page');
+
+        if (page > 1) {
+            return this.startSearch(page - 1);
+        } else {
+            return $.when();
+        }
+    },
+
+    nextPage: function() {
+        var page = this.get('page'),
+            count = this.get('resultCount'),
+            lastPage = Math.ceil(count / PAGE_SIZE);
+
+        if (page < lastPage) {
+            return this.startSearch(page + 1);
+        } else {
+            return $.when();
+        }
     }
 });
 
 var Catalogs = Backbone.Collection.extend({
-    model: Catalog
+    model: Catalog,
+
+    getActiveCatalog: function() {
+        return this.findWhere({ active: true });
+    }
 });
 
 var Result = Backbone.Model.extend({
@@ -67,8 +312,10 @@ var Result = Backbone.Model.extend({
         description: '',
         geom: null, // GeoJSON
         links: null, // Array
-        created: '',
-        updated: ''
+        created_at: '',
+        updated_at: '',
+        active: false,
+        show_detail: false // Show this result as the detail view?
     },
 
     getSummary: function() {
@@ -96,26 +343,58 @@ var Result = Backbone.Model.extend({
 });
 
 var Results = Backbone.Collection.extend({
-    url: '/api/bigcz/search',
+    url: '/bigcz/search',
     model: Result,
-    parse: function(response) {
-        var aoi = App.map.get('areaOfInterest');
 
-        // Filter results to only include those without geometries (Hydroshare)
-        // and those that intersect the area of interest (CINERGI and CUAHSI).
-        return _.filter(response.results, function(r) {
-            return r.geom === null || turfIntersect(aoi, r.geom) !== undefined;
-        });
+    initialize: function(models, options) {
+        this.catalog = options.catalog;
+    },
+
+    parse: function(response) {
+        return _.findWhere(response, { catalog: this.catalog }).results;
+    },
+
+    getDetail: function() {
+        return this.findWhere({ show_detail: true});
+    },
+
+    showDetail: function(result) {
+        var currentDetail = this.getDetail();
+
+        if (currentDetail) {
+            // Do nothing if the selected result is already the detail shown
+            if (currentDetail.get('id') === result.get('id')) {
+                return;
+            }
+            // Turn off the actively shown detail. There should only be
+            // one with `show_detail` true at a time
+            currentDetail.set('show_detail', false);
+        }
+
+        result.set('show_detail', true);
+    },
+
+    closeDetail: function() {
+        var currentDetail = this.getDetail();
+
+        if (!currentDetail) {
+            return;
+        }
+
+        currentDetail.set('show_detail', false);
     }
 });
 
 var SearchForm = Backbone.Model.extend({
     defaults: {
-        query: ''
+        query: '',
     }
 });
 
 module.exports = {
+    GriddedServicesFilter: GriddedServicesFilter,
+    DateFilter: DateFilter,
+    FilterCollection: FilterCollection,
     Catalog: Catalog,
     Catalogs: Catalogs,
     Result: Result,

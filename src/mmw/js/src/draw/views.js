@@ -104,11 +104,14 @@ function validateShape(polygon) {
     } else if (!utils.isValidForAnalysis(polygon)) {
         var maxArea = utils.MAX_AREA.toLocaleString(),
             selectedBoundingBoxArea = Math.floor(utils.shapeBoundingBoxArea(polygon)).toLocaleString(),
-            message = 'Sorry, the bounding box of the area you have delineated is too large ' +
-                      'to analyze or model. ' + selectedBoundingBoxArea + ' km² were ' +
+            message = 'Sorry, the bounding box of the selected area is too large ' +
+                      'to analyze or model. ' + selectedBoundingBoxArea + '&nbsp;km² were ' +
                       'selected, but the maximum supported size is ' +
-                      'currently ' + maxArea + ' km².';
+                      'currently ' + maxArea + '&nbsp;km².';
         d.reject(message);
+    } else if (!utils.withinConus(polygon)) {
+        var conusMessage = 'The area of interest must be within the Continental US.';
+        d.reject(conusMessage);
     } else {
         d.resolve(polygon);
     }
@@ -169,9 +172,12 @@ var DrawWindow = Marionette.LayoutView.extend({
 
     onShow: function() {
         var self = this,
-            resetDrawingState = function() {
-                self.resetDrawingState();
-            };
+            resetRwdDrawingState = function() {
+                self.resetDrawingState({
+                    clearOnFailure: false
+                });
+            },
+            resetDrawingState = _.bind(self.resetDrawingState, self);
 
         this.selectBoundaryRegion.show(new SelectBoundaryView({
             model: this.model,
@@ -186,21 +192,34 @@ var DrawWindow = Marionette.LayoutView.extend({
         this.watershedDelineationRegion.show(
             new WatershedDelineationView({
                 model: this.model,
-                resetDrawingState: resetDrawingState,
+                resetDrawingState: resetRwdDrawingState,
                 rwdTaskModel: this.rwdTaskModel
             })
         );
 
-        this.uploadFileRegion.show(new AoIUploadView({ model: this.model }));
+        this.uploadFileRegion.show(new AoIUploadView({
+            model: this.model,
+            resetDrawingState: resetDrawingState
+        }));
     },
 
-    resetDrawingState: function() {
-        this.model.clearRwdClickedPoint(App.getLeafletMap());
+    resetDrawingState: function(options) {
+        var opts = _.extend({
+            clearOnFailure: true,
+        }, options);
+
         this.rwdTaskModel.reset();
         this.model.reset();
 
         utils.cancelDrawing(App.getLeafletMap());
-        clearAoiLayer();
+
+        // RWD typically does not clear the AoI generated, even if it
+        // not possible to move to analyze
+        if (opts.clearOnFailure) {
+            clearAoiLayer();
+            this.model.clearRwdClickedPoint(App.getLeafletMap());
+        }
+
         clearBoundaryLayer(this.model);
     }
 });
@@ -246,24 +265,38 @@ var AoIUploadView = Marionette.ItemView.extend({
         drawToolButton: '.draw-tool-button',
         selectFileInput: '#draw-tool-file-upload-input',
         selectFileButton: '#draw-tool-file-upload-button',
-        resetDrawButton: '.reset-draw-button'
+        resetDrawButton: '.reset-draw-button',
+        aoiUploadArea: '.aoi-upload-dropdown'
     },
 
     events: {
-        'dragenter': 'stopEvents',
-        'dragover': 'stopEvents',
+        'dragenter': 'addDropzoneHighlight',
+        'dragover': 'addDropzoneHighlight',
+        'dragexit': 'removeDropzoneHighlight',
+        'dragleave': 'removeDropzoneHighlight',
         'click @ui.selectFileButton': 'onSelectFileButtonClick',
         'change @ui.selectFileInput': 'selectFile',
         'click @ui.drawToolButton': 'selectDrawToolItem',
         'click @ui.resetDrawButton': 'reset'
     },
 
+    addDropzoneHighlight: function(e) {
+        $(this.ui.aoiUploadArea).addClass('drag');
+        this.stopEvents(e);
+    },
+
+    removeDropzoneHighlight: function(e) {
+        $(this.ui.aoiUploadArea).removeClass('drag');
+        this.stopEvents(e);
+    },
+
     modelEvents: {
         change: 'render'
     },
 
-    initialize: function() {
+    initialize: function(options) {
         this.id = aoiUpload;
+        this.resetDrawingState = options.resetDrawingState;
     },
 
     reset: function() {
@@ -271,6 +304,7 @@ var AoIUploadView = Marionette.ItemView.extend({
     },
 
     selectDrawToolItem: function() {
+        this.resetDrawingState();
         this.model.selectDrawToolItem(this.id, this.id);
     },
 
@@ -294,17 +328,19 @@ var AoIUploadView = Marionette.ItemView.extend({
     },
 
     drop: function(e) {
-        this.stopEvents(e);
+        this.removeDropzoneHighlight(e);
         this.validateAndReadFile(e.dataTransfer.files[0]);
     },
 
     validateAndReadFile: function(file) {
+        this.addProcessingUI();
+
         var validationInfo = this.validateFile(file);
 
         if (validationInfo.valid) {
             this.readFile(file, validationInfo.extension);
         } else {
-            displayAlert(validationInfo.message, modalModels.AlertTypes.error);
+            this.failUpload(validationInfo.message, modalModels.AlertTypes.error);
         }
 
         // If the upload fails, the user may choose to upload another file.
@@ -340,6 +376,14 @@ var AoIUploadView = Marionette.ItemView.extend({
     stopEvents: function(e) {
         e.stopPropagation();
         e.preventDefault();
+    },
+
+    addProcessingUI: function() {
+        $(document.body).addClass('processing');
+    },
+
+    removeProcessingUI: function() {
+        $(document.body).removeClass('processing');
     },
 
     readFile: function(file, fileExtension){
@@ -381,7 +425,7 @@ var AoIUploadView = Marionette.ItemView.extend({
 
                 self.reprojectAndAddFeature(shp, prj);
             })
-            .catch(self.handleShapefileError);
+            .catch(_.bind(self.handleShapefileError, self));
     },
 
     reprojectAndAddFeature: function(shp, prj) {
@@ -403,9 +447,9 @@ var AoIUploadView = Marionette.ItemView.extend({
                             displayAlert(msg, modalModels.AlertTypes.warn);
                         }
                     })
-                    .catch(self.handleShapefileError);
+                    .catch(_.bind(self.handleShapefileError, self));
             })
-            .catch(self.handleShapefileError);
+            .catch(_.bind(self.handleShapefileError, self));
     },
 
     handleShapefileError: function(err) {
@@ -415,20 +459,29 @@ var AoIUploadView = Marionette.ItemView.extend({
         if (typeof err === "string") {
             msg = err;
         }
-        displayAlert(msg, modalModels.AlertTypes.error);
+
+        this.failUpload(msg, modalModels.AlertTypes.error);
     },
 
     addPolygonToMap: function(polygon) {
+        var self = this;
+
         validateShape(polygon)
             .done(function() {
                 clearAoiLayer();
                 addLayer(polygon);
+                self.removeProcessingUI();
                 navigateToAnalyze();
             })
             .fail(function(message) {
                 addLayer(polygon);
-                displayAlert(message, modalModels.AlertTypes.error);
+                self.failUpload(message, modalModels.AlertTypes.error);
             });
+    },
+
+    failUpload: function(message, modalType) {
+        displayAlert(message, modalType);
+        this.removeProcessingUI();
     }
 });
 
@@ -454,7 +507,10 @@ var DrawToolBaseView = Marionette.ItemView.extend({
 
     initialize: function(options) {
         this.resetDrawingState = options.resetDrawingState;
-        var self = this;
+        this.onMapZoom = _.bind(this.onMapZoom, this);
+
+        var self = this,
+            map = App.getLeafletMap();
 
         $(document).on('mouseup', function(e) {
             var isTargetOutside = $(e.target).parents('.dropdown-menu').length === 0;
@@ -462,11 +518,12 @@ var DrawToolBaseView = Marionette.ItemView.extend({
                 self.model.closeDrawTool();
             }
         });
+
+        map.on('zoomend', this.onMapZoom);
     },
 
     templateHelpers: function() {
         var activeDrawTool = this.model.get('activeDrawTool'),
-            activeDrawToolItem = this.model.get('activeDrawToolItem'),
             currentZoomLevel = App.getLeafletMap().getZoom(),
             openDrawTool = this.model.get('openDrawTool'),
             activeTitle = null,
@@ -474,9 +531,7 @@ var DrawToolBaseView = Marionette.ItemView.extend({
             toolData = this.getToolData();
 
         if (activeDrawTool === toolData.id) {
-            var activeItem = _.find(toolData.items, function(item) {
-                return item.id === activeDrawToolItem;
-            });
+            var activeItem = this.getActiveToolDataItem();
             activeTitle = activeItem.title;
             activeDirections = activeItem.directions;
         }
@@ -498,6 +553,21 @@ var DrawToolBaseView = Marionette.ItemView.extend({
         this.activatePopovers();
     },
 
+    onMapZoom: function() {
+        var activeItem = this.getActiveToolDataItem();
+        if (activeItem && App.getLeafletMap().getZoom() < activeItem.minZoom) {
+            this.resetDrawingState();
+        }
+        this.render();
+    },
+
+    getActiveToolDataItem: function() {
+        var activeDrawToolItem = this.model.get('activeDrawToolItem');
+        return _.find(this.getToolData().items, function(item) {
+            return item.id === activeDrawToolItem;
+        });
+    },
+
     openDrawTool: function() {
         this.model.openDrawTool(this.id);
     },
@@ -507,6 +577,12 @@ var DrawToolBaseView = Marionette.ItemView.extend({
             placement: 'top',
             trigger: 'focus'
         });
+    },
+
+    onDestroy: function() {
+        var map = App.getLeafletMap();
+
+        map.off('zoomend', this.onMapZoom);
     }
 });
 
@@ -730,7 +806,9 @@ var DrawAreaView = DrawToolBaseView.extend({
                 return [parseFloat(coord[0]), parseFloat(coord[1])];
             });
 
-            addLayer(box, '1 Square Km');
+            return box;
+        }).then(validateShape).then(function(polygon) {
+            addLayer(polygon, '1 Square Km');
             navigateToAnalyze();
         }).fail(function(message) {
             revertLayer();
@@ -837,7 +915,7 @@ var WatershedDelineationView = DrawToolBaseView.extend({
                 navigateToAnalyze();
             })
             .fail(function(message) {
-                displayAlert(message, modalModels.AlertTypes.warn);
+                displayAlert(message, modalModels.AlertTypes.error);
                 self.resetDrawingState();
             })
             .always(function() {
@@ -858,12 +936,7 @@ var WatershedDelineationView = DrawToolBaseView.extend({
             pollSuccess: function(response) {
                 self.model.set('polling', false);
 
-                var result;
-                try {
-                    result = JSON.parse(response.result);
-                } catch (ex) {
-                    return this.pollFailure();
-                }
+                var result = response.result;
 
                 if (result.watershed) {
                     // Convert watershed to MultiPolygon to pass shape validation.
@@ -896,17 +969,24 @@ var WatershedDelineationView = DrawToolBaseView.extend({
                 deferred.reject(message);
             },
 
-            postData: {
-                'location': JSON.stringify([
+            postData: JSON.stringify({
+                'location': [
                     point.geometry.coordinates[1],
                     point.geometry.coordinates[0]
-                ]),
+                ],
                 'snappingOn': snappingOn,
                 'dataSource': dataSource,
-            }
+            }),
+
+            contentType: 'application/json'
         };
 
-        this.rwdTaskModel.start(taskHelper);
+        if (!utils.withinConus(point)) {
+            deferred.reject('The area of interest must be within the Continental US.');
+        } else {
+            this.rwdTaskModel.start(taskHelper);
+        }
+
         return deferred;
     },
 
@@ -979,8 +1059,14 @@ function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
                 clearBoundaryLayer(model);
                 navigateToAnalyze();
                 deferred.resolve();
-            }).fail(function() {
-                console.log('Shape endpoint failed');
+            }).fail(function(message) {
+                if (typeof(message) === "string") {
+                    // When validation fails with an error message
+                    displayAlert(message, modalModels.AlertTypes.error);
+                } else {
+                    // When AJAX fails with an XHR object
+                    console.log('Shape endpoint failed');
+                }
                 deferred.reject();
             });
     }
@@ -1061,6 +1147,8 @@ module.exports = {
     DrawWindow: DrawWindow,
     getShapeAndAnalyze: getShapeAndAnalyze,
     addLayer: addLayer,
+    validateShape: validateShape,
+    displayAlert: displayAlert,
     clearAoiLayer: clearAoiLayer,
     selectBoundary: selectBoundary,
     drawArea: drawArea,

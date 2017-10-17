@@ -314,8 +314,290 @@ function renderLineChart(chartEl, data, options) {
     });
 }
 
+function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax, data, columnWidth, xAxisWidth, callback) {
+    var options = {
+            margin: {
+                top: 20,
+                bottom: 20,
+                left: 60,
+            },
+        },
+        onRenderComplete = (callback) ? callback : _.noop,
+        yTickFormat = stacked ? '0.1f' : yFormat(),
+        chart = nv.models.multiBarChart(),
+        svg = makeSvg(chartEl),
+        $svg = $(svg);
+
+    function setChartWidth() {
+        var scenarioCount = _.size(_.head(data).values),
+            scenariosWidth = scenarioCount * columnWidth + xAxisWidth;
+
+        chartEl.style.width = scenariosWidth + "px";
+        chart.width(chartEl.offsetWidth);
+    }
+
+    function yFormat() {
+        var getYs = function(d) { return _.map(d.values, 'y'); },
+            nonZero = function(x) { return x > 0; },
+            ys = _(data).map(getYs).flatten().filter(nonZero).value(),
+            minY = Math.min.apply(null, ys);
+
+        if (minY > 1) {
+            return '0.1f';
+        }
+
+        // Count decimal places to most significant digit, up to 4
+        for (var i = 0; minY < 1 && i < 4; i++) {
+            minY *= 10;
+        }
+
+        return '0.0' + i + 'f';
+    }
+
+    nv.addGraph(function() {
+        chart.showLegend(false)
+             .showControls(false)
+             .stacked(stacked)
+             .reduceXTicks(false)
+             .staggerLabels($svg.width() < widthCutoff)
+             .duration(0)
+             .margin(options.margin)
+             .color(colors)
+             .showXAxis(false)
+             .id(name);
+
+        chart.yAxis
+             .axisLabel(label)
+             .tickFormat(d3.format(yTickFormat))
+             .showMaxMin(false);
+
+        chart.tooltip.enabled(true);
+
+        setChartWidth();
+
+        if (yMax !== null) {
+            chart.yDomain([0, yMax]);
+        }
+
+        d3.select(svg)
+            .datum(data)
+            .call(chart);
+
+        // The clipPath that nvd3 creates wraps the bars,
+        // not the bars+tooltip. Scale and move the clipPath
+        // so it doesn't cut the tooltip off
+        d3.select(svg)
+            .selectAll("defs")
+            .selectAll("clipPath")
+            .selectAll("rect")
+            .attr("height", "100%")
+            .attr("width", "100%")
+            .attr("transform", "translate(0, -30)");
+
+        // filter definition for drop shadows
+        var filter =
+            d3.select(svg)
+                .selectAll("defs")
+                .append("filter")
+                .attr("id","drop-shadow")
+                .attr("height", "120%");
+
+        filter.append("feGaussianBlur")
+            .attr("in", "SourceAlpha")
+            .attr("stdDeviation", 2)
+            .attr("result", "blur");
+
+        filter.append("feOffset")
+            .attr("in", "blur")
+            .attr("dx", 2)
+            .attr("dy", 2)
+            .attr("result", "offsetBlur");
+
+        var feMerge = filter.append("feMerge");
+        feMerge.append("feMergeNode")
+            .attr("in", "offsetBlur");
+        feMerge.append("feMergeNode")
+            .attr("in", "SourceGraphic");
+
+        var chartContainerId = chartEl.id + "-chart-container";
+
+        // iterate over the series names to add the svg elements to the chart
+        _.forEach(["nv-series-0", "nv-series-1", "nv-series-2"],
+            function(el) {
+                d3.select("#" + chartEl.id).select("svg").selectAll("g." + el).each(function() {
+                    var g = d3.select(this);
+                    var parentG = d3.select(this.parentNode);
+                    parentG.attr("id", chartContainerId);
+
+                    g.selectAll(".nv-bar").each(function(bar) {
+                        // If the value is zero, and the chart
+                        // is stacked, don't show any tooltip
+                        if (stacked && parseFloat(bar.y) === 0) {
+                            return;
+                        }
+
+                        var b = d3.select(this);
+                        var barWidth = b.attr("width");
+                        var bgWidth = 40.0;
+                        var bgHeight = 20.0;
+                        var bgVertOffset = -20.0;
+
+                        var dialogTickSize = 5.0;
+
+                        // add drop-shadow
+                        parentG.append("rect")
+                            .each(function () {
+                                d3.select(this).attr({
+                                    "transform": b.attr("transform"),
+                                    "y": (parseFloat(b.attr("y")) + bgVertOffset - 1),
+                                    "x": (parseFloat(b.attr("x")) + (parseFloat(barWidth) / 2) - (bgWidth / 2) - 1),
+                                    "width": bgWidth + 2,
+                                    "height": bgHeight + 2,
+                                    "stroke": 1,
+                                    "class": ("bar-value-text-bg-shadow " + el)
+                                });
+
+                                d3.select(this).style({
+                                    "fill": "#aaaaaa",
+                                    "opacity": 0,
+                                    "fill-opacity": 0,
+                                    "filter": "url(#drop-shadow)"
+                                });
+                            });
+
+                        // add background shape
+                        parentG.append("rect")
+                            .each(function() {
+                                d3.select(this).attr({
+                                    "transform": b.attr("transform"),
+                                    "y": (parseFloat(b.attr("y")) + bgVertOffset),
+                                    "x": (parseFloat(b.attr("x")) + (parseFloat(barWidth) / 2) - (bgWidth / 2)),
+                                    "width": bgWidth,
+                                    "height": bgHeight,
+                                    "stroke": "#aaaaaa",
+                                    "stroke-width": 0.5,
+                                    "class": ("bar-value-text-bg " + el)
+                                });
+
+                                d3.select(this).style({
+                                    "fill": "white",
+                                    "opacity": "0",
+                                    "fill-opacity": "0",
+                                    "stroke-opacity": 0.75
+                                });
+                            });
+
+                        // add tick mark under shape
+                        parentG.append("rect")
+                            .each(function() {
+                                var rotatedX = parseFloat(b.attr("x")) + parseFloat(barWidth) / 2;
+                                var rotatedY = parseFloat(b.attr("y")) + bgHeight + bgVertOffset - (dialogTickSize / 2);
+                                d3.select(this).attr({
+                                    "transform": (b.attr("transform") + " rotate(45," + rotatedX +"," + rotatedY + ")"),
+                                    "y": (parseFloat(b.attr("y")) + bgHeight + bgVertOffset - dialogTickSize),
+                                    "x": (parseFloat(b.attr("x")) + (parseFloat(barWidth) / 2)),
+                                    "width": dialogTickSize,
+                                    "height": dialogTickSize,
+                                    "class": ("bar-value-text-bg-tick " + el)
+                                });
+
+                                d3.select(this).style({
+                                    "fill": "white",
+                                    "fill-opacity": "0",
+                                    "opacity": "0"
+                                });
+                            });
+
+                        // add the text value
+                        parentG.append("text")
+                            .each(function() {
+                                d3.select(this).text(function() {
+                                    return parseFloat(bar.y).toFixed(3);
+                                });
+
+                                var width = this.getBBox().width;
+
+                                d3.select(this).attr({
+                                    "transform": b.attr("transform"),
+                                    "y": (parseFloat(b.attr("y")) + 15 + bgVertOffset),
+                                    "x": (parseFloat(b.attr("x")) + (parseFloat(barWidth) / 2) - (width / 2)),
+                                    "font-size": "0.8rem",
+                                    "font-weight": "normal",
+                                    "font-family": "helvetica",
+                                    "class": ("bar-value-text " + el)
+                                });
+
+                                d3.select(this).style({
+                                    "stroke": "black",
+                                    "stroke-width": 0.2,
+                                    "opacity": 0,
+                                    "font-weight": "normal",
+                                    "font-family": "arial"
+                                });
+
+                            });
+                    });
+                });
+
+                d3.select(svg)
+                    .select("#" + chartContainerId)
+                    .selectAll("g." + el)
+                    .selectAll("rect.nv-bar")
+                    .on("mouseover", function () {
+                        d3.select("#" + chartContainerId)
+                            .selectAll(".bar-value-text." + el)
+                            .style("opacity", "1");
+
+                        d3.select("#" + chartContainerId)
+                            .selectAll(".bar-value-text-bg-shadow." + el)
+                            .style("opacity", "0.5")
+                            .style("fill-opacity", "0.5");
+
+                        d3.select("#" + chartContainerId)
+                            .selectAll(".bar-value-text-bg." + el)
+                            .style("opacity", "1")
+                            .style("fill-opacity", "1");
+
+                        d3.select("#" + chartContainerId)
+                            .selectAll(".bar-value-text-bg-tick." + el)
+                            .style("opacity", "1")
+                            .style("fill-opacity", "1");
+                    });
+
+                d3.select(svg)
+                    .select("#" + chartContainerId)
+                    .selectAll("g." + el)
+                    .selectAll("rect.nv-bar")
+                    .on("mouseout", function () {
+                        d3.select("#" + chartContainerId)
+                            .selectAll(".bar-value-text." + el)
+                            .style("opacity", "0");
+
+                        d3.select("#" + chartContainerId)
+                            .selectAll(".bar-value-text-bg-shadow." + el)
+                            .style("opacity", "0")
+                            .style("fill-opacity", "0");
+
+                        d3.select("#" + chartContainerId)
+                            .selectAll(".bar-value-text-bg." + el)
+                            .style("opacity", "0")
+                            .style("fill-opacity", "0");
+
+                        d3.select("#" + chartContainerId)
+                            .selectAll(".bar-value-text-bg-tick." + el)
+                            .style("opacity", "0")
+                            .style("fill-opacity", "0");
+                    });
+            });
+
+
+        return chart;
+    }, onRenderComplete);
+}
+
 module.exports = {
     renderHorizontalBarChart: renderHorizontalBarChart,
     renderVerticalBarChart: renderVerticalBarChart,
-    renderLineChart: renderLineChart
+    renderLineChart: renderLineChart,
+    renderCompareMultibarChart: renderCompareMultibarChart
 };

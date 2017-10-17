@@ -10,8 +10,7 @@ var $ = require('jquery'),
     AoiVolumeModel = require('../models').AoiVolumeModel,
     tableRowTmpl = require('./templates/tableRow.html'),
     tableTmpl = require('./templates/table.html'),
-    utils = require('../../../core/utils.js'),
-    constants = require('./constants');
+    utils = require('../../../core/utils.js');
 
 var ResultView = Marionette.LayoutView.extend({
     className: 'tab-pane',
@@ -30,7 +29,8 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     ui: {
-        downloadCSV: '[data-action="download-csv"]'
+        downloadCSV: '[data-action="download-csv"]',
+        table: '.runoff-table-region'
     },
 
     events: {
@@ -72,13 +72,11 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     downloadCSV: function() {
-        var data = this.model.get('result').runoff.modified,
-            prefix = 'tr55_runoff_',
+        var prefix = 'tr55_runoff_',
             timestamp = new Date().toISOString(),
-            filename = prefix + timestamp,
-            renamedData = _.map(_.pick(data, 'et', 'inf', 'runoff'),
-                constants.tr55RunoffCSVColumnMap);
-        utils.downloadDataCSV(renamedData, filename);
+            filename = prefix + timestamp;
+
+        this.ui.table.tableExport({ type: 'csv', fileName: filename });
     }
 });
 
