@@ -16,11 +16,11 @@ var $ = require('jquery'),
 
 // These are likely temporary until we develop custom icons for each type
 var platformIcons = {
-        'River Guage': '#F44336',
-        'Weather Station': '#4CAF50',
-        'Fixed Shore Platform': '#2196F3',
-        'Soil Pit': '#FFEB3B',
-        'Well': '#795548'
+        'River Guage': '#10A579',
+        'Weather Station': '#F2B703',
+        'Fixed Shore Platform': '#7FB95A',
+        'Soil Pit': '#CF1D90',
+        'Well': '#A5A998'
     },
     error_msg = 'Unable to load Observation data';
 
@@ -57,7 +57,8 @@ function VizerLayers() {
                             return L.circleMarker([asset.lat, asset.lon], {
                                 attributes: asset,
                                 fillColor: color,
-                                fillOpacity: 1.0
+                                fillOpacity: 0.6,
+                                color: color
                             });
                         });
 
