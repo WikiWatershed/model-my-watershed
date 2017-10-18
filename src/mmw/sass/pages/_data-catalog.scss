@@ -374,6 +374,7 @@
 .data-catalog-filter-window > .data-catalog-filters-header {
     display: flex;
     flex-direction: row;
+    height: 44px;
     padding-bottom: 6px;
     > .filter-title {
         line-height: $height-md;
