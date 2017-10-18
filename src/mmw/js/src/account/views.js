@@ -1,6 +1,12 @@
 "use strict";
 
-var Marionette = require('../../shim/backbone.marionette'),
+var Clipboard = require('clipboard'),
+    Marionette = require('../../shim/backbone.marionette'),
+    moment = require('moment'),
+    userViews = require('../user/views'),
+    userModels = require('../user/models'),
+    modalViews = require('../core/modals/views'),
+    modalModels = require('../core/modals/models'),
     models = require('./models'),
     containerTmpl = require('./templates/container.html'),
     profileTmpl = require('./templates/profile.html'),
@@ -11,7 +17,87 @@ var ProfileView = Marionette.ItemView.extend({
 });
 
 var AccountView = Marionette.ItemView.extend({
-    template: accountTmpl
+    // model ApiTokenModel
+    template: accountTmpl,
+
+    ui: {
+        regenerateKey: '[data-action="regeneratekey"]',
+        copyKey: '[data-action="copykey"]',
+        resetPassword: '[data-action="resetpassword"]'
+    },
+
+    events: {
+        'click @ui.regenerateKey': 'regenerateApiKey',
+        'click @ui.resetPassword': 'resetPassword'
+    },
+
+    modelEvents: {
+        'change': 'render'
+    },
+
+    onRender: function() {
+        var copyKeyBtn = this.ui.copyKey,
+            clipboard = new Clipboard(copyKeyBtn[0]);
+
+        clipboard.on('success', function() {
+            var beforeTitle = copyKeyBtn.data('original-title');
+
+            copyKeyBtn.attr('title', 'Copied!')
+                      .tooltip('fixTitle')
+                      .tooltip('show');
+
+            copyKeyBtn.attr('title', beforeTitle)
+                      .tooltip('fixTitle');
+        });
+
+        this.activateTooltip();
+    },
+
+    templateHelpers: function() {
+        var dateFormat = 'MMM D, YYYY, h:mm A',
+            formattedCreatedAt = moment(this.model.get('created_at'))
+                                        .format(dateFormat);
+        return {
+            created_at_formatted: formattedCreatedAt
+        };
+    },
+
+    regenerateApiKey: function() {
+        var self = this,
+            titleText = 'Do you definitely want to do this?',
+            detailText = 'Resetting your API key will invalidate ' +
+                         'your previous one',
+            modal = new modalViews.ConfirmView({
+                model: new modalModels.ConfirmModel({
+                    titleText: titleText,
+                    className: 'modal-content-danger modal-content-padded',
+                    question: detailText,
+                    confirmLabel: 'Yes, reset API key',
+                    cancelLabel: 'No, keep current key'
+                })
+            });
+
+        modal.render();
+
+        modal.on('confirmation', function() {
+            self.model.regenerateToken();
+        });
+    },
+
+    resetPassword: function() {
+        var resetPasswordModal =
+            new userViews.ChangePasswordModalView({
+                model: new userModels.ChangePasswordFormModel()
+            });
+
+        resetPasswordModal.render();
+    },
+
+    activateTooltip: function() {
+        this.ui.copyKey.tooltip({
+            trigger: 'hover'
+        });
+    }
 });
 
 var AccountContainerView = Marionette.LayoutView.extend({
@@ -37,6 +123,10 @@ var AccountContainerView = Marionette.LayoutView.extend({
         infoContainer: '.account-page-container'
     },
 
+    initialize: function() {
+        this.tokenModel = new models.ApiTokenModel();
+    },
+
     showActivePage: function() {
         var activePage = this.model.get('active_page');
 
@@ -45,7 +135,9 @@ var AccountContainerView = Marionette.LayoutView.extend({
                 this.infoContainer.show(new ProfileView());
                 break;
             case models.ACCOUNT:
-                this.infoContainer.show(new AccountView());
+                this.infoContainer.show(new AccountView({
+                    model: this.tokenModel
+                }));
                 break;
             default:
                 console.error("Account page, ", activePage,

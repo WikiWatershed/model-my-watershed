@@ -218,6 +218,49 @@ var ResendFormModel = ModalBaseModel.extend({
     }
 });
 
+var ChangePasswordFormModel = ModalBaseModel.extend({
+    defaults: {
+        old_password: null,
+        new_password1: null,
+        new_password2: null
+    },
+
+    url: '/user/change-password',
+
+    validate: function(attrs) {
+        var errors = [];
+
+        if (!attrs.old_password) {
+            errors.push('Please enter your password');
+        }
+
+        if (!attrs.new_password1) {
+            errors.push('Please enter a password');
+        }
+
+        if (!attrs.new_password2) {
+            errors.push('Please repeat the password');
+        }
+
+        if (attrs.new_password1 !== attrs.new_password2) {
+            errors.push('Passwords do not match');
+        }
+
+        if (errors.length) {
+            this.set({
+                'client_errors': errors,
+                'server_errors': null
+            });
+            return errors;
+        } else {
+            this.set({
+                'client_errors': null,
+                'server_errors': null
+            });
+        }
+    }
+});
+
 var ItsiSignUpFormModel = ModalBaseModel.extend({
     defaults: {
         username: null,
@@ -264,5 +307,6 @@ module.exports = {
     SignUpFormModel: SignUpFormModel,
     ResendFormModel: ResendFormModel,
     ForgotFormModel: ForgotFormModel,
+    ChangePasswordFormModel: ChangePasswordFormModel,
     ItsiSignUpFormModel: ItsiSignUpFormModel
 };

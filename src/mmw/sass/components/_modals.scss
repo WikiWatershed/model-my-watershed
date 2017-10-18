@@ -12,6 +12,25 @@
     box-shadow: 0 0 6px $black-24;
   }
 
+  .modal-content.modal-content-padded {
+      padding: 2rem;
+  }
+
+  .modal-content.modal-content-danger {
+      .btn-active{
+          // important because .btn-active uses !important
+          background-color: $ui-danger !important;
+      }
+
+      .btn-default {
+          color: $ui-medium-light;
+          &:hover, &:focus {
+              // important because .btn-default uses !important
+              background: none !important;
+          }
+      }
+  }
+
   .cancel {
     position: absolute;
     top: 1rem;

@@ -9,6 +9,7 @@ from apps.user.views import (login,
                              sign_up,
                              forgot,
                              resend,
+                             change_password,
                              logout,
                              itsi_login,
                              itsi_auth)
@@ -21,5 +22,7 @@ urlpatterns = patterns(
     url(r'^login$', login, name='login'),
     url(r'^sign_up$', sign_up, name='sign_up'),
     url(r'^resend$', resend, name='resend'),
-    url(r'^forgot$', forgot, name='forgot')
+    url(r'^forgot$', forgot, name='forgot'),
+    url(r'^change-password$', change_password,
+        name='change_password'),
 )

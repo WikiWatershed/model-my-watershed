@@ -5,6 +5,8 @@ var Backbone = require('../../../shim/backbone'),
 
 var ConfirmModel = Backbone.Model.extend({
     defaults: {
+        titleText: '',
+        className: '',
         question: 'Are you sure?',
         confirmLabel: 'Confirm',
         cancelLabel: 'Cancel'

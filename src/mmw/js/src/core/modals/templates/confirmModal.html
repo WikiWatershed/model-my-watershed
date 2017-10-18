@@ -1,6 +1,9 @@
 <div class="modal-dialog modal-dialog-sm">
-    <div class="modal-content">
+    <div class="modal-content {{ className }}">
         <div class="modal-body">
+            {% if titleText %}
+            <h2 class="modal-header">{{ titleText }}</h2>
+            {% endif %}
             <p>{{ question }}</p>
         </div>
         <div class="modal-footer">
