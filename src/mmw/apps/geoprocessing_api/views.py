@@ -2,6 +2,8 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from numbers import Number
+
 from celery import chain, group
 
 from rest_framework.response import Response
@@ -10,6 +12,7 @@ from rest_framework.authentication import (TokenAuthentication,
                                            SessionAuthentication)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
+from rest_framework.exceptions import ValidationError
 
 from django.utils.timezone import now
 from django.core.urlresolvers import reverse
@@ -224,10 +227,42 @@ def start_rwd(request, format=None):
     """
     user = request.user if request.user.is_authenticated() else None
     created = now()
-    location = request.data['location']
+    location = request.data.get('location')
+
+    def validate_location(loc):
+        if loc is None or type(loc) is not list or len(loc) is not 2:
+            return False
+        else:
+            [lat, lng] = loc
+            return (isinstance(lat, Number) and isinstance(lng, Number) and
+                    type(lat) is not bool and type(lng) is not bool)
+
+    if not validate_location(location):
+        error = ('Invalid required `location` parameter value '
+                 '`{}`. Must be a `[lat, lng] where `lat` and `lng` are '
+                 'numeric.'.format(location))
+        raise ValidationError(error)
+
     data_source = request.data.get('dataSource', 'drb')
+
+    if data_source not in ['drb', 'nhd']:
+        error = ('Invalid optional `dataSource` parameter value '
+                 '`{}`. Must be `drb` or `nhd`.'.format(data_source))
+        raise ValidationError(error)
+
     snapping = request.data.get('snappingOn', False)
+
+    if type(snapping) is not bool:
+        error = ('Invalid optional `snappingOn` parameter value '
+                 '`{}`. Must be `true` or `false`.'.format(snapping))
+        raise ValidationError(error)
+
     simplify = request.data.get('simplify', False)
+
+    if not isinstance(simplify, Number) and simplify is not False:
+        error = ('Invalid optional `simplify` parameter value: '
+                 '`{}`. Must be a number.'.format(simplify))
+        raise ValidationError(error)
 
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
