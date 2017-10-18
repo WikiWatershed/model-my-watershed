@@ -43,6 +43,12 @@ var FilterModel = Backbone.Model.extend({
         window.console.error("Use of unimplemented function",
                              "FilterModel.isActive");
         return false;
+    },
+
+    isDefault: function() {
+        window.console.error("Use of unimplemented function",
+                             "FilterModel.isDefault");
+        return false;
     }
 });
 
@@ -53,6 +59,10 @@ var SearchOption = FilterModel.extend({
 
     isActive: function() {
         return this.get('active');
+    },
+
+    isDefault: function() {
+        return this.get('active') === this.defaults.active;
     }
 });
 
@@ -75,6 +85,11 @@ var DateFilter = FilterModel.extend({
 
     isActive: function() {
         return this.get('fromDate') || this.get('toDate');
+    },
+
+    isDefault: function() {
+        return _.isEmpty(this.get('fromDate')) &&
+               _.isEmpty(this.get('toDate'));
     },
 
     validate: function() {
@@ -110,6 +125,12 @@ var FilterCollection = Backbone.Collection.extend({
 
         return this.filter(isActive).length;
     },
+
+    isDefault: function() {
+        var isDefault = function(filter) { return filter.isDefault(); };
+
+        return this.every(isDefault);
+    }
 });
 
 var Catalog = Backbone.Model.extend({
