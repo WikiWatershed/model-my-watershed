@@ -407,13 +407,34 @@ var utils = {
     // }
     // Use the scenario attributes to figure out which subresult should be
     // accessed.
-    getTR55ResultKey: function(scenario) {
+    _getTR55ResultKey: function(scenario) {
         if (scenario.get('is_current_conditions')) {
             return 'unmodified';
         } else if (scenario.get('is_pre_columbian')) {
             return 'pc_unmodified';
         }
         return 'modified';
+    },
+
+    /** Access a scenario's result for a given type
+     *   @param {ScenarioModel} scenario
+     *   @param {string} typeKey: the type of result you want
+     *                            back; 'runoff', 'quality'
+     **/
+    _getTR55ScenarioResult: function(scenario, typeKey) {
+        var resultKey = this._getTR55ResultKey(scenario),
+            result = scenario.get('results')
+                             .findWhere({ name: typeKey})
+                             .get('result');
+        return result[typeKey][resultKey];
+    },
+
+    getTR55WaterQualityResult: function(scenario) {
+        return this._getTR55ScenarioResult(scenario, 'quality');
+    },
+
+    getTR55RunoffResult: function(scenario) {
+        return this._getTR55ScenarioResult(scenario, 'runoff');
     },
 
     // Reverse sorting of a Backbone Collection.
