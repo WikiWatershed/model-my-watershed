@@ -664,8 +664,7 @@ var ScenarioModelToolbarView = Marionette.CompositeView.extend({
         'change:active': 'render'
     },
 
-    initialize: function(options) {
-        this.compareMode = options.compareMode;
+    initialize: function() {
         var modificationsColl = this.model.get('modifications');
         this.listenTo(modificationsColl, 'add remove reset', this.render);
     },
