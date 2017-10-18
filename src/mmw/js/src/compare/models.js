@@ -208,6 +208,7 @@ var WindowModel = Backbone.Model.extend({
         tabs: null,  // TabsCollection
         visibleScenarioIndex: 0, // Index of the first visible scenario
         polling: false,  // If any results are polling
+        projectName: null,
     },
 
     initialize: function() {

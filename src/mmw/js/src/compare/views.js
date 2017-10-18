@@ -2,9 +2,11 @@
 
 var _ = require('lodash'),
     $ = require('jquery'),
+    moment = require('moment'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     coreModels = require('../core/models'),
+    coreUtils = require('../core/utils'),
     coreViews = require('../core/views'),
     chart = require('../core/chart.js'),
     modalViews = require('../core/modals/views'),
@@ -217,15 +219,25 @@ var InputsView = Marionette.LayoutView.extend({
     ui: {
         chartButton: '#compare-input-button-chart',
         tableButton: '#compare-input-button-table',
+        downloadButton: '#compare-input-button-download'
     },
 
     events: {
         'click @ui.chartButton': 'setChartView',
         'click @ui.tableButton': 'setTableView',
+        'click @ui.downloadButton': 'downloadCSV'
     },
 
     regions: {
         precipitationRegion: '.compare-precipitation',
+    },
+
+    modelEvents: {
+        'change:polling': 'toggleDownloadButtonActive'
+    },
+
+    toggleDownloadButtonActive: function() {
+        this.ui.downloadButton.prop('disabled', this.model.get('polling'));
     },
 
     onShow: function() {
@@ -255,6 +267,92 @@ var InputsView = Marionette.LayoutView.extend({
         this.ui.tableButton.addClass('active');
         this.model.set({ mode: models.constants.TABLE });
     },
+
+    downloadCSV: function() {
+        var aoi = App.currentProject.get('area_of_interest'),
+            aoiVolumeModel = new tr55Models.AoiVolumeModel({ areaOfInterest: aoi }),
+            csvHeadings = [['scenario_name', 'precipitation_cm', 'runoff_cm',
+                'evapotranspiration_cm', 'infiltration_cm', 'tss_load_cm', 'tss_runoff_cm',
+                'tss_loading_rate_kgha', 'tn_load_cm', 'tn_runoff_cm', 'tn_loading_rate_kgha',
+                'tp_load_cm', 'tp_runoff_cm', 'tp_loading_rate_kgha']],
+            precipitation = this.model.get('scenarios')
+                .findWhere({ active: true })
+                .get('inputs')
+                .findWhere({ name: 'precipitation' })
+                .get('value'),
+            csvData = this.model.get('scenarios')
+                .map(function(scenario) {
+                    var result = scenario
+                            .get('results')
+                            .findWhere({ name: 'runoff' })
+                            .get('result'),
+                        isPreColumbian = scenario.get('is_pre_columbian') || false,
+                        isCurrentConditions = scenario.get('is_current_conditions'),
+                        runoff,
+                        quality,
+                        tss,
+                        tn,
+                        tp;
+
+                    if (isPreColumbian) {
+                        runoff = result.runoff.pc_unmodified;
+                        quality = result.quality.pc_unmodified;
+                    } else if (isCurrentConditions) {
+                        runoff = result.runoff.unmodified;
+                        quality = result.quality.unmodified;
+                    } else {
+                        runoff = result.runoff.modified;
+                        quality = result.quality.modified;
+                    }
+
+                    tss = quality[0];
+                    tn = quality[1];
+                    tp = quality[2];
+
+                    return [
+                        scenario.get('name'),
+                        coreUtils.convertToMetric(precipitation, 'in').toFixed(2),
+                        runoff.runoff,
+                        runoff.et,
+                        runoff.inf,
+                        tss.load,
+                        tss.runoff,
+                        aoiVolumeModel.getLoadingRate(tss.load),
+                        tn.load,
+                        tn.runoff,
+                        aoiVolumeModel.getLoadingRate(tn.load),
+                        tp.load,
+                        tp.runoff,
+                        aoiVolumeModel.getLoadingRate(tp.load),
+                    ];
+                }),
+            csv = csvHeadings
+                .concat(csvData)
+                .map(function (data) {
+                    return data.join(', ');
+                })
+                .join('\n'),
+            projectName = this.model.get('projectName'),
+            timeStamp = moment().format('MMDDYYYYHHmmss'),
+            fileName = projectName.replace(/[^a-z0-9+]+/gi, '_') + '_' +
+                timeStamp + '.csv',
+            blob = new Blob([csv], { type: 'application/octet-stream' });
+
+        if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+            window.navigator.msSaveOrOpenBlob(blob, fileName);
+        } else {
+            var url = window.URL.createObjectURL(blob),
+                tmpLink = document.createElement('a');
+
+            tmpLink.download = fileName;
+            tmpLink.href = url;
+            tmpLink.type = 'attachment/csv;charset=utf-8';
+            tmpLink.target = '_blank';
+            document.body.appendChild(tmpLink);
+            tmpLink.click();
+            document.body.removeChild(tmpLink);
+        }
+    }
 });
 
 var CompareModificationsPopoverView = Marionette.ItemView.extend({
@@ -932,6 +1030,7 @@ function getCompareScenarios(isTr55) {
 
 function showCompare() {
     var model_package = App.currentProject.get('model_package'),
+        projectName = App.currentProject.get('name'),
         isTr55 = model_package === modelingModels.TR55_PACKAGE,
         scenarios = getCompareScenarios(isTr55),
         tabs = isTr55 ? getTr55Tabs(scenarios) : getGwlfeTabs(scenarios),
@@ -941,6 +1040,7 @@ function showCompare() {
             controls: controls,
             tabs: tabs,
             scenarios: scenarios,
+            projectName: projectName,
         });
 
     if (isTr55) {
