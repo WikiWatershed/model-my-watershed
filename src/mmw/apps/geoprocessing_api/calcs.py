@@ -135,8 +135,70 @@ def catchment_water_quality(geojson):
             ]
         else:
             catchment_water_quality_results = []
+
+    # Create a reprojected version of the input geometry in order to check the
+    # amount of intersection with the water quality catchment geoms.
+    reprojected_aoi_geom = geom.transform(5070, clone=True)
+
+    adjusted_wq_results = [r for r in catchment_water_quality_results if
+                           catchment_intersects_aoi(reprojected_aoi_geom,
+                                                    r['geom'])]
+
     return {
         'displayName': 'Water Quality',
         'name': 'catchment_water_quality',
-        'categories': catchment_water_quality_results
+        'categories': adjusted_wq_results
     }
+
+
+def catchment_intersects_aoi(aoi, catchment):
+    """Check whether a catchment geometry intersects an area of interest by
+    more than a minimum value.
+
+    Args:
+        aoi (GEOSGeometry): The area of interest as a GEOSGeometry in 5070
+        catchment (dict): The catchment geometry as Python dictionary
+
+    Returns:
+        bool: True if intersection area's > than min value; False otherwise
+
+    This is done to ensure that we don't include catchments which 'intersect'
+    only by abutting the area of interest (& not overlapping). We include
+    catchments for which the intersection area represents either greater than
+    some percentage of the catchment's area or greater than some percentage of
+    the AOI's area.
+
+    Minimum intersection percentages is a clamped scale between 0.1% and 5%
+    depending on the size of the AOI: it's set as the AOI's area in sq km / by
+    1000 up to a maximum of 5% (with a minimum of 0.1%). This is done because
+    some analyzable AOIs have areas orders of magnitude larger than catchments,
+    which means that even a tiny intersection area can represent a huge
+    percentage of the catchment's area.
+
+    As an additional guard, we also check that the sum of the catchment's
+    intersection percentage and the area of interest's intersection percentage
+    is greater than a `min_summed_intersection_pct`, set to 2%.
+    """
+    catchment_geom = GEOSGeometry(json.dumps(catchment), srid=4326)
+    reprojected_catchment = catchment_geom.transform(5070, clone=True)
+
+    if not reprojected_catchment.valid:
+        return False
+
+    aoi_kms = aoi.area / 1000000
+    min_intersection_pct = min(5, max(0.1, aoi_kms / 1000))
+    min_summed_intersection_pct = 2
+
+    intersection_area = reprojected_catchment.intersection(aoi).area
+
+    catchment_intersection_pct = ((intersection_area /
+                                  reprojected_catchment.area) * 100)
+
+    aoi_intersection_pct = ((intersection_area / aoi.area) * 100)
+
+    include_catchment = ((aoi_intersection_pct > min_intersection_pct or
+                         catchment_intersection_pct > min_intersection_pct) and
+                         aoi_intersection_pct + catchment_intersection_pct >
+                         min_summed_intersection_pct)
+
+    return include_catchment
