@@ -153,7 +153,19 @@ var Catalog = Backbone.Model.extend({
     },
 
     initialize: function() {
-        var self = this;
+        var self = this,
+            // Debounce search in case of multiple filters
+            // changing in rapid succession
+            debouncedSearch = _.debounce(function() {
+                    if (self.isSearchValid()) {
+                        if (self.get('active')) {
+                            self.startSearch(1);
+                        } else {
+                            self.set('stale', true);
+                        }
+                    }
+                }, 100);
+
         this.get('results').on('change:show_detail', function() {
             self.set('detail_result', self.get('results').getDetail());
         });
@@ -162,15 +174,7 @@ var Catalog = Backbone.Model.extend({
         if (this.get('filters') === null) {
             this.set({ filters: new FilterCollection() });
         }
-        this.get('filters').on('change', function() {
-            if (self.isSearchValid()) {
-                if (self.get('active')) {
-                    self.startSearch(1);
-                } else {
-                    self.set('stale', true);
-                }
-            }
-        });
+        this.get('filters').on('change', debouncedSearch);
     },
 
     searchIfNeeded: function(query, geom) {
