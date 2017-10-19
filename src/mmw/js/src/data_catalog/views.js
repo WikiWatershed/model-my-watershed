@@ -2,7 +2,9 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
+    HighstockChart = require('../../shim/highstock'),
     App = require('../app'),
     analyzeViews = require('../analyze/views.js'),
     settings = require('../core/settings'),
@@ -22,6 +24,8 @@ var $ = require('jquery'),
     resultDetailsCinergiTmpl = require('./templates/resultDetailsCinergi.html'),
     resultDetailsHydroshareTmpl = require('./templates/resultDetailsHydroshare.html'),
     resultDetailsCuahsiTmpl = require('./templates/resultDetailsCuahsi.html'),
+    resultDetailsCuahsiStatusTmpl = require('./templates/resultDetailsCuahsiStatus.html'),
+    resultDetailsCuahsiSwitcherTmpl = require('./templates/resultDetailsCuahsiSwitcher.html'),
     resultDetailsCuahsiChartTmpl = require('./templates/resultDetailsCuahsiChart.html'),
     resultDetailsCuahsiTableTmpl = require('./templates/resultDetailsCuahsiTable.html'),
     resultDetailsCuahsiTableRowVariableColTmpl = require('./templates/resultDetailsCuahsiTableRowVariableCol.html'),
@@ -490,8 +494,94 @@ var ResultDetailsCuahsiView = ResultDetailsBaseView.extend({
 
     templateHelpers: function() {
         var id = this.model.get('id'),
-            location = id.substring(id.indexOf(':') + 1),
-            fetching = this.model.get('fetching'),
+            location = id.substring(id.indexOf(':') + 1);
+
+        return {
+            location: location,
+        };
+    },
+
+    ui: _.defaults({
+        chartRegion: '#cuahsi-chart-region',
+        tableRegion: '#cuahsi-table-region',
+    }, ResultDetailsBaseView.prototype.ui),
+
+    regions: {
+        statusRegion: '#cuahsi-status-region',
+        switcherRegion: '#cuahsi-switcher-region',
+        chartRegion: '#cuahsi-chart-region',
+        tableRegion: '#cuahsi-table-region',
+    },
+
+    modelEvents: {
+        'change:mode': 'showChartOrTable',
+    },
+
+    initialize: function() {
+        this.model.set('mode', 'table');
+        this.model.fetchCuahsiValues();
+    },
+
+    onShow: function() {
+        var variables = this.model.get('variables');
+
+        this.statusRegion.show(new CuahsiStatusView({ model: this.model }));
+        this.switcherRegion.show(new CuahsiSwitcherView({ model: this.model }));
+        this.tableRegion.show(new CuahsiTableView({ collection: variables }));
+    },
+
+    onDomRefresh: function() {
+        window.closePopover();
+        this.$('[data-toggle="popover"]').popover({
+            placement: 'right',
+            trigger: 'click',
+        });
+    },
+
+    showChartOrTable: function() {
+        if (this.model.get('mode') === 'table') {
+            this.ui.chartRegion.addClass('hidden');
+            this.ui.tableRegion.removeClass('hidden');
+        } else {
+            this.ui.chartRegion.removeClass('hidden');
+            this.ui.tableRegion.addClass('hidden');
+
+            if (!this.chartRegion.hasView()) {
+                this.chartRegion.show(new CuahsiChartView({
+                    collection: this.model.get('variables'),
+                }));
+            }
+        }
+    }
+});
+
+var CuahsiStatusView = Marionette.ItemView.extend({
+    template: resultDetailsCuahsiStatusTmpl,
+
+    modelEvents: {
+        'change:fetching change:error': 'render',
+    },
+});
+
+var CuahsiSwitcherView = Marionette.ItemView.extend({
+    template: resultDetailsCuahsiSwitcherTmpl,
+
+    ui: {
+        chartButton: '#cuahsi-button-chart',
+        tableButton: '#cuahsi-button-table',
+    },
+
+    events: {
+        'click @ui.chartButton': 'setChartMode',
+        'click @ui.tableButton': 'setTableMode',
+    },
+
+    modelEvents: {
+        'change:fetching change:mode': 'render',
+    },
+
+    templateHelpers: function() {
+        var fetching = this.model.get('fetching'),
             error = this.model.get('error'),
             last_date = this.model.get('end_date');
 
@@ -512,72 +602,16 @@ var ResultDetailsCuahsiView = ResultDetailsBaseView.extend({
         }
 
         return {
-            location: location,
             last_date: last_date,
         };
     },
 
-    regions: {
-        valuesRegion: '#cuahsi-values-region',
-    },
-
-    ui: _.defaults({
-        chartButton: '#cuahsi-button-chart',
-        tableButton: '#cuahsi-button-table',
-    }, ResultDetailsBaseView.prototype.ui),
-
-    events: _.defaults({
-        'click @ui.chartButton': 'setChartMode',
-        'click @ui.tableButton': 'setTableMode',
-    }, ResultDetailsBaseView.prototype.events),
-
-    modelEvents: {
-        'change:fetching': 'render',
-        'change:mode': 'showValuesRegion',
-    },
-
-    initialize: function() {
-        this.model.fetchCuahsiValues();
-    },
-
-    onRender: function() {
-        this.showValuesRegion();
-    },
-
-    onDomRefresh: function() {
-        window.closePopover();
-        this.$('[data-toggle="popover"]').popover({
-            placement: 'right',
-            trigger: 'click',
-        });
-    },
-
-    showValuesRegion: function() {
-        if (!this.valuesRegion) {
-            // Don't attempt to display values if this view
-            // has been unloaded.
-            return;
-        }
-
-        var mode = this.model.get('mode'),
-            variables = this.model.get('variables'),
-            view = mode === 'table' ?
-                   new CuahsiTableView({ collection: variables }) :
-                   new CuahsiChartView({ collection: variables });
-
-        this.valuesRegion.show(view);
-    },
-
     setChartMode: function() {
         this.model.set('mode', 'chart');
-        this.ui.chartButton.addClass('active');
-        this.ui.tableButton.removeClass('active');
     },
 
     setTableMode: function() {
         this.model.set('mode', 'table');
-        this.ui.tableButton.addClass('active');
-        this.ui.chartButton.removeClass('active');
     }
 });
 
@@ -655,6 +689,121 @@ var CuahsiTableView = Marionette.ItemView.extend({
 
 var CuahsiChartView = Marionette.ItemView.extend({
     template: resultDetailsCuahsiChartTmpl,
+
+    ui: {
+        'chartDiv': '#cuahsi-variable-chart',
+        'select': 'select',
+    },
+
+    events: {
+        'change @ui.select': 'selectVariable',
+    },
+
+    modelEvents: {
+        'change:selected': 'renderChart',
+    },
+
+    templateHelpers: function() {
+        var variables = this.collection.map(function(v) {
+                return {
+                    id: v.get('id'),
+                    concept_keyword: v.get('concept_keyword'),
+                };
+            });
+
+        return {
+            variables: variables,
+        };
+    },
+
+    initialize: function(attrs) {
+        var selected = this.collection.first().get('id');
+
+        this.model = new Backbone.Model();
+        this.model.set({
+            selected: selected,
+            result: attrs.result,
+        });
+    },
+
+    selectVariable: function() {
+        var selected = this.ui.select.val();
+
+        this.model.set('selected', selected);
+    },
+
+    onShow: function() {
+        this.renderChart();
+    },
+
+    initializeChart: function(variable) {
+        var chart = new HighstockChart({
+                chart: {
+                    renderTo: 'cuahsi-variable-chart',
+                },
+
+                rangeSelector: {
+                    selected: 1,
+                    buttons: [
+                        { type: 'week', count: 1, text: '1w' },
+                        { type: 'week', count: 2, text: '2w' },
+                        { type: 'month', count: 1, text: '1m' },
+                    ],
+                },
+
+                xAxis: {
+                    ordinal: false,
+                },
+
+                yAxis: {
+                    title: {
+                        text: variable.get('units'),
+                    }
+                },
+
+                // TODO Check why this isn't working
+                lang: {
+                    thousandsSep: ','
+                },
+
+                title : {
+                    text : null
+                },
+
+                series : [{
+                    name : variable.get('concept_keyword'),
+                    data : variable.getChartData(),
+                    color: '#389b9b',
+                    tooltip: {
+                        valueSuffix: ' ' + variable.get('units'),
+                        valueDecimals: 2,
+                    },
+                }]
+            });
+
+        return chart;
+    },
+
+    renderChart: function() {
+        var id = this.model.get('selected'),
+            variable = this.collection.findWhere({ id: id });
+
+        if (!this.chart) {
+            this.chart = this.initializeChart(variable);
+        } else {
+            this.chart.yAxis[0].setTitle({
+                text: variable.get('units'),
+            });
+
+            this.chart.series[0].update({
+                name: variable.get('concept_keyword'),
+                data: variable.getChartData(),
+                tooltip: {
+                    valueSuffix: ' ' + variable.get('units'),
+                },
+            });
+        }
+    }
 });
 
 var ResultMapPopoverDetailView = Marionette.LayoutView.extend({
