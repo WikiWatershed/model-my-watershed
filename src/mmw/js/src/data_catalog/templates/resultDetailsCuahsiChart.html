@@ -5,6 +5,9 @@
             {% if v.data_type and v.data_type != 'Unknown' and v.data_type != 'Instantaneous' %}
                 ({{ v.data_type }})
             {% endif %}
+            {% if v.units %}
+                ({{ v.units }})
+            {% endif %}
         </option>
     {% endfor %}
 </select>
