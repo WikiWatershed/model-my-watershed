@@ -96,6 +96,11 @@ var App = new Marionette.Application({
         this.rootView.layerPickerRegion.show(this.layerPickerView);
     },
 
+    destroyLayerPicker: function() {
+        this.rootView.layerPickerRegion.empty();
+        this.rootView.layerPickerSliderRegion.empty();
+    },
+
     getAnalyzeCollection: function() {
         if (!this.analyzeCollection) {
             var aoi = this.map.get('areaOfInterest'),
