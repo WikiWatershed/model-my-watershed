@@ -1088,6 +1088,26 @@ var FilterSidebar = Marionette.CompositeView.extend({
         return null;
     },
 
+    initialize: function() {
+        var self = this;
+
+        this.collection.forEach(function(model) {
+            self.listenTo(model, 'change', self.toggleReset);
+        });
+    },
+
+    onRender: function() {
+        this.toggleReset();
+    },
+
+    toggleReset: function() {
+        if (this.collection.isDefault()) {
+            this.ui.reset.addClass('hidden');
+        } else {
+            this.ui.reset.removeClass('hidden');
+        }
+    },
+
     clearFilters: function() {
         this.collection.forEach(function(model) { model.reset(); });
     }
