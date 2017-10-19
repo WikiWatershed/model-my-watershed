@@ -17,12 +17,6 @@ var ResultView = Marionette.LayoutView.extend({
 
     template: resultTmpl,
 
-    templateHelpers: function() {
-        return {
-            showModelDescription: !this.compareMode
-        };
-    },
-
     regions: {
         tableRegion: '.runoff-table-region',
         chartRegion: '.runoff-chart-region'
@@ -42,7 +36,6 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     initialize: function(options) {
-        this.compareMode = options.compareMode;
         this.scenario = options.scenario;
         this.aoi = options.areaOfInterest;
     },
@@ -56,17 +49,13 @@ var ResultView = Marionette.LayoutView.extend({
                 areaOfInterest: this.aoi
             });
 
-            if (!this.compareMode) {
-                this.tableRegion.show(new TableView({
-                    model: this.model,
-                    aoiVolumeModel: aoiVolumeModel
-                }));
-            }
+            this.tableRegion.show(new TableView({
+                model: this.scenario,
+                aoiVolumeModel: aoiVolumeModel
+            }));
 
             this.chartRegion.show(new ChartView({
-                model: this.model,
-                scenario: this.scenario,
-                compareMode: this.compareMode
+                model: this.scenario,
             }));
         }
     },
@@ -81,13 +70,9 @@ var ResultView = Marionette.LayoutView.extend({
 });
 
 var ChartView = Marionette.ItemView.extend({
+    // model ScenarioModel
     template: barChartTmpl,
     className: 'chart-container runoff-chart-container',
-
-    initialize: function(options) {
-        this.scenario = options.scenario;
-        this.compareMode = options.compareMode;
-    },
 
     onAttach: function() {
         this.addChart();
@@ -95,16 +80,15 @@ var ChartView = Marionette.ItemView.extend({
 
     addChart: function() {
         function getData(result, seriesNames, seriesDisplayNames,
-                         labelNames, labelDisplayNames) {
+                         labelDisplayNames) {
             return _.map(seriesNames, function(seriesName, seriesInd) {
                 var seriesDisplayName = seriesDisplayNames[seriesInd];
                 return {
                     key: seriesDisplayName,
-                    values: _.map(labelNames, function(labelName, labelInd) {
-                        var labelDisplayName = labelDisplayNames[labelInd];
+                    values: _.map(labelDisplayNames, function(labelDisplayName) {
                         return {
                             x: labelDisplayName,
-                            y: result[labelName][seriesName]
+                            y: result[seriesName]
                         };
                     })
                 };
@@ -112,10 +96,9 @@ var ChartView = Marionette.ItemView.extend({
         }
 
         var chartEl = this.$el.find('.bar-chart').get(0),
-            result = this.model.get('result').runoff,
+            result = utils.getTR55RunoffResult(this.model),
             seriesNames = ['inf', 'runoff', 'et'],
             seriesDisplayNames = ['Infiltration', 'Runoff', 'Evapotranspiration'],
-            labelNames,
             labelDisplayNames,
             data,
             chartOptions;
@@ -123,28 +106,21 @@ var ChartView = Marionette.ItemView.extend({
         $(chartEl).empty();
 
         if (result) {
-            var resultKey = utils.getTR55ResultKey(this.scenario);
-            labelNames = [resultKey];
-            if (this.compareMode) {
-                labelDisplayNames = [''];
-                this.$el.addClass('current-conditions');
-            } else if (this.scenario.get('is_current_conditions')) {
+            if (this.model.get('is_current_conditions')) {
                 labelDisplayNames = ['Current Conditions'];
             } else {
                 labelDisplayNames = ['Modified'];
             }
 
             data = getData(result, seriesNames, seriesDisplayNames,
-                           labelNames, labelDisplayNames);
+                           labelDisplayNames);
             chartOptions = {
                 seriesColors: ['#F8AA00', '#CF4300', '#C2D33C'],
                 yAxisLabel: 'Level (cm)',
                 yAxisUnit: 'cm',
                 reverseLegend: true,
                 disableToggle: true,
-                margin: this.compareMode ?
-                    {top: 20, right: 0, bottom: 40, left: 60} :
-                    {top: 0, right: 0, bottom: 40, left: 150}
+                margin: {top: 0, right: 0, bottom: 40, left: 150}
             };
 
             chart.renderVerticalBarChart(chartEl, data, chartOptions);
@@ -159,6 +135,7 @@ var TableRowView = Marionette.ItemView.extend({
 });
 
 var TableView = Marionette.CompositeView.extend({
+    // model ScenarioModel
     childView: TableRowView,
     childViewContainer: 'tbody',
     template: tableTmpl,
@@ -171,8 +148,7 @@ var TableView = Marionette.CompositeView.extend({
 
     initialize: function() {
         this.aoiVolumeModel = this.options.aoiVolumeModel;
-        this.tr55Results = this.model.get('result').runoff;
-
+        this.runoffResults = utils.getTR55RunoffResult(this.model);
         this.collection = this.formatData();
     },
 
@@ -185,17 +161,16 @@ var TableView = Marionette.CompositeView.extend({
         // Runoff Partition | Depth | Volume
         var collection = new Backbone.Collection();
 
-        collection.add(this.makeRowsForScenario('modified'));
+        collection.add(this.makeRowsForScenario());
 
         return collection;
     },
 
-    makeRowsForScenario: function(runoffKey) {
-        var self = this,
-            runoffPartition = this.tr55Results[runoffKey];
+    makeRowsForScenario: function() {
+        var self = this;
 
         return _.map(this.runoffTypes, function(runoffType) {
-            return _.extend(self.getRunoffTypeValue(runoffPartition, runoffType));
+            return _.extend(self.getRunoffTypeValue(self.runoffResults, runoffType));
         });
     },
 
