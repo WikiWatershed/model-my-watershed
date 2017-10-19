@@ -393,6 +393,7 @@ var Result = Backbone.Model.extend({
                             v.set({
                                 'units': info.variable.units.abbreviation,
                                 'speciation': info.variable.speciation,
+                                'data_type': info.variable.data_type,
                                 'sample_medium': info.variable.sample_medium,
                             });
 
@@ -522,6 +523,7 @@ var CuahsiVariable = Backbone.Model.extend({
         name: '',
         units: '',
         concept_keyword: '',
+        data_type: '',
         speciation: '',
         sample_medium: '',
         wsdl: '',
@@ -595,6 +597,7 @@ var CuahsiVariable = Backbone.Model.extend({
 
         return {
             name: response.variable.name,
+            data_type: response.variable.data_type,
             sample_medium: response.variable.sample_medium,
             units: response.variable.units.abbreviation,
             most_recent_value: mrv,

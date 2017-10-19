@@ -708,6 +708,7 @@ var CuahsiChartView = Marionette.ItemView.extend({
                 return {
                     id: v.get('id'),
                     concept_keyword: v.get('concept_keyword'),
+                    data_type: v.get('data_type'),
                 };
             });
 

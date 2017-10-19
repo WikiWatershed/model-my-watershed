@@ -1,4 +1,7 @@
 {{ concept_keyword }}
+{% if data_type and data_type != 'Unknown' and data_type != 'Instantaneous' %}
+    ({{ data_type }})
+{% endif %}
 {% if name %}
     <a class="variable-popover" tabindex="0"
         role="button" data-container="body"
