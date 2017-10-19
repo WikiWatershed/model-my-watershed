@@ -130,7 +130,6 @@ LAYER_GROUPS = {
             'code': 'mean_ppt',
             'display': 'Mean Monthly Precipitation',
             'short_display': 'Mean Precip',
-            'css_class_prefix': 'ppt',
             'helptext': 'PRISM monthly mean precipitation.',
             'url': 'https://{s}.tiles.azavea.com/climate/ppt_{month}/{z}/{x}/{y}.png',  # noqa
             'maxNativeZoom': 10,
@@ -138,12 +137,15 @@ LAYER_GROUPS = {
             'opacity': 0.85,
             'has_opacity_slider': True,
             'time_slider_values': MONTH_CODES,
+            'use_color_ramp': True,
+            'color_ramp_id': 'precipitation-legend',
+            'legend_units_label': 'Precipitation (mm/month)',
+            'legend_unit_breaks': [0, '', 100, '', 200, '', 300, '', 400, '', 500]
         },
         {
             'code': 'mean_temp',
             'display': 'Mean Monthly Temperature',
             'short_display': 'Mean Temp',
-            'css_class_prefix': 'ppt',
             'helptext': 'PRISM monthly mean temperature.',
             'url': 'https://{s}.tiles.azavea.com/climate/tmean_{month}/{z}/{x}/{y}.png',  # noqa
             'maxNativeZoom': 10,
@@ -151,6 +153,10 @@ LAYER_GROUPS = {
             'opacity': 0.85,
             'has_opacity_slider': True,
             'time_slider_values': MONTH_CODES,
+            'use_color_ramp': True,
+            'color_ramp_id': 'temperature-legend',
+            'legend_units_label': u'Air Temperature (\xb0C)',
+            'legend_unit_breaks': [-20, '', -8, '', 4, '', 16, '', 28, '', 40]
         },
         {
             'code': 'urban_areas',
