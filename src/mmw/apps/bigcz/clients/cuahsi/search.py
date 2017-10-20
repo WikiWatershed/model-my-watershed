@@ -201,17 +201,9 @@ def group_series_by_location(series):
     return records
 
 
-def make_request(request, expiry, **kwargs):
-    key = 'bigcz_{}_{}'.format(request.method.name,
-                               hash(frozenset(kwargs.items())))
-    cached = cache.get(key)
-    if cached:
-        return cached
-
+def make_request(request, **kwargs):
     try:
-        response = recursive_asdict(request(**kwargs))
-        cache.set(key, response, timeout=expiry)
-        return response
+        return request(**kwargs)
     except URLError, e:
         if isinstance(e.reason, timeout):
             raise RequestTimedOutError()
@@ -222,15 +214,21 @@ def make_request(request, expiry, **kwargs):
 
 
 def get_services_in_box(box):
+    key = 'bigcz_cuahsi_GetServicesInBox2_{}'.format(hash(box))
+    cached = cache.get(key)
+    if cached:
+        return cached
+
     result = make_request(client.service.GetServicesInBox2,
-                          604800,  # Cache for one week
                           xmin=box.xmin,
                           xmax=box.xmax,
                           ymin=box.ymin,
                           ymax=box.ymax)
 
     try:
-        return result['ServiceInfo']
+        data = recursive_asdict(result)
+        cache.set(key, data['ServiceInfo'], timeout=604800)  # Cache for 1 week
+        return data['ServiceInfo']
     except KeyError:
         # Missing key may indicate a server-side error
         raise ValueError(result)
@@ -244,7 +242,6 @@ def get_series_catalog_in_box(box, from_date, to_date, networkIDs):
     to_date = to_date or DATE_MAX
 
     result = make_request(client.service.GetSeriesCatalogForBox2,
-                          300,  # Cache for 5 minutes
                           xmin=box.xmin,
                           xmax=box.xmax,
                           ymin=box.ymin,
