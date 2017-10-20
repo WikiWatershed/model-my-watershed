@@ -125,14 +125,6 @@ def search(**kwargs):
         'full_text_search': query,
     }
 
-    if to_date:
-        params.update({
-            'to_date': prepare_date(to_date)
-        })
-    if from_date:
-        params.update({
-            'from_date': prepare_date(from_date)
-        })
     if bbox:
         params.update(prepare_bbox(bbox))
         params.update({
@@ -170,7 +162,18 @@ def search(**kwargs):
         items = [item for item in items if item['public']]
 
     records = [parse_record(item) for item in items]
-    results = sorted([r for r in records if r.geom],
+    # Include only those with geometries
+    records = [r for r in records if r.geom]
+
+    if from_date:
+        records = [r for r in records
+                   if r.end_date and r.end_date >= from_date]
+
+    if to_date:
+        records = [r for r in records
+                   if r.begin_date and r.begin_date <= to_date]
+
+    results = sorted(records,
                      key=nullable_attrgetter('end_date', DATE_MIN),
                      reverse=True)
     count = data['count']
