@@ -10,8 +10,10 @@ from rest_framework.exceptions import ValidationError
 from django.conf import settings
 from django.contrib.gis.geos import Point, Polygon
 
-from apps.bigcz.models import Resource, ResourceLink, ResourceList
+from apps.bigcz.models import ResourceLink, ResourceList
 from apps.bigcz.utils import RequestTimedOutError
+
+from apps.bigcz.clients.hydroshare.models import HydroshareResource
 
 
 CATALOG_NAME = 'hydroshare'
@@ -55,8 +57,19 @@ def parse_geom(coverages):
     return None
 
 
+def parse_coverage_period(coverages):
+    if coverages:
+        period = [c['value'] for c in coverages if c['type'] == 'period']
+        if period and period[0]:
+            return period[0]['start'], period[0]['end']
+
+    return None, None
+
+
 def parse_record(item):
-    return Resource(
+    start, end = parse_coverage_period(item['coverages'])
+
+    return HydroshareResource(
         id=item['resource_id'],
         title=item['resource_title'],
         description=None,
@@ -66,7 +79,9 @@ def parse_record(item):
         ],
         created_at=parse_date(item['date_created']),
         updated_at=parse_date(item['date_last_updated']),
-        geom=parse_geom(item['coverages']))
+        geom=parse_geom(item['coverages']),
+        begin_date=parse_date(start) if start else None,
+        end_date=parse_date(end) if end else None)
 
 
 def prepare_bbox(box):
