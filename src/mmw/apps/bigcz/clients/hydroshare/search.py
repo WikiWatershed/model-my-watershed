@@ -8,7 +8,7 @@ import dateutil.parser
 from rest_framework.exceptions import ValidationError
 
 from django.conf import settings
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Point, Polygon
 
 from apps.bigcz.models import Resource, ResourceLink, ResourceList
 from apps.bigcz.utils import RequestTimedOutError
@@ -22,17 +22,35 @@ def parse_date(value):
     return dateutil.parser.parse(value)
 
 
+def parse_box(box):
+    return Polygon((
+        (float(box['westlimit']), float(box['northlimit'])),
+        (float(box['eastlimit']), float(box['northlimit'])),
+        (float(box['eastlimit']), float(box['southlimit'])),
+        (float(box['westlimit']), float(box['southlimit'])),
+        (float(box['westlimit']), float(box['northlimit'])),
+    ))
+
+
+def parse_point(point):
+    return Point(float(point['east']), float(point['north']))
+
+
 def parse_geom(coverages):
+    geoms = []
     if coverages:
-        box = [c['value'] for c in coverages if c['type'] == 'box'][0]
-        if box:
-            return Polygon((
-                (float(box['westlimit']), float(box['northlimit'])),
-                (float(box['eastlimit']), float(box['northlimit'])),
-                (float(box['eastlimit']), float(box['southlimit'])),
-                (float(box['westlimit']), float(box['southlimit'])),
-                (float(box['westlimit']), float(box['northlimit'])),
-            ))
+        geoms.extend([parse_box(c['value'])
+                      for c in coverages
+                      if c['type'] == 'box'])
+        geoms.extend([parse_point(c['value'])
+                      for c in coverages
+                      if c['type'] == 'point'])
+        if geoms:
+            geom = geoms[0]
+            for g in geoms[1:]:
+                geom |= g
+
+            return geom
 
     return None
 
