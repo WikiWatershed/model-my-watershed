@@ -154,7 +154,7 @@ def search(**kwargs):
         raise ValueError(data)
 
     records = [parse_record(item) for item in data['results']]
-    results = sorted(records,
+    results = sorted([r for r in records if r.geom],
                      key=nullable_attrgetter('end_date', DATE_MIN),
                      reverse=True)
     count = data['count']
