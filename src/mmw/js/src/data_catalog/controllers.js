@@ -36,7 +36,10 @@ var DataCatalogController = {
                 id: 'hydroshare',
                 name: 'HydroShare',
                 results: new models.Results(null, { catalog: 'hydroshare' }),
-                filters: new models.FilterCollection([dateFilter])
+                filters: new models.FilterCollection([
+                    dateFilter,
+                    new models.PrivateResourcesFilter(),
+                ]),
             }),
             new models.Catalog({
                 id: 'cuahsi',

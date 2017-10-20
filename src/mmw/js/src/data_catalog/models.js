@@ -75,6 +75,15 @@ var GriddedServicesFilter = SearchOption.extend({
     }, SearchOption.prototype.defaults)
 });
 
+var PrivateResourcesFilter = SearchOption.extend({
+    defaults: _.defaults({
+        id: 'exclude_private',
+        type: 'checkbox',
+        label: 'Exclude Private Resources',
+        active: true,
+    }, SearchOption.prototype.defaults)
+});
+
 var DateFilter = FilterModel.extend({
     defaults: _.defaults({
         id: 'date',
@@ -647,6 +656,7 @@ var CuahsiVariables = Backbone.Collection.extend({
 
 module.exports = {
     GriddedServicesFilter: GriddedServicesFilter,
+    PrivateResourcesFilter: PrivateResourcesFilter,
     DateFilter: DateFilter,
     FilterCollection: FilterCollection,
     Catalog: Catalog,

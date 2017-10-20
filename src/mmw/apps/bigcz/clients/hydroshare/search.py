@@ -114,6 +114,7 @@ def search(**kwargs):
     from_date = kwargs.get('from_date')
     bbox = kwargs.get('bbox')
     page = kwargs.get('page')
+    exclude_private = 'exclude_private' in kwargs.get('options')
 
     if not query:
         raise ValidationError({
@@ -153,7 +154,11 @@ def search(**kwargs):
     if 'results' not in data:
         raise ValueError(data)
 
-    records = [parse_record(item) for item in data['results']]
+    items = data['results']
+    if exclude_private:
+        items = [item for item in items if item['public']]
+
+    records = [parse_record(item) for item in items]
     results = sorted([r for r in records if r.geom],
                      key=nullable_attrgetter('end_date', DATE_MIN),
                      reverse=True)
