@@ -5,6 +5,7 @@ from __future__ import division
 
 import requests
 import dateutil.parser
+from datetime import datetime
 from rest_framework.exceptions import ValidationError
 
 from django.conf import settings
@@ -18,6 +19,8 @@ from apps.bigcz.clients.hydroshare.models import HydroshareResource
 
 CATALOG_NAME = 'hydroshare'
 CATALOG_URL = 'https://www.hydroshare.org/hsapi/resource/'
+
+DATE_MIN = datetime(1776, 7, 4, 0, 0)
 
 
 def parse_date(value):
@@ -97,6 +100,14 @@ def prepare_date(value):
     return value.strftime('%Y-%m-%d')
 
 
+def nullable_attrgetter(key, default):
+    """To allow sorting on nullable field with default value"""
+    def getter(item):
+        return getattr(item, key) or default
+
+    return getter
+
+
 def search(**kwargs):
     query = kwargs.get('query')
     to_date = kwargs.get('to_date')
@@ -142,11 +153,14 @@ def search(**kwargs):
     if 'results' not in data:
         raise ValueError(data)
 
-    results = data['results']
+    records = [parse_record(item) for item in data['results']]
+    results = sorted(records,
+                     key=nullable_attrgetter('end_date', DATE_MIN),
+                     reverse=True)
     count = data['count']
 
     return ResourceList(
         api_url=response.url,
         catalog=CATALOG_NAME,
         count=count,
-        results=[parse_record(item) for item in results])
+        results=results)
