@@ -508,6 +508,11 @@ var utils = {
                wkaoi.includes('__') &&
                !lodash.startsWith(wkaoi, '__') &&
                !lodash.endsWith(wkaoi, '__');
+    },
+
+    // Array.filter(distinct) to get distinct values
+    distinct: function(value, index, self) {
+        return self.indexOf(value) === index;
     }
 };
 

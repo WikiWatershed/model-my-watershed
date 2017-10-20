@@ -8,6 +8,7 @@ var $ = require('jquery'),
     App = require('../app'),
     analyzeViews = require('../analyze/views.js'),
     settings = require('../core/settings'),
+    utils = require('../core/utils'),
     models = require('./models'),
     errorTmpl = require('./templates/error.html'),
     dateFilterTmpl = require('./templates/dateFilter.html'),
@@ -410,6 +411,7 @@ var StaticResultView = Marionette.ItemView.extend({
             return {
                 'concept_keywords': this.model.get('variables')
                                               .pluck('concept_keyword')
+                                              .filter(utils.distinct)
                                               .join('; '),
             };
         }
@@ -708,6 +710,8 @@ var CuahsiChartView = Marionette.ItemView.extend({
                 return {
                     id: v.get('id'),
                     concept_keyword: v.get('concept_keyword'),
+                    data_type: v.get('data_type'),
+                    units: v.get('units'),
                 };
             });
 

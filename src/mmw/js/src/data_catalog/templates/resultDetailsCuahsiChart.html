@@ -2,6 +2,12 @@
     {% for v in variables %}
         <option value="{{ v.id }}" {{ 'selected' if v.id == selected }}>
             {{ v.concept_keyword }}
+            {% if v.data_type and v.data_type != 'Unknown' and v.data_type != 'Instantaneous' %}
+                ({{ v.data_type }})
+            {% endif %}
+            {% if v.units %}
+                ({{ v.units }})
+            {% endif %}
         </option>
     {% endfor %}
 </select>
