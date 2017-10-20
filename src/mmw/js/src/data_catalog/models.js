@@ -341,6 +341,8 @@ var Result = Backbone.Model.extend({
         links: null, // Array
         created_at: '',
         updated_at: '',
+        begin_date: '',
+        end_date: '',
         active: false,
         show_detail: false, // Show this result as the detail view?
         variables: null,  // CuahsiVariables Collection
