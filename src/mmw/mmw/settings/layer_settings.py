@@ -65,6 +65,7 @@ LAYER_GROUPS = {
                            '<a href="http://mapbox.com">Mapbox</a>',
             'maxZoom': 18,
             'default': True,
+            'big_cz': True,
         },
         {
             'display': 'Satellite',
@@ -74,16 +75,19 @@ LAYER_GROUPS = {
                            'item.html?id=10df2279f9684e4a9f6a7f08febac2a9">ESRI'
                            '</a>',
             'maxZoom': 19,
+            'big_cz': True,
         },
         {
             'display': 'Satellite with Roads',
             'googleType': 'HYBRID',  # SATELLITE, ROADMAP, HYBRID, or TERRAIN
             'maxZoom': 18,  # Max zoom changes based on location. Safe default
+            'big_cz': True,
         },
         {
             'display': 'Terrain',
             'googleType': 'TERRAIN',  # SATELLITE, ROADMAP, HYBRID, or TERRAIN
             'maxZoom': 20,
+            'big_cz': True,
         },
     ],
     'coverage': [
@@ -100,6 +104,7 @@ LAYER_GROUPS = {
             'opacity': 0.618,
             'has_opacity_slider': True,
             'legend_mapping': { key: names[1] for key, names in NLCD_MAPPING.iteritems()},
+            'big_cz': True,
         },
         {
             'display': 'Hydrologic Soil Groups From gSSURGO',
@@ -125,6 +130,7 @@ LAYER_GROUPS = {
                 SOIL_MAPPING[7],
                 SOIL_MAPPING[4],
             ]),
+            'big_cz': True,
         },
         {
             'code': 'mean_ppt',
@@ -140,7 +146,8 @@ LAYER_GROUPS = {
             'use_color_ramp': True,
             'color_ramp_id': 'precipitation-legend',
             'legend_units_label': 'Precipitation (mm/month)',
-            'legend_unit_breaks': [0, '', 100, '', 200, '', 300, '', 400, '', 500]
+            'legend_unit_breaks': [0, '', 100, '', 200, '', 300, '', 400, '', 500],
+            'big_cz': True,
         },
         {
             'code': 'mean_temp',
@@ -156,7 +163,8 @@ LAYER_GROUPS = {
             'use_color_ramp': True,
             'color_ramp_id': 'temperature-legend',
             'legend_units_label': u'Air Temperature (\xb0C)',
-            'legend_unit_breaks': [-20, '', -8, '', 4, '', 16, '', 28, '', 40]
+            'legend_unit_breaks': [-20, '', -8, '', 4, '', 16, '', 28, '', 40],
+            'big_cz': True,
         },
         {
             'code': 'urban_areas',
@@ -167,6 +175,7 @@ LAYER_GROUPS = {
             'opacity': 0.618,
             'has_opacity_slider': True,
             'perimeter': pa_perimeter,
+            'big_cz': False,
         },
         {
             'code': 'drb_catchment_water_quality_tn',
@@ -186,7 +195,8 @@ LAYER_GROUPS = {
                 3: 'Less than 15 kg/y',
                 4: 'Less than 20 kg/y',
                 5: 'Greater than 20 kg/y',
-            }
+            },
+            'big_cz': False,
         },
         {
             'code': 'drb_catchment_water_quality_tp',
@@ -206,7 +216,8 @@ LAYER_GROUPS = {
                 3: 'Less than 0.90 kg/y',
                 4: 'Less than 1.20 kg/y',
                 5: 'Greater than 1.20 kg/y',
-            }
+            },
+            'big_cz': False,
         },
         {
             'code': 'drb_catchment_water_quality_tss',
@@ -226,7 +237,8 @@ LAYER_GROUPS = {
                 3: 'Less than 750 kg/y',
                 4: 'Less than 1000 kg/y',
                 5: 'Greater than 1000 kg/y',
-            }
+            },
+            'big_cz': False,
         }
     ],
     'boundary': [
@@ -247,6 +259,7 @@ LAYER_GROUPS = {
             'selectable': True,
             'searchable': True,
             'search_rank': 30,
+            'big_cz': True,
         },
         {
             'code': 'huc10',
@@ -265,6 +278,7 @@ LAYER_GROUPS = {
             'selectable': True,
             'searchable': True,
             'search_rank': 20,
+            'big_cz': True,
         },
         {
             'code': 'huc12',
@@ -284,6 +298,7 @@ LAYER_GROUPS = {
             'selectable': True,
             'searchable': True,
             'search_rank': 10,
+            'big_cz': True,
         },
         {
             'code': 'county',
@@ -299,6 +314,7 @@ LAYER_GROUPS = {
                         '</a>',
             'minZoom': 6,
             'selectable': True,
+            'big_cz': True,
         },
         {
             'code': 'district',
@@ -315,6 +331,7 @@ LAYER_GROUPS = {
                         '</a>',
             'minZoom': 5,
             'selectable': True,
+            'big_cz': False,
         },
         {
             'code': 'school',
@@ -330,6 +347,7 @@ LAYER_GROUPS = {
                         '</a>',
             'minZoom': 8,
             'selectable': True,
+            'big_cz': False,
         },
         {
             'code': 'municipalities',
@@ -338,6 +356,7 @@ LAYER_GROUPS = {
             'short_display': 'PA Municipalities',
             'minZoom': 6,
             'perimeter': pa_perimeter,
+            'big_cz': False,
         },
     ],
     'stream': [
@@ -346,7 +365,8 @@ LAYER_GROUPS = {
             'display': ('Continental US Medium Resolution' +
                         ' Stream Network'),
             'table_name': 'nhdflowline',
-            'minZoom': 3
+            'minZoom': 3,
+            'big_cz': True,
         },
         {
             'code': 'drb_streams_v2',
@@ -354,8 +374,9 @@ LAYER_GROUPS = {
                         ' Stream Network'),
             'table_name': 'drb_streams_50',
             'minZoom': 5,
-            'perimeter': drb_simple_perimeter  # Layer is only selectable when viewport
-            # overlaps with perimeter polygon.
+            # Layer selectable only when viewport overlaps perimeter polygon
+            'perimeter': drb_simple_perimeter,
+            'big_cz': False,
         },
         {
             'code': 'nhd_quality_tn',
@@ -371,7 +392,8 @@ LAYER_GROUPS = {
                 3: 'Less than 3 mg/L',
                 4: 'Less than 4 mg/L',
                 'NA': 'No Data'
-            }
+            },
+            'big_cz': False,
         },
         {
             'code': 'nhd_quality_tp',
@@ -387,7 +409,8 @@ LAYER_GROUPS = {
                 3: 'Less than 0.09 mg/L',
                 4: 'Less than 0.12 mg/L',
                 'NA': 'No Data'
-            }
+            },
+            'big_cz': False,
         },
         {
             'code': 'nhd_quality_tss',
@@ -403,7 +426,8 @@ LAYER_GROUPS = {
                 3: 'Less than 150 mg/L',
                 4: 'Less than 200 mg/L',
                 'NA': 'No Data'
-            }
+            },
+            'big_cz': False,
         },
     ],
 }
