@@ -3,11 +3,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import requests
+from requests import Request, Session, Timeout
 import dateutil.parser
 from datetime import datetime
 from rest_framework.exceptions import ValidationError
 
+from django.core.cache import cache
 from django.conf import settings
 from django.contrib.gis.geos import Point, Polygon
 
@@ -142,14 +143,24 @@ def search(**kwargs):
             'page': page
         })
 
-    try:
-        response = requests.get(CATALOG_URL,
-                                timeout=settings.BIGCZ_CLIENT_TIMEOUT,
-                                params=params)
-    except requests.Timeout:
-        raise RequestTimedOutError()
+    session = Session()
+    request = session.prepare_request(Request('GET',
+                                              CATALOG_URL,
+                                              params=params))
 
-    data = response.json()
+    key = 'bigcz_hydroshare_{}'.format(hash(frozenset(params.items())))
+    cached = cache.get(key)
+    if cached:
+        data = cached
+
+    else:
+        try:
+            response = session.send(request,
+                                    timeout=settings.BIGCZ_CLIENT_TIMEOUT)
+            data = response.json()
+            cache.set(key, data, timeout=1800)  # Cache for half hour
+        except Timeout:
+            raise RequestTimedOutError()
 
     if 'results' not in data:
         raise ValueError(data)
@@ -165,7 +176,7 @@ def search(**kwargs):
     count = data['count']
 
     return ResourceList(
-        api_url=response.url,
+        api_url=request.url,
         catalog=CATALOG_NAME,
         count=count,
         results=results)
