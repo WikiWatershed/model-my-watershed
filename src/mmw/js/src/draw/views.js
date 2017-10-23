@@ -15,6 +15,7 @@ var $ = require('jquery'),
     App = require('../app'),
     utils = require('./utils'),
     models = require('./models'),
+    settings = require('../core/settings'),
     coreUtils = require('../core/utils'),
     drawUtils = require('../draw/utils'),
     splashTmpl = require('./templates/splash.html'),
@@ -823,6 +824,46 @@ var WatershedDelineationView = DrawToolBaseView.extend({
         DrawToolBaseView.prototype.initialize.call(this, options);
         this.id = delineateWatershed;
         this.rwdTaskModel = options.rwdTaskModel;
+
+        this.rwdDrawItems = [
+            {
+                id: utils.NHD,
+                dataSource: utils.NHD,
+                title: 'Continental US Medium Resolution',
+                info: 'Click on the map to select the nearest downhill ' +
+                      'point on the medium resolution flow lines of the ' +
+                      'National Hydrography Dataset (NHDplus v2). The ' +
+                      'watershed area upstream of this point is ' +
+                      'automatically delineated using the 30 m resolution ' +
+                      'flow direction grid.<br />' +
+                      'For more information, see ' +
+                      '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#delineate-watershed\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
+                      'Model My Watershed Technical Documentation on ' +
+                      'Delineate Watershed.</a>',
+                shapeType: 'stream',
+                snappingOn: true,
+                minZoom: 0,
+                directions: 'Click a point to delineate a watershed.'
+            },
+            {
+                id: utils.DRB,
+                dataSource: utils.DRB,
+                title: 'Delaware High Resolution',
+                info: 'Click on the map to select the nearest downhill ' +
+                      'point on our Delaware River Basin high resolution ' +
+                      'stream network. The watershed area upstream of this ' +
+                      'point is automatically delineated using the 10 m ' +
+                      'resolution national elevation model.<br />' +
+                      'For more information, see ' +
+                      '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#delineate-watershed\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
+                      'Model My Watershed Technical Documentation on ' +
+                      'Delineate Watershed.</a>',
+                shapeType: 'stream',
+                snappingOn: true,
+                minZoom: 0,
+                directions: 'Click a point to delineate a watershed.'
+            }
+        ];
     },
 
     getToolData: function() {
@@ -830,45 +871,9 @@ var WatershedDelineationView = DrawToolBaseView.extend({
             id: this.id,
             title: 'Delineate watershed',
             info: 'Automatically delineate a watershed from any point',
-            items: [
-                {
-                    id: utils.NHD,
-                    dataSource: utils.NHD,
-                    title: 'Continental US Medium Resolution',
-                    info: 'Click on the map to select the nearest downhill ' +
-                          'point on the medium resolution flow lines of the ' +
-                          'National Hydrography Dataset (NHDplus v2). The ' +
-                          'watershed area upstream of this point is ' +
-                          'automatically delineated using the 30 m resolution ' +
-                          'flow direction grid.<br />' +
-                          'For more information, see ' +
-                          '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#delineate-watershed\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
-                          'Model My Watershed Technical Documentation on ' +
-                          'Delineate Watershed.</a>',
-                    shapeType: 'stream',
-                    snappingOn: true,
-                    minZoom: 0,
-                    directions: 'Click a point to delineate a watershed.'
-                },
-                {
-                    id: utils.DRB,
-                    dataSource: utils.DRB,
-                    title: 'Delaware High Resolution',
-                    info: 'Click on the map to select the nearest downhill ' +
-                          'point on our Delaware River Basin high resolution ' +
-                          'stream network. The watershed area upstream of this ' +
-                          'point is automatically delineated using the 10 m ' +
-                          'resolution national elevation model.<br />' +
-                          'For more information, see ' +
-                          '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#delineate-watershed\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
-                          'Model My Watershed Technical Documentation on ' +
-                          'Delineate Watershed.</a>',
-                    shapeType: 'stream',
-                    snappingOn: true,
-                    minZoom: 0,
-                    directions: 'Click a point to delineate a watershed.'
-                }
-            ]
+            items: settings.get('data_catalog_enabled') ?
+                _.reject(this.rwdDrawItems, { id: utils.DRB }) :
+                this.rwdDrawItems,
         };
     },
 
