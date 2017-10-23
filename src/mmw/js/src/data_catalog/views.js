@@ -509,6 +509,10 @@ var ResultDetailsCinergiView = ResultDetailsBaseView.extend({
 
 var ResultDetailsHydroshareView = ResultDetailsBaseView.extend({
     template: resultDetailsHydroshareTmpl,
+
+    initialize: function() {
+        this.model.fetchHydroshareDetails();
+    }
 });
 
 var ResultDetailsCuahsiView = ResultDetailsBaseView.extend({
