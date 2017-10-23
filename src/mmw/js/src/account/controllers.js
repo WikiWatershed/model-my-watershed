@@ -27,7 +27,7 @@ function showAccountView() {
             model: new models.AccountContainerModel()
         })
     );
-    App.rootView.layerPickerRegion.empty();
+    App.destroyLayerPicker();
 
     App.state.set('active_page', coreUtils.accountPageTitle);
 }

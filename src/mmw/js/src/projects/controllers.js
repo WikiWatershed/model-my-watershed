@@ -14,7 +14,7 @@ var ProjectsController = {
             new views.ProjectsView()
         );
 
-        App.rootView.layerPickerRegion.empty();
+        App.destroyLayerPicker();
 
         App.state.set('active_page', coreUtils.projectsPageTitle);
     },
