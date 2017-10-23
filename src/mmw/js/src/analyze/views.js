@@ -78,14 +78,15 @@ var ModelSelectionDropdownView = Marionette.ItemView.extend({
         if (modelPackageName === 'gwlfe' && settings.get('mapshed_max_area')) {
             var areaInSqKm = utils.changeOfAreaUnits(aoiModel.get('area'),
                                                      aoiModel.get('units'),
-                                                     'km<sup>2</sup>');
+                                                     'km<sup>2</sup>'),
+                mapshedMaxArea = settings.get('mapshed_max_area');
 
-            if (areaInSqKm > settings.get('mapshed_max_area')) {
+            if (areaInSqKm > mapshedMaxArea) {
                 alertView = new modalViews.AlertView({
                     model: new modalModels.AlertModel({
                         alertMessage: "The selected Area of Interest is too big for " +
                                  "the Watershed Multi-Year Model. The currently " +
-                                 "maximum supported size is 1000 km².",
+                                 "maximum supported size is " + mapshedMaxArea + " km².",
                         alertType: modalModels.AlertTypes.warn
                     })
                 });
