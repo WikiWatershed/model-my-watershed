@@ -148,6 +148,7 @@ var LayerModel = Backbone.Model.extend({
         colorRampId: null,
         legendUnitsLabel: null,
         legendUnitBreaks: null,
+        bigCZ: null,
     },
 
     buildLayer: function(layerSettings, layerType, initialActive) {
@@ -210,6 +211,7 @@ var LayerModel = Backbone.Model.extend({
             colorRampId: layerSettings.color_ramp_id || null,
             legendUnitsLabel: layerSettings.legend_units_label || null,
             legendUnitBreaks: layerSettings.legend_unit_breaks || null,
+            bigCZ: layerSettings.big_cz,
         });
     }
 });
@@ -223,7 +225,9 @@ var LayersCollection = Backbone.Collection.extend({
             _.each(settings.get(options.type), function(layer) {
                 var layerModel = new LayerModel();
                 layerModel.buildLayer(layer, options.type, options.initialActive);
-                self.add(layerModel);
+                if (!settings.get('data_catalog_enabled') || layerModel.get('bigCZ')) {
+                    self.add(layerModel);
+                }
             });
         }
     },
