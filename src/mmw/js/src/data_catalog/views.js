@@ -326,7 +326,7 @@ var ErrorView = Marionette.ItemView.extend({
 });
 
 var TabContentView = Marionette.LayoutView.extend({
-    className: 'tab-pane',
+    className: 'catalog-tab-pane tab-pane',
     id: function() {
         return this.model.id;
     },
@@ -398,7 +398,7 @@ var TabContentView = Marionette.LayoutView.extend({
 });
 
 var TabContentsView = Marionette.CollectionView.extend({
-    className: 'tab-content',
+    className: 'catalog-tab-content tab-content',
     childView: TabContentView
 });
 
@@ -531,6 +531,7 @@ var ResultDetailsHydroshareView = ResultDetailsBaseView.extend({
             var type = scimeta.get('type');
 
             helpers.resource_type = type.substring(type.lastIndexOf('/') + 1, type.indexOf('Resource'));
+            helpers.abstract = scimeta.get('description');
             helpers.creators = scimeta.get('creators').toJSON();
             helpers.subjects = scimeta.get('subjects').pluck('value').join(', ');
         }
@@ -548,6 +549,7 @@ var ResultDetailsHydroshareView = ResultDetailsBaseView.extend({
             placement: 'right',
             trigger: 'focus',
         });
+        this.$('[data-toggle="table"]').bootstrapTable();
     },
 });
 

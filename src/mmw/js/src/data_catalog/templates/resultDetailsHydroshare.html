@@ -74,7 +74,52 @@
         <i class="fa fa-exclamation-triangle"></i>
     </div>
     <hr />
-    <!-- TODO Add Abstract / File List -->
+    <div>
+        <ul class="nav hydroshare-nav-tabs nav-tabs" role="tablist">
+            <li role="presentation" class="active">
+                <a href="#hydroshare-abstract" role="tab" data-toggle="tab">
+                    Abstract
+                </a>
+            </li>
+            <li role="presentation">
+                <a href="#hydroshare-content" role="tab" data-toggle="tab">
+                    Content
+                </a>
+            </li>
+        </ul>
+        <div class="hydroshare-tab-content tab-content">
+            <div role="tabpanel" class="tab-pane active" id="hydroshare-abstract">
+                <p>
+                    {{ abstract }}
+                </p>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="hydroshare-content">
+                <p>
+                    Last Updated {{ updated_at|toDateWithoutTime }}
+                </p>
+                <table class="table custom-hover" data-toggle="table">
+                    <thead>
+                    <tr>
+                        <th data-width="75%">File Name</th>
+                        <th>File Size</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        {% for file in files %}
+                            <tr>
+                                <td>
+                                    {{ file.name }}
+                                </td>
+                                <td>
+                                    {{ file.size|toFriendlyBytes }}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
     <hr />
     <h3>Citation</h3>
     <p>

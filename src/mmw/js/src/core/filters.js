@@ -70,3 +70,27 @@ nunjucks.env.addFilter('split', function(str, splitChar, indexToReturn) {
 
     return items[indexToReturn];
 });
+
+nunjucks.env.addFilter('toFriendlyBytes', function(bytes) {
+    var roundToOneDecimal = function(x) { return Math.round(x * 10) / 10; };
+
+    if (bytes < 1024) {
+        return bytes + '&nbsp;Bytes';
+    }
+
+    bytes /= 1024;
+
+    if (bytes < 1024) {
+        return roundToOneDecimal(bytes) + '&nbsp;KB';
+    }
+
+    bytes /= 1024;
+
+    if (bytes < 1024) {
+        return roundToOneDecimal(bytes) + '&nbsp;MB';
+    }
+
+    bytes /= 1024;
+
+    return roundToOneDecimal(bytes) + '&nbsp;GB';
+});
