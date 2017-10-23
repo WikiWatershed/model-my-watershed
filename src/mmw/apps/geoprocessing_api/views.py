@@ -26,6 +26,8 @@ from apps.modeling import geoprocessing
 from apps.modeling.views import load_area_of_interest
 from apps.geoprocessing_api import tasks
 from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
+from apps.geoprocessing_api.throttling import (BurstRateThrottle,
+                                               SustainedRateThrottle)
 
 
 @decorators.api_view(['POST'])
@@ -84,6 +86,7 @@ def get_auth_token(request, format=None):
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
 @decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def start_rwd(request, format=None):
     """
@@ -285,6 +288,7 @@ def start_rwd(request, format=None):
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
 @decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def start_analyze_land(request, format=None):
     """
@@ -480,6 +484,7 @@ def start_analyze_land(request, format=None):
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
 @decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def start_analyze_soil(request, format=None):
     """
@@ -607,6 +612,7 @@ def start_analyze_soil(request, format=None):
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
 @decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def start_analyze_animals(request, format=None):
     """
@@ -718,6 +724,7 @@ def start_analyze_animals(request, format=None):
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
 @decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def start_analyze_pointsource(request, format=None):
     """
@@ -808,6 +815,7 @@ def start_analyze_pointsource(request, format=None):
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
 @decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def start_analyze_catchment_water_quality(request, format=None):
     """
@@ -927,6 +935,7 @@ def start_analyze_catchment_water_quality(request, format=None):
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
 @decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def start_analyze_climate(request, format=None):
     """
