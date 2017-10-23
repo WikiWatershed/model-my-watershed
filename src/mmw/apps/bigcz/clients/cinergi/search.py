@@ -126,10 +126,24 @@ def parse_categories(source):
     return [c[len(c) - 1] for c in split_categories]
 
 
+def parse_time_period(time_period):
+    if not time_period:
+        return None, None
+
+    time_period_dict = time_period
+    if isinstance(time_period, list):
+        time_period_dict = time_period[0]
+
+    begin_date = time_period_dict.get('begin_dt')
+    end_date = time_period_dict.get('end_dt')
+    return begin_date, end_date
+
+
 def parse_record(item):
     source = item['_source']
     geom = parse_geom(source)
     links = parse_links(source)
+    begin_date, end_date = parse_time_period(source.get('timeperiod_nst'))
     return CinergiResource(
         id=item['_id'],
         title=source['title'],
@@ -143,7 +157,9 @@ def parse_record(item):
         source_name=source.get('src_source_name_s'),
         contact_organizations=parse_contact_organizations(
             source.get('contact_organizations_s')),
-        categories=parse_categories(source))
+        categories=parse_categories(source),
+        begin_date=parse_date(begin_date),
+        end_date=parse_date(end_date))
 
 
 def prepare_bbox(box):

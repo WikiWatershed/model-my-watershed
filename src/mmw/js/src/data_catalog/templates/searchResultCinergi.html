@@ -24,14 +24,14 @@
             {{ top_categories }}
         </div>
     </div>
-    {% if created_at %}
     <div class="resource-date">
-        <i class="fa fa-calendar"></i> {{ created_at|toDateFullYear }}
+        <i class="fa fa-calendar"></i>
+        {% if begin_date and begin_date|toDateWithoutTime == end_date|toDateWithoutTime %}
+        {{ begin_date|toDateWithoutTime }}
+        {% elif begin_date %}
+        {{ begin_date|toDateWithoutTime }}&thinsp;&ndash;&thinsp;{{ end_date|toDateWithoutTime }}
+        {% else %}
+        Unknown Time Period
+        {% endif %}
     </div>
-    {% endif %}
-    {% if author %}
-    <div class="resource-author">
-        <i class="fa fa-user"></i> {{ author }}
-    </div>
-    {% endif %}
 </div>

@@ -4,7 +4,8 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from rest_framework.serializers import (CharField,
-                                        ListField)
+                                        ListField,
+                                        DateTimeField)
 
 from apps.bigcz.serializers import ResourceSerializer
 
@@ -18,3 +19,5 @@ class CinergiResourceSerializer(ResourceSerializer):
     categories = ListField(
         child=CharField()
     )
+    begin_date = DateTimeField()
+    end_date = DateTimeField()
