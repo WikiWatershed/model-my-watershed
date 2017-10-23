@@ -90,7 +90,6 @@
 
     .result-region {
         height: auto !important;
-        width: auto !important;
         padding: 6px 0px;
 
         &.paginated {
@@ -225,7 +224,6 @@
 
     .resource-description {
         color: $ui-grey;
-        font-size: $font-size-h5;
         padding-bottom: 3px;
     }
 
