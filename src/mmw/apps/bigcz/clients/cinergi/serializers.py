@@ -15,3 +15,6 @@ class CinergiResourceSerializer(ResourceSerializer):
     contact_organizations = ListField(
         child=CharField()
     )
+    categories = ListField(
+        child=CharField()
+    )

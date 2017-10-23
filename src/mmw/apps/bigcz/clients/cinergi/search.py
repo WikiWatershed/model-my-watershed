@@ -100,6 +100,32 @@ def parse_contact_organizations(contact_organizations):
     return contact_organizations
 
 
+def parse_categories(source):
+    """
+    Categories are lists of the form:
+    ["Category > Material > Environmental Material > Water",
+     "Category > Property > Measure > Physical Quantity > Flow", ... ]
+
+    Or just a string
+     "Category > Property > Measure > Physical Quantity > Flow"
+
+    Return a list of the "leaves" (the string after the last ">")
+    ["Water", "Flow", ...]
+    """
+    categories = source.get('hierarchies_cat',
+                            source.get('categories_cat'))
+    if not categories or \
+       not all(isinstance(c, basestring) for c in categories):
+        # We only handle categories that are lists of strings
+        return None
+
+    if isinstance(categories, basestring):
+        categories = [categories]
+
+    split_categories = [category.split(">") for category in categories]
+    return [c[len(c) - 1] for c in split_categories]
+
+
 def parse_record(item):
     source = item['_source']
     geom = parse_geom(source)
@@ -116,7 +142,8 @@ def parse_record(item):
         cinergi_url=parse_cinergi_url(source.get('fileid')),
         source_name=source.get('src_source_name_s'),
         contact_organizations=parse_contact_organizations(
-            source.get('contact_organizations_s')))
+            source.get('contact_organizations_s')),
+        categories=parse_categories(source))
 
 
 def prepare_bbox(box):

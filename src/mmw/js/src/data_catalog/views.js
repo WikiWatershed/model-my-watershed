@@ -416,6 +416,25 @@ var StaticResultView = Marionette.ItemView.extend({
                                               .join('; '),
             };
         }
+
+        if (this.options.catalog === 'cinergi') {
+            var categories = _.clone(this.model.get('categories'));
+
+            if (!categories) {
+                return null;
+            }
+
+            // Truncate if longer than 8 values
+            if (categories.length > 8) {
+                categories = categories.slice(0, 9);
+                var lastIdx = categories.length -1;
+                categories[lastIdx] = categories[lastIdx] + '...';
+            }
+
+            return {
+                'top_categories': categories.join('; ')
+            };
+        }
     },
 
     modelEvents: {

@@ -18,6 +18,12 @@
         {% endif %}
     </div>
     {% endif %}
+    <div class="resource-detail -showall">
+        <i class="fa fa-subscript"></i>
+        <div class="detail-text">
+            {{ top_categories }}
+        </div>
+    </div>
     {% if created_at %}
     <div class="resource-date">
         <i class="fa fa-calendar"></i> {{ created_at|toDateFullYear }}
