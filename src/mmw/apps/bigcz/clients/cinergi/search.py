@@ -5,6 +5,7 @@ from __future__ import division
 
 import requests
 import dateutil.parser
+from HTMLParser import HTMLParser
 from django.contrib.gis.geos import Polygon
 
 from django.conf import settings
@@ -139,6 +140,26 @@ def parse_time_period(time_period):
     return begin_date, end_date
 
 
+def parse_description(description):
+    """
+    Some cinergi descriptions contain html.
+    Parse out the data of the first element so
+    we always return a regular string
+    """
+    if not description:
+        return None
+
+    class DescriptionHTMLParser(HTMLParser):
+        contents = []
+
+        def handle_data(self, data):
+            self.contents.append(data)
+
+    parser = DescriptionHTMLParser()
+    parser.feed(description)
+    return parser.contents[0]
+
+
 def parse_record(item):
     source = item['_source']
     geom = parse_geom(source)
@@ -147,7 +168,7 @@ def parse_record(item):
     return CinergiResource(
         id=item['_id'],
         title=source['title'],
-        description=source.get('description'),
+        description=parse_description(source.get('description')),
         author=None,
         links=links,
         created_at=parse_date(source.get('sys_created_dt')),
