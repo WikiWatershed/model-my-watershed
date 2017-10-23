@@ -7,6 +7,17 @@
         {{ summary }}
     </div>
     {% endif %}
+    {% if source_name or contact_organizations %}
+    <div class="resource-detail">
+        <i class="fa fa-file-text-o"></i>
+        {% if source_name %}
+        {{ source_name }} /
+        {% endif %}
+        {% if contact_organizations %}
+        {{ contact_organizations[0] }}
+        {% endif %}
+    </div>
+    {% endif %}
     {% if created_at %}
     <div class="resource-date">
         <i class="fa fa-calendar"></i> {{ created_at|toDateFullYear }}

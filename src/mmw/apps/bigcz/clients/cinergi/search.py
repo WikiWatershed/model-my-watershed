@@ -89,6 +89,17 @@ def parse_cinergi_url(fileid):
     return '{}/geoportal/?filter=%22{}%22'.format(CINERGI_HOST, fileid)
 
 
+def parse_contact_organizations(contact_organizations):
+    """
+    Contact organizations can be either a list of strings, or
+    a string. Make it always a list of strings
+    """
+    if isinstance(contact_organizations, basestring):
+        return [contact_organizations]
+
+    return contact_organizations
+
+
 def parse_record(item):
     source = item['_source']
     geom = parse_geom(source)
@@ -102,7 +113,10 @@ def parse_record(item):
         created_at=parse_date(source.get('sys_created_dt')),
         updated_at=parse_date(source.get('src_lastupdate_dt')),
         geom=geom,
-        cinergi_url=parse_cinergi_url(source.get('fileid')))
+        cinergi_url=parse_cinergi_url(source.get('fileid')),
+        source_name=source.get('src_source_name_s'),
+        contact_organizations=parse_contact_organizations(
+            source.get('contact_organizations_s')))
 
 
 def prepare_bbox(box):
