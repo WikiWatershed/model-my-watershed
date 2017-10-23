@@ -22,7 +22,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import (AllowAny,
                                         IsAuthenticated)
 
-from apps.user.models import ItsiUser
+from apps.user.models import ItsiUser, UserProfile
 from apps.user.itsi import ItsiService
 
 EMBED_FLAG = settings.ITSI['embed_flag']
@@ -41,12 +41,15 @@ def login(request):
         if user is not None:
             if user.is_active:
                 auth_login(request, user)
+                profile, created = UserProfile.objects.get_or_create(user=user)
                 response_data = {
                     'result': 'success',
                     'username': user.username,
                     'itsi': ItsiUser.objects.filter(user_id=user.id).exists(),
                     'guest': False,
-                    'id': user.id
+                    'id': user.id,
+                    'profileWasSkipped': profile.was_skipped,
+                    'profileIsComplete': profile.is_complete
                 }
             else:
                 response_data = {
