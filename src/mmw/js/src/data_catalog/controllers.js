@@ -8,6 +8,8 @@ var turfArea = require('turf-area'),
     models = require('./models'),
     views = require('./views');
 
+var MAX_UNCAPPED_AOI = 1500000000;  // 1,500 km²
+
 var DataCatalogController = {
     dataCatalogPrepare: function() {
         if (!App.map.get('areaOfInterest')) {
@@ -23,40 +25,40 @@ var DataCatalogController = {
             'active_page': coreUtils.dataCatalogPageTitle,
         });
 
-        var aoiArea = turfArea(App.map.get('areaOfInterest'));
-        var fromDate = aoiArea < 1500000000 ? null :
-                       moment().subtract(5, 'years').format('L');
+        var aoiArea = turfArea(App.map.get('areaOfInterest')),
+            fromDate = aoiArea < MAX_UNCAPPED_AOI ? null :
+                       moment().subtract(5, 'years').format('L'),
 
-        var form = new models.SearchForm();
-        var dateFilter = new models.DateFilter({ fromDate: fromDate });
+            form = new models.SearchForm(),
+            dateFilter = new models.DateFilter({ fromDate: fromDate }),
 
-        var catalogs = new models.Catalogs([
-            new models.Catalog({
-                id: 'cinergi',
-                name: 'CINERGI',
-                active: true,
-                results: new models.Results(null, { catalog: 'cinergi' }),
-                filters: new models.FilterCollection([dateFilter])
-            }),
-            new models.Catalog({
-                id: 'hydroshare',
-                name: 'HydroShare',
-                results: new models.Results(null, { catalog: 'hydroshare' }),
-                filters: new models.FilterCollection([dateFilter])
-            }),
-            new models.Catalog({
-                id: 'cuahsi',
-                name: 'WDC',
-                is_pageable: false,
-                results: new models.Results(null, { catalog: 'cuahsi' }),
-                filters: new models.FilterCollection([
-                    dateFilter,
-                    new models.GriddedServicesFilter()
-                ])
-            })
-        ]);
+            catalogs = new models.Catalogs([
+                new models.Catalog({
+                    id: 'cinergi',
+                    name: 'CINERGI',
+                    active: true,
+                    results: new models.Results(null, { catalog: 'cinergi' }),
+                    filters: new models.FilterCollection([dateFilter])
+                }),
+                new models.Catalog({
+                    id: 'hydroshare',
+                    name: 'HydroShare',
+                    results: new models.Results(null, { catalog: 'hydroshare' }),
+                    filters: new models.FilterCollection([dateFilter])
+                }),
+                new models.Catalog({
+                    id: 'cuahsi',
+                    name: 'WDC',
+                    is_pageable: false,
+                    results: new models.Results(null, { catalog: 'cuahsi' }),
+                    filters: new models.FilterCollection([
+                        dateFilter,
+                        new models.GriddedServicesFilter()
+                    ])
+                })
+            ]),
 
-        var resultsWindow = new views.ResultsWindow({
+            resultsWindow = new views.ResultsWindow({
                 model: form,
                 collection: catalogs
             }),
