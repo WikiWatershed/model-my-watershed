@@ -4,19 +4,87 @@
             <i class="fa fa-arrow-left black"></i> Back
         </button>
         <h2>
-            {{ title }}
+            Resource: {{ title }}
         </h2>
+        <table class="table-data-detail">
+            <tr>
+                <th>Author</th>
+                <td>
+                    {% for creator in creators %}
+                        {{ creator.name }}{% if creator.organization %}, {{ creator.organization }} {% endif %}<br />
+                    {% endfor %}
+                </td>
+            </tr>
+            <tr>
+                <th>Period</th>
+                <td>
+                    {% if begin_date %}
+                        {{ begin_date|toDateWithoutTime }}&thinsp;&ndash;&thinsp;{{ end_date|toDateWithoutTime }}
+                    {% else %}
+                        Unknown
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Subject</th>
+                <td>
+                    {{ subjects }}
+                </td>
+            </tr>
+            <tr>
+                <th>Resource Type</th>
+                <td>
+                    {{ resource_type }}
+                    <a data-toggle="popover" tabindex="0"
+                       data-html="true" data-container="body" role="button"
+                       data-content="The fundamental unit of digital content in HydroShare is a <strong>Resource</strong>. For more information see <a href='https://help.hydroshare.org/hydroshare-resource-types/' target='_blank' rel='noreferrer noopener'>https://help.hydroshare.org/hydroshare-resource-types/</a>"
+                       data-template="<div class='popover'><div class='pull-right' id='popover-close-button' onclick='closePopover()'><i class='fa fa-times' /></div><div class='popover-content'></div><div class='arrow'></div></div>">
+                        <i class="fa fa-info-circle black"></i>
+                    </a>
+                </td>
+            </tr>
+            <tr>
+                <th>Catalog</th>
+                <td>
+                    CUAHSI HydroShare
+                    <a data-toggle="popover" tabindex="0"
+                       data-html="true" data-container="body" role="button"
+                       data-content="HydroShare is an online collaborative environment for sharing hydrologic data and models. Its goal is to facilitate creation, collaboration around, discovery and access to data and model resources shared by members of the Hydrology community. See <a href='https://www.hydroshare.org/' target='_blank' rel='noreferrer noopener'>https://www.hydroshare.org/</a>"
+                       data-template="<div class='popover'><div class='pull-right' id='popover-close-button' onclick='closePopover()'><i class='fa fa-times' /></div><div class='popover-content'></div><div class='arrow'></div></div>">
+                        <i class="fa fa-info-circle black"></i>
+                    </a>
+                </td>
+            </tr>
+        </table>
     </div>
-    <hr>
-    {% if author %}
-        <p>
-            <i class="fa fa-user"></i>{{ author }}
-        </p>
-    {% endif %}
-        <p>
-            <i class="fa fa-calendar"></i> {{ created_at|toDateFullYear }}
-        </p>
     <p>
-        {{ description }}
+        {% if details_url %}
+        <a class="btn btn-secondary" href="{{ details_url }}"
+           target="_blank" rel="noreferrer noopener">
+            <i class="fa fa-external-link-square"></i>&nbsp;Source Data
+        </a>
+        {% endif %}
+        <a class="btn btn-secondary" href="https://www.hydroshare.org/hsapi/#/hsapi"
+           target="_blank" rel="noreferrer noopener">
+            <i class="fa fa-globe"></i>&nbsp;Web Services
+        </a>
+    </p>
+    <div class="spinner {{ 'hidden' if not fetching }}"></div>
+    <div class="error {{ 'hidden' if not error }}">
+        <i class="fa fa-exclamation-triangle"></i>
+    </div>
+    <hr />
+    <!-- TODO Add Abstract / File List -->
+    <hr />
+    <h3>Citation</h3>
+    <p>
+        {% set comma = joiner() %}
+        {% for creator in creators %}{{ comma() }} {{ creator.name }}{% endfor %}
+        ({{ updated_at|toDateFullYear }}).
+        {{ title }}, HydroShare,
+        <a href="{{ details_url }}" target="_blank" rel="noreferrer noopener"
+           style="word-wrap: break-word;">
+            {{ details_url }}
+        </a>
     </p>
 </div>
