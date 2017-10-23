@@ -17,6 +17,7 @@ var $ = require('jquery'),
     formTmpl = require('./templates/form.html'),
     pagerTmpl = require('./templates/pager.html'),
     searchResultTmpl = require('./templates/searchResult.html'),
+    searchResultHydroshareTmpl = require('./templates/searchResultHydroshare.html'),
     searchResultCuahsiTmpl = require('./templates/searchResultCuahsi.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     tabPanelTmpl = require('./templates/tabPanel.html'),
@@ -40,7 +41,7 @@ var ENTER_KEYCODE = 13,
     PAGE_SIZE = settings.get('data_catalog_page_size'),
     CATALOG_RESULT_TEMPLATE = {
         cinergi: searchResultTmpl,
-        hydroshare: searchResultTmpl,
+        hydroshare: searchResultHydroshareTmpl,
         cuahsi: searchResultCuahsiTmpl,
     };
 

@@ -202,8 +202,8 @@ def group_series_by_location(series):
 
 
 def make_request(request, expiry, **kwargs):
-    key = 'bigcz_{}_{}'.format(request.method.name,
-                               hash(frozenset(kwargs.items())))
+    key = 'bigcz_cuahsi_{}_{}'.format(request.method.name,
+                                      hash(frozenset(kwargs.items())))
     cached = cache.get(key)
     if cached:
         return cached
