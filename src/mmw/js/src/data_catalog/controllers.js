@@ -1,6 +1,8 @@
 "use strict";
 
-var App = require('../app'),
+var turfArea = require('turf-area'),
+    moment = require('moment'),
+    App = require('../app'),
     router = require('../router').router,
     coreUtils = require('../core/utils'),
     models = require('./models'),
@@ -21,8 +23,12 @@ var DataCatalogController = {
             'active_page': coreUtils.dataCatalogPageTitle,
         });
 
+        var aoiArea = turfArea(App.map.get('areaOfInterest'));
+        var fromDate = aoiArea < 1500000000 ? null :
+                       moment().subtract(5, 'years').format('L');
+
         var form = new models.SearchForm();
-        var dateFilter = new models.DateFilter();
+        var dateFilter = new models.DateFilter({ fromDate: fromDate });
 
         var catalogs = new models.Catalogs([
             new models.Catalog({
