@@ -188,6 +188,8 @@ def prepare_bbox(box):
 
 
 def prepare_date(value):
+    if not value:
+        return ''
     return value.strftime('%Y-%m-%d')
 
 
@@ -233,7 +235,7 @@ def search(**kwargs):
         params.update({
             'q': prepare_query(query.lower())
         })
-    if from_date:
+    if from_date or to_date:
         params.update({
             'time': prepare_time(from_date, to_date)
         })
