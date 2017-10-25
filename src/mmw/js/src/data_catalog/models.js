@@ -355,6 +355,7 @@ var Result = Backbone.Model.extend({
         active: false,
         show_detail: false, // Show this result as the detail view?
         variables: null,  // CuahsiVariables Collection
+        categories: null, // Cinergi categories, [String]
         fetching: false,
         error: false,
         mode: 'table',
@@ -510,6 +511,23 @@ var Result = Backbone.Model.extend({
         var links = this.get('links') || [],
             detailsUrl = _.findWhere(links, { type: 'details' });
         return detailsUrl && detailsUrl.href;
+    },
+
+    topCinergiCategories: function(n) {
+        var categories = _.clone(this.get('categories'));
+
+        if (!categories) {
+            return null;
+        }
+
+        // Truncate if longer than n values
+        if (categories.length > n) {
+            categories = categories.slice(0, n + 1);
+            var lastIdx = categories.length - 1;
+            categories[lastIdx] = categories[lastIdx] + '...';
+        }
+
+        return categories.join('; ');
     },
 
     toJSON: function() {

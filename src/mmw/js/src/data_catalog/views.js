@@ -418,21 +418,8 @@ var StaticResultView = Marionette.ItemView.extend({
         }
 
         if (this.options.catalog === 'cinergi') {
-            var categories = _.clone(this.model.get('categories'));
-
-            if (!categories) {
-                return null;
-            }
-
-            // Truncate if longer than 8 values
-            if (categories.length > 8) {
-                categories = categories.slice(0, 9);
-                var lastIdx = categories.length -1;
-                categories[lastIdx] = categories[lastIdx] + '...';
-            }
-
             return {
-                'top_categories': categories.join('; ')
+                'top_categories': this.model.topCinergiCategories(8)
             };
         }
     },
@@ -505,6 +492,21 @@ var ResultDetailsBaseView = Marionette.LayoutView.extend({
 
 var ResultDetailsCinergiView = ResultDetailsBaseView.extend({
     template: resultDetailsCinergiTmpl,
+
+    templateHelpers: function() {
+        var topicCategories = this.model.get('resource_topic_categories'),
+            contactOrgs = this.model.get('contact_organizations'),
+            contactPeople = this.model.get('contact_people');
+
+        return {
+            'orgs': contactOrgs ? contactOrgs.filter(utils.distinct) : null,
+            'contacts': contactPeople ? contactPeople.filter(utils.distinct) : null,
+            'top_categories': this.model.topCinergiCategories(20),
+            'resource_topic_categories_str': topicCategories ?
+                topicCategories.join(", ") : null,
+            'details_url': this.model.getDetailsUrl()
+        };
+    }
 });
 
 var ResultDetailsHydroshareView = ResultDetailsBaseView.extend({
