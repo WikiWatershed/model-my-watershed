@@ -90,15 +90,15 @@ def parse_cinergi_url(fileid):
     return '{}/geoportal/?filter=%22{}%22'.format(CINERGI_HOST, fileid)
 
 
-def parse_contact_organizations(contact_organizations):
+def parse_string_or_list(string_or_list):
     """
-    Contact organizations can be either a list of strings, or
+    Fields like contact_organizations be either a list of strings, or
     a string. Make it always a list of strings
     """
-    if isinstance(contact_organizations, basestring):
-        return [contact_organizations]
+    if isinstance(string_or_list, basestring):
+        return [string_or_list]
 
-    return contact_organizations
+    return string_or_list
 
 
 def parse_categories(source):
@@ -160,6 +160,37 @@ def parse_description(description):
     return parser.contents[0]
 
 
+def parse_web_resources(raw_resources):
+    if not raw_resources:
+        return []
+
+    resources = raw_resources
+
+    if isinstance(raw_resources, dict):
+        resources = [raw_resources]
+
+    return [{
+        'url': r.get('url_s'),
+        'url_type': r.get('url_type_s')
+    } for r in resources]
+
+
+def parse_web_services(raw_services):
+    if not raw_services:
+        return []
+
+    services = raw_services
+
+    if isinstance(raw_services, dict):
+        services = [raw_services]
+
+    return [{
+        'url': s.get('url_s'),
+        'url_type': s.get('url_type_s'),
+        'url_name': s.get('url_name_s')
+    } for s in services]
+
+
 def parse_record(item):
     source = item['_source']
     geom = parse_geom(source)
@@ -176,11 +207,18 @@ def parse_record(item):
         geom=geom,
         cinergi_url=parse_cinergi_url(source.get('fileid')),
         source_name=source.get('src_source_name_s'),
-        contact_organizations=parse_contact_organizations(
+        contact_organizations=parse_string_or_list(
             source.get('contact_organizations_s')),
+        contact_people=parse_string_or_list(
+            source.get('contact_people_s')),
         categories=parse_categories(source),
         begin_date=parse_date(begin_date),
-        end_date=parse_date(end_date))
+        end_date=parse_date(end_date),
+        resource_type=source.get('apiso_Type_s'),
+        resource_topic_categories=parse_string_or_list(
+            source.get('apiso_TopicCategory_s')),
+        web_resources=parse_web_resources(source.get('resources_nst')),
+        web_services=parse_web_services(source.get('services_nst')))
 
 
 def prepare_bbox(box):
