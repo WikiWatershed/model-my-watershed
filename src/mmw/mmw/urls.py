@@ -37,5 +37,6 @@ urlpatterns = patterns(
                                    namespace='mmw')),
     url(r'^api/', include(apps.geoprocessing_api.urls)),
     url(r'^micro/', include(apps.water_balance.urls)),
-    url(r'^user/', include(apps.user.urls))
+    url(r'^user/', include(apps.user.urls,
+                           namespace='user'))
 )

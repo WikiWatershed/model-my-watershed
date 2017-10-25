@@ -107,7 +107,7 @@ itsi = ItsiService()
 
 def itsi_login(request):
     redirect_uri = '{0}?next={1}'.format(
-        request.build_absolute_uri(reverse(itsi_auth)),
+        request.build_absolute_uri(reverse('user:itsi_auth')),
         request.GET.get('next', '/')
     )
     params = {'redirect_uri': redirect_uri}
