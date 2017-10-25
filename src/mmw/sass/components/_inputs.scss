@@ -137,3 +137,20 @@
     to  { width:0; background:transparent; }
   }
 }
+
+//Select Inputs
+.custom-select-group {
+  position: relative;
+  margin: 4rem 0;
+
+  /* LABEL ======================================= */
+  label          {
+    left: 0;
+    top: -24px;
+    font-size: $font-size-h5;
+    color: $active;
+    font-weight: normal;
+    position: absolute;
+    pointer-events: none;
+  }
+}

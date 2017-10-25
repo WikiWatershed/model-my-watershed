@@ -17,6 +17,8 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
 from apps.modeling.models import Project, Scenario
+from apps.user.models import UserProfile
+from apps.user.countries import COUNTRY_CHOICES
 
 
 def home_page(request):
@@ -157,6 +159,12 @@ def get_client_settings(request):
             'itsi_enabled': not bigcz,
             'title': title,
             'api_token': get_api_token(),
+            'choices': {
+                'UserProfile': {
+                    'user_type': UserProfile.USER_TYPE_CHOICES,
+                    'country': COUNTRY_CHOICES,
+                }
+            },
         }),
         'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
         'title': title,

@@ -48,8 +48,8 @@ def login(request):
                     'itsi': ItsiUser.objects.filter(user_id=user.id).exists(),
                     'guest': False,
                     'id': user.id,
-                    'profileWasSkipped': profile.was_skipped,
-                    'profileIsComplete': profile.is_complete
+                    'profile_was_skipped': profile.was_skipped,
+                    'profile_is_complete': profile.is_complete,
                 }
             else:
                 response_data = {
@@ -87,6 +87,33 @@ def login(request):
         status_code = status.HTTP_200_OK
 
     return Response(data=response_data, status=status_code)
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((IsAuthenticated, ))
+def profile(request):
+    params = request.POST.dict()
+    if 'first_name' in params:
+        request.user.first_name = params['first_name']
+        del params['first_name']
+    if 'last_name' in request.POST:
+        request.user.last_name = params['last_name']
+        del params['last_name']
+    request.user.save()
+
+    if 'was_skipped' in params:
+        params['was_skipped'] = str(params['was_skipped']).lower() == 'true'
+        params['is_complete'] = not params['was_skipped']
+    else:
+        params['is_complete'] = True
+
+    profile = UserProfile(**params)
+    profile.user = request.user
+    profile.save()
+    response_data = {
+        'result': 'success'
+    }
+    return Response(data=response_data, status=status.HTTP_200_OK)
 
 
 @decorators.api_view(['GET'])
