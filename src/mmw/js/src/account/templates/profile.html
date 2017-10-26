@@ -1,1 +1,79 @@
+{% macro select(value, name, model, field, defaultChoice='', label='') %}
+    <label for="{{ name }}">{{ label }}</label>
+    <select id="{{ name }}" name="{{ name }}" class="selectpicker" data-live-search="true">
+    </select>
+{% endmacro %}
+
 <h2>Profile</h2>
+
+{% if error %}
+<p class="error">
+    <i class="fa fa-warning account-inline-error-icon" aria-hidden="true"></i>{{error}}
+</p>
+{% endif %}
+
+<section class="user-profile-section">
+    <div class="row">
+        <div class="col-sm-6">
+            <p>
+                <label for="first_name">First Name</label>
+                <input id="first_name"
+                       type="text"
+                       value="{{ first_name }}"
+                >
+            </p>
+        </div>
+        <div class="col-sm-6">
+            <p>
+                <label for="last_name">Last Name</label>
+                <input id="last_name"
+                       type="text"
+                       value="{{ last_name }}"
+                >
+            </p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6">
+            <p>
+                <label for="organization">Organization</label>
+                <input id="organization"
+                       type="text"
+                       value="{{ organization }}"
+                >
+            </p>
+        </div>
+        <div class="col-sm-6">
+            <p>
+                {{ select(user_type, 'user_type', 'UserProfile', 'user_type', user_type, 'User Type') }}
+            </p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6">
+            <p>
+                {{ select(country, 'country', 'UserProfile', 'country', country, 'Country') }}
+            </p>
+        </div>
+        <div class="col-sm-6">
+            <p>
+                <label for="postal_code">Postal Code</label>
+                <input id="postal_code"
+                       type="text"
+                       value="{{ postal_code }}"
+                >
+            </p>
+        </div>
+    </div>
+    <div class="row">
+        <button class="btn btn-active btn-save"
+                type="button"
+                data-action="save_changes"
+                {{'disabled' if saving}}>
+            Save changes
+            {% if saving %}
+            <div class="spinner"></div>
+            {% endif %}
+        </button>
+    </div>
+</section>

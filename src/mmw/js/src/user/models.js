@@ -59,7 +59,14 @@ var UserModel = Backbone.Model.extend({
 
 var UserProfileModel = Backbone.Model.extend({
     defaults: {
-        was_skipped: false,
+        first_name: '',
+        last_name: '',
+        organization: '',
+        country: '',
+        user_type: '',
+        postal_code: '',
+        error: null,
+        saving: false
     },
 
     url: '/user/profile',
@@ -116,15 +123,6 @@ var LoginFormModel = ModalBaseModel.extend({
 });
 
 var UserProfileFormModel = ModalBaseModel.extend({
-    defaults: {
-        first_name: null,
-        last_name: null,
-        organization: null,
-        user_type: 'Unspecified',
-        country: 'US',
-        was_skipped: false
-    },
-
     url: '/user/profile'
 });
 

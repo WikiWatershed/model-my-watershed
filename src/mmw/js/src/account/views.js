@@ -1,19 +1,82 @@
 "use strict";
 
-var Clipboard = require('clipboard'),
+var $ = require('jquery'),
+    Clipboard = require('clipboard'),
     Marionette = require('../../shim/backbone.marionette'),
+    _ = require('underscore'),
     moment = require('moment'),
+    App = require('../app'),
     userViews = require('../user/views'),
     userModels = require('../user/models'),
     modalViews = require('../core/modals/views'),
     modalModels = require('../core/modals/models'),
     models = require('./models'),
+    settings = require('../core/settings'),
     containerTmpl = require('./templates/container.html'),
     profileTmpl = require('./templates/profile.html'),
     accountTmpl = require('./templates/account.html');
 
 var ProfileView = Marionette.ItemView.extend({
-    template: profileTmpl
+    template: profileTmpl,
+
+    ui: {
+        firstName: '#first_name',
+        lastName: '#last_name',
+        organization: '#organization',
+        userType: '#user_type',
+        country: '#country',
+        postalCode: '#postal_code',
+        saveChanges: '[data-action="save_changes"]'
+    },
+
+    events: {
+        'click @ui.saveChanges': 'saveChanges'
+    },
+
+    modelEvents: {
+        'change': 'render'
+    },
+
+    onRender: function() {
+        var self = this,
+            choices = settings.get('choices'),
+            addOptions = function(model, field, selectedValue) {
+                $.each(choices[model][field], function(index, choice) {
+                    var value = choice[0];
+                    var text = choice[1];
+                    var selected = value === selectedValue ? ' selected ' : '';
+                    self.$el.find('#' + field).append('<option ' + selected + ' value="' + value + '">' + text + '</option>');
+                });
+                self.$el.find('#' + field).selectpicker();
+            };
+        addOptions('UserProfile', 'country', self.model.get('country') || 'US');
+        addOptions('UserProfile', 'user_type', self.model.get('user_type') || 'Unspecified');
+        _.defer(function() { self.ui.firstName.focus(); });
+    },
+
+    saveChanges: function () {
+        var model = this.model;
+
+        model.save({
+                first_name: this.ui.firstName.val(),
+                last_name: this.ui.lastName.val(),
+                organization: this.ui.organization.val(),
+                user_type: this.ui.userType.val(),
+                country: this.ui.country.val(),
+                postal_code: this.ui.postalCode.val(),
+                error: null,
+                saving: true
+            })
+            .done(function() {
+                App.user.set('profile_is_complete', true);
+            })
+            .fail(function() {
+                model.set('error', 'There was a problem saving your profile.');
+            })
+            .always(function() {
+                model.set('saving', false);
+            });
+    }
 });
 
 var AccountView = Marionette.ItemView.extend({
@@ -125,6 +188,7 @@ var AccountContainerView = Marionette.LayoutView.extend({
 
     initialize: function() {
         this.tokenModel = new models.ApiTokenModel();
+        this.profileModel = new userModels.UserProfileModel(App.user.get('profile'));
     },
 
     showActivePage: function() {
@@ -132,7 +196,9 @@ var AccountContainerView = Marionette.LayoutView.extend({
 
         switch(activePage) {
             case models.PROFILE:
-                this.infoContainer.show(new ProfileView());
+                this.infoContainer.show(new ProfileView({
+                    model: this.profileModel
+                }));
                 break;
             case models.ACCOUNT:
                 this.infoContainer.show(new AccountView({
