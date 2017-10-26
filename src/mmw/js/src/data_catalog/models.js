@@ -358,6 +358,8 @@ var Result = Backbone.Model.extend({
         fetching: false,
         error: false,
         mode: 'table',
+        scimeta: null,  // HydroshareSciMeta
+        files: null,  // HydroshareFiles Collection
     },
 
     initialize: function(attrs) {
@@ -378,6 +380,41 @@ var Result = Backbone.Model.extend({
         }
 
         return response;
+    },
+
+    fetchHydroshareDetails: function() {
+        if (this.fetchPromise && !this.get('error')) {
+            return this.fetchPromise;
+        }
+
+        var self = this,
+            id = self.get('id'),
+            setSuccess = function() { self.set('error', false); },
+            setError = function() { self.set('error', true); },
+            startFetch = function() { self.set({ fetching: true, error: false }); },
+            endFetch = function() { self.set('fetching', false); },
+            fetchSciMeta = function() {
+                return $.get('https://www.hydroshare.org/hsapi/resource/' + id + '/scimeta/elements/')
+                        .done(function(response) {
+                            self.set('scimeta', new HydroshareSciMeta(response));
+                        });
+            },
+            fetchFileList = function() {
+                return $.get('https://www.hydroshare.org/hsapi/resource/' + id + '/file_list/')
+                        .done(function(response) {
+                            if (response.count > 0) {
+                                self.set('files', new HydroshareFiles(response.results));
+                            }
+                        });
+            };
+
+        startFetch();
+        this.fetchPromise = $.when(fetchSciMeta(), fetchFileList())
+                             .done(setSuccess)
+                             .fail(setError)
+                             .always(endFetch);
+
+        return this.fetchPromise;
     },
 
     fetchCuahsiValues: function(opts) {
@@ -408,7 +445,10 @@ var Result = Backbone.Model.extend({
                     self.set('error', true);
                 },
             startFetch = function() {
-                    self.set('fetching', true);
+                    self.set({
+                        fetching: true,
+                        error: false,
+                    });
                 },
             endFetch = function() {
                     self.set('fetching', false);
@@ -652,6 +692,69 @@ var CuahsiVariable = Backbone.Model.extend({
 
 var CuahsiVariables = Backbone.Collection.extend({
     model: CuahsiVariable,
+});
+
+var HydroshareSciMetaSubject = Backbone.Model.extend({
+    defaults: {
+        value: '',
+    }
+});
+
+var HydroshareSciMetaSubjects = Backbone.Collection.extend({
+    model: HydroshareSciMetaSubject,
+});
+
+var HydroshareSciMetaCreator = Backbone.Model.extend({
+    defaults: {
+        name: '',
+        description: '',
+        organization: '',
+        email: '',
+        address: '',
+        phone: '',
+        homepage: '',
+        order: 0,
+    }
+});
+
+var HydroshareSciMetaCreators = Backbone.Collection.extend({
+    model: HydroshareSciMetaCreator,
+});
+
+var HydroshareSciMeta = Backbone.Model.extend({
+    defaults: {
+        creators: null, // HydroshareSciMetaCreators collection
+        subjects: null, // HydroshareSciMetaSubjects collection
+        description: '',
+    },
+
+    initialize: function(attrs) {
+        if (attrs.creators) {
+            this.set('creators', new HydroshareSciMetaCreators(attrs.creators));
+        }
+
+        if (attrs.subjects) {
+            this.set('subjects', new HydroshareSciMetaSubjects(attrs.subjects));
+        }
+    }
+});
+
+var HydroshareFile = Backbone.Model.extend({
+    defaults: {
+        url: '',
+        name: '',
+        size: 0,
+    },
+
+    initialize: function(attrs) {
+        if (attrs.url) {
+            this.set('name', attrs.url.substr(attrs.url.lastIndexOf('/') + 1));
+        }
+    }
+});
+
+var HydroshareFiles = Backbone.Collection.extend({
+    model: HydroshareFile,
 });
 
 module.exports = {

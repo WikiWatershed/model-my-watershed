@@ -85,6 +85,14 @@
                     margin-bottom: 10px;
                 }
             }
+
+            .hydroshare-nav-tabs > li > a {
+                padding: 10px 15px !important;
+            }
+
+            .hydroshare-tab-content {
+                padding-top: 15px;
+            }
         }
     }
 
@@ -167,14 +175,14 @@
         overflow-y: auto;
     }
 
-    .tab-pane {
+    .catalog-tab-pane {
         position: absolute;
         top: 0;
         bottom: 0;
         width: 100%;
     }
 
-    .tab-content {
+    .catalog-tab-content {
         padding: 0;
         background: #E6E6E6;
         top: 0;
