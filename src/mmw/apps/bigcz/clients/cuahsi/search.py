@@ -96,11 +96,20 @@ def parse_details_url(record):
     Ref: https://github.com/WikiWatershed/model-my-watershed/issues/1931
     """
     location = record['location']
-    if 'NWISDV' in location:
+    if any(code in location for code in ('NWISDV', 'NWISGW', 'NWISUV')):
         parts = location.split(':')
         if len(parts) == 2:
-            _, id = parts
-            return 'https://waterdata.usgs.gov/nwis/uv/?site_no={}'.format(id)
+            code, id = parts
+            if code == 'NWISDV':
+                url = 'https://waterdata.usgs.gov/nwis/uv/?site_no={}'
+                return url.format(id)
+            elif code == 'NWISUV':
+                url = 'https://waterdata.usgs.gov/nwis/dv/?site_no={}'
+                return url.format(id)
+            elif code == 'NWISGW':
+                url = ('https://nwis.waterdata.usgs.gov/' +
+                       'usa/nwis/gwlevels/?site_no={}')
+                return url.format(id)
     return None
 
 
