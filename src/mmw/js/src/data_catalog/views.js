@@ -16,7 +16,7 @@ var $ = require('jquery'),
     filterSidebarTmpl = require('./templates/filterSidebar.html'),
     formTmpl = require('./templates/form.html'),
     pagerTmpl = require('./templates/pager.html'),
-    searchResultTmpl = require('./templates/searchResult.html'),
+    searchResultCinergiTmpl = require('./templates/searchResultCinergi.html'),
     searchResultHydroshareTmpl = require('./templates/searchResultHydroshare.html'),
     searchResultCuahsiTmpl = require('./templates/searchResultCuahsi.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
@@ -40,7 +40,7 @@ var $ = require('jquery'),
 var ENTER_KEYCODE = 13,
     PAGE_SIZE = settings.get('data_catalog_page_size'),
     CATALOG_RESULT_TEMPLATE = {
-        cinergi: searchResultTmpl,
+        cinergi: searchResultCinergiTmpl,
         hydroshare: searchResultHydroshareTmpl,
         cuahsi: searchResultCuahsiTmpl,
     };
@@ -414,6 +414,25 @@ var StaticResultView = Marionette.ItemView.extend({
                                               .pluck('concept_keyword')
                                               .filter(utils.distinct)
                                               .join('; '),
+            };
+        }
+
+        if (this.options.catalog === 'cinergi') {
+            var categories = _.clone(this.model.get('categories'));
+
+            if (!categories) {
+                return null;
+            }
+
+            // Truncate if longer than 8 values
+            if (categories.length > 8) {
+                categories = categories.slice(0, 9);
+                var lastIdx = categories.length -1;
+                categories[lastIdx] = categories[lastIdx] + '...';
+            }
+
+            return {
+                'top_categories': categories.join('; ')
             };
         }
     },
