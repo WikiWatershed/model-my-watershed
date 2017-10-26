@@ -112,7 +112,8 @@ var HeaderView = Marionette.ItemView.extend({
     ui: {
         login: '.show-login',
         logout: '.user-logout',
-        cloneProject: '.clone-project'
+        cloneProject: '.clone-project',
+        skippedProfilePopover: '[data-toggle="popover"]',
     },
 
     events: {
@@ -185,7 +186,25 @@ var HeaderView = Marionette.ItemView.extend({
                 });
         });
         view.render();
-    }
+    },
+
+    onRender: function() {
+        if (this.model.get('show_profile_popover')) {
+            this.ui.skippedProfilePopover.popover({
+                placement: 'bottom',
+                trigger: 'manual',
+                viewport: {
+                    'selector': '.map-container',
+                    'padding': 10
+                }
+            });
+            this.ui.skippedProfilePopover.popover('show');
+            this.$el.find('#popover-close-button').on('click', _.bind(function() {
+                this.ui.skippedProfilePopover.popover('hide');
+                this.model.set('show_profile_popover', false);
+            }, this));
+        }
+    },
 });
 
 // Init the locate plugin button and add it to the map.

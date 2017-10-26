@@ -313,6 +313,11 @@ var UserProfileModalView = ModalBaseView.extend({
     },
 
     handleSuccess: function(response) {
+        this.app.user.set({
+            'show_profile_popover': response.profile_was_skipped,
+            'profile_was_skipped': response.profile_was_skipped,
+            'profile_is_complete': response.profile_is_complete
+        });
         this.handleServerSuccess(response);
         this.$el.modal('hide');
     },
