@@ -9,23 +9,11 @@
         <table class="table-data-detail">
             <tr>
                 <th>Contacts</th>
-                <td>
-                    {% for contact in contacts %}
-                    <p>{{ contact }}</p>
-                    {% else %}
-                    None provided
-                    {% endfor %}
-                </td>
+                <td data-list-region="contacts"></td>
             </tr>
             <tr>
                 <th>Organizations</th>
-                <td>
-                    {% for org in orgs %}
-                    <p>{{ org }}</p>
-                    {% else %}
-                    None provided
-                    {% endfor %}
-                </td>
+                <td data-list-region="organizations"></td>
             </tr>
             <tr>
                 <th>Data&nbsp;collected&nbsp;between</th>

@@ -35,7 +35,8 @@ var $ = require('jquery'),
     resultMapPopoverDetailTmpl = require('./templates/resultMapPopoverDetail.html'),
     resultMapPopoverListTmpl = require('./templates/resultMapPopoverList.html'),
     resultMapPopoverListItemTmpl = require('./templates/resultMapPopoverListItem.html'),
-    resultMapPopoverControllerTmpl = require('./templates/resultMapPopoverController.html');
+    resultMapPopoverControllerTmpl = require('./templates/resultMapPopoverController.html'),
+    expandableTableRowTmpl = require('./templates/expandableTableRow.html');
 
 var ENTER_KEYCODE = 13,
     PAGE_SIZE = settings.get('data_catalog_page_size'),
@@ -491,22 +492,64 @@ var ResultDetailsBaseView = Marionette.LayoutView.extend({
     }
 });
 
+var ExpandableTableRow = Marionette.ItemView.extend({
+    // model: ExpandableListModel
+    template: expandableTableRowTmpl,
+    ui: {
+        expandButton: '[data-action="expand"]'
+    },
+
+    events: {
+        'click @ui.expandButton': 'expand'
+    },
+
+    modelEvents: {
+        'change:expanded': 'render'
+    },
+
+    expand: function() {
+        this.model.set('expanded', true);
+    }
+});
+
 var ResultDetailsCinergiView = ResultDetailsBaseView.extend({
     template: resultDetailsCinergiTmpl,
 
+    regions: {
+        organizations: '[data-list-region="organizations"]',
+        contacts: '[data-list-region="contacts"]',
+    },
+
     templateHelpers: function() {
-        var topicCategories = this.model.get('resource_topic_categories'),
-            contactOrgs = this.model.get('contact_organizations'),
-            contactPeople = this.model.get('contact_people');
+        var topicCategories = this.model.get('resource_topic_categories');
 
         return {
-            'orgs': contactOrgs ? contactOrgs.filter(utils.distinct) : null,
-            'contacts': contactPeople ? contactPeople.filter(utils.distinct) : null,
             'top_categories': this.model.topCinergiCategories(20),
             'resource_topic_categories_str': topicCategories ?
                 topicCategories.join(", ") : null,
             'details_url': this.model.getDetailsUrl()
         };
+    },
+
+    onShow: function() {
+        var contactOrgs = this.model.get('contact_organizations'),
+            contactPeople = this.model.get('contact_people'),
+            orgs = contactOrgs ? contactOrgs.filter(utils.distinct) : null,
+            contacts =  contactPeople ? contactPeople.filter(utils.distinct) : null;
+
+        this.organizations.show(new ExpandableTableRow({
+            model: new models.ExpandableListModel({
+                list_type: 'organizations',
+                list: orgs
+            })
+        }));
+
+        this.contacts.show(new ExpandableTableRow({
+            model: new models.ExpandableListModel({
+                list_type: 'contacts',
+                list: contacts
+            })
+        }));
     }
 });
 

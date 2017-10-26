@@ -775,6 +775,15 @@ var HydroshareFiles = Backbone.Collection.extend({
     model: HydroshareFile,
 });
 
+var ExpandableListModel = Backbone.Model.extend({
+    defaults: {
+        expanded: false,
+        list_type: '',
+        truncate_at: 2,
+        list: null
+    }
+});
+
 module.exports = {
     GriddedServicesFilter: GriddedServicesFilter,
     PrivateResourcesFilter: PrivateResourcesFilter,
@@ -790,4 +799,5 @@ module.exports = {
     CuahsiValues: CuahsiValues,
     CuahsiVariable: CuahsiVariable,
     CuahsiVariables: CuahsiVariables,
+    ExpandableListModel: ExpandableListModel,
 };
