@@ -486,6 +486,7 @@ var ResultDetailsBaseView = Marionette.LayoutView.extend({
     },
 
     closeDetails: function() {
+        window.closePopover();
         this.model.collection.closeDetail();
     }
 });
