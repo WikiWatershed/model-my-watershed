@@ -304,7 +304,11 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'sustained': '5000/day',
+        'burst': '20/min',
+    },
 }
 
 SWAGGER_SETTINGS = {
