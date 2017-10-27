@@ -1,0 +1,12 @@
+{% if not list %}
+None provided
+{% else %}
+{% for i in range(0, list.length if expanded else truncate_at) %}
+<p>{{ list[i] }}</p>
+{% endfor %}
+{% if not expanded and list.length > truncate_at %}
+<button data-action="expand" class="btn btn-md btn-link expand-list-btn">
+    View {{list.length - truncate_at }} more {{list_type}}
+</button>
+{% endif %}
+{% endif %}
