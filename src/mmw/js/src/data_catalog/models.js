@@ -153,6 +153,7 @@ var Catalog = Backbone.Model.extend({
         stale: false, // Should search run when catalog becomes active?
         active: false,
         results: null, // Results collection
+        serverResults: null, // Results collection
         resultCount: 0,
         filters: null, // FiltersCollection
         is_pageable: true,
@@ -229,6 +230,9 @@ var Catalog = Backbone.Model.extend({
 
     startSearch: function(page) {
         var filters = this.get('filters'),
+            results = this.id === 'cuahsi' ?
+                      this.get('serverResults') :
+                      this.get('results'),
             dateFilter = filters.findWhere({ id: 'date' }),
             fromDate = null,
             toDate = null;
@@ -272,7 +276,7 @@ var Catalog = Backbone.Model.extend({
             contentType: 'application/json'
         };
 
-        return this.get('results')
+        return results
                    .fetch(request)
                    .done(_.bind(this.doneSearch, this))
                    .fail(_.bind(this.failSearch, this))
@@ -280,12 +284,29 @@ var Catalog = Backbone.Model.extend({
     },
 
     doneSearch: function(response) {
-        var data = _.findWhere(response, { catalog: this.id });
+        var data = _.findWhere(response, { catalog: this.id }),
+            setFields = {
+                page: data.page || 1,
+                resultCount: data.count,
+            };
 
-        this.set({
-            page: data.page || 1,
-            resultCount: data.count,
-        });
+        if (this.id === 'cuahsi') {
+            var results = this.get('results'),
+                filtered = this.get('serverResults').toJSON();
+
+            if (results === null) {
+                results = new Results(filtered, { catalog: 'cuahsi' });
+            } else {
+                results.reset(filtered);
+            }
+
+            _.assign(setFields, {
+                results: results,
+                resultCount: results.length,
+            });
+        }
+
+        this.set(setFields);
     },
 
     failSearch: function(response, textStatus) {
