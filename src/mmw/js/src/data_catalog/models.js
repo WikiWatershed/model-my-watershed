@@ -191,8 +191,25 @@ var Catalog = Backbone.Model.extend({
         var self = this,
             error = this.get('error'),
             stale = this.get('stale'),
-            isSameSearch = query === this.get('query') &&
-                           geom === this.get('geom');
+            isCuahsi = this.id === 'cuahsi',
+            isSameQuery = query === this.get('query'),
+            isSameGeom = geom === this.get('geom'),
+            isSameSearch = isSameQuery && isSameGeom;
+
+        if (isCuahsi && isSameGeom && !isSameQuery) {
+            this.set({ loading: true });
+
+            var results = this.get('serverResults').textFilter(query);
+            this.get('results').reset(results);
+
+            this.set({
+                loading: false,
+                query: query,
+                resultCount: results.length
+            });
+
+            return $.when();
+        }
 
         if (!isSameSearch || stale || error) {
             this.cancelSearch();
@@ -292,7 +309,8 @@ var Catalog = Backbone.Model.extend({
 
         if (this.id === 'cuahsi') {
             var results = this.get('results'),
-                filtered = this.get('serverResults').toJSON();
+                filtered = this.get('serverResults')
+                               .textFilter(this.get('query'));
 
             if (results === null) {
                 results = new Results(filtered, { catalog: 'cuahsi' });
@@ -518,6 +536,23 @@ var Result = Backbone.Model.extend({
         return this.fetchPromise;
     },
 
+    textFilter: function(query) {
+        var fields = [
+            this.get('id').toLowerCase(),
+            this.get('title').toLowerCase(),
+            this.get('description').toLowerCase(),
+            (this.get('service_citation') || '').toLowerCase(),
+            (this.get('service_title') || '').toLowerCase(),
+            (this.get('service_org') || '').toLowerCase(),
+            this.get('sample_mediums').join(' ').toLowerCase(),
+            this.get('variables').pluck('concept_keyword').join(' ').toLowerCase(),
+        ];
+
+        return _.some(fields, function(field) {
+            return field.indexOf(query) >= 0;
+        });
+    },
+
     getSummary: function() {
         var text = this.get('description') || '';
         if (text.length <= DESCRIPTION_MAX_LENGTH) {
@@ -599,6 +634,19 @@ var Results = Backbone.Collection.extend({
         }
 
         currentDetail.set('show_detail', false);
+    },
+
+    textFilter: function(query) {
+        var lcQueries = query.toLowerCase().split(' ').filter(function(x) {
+            // Exclude empty, search logic terms
+            return x !== '' && x !== 'and' && x !== 'or';
+        });
+
+        return this.filter(function(result) {
+            return _.every(lcQueries, function(lcQuery) {
+                return result.textFilter(lcQuery);
+            });
+        });
     }
 });
 
