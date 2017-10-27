@@ -24,7 +24,7 @@
     "blueimp-md5": "1.1.0",
     "bootstrap": "3.3.4",
     "bootstrap-datepicker": "1.7.1",
-    "bootstrap-select": "git://github.com/azavea/bootstrap-select",
+    "bootstrap-select": "1.12.4",
     "bootstrap-table": "1.11.0",
     "browserify": "9.0.3",
     "chai": "1.10.0",
