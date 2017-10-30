@@ -210,17 +210,17 @@ var FormView = Marionette.ItemView.extend({
     },
 
     initialize: function() {
-        var updateFilterSidebar = _.bind(function() {
-            if (App.rootView.secondarySidebarRegion.hasView()) {
-                this.showFilterSidebar();
-            }
+        var self = this,
+            updateFilterSidebar = function() {
+                if (App.rootView.secondarySidebarRegion.hasView()) {
+                    self.showFilterSidebar();
+                }
 
-            this.render();
-
-        }, this);
+                self.render();
+            };
 
         // Update the filter sidebar when there's a new active catalog
-        this.collection.on('change:active', updateFilterSidebar);
+        this.listenTo(this.collection, 'change:active', updateFilterSidebar);
     },
 
     getFilters: function() {
@@ -270,18 +270,12 @@ var FormView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
-        var filters = this.getFilters();
-
-        if (!filters) {
-            return { filterNumText: '' };
-        }
-
-        var numActiveFilters = filters.countActive();
+        var filters = this.getFilters(),
+            numActiveFilters = filters && filters.countActive(),
+            filterNumText = numActiveFilters ? '(' + numActiveFilters + ')' : '';
 
         return {
-            filterNumText: numActiveFilters > 0 ?
-                '(' + numActiveFilters + ')' :
-                null
+            filterNumText: filterNumText
         };
     }
 });
