@@ -6,6 +6,7 @@ from __future__ import division
 from django.conf.urls import patterns, url
 
 from apps.user.views import (login,
+                             profile,
                              sign_up,
                              forgot,
                              resend,
@@ -20,6 +21,7 @@ urlpatterns = patterns(
     url(r'^itsi/login$', itsi_login, name='itsi_login'),
     url(r'^itsi/authenticate$', itsi_auth, name='itsi_auth'),
     url(r'^login$', login, name='login'),
+    url(r'^profile$', profile, name='profile'),
     url(r'^sign_up$', sign_up, name='sign_up'),
     url(r'^resend$', resend, name='resend'),
     url(r'^forgot$', forgot, name='forgot'),

@@ -55,6 +55,14 @@ var UserModel = Backbone.Model.extend({
     }
 });
 
+var UserProfileModel = Backbone.Model.extend({
+    defaults: {
+        was_skipped: false,
+    },
+
+    url: '/user/profile',
+});
+
 var ModalBaseModel = Backbone.Model.extend({
     defaults: {
         success: false,
@@ -97,12 +105,25 @@ var LoginFormModel = ModalBaseModel.extend({
         }
     },
 
-    onSuccess: function() {
+    onSuccess: function(response) {
         var callback = this.get('successCallback');
         if (callback && _.isFunction(callback)) {
-            callback();
+            callback(response);
         }
     }
+});
+
+var UserProfileFormModel = ModalBaseModel.extend({
+    defaults: {
+        first_name: null,
+        last_name: null,
+        organization: null,
+        user_type: 'Unspecified',
+        country: 'US',
+        was_skipped: false
+    },
+
+    url: '/user/profile'
 });
 
 var SignUpFormModel = ModalBaseModel.extend({
@@ -303,7 +324,9 @@ var ItsiSignUpFormModel = ModalBaseModel.extend({
 
 module.exports = {
     UserModel: UserModel,
+    UserProfileModel: UserProfileModel,
     LoginFormModel: LoginFormModel,
+    UserProfileFormModel: UserProfileFormModel,
     SignUpFormModel: SignUpFormModel,
     ResendFormModel: ResendFormModel,
     ForgotFormModel: ForgotFormModel,

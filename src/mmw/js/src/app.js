@@ -1,6 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
+    _ = require('lodash'),
     Marionette = require('../shim/backbone.marionette'),
     shutterbug = require('../shim/shutterbug'),
     views = require('./core/views'),
@@ -138,10 +139,36 @@ var App = new Marionette.Application({
         });
     },
 
+
     showLoginModal: function(onSuccess) {
+        var self = this,
+            promptForProfileIfIncomplete = function(loginResponse) {
+            if (loginResponse.profile_was_skipped || loginResponse.profile_is_complete) {
+                if (onSuccess && _.isFunction(onSuccess)) {
+                    onSuccess(loginResponse);
+                }
+            } else {
+                new userViews.UserProfileModalView({
+                    model: new userModels.UserProfileFormModel({
+                        successCallback: onSuccess
+                    }),
+                    app: self
+                }).render();
+            }
+        };
+
         new userViews.LoginModalView({
             model: new userModels.LoginFormModel({
                 showItsiButton: settings.get('itsi_enabled'),
+                successCallback: promptForProfileIfIncomplete
+            }),
+            app: self
+        }).render();
+    },
+
+    showProfileModal: function (onSuccess) {
+        new userViews.UserProfileModalView({
+            model: new userModels.UserProfileFormModel({
                 successCallback: onSuccess
             }),
             app: this

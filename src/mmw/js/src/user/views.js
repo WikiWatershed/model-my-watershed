@@ -9,6 +9,7 @@ var _ = require('underscore'),
     settings = require('../core/settings'),
     models = require('./models'),
     loginModalTmpl = require('./templates/loginModal.html'),
+    userProfileModalTmpl = require('./templates/userProfileModal.html'),
     signUpModalTmpl = require('./templates/signUpModal.html'),
     resendModalTmpl = require('./templates/resendModal.html'),
     forgotModalTmpl = require('./templates/forgotModal.html'),
@@ -17,6 +18,7 @@ var _ = require('underscore'),
     itsiSignUpModalTmpl = require('./templates/itsiSignUpModal.html');
 
 var ENTER_KEYCODE = 13;
+var ESC_KEYCODE = 27;
 
 var ModalBaseView = Marionette.ItemView.extend({
     className: 'modal modal-large fade',
@@ -74,6 +76,10 @@ var ModalBaseView = Marionette.ItemView.extend({
         // Needed to prevent form from being posted when pressing enter.
         if (e.keyCode === ENTER_KEYCODE) {
             e.preventDefault();
+        }
+        if (e.keyCode === ESC_KEYCODE && this.escapeHandler) {
+            e.preventDefault();
+            return this.escapeHandler(e);
         }
     },
 
@@ -196,10 +202,10 @@ var LoginModalView = ModalBaseView.extend({
             .fail(_.bind(this.handleFailure, this));
     },
 
-    handleSuccess: function() {
+    handleSuccess: function(response) {
         this.$el.modal('hide');
         this.app.user.set('guest', false);
-        this.model.onSuccess();
+        this.model.onSuccess(response);
     },
 
     handleFailure: function(response) {
@@ -257,6 +263,101 @@ var LoginModalView = ModalBaseView.extend({
             loginURL += '&itsi_embed=true';
         }
         window.location.href = loginURL;
+    }
+});
+
+var UserProfileModalView = ModalBaseView.extend({
+    template: userProfileModalTmpl,
+
+    ui: _.defaults({
+        firstName: '#first_name',
+        lastName: '#last_name',
+        organization: '#organization',
+        userType: '#user_type',
+        country: '#country',
+        postalCode: '#postal_code',
+        submitProfile: '.submit-profile',
+        skip: '.skip'
+    }, ModalBaseView.prototype.ui),
+
+    events: _.defaults({
+        'click @ui.submitProfile': 'submitProfile',
+        'click @ui.later': 'later',
+        'keydown button': 'enterTogglesDropdown'
+    }, ModalBaseView.prototype.events),
+
+    onModalShown: function() {
+        var self = this,
+            escKeyPressClosesDropdown = function (e) {
+                var $element = $(e.target).closest('.bootstrap-select');
+                if (e.keyCode === 27) {
+                    // Clear the textbox, hide close the dropdown, return focus to the now closed dropdown
+                    e.preventDefault();
+                    $(e.target).val('');
+                    $element.find('.selectpicker').selectpicker('toggle');
+                    $element.find('button').focus();
+                    return false;
+                }
+            },
+            inputs = [
+                this.ui.country.parent().find('input'),
+                this.ui.userType.parent().find('input')
+            ];
+        _.forEach(inputs, function($input) {
+            $input.on('keypress', escKeyPressClosesDropdown);
+            $input.on('focus', function() { self.escapeHandler = escKeyPressClosesDropdown;});
+            $input.on('blur', function() { self.escapeHandler = undefined; });
+        });
+
+        this.ui.firstName.focus();
+    },
+
+    handleSuccess: function(response) {
+        this.handleServerSuccess(response);
+        this.$el.modal('hide');
+    },
+
+    handleFailure: function(response) {
+        this.handleServerFailure(response);
+    },
+
+    setFields: function () {
+        this.model.set({
+            first_name: this.ui.firstName.val(),
+            last_name: this.ui.lastName.val(),
+            organization: this.ui.organization.val(),
+            user_type: this.ui.userType.val(),
+            country: this.ui.country.val(),
+            postal_code: this.ui.postalCode.val()
+        }, { silent: true });
+    },
+
+    primaryAction: function() {
+        this.model
+            .fetch({
+                method: 'POST',
+                data: this.model.attributes })
+            .done(_.bind(this.handleSuccess, this))
+            .fail(_.bind(this.handleFailure, this));
+    },
+
+    dismissAction: function() {
+        this.model
+            .fetch({
+                method: 'POST',
+                data: { was_skipped: true }})
+            .done(_.bind(this.handleSuccess, this))
+            .fail(_.bind(this.handleFailure, this));
+    },
+
+    enterTogglesDropdown: function(e) {
+        if (e.keyCode === ENTER_KEYCODE) {
+            e.preventDefault();
+            // In testing the form is validated and submitted unless this call to 'toggle' is delayed
+            setTimeout(function () { $(e.target).siblings('.selectpicker').selectpicker('toggle'); }, 100);
+            return false;
+        }
+        return true;
     }
 });
 
@@ -415,6 +516,7 @@ var ChangePasswordModalView = ModalBaseView.extend({
 
 module.exports = {
     LoginModalView: LoginModalView,
+    UserProfileModalView: UserProfileModalView,
     SignUpModalView: SignUpModalView,
     ResendModalView: ResendModalView,
     ForgotModalView: ForgotModalView,
