@@ -46,6 +46,7 @@ var DataCatalogController = {
                 name: 'WDC',
                 is_pageable: false,
                 results: new models.Results(null, { catalog: 'cuahsi' }),
+                serverResults: new models.Results(null, { catalog: 'cuahsi' }),
                 filters: new models.FilterCollection([
                     dateFilter,
                     new models.GriddedServicesFilter()

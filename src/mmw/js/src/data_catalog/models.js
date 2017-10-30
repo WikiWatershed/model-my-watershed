@@ -153,6 +153,7 @@ var Catalog = Backbone.Model.extend({
         stale: false, // Should search run when catalog becomes active?
         active: false,
         results: null, // Results collection
+        serverResults: null, // Results collection
         resultCount: 0,
         filters: null, // FiltersCollection
         is_pageable: true,
@@ -190,8 +191,25 @@ var Catalog = Backbone.Model.extend({
         var self = this,
             error = this.get('error'),
             stale = this.get('stale'),
-            isSameSearch = query === this.get('query') &&
-                           geom === this.get('geom');
+            isCuahsi = this.id === 'cuahsi',
+            isSameQuery = query === this.get('query'),
+            isSameGeom = geom === this.get('geom'),
+            isSameSearch = isSameQuery && isSameGeom;
+
+        if (isCuahsi && isSameGeom && !isSameQuery) {
+            this.set({ loading: true });
+
+            var results = this.get('serverResults').textFilter(query);
+            this.get('results').reset(results);
+
+            this.set({
+                loading: false,
+                query: query,
+                resultCount: results.length
+            });
+
+            return $.when();
+        }
 
         if (!isSameSearch || stale || error) {
             this.cancelSearch();
@@ -229,6 +247,9 @@ var Catalog = Backbone.Model.extend({
 
     startSearch: function(page) {
         var filters = this.get('filters'),
+            results = this.id === 'cuahsi' ?
+                      this.get('serverResults') :
+                      this.get('results'),
             dateFilter = filters.findWhere({ id: 'date' }),
             fromDate = null,
             toDate = null;
@@ -272,7 +293,7 @@ var Catalog = Backbone.Model.extend({
             contentType: 'application/json'
         };
 
-        return this.get('results')
+        return results
                    .fetch(request)
                    .done(_.bind(this.doneSearch, this))
                    .fail(_.bind(this.failSearch, this))
@@ -280,12 +301,30 @@ var Catalog = Backbone.Model.extend({
     },
 
     doneSearch: function(response) {
-        var data = _.findWhere(response, { catalog: this.id });
+        var data = _.findWhere(response, { catalog: this.id }),
+            setFields = {
+                page: data.page || 1,
+                resultCount: data.count,
+            };
 
-        this.set({
-            page: data.page || 1,
-            resultCount: data.count,
-        });
+        if (this.id === 'cuahsi') {
+            var results = this.get('results'),
+                filtered = this.get('serverResults')
+                               .textFilter(this.get('query'));
+
+            if (results === null) {
+                results = new Results(filtered, { catalog: 'cuahsi' });
+            } else {
+                results.reset(filtered);
+            }
+
+            _.assign(setFields, {
+                results: results,
+                resultCount: results.length,
+            });
+        }
+
+        this.set(setFields);
     },
 
     failSearch: function(response, textStatus) {
@@ -497,6 +536,23 @@ var Result = Backbone.Model.extend({
         return this.fetchPromise;
     },
 
+    textFilter: function(query) {
+        var fields = [
+            this.get('id').toLowerCase(),
+            this.get('title').toLowerCase(),
+            this.get('description').toLowerCase(),
+            (this.get('service_citation') || '').toLowerCase(),
+            (this.get('service_title') || '').toLowerCase(),
+            (this.get('service_org') || '').toLowerCase(),
+            this.get('sample_mediums').join(' ').toLowerCase(),
+            this.get('variables').pluck('concept_keyword').join(' ').toLowerCase(),
+        ];
+
+        return _.some(fields, function(field) {
+            return field.indexOf(query) >= 0;
+        });
+    },
+
     getSummary: function() {
         var text = this.get('description') || '';
         if (text.length <= DESCRIPTION_MAX_LENGTH) {
@@ -578,6 +634,19 @@ var Results = Backbone.Collection.extend({
         }
 
         currentDetail.set('show_detail', false);
+    },
+
+    textFilter: function(query) {
+        var lcQueries = query.toLowerCase().split(' ').filter(function(x) {
+            // Exclude empty, search logic terms
+            return x !== '' && x !== 'and' && x !== 'or';
+        });
+
+        return this.filter(function(result) {
+            return _.every(lcQueries, function(lcQuery) {
+                return result.textFilter(lcQuery);
+            });
+        });
     }
 });
 
