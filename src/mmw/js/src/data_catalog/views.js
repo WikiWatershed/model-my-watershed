@@ -198,6 +198,7 @@ var FormView = Marionette.ItemView.extend({
     ui: {
         filterToggle: '.filter-sidebar-toggle',
         searchInput: '.data-catalog-search-input',
+        downloadButton: '#bigcz-catalog-results-download',
     },
 
     events: {
@@ -221,6 +222,11 @@ var FormView = Marionette.ItemView.extend({
 
         // Update the filter sidebar when there's a new active catalog
         this.listenTo(this.collection, 'change:active', updateFilterSidebar);
+
+        // Update the download button visibility on catalog load events
+        this.collection.forEach(function(catalog) {
+            self.listenTo(catalog, 'change:loading', self.render);
+        });
     },
 
     getFilters: function() {
@@ -272,9 +278,13 @@ var FormView = Marionette.ItemView.extend({
     templateHelpers: function() {
         var filters = this.getFilters(),
             numActiveFilters = filters && filters.countActive(),
-            filterNumText = numActiveFilters ? '(' + numActiveFilters + ')' : '';
+            filterNumText = numActiveFilters ? '(' + numActiveFilters + ')' : '',
+            catalog = this.collection.getActiveCatalog(),
+            results = catalog && catalog.get('results'),
+            downloadVisible = results && results.length > 0;
 
         return {
+            downloadVisible: downloadVisible,
             filterNumText: filterNumText
         };
     }
