@@ -11,6 +11,7 @@ from rest_framework.exceptions import ValidationError
 from django.core.cache import cache
 from django.conf import settings
 from django.contrib.gis.geos import Point, Polygon
+from django.utils.timezone import make_aware
 
 from apps.bigcz.models import ResourceLink, ResourceList
 from apps.bigcz.utils import RequestTimedOutError
@@ -21,11 +22,15 @@ from apps.bigcz.clients.hydroshare.models import HydroshareResource
 CATALOG_NAME = 'hydroshare'
 CATALOG_URL = 'https://www.hydroshare.org/hsapi/resource/'
 
-DATE_MIN = datetime(1776, 7, 4, 0, 0)
+DATE_MIN = make_aware(datetime(1776, 7, 4, 0, 0))
 
 
 def parse_date(value):
-    return dateutil.parser.parse(value)
+    d = dateutil.parser.parse(value)
+    if d.tzinfo is None or d.tzinfo.utcoffset(d) is None:
+        return make_aware(d)
+    else:
+        return d
 
 
 def parse_box(box):
@@ -167,11 +172,11 @@ def search(**kwargs):
 
     if from_date:
         records = [r for r in records
-                   if r.end_date and r.end_date >= from_date]
+                   if r.end_date and r.end_date >= make_aware(from_date)]
 
     if to_date:
         records = [r for r in records
-                   if r.begin_date and r.begin_date <= to_date]
+                   if r.begin_date and r.begin_date <= make_aware(to_date)]
 
     results = sorted(records,
                      key=nullable_attrgetter('end_date', DATE_MIN),
