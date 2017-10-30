@@ -204,6 +204,7 @@ var FormView = Marionette.ItemView.extend({
     events: {
         'keyup @ui.searchInput': 'onSearchInputChanged',
         'click @ui.filterToggle': 'onFilterToggle',
+        'click @ui.downloadButton': 'downloadResults',
     },
 
     onBeforeDestroy: function() {
@@ -227,6 +228,45 @@ var FormView = Marionette.ItemView.extend({
         this.collection.forEach(function(catalog) {
             self.listenTo(catalog, 'change:loading', self.render);
         });
+    },
+
+    downloadResults: function() {
+        var catalog = this.collection.getActiveCatalog(),
+            results = catalog && catalog.get('results');
+
+        if (!results) {
+            return null;
+        }
+
+        var json = JSON.stringify(results.toJSON()),
+            blob = new Blob([json], { type: 'data:text/plain;charset=utf-8'}),
+            url = URL.createObjectURL(blob),
+            a = document.createElement('a'),
+            dateString = (new Date()).toJSON()
+                                     .replace(/[T:]/g, '-')
+                                     .substr(0, 19),  // YYYY-MM-DD-hh-mm-ss
+            dashedQuery = this.model.get('query')
+                                    .trim()
+                                    .toLowerCase()
+                                    .replace(/\W+/g, '-'),
+            filename = 'bigcz-' + catalog.id + '-' +
+                       dashedQuery + '-' + dateString + '.json';
+
+        if (navigator.msSaveBlob) {
+            // IE has a nicer interface for saving blobs
+            navigator.msSaveBlob(blob, filename);
+        } else {
+            // Other browsers have to use a hidden link hack
+            a.style.display = 'none';
+            a.setAttribute('download', filename);
+            a.setAttribute('href', url);
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        URL.revokeObjectURL(url);
     },
 
     getFilters: function() {
