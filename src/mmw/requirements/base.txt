@@ -19,5 +19,5 @@ retry==0.9.1
 python-dateutil==2.6.0
 suds==0.4
 django_celery_results==1.0.1
-ulmo==0.8.4
+git+git://github.com/emiliom/ulmo@wml_values_md#egg=ulmo
 numpy==1.13.0
