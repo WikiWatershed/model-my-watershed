@@ -198,11 +198,13 @@ var FormView = Marionette.ItemView.extend({
     ui: {
         filterToggle: '.filter-sidebar-toggle',
         searchInput: '.data-catalog-search-input',
+        downloadButton: '#bigcz-catalog-results-download',
     },
 
     events: {
         'keyup @ui.searchInput': 'onSearchInputChanged',
         'click @ui.filterToggle': 'onFilterToggle',
+        'click @ui.downloadButton': 'downloadResults',
     },
 
     onBeforeDestroy: function() {
@@ -210,17 +212,73 @@ var FormView = Marionette.ItemView.extend({
     },
 
     initialize: function() {
-        var updateFilterSidebar = _.bind(function() {
-            if (App.rootView.secondarySidebarRegion.hasView()) {
-                this.showFilterSidebar();
-            }
+        var self = this,
+            updateFilterSidebar = function() {
+                if (App.rootView.secondarySidebarRegion.hasView()) {
+                    self.showFilterSidebar();
+                }
 
-            this.render();
-
-        }, this);
+                self.render();
+            };
 
         // Update the filter sidebar when there's a new active catalog
-        this.collection.on('change:active', updateFilterSidebar);
+        this.listenTo(this.collection, 'change:active', updateFilterSidebar);
+
+        // Update the download button visibility on catalog load events
+        this.collection.forEach(function(catalog) {
+            self.listenTo(catalog, 'change:loading', self.render);
+        });
+    },
+
+    downloadResults: function() {
+        var catalog = this.collection.getActiveCatalog(),
+            results = catalog && catalog.get('results');
+
+        if (!results) {
+            return null;
+        }
+
+        var data = results.map(function(r) {
+                var exclude = ['show_detail', 'fetching', 'error', 'mode'],
+                    cr = _.clone(_.omit(r.attributes, exclude));
+
+                if (!_.isNull(cr.variables)) {
+                    cr.variables = cr.variables.map(function(v) {
+                        return _.clone(_.omit(v.attributes, ['values', 'error']));
+                    });
+                }
+
+                return cr;
+            }),
+            blob = new Blob([JSON.stringify(data)],
+                            { type: 'data:text/plain;charset=utf-8'}),
+            url = URL.createObjectURL(blob),
+            a = document.createElement('a'),
+            dateString = (new Date()).toJSON()
+                                     .replace(/[T:]/g, '-')
+                                     .substr(0, 19),  // YYYY-MM-DD-hh-mm-ss
+            dashedQuery = this.model.get('query')
+                                    .trim()
+                                    .toLowerCase()
+                                    .replace(/\W+/g, '-'),
+            filename = 'bigcz-' + catalog.id + '-' +
+                       dashedQuery + '-' + dateString + '.json';
+
+        if (navigator.msSaveBlob) {
+            // IE has a nicer interface for saving blobs
+            navigator.msSaveBlob(blob, filename);
+        } else {
+            // Other browsers have to use a hidden link hack
+            a.style.display = 'none';
+            a.setAttribute('download', filename);
+            a.setAttribute('href', url);
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        URL.revokeObjectURL(url);
     },
 
     getFilters: function() {
@@ -270,18 +328,16 @@ var FormView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
-        var filters = this.getFilters();
-
-        if (!filters) {
-            return { filterNumText: '' };
-        }
-
-        var numActiveFilters = filters.countActive();
+        var filters = this.getFilters(),
+            numActiveFilters = filters && filters.countActive(),
+            filterNumText = numActiveFilters ? '(' + numActiveFilters + ')' : '',
+            catalog = this.collection.getActiveCatalog(),
+            results = catalog && catalog.get('results'),
+            downloadVisible = results && results.length > 0;
 
         return {
-            filterNumText: numActiveFilters > 0 ?
-                '(' + numActiveFilters + ')' :
-                null
+            downloadVisible: downloadVisible,
+            filterNumText: filterNumText
         };
     }
 });
