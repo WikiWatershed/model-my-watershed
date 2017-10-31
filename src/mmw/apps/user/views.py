@@ -68,14 +68,16 @@ def login(request):
 
     elif request.method == 'GET':
         user = request.user
-
         if user.is_authenticated() and user.is_active:
+            profile, created = UserProfile.objects.get_or_create(user=user)
             response_data = {
                 'result': 'success',
                 'username': user.username,
                 'itsi': ItsiUser.objects.filter(user_id=user.id).exists(),
                 'guest': False,
-                'id': user.id
+                'id': user.id,
+                'profile_was_skipped': profile.was_skipped,
+                'profile_is_complete': profile.is_complete,
             }
         else:
             response_data = {
@@ -111,7 +113,9 @@ def profile(request):
     profile.user = request.user
     profile.save()
     response_data = {
-        'result': 'success'
+        'result': 'success',
+        'profile_was_skipped': profile.was_skipped,
+        'profile_is_complete': profile.is_complete,
     }
     return Response(data=response_data, status=status.HTTP_200_OK)
 

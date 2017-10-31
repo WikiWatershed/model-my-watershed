@@ -6,7 +6,9 @@ var Backbone = require('../../shim/backbone'),
 var UserModel = Backbone.Model.extend({
     defaults: {
         itsi: false,
-        guest: true
+        guest: true,
+        profile_is_complete: false,
+        show_profile_popover: false // does the user need the blue dot explanatory popover?
     },
 
     url: '/user/login',
