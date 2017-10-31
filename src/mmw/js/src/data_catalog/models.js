@@ -732,6 +732,11 @@ var CuahsiVariable = Backbone.Model.extend({
             params.to_date = moment(to);
         }
 
+        if (params.from_date.format(DATE_FORMAT) ===
+            params.to_date.format(DATE_FORMAT)) {
+            params.to_date.add(1, 'days');
+        }
+
         params.from_date = params.from_date.format(DATE_FORMAT);
         params.to_date = params.to_date.format(DATE_FORMAT);
 
