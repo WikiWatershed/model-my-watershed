@@ -898,7 +898,7 @@ var ScenarioModel = Backbone.Model.extend({
                 // Merge the values that came back from Mapshed with the values
                 // in the modifications from the user.
                 var modifications = self.get('modifications'),
-                    mergedGisData = project.get('gis_data');
+                    mergedGisData = _.cloneDeep(project.get('gis_data'));
 
                 modifications.forEach(function(mod) {
                     _.assign(mergedGisData, mod.get('output'));
