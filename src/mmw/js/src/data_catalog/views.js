@@ -238,8 +238,20 @@ var FormView = Marionette.ItemView.extend({
             return null;
         }
 
-        var json = JSON.stringify(results.toJSON()),
-            blob = new Blob([json], { type: 'data:text/plain;charset=utf-8'}),
+        var data = results.map(function(r) {
+                var exclude = ['show_detail', 'fetching', 'error', 'mode'],
+                    cr = _.clone(_.omit(r.attributes, exclude));
+
+                if (!_.isNull(cr.variables)) {
+                    cr.variables = cr.variables.map(function(v) {
+                        return _.clone(_.omit(v.attributes, ['values', 'error']));
+                    });
+                }
+
+                return cr;
+            }),
+            blob = new Blob([JSON.stringify(data)],
+                            { type: 'data:text/plain;charset=utf-8'}),
             url = URL.createObjectURL(blob),
             a = document.createElement('a'),
             dateString = (new Date()).toJSON()
