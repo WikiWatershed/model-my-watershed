@@ -448,9 +448,12 @@ var ForgotModalView = ModalBaseView.extend({
 
     ui: _.defaults({
         'email': '#email',
-        'username': '#username',
-        'password': '#password'
+        'signUp': '.sign-up'
     }, ModalBaseView.prototype.ui),
+
+    events: _.defaults({
+        'click @ui.signUp': 'signUp'
+    }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
         this.ui.email.focus();
@@ -462,10 +465,19 @@ var ForgotModalView = ModalBaseView.extend({
 
     setFields: function() {
         this.model.set({
-            email: $(this.ui.email.selector).val(),
-            username: $(this.ui.username.selector).prop('checked'),
-            password: $(this.ui.password.selector).prop('checked')
+            email: $(this.ui.email.selector).val()
         }, { silent: true });
+    },
+
+    signUp: function() {
+        this.$el.modal('hide');
+        var self = this;
+        this.$el.on('hidden.bs.modal', function() {
+            new SignUpModalView({
+                app: self.app,
+                model: new models.SignUpFormModel({})
+            }).render();
+        });
     }
 });
 

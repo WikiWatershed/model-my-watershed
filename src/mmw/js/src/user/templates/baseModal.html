@@ -5,15 +5,6 @@
     </div>
 {% endmacro %}
 
-{% macro checkbox(value, name, label='') %}
-    <div class="checkbox">
-        <label>
-            <input name="{{ name }}" type="checkbox" id="{{ name }}" {{ "checked" if value else "" }}>
-            {{ label }}
-        </label>
-    </div>
-{% endmacro %}
-
 {% macro select(value, name, model, field, defaultChoice='', label='') %}
     <div class="custom-select-group">
         <select id="{{ name }}" name="{{ name }}" class="selectpicker" data-live-search="true" data-width="100%">
