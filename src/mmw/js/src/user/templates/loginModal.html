@@ -1,33 +1,30 @@
 {% extends './baseModal.html' %}
 
-{% block preamble %}
-    <div class="forgot">
-        <button type="button" class="btn btn-sm btn-default">Forgot?</button>
-    </div>
-    <div class="resend">
-        <button type="button" class="btn btn-sm btn-default">Send Activation Email</button>
-    </div>
-    <div class="sign-up">
-        <button type="button" class="btn btn-sm btn-default" data-dismiss="modal">Sign Up</button>
-    </div>
+{% block header %}
+<h2 class="light">Login to your account</h2>
 {% endblock %}
 
 {% block form %}
-    {{ field(username, 'username', 'Username') }}
-    {{ field(password, 'password', 'Password', 'password') }}
+{{ field(username, 'username', 'Username') }}
+{{ field(password, 'password', 'Password', 'password') }}
+<div class="row">
+    <button type="button" class="btn btn-lg btn-block btn-active" id="primary-button">Login</button>
+</div>
+<hr class="hr-text" data-content="or" />
+<div class="row{% if showItsiButton %} half-width{% endif %}" id="guest-buttons">
+    <button type="button" class="btn btn-lg btn-primary" data-dismiss="modal" id="dismiss-button">Continue as guest</button>
+    {% if showItsiButton %}
+    <button type="button" class="btn btn-lg btn-primary itsi-login">Login with ITSI</button>
+    {% endif %}
+</div>
+<div class="actions">
+    <button type="button" class="btn btn-default resend">Resend confirmation email</button>
+    <button type="button" class="btn btn-default forgot">Reset your password</button>
+</div>
 {% endblock %}
 
 {% block footer %}
-    <div class="row">
-        <button type="button" class="btn btn-lg btn-block btn-active" id="primary-button">Sign In</button>
-    </div>
-    <div class="text-muted" id="continue-as-divider">
-        Or continue as
-    </div>
-    <div class="row{% if showItsiButton %} half-width{% endif %}" id="guest-buttons">
-        <button type="button" class="btn btn-lg btn-primary" data-dismiss="modal" id="dismiss-button">Guest</button>
-        {% if showItsiButton %}
-        <button type="button" class="btn btn-lg btn-primary itsi-login">ITSI</button>
-        {% endif %}
-    </div>
+<div class="footer-content">
+    <h3 class="text-muted">Don't have an account? <a class="sign-up" data-dismiss="modal">Register</a></h3>
+</div>
 {% endblock %}
