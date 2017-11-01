@@ -717,8 +717,8 @@ var CuahsiVariable = Backbone.Model.extend({
         // to be either from begin date to end date, or 1 week up to end date,
         // whichever is shorter.
         if (!from || moment(from).isBefore(begin_date)) {
-            if (end_date.diff(begin_date, 'months', true) > 1) {
-                params.from_date = moment(end_date).subtract(1, 'months');
+            if (end_date.diff(begin_date, 'years', true) > 1) {
+                params.from_date = moment(end_date).subtract(1, 'years');
             } else {
                 params.from_date = begin_date;
             }
@@ -730,6 +730,11 @@ var CuahsiVariable = Backbone.Model.extend({
             params.to_date = end_date;
         } else {
             params.to_date = moment(to);
+        }
+
+        if (params.from_date.format(DATE_FORMAT) ===
+            params.to_date.format(DATE_FORMAT)) {
+            params.to_date.add(1, 'days');
         }
 
         params.from_date = params.from_date.format(DATE_FORMAT);
@@ -747,24 +752,37 @@ var CuahsiVariable = Backbone.Model.extend({
     },
 
     parse: function(response) {
-        var mrv = null;
+        var values = this.get('values'),
+            ndv = response.variable.no_data_value,
+            newValues = response.values,
+            variable = {
+                name: response.variable.name,
+                data_type: response.variable.data_type,
+                sample_medium: response.variable.sample_medium,
+                units: response.variable.units.abbreviation,
+                most_recent_value: null,
+            };
 
-        if (response.values && response.values.length > 0) {
-            var values = this.get('values');
-
-            values.reset(response.values);
-            mrv = response.values[response.values.length - 1].value;
-        } else {
+        if (newValues === null || newValues === undefined || _.isEmpty(newValues)) {
             this.set('error', 'No values returned from API');
+            return variable;
         }
 
-        return {
-            name: response.variable.name,
-            data_type: response.variable.data_type,
-            sample_medium: response.variable.sample_medium,
-            units: response.variable.units.abbreviation,
-            most_recent_value: mrv,
-        };
+        if (ndv !== null && ndv !== undefined) {
+            newValues = _.filter(newValues, function(v) {
+                return v.value !== ndv;
+            });
+        }
+
+        if (_.isEmpty(newValues)) {
+            this.set('error', 'No valid values returned from API');
+            return variable;
+        }
+
+        values.reset(newValues);
+        variable.most_recent_value = _.last(newValues).value;
+
+        return variable;
     },
 
     getChartData: function() {
