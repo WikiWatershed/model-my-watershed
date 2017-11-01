@@ -1,9 +1,7 @@
 {% macro field(value, name, label='', type='text') %}
-    <div class="custom-input-group">
+    <div>
+        <label for="{{ name }}">{{ label }}</label>
         <input name="{{ name }}" type="{{ type }}" id="{{ name }}" required value="{{ value }}">
-        <span class="highlight"></span>
-        <span class="bar"></span>
-        <label>{{ label }}</label>
     </div>
 {% endmacro %}
 
@@ -47,14 +45,14 @@
 
             {% block errors %}
                 {% if client_errors %}
-                    <ul>
+                    <ul class="errors">
                         {% for error in client_errors %}
                             <li>{{ error }}</li>
                         {% endfor %}
                     </ul>
                 {% endif %}
                 {% if server_errors %}
-                    <ul>
+                    <ul class="errors">
                         {% for error in server_errors %}
                             <li>{{ error }}</li>
                         {% endfor %}
