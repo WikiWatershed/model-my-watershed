@@ -230,12 +230,16 @@ function toggleCompareViewForITSIScreenshot(adjustForScreenshot) {
         compareCloseButton = '.compare-close',
         compareChartButton = '#compare-input-button-chart',
         compareTableButton = '#compare-input-button-table',
+        compareSections = '.compare-sections',
         compareChartRow = '.compare-chart-row',
         compareTableRow = '.compare-table-row',
         compareScenariosRow = '.compare-scenarios',
         compareMapsRow = '.compare-scenario-row-content';
 
     if (adjustForScreenshot) {
+        $(compareSections + '> div').css('margin-top',
+            '-' + $(compareSections).scrollTop() + 'px'
+        );
         $(compareDialog).addClass(itsiCompareDialog);
         $(compareModalContent).addClass(itsiCompareModal);
         $(compareCloseButton).hide();
@@ -261,6 +265,12 @@ function toggleCompareViewForITSIScreenshot(adjustForScreenshot) {
         } else if ($(compareTableRow).length) {
             $(compareTableRow).removeClass(itsiCompareRow);
         }
+
+        var mtString = $(compareSections + '> div').css('margin-top'),
+            marginTop = parseInt(mtString.substring(1, mtString.length - 2));
+
+        $(compareSections + '> div').css('margin-top', '');
+        $(compareSections).scrollTop(marginTop);
     }
 }
 
