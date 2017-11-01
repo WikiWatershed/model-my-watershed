@@ -1,20 +1,30 @@
 {% extends './baseModal.html' %}
 
+{% block header %}
+<h2 class="light">Create an account</h2>
+{% endblock %}
+
 {% block form %}
     {% if success %}
-        Sign up was successful! Please check your email to activate your account.
+        <p>
+            Sign up was successful! Please check your email to activate your account.
+        </p>
+        <button type="button" class="btn btn-lg btn-block btn-active" id="dismiss-button" data-dismiss="modal">Login</button>
     {% else %}
         {{ field(username, 'username', 'Username') }}
         {{ field(email, 'email', 'Email') }}
         {{ field(password1, 'password1', 'Password', 'password') }}
         {{ field(password2, 'password2', 'Repeat Password', 'password') }}
+        <button type="button" class="btn btn-lg btn-block btn-active" id="primary-button">Register</button>
     {% endif %}
 {% endblock %}
 
 {% block footer %}
-    {% if success %}
-        <button type="button" class="btn btn-lg btn-block btn-active" id="dismiss-button" data-dismiss="modal">Login</button>
-    {% else %}
-        <button type="button" class="btn btn-lg btn-block btn-active" id="primary-button">Sign Up</button>
-    {% endif %}
+    <div class="footer-content">
+        {% if success %}
+            <a class="resend" data-dismiss="modal">Resend confirmation email</a>
+        {% else %}
+           <h3 class="text-muted">I already have an account. <a class="login" data-dismiss="modal">Login</a></h3>
+        {% endif %}
+    </div>
 {% endblock %}

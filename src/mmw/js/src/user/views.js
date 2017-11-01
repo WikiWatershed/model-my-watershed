@@ -373,8 +373,15 @@ var SignUpModalView = ModalBaseView.extend({
         'username': '#username',
         'email': '#email',
         'password1': '#password1',
-        'password2': '#password2'
+        'password2': '#password2',
+        'login': '.login',
+        'resend': '.resend',
     }, ModalBaseView.prototype.ui),
+
+    events: _.defaults({
+        'click @ui.login': 'login',
+        'click @ui.resend': 'resend',
+    }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
         this.ui.username.focus();
@@ -402,6 +409,28 @@ var SignUpModalView = ModalBaseView.extend({
 
     dismissAction: function() {
         this.app.showLoginModal();
+    },
+
+    login: function() {
+        this.$el.modal('hide');
+        var self = this;
+        this.$el.on('hidden.bs.modal', function() {
+            new LoginModalView({
+                app: self.app,
+                model: new models.LoginFormModel()
+            }).render();
+        });
+    },
+
+    resend: function() {
+        this.$el.modal('hide');
+        var self = this;
+        this.$el.on('hidden.bs.modal', function() {
+            new ResendModalView({
+                app: self.app,
+                model: new models.ResendFormModel()
+            }).render();
+        });
     }
 });
 
