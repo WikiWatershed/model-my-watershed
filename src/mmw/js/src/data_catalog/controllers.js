@@ -43,7 +43,7 @@ var DataCatalogController = {
             }),
             new models.Catalog({
                 id: 'cuahsi',
-                name: 'WDC',
+                name: 'CUAHSI WDC',
                 is_pageable: false,
                 results: new models.Results(null, { catalog: 'cuahsi' }),
                 serverResults: new models.Results(null, { catalog: 'cuahsi' }),

@@ -540,8 +540,6 @@ var Result = Backbone.Model.extend({
         var fields = [
             this.get('id').toLowerCase(),
             this.get('title').toLowerCase(),
-            this.get('description').toLowerCase(),
-            (this.get('service_citation') || '').toLowerCase(),
             (this.get('service_title') || '').toLowerCase(),
             (this.get('service_org') || '').toLowerCase(),
             this.get('sample_mediums').join(' ').toLowerCase(),
