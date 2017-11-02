@@ -18,6 +18,7 @@ var $ = require('jquery'),
     settings = require('../core/settings'),
     coreUtils = require('../core/utils'),
     drawUtils = require('../draw/utils'),
+    drawSettings = require('./settings'),
     splashTmpl = require('./templates/splash.html'),
     windowTmpl = require('./templates/window.html'),
     aoiUploadTmpl = require('./templates/aoiUpload.html'),
@@ -238,6 +239,20 @@ var SplashWindow = Marionette.ItemView.extend({
     ui: {
         'start': '#get-started',
         'openProject': '#splash-open-project',
+    },
+
+    templateHelpers: function() {
+        if (settings.get('data_catalog_enabled')) {
+            return {
+                dataCatalogEnabled: true,
+                splashPageText: drawSettings.bigCZSplashPageText,
+            }
+        }
+
+        return {
+            dataCatalogEnabled: false,
+            splashPageText: drawSettings.mmwSplashPageText,
+        }
     },
 
     initialize: function() {
