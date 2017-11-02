@@ -101,10 +101,10 @@ def parse_details_url(record):
         if len(parts) == 2:
             code, id = parts
             if code == 'NWISDV':
-                url = 'https://waterdata.usgs.gov/nwis/uv/?site_no={}'
+                url = 'https://waterdata.usgs.gov/nwis/dv/?site_no={}'
                 return url.format(id)
             elif code == 'NWISUV':
-                url = 'https://waterdata.usgs.gov/nwis/dv/?site_no={}'
+                url = 'https://waterdata.usgs.gov/nwis/uv/?site_no={}'
                 return url.format(id)
             elif code == 'NWISGW':
                 url = ('https://nwis.waterdata.usgs.gov/' +
