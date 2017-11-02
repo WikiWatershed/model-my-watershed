@@ -250,10 +250,10 @@ LAYER_GROUPS = {
             'helptext': 'US Geological Survey Hydrologic Units of the '
                         'eight-digit level (Hydrologic Unit Code 8), averaging'
                         ' 700 sq. mi. (1,813&nbsp;km<sup>2</sup>).<br />'
-                        'For more information and data sources, see <a '
+                        'See <a '
                         'href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlay-boundary\' '
-                        'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
-                        'My Watershed Technical Documentation on Boundaries.'
+                        'target=\'_blank\' rel=\'noreferrer noopener\'>'
+                        'our documentation on boundaries.'
                         '</a>',
             'minZoom': 6,
             'selectable': True,
@@ -269,10 +269,10 @@ LAYER_GROUPS = {
             'helptext': 'US Geological Survey Hydrologic Units of the '
                         'ten-digit level (Hydrologic Unit Code 10), averaging'
                         ' 227 sq. mi. (588&nbsp;km<sup>2</sup>).<br />'
-                        'For more information and data sources, see <a '
+                        'See <a '
                         'href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlay-boundary\' '
-                        'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
-                        'My Watershed Technical Documentation on Boundaries.'
+                        'target=\'_blank\' rel=\'noreferrer noopener\'>'
+                        'our documentation on boundaries.'
                         '</a>',
             'minZoom': 8,
             'selectable': True,
@@ -289,10 +289,10 @@ LAYER_GROUPS = {
             'helptext': 'US Geological Survey Hydrologic Units of the '
                         'twelve-digit level (Hydrologic Unit Code 12), '
                         'averaging 40 sq. mi. (104&nbsp;km<sup>2</sup>).<br />'
-                        'For more information and data sources, see <a '
+                        'See <a '
                         'href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlay-boundary\' '
-                        'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
-                        'My Watershed Technical Documentation on Boundaries.'
+                        'target=\'_blank\' rel=\'noreferrer noopener\'>'
+                        'our documentation on boundaries.'
                         '</a>',
             'minZoom': 8,
             'selectable': True,
@@ -307,10 +307,10 @@ LAYER_GROUPS = {
             'table_name': 'boundary_county',
             'helptext': 'County lines for each state in the continental '
                         'United States.<br />'
-                        'For more information and data sources, see <a '
+                        'See <a '
                         'href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlay-boundary\' '
-                        'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
-                        'My Watershed Technical Documentation on Boundaries.'
+                        'target=\'_blank\' rel=\'noreferrer noopener\'>'
+                        'our documentation on boundaries.'
                         '</a>',
             'minZoom': 6,
             'selectable': True,
@@ -324,10 +324,10 @@ LAYER_GROUPS = {
             'helptext': 'Congressional Districts for the United States House '
                         'of Representatives, for the 113th Congress: 1/3/2013'
                         '&ndash;1/3/2015.<br />'
-                        'For more information and data sources, see <a '
+                        'See <a '
                         'href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlay-boundary\' '
-                        'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
-                        'My Watershed Technical Documentation on Boundaries.'
+                        'target=\'_blank\' rel=\'noreferrer noopener\'>'
+                        'our documentation on boundaries.'
                         '</a>',
             'minZoom': 5,
             'selectable': True,
@@ -340,10 +340,10 @@ LAYER_GROUPS = {
             'table_name': 'boundary_school_district',
             'helptext': 'Public School District boundaries in the '
                         'continental United States.<br />'
-                        'For more information and data sources, see <a '
+                        'See <a '
                         'href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlay-boundary\' '
-                        'target=\'_blank\' rel=\'noreferrer noopener\'>Model '
-                        'My Watershed Technical Documentation on Boundaries.'
+                        'target=\'_blank\' rel=\'noreferrer noopener\'>'
+                        'our documentation on boundaries.'
                         '</a>',
             'minZoom': 8,
             'selectable': True,

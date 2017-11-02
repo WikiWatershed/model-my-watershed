@@ -1,27 +1,42 @@
 <h1>
-    Model My Watershed: Explore, analyze and model human impacts on your watershed
+    {{ splashPageText.heading }}
 </h1>
 
 <p>
-    Analyze real geo-data, model storms, and compare potential impact of conservation and development scenarios in a watershed.
+    {{ splashPageText.subheading }}
 </p>
 
 <div class="splash-step">
-    <h2><span class="badge">1</span>Select Area</h2>
+    <h2>
+        <span class="badge">
+            1
+        </span>
+        {{ splashPageText.drawToolOneName }}
+    </h2>
     <p>
-        Explore map layers and select an area of interest.
+        {{ splashPageText.drawToolOneDescription }}
     </p>
 </div>
 <div class="splash-step">
-    <h2><span class="badge">2</span>Analyze</h2>
+    <h2>
+        <span class="badge">
+            2
+        </span>
+        {{ splashPageText.drawToolTwoName }}
+    </h2>
     <p>
-        See land cover, soil groups, point sources and other factors impacting water.
+        {{ splashPageText.drawToolTwoDescription }}
     </p>
 </div>
 <div class="splash-step">
-    <h2><span class="badge">3</span>Model</h2>
+    <h2>
+        <span class="badge">
+            3
+        </span>
+        {{ splashPageText.drawToolThreeName }}
+    </h2>
     <p>
-        Use one of two models to simulate different scenarios of human impacts on water.
+        {{ splashPageText.drawToolThreeDescription }}
     </p>
 </div>
 
@@ -31,7 +46,18 @@
 <hr/>
 
 <button id="get-started" class="btn btn-active btn-lg btn-block" type="button">
-    Get started <i class="fa fa-arrow-right"></i>
+    {{ splashPageText.getStartedButtonTitle }}
+    <i class="fa fa-arrow-right"></i>
 </button>
 
-<button id="splash-open-project" class="btn btn-link btn-block">Open Project</button>
+{% if dataCatalogEnabled %}
+<button class="btn btn-link btn-block">
+    <a href="{{ splashPageText.bigCZLink }}">
+        {{ splashPageText.bigCZLinkTitle }}
+    </a>
+</button>
+{% else %}
+<button id="splash-open-project" class="btn btn-link btn-block">
+    {{ splashPageText.openProjectButtonTitle }}
+</button>
+{% endif %}
