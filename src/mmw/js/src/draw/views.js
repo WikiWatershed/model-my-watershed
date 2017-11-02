@@ -164,6 +164,17 @@ var DrawWindow = Marionette.LayoutView.extend({
         uploadFileRegion: '#upload-file-region'
     },
 
+    templateHelpers: function() {
+        if (settings.get('data_catalog_enabled')) {
+            return {
+                selectAreaText: drawSettings.bigCZSelectAreaText,
+            }
+        }
+        return {
+            selectAreaText: drawSettings.mmwSelectAreaText,
+        }
+    },
+
     initialize: function() {
         var map = App.getLeafletMap(),
             ofg = L.featureGroup();

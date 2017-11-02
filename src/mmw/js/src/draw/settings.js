@@ -27,7 +27,19 @@ var bigCZSplashPageText = {
     bigCZLink: 'https://bigcz.org/',
 };
 
+var mmwSelectAreaText = {
+    headerDescription: 'Explore mapped layers, such as streams, land cover, soils, boundaries and observations, using the layer selector in the lower left of the map.',
+    selectAreaExplanation: 'analyze the factors that impact water in your area and to begin to model different scenarios of human impacts.',
+};
+
+var bigCZSelectAreaText = {
+    headerDescription: 'Explore mapped layers, such as streams, land cover, and boundaries, using the layer selector in the lower left of the map.',
+    selectAreaExplanation: 'analyze the mapped layers within your area and to initiate a search for data.',
+};
+
 module.exports = {
     mmwSplashPageText: mmwSplashPageText,
     bigCZSplashPageText: bigCZSplashPageText,
+    mmwSelectAreaText: mmwSelectAreaText,
+    bigCZSelectAreaText: bigCZSelectAreaText,
 };
