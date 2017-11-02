@@ -191,10 +191,6 @@ var ForgotFormModel = ModalBaseModel.extend({
             errors.push('Please enter an email address');
         }
 
-        if (!attrs.username && !attrs.password) {
-            errors.push('Please check user name and/or password');
-        }
-
         if (errors.length) {
             this.set({
                 'client_errors': errors,

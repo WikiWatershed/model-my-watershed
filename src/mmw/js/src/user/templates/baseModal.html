@@ -1,36 +1,23 @@
 {% macro field(value, name, label='', type='text') %}
-    <div class="custom-input-group">
+    <div>
+        <label for="{{ name }}">{{ label }}</label>
         <input name="{{ name }}" type="{{ type }}" id="{{ name }}" required value="{{ value }}">
-        <span class="highlight"></span>
-        <span class="bar"></span>
-        <label>{{ label }}</label>
-    </div>
-{% endmacro %}
-
-{% macro checkbox(value, name, label='') %}
-    <div class="checkbox">
-        <label>
-            <input name="{{ name }}" type="checkbox" id="{{ name }}" {{ "checked" if value else "" }}>
-            {{ label }}
-        </label>
     </div>
 {% endmacro %}
 
 {% macro select(value, name, model, field, defaultChoice='', label='') %}
-    <div class="custom-select-group">
-        <select id="{{ name }}" name="{{ name }}" class="selectpicker" data-live-search="true" data-width="100%">
-            <script>
-             $.each(window.clientSettings.choices.{{ model }}.{{ field }}, function(index, choice) {
-                 var value = choice[0];
-                 var text = choice[1];
-                 var selected = value === '{{defaultChoice}}' ? ' selected ' : '';
-                 $('#{{ name }}').append('<option ' + selected + ' value="' + value + '">' + text + '</option>');
-             });
-             $('#{{ name }}').selectpicker();
-            </script>
-        </select>
-        <label>{{ label }}</label>
-    </div>
+    <label>{{ label }}</label>
+    <select id="{{ name }}" name="{{ name }}" class="selectpicker" data-live-search="true" data-width="100%">
+        <script>
+         $.each(window.clientSettings.choices.{{ model }}.{{ field }}, function(index, choice) {
+             var value = choice[0];
+             var text = choice[1];
+             var selected = value === '{{defaultChoice}}' ? ' selected ' : '';
+             $('#{{ name }}').append('<option ' + selected + ' value="' + value + '">' + text + '</option>');
+         });
+         $('#{{ name }}').selectpicker();
+        </script>
+    </select>
 {% endmacro %}
 
 <div class="modal-dialog modal-dialog-sm">
@@ -47,14 +34,14 @@
 
             {% block errors %}
                 {% if client_errors %}
-                    <ul>
+                    <ul class="errors">
                         {% for error in client_errors %}
                             <li>{{ error }}</li>
                         {% endfor %}
                     </ul>
                 {% endif %}
                 {% if server_errors %}
-                    <ul>
+                    <ul class="errors">
                         {% for error in server_errors %}
                             <li>{{ error }}</li>
                         {% endfor %}
