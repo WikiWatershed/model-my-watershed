@@ -168,11 +168,11 @@ var DrawWindow = Marionette.LayoutView.extend({
         if (settings.get('data_catalog_enabled')) {
             return {
                 selectAreaText: drawSettings.bigCZSelectAreaText,
-            }
+            };
         }
         return {
             selectAreaText: drawSettings.mmwSelectAreaText,
-        }
+        };
     },
 
     initialize: function() {
@@ -257,13 +257,13 @@ var SplashWindow = Marionette.ItemView.extend({
             return {
                 dataCatalogEnabled: true,
                 splashPageText: drawSettings.bigCZSplashPageText,
-            }
+            };
         }
 
         return {
             dataCatalogEnabled: false,
             splashPageText: drawSettings.mmwSplashPageText,
-        }
+        };
     },
 
     initialize: function() {
