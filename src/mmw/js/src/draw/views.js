@@ -173,7 +173,12 @@ var DrawWindow = Marionette.LayoutView.extend({
 
     onShow: function() {
         var self = this,
-            resetRwdDrawingState = function() {
+            resetRwdDrawingState = function(e) {
+                // If the cancel button was clicked
+                if (e && e.type === 'click') {
+                    self.model.clearRwdClickedPoint(App.getLeafletMap());
+                }
+
                 self.resetDrawingState({
                     clearOnFailure: false
                 });
