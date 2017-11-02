@@ -47,6 +47,7 @@
 
     .error {
         color: $ui-danger;
+        margin: 1em 0 1em 0;
         > .account-inline-error-icon {
             margin-right: 5px;
         }
@@ -91,5 +92,32 @@
     .btn-copy > .spinner:after {
         top: auto;
         right: auto;
+    }
+}
+
+.user-profile-section {
+    label {
+        color: $text-muted;
+        font-size: $font-size-h5;
+        font-weight: 500;
+        display: block;
+    }
+
+    input {
+        width: 100%;
+        padding: 0.75rem 0.5rem;
+    }
+
+    p {
+        margin: 0 0 2rem 0;
+    }
+
+    .col-sm-6 {
+        padding: 0 8rem 0 0;
+    }
+
+    .btn-save > .spinner:after {
+        top: 16px;
+        right: -30px;
     }
 }

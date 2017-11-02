@@ -24,6 +24,7 @@ from rest_framework.permissions import (AllowAny,
 
 from apps.user.models import ItsiUser, UserProfile
 from apps.user.itsi import ItsiService
+from apps.user.serializers import UserProfileSerializer
 
 EMBED_FLAG = settings.ITSI['embed_flag']
 
@@ -34,6 +35,26 @@ def login(request):
     response_data = {}
     status_code = status.HTTP_200_OK
 
+    def make_successful_response_data(user):
+        profile, created = UserProfile.objects.get_or_create(user=user)
+        return {
+            'result': 'success',
+            'username': user.username,
+            'itsi': ItsiUser.objects.filter(user_id=user.id).exists(),
+            'guest': False,
+            'id': user.id,
+            'profile_was_skipped': profile.was_skipped,
+            'profile_is_complete': profile.is_complete,
+            'profile': {
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'organization': profile.organization,
+                'country': profile.country,
+                'user_type': profile.user_type,
+                'postal_code': profile.postal_code,
+            }
+        }
+
     if request.method == 'POST':
         user = authenticate(username=request.REQUEST.get('username'),
                             password=request.REQUEST.get('password'))
@@ -41,16 +62,7 @@ def login(request):
         if user is not None:
             if user.is_active:
                 auth_login(request, user)
-                profile, created = UserProfile.objects.get_or_create(user=user)
-                response_data = {
-                    'result': 'success',
-                    'username': user.username,
-                    'itsi': ItsiUser.objects.filter(user_id=user.id).exists(),
-                    'guest': False,
-                    'id': user.id,
-                    'profile_was_skipped': profile.was_skipped,
-                    'profile_is_complete': profile.is_complete,
-                }
+                response_data = make_successful_response_data(user)
             else:
                 response_data = {
                     'errors': ['Please activate your account'],
@@ -69,16 +81,7 @@ def login(request):
     elif request.method == 'GET':
         user = request.user
         if user.is_authenticated() and user.is_active:
-            profile, created = UserProfile.objects.get_or_create(user=user)
-            response_data = {
-                'result': 'success',
-                'username': user.username,
-                'itsi': ItsiUser.objects.filter(user_id=user.id).exists(),
-                'guest': False,
-                'id': user.id,
-                'profile_was_skipped': profile.was_skipped,
-                'profile_is_complete': profile.is_complete,
-            }
+            response_data = make_successful_response_data(user)
         else:
             response_data = {
                 'result': 'success',
@@ -94,30 +97,22 @@ def login(request):
 @decorators.api_view(['POST'])
 @decorators.permission_classes((IsAuthenticated, ))
 def profile(request):
-    params = request.POST.dict()
-    if 'first_name' in params:
-        request.user.first_name = params['first_name']
-        del params['first_name']
-    if 'last_name' in request.POST:
-        request.user.last_name = params['last_name']
-        del params['last_name']
-    request.user.save()
-
-    if 'was_skipped' in params:
-        params['was_skipped'] = str(params['was_skipped']).lower() == 'true'
-        params['is_complete'] = not params['was_skipped']
+    data = request.data
+    if 'was_skipped' in data:
+        data['was_skipped'] = str(data['was_skipped']).lower() == 'true'
+        data['is_complete'] = not data['was_skipped']
     else:
-        params['is_complete'] = True
+        data['is_complete'] = True
 
-    profile = UserProfile(**params)
-    profile.user = request.user
-    profile.save()
-    response_data = {
-        'result': 'success',
-        'profile_was_skipped': profile.was_skipped,
-        'profile_is_complete': profile.is_complete,
-    }
-    return Response(data=response_data, status=status.HTTP_200_OK)
+    data['user_id'] = request.user.pk
+
+    serializer = UserProfileSerializer(data=data,
+                                       context={"request": request})
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @decorators.api_view(['GET'])
