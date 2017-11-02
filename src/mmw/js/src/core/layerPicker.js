@@ -218,6 +218,7 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
     },
 
     modelEvents: {
+        'change': 'render',
         'toggle:layer': 'addLayerControls',
     },
 
