@@ -742,10 +742,9 @@ var DrawAreaView = DrawToolBaseView.extend({
                           'on the map and repeatedly clicking at boundary corners. ' +
                           'Close the polygon by double clicking on the last ' +
                           'point or clicking on the first point.<br />' +
-                          'For more information, see ' +
+                          'See ' +
                           '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#draw-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
-                          'Model My Watershed Technical Documentation on ' +
-                          'Draw Area.</a>',
+                          'our documentation on Draw Area.</a>',
                     minZoom: 0,
                     directions: 'Draw a boundary.'
                 },
@@ -754,10 +753,9 @@ var DrawAreaView = DrawToolBaseView.extend({
                     title: 'Square Km',
                     info: 'Draw a perfect square with one kilometer sides, by ' +
                           'clicking on the map where the square’s center will be.<br />' +
-                          'For more information, see ' +
+                          'See ' +
                           '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#draw-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
-                          'Model My Watershed Technical Documentation on ' +
-                          'Draw Area.</a>',
+                          'our documentation on Draw Area.</a>',
                     minZoom: 0,
                     directions: 'Click a point.'
                 }
@@ -856,10 +854,9 @@ var WatershedDelineationView = DrawToolBaseView.extend({
                       'watershed area upstream of this point is ' +
                       'automatically delineated using the 30 m resolution ' +
                       'flow direction grid.<br />' +
-                      'For more information, see ' +
+                      'See ' +
                       '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#delineate-watershed\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
-                      'Model My Watershed Technical Documentation on ' +
-                      'Delineate Watershed.</a>',
+                      'our documentation on Delineate Watershed.</a>',
                 shapeType: 'stream',
                 snappingOn: true,
                 minZoom: 0,
@@ -874,10 +871,9 @@ var WatershedDelineationView = DrawToolBaseView.extend({
                       'stream network. The watershed area upstream of this ' +
                       'point is automatically delineated using the 10 m ' +
                       'resolution national elevation model.<br />' +
-                      'For more information, see ' +
+                      'See ' +
                       '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#delineate-watershed\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
-                      'Model My Watershed Technical Documentation on ' +
-                      'Delineate Watershed.</a>',
+                      'our documentation on Delineate Watershed.</a>',
                 shapeType: 'stream',
                 snappingOn: true,
                 minZoom: 0,
