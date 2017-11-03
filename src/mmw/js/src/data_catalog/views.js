@@ -914,8 +914,8 @@ var CuahsiChartView = Marionette.ItemView.extend({
                     selected: 1,
                     buttons: [
                         { type: 'week', count: 1, text: '1w' },
-                        { type: 'week', count: 2, text: '2w' },
                         { type: 'month', count: 1, text: '1m' },
+                        { type: 'year', count: 1, text: '1y' },
                     ],
                 },
 
