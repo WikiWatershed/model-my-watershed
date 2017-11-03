@@ -21,7 +21,7 @@ var bigCZSplashPageText = {
     drawToolTwoName: 'Analyze',
     drawToolTwoDescription: 'See land cover, soil groups, and climate statistics.',
     drawToolThreeName: 'Search Data',
-    drawToolThreeDescription: 'Search three catalogs with free text, area of interest, and other filters.',
+    drawToolThreeDescription: 'Search three catalogs with free text, area of interest, and other filters:',
     getStartedButtonTitle: 'Get started',
     bigCZLinkTitle: 'Go to BigCZ.org for more info',
     bigCZLink: 'https://bigcz.org/',

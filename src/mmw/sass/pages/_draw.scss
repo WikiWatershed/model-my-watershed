@@ -37,8 +37,15 @@
   }
 
   & p {
+    margin-left: 35px;
+    font-size: $font-size-h4;
+  }
+
+  ol {
     margin-left: 30px;
     font-size: $font-size-h4;
+    line-height: $line-height-base;
+    color: $black-65;
   }
 }
 
