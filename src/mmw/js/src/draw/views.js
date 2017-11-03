@@ -270,6 +270,10 @@ var SplashWindow = Marionette.ItemView.extend({
         clearAoiLayer();
     },
 
+    onShow: function() {
+        this.$('[data-toggle="popover"]').popover();
+    },
+
     events: {
         'click @ui.start': 'moveToDraw',
         'click @ui.openProject': 'openOrLogin',
