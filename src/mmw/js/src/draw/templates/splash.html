@@ -92,5 +92,12 @@
 
 <hr/>
 
+{% if dataCatalogEnabled %}
+<a target="_blank" href="http://bigcz.org/"><img class="splash-logo" src="/static/images/logo-bigcz.png" alt="BiG CZ Logo" /></a>
+<a target="_blank" href="https://www.nsf.gov/"><img class="splash-logo" src="/static/images/logo-nsf.png" alt="National Science Foundation Logo" /></a>
+<a target="_blank" href="http://www.williampennfoundation.org/"><img class="splash-logo" src="/static/images/logo-wpf.png" alt="William Penn Foundation Logo" /></a>
+<a target="_blank" href="http://www.stroudcenter.org/"><img class="splash-logo" src="/static/images/logo-stroud.png" alt="Stroud Logo" /></a>
+{% else %}
 <a target="_blank" href="http://www.stroudcenter.org/"><img class="splash-logo" src="/static/images/logo-stroud.png" alt="Stroud Logo" /></a>
 <a target="_blank" href="http://www.wikiwatershed.org/"><img class="splash-logo" src="/static/images/logo-wikiwatershed.png" alt="WikiWatershed Logo" /></a>
+{% endif %}
