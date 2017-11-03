@@ -84,10 +84,17 @@ var LoginFormModel = ModalBaseModel.extend({
     defaults: {
         username: null,
         password: null,
-        successCallback: null
     },
 
     url: '/user/login',
+
+    initialize: function(attrs, opts) {
+        if (opts && opts.onSuccess && _.isFunction(opts.onSuccess)) {
+            this.onSuccess = opts.onSuccess;
+        } else {
+            this.onSuccess = _.noop;
+        }
+    },
 
     validate: function(attrs) {
         var errors = [];
@@ -113,13 +120,6 @@ var LoginFormModel = ModalBaseModel.extend({
             });
         }
     },
-
-    onSuccess: function(response) {
-        var callback = this.get('successCallback');
-        if (callback && _.isFunction(callback)) {
-            callback(response);
-        }
-    }
 });
 
 var UserProfileFormModel = ModalBaseModel.extend({
