@@ -77,7 +77,7 @@ function actOnLayer(datum) {
 function validateRwdShape(result) {
     var d = new $.Deferred();
     if (result.watershed) {
-        if (result.watershed.features[0].geometry.type === 'MultiPolygon') {
+        if (result.watershed.geometry.type === 'MultiPolygon') {
             d.reject('Unfortunately, the watershed generated at this ' +
                      'location is not available for analysis');
         }
@@ -947,11 +947,6 @@ var WatershedDelineationView = DrawToolBaseView.extend({
                 self.model.set('polling', false);
 
                 var result = response.result;
-
-                if (result.watershed) {
-                    // Convert watershed to MultiPolygon to pass shape validation.
-                    result.watershed = coreUtils.toMultiPolygon(result.watershed);
-                }
                 deferred.resolve(result);
             },
 
@@ -1001,11 +996,15 @@ var WatershedDelineationView = DrawToolBaseView.extend({
     },
 
     drawWatershed: function(result, itemName) {
-        var inputPoints = result.input_pt;
+        var inputPoint = result.input_pt,
+            inputPoints = {
+                type: "FeatureCollection",
+                features: [inputPoint]
+            };
 
         // add additional aoi points
-        if (inputPoints) {
-            var properties = inputPoints.features[0].properties;
+        if (inputPoint) {
+            var properties = inputPoint.properties;
 
             // If the point was snapped, there will be the original
             // point as attributes
@@ -1022,7 +1021,7 @@ var WatershedDelineationView = DrawToolBaseView.extend({
         }
 
         // Add Watershed AoI layer
-        addLayer(result.watershed, itemName);
+        addLayer(coreUtils.toMultiPolygon(result.watershed), itemName);
 
         return result;
     }

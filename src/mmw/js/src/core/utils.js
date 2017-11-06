@@ -480,14 +480,14 @@ var utils = {
         });
     },
 
-    // Convert polygon to MultiPolyon (mutates original argument).
-    toMultiPolygon: function(polygon) {
-        var geom = polygon.geometry ? polygon.geometry : polygon;
+    // Convert polygon to MultiPolyon
+    toMultiPolygon: function toMultiPolygon(polygon) {
+        var geom = _.clone(polygon.geometry ? polygon.geometry : polygon);
         if (geom.type !== 'MultiPolygon') {
             if (geom.type === 'Polygon') {
                 geom.coordinates = [geom.coordinates];
             } else if (geom.type === 'FeatureCollection') {
-                geom.coordinates = [geom.features[0].geometry.coordinates];
+                return toMultiPolygon(geom.features[0]);
             }
             geom.type = 'MultiPolygon';
         }
