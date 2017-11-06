@@ -2,6 +2,9 @@
 
 var $ = require('jquery');
 
+// Mock the Google Analytics function for tests
+window.ga = function() {};
+
 // Should be called after each unit test.
 function resetApp(app) {
     app.map.off();
