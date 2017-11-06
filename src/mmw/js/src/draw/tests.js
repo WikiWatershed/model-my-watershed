@@ -142,7 +142,9 @@ describe('Draw', function() {
 
             deferred.
                 done(function() {
-                    assert.equal(App.map.get('areaOfInterest'), TEST_SHAPE);
+                    assert.deepEqual(App.map.get('areaOfInterest'), TEST_SHAPE,
+                                     'Expected area of interest to get added ' +
+                                     'to the map unmodified.');
                     success = true;
                 }).
                 fail(function() {
