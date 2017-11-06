@@ -513,6 +513,13 @@ var utils = {
     // Array.filter(distinct) to get distinct values
     distinct: function(value, index, self) {
         return self.indexOf(value) === index;
+    },
+
+    isInDrb: function(geom) {
+        var layers = settings.get('stream_layers'),
+            drb = _.findWhere(layers, {code: 'drb_streams_v2'}).perimeter;
+
+        return !!intersect(geom, drb);
     }
 };
 
