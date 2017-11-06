@@ -18,6 +18,7 @@ var $ = require('jquery'),
     settings = require('../core/settings'),
     coreUtils = require('../core/utils'),
     drawUtils = require('../draw/utils'),
+    drawSettings = require('./settings'),
     splashTmpl = require('./templates/splash.html'),
     windowTmpl = require('./templates/window.html'),
     aoiUploadTmpl = require('./templates/aoiUpload.html'),
@@ -163,6 +164,17 @@ var DrawWindow = Marionette.LayoutView.extend({
         uploadFileRegion: '#upload-file-region'
     },
 
+    templateHelpers: function() {
+        if (settings.get('data_catalog_enabled')) {
+            return {
+                selectAreaText: drawSettings.bigCZSelectAreaText,
+            };
+        }
+        return {
+            selectAreaText: drawSettings.mmwSelectAreaText,
+        };
+    },
+
     initialize: function() {
         var map = App.getLeafletMap(),
             ofg = L.featureGroup();
@@ -240,8 +252,26 @@ var SplashWindow = Marionette.ItemView.extend({
         'openProject': '#splash-open-project',
     },
 
+    templateHelpers: function() {
+        if (settings.get('data_catalog_enabled')) {
+            return {
+                dataCatalogEnabled: true,
+                splashPageText: drawSettings.bigCZSplashPageText,
+            };
+        }
+
+        return {
+            dataCatalogEnabled: false,
+            splashPageText: drawSettings.mmwSplashPageText,
+        };
+    },
+
     initialize: function() {
         clearAoiLayer();
+    },
+
+    onShow: function() {
+        this.$('[data-toggle="popover"]').popover();
     },
 
     events: {
@@ -727,10 +757,9 @@ var DrawAreaView = DrawToolBaseView.extend({
                           'on the map and repeatedly clicking at boundary corners. ' +
                           'Close the polygon by double clicking on the last ' +
                           'point or clicking on the first point.<br />' +
-                          'For more information, see ' +
+                          'See ' +
                           '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#draw-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
-                          'Model My Watershed Technical Documentation on ' +
-                          'Draw Area.</a>',
+                          'our documentation on Draw Area.</a>',
                     minZoom: 0,
                     directions: 'Draw a boundary.'
                 },
@@ -739,10 +768,9 @@ var DrawAreaView = DrawToolBaseView.extend({
                     title: 'Square Km',
                     info: 'Draw a perfect square with one kilometer sides, by ' +
                           'clicking on the map where the square’s center will be.<br />' +
-                          'For more information, see ' +
+                          'See ' +
                           '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#draw-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
-                          'Model My Watershed Technical Documentation on ' +
-                          'Draw Area.</a>',
+                          'our documentation on Draw Area.</a>',
                     minZoom: 0,
                     directions: 'Click a point.'
                 }
@@ -841,10 +869,9 @@ var WatershedDelineationView = DrawToolBaseView.extend({
                       'watershed area upstream of this point is ' +
                       'automatically delineated using the 30 m resolution ' +
                       'flow direction grid.<br />' +
-                      'For more information, see ' +
+                      'See ' +
                       '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#delineate-watershed\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
-                      'Model My Watershed Technical Documentation on ' +
-                      'Delineate Watershed.</a>',
+                      'our documentation on Delineate Watershed.</a>',
                 shapeType: 'stream',
                 snappingOn: true,
                 minZoom: 0,
@@ -859,10 +886,9 @@ var WatershedDelineationView = DrawToolBaseView.extend({
                       'stream network. The watershed area upstream of this ' +
                       'point is automatically delineated using the 10 m ' +
                       'resolution national elevation model.<br />' +
-                      'For more information, see ' +
+                      'See ' +
                       '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#delineate-watershed\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
-                      'Model My Watershed Technical Documentation on ' +
-                      'Delineate Watershed.</a>',
+                      'our documentation on Delineate Watershed.</a>',
                 shapeType: 'stream',
                 snappingOn: true,
                 minZoom: 0,
