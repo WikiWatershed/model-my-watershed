@@ -29,12 +29,12 @@ var bigCZSplashPageText = {
 
 var mmwSelectAreaText = {
     headerDescription: 'Explore mapped layers, such as streams, land cover, soils, boundaries and observations, using the layer selector in the lower left of the map.',
-    selectAreaExplanation: 'analyze the factors that impact water in your area and to begin to model different scenarios of human impacts.',
+    selectAreaExplanation: '<a href="https://wikiwatershed.org/documentation/mmw-tech/#choose-area-of-interest-aoi" target="_blank" rel="noreferrer noopener">Select an Area of Interest</a> in the continental United States, using the suite of tools below, to analyze the factors that impact water in your area and to begin to model different scenarios of human impacts.',
 };
 
 var bigCZSelectAreaText = {
     headerDescription: 'Explore mapped layers, such as streams, land cover, and boundaries, using the layer selector in the lower left of the map.',
-    selectAreaExplanation: 'analyze the mapped layers within your area and to initiate a search for data.',
+    selectAreaExplanation: '<a href="https://wikiwatershed.org/documentation/mmw-tech/#choose-area-of-interest-aoi" target="_blank" rel="noreferrer noopener">Select an Area of Interest</a> (AoI) in the continental United States, using the suite of tools below, to analyze the mapped layers within your area and to initiate a search for datasets and visualize time series data. Currently the <strong>AoI must be smaller than 1,500 km<sup>2</sup></strong>.',
 };
 
 module.exports = {
