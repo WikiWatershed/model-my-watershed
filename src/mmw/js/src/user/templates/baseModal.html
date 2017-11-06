@@ -1,7 +1,7 @@
 {% macro field(value, name, label='', type='text') %}
     <div>
-        <label for="{{ name }}">{{ label }}</label>
-        <input name="{{ name }}" type="{{ type }}" id="{{ name }}" required value="{{ value }}">
+        <label class="modal-text-input-label" for="{{ name }}">{{ label }}</label>
+        <input class="modal-text-input" name="{{ name }}" type="{{ type }}" id="{{ name }}" required value="{{ value }}">
     </div>
 {% endmacro %}
 
