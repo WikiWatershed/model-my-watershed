@@ -262,6 +262,7 @@ TEMPLATE_DIRS = (
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#middleware-classes
 MIDDLEWARE_CLASSES = (
     # Default Django middleware.
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'mmw.middleware.BypassMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -298,6 +299,7 @@ THIRD_PARTY_APPS = (
     'rest_framework',
     'rest_framework_swagger',
     'rest_framework.authtoken',
+    'corsheaders',
     'registration',
     'django_celery_results',
 )
@@ -311,6 +313,11 @@ REST_FRAMEWORK = {
         'burst': '20/min',
     },
 }
+
+# cors
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_URLS_REGEX = r'^/api/.*$'
 
 SWAGGER_SETTINGS = {
     'exclude_namespaces': ['bigcz',
