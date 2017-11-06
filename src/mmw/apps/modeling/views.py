@@ -8,7 +8,6 @@ from celery import chain, group
 
 from rest_framework.response import Response
 from rest_framework import decorators, status
-from rest_framework.exceptions import ParseError
 from rest_framework.authentication import (SessionAuthentication,
                                            TokenAuthentication)
 from rest_framework.permissions import (AllowAny,
@@ -34,7 +33,8 @@ from apps.modeling.models import Project, Scenario
 from apps.modeling.serializers import (ProjectSerializer,
                                        ProjectListingSerializer,
                                        ProjectUpdateSerializer,
-                                       ScenarioSerializer)
+                                       ScenarioSerializer,
+                                       AoiSerializer)
 from apps.modeling.calcs import (get_layer_shape,
                                  boundary_search_context)
 
@@ -224,8 +224,7 @@ def start_mapshed(request, format=None):
 def _initiate_mapshed_job_chain(mapshed_input, job_id):
     errback = save_job_error.s(job_id)
 
-    area_of_interest, wkaoi = parse_input(mapshed_input)
-
+    area_of_interest, wkaoi = _parse_input(mapshed_input)
     job_chain = (
         group(geoprocessing_chains(area_of_interest, wkaoi, errback)) |
         collect_data.s(area_of_interest).set(link_error=errback) |
@@ -283,7 +282,7 @@ def _construct_tr55_job_chain(model_input, job_id):
 
     job_chain = []
 
-    aoi_json_str, wkaoi = parse_input(model_input)
+    aoi_json_str, wkaoi = _parse_input(model_input)
     aoi = json.loads(aoi_json_str)
     aoi_census = model_input.get('aoi_census')
     modification_censuses = model_input.get('modification_censuses')
@@ -466,81 +465,9 @@ def get_job(request, job_uuid, format=None):
     )
 
 
-def parse_area_of_interest(area_of_interest):
-    """
-    Returns a geojson string of the provided area of interest, formatted
-    as a one-ring multipolygon if necessary.
-
-    Args:
-       area_of_interest (dict): valid geojson. If MultiPolygon, can only have a
-                                single ring.
-    """
-    try:
-        shape = geoprocessing.to_one_ring_multipolygon(area_of_interest)
-    except:
-        raise ParseError(detail='Area of interest must be valid GeoJSON')
-
-    return json.dumps(shape)
-
-
-def load_wkaoi(wkaoi):
-    """
-    Returns a geojson string of a wellknown AoI's shape
-
-    Args:
-       wkaoi (string): '{table}__{id}', where table is the table to look up the
-                       wellknown AOIs shape in, and id is the shape's id
-    """
-    table, id = wkaoi.split('__')
-    shape = get_layer_shape(table, id)
-
-    if not shape:
-        raise ParseError(detail='Invalid wkaoi: {}'.format(wkaoi))
-
-    return shape
-
-
-def load_area_of_interest(aoi_geojson=None, wkaoi=None):
-    """
-    Returns a geojson string of the area of interest, either loaded from the
-    wkaoi, or processed from the aoi_geojson
-
-    Args:
-       aoi_geojson (dict): valid GeoJSON. If MultiPolygon can only have
-                           a single ring.
-                           No re-projection, expects EPSG: 4326
-       wkaoi (string):     '{table}__{id}'
-    """
-    if (aoi_geojson):
-        return parse_area_of_interest(aoi_geojson)
-
-    if (wkaoi):
-        return load_wkaoi(wkaoi)
-
-    raise ParseError(detail='Must supply either ' +
-                            'the area of interest (GeoJSON), ' +
-                            'or a WKAoI ID.')
-
-
-def parse_input(model_input):
-    """
-    Parse input into tuple of AoI JSON and WKAoI id.
-
-    If the input has an 'area_of_interest' key, it is returned as the AoI JSON
-    and None as the WKAoI. If the input has a 'wkaoi' key, its shape is pulled
-    from the appropriate database, and returned with the value of 'wkaoi' as
-    the WKAoI.
-
-    Args:
-        model_input: a dictionary, only one of the keys is necessary
-                         {
-                            'area_of_interest': { <geojson dict> }
-                            'wkaoi': '{table}__{id}',
-                         }
-    """
-    if not model_input:
-        raise ParseError(detail='model_input cannot be empty')
-
-    wkaoi = model_input.get('wkaoi', None)
-    return load_area_of_interest(model_input.get('area_of_interest', None),
-                                 wkaoi), wkaoi
+def _parse_input(model_input):
+    serializer = AoiSerializer(data=model_input)
+    serializer.is_valid(raise_exception=True)
+    area_of_interest = serializer.validated_data.get('area_of_interest')
+    wkaoi = serializer.validated_data.get('wkaoi')
+    return area_of_interest, wkaoi

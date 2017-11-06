@@ -20,14 +20,14 @@ from apps.core.tasks import (save_job_error,
                              save_job_result)
 from apps.core.decorators import log_request
 from apps.modeling import geoprocessing
-from apps.modeling.views import load_area_of_interest
+from apps.modeling.serializers import AoiSerializer
+
 from apps.geoprocessing_api import tasks
 from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
                                                SustainedRateThrottle)
 
-from validation import (validate_rwd,
-                        validate_aoi)
+from apps.geoprocessing_api.validation import validate_rwd
 
 
 @decorators.api_view(['POST'])
@@ -440,11 +440,7 @@ def start_analyze_land(request, format=None):
         - application/json
     """
     user = request.user if request.user.is_authenticated() else None
-
-    wkaoi = request.query_params.get('wkaoi', None)
-    area_of_interest = load_area_of_interest(request.data, wkaoi)
-
-    validate_aoi(area_of_interest)
+    area_of_interest, wkaoi = _parse_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -570,11 +566,7 @@ def start_analyze_soil(request, format=None):
         - application/json
     """
     user = request.user if request.user.is_authenticated() else None
-
-    wkaoi = request.query_params.get('wkaoi', None)
-    area_of_interest = load_area_of_interest(request.data, wkaoi)
-
-    validate_aoi(area_of_interest)
+    area_of_interest, wkaoi = _parse_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -687,11 +679,7 @@ def start_analyze_animals(request, format=None):
         - application/json
     """
     user = request.user if request.user.is_authenticated() else None
-
-    wkaoi = request.query_params.get('wkaoi', None)
-    area_of_interest = load_area_of_interest(request.data, wkaoi)
-
-    validate_aoi(area_of_interest)
+    area_of_interest, wkaoi = _parse_input(request)
 
     return start_celery_job([
         tasks.analyze_animals.s(area_of_interest)
@@ -780,11 +768,7 @@ def start_analyze_pointsource(request, format=None):
         - application/json
     """
     user = request.user if request.user.is_authenticated() else None
-
-    wkaoi = request.query_params.get('wkaoi', None)
-    area_of_interest = load_area_of_interest(request.data, wkaoi)
-
-    validate_aoi(area_of_interest)
+    area_of_interest, wkaoi = _parse_input(request)
 
     return start_celery_job([
         tasks.analyze_pointsource.s(area_of_interest)
@@ -902,11 +886,7 @@ def start_analyze_catchment_water_quality(request, format=None):
         - application/json
     """
     user = request.user if request.user.is_authenticated() else None
-
-    wkaoi = request.query_params.get('wkaoi', None)
-    area_of_interest = load_area_of_interest(request.data, wkaoi)
-
-    validate_aoi(area_of_interest)
+    area_of_interest, wkaoi = _parse_input(request)
 
     return start_celery_job([
         tasks.analyze_catchment_water_quality.s(area_of_interest)
@@ -1000,14 +980,10 @@ def start_analyze_climate(request, format=None):
     """
     user = request.user if request.user.is_authenticated() else None
 
-    wkaoi = request.query_params.get('wkaoi', None)
-    area_of_interest = load_area_of_interest(request.data, wkaoi)
-
-    validate_aoi(area_of_interest)
-
     geotasks = []
     ppt_raster = settings.GEOP['json']['ppt']['input']['targetRaster']
     tmean_raster = settings.GEOP['json']['tmean']['input']['targetRaster']
+    area_of_interest, wkaoi = _parse_input(request)
 
     for i in xrange(1, 13):
         ppt_input = {'polygon': [area_of_interest],
@@ -1073,3 +1049,12 @@ def start_celery_job(task_list, job_input, user=None, link_error=True):
         },
         headers={'Location': reverse('get_job', args=[task_chain.id])}
     )
+
+
+def _parse_input(request):
+    wkaoi = request.query_params.get('wkaoi', None)
+    serializer = AoiSerializer(data={'area_of_interest': request.data,
+                                     'wkaoi': wkaoi})
+    serializer.is_valid(raise_exception=True)
+    return (serializer.validated_data.get('area_of_interest'),
+            wkaoi)
