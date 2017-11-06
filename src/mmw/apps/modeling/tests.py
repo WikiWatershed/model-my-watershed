@@ -13,7 +13,7 @@ from django.test.utils import override_settings
 from django.utils.timezone import now
 
 from apps.core.models import Job
-from apps.modeling import example_aois, geoprocessing, tasks, views
+from apps.modeling import tasks, views
 
 
 @shared_task
@@ -890,42 +890,3 @@ class APIAccessTestCase(TestCase):
         scenario_id = str(response.data['id'])
 
         return scenario_id
-
-
-class NormalizeSingleRingPolygonTestCase(TestCase):
-
-    def setUp(self):
-        self.drawn_aoi = example_aois.valid_drawn_aoi
-        self.sq_km = example_aois.valid_sq_km
-        self.non_rwd_multi = example_aois.valid_frontend_multipolygon
-        self.single_rwd_multi = example_aois.valid_rwd_multi
-        self.multi_rwd_multi = example_aois.invalid_rwd_multi
-
-    def test_valid_drawn_aoi_is_unmodified(self):
-        validated = geoprocessing.to_one_ring_multipolygon(self.drawn_aoi)
-        self.assertEqual(self.drawn_aoi, validated)
-
-    def test_valid_sq_km_aoi_is_unmodified(self):
-        validated = geoprocessing.to_one_ring_multipolygon(self.sq_km)
-        self.assertEqual(self.sq_km, validated)
-
-    def test_multi_shape_frontend_aoi_is_unmodified(self):
-        validated = geoprocessing.to_one_ring_multipolygon(self.non_rwd_multi)
-        self.assertEqual(self.non_rwd_multi, validated)
-
-    def test_single_ring_multipolygon_is_adjusted(self):
-        adjusted = geoprocessing.to_one_ring_multipolygon(
-            self.single_rwd_multi
-        )
-        self.assertEqual(len(adjusted['coordinates']), 1)
-
-    def test_single_ring_unmodified_on_revalidation(self):
-        validated = geoprocessing.to_one_ring_multipolygon(
-            self.single_rwd_multi
-        )
-        revalidated = geoprocessing.to_one_ring_multipolygon(validated)
-        self.assertEqual(validated, revalidated)
-
-    def test_multi_ring_multipolygon_raises_exception(self):
-        with self.assertRaises(Exception):
-            geoprocessing.to_one_ring_multipolygon(self.multi_rwd_multi)
