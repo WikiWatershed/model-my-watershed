@@ -182,7 +182,13 @@ def catchment_intersects_aoi(aoi, catchment):
     catchment_geom = GEOSGeometry(json.dumps(catchment), srid=4326)
     reprojected_catchment = catchment_geom.transform(5070, clone=True)
 
-    if not reprojected_catchment.valid:
+    if catchment_geom.area == 0:
+        return True
+    elif reprojected_catchment.area == 0:
+        return True
+    elif aoi.area == 0:
+        return False
+    elif not reprojected_catchment.valid:
         return False
 
     aoi_kms = aoi.area / 1000000
