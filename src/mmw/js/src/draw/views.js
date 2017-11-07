@@ -81,7 +81,10 @@ function validateRwdShape(result) {
             d.reject('Unfortunately, the watershed generated at this ' +
                      'location is not available for analysis');
         }
-        validateShape(result.watershed)
+        // Validate the shape as a multipolygon -- this is
+        // how it'll be displayed on the map, and sent to
+        // analyze
+        validateShape(coreUtils.toMultiPolygon(result.watershed))
             .done(function() {
                 d.resolve(result);
             })
