@@ -90,11 +90,14 @@ function cancelDrawing(map) {
 }
 
 function getGeoJsonLatLngs(shape) {
+    var nesting = 1;
+
     if (shape.coordinates) {
-        var nesting = shape.type === "MultiPolygon" ? 2 : 1;
+        nesting = shape.type === "MultiPolygon" ? 2 : 1;
         return L.GeoJSON.coordsToLatLngs(shape.coordinates, nesting);
     } else if (shape.geometry) {
-        return L.GeoJSON.coordsToLatLngs(shape.geometry.coordinates, 1);
+        nesting = shape.geometry.type === "MultiPolygon" ? 2 : 1;
+        return L.GeoJSON.coordsToLatLngs(shape.geometry.coordinates, nesting);
     } else if (shape.features) {
         var coordinates = [];
         _.forEach(shape.features, function(feature) {
