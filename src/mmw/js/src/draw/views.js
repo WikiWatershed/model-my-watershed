@@ -95,14 +95,26 @@ function validateRwdShape(result) {
 
 function validateShape(polygon) {
     var d = new $.Deferred(),
+        selfIntersectingShape = false,
+        invalidForAnalysis = false,
+        outsideConus = false;
+
+    try {
         selfIntersectingShape = turfKinks(polygon).features.length > 0;
+        invalidForAnalysis = !utils.isValidForAnalysis(polygon);
+        outsideConus = !utils.withinConus(polygon);
+    } catch (exc) {
+        d.reject('Error during geometry validation.');
+        console.error(exc);
+        return d.promise();
+    }
 
     if (selfIntersectingShape) {
         var errorMsg = 'This watershed shape is invalid because it intersects ' +
                        'itself. Try drawing the shape again without crossing ' +
                        'over its own border.';
         d.reject(errorMsg);
-    } else if (!utils.isValidForAnalysis(polygon)) {
+    } else if (invalidForAnalysis) {
         var maxArea = utils.MAX_AREA.toLocaleString(),
             selectedBoundingBoxArea = Math.floor(utils.shapeBoundingBoxArea(polygon)).toLocaleString(),
             message = 'Sorry, the bounding box of the selected area is too large ' +
@@ -110,7 +122,7 @@ function validateShape(polygon) {
                       'selected, but the maximum supported size is ' +
                       'currently ' + maxArea + '&nbsp;km².';
         d.reject(message);
-    } else if (!utils.withinConus(polygon)) {
+    } else if (outsideConus) {
         var conusMessage = 'The area of interest must be within the Continental US.';
         d.reject(conusMessage);
     } else {
