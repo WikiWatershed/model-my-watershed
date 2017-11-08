@@ -411,9 +411,16 @@ var AoIUploadView = Marionette.ItemView.extend({
     },
 
     handleGeoJSON: function(jsonString) {
-        var geojson = JSON.parse(jsonString);
+        var geojson = JSON.parse(jsonString),
+            polygon = utils.getPolygonFromGeoJson(geojson);
 
-        this.addPolygonToMap(geojson.features[0]);
+        if (polygon === null) {
+            this.handleShapefileError('Submitted JSON did not have ' +
+                '"coordinates" or "geometry" or "features" key. ' +
+                'Please submit a valid GeoJSON file.');
+        }
+
+        this.addPolygonToMap(polygon);
     },
 
     handleShpZip: function(zipfile) {

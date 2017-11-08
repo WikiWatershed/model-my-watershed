@@ -171,6 +171,35 @@ function withinConus(shape) {
     return intersect(settings.get('conus_perimeter'), shape);
 }
 
+function getPolygonFromGeoJson(geojson) {
+    var polygon = null;
+
+    if (geojson === null) {
+        return null;
+    }
+
+    if (geojson.coordinates) {
+        polygon = geojson;
+    } else if (geojson.geometry) {
+        polygon = geojson.geometry;
+    } else if (geojson.features &&
+               _.isArray(geojson.features) &&
+               geojson.features[0] &&
+               geojson.features[0].geometry) {
+
+        polygon = geojson.features[0].geometry;
+    }
+
+    if (polygon.type && (
+        polygon.type === "MultiPolygon" ||
+        polygon.type === "Polygon")) {
+
+        return polygon;
+    } else {
+        return null;
+    }
+}
+
 module.exports = {
     drawPolygon: drawPolygon,
     placeMarker: placeMarker,
@@ -181,6 +210,7 @@ module.exports = {
     shapeBoundingBoxArea: shapeBoundingBoxArea,
     isValidForAnalysis: isValidForAnalysis,
     withinConus: withinConus,
+    getPolygonFromGeoJson: getPolygonFromGeoJson,
     loadAsyncShpFilesFromZip: loadAsyncShpFilesFromZip,
     NHD: 'nhd',
     DRB: 'drb',
