@@ -22,7 +22,6 @@ var $ = require('jquery'),
     windowTmpl = require('./templates/window.html'),
     aoiUploadTmpl = require('./templates/aoiUpload.html'),
     drawToolTmpl = require('./templates/drawTool.html'),
-    settings = require('../core/settings'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views');
 
