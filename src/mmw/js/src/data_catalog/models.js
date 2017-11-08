@@ -421,6 +421,7 @@ var Result = Backbone.Model.extend({
             if (variables instanceof CuahsiVariables) {
                 variables.reset(response.variables);
                 delete response.variables;
+                delete this.fetchPromise;
             }
         }
 
