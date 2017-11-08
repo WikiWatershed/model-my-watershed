@@ -145,7 +145,9 @@ var App = new Marionette.Application({
         var loginModalView = new userViews.LoginModalView({
             model: new userModels.LoginFormModel({
                 showItsiButton: settings.get('itsi_enabled'),
-                successCallback:  function(loginResponse) {
+            },
+            {
+                onSuccess:  function(loginResponse) {
                     if (loginResponse.profile_was_skipped || loginResponse.profile_is_complete) {
                         if (onSuccess && _.isFunction(onSuccess)) {
                             onSuccess(loginResponse);
@@ -154,8 +156,8 @@ var App = new Marionette.Application({
                         loginModalView.$el.modal('hide');
                         loginModalView.$el.on('hidden.bs.modal', function() {
                             new userViews.UserProfileModalView({
-                                model: new userModels.UserProfileFormModel({
-                                    successCallback: onSuccess
+                                model: new userModels.UserProfileFormModel({}, {
+                                    onSuccess: onSuccess
                                 }),
                                 app: self
                             }).render();
@@ -169,8 +171,8 @@ var App = new Marionette.Application({
 
     showProfileModal: function (onSuccess) {
         new userViews.UserProfileModalView({
-            model: new userModels.UserProfileFormModel({
-                successCallback: onSuccess
+            model: new userModels.UserProfileFormModel({}, {
+                onSuccess: onSuccess
             }),
             app: this
         }).render();
