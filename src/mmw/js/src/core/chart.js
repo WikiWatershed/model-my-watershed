@@ -596,9 +596,45 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
     }, onRenderComplete);
 }
 
+function renderBulletChart(chartEl, title, subtitle, data) {
+    var chart = nv.models.bulletChart(),
+        svg = makeSvg(chartEl),
+        datum = {
+            title: title,
+            subtitle: subtitle,
+            measures: [data],
+            color: '#48c5d1',
+        },
+        adjustment = 1;
+
+    // Calculate max range of chart
+    // by rounding up to the next place
+    while (data < 1) {
+        data *= 10;
+        adjustment -= 1;
+    }
+    while (data > 10) {
+        data /= 10;
+        adjustment += 1;
+    }
+
+    datum.ranges = [0, 0, Math.pow(10, adjustment)];
+
+    chart.tooltip.valueFormatter(d3.format('.02f'));
+
+    d3.select(svg)
+        .datum(datum)
+        .call(chart);
+
+    removeTooltipOnDestroy(chartEl, chart.tooltip);
+
+    return chart;
+}
+
 module.exports = {
     renderHorizontalBarChart: renderHorizontalBarChart,
     renderVerticalBarChart: renderVerticalBarChart,
     renderLineChart: renderLineChart,
-    renderCompareMultibarChart: renderCompareMultibarChart
+    renderCompareMultibarChart: renderCompareMultibarChart,
+    renderBulletChart: renderBulletChart,
 };
