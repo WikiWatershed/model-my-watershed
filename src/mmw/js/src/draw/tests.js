@@ -26,6 +26,20 @@ var sandboxId = 'sandbox',
           [-75.16287803649902, 39.95161218948083],
           [-75.16518473625183, 39.95194939669509],
           [-75.16472339630127, 39.953446247674904]]]]
+    },
+    TEST_MULTIPOLYGON = TEST_SHAPE,
+    TEST_POLYGON = (function() {
+                        var x = _.clone(TEST_SHAPE);
+                        x.type = 'Polygon';
+                        return x; })(),
+    TEST_FEATURE = {
+        'type': 'Feature',
+        'properties': {},
+        'geometry': TEST_MULTIPOLYGON,
+    },
+    TEST_FEATURECOLLECTION = {
+        'type': 'FeatureCollection',
+        'features': [TEST_FEATURE],
     };
 
 var SandboxRegion = Marionette.Region.extend({
@@ -212,6 +226,17 @@ describe('Draw', function() {
             setup.view.resetDrawingState();
 
             assert.equal(spy.callCount, 1);
+        });
+    });
+
+    describe('DrawUtils', function() {
+        it ('parses GeoJSON correctly', function() {
+            var parse = utils.getPolygonFromGeoJson;
+
+            assert.equal(parse(TEST_POLYGON), TEST_POLYGON);
+            assert.equal(parse(TEST_MULTIPOLYGON), TEST_MULTIPOLYGON);
+            assert.equal(parse(TEST_FEATURE), TEST_MULTIPOLYGON);
+            assert.equal(parse(TEST_FEATURECOLLECTION), TEST_MULTIPOLYGON);
         });
     });
 });
