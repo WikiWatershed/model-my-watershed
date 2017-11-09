@@ -8,10 +8,8 @@
                 <p>Sorry, only saved {{ text }}s are able to be shared.  Please log in to share your work.</p>
             {% else %}
                 <div class="custom-input-group">
-                  <input id="share-url" type="text" required value="{{ url }}">
-                  <span class="highlight"></span>
-                  <span class="bar"></span>
-                  <label>URL</label>
+                  <label class="modal-text-input-label">URL</label>
+                  <input class="modal-text-input" id="share-url" type="text" required value="{{ url }}">
                 </div>
             {% endif %}
         </div>

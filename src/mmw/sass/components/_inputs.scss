@@ -39,118 +39,20 @@
   }
 }
 
-//Text Inputs
-.custom-input-group {
-  position: relative;
-  margin: 4rem 0;
-
-  input {
-    font-size: $font-size-p;
-    padding: 10px 10px 10px 0;
-    display: block;
-    width: 100%;
-    border: none;
-    border-bottom: 1px solid $black-24;
-  }
-  input:focus { outline:none; }
-
-  /* LABEL ======================================= */
-  label          {
-    color: $black-24;
-    font-size: $font-size-p;
-    font-weight: normal;
-    position: absolute;
-    pointer-events: none;
-    left: 0;
-    top: 10px;
-    transition: 0.2s ease all;
-    -moz-transition: 0.2s ease all;
-    -webkit-transition: 0.2s ease all;
-  }
-
-  /* active state */
-  input:focus ~ label, input:valid ~ label    {
-    top: -11px;
-    font-size: $font-size-h5;
-    color: $active;
-  }
-
-  /* BOTTOM BARS ================================= */
-  .bar {
-    position:relative;
-    display:block;
-    width:100%;
-  }
-
-  .bar:before, .bar:after   {
-    content:'';
-    height: 2px;
-    width: 0;
-    bottom: 1px;
-    position: absolute;
-    background: $active;
-    transition: 0.2s ease all;
-    -moz-transition: 0.2s ease all;
-    -webkit-transition: 0.2s ease all;
-  }
-  .bar:before {
-    left: 50%;
-  }
-  .bar:after {
-    right: 50%;
-  }
-
-  /* active state */
-  input:focus ~ .bar:before, input:focus ~ .bar:after {
-    width: 50%;
-  }
-
-  /* HIGHLIGHTER ================================== */
-  .highlight {
-    position: absolute;
-    height: 60%;
-    width: 100px;
-    top: 25%;
-    left: 0;
-    pointer-events: none;
-    opacity: 0.5;
-  }
-
-  /* active state */
-  input:focus ~ .highlight {
-    -webkit-animation: inputHighlighter 0.3s ease;
-    -moz-animation: inputHighlighter 0.3s ease;
-    animation: inputHighlighter 0.3s ease;
-  }
-
-  /* ANIMATIONS ================ */
-  @-webkit-keyframes inputHighlighter {
-    from { background:#5264AE; }
-    to  { width:0; background:transparent; }
-  }
-  @-moz-keyframes inputHighlighter {
-    from { background:#5264AE; }
-    to  { width:0; background:transparent; }
-  }
-  @keyframes inputHighlighter {
-    from { background:#5264AE; }
-    to  { width:0; background:transparent; }
-  }
-}
 
 //Select Inputs
-.custom-select-group {
-  position: relative;
-  margin: 4rem 0;
+.bootstrap-select {
+    margin: 0.5rem 0 2.5rem 0;
 
-  /* LABEL ======================================= */
-  label          {
-    left: 0;
-    top: -24px;
-    font-size: $font-size-h5;
-    color: $active;
-    font-weight: normal;
-    position: absolute;
-    pointer-events: none;
-  }
+    .btn-default {
+        color: inherit;
+        border-color: #dddddd;
+        padding: 0.75rem 0.5rem;
+        border-width: 1px;
+        border-radius: 0;
+    }
+
+    .btn-default:hover, .btn-default:focus {
+        background-color: inherit;
+    }
 }

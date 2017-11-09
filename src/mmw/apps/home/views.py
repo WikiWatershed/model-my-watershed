@@ -134,7 +134,8 @@ def get_client_settings(request):
     # BiG-CZ mode applies when either request host contains predefined host, or
     # ?bigcz query parameter is present. This covers staging sites, etc.
     bigcz = settings.BIGCZ_HOST in request.get_host() or 'bigcz' in request.GET
-    title = 'Critical Zone Data Explorer' if bigcz else 'Model My Watershed'
+    favicon = 'favicon-bigcz' if bigcz else 'favicon'
+    title = 'BiG CZ Data Portal' if bigcz else 'Model My Watershed'
     max_area = settings.BIGCZ_MAX_AREA if bigcz else settings.MMW_MAX_AREA
     EMBED_FLAG = settings.ITSI['embed_flag']
     client_settings = {
@@ -168,6 +169,8 @@ def get_client_settings(request):
         }),
         'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
         'title': title,
+        'favicon': favicon + '.png',
+        'favicon2x': favicon + '@2x.png',
     }
 
     return client_settings

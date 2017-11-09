@@ -1,19 +1,26 @@
 {% extends './baseModal.html' %}
 
+{% block header %}
+    <h2 class="light">Reset password</h2>
+{% endblock %}
+
 {% block form %}
     {% if success %}
-        Please check your email to reset your account.
+        <p>Please check your email to reset your account.</p>
+        <button type="button" class="btn btn-lg btn-block btn-active" data-dismiss="modal">Continue as guest</button>
     {% else %}
+        <p>
+            Don't remember your password? We'll send you a reset link to your email.
+        </p>
         {{ field(email, 'email', 'Email', 'email') }}
-        {{ checkbox(username, 'username', 'Forgot Username') }}
-        {{ checkbox(password, 'password', 'Forgot Password') }}
+        <button type="button" class="btn btn-lg btn-block btn-active" id="primary-button">Reset password</button>
     {% endif %}
 {% endblock %}
 
 {% block footer %}
-    {% if success %}
-        <button type="button" class="btn btn-lg btn-block btn-active" data-dismiss="modal">Continue As Guest</button>
-    {% else %}
-        <button type="button" class="btn btn-lg btn-block btn-active" id="primary-button">Retrieve</button>
+    {% if not success %}
+        <div class="footer-content">
+            <h3 class="text-muted">Don't have an account? <a class="sign-up" data-dismiss="modal">Register</a></h3>
+        </div>
     {% endif %}
 {% endblock %}

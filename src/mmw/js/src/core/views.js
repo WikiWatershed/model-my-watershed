@@ -136,6 +136,8 @@ var HeaderView = Marionette.ItemView.extend({
         return {
             'title': settings.get('title'),
             'itsi_embed': settings.get('itsi_embed'),
+            'aboutLink': settings.get('data_catalog_enabled') ?
+                'https://bigcz.org/' : 'https://wikiwatershed.org/',
         };
     },
 

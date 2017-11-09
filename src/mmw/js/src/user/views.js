@@ -373,8 +373,15 @@ var SignUpModalView = ModalBaseView.extend({
         'username': '#username',
         'email': '#email',
         'password1': '#password1',
-        'password2': '#password2'
+        'password2': '#password2',
+        'login': '.login',
+        'resend': '.resend',
     }, ModalBaseView.prototype.ui),
+
+    events: _.defaults({
+        'click @ui.login': 'login',
+        'click @ui.resend': 'resend',
+    }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
         this.ui.username.focus();
@@ -402,6 +409,28 @@ var SignUpModalView = ModalBaseView.extend({
 
     dismissAction: function() {
         this.app.showLoginModal();
+    },
+
+    login: function() {
+        this.$el.modal('hide');
+        var self = this;
+        this.$el.on('hidden.bs.modal', function() {
+            new LoginModalView({
+                app: self.app,
+                model: new models.LoginFormModel()
+            }).render();
+        });
+    },
+
+    resend: function() {
+        this.$el.modal('hide');
+        var self = this;
+        this.$el.on('hidden.bs.modal', function() {
+            new ResendModalView({
+                app: self.app,
+                model: new models.ResendFormModel()
+            }).render();
+        });
     }
 });
 
@@ -448,9 +477,12 @@ var ForgotModalView = ModalBaseView.extend({
 
     ui: _.defaults({
         'email': '#email',
-        'username': '#username',
-        'password': '#password'
+        'signUp': '.sign-up'
     }, ModalBaseView.prototype.ui),
+
+    events: _.defaults({
+        'click @ui.signUp': 'signUp'
+    }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
         this.ui.email.focus();
@@ -462,10 +494,19 @@ var ForgotModalView = ModalBaseView.extend({
 
     setFields: function() {
         this.model.set({
-            email: $(this.ui.email.selector).val(),
-            username: $(this.ui.username.selector).prop('checked'),
-            password: $(this.ui.password.selector).prop('checked')
+            email: $(this.ui.email.selector).val()
         }, { silent: true });
+    },
+
+    signUp: function() {
+        this.$el.modal('hide');
+        var self = this;
+        this.$el.on('hidden.bs.modal', function() {
+            new SignUpModalView({
+                app: self.app,
+                model: new models.SignUpFormModel({})
+            }).render();
+        });
     }
 });
 

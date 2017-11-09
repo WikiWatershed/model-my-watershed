@@ -13,6 +13,11 @@ var PAGE_SIZE = settings.get('data_catalog_page_size');
 var DATE_FORMAT = 'MM/DD/YYYY';
 var WATERML_VARIABLE_TIME_INTERVAL = '{http://www.cuahsi.org/water_ml/1.1/}variable_time_interval';
 
+var SERVICE_PERIODS = {
+    'NWISUV': 'months',  // For NWISUV sites, fetch 1 month of data
+    '*'     : 'years',   // For all else, fetch 1 year of data
+};
+
 
 var FilterModel = Backbone.Model.extend({
     defaults: {
@@ -416,6 +421,7 @@ var Result = Backbone.Model.extend({
             if (variables instanceof CuahsiVariables) {
                 variables.reset(response.variables);
                 delete response.variables;
+                delete this.fetchPromise;
             }
         }
 
@@ -540,8 +546,6 @@ var Result = Backbone.Model.extend({
         var fields = [
             this.get('id').toLowerCase(),
             this.get('title').toLowerCase(),
-            this.get('description').toLowerCase(),
-            (this.get('service_citation') || '').toLowerCase(),
             (this.get('service_title') || '').toLowerCase(),
             (this.get('service_org') || '').toLowerCase(),
             this.get('sample_mediums').join(' ').toLowerCase(),
@@ -711,14 +715,16 @@ var CuahsiVariable = Backbone.Model.extend({
                 wsdl: this.get('wsdl'),
                 site: this.get('site'),
                 variable: this.get('id'),
-            };
+            },
+            service = params.site.split(':')[0],
+            duration = SERVICE_PERIODS[service] || 'years';
 
         // If neither from date nor to date is specified, set time interval
-        // to be either from begin date to end date, or 1 week up to end date,
-        // whichever is shorter.
+        // to be either from begin date to end date, or 1 `duration` up to end
+        // date, whichever is shorter.
         if (!from || moment(from).isBefore(begin_date)) {
-            if (end_date.diff(begin_date, 'years', true) > 1) {
-                params.from_date = moment(end_date).subtract(1, 'years');
+            if (end_date.diff(begin_date, duration, true) > 1) {
+                params.from_date = moment(end_date).subtract(1, duration);
             } else {
                 params.from_date = begin_date;
             }

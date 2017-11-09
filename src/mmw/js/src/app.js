@@ -141,26 +141,29 @@ var App = new Marionette.Application({
 
 
     showLoginModal: function(onSuccess) {
-        var self = this,
-            promptForProfileIfIncomplete = function(loginResponse) {
-                if (loginResponse.profile_was_skipped || loginResponse.profile_is_complete) {
-                    if (onSuccess && _.isFunction(onSuccess)) {
-                        onSuccess(loginResponse);
-                    }
-                } else {
-                    new userViews.UserProfileModalView({
-                        model: new userModels.UserProfileFormModel({
-                            successCallback: onSuccess
-                        }),
-                        app: self
-                    }).render();
-                }
-            };
-
-        new userViews.LoginModalView({
+        var self = this;
+        var loginModalView = new userViews.LoginModalView({
             model: new userModels.LoginFormModel({
                 showItsiButton: settings.get('itsi_enabled'),
-                successCallback: promptForProfileIfIncomplete
+            },
+            {
+                onSuccess:  function(loginResponse) {
+                    if (loginResponse.profile_was_skipped || loginResponse.profile_is_complete) {
+                        if (onSuccess && _.isFunction(onSuccess)) {
+                            onSuccess(loginResponse);
+                        }
+                    } else {
+                        loginModalView.$el.modal('hide');
+                        loginModalView.$el.on('hidden.bs.modal', function() {
+                            new userViews.UserProfileModalView({
+                                model: new userModels.UserProfileFormModel({}, {
+                                    onSuccess: onSuccess
+                                }),
+                                app: self
+                            }).render();
+                        });
+                    }
+                }
             }),
             app: self
         }).render();
@@ -168,8 +171,8 @@ var App = new Marionette.Application({
 
     showProfileModal: function (onSuccess) {
         new userViews.UserProfileModalView({
-            model: new userModels.UserProfileFormModel({
-                successCallback: onSuccess
+            model: new userModels.UserProfileFormModel({}, {
+                onSuccess: onSuccess
             }),
             app: this
         }).render();
@@ -230,12 +233,16 @@ function toggleCompareViewForITSIScreenshot(adjustForScreenshot) {
         compareCloseButton = '.compare-close',
         compareChartButton = '#compare-input-button-chart',
         compareTableButton = '#compare-input-button-table',
+        compareSections = '.compare-sections',
         compareChartRow = '.compare-chart-row',
         compareTableRow = '.compare-table-row',
         compareScenariosRow = '.compare-scenarios',
         compareMapsRow = '.compare-scenario-row-content';
 
     if (adjustForScreenshot) {
+        $(compareSections + '> div').css('margin-top',
+            '-' + $(compareSections).scrollTop() + 'px'
+        );
         $(compareDialog).addClass(itsiCompareDialog);
         $(compareModalContent).addClass(itsiCompareModal);
         $(compareCloseButton).hide();
@@ -261,6 +268,12 @@ function toggleCompareViewForITSIScreenshot(adjustForScreenshot) {
         } else if ($(compareTableRow).length) {
             $(compareTableRow).removeClass(itsiCompareRow);
         }
+
+        var mtString = $(compareSections + '> div').css('margin-top'),
+            marginTop = parseInt(mtString.substring(1, mtString.length - 2));
+
+        $(compareSections + '> div').css('margin-top', '');
+        $(compareSections).scrollTop(marginTop);
     }
 }
 

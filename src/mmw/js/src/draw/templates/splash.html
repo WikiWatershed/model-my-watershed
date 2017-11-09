@@ -1,37 +1,113 @@
 <h1>
-    Model My Watershed: Explore, analyze and model human impacts on your watershed
+    {{ splashPageText.heading }}
 </h1>
 
 <p>
-    Analyze real geo-data, model storms, and compare potential impact of conservation and development scenarios in a watershed.
+    {{ splashPageText.subheading }}
 </p>
 
 <div class="splash-step">
-    <h2><span class="badge">1</span>Select Area</h2>
+    <h2>
+        <span class="badge">
+            1
+        </span>
+        {{ splashPageText.drawToolOneName }}
+    </h2>
     <p>
-        Explore map layers and select an area of interest.
+        {{ splashPageText.drawToolOneDescription }}
     </p>
 </div>
 <div class="splash-step">
-    <h2><span class="badge">2</span>Analyze</h2>
+    <h2>
+        <span class="badge">
+            2
+        </span>
+        {{ splashPageText.drawToolTwoName }}
+    </h2>
     <p>
-        See land cover, soil groups, point sources and other factors impacting water.
+        {{ splashPageText.drawToolTwoDescription }}
     </p>
 </div>
 <div class="splash-step">
-    <h2><span class="badge">3</span>Model</h2>
+    <h2>
+        <span class="badge">
+            3
+        </span>
+        {{ splashPageText.drawToolThreeName }}
+    </h2>
     <p>
-        Use one of two models to simulate different scenarios of human impacts on water.
+        {{ splashPageText.drawToolThreeDescription }}
     </p>
+    {% if dataCatalogEnabled %}
+        <ol type="i">
+            <li>
+                CINERGI
+                <a data-toggle="popover" tabindex="0"
+                   data-html="true" data-container="body" role="button"
+                   data-content="The Community Inventory of EarthCube Resources for Geosciences Interoperability (CINERGI) Data Portal is a catalog of databases, services and data portals developed by numerous organizations representing a diversity of geoscience domains. Explore CINERGI at <a href='http://cinergi.sdsc.edu/' target='_blank' rel='noreferrer noopener'>http://cinergi.sdsc.edu/</a>"
+                   data-template="<div class='popover'><div class='pull-right' id='popover-close-button' onclick='closePopover()'><i class='fa fa-times' /></div><div class='popover-content'></div><div class='arrow'></div></div>">
+                    <i class="fa fa-info-circle black"></i>
+                </a>
+            </li>
+            <li>
+                HydroShare
+                <a data-toggle="popover" tabindex="0"
+                   data-html="true" data-container="body" role="button"
+                   data-content="HydroShare is an online collaborative environment for sharing hydrologic data and models. Its goal is to facilitate creation, collaboration around, discovery and access to data and model resources shared by members of the Hydrology community. See <a href='https://www.hydroshare.org/' target='_blank' rel='noreferrer noopener'>https://www.hydroshare.org/</a>"
+                   data-template="<div class='popover'><div class='pull-right' id='popover-close-button' onclick='closePopover()'><i class='fa fa-times' /></div><div class='popover-content'></div><div class='arrow'></div></div>">
+                    <i class="fa fa-info-circle black"></i>
+                </a>
+            </li>
+            <li>
+                CUAHSI Water Data Center (WDC)
+                <a data-toggle="popover" tabindex="0"
+                   data-html="true" data-container="body" role="button"
+                   data-content="The Consortium of Universities for the Advancement of Hydrologic Science, Inc. (CUAHSI) Water Data Center (WDC) provides tools for data access, analysis and collaboration, including a Catalog of hydrological time series data available as Water One Flow (WOF) and WaterML web services. See <a href='https://www.hydroshare.org/' target='_blank' rel='noreferrer noopener'>https://www.cuahsi.org/data-models/discovery-and-analysis/</a>"
+                   data-template="<div class='popover'><div class='pull-right' id='popover-close-button' onclick='closePopover()'><i class='fa fa-times' /></div><div class='popover-content'></div><div class='arrow'></div></div>">
+                    <i class="fa fa-info-circle black"></i>
+                </a>
+            </li>
+        </ol>
+    {% endif %}
 </div>
 
-<a target="_blank" href="http://www.stroudcenter.org/"><img class="splash-logo" src="/static/images/logo-stroud.png" alt="Stroud Logo" /></a>
-<a target="_blank" href="http://www.wikiwatershed.org/"><img class="splash-logo" src="/static/images/logo-wikiwatershed.png" alt="WikiWatershed Logo" /></a>
+<div style="padding: 15px 0;"><!-- spacer --></div>
+
+<button id="get-started" class="btn btn-active btn-lg btn-block" type="button">
+    {{ splashPageText.getStartedButtonTitle }}
+    <i class="fa fa-arrow-right"></i>
+</button>
+
+{% if dataCatalogEnabled %}
+<button class="btn btn-link btn-block">
+    <a href="{{ splashPageText.bigCZLink }}">
+        {{ splashPageText.bigCZLinkTitle }}
+    </a>
+</button>
+{% else %}
+<button id="splash-open-project" class="btn btn-link btn-block">
+    {{ splashPageText.openProjectButtonTitle }}
+</button>
+{% endif %}
 
 <hr/>
 
-<button id="get-started" class="btn btn-active btn-lg btn-block" type="button">
-    Get started <i class="fa fa-arrow-right"></i>
-</button>
+<div class="center">
+{% if dataCatalogEnabled %}
+<a target="_blank" href="http://bigcz.org/"><img class="splash-logo" src="/static/images/logo-bigcz.png" alt="BiG CZ Logo" /></a>
+{% else %}
+<a target="_blank" href="http://www.wikiwatershed.org/"><img class="splash-logo" src="/static/images/logo-wikiwatershed.png" alt="WikiWatershed Logo" /></a>
+{% endif %}
+</div>
 
-<button id="splash-open-project" class="btn btn-link btn-block">Open Project</button>
+<p>Supported by:</p>
+
+{% if dataCatalogEnabled %}
+<a target="_blank" href="https://www.nsf.gov/"><img class="splash-sponsor-logo" src="/static/images/logo-nsf.png" alt="National Science Foundation Logo" /></a>
+<a target="_blank" href="http://www.williampennfoundation.org/"><img class="splash-sponsor-logo" src="/static/images/logo-wpf.png" alt="William Penn Foundation Logo" /></a>
+<a target="_blank" href="http://www.stroudcenter.org/"><img class="splash-sponsor-logo" src="/static/images/logo-stroud.png" alt="Stroud Logo" /></a>
+{% else %}
+<a target="_blank" href="http://www.williampennfoundation.org/"><img class="splash-sponsor-logo" src="/static/images/logo-wpf.png" alt="William Penn Foundation Logo" /></a>
+<a target="_blank" href="https://www.nsf.gov/"><img class="splash-sponsor-logo" src="/static/images/logo-nsf.png" alt="National Science Foundation Logo" /></a>
+<a target="_blank" href="http://www.stroudcenter.org/"><img class="splash-sponsor-logo" src="/static/images/logo-stroud.png" alt="Stroud Logo" /></a>
+{% endif %}
