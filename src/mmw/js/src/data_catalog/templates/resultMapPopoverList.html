@@ -1,0 +1,27 @@
+<h5 class="data-catalog-popover-num-results">
+    {{ numResults }} results found at <br>
+    this location
+</h5>
+<ul class="data-catalog-popover-result-list"></ul>
+
+{% if hasPrevPage or hasNextPage %}
+
+<h5 class="data-catalog-popover-pagination">
+    <button class="data-catalog-popover-pagination-btn"
+            data-action="prev-page"
+            {{ "disabled" if not hasPrevPage }}
+    >
+        <i class="fa fa-chevron-left"></i>
+    </button>
+
+    Page {{ pageNum }} of {{ numPages }}
+
+    <button class="data-catalog-popover-pagination-btn"
+            data-action="next-page"
+            {{ "disabled" if not hasNextPage }}
+    >
+        <i class="fa fa-chevron-right"></i>
+    </button>
+</h5>
+
+{% endif %}

@@ -68,6 +68,12 @@
     .tab-content {
       // Set a specific height to allow y-scroll:
       height: 100% !important;
+
+      &.analyze-tab-content {
+        // Height under the main header (height-lg), the analyze / data bar
+        // header (height-xl) and the tabs (42px)
+        height: calc(100% - #{$height-lg} - #{$height-xl} - 42px) !important;
+      }
     }
 }
 

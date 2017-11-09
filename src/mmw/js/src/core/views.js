@@ -7,6 +7,7 @@ var L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
     TransitionRegion = require('../../shim/marionette.transition-region'),
     coreUtils = require('./utils'),
+    models = require('./models'),
     drawUtils = require('../draw/utils'),
     modificationConfigUtils = require('../modeling/modificationConfigUtils'),
     headerTmpl = require('./templates/header.html'),
@@ -25,7 +26,8 @@ var dataCatalogPolygonStyle = {
     color: 'steelblue',
     weight: 2,
     opacity: 1,
-    fill: false
+    fill: true,
+    fillOpacity: 0,
 };
 
 var dataCatalogPointStyle = _.assign({}, dataCatalogPolygonStyle, {
@@ -110,7 +112,8 @@ var HeaderView = Marionette.ItemView.extend({
     ui: {
         login: '.show-login',
         logout: '.user-logout',
-        cloneProject: '.clone-project'
+        cloneProject: '.clone-project',
+        skippedProfilePopover: '[data-toggle="popover"]',
     },
 
     events: {
@@ -133,6 +136,8 @@ var HeaderView = Marionette.ItemView.extend({
         return {
             'title': settings.get('title'),
             'itsi_embed': settings.get('itsi_embed'),
+            'aboutLink': settings.get('data_catalog_enabled') ?
+                'https://bigcz.org/' : 'https://wikiwatershed.org/',
         };
     },
 
@@ -183,7 +188,25 @@ var HeaderView = Marionette.ItemView.extend({
                 });
         });
         view.render();
-    }
+    },
+
+    onRender: function() {
+        if (this.model.get('show_profile_popover')) {
+            this.ui.skippedProfilePopover.popover({
+                placement: 'bottom',
+                trigger: 'manual',
+                viewport: {
+                    'selector': '.map-container',
+                    'padding': 10
+                }
+            });
+            this.ui.skippedProfilePopover.popover('show');
+            this.$el.find('#popover-close-button').on('click', _.bind(function() {
+                this.ui.skippedProfilePopover.popover('hide');
+                this.model.set('show_profile_popover', false);
+            }, this));
+        }
+    },
 });
 
 // Init the locate plugin button and add it to the map.
@@ -736,7 +759,9 @@ var MapView = Marionette.ItemView.extend({
             onEachFeature: function(feature, layer) {
                 layer.on('mouseover', function() {
                     // Only highlight the layer if detail mode is not active
-                    if (self._dataCatalogDetailLayer.getLayers().length === 0) {
+                    // and the layer bounds are within the viewport
+                    if (self._dataCatalogDetailLayer.getLayers().length === 0 &&
+                        self._leafletMap.getBounds().contains(layer.getBounds())) {
                         layer.setStyle(dataCatalogActiveStyle);
                         result.set('active', true);
                     }
@@ -747,7 +772,7 @@ var MapView = Marionette.ItemView.extend({
                         if (geom.type === 'Point') {
                             // Preserve highlight of marker if popup is open.
                             // It will get restyled when the popup is closed.
-                            if (!layer._popup._isOpen) {
+                            if (!layer._popup || !layer._popup._isOpen) {
                                 layer.setStyle(dataCatalogPointStyle);
                                 result.set('active', false);
                             }
@@ -772,6 +797,9 @@ var MapView = Marionette.ItemView.extend({
                 this._dataCatalogResultsLayer.addLayer(layer);
             }
         }, this);
+
+        // Close any popup that might be on the map
+        this._leafletMap.closePopup();
     },
 
     renderDataCatalogActiveResult: function() {
@@ -786,11 +814,14 @@ var MapView = Marionette.ItemView.extend({
 
         this._renderDataCatalogResult(result, this._dataCatalogDetailLayer,
             'bigcz-detail-map', dataCatalogDetailStyle);
+
+        // Close any popup that might be on the map
+        this._leafletMap.closePopup();
     },
 
     _renderDataCatalogResult: function(result, featureGroup, className, style) {
         featureGroup.clearLayers();
-        this.$el.removeClass(className);
+        $("div.map-highlight").remove();
 
         // If nothing is selected, exit early
         if (!result) { return; }
@@ -801,7 +832,11 @@ var MapView = Marionette.ItemView.extend({
         if (geom) {
             if ((geom.type === 'MultiPolygon' || geom.type === 'Polygon') &&
                 drawUtils.shapeBoundingBox(geom).contains(mapBounds)) {
-                this.$el.addClass(className);
+
+                $(".map-container")
+                    .append('<div class="map-highlight ' +
+                            className +
+                            '"></div>');
             } else {
                 var layer = this.createDataCatalogShape(result);
                 layer.setStyle(style);
@@ -810,22 +845,90 @@ var MapView = Marionette.ItemView.extend({
         }
     },
 
-    bindDataCatalogPopovers: function(PopoverView, catalogId, resultModels) {
-        this._dataCatalogResultsLayer.eachLayer(function(layer) {
-            var result = resultModels.findWhere({ id: layer.options.id });
-            layer.on('popupopen', function() {
-                layer.setStyle(dataCatalogActiveStyle);
-                result.set('active', true);
-            });
-            layer.on('popupclose', function() {
-                layer.setStyle(dataCatalogPointStyle);
-                result.set('active', false);
-            });
-            layer.bindPopup(new PopoverView({
-                    model: result,
-                    catalog: catalogId
-                }).render().el, { className: 'data-catalog-popover' });
-        });
+    bindDataCatalogPopovers: function(SinglePopoverView, ListPopoverView,
+                                      catalogId, resultModels) {
+        var self = this,
+            handleClick = function(e) {
+                var clickPoint = e.layerPoint,
+                    clickLatLng = e.latlng,
+
+                    intersectsClickBounds = function(layer) {
+                        var shape = layer.getLayers()[0];
+
+                        if (shape instanceof L.Polygon) {
+                            return shape.getBounds().contains(clickLatLng);
+                        }
+
+                        if (shape instanceof L.Circle) {
+                            return shape._point.distanceTo(clickPoint) <= shape._radius;
+                        }
+
+                        return false;
+                    },
+
+                    // Get a list of results intersecting the clicked point
+                    intersectingFeatures = _.filter(e.target._layers,
+                                                    intersectsClickBounds);
+
+                // If nothing intersected the clicked point, finish
+                if (intersectingFeatures.length === 0) {
+                    return;
+                }
+
+                // If only a single feature intersected the clicked point
+                // show its detail popup, put active styling on the feature
+                if (intersectingFeatures.length === 1) {
+                    var layer = intersectingFeatures[0],
+                        result = resultModels.findWhere({ id: layer.options.id });
+
+                    layer.bindPopup(new SinglePopoverView({
+                        model: result,
+                        catalog: catalogId
+                    }).render().el, { className: 'data-catalog-popover'});
+
+                    layer.openPopup();
+                    layer.setStyle(dataCatalogActiveStyle);
+                    result.set('active', true);
+
+                    layer.once('popupclose', function() {
+                        layer.setStyle(dataCatalogPointStyle);
+                        result.set('active', false);
+                    });
+
+                    return;
+                }
+
+                // For multiple intersecting features, show the list popup
+                var id = function(layer) { return layer.options.id; },
+                    intersectingFeatureIds = _.map(intersectingFeatures, id),
+                    resultIntersects = function(result) {
+                        return _.includes(intersectingFeatureIds, result.get('id'));
+                    },
+                    intersectingResults = resultModels.filter(resultIntersects);
+
+                self._leafletMap.openPopup(
+                    new ListPopoverView({
+                        collection:
+                        new models.DataCatalogPopoverResultCollection(intersectingResults),
+                        catalog: catalogId
+                    }).render().el,
+                    clickLatLng,
+                    { className: 'data-catalog-popover-list' });
+
+                self._leafletMap.once('popupclose', function() {
+                    self.model.set('dataCatalogActiveResult', null);
+                    _.forEach(intersectingResults, function(result) {
+                        result.set('active', false);
+                    });
+                });
+        };
+
+        // Remove all existing event listeners/popups that might be from the other catalogs
+        this._dataCatalogResultsLayer.removeEventListener();
+        this._leafletMap.closePopup();
+
+        // Listen for clicks on the currently active layer
+        this._dataCatalogResultsLayer.on('click', handleClick);
     },
 
     renderSelectedGeocoderArea: function() {

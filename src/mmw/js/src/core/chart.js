@@ -283,7 +283,8 @@ function renderLineChart(chartEl, data, options) {
 
     options = options || {};
     _.defaults(options, {
-        margin: {top: 20, right: 30, bottom: 40, left: 60}
+        margin: {top: 20, right: 30, bottom: 40, left: 60},
+        yTickFormat: '.02f',
     });
 
     nv.addGraph(function() {
@@ -298,7 +299,7 @@ function renderLineChart(chartEl, data, options) {
 
         chart.yAxis
             .axisLabel(options.yAxisLabel)
-            .tickFormat(d3.format('.02f'));
+            .tickFormat(d3.format(options.yTickFormat));
 
         chart.tooltip.valueFormatter(function(d) {
             return chart.yAxis.tickFormat()(d) + ' ' + options.yAxisUnit;

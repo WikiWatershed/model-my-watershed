@@ -10,6 +10,7 @@ var $ = require('jquery'),
     layerPickerGroupTmpl = require('./templates/layerPickerGroup.html'),
     layerPickerLayerTmpl = require('./templates/layerPickerLayer.html'),
     layerPickerLegendTmpl = require('./templates/layerPickerLegend.html'),
+    layerPickerColorRampLegendTmpl = require('./templates/layerPickerColorRampLegendTmpl.html'),
     layerPickerNavTmpl = require('./templates/layerPickerNav.html'),
     opacityControlTmpl = require('./templates/opacityControl.html'),
     timeSliderTmpl = require('./templates/timeSliderControl.html');
@@ -112,6 +113,18 @@ var LayerPickerLegendView = Marionette.ItemView.extend({
     }
 });
 
+var LayerPickerColorRampLegendView = Marionette.ItemView.extend({
+    template: layerPickerColorRampLegendTmpl,
+
+    templateHelpers: function() {
+        return {
+            colorRampId: this.model.get('colorRampId'),
+            legendUnitsLabel: this.model.get('legendUnitsLabel'),
+            legendUnitBreaks: this.model.get('legendUnitBreaks'),
+        };
+    }
+});
+
 /* The individual layers in each layer group */
 var LayerPickerLayerView = Marionette.ItemView.extend({
     template: layerPickerLayerTmpl,
@@ -133,21 +146,24 @@ var LayerPickerLayerView = Marionette.ItemView.extend({
             layerDisplay: this.model.get('display'),
             layerClass: this.model.get('active') ? 'layerpicker-title active' : 'layerpicker-title',
             isDisabled: this.model.get('disabled'),
+            useColorRamp: this.model.get('useColorRamp')
         };
     },
 
     onRender: function() {
+        var legendTooltipContent = this.model.get('useColorRamp') ?
+            new LayerPickerColorRampLegendView({ model: this.model }) :
+            new LayerPickerLegendView({ model: this.model });
+
         this.ui.layerHelpIcon.popover({
             trigger: 'focus',
             viewport: {
                 'selector': '.map-container',
                 'padding': 10
             },
-            content: new LayerPickerLegendView({
-                model: this.model,
-            }).render().el
+            content: legendTooltipContent.render().el
         });
-    },
+    }
 });
 
 /* The list of layers in a layer group */
@@ -202,6 +218,7 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
     },
 
     modelEvents: {
+        'change': 'render',
         'toggle:layer': 'addLayerControls',
     },
 

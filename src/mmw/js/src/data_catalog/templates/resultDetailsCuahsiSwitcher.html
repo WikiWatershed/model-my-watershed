@@ -1,0 +1,7 @@
+<div class="cuahsi-buttons pull-right {{ "hidden" if fetching }}">
+    <button id="cuahsi-button-table" class="{{ 'active' if mode == 'table' }}"><i class="fa fa-table"></i></button>
+    <button id="cuahsi-button-chart" class="{{ 'active' if mode == 'chart' }}"><i class="fa fa-bar-chart"></i></button>
+</div>
+<p>
+    Last value collected {{ last_date|toTimeAgo }}
+</p>

@@ -1,0 +1,18 @@
+<div class="resource-wrapper {{ 'active' if active }}">
+    <h3 class="resource-title">
+        {{ title }}
+    </h3>
+    {% if author %}
+        <div class="resource-author">
+            <i class="fa fa-user"></i> {{ author }}
+        </div>
+    {% endif %}
+    <div class="resource-date">
+        <i class="fa fa-calendar"></i>
+        {% if begin_date %}
+            {{ begin_date|toDateWithoutTime }}&thinsp;&ndash;&thinsp;{{ end_date|toDateWithoutTime }}
+        {% else %}
+            Unknown Time Period
+        {% endif %}
+    </div>
+</div>

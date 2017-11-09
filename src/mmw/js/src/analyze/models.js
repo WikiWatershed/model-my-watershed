@@ -5,7 +5,8 @@ var $ = require('jquery'),
     Backbone = require('../../shim/backbone'),
     settings = require('../core/settings'),
     utils = require('../core/utils'),
-    coreModels = require('../core/models');
+    coreModels = require('../core/models'),
+    turfArea = require('turf-area');
 
 var LayerModel = Backbone.Model.extend({});
 
@@ -28,7 +29,8 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
             area_of_interest: null,
             wkaoi: null,
             taskName: 'analyze',
-            taskType: 'api'
+            taskType: 'api',
+            token: settings.get('api_token')
         }, coreModels.TaskModel.prototype.defaults
     ),
 
@@ -43,6 +45,11 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
             result = self.get('result');
 
         if (aoi && !result && self.fetchAnalysisPromise === undefined) {
+            var gaEvent = self.get('name') + '-analyze',
+                gaLabel = utils.isInDrb(aoi) ? 'drb-aoi' : 'national-aoi',
+                gaAoiSize = turfArea(aoi) / 1000000;
+            window.ga('send', 'event', 'Analyze', gaEvent, gaLabel, parseInt(gaAoiSize));
+
             var isWkaoi = utils.isWKAoIValid(wkaoi),
                 taskHelper = {
                     contentType: 'application/json',

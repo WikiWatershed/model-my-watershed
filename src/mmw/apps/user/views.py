@@ -1,12 +1,14 @@
 from uuid import uuid1
 
 from django.contrib.auth import (authenticate,
+                                 update_session_auth_hash,
                                  logout as auth_logout,
                                  login as auth_login)
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.shortcuts import redirect
-from django.contrib.auth.forms import PasswordResetForm
+from django.contrib.auth.forms import (PasswordResetForm,
+                                       PasswordChangeForm)
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.sites.shortcuts import get_current_site
 from django.conf import settings
@@ -17,10 +19,12 @@ from registration.backends.default.views import RegistrationView
 
 from rest_framework import decorators, status
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import (AllowAny,
+                                        IsAuthenticated)
 
-from apps.user.models import ItsiUser
+from apps.user.models import ItsiUser, UserProfile
 from apps.user.itsi import ItsiService
+from apps.user.serializers import UserProfileSerializer
 
 EMBED_FLAG = settings.ITSI['embed_flag']
 
@@ -31,6 +35,26 @@ def login(request):
     response_data = {}
     status_code = status.HTTP_200_OK
 
+    def make_successful_response_data(user):
+        profile, created = UserProfile.objects.get_or_create(user=user)
+        return {
+            'result': 'success',
+            'username': user.username,
+            'itsi': ItsiUser.objects.filter(user_id=user.id).exists(),
+            'guest': False,
+            'id': user.id,
+            'profile_was_skipped': profile.was_skipped,
+            'profile_is_complete': profile.is_complete,
+            'profile': {
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'organization': profile.organization,
+                'country': profile.country,
+                'user_type': profile.user_type,
+                'postal_code': profile.postal_code,
+            }
+        }
+
     if request.method == 'POST':
         user = authenticate(username=request.REQUEST.get('username'),
                             password=request.REQUEST.get('password'))
@@ -38,13 +62,7 @@ def login(request):
         if user is not None:
             if user.is_active:
                 auth_login(request, user)
-                response_data = {
-                    'result': 'success',
-                    'username': user.username,
-                    'itsi': ItsiUser.objects.filter(user_id=user.id).exists(),
-                    'guest': False,
-                    'id': user.id
-                }
+                response_data = make_successful_response_data(user)
             else:
                 response_data = {
                     'errors': ['Please activate your account'],
@@ -62,15 +80,8 @@ def login(request):
 
     elif request.method == 'GET':
         user = request.user
-
         if user.is_authenticated() and user.is_active:
-            response_data = {
-                'result': 'success',
-                'username': user.username,
-                'itsi': ItsiUser.objects.filter(user_id=user.id).exists(),
-                'guest': False,
-                'id': user.id
-            }
+            response_data = make_successful_response_data(user)
         else:
             response_data = {
                 'result': 'success',
@@ -81,6 +92,27 @@ def login(request):
         status_code = status.HTTP_200_OK
 
     return Response(data=response_data, status=status_code)
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((IsAuthenticated, ))
+def profile(request):
+    data = request.data
+    if 'was_skipped' in data:
+        data['was_skipped'] = str(data['was_skipped']).lower() == 'true'
+        data['is_complete'] = not data['was_skipped']
+    else:
+        data['is_complete'] = True
+
+    data['user_id'] = request.user.pk
+
+    serializer = UserProfileSerializer(data=data,
+                                       context={"request": request})
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @decorators.api_view(['GET'])
@@ -104,7 +136,7 @@ itsi = ItsiService()
 
 def itsi_login(request):
     redirect_uri = '{0}?next={1}'.format(
-        request.build_absolute_uri(reverse(itsi_auth)),
+        request.build_absolute_uri(reverse('user:itsi_auth')),
         request.GET.get('next', '/')
     )
     params = {'redirect_uri': redirect_uri}
@@ -288,6 +320,22 @@ def forgot(request):
             status_code = status.HTTP_400_BAD_REQUEST
     else:
         response_data = {'errors': ["Email is invalid"]}
+        status_code = status.HTTP_400_BAD_REQUEST
+
+    return Response(data=response_data, status=status_code)
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((IsAuthenticated, ))
+def change_password(request):
+    form = PasswordChangeForm(user=request.user, data=request.POST)
+    if form.is_valid():
+        form.save()
+        update_session_auth_hash(request, form.user)
+        response_data = {'result': 'success'}
+        status_code = status.HTTP_200_OK
+    else:
+        response_data = {'errors': form.errors.values()}
         status_code = status.HTTP_400_BAD_REQUEST
 
     return Response(data=response_data, status=status_code)

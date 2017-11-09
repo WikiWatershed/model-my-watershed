@@ -99,6 +99,7 @@ CONCAT_VENDOR_CSS_COMMAND="cat \
     ./node_modules/font-awesome/css/font-awesome.min.css \
     ./node_modules/bootstrap-table/dist/bootstrap-table.min.css \
     ./node_modules/bootstrap-datepicker/dist/css/bootstrap-datepicker3.min.css \
+    ./node_modules/bootstrap-select/dist/css/bootstrap-select.min.css \
     ./css/shim/nv.d3.min.css \
     > $VENDOR_CSS_FILE"
 

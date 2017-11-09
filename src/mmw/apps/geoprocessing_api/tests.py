@@ -3,9 +3,133 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.test import TestCase
+import json
 
-from apps.geoprocessing_api import tasks
+from django.test import (Client,
+                         TestCase,
+                         LiveServerTestCase)
+from django.contrib.auth.models import User
+
+from rest_framework.authtoken.models import Token
+
+from django.contrib.gis.geos import GEOSGeometry
+
+from apps.geoprocessing_api import (tasks, calcs)
+
+
+class ExerciseManageApiToken(LiveServerTestCase):
+    TOKEN_URL = 'http://localhost:8081/api/token/'
+
+    def setUp(self):
+        User.objects.create_user(username='bob', email='bob@azavea.com',
+                                 password='bob')
+
+        User.objects.create_user(username='nono', email='nono@azavea.com',
+                                 password='nono')
+
+    def get_logged_in_session(self, username, password):
+        c = Client()
+        c.login(username=username,
+                password=password)
+        return c
+
+    def get_api_token(self, username='', password='',
+                      session=None, regenerate=False):
+        if not session:
+            session = Client()
+
+        payload = {}
+        if username or password:
+            payload.update({'username': username,
+                            'password': password})
+        if regenerate:
+            payload.update({'regenerate': True})
+
+        return session.post(self.TOKEN_URL,
+                            data=payload)
+
+    def test_get_api_token_no_credentials_returns_400(self):
+        response = self.get_api_token()
+        self.assertEqual(response.status_code, 403,
+                         'Incorrect server response. Expected 403 found %s %s'
+                         % (response.status_code, response.content))
+
+    def test_get_api_token_bad_body_credentials_returns_400(self):
+        response = self.get_api_token('bad', 'bad')
+        self.assertEqual(response.status_code, 400,
+                         'Incorrect server response. Expected 400 found %s %s'
+                         % (response.status_code, response.content))
+
+    def test_get_api_token_good_body_credentials_returns_200(self):
+        response = self.get_api_token('bob', 'bob')
+        self.assertEqual(response.status_code, 200,
+                         'Incorrect server response. Expected 200 found %s %s'
+                         % (response.status_code, response.content))
+
+    def test_get_api_token_good_session_credentials_returns_200(self):
+        s = self.get_logged_in_session('bob', 'bob')
+        response = self.get_api_token(session=s)
+        self.assertEqual(response.status_code, 200,
+                         'Incorrect server response. Expected 200 found %s %s'
+                         % (response.status_code, response.content))
+
+    def test_get_api_token_uses_body_credentials_over_session(self):
+        bob_user = User.objects.get(username='bob')
+        bob_token = Token.objects.get(user=bob_user)
+
+        s = self.get_logged_in_session('nono', 'nono')
+        response = self.get_api_token('bob', 'bob', s)
+
+        self.assertEqual(response.status_code, 200,
+                         'Incorrect server response. Expected 200 found %s %s'
+                         % (response.status_code, response.content))
+
+        response_token = json.loads(response.content)['token']
+
+        self.assertEqual(str(response_token), str(bob_token),
+                         """ Incorrect server response.
+                         Expected to get token for user
+                         given in request body %s, but got %s
+                         """ % (bob_token, response_token))
+
+    def test_get_api_token_doesnt_regenerate_token(self):
+        bob_user = User.objects.get(username='bob')
+        bob_token_before = Token.objects.get(user=bob_user)
+
+        response = self.get_api_token('bob', 'bob')
+
+        response_token = json.loads(response.content)['token']
+
+        self.assertEqual(str(response_token), str(bob_token_before),
+                         """ Expected request token to be the same
+                         as token before the request was made
+                         (%s), but got %s
+                         """ % (bob_token_before, response_token))
+
+        bob_token_after = Token.objects.get(user=bob_user)
+        self.assertEqual(bob_token_before, bob_token_after,
+                         """ Expected token to be the same
+                         as it was before the request was made
+                         (%s), but got %s
+                         """ % (bob_token_before, bob_token_after))
+
+    def test_get_api_token_can_regenerate_token(self):
+        bob_user = User.objects.get(username='bob')
+        old_bob_token = Token.objects.get(user=bob_user)
+
+        response = self.get_api_token('bob', 'bob', regenerate=True)
+
+        response_token = json.loads(response.content)['token']
+        new_bob_token = Token.objects.get(user=bob_user)
+
+        self.assertEqual(str(response_token), str(new_bob_token),
+                         """ Expected regenerated response token to
+                         be the same as stored token (%s), but got %s
+                         """ % (new_bob_token, response_token))
+
+        self.assertTrue(old_bob_token is not new_bob_token,
+                        """ Expected new token to be created
+                        but token is the same""")
 
 
 class ExerciseAnalyze(TestCase):
@@ -219,3 +343,735 @@ class ExerciseAnalyze(TestCase):
 
         actual = tasks.analyze_soil(histogram)
         self.assertEqual(actual, expected)
+
+
+class ExerciseCatchmentIntersectsAOI(TestCase):
+    def test_sq_km_aoi(self):
+        aoi = GEOSGeometry(json.dumps({
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -75.27900695800781,
+                        39.891925022904516
+                    ],
+                    [
+                        -75.26608943939209,
+                        39.891925022904516
+                    ],
+                    [
+                        -75.26608943939209,
+                        39.90173657727282
+                    ],
+                    [
+                        -75.27900695800781,
+                        39.90173657727282
+                    ],
+                    [
+                        -75.27900695800781,
+                        39.891925022904516
+                    ]
+                ]
+            ]
+        }), srid=4326)
+
+        reprojected_aoi = aoi.transform(5070, clone=True)
+
+        abutting_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -75.28535842895508,
+                        39.898279646242635
+                    ],
+                    [
+                        -75.27896404266357,
+                        39.898279646242635
+                    ],
+                    [
+                        -75.27896404266357,
+                        39.90305345750681
+                    ],
+                    [
+                        -75.28535842895508,
+                        39.90305345750681
+                    ],
+                    [
+                        -75.28535842895508,
+                        39.898279646242635
+                    ]
+                ]
+            ]
+        }
+
+        intersecting_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -75.26849269866943,
+                        39.890838422106924
+                    ],
+                    [
+                        -75.26244163513184,
+                        39.890838422106924
+                    ],
+                    [
+                        -75.26244163513184,
+                        39.89498716884207
+                    ],
+                    [
+                        -75.26849269866943,
+                        39.89498716884207
+                    ],
+                    [
+                        -75.26849269866943,
+                        39.890838422106924
+                    ]
+                ]
+            ]
+        }
+
+        contained_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -75.27368545532225,
+                        39.89722607068418
+                    ],
+                    [
+                        -75.26887893676758,
+                        39.89722607068418
+                    ],
+                    [
+                        -75.26887893676758,
+                        39.90124274066003
+                    ],
+                    [
+                        -75.27368545532225,
+                        39.90124274066003
+                    ],
+                    [
+                        -75.27368545532225,
+                        39.89722607068418
+                    ]
+                ]
+            ]
+        }
+
+        self.assertFalse(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                        abutting_catchment))
+        self.assertTrue(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                       intersecting_catchment))
+        self.assertTrue(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                       contained_catchment))
+
+    def test_hundred_sq_km_aoi(self):
+        aoi = GEOSGeometry(json.dumps({
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -94.64584350585938,
+                        38.96154447940714
+                    ],
+                    [
+                        -94.53460693359374,
+                        38.96154447940714
+                    ],
+                    [
+                        -94.53460693359374,
+                        39.05225165582583
+                    ],
+                    [
+                        -94.64584350585938,
+                        39.05225165582583
+                    ],
+                    [
+                        -94.64584350585938,
+                        38.96154447940714
+                    ]
+                ]
+            ]
+        }), srid=4326)
+        reprojected_aoi = aoi.transform(5070, clone=True)
+
+        abutting_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -94.53563690185547,
+                        39.03065255999985
+                    ],
+                    [
+                        -94.49203491210938,
+                        39.03065255999985
+                    ],
+                    [
+                        -94.49203491210938,
+                        39.07864158248181
+                    ],
+                    [
+                        -94.53563690185547,
+                        39.07864158248181
+                    ],
+                    [
+                        -94.53563690185547,
+                        39.03065255999985
+                    ]
+                ]
+            ]
+        }
+
+        intersecting_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -94.55554962158203,
+                        38.92870117926206
+                    ],
+                    [
+                        -94.49581146240233,
+                        38.92870117926206
+                    ],
+                    [
+                        -94.49581146240233,
+                        38.9858333874019
+                    ],
+                    [
+                        -94.55554962158203,
+                        38.9858333874019
+                    ],
+                    [
+                        -94.55554962158203,
+                        38.92870117926206
+                    ]
+                ]
+            ]
+        }
+
+        contained_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -94.62284088134766,
+                        38.997841307500714
+                    ],
+                    [
+                        -94.58576202392578,
+                        38.997841307500714
+                    ],
+                    [
+                        -94.58576202392578,
+                        39.031452644263084
+                    ],
+                    [
+                        -94.62284088134766,
+                        39.031452644263084
+                    ],
+                    [
+                        -94.62284088134766,
+                        38.997841307500714
+                    ]
+                ]
+            ]
+        }
+
+        self.assertFalse(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                        abutting_catchment))
+        self.assertTrue(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                       intersecting_catchment))
+        self.assertTrue(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                       contained_catchment))
+
+    def test_thousand_sq_km_aoi(self):
+        aoi = GEOSGeometry(json.dumps({
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -96.1083984375,
+                        41.12074559016745
+                    ],
+                    [
+                        -95.7513427734375,
+                        41.12074559016745
+                    ],
+                    [
+                        -95.7513427734375,
+                        41.39741506646461
+                    ],
+                    [
+                        -96.1083984375,
+                        41.39741506646461
+                    ],
+                    [
+                        -96.1083984375,
+                        41.12074559016745
+                    ]
+                ]
+            ]
+        }), srid=4326)
+        reprojected_aoi = aoi.transform(5070, clone=True)
+
+        abutting_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -96.18255615234375,
+                        41.24064190269475
+                    ],
+                    [
+                        -96.10736846923828,
+                        41.24064190269475
+                    ],
+                    [
+                        -96.10736846923828,
+                        41.2765163855178
+                    ],
+                    [
+                        -96.18255615234375,
+                        41.2765163855178
+                    ],
+                    [
+                        -96.18255615234375,
+                        41.24064190269475
+                    ]
+                ]
+            ]
+        }
+
+        intersecting_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -95.8172607421875,
+                        41.0607151401866
+                    ],
+                    [
+                        -95.68405151367188,
+                        41.0607151401866
+                    ],
+                    [
+                        -95.68405151367188,
+                        41.160046141686905
+                    ],
+                    [
+                        -95.8172607421875,
+                        41.160046141686905
+                    ],
+                    [
+                        -95.8172607421875,
+                        41.0607151401866
+                    ]
+                ]
+            ]
+        }
+
+        contained_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -95.93811035156249,
+                        41.306697618181865
+                    ],
+                    [
+                        -95.82550048828125,
+                        41.306697618181865
+                    ],
+                    [
+                        -95.82550048828125,
+                        41.3757780692323
+                    ],
+                    [
+                        -95.93811035156249,
+                        41.3757780692323
+                    ],
+                    [
+                        -95.93811035156249,
+                        41.306697618181865
+                    ]
+                ]
+            ]
+        }
+
+        self.assertFalse(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                        abutting_catchment))
+        self.assertTrue(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                       intersecting_catchment))
+        self.assertTrue(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                       contained_catchment))
+
+    def test_ten_thousand_sq_km_aoi(self):
+        aoi = GEOSGeometry(json.dumps({
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -115.01586914062499,
+                        43.866218006556394
+                    ],
+                    [
+                        -113.719482421875,
+                        43.866218006556394
+                    ],
+                    [
+                        -113.719482421875,
+                        44.89479576469787
+                    ],
+                    [
+                        -115.01586914062499,
+                        44.89479576469787
+                    ],
+                    [
+                        -115.01586914062499,
+                        43.866218006556394
+                    ]
+                ]
+            ]
+        }), srid=4326)
+
+        reprojected_aoi = aoi.transform(5070, clone=True)
+
+        abutting_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -115.23559570312499,
+                        44.380802793578475
+                    ],
+                    [
+                        -115.00488281250001,
+                        44.380802793578475
+                    ],
+                    [
+                        -115.00488281250001,
+                        44.52001001133986
+                    ],
+                    [
+                        -115.23559570312499,
+                        44.52001001133986
+                    ],
+                    [
+                        -115.23559570312499,
+                        44.380802793578475
+                    ]
+                ]
+            ]
+        }
+
+        intersecting_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -115.17791748046875,
+                        43.775060351224695
+                    ],
+                    [
+                        -114.949951171875,
+                        43.775060351224695
+                    ],
+                    [
+                        -114.949951171875,
+                        44.09350315285847
+                    ],
+                    [
+                        -115.17791748046875,
+                        44.09350315285847
+                    ],
+                    [
+                        -115.17791748046875,
+                        43.775060351224695
+                    ]
+                ]
+            ]
+        }
+
+        contained_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -114.43359375,
+                        44.262904233655384
+                    ],
+                    [
+                        -114.06829833984375,
+                        44.262904233655384
+                    ],
+                    [
+                        -114.06829833984375,
+                        44.61393394730626
+                    ],
+                    [
+                        -114.43359375,
+                        44.61393394730626
+                    ],
+                    [
+                        -114.43359375,
+                        44.262904233655384
+                    ]
+                ]
+            ]
+        }
+
+        self.assertFalse(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                        abutting_catchment))
+        self.assertTrue(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                       intersecting_catchment))
+        self.assertTrue(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                       contained_catchment))
+
+    def test_huge_aoi_tiny_catchments(self):
+        aoi = GEOSGeometry(json.dumps({
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -85.166015625,
+                        39.470125122358176
+                    ],
+                    [
+                        -82.44140625,
+                        39.470125122358176
+                    ],
+                    [
+                        -82.44140625,
+                        42.94033923363181
+                    ],
+                    [
+                        -85.166015625,
+                        42.94033923363181
+                    ],
+                    [
+                        -85.166015625,
+                        39.470125122358176
+                    ]
+                ]
+            ]
+        }), srid=4326)
+
+        reprojected_aoi = aoi.transform(5070, clone=True)
+
+        abutting_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -85.440673828125,
+                        42.68243539838623
+                    ],
+                    [
+                        -85.15502929687499,
+                        42.68243539838623
+                    ],
+                    [
+                        -85.15502929687499,
+                        42.79540065303723
+                    ],
+                    [
+                        -85.440673828125,
+                        42.79540065303723
+                    ],
+                    [
+                        -85.440673828125,
+                        42.68243539838623
+                    ]
+                ]
+            ]
+        }
+
+        intersecting_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -82.63916015625,
+                        41.94314874732696
+                    ],
+                    [
+                        -82.265625,
+                        41.94314874732696
+                    ],
+                    [
+                        -82.265625,
+                        42.06560675405716
+                    ],
+                    [
+                        -82.63916015625,
+                        42.06560675405716
+                    ],
+                    [
+                        -82.63916015625,
+                        41.94314874732696
+                    ]
+                ]
+            ]
+        }
+
+        contained_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -83.671875,
+                        39.65645604812829
+                    ],
+                    [
+                        -83.34228515625,
+                        39.65645604812829
+                    ],
+                    [
+                        -83.34228515625,
+                        39.9434364619742
+                    ],
+                    [
+                        -83.671875,
+                        39.9434364619742
+                    ],
+                    [
+                        -83.671875,
+                        39.65645604812829
+                    ]
+                ]
+            ]
+        }
+
+        self.assertFalse(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                        abutting_catchment))
+        self.assertTrue(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                       intersecting_catchment))
+        self.assertTrue(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                       contained_catchment))
+
+    def test_huge_catchments_tiny_aoi(self):
+        aoi = GEOSGeometry(json.dumps({
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -86.1189079284668,
+                        30.712618489700507
+                    ],
+                    [
+                        -86.11066818237303,
+                        30.712618489700507
+                    ],
+                    [
+                        -86.11066818237303,
+                        30.719554693895116
+                    ],
+                    [
+                        -86.1189079284668,
+                        30.719554693895116
+                    ],
+                    [
+                        -86.1189079284668,
+                        30.712618489700507
+                    ]
+                ]
+            ]
+        }), srid=4326)
+
+        reprojected_aoi = aoi.transform(5070, clone=True)
+
+        abutting_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -86.11856460571288,
+                        30.71940712027702
+                    ],
+                    [
+                        -86.12113952636719,
+                        30.88395860861961
+                    ],
+                    [
+                        -86.38206481933594,
+                        30.884547891921986
+                    ],
+                    [
+                        -86.37931823730467,
+                        30.71586528568626
+                    ],
+                    [
+                        -86.11856460571288,
+                        30.71940712027702
+                    ]
+                ]
+            ]
+        }
+
+        intersecting_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -86.13006591796874,
+                        30.59832078510471
+                    ],
+                    [
+                        -85.9075927734375,
+                        30.59832078510471
+                    ],
+                    [
+                        -85.9075927734375,
+                        30.714094319607913
+                    ],
+                    [
+                        -86.13006591796874,
+                        30.714094319607913
+                    ],
+                    [
+                        -86.13006591796874,
+                        30.59832078510471
+                    ]
+                ]
+            ]
+        }
+
+        containing_catchment = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -86.22550964355469,
+                        30.627277165616874
+                    ],
+                    [
+                        -86.0394287109375,
+                        30.627277165616874
+                    ],
+                    [
+                        -86.0394287109375,
+                        30.80967992229391
+                    ],
+                    [
+                        -86.22550964355469,
+                        30.80967992229391
+                    ],
+                    [
+                        -86.22550964355469,
+                        30.627277165616874
+                    ]
+                ]
+            ]
+        }
+
+        self.assertFalse(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                        abutting_catchment))
+        self.assertTrue(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                       intersecting_catchment))
+        self.assertTrue(calcs.catchment_intersects_aoi(reprojected_aoi,
+                                                       containing_catchment))

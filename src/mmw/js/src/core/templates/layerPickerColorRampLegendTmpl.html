@@ -1,0 +1,27 @@
+<div class="climate-legend-tooltip">
+    <div id="{{colorRampId}}">
+    </div>
+    <div class="climate-legend-unit-breaks-labels">
+        <div class="climate-legend-label-ticks">
+            {% for break in legendUnitBreaks %}
+                <div class="climate-legend-label-tick"></div>
+            {% endfor %}
+        </div>
+        <div class="climate-legend-label-values">
+            {% for break in legendUnitBreaks %}
+                {% if loop.last %}
+                    <div class="climate-legend-label-value max">
+                        {{break}}
+                    </div>
+                {% else %}
+                    <div class="climate-legend-label-value">
+                        {{break}}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    <div class="climate-legend-units-label">
+        {{legendUnitsLabel}}
+    </div>
+</div>

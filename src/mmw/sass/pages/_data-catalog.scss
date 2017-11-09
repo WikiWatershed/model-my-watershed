@@ -30,6 +30,17 @@
                 margin: 5px 0 0 0;
             }
 
+            .spinner:after {
+              top: 22px;
+              right: 7px;
+            }
+
+            .error {
+                position: absolute;
+                top: 11px;
+                right: 10px;
+            }
+
             .result-detail-header {
               h2 {
                   display: inline-block;
@@ -52,12 +63,41 @@
                 padding: 6px 0 2px;
               }
             }
+
+            .cuahsi-buttons {
+                button {
+                    padding: 1px 4px;
+                    margin-top: -4px;
+                    background-color: transparent;
+                    border: 0;
+
+                    &.active {
+                        color: $paper;
+                        background-color: $black-54;
+                    }
+                }
+            }
+
+            #cuahsi-chart-region {
+                margin-top: 20px;
+
+                .cuahsi-variable-select {
+                    margin-bottom: 10px;
+                }
+            }
+
+            .hydroshare-nav-tabs > li > a {
+                padding: 10px 15px !important;
+            }
+
+            .hydroshare-tab-content {
+                padding-top: 15px;
+            }
         }
     }
 
     .result-region {
         height: auto !important;
-        width: auto !important;
         padding: 6px 0px;
 
         &.paginated {
@@ -135,14 +175,14 @@
         overflow-y: auto;
     }
 
-    .tab-pane {
+    .catalog-tab-pane {
         position: absolute;
         top: 0;
         bottom: 0;
         width: 100%;
     }
 
-    .tab-content {
+    .catalog-tab-content {
         padding: 0;
         background: #E6E6E6;
         top: 0;
@@ -180,7 +220,8 @@
 }
 
 .data-catalog-window,
-.data-catalog-resource-popover {
+.data-catalog-resource-popover,
+.data-catalog-popover-list-item {
     .btn-secondary {
         height: auto;
     }
@@ -191,7 +232,6 @@
 
     .resource-description {
         color: $ui-grey;
-        font-size: $font-size-h5;
         padding-bottom: 3px;
     }
 
@@ -232,6 +272,10 @@
             margin-right: 4px;
         }
     }
+
+    .expand-list-btn {
+        padding: 0;
+    }
 }
 
 .data-catalog-resource-popover {
@@ -244,6 +288,82 @@
     .data-catalog-popover-details-btn {
         border-radius: 0px;
         margin-top: 10px;
+    }
+}
+
+.data-catalog-popover-container
+.data-catalog-resource-popover {
+    padding: 0 10px 10px 10px;
+}
+
+.data-catalog-popover-back-btn {
+    color: $brand-primary;
+    border: none;
+    background: none;
+    padding: 10px;
+    font-size: $font-size-h5;
+}
+
+.data-catalog-popover-result-list {
+    padding: 0px;
+}
+
+.data-catalog-popover-pagination {
+    text-align: center;
+}
+
+.data-catalog-popover-pagination
+.data-catalog-popover-pagination-btn {
+    border: none;
+    background: none;
+    &:disabled {
+        color: $ui-light;
+    }
+}
+
+.data-catalog-popover-pagination-btn,
+.data-catalog-popover-num-results {
+    // Important because leaflet popup title
+    // tries to add a margin-bottom
+    margin-bottom: 0 !important;
+}
+
+.data-catalog-popover-num-results {
+    color: $ui-secondary;
+    font-weight: 800;
+    padding: 6px;
+    padding-top: 0;
+    border-bottom: 1px solid $ui-light;
+}
+
+.data-catalog-popover-list-item {
+    display: block;
+    .data-catalog-popover-list-item-btn {
+        border: none;
+        border-bottom: 1px solid $ui-light;
+        padding: 6px;
+        background: none;
+        text-align: left;
+        width: 100%;
+
+        &:hover {
+            background: #f3f3f3;
+        }
+    }
+
+    .data-catalog-popover-list-item-btn
+    .list-item-title {
+        color: $brand-primary;
+        height: 17px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    .data-catalog-popover-list-item-btn
+    .data-catalog-popover-list-item-date {
+        color: $ui-grey;
+        font-size: $font-size-h5;
     }
 }
 
@@ -264,6 +384,7 @@
 .data-catalog-filter-window > .data-catalog-filters-header {
     display: flex;
     flex-direction: row;
+    height: 44px;
     padding-bottom: 6px;
     > .filter-title {
         line-height: $height-md;
@@ -407,4 +528,12 @@
     font-weight: 600;
     color: #555;
     padding-left: 0;
+}
+
+#bigcz-catalog-results-download {
+    position: absolute;
+    right: 1.5rem;
+    top: 56px;
+    border: 0;
+    background-color: transparent;
 }

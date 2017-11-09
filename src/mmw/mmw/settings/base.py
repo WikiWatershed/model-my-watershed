@@ -130,8 +130,14 @@ CELERY_RESULT_BACKEND = 'django-cache'
 STATSD_CELERY_SIGNALS = True
 CELERY_CREATE_MISSING_QUEUES = True
 CELERY_CHORD_PROPAGATES = True
-CELERY_DEFAULT_QUEUE = STACK_COLOR
-CELERY_DEFAULT_ROUTING_KEY = "task.%s" % STACK_COLOR
+CELERY_TASK_DEFAULT_QUEUE = STACK_COLOR
+CELERY_TASK_QUEUES = {
+    STACK_COLOR: {
+        'binding_key': "task.%s" % STACK_COLOR,
+    }
+}
+CELERY_TASK_DEFAULT_EXCHANGE = 'tasks'
+CELERY_TASK_DEFAULT_ROUTING_KEY = "task.%s" % STACK_COLOR
 # END CELERY CONFIGURATION
 
 
@@ -300,15 +306,13 @@ THIRD_PARTY_APPS = (
 
 # rest_framework
 REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+    'DEFAULT_THROTTLE_RATES': {
+        'sustained': '5000/day',
+        'burst': '20/min',
+    },
 }
 
 SWAGGER_SETTINGS = {
-    'exclude_url_names': ['authtoken'],
     'exclude_namespaces': ['bigcz',
                            'mmw',
                            'user'],
@@ -584,6 +588,11 @@ GEOP = {
 # TILER CONFIGURATION
 TILER_HOST = environ.get('MMW_TILER_HOST', 'localhost')
 # END TILER CONFIGURATION
+
+# UI ("CLIENT APP") USER CONFIGURATION
+CLIENT_APP_USERNAME = 'mmw|client_app_user'
+CLIENT_APP_USER_PASSWORD = environ.get('MMW_CLIENT_APP_USER_PASSWORD', 'mmw')
+# END UI ("CLIENT APP") USER CONFIGURATION
 
 # UI CONFIGURATION
 

@@ -43,16 +43,6 @@ var ChartRowsCollection = Backbone.Collection.extend({
         this.scenarios.forEach(function(scenario) {
             scenario.get('results').on('change', update);
         });
-    },
-
-    getScenarioResults: function(typeKey) {
-        return this.scenarios.map(function(scenario) {
-            var resultKey = coreUtils.getTR55ResultKey(scenario),
-                result = scenario.get('results')
-                                 .findWhere({ name: typeKey })
-                                 .get('result');
-            return result[typeKey][resultKey];
-        });
     }
 });
 
@@ -62,7 +52,7 @@ var Tr55RunoffCharts = ChartRowsCollection.extend({
                                                .get('inputs')
                                                .findWhere({ name: 'precipitation' }),
             precipitation = coreUtils.convertToMetric(precipitationInput.get('value'), 'in'),
-            results = this.getScenarioResults('runoff');
+            results = this.scenarios.map(coreUtils.getTR55RunoffResult, coreUtils);
 
         this.forEach(function(chart) {
             var key = chart.get('key'),
@@ -87,7 +77,7 @@ var Tr55RunoffCharts = ChartRowsCollection.extend({
 var Tr55QualityCharts = ChartRowsCollection.extend({
     update: function() {
         var aoivm = this.aoiVolumeModel,
-            results = this.getScenarioResults('quality');
+            results = this.scenarios.map(coreUtils.getTR55WaterQualityResult, coreUtils);
 
         this.forEach(function(chart) {
             var name = chart.get('name'),
@@ -135,19 +125,10 @@ var TableRowsCollection = Backbone.Collection.extend({
 
 var Tr55RunoffTable = TableRowsCollection.extend({
     update: function() {
-        var results = this.scenarios.map(function(scenario) {
-                return scenario.get('results')
-                               .findWhere({ name: 'runoff' })
-                               .get('result');
-            }),
-            get = function(key) {
-                return function(result) {
-                    return result.runoff.modified[key];
-                };
-            },
-            runoff = _.map(results, get('runoff')),
-            et     = _.map(results, get('et'    )),
-            inf    = _.map(results, get('inf'   )),
+        var results = this.scenarios.map(coreUtils.getTR55RunoffResult, coreUtils),
+            runoff = _.map(results, 'runoff'),
+            et     = _.map(results, 'et'    ),
+            inf    = _.map(results, 'inf'   ),
             rows   = [
                 { name: "Runoff"            , unit: "cm", values: runoff },
                 { name: "Evapotranspiration", unit: "cm", values: et     },
@@ -161,15 +142,10 @@ var Tr55RunoffTable = TableRowsCollection.extend({
 var Tr55QualityTable = TableRowsCollection.extend({
     update: function() {
         var aoivm = this.aoiVolumeModel,
-            results = this.scenarios.map(function(scenario) {
-                return scenario.get('results')
-                               .findWhere({ name: 'quality' })
-                               .get('result');
-            }),
+            results = this.scenarios.map(coreUtils.getTR55WaterQualityResult, coreUtils),
             get = function(key) {
                 return function(result) {
-                    var measures = result.quality.modified,
-                        load = _.find(measures, { measure: key }).load;
+                    var load = _.find(result, { measure: key }).load;
 
                     return aoivm.getLoadingRate(load);
                 };
@@ -208,6 +184,7 @@ var WindowModel = Backbone.Model.extend({
         tabs: null,  // TabsCollection
         visibleScenarioIndex: 0, // Index of the first visible scenario
         polling: false,  // If any results are polling
+        projectName: null,
     },
 
     initialize: function() {

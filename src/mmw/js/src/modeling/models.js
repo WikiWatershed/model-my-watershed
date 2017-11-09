@@ -5,6 +5,7 @@ var $ = require('jquery'),
     _ = require('lodash'),
     utils = require('../core/utils'),
     settings = require('../core/settings'),
+    constants = require('./constants.js'),
     App = require('../app'),
     coreModels = require('../core/models'),
     turfArea = require('turf-area'),
@@ -683,11 +684,16 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     addModification: function(modification) {
-        var modifications = this.get('modifications');
+        var modifications = this.get('modifications'),
+            modelPackage = App.currentProject.get('model_package'),
+            modKeyName = modelPackage === GWLFE ? 'modKey' : 'value';
+
+        window.ga('send', 'event', constants.GA.MODEL_CATEGORY,
+           modelPackage + constants.GA.MODEL_MOD_EVENT, modification.get(modKeyName));
 
         // For GWLFE, first remove existing mod with the same key since it
         // doesn't make sense to have multiples of the same type of BMP.
-        if (App.currentProject.get('model_package') === GWLFE) {
+        if (modelPackage === GWLFE) {
             var modKey = modification.get('modKey'),
                 matches = modifications.where({'modKey': modKey});
 
@@ -898,7 +904,7 @@ var ScenarioModel = Backbone.Model.extend({
                 // Merge the values that came back from Mapshed with the values
                 // in the modifications from the user.
                 var modifications = self.get('modifications'),
-                    mergedGisData = project.get('gis_data');
+                    mergedGisData = _.cloneDeep(project.get('gis_data'));
 
                 modifications.forEach(function(mod) {
                     _.assign(mergedGisData, mod.get('output'));
@@ -963,6 +969,7 @@ var ScenariosCollection = Backbone.Collection.extend({
 
     createNewScenario: function() {
         var currentConditions = this.findWhere({ 'is_current_conditions': true }),
+            modelPackage = currentConditions.get('taskModel').get('taskName'),
             scenario = new ScenarioModel({
                 is_current_conditions: false,
                 name: this.makeNewScenarioName('New Scenario'),
@@ -971,6 +978,8 @@ var ScenariosCollection = Backbone.Collection.extend({
                 inputmod_hash: currentConditions.get('inputmod_hash'),
                 inputs: currentConditions.get('inputs').toJSON(),
             });
+
+        window.ga('send', 'event', constants.GA.MODEL_CATEGORY, constants.GA.MODEL_SCENARIO_EVENT, modelPackage);
 
         this.add(scenario);
         this.setActiveScenarioByCid(scenario.cid);

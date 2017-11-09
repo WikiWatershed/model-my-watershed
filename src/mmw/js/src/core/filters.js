@@ -3,6 +3,7 @@
 var nunjucks = require('nunjucks');
 var utils = require('./utils');
 var _ = require('lodash');
+var moment = require('moment');
 
 nunjucks.env = new nunjucks.Environment();
 
@@ -61,34 +62,35 @@ nunjucks.env.addFilter('toDateWithoutTime', function(date) {
 });
 
 nunjucks.env.addFilter('toTimeAgo', function(date) {
-    var diff = Date.now() - (new Date(date)).getTime(),
-        secs = diff / 1000,
-        mins = secs / 60,
-        hrs  = mins / 60,
-        days = hrs  / 24,
-        wks  = days / 7,
-        mths = days / 30,
-        yrs  = days / 365;
-
-    if (yrs > 1) {
-        return Math.floor(yrs) + " years ago";
-    } else if (mths > 1) {
-        return Math.floor(mths) + " months ago";
-    } else if (wks > 1) {
-        return Math.floor(wks) + " weeks ago";
-    } else if (days > 1) {
-        return Math.floor(days) + " days ago";
-    } else if (hrs > 1) {
-        return Math.floor(hrs) + " hours ago";
-    } else if (mins > 1) {
-        return Math.floor(mins) + " minutes ago";
-    } else {
-        return Math.floor(secs) + " seconds ago";
-    }
+    return moment(date).fromNow();
 });
 
 nunjucks.env.addFilter('split', function(str, splitChar, indexToReturn) {
     var items = str.split(splitChar);
 
     return items[indexToReturn];
+});
+
+nunjucks.env.addFilter('toFriendlyBytes', function(bytes) {
+    var roundToOneDecimal = function(x) { return Math.round(x * 10) / 10; };
+
+    if (bytes < 1024) {
+        return bytes + '&nbsp;Bytes';
+    }
+
+    bytes /= 1024;
+
+    if (bytes < 1024) {
+        return roundToOneDecimal(bytes) + '&nbsp;KB';
+    }
+
+    bytes /= 1024;
+
+    if (bytes < 1024) {
+        return roundToOneDecimal(bytes) + '&nbsp;MB';
+    }
+
+    bytes /= 1024;
+
+    return roundToOneDecimal(bytes) + '&nbsp;GB';
 });

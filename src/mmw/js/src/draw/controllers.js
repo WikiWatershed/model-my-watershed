@@ -6,7 +6,6 @@ var App = require('../app'),
     settings = require('../core/settings'),
     modelingModels = require('../modeling/models'),
     models = require('./models'),
-    _ = require('underscore'),
     utils = require('../core/utils'),
     models = require('./models');
 
@@ -18,7 +17,14 @@ var DrawController = {
             toolbarModel = new models.ToolbarModel();
 
         toolbarModel.set('predefinedShapeTypes',
-            _.filter(settings.get('boundary_layers'), { selectable: true }));
+            settings
+                .get('boundary_layers')
+                .filter(function(layer) {
+                    if (settings.get('data_catalog_enabled')) {
+                        return (layer.big_cz && layer.selectable);
+                    }
+                    return layer.selectable;
+                }));
 
         if (!App.rootView.geocodeSearchRegion.hasView()) {
             App.rootView.geocodeSearchRegion.show(geocodeSearch);

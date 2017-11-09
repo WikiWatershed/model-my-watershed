@@ -27,7 +27,6 @@ from django.core.servers.basehttp import FileWrapper
 
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
-from apps.core.permissions import IsTokenAuthenticatedOrNotSwagger
 from apps.core.decorators import log_request
 from apps.modeling import tasks, geoprocessing
 from apps.modeling.mapshed.tasks import (geoprocessing_chains,
@@ -486,7 +485,7 @@ def drb_point_sources(request):
 @decorators.api_view(['GET'])
 @decorators.authentication_classes((TokenAuthentication,
                                     SessionAuthentication, ))
-@decorators.permission_classes((IsTokenAuthenticatedOrNotSwagger, ))
+@decorators.permission_classes((AllowAny, ))
 @log_request
 def get_job(request, job_uuid, format=None):
     """

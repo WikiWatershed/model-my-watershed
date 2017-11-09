@@ -5,6 +5,7 @@ from __future__ import division
 
 import requests
 import dateutil.parser
+from HTMLParser import HTMLParser
 from django.contrib.gis.geos import Polygon
 
 from django.conf import settings
@@ -89,20 +90,135 @@ def parse_cinergi_url(fileid):
     return '{}/geoportal/?filter=%22{}%22'.format(CINERGI_HOST, fileid)
 
 
+def parse_string_or_list(string_or_list):
+    """
+    Fields like contact_organizations be either a list of strings, or
+    a string. Make it always a list of strings
+    """
+    if isinstance(string_or_list, basestring):
+        return [string_or_list]
+
+    return string_or_list
+
+
+def parse_categories(source):
+    """
+    Categories are lists of the form:
+    ["Category > Material > Environmental Material > Water",
+     "Category > Property > Measure > Physical Quantity > Flow", ... ]
+
+    Or just a string
+     "Category > Property > Measure > Physical Quantity > Flow"
+
+    Return a list of the "leaves" (the string after the last ">")
+    ["Water", "Flow", ...]
+    """
+    categories = source.get('hierarchies_cat',
+                            source.get('categories_cat'))
+    if not categories or \
+       not all(isinstance(c, basestring) for c in categories):
+        # We only handle categories that are lists of strings
+        return None
+
+    if isinstance(categories, basestring):
+        categories = [categories]
+
+    split_categories = [category.split(">") for category in categories]
+    return [c[len(c) - 1] for c in split_categories]
+
+
+def parse_time_period(time_period):
+    if not time_period:
+        return None, None
+
+    time_period_dict = time_period
+    if isinstance(time_period, list):
+        time_period_dict = time_period[0]
+
+    begin_date = time_period_dict.get('begin_dt')
+    end_date = time_period_dict.get('end_dt')
+    return begin_date, end_date
+
+
+def parse_description(description):
+    """
+    Some cinergi descriptions contain html.
+    Parse out the data of the first element so
+    we always return a regular string
+    """
+    if not description:
+        return None
+
+    class DescriptionHTMLParser(HTMLParser):
+        contents = []
+
+        def handle_data(self, data):
+            self.contents.append(data)
+
+    parser = DescriptionHTMLParser()
+    parser.feed(description)
+    return parser.contents[0]
+
+
+def parse_web_resources(raw_resources):
+    if not raw_resources:
+        return []
+
+    resources = raw_resources
+
+    if isinstance(raw_resources, dict):
+        resources = [raw_resources]
+
+    return [{
+        'url': r.get('url_s'),
+        'url_type': r.get('url_type_s')
+    } for r in resources]
+
+
+def parse_web_services(raw_services):
+    if not raw_services:
+        return []
+
+    services = raw_services
+
+    if isinstance(raw_services, dict):
+        services = [raw_services]
+
+    return [{
+        'url': s.get('url_s'),
+        'url_type': s.get('url_type_s'),
+        'url_name': s.get('url_name_s')
+    } for s in services]
+
+
 def parse_record(item):
     source = item['_source']
     geom = parse_geom(source)
     links = parse_links(source)
+    begin_date, end_date = parse_time_period(source.get('timeperiod_nst'))
     return CinergiResource(
         id=item['_id'],
         title=source['title'],
-        description=source.get('description'),
+        description=parse_description(source.get('description')),
         author=None,
         links=links,
         created_at=parse_date(source.get('sys_created_dt')),
         updated_at=parse_date(source.get('src_lastupdate_dt')),
         geom=geom,
-        cinergi_url=parse_cinergi_url(source.get('fileid')))
+        cinergi_url=parse_cinergi_url(source.get('fileid')),
+        source_name=source.get('src_source_name_s'),
+        contact_organizations=parse_string_or_list(
+            source.get('contact_organizations_s')),
+        contact_people=parse_string_or_list(
+            source.get('contact_people_s')),
+        categories=parse_categories(source),
+        begin_date=parse_date(begin_date),
+        end_date=parse_date(end_date),
+        resource_type=source.get('apiso_Type_s'),
+        resource_topic_categories=parse_string_or_list(
+            source.get('apiso_TopicCategory_s')),
+        web_resources=parse_web_resources(source.get('resources_nst')),
+        web_services=parse_web_services(source.get('services_nst')))
 
 
 def prepare_bbox(box):
@@ -110,6 +226,8 @@ def prepare_bbox(box):
 
 
 def prepare_date(value):
+    if not value:
+        return ''
     return value.strftime('%Y-%m-%d')
 
 
@@ -155,7 +273,7 @@ def search(**kwargs):
         params.update({
             'q': prepare_query(query.lower())
         })
-    if from_date:
+    if from_date or to_date:
         params.update({
             'time': prepare_time(from_date, to_date)
         })

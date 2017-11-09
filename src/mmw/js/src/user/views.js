@@ -9,12 +9,16 @@ var _ = require('underscore'),
     settings = require('../core/settings'),
     models = require('./models'),
     loginModalTmpl = require('./templates/loginModal.html'),
+    userProfileModalTmpl = require('./templates/userProfileModal.html'),
     signUpModalTmpl = require('./templates/signUpModal.html'),
     resendModalTmpl = require('./templates/resendModal.html'),
     forgotModalTmpl = require('./templates/forgotModal.html'),
+    changePasswordModalTmpl =
+        require('./templates/changePasswordModal.html'),
     itsiSignUpModalTmpl = require('./templates/itsiSignUpModal.html');
 
 var ENTER_KEYCODE = 13;
+var ESC_KEYCODE = 27;
 
 var ModalBaseView = Marionette.ItemView.extend({
     className: 'modal modal-large fade',
@@ -72,6 +76,10 @@ var ModalBaseView = Marionette.ItemView.extend({
         // Needed to prevent form from being posted when pressing enter.
         if (e.keyCode === ENTER_KEYCODE) {
             e.preventDefault();
+        }
+        if (e.keyCode === ESC_KEYCODE && this.escapeHandler) {
+            e.preventDefault();
+            return this.escapeHandler(e);
         }
     },
 
@@ -194,10 +202,10 @@ var LoginModalView = ModalBaseView.extend({
             .fail(_.bind(this.handleFailure, this));
     },
 
-    handleSuccess: function() {
+    handleSuccess: function(response) {
         this.$el.modal('hide');
         this.app.user.set('guest', false);
-        this.model.onSuccess();
+        this.model.onSuccess(response);
     },
 
     handleFailure: function(response) {
@@ -258,6 +266,106 @@ var LoginModalView = ModalBaseView.extend({
     }
 });
 
+var UserProfileModalView = ModalBaseView.extend({
+    template: userProfileModalTmpl,
+
+    ui: _.defaults({
+        firstName: '#first_name',
+        lastName: '#last_name',
+        organization: '#organization',
+        userType: '#user_type',
+        country: '#country',
+        postalCode: '#postal_code',
+        submitProfile: '.submit-profile',
+        skip: '.skip'
+    }, ModalBaseView.prototype.ui),
+
+    events: _.defaults({
+        'click @ui.submitProfile': 'submitProfile',
+        'click @ui.later': 'later',
+        'keydown button': 'enterTogglesDropdown'
+    }, ModalBaseView.prototype.events),
+
+    onModalShown: function() {
+        var self = this,
+            escKeyPressClosesDropdown = function (e) {
+                var $element = $(e.target).closest('.bootstrap-select');
+                if (e.keyCode === 27) {
+                    // Clear the textbox, hide close the dropdown, return focus to the now closed dropdown
+                    e.preventDefault();
+                    $(e.target).val('');
+                    $element.find('.selectpicker').selectpicker('toggle');
+                    $element.find('button').focus();
+                    return false;
+                }
+            },
+            inputs = [
+                this.ui.country.parent().find('input'),
+                this.ui.userType.parent().find('input')
+            ];
+        _.forEach(inputs, function($input) {
+            $input.on('keypress', escKeyPressClosesDropdown);
+            $input.on('focus', function() { self.escapeHandler = escKeyPressClosesDropdown;});
+            $input.on('blur', function() { self.escapeHandler = undefined; });
+        });
+
+        this.ui.firstName.focus();
+    },
+
+    handleSuccess: function(response) {
+        this.app.user.set({
+            'show_profile_popover': response.was_skipped,
+            'profile_was_skipped': response.was_skipped,
+            'profile_is_complete': response.is_complete
+        });
+        this.handleServerSuccess(response);
+        this.$el.modal('hide');
+    },
+
+    handleFailure: function(response) {
+        this.handleServerFailure(response);
+    },
+
+    setFields: function () {
+        this.model.set({
+            first_name: this.ui.firstName.val(),
+            last_name: this.ui.lastName.val(),
+            organization: this.ui.organization.val(),
+            user_type: this.ui.userType.val(),
+            country: this.ui.country.val(),
+            postal_code: this.ui.postalCode.val()
+        }, { silent: true });
+    },
+
+    primaryAction: function() {
+        this.model
+            .fetch({
+                method: 'POST',
+                data: this.model.attributes })
+            .done(_.bind(this.handleSuccess, this))
+            .fail(_.bind(this.handleFailure, this));
+    },
+
+    dismissAction: function() {
+        this.model
+            .fetch({
+                method: 'POST',
+                data: { was_skipped: true }})
+            .done(_.bind(this.handleSuccess, this))
+            .fail(_.bind(this.handleFailure, this));
+    },
+
+    enterTogglesDropdown: function(e) {
+        if (e.keyCode === ENTER_KEYCODE) {
+            e.preventDefault();
+            // In testing the form is validated and submitted unless this call to 'toggle' is delayed
+            setTimeout(function () { $(e.target).siblings('.selectpicker').selectpicker('toggle'); }, 100);
+            return false;
+        }
+        return true;
+    }
+});
+
 var SignUpModalView = ModalBaseView.extend({
     template: signUpModalTmpl,
 
@@ -265,8 +373,15 @@ var SignUpModalView = ModalBaseView.extend({
         'username': '#username',
         'email': '#email',
         'password1': '#password1',
-        'password2': '#password2'
+        'password2': '#password2',
+        'login': '.login',
+        'resend': '.resend',
     }, ModalBaseView.prototype.ui),
+
+    events: _.defaults({
+        'click @ui.login': 'login',
+        'click @ui.resend': 'resend',
+    }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
         this.ui.username.focus();
@@ -294,6 +409,28 @@ var SignUpModalView = ModalBaseView.extend({
 
     dismissAction: function() {
         this.app.showLoginModal();
+    },
+
+    login: function() {
+        this.$el.modal('hide');
+        var self = this;
+        this.$el.on('hidden.bs.modal', function() {
+            new LoginModalView({
+                app: self.app,
+                model: new models.LoginFormModel()
+            }).render();
+        });
+    },
+
+    resend: function() {
+        this.$el.modal('hide');
+        var self = this;
+        this.$el.on('hidden.bs.modal', function() {
+            new ResendModalView({
+                app: self.app,
+                model: new models.ResendFormModel()
+            }).render();
+        });
     }
 });
 
@@ -340,9 +477,12 @@ var ForgotModalView = ModalBaseView.extend({
 
     ui: _.defaults({
         'email': '#email',
-        'username': '#username',
-        'password': '#password'
+        'signUp': '.sign-up'
     }, ModalBaseView.prototype.ui),
+
+    events: _.defaults({
+        'click @ui.signUp': 'signUp'
+    }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
         this.ui.email.focus();
@@ -354,10 +494,19 @@ var ForgotModalView = ModalBaseView.extend({
 
     setFields: function() {
         this.model.set({
-            email: $(this.ui.email.selector).val(),
-            username: $(this.ui.username.selector).prop('checked'),
-            password: $(this.ui.password.selector).prop('checked')
+            email: $(this.ui.email.selector).val()
         }, { silent: true });
+    },
+
+    signUp: function() {
+        this.$el.modal('hide');
+        var self = this;
+        this.$el.on('hidden.bs.modal', function() {
+            new SignUpModalView({
+                app: self.app,
+                model: new models.SignUpFormModel({})
+            }).render();
+        });
     }
 });
 
@@ -385,10 +534,38 @@ var ItsiSignUpModalView = ModalBaseView.extend({
     }
 });
 
+var ChangePasswordModalView = ModalBaseView.extend({
+    template: changePasswordModalTmpl,
+
+    ui: _.defaults({
+        'oldPassword': '#old_password',
+        'password1': '#new_password1',
+        'password2': '#new_password2'
+    }, ModalBaseView.prototype.ui),
+
+    onModalShown: function() {
+        this.ui.oldPassword.focus();
+    },
+
+    onValidationError: function() {
+        this.ui.oldPassword.focus();
+    },
+
+    setFields: function() {
+        this.model.set({
+            old_password: $(this.ui.oldPassword.selector).val(),
+            new_password1: $(this.ui.password1.selector).val(),
+            new_password2: $(this.ui.password2.selector).val(),
+        }, { silent: true });
+    }
+});
+
 module.exports = {
     LoginModalView: LoginModalView,
+    UserProfileModalView: UserProfileModalView,
     SignUpModalView: SignUpModalView,
     ResendModalView: ResendModalView,
     ForgotModalView: ForgotModalView,
+    ChangePasswordModalView: ChangePasswordModalView,
     ItsiSignUpModalView: ItsiSignUpModalView
 };

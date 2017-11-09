@@ -4,6 +4,7 @@ var $ = require('jquery'),
     _ = require('lodash'),
     Backbone = require('../../shim/backbone'),
     App = require('../app'),
+    constants = require('./constants.js'),
     settings = require('../core/settings'),
     router = require('../router').router,
     views = require('./views'),
@@ -109,6 +110,8 @@ var ModelingController = {
     },
 
     makeNewProject: function(modelPackage) {
+        window.ga('send', 'event', constants.GA.MODEL_CATEGORY, constants.GA.MODEL_CREATE_EVENT, modelPackage);
+
         var project;
         if (settings.get('itsi_embed')) {
             project = App.currentProject;

@@ -70,6 +70,7 @@ class Application(StackNode):
         'ITSISecretKey': ['global:ITSISecretKey'],
         'RollbarServerSideAccessToken':
         ['global:RollbarServerSideAccessToken'],
+        'ClientAppUserPassword': ['global:ClientAppUserPassword'],
     }
 
     DEFAULTS = {
@@ -239,6 +240,11 @@ class Application(StackNode):
             'ITSISecretKey', Type='String', NoEcho=True,
             Description='Secret key for ITSI portal integration'
         ), 'ITSISecretKey')
+
+        self.client_app_user_password = self.add_parameter(Parameter(
+            'ClientAppUserPassword', Type='String', NoEcho=True,
+            Description='Password for the client apps django account',
+        ), 'ClientAppUserPassword')
 
         app_server_lb_security_group, \
             app_server_security_group = self.create_security_groups()
@@ -582,7 +588,11 @@ class Application(StackNode):
                 '  - path: /etc/mmw.d/env/MMW_ITSI_SECRET_KEY\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
-                '    content: ', Ref(self.itsi_secret_key)]
+                '    content: ', Ref(self.itsi_secret_key), '\n',
+                '  - path: /etc/mmw.d/env/MMW_CLIENT_APP_USER_PASSWORD\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.client_app_user_password)]
 
     def create_cloud_watch_resources(self, app_server_lb):
         self.add_resource(cw.Alarm(

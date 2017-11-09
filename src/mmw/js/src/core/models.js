@@ -144,6 +144,11 @@ var LayerModel = Backbone.Model.extend({
         legendMapping: null,
         cssClassPrefix: null,
         active: false,
+        useColorRamp: false,
+        colorRampId: null,
+        legendUnitsLabel: null,
+        legendUnitBreaks: null,
+        bigCZ: null,
     },
 
     buildLayer: function(layerSettings, layerType, initialActive) {
@@ -202,6 +207,11 @@ var LayerModel = Backbone.Model.extend({
             legendMapping: layerSettings.legend_mapping,
             cssClassPrefix: layerSettings.css_class_prefix,
             active: layerSettings.display === initialActive ? true : false,
+            useColorRamp: layerSettings.use_color_ramp || false,
+            colorRampId: layerSettings.color_ramp_id || null,
+            legendUnitsLabel: layerSettings.legend_units_label || null,
+            legendUnitBreaks: layerSettings.legend_unit_breaks || null,
+            bigCZ: layerSettings.big_cz,
         });
     }
 });
@@ -215,7 +225,9 @@ var LayersCollection = Backbone.Collection.extend({
             _.each(settings.get(options.type), function(layer) {
                 var layerModel = new LayerModel();
                 layerModel.buildLayer(layer, options.type, options.initialActive);
-                self.add(layerModel);
+                if (!settings.get('data_catalog_enabled') || layerModel.get('bigCZ')) {
+                    self.add(layerModel);
+                }
             });
         }
     },
@@ -474,6 +486,14 @@ var TaskModel = Backbone.Model.extend({
         }
     },
 
+    headers: function() {
+        var token = this.get('token');
+        if (token) {
+            return { 'Authorization': 'Token ' + token };
+        }
+        return null;
+    },
+
     // Cancels any currently running jobs. The promise returned
     // by previous calls to pollForResults will be rejected.
     reset: function() {
@@ -505,7 +525,8 @@ var TaskModel = Backbone.Model.extend({
                 url: self.url(taskHelper.queryParams),
                 method: 'POST',
                 data: taskHelper.postData,
-                contentType: taskHelper.contentType
+                contentType: taskHelper.contentType,
+                headers: self.headers()
             }),
             pollingDefer = $.Deferred();
 
@@ -554,7 +575,7 @@ var TaskModel = Backbone.Model.extend({
                 return;
             }
 
-            self.fetch()
+            self.fetch({ headers: self.headers() })
                 .done(function(response) {
                     console.log('Polling ' + self.url());
                     if (response.status === 'started') {
@@ -624,6 +645,11 @@ var CatchmentWaterQualityCensusCollection = Backbone.PageableCollection.extend({
     comparator: 'nord',
     mode: 'client',
     state: { pageSize: 6, firstPage: 1 }
+});
+
+var DataCatalogPopoverResultCollection = Backbone.PageableCollection.extend({
+    mode: 'client',
+    state: { pageSize: 3, firstPage: 1, currentPage: 1 }
 });
 
 var GeoModel = Backbone.Model.extend({
@@ -696,6 +722,7 @@ module.exports = {
     ClimateCensusCollection: ClimateCensusCollection,
     PointSourceCensusCollection: PointSourceCensusCollection,
     CatchmentWaterQualityCensusCollection: CatchmentWaterQualityCensusCollection,
+    DataCatalogPopoverResultCollection: DataCatalogPopoverResultCollection,
     GeoModel: GeoModel,
     AreaOfInterestModel: AreaOfInterestModel,
     AppStateModel: AppStateModel

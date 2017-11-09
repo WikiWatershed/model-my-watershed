@@ -2,17 +2,22 @@
 
 var $ = require('jquery'),
     _ = require('lodash'),
+    Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
+    HighstockChart = require('../../shim/highstock'),
     App = require('../app'),
     analyzeViews = require('../analyze/views.js'),
     settings = require('../core/settings'),
+    utils = require('../core/utils'),
+    models = require('./models'),
     errorTmpl = require('./templates/error.html'),
     dateFilterTmpl = require('./templates/dateFilter.html'),
     checkboxFilterTmpl = require('./templates/checkboxFilter.html'),
     filterSidebarTmpl = require('./templates/filterSidebar.html'),
     formTmpl = require('./templates/form.html'),
     pagerTmpl = require('./templates/pager.html'),
-    searchResultTmpl = require('./templates/searchResult.html'),
+    searchResultCinergiTmpl = require('./templates/searchResultCinergi.html'),
+    searchResultHydroshareTmpl = require('./templates/searchResultHydroshare.html'),
     searchResultCuahsiTmpl = require('./templates/searchResultCuahsi.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     tabPanelTmpl = require('./templates/tabPanel.html'),
@@ -21,20 +26,24 @@ var $ = require('jquery'),
     resultDetailsCinergiTmpl = require('./templates/resultDetailsCinergi.html'),
     resultDetailsHydroshareTmpl = require('./templates/resultDetailsHydroshare.html'),
     resultDetailsCuahsiTmpl = require('./templates/resultDetailsCuahsi.html'),
+    resultDetailsCuahsiStatusTmpl = require('./templates/resultDetailsCuahsiStatus.html'),
+    resultDetailsCuahsiSwitcherTmpl = require('./templates/resultDetailsCuahsiSwitcher.html'),
+    resultDetailsCuahsiChartTmpl = require('./templates/resultDetailsCuahsiChart.html'),
+    resultDetailsCuahsiTableTmpl = require('./templates/resultDetailsCuahsiTable.html'),
+    resultDetailsCuahsiTableRowVariableColTmpl = require('./templates/resultDetailsCuahsiTableRowVariableCol.html'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
-    resultMapPopoverTmpl = require('./templates/resultMapPopover.html');
+    resultMapPopoverDetailTmpl = require('./templates/resultMapPopoverDetail.html'),
+    resultMapPopoverListTmpl = require('./templates/resultMapPopoverList.html'),
+    resultMapPopoverListItemTmpl = require('./templates/resultMapPopoverListItem.html'),
+    resultMapPopoverControllerTmpl = require('./templates/resultMapPopoverController.html'),
+    expandableTableRowTmpl = require('./templates/expandableTableRow.html');
 
 var ENTER_KEYCODE = 13,
     PAGE_SIZE = settings.get('data_catalog_page_size'),
     CATALOG_RESULT_TEMPLATE = {
-        cinergi: searchResultTmpl,
-        hydroshare: searchResultTmpl,
+        cinergi: searchResultCinergiTmpl,
+        hydroshare: searchResultHydroshareTmpl,
         cuahsi: searchResultCuahsiTmpl,
-    },
-    CATALOG_RESULT_DETAILS_TEMPLATE = {
-        cinergi: resultDetailsCinergiTmpl,
-        hydroshare: resultDetailsHydroshareTmpl,
-        cuahsi: resultDetailsCuahsiTmpl,
     };
 
 var HeaderView = Marionette.LayoutView.extend({
@@ -130,6 +139,7 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
 
     onDetailResultChange: function() {
         var activeCatalog = this.collection.getActiveCatalog(),
+            ResultDetailsView = CATALOG_RESULT_DETAILS_VIEW[activeCatalog.id],
             detailResult = activeCatalog.get('detail_result');
 
         if (!detailResult) {
@@ -171,7 +181,8 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
 
         if (catalog) {
             App.map.set('dataCatalogResults', catalog.get('results'));
-            App.getMapView().bindDataCatalogPopovers(ResultMapPopoverView,
+            App.getMapView().bindDataCatalogPopovers(
+                ResultMapPopoverDetailView, ResultMapPopoverControllerView,
                 catalog.id, catalog.get('results'));
         }
     }
@@ -187,25 +198,87 @@ var FormView = Marionette.ItemView.extend({
     ui: {
         filterToggle: '.filter-sidebar-toggle',
         searchInput: '.data-catalog-search-input',
+        downloadButton: '#bigcz-catalog-results-download',
     },
 
     events: {
         'keyup @ui.searchInput': 'onSearchInputChanged',
         'click @ui.filterToggle': 'onFilterToggle',
+        'click @ui.downloadButton': 'downloadResults',
+    },
+
+    onBeforeDestroy: function() {
+        App.rootView.secondarySidebarRegion.empty();
     },
 
     initialize: function() {
-        var updateFilterSidebar = _.bind(function() {
-            if (App.rootView.secondarySidebarRegion.hasView()) {
-                this.showFilterSidebar();
-            }
+        var self = this,
+            updateFilterSidebar = function() {
+                if (App.rootView.secondarySidebarRegion.hasView()) {
+                    self.showFilterSidebar();
+                }
 
-            this.render();
-
-        }, this);
+                self.render();
+            };
 
         // Update the filter sidebar when there's a new active catalog
-        this.collection.on('change:active', updateFilterSidebar);
+        this.listenTo(this.collection, 'change:active', updateFilterSidebar);
+
+        // Update the download button visibility on catalog load events
+        this.collection.forEach(function(catalog) {
+            self.listenTo(catalog, 'change:loading', self.render);
+        });
+    },
+
+    downloadResults: function() {
+        var catalog = this.collection.getActiveCatalog(),
+            results = catalog && catalog.get('results');
+
+        if (!results) {
+            return null;
+        }
+
+        var data = results.map(function(r) {
+                var exclude = ['show_detail', 'fetching', 'error', 'mode'],
+                    cr = _.clone(_.omit(r.attributes, exclude));
+
+                if (!_.isNull(cr.variables)) {
+                    cr.variables = cr.variables.map(function(v) {
+                        return _.clone(_.omit(v.attributes, ['values', 'error']));
+                    });
+                }
+
+                return cr;
+            }),
+            blob = new Blob([JSON.stringify(data)],
+                            { type: 'data:text/plain;charset=utf-8'}),
+            url = URL.createObjectURL(blob),
+            a = document.createElement('a'),
+            dateString = (new Date()).toJSON()
+                                     .replace(/[T:]/g, '-')
+                                     .substr(0, 19),  // YYYY-MM-DD-hh-mm-ss
+            dashedQuery = this.model.get('query')
+                                    .trim()
+                                    .toLowerCase()
+                                    .replace(/\W+/g, '-'),
+            filename = 'bigcz-' + catalog.id + '-' +
+                       dashedQuery + '-' + dateString + '.json';
+
+        if (navigator.msSaveBlob) {
+            // IE has a nicer interface for saving blobs
+            navigator.msSaveBlob(blob, filename);
+        } else {
+            // Other browsers have to use a hidden link hack
+            a.style.display = 'none';
+            a.setAttribute('download', filename);
+            a.setAttribute('href', url);
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        URL.revokeObjectURL(url);
     },
 
     getFilters: function() {
@@ -255,18 +328,16 @@ var FormView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
-        var filters = this.getFilters();
-
-        if (!filters) {
-            return { filterNumText: '' };
-        }
-
-        var numActiveFilters = filters.countActive();
+        var filters = this.getFilters(),
+            numActiveFilters = filters && filters.countActive(),
+            filterNumText = numActiveFilters ? '(' + numActiveFilters + ')' : '',
+            catalog = this.collection.getActiveCatalog(),
+            results = catalog && catalog.get('results'),
+            downloadVisible = results && results.length > 0;
 
         return {
-            filterNumText: numActiveFilters > 0 ?
-                '(' + numActiveFilters + ')' :
-                null
+            downloadVisible: downloadVisible,
+            filterNumText: filterNumText
         };
     }
 });
@@ -312,7 +383,7 @@ var ErrorView = Marionette.ItemView.extend({
 });
 
 var TabContentView = Marionette.LayoutView.extend({
-    className: 'tab-pane',
+    className: 'catalog-tab-pane tab-pane',
     id: function() {
         return this.model.id;
     },
@@ -384,13 +455,30 @@ var TabContentView = Marionette.LayoutView.extend({
 });
 
 var TabContentsView = Marionette.CollectionView.extend({
-    className: 'tab-content',
+    className: 'catalog-tab-content tab-content',
     childView: TabContentView
 });
 
 var StaticResultView = Marionette.ItemView.extend({
     getTemplate: function() {
         return CATALOG_RESULT_TEMPLATE[this.options.catalog];
+    },
+
+    templateHelpers: function() {
+        if (this.options.catalog === 'cuahsi') {
+            return {
+                'concept_keywords': this.model.get('variables')
+                                              .pluck('concept_keyword')
+                                              .filter(utils.distinct)
+                                              .join('; '),
+            };
+        }
+
+        if (this.options.catalog === 'cinergi') {
+            return {
+                'top_categories': this.model.topCinergiCategories(8)
+            };
+        }
     },
 
     modelEvents: {
@@ -434,11 +522,7 @@ var ResultsView = Marionette.CollectionView.extend({
     }
 });
 
-var ResultDetailsView = Marionette.ItemView.extend({
-    getTemplate: function() {
-        return CATALOG_RESULT_DETAILS_TEMPLATE[this.catalog];
-    },
-
+var ResultDetailsBaseView = Marionette.LayoutView.extend({
     ui: {
         closeDetails: '.close'
     },
@@ -456,8 +540,123 @@ var ResultDetailsView = Marionette.ItemView.extend({
             placement: 'right',
             trigger: 'click',
         });
+    },
+
+    closeDetails: function() {
+        window.closePopover();
+        this.model.collection.closeDetail();
+    }
+});
+
+var ExpandableTableRow = Marionette.ItemView.extend({
+    // model: ExpandableListModel
+    template: expandableTableRowTmpl,
+    ui: {
+        expandButton: '[data-action="expand"]'
+    },
+
+    events: {
+        'click @ui.expandButton': 'expand'
+    },
+
+    modelEvents: {
+        'change:expanded': 'render'
+    },
+
+    expand: function() {
+        this.model.set('expanded', true);
+    }
+});
+
+var ResultDetailsCinergiView = ResultDetailsBaseView.extend({
+    template: resultDetailsCinergiTmpl,
+
+    regions: {
+        organizations: '[data-list-region="organizations"]',
+        contacts: '[data-list-region="contacts"]',
+    },
+
+    templateHelpers: function() {
+        var topicCategories = this.model.get('resource_topic_categories');
+
+        return {
+            'top_categories': this.model.topCinergiCategories(20),
+            'resource_topic_categories_str': topicCategories ?
+                topicCategories.join(", ") : null,
+            'details_url': this.model.getDetailsUrl()
+        };
+    },
+
+    onShow: function() {
+        var contactOrgs = this.model.get('contact_organizations'),
+            contactPeople = this.model.get('contact_people'),
+            orgs = contactOrgs ? contactOrgs.filter(utils.distinct) : null,
+            contacts =  contactPeople ? contactPeople.filter(utils.distinct) : null;
+
+        this.organizations.show(new ExpandableTableRow({
+            model: new models.ExpandableListModel({
+                list_type: 'organizations',
+                list: orgs
+            })
+        }));
+
+        this.contacts.show(new ExpandableTableRow({
+            model: new models.ExpandableListModel({
+                list_type: 'contacts',
+                list: contacts
+            })
+        }));
+    }
+});
+
+var ResultDetailsHydroshareView = ResultDetailsBaseView.extend({
+    template: resultDetailsHydroshareTmpl,
+
+    modelEvents: {
+        'change:fetching': 'render',
+    },
+
+    templateHelpers: function() {
+        var scimeta = this.model.get('scimeta'),
+            files = this.model.get('files'),
+            details_url = _.find(this.model.get('links'), {'type': 'details'}),
+            helpers = {
+                details_url: details_url ? details_url.href : null,
+                resource_type: '',
+                abstract: '',
+                creators: [],
+                subjects: '',
+                files: files ? files.toJSON() : [],
+            };
+
+        if (scimeta) {
+            var type = scimeta.get('type');
+
+            helpers.resource_type = type.substring(type.lastIndexOf('/') + 1, type.indexOf('Resource'));
+            helpers.abstract = scimeta.get('description');
+            helpers.creators = scimeta.get('creators').toJSON();
+            helpers.subjects = scimeta.get('subjects').pluck('value').join(', ');
+        }
+
+        return helpers;
+    },
+
+    initialize: function() {
+        this.model.fetchHydroshareDetails();
+    },
+
+    onDomRefresh: function() {
+        window.closePopover();
+        this.$('[data-toggle="popover"]').popover({
+            placement: 'right',
+            trigger: 'focus',
+        });
         this.$('[data-toggle="table"]').bootstrapTable();
     },
+});
+
+var ResultDetailsCuahsiView = ResultDetailsBaseView.extend({
+    template: resultDetailsCuahsiTmpl,
 
     templateHelpers: function() {
         var id = this.model.get('id'),
@@ -468,13 +667,315 @@ var ResultDetailsView = Marionette.ItemView.extend({
         };
     },
 
-    closeDetails: function() {
-        this.model.collection.closeDetail();
+    ui: _.defaults({
+        chartRegion: '#cuahsi-chart-region',
+        tableRegion: '#cuahsi-table-region',
+    }, ResultDetailsBaseView.prototype.ui),
+
+    regions: {
+        statusRegion: '#cuahsi-status-region',
+        switcherRegion: '#cuahsi-switcher-region',
+        chartRegion: '#cuahsi-chart-region',
+        tableRegion: '#cuahsi-table-region',
+    },
+
+    modelEvents: {
+        'change:mode': 'showChartOrTable',
+    },
+
+    initialize: function() {
+        this.model.set('mode', 'table');
+        this.model.fetchCuahsiValues();
+    },
+
+    onShow: function() {
+        var variables = this.model.get('variables');
+
+        this.statusRegion.show(new CuahsiStatusView({ model: this.model }));
+        this.switcherRegion.show(new CuahsiSwitcherView({ model: this.model }));
+        this.tableRegion.show(new CuahsiTableView({ collection: variables }));
+    },
+
+    onDomRefresh: function() {
+        window.closePopover();
+        this.$('[data-toggle="popover"]').popover({
+            placement: 'right',
+            trigger: 'click',
+        });
+    },
+
+    showChartOrTable: function() {
+        if (this.model.get('mode') === 'table') {
+            this.ui.chartRegion.addClass('hidden');
+            this.ui.tableRegion.removeClass('hidden');
+        } else {
+            this.ui.chartRegion.removeClass('hidden');
+            this.ui.tableRegion.addClass('hidden');
+
+            if (!this.chartRegion.hasView()) {
+                this.chartRegion.show(new CuahsiChartView({
+                    collection: this.model.get('variables'),
+                }));
+            }
+        }
     }
 });
 
-var ResultMapPopoverView = Marionette.LayoutView.extend({
-    template: resultMapPopoverTmpl,
+var CuahsiStatusView = Marionette.ItemView.extend({
+    template: resultDetailsCuahsiStatusTmpl,
+
+    modelEvents: {
+        'change:fetching change:error': 'render',
+    },
+});
+
+var CuahsiSwitcherView = Marionette.ItemView.extend({
+    template: resultDetailsCuahsiSwitcherTmpl,
+
+    ui: {
+        chartButton: '#cuahsi-button-chart',
+        tableButton: '#cuahsi-button-table',
+    },
+
+    events: {
+        'click @ui.chartButton': 'setChartMode',
+        'click @ui.tableButton': 'setTableMode',
+    },
+
+    modelEvents: {
+        'change:fetching change:mode': 'render',
+    },
+
+    templateHelpers: function() {
+        var fetching = this.model.get('fetching'),
+            error = this.model.get('error'),
+            last_date = this.model.get('end_date');
+
+        if (!fetching && !error) {
+            var variables = this.model.get('variables'),
+                last_dates = variables.map(function(v) {
+                        var values = v.get('values');
+
+                        if (values.length > 0) {
+                            return new Date(values.last().get('datetime'));
+                        } else {
+                            return new Date('07/04/1776');
+                        }
+                    });
+
+            last_dates.push(new Date(last_date));
+            last_date = Math.max.apply(null, last_dates);
+        }
+
+        return {
+            last_date: last_date,
+        };
+    },
+
+    setChartMode: function() {
+        this.model.set('mode', 'chart');
+    },
+
+    setTableMode: function() {
+        this.model.set('mode', 'table');
+    }
+});
+
+var CATALOG_RESULT_DETAILS_VIEW = {
+    cinergi: ResultDetailsCinergiView,
+    hydroshare: ResultDetailsHydroshareView,
+    cuahsi: ResultDetailsCuahsiView,
+};
+
+var CuahsiTableView = Marionette.ItemView.extend({
+    tagName: 'table',
+    className: 'table custom-hover',
+    attributes: {
+        'data-toggle': 'table',
+    },
+    template: resultDetailsCuahsiTableTmpl,
+
+    initialize: function() {
+        var self = this;
+
+        this.variableColumnTmpl = resultDetailsCuahsiTableRowVariableColTmpl;
+
+        this.collection.forEach(function(v, index) {
+            self.listenTo(v, 'change', _.partial(self.onVariableUpdate, index));
+        });
+    },
+
+    onAttach: function() {
+        var data = this.collection.toJSON(),
+            variableColumnFormatter = _.bind(this.variableColumnFormatter, this),
+            enablePopovers = _.bind(this.enablePopovers, this);
+
+        this.$el.bootstrapTable({
+            data: data,
+            columns: [
+                {
+                    field: 'concept_keyword',
+                    formatter: variableColumnFormatter,
+                },
+                {
+                    field: 'most_recent_value',
+                },
+                {
+                    field: 'units',
+                }
+            ],
+            onPostBody: enablePopovers,
+        });
+
+        enablePopovers();
+    },
+
+    enablePopovers: function() {
+        this.$('.variable-popover').popover({
+            placement: 'right',
+            trigger: 'focus',
+        });
+    },
+
+    variableColumnFormatter: function(value, row, index) {
+        return this.variableColumnTmpl.render(
+            this.collection.at(index).toJSON()
+        );
+    },
+
+    onVariableUpdate: function(index) {
+        var row = this.collection.at(index).toJSON();
+
+        this.$el.bootstrapTable('updateRow', {
+            index: index,
+            row: row,
+        });
+    }
+});
+
+var CuahsiChartView = Marionette.ItemView.extend({
+    template: resultDetailsCuahsiChartTmpl,
+
+    ui: {
+        'chartDiv': '#cuahsi-variable-chart',
+        'select': 'select',
+    },
+
+    events: {
+        'change @ui.select': 'selectVariable',
+    },
+
+    modelEvents: {
+        'change:selected': 'renderChart',
+    },
+
+    templateHelpers: function() {
+        var variables = this.collection.map(function(v) {
+                return {
+                    id: v.get('id'),
+                    concept_keyword: v.get('concept_keyword'),
+                    data_type: v.get('data_type'),
+                    units: v.get('units'),
+                };
+            });
+
+        return {
+            variables: variables,
+        };
+    },
+
+    initialize: function(attrs) {
+        var selected = this.collection.first().get('id');
+
+        this.model = new Backbone.Model();
+        this.model.set({
+            selected: selected,
+            result: attrs.result,
+        });
+    },
+
+    selectVariable: function() {
+        var selected = this.ui.select.val();
+
+        this.model.set('selected', selected);
+    },
+
+    onShow: function() {
+        this.renderChart();
+    },
+
+    initializeChart: function(variable) {
+        var chart = new HighstockChart({
+                chart: {
+                    renderTo: 'cuahsi-variable-chart',
+                },
+
+                rangeSelector: {
+                    selected: 1,
+                    buttons: [
+                        { type: 'week', count: 1, text: '1w' },
+                        { type: 'month', count: 1, text: '1m' },
+                        { type: 'year', count: 1, text: '1y' },
+                    ],
+                },
+
+                xAxis: {
+                    ordinal: false,
+                },
+
+                yAxis: {
+                    title: {
+                        text: variable.get('units'),
+                    }
+                },
+
+                // TODO Check why this isn't working
+                lang: {
+                    thousandsSep: ','
+                },
+
+                title : {
+                    text : null
+                },
+
+                series : [{
+                    name : variable.get('concept_keyword'),
+                    data : variable.getChartData(),
+                    color: '#389b9b',
+                    tooltip: {
+                        valueSuffix: ' ' + variable.get('units'),
+                        valueDecimals: 2,
+                    },
+                }]
+            });
+
+        return chart;
+    },
+
+    renderChart: function() {
+        var id = this.model.get('selected'),
+            variable = this.collection.findWhere({ id: id });
+
+        if (!this.chart) {
+            this.chart = this.initializeChart(variable);
+        } else {
+            this.chart.yAxis[0].setTitle({
+                text: variable.get('units'),
+            });
+
+            this.chart.series[0].update({
+                name: variable.get('concept_keyword'),
+                data: variable.getChartData(),
+                tooltip: {
+                    valueSuffix: ' ' + variable.get('units'),
+                },
+            });
+        }
+    }
+});
+
+var ResultMapPopoverDetailView = Marionette.LayoutView.extend({
+    template: resultMapPopoverDetailTmpl,
 
     regions: {
         'resultRegion': '.data-catalog-popover-result-region'
@@ -500,6 +1001,126 @@ var ResultMapPopoverView = Marionette.LayoutView.extend({
     selectResult: function() {
         App.getLeafletMap().closePopup();
         this.model.collection.showDetail(this.model);
+    }
+});
+
+var ResultMapPopoverListItemView = Marionette.ItemView.extend({
+    template: resultMapPopoverListItemTmpl,
+
+    ui: {
+        selectButton: '.data-catalog-popover-list-item-btn'
+    },
+
+    events: {
+        'click @ui.selectButton': 'selectItem',
+        'mouseover': 'highlightResult',
+        'mouseout': 'unHighlightResult'
+    },
+
+    templateHelpers: function() {
+        return {
+            catalog: this.options.catalog
+        };
+    },
+
+    selectItem: function() {
+        this.options.popoverModel.set('activeResult', this.model);
+    },
+
+    highlightResult: function() {
+        App.map.set('dataCatalogActiveResult', this.model);
+        this.model.set('active', true);
+    },
+
+    unHighlightResult: function() {
+        App.map.set('dataCatalogActiveResult', null);
+        this.model.set('active', false);
+    }
+});
+
+var ResultMapPopoverListView = Marionette.CompositeView.extend({
+    template: resultMapPopoverListTmpl,
+    childView: ResultMapPopoverListItemView,
+    childViewContainer: '.data-catalog-popover-result-list',
+    childViewOptions: function() {
+        return {
+            popoverModel: this.options.popoverModel,
+            catalog: this.options.catalog
+        };
+    },
+
+    ui: {
+        prevPage: '[data-action="prev-page"]',
+        nextPage: '[data-action="next-page"]'
+    },
+
+    events: {
+        'click @ui.prevPage': 'prevPage',
+        'click @ui.nextPage': 'nextPage'
+    },
+
+    templateHelpers: function() {
+        return {
+            numResults: this.collection.fullCollection.length,
+            pageNum: this.collection.state.currentPage,
+            numPages: this.collection.state.totalPages,
+            hasNextPage: this.collection.hasNextPage(),
+            hasPrevPage: this.collection.hasPreviousPage()
+        };
+    },
+
+    prevPage: function() {
+        this.collection.getPreviousPage();
+        this.render();
+    },
+
+    nextPage: function() {
+        this.collection.getNextPage();
+        this.render();
+    }
+});
+
+var ResultMapPopoverControllerView = Marionette.LayoutView.extend({
+    // model: PopoverControllerModel
+    template: resultMapPopoverControllerTmpl,
+
+    regions: {
+        container: '.data-catalog-popover-container'
+    },
+
+    ui: {
+        back: '.data-catalog-popover-back-btn'
+    },
+
+    events: {
+        'click @ui.back': 'backToList'
+    },
+
+    initialize: function() {
+        this.model = new models.PopoverControllerModel();
+        this.model.on('change:activeResult', this.render);
+    },
+
+    onRender: function() {
+        var activeResult = this.model.get('activeResult');
+        if (activeResult) {
+            this.container.show(new ResultMapPopoverDetailView({
+                model: activeResult,
+                catalog: this.options.catalog
+            }));
+        } else {
+            App.map.set('dataCatalogActiveResult', null);
+            this.model.set('active', false);
+            this.container.show(new ResultMapPopoverListView({
+                collection: this.collection,
+                popoverModel: this.model,
+                catalog: this.options.catalog
+            }));
+        }
+    },
+
+    backToList: function() {
+        this.model.set('activeResult', null);
     }
 });
 
@@ -633,6 +1254,26 @@ var FilterSidebar = Marionette.CompositeView.extend({
                              type, " unsupported.",
                              "Write it a view.");
         return null;
+    },
+
+    initialize: function() {
+        var self = this;
+
+        this.collection.forEach(function(model) {
+            self.listenTo(model, 'change', self.toggleReset);
+        });
+    },
+
+    onRender: function() {
+        this.toggleReset();
+    },
+
+    toggleReset: function() {
+        if (this.collection.isDefault()) {
+            this.ui.reset.addClass('hidden');
+        } else {
+            this.ui.reset.removeClass('hidden');
+        }
     },
 
     clearFilters: function() {

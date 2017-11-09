@@ -1,0 +1,37 @@
+<div class="resource-wrapper {{ 'active' if active }}">
+    <h3 class="resource-title">
+        {{ title }}
+    </h3>
+    {% if not (summary == "REQUIRED FIELD") %}
+    <div class="resource-detail resource-description">
+        {{ summary }}
+    </div>
+    {% endif %}
+    {% if source_name or contact_organizations %}
+    <div class="resource-detail">
+        <i class="fa fa-file-text-o"></i>
+        {% if source_name %}
+        {{ source_name }} /
+        {% endif %}
+        {% if contact_organizations %}
+        {{ contact_organizations[0] }}
+        {% endif %}
+    </div>
+    {% endif %}
+    <div class="resource-detail -showall">
+        <i class="fa fa-subscript"></i>
+        <div class="detail-text">
+            {{ top_categories }}
+        </div>
+    </div>
+    <div class="resource-date">
+        <i class="fa fa-calendar"></i>
+        {% if begin_date and begin_date|toDateWithoutTime == end_date|toDateWithoutTime %}
+        {{ begin_date|toDateWithoutTime }}
+        {% elif begin_date %}
+        {{ begin_date|toDateWithoutTime }}&thinsp;&ndash;&thinsp;{{ end_date|toDateWithoutTime }}
+        {% else %}
+        Unknown Time Period
+        {% endif %}
+    </div>
+</div>

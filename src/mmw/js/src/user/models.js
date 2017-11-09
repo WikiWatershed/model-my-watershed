@@ -6,7 +6,9 @@ var Backbone = require('../../shim/backbone'),
 var UserModel = Backbone.Model.extend({
     defaults: {
         itsi: false,
-        guest: true
+        guest: true,
+        profile_is_complete: false,
+        show_profile_popover: false // does the user need the blue dot explanatory popover?
     },
 
     url: '/user/login',
@@ -55,6 +57,21 @@ var UserModel = Backbone.Model.extend({
     }
 });
 
+var UserProfileModel = Backbone.Model.extend({
+    defaults: {
+        first_name: '',
+        last_name: '',
+        organization: '',
+        country: '',
+        user_type: '',
+        postal_code: '',
+        error: null,
+        saving: false
+    },
+
+    url: '/user/profile',
+});
+
 var ModalBaseModel = Backbone.Model.extend({
     defaults: {
         success: false,
@@ -67,10 +84,17 @@ var LoginFormModel = ModalBaseModel.extend({
     defaults: {
         username: null,
         password: null,
-        successCallback: null
     },
 
     url: '/user/login',
+
+    initialize: function(attrs, opts) {
+        if (opts && opts.onSuccess && _.isFunction(opts.onSuccess)) {
+            this.onSuccess = opts.onSuccess;
+        } else {
+            this.onSuccess = _.noop;
+        }
+    },
 
     validate: function(attrs) {
         var errors = [];
@@ -96,13 +120,10 @@ var LoginFormModel = ModalBaseModel.extend({
             });
         }
     },
+});
 
-    onSuccess: function() {
-        var callback = this.get('successCallback');
-        if (callback && _.isFunction(callback)) {
-            callback();
-        }
-    }
+var UserProfileFormModel = ModalBaseModel.extend({
+    url: '/user/profile'
 });
 
 var SignUpFormModel = ModalBaseModel.extend({
@@ -170,10 +191,6 @@ var ForgotFormModel = ModalBaseModel.extend({
             errors.push('Please enter an email address');
         }
 
-        if (!attrs.username && !attrs.password) {
-            errors.push('Please check user name and/or password');
-        }
-
         if (errors.length) {
             this.set({
                 'client_errors': errors,
@@ -201,6 +218,49 @@ var ResendFormModel = ModalBaseModel.extend({
 
         if (!attrs.email) {
             errors.push('Please enter an email address');
+        }
+
+        if (errors.length) {
+            this.set({
+                'client_errors': errors,
+                'server_errors': null
+            });
+            return errors;
+        } else {
+            this.set({
+                'client_errors': null,
+                'server_errors': null
+            });
+        }
+    }
+});
+
+var ChangePasswordFormModel = ModalBaseModel.extend({
+    defaults: {
+        old_password: null,
+        new_password1: null,
+        new_password2: null
+    },
+
+    url: '/user/change-password',
+
+    validate: function(attrs) {
+        var errors = [];
+
+        if (!attrs.old_password) {
+            errors.push('Please enter your password');
+        }
+
+        if (!attrs.new_password1) {
+            errors.push('Please enter a password');
+        }
+
+        if (!attrs.new_password2) {
+            errors.push('Please repeat the password');
+        }
+
+        if (attrs.new_password1 !== attrs.new_password2) {
+            errors.push('Passwords do not match');
         }
 
         if (errors.length) {
@@ -260,9 +320,12 @@ var ItsiSignUpFormModel = ModalBaseModel.extend({
 
 module.exports = {
     UserModel: UserModel,
+    UserProfileModel: UserProfileModel,
     LoginFormModel: LoginFormModel,
+    UserProfileFormModel: UserProfileFormModel,
     SignUpFormModel: SignUpFormModel,
     ResendFormModel: ResendFormModel,
     ForgotFormModel: ForgotFormModel,
+    ChangePasswordFormModel: ChangePasswordFormModel,
     ItsiSignUpFormModel: ItsiSignUpFormModel
 };

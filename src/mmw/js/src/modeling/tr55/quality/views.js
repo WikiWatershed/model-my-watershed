@@ -1,7 +1,6 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('underscore'),
     Backbone = require('../../../../shim/backbone'),
     Marionette = require('../../../../shim/backbone.marionette'),
     AoiVolumeModel = require('../models').AoiVolumeModel,
@@ -20,12 +19,6 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     template: resultTmpl,
-
-    templateHelpers: function() {
-        return {
-            showModelDescription: !this.compareMode
-        };
-    },
 
     attributes: {
         role: 'tabpanel'
@@ -50,7 +43,6 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     initialize: function(options) {
-        this.compareMode = options.compareMode;
         this.scenario = options.scenario;
 
         this.aoiVolumeModel = new AoiVolumeModel({
@@ -62,29 +54,21 @@ var ResultView = Marionette.LayoutView.extend({
         this.tableRegion.reset();
         this.chartRegion.reset();
         if (this.model.get('result')) {
-            if (this.compareMode) {
-                this.chartRegion.show(new CompareChartView({
-                    model: this.model,
-                    aoiVolumeModel: this.aoiVolumeModel,
-                    scenario: this.scenario,
-                }));
-            } else {
-                var dataCollection = new Backbone.Collection(
-                    this.model.get('result').quality['modified'].filter(
-                        utils.filterOutOxygenDemand
+            var dataCollection = new Backbone.Collection(
+                this.model.get('result').quality['modified'].filter(
+                    utils.filterOutOxygenDemand
                 ));
 
-                this.tableRegion.show(new TableView({
-                    aoiVolumeModel: this.aoiVolumeModel,
-                    collection: dataCollection
-                }));
+            this.tableRegion.show(new TableView({
+                aoiVolumeModel: this.aoiVolumeModel,
+                collection: dataCollection
+            }));
 
-                this.chartRegion.show(new ChartView({
-                    aoiVolumeModel: this.aoiVolumeModel,
-                    model: this.model,
-                    collection: dataCollection
-                }));
-            }
+            this.chartRegion.show(new ChartView({
+                aoiVolumeModel: this.aoiVolumeModel,
+                model: this.model,
+                collection: dataCollection
+            }));
         }
     },
 
@@ -132,12 +116,9 @@ var TableView = Marionette.CompositeView.extend({
 });
 
 var ChartView = Marionette.ItemView.extend({
+    // model ResultModel
     template: barChartTmpl,
     className: 'chart-container quality-chart-container',
-
-    initialize: function(options) {
-        this.compareMode = options.compareMode;
-    },
 
     onAttach: function() {
         this.addChart();
@@ -159,68 +140,6 @@ var ChartView = Marionette.ItemView.extend({
             };
 
         chart.renderHorizontalBarChart(chartEl, data, chartOptions);
-    }
-});
-
-var CompareChartView = Marionette.ItemView.extend({
-    template: barChartTmpl,
-
-    className: 'chart-container quality-chart-container',
-
-    modelEvents: {
-        'change': 'addChart'
-    },
-
-    initialize: function(options) {
-        this.scenario = options.scenario;
-    },
-
-    onAttach: function() {
-        this.addChart();
-    },
-
-    addChart: function() {
-        function getData(result, seriesDisplayNames) {
-            return _.map(seriesDisplayNames, function(seriesDisplayName, seriesInd) {
-                var load = result[seriesInd].load;
-                return {
-                    key: seriesDisplayName,
-                    values: [
-                        {
-                            x: '',
-                            y: aoiVolumeModel.getLoadingRate(load),
-                        }
-                    ]
-                };
-            });
-        }
-
-        var chartEl = this.$el.find('.bar-chart').get(0),
-            result = this.model.get('result').quality,
-            aoiVolumeModel = this.options.aoiVolumeModel,
-            seriesDisplayNames = ['Suspended Solids',
-                                  'Nitrogen',
-                                  'Phosphorus'],
-            data,
-            chartOptions;
-
-        $(chartEl).empty();
-        if (result) {
-            var resultKey = utils.getTR55ResultKey(this.scenario);
-
-            data = getData(result[resultKey].filter(utils.filterOutOxygenDemand), seriesDisplayNames);
-            chartOptions = {
-                seriesColors: ['#4aeab3', '#4ebaea', '#329b9c'],
-                yAxisLabel: 'Loading Rate (kg/ha)',
-                yAxisUnit: 'kg/ha',
-                margin: {top: 20, right: 0, bottom: 40, left: 60},
-                reverseLegend: this.compareMode,
-                disableToggle: true,
-                abbreviateTicks: true
-            };
-
-            chart.renderVerticalBarChart(chartEl, data, chartOptions);
-        }
     }
 });
 

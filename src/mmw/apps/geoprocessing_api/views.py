@@ -6,7 +6,10 @@ from celery import chain, group
 
 from rest_framework.response import Response
 from rest_framework import decorators
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authentication import (TokenAuthentication,
+                                           SessionAuthentication)
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authtoken.models import Token
 
 from django.utils.timezone import now
 from django.core.urlresolvers import reverse
@@ -15,16 +18,75 @@ from django.conf import settings
 from apps.core.models import Job
 from apps.core.tasks import (save_job_error,
                              save_job_result)
-from apps.core.permissions import IsTokenAuthenticatedOrNotSwagger
 from apps.core.decorators import log_request
 from apps.modeling import geoprocessing
 from apps.modeling.views import load_area_of_interest
 from apps.geoprocessing_api import tasks
+from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
+from apps.geoprocessing_api.throttling import (BurstRateThrottle,
+                                               SustainedRateThrottle)
+
+from validation import (validate_rwd,
+                        validate_aoi)
+
+
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((AuthTokenSerializerAuthentication,
+                                    SessionAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+def get_auth_token(request, format=None):
+    """
+    Get your API key
+
+
+    ## Request Body
+
+    **Required**
+
+    `username` (`string`): Your username
+
+    `password` (`string`): Your password
+
+
+    **Optional**
+
+    `regenerate` (`boolean`): Regenerate your API token?
+                              Default is `false`.
+
+    **Example**
+
+        {
+            "username": "your_username",
+            "password": "your_password"
+        }
+
+    ## Sample Response
+
+        {
+           "token": "ea467ed7f67c53cfdd313198647a1d187b4d3ab9",
+           "created_at": "2017-09-11T14:50:54.738Z"
+        }
+    ---
+    omit_serializer: true
+    consumes:
+        - application/json
+    produces:
+        - application/json
+    """
+
+    should_regenerate = request.data.get('regenerate', False)
+    if should_regenerate:
+        Token.objects.filter(user=request.user).delete()
+
+    token, created = Token.objects.get_or_create(user=request.user)
+    return Response({'token': token.key,
+                     'created_at': token.created})
 
 
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
-@decorators.permission_classes((IsTokenAuthenticatedOrNotSwagger, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def start_rwd(request, format=None):
     """
@@ -57,11 +119,17 @@ def start_rwd(request, format=None):
 
     `snappingOn` (`boolean`): Snap to the nearest stream? Default is false
 
+    `simplify` (`number`): Simplify tolerance for delineated watershed shape in
+                response. Use `0` to receive an unsimplified shape. When this
+                parameter is not supplied, `simplify` defaults to `0.0001` for
+                "drb" and is a function of the shape's area for "nhd".
+
     **Example**
 
         {
-            "location": [39.97185812402583,-75.16742706298828],
+            "location": [39.67185812402583,-75.76742706298828],
             "snappingOn": true,
+            "simplify": 0,
             "dataSource":"nhd"
         }
 
@@ -86,12 +154,12 @@ def start_rwd(request, format=None):
                             "coordinates": [
                                 [
                                     [
-                                        -75.24776006176894,
-                                        39.98166667527191
+                                        -75.24776,
+                                        39.98166
                                     ],
                                     [
-                                        -75.24711191361516,
-                                        39.98166667527191
+                                        -75.24711,
+                                        39.98166
                                     ]
                                 ], ...
                             ]
@@ -119,8 +187,8 @@ def start_rwd(request, format=None):
                         "geometry": {
                             "type": "Point",
                             "coordinates": [
-                                -75.24938043215342,
-                                39.97875000854888
+                                -75.24938,
+                                39.97875
                             ]
                         },
                         "type": "Feature",
@@ -162,15 +230,19 @@ def start_rwd(request, format=None):
     """
     user = request.user if request.user.is_authenticated() else None
     created = now()
-    location = request.data['location']
+
+    location = request.data.get('location')
     data_source = request.data.get('dataSource', 'drb')
     snapping = request.data.get('snappingOn', False)
+    simplify = request.data.get('simplify', False)
+
+    validate_rwd(location, data_source, snapping, simplify)
 
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
 
-    task_list = _initiate_rwd_job_chain(location, snapping, data_source,
-                                        job.id)
+    task_list = _initiate_rwd_job_chain(location, snapping, simplify,
+                                        data_source, job.id)
 
     job.uuid = task_list.id
     job.save()
@@ -186,7 +258,8 @@ def start_rwd(request, format=None):
 
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
-@decorators.permission_classes((IsTokenAuthenticatedOrNotSwagger, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def start_analyze_land(request, format=None):
     """
@@ -371,6 +444,8 @@ def start_analyze_land(request, format=None):
     wkaoi = request.query_params.get('wkaoi', None)
     area_of_interest = load_area_of_interest(request.data, wkaoi)
 
+    validate_aoi(area_of_interest)
+
     geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
@@ -381,7 +456,8 @@ def start_analyze_land(request, format=None):
 
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
-@decorators.permission_classes((IsTokenAuthenticatedOrNotSwagger, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def start_analyze_soil(request, format=None):
     """
@@ -498,6 +574,8 @@ def start_analyze_soil(request, format=None):
     wkaoi = request.query_params.get('wkaoi', None)
     area_of_interest = load_area_of_interest(request.data, wkaoi)
 
+    validate_aoi(area_of_interest)
+
     geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
@@ -508,7 +586,8 @@ def start_analyze_soil(request, format=None):
 
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
-@decorators.permission_classes((IsTokenAuthenticatedOrNotSwagger, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def start_analyze_animals(request, format=None):
     """
@@ -612,6 +691,8 @@ def start_analyze_animals(request, format=None):
     wkaoi = request.query_params.get('wkaoi', None)
     area_of_interest = load_area_of_interest(request.data, wkaoi)
 
+    validate_aoi(area_of_interest)
+
     return start_celery_job([
         tasks.analyze_animals.s(area_of_interest)
     ], area_of_interest, user)
@@ -619,7 +700,8 @@ def start_analyze_animals(request, format=None):
 
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
-@decorators.permission_classes((IsTokenAuthenticatedOrNotSwagger, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def start_analyze_pointsource(request, format=None):
     """
@@ -702,6 +784,8 @@ def start_analyze_pointsource(request, format=None):
     wkaoi = request.query_params.get('wkaoi', None)
     area_of_interest = load_area_of_interest(request.data, wkaoi)
 
+    validate_aoi(area_of_interest)
+
     return start_celery_job([
         tasks.analyze_pointsource.s(area_of_interest)
     ], area_of_interest, user)
@@ -709,7 +793,8 @@ def start_analyze_pointsource(request, format=None):
 
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
-@decorators.permission_classes((IsTokenAuthenticatedOrNotSwagger, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def start_analyze_catchment_water_quality(request, format=None):
     """
@@ -821,6 +906,8 @@ def start_analyze_catchment_water_quality(request, format=None):
     wkaoi = request.query_params.get('wkaoi', None)
     area_of_interest = load_area_of_interest(request.data, wkaoi)
 
+    validate_aoi(area_of_interest)
+
     return start_celery_job([
         tasks.analyze_catchment_water_quality.s(area_of_interest)
     ], area_of_interest, user)
@@ -828,7 +915,8 @@ def start_analyze_catchment_water_quality(request, format=None):
 
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((TokenAuthentication, ))
-@decorators.permission_classes((IsTokenAuthenticatedOrNotSwagger, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def start_analyze_climate(request, format=None):
     """
@@ -915,6 +1003,8 @@ def start_analyze_climate(request, format=None):
     wkaoi = request.query_params.get('wkaoi', None)
     area_of_interest = load_area_of_interest(request.data, wkaoi)
 
+    validate_aoi(area_of_interest)
+
     geotasks = []
     ppt_raster = settings.GEOP['json']['ppt']['input']['targetRaster']
     tmean_raster = settings.GEOP['json']['tmean']['input']['targetRaster']
@@ -938,12 +1028,12 @@ def start_analyze_climate(request, format=None):
     ], area_of_interest, user, link_error=False)
 
 
-def _initiate_rwd_job_chain(location, snapping, data_source,
+def _initiate_rwd_job_chain(location, snapping, simplify, data_source,
                             job_id, testing=False):
     errback = save_job_error.s(job_id)
 
-    return chain(tasks.start_rwd_job.s(location, snapping, data_source),
-                 save_job_result.s(job_id, location)) \
+    return chain(tasks.start_rwd_job.s(location, snapping, simplify,
+                 data_source), save_job_result.s(job_id, location)) \
         .apply_async(link_error=errback)
 
 

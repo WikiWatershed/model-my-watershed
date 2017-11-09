@@ -12,8 +12,13 @@ from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
 from django.template.context_processors import csrf
 from django.conf import settings
+from django.contrib.auth.models import User
+
+from rest_framework.authtoken.models import Token
 
 from apps.modeling.models import Project, Scenario
+from apps.user.models import UserProfile
+from apps.user.countries import COUNTRY_CHOICES
 
 
 def home_page(request):
@@ -115,11 +120,22 @@ def set_url(layer):
     layer.update({'url': get_layer_url(layer)})
 
 
+def get_api_token():
+    try:
+        client_app_user = User.objects.get(
+            username=settings.CLIENT_APP_USERNAME)
+        token = Token.objects.get(user=client_app_user)
+        return token.key
+    except User.DoesNotExist, Token.DoesNotExist:
+        return None
+
+
 def get_client_settings(request):
     # BiG-CZ mode applies when either request host contains predefined host, or
     # ?bigcz query parameter is present. This covers staging sites, etc.
     bigcz = settings.BIGCZ_HOST in request.get_host() or 'bigcz' in request.GET
-    title = 'Critical Zone Data Explorer' if bigcz else 'Model My Watershed'
+    favicon = 'favicon-bigcz' if bigcz else 'favicon'
+    title = 'BiG CZ Data Portal' if bigcz else 'Model My Watershed'
     max_area = settings.BIGCZ_MAX_AREA if bigcz else settings.MMW_MAX_AREA
     EMBED_FLAG = settings.ITSI['embed_flag']
     client_settings = {
@@ -143,9 +159,18 @@ def get_client_settings(request):
             'data_catalog_page_size': settings.BIGCZ_CLIENT_PAGE_SIZE,
             'itsi_enabled': not bigcz,
             'title': title,
+            'api_token': get_api_token(),
+            'choices': {
+                'UserProfile': {
+                    'user_type': UserProfile.USER_TYPE_CHOICES,
+                    'country': COUNTRY_CHOICES,
+                }
+            },
         }),
         'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
         'title': title,
+        'favicon': favicon + '.png',
+        'favicon2x': favicon + '@2x.png',
     }
 
     return client_settings

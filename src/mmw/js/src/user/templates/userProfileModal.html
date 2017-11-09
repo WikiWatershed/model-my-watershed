@@ -1,0 +1,26 @@
+{% extends './baseModal.html' %}
+
+{% block header %}
+<h2 class="light">Complete your profile</h2>
+{% endblock %}
+
+{% block form %}
+<div class="row">
+    <div class="col-sm-6" style="padding-right: 1em;">
+        {{ field(first_name, 'first_name', 'First Name') }}
+    </div>
+    <div class="col-sm-6" style="padding-left: 1em;">
+        {{ field(last_name, 'last_name', 'Last Name') }}
+    </div>
+</div>
+{{ field(organization, 'organization', 'Organization/School') }}
+{{ select(user_type, 'user_type', 'UserProfile', 'user_type', 'Unspecified', 'User Type') }}
+{{ select(country, 'country', 'UserProfile', 'country', 'US', 'Country') }}
+{{ field(postal_code, 'postal_code', 'Postal Code') }}
+
+<button type="button" class="btn btn-lg btn-block btn-active margin-bottom-sm" id="primary-button">Submit profile</button>
+<button type="button" class="btn btn-lg btn-block btn-default" id="dismiss-button">I'll do this later</button>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

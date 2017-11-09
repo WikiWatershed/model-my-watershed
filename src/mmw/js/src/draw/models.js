@@ -2,6 +2,7 @@
 
 var Backbone = require('../../shim/backbone'),
     _ = require('jquery'),
+    settings = require('../core/settings'),
     coreModels = require('../core/models');
 
 var ToolbarModel = Backbone.Model.extend({
@@ -52,8 +53,9 @@ var ToolbarModel = Backbone.Model.extend({
 // Used for running Rapid Watershed Delineation tasks.
 var RwdTaskModel = coreModels.TaskModel.extend({
     defaults: _.extend( {
-            taskName: 'rwd',
-            taskType: 'api'
+            taskName: 'watershed',
+            taskType: 'api',
+            token: settings.get('api_token')
         }, coreModels.TaskModel.prototype.defaults
     )
 });

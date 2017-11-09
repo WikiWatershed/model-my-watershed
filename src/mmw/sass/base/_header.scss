@@ -327,3 +327,41 @@ header {
     }
   }
 }
+
+.profile-reminder-dot {
+    border-radius: 50%;
+    margin-left: 3px;
+    vertical-align: middle;
+    margin-top: -2px;
+    border: 6px solid #238cea;
+    display: inline-block;
+}
+
+.popover.bottom.profile-popover {
+    width: 400px;
+    background: $ui-secondary;
+    padding: 1rem;
+    > .popover-title {
+        padding: 0;
+        padding-bottom: 1rem;
+        background: $ui-secondary;
+        color: $paper;
+        font-size: $font-size-h2;
+    }
+
+    > .popover-content {
+        background: $ui-secondary;
+        color: $paper;
+        padding: 0;
+        padding-bottom: 1rem;
+    }
+
+    > .arrow:after {
+        border-bottom-color: $ui-secondary;
+    }
+}
+
+.profile-fade-background {
+    top: $height-lg;
+    display: block;
+}

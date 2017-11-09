@@ -59,11 +59,11 @@ ROLLBAR = {
 # END ROLLBAR CONFIGURATION
 
 # Turn off DRF GUI
-REST_FRAMEWORK = {
+REST_FRAMEWORK.update({
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
     )
-}
+})
 
 # Django Storages CONFIGURATION
 mac_metadata = instance_metadata['network']['interfaces']['macs']

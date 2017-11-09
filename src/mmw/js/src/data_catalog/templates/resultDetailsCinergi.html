@@ -4,27 +4,105 @@
             <i class="fa fa-arrow-left black"></i> Back
         </button>
         <h2>
-            {{ title }}
+            Resource: {{ title }}
         </h2>
+        <table class="table-data-detail">
+            <tr>
+                <th>Contacts</th>
+                <td data-list-region="contacts"></td>
+            </tr>
+            <tr>
+                <th>Organizations</th>
+                <td data-list-region="organizations"></td>
+            </tr>
+            <tr>
+                <th>Data&nbsp;collected&nbsp;between</th>
+                <td>
+                    {% if begin_date and begin_date|toDateWithoutTime == end_date|toDateWithoutTime %}
+                    {{ begin_date|toDateWithoutTime }}
+                    {% elif begin_date %}
+                    {{ begin_date|toDateWithoutTime }}&thinsp;&ndash;&thinsp;{{ end_date|toDateWithoutTime }}
+                    {% else %}
+                    Unknown
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Subject</th>
+                <td>
+                    {{ top_categories }}
+                </td>
+            </tr>
+            <tr>
+                <th>Resource&nbsp;Type</th>
+                <td>
+                    {{ resource_type }} / {{ resource_topic_categories_str }}
+                </td>
+            </tr>
+            <tr>
+                <th>Source</th>
+                <td>
+                    {{ source_name }}
+                </td>
+            </tr>
+            <tr>
+                <th>Catalog</th>
+                <td>
+                    CINERGI
+                    <a data-toggle="popover" tabindex="0"
+                       data-html="true" data-container="body" role="button"
+                       data-content="The Community Inventory of EarthCube Resources for Geosciences Interoperability (CINERGI) Data Portal is a catalog of databases, services and data portals developed by numerous organizations representing a diversity of geoscience domains. Explore CINERGI at <a href='http://cinergi.sdsc.edu/' target='_blank' rel='noreferrer noopener'>http://cinergi.sdsc.edu/</a>"
+                       data-template="<div class='popover'><div class='pull-right' id='popover-close-button' onclick='closePopover()'><i class='fa fa-times' /></div><div class='popover-content'></div><div class='arrow'></div></div>">
+                        <i class="fa fa-info-circle black"></i>
+                    </a>
+                </td>
+            </tr>
+        </table>
     </div>
-    <hr>
-    {% if author %}
-        <p>
-            <i class="fa fa-user"></i>{{ author }}
-        </p>
-    {% endif %}
     <p>
-        <i class="fa fa-calendar"></i> {{ created_at|toDateFullYear }}
+        {% if details_url %}
+        <a class="btn btn-secondary" href="{{ details_url }}"
+           target="_blank" rel="noreferrer noopener">
+            <i class="fa fa-external-link-square"></i>&nbsp;Source Data
+        </a>
+        {% endif %}
+        <a class="btn btn-secondary" href="http://cinergi.sdsc.edu/geoportal/"
+           target="_blank" rel="noreferrer noopener">
+            <i class="fa fa-globe"></i>&nbsp;Web Services
+        </a>
     </p>
-    {% if not (description == "REQUIRED FIELD") %}
+
+    <hr/>
+
+    {% if description and not (description == "REQUIRED FIELD") %}
+    <h3>Description</h3>
     <p>
         {{ description }}
     </p>
     {% endif %}
     <p>
-        <a class="btn btn-secondary" href="{{ cinergi_url }}"
-           target="_blank" rel="noreferrer noopener">
-            <i class="fa fa-external-link-square"></i>&nbsp;Repository
-        </a>
+        Last Updated {{ updated_at|toDateWithoutTime }}
     </p>
+
+    {% if web_resources.length > 0 %}
+    <hr/>
+    <h3>Web Resources</h3>
+    {% for resource in web_resources %}
+    <li><a href={{resource.url}}
+       target="_blank" rel="noreferrer noopener">
+        {{resource.url_type}}
+    </a></li>
+    {% endfor %}
+    {% endif %}
+
+    {% if web_services.length > 0 %}
+    <hr/>
+    <h3>Web Services</h3>
+    {% for service in web_services %}
+    <li><a href={{service.url}}
+       target="_blank" rel="noreferrer noopener">
+        {{service.url_name}} ({{service.url_type}})
+    </a></li>
+    {% endfor %}
+    {% endif %}
 </div>

@@ -4,13 +4,25 @@
     </ul>
     <div class="navigation">
         <ul class="main">
-            <li class="header-link"><a target="_blank" href="http://www.wikiwatershed.org">About</a></li>
+            <li class="header-link"><a target="_blank" href="{{ aboutLink }}">About</a></li>
             {% if guest %}
                 <li class="header-link"><a class="show-login" href="javascript:void(0);">Login</a></li>
             {% else %}
                 <li class="dropdown header-link">
                     <a class="dropdown-toggle" data-toggle="dropdown" href="javascript:void(0);">
                         {{ username }}
+                    </a>
+                    {% if not profile_is_complete %}
+                    <a href="/account"
+                       {% if show_profile_popover %}
+                       title="No problem"
+                       data-toggle="popover" tabindex="0"
+	                     data-content="You can click on this little blue circle whenever you are ready to fill out the user survey. We'd really appreciate it."
+	                     data-template="<div class='popover profile-popover'><h2 class='popover-title'></h2><div class='popover-content'></div><div class='btn btn-md btn-active btn-block' id='popover-close-button'>Okay</div><div class='arrow'></div></div>"
+                       {% endif %}
+                    ><div class="profile-reminder-dot"></div></a>
+                    {% endif %}
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="javascript:void(0);">
                         <span class="caret"></span>
                     </a>
                     <ul class="dropdown-menu">
@@ -20,6 +32,7 @@
                         {% if not itsi_embed %}
                             <li><a data-url="/projects/">My Projects</a></li>
                         {% endif %}
+                        <li><a data-url="/account/">My Account</a></li>
                         <li><a href="/user/logout" class="user-logout">Logout</a></li>
                     </ul>
                 </li>
@@ -27,3 +40,7 @@
         </ul>
     </div>
 </nav>
+
+{% if show_profile_popover %}
+<div class="modal profile-fade-background" tabindex="-1">
+{% endif %}

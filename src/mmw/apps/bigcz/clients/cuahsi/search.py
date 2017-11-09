@@ -6,7 +6,7 @@ from __future__ import division
 from datetime import date
 from urllib2 import URLError
 from socket import timeout
-from operator import attrgetter
+from operator import attrgetter, itemgetter
 
 from suds.client import Client
 from suds.sudsobject import asdict
@@ -96,11 +96,20 @@ def parse_details_url(record):
     Ref: https://github.com/WikiWatershed/model-my-watershed/issues/1931
     """
     location = record['location']
-    if 'NWISDV' in location:
+    if any(code in location for code in ('NWISDV', 'NWISGW', 'NWISUV')):
         parts = location.split(':')
         if len(parts) == 2:
-            _, id = parts
-            return 'https://waterdata.usgs.gov/nwis/uv/?site_no={}'.format(id)
+            code, id = parts
+            if code == 'NWISDV':
+                url = 'https://waterdata.usgs.gov/nwis/dv/?site_no={}'
+                return url.format(id)
+            elif code == 'NWISUV':
+                url = 'https://waterdata.usgs.gov/nwis/uv/?site_no={}'
+                return url.format(id)
+            elif code == 'NWISGW':
+                url = ('https://nwis.waterdata.usgs.gov/' +
+                       'usa/nwis/gwlevels/?site_no={}')
+                return url.format(id)
     return None
 
 
@@ -126,7 +135,7 @@ def parse_record(record, service):
         geom=geom,
         details_url=details_url,
         sample_mediums=record['sample_mediums'],
-        concept_keywords=record['concept_keywords'],
+        variables=record['variables'],
         service_org=service['organization'],
         service_code=record['serv_code'],
         service_url=service['ServiceDescriptionURL'],
@@ -189,14 +198,21 @@ def group_series_by_location(series):
                                for r in group]),
             'end_date': max([parse_date(r['endDate'])
                              for r in group]),
+            'variables': sorted([{
+                'id': r['VarCode'],
+                'name': r['VarName'],
+                'concept_keyword': r['conceptKeyword'],
+                'site': r['location'],
+                'wsdl': r['ServURL'],
+            } for r in group], key=itemgetter('concept_keyword'))
         })
 
     return records
 
 
 def make_request(request, expiry, **kwargs):
-    key = 'bigcz_{}_{}'.format(request.method.name,
-                               hash(frozenset(kwargs.items())))
+    key = 'bigcz_cuahsi_{}_{}'.format(request.method.name,
+                                      hash(frozenset(kwargs.items())))
     cached = cache.get(key)
     if cached:
         return cached
@@ -250,6 +266,10 @@ def get_series_catalog_in_box(box, from_date, to_date, networkIDs):
     try:
         return result['SeriesRecord']
     except KeyError:
+        # Empty object can mean "No results"
+        if not result:
+            return []
+
         # Missing key may indicate a server-side error
         raise ValueError(result)
     except TypeError:

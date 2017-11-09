@@ -6,9 +6,11 @@ from __future__ import division
 import requests
 
 from django.test import LiveServerTestCase
-from django.test import TestCase
+from django.test import (TestCase,
+                         Client)
 from django.contrib.auth.models import User
 from apps.user.views import trim_to_valid_length
+from apps.user.models import UserProfile
 
 
 class TaskRunnerTestCase(LiveServerTestCase):
@@ -19,36 +21,18 @@ class TaskRunnerTestCase(LiveServerTestCase):
         User.objects.create_user(username='bob', email='bob@azavea.com',
                                  password='bob')
 
-    def get_token(self):
-        try:
-            init_response = requests.get(self.HOMEPAGE_URL)
-        except requests.RequestException:
-            init_response = {}
-
-        try:
-            csrf = init_response.cookies['csrftoken']
-        except KeyError:
-            csrf = None
-
-        return csrf
-
     def attempt_login(self, username, password):
-        csrf = self.get_token()
-        try:
-            headers = {'HTTP_X_CSRFTOKEN': csrf}
-            payload = {'username': username, 'password': password}
-            response = requests.post(self.LOGIN_URL, params=payload,
-                                     headers=headers)
-        except requests.RequestException:
-            response = {}
-        return response
-
-    def attempt_login_without_token(self, username, password):
         try:
             payload = {'username': username, 'password': password}
             response = requests.post(self.LOGIN_URL, params=payload)
         except requests.RequestException:
             response = {}
+        return response
+
+    def attempt_login_without_token(self, username, password):
+        c = Client(enforce_csrf_checks=True)
+        payload = {'username': username, 'password': password}
+        response = c.post(self.LOGIN_URL, params=payload)
         return response
 
     def test_no_username_returns_400(self):
@@ -87,12 +71,11 @@ class TaskRunnerTestCase(LiveServerTestCase):
                          'Incorrect server response. Expected 200 found %s'
                          % response.status_code)
 
-    # TODO: commented out because it fails and we don't know why yet.
-    # def test_no_token_good_credentials_returns_400(self):
-    #    response = self.attempt_login_without_token('bob', 'bob')
-    #    self.assertEqual(response.status_code, 400,
-    #                     'Incorrect server response. Expected 400 found %s'
-    #                     % response.status_code)
+    def test_no_token_good_credentials_returns_400(self):
+        response = self.attempt_login_without_token('bob', 'bob')
+        self.assertEqual(response.status_code, 400,
+                         'Incorrect server response. Expected 400 found %s'
+                         % response.status_code)
 
     def test_no_token_bad_credentials_returns_400(self):
         response = self.attempt_login_without_token('badbob', 'badpass')
@@ -113,3 +96,34 @@ class ItsiSignupTestCase(TestCase):
         username = trim_to_valid_length(
             'thisisaverylongnamethatisinfacttoolong', '.itsi')
         self.assertEqual(len(username), 30)
+
+
+class UserProfileTestCase(TestCase):
+
+    def test_default_values(self):
+        profile = UserProfile()
+        self.assertEqual(
+            profile.country,
+            'US',
+            'The default country for a new profile should be "US"')
+        self.assertEqual(
+            profile.user_type,
+            'Unspecified',
+            'The default user_type for a new profile should be "Unspecified"')
+        self.assertFalse(
+            profile.was_skipped,
+            'The default value for was_skipped should be "False"')
+        self.assertEqual(
+            profile.organization,
+            '',
+            'The default organization for a new profile should be blank')
+        self.assertEqual(
+            profile.postal_code,
+            '',
+            'The default postal_code for a new profile should be blank')
+
+    def test_can_save_without_setting_any_values(self):
+        user = User.objects.create(username='t',
+                                   email='t@example.com',
+                                   password='t')
+        UserProfile.objects.create(user=user)

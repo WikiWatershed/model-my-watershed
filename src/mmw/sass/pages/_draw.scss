@@ -37,12 +37,25 @@
   }
 
   & p {
+    margin-left: 35px;
+    font-size: $font-size-h4;
+  }
+
+  ol {
     margin-left: 30px;
     font-size: $font-size-h4;
+    line-height: $line-height-base;
+    color: $black-65;
   }
 }
 
 .splash-logo {
+    max-width: 250px;
+    display: block;
+    margin: 1rem auto;
+}
+
+.splash-sponsor-logo {
     height: 52px;
     margin-top: 1rem;
     padding: 1rem;
