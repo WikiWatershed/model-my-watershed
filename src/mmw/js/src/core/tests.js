@@ -15,6 +15,7 @@ var $ = require('jquery'),
     models = require('./models'),
     AppRouter = require('../router').AppRouter,
     settings = require('./settings'),
+    utils = require('./utils'),
     testUtils = require('./testUtils');
 
 var TEST_SHAPE = {
@@ -712,6 +713,17 @@ describe('Core', function() {
                 assert.notProperty(this.requests[i].requestHeaders, 'X-Requested-With');
                 assert.notProperty(this.requests[i].requestHeaders, 'X-CSRFToken');
             }
+        });
+    });
+
+    describe('Utils', function() {
+        it('calculates range in magnitude correctly', function() {
+            assert.deepEqual(utils.rangeInMagnitude(50), {min: 0, max: 100});
+            assert.deepEqual(utils.rangeInMagnitude(8), {min: 0, max: 10});
+            assert.deepEqual(utils.rangeInMagnitude(0.314), {min: 0, max: 1});
+            assert.deepEqual(utils.rangeInMagnitude(0), {min: 0, max: 1});
+            assert.deepEqual(utils.rangeInMagnitude(10), {min: 0, max: 10});
+            assert.deepEqual(utils.rangeInMagnitude(-0.005), {min: -0.01, max: 0});
         });
     });
 });

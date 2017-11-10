@@ -520,6 +520,50 @@ var utils = {
             drb = _.findWhere(layers, {code: 'drb_streams_v2'}).perimeter;
 
         return !!intersect(geom, drb);
+    },
+
+    // Calculates a range from 0 to the upper bound
+    // of the order of magnitde of the value. Returns
+    // an object containing min and max.
+    // e.g. rangeInMagnitude(50)    => {min:  0,   max: 100}
+    //      rangeInMagnitude( 5)    => {min:  0,   max:  10}
+    //      rangeInMagnitude( 0.5)  => {min:  0,   max:   1}
+    //      rangeInMagnitude(-0.05) => {min: -0.1, max:   0}
+    rangeInMagnitude: function(value) {
+        var negative = value < 0,
+            exponent = 1,
+            min = 0,
+            max;
+
+        if (negative) {
+            value *= -1;
+        }
+
+        if (value === 0) {
+            return {min: 0, max: 1};
+        }
+
+        while (value < 1) {
+            value *= 10;
+            exponent -= 1;
+        }
+
+        while (value > 10) {
+            value /= 10;
+            exponent += 1;
+        }
+
+        max = Math.pow(10, exponent);
+
+        if (negative) {
+            min = -max;
+            max = 0;
+        }
+
+        return {
+            min: min,
+            max: max
+        };
     }
 };
 

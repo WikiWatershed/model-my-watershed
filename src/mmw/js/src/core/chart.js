@@ -3,7 +3,8 @@
 var d3 = require('d3'),
     nv = require('../../shim/nv.d3.js'),
     $ = require('jquery'),
-    _ = require('lodash');
+    _ = require('lodash'),
+    utils = require('./utils');
 
 var widthCutoff = 400;
 
@@ -596,9 +597,33 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
     }, onRenderComplete);
 }
 
+function renderBulletChart(chartEl, title, subtitle, data) {
+    var chart = nv.models.bulletChart(),
+        svg = makeSvg(chartEl),
+        range = utils.rangeInMagnitude(data),
+        datum = {
+            title: title,
+            subtitle: subtitle,
+            ranges: [range.min, 0, range.max],
+            measures: [data],
+            color: '#48c5d1',
+        };
+
+    chart.tooltip.valueFormatter(d3.format('.02f'));
+
+    d3.select(svg)
+        .datum(datum)
+        .call(chart);
+
+    removeTooltipOnDestroy(chartEl, chart.tooltip);
+
+    return chart;
+}
+
 module.exports = {
     renderHorizontalBarChart: renderHorizontalBarChart,
     renderVerticalBarChart: renderVerticalBarChart,
     renderLineChart: renderLineChart,
-    renderCompareMultibarChart: renderCompareMultibarChart
+    renderCompareMultibarChart: renderCompareMultibarChart,
+    renderBulletChart: renderBulletChart,
 };
