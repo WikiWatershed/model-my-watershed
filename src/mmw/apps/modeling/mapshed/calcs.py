@@ -322,27 +322,20 @@ def stream_length(geom, drb=False):
 
 def streams(geojson, drb=False):
     """
-    Given a GeoJSON, returns a list of GeoJSON objects, either LineStrings or
-    MultiLineStrings, representing the set of streams contained inside the
-    geometry, in LatLng. If the drb flag is set, we use the Delaware River
-    Basin dataset instead of NHD Flowline.
+    Given a GeoJSON, returns a list containing a single MultiLineString, that
+    represents the set of streams that intersect with the geometry, in LatLng.
+    If the drb flag is set, we use the Delaware River Basin dataset instead of
+    NHD Flowline.
     """
     sql = '''
-          WITH clipped_streams AS (
-              SELECT ST_Intersection(geom,
-                                     ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
-                     AS stream
-              FROM {datasource}
-              WHERE ST_Intersects(geom,
-                                  ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
-          )
-          SELECT ST_AsGeoJSON(ST_Force2D(stream))
-          FROM clipped_streams
-          WHERE NOT ST_IsEmpty(stream)
+          SELECT ST_AsGeoJSON(ST_Collect(ST_Force2D(geom)))
+          FROM {datasource}
+          WHERE ST_Intersects(geom,
+                              ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
           '''.format(datasource='drb_streams_50' if drb else 'nhdflowline')
 
     with connection.cursor() as cursor:
-        cursor.execute(sql, [geojson, geojson])
+        cursor.execute(sql, [geojson])
 
         return [row[0] for row in cursor.fetchall()]  # List of GeoJSON strings
 
