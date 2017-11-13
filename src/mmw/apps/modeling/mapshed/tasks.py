@@ -19,7 +19,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          ls_factors,
                                          p_factors,
                                          manure_spread,
-                                         streams_from_geojson,
+                                         streams,
                                          stream_length,
                                          point_source_discharge,
                                          weather_data,
@@ -483,7 +483,7 @@ def geoprocessing_chains(aoi, wkaoi, errback):
         ('slope',        slope,        {'polygon': [aoi]}),
         ('nlcd_kfactor', nlcd_kfactor, {'polygon': [aoi]}),
         ('nlcd_streams', nlcd_streams, {'polygon': [aoi],
-                                        'vector': streams_from_geojson(aoi)}),
+                                        'vector': streams(aoi)}),
     ]
 
     return [
