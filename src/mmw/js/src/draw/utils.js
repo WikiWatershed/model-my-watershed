@@ -6,6 +6,7 @@ var $ = require('jquery'),
     JSZip = require('jszip'),
     turfArea = require('turf-area'),
     turfBboxPolygon = require('turf-bbox-polygon'),
+    turfKinks = require('turf-kinks'),
     coreUtils = require('../core/utils'),
     intersect = require('turf-intersect'),
     settings = require('../core/settings');
@@ -159,6 +160,33 @@ function loadAsyncShpFilesFromZip(zipfile) {
         });
 }
 
+function isSelfIntersecting(shape) {
+    var selfIntersects = function(polygon) {
+            return turfKinks(polygon).features.length > 0;
+        },
+        geom = shape.geometry || shape;
+
+    if (!geom) {
+        return false;
+    }
+
+    if (geom.type === "Polygon") {
+        // turfKinks will include polgyons' self-touching rings
+        // as kinks, but shapes with self-touching rings are
+        // valid for geoprocessing.
+        // Assert only that each polygon ring doesn't intersect
+        // itself
+        return _.any(geom.coordinates, function(linearRing) {
+            return selfIntersects({
+                type: "Polygon",
+                coordinates: [linearRing],
+            });
+        });
+    }
+
+    return selfIntersects(geom);
+}
+
 function isValidForAnalysis(shape) {
     if (shape) {
         var area = shapeBoundingBoxArea(shape);
@@ -208,6 +236,7 @@ module.exports = {
     polygonDefaults: polygonDefaults,
     shapeBoundingBox: shapeBoundingBox,
     shapeBoundingBoxArea: shapeBoundingBoxArea,
+    isSelfIntersecting: isSelfIntersecting,
     isValidForAnalysis: isValidForAnalysis,
     withinConus: withinConus,
     getPolygonFromGeoJson: getPolygonFromGeoJson,

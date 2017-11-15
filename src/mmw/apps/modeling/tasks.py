@@ -13,8 +13,6 @@ from celery import shared_task
 
 from django.conf import settings
 
-from apps.modeling.geoprocessing import to_one_ring_multipolygon
-
 from apps.modeling.tr55.utils import (aoi_resolution,
                                       precipitation,
                                       apply_modifications_to_census,
@@ -112,10 +110,6 @@ def run_tr55(censuses, aoi, model_input, cached_aoi_census=None):
 
     # Get precipitation and cell resolution
     precip = precipitation(model_input)
-
-    # Normalize AOI to handle single-ring multipolygon
-    # inputs sent from RWD as well as shapes sent from the front-end
-    aoi = to_one_ring_multipolygon(aoi)
 
     width = aoi_resolution(aoi)
     resolution = width * width
