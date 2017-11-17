@@ -11,5 +11,8 @@ stop on shutdown
 respawn
 setuid mmw
 chdir {{ geop_home }}
+{% if ['development', 'test'] | some_are_in(group_names) -%}
+env AWS_PROFILE={{ aws_profile }}
+{% endif %}
 
 exec java -jar mmw-geoprocessing-{{ geop_version }}.jar
