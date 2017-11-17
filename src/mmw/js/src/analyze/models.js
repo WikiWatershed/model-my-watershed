@@ -90,6 +90,13 @@ function createAnalyzeTaskCollection(aoi, wkaoi) {
             wkaoi: wkaoi,
             taskName: "analyze/soil"
         },
+        {
+            name: "climate",
+            displayName: "Climate",
+            area_of_interest: aoi,
+            wkaoi: wkaoi,
+            taskName: "analyze/climate"
+        },
     ];
 
     if (!settings.get('data_catalog_enabled')) {
@@ -115,17 +122,6 @@ function createAnalyzeTaskCollection(aoi, wkaoi) {
                 area_of_interest: aoi,
                 wkaoi: wkaoi,
                 taskName: "analyze/catchment-water-quality"
-            }
-        );
-    } else {
-        // BiG-CZ Analyses
-        tasks.push(
-            {
-                name: "climate",
-                displayName: "Climate",
-                area_of_interest: aoi,
-                wkaoi: wkaoi,
-                taskName: "analyze/climate"
             }
         );
     }
