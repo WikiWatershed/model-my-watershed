@@ -7,8 +7,6 @@ from datetime import date, timedelta
 
 from rest_framework.exceptions import ValidationError
 
-from ulmo.cuahsi import wof
-
 DATE_FORMAT = '%m/%d/%Y'
 
 
@@ -24,6 +22,7 @@ def details(wsdl, site):
     if not wsdl.upper().endswith('?WSDL'):
         wsdl += '?WSDL'
 
+    from ulmo.cuahsi import wof
     return wof.get_site_info(wsdl, site)
 
 
@@ -52,4 +51,5 @@ def values(wsdl, site, variable, from_date=None, to_date=None):
     if not wsdl.upper().endswith('?WSDL'):
         wsdl += '?WSDL'
 
+    from ulmo.cuahsi import wof
     return wof.get_values(wsdl, site, variable, from_date, to_date)
