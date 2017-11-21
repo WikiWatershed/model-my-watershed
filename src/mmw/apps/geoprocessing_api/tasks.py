@@ -22,6 +22,7 @@ from apps.modeling.tr55.utils import aoi_resolution
 from apps.geoprocessing_api.calcs import (animal_population,
                                           point_source_pollution,
                                           catchment_water_quality,
+                                          stream_data,
                                           )
 
 logger = logging.getLogger(__name__)
@@ -71,6 +72,14 @@ def start_rwd_job(location, snapping, simplify, data_source):
         raise Exception(response_json['error'])
 
     return response_json
+
+
+@shared_task
+def analyze_streams(area_of_interest):
+    """
+    Given an area of interest, returns the streams and stream order within it.
+    """
+    return {'survey': stream_data(area_of_interest)}
 
 
 @shared_task
