@@ -30,6 +30,8 @@ var $ = require('jquery'),
     animalTableRowTmpl = require('./templates/animalTableRow.html'),
     climateTableTmpl = require('./templates/climateTable.html'),
     climateTableRowTmpl = require('./templates/climateTableRow.html'),
+    streamTableTmpl = require('./templates/streamTable.html'),
+    streamTableRowTmpl = require('./templates/streamTableRow.html'),
     selectorTmpl = require('./templates/selector.html'),
     pageableTableTmpl = require('./templates/pageableTable.html'),
     pointSourceTableTmpl = require('./templates/pointSourceTable.html'),
@@ -636,6 +638,60 @@ var ClimateTableView = Marionette.CompositeView.extend({
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
     }
+});
+
+var StreamTableRowView = Marionette.ItemView.extend({
+    tagName: 'tr',
+    template: streamTableRowTmpl,
+
+    templateHelpers: function() {
+        var order = this.model.get('order'),
+            displayOrder = (function() {
+                switch (order) {
+                    case 1:
+                        return order.toString() + 'st';
+                    case 2:
+                        return order.toString() + 'nd';
+                    case 3:
+                        return order.toString() + 'rd';
+                    case 999:
+                        return 'Other';
+                    default:
+                        return order.toString() + 'th';
+                }
+            })();
+
+        return {
+            displayOrder: displayOrder,
+            lengthkm: this.model.get('lengthkm'),
+            slopepct: this.model.get('slopepct')
+        };
+    }
+});
+
+var StreamTableView = Marionette.CompositeView.extend({
+    childView: StreamTableRowView,
+    childViewContainer: 'tbody',
+    template: streamTableTmpl,
+
+    onAttach: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    },
+
+    templateHelpers: function() {
+        var data = lodash(this.collection.toJSON()),
+            totalLength = data.pluck('lengthkm').sum(),
+            avgChannelSlope = data.pluck('slopepct').sum(),
+            lengthInAg = 0,
+            lengthInNonAg = 0;
+
+        return {
+            totalLength: totalLength,
+            avgChannelSlope: avgChannelSlope,
+            lengthInAg: lengthInAg,
+            lengthInNonAg: lengthInNonAg,
+        };
+    },
 });
 
 var PageableTableBaseView = Marionette.LayoutView.extend({
@@ -1265,6 +1321,19 @@ var ClimateResultView = AnalyzeResultView.extend({
     }
 });
 
+var StreamResultView = AnalyzeResultView.extend({
+    onShow: function() {
+        var title = 'Stream Network Statistics',
+            source = 'NHDplusV2',
+            helpText = 'For more information on the data source, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-in-layers-streams\' target=\'_blank\' >MMW Technical Documentation</a>',
+            associatedLayerCodes = ['nhd_streams_v2'],
+            chart = null;
+
+        this.showAnalyzeResults(coreModels.StreamsCensusCollection, StreamTableView,
+                                chart, title,source, helpText, associatedLayerCodes);
+    },
+});
+
 var AnalyzeResultViews = {
     land: LandResultView,
     soil: SoilResultView,
@@ -1272,6 +1341,7 @@ var AnalyzeResultViews = {
     pointsource: PointSourceResultView,
     catchment_water_quality: CatchmentWaterQualityResultView,
     climate: ClimateResultView,
+    streams: StreamResultView,
 };
 
 module.exports = {

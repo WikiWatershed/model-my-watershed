@@ -93,7 +93,7 @@
 
     li > a {
       color: $ui-secondary;
-      padding: 0 0.7rem;
+      padding: 0 0.4rem;
       line-height: 42px;
       background-color: transparent;
       height: 42px;
@@ -262,4 +262,14 @@
       }
     }
   }
+}
+
+#streams-tab-ag-section {
+    padding-top: 1rem;
+    margin-left: 0.3rem;
+
+    .streams-tab-ag-line-item {
+        font-weight: 800;
+        font-size: 13px;
+    }
 }

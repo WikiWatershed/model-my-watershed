@@ -122,6 +122,13 @@ function createAnalyzeTaskCollection(aoi, wkaoi) {
                 area_of_interest: aoi,
                 wkaoi: wkaoi,
                 taskName: "analyze/catchment-water-quality"
+            },
+            {
+                name: "streams",
+                displayName: "Streams",
+                area_of_interest: aoi,
+                wkaoi: wkaoi,
+                taskName: "analyze/streams"
             }
         );
     }

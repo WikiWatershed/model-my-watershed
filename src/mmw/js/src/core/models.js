@@ -647,6 +647,10 @@ var CatchmentWaterQualityCensusCollection = Backbone.PageableCollection.extend({
     state: { pageSize: 6, firstPage: 1 }
 });
 
+var StreamsCensusCollection = Backbone.Collection.extend({
+    comparator: 'order',
+});
+
 var DataCatalogPopoverResultCollection = Backbone.PageableCollection.extend({
     mode: 'client',
     state: { pageSize: 3, firstPage: 1, currentPage: 1 }
@@ -723,6 +727,7 @@ module.exports = {
     PointSourceCensusCollection: PointSourceCensusCollection,
     CatchmentWaterQualityCensusCollection: CatchmentWaterQualityCensusCollection,
     DataCatalogPopoverResultCollection: DataCatalogPopoverResultCollection,
+    StreamsCensusCollection: StreamsCensusCollection,
     GeoModel: GeoModel,
     AreaOfInterestModel: AreaOfInterestModel,
     AppStateModel: AppStateModel

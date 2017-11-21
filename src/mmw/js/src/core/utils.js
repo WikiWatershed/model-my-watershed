@@ -228,6 +228,20 @@ var utils = {
         }
     },
 
+    // A numeric comparator for ordinal numeric strings.
+    ordinalNumericSort: function(x, y) {
+        var other = 'Other';
+
+        if (x.indexOf(other) > -1) {
+            return 1;
+        } else if (y.indexOf(other) > -1) {
+            return -1;
+        }
+
+        return utils.numericSort(x.replace(/[^0-9]/g,''),
+            y.replace(/[^0-9]/g,''));
+    },
+
     noData: noData,
 
     noDataSort: function(x, y) {

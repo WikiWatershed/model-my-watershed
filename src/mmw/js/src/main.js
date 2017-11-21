@@ -30,6 +30,9 @@ App.start();
 // is available for use in templates.
 window.numericSort = utils.numericSort;
 
+// This comparator sorts a table of strings which represent ordinal numbers.
+window.ordinalNumericSort = utils.ordinalNumericSort;
+
 // This comparator sorts a table with "no data" fields intermixed
 // with numeric fields.
 window.noDataSort = utils.noDataSort;
