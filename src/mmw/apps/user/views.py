@@ -24,7 +24,10 @@ from rest_framework.permissions import (AllowAny,
 
 from apps.user.models import ItsiUser, UserProfile
 from apps.user.itsi import ItsiService
-from apps.user.serializers import UserProfileSerializer
+from apps.user.hydroshare import HydroShareService
+from apps.user.serializers import (UserProfileSerializer,
+                                   HydroShareTokenSerializer,
+                                   )
 
 EMBED_FLAG = settings.ITSI['embed_flag']
 
@@ -339,3 +342,30 @@ def change_password(request):
         status_code = status.HTTP_400_BAD_REQUEST
 
     return Response(data=response_data, status=status_code)
+
+
+hss = HydroShareService()
+
+
+@decorators.permission_classes((IsAuthenticated, ))
+def hydroshare_login(request):
+    redirect_uri = request.build_absolute_uri(reverse('user:hydroshare_auth'))
+    params = {'redirect_uri': redirect_uri, 'response_type': 'code'}
+    auth_url = hss.get_authorize_url(**params)
+    return redirect(auth_url)
+
+
+# TODO Remove the api_view decorator and replace with rendering
+#      a page that sends an html postMessage of success.
+@decorators.api_view(['GET'])
+@decorators.permission_classes((IsAuthenticated, ))
+def hydroshare_auth(request):
+    code = request.GET.get('code')
+
+    if code is None:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    redirect_uri = request.build_absolute_uri(reverse('user:hydroshare_auth'))
+    token = hss.set_token_from_code(code, redirect_uri, request.user)
+    serializer = HydroShareTokenSerializer(token)
+    return Response(serializer.data)
