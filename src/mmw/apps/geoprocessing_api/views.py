@@ -581,6 +581,141 @@ def start_analyze_soil(request, format=None):
 @decorators.permission_classes((IsAuthenticated, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
+def start_analyze_streams(request, format=None):
+    """
+    Starts a job to display streams & stream order within a given area of
+    interest.
+
+    For more information, see
+    the [technical documentation](https://wikiwatershedorg/documentation/
+    mmw-tech/#additional-data-layers)
+
+    ## Response
+
+    You can use the URL provided in the repsonse's `Location` header
+    to poll for the job's results.
+
+    <summary>
+      **Example of a completed job's `result`**
+    </summary>
+
+    <details>
+
+        {
+            "survey": {
+                "displayName": "Streams",
+                "name": "streams",
+                "categories": [
+                    {
+                        "order": 1,
+                        "lengthkm": 30.72,
+                        "slopepct": 0,
+                    },
+                    {
+                        "order": 2,
+                        "lengthkm": 61.2,
+                        "slopepct": 0,
+                    },
+                    {
+                        "order": 3,
+                        "lengthkm": 21.51,
+                        "slopepct": 0,
+                    },
+                    {
+                        "order": 4,
+                        "lengthkm": 0,
+                        "slopepct": 0,
+                    },
+                    {
+                        "order": 5,
+                        "lengthkm": 0,
+                        "slopepct": 0,
+                    },
+                    {
+                        "order": 6,
+                        "lengthkm": 44.51,
+                        "slopepct": 0,
+                    },
+                    {
+                        "order": 7,
+                        "lengthkm": 0,
+                        "slopepct": 0,
+                    },
+                    {
+                        "order": 8,
+                        "lengthkm": 0,
+                        "slopepct": 0,
+                    },
+                    {
+                        "order": 9,
+                        "lengthkm": 0,
+                        "slopepct": 0,
+                    },
+                    {
+                        "order": 10,
+                        "lengthkm": 0,
+                        "slopepct": 0,
+                    },
+                    {
+                        "order": 999,
+                        "lengthkm": 0,
+                        "slopepct": 0,
+                    }
+                ]
+            }
+        }
+
+    </details>
+
+    ---
+    type:
+      job:
+        required: true
+        type: string
+      status:
+        required: true
+        type: string
+
+    omit_serializer: true
+    parameters:
+       - name: body
+         description: A valid single-ringed Multipolygon GeoJSON
+                      representation of the shape to analyze.
+                      See the GeoJSON spec
+                      https://tools.ietf.org/html/rfc7946#section-3.1.7
+         paramType: body
+         type: object
+       - name: wkaoi
+         paramType: query
+         description: The table and ID for a well-known area of interest,
+                      such as a HUC.
+                      Format "table__id", eg. "huc12__55174" will analyze
+                      the HUC-12 City of Philadelphia-Schuylkill River.
+
+       - name: Authorization
+         paramType: header
+         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
+                      Swagger you may wish to set this for all requests via
+                      the field at the top right of the page.
+    consumes:
+        - application/json
+    produces:
+        - application/json
+
+    """
+    user = request.user if request.user.is_authenticated() else None
+    area_of_interest, wkaoi = _parse_input(request)
+
+    return start_celery_job([
+        tasks.analyze_streams.s(area_of_interest)
+    ], area_of_interest, user)
+
+
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
 def start_analyze_animals(request, format=None):
     """
     Starts a job to produce counts for animals in a given area.

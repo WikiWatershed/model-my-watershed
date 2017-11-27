@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 
 import json
+from operator import itemgetter
 
 from django.contrib.gis.geos import GEOSGeometry
 
@@ -47,6 +48,62 @@ def animal_population(geojson):
         'displayName': 'Animals',
         'name': 'animals',
         'categories': aeu_return_values
+    }
+
+
+def stream_data(geojson):
+    """
+    Given a GeoJSON shape, retreive stream data from the `nhdflowline` table
+    to display in the Analyze tab
+
+    Returns a dictionary to append to outgoing JSON for analysis results.
+    """
+
+    sql = '''
+        SELECT sum(lengthkm) as lengthkm, stream_order
+        FROM nhdflowline
+        WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
+        GROUP BY stream_order;
+        '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [geojson])
+
+        if cursor.rowcount:
+            columns = [col[0] for col in cursor.description]
+            streams = [
+                dict(zip(columns,
+                         [
+                             float(row[0]) if row[0] else 0,
+                             int(row[1]) if row[1] and row[1] != 0 else 999,
+                         ]))
+                for row in cursor.fetchall()
+            ]
+        else:
+            streams = []
+
+    stream_data = {
+        str(s['stream_order']): {
+            "order": s['stream_order'],
+            "lengthkm": s['lengthkm'],
+            # TODO: implement `slopepct`
+            "slopepct": 0,
+        } for s in streams
+    }
+
+    # Add stream orders missing from query result
+    for x in list(range(1, 11)) + [999]:
+        stream_data.setdefault(str(x), {
+            "order": x,
+            "lengthkm": 0,
+            "slopepct": 0,
+        })
+
+    return {
+        'displayName': 'Streams',
+        'name': 'streams',
+        'categories': sorted(list(stream_data.values()),
+                             key=itemgetter('order')),
     }
 
 
