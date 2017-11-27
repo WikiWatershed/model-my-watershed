@@ -19,6 +19,7 @@ var defaultSettings = {
     vizer_names: {},
     model_packages: [],
     max_area: 75000,
+    enabled_features: [],
 };
 
 var settings = (function() {
@@ -27,6 +28,10 @@ var settings = (function() {
 
 function isLayerSelectorEnabled() {
     return _.contains(settings['map_controls'], 'LayerSelector');
+}
+
+function featureEnabled(feature) {
+    return _.contains(settings['enabled_features'], feature);
 }
 
 function set(key, value) {
@@ -44,6 +49,7 @@ function get(key) {
 
 module.exports = {
     isLayerSelectorEnabled: isLayerSelectorEnabled,
+    featureEnabled: featureEnabled,
     get: get,
     set: set
 };
