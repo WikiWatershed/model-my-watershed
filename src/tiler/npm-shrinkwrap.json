@@ -89,7 +89,7 @@
       "dependencies": {
         "chronograph": {
           "version": "0.1.0",
-          "from": "../../tmp/npm-2293-ca97ef1b/1454082886752-0.9636453816201538/0b8c35eee510cfa14a16be24d70533b38ecc1d2d",
+          "from": "git://github.com/CartoDB/chronographjs.git#0b8c35eee510cfa14a16be24d70533b38ecc1d2d",
           "resolved": "git://github.com/CartoDB/chronographjs.git#0b8c35eee510cfa14a16be24d70533b38ecc1d2d"
         },
         "underscore": {
@@ -3090,7 +3090,7 @@
         },
         "redis-mpool": {
           "version": "0.1.0",
-          "from": "../../tmp/npm-2293-ca97ef1b/1454082886597-0.9236989365890622/47510b8d4525ee24aa2e5328976372274a1d144e",
+          "from": "git://github.com/CartoDB/node-redis-mpool.git#47510b8d4525ee24aa2e5328976372274a1d144e",
           "resolved": "git://github.com/CartoDB/node-redis-mpool.git#47510b8d4525ee24aa2e5328976372274a1d144e",
           "dependencies": {
             "generic-pool": {
@@ -3153,7 +3153,7 @@
         },
         "step-profiler": {
           "version": "0.1.0",
-          "from": "../../tmp/npm-2293-ca97ef1b/1454082886420-0.8141752551309764/9b97881e450445bd8a307a9cc372b5129cb4529a",
+          "from": "git://github.com/CartoDB/node-step-profiler.git#9b97881e450445bd8a307a9cc372b5129cb4529a",
           "resolved": "git://github.com/CartoDB/node-step-profiler.git#9b97881e450445bd8a307a9cc372b5129cb4529a"
         },
         "cartodb-psql": {
@@ -3163,7 +3163,7 @@
           "dependencies": {
             "pg": {
               "version": "2.6.2-cdb1",
-              "from": "../../tmp/npm-2293-ca97ef1b/1454082917972-0.4429446579888463/836a2dc3131e873fc4ba20cd16e7fb69a7dca98a",
+              "from": "git://github.com/CartoDB/node-postgres.git#836a2dc3131e873fc4ba20cd16e7fb69a7dca98a",
               "resolved": "git://github.com/CartoDB/node-postgres.git#836a2dc3131e873fc4ba20cd16e7fb69a7dca98a",
               "dependencies": {
                 "generic-pool": {
