@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
-from models import UserProfile
+from models import UserProfile, HydroShareToken
 from rest_framework import serializers
 
 
@@ -40,3 +40,8 @@ class UserProfileSerializer(serializers.Serializer):
                     user_id=user_id,
                     defaults=validated_data)
                 return profile
+
+
+class HydroShareTokenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HydroShareToken

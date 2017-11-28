@@ -22,3 +22,4 @@ suds==0.4
 django_celery_results==1.0.1
 git+git://github.com/emiliom/ulmo@wml_values_md#egg=ulmo
 numpy==1.13.0
+hs_restclient==1.2.10

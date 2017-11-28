@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 
+from datetime import timedelta
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 from rest_framework.authtoken.models import Token
 
@@ -72,3 +75,40 @@ class UserProfile(models.Model):
     country = models.TextField(choices=countries.COUNTRY_CHOICES,
                                default=countries.US)
     postal_code = models.TextField(blank=True)
+
+
+class HydroShareToken(models.Model):
+    """
+    HydroShare Token details for a given user
+
+    The following field names are same as in HydroShare OAuth2
+    authorization interface and cannot be changed:
+    access_token, token_type, expires_in, refresh_token, scope
+    """
+    user = models.OneToOneField(User, primary_key=True)
+
+    access_token = models.CharField(max_length=255)
+    token_type = models.CharField(max_length=255, default='Bearer')
+    expires_in = models.IntegerField(default=0)
+    refresh_token = models.CharField(max_length=255)
+    scope = models.CharField(max_length=255, default='read write')
+
+    created_at = models.DateTimeField(auto_now=False, auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return self.access_token if not self.is_expired else 'Expired'
+
+    def _is_expired(self):
+        now = timezone.now()
+        refreshed = self.modified_at
+        expiry = timedelta(seconds=self.expires_in)
+
+        return now > refreshed + expiry
+
+    is_expired = property(_is_expired)
+
+    def get_oauth_dict(self):
+        return {i: getattr(self, i)
+                for i in ['access_token', 'token_type', 'expires_in',
+                          'refresh_token', 'scope']}

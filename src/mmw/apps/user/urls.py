@@ -13,13 +13,18 @@ from apps.user.views import (login,
                              change_password,
                              logout,
                              itsi_login,
-                             itsi_auth)
+                             itsi_auth,
+                             hydroshare_login,
+                             hydroshare_auth,
+                             )
 
 urlpatterns = patterns(
     '',
     url(r'^logout$', logout, name='logout'),
     url(r'^itsi/login$', itsi_login, name='itsi_login'),
     url(r'^itsi/authenticate$', itsi_auth, name='itsi_auth'),
+    url(r'^hydroshare/login', hydroshare_login, name='hydroshare_login'),
+    url(r'^hydroshare/authorize', hydroshare_auth, name='hydroshare_auth'),
     url(r'^login$', login, name='login'),
     url(r'^profile$', profile, name='profile'),
     url(r'^sign_up$', sign_up, name='sign_up'),

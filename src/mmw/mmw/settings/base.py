@@ -411,6 +411,17 @@ ITSI = {
     'embed_flag': 'itsi_embed',
 }
 
+# HydroShare Integration Settings
+HYDROSHARE = {
+    'client_id': environ.get('MMW_HYDROSHARE_CLIENT_ID', 'model-my-watershed'),
+    'client_secret': environ.get('MMW_HYDROSHARE_SECRET_KEY',
+                                 'MISSING MMW_HYDROSHARE_SECRET_KEY ENV VAR'),
+    'base_url': environ.get('MMW_HYDROSHARE_BASE_URL',
+                            'https://dev.hydroshare.org/'),
+    'authorize_url': 'o/authorize/',
+    'access_token_url': 'o/token/'
+}
+
 # Geoprocessing Settings
 GEOP = {
     'cache': bool(int(environ.get('MMW_GEOPROCESSING_CACHE', 1))),
