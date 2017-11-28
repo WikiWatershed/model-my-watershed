@@ -1098,7 +1098,7 @@
     },
     "iframe-phone": {
       "version": "1.1.3",
-      "from": "../../tmp/npm-25360-e04608df/1472064033714-0.5331821811851114/200f47f43ee32d640868072c17de4a675e16d96a",
+      "from": "git://github.com/concord-consortium/iframe-phone#200f47f43ee32d640868072c17de4a675e16d96a",
       "resolved": "git://github.com/concord-consortium/iframe-phone#200f47f43ee32d640868072c17de4a675e16d96a"
     },
     "jquery": {
@@ -1617,12 +1617,12 @@
     },
     "leaflet-draw": {
       "version": "0.3.2",
-      "from": "../../../tmp/npm-18905-e89b6279/1473350151307-0.03946083621121943/35f0df26bb8e403b1395a684f8d8a7fa0fae775e",
+      "from": "git://github.com/azavea/Leaflet.draw#35f0df26bb8e403b1395a684f8d8a7fa0fae775e",
       "resolved": "git://github.com/azavea/Leaflet.draw#35f0df26bb8e403b1395a684f8d8a7fa0fae775e"
     },
     "leaflet-plugins": {
       "version": "1.3.8",
-      "from": "../../tmp/npm-5416-4ad39d54/1490301357046-0.16352414642460644/4d077a6f2e8a12ac26955bc80a15148777192530",
+      "from": "git://github.com/azavea/leaflet-plugins#4d077a6f2e8a12ac26955bc80a15148777192530",
       "resolved": "git://github.com/azavea/leaflet-plugins#4d077a6f2e8a12ac26955bc80a15148777192530"
     },
     "leaflet.locatecontrol": {
@@ -3468,7 +3468,7 @@
     },
     "retina.js": {
       "version": "1.3.0",
-      "from": "../../tmp/npm-25360-e04608df/1472064034211-0.10679260268807411/a70e73639817473bad7bbb33f866b8e060e5f5a7",
+      "from": "git://github.com/imulus/retinajs#a70e73639817473bad7bbb33f866b8e060e5f5a7",
       "resolved": "git://github.com/imulus/retinajs#a70e73639817473bad7bbb33f866b8e060e5f5a7"
     },
     "shapefile": {
