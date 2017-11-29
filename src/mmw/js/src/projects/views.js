@@ -99,15 +99,9 @@ var ProjectRowView = Marionette.ItemView.extend({
     },
 
     shareProject: function() {
-        var share = new modalViews.ShareView({
-                model: new modalModels.ShareModel({
-                    text: 'Project',
-                    url: window.location.origin + this.model.getReferenceUrl(),
-                    guest: App.user.get('guest'),
-                    is_private: this.model.get('is_private')
-                }),
+        var share = new modalViews.MultiShareView({
+                model: this.model,
                 app: App,
-                project: this.model
             });
 
         share.render();

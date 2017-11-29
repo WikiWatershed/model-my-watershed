@@ -12,11 +12,13 @@ var _ = require('underscore'),
     modalInputTmpl = require('./templates/inputModal.html'),
     modalPlotTmpl = require('./templates/plotModal.html'),
     modalShareTmpl = require('./templates/shareModal.html'),
+    modalMultiShareTmpl = require('./templates/multiShareModal.html'),
     modalAlertTmpl = require('./templates/alertModal.html'),
     vizerUrls = require('../settings').get('vizer_urls'),
 
     ENTER_KEYCODE = 13,
-    BASIC_MODAL_CLASS = 'modal modal-basic fade';
+    BASIC_MODAL_CLASS = 'modal modal-basic fade',
+    LARGE_MODAL_CLASS = 'modal modal-large fade';
 
 var ModalBaseView = Marionette.LayoutView.extend({
     className: BASIC_MODAL_CLASS,
@@ -196,6 +198,53 @@ var ShareView = ModalBaseView.extend({
 
     signIn: function() {
         this.options.app.getUserOrShowLogin();
+    }
+});
+
+var MultiShareView = ModalBaseView.extend({
+    className: LARGE_MODAL_CLASS,
+    template: modalMultiShareTmpl,
+
+    ui: {
+        'copy': '.copy',
+        'shareUrl': '#share-url',
+        'shareEnabled': '#share-enabled',
+    },
+
+    events: _.defaults({
+        'click @ui.shareEnabled': 'onLinkToggle',
+    }, ModalBaseView.prototype.events),
+
+    modelEvents: {
+        'change:is_private': 'render',
+    },
+
+    templateHelpers: function() {
+        return {
+            url: window.location.origin + "/project/" + this.model.id + "/",
+            guest: this.options.app.user.get('guest'),
+        };
+    },
+
+    // Override to attach Clipboard to ui.copy button
+    onRender: function() {
+        var self = this;
+
+        if (this.$el.hasClass('in')) {
+            // Already rendered, simply add the handler
+            new Clipboard(self.ui.copy[0]);
+        } else {
+            this.$el.on('shown.bs.modal', function() {
+                new Clipboard(self.ui.copy[0]);
+            });
+
+            this.$el.modal('show');
+        }
+    },
+
+    onLinkToggle: function(e) {
+        this.model.set('is_private', !e.target.checked);
+        this.model.saveProjectAndScenarios();
     }
 });
 
@@ -391,6 +440,7 @@ var PlotView = ModalBaseView.extend({
 module.exports = {
     ModalBaseView: ModalBaseView,
     ShareView: ShareView,
+    MultiShareView: MultiShareView,
     InputView: InputView,
     ConfirmView: ConfirmView,
     PlotView: PlotView,

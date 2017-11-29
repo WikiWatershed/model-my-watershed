@@ -200,14 +200,9 @@ var ProjectMenuView = Marionette.ItemView.extend({
     },
 
     shareProject: function() {
-        var share = new modalViews.ShareView({
-                model: new modalModels.ShareModel({
-                    text: 'Project',
-                    url: window.location.href,
-                    guest: App.user.get('guest'),
-                    is_private: this.model.get('is_private')
-                }),
-                app: App
+        var share = new modalViews.MultiShareView({
+                model: this.model,
+                app: App,
             });
 
         share.render();
