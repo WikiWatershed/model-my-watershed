@@ -121,7 +121,6 @@ var ProjectMenuView = Marionette.ItemView.extend({
         remove: '#delete-project',
         print: '#print-project',
         save: '#save-project',
-        privacy: '#project-privacy',
         itsiClone: '#itsi-clone',
         newProject: '#new-project',
         changeAoI: '#change-aoi',
@@ -136,7 +135,6 @@ var ProjectMenuView = Marionette.ItemView.extend({
         'click @ui.share': 'shareProject',
         'click @ui.print': 'printProject',
         'click @ui.save': 'saveProjectOrLoginUser',
-        'click @ui.privacy': 'setProjectPrivacy',
         'click @ui.itsiClone': 'getItsiEmbedLink',
         'click @ui.newProject': 'createNewProject',
         'click @ui.changeAoI': 'createNewProject',
@@ -264,32 +262,6 @@ var ProjectMenuView = Marionette.ItemView.extend({
         } else {
             this.model.saveProjectAndScenarios();
         }
-    },
-
-    setProjectPrivacy: function() {
-        var self = this,
-            currentSettings = this.model.get('is_private') ? 'private' : 'public',
-            newSettings = currentSettings === 'private' ? 'public' : 'private',
-            primaryText = 'This project is currently ' + currentSettings + '. ' +
-                      'Are you sure you want to make it ' + newSettings + '? ',
-            additionalText = currentSettings === 'private' ?
-                    'Anyone with the URL will be able to access it.' :
-                    'Only you will be able to access it.',
-            question = primaryText + additionalText,
-            modal = new modalViews.ConfirmView({
-                model: new modalModels.ConfirmModel({
-                    question: question,
-                    confirmLabel: 'Confirm',
-                    cancelLabel: 'Cancel'
-                })
-            });
-
-        modal.render();
-
-        modal.on('confirmation', function() {
-            self.model.set('is_private', !self.model.get('is_private'));
-            self.model.saveProjectAndScenarios();
-        });
     },
 
     getItsiEmbedLink: function() {
