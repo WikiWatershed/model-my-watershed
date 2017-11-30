@@ -192,7 +192,7 @@ def run_tr55(censuses, aoi, model_input, cached_aoi_census=None):
 
 
 @shared_task
-def run_gwlfe(model_input, inputmod_hash):
+def run_gwlfe(model_input, inputmod_hash, watershed_id=None):
     """
     Given a model_input resulting from a MapShed run, converts that dictionary
     to an intermediate GMS file representation, which is then parsed by GWLF-E
@@ -211,8 +211,19 @@ def run_gwlfe(model_input, inputmod_hash):
 
     result = gwlfe.run(z)
     result['inputmod_hash'] = inputmod_hash
+    result['watershed_id'] = watershed_id
 
     return result
+
+
+@shared_task
+def subbasin_results_to_dict(subbasin_results):
+    def popped_key_result(result):
+        watershed_id = result.pop('watershed_id')
+        return (watershed_id, result)
+
+    popped_key_results = [popped_key_result(r) for r in subbasin_results]
+    return dict(popped_key_results)
 
 
 def to_gms_file(mapshed_data):

@@ -45,7 +45,7 @@ NO_LAND_COVER = 'NO_LAND_COVER'
 
 
 @shared_task
-def collect_data(geop_results, geojson):
+def collect_data(geop_results, geojson, watershed_id=None):
     geop_result = {k: v for r in geop_results for k, v in r.items()}
 
     geom = GEOSGeometry(geojson, srid=4326)
@@ -53,6 +53,8 @@ def collect_data(geop_results, geojson):
 
     # Data Model is called z by convention
     z = settings.GWLFE_DEFAULTS.copy()
+
+    z['watershed_id'] = watershed_id
 
     # Statically calculated lookup values
     z['DayHrs'] = day_lengths(geom)
