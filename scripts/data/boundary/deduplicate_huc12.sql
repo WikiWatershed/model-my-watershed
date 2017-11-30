@@ -52,3 +52,8 @@ WHERE boundary_huc12.id=duplicates.id;
 
 -- Create a btree index on the now unique huc12 id
 CREATE UNIQUE INDEX huc12_idx ON boundary_huc12 (huc12);
+
+-- We no longer need the sequence on the 
+-- on the table now that we've inserted
+-- the merged huc12s
+DROP SEQUENCE seq_boundary_huc12_id CASCADE;
