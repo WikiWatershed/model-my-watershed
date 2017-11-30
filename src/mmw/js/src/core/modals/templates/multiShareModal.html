@@ -1,0 +1,34 @@
+<div class="modal-dialog modal-dialog-sm">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="light">Share your project</h2>
+        </div>
+        <div class="modal-body">
+            <div class="custom-input-group">
+                <div class="row toggle-row">
+                    <h3>Link Sharing</h3>
+                    <label class="pull-right toggle">
+                        <input type="checkbox" id="share-enabled" {{ "checked" if not is_private }} />
+                        <div class="toggle-switch"></div>
+                    </label>
+                </div>
+                {% if not is_private %}
+                    <p>Anyone with this link will be able to view this project</p>
+                {% endif %}
+                <div class="input-group {{ 'hidden' if is_private }}">
+                    <input class="form-control" id="share-url" type="text" value="{{  url }}">
+                    <span class="input-group-btn">
+                        <button class="btn btn-primary copy" type="button" data-clipboard-target="#share-url">
+                            <i class="fa fa-clipboard"></i> Copy
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer" style="text-align:right;">
+            <div class="footer-content">
+                <button type="button" class="btn btn-md btn-active" data-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>

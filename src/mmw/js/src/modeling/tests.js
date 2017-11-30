@@ -279,7 +279,6 @@ describe('Modeling', function() {
                     projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[],"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}',
                     postSaveMenuItems = [
                         'Share',
-                        'Make Public',
                         'Delete',
                         'Rename',
                         '',
@@ -315,29 +314,6 @@ describe('Modeling', function() {
                 assert.isUndefined($('#project-settings').el);
             });
 
-            it('changes the privacy menu item depending on the is_private attribute of the project', function() {
-                // Make user id same as one on project, so it is considered editable.
-                App.user.set('id', 1);
-
-                var project = getTestProject(),
-                    view = new views.ProjectMenuView({ model: project });
-
-                // Set id attribute so project.isNew() is false.
-                project.set({
-                    id: 5,
-                    is_private: true
-                });
-
-                $(sandboxSelector).html(view.render().el);
-
-                assert.equal($('#sandbox #project-privacy').text().trim(), 'Make Public');
-
-                project.set('is_private', false);
-                $(sandboxSelector).html(view.render().el);
-
-                assert.equal($('#sandbox #project-privacy').text().trim(), 'Make Private');
-            });
-
             it('shows "Embed in ITSI" link only for ITSI users', function() {
                 App.user.set({
                     id: 1,
@@ -349,7 +325,6 @@ describe('Modeling', function() {
                     projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[],"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}',
                     postSaveMenuItems = [
                         'Share',
-                        'Make Public',
                         'Delete',
                         'Rename',
                         'Embed in ITSI',
