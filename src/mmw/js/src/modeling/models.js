@@ -131,6 +131,7 @@ var ProjectModel = Backbone.Model.extend({
         area_of_interest: null,         // GeoJSON
         area_of_interest_name: null,    // Human readable string for AOI.
         wkaoi: null,                    // Well Known Area of Interest ID "{code}__{id}"
+        subbasin_modeling: false,       // Use subbasin modeling for MapShed/GWLF-E
         model_package: TR55_PACKAGE,    // Package name
         scenarios: null,                // ScenariosCollection
         user_id: 0,                     // User that created the project
@@ -142,9 +143,23 @@ var ProjectModel = Backbone.Model.extend({
     },
 
     initialize: function() {
-        var scenarios = this.get('scenarios');
+        var scenarios = this.get('scenarios'),
+            subbasinFeatureOn = settings.featureEnabled('subbasin'),
+            setSubbasinModeling = _.bind(function() {
+                    var wkaoi = this.get('wkaoi'),
+                        shouldModelSubbasins = subbasinFeatureOn &&
+                            utils.isWKAoIValidForSubbasinModeling(wkaoi);
+                    this.set('subbasin_modeling', shouldModelSubbasins);
+                }, this);
+
         if (scenarios === null || typeof scenarios === 'string') {
             this.set('scenarios', new ScenariosCollection());
+        }
+
+        setSubbasinModeling();
+
+        if (subbasinFeatureOn) {
+            this.on('change:wkaoi', setSubbasinModeling);
         }
 
         this.set('user_id', App.user.get('id'));
@@ -330,11 +345,16 @@ var ProjectModel = Backbone.Model.extend({
                 mapshedInput = utils.isWKAoIValid(wkaoi) ?
                                    JSON.stringify({ 'wkaoi': wkaoi }) :
                                    JSON.stringify({ 'area_of_interest': aoi }),
+                queryParams = this.get('subbasin_modeling') ?
+                                   { subbasin: true } :
+                                   null,
                 taskModel = createTaskModel(MAPSHED),
                 taskHelper = {
                     postData: {
                         mapshed_input: mapshedInput
                     },
+
+                    queryParams: queryParams,
 
                     onStart: function() {
                         console.log('Starting polling for MAPSHED');
@@ -811,8 +831,14 @@ var ScenarioModel = Backbone.Model.extend({
             results = this.get('results'),
             taskModel = this.get('taskModel'),
             gisData = this.getGisData(),
+            subbasinModeling = App.currentProject.get('subbasin_modeling'),
+            queryParams = subbasinModeling ?
+                              { subbasin: true } :
+                              null,
             taskHelper = {
                 postData: gisData,
+
+                queryParams: queryParams,
 
                 onStart: function() {
                     self.set('poll_error', null);
@@ -904,10 +930,19 @@ var ScenarioModel = Backbone.Model.extend({
                 // Merge the values that came back from Mapshed with the values
                 // in the modifications from the user.
                 var modifications = self.get('modifications'),
-                    mergedGisData = _.cloneDeep(project.get('gis_data'));
+                    mergedGisData = _.cloneDeep(project.get('gis_data')),
+                    subbasinModeling = project.get('subbasin_modeling');
 
                 modifications.forEach(function(mod) {
-                    _.assign(mergedGisData, mod.get('output'));
+                    var updateGisData = function(gms) { _.assign(gms, mod.get('output')); };
+                    if (subbasinModeling) {
+                        // TODO This currenlty results in incorrect results
+                        // because we're not properly taking the subbasin areas
+                        // into account
+                        _.forEach(mergedGisData, updateGisData);
+                    } else {
+                        updateGisData(mergedGisData);
+                    }
                 });
 
                 return {

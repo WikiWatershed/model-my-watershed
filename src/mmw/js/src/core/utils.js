@@ -524,6 +524,15 @@ var utils = {
                !lodash.endsWith(wkaoi, '__');
     },
 
+    isWKAoIValidForSubbasinModeling: function(wkaoi) {
+        if (!wkaoi) {
+            return false;
+        }
+        var layerCode = wkaoi.split('__')[0];
+        return layerCode === 'huc8' ||
+               layerCode === 'huc10';
+    },
+
     // Array.filter(distinct) to get distinct values
     distinct: function(value, index, self) {
         return self.indexOf(value) === index;
