@@ -12,6 +12,9 @@
                         <div class="toggle-switch"></div>
                     </label>
                 </div>
+                {% if not is_private %}
+                    <p>Anyone with this link will be able to view this project</p>
+                {% endif %}
                 <div class="input-group {{ 'hidden' if is_private }}">
                     <input class="form-control" id="share-url" type="text" value="{{  url }}">
                     <span class="input-group-btn">
