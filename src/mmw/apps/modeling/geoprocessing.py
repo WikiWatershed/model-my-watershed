@@ -68,6 +68,13 @@ def run(self, opname, input_data, wkaoi=None, cache_key=''):
     data = settings.GEOP['json'][opname].copy()
     data['input'].update(input_data)
 
+    # If no vector data is supplied for vector operation, shortcut to empty
+    if 'vector' in data['input'] and data['input']['vector'] == [None]:
+        result = {}
+        if key:
+            cache.set(key, result, None)
+        return result
+
     try:
         result = geoprocess(data, self.retry)
         if key:
