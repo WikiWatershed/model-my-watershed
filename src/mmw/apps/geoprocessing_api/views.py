@@ -20,6 +20,8 @@ from apps.core.tasks import (save_job_error,
                              save_job_result)
 from apps.core.decorators import log_request
 from apps.modeling import geoprocessing
+from apps.modeling.mapshed.calcs import streams
+from apps.modeling.mapshed.tasks import nlcd_streams
 from apps.modeling.serializers import AoiSerializer
 
 from apps.geoprocessing_api import tasks
@@ -707,6 +709,10 @@ def start_analyze_streams(request, format=None):
     area_of_interest, wkaoi = _parse_input(request)
 
     return start_celery_job([
+        geoprocessing.run.s('nlcd_streams',
+                            {'polygon': [area_of_interest],
+                             'vector': streams(area_of_interest)}, wkaoi),
+        nlcd_streams.s(),
         tasks.analyze_streams.s(area_of_interest)
     ], area_of_interest, user)
 

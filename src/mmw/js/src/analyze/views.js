@@ -682,8 +682,11 @@ var StreamTableView = Marionette.CompositeView.extend({
         var data = lodash(this.collection.toJSON()),
             totalLength = data.pluck('lengthkm').sum(),
             avgChannelSlope = data.pluck('slopepct').sum(),
-            lengthInAg = 0,
-            lengthInNonAg = 0;
+            // Currently we only calculate agricultral percent for the entire
+            // set, not per stream order, so we use the first value for total.
+            agPercent = data.first().ag_stream_pct,
+            lengthInAg = totalLength * agPercent,
+            lengthInNonAg = totalLength - lengthInAg;
 
         return {
             totalLength: totalLength,
