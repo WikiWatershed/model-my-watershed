@@ -110,7 +110,7 @@ fi
 
 if [ "$load_stream" = "true" ] ; then
     # Fetch stream network layer sql files
-    FILES=("nhdflowline.sql.gz")
+    FILES=("nhdflowline_with_slope.sql.gz")
     PATHS=("nhd_streams_v2")
 
     download_and_load $FILES
