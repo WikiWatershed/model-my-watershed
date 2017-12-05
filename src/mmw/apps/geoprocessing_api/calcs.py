@@ -59,12 +59,16 @@ def stream_data(results, geojson):
     Returns a dictionary to append to outgoing JSON for analysis results.
     """
 
+    NULL_SLOPE = -9998.0
+
     sql = '''
-        SELECT sum(lengthkm) as lengthkm, stream_order
+        SELECT sum(lengthkm) as lengthkm,
+               stream_order,
+               sum(lengthkm * NULLIF(slope, {NULL_SLOPE})) as slopesum
         FROM nhdflowline
         WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
         GROUP BY stream_order;
-        '''
+        '''.format(NULL_SLOPE=NULL_SLOPE)
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [geojson])
@@ -76,19 +80,25 @@ def stream_data(results, geojson):
                          [
                              float(row[0]) if row[0] else 0,
                              int(row[1]) if row[1] and row[1] != 0 else 999,
+                             float(row[2]) if row[2] else None,
                          ]))
                 for row in cursor.fetchall()
             ]
         else:
             streams = []
 
+    def calculate_avg_slope(slope, length):
+        if slope and length:
+            return slope / length
+        return None
+
     stream_data = {
         str(s['stream_order']): {
             "order": s['stream_order'],
             "lengthkm": s['lengthkm'],
             "ag_stream_pct": results['ag_stream_pct'],
-            # TODO: implement `slopepct`
-            "slopepct": 0,
+            "total_weighted_slope": s['slopesum'],
+            "avgslope": calculate_avg_slope(s['slopesum'], s['lengthkm']),
         } for s in streams
     }
 
@@ -98,7 +108,8 @@ def stream_data(results, geojson):
             "order": x,
             "lengthkm": 0,
             "ag_stream_pct": results['ag_stream_pct'],
-            "slopepct": 0,
+            "avgslope": None,
+            "total_weighted_slope": None,
         })
 
     return {

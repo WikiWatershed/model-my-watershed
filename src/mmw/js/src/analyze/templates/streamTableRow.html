@@ -5,6 +5,10 @@
     {{ lengthkm|round(2)|toLocaleString(1) }}
 </td>
 <td class="strong text-right">
-    {{ slopepct|round(2)|toLocaleString(1) }}%
+    {% if avgslope %}
+        {{ (avgslope * 100)|round(2)|toLocaleString(1) }}
+    {% else %}
+        {{ noData }}
+    {% endif %}
 </td>
 
