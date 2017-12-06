@@ -20,6 +20,8 @@ from apps.core.tasks import (save_job_error,
                              save_job_result)
 from apps.core.decorators import log_request
 from apps.modeling import geoprocessing
+from apps.modeling.mapshed.calcs import streams
+from apps.modeling.mapshed.tasks import nlcd_streams
 from apps.modeling.serializers import AoiSerializer
 
 from apps.geoprocessing_api import tasks
@@ -610,56 +612,67 @@ def start_analyze_streams(request, format=None):
                         "order": 1,
                         "lengthkm": 30.72,
                         "slopepct": 0,
+                        "ag_stream_pct": 0.003416856492027335,
                     },
                     {
                         "order": 2,
                         "lengthkm": 61.2,
                         "slopepct": 0,
+                        "ag_stream_pct": 0.003416856492027335,
                     },
                     {
                         "order": 3,
                         "lengthkm": 21.51,
                         "slopepct": 0,
+                        "ag_stream_pct": 0.003416856492027335,
                     },
                     {
                         "order": 4,
                         "lengthkm": 0,
                         "slopepct": 0,
+                        "ag_stream_pct": 0.003416856492027335,
                     },
                     {
                         "order": 5,
                         "lengthkm": 0,
                         "slopepct": 0,
+                        "ag_stream_pct": 0.003416856492027335,
                     },
                     {
                         "order": 6,
                         "lengthkm": 44.51,
                         "slopepct": 0,
+                        "ag_stream_pct": 0.003416856492027335,
                     },
                     {
                         "order": 7,
                         "lengthkm": 0,
                         "slopepct": 0,
+                        "ag_stream_pct": 0.003416856492027335,
                     },
                     {
                         "order": 8,
                         "lengthkm": 0,
                         "slopepct": 0,
+                        "ag_stream_pct": 0.003416856492027335,
                     },
                     {
                         "order": 9,
                         "lengthkm": 0,
                         "slopepct": 0,
+                        "ag_stream_pct": 0.003416856492027335,
                     },
                     {
                         "order": 10,
                         "lengthkm": 0,
                         "slopepct": 0,
+                        "ag_stream_pct": 0.003416856492027335,
                     },
                     {
                         "order": 999,
                         "lengthkm": 0,
                         "slopepct": 0,
+                        "ag_stream_pct": 0.003416856492027335,
                     }
                 ]
             }
@@ -707,6 +720,10 @@ def start_analyze_streams(request, format=None):
     area_of_interest, wkaoi = _parse_input(request)
 
     return start_celery_job([
+        geoprocessing.run.s('nlcd_streams',
+                            {'polygon': [area_of_interest],
+                             'vector': streams(area_of_interest)}, wkaoi),
+        nlcd_streams.s(),
         tasks.analyze_streams.s(area_of_interest)
     ], area_of_interest, user)
 

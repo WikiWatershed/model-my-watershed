@@ -51,7 +51,7 @@ def animal_population(geojson):
     }
 
 
-def stream_data(geojson):
+def stream_data(results, geojson):
     """
     Given a GeoJSON shape, retreive stream data from the `nhdflowline` table
     to display in the Analyze tab
@@ -86,6 +86,7 @@ def stream_data(geojson):
         str(s['stream_order']): {
             "order": s['stream_order'],
             "lengthkm": s['lengthkm'],
+            "ag_stream_pct": results['ag_stream_pct'],
             # TODO: implement `slopepct`
             "slopepct": 0,
         } for s in streams
@@ -96,6 +97,7 @@ def stream_data(geojson):
         stream_data.setdefault(str(x), {
             "order": x,
             "lengthkm": 0,
+            "ag_stream_pct": results['ag_stream_pct'],
             "slopepct": 0,
         })
 

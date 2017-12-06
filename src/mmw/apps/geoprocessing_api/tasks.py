@@ -75,11 +75,12 @@ def start_rwd_job(location, snapping, simplify, data_source):
 
 
 @shared_task
-def analyze_streams(area_of_interest):
+def analyze_streams(results, area_of_interest):
     """
-    Given an area of interest, returns the streams and stream order within it.
+    Given geoprocessing results with stream data and an area of interest,
+    returns the streams and stream order within it.
     """
-    return {'survey': stream_data(area_of_interest)}
+    return {'survey': stream_data(results, area_of_interest)}
 
 
 @shared_task
