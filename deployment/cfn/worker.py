@@ -398,9 +398,6 @@ class Worker(StackNode):
     def get_cloud_config(self):
         return ['#cloud-config\n',
                 '\n',
-                'mounts:\n',
-                '  - [xvdf, /opt/rwd-data, ext4, "defaults,nofail,discard", 0, 2]\n'  # NOQA
-                '\n',
                 'write_files:\n',
                 '  - path: /etc/mmw.d/env/MMW_STACK_COLOR\n',
                 '    permissions: 0750\n',
@@ -417,9 +414,16 @@ class Worker(StackNode):
                 '  - path: /etc/mmw.d/env/ROLLBAR_SERVER_SIDE_ACCESS_TOKEN\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
-                '    content: ', self.get_input('RollbarServerSideAccessToken'),  # NOQA
+                '    content: ', self.get_input('RollbarServerSideAccessToken'), '\n',  # NOQA
+                '  - path: /etc/fstab.rwd-data\n',
+                '    permissions: 0644\n',
+                '    owner: root:mmw\n',
+                '    content: |\n',
+                '      /dev/xvdf /opt/rwd-data\text4\tdefaults,nofail,discard\t0 2',  # NOQA
                 '\n',
                 'runcmd:\n',
+                '  - cat /etc/fstab.rwd-data >> /etc/fstab\n',
+                '  - mount -t ext4 /dev/xvdf /opt/rwd-data && initctl emit rwd-ready\n',  # NOQA
                 '  - /opt/model-my-watershed/scripts/aws/ebs-warmer.sh']
 
     def create_cloud_watch_resources(self, worker_auto_scaling_group):
