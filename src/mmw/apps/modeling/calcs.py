@@ -9,6 +9,28 @@ from django.db import connection
 from django.contrib.gis.geos import WKBReader
 
 
+def split_into_huc12s(code, id):
+    layer = _get_boundary_layer_by_code(code)
+    if not layer or 'table_name' not in layer:
+        raise ValueError('Layer not supported: ', code)
+
+    table_name = layer.get('table_name')
+    huc_code = table_name.split('_')[1]
+
+    sql = '''
+          SELECT boundary_huc12.id,
+                 boundary_huc12.huc12,
+                 ST_AsGeoJSON(boundary_huc12.geom_detailed)
+          FROM boundary_huc12, {table_name}
+          WHERE huc12 LIKE ({huc_code} || '%%')
+          AND {table_name}.id = %s
+          '''.format(table_name=table_name, huc_code=huc_code)
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [int(id)])
+        return cursor.fetchall()
+
+
 def get_layer_shape(table_code, id):
     """
     Fetch shape of well known area of interest.
