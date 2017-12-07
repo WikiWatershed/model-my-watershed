@@ -245,15 +245,27 @@ var utils = {
     noData: noData,
 
     noDataSort: function(x, y) {
-        if (x === noData && y !== noData) {
+        var trimmedX = x.trim(),
+            trimmedY = y.trim();
+
+        if (trimmedX === noData && trimmedY !== noData) {
             return -1;
-        } else if (x === noData && y === noData) {
+        } else if (trimmedX === noData && trimmedY === noData) {
             return 0;
-        } else if (x !== noData && y === noData) {
+        } else if (trimmedX !== noData && trimmedY === noData) {
             return 1;
         }
         return utils.numericSort(x, y);
     },
+
+    percentFormatter: function(value) {
+        var trimmedVal = value.trim();
+        if (trimmedVal === noData) {
+            return trimmedVal;
+        }
+        return trimmedVal + '%';
+    },
+
 
     negateString: function(str) {
         // From https://stackoverflow.com/a/5639070
