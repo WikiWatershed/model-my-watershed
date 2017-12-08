@@ -216,10 +216,13 @@ var MultiShareView = ModalBaseView.extend({
         'copy': '.copy',
         'shareUrl': '#share-url',
         'shareEnabled': '#share-enabled',
+        'hydroShareEnabled': '#hydroshare-enabled',
+        'hydroShareNotification': '#hydroshare-notification',
     },
 
     events: _.defaults({
         'click @ui.shareEnabled': 'onLinkToggle',
+        'click @ui.hydroShareEnabled': 'connectHydroShare'
     }, ModalBaseView.prototype.events),
 
     modelEvents: {
@@ -230,6 +233,7 @@ var MultiShareView = ModalBaseView.extend({
         return {
             url: window.location.origin + "/project/" + this.model.id + "/",
             guest: this.options.app.user.get('guest'),
+            user_has_authorized_hydroshare: this.options.app.user.get('hydroshare'),
         };
     },
 
@@ -252,6 +256,43 @@ var MultiShareView = ModalBaseView.extend({
     onLinkToggle: function(e) {
         this.model.set('is_private', !e.target.checked);
         this.model.saveProjectAndScenarios();
+    },
+
+    connectHydroShare: function() {
+        var userHasHydroShareAccess = this.options.app.user.get('hydroshare');
+
+        if (userHasHydroShareAccess) {
+            // User already has connected their account. Allow them to turn
+            // this on and off at will.
+            // TODO Add project export ability.
+            return;
+        } else {
+            // User has not connectd to HydroShare yet. Have them sign in
+            // and allow MMW access, then enable the checkbox.
+
+            var self = this,
+                checkbox = self.ui.hydroShareEnabled,
+                iframe = new IframeView({
+                    model: new models.IframeModel({
+                        href: '/user/hydroshare/login/',
+                        signalSuccess: 'mmw-hydroshare-success',
+                        signalFailure: 'mmw-hydroshare-failure',
+                        signalCancel: 'mmw-hydroshare-cancel',
+                    })
+                });
+
+            checkbox.prop('checked', false);
+            iframe.render();
+
+            iframe.on('success', function() {
+                // Fetch user again to save new HydroShare Access state
+                self.options.app.user.fetch();
+                self.ui.hydroShareNotification.addClass('hidden');
+
+                // Turn on checkbox
+                checkbox.prop('checked', true);
+            });
+        }
     }
 });
 
