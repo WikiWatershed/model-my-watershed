@@ -22,7 +22,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import (AllowAny,
                                         IsAuthenticated)
 
-from apps.user.models import ItsiUser, UserProfile
+from apps.user.models import ItsiUser, UserProfile, HydroShareToken
 from apps.user.itsi import ItsiService
 from apps.user.hydroshare import HydroShareService
 from apps.user.serializers import (UserProfileSerializer,
@@ -44,6 +44,8 @@ def login(request):
             'result': 'success',
             'username': user.username,
             'itsi': ItsiUser.objects.filter(user_id=user.id).exists(),
+            'hydroshare': HydroShareToken.objects
+                                         .filter(user_id=user.id).exists(),
             'guest': False,
             'id': user.id,
             'profile_was_skipped': profile.was_skipped,
