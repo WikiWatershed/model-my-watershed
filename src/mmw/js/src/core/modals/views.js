@@ -9,6 +9,7 @@ var _ = require('underscore'),
     moment = require('moment'),
     models = require('./models'),
     modalConfirmTmpl = require('./templates/confirmModal.html'),
+    modalConfirmLargeTmpl = require('./templates/confirmModalLarge.html'),
     modalInputTmpl = require('./templates/inputModal.html'),
     modalPlotTmpl = require('./templates/plotModal.html'),
     modalShareTmpl = require('./templates/shareModal.html'),
@@ -106,6 +107,11 @@ var ConfirmView = ModalBaseView.extend({
     dismissAction: function() {
         this.triggerMethod('deny');
     }
+});
+
+var ConfirmLargeView = ConfirmView.extend({
+    className: LARGE_MODAL_CLASS,
+    template: modalConfirmLargeTmpl,
 });
 
 var InputView = ModalBaseView.extend({
@@ -443,6 +449,7 @@ module.exports = {
     MultiShareView: MultiShareView,
     InputView: InputView,
     ConfirmView: ConfirmView,
+    ConfirmLargeView: ConfirmLargeView,
     PlotView: PlotView,
     AlertView: AlertView
 };
