@@ -6,7 +6,7 @@ from django.contrib.auth import (authenticate,
                                  login as auth_login)
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render_to_response
 from django.contrib.auth.forms import (PasswordResetForm,
                                        PasswordChangeForm)
 from django.core.exceptions import ObjectDoesNotExist
@@ -22,12 +22,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import (AllowAny,
                                         IsAuthenticated)
 
+from apps.home.views import get_context
 from apps.user.models import ItsiUser, UserProfile, HydroShareToken
 from apps.user.itsi import ItsiService
 from apps.user.hydroshare import HydroShareService
-from apps.user.serializers import (UserProfileSerializer,
-                                   HydroShareTokenSerializer,
-                                   )
+from apps.user.serializers import UserProfileSerializer
 
 EMBED_FLAG = settings.ITSI['embed_flag']
 
@@ -357,17 +356,22 @@ def hydroshare_login(request):
     return redirect(auth_url)
 
 
-# TODO Remove the api_view decorator and replace with rendering
-#      a page that sends an html postMessage of success.
-@decorators.api_view(['GET'])
 @decorators.permission_classes((IsAuthenticated, ))
 def hydroshare_auth(request):
+    context = get_context(request)
+
     code = request.GET.get('code')
 
     if code is None:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        error = request.GET.get('error')
+        context.update({'error': error})
+    else:
+        reverse_uri = reverse('user:hydroshare_auth')
+        redirect_uri = request.build_absolute_uri(reverse_uri)
+        try:
+            token = hss.set_token_from_code(code, redirect_uri, request.user)
+            context.update({'token': token.access_token})
+        except (IOError, RuntimeError) as e:
+            context.update({'error': e.message})
 
-    redirect_uri = request.build_absolute_uri(reverse('user:hydroshare_auth'))
-    token = hss.set_token_from_code(code, redirect_uri, request.user)
-    serializer = HydroShareTokenSerializer(token)
-    return Response(serializer.data)
+    return render_to_response('user/hydroshare-auth.html', context)
