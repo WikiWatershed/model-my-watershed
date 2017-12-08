@@ -1,6 +1,6 @@
 "use strict";
 
-var _ = require('underscore'),
+var _ = require('lodash'),
     $ = require('jquery'),
     coreUtils = require('../utils.js'),
     HighstockChart = require('../../../shim/highstock'),
@@ -15,6 +15,7 @@ var _ = require('underscore'),
     modalShareTmpl = require('./templates/shareModal.html'),
     modalMultiShareTmpl = require('./templates/multiShareModal.html'),
     modalAlertTmpl = require('./templates/alertModal.html'),
+    modalIframeTmpl = require('./templates/iframeModal.html'),
     vizerUrls = require('../settings').get('vizer_urls'),
 
     ENTER_KEYCODE = 13,
@@ -274,6 +275,48 @@ var AlertView = ModalBaseView.extend({
     }
 });
 
+var IframeView = ModalBaseView.extend({
+    template: modalIframeTmpl,
+
+    initialize: function() {
+        this.onPostMessage = _.bind(this.onPostMessage, this);
+
+        window.addEventListener('message', this.onPostMessage, false);
+    },
+
+    onPostMessage: function(e) {
+        var hide = _.bind(this.hide, this);
+
+        if (e.origin !== window.location.origin) {
+            return;
+        }
+
+        switch (e.data) {
+            case this.model.get('signalSuccess'):
+                this.triggerMethod('success');
+                setTimeout(function() { hide(); }, 500);
+                break;
+            case this.model.get('signalFailure'):
+                this.triggerMethod('failure');
+                break;
+            case this.model.get('signalCancel'):
+                this.dismissAction();
+                hide();
+                break;
+            default:
+                this.triggerMethod('error');
+        }
+    },
+
+    dismissAction: function() {
+        this.triggerMethod('dismiss');
+    },
+
+    onDestroy: function() {
+        window.removeEventListener('message', this.onPostMessage, false);
+    }
+});
+
 var PlotView = ModalBaseView.extend({
     template: modalPlotTmpl,
 
@@ -451,5 +494,6 @@ module.exports = {
     ConfirmView: ConfirmView,
     ConfirmLargeView: ConfirmLargeView,
     PlotView: PlotView,
+    IframeView: IframeView,
     AlertView: AlertView
 };
