@@ -594,10 +594,11 @@ def start_analyze_streams(request, format=None):
 
     ## Response
 
-    You can use the URL provided in the repsonse's `Location` header
+    You can use the URL provided in the response's `Location` header
     to poll for the job's results.
 
     <summary>
+
       **Example of a completed job's `result`**
     </summary>
 
@@ -609,70 +610,81 @@ def start_analyze_streams(request, format=None):
                 "name": "streams",
                 "categories": [
                     {
+                        "lengthkm": 2.598,
+                        "total_weighted_slope": 0.05225867338,
                         "order": 1,
-                        "lengthkm": 30.72,
-                        "slopepct": 0,
                         "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": 0.020114962809853736
                     },
                     {
+                        "lengthkm": 0,
+                        "total_weighted_slope": null,
                         "order": 2,
-                        "lengthkm": 61.2,
-                        "slopepct": 0,
                         "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": null
                     },
                     {
-                        "order": 3,
-                        "lengthkm": 21.51,
-                        "slopepct": 0,
-                        "ag_stream_pct": 0.003416856492027335,
+                         lengthkm": 0,
+                         total_weighted_slope": null,
+                         order": 3,
+                         ag_stream_pct": 0.003416856492027335,
+                         avgslope": null
                     },
                     {
+                        "lengthkm": 0,
+                        "total_weighted_slope": null,
                         "order": 4,
-                        "lengthkm": 0,
-                        "slopepct": 0,
                         "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": null
                     },
                     {
+                        "lengthkm": 0,
+                        "total_weighted_slope": null,
                         "order": 5,
-                        "lengthkm": 0,
-                        "slopepct": 0,
                         "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": null
                     },
                     {
+                        "lengthkm": 21.228,
+                        "total_weighted_slope": 0.00577236831,
                         "order": 6,
-                        "lengthkm": 44.51,
-                        "slopepct": 0,
                         "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": 0.0002719223812888637
                     },
                     {
+                        "lengthkm": 0,
+                        "total_weighted_slope": null,
                         "order": 7,
-                        "lengthkm": 0,
-                        "slopepct": 0,
                         "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": null
                     },
                     {
+                        "lengthkm": 0,
+                        "total_weighted_slope": null,
                         "order": 8,
-                        "lengthkm": 0,
-                        "slopepct": 0,
                         "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": null
                     },
                     {
+                        "lengthkm": 0,
+                        "total_weighted_slope": null,
                         "order": 9,
-                        "lengthkm": 0,
-                        "slopepct": 0,
                         "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": null
                     },
                     {
+                        "lengthkm": 0,
+                        "total_weighted_slope": null,
                         "order": 10,
-                        "lengthkm": 0,
-                        "slopepct": 0,
                         "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": null
                     },
                     {
+                        "lengthkm": 6.085,
+                        "total_weighted_slope": null,
                         "order": 999,
-                        "lengthkm": 0,
-                        "slopepct": 0,
                         "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": null
                     }
                 ]
             }

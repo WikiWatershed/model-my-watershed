@@ -37,6 +37,10 @@ window.ordinalNumericSort = utils.ordinalNumericSort;
 // with numeric fields.
 window.noDataSort = utils.noDataSort;
 
+// This formatter appends a "%" to a value if it isn't the no data
+// value
+window.percentFormatter = utils.percentFormatter;
+
 //
 // Expose application so we can interact with it via JS console.
 //

@@ -664,7 +664,8 @@ var StreamTableRowView = Marionette.ItemView.extend({
         return {
             displayOrder: displayOrder,
             lengthkm: this.model.get('lengthkm'),
-            slopepct: this.model.get('slopepct')
+            avgslope: this.model.get('avgslope'),
+            noData: utils.noData,
         };
     }
 });
@@ -681,7 +682,7 @@ var StreamTableView = Marionette.CompositeView.extend({
     templateHelpers: function() {
         var data = lodash(this.collection.toJSON()),
             totalLength = data.pluck('lengthkm').sum(),
-            avgChannelSlope = data.pluck('slopepct').sum(),
+            avgChannelSlope = data.pluck('total_weighted_slope').sum() / totalLength,
             // Currently we only calculate agricultral percent for the entire
             // set, not per stream order, so we use the first value for total.
             agPercent = data.first().ag_stream_pct,
