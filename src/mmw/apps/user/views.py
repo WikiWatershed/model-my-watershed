@@ -1,3 +1,5 @@
+import rollbar
+
 from uuid import uuid1
 
 from django.contrib.auth import (authenticate,
@@ -373,5 +375,9 @@ def hydroshare_auth(request):
             context.update({'token': token.access_token})
         except (IOError, RuntimeError) as e:
             context.update({'error': e.message})
+
+    if context.get('error') == 'invalid_client':
+        rollbar.report_message('HydroShare OAuth credentials '
+                               'possibly misconfigured', 'warning')
 
     return render_to_response('user/hydroshare-auth.html', context)
