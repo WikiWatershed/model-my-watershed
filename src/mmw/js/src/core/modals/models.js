@@ -43,6 +43,15 @@ var ShareModel = Backbone.Model.extend({
     }
 });
 
+var IframeModel = Backbone.Model.extend({
+    defaults: {
+        href: '',
+        signalSuccess: '',
+        signalFailure: '',
+        signalCancel: '',
+    }
+});
+
 var AlertTypes = {
     info: {
         alertHeader: 'Information',
@@ -72,6 +81,7 @@ module.exports = {
     ConfirmModel: ConfirmModel,
     InputModel: InputModel,
     ShareModel: ShareModel,
+    IframeModel: IframeModel,
     AlertTypes: AlertTypes,
     AlertModel: AlertModel
 };

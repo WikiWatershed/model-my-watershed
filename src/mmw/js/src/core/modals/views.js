@@ -1,6 +1,6 @@
 "use strict";
 
-var _ = require('underscore'),
+var _ = require('lodash'),
     $ = require('jquery'),
     coreUtils = require('../utils.js'),
     HighstockChart = require('../../../shim/highstock'),
@@ -9,11 +9,13 @@ var _ = require('underscore'),
     moment = require('moment'),
     models = require('./models'),
     modalConfirmTmpl = require('./templates/confirmModal.html'),
+    modalConfirmLargeTmpl = require('./templates/confirmModalLarge.html'),
     modalInputTmpl = require('./templates/inputModal.html'),
     modalPlotTmpl = require('./templates/plotModal.html'),
     modalShareTmpl = require('./templates/shareModal.html'),
     modalMultiShareTmpl = require('./templates/multiShareModal.html'),
     modalAlertTmpl = require('./templates/alertModal.html'),
+    modalIframeTmpl = require('./templates/iframeModal.html'),
     vizerUrls = require('../settings').get('vizer_urls'),
 
     ENTER_KEYCODE = 13,
@@ -106,6 +108,11 @@ var ConfirmView = ModalBaseView.extend({
     dismissAction: function() {
         this.triggerMethod('deny');
     }
+});
+
+var ConfirmLargeView = ConfirmView.extend({
+    className: LARGE_MODAL_CLASS,
+    template: modalConfirmLargeTmpl,
 });
 
 var InputView = ModalBaseView.extend({
@@ -209,10 +216,13 @@ var MultiShareView = ModalBaseView.extend({
         'copy': '.copy',
         'shareUrl': '#share-url',
         'shareEnabled': '#share-enabled',
+        'hydroShareEnabled': '#hydroshare-enabled',
+        'hydroShareNotification': '#hydroshare-notification',
     },
 
     events: _.defaults({
         'click @ui.shareEnabled': 'onLinkToggle',
+        'click @ui.hydroShareEnabled': 'connectHydroShare'
     }, ModalBaseView.prototype.events),
 
     modelEvents: {
@@ -223,6 +233,7 @@ var MultiShareView = ModalBaseView.extend({
         return {
             url: window.location.origin + "/project/" + this.model.id + "/",
             guest: this.options.app.user.get('guest'),
+            user_has_authorized_hydroshare: this.options.app.user.get('hydroshare'),
         };
     },
 
@@ -245,6 +256,43 @@ var MultiShareView = ModalBaseView.extend({
     onLinkToggle: function(e) {
         this.model.set('is_private', !e.target.checked);
         this.model.saveProjectAndScenarios();
+    },
+
+    connectHydroShare: function() {
+        var userHasHydroShareAccess = this.options.app.user.get('hydroshare');
+
+        if (userHasHydroShareAccess) {
+            // User already has connected their account. Allow them to turn
+            // this on and off at will.
+            // TODO Add project export ability.
+            return;
+        } else {
+            // User has not connectd to HydroShare yet. Have them sign in
+            // and allow MMW access, then enable the checkbox.
+
+            var self = this,
+                checkbox = self.ui.hydroShareEnabled,
+                iframe = new IframeView({
+                    model: new models.IframeModel({
+                        href: '/user/hydroshare/login/',
+                        signalSuccess: 'mmw-hydroshare-success',
+                        signalFailure: 'mmw-hydroshare-failure',
+                        signalCancel: 'mmw-hydroshare-cancel',
+                    })
+                });
+
+            checkbox.prop('checked', false);
+            iframe.render();
+
+            iframe.on('success', function() {
+                // Fetch user again to save new HydroShare Access state
+                self.options.app.user.fetch();
+                self.ui.hydroShareNotification.addClass('hidden');
+
+                // Turn on checkbox
+                checkbox.prop('checked', true);
+            });
+        }
     }
 });
 
@@ -265,6 +313,48 @@ var AlertView = ModalBaseView.extend({
 
     templateHelpers: function() {
         return _.extend(this.model.get('alertType'), { alertMessage: this.model.get('alertMessage') });
+    }
+});
+
+var IframeView = ModalBaseView.extend({
+    template: modalIframeTmpl,
+
+    initialize: function() {
+        this.onPostMessage = _.bind(this.onPostMessage, this);
+
+        window.addEventListener('message', this.onPostMessage, false);
+    },
+
+    onPostMessage: function(e) {
+        var hide = _.bind(this.hide, this);
+
+        if (e.origin !== window.location.origin) {
+            return;
+        }
+
+        switch (e.data) {
+            case this.model.get('signalSuccess'):
+                this.triggerMethod('success');
+                setTimeout(function() { hide(); }, 500);
+                break;
+            case this.model.get('signalFailure'):
+                this.triggerMethod('failure');
+                break;
+            case this.model.get('signalCancel'):
+                this.dismissAction();
+                hide();
+                break;
+            default:
+                this.triggerMethod('error');
+        }
+    },
+
+    dismissAction: function() {
+        this.triggerMethod('dismiss');
+    },
+
+    onDestroy: function() {
+        window.removeEventListener('message', this.onPostMessage, false);
     }
 });
 
@@ -443,6 +533,8 @@ module.exports = {
     MultiShareView: MultiShareView,
     InputView: InputView,
     ConfirmView: ConfirmView,
+    ConfirmLargeView: ConfirmLargeView,
     PlotView: PlotView,
+    IframeView: IframeView,
     AlertView: AlertView
 };

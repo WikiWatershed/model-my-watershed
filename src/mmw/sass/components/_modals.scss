@@ -50,6 +50,16 @@
     top: 1rem;
     right: 0;
   }
+
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+
+    &.hydroshare {
+      height: 600px;
+    }
+  }
 }
 
 .modal-dialog-sm {
@@ -239,4 +249,11 @@
     .fa-exclamation-triangle {
       color: $ui-warning;
     }
+}
+
+.multi-share-modal {
+  p {
+    font-size: 13px;
+    margin-bottom: 1rem !important;
+  }
 }

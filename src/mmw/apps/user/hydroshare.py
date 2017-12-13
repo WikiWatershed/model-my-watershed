@@ -35,8 +35,10 @@ class HydroShareService(OAuth2Service):
     def set_token_from_code(self, code, redirect_uri, user):
         data = {'code': code, 'redirect_uri': redirect_uri,
                 'grant_type': 'authorization_code'}
-        # TODO Add connection error handling
+
         res = self.get_raw_access_token(data=data).json()
+        if 'error' in res:
+            raise RuntimeError(res['error'])
 
         token, _ = HydroShareToken.objects.update_or_create(user=user,
                                                             defaults=res)
@@ -49,8 +51,9 @@ class HydroShareService(OAuth2Service):
         data = {'refresh_token': token.refresh_token,
                 'grant_type': 'refresh_token'}
 
-        # TODO Add connection error handling
         res = self.get_raw_access_token(data=data).json()
+        if 'error' in res:
+            raise RuntimeError(res['error'])
 
         for key, value in res.iteritems():
             setattr(token, key, value)

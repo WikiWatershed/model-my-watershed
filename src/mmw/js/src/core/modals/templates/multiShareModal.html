@@ -1,4 +1,4 @@
-<div class="modal-dialog modal-dialog-sm">
+<div class="multi-share-modal modal-dialog modal-dialog-sm">
     <div class="modal-content">
         <div class="modal-header">
             <h2 class="light">Share your project</h2>
@@ -23,6 +23,22 @@
                         </button>
                     </span>
                 </div>
+            </div>
+            <hr />
+            <div class="custom-input-group">
+                <div class="row toggle-row">
+                    <h3>HydroShare Export</h3>
+                    <label class="pull-right toggle">
+                        <input type="checkbox" id="hydroshare-enabled" />
+                        <div class="toggle-switch"></div>
+                    </label>
+                </div>
+                <p>HydroShare is an online collaboration environment for sharing data, models, and code.</p>
+                <p id="hydroshare-notification" class="{{ 'hidden' if user_has_authorized_hydroshare }}">
+                    You will need to connect your HydroShare account to your
+                    Model My Watershed account, or create a new HydroShare
+                    account.
+                </p>
             </div>
         </div>
         <div class="modal-footer" style="text-align:right;">
