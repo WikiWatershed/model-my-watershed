@@ -14,6 +14,7 @@ where: \n
     -d  load/reload DRB stream data\n
     -m  load/reload mapshed data\n
     -p  load/reload DEP data\n
+    -c  load/reload nhdplus catchment data
     -q  load/reload water quality data\n
     -x  purge s3 cache for given path\n
 "
@@ -25,8 +26,9 @@ file_to_load=
 load_stream=false
 load_mapshed=false
 load_water_quality=false
+load_catchment=false
 
-while getopts ":hbsdpmqf:x:" opt; do
+while getopts ":hbsdpmqcf:x:" opt; do
     case $opt in
         h)
             echo -e $usage
@@ -43,6 +45,8 @@ while getopts ":hbsdpmqf:x:" opt; do
             load_mapshed=true ;;
         q)
             load_water_quality=true ;;
+        c)
+            load_catchment=true ;;
         f)
             file_to_load=$OPTARG ;;
         x)
@@ -131,6 +135,12 @@ if [ "$load_mapshed" = "true" ] ; then
     FILES=("ms_weather.sql.gz" "ms_weather_station.sql.gz" "ms_pointsource.sql.gz"
            "ms_pointsource_drb.sql.gz" "ms_county_animals.sql.gz")
 
+    download_and_load $FILES
+fi
+
+if [ "$load_catchment" = "true" ] ; then
+    # Fetch NHDPlus Catchments
+    FILES=("nhdpluscatchment.sql.gz")
     download_and_load $FILES
 fi
 
