@@ -92,6 +92,10 @@ var SearchBoxView = Marionette.LayoutView.extend({
         'click @ui.selectButton': 'validateShapeAndGoToAnalyze'
     },
 
+    initialize: function() {
+        this.listenTo(App.map, 'change:selectedGeocoderArea', this.resetIfSelectedAreaIsCleared);
+    },
+
     modelEvents: {
         'change:query change:selectedSuggestion': 'render'
     },
@@ -261,6 +265,12 @@ var SearchBoxView = Marionette.LayoutView.extend({
         });
         this.emptyResultsRegion();
         App.map.set('selectedGeocoderArea', null);
+    },
+
+    resetIfSelectedAreaIsCleared: function(model, selectedGeocoderArea) {
+        if (!selectedGeocoderArea) {
+            this.reset();
+        }
     },
 
     dismissAction: function() {
