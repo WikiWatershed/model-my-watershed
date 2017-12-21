@@ -236,6 +236,8 @@ var DrawWindow = Marionette.LayoutView.extend({
         this.rwdTaskModel.reset();
         this.model.reset();
 
+        App.map.set('selectedGeocoderArea', null);
+
         utils.cancelDrawing(App.getLeafletMap());
 
         // RWD typically does not clear the AoI generated, even if it
