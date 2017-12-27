@@ -14,11 +14,13 @@ var _ = require('lodash'),
     modalPlotTmpl = require('./templates/plotModal.html'),
     modalShareTmpl = require('./templates/shareModal.html'),
     modalMultiShareTmpl = require('./templates/multiShareModal.html'),
+    modalHydroShareTmpl = require('./templates/hydroShareExportModal.html'),
     modalAlertTmpl = require('./templates/alertModal.html'),
     modalIframeTmpl = require('./templates/iframeModal.html'),
     vizerUrls = require('../settings').get('vizer_urls'),
 
     ENTER_KEYCODE = 13,
+    ESCAPE_KEYCODE = 27,
     BASIC_MODAL_CLASS = 'modal modal-basic fade',
     LARGE_MODAL_CLASS = 'modal modal-large fade';
 
@@ -292,6 +294,56 @@ var MultiShareView = ModalBaseView.extend({
                 // Turn on checkbox
                 checkbox.prop('checked', true);
             });
+        }
+    }
+});
+
+var HydroShareView = ModalBaseView.extend({
+    className: LARGE_MODAL_CLASS,
+    template: modalHydroShareTmpl,
+
+    ui: {
+        'title': '#hydroshare-title',
+        'abstract': '#hydroshare-abstract',
+        'keywords': '#hydroshare-keywords',
+        'export': '.btn-active',
+        'cancel': '.btn-default',
+    },
+
+    events: _.defaults({
+        'click @ui.export': 'primaryAction',
+        'click @ui.cancel': 'dismissAction',
+    }, ModalBaseView.prototype.events),
+
+    primaryAction: function() {
+        var title = this.ui.title.val().trim(),
+            abstract = this.ui.abstract.val().trim(),
+            keywords = this.ui.keywords.val().trim();
+
+        if (title === "" || abstract === "") {
+            return;
+        }
+
+        this.triggerMethod('export', {
+            title: title,
+            abstract: abstract,
+            keywords: keywords,
+        });
+        this.hide();
+    },
+
+    dismissAction: function() {
+        this.triggerMethod('cancel');
+        this.hide();
+    },
+
+    onKeyUp: function(e) {
+        if (e.keyCode === ENTER_KEYCODE && !this.ui.abstract.is(':focus')) {
+            this.primaryAction();
+        }
+
+        if (e.keyCode === ESCAPE_KEYCODE) {
+            this.dismissAction();
         }
     }
 });
