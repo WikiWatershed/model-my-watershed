@@ -417,7 +417,7 @@ HYDROSHARE = {
     'client_secret': environ.get('MMW_HYDROSHARE_SECRET_KEY',
                                  'MISSING MMW_HYDROSHARE_SECRET_KEY ENV VAR'),
     'base_url': environ.get('MMW_HYDROSHARE_BASE_URL',
-                            'https://dev.hydroshare.org/'),
+                            'https://beta.hydroshare.org/'),
     'authorize_url': 'o/authorize/',
     'access_token_url': 'o/token/'
 }
