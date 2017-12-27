@@ -220,6 +220,7 @@ var MultiShareView = ModalBaseView.extend({
         'shareEnabled': '#share-enabled',
         'hydroShareEnabled': '#hydroshare-enabled',
         'hydroShareNotification': '#hydroshare-notification',
+        'hydroShareSpinner': '.hydroshare-spinner',
     },
 
     events: _.defaults({
@@ -261,19 +262,23 @@ var MultiShareView = ModalBaseView.extend({
     },
 
     connectHydroShare: function() {
-        var userHasHydroShareAccess = this.options.app.user.get('hydroshare');
+        var self = this,
+            userHasHydroShareAccess = this.options.app.user.get('hydroshare');
 
         if (userHasHydroShareAccess) {
             // User already has connected their account. Allow them to turn
             // this on and off at will.
-            // TODO Add project export ability.
-            return;
+
+            if (self.ui.hydroShareEnabled.prop('checked')) {
+                self.exportToHydroShare();
+            } else {
+                self.disconnectHydroShare();
+            }
         } else {
             // User has not connectd to HydroShare yet. Have them sign in
             // and allow MMW access, then enable the checkbox.
 
-            var self = this,
-                checkbox = self.ui.hydroShareEnabled,
+            var checkbox = self.ui.hydroShareEnabled,
                 iframe = new IframeView({
                     model: new models.IframeModel({
                         href: '/user/hydroshare/login/',
@@ -291,9 +296,83 @@ var MultiShareView = ModalBaseView.extend({
                 self.options.app.user.fetch();
                 self.ui.hydroShareNotification.addClass('hidden');
 
-                // Turn on checkbox
-                checkbox.prop('checked', true);
+                // Export to HydroShare
+                self.exportToHydroShare();
             });
+        }
+    },
+
+    exportToHydroShare: function() {
+        var self = this,
+            analyzeTasks = this.options.app.getAnalyzeCollection(),
+            hsModal = new HydroShareView({ model: this.model });
+
+        self.setHydroShareLoading(true);
+        hsModal.render();
+
+        hsModal.on('export', function(payload) {
+            var analyzeFiles = analyzeTasks.map(function(at) {
+                    return {
+                        name: 'analyze_' + at.get('name') + '.csv',
+                        contents: at.getResultCSV(),
+                    };
+                });
+
+            $.ajax({
+                type: 'POST',
+                url: '/export/hydroshare?project=' + self.model.id,
+                contentType: 'application/json',
+                data: JSON.stringify(_.defaults({
+                    files: analyzeFiles,
+                }, payload))
+            }).then(function(result) {
+                self.model.set('hydroshare', result);
+                self.render();
+            });
+        });
+
+        hsModal.on('cancel', function() {
+            self.render();
+        });
+    },
+
+    disconnectHydroShare: function() {
+        var self = this,
+            confirm = new ConfirmLargeView({
+                model: new models.ConfirmModel({
+                    titleText: 'Unsynchronize Project',
+                    question: [
+                        'Unsynchronizing your project from HydroShare will ' +
+                        'delete that resource. There is no way to undo this. ' +
+                        'Continue?'
+                    ],
+                    confirmLabel: 'Unsynchronize',
+                })
+            });
+
+        confirm.render();
+        confirm.on('confirmation', function() {
+            self.setHydroShareLoading(true);
+            $.ajax({
+                url: '/export/hydroshare?project=' + self.model.id,
+                type: 'DELETE',
+            }).then(function() {
+                self.model.set('hydroshare', null);
+                self.render();
+            });
+        });
+        confirm.on('deny', function() {
+            self.ui.hydroShareEnabled.prop('checked', true);
+        });
+    },
+
+    setHydroShareLoading: function(is_loading) {
+        if (!!is_loading) {
+            this.ui.hydroShareSpinner.removeClass('hidden');
+            this.ui.hydroShareEnabled.prop('disabled', true);
+        } else {
+            this.ui.hydroShareSpinner.addClass('hidden');
+            this.ui.hydroShareEnabled.prop('disabled', false);
         }
     }
 });

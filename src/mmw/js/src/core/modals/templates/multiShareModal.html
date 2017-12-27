@@ -27,18 +27,28 @@
             <hr />
             <div class="custom-input-group">
                 <div class="row toggle-row">
+                    <i class="hydroshare-spinner fa fa-circle-o-notch fa-spin hidden"></i>
                     <h3>HydroShare Export</h3>
                     <label class="pull-right toggle">
-                        <input type="checkbox" id="hydroshare-enabled" />
+                        <input type="checkbox" id="hydroshare-enabled" {{ 'checked' if hydroshare }} />
                         <div class="toggle-switch"></div>
                     </label>
                 </div>
-                <p>HydroShare is an online collaboration environment for sharing data, models, and code.</p>
+                <p class="{{ 'hidden' if hydroshare }}">
+                    HydroShare is an online collaboration environment for
+                    sharing data, models, and code.
+                </p>
                 <p id="hydroshare-notification" class="{{ 'hidden' if user_has_authorized_hydroshare }}">
                     You will need to connect your HydroShare account to your
                     Model My Watershed account, or create a new HydroShare
                     account.
                 </p>
+                {% if hydroshare %}
+                <p>
+                    Your project <a href="{{ hydroshare.url }}" target="_blank">{{ hydroshare.title }}</a>
+                    has been exported to HydroShare.
+                </p>
+                {% endif %}
             </div>
         </div>
         <div class="modal-footer" style="text-align:right;">
