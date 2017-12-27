@@ -1,12 +1,13 @@
 "use strict";
 
 var $ = require('jquery'),
-    lodash = require('lodash'),
+    _ = require('lodash'),
     Backbone = require('../../shim/backbone'),
+    turfArea = require('turf-area'),
+    toWKT = require('wellknown').stringify,
     settings = require('../core/settings'),
     utils = require('../core/utils'),
-    coreModels = require('../core/models'),
-    turfArea = require('turf-area');
+    coreModels = require('../core/models');
 
 var LayerModel = Backbone.Model.extend({});
 
@@ -23,7 +24,7 @@ var LayerCategoryCollection = Backbone.Collection.extend({
 });
 
 var AnalyzeTaskModel = coreModels.TaskModel.extend({
-    defaults: lodash.extend( {
+    defaults: _.extend( {
             name: 'analysis',
             displayName: 'Analysis',
             area_of_interest: null,
@@ -67,6 +68,28 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
         }
 
         return self.fetchAnalysisPromise || $.when();
+    },
+
+    getResultCSV: function() {
+        var toCSVString = function(x) {
+            if (_.isNull(x)) { return '""'; }
+            if (_.isObject(x) && _.has(x, 'type') && _.has(x, 'coordinates')) {
+                return '"' + toWKT(x) + '"';
+            }
+            return '"' + String(x) + '"';
+        };
+
+        if (this.get('status') === 'complete') {
+            var result = this.get('result'),
+                header = _.keys(result.survey.categories[0]).join(','),
+                values = _.map(result.survey.categories, function(c) {
+                        return _(c).values().map(toCSVString).value().join(',');
+                    }).join('\n');
+
+            return header + '\n' + values;
+        }
+
+        return "";
     }
 });
 
