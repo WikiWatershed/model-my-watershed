@@ -46,7 +46,8 @@
                 {% if hydroshare %}
                 <p>
                     Your project <a href="{{ hydroshare.url }}" target="_blank">{{ hydroshare.title }}</a>
-                    has been exported to HydroShare.
+                    has been exported to HydroShare. Last exported at {{ hydroshare.exported_at | toFriendlyDate }}.
+                    <a href="#" class="hydroshare-export">Export Again</a>.
                 </p>
                 {% endif %}
             </div>
