@@ -14,7 +14,7 @@ import apps.geocode.urls
 import apps.modeling.urls
 import apps.geoprocessing_api.urls
 import apps.home.urls
-import apps.home.views
+import apps.export.urls
 import apps.water_balance.urls
 import apps.user.urls
 import apps.monitoring.urls
@@ -35,6 +35,7 @@ urlpatterns = patterns(
                                   namespace='mmw')),
     url(r'^mmw/modeling/', include(apps.modeling.urls,
                                    namespace='mmw')),
+    url(r'^export/', include(apps.export.urls, namespace='export')),
     url(r'^api/', include(apps.geoprocessing_api.urls)),
     url(r'^micro/', include(apps.water_balance.urls)),
     url(r'^user/', include(apps.user.urls,
