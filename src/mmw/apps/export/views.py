@@ -18,6 +18,8 @@ from rest_framework import decorators, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
+from hs_restclient import HydroShareNotFound
+
 from apps.modeling.models import Project, HydroShareResource
 from apps.modeling.serializers import HydroShareResourceSerializer
 from apps.user.hydroshare import HydroShareService
@@ -56,11 +58,8 @@ def hydroshare(request):
     except HydroShareResource.DoesNotExist:
         hsresource = None
 
-    # TODO POSTing to an existing export should update the resource
-    #      Currently it is just paired with GET
-
     # GET existing resource simply returns it
-    if hsresource and request.method in ['GET', 'POST']:
+    if hsresource and request.method == 'GET':
         serializer = HydroShareResourceSerializer(hsresource)
         return Response(serializer.data)
 
@@ -73,6 +72,30 @@ def hydroshare(request):
     # Cannot GET or DELETE non-existing resource
     if not hsresource and request.method in ['GET', 'DELETE']:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+    # POST existing resource updates it
+    if hsresource and request.method == 'POST':
+        # Update files
+        files = params.get('files', [])
+        for f in files:
+            fcontents = f.get('contents')
+            fname = f.get('name')
+            if fcontents and fname:
+                fio = StringIO.StringIO()
+                fio.write(fcontents)
+                # Delete the file if it already exists
+                try:
+                    hs.deleteResourceFile(hsresource.resource, fname)
+                except HydroShareNotFound:
+                    pass
+                # Add the new file
+                hs.addResourceFile(hsresource.resource, fio, fname)
+
+        hsresource.exported_at = now()
+        hsresource.save()
+
+        serializer = HydroShareResourceSerializer(hsresource)
+        return Response(serializer.data)
 
     # Convert keywords from comma seperated string to tuple of values
     keywords = params.get('keywords')
