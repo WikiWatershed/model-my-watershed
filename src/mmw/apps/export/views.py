@@ -76,6 +76,9 @@ def hydroshare(request):
         hs.add_files(hsresource.resource,
                      params.get('files', []),
                      overwrite=True)
+        hs.add_gms_files(hsresource.resource,
+                         params.get('mapshed_data', []),
+                         overwrite=True)
 
         hsresource.exported_at = now()
         hsresource.save()
@@ -114,6 +117,8 @@ def hydroshare(request):
 
     # Add all files
     hs.add_files(resource, files)
+    hs.add_gms_files(resource,
+                     params.get('mapshed_data', []))
 
     # AoI Shapefile
     aoi_json = json.loads(aoi_geojson)

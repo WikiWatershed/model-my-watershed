@@ -19,6 +19,7 @@ var _ = require('lodash'),
     modalIframeTmpl = require('./templates/iframeModal.html'),
     vizerUrls = require('../settings').get('vizer_urls'),
 
+    GWLFE = 'gwlfe',
     ENTER_KEYCODE = 13,
     ESCAPE_KEYCODE = 27,
     BASIC_MODAL_CLASS = 'modal modal-basic fade',
@@ -367,7 +368,20 @@ var MultiShareView = ModalBaseView.extend({
                     name: 'analyze_' + at.get('name') + '.csv',
                     contents: at.getResultCSV(),
                 };
-            });
+            }),
+            scenarios = this.options.app.currentProject.get('scenarios'),
+            getMapshedData = function(scenario) {
+                var gisData = scenario.getGisData();
+                if (!gisData) { return null; }
+
+                return {
+                    name: 'scenario_' +
+                        scenario.get('name').toLowerCase().replace(/\s/g, '-') + '.gms',
+                    data: gisData.model_input
+                };
+            },
+            includeMapShedData = self.model.get('model_package') === GWLFE,
+            mapshedData = includeMapShedData ? scenarios.map(getMapshedData) : null;
 
         return $.ajax({
             type: 'POST',
@@ -375,6 +389,7 @@ var MultiShareView = ModalBaseView.extend({
             contentType: 'application/json',
             data: JSON.stringify(_.defaults({
                 files: analyzeFiles,
+                mapshed_data: mapshedData,
             }, payload))
         }).then(function(result) {
             self.model.set('hydroshare', result);
