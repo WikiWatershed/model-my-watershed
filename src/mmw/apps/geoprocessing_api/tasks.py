@@ -34,6 +34,7 @@ RWD_PORT = os.environ.get('RWD_PORT', '5000')
 
 ACRES_PER_SQM = 0.000247105
 CM_PER_MM = 0.1
+M_PER_CM = 0.01
 
 
 @shared_task
@@ -226,6 +227,73 @@ def collect_climate(results):
         'survey': {
             'name': 'climate',
             'displayName': 'Climate',
+            'categories': categories
+        }
+    }
+
+
+@shared_task
+def analyze_terrain(result):
+    """
+    Given a geoprocessing result in the shape of:
+
+        [
+          {
+            "avg": 2503.116786250801,
+            "max": 10501.0,
+            "min": -84.0
+          },
+          {
+            "avg": 2.708598957407307,
+            "max": 44.52286911010742,
+            "min": 0.0
+          }
+        ]
+
+    Assumes the first result is for Elevation in cm and the second for Slope
+    in %, and transforms it into a dictionary of the shape:
+
+        [
+          {
+            "elevation": 25.03116786250801,
+            "slope": 2.708598957407307,
+            "type": "average"
+          },
+          {
+            "elevation": -0.84,
+            "slope": 0.0,
+            "type": "minimum"
+          },
+          {
+            "elevation": 105.01,
+            "slope": 44.52286911010742,
+            "type": "maximum"
+          }
+        ]
+
+    which has Elevation in m and keeps Slope in %.
+    """
+    if 'error' in result:
+        raise Exception('[analyze_terrain] {}'.format(result['error']))
+
+    [elevation, slope] = result
+
+    categories = [
+        dict(type='average',
+             elevation=(elevation['avg'] * M_PER_CM),
+             slope=slope['avg']),
+        dict(type='minimum',
+             elevation=(elevation['min'] * M_PER_CM),
+             slope=slope['min']),
+        dict(type='maximum',
+             elevation=(elevation['max'] * M_PER_CM),
+             slope=slope['max'])
+    ]
+
+    return {
+        'survey': {
+            'name': 'terrain',
+            'displayName': 'Terrain',
             'categories': categories
         }
     }

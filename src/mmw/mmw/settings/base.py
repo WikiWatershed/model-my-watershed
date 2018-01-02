@@ -599,6 +599,19 @@ GEOP = {
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0
             }
+        },
+        'terrain': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'ned-nhdplus-30m-epsg5070',
+                    'us-percent-slope-30m-epsg5070-512',
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterSummary',
+                'zoom': 0
+            }
         }
     }
 }
