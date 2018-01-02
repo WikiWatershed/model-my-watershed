@@ -38,6 +38,8 @@ var $ = require('jquery'),
     pointSourceTableRowTmpl = require('./templates/pointSourceTableRow.html'),
     catchmentWaterQualityTableTmpl = require('./templates/catchmentWaterQualityTable.html'),
     catchmentWaterQualityTableRowTmpl = require('./templates/catchmentWaterQualityTableRow.html'),
+    terrainTableRowTmpl = require('./templates/terrainTableRow.html'),
+    terrainTableTmpl = require('./templates/terrainTable.html'),
     tabPanelTmpl = require('../modeling/templates/resultsTabPanel.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     barChartTmpl = require('../core/templates/barChart.html'),
@@ -698,6 +700,21 @@ var StreamTableView = Marionette.CompositeView.extend({
     },
 });
 
+var TerrainTableRowView = Marionette.ItemView.extend({
+    tagName: 'tr',
+    template: terrainTableRowTmpl,
+});
+
+var TerrainTableView = Marionette.CompositeView.extend({
+    childView: TerrainTableRowView,
+    childViewContainer: 'tbody',
+    template: terrainTableTmpl,
+
+    onAttach: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    }
+});
+
 var PageableTableBaseView = Marionette.LayoutView.extend({
     tableView: null, // a View that renders a bootstrap table. Required
 
@@ -1228,6 +1245,18 @@ var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
     }
 });
 
+var TerrainResultView = AnalyzeResultView.extend({
+    onShow: function() {
+        var title = 'Terrain Statisticts',
+            source = 'NHDPlus V2 NEDSnapshot DEM',
+            helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
+            chart = null;
+
+        this.showAnalyzeResults(coreModels.TerrainCensusCollection, TerrainTableView,
+            chart, title, source, helpText);
+    }
+});
+
 var SelectorView = Marionette.ItemView.extend({
     template: selectorTmpl,
 
@@ -1346,6 +1375,7 @@ var AnalyzeResultViews = {
     catchment_water_quality: CatchmentWaterQualityResultView,
     climate: ClimateResultView,
     streams: StreamResultView,
+    terrain: TerrainResultView,
 };
 
 module.exports = {
