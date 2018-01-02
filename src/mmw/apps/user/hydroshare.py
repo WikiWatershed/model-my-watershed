@@ -3,9 +3,11 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import StringIO
+
 from rauth import OAuth2Service
 from urlparse import urljoin, urlparse
-from hs_restclient import HydroShare, HydroShareAuthOAuth2
+from hs_restclient import HydroShare, HydroShareAuthOAuth2, HydroShareNotFound
 
 from django.conf import settings
 
@@ -70,4 +72,39 @@ class HydroShareService(OAuth2Service):
         auth = HydroShareAuthOAuth2(CLIENT_ID, CLIENT_SECRET,
                                     token=token.get_oauth_dict())
 
-        return HydroShare(hostname=HOSTNAME, auth=auth)
+        return HydroShareClient(hostname=HOSTNAME, auth=auth)
+
+
+class HydroShareClient(HydroShare):
+    """
+    Helper class for utility methods for HydroShare
+    """
+
+    def add_files(self, resource_id, files, overwrite=False):
+        """
+        Helper method that will add an array of files to a resource.
+
+        :param resource_id: ID of the resource to add files to
+        :param files: List of dicts in the format
+                      {'name': 'String', 'contents': 'String'}
+        :param overwrite: Whether to overwrite files or not. False by default.
+        """
+
+        for f in files:
+            fcontents = f.get('contents')
+            fname = f.get('name')
+            if fcontents and fname:
+                fio = StringIO.StringIO()
+                fio.write(fcontents)
+
+                # Overwrite files if specified
+                if overwrite:
+                    try:
+                        # Delete the resource file if it already exists
+                        self.deleteResourceFile(resource_id, fname)
+                    except HydroShareNotFound:
+                        # File didn't already exists, move on
+                        pass
+
+                # Add the new file
+                self.addResourceFile(resource_id, fio, fname)
