@@ -221,11 +221,13 @@ var MultiShareView = ModalBaseView.extend({
         'hydroShareEnabled': '#hydroshare-enabled',
         'hydroShareNotification': '#hydroshare-notification',
         'hydroShareSpinner': '.hydroshare-spinner',
+        'hydroShareExport': '.hydroshare-export',
     },
 
     events: _.defaults({
         'click @ui.shareEnabled': 'onLinkToggle',
-        'click @ui.hydroShareEnabled': 'connectHydroShare'
+        'click @ui.hydroShareEnabled': 'connectHydroShare',
+        'click @ui.hydroShareExport': 'reExportHydroShare',
     }, ModalBaseView.prototype.events),
 
     modelEvents: {
@@ -304,32 +306,13 @@ var MultiShareView = ModalBaseView.extend({
 
     exportToHydroShare: function() {
         var self = this,
-            analyzeTasks = this.options.app.getAnalyzeCollection(),
+            postHydroShareToServer = _.bind(this.postHydroShareToServer, this),
             hsModal = new HydroShareView({ model: this.model });
 
         self.setHydroShareLoading(true);
         hsModal.render();
 
-        hsModal.on('export', function(payload) {
-            var analyzeFiles = analyzeTasks.map(function(at) {
-                    return {
-                        name: 'analyze_' + at.get('name') + '.csv',
-                        contents: at.getResultCSV(),
-                    };
-                });
-
-            $.ajax({
-                type: 'POST',
-                url: '/export/hydroshare?project=' + self.model.id,
-                contentType: 'application/json',
-                data: JSON.stringify(_.defaults({
-                    files: analyzeFiles,
-                }, payload))
-            }).then(function(result) {
-                self.model.set('hydroshare', result);
-                self.render();
-            });
-        });
+        hsModal.on('export', postHydroShareToServer);
 
         hsModal.on('cancel', function() {
             self.render();
@@ -374,6 +357,36 @@ var MultiShareView = ModalBaseView.extend({
             this.ui.hydroShareSpinner.addClass('hidden');
             this.ui.hydroShareEnabled.prop('disabled', false);
         }
+    },
+
+    postHydroShareToServer: function(payload) {
+        var self = this,
+            analyzeTasks = this.options.app.getAnalyzeCollection(),
+            analyzeFiles = analyzeTasks.map(function(at) {
+                return {
+                    name: 'analyze_' + at.get('name') + '.csv',
+                    contents: at.getResultCSV(),
+                };
+            });
+
+        return $.ajax({
+            type: 'POST',
+            url: '/export/hydroshare?project=' + self.model.id,
+            contentType: 'application/json',
+            data: JSON.stringify(_.defaults({
+                files: analyzeFiles,
+            }, payload))
+        }).then(function(result) {
+            self.model.set('hydroshare', result);
+            self.render();
+        });
+    },
+
+    reExportHydroShare: function(e) {
+        e.preventDefault();
+        this.setHydroShareLoading(true);
+        this.postHydroShareToServer();
+        return false;
     }
 });
 

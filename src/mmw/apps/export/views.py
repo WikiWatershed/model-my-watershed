@@ -6,7 +6,6 @@ from __future__ import division
 import fiona
 import json
 import os
-import StringIO
 
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
@@ -56,11 +55,8 @@ def hydroshare(request):
     except HydroShareResource.DoesNotExist:
         hsresource = None
 
-    # TODO POSTing to an existing export should update the resource
-    #      Currently it is just paired with GET
-
     # GET existing resource simply returns it
-    if hsresource and request.method in ['GET', 'POST']:
+    if hsresource and request.method == 'GET':
         serializer = HydroShareResourceSerializer(hsresource)
         return Response(serializer.data)
 
@@ -73,6 +69,19 @@ def hydroshare(request):
     # Cannot GET or DELETE non-existing resource
     if not hsresource and request.method in ['GET', 'DELETE']:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+    # POST existing resource updates it
+    if hsresource and request.method == 'POST':
+        # Update files
+        hs.add_files(hsresource.resource,
+                     params.get('files', []),
+                     overwrite=True)
+
+        hsresource.exported_at = now()
+        hsresource.save()
+
+        serializer = HydroShareResourceSerializer(hsresource)
+        return Response(serializer.data)
 
     # Convert keywords from comma seperated string to tuple of values
     keywords = params.get('keywords')
@@ -93,11 +102,18 @@ def hydroshare(request):
     # aoi_folder = 'area-of-interest'
     # hs.createResourceFolder(resource, pathname=aoi_folder)
 
+    # Files sent from the client
+    files = params.get('files', [])
+
     # AoI GeoJSON
     aoi_geojson = GEOSGeometry(project.area_of_interest).geojson
-    aoi_file = StringIO.StringIO()
-    aoi_file.write(aoi_geojson)
-    hs.addResourceFile(resource, aoi_file, 'area-of-interest.geojson')
+    files.append({
+        'name': 'area-of-interest.geojson',
+        'contents': aoi_geojson,
+    })
+
+    # Add all files
+    hs.add_files(resource, files)
 
     # AoI Shapefile
     aoi_json = json.loads(aoi_geojson)
@@ -115,17 +131,6 @@ def hydroshare(request):
             hs.addResourceFile(resource, shapefile,
                                'area-of-interest.{}'.format(ext))
         os.remove(filename)
-
-    # Other files sent from the client
-    # Must be in {name: "string", contents: "string"} format
-    files = params.get('files', [])
-    for f in files:
-        fcontents = f.get('contents')
-        fname = f.get('name')
-        if fcontents and fname:
-            fio = StringIO.StringIO()
-            fio.write(fcontents)
-            hs.addResourceFile(resource, fio, fname)
 
     # Link HydroShareResrouce to Project and save
     hsresource = HydroShareResource.objects.create(
