@@ -27,10 +27,12 @@
             <hr />
             <div class="custom-input-group">
                 <div class="row toggle-row">
-                    <i class="hydroshare-spinner fa fa-circle-o-notch fa-spin hidden"></i>
+                    {% if is_exporting %}
+                    <i class="hydroshare-spinner fa fa-circle-o-notch fa-spin"></i>
+                    {% endif %}
                     <h3>HydroShare Export</h3>
                     <label class="pull-right toggle">
-                        <input type="checkbox" id="hydroshare-enabled" {{ 'checked' if hydroshare }} />
+                        <input type="checkbox" id="hydroshare-enabled" {{ 'checked' if hydroshare }} {{ 'disabled' if is_exporting }} />
                         <div class="toggle-switch"></div>
                     </label>
                 </div>

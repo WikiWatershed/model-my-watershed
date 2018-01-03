@@ -231,7 +231,7 @@ var MultiShareView = ModalBaseView.extend({
     }, ModalBaseView.prototype.events),
 
     modelEvents: {
-        'change:is_private': 'render',
+        'change:is_private, change:is_exporting': 'render',
     },
 
     templateHelpers: function() {
@@ -306,21 +306,19 @@ var MultiShareView = ModalBaseView.extend({
 
     exportToHydroShare: function() {
         var self = this,
-            postHydroShareToServer = _.bind(this.postHydroShareToServer, this),
+            onExport = _.bind(self.model.exportToHydroShare, self.model),
+            onCancel = _.bind(self.render, self),
             hsModal = new HydroShareView({ model: this.model });
 
-        self.setHydroShareLoading(true);
         hsModal.render();
-
-        hsModal.on('export', postHydroShareToServer);
-
-        hsModal.on('cancel', function() {
-            self.render();
-        });
+        hsModal.on('export', onExport);
+        hsModal.on('cancel', onCancel);
     },
 
     disconnectHydroShare: function() {
         var self = this,
+            onConfirmation = _.bind(self.model.disconnectHydroShare, self.model),
+            onDeny = _.bind(self.render, self),
             confirm = new ConfirmLargeView({
                 model: new models.ConfirmModel({
                     titleText: 'Unsynchronize Project',
@@ -334,72 +332,13 @@ var MultiShareView = ModalBaseView.extend({
             });
 
         confirm.render();
-        confirm.on('confirmation', function() {
-            self.setHydroShareLoading(true);
-            $.ajax({
-                url: '/export/hydroshare?project=' + self.model.id,
-                type: 'DELETE',
-            }).then(function() {
-                self.model.set('hydroshare', null);
-                self.render();
-            });
-        });
-        confirm.on('deny', function() {
-            self.ui.hydroShareEnabled.prop('checked', true);
-        });
-    },
-
-    setHydroShareLoading: function(is_loading) {
-        if (!!is_loading) {
-            this.ui.hydroShareSpinner.removeClass('hidden');
-            this.ui.hydroShareEnabled.prop('disabled', true);
-        } else {
-            this.ui.hydroShareSpinner.addClass('hidden');
-            this.ui.hydroShareEnabled.prop('disabled', false);
-        }
-    },
-
-    postHydroShareToServer: function(payload) {
-        var self = this,
-            analyzeTasks = this.options.app.getAnalyzeCollection(),
-            analyzeFiles = analyzeTasks.map(function(at) {
-                return {
-                    name: 'analyze_' + at.get('name') + '.csv',
-                    contents: at.getResultCSV(),
-                };
-            }),
-            scenarios = this.options.app.currentProject.get('scenarios'),
-            getMapshedData = function(scenario) {
-                var gisData = scenario.getGisData();
-                if (!gisData) { return null; }
-
-                return {
-                    name: 'scenario_' +
-                        scenario.get('name').toLowerCase().replace(/\s/g, '-') + '.gms',
-                    data: gisData.model_input
-                };
-            },
-            includeMapShedData = self.model.get('model_package') === coreUtils.GWLFE,
-            mapshedData = includeMapShedData ? scenarios.map(getMapshedData) : [];
-
-        return $.ajax({
-            type: 'POST',
-            url: '/export/hydroshare?project=' + self.model.id,
-            contentType: 'application/json',
-            data: JSON.stringify(_.defaults({
-                files: analyzeFiles,
-                mapshed_data: mapshedData,
-            }, payload))
-        }).then(function(result) {
-            self.model.set('hydroshare', result);
-            self.render();
-        });
+        confirm.on('confirmation', onConfirmation);
+        confirm.on('deny', onDeny);
     },
 
     reExportHydroShare: function(e) {
         e.preventDefault();
-        this.setHydroShareLoading(true);
-        this.postHydroShareToServer();
+        this.model.exportToHydroShare();
         return false;
     }
 });
