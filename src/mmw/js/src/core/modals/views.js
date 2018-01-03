@@ -380,7 +380,7 @@ var MultiShareView = ModalBaseView.extend({
                 };
             },
             includeMapShedData = self.model.get('model_package') === coreUtils.GWLFE,
-            mapshedData = includeMapShedData ? scenarios.map(getMapshedData) : null;
+            mapshedData = includeMapShedData ? scenarios.map(getMapshedData) : [];
 
         return $.ajax({
             type: 'POST',
