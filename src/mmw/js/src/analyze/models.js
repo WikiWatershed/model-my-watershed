@@ -152,6 +152,13 @@ function createAnalyzeTaskCollection(aoi, wkaoi) {
                 area_of_interest: aoi,
                 wkaoi: wkaoi,
                 taskName: "analyze/streams"
+            },
+            {
+                name: "terrain",
+                displayName: "Terrain",
+                area_of_interest: aoi,
+                wkaoi: wkaoi,
+                taskName: "analyze/terrain"
             }
         );
     }
