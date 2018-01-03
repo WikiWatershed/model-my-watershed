@@ -12,11 +12,6 @@ var $ = require('jquery'),
     turfErase = require('turf-erase'),
     turfIntersect = require('turf-intersect');
 
-var MAPSHED = 'mapshed';
-var GWLFE = 'gwlfe';
-var TR55_TASK = 'tr55';
-var TR55_PACKAGE = 'tr-55';
-
 var ModelPackageControlModel = Backbone.Model.extend({
     defaults: {
         name: '',
@@ -49,7 +44,7 @@ var ModelPackageModel = Backbone.Model.extend();
 var Tr55TaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
         {
-            taskName: TR55_TASK,
+            taskName: utils.TR55_TASK,
             taskType: 'mmw/modeling'
         },
         coreModels.TaskModel.prototype.defaults
@@ -59,7 +54,7 @@ var Tr55TaskModel = coreModels.TaskModel.extend({
 var MapshedTaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
         {
-            taskName: MAPSHED,
+            taskName: utils.MAPSHED,
             taskType: 'mmw/modeling'
         },
         coreModels.TaskModel.prototype.defaults
@@ -69,7 +64,7 @@ var MapshedTaskModel = coreModels.TaskModel.extend({
 var GwlfeTaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
         {
-            taskName: GWLFE,
+            taskName: utils.GWLFE,
             taskType: 'mmw/modeling'
         },
         coreModels.TaskModel.prototype.defaults
@@ -127,19 +122,19 @@ var ProjectModel = Backbone.Model.extend({
 
     defaults: {
         name: '',
-        created_at: null,               // Date
-        area_of_interest: null,         // GeoJSON
-        area_of_interest_name: null,    // Human readable string for AOI.
-        wkaoi: null,                    // Well Known Area of Interest ID "{code}__{id}"
-        subbasin_modeling: false,       // Use subbasin modeling for MapShed/GWLF-E
-        model_package: TR55_PACKAGE,    // Package name
-        scenarios: null,                // ScenariosCollection
-        user_id: 0,                     // User that created the project
-        is_activity: false,             // Project that persists across routes
-        gis_data: null,                 // Additionally gathered data, such as MapShed for GWLF-E
-        needs_reset: false,             // Should we overwrite project data on next save?
-        allow_save: true,               // Is allowed to save to the server - false in compare mode
-        show_analyze: false,            // Show analyze results in the sidebar?
+        created_at: null,                  // Date
+        area_of_interest: null,            // GeoJSON
+        area_of_interest_name: null,       // Human readable string for AOI.
+        wkaoi: null,                       // Well Known Area of Interest ID "{code}__{id}"
+        subbasin_modeling: false,          // Use subbasin modeling for MapShed/GWLF-E
+        model_package: utils.TR55_PACKAGE, // Package name
+        scenarios: null,                   // ScenariosCollection
+        user_id: 0,                        // User that created the project
+        is_activity: false,                // Project that persists across routes
+        gis_data: null,                    // Additionally gathered data, such as MapShed for GWLF-E
+        needs_reset: false,                // Should we overwrite project data on next save?
+        allow_save: true,                  // Is allowed to save to the server - false in compare mode
+        show_analyze: false,               // Show analyze results in the sidebar?
     },
 
     initialize: function() {
@@ -338,7 +333,7 @@ var ProjectModel = Backbone.Model.extend({
      * lock immediately and return.
      */
     fetchGisData: function() {
-        if (this.get('model_package') === GWLFE) {
+        if (this.get('model_package') === utils.GWLFE) {
             var aoi = this.get('area_of_interest'),
                 wkaoi = this.get('wkaoi'),
                 promise = $.Deferred(),
@@ -348,7 +343,7 @@ var ProjectModel = Backbone.Model.extend({
                 queryParams = this.get('subbasin_modeling') ?
                                    { subbasin: true } :
                                    null,
-                taskModel = createTaskModel(MAPSHED),
+                taskModel = createTaskModel(utils.MAPSHED),
                 taskHelper = {
                     postData: {
                         mapshed_input: mapshedInput
@@ -641,7 +636,7 @@ var ScenarioModel = Backbone.Model.extend({
         this.set('user_id', App.user.get('id'));
 
         var defaultMods = {};
-        if (App.currentProject.get('model_package') === TR55_PACKAGE)  {
+        if (App.currentProject.get('model_package') === utils.TR55_PACKAGE)  {
             defaultMods = {
                inputs: [
                    {
@@ -656,7 +651,7 @@ var ScenarioModel = Backbone.Model.extend({
         this.set('inputs', new ModificationsCollection(attrs.inputs));
 
         var modifications =
-            App.currentProject.get('model_package') === TR55_PACKAGE ?
+            App.currentProject.get('model_package') === utils.TR55_PACKAGE ?
             new ModificationsCollection(attrs.modifications) :
             new Backbone.Collection(attrs.modifications);
 
@@ -706,14 +701,14 @@ var ScenarioModel = Backbone.Model.extend({
     addModification: function(modification) {
         var modifications = this.get('modifications'),
             modelPackage = App.currentProject.get('model_package'),
-            modKeyName = modelPackage === GWLFE ? 'modKey' : 'value';
+            modKeyName = modelPackage === utils.GWLFE ? 'modKey' : 'value';
 
         window.ga('send', 'event', constants.GA.MODEL_CATEGORY,
            modelPackage + constants.GA.MODEL_MOD_EVENT, modification.get(modKeyName));
 
         // For GWLFE, first remove existing mod with the same key since it
         // doesn't make sense to have multiples of the same type of BMP.
-        if (modelPackage === GWLFE) {
+        if (modelPackage === utils.GWLFE) {
             var modKey = modification.get('modKey'),
                 matches = modifications.where({'modKey': modKey});
 
@@ -903,7 +898,7 @@ var ScenarioModel = Backbone.Model.extend({
             wkaoi = project.get('wkaoi');
 
         switch(App.currentProject.get('model_package')) {
-            case TR55_PACKAGE:
+            case utils.TR55_PACKAGE:
                 var nonZeroModifications = self.get('modifications').filter(function(mod) {
                         return mod.get('effectiveArea') > 0;
                     }),
@@ -926,7 +921,7 @@ var ScenarioModel = Backbone.Model.extend({
                     model_input: JSON.stringify(modelInput)
                 };
 
-            case GWLFE:
+            case utils.GWLFE:
                 // Merge the values that came back from Mapshed with the values
                 // in the modifications from the user.
                 var modifications = self.get('modifications'),
@@ -1123,7 +1118,7 @@ var ScenariosCollection = Backbone.Collection.extend({
 });
 
 function getControlsForModelPackage(modelPackageName, options) {
-    if (modelPackageName === TR55_PACKAGE) {
+    if (modelPackageName === utils.TR55_PACKAGE) {
         if (options && (options.compareMode ||
                         options.is_current_conditions)) {
             return new ModelPackageControlsCollection([
@@ -1136,7 +1131,7 @@ function getControlsForModelPackage(modelPackageName, options) {
                 new ModelPackageControlModel({ name: 'precipitation' })
             ]);
         }
-    } else if (modelPackageName === GWLFE) {
+    } else if (modelPackageName === utils.GWLFE) {
         if (options && (options.compareMode ||
                         options.is_current_conditions)) {
             return new ModelPackageControlsCollection();
@@ -1152,11 +1147,11 @@ function getControlsForModelPackage(modelPackageName, options) {
 
 function createTaskModel(modelPackage) {
     switch (modelPackage) {
-        case TR55_PACKAGE:
+        case utils.TR55_PACKAGE:
             return new Tr55TaskModel();
-        case GWLFE:
+        case utils.GWLFE:
             return new GwlfeTaskModel();
-        case MAPSHED:
+        case utils.MAPSHED:
             return new MapshedTaskModel();
     }
     throw 'Model package not supported: ' + modelPackage;
@@ -1164,7 +1159,7 @@ function createTaskModel(modelPackage) {
 
 function createTaskResultCollection(modelPackage) {
     switch (modelPackage) {
-        case TR55_PACKAGE:
+        case utils.TR55_PACKAGE:
             return new ResultCollection([
                 {
                     name: 'runoff',
@@ -1177,7 +1172,7 @@ function createTaskResultCollection(modelPackage) {
                     result: null
                 }
             ]);
-        case GWLFE:
+        case utils.GWLFE:
             return new ResultCollection([
                 {
                     name: 'runoff',
@@ -1204,9 +1199,6 @@ module.exports = {
     ModelPackageControlModel: ModelPackageControlModel,
     Tr55TaskModel: Tr55TaskModel,
     GwlfeTaskModel: GwlfeTaskModel,
-    TR55_TASK: TR55_TASK,
-    TR55_PACKAGE: TR55_PACKAGE,
-    GWLFE: GWLFE,
     ProjectModel: ProjectModel,
     ProjectCollection: ProjectCollection,
     ModificationModel: ModificationModel,

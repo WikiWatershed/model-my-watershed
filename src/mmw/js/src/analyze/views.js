@@ -77,7 +77,7 @@ var ModelSelectionDropdownView = Marionette.ItemView.extend({
                                   .get('result') || {},
             landResults = analysisResults.survey;
 
-        if (modelPackageName === 'gwlfe' && settings.get('mapshed_max_area')) {
+        if (modelPackageName === utils.GWLFE && settings.get('mapshed_max_area')) {
             var areaInSqKm = utils.changeOfAreaUnits(aoiModel.get('area'),
                                                      aoiModel.get('units'),
                                                      'km<sup>2</sup>'),
