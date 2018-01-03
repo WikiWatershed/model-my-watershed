@@ -88,17 +88,17 @@ class HydroShareClient(HydroShare):
 
         :param resource_id: ID of the resource to add files to
         :param files: List of dicts in the format
-                      {'name': 'String', 'contents': 'String'}
+                      {'name': 'String', 'contents': 'String', 'object': False}
+                      or
+                      {'name': 'String', 'contents': file_like_object, 'object': True}  # NOQA
         :param overwrite: Whether to overwrite files or not. False by default.
         """
 
         for f in files:
+            fobject = f.get('object', False)
             fcontents = f.get('contents')
             fname = f.get('name')
             if fcontents and fname:
-                fio = StringIO.StringIO()
-                fio.write(fcontents)
-
                 # Overwrite files if specified
                 if overwrite:
                     try:
@@ -107,6 +107,12 @@ class HydroShareClient(HydroShare):
                     except HydroShareNotFound:
                         # File didn't already exists, move on
                         pass
+
+                if fobject:
+                    fio = fcontents
+                else:
+                    fio = StringIO.StringIO()
+                    fio.write(fcontents)
 
                 # Add the new file
                 self.addResourceFile(resource_id, fio, fname)
