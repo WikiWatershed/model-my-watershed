@@ -10,6 +10,7 @@ var _ = require('lodash'),
     controls = require('./controls'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
+    coreUtils = require('../core/utils'),
     gwlfeConfig = require('./gwlfeModificationConfig'),
     analyzeViews = require('../analyze/views.js'),
     modalModels = require('../core/modals/models'),
@@ -332,7 +333,7 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
         // entire collection.
         var scenario = this.collection.first(),
             isOnlyCurrentConditions = this.collection.length === 1,
-            showCompare = App.currentProject.get('model_package') === models.TR55_PACKAGE &&
+            showCompare = App.currentProject.get('model_package') === coreUtils.TR55_PACKAGE &&
                 !isOnlyCurrentConditions,
             compareUrl = this.projectModel.getCompareUrl();
 
@@ -454,7 +455,7 @@ var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         var gis_data = this.model.getGisData().model_input,
-            is_gwlfe = App.currentProject.get('model_package') === models.GWLFE && !_.isEmpty(gis_data);
+            is_gwlfe = App.currentProject.get('model_package') === coreUtils.GWLFE && !_.isEmpty(gis_data);
 
         return {
             is_gwlfe: is_gwlfe,
@@ -539,7 +540,7 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
 
     templateHelpers: function() {
         var gis_data = this.model.getGisData().model_input,
-            is_gwlfe = App.currentProject.get('model_package') === models.GWLFE &&
+            is_gwlfe = App.currentProject.get('model_package') === coreUtils.GWLFE &&
                         gis_data !== null &&
                         gis_data !== '{}' &&
                         gis_data !== '';
@@ -829,7 +830,7 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
     },
 
     getChildView: function() {
-        var isGwlfe = this.modelPackage === models.GWLFE;
+        var isGwlfe = this.modelPackage === coreUtils.GWLFE;
 
         if (isGwlfe) {
             return GwlfeToolbarView;
@@ -871,7 +872,7 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
 
     templateHelpers: function() {
         var gisData = this.currentConditions.getGisData().model_input,
-            isGwlfe = this.modelPackage === models.GWLFE && !_.isEmpty(gisData),
+            isGwlfe = this.modelPackage === coreUtils.GWLFE && !_.isEmpty(gisData),
             isOnlyCurrentConditions = this.collection.length === 1 &&
                 this.collection.first().get('is_current_conditions');
 
@@ -1150,7 +1151,7 @@ function triggerBarChartRefresh() {
 
 function getResultView(modelPackage, resultName) {
     switch (modelPackage) {
-        case models.TR55_PACKAGE:
+        case coreUtils.TR55_PACKAGE:
             switch(resultName) {
                 case 'runoff':
                     return tr55RunoffViews.ResultView;
@@ -1160,7 +1161,7 @@ function getResultView(modelPackage, resultName) {
                     console.log('Result not supported.');
             }
             break;
-        case models.GWLFE:
+        case coreUtils.GWLFE:
             switch(resultName) {
                 case 'runoff':
                     return gwlfeRunoffViews.ResultView;

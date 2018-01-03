@@ -21,6 +21,14 @@ var utils = {
 
     MAX_GEOLOCATION_AGE: 60000,
 
+    MAPSHED: 'mapshed',
+
+    GWLFE: 'gwlfe',
+
+    TR55_TASK: 'tr55',
+
+    TR55_PACKAGE: 'tr-55',
+
     splashPageTitle: settings.get('title'),
 
     selectAreaPageTitle: 'Choose Area of Interest',

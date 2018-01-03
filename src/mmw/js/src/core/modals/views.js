@@ -19,7 +19,6 @@ var _ = require('lodash'),
     modalIframeTmpl = require('./templates/iframeModal.html'),
     vizerUrls = require('../settings').get('vizer_urls'),
 
-    GWLFE = 'gwlfe',
     ENTER_KEYCODE = 13,
     ESCAPE_KEYCODE = 27,
     BASIC_MODAL_CLASS = 'modal modal-basic fade',
@@ -380,7 +379,7 @@ var MultiShareView = ModalBaseView.extend({
                     data: gisData.model_input
                 };
             },
-            includeMapShedData = self.model.get('model_package') === GWLFE,
+            includeMapShedData = self.model.get('model_package') === coreUtils.GWLFE,
             mapshedData = includeMapShedData ? scenarios.map(getMapshedData) : null;
 
         return $.ajax({

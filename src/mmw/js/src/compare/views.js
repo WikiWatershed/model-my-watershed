@@ -1031,7 +1031,7 @@ function getCompareScenarios(isTr55) {
 function showCompare() {
     var model_package = App.currentProject.get('model_package'),
         projectName = App.currentProject.get('name'),
-        isTr55 = model_package === modelingModels.TR55_PACKAGE,
+        isTr55 = model_package === coreUtils.TR55_PACKAGE,
         scenarios = getCompareScenarios(isTr55),
         tabs = isTr55 ? getTr55Tabs(scenarios) : getGwlfeTabs(scenarios),
         controlsJson = isTr55 ? [{ name: 'precipitation' }] : [],
