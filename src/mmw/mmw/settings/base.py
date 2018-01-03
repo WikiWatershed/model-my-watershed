@@ -354,6 +354,7 @@ AUTHENTICATION_BACKENDS = (
 LOCAL_APPS = (
     'apps.bigcz',
     'apps.core',
+    'apps.export',
     'apps.modeling',
     'apps.geoprocessing_api',
     'apps.home',

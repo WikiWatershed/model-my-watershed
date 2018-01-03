@@ -24,10 +24,10 @@ from rest_framework.response import Response
 from rest_framework.permissions import (AllowAny,
                                         IsAuthenticated)
 
+from apps.export.hydroshare import HydroShareService
 from apps.home.views import get_context
 from apps.user.models import ItsiUser, UserProfile, HydroShareToken
 from apps.user.itsi import ItsiService
-from apps.user.hydroshare import HydroShareService
 from apps.user.serializers import UserProfileSerializer
 
 EMBED_FLAG = settings.ITSI['embed_flag']

@@ -9,7 +9,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework_gis import serializers as gis_serializers
 
-from apps.modeling.models import Project, Scenario, HydroShareResource
+from apps.export.serializers import HydroShareResourceSerializer
+from apps.modeling.models import Project, Scenario
 from apps.modeling.validation import validate_aoi
 from apps.modeling.calcs import get_layer_shape
 from apps.user.serializers import UserSerializer
@@ -60,14 +61,6 @@ class MultiPolygonGeoJsonField(JsonField):
         validate_aoi(geometry)
 
         return geometry.geojson
-
-
-class HydroShareResourceSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = HydroShareResource
-
-    url = serializers.ReadOnlyField()
 
 
 class ScenarioSerializer(serializers.ModelSerializer):

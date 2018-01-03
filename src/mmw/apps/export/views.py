@@ -17,9 +17,11 @@ from rest_framework import decorators, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from apps.modeling.models import Project, HydroShareResource
-from apps.modeling.serializers import HydroShareResourceSerializer
-from apps.user.hydroshare import HydroShareService
+from apps.modeling.models import Project
+
+from hydroshare import HydroShareService
+from models import HydroShareResource
+from serializers import HydroShareResourceSerializer
 
 hss = HydroShareService()
 HYDROSHARE_BASE_URL = settings.HYDROSHARE['base_url']
