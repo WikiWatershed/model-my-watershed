@@ -165,6 +165,10 @@ var ProjectModel = Backbone.Model.extend({
         this.set('is_activity', settings.get('activityMode'));
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
+
+        // Debounce HydroShare export to 5 seconds to allow models to run and
+        // return without triggering two simultaneous exports
+        this.debouncedExportToHydroShare = _.debounce(_.bind(this.exportToHydroShare, this), 5000);
     },
 
     setProjectModel: function(modelPackage) {
@@ -770,6 +774,14 @@ var ScenarioModel = Backbone.Model.extend({
 
         // Save silently so server values don't trigger reload
         this.save(null, { silent: true })
+            .done(function() {
+                // Export to HydroShare if available
+                var hydroshare = App.currentProject.get('hydroshare');
+
+                if (hydroshare && hydroshare.autosync) {
+                    App.currentProject.debouncedExportToHydroShare();
+                }
+            })
             .fail(function() {
                 console.log('Failed to save scenario');
             });
