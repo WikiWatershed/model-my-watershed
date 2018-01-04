@@ -2,11 +2,17 @@
     <ul class="global-navigation">
         <li class="global-navigation-item"><button data-url="/">{{ title }}</button></li>
     </ul>
+    {% if not data_catalog_enabled %}
     <img src="/static/images/stroud-logo.png" alt="Stroud Water Research Center" />
+    {% endif %}
     <div class="navigation">
         <ul class="main">
+            {% if data_catalog_enabled %}
+            <li class="header-link"><a href="http://bigcz.org/" target="_blank">About</a></li>
+            {% else %}
             <li class="header-link"><a href="#" data-toggle="modal" data-target="#about-modal">About</a></li>
             <li class="header-link"><a href="https://wikiwatershed.org/help/" target="_blank">Help</a></li>
+            {% endif %}
             {% if guest %}
                 <li class="header-link"><a class="show-login" href="javascript:void(0);">Login</a></li>
             {% else %}
