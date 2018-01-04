@@ -48,11 +48,19 @@
                 {% if hydroshare %}
                 <p>
                     Your project <a href="{{ hydroshare.url }}" target="_blank">{{ hydroshare.title }}</a>
-                    has been exported to HydroShare. Last exported at {{ hydroshare.exported_at | toFriendlyDate }}.
-                    {% if not is_exporting %}
-                    <a href="#" class="hydroshare-export">Export Again</a>.
-                    {% endif %}
+                    has been exported to HydroShare.
                 </p>
+                <div class="hydroshare-autosync-container">
+                    <h5>Settings</h5>
+                    <label>
+                        <input type="checkbox" id="hydroshare-autosync" {{ 'checked' if hydroshare.autosync }} />
+                        Automatically push changes to HydroShare
+                    </label>
+                    <p>
+                        <span class="hydroshare-timestamp">Last change: {{ hydroshare.exported_at | toFriendlyDate }}</span>
+                        <a href="#" class="hydroshare-export {{ 'hidden' if hydroshare.autosync or is_exporting }}">Export Now</a>
+                    </p>
+                </div>
                 {% endif %}
             </div>
         </div>

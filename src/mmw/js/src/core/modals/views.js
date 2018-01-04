@@ -222,12 +222,14 @@ var MultiShareView = ModalBaseView.extend({
         'hydroShareNotification': '#hydroshare-notification',
         'hydroShareSpinner': '.hydroshare-spinner',
         'hydroShareExport': '.hydroshare-export',
+        'hydroShareAutosync': '#hydroshare-autosync',
     },
 
     events: _.defaults({
         'click @ui.shareEnabled': 'onLinkToggle',
         'click @ui.hydroShareEnabled': 'connectHydroShare',
         'click @ui.hydroShareExport': 'reExportHydroShare',
+        'click @ui.hydroShareAutosync': 'setHydroShareAutosync',
     }, ModalBaseView.prototype.events),
 
     modelEvents: {
@@ -340,6 +342,10 @@ var MultiShareView = ModalBaseView.extend({
         e.preventDefault();
         this.model.exportToHydroShare();
         return false;
+    },
+
+    setHydroShareAutosync: function(e) {
+        this.model.setHydroShareAutosync(e.target.checked);
     }
 });
 

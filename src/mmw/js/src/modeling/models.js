@@ -492,6 +492,37 @@ var ProjectModel = Backbone.Model.extend({
         }).always(function() {
             self.set('is_exporting', false);
         });
+    },
+
+    /**
+     * Sets HydroShare Autosync to given value.
+     *
+     * Returns a promise of the AJAX call.
+     */
+    setHydroShareAutosync: function(autosync) {
+        var self = this,
+            hydroshare = self.get('hydroshare');
+
+        self.set({
+            is_exporting: true,
+            hydroshare: _.defaults({
+                autosync: autosync
+            }, hydroshare),
+        });
+
+        return $.ajax({
+            url: '/export/hydroshare?project=' + self.id,
+            type: 'PATCH',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                autosync: autosync
+            })
+        }).fail(function() {
+            // Restore local state in case update fails
+            self.set('hydroshare', hydroshare);
+        }).always(function() {
+            self.set('is_exporting', false);
+        });
     }
 });
 
