@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import json
 import StringIO
 
 from rauth import OAuth2Service
@@ -13,7 +12,6 @@ from hs_restclient import HydroShare, HydroShareAuthOAuth2, HydroShareNotFound
 from django.conf import settings
 
 from apps.user.models import HydroShareToken
-from apps.modeling.tasks import to_gms_file
 
 
 CLIENT_ID = settings.HYDROSHARE['client_id']
@@ -88,17 +86,17 @@ class HydroShareClient(HydroShare):
 
         :param resource_id: ID of the resource to add files to
         :param files: List of dicts in the format
-                      {'name': 'String', 'contents': 'String'}
+                      {'name': 'String', 'contents': 'String', 'object': False}
+                      or
+                      {'name': 'String', 'contents': file_like_object, 'object': True}  # NOQA
         :param overwrite: Whether to overwrite files or not. False by default.
         """
 
         for f in files:
+            fobject = f.get('object', False)
             fcontents = f.get('contents')
             fname = f.get('name')
             if fcontents and fname:
-                fio = StringIO.StringIO()
-                fio.write(fcontents)
-
                 # Overwrite files if specified
                 if overwrite:
                     try:
@@ -108,37 +106,11 @@ class HydroShareClient(HydroShare):
                         # File didn't already exists, move on
                         pass
 
+                if fobject:
+                    fio = fcontents
+                else:
+                    fio = StringIO.StringIO()
+                    fio.write(fcontents)
+
                 # Add the new file
                 self.addResourceFile(resource_id, fio, fname)
-
-    def add_gms_files(self, resource_id, mapshed_data,
-                      overwrite=False):
-        """
-        Helper method to add a MapShed GMS file to a resource.
-
-        :param resource_id: ID of the resource to add files to
-        :param mapshed_data: List of dicts in the format
-                      {'name': 'String', 'data': 'String'}
-                      'data' is loaded as JSON and converted
-                      to a GMS file.
-        :param overwrite: Whether to overwrite files or not.
-                      False by default.
-        """
-        if not mapshed_data:
-            return
-
-        for scenario_mapshed in mapshed_data:
-            fname = scenario_mapshed.get('name')
-            scenario_data = scenario_mapshed.get('data')
-            gms_file = to_gms_file(json.loads(scenario_data)) \
-                if scenario_data else None
-            if fname and gms_file:
-                if overwrite:
-                    try:
-                        # Delete the resource file if it already exists
-                        self.deleteResourceFile(resource_id, fname)
-                    except HydroShareNotFound:
-                        # File didn't already exists, move on
-                        pass
-
-                self.addResourceFile(resource_id, gms_file, fname)

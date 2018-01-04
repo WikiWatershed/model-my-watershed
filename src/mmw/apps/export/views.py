@@ -17,9 +17,12 @@ from rest_framework import decorators, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from apps.modeling.models import Project, HydroShareResource
-from apps.modeling.serializers import HydroShareResourceSerializer
-from apps.user.hydroshare import HydroShareService
+from apps.modeling.models import Project
+from apps.modeling.tasks import to_gms_file
+
+from hydroshare import HydroShareService
+from models import HydroShareResource
+from serializers import HydroShareResourceSerializer
 
 hss = HydroShareService()
 HYDROSHARE_BASE_URL = settings.HYDROSHARE['base_url']
@@ -73,12 +76,16 @@ def hydroshare(request):
     # POST existing resource updates it
     if hsresource and request.method == 'POST':
         # Update files
-        hs.add_files(hsresource.resource,
-                     params.get('files', []),
-                     overwrite=True)
-        hs.add_gms_files(hsresource.resource,
-                         params.get('mapshed_data', []),
-                         overwrite=True)
+        files = params.get('files', [])
+        for md in params.get('mapshed_data', []):
+            mdata = md.get('data')
+            files.append({
+                'name': md.get('name'),
+                'contents': to_gms_file(json.loads(mdata)) if mdata else None,
+                'object': True
+            })
+
+        hs.add_files(hsresource.resource, files, overwrite=True)
 
         hsresource.exported_at = now()
         hsresource.save()
@@ -115,10 +122,17 @@ def hydroshare(request):
         'contents': aoi_geojson,
     })
 
+    # MapShed Data
+    for md in params.get('mapshed_data', []):
+        mdata = md.get('data')
+        files.append({
+            'name': md.get('name'),
+            'contents': to_gms_file(json.loads(mdata)) if mdata else None,
+            'object': True
+        })
+
     # Add all files
     hs.add_files(resource, files)
-    hs.add_gms_files(resource,
-                     params.get('mapshed_data', []))
 
     # AoI Shapefile
     aoi_json = json.loads(aoi_geojson)
