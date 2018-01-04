@@ -261,3 +261,41 @@
     margin: 12px;
   }
 }
+
+.modal-about {
+  .modal-content {
+    padding: 2rem;
+  }
+
+  .modal-header {
+    border: none;
+
+    p.version {
+      margin-top: 1rem;
+      font-size: 13px;
+      font-weight: normal;
+      color: $black-39;
+    }
+  }
+
+  .modal-body {
+    p, li {
+      font-size: 15px;
+      font-weight: 400;
+      color: $black-65;
+      line-height: 1.5;
+    }
+
+    li {
+      padding-left: 1rem;
+    }
+
+    p {
+      margin-bottom: 2rem;
+    }
+
+    img.splash-sponsor-logo {
+      height: 100px;
+    }
+  }
+}
