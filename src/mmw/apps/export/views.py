@@ -164,6 +164,11 @@ def hydroshare(request):
                                'area-of-interest.{}'.format(ext))
         os.remove(filename)
 
+    # Make resource public and shareable
+    endpoint = hs.resource(resource)
+    endpoint.public(True)
+    endpoint.shareable(True)
+
     # Link HydroShareResrouce to Project and save
     hsresource = HydroShareResource.objects.create(
         project=project,
