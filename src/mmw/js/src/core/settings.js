@@ -20,6 +20,8 @@ var defaultSettings = {
     model_packages: [],
     max_area: 75000,
     enabled_features: [],
+    branch: null,
+    gitDescribe: null,
 };
 
 var settings = (function() {
