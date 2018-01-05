@@ -8,6 +8,7 @@ var _ = require('lodash'),
     Clipboard = require('clipboard'),
     moment = require('moment'),
     models = require('./models'),
+    modalAboutTmpl = require('./templates/aboutModal.html'),
     modalConfirmTmpl = require('./templates/confirmModal.html'),
     modalConfirmLargeTmpl = require('./templates/confirmModalLarge.html'),
     modalInputTmpl = require('./templates/inputModal.html'),
@@ -630,7 +631,22 @@ var PlotView = ModalBaseView.extend({
     }
 });
 
+var AboutModal = Marionette.ItemView.extend({
+    className: 'modal modal-about fade',
+    attributes: {
+        'tabindex': '-1',
+        'role': 'dialog',
+    },
+
+    template: modalAboutTmpl,
+
+    onRender: function() {
+        this.$el.modal('show');
+    }
+});
+
 module.exports = {
+    AboutModal: AboutModal,
     ModalBaseView: ModalBaseView,
     ShareView: ShareView,
     MultiShareView: MultiShareView,
