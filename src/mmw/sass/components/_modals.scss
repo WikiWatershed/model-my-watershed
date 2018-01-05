@@ -260,4 +260,27 @@
   .hydroshare-spinner {
     margin: 12px;
   }
+
+  .hydroshare-autosync-container {
+    padding: 10px;
+    border: 1px solid $ui-light;
+    border-radius: 4px;
+
+    label {
+      font-size: 13px;
+      font-weight: normal;
+      margin-bottom: 1rem;
+    }
+
+    .hydroshare-timestamp {
+      color: $ui-grey;
+    }
+
+    .hydroshare-export {
+      display: inline-block;
+      border-left: 1px solid $ui-grey;
+      margin-left: 5px;
+      padding-left: 10px;
+    }
+  }
 }

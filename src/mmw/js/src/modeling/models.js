@@ -135,6 +135,7 @@ var ProjectModel = Backbone.Model.extend({
         needs_reset: false,                // Should we overwrite project data on next save?
         allow_save: true,                  // Is allowed to save to the server - false in compare mode
         show_analyze: false,               // Show analyze results in the sidebar?
+        is_exporting: false,               // Is the project currently exporting?
     },
 
     initialize: function() {
@@ -164,6 +165,10 @@ var ProjectModel = Backbone.Model.extend({
         this.set('is_activity', settings.get('activityMode'));
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
+
+        // Debounce HydroShare export to 5 seconds to allow models to run and
+        // return without triggering two simultaneous exports
+        this.debouncedExportToHydroShare = _.debounce(_.bind(this.exportToHydroShare, this), 5000);
     },
 
     setProjectModel: function(modelPackage) {
@@ -411,6 +416,113 @@ var ProjectModel = Backbone.Model.extend({
 
         // Return fetchGisDataPromise if it exists, else an immediately resolved one.
         return self.fetchGisDataPromise || $.when();
+    },
+
+    /**
+     * Exports current project to HydroShare. Any key/value pairs provided in
+     * payload will also be sent to the server. In most cases this will be
+     * the title, abstract, and keywords from the initial modal.
+     *
+     * Returns a promise of the AJAX call.
+     */
+    exportToHydroShare: function(payload) {
+        var self = this,
+            analyzeTasks = App.getAnalyzeCollection(),
+            analyzeFiles = analyzeTasks.map(function(at) {
+                    return {
+                        name: 'analyze_' + at.get('name') + '.csv',
+                        contents: at.getResultCSV(),
+                    };
+                }),
+            getMapshedData = function(scenario) {
+                    var gisData = scenario.getGisData();
+                    if (!gisData) { return null; }
+
+                    return {
+                        name: 'scenario_' +
+                                scenario.get('name')
+                                    .toLowerCase()
+                                    .replace(/\s/g, '-') +
+                                '.gms',
+                        data: gisData.model_input
+                    };
+                },
+            includeMapShedData = self.get('model_package') === utils.GWLFE,
+            mapshedData = includeMapShedData ?
+                            self.get('scenarios').map(getMapshedData) :
+                            [];
+
+        self.set('is_exporting', true);
+
+        return $.ajax({
+            type: 'POST',
+            url: '/export/hydroshare?project=' + self.id,
+            contentType: 'application/json',
+            data: JSON.stringify(_.defaults({
+                files: analyzeFiles,
+                mapshed_data: mapshedData,
+            }, payload))
+        }).done(function(result) {
+            self.set('hydroshare', result);
+        }).always(function() {
+            self.set('is_exporting', false);
+        });
+    },
+
+    /**
+     * Disconnects project from HydroShare and deletes the resource.
+     *
+     * Returns a promise of the AJAX call.
+     */
+    disconnectHydroShare: function() {
+        var self = this,
+            hydroshare = self.get('hydroshare');
+
+        self.set({
+            is_exporting: true,
+            hydroshare: null,
+        });
+
+        return $.ajax({
+            url: '/export/hydroshare?project=' + self.id,
+            type: 'DELETE',
+        }).fail(function() {
+            // Restore local state in case deletion fails
+            self.set('hydroshare', hydroshare);
+        }).always(function() {
+            self.set('is_exporting', false);
+        });
+    },
+
+    /**
+     * Sets HydroShare Autosync to given value.
+     *
+     * Returns a promise of the AJAX call.
+     */
+    setHydroShareAutosync: function(autosync) {
+        var self = this,
+            hydroshare = self.get('hydroshare');
+
+        self.set({
+            is_exporting: true,
+            hydroshare: _.defaults({
+                autosync: autosync
+            }, hydroshare),
+        });
+
+        return $.ajax({
+            url: '/export/hydroshare?project=' + self.id,
+            type: 'PATCH',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                autosync: autosync
+            })
+        }).fail(function() {
+            // Restore local state in case update fails
+            self.set('hydroshare', hydroshare);
+        }).always(function() {
+            self.set('is_exporting', false);
+        });
     }
 });
 
@@ -693,6 +805,14 @@ var ScenarioModel = Backbone.Model.extend({
 
         // Save silently so server values don't trigger reload
         this.save(null, { silent: true })
+            .done(function() {
+                // Export to HydroShare if available
+                var hydroshare = App.currentProject.get('hydroshare');
+
+                if (hydroshare && hydroshare.autosync) {
+                    App.currentProject.debouncedExportToHydroShare();
+                }
+            })
             .fail(function() {
                 console.log('Failed to save scenario');
             });

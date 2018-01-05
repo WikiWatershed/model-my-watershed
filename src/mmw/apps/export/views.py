@@ -29,7 +29,7 @@ HYDROSHARE_BASE_URL = settings.HYDROSHARE['base_url']
 SHAPEFILE_EXTENSIONS = ['cpg', 'dbf', 'prj', 'shp', 'shx']
 
 
-@decorators.api_view(['GET', 'POST', 'DELETE'])
+@decorators.api_view(['GET', 'POST', 'PATCH', 'DELETE'])
 @decorators.permission_classes((IsAuthenticated, ))
 def hydroshare(request):
     # Get HydroShare client with user's credentials
@@ -63,14 +63,27 @@ def hydroshare(request):
         serializer = HydroShareResourceSerializer(hsresource)
         return Response(serializer.data)
 
+    # PATCH existing resource updates its autosync status
+    if hsresource and request.method == 'PATCH':
+        autosync = params.get('autosync', None)
+        if autosync is None:
+            return Response(
+                data={'errors': ['Must specify autosync as true or false']},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        hsresource.autosync = autosync
+        hsresource.save()
+        serializer = HydroShareResourceSerializer(hsresource)
+        return Response(serializer.data)
+
     # DELETE existing resource removes it from MMW and HydroShare
     if hsresource and request.method == 'DELETE':
         hs.deleteResource(hsresource.resource)
         hsresource.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    # Cannot GET or DELETE non-existing resource
-    if not hsresource and request.method in ['GET', 'DELETE']:
+    # Cannot GET, PATCH or DELETE non-existing resource
+    if not hsresource and request.method in ['GET', 'PATCH', 'DELETE']:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     # POST existing resource updates it
