@@ -10,6 +10,8 @@ var L = require('leaflet'),
 
 var M2_IN_KM2 = 1000000;
 var noData = 'No Data';
+var RELEASE_NOTES_BASE_URL = 'https://github.com/WikiWatershed/model-my-watershed/releases';
+var MINOR_MAJOR_REGEX = /^[0-9]+\.[0-9]+\./; // Matches strings like 2.22.
 
 var utils = {
     layerGroupZIndices: {
@@ -606,6 +608,34 @@ var utils = {
         return {
             min: min,
             max: max
+        };
+    },
+
+    // Parses version number from branch and git describe output
+    // Outputs version number and release notes URL
+    parseVersion: function(branch, gitDescribe) {
+        var version = 'Unknown',
+            url = RELEASE_NOTES_BASE_URL + '/latest';
+
+        if (branch === null && gitDescribe === null) {
+            version = 'Unknown';
+        } else if (branch === 'local' && gitDescribe === null) {
+            version = 'Local';
+        } else if (branch.startsWith('release')) {
+            version = branch.substr(branch.indexOf('/') + 1);
+            // Use this version for release notes
+            url = RELEASE_NOTES_BASE_URL + '/tag/' + version;
+        } else if (branch.startsWith('hotfix')) {
+            version = branch.substr(branch.indexOf('/') + 1);
+            // Use the original release notes
+            url = RELEASE_NOTES_BASE_URL + '/tag/' + version.match(MINOR_MAJOR_REGEX) + '0';
+        } else {
+            version = gitDescribe.substr(0, 18);
+        }
+
+        return {
+            version: version,
+            releaseNotesUrl: url
         };
     }
 };

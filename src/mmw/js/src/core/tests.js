@@ -725,6 +725,37 @@ describe('Core', function() {
             assert.deepEqual(utils.rangeInMagnitude(10), {min: 0, max: 10});
             assert.deepEqual(utils.rangeInMagnitude(-0.005), {min: -0.01, max: 0});
         });
+
+        it('parses version numbers correctly', function() {
+            var latestUrl = 'https://github.com/WikiWatershed/model-my-watershed/releases/latest',
+                taggedUrl = 'https://github.com/WikiWatershed/model-my-watershed/releases/tag/1.22.0',
+                gitDescribe = '1.21.0-131-g9e49b30ce4f5b641e41c96f49c0a1509b21261b2',
+                output = null;
+
+            output = utils.parseVersion(null, null);
+            assert.equal(output.version, 'Unknown');
+            assert.equal(output.releaseNotesUrl, latestUrl);
+
+            output = utils.parseVersion('release/1.22.0', gitDescribe);
+            assert.equal(output.version, '1.22.0');
+            assert.equal(output.releaseNotesUrl, taggedUrl);
+
+            output = utils.parseVersion('hotfix/1.22.2', gitDescribe);
+            assert.equal(output.version, '1.22.2');
+            assert.equal(output.releaseNotesUrl, taggedUrl);
+
+            output = utils.parseVersion('develop', gitDescribe);
+            assert.equal(output.version, '1.21.0-131-g9e49b3');
+            assert.equal(output.releaseNotesUrl, latestUrl);
+
+            output = utils.parseVersion('tt/version-number', gitDescribe);
+            assert.equal(output.version, '1.21.0-131-g9e49b3');
+            assert.equal(output.releaseNotesUrl, latestUrl);
+
+            output = utils.parseVersion('local', null);
+            assert.equal(output.version, 'Local');
+            assert.equal(output.releaseNotesUrl, latestUrl);
+        });
     });
 });
 

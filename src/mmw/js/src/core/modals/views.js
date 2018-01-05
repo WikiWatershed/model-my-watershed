@@ -18,7 +18,7 @@ var _ = require('lodash'),
     modalHydroShareTmpl = require('./templates/hydroShareExportModal.html'),
     modalAlertTmpl = require('./templates/alertModal.html'),
     modalIframeTmpl = require('./templates/iframeModal.html'),
-    vizerUrls = require('../settings').get('vizer_urls'),
+    settings = require('../settings'),
 
     ENTER_KEYCODE = 13,
     ESCAPE_KEYCODE = 27,
@@ -507,7 +507,7 @@ var PlotView = ModalBaseView.extend({
     plotMeasurement: function(varId) {
         var self = this,
             series = self.model.get('seriesMap')[varId],
-            dataUrl = vizerUrls.variable
+            dataUrl = settings.vizerUrls.variable
                .replace(/{{var_id}}/, varId)
                .replace(/{{asset_id}}/, this.model.get('siso_id'));
 
@@ -639,6 +639,12 @@ var AboutModal = Marionette.ItemView.extend({
     },
 
     template: modalAboutTmpl,
+    templateHelpers: function() {
+        return coreUtils.parseVersion(
+            settings.get('branch'),
+            settings.get('gitDescribe')
+        );
+    },
 
     onRender: function() {
         this.$el.modal('show');
