@@ -121,6 +121,7 @@ def run_packer(mmw_config, machine_types, aws_profile):
                                                           get_git_sha())),
                       '-var', 'branch={}'.format(env.get('GIT_BRANCH',
                                                          get_git_branch())),
+                      '-var', 'description={}'.format(get_git_sha()),
                       '-var', 'aws_region={}'.format(region),
                       '-var', 'aws_ubuntu_ami={}'.format(aws_ubuntu_ami),
                       '-var', 'stack_type={}'.format(stack_type)]
