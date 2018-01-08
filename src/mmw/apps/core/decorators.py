@@ -42,7 +42,9 @@ def log_request(view):
             query_params=request.query_params.dict(),
             method=request.method,
             host=request.get_host(),
-            remote_addr=_get_remote_addr(request))
+            remote_addr=_get_remote_addr(request),
+            referrer=request.META.get('HTTP_REFERER'),
+            api=_is_api_call(request))
         try:
             log.save()
         except Exception:
@@ -66,3 +68,9 @@ def _get_remote_addr(request):
             return [x.strip() for x in ipaddr.split(",")][0]
     else:
         return request.META.get("REMOTE_ADDR", "")
+
+
+def _is_api_call(request):
+    # request.auth is None for SessionAuthentication,
+    # but a Token instance for TokenAuthentication
+    return request.auth is not None
