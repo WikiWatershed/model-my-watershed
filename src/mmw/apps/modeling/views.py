@@ -165,6 +165,7 @@ def scenario(request, scen_id):
 
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
+@log_request
 def start_gwlfe(request, format=None):
     """
     Starts a job to run GWLF-E.
@@ -227,6 +228,7 @@ def _initiate_subbasin_gwlfe_job_chain(model_input, inputmod_hash, job_id):
 
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
+@log_request
 def start_mapshed(request, format=None):
     """
     Starts a MapShed job which gathers data from various sources which
@@ -321,6 +323,7 @@ def export_gms(request, format=None):
 
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
+@log_request
 def start_tr55(request, format=None):
 
     user = request.user if request.user.is_authenticated() else None
