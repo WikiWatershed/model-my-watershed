@@ -462,8 +462,8 @@ def drb_point_sources(request):
 
 
 @decorators.api_view(['GET'])
-@decorators.authentication_classes((TokenAuthentication,
-                                    SessionAuthentication, ))
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
 @decorators.permission_classes((AllowAny, ))
 @log_request
 def get_job(request, job_uuid, format=None):
