@@ -114,9 +114,11 @@ var HeaderView = Marionette.ItemView.extend({
         logout: '.user-logout',
         cloneProject: '.clone-project',
         skippedProfilePopover: '[data-toggle="popover"]',
+        about: '#about-modal-trigger',
     },
 
     events: {
+        'click @ui.about': 'showAbout',
         'click @ui.login': 'showLogin',
         'click @ui.logout': 'userLogout',
         'click @ui.cloneProject': 'cloneProject'
@@ -138,6 +140,10 @@ var HeaderView = Marionette.ItemView.extend({
             'itsi_embed': settings.get('itsi_embed'),
             'data_catalog_enabled': settings.get('data_catalog_enabled'),
         };
+    },
+
+    showAbout: function() {
+        new modalViews.AboutModal().render();
     },
 
     showLogin: function() {
