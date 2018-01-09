@@ -49,6 +49,13 @@ class RequestLog(models.Model):
         help_text='The host from which the request was sent')
     remote_addr = models.GenericIPAddressField(
         help_text='The IP address from which the request was sent')
+    referrer = models.CharField(
+        null=True,
+        max_length=400,
+        help_text='The referrer from which the request was sent')
+    api = models.BooleanField(
+        default=True,
+        help_text='Whether this was an API call (true) or MMW UI call (false)')
 
     def __unicode__(self):
         return self.user + " " + self.path
