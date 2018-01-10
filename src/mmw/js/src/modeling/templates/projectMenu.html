@@ -10,11 +10,6 @@
             <ul class="dropdown-menu menu-left" role="menu">
                 {% if not is_new and editable %}
                     <li role="presentation">
-                        <a role="menuitem" tabindex="-1" data-toggle="modal" id="share-project">
-                            Share
-                        </a>
-                    </li>
-                    <li role="presentation">
                         <a role="menuitem" tabindex="-1" data-toggle="modal" id="delete-project">
                             Delete
                         </a>
@@ -85,6 +80,11 @@
 </div>
 
 <div class="project-right">
+    {% if not is_new and editable %}
+    <button class="btn btn-md btn-secondary {{ 'is-exporting' if is_exporting }}" id="share-project">
+        Share
+    </button>
+    {% endif %}
     <button class="btn btn-md btn-secondary" id="new-project">
         New Project
     </button>

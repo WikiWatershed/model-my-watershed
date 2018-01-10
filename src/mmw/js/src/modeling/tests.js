@@ -278,7 +278,6 @@ describe('Modeling', function() {
                     view = new views.ProjectMenuView({ model: project }),
                     projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[],"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}',
                     postSaveMenuItems = [
-                        'Share',
                         'Delete',
                         'Rename',
                         '',
@@ -324,7 +323,6 @@ describe('Modeling', function() {
                     view = new views.ProjectMenuView({ model: project }),
                     projectResponse = '{"id":21,"user":{"id":1,"username":"test","email":"test@azavea.com"},"scenarios":[],"name":"Test Project","area_of_interest":{},"is_private":true,"model_package":"tr-55","created_at":"2015-06-03T20:09:11.988948Z","modified_at":"2015-06-03T20:09:11.988988Z"}',
                     postSaveMenuItems = [
-                        'Share',
                         'Delete',
                         'Rename',
                         'Embed in ITSI',

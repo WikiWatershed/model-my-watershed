@@ -109,6 +109,9 @@ header {
       }
       .project-right {
           margin-right: 8px;
+          .btn + .btn {
+            margin-left: 8px;
+          }
       }
 
       .project-title {
