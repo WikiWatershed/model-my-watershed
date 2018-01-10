@@ -356,7 +356,9 @@ var HydroShareView = ModalBaseView.extend({
 
     ui: {
         'title': '#hydroshare-title',
+        'titleError': '#hydroshare-title-error',
         'abstract': '#hydroshare-abstract',
+        'abstractError': '#hydroshare-abstract-error',
         'keywords': '#hydroshare-keywords',
         'export': '.btn-active',
         'cancel': '.btn-default',
@@ -371,6 +373,18 @@ var HydroShareView = ModalBaseView.extend({
         var title = this.ui.title.val().trim(),
             abstract = this.ui.abstract.val().trim(),
             keywords = this.ui.keywords.val().trim();
+
+        if (title === "") {
+            this.ui.titleError.removeClass('hidden');
+        } else {
+            this.ui.titleError.addClass('hidden');
+        }
+
+        if (abstract === "") {
+            this.ui.abstractError.removeClass('hidden');
+        } else {
+            this.ui.abstractError.addClass('hidden');
+        }
 
         if (title === "" || abstract === "") {
             return;
