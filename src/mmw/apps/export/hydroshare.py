@@ -114,3 +114,10 @@ class HydroShareClient(HydroShare):
 
                 # Add the new file
                 self.addResourceFile(resource_id, fio, fname)
+
+    def check_resource_exists(self, resource_id):
+        try:
+            self.getSystemMetadata(resource_id)
+            return True
+        except HydroShareNotFound:
+            return False
