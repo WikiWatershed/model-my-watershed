@@ -11,10 +11,12 @@
             <div>
                 <label class="modal-text-input-label" for="hydroshare-title">Title</label>
                 <input class="modal-text-input" name="hydroshare-title" type="text" id="hydroshare-title" required value="{{ name }}">
+                <span class="modal-text-input-error hidden" id="hydroshare-title-error">Title is required.</span>
             </div>
             <div>
                 <label class="modal-text-input-label" for="hydroshare-abstract">Abstract</label>
                 <textarea class="modal-text-input" name="hydroshare-abstract" id="hydroshare-abstract" required rows="4"></textarea>
+                <span class="modal-text-input-error hidden" id="hydroshare-abstract-error">Abstract is required.</span>
             </div>
             <div>
                 <label class="modal-text-input-label" for="hydroshare-keywords">Keywords <small>(optional)</small></label>

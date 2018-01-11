@@ -324,13 +324,16 @@ var MultiShareView = ModalBaseView.extend({
             onDeny = _.bind(self.render, self),
             confirm = new ConfirmLargeView({
                 model: new models.ConfirmModel({
-                    titleText: 'Unsynchronize Project',
+                    titleText: 'Remove Resource from HydroShare',
                     question: [
-                        'Unsynchronizing your project from HydroShare will ' +
-                        'delete that resource. There is no way to undo this. ' +
-                        'Continue?'
+                        'This will delete the resource in HydroShare. ' +
+                        'If you enable HydroShare Export for this project ' +
+                        'again, it will create a new HydroShare resource. ' +
+                        'Any details added to the resource directly in ' +
+                        'HydroShare will be permanently lost. This cannot ' +
+                        'be undone. Continue?'
                     ],
-                    confirmLabel: 'Unsynchronize',
+                    confirmLabel: 'Remove from HydroShare',
                 })
             });
 
@@ -356,7 +359,9 @@ var HydroShareView = ModalBaseView.extend({
 
     ui: {
         'title': '#hydroshare-title',
+        'titleError': '#hydroshare-title-error',
         'abstract': '#hydroshare-abstract',
+        'abstractError': '#hydroshare-abstract-error',
         'keywords': '#hydroshare-keywords',
         'export': '.btn-active',
         'cancel': '.btn-default',
@@ -371,6 +376,18 @@ var HydroShareView = ModalBaseView.extend({
         var title = this.ui.title.val().trim(),
             abstract = this.ui.abstract.val().trim(),
             keywords = this.ui.keywords.val().trim();
+
+        if (title === "") {
+            this.ui.titleError.removeClass('hidden');
+        } else {
+            this.ui.titleError.addClass('hidden');
+        }
+
+        if (abstract === "") {
+            this.ui.abstractError.removeClass('hidden');
+        } else {
+            this.ui.abstractError.addClass('hidden');
+        }
 
         if (title === "" || abstract === "") {
             return;

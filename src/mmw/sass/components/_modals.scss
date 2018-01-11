@@ -322,3 +322,26 @@
     }
   }
 }
+
+.hydroshare-modal {
+  .modal-text-input-label {
+    margin-top: 2.5rem;
+  }
+
+  .modal-content .modal-text-input {
+    margin-bottom: 0.5rem;
+  }
+
+  .modal-text-input-error {
+    display: block;
+    padding: 0.75rem;
+    border: 1px solid $ui-danger;
+    color: $ui-danger;
+    background: $ui-danger-18;
+  }
+
+  textarea {
+    border: 1px solid #ccc;
+    color: #333;
+  }
+}
