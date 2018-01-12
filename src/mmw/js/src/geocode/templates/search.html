@@ -1,9 +1,6 @@
 <input class="search-input" id="geocoder-search" type="text"
-       {%- if selectedSuggestion %}
-           placeholder="{{selectedSuggestion.get('text')}}"
-       {%- else %}
-           placeholder="Jump to location or HUC"
-       {% endif -%}
+       value="{{query or (selectedSuggestion and selectedSuggestion.get('text'))}}"
+       placeholder="Jump to location or HUC"
 >
 <i class="search-icon fa fa-search"></i>
 {% if selectedSuggestion and selectedSuggestion.get('isBoundaryLayer') %}
