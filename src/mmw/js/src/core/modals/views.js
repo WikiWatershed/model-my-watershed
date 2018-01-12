@@ -224,6 +224,7 @@ var MultiShareView = ModalBaseView.extend({
         'hydroShareSpinner': '.hydroshare-spinner',
         'hydroShareExport': '.hydroshare-export',
         'hydroShareAutosync': '#hydroshare-autosync',
+        'hydroShareError': '.error-popover',
     },
 
     events: _.defaults({
@@ -259,6 +260,15 @@ var MultiShareView = ModalBaseView.extend({
 
             this.$el.modal('show');
         }
+
+        this.enablePopovers();
+    },
+
+    enablePopovers: function() {
+        this.ui.hydroShareError.popover({
+            placement: 'top',
+            trigger: 'focus',
+        });
     },
 
     onLinkToggle: function(e) {

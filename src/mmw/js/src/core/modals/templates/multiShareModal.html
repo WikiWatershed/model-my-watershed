@@ -30,7 +30,11 @@
                     {% if is_exporting %}
                     <i class="hydroshare-spinner fa fa-circle-o-notch fa-spin"></i>
                     {% elif hydroshare_errors.length > 0 %}
-                    <i class="fa fa-warning hydroshare-warning" title=" {{hydroshare_errors.join('\n')}} "></i>
+                    <a class="error-popover" tabindex="0"
+                       role="button" data-content="{{ hydroshare_errors.join('\n') }}">
+
+                        <i class="fa fa-warning ui-danger hydroshare-warning"></i>
+                    </a>
                     {% endif %}
                     <h3>HydroShare Export</h3>
                     <label class="pull-right toggle">
