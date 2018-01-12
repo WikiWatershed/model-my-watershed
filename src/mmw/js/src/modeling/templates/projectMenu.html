@@ -81,7 +81,8 @@
 
 <div class="project-right">
     {% if not is_new and editable %}
-    <button class="btn btn-md btn-secondary {{ 'is-exporting' if is_exporting }}" id="share-project">
+    <button class="btn btn-md btn-secondary {{ 'is-exporting' if is_exporting }} {{ 'error' if hydroshare_errors.length > 0 }}"
+            id="share-project">
         Share
     </button>
     {% endif %}

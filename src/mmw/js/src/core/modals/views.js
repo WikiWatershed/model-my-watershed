@@ -234,7 +234,7 @@ var MultiShareView = ModalBaseView.extend({
     }, ModalBaseView.prototype.events),
 
     modelEvents: {
-        'change:is_private, change:is_exporting': 'render',
+        'change:is_private change:is_exporting change:hydroshare_errors': 'render',
     },
 
     templateHelpers: function() {

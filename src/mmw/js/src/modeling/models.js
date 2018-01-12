@@ -136,6 +136,7 @@ var ProjectModel = Backbone.Model.extend({
         allow_save: true,                  // Is allowed to save to the server - false in compare mode
         show_analyze: false,               // Show analyze results in the sidebar?
         is_exporting: false,               // Is the project currently exporting?
+        hydroshare_errors: [],             // List of errors from connecting to hydroshare
     },
 
     initialize: function() {
@@ -464,7 +465,10 @@ var ProjectModel = Backbone.Model.extend({
             }, payload))
         }).done(function(result) {
             self.set('hydroshare', result);
-        }).always(function() {
+            self.set('hydroshare_errors', []);
+        }).fail(function(result) {
+            self.set('hydroshare_errors', result.responseJSON.errors);
+        }) .always(function() {
             self.set('is_exporting', false);
         });
     },
@@ -486,7 +490,9 @@ var ProjectModel = Backbone.Model.extend({
         return $.ajax({
             url: '/export/hydroshare?project=' + self.id,
             type: 'DELETE',
-        }).fail(function() {
+        }).done(function() {
+            self.set('hydroshare_errors', []);
+        }) .fail(function() {
             // Restore local state in case deletion fails
             self.set('hydroshare', hydroshare);
         }).always(function() {
@@ -517,9 +523,12 @@ var ProjectModel = Backbone.Model.extend({
             data: JSON.stringify({
                 autosync: autosync
             })
-        }).fail(function() {
+        }).done(function () {
+            self.set('hydroshare_errors', []);
+        }) .fail(function(result) {
             // Restore local state in case update fails
             self.set('hydroshare', hydroshare);
+            self.set('hydroshare_errors', result.responseJSON.errors);
         }).always(function() {
             self.set('is_exporting', false);
         });
