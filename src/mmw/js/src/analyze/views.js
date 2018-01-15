@@ -1247,7 +1247,7 @@ var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
 
 var TerrainResultView = AnalyzeResultView.extend({
     onShow: function() {
-        var title = 'Terrain Statisticts',
+        var title = 'Terrain Statistics',
             source = 'NHDPlus V2 NEDSnapshot DEM',
             helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
             chart = null;
