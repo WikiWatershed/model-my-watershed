@@ -40,8 +40,10 @@
             parent.postMessage(message, window.location.origin);
         });
 
+        {% if error %}
         document.getElementById('hydroshare-cancel').addEventListener('click', function() {
             parent.postMessage('mmw-hydroshare-cancel', window.location.origin);
         });
+        {% endif %}
     </script>
 </body>
