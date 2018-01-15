@@ -13,8 +13,13 @@ var $ = require('jquery'),
     models = require('./models'),
     settings = require('../core/settings'),
     containerTmpl = require('./templates/container.html'),
+    linkedAccountsTmpl = require('./templates/linkedAccounts.html'),
     profileTmpl = require('./templates/profile.html'),
     accountTmpl = require('./templates/account.html');
+
+var LinkedAccountsView = Marionette.ItemView.extend({
+    template: linkedAccountsTmpl,
+});
 
 var ProfileView = Marionette.ItemView.extend({
     template: profileTmpl,
@@ -170,12 +175,14 @@ var AccountContainerView = Marionette.LayoutView.extend({
 
     ui: {
         profile: '[data-action="viewprofile"]',
-        account: '[data-action="viewaccount"]'
+        account: '[data-action="viewaccount"]',
+        linkedAccounts: '[data-action="viewlinkedaccounts"]',
     },
 
     events: {
         'click @ui.profile': 'viewProfile',
-        'click @ui.account': 'viewAccount'
+        'click @ui.account': 'viewAccount',
+        'click @ui.linkedAccounts': 'viewLinkedAccounts',
     },
 
     modelEvents: {
@@ -195,6 +202,11 @@ var AccountContainerView = Marionette.LayoutView.extend({
         var activePage = this.model.get('active_page');
 
         switch(activePage) {
+            case models.LINKED_ACCOUNTS:
+                this.infoContainer.show(new LinkedAccountsView({
+                    model: App.user
+                }));
+                break;
             case models.PROFILE:
                 this.infoContainer.show(new ProfileView({
                     model: this.profileModel
@@ -221,6 +233,10 @@ var AccountContainerView = Marionette.LayoutView.extend({
 
     viewAccount: function() {
         this.model.set('active_page', models.ACCOUNT);
+    },
+
+    viewLinkedAccounts: function() {
+        this.model.set('active_page', models.LINKED_ACCOUNTS);
     }
 });
 

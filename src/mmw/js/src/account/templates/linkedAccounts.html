@@ -1,0 +1,27 @@
+<h2>Linked Accounts</h2>
+
+<section class="linked-account-section">
+    <h3>HydroShare</h3>
+    {% if hydroshare %}
+        <p class="linked-account-status active">
+            <i class="fa fa-check"></i> Linked
+        </p>
+    {% else %}
+        <p class="linked-account-status">Not connected</p>
+    {% endif %}
+
+    <p class="linked-account-description">
+        <a href="https://www.hydroshare.org/" target="_blank">HydroShare</a>
+        is an online collaboration environment for sharing data, models,
+        and code.
+    </p>
+
+    <button class="btn btn-md btn-primary {{ 'hidden' if not hydroshare }}"
+        data-action="unlinkHydroShare">
+        Remove Link
+    </button>
+    <button class="btn btn-md btn-active {{ 'hidden' if hydroshare }}"
+        data-action="linkHydroShare">
+        Link Account
+    </button>
+</section>
