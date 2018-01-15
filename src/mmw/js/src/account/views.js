@@ -19,6 +19,36 @@ var $ = require('jquery'),
 
 var LinkedAccountsView = Marionette.ItemView.extend({
     template: linkedAccountsTmpl,
+
+    ui: {
+        linkHydroShare: '[data-action="linkHydroShare"]',
+    },
+
+    events: {
+        'click @ui.linkHydroShare': 'linkHydroShare',
+    },
+
+    modelEvents: {
+        'change': 'render'
+    },
+
+    linkHydroShare: function() {
+        var self = this,
+            iframe = new modalViews.IframeView({
+                model: new modalModels.IframeModel({
+                    href: '/user/hydroshare/login/',
+                    signalSuccess: 'mmw-hydroshare-success',
+                    signalFailure: 'mmw-hydroshare-failure',
+                    signalCancel: 'mmw-hydroshare-cancel',
+                })
+            });
+
+        iframe.render();
+        iframe.on('success', function() {
+            // Fetch user again to save new HydroShare Access state
+            self.model.fetch();
+        });
+    }
 });
 
 var ProfileView = Marionette.ItemView.extend({
