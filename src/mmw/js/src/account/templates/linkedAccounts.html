@@ -1,6 +1,6 @@
 <h2>Linked Accounts</h2>
 
-<section class="linked-account-section">
+<section class="linked-account-section hydroshare">
     <h3>HydroShare</h3>
     {% if hydroshare %}
         <p class="linked-account-status active">
@@ -18,10 +18,12 @@
 
     <button class="btn btn-md btn-primary {{ 'hidden' if not hydroshare }}"
         data-action="unlinkHydroShare">
-        Remove Link
+        Remove link
     </button>
     <button class="btn btn-md btn-active {{ 'hidden' if hydroshare }}"
         data-action="linkHydroShare">
         Link Account
     </button>
+
+    <p class="linked-account-error hidden"></p>
 </section>

@@ -22,10 +22,13 @@ var LinkedAccountsView = Marionette.ItemView.extend({
 
     ui: {
         linkHydroShare: '[data-action="linkHydroShare"]',
+        unlinkHydroShare: '[data-action="unlinkHydroShare"]',
+        errorHydroShare: '.hydroshare > .linked-account-error',
     },
 
     events: {
         'click @ui.linkHydroShare': 'linkHydroShare',
+        'click @ui.unlinkHydroShare': 'unlinkHydroShare',
     },
 
     modelEvents: {
@@ -48,6 +51,51 @@ var LinkedAccountsView = Marionette.ItemView.extend({
             // Fetch user again to save new HydroShare Access state
             self.model.fetch();
         });
+    },
+
+    unlinkHydroShare: function() {
+        var self = this,
+            confirm = new modalViews.ConfirmLargeView({
+                model: new modalModels.ConfirmModel({
+                    titleText: 'Remove link',
+                    question: [
+                        'This will unlink your MMW account from HydroShare. ' +
+                        'Any currently syncing projects will disconnect from ' +
+                        'their HydroShare resources. Any resources already ' +
+                        'exported to HydroShare will remain there.',
+
+                        'If you re-link to HydroShare, project export will ' +
+                        'have to be re-enabled. They will export new resources.',
+
+                        'Continue?'
+                    ],
+                    confirmLabel: 'Remove link',
+                })
+            });
+
+        confirm.render();
+        confirm.on('confirmation', function() {
+            $.post('/user/hydroshare/logout/')
+                .done(function() {
+                    self.errorHydroShare(null);
+                    self.model.fetch();
+                })
+                .fail(function() {
+                    self.errorHydroShare('Error removing link');
+                });
+        });
+    },
+
+    errorHydroShare: function(message) {
+        var element = this.ui.errorHydroShare;
+
+        if (message) {
+            element.removeClass('hidden');
+            element.html(message);
+        } else {
+            element.addClass('hidden');
+            element.html('');
+        }
     }
 });
 
