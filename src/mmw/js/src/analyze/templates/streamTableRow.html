@@ -2,11 +2,11 @@
     {{ displayOrder }}
 </td>
 <td class="strong text-right">
-    {{ lengthkm|round(2)|toLocaleString(1) }}
+    {{ lengthkm|round(2)|toLocaleString(2) }}
 </td>
 <td class="strong text-right">
     {% if avgslope %}
-        {{ (avgslope * 100)|round(2)|toLocaleString(1) }}
+        {{ (avgslope * 100)|round(2)|toLocaleString(2) }}
     {% else %}
         {{ noData }}
     {% endif %}
