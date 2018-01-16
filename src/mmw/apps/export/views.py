@@ -181,6 +181,17 @@ def hydroshare(request):
                                'area-of-interest.{}'.format(ext))
         os.remove(filename)
 
+    # Make resource public and shareable
+    endpoint = hs.resource(resource)
+    endpoint.public(True)
+    endpoint.shareable(True)
+
+    # Add geographic coverage
+    endpoint.functions.set_file_type({
+        'file_path': 'area-of-interest.shp',
+        'hs_file_type': 'GeoFeature',
+    })
+
     # Link HydroShareResrouce to Project and save
     hsresource = HydroShareResource.objects.create(
         project=project,
