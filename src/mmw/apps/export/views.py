@@ -60,6 +60,13 @@ def hydroshare(request):
 
     # GET existing resource simply returns it
     if hsresource and request.method == 'GET':
+        if not hs.check_resource_exists(hsresource.resource):
+            return Response(
+                data={
+                    'errors': ['HydroShare could not find requested resource']
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
         serializer = HydroShareResourceSerializer(hsresource)
         return Response(serializer.data)
 
@@ -78,7 +85,8 @@ def hydroshare(request):
 
     # DELETE existing resource removes it from MMW and HydroShare
     if hsresource and request.method == 'DELETE':
-        hs.deleteResource(hsresource.resource)
+        if hs.check_resource_exists(hsresource.resource):
+            hs.deleteResource(hsresource.resource)
         hsresource.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -88,6 +96,15 @@ def hydroshare(request):
 
     # POST existing resource updates it
     if hsresource and request.method == 'POST':
+        # Make sure resource still exists on hydroshare
+        if not hs.check_resource_exists(hsresource.resource):
+            return Response(
+                data={
+                    'errors': ['HydroShare could not find requested resource']
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
         # Update files
         files = params.get('files', [])
         for md in params.get('mapshed_data', []):

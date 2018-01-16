@@ -29,6 +29,12 @@
                 <div class="row toggle-row">
                     {% if is_exporting %}
                     <i class="hydroshare-spinner fa fa-circle-o-notch fa-spin"></i>
+                    {% elif hydroshare_errors.length > 0 %}
+                    <a class="error-popover" tabindex="0"
+                       role="button" data-content="{{ hydroshare_errors.join('\n') }}">
+
+                        <i class="fa fa-warning ui-danger hydroshare-warning"></i>
+                    </a>
                     {% endif %}
                     <h3>HydroShare Export</h3>
                     <label class="pull-right toggle">
@@ -58,7 +64,7 @@
                     </label>
                     <p>
                         <span class="hydroshare-timestamp">Last change: {{ hydroshare.exported_at | toFriendlyDate }}</span>
-                        <a href="#" class="hydroshare-export {{ 'hidden' if hydroshare.autosync or is_exporting }}">Export Now</a>
+                        <a href="#" class="hydroshare-export {{ 'hidden' if hydroshare.autosync or is_exporting or hydroshare_errors.length > 0 }}">Export Now</a>
                     </p>
                 </div>
                 {% endif %}
