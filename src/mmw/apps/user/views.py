@@ -14,6 +14,7 @@ from django.contrib.auth.forms import (PasswordResetForm,
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.sites.shortcuts import get_current_site
 from django.conf import settings
+from django.db import transaction
 
 from registration.models import RegistrationProfile
 from registration.forms import RegistrationFormUniqueEmail
@@ -25,6 +26,7 @@ from rest_framework.permissions import (AllowAny,
                                         IsAuthenticated)
 
 from apps.export.hydroshare import HydroShareService
+from apps.export.models import HydroShareResource
 from apps.home.views import get_context
 from apps.user.models import ItsiUser, UserProfile, HydroShareToken
 from apps.user.itsi import ItsiService
@@ -381,3 +383,22 @@ def hydroshare_auth(request):
                                'possibly misconfigured', 'warning')
 
     return render_to_response('user/hydroshare-auth.html', context)
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((IsAuthenticated, ))
+@transaction.atomic
+def hydroshare_logout(request):
+    try:
+        token = HydroShareToken.objects.get(user=request.user)
+    except ObjectDoesNotExist:
+        token = None
+
+    if token:
+        # Disconnect all of this user's projects from HydroShare
+        HydroShareResource.objects.filter(project__user=request.user).delete()
+
+        # Delete token
+        token.delete()
+
+    return Response(status=status.HTTP_204_NO_CONTENT)

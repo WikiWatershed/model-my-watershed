@@ -16,6 +16,7 @@ from apps.user.views import (login,
                              itsi_auth,
                              hydroshare_login,
                              hydroshare_auth,
+                             hydroshare_logout,
                              )
 
 urlpatterns = patterns(
@@ -25,6 +26,7 @@ urlpatterns = patterns(
     url(r'^itsi/authenticate$', itsi_auth, name='itsi_auth'),
     url(r'^hydroshare/login', hydroshare_login, name='hydroshare_login'),
     url(r'^hydroshare/authorize', hydroshare_auth, name='hydroshare_auth'),
+    url(r'^hydroshare/logout', hydroshare_logout, name='hydroshare_logout'),
     url(r'^login$', login, name='login'),
     url(r'^profile$', profile, name='profile'),
     url(r'^sign_up$', sign_up, name='sign_up'),

@@ -5,6 +5,7 @@ var _ = require('lodash'),
 
 var ACCOUNT = 'account';
 var PROFILE = 'profile';
+var LINKED_ACCOUNTS = 'linkedAccounts';
 
 var AccountContainerModel = Backbone.Model.extend({
     defaults: {
@@ -73,6 +74,7 @@ var ApiTokenModel = Backbone.Model.extend({
 module.exports = {
     ACCOUNT: ACCOUNT,
     PROFILE: PROFILE,
+    LINKED_ACCOUNTS: LINKED_ACCOUNTS,
     ApiTokenModel: ApiTokenModel,
     AccountContainerModel: AccountContainerModel
 };

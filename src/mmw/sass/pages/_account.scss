@@ -12,7 +12,7 @@
     transition: 0.3s ease left, 0.3s ease right;
 
     > .page-toggle-column {
-        width: 100px;
+        width: 200px;
     }
 
     > .account-page-column {
@@ -26,6 +26,7 @@
     display: block;
     font-size: $font-size-h4;
     font-weight: lighter;
+    text-align: left;
 
     &.active {
         font-weight: bolder;
@@ -38,7 +39,7 @@
     padding: 2rem;
     box-sizing: content-box;
     box-shadow: 1px 1px 1px 0px rgba(0, 0, 0, 0.5);
-    margin-left: 8em;
+    margin-left: 1em;
     max-width: 700px;
 
     h2 {
@@ -119,5 +120,37 @@
     .btn-save > .spinner:after {
         top: 16px;
         right: -30px;
+    }
+}
+
+.linked-account-section {
+    border: 1px solid $ui-medium-light;
+    border-radius: 4px;
+    padding: 2rem 1rem;
+    display: inline-block;
+    margin: 1rem 1.25rem 1rem 0;
+
+    @media (min-width: 910px) {
+        width: 47%;
+    }
+
+    .linked-account-status {
+        font-size: 18px;
+        font-style: italic;
+        margin: 1rem 0 0.5rem 0;
+
+        &.active {
+            font-style: normal;
+            color: $brand-primary;
+        }
+    }
+
+    .linked-account-description {
+        margin-bottom: 1.5rem;
+    }
+
+    .linked-account-error {
+        margin-top: 1rem;
+        color: $ui-danger;
     }
 }
