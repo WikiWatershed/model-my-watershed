@@ -43,6 +43,26 @@ var ShareModel = Backbone.Model.extend({
     }
 });
 
+var HydroShareModel = Backbone.Model.extend({
+    defaults: {
+        title: '',
+        titleError: false,
+        abstract: '',
+        abstractError: false,
+        keywords: [],
+    },
+
+    validate: function() {
+        var title = this.get('title'),
+            abstract = this.get('abstract');
+
+        this.set('titleError', title === '');
+        this.set('abstractError', abstract === '');
+
+        return !(title === '' || abstract === '');
+    }
+});
+
 var IframeModel = Backbone.Model.extend({
     defaults: {
         href: '',
@@ -82,6 +102,7 @@ module.exports = {
     InputModel: InputModel,
     ShareModel: ShareModel,
     IframeModel: IframeModel,
+    HydroShareModel: HydroShareModel,
     AlertTypes: AlertTypes,
     AlertModel: AlertModel
 };
