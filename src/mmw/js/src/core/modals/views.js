@@ -321,7 +321,14 @@ var MultiShareView = ModalBaseView.extend({
         var self = this,
             onExport = _.bind(self.model.exportToHydroShare, self.model),
             onCancel = _.bind(self.render, self),
-            hsModal = new HydroShareView({ model: this.model });
+            hsModal =
+                new HydroShareView({
+                    model: new models.HydroShareModel({
+                        title: self.model.get('name'),
+                        abstract: '',
+                        keywords: [],
+                    }),
+                });
 
         hsModal.render();
         hsModal.on('export', onExport);
@@ -372,43 +379,62 @@ var HydroShareView = ModalBaseView.extend({
         'titleError': '#hydroshare-title-error',
         'abstract': '#hydroshare-abstract',
         'abstractError': '#hydroshare-abstract-error',
-        'keywords': '#hydroshare-keywords',
-        'export': '.btn-active',
+        'keyword': '#hydroshare-keyword',
+        'addKeyword': '#hydroshare-add-keyword',
+        'export': '#hydroshare-export-button',
         'cancel': '.btn-default',
+        'deleteKeyword': '.hydroshare-keyword-delete',
     },
 
     events: _.defaults({
         'click @ui.export': 'primaryAction',
         'click @ui.cancel': 'dismissAction',
+        'click @ui.addKeyword': 'addKeyword',
+        'blur @ui.title': 'setTitle',
+        'blur @ui.abstract': 'setAbstract',
+        'click @ui.deleteKeyword': 'deleteKeyword',
     }, ModalBaseView.prototype.events),
 
+    modelEvents: {
+        'change': 'render'
+    },
+
+    setTitle: function() {
+        // Set title silently so as not to interefere with tab focus
+        this.model.set('title', this.ui.title.val().trim(), { silent: true });
+    },
+
+    setAbstract: function() {
+        // Set abstract silently so as not to interefere with tab focus
+        this.model.set('abstract', this.ui.abstract.val().trim(), { silent: true });
+    },
+
+    addKeyword: function() {
+        var entryToKeyword = function(kw) { return kw.trim(); },
+            keywords = this.model.get('keywords'),
+            newwords = this.ui.keyword.val().split(',').map(entryToKeyword);
+
+        this.model.set('keywords', _.union(keywords, _.compact(newwords)));
+        this.ui.keyword.focus();
+    },
+
+    deleteKeyword: function(e) {
+        var keyword = e.target.dataset.keyword,
+            keywords = this.model.get('keywords');
+
+        this.model.set('keywords', _.without(keywords, keyword));
+    },
+
     primaryAction: function() {
-        var title = this.ui.title.val().trim(),
-            abstract = this.ui.abstract.val().trim(),
-            keywords = this.ui.keywords.val().trim();
-
-        if (title === "") {
-            this.ui.titleError.removeClass('hidden');
-        } else {
-            this.ui.titleError.addClass('hidden');
-        }
-
-        if (abstract === "") {
-            this.ui.abstractError.removeClass('hidden');
-        } else {
-            this.ui.abstractError.addClass('hidden');
-        }
-
-        if (title === "" || abstract === "") {
-            return;
-        }
-
-        this.triggerMethod('export', {
-            title: title,
-            abstract: abstract,
-            keywords: keywords,
+        this.model.set({
+            title: this.ui.title.val().trim(),
+            abstract: this.ui.abstract.val().trim(),
         });
-        this.hide();
+
+        if (this.model.validate()) {
+            this.triggerMethod('export', this.model.toJSON());
+            this.hide();
+        }
     },
 
     dismissAction: function() {
@@ -418,7 +444,11 @@ var HydroShareView = ModalBaseView.extend({
 
     onKeyUp: function(e) {
         if (e.keyCode === ENTER_KEYCODE && !this.ui.abstract.is(':focus')) {
-            this.primaryAction();
+            if (this.ui.keyword.is(':focus')) {
+                this.addKeyword();
+            } else {
+                this.primaryAction();
+            }
         }
 
         if (e.keyCode === ESCAPE_KEYCODE) {

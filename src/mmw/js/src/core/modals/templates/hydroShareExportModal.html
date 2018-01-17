@@ -10,23 +10,42 @@
             </p>
             <div>
                 <label class="modal-text-input-label" for="hydroshare-title">Title</label>
-                <input class="modal-text-input" name="hydroshare-title" type="text" id="hydroshare-title" required value="{{ name }}">
-                <span class="modal-text-input-error hidden" id="hydroshare-title-error">Title is required.</span>
+                <input class="modal-text-input" name="hydroshare-title" type="text" id="hydroshare-title" required value="{{ title }}">
+                {% if titleError %}
+                    <span class="modal-text-input-error" id="hydroshare-title-error">Title is required.</span>
+                {% endif %}
             </div>
             <div>
                 <label class="modal-text-input-label" for="hydroshare-abstract">Abstract</label>
-                <textarea class="modal-text-input" name="hydroshare-abstract" id="hydroshare-abstract" required rows="4"></textarea>
-                <span class="modal-text-input-error hidden" id="hydroshare-abstract-error">Abstract is required.</span>
+                <textarea class="modal-text-input" name="hydroshare-abstract" id="hydroshare-abstract" required rows="4">{{ abstract }}</textarea>
+                {% if abstractError %}
+                    <span class="modal-text-input-error" id="hydroshare-abstract-error">Abstract is required.</span>
+                {% endif %}
             </div>
             <div>
-                <label class="modal-text-input-label" for="hydroshare-keywords">Keywords <small>(optional)</small></label>
-                <input class="modal-text-input" name="hydroshare-keywords" type="text" id="hydroshare-keywords" placeholder="comma, separated, values">
+                <label class="modal-text-input-label" for="hydroshare-keyword">Keywords <small>(optional)</small></label>
+                <div class="input-group">
+                    <input class="form-control modal-text-input" name="hydroshare-keyword" id="hydroshare-keyword" type="text">
+                    <span class="input-group-btn">
+                        <button class="btn btn-active" type="button" id="hydroshare-add-keyword">
+                            Add keyword
+                        </button>
+                    </span>
+                </div>
+                <div id="hydroshare-keywords">
+                    {% for keyword in keywords %}
+                        <span class="hydroshare-keyword">
+                            {{ keyword }}
+                            <i class="fa fa-times hydroshare-keyword-delete" data-keyword="{{ keyword }}"></i>
+                        </span>
+                    {% endfor %}
+                </div>
             </div>
         </div>
         <div class="modal-footer" style="text-align:right;">
             <div class="footer-content">
                 <button type="button" class="btn btn-md btn-default" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-md btn-active">Export</button>
+                <button type="button" class="btn btn-md btn-active" id="hydroshare-export-button">Export</button>
             </div>
         </div>
     </div>
