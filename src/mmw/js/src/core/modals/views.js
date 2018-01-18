@@ -22,6 +22,8 @@ var _ = require('lodash'),
 
     ENTER_KEYCODE = 13,
     ESCAPE_KEYCODE = 27,
+    BACKSPACE_KEYCODE = 8,
+    DELETE_KEYCODE = 46,
     BASIC_MODAL_CLASS = 'modal modal-basic fade',
     LARGE_MODAL_CLASS = 'modal modal-large fade';
 
@@ -392,7 +394,7 @@ var HydroShareView = ModalBaseView.extend({
         'click @ui.addKeyword': 'addKeyword',
         'blur @ui.title': 'setTitle',
         'blur @ui.abstract': 'setAbstract',
-        'click @ui.deleteKeyword': 'deleteKeyword',
+        'click @ui.deleteKeyword': 'deleteKeywordClick',
     }, ModalBaseView.prototype.events),
 
     modelEvents: {
@@ -418,11 +420,36 @@ var HydroShareView = ModalBaseView.extend({
         this.ui.keyword.focus();
     },
 
-    deleteKeyword: function(e) {
+    isKeywordFocused: function() {
+        return this.$('.hydroshare-keyword').is(':focus');
+    },
+
+    deleteKeywordClick: function(e) {
         var keyword = e.target.dataset.keyword,
             keywords = this.model.get('keywords');
 
         this.model.set('keywords', _.without(keywords, keyword));
+    },
+
+    deleteKeywordKeyboard: function() {
+        var element = this.$('.hydroshare-keyword:focus > i'),
+            keyword = element[0].dataset.keyword,
+            keywords = this.model.get('keywords'),
+            total = keywords.length,
+            index = _.indexOf(keywords, keyword);
+
+        this.model.set('keywords', _.without(keywords, keyword));
+
+        if (total === 1) {
+            // There was only one keyword. Focus the input text box.
+            this.ui.keyword.focus();
+        } else if (index === total - 1) {
+            // This was the last keyword. Focus the previous one.
+            this.$('.hydroshare-keyword')[index - 1].focus();
+        } else {
+            // Focus the next one.
+            this.$('.hydroshare-keyword')[index].focus();
+        }
     },
 
     primaryAction: function() {
@@ -443,6 +470,15 @@ var HydroShareView = ModalBaseView.extend({
     },
 
     onKeyUp: function(e) {
+        if (this.isKeywordFocused() && (
+            e.keyCode === ENTER_KEYCODE ||
+            e.keyCode === BACKSPACE_KEYCODE ||
+            e.keyCode === DELETE_KEYCODE)) {
+
+            this.deleteKeywordKeyboard();
+            return;
+        }
+
         if (e.keyCode === ENTER_KEYCODE &&
             !this.ui.abstract.is(':focus') &&
             !this.ui.export.is(':focus')) {

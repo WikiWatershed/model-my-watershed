@@ -27,14 +27,14 @@
                 <div class="input-group">
                     <input class="form-control modal-text-input" name="hydroshare-keyword" id="hydroshare-keyword" type="text">
                     <span class="input-group-btn">
-                        <button class="btn btn-active" type="button" id="hydroshare-add-keyword">
+                        <button class="btn btn-active" type="button" id="hydroshare-add-keyword" tabindex="-1">
                             Add keyword
                         </button>
                     </span>
                 </div>
                 <div id="hydroshare-keywords">
                     {% for keyword in keywords %}
-                        <span class="hydroshare-keyword">
+                        <span class="hydroshare-keyword" tabindex="0">
                             {{ keyword }}
                             <i class="fa fa-times hydroshare-keyword-delete" data-keyword="{{ keyword }}"></i>
                         </span>
