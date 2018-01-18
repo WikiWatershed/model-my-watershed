@@ -443,7 +443,10 @@ var HydroShareView = ModalBaseView.extend({
     },
 
     onKeyUp: function(e) {
-        if (e.keyCode === ENTER_KEYCODE && !this.ui.abstract.is(':focus')) {
+        if (e.keyCode === ENTER_KEYCODE &&
+            !this.ui.abstract.is(':focus') &&
+            !this.ui.export.is(':focus')) {
+
             if (this.ui.keyword.is(':focus')) {
                 this.addKeyword();
             } else {
