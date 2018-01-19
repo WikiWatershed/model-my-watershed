@@ -321,6 +321,7 @@ CORS_URLS_REGEX = r'^/api/.*$'
 
 SWAGGER_SETTINGS = {
     'exclude_namespaces': ['bigcz',
+                           'export',
                            'mmw',
                            'user'],
     'doc_expansion': 'list',

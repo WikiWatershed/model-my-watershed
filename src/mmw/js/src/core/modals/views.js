@@ -22,6 +22,8 @@ var _ = require('lodash'),
 
     ENTER_KEYCODE = 13,
     ESCAPE_KEYCODE = 27,
+    BACKSPACE_KEYCODE = 8,
+    DELETE_KEYCODE = 46,
     BASIC_MODAL_CLASS = 'modal modal-basic fade',
     LARGE_MODAL_CLASS = 'modal modal-large fade';
 
@@ -321,7 +323,14 @@ var MultiShareView = ModalBaseView.extend({
         var self = this,
             onExport = _.bind(self.model.exportToHydroShare, self.model),
             onCancel = _.bind(self.render, self),
-            hsModal = new HydroShareView({ model: this.model });
+            hsModal =
+                new HydroShareView({
+                    model: new models.HydroShareModel({
+                        title: self.model.get('name'),
+                        abstract: '',
+                        keywords: [],
+                    }),
+                });
 
         hsModal.render();
         hsModal.on('export', onExport);
@@ -372,43 +381,87 @@ var HydroShareView = ModalBaseView.extend({
         'titleError': '#hydroshare-title-error',
         'abstract': '#hydroshare-abstract',
         'abstractError': '#hydroshare-abstract-error',
-        'keywords': '#hydroshare-keywords',
-        'export': '.btn-active',
+        'keyword': '#hydroshare-keyword',
+        'addKeyword': '#hydroshare-add-keyword',
+        'export': '#hydroshare-export-button',
         'cancel': '.btn-default',
+        'deleteKeyword': '.hydroshare-keyword-delete',
     },
 
     events: _.defaults({
         'click @ui.export': 'primaryAction',
         'click @ui.cancel': 'dismissAction',
+        'click @ui.addKeyword': 'addKeyword',
+        'blur @ui.title': 'setTitle',
+        'blur @ui.abstract': 'setAbstract',
+        'click @ui.deleteKeyword': 'deleteKeywordClick',
     }, ModalBaseView.prototype.events),
 
+    modelEvents: {
+        'change': 'render'
+    },
+
+    setTitle: function() {
+        // Set title silently so as not to interefere with tab focus
+        this.model.set('title', this.ui.title.val().trim(), { silent: true });
+    },
+
+    setAbstract: function() {
+        // Set abstract silently so as not to interefere with tab focus
+        this.model.set('abstract', this.ui.abstract.val().trim(), { silent: true });
+    },
+
+    addKeyword: function() {
+        var entryToKeyword = function(kw) { return kw.trim(); },
+            keywords = this.model.get('keywords'),
+            newwords = this.ui.keyword.val().split(',').map(entryToKeyword);
+
+        this.model.set('keywords', _.union(keywords, _.compact(newwords)));
+        this.ui.keyword.focus();
+    },
+
+    isKeywordFocused: function() {
+        return this.$('.hydroshare-keyword').is(':focus');
+    },
+
+    deleteKeywordClick: function(e) {
+        var keyword = e.target.dataset.keyword,
+            keywords = this.model.get('keywords');
+
+        this.model.set('keywords', _.without(keywords, keyword));
+    },
+
+    deleteKeywordKeyboard: function() {
+        var element = this.$('.hydroshare-keyword:focus > i'),
+            keyword = element[0].dataset.keyword,
+            keywords = this.model.get('keywords'),
+            total = keywords.length,
+            index = _.indexOf(keywords, keyword);
+
+        this.model.set('keywords', _.without(keywords, keyword));
+
+        if (total === 1) {
+            // There was only one keyword. Focus the input text box.
+            this.ui.keyword.focus();
+        } else if (index === total - 1) {
+            // This was the last keyword. Focus the previous one.
+            this.$('.hydroshare-keyword')[index - 1].focus();
+        } else {
+            // Focus the next one.
+            this.$('.hydroshare-keyword')[index].focus();
+        }
+    },
+
     primaryAction: function() {
-        var title = this.ui.title.val().trim(),
-            abstract = this.ui.abstract.val().trim(),
-            keywords = this.ui.keywords.val().trim();
-
-        if (title === "") {
-            this.ui.titleError.removeClass('hidden');
-        } else {
-            this.ui.titleError.addClass('hidden');
-        }
-
-        if (abstract === "") {
-            this.ui.abstractError.removeClass('hidden');
-        } else {
-            this.ui.abstractError.addClass('hidden');
-        }
-
-        if (title === "" || abstract === "") {
-            return;
-        }
-
-        this.triggerMethod('export', {
-            title: title,
-            abstract: abstract,
-            keywords: keywords,
+        this.model.set({
+            title: this.ui.title.val().trim(),
+            abstract: this.ui.abstract.val().trim(),
         });
-        this.hide();
+
+        if (this.model.validate()) {
+            this.triggerMethod('export', this.model.toJSON());
+            this.hide();
+        }
     },
 
     dismissAction: function() {
@@ -417,8 +470,24 @@ var HydroShareView = ModalBaseView.extend({
     },
 
     onKeyUp: function(e) {
-        if (e.keyCode === ENTER_KEYCODE && !this.ui.abstract.is(':focus')) {
-            this.primaryAction();
+        if (this.isKeywordFocused() && (
+            e.keyCode === ENTER_KEYCODE ||
+            e.keyCode === BACKSPACE_KEYCODE ||
+            e.keyCode === DELETE_KEYCODE)) {
+
+            this.deleteKeywordKeyboard();
+            return;
+        }
+
+        if (e.keyCode === ENTER_KEYCODE &&
+            !this.ui.abstract.is(':focus') &&
+            !this.ui.export.is(':focus')) {
+
+            if (this.ui.keyword.is(':focus')) {
+                this.addKeyword();
+            } else {
+                this.primaryAction();
+            }
         }
 
         if (e.keyCode === ESCAPE_KEYCODE) {

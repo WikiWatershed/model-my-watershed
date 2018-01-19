@@ -345,4 +345,30 @@
     border: 1px solid #ccc;
     color: #333;
   }
+
+  .input-group {
+    > input {
+      box-shadow: none;
+      border-radius: 0;
+    }
+
+    button {
+      border-radius: 0 !important;
+      font-weight: normal !important;
+    }
+  }
+
+  .hydroshare-keyword {
+    display: inline-block;
+    color: $ui-light;
+    background: $ui-primary;
+    padding: 0.75rem;
+    margin: 0.25rem 0.1rem;
+    border-radius: 4px;
+
+    .hydroshare-keyword-delete {
+      margin-left: 0.5rem;
+      cursor: pointer;
+    }
+  }
 }

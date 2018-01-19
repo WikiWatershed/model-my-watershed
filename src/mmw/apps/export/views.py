@@ -27,6 +27,7 @@ from serializers import HydroShareResourceSerializer
 hss = HydroShareService()
 HYDROSHARE_BASE_URL = settings.HYDROSHARE['base_url']
 SHAPEFILE_EXTENSIONS = ['cpg', 'dbf', 'prj', 'shp', 'shx']
+DEFAULT_KEYWORDS = set(['mmw', 'model-my-watershed'])
 
 
 @decorators.api_view(['GET', 'POST', 'PATCH', 'DELETE'])
@@ -123,17 +124,16 @@ def hydroshare(request):
         serializer = HydroShareResourceSerializer(hsresource)
         return Response(serializer.data)
 
-    # Convert keywords from comma seperated string to tuple of values
+    # Convert keywords from array to set of values
     keywords = params.get('keywords')
-    keywords = \
-        tuple(map(unicode.strip, keywords.split(','))) if keywords else tuple()
+    keywords = set(keywords) if keywords else set()
 
     # POST new resource creates it in HydroShare
     resource = hs.createResource(
         'CompositeResource',
         params.get('title', project.name),
         abstract=params.get('abstract', ''),
-        keywords=('mmw', 'model-my-watershed') + keywords
+        keywords=tuple(DEFAULT_KEYWORDS | keywords)
     )
 
     # TODO Re-enable once hydroshare/hydroshare#2537 is fixed,
