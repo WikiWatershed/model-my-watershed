@@ -93,7 +93,10 @@ class ProjectListingSerializer(gis_serializers.GeoModelSerializer):
     class Meta:
         model = Project
         fields = ('id', 'name', 'area_of_interest_name', 'is_private',
-                  'model_package', 'created_at', 'modified_at', 'user')
+                  'model_package', 'created_at', 'modified_at', 'user',
+                  'hydroshare')
+
+    hydroshare = HydroShareResourceSerializer(read_only=True)
 
 
 class ProjectUpdateSerializer(gis_serializers.GeoModelSerializer):
