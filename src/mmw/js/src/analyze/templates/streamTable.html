@@ -31,8 +31,10 @@
 <div id="streams-tab-ag-section">
     <div class="streams-tab-ag-line-item">
         Length in agricultural areas = {{ lengthInAg|round(2)|toLocaleString(2) }} km
+        {% include "./streamLengthPopover.html" %}
     </div>
     <div class="streams-tab-ag-line-item">
         Length in non-agricultural areas = {{ lengthInNonAg|round(2)|toLocaleString(2) }} km
+        {% include "./streamLengthPopover.html" %}
     </div>
 </div>

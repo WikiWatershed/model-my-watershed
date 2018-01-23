@@ -669,7 +669,7 @@ var StreamTableRowView = Marionette.ItemView.extend({
             avgslope: this.model.get('avgslope'),
             noData: utils.noData,
         };
-    }
+    },
 });
 
 var StreamTableView = Marionette.CompositeView.extend({
@@ -677,8 +677,18 @@ var StreamTableView = Marionette.CompositeView.extend({
     childViewContainer: 'tbody',
     template: streamTableTmpl,
 
+    ui: {
+        resultsTable: '[data-toggle="table"]',
+    },
+
     onAttach: function() {
-        $('[data-toggle="table"]').bootstrapTable();
+        this.ui.resultsTable.bootstrapTable();
+
+        // In order to select popover toggles rendered in the
+        // child view, select them directly and not via this.ui
+        this.$('[data-toggle="popover"]').popover({
+            trigger: 'focus',
+        });
     },
 
     templateHelpers: function() {
@@ -1360,7 +1370,21 @@ var StreamResultView = AnalyzeResultView.extend({
             source = 'NHDplusV2',
             helpText = 'For more information on the data source, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-in-layers-streams\' target=\'_blank\' >MMW Technical Documentation</a>',
             associatedLayerCodes = ['nhd_streams_v2'],
-            chart = null;
+            chart = null,
+            streamOrderHelpText = [
+                {
+                    order: 999, text: 'Contains canals, artificial paths, coastlines, and other flowlines without a flow direction'
+                }
+            ],
+            streamOrders = this.model.get('categories');
+
+        // Merge helptext in with stream order results
+        _.each(streamOrderHelpText, function(help) {
+            var stream = _.findWhere(streamOrders, { order: help.order });
+            if (stream) {
+                stream.helpText = help.text;
+            }
+        });
 
         this.showAnalyzeResults(coreModels.StreamsCensusCollection, StreamTableView,
                                 chart, title,source, helpText, associatedLayerCodes);

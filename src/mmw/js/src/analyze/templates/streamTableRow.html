@@ -1,5 +1,15 @@
 <td>
     {{ displayOrder }}
+    {% if helpText %}
+        <a class="help" data-toggle="popover" tabindex="0"
+           data-html="true" data-container="body" role="button"
+           data-content="{{helpText}}"
+           data-template="<div class='popover'><div class='pull-right'
+             id='popover-close-button'><i class='fa fa-times' /></div><div
+             class='popover-content'></div><div class='arrow'></div></div>">
+           <i class="fa fa-info-circle black"></i>
+        </a>
+    {% endif %}
 </td>
 <td class="strong text-right">
     {{ lengthkm|round(2)|toLocaleString(2) }}
