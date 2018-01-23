@@ -146,12 +146,6 @@ def hydroshare(request):
         keywords=tuple(DEFAULT_KEYWORDS | keywords)
     )
 
-    # TODO Re-enable once hydroshare/hydroshare#2537 is fixed,
-    #      and export all GeoJSON and Shapefiles in that folder
-
-    # aoi_folder = 'area-of-interest'
-    # hs.createResourceFolder(resource, pathname=aoi_folder)
-
     # Files sent from the client
     files = params.get('files', [])
 
