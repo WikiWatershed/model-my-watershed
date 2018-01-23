@@ -27,7 +27,7 @@ from serializers import HydroShareResourceSerializer
 hss = HydroShareService()
 HYDROSHARE_BASE_URL = settings.HYDROSHARE['base_url']
 SHAPEFILE_EXTENSIONS = ['cpg', 'dbf', 'prj', 'shp', 'shx']
-DEFAULT_KEYWORDS = set(['mmw', 'model-my-watershed'])
+DEFAULT_KEYWORDS = {'mmw', 'model-my-watershed'}
 
 
 @decorators.api_view(['GET', 'POST', 'PATCH', 'DELETE'])
