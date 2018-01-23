@@ -97,14 +97,21 @@ def hydroshare(request):
 
     # POST existing resource updates it
     if hsresource and request.method == 'POST':
-        # Make sure resource still exists on hydroshare
-        if not hs.check_resource_exists(hsresource.resource):
+        # Get list of existing files to see if some can be skipped
+        existing_files = hs.get_file_list(hsresource.resource)
+        if not existing_files:
             return Response(
                 data={
                     'errors': ['HydroShare could not find requested resource']
                 },
                 status=status.HTTP_404_NOT_FOUND
             )
+
+        current_analyze_files = [
+            f['url'][(1 + f['url'].index('/analyze_')):]
+            for f in existing_files
+            if '/analyze_' in f['url']
+        ]
 
         # Update files
         files = params.get('files', [])
@@ -115,6 +122,9 @@ def hydroshare(request):
                 'contents': to_gms_file(json.loads(mdata)) if mdata else None,
                 'object': True
             })
+
+        # Except the existing analyze files
+        files = [f for f in files if f['name'] not in current_analyze_files]
 
         hs.add_files(hsresource.resource, files, overwrite=True)
 

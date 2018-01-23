@@ -121,3 +121,9 @@ class HydroShareClient(HydroShare):
             return True
         except HydroShareNotFound:
             return False
+
+    def get_file_list(self, resource_id):
+        try:
+            return self.getResourceFileList(resource_id)
+        except HydroShareNotFound:
+            return None
