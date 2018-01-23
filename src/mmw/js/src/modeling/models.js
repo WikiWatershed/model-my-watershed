@@ -467,7 +467,13 @@ var ProjectModel = Backbone.Model.extend({
             self.set('hydroshare', result);
             self.set('hydroshare_errors', []);
         }).fail(function(result) {
-            self.set('hydroshare_errors', result.responseJSON.errors);
+            if (result.responseJSON && result.responseJSON.errors) {
+                self.set('hydroshare_errors', result.responseJSON.errors);
+            } else if (result.status === 504) {
+                self.set('hydroshare_errors', ['Server Timeout']);
+            } else {
+                self.set('hydroshare_errors', ['Unknown Server Error']);
+            }
         }) .always(function() {
             self.set('is_exporting', false);
         });
