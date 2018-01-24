@@ -5,9 +5,10 @@ from __future__ import division
 
 from django.conf.urls import patterns, url
 
-from apps.export.views import hydroshare
+from apps.export.views import hydroshare, shapefile
 
 urlpatterns = patterns(
     '',
     url(r'^hydroshare/?$', hydroshare, name='hydroshare'),
+    url(r'^shapefile/?$', shapefile, name='shapefile'),
 )
