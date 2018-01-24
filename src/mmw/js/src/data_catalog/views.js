@@ -250,10 +250,6 @@ var FormView = Marionette.ItemView.extend({
 
                 return cr;
             }),
-            blob = new Blob([JSON.stringify(data)],
-                            { type: 'data:text/plain;charset=utf-8'}),
-            url = URL.createObjectURL(blob),
-            a = document.createElement('a'),
             dateString = (new Date()).toJSON()
                                      .replace(/[T:]/g, '-')
                                      .substr(0, 19),  // YYYY-MM-DD-hh-mm-ss
@@ -264,21 +260,7 @@ var FormView = Marionette.ItemView.extend({
             filename = 'bigcz-' + catalog.id + '-' +
                        dashedQuery + '-' + dateString + '.json';
 
-        if (navigator.msSaveBlob) {
-            // IE has a nicer interface for saving blobs
-            navigator.msSaveBlob(blob, filename);
-        } else {
-            // Other browsers have to use a hidden link hack
-            a.style.display = 'none';
-            a.setAttribute('download', filename);
-            a.setAttribute('href', url);
-
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-
-        URL.revokeObjectURL(url);
+        utils.downloadAsFile(data, filename);
     },
 
     getFilters: function() {
