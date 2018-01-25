@@ -22,6 +22,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from apps.modeling.models import Project
+from apps.modeling.serializers import AoiSerializer
 from apps.modeling.tasks import to_gms_file
 
 from hydroshare import HydroShareService
@@ -227,10 +228,13 @@ def shapefile(request):
 
     # Extract area of interest into a dictionary
     params = request.data
-    aoi_json = json.loads(params.get('shape', '{}'))
+    aoi_json = params.get('shape', '{}')
     filename = params.get('filename', 'area-of-interest')
 
-    # TODO Validate Shape
+    # Validate Shape
+    serializer = AoiSerializer(data={'area_of_interest': aoi_json})
+    serializer.is_valid(raise_exception=True)
+    aoi_json = json.loads(serializer.validated_data.get('area_of_interest'))
 
     # Configure Shapefile Settings
     crs = {'no_defs': True, 'proj': 'longlat',
