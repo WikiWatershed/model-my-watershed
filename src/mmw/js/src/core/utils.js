@@ -637,6 +637,30 @@ var utils = {
             version: version,
             releaseNotesUrl: url
         };
+    },
+
+    // Downloads given data as a text file with given filename
+    downloadAsFile: function(data, filename) {
+        var blob = new Blob([JSON.stringify(data)],
+                            { type: 'data:text/plain;charset=utf-8'}),
+            url = URL.createObjectURL(blob),
+            a = document.createElement('a');
+
+        if (navigator.msSaveBlob) {
+            // IE has a nicer interface for saving blobs
+            navigator.msSaveBlob(blob, filename);
+        } else {
+            // Other browsers have to use a hidden link hack
+            a.style.display = 'none';
+            a.setAttribute('download', filename);
+            a.setAttribute('href', url);
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        URL.revokeObjectURL(url);
     }
 };
 

@@ -9,6 +9,7 @@ var $ = require('jquery'),
     App = require('../app'),
     router = require('../router').router,
     models = require('./models'),
+    csrf = require('../core/csrf'),
     settings = require('../core/settings'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
@@ -372,7 +373,34 @@ var TabContentsView = Marionette.CollectionView.extend({
 });
 
 var AoiView = Marionette.ItemView.extend({
-    template: aoiHeaderTmpl
+    template: aoiHeaderTmpl,
+
+    ui: {
+        'shapefileForm': '#shapefile-form',
+        'dlShapefile': '#download-shapefile',
+        'dlGeojson': '#download-geojson',
+    },
+
+    events: {
+        'click @ui.dlShapefile': 'downloadShapefile',
+        'click @ui.dlGeojson': 'downloadGeojson',
+    },
+
+    templateHelpers: function() {
+        return {
+            csrftoken: csrf.getToken(),
+            shape: JSON.stringify(this.model.get('shape'))
+        };
+    },
+
+    downloadShapefile: function() {
+        this.ui.shapefileForm.submit();
+    },
+
+    downloadGeojson: function() {
+        utils.downloadAsFile(this.model.get('shape'),
+                             this.model.get('place') + '.geojson');
+    }
 });
 
 var AnalyzeLayerToggleView = Marionette.ItemView.extend({

@@ -6,10 +6,14 @@ from __future__ import division
 import fiona
 import json
 import os
+import StringIO
+import tempfile
+import zipfile
 
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
 
@@ -18,6 +22,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from apps.modeling.models import Project
+from apps.modeling.serializers import AoiSerializer
 from apps.modeling.tasks import to_gms_file
 
 from hydroshare import HydroShareService
@@ -209,3 +214,52 @@ def hydroshare(request):
     # Return newly created HydroShareResource
     serializer = HydroShareResourceSerializer(hsresource)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@decorators.api_view(['POST'])
+def shapefile(request):
+    """Convert a GeoJSON to a Shapefile"""
+
+    # Extract area of interest into a dictionary
+    params = request.data
+    aoi_json = params.get('shape', '{}')
+    filename = params.get('filename', 'area-of-interest')
+
+    # Validate Shape
+    serializer = AoiSerializer(data={'area_of_interest': aoi_json})
+    serializer.is_valid(raise_exception=True)
+    aoi_json = json.loads(serializer.validated_data.get('area_of_interest'))
+
+    # Configure Shapefile Settings
+    crs = {'no_defs': True, 'proj': 'longlat',
+           'ellps': 'WGS84', 'datum': 'WGS84'}
+    schema = {'geometry': aoi_json['type'], 'properties': {}}
+
+    # Make a temporary directory to save the files in
+    tempdir = tempfile.mkdtemp()
+
+    # Write shapefiles
+    with fiona.open('{}/area-of-interest.shp'.format(tempdir), 'w',
+                    driver='ESRI Shapefile',
+                    crs=crs, schema=schema) as sf:
+        sf.write({'geometry': aoi_json, 'properties': {}})
+
+    shapefiles = ['{}/area-of-interest.{}'.format(tempdir, ext)
+                  for ext in SHAPEFILE_EXTENSIONS]
+
+    # Create a zip file in memory from all the shapefiles
+    stream = StringIO.StringIO()
+    with zipfile.ZipFile(stream, 'w') as zf:
+        for fpath in shapefiles:
+            _, fname = os.path.split(fpath)
+            zf.write(fpath, fname)
+            os.remove(fpath)
+
+    # Delete the temporary directory
+    os.rmdir(tempdir)
+
+    # Return the zip file from memory with appropriate headers
+    resp = HttpResponse(stream.getvalue(), content_type='application/zip')
+    resp['Content-Disposition'] = 'attachment; '\
+                                  'filename="{}.zip"'.format(filename)
+    return resp

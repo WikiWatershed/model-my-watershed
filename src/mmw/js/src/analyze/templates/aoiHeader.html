@@ -1,1 +1,25 @@
+<div class="dropdown">
+    <button type="button" data-toggle="dropdown" class="btn"
+            aria-haspopup="true" aria-expanded="false">
+        <i class="fa fa-download" aria-label="Download"></i>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-right">
+        <li role="presentation">
+            <a role="menuitem" tabindex="-1" id="download-shapefile">
+                Shapefile
+            </a>
+        </li>
+        <li role="presentation">
+            <a role="menuitem" tabindex="-1" id="download-geojson">
+                GeoJSON
+            </a>
+        </li>
+    </ul>
+</div>
+<form id="shapefile-form" method="post" action="/export/shapefile/" target="_blank">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrftoken }}">
+    <input type="hidden" name="filename" value="{{ place }}">
+    <!-- Put `shape` in single quotes, to keep any unescaped chars from breaking the template -->
+    <input type="hidden" name="shape" value='{{ shape }}' />
+</form>
 <h2>{{ place }}<span class="aoi-area">{{ area|round|toLocaleString }} {{ units }}</span></h2>

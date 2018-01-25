@@ -51,6 +51,15 @@
     line-height: $aoi-header-height / 2;
   }
 
+  .dropdown {
+    float: right;
+
+    button {
+      border: none;
+      background: none;
+    }
+  }
+
   &:empty {
       display: none;
   }
