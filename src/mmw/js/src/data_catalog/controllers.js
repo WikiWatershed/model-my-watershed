@@ -22,37 +22,8 @@ var DataCatalogController = {
         });
 
         var form = new models.SearchForm();
-        var dateFilter = new models.DateFilter();
 
-        var catalogs = new models.Catalogs([
-            new models.Catalog({
-                id: 'cinergi',
-                name: 'CINERGI',
-                active: true,
-                results: new models.Results(null, { catalog: 'cinergi' }),
-                filters: new models.FilterCollection([dateFilter])
-            }),
-            new models.Catalog({
-                id: 'hydroshare',
-                name: 'HydroShare',
-                results: new models.Results(null, { catalog: 'hydroshare' }),
-                filters: new models.FilterCollection([
-                    dateFilter,
-                    new models.PrivateResourcesFilter(),
-                ]),
-            }),
-            new models.Catalog({
-                id: 'cuahsi',
-                name: 'CUAHSI WDC',
-                is_pageable: false,
-                results: new models.Results(null, { catalog: 'cuahsi' }),
-                serverResults: new models.Results(null, { catalog: 'cuahsi' }),
-                filters: new models.FilterCollection([
-                    dateFilter,
-                    new models.GriddedServicesFilter()
-                ])
-            })
-        ]);
+        var catalogs = App.getDataCatalogCollection();
 
         var resultsWindow = new views.ResultsWindow({
                 model: form,

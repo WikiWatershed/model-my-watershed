@@ -877,6 +877,42 @@ var ExpandableListModel = Backbone.Model.extend({
     }
 });
 
+function createCatalogCollection() {
+    var dateFilter = new DateFilter();
+
+    return new Catalogs([
+        new Catalog({
+            id: 'cinergi',
+            name: 'CINERGI',
+            active: true,
+            results: new Results(null, { catalog: 'cinergi' }),
+            filters: new FilterCollection([
+                dateFilter,
+            ]),
+        }),
+        new Catalog({
+            id: 'hydroshare',
+            name: 'HydroShare',
+            results: new Results(null, { catalog: 'hydroshare' }),
+            filters: new FilterCollection([
+                dateFilter,
+                new PrivateResourcesFilter(),
+            ]),
+        }),
+        new Catalog({
+            id: 'cuahsi',
+            name: 'CUAHSI WDC',
+            is_pageable: false,
+            results: new Results(null, { catalog: 'cuahsi' }),
+            serverResults: new Results(null, { catalog: 'cuahsi' }),
+            filters: new FilterCollection([
+                dateFilter,
+                new GriddedServicesFilter()
+            ])
+        })
+    ]);
+}
+
 module.exports = {
     GriddedServicesFilter: GriddedServicesFilter,
     PrivateResourcesFilter: PrivateResourcesFilter,
@@ -893,4 +929,5 @@ module.exports = {
     CuahsiVariable: CuahsiVariable,
     CuahsiVariables: CuahsiVariables,
     ExpandableListModel: ExpandableListModel,
+    createCatalogCollection: createCatalogCollection,
 };
