@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 
 import logging
+import requests
+import json
 
 from ast import literal_eval as make_tuple
 
@@ -64,6 +66,33 @@ def format_runoff(model_output):
                     model_output[key]['distribution'][k][item] * CM_PER_INCH
 
     return model_output
+
+
+def format_for_srat(huc12_id, model_output):
+    formatted = {'huc12': huc12_id,
+                 # Tile Drain may be calculated by future versions of
+                 # Mapshed. The SRAT API requires a placeholder
+                 'tpload_tiledrain': 0,
+                 'tnload_tiledrain': 0,
+                 'tssload_tiledrain': 0,
+                 }
+
+    for load in model_output['Loads']:
+        source_key = settings.SRAT_KEYS.get(load['Source'], None)
+
+        if source_key is None:
+            continue
+
+        formatted['tpload_' + source_key] = load['TotalP']
+        formatted['tnload_' + source_key] = load['TotalN']
+
+        if source_key not in ['farman',
+                              'subsurface',
+                              'septics',
+                              'pointsource']:
+            formatted['tssload_' + source_key] = load['Sediment']
+
+    return formatted
 
 
 @shared_task(throws=Exception)
@@ -212,6 +241,33 @@ def run_gwlfe(model_input, inputmod_hash, watershed_id=None):
     result = gwlfe.run(z)
     result['inputmod_hash'] = inputmod_hash
     result['watershed_id'] = watershed_id
+
+    return result
+
+
+@shared_task
+def run_srat(watersheds):
+    try:
+        data = [format_for_srat(id, w) for id, w in watersheds.iteritems()]
+    except Exception as e:
+        logger.error('Formatting sub-basin GWLF-E results failed: %s' % e)
+
+    headers = {'x-api-key': settings.SRAT_CATCHMENT_API['api_key']}
+
+    try:
+        r = requests.post(settings.SRAT_CATCHMENT_API['url'],
+                          headers=headers,
+                          data=json.dumps(data))
+    except Exception as e:
+        logger.error('Request to SRAT Catchment API failed: %s' % e)
+
+    try:
+        result = r.json()
+    except ValueError:
+        logger.error('SRAT Catchment API did not return JSON')
+
+    if (r.status_code != 200):
+        logger.error('SRAT Catchment API request failed: %s' % result)
 
     return result
 
