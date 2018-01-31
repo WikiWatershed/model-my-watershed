@@ -39,8 +39,13 @@
     height: 46px;
 }
 
-.tab-contents-region {
-    background-color: $black-06;
+.sidebar-tab-header {
+  background-color: $black-06;
+
+  .nav-tabs li > a {
+    font-size: 16px;
+    padding: 0 0.7rem;
+  }
 }
 
 .aoi-region {

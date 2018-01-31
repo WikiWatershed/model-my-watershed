@@ -190,6 +190,7 @@ var ResultsView = Marionette.LayoutView.extend({
     regions: {
         aoiRegion: '.aoi-region',
         analyzeRegion: '#analyze-tab-contents',
+        monitorRegion: '#monitor-tab-contents',
         nextStageRegion: '#next-stage-navigation-region',
     },
 
