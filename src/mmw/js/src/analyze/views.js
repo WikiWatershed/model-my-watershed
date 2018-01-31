@@ -19,6 +19,8 @@ var $ = require('jquery'),
     utils = require('../core/utils'),
     pointSourceLayer = require('../core/pointSourceLayer'),
     catchmentWaterQualityLayer = require('../core/catchmentWaterQualityLayer'),
+    dataCatalogModels = require('../data_catalog/models'),
+    monitorViews = require('../monitor/views'),
     windowTmpl = require('./templates/window.html'),
     AnalyzeDescriptionTmpl = require('./templates/analyzeDescription.html'),
     analyzeResultsTmpl = require('./templates/analyzeResults.html'),
@@ -220,6 +222,11 @@ var ResultsView = Marionette.LayoutView.extend({
     showDetailsRegion: function() {
         this.analyzeRegion.show(new AnalyzeWindow({
             collection: this.collection
+        }));
+
+        this.monitorRegion.show(new monitorViews.MonitorWindow({
+            model: new dataCatalogModels.SearchForm(),
+            collection: App.getDataCatalogCollection(),
         }));
     },
 
