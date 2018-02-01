@@ -104,8 +104,13 @@ header {
         display: flex;
       }
       .project-center {
-          margin-left: auto;
-          margin-right: auto;
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          margin-left: 0;
+      }
+      .project-left {
+        flex: 1;
       }
       .project-right {
           margin-right: 8px;
