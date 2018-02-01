@@ -222,7 +222,7 @@ describe('Core', function() {
                 var spy = sinon.spy(model, 'destroy');
 
                 $(sandboxSelector).html(view.render().el);
-                $(sandboxSelector + ' .delete-modification').click();
+                $(sandboxSelector + ' .delete-modification').trigger('click');
                 assert.equal(spy.callCount, 1);
 
                 view.destroy();

@@ -402,7 +402,7 @@ var AoiView = Marionette.ItemView.extend({
     },
 
     downloadShapefile: function() {
-        this.ui.shapefileForm.submit();
+        this.ui.shapefileForm.trigger('submit');
     },
 
     downloadGeojson: function() {

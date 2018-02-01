@@ -365,7 +365,7 @@ var AoIUploadView = Marionette.ItemView.extend({
     },
 
     onSelectFileButtonClick: function() {
-        this.ui.selectFileInput.click();
+        this.ui.selectFileInput.trigger('click');
     },
 
     selectFile: function(e) {

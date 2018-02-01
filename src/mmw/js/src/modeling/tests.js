@@ -67,7 +67,7 @@ describe('Modeling', function() {
                 $(sandboxSelector).html(view.render().el);
 
                 assert.equal(collection.length, 1);
-                $('#sandbox #add-changes').click();
+                $('#sandbox #add-changes').trigger('click');
                 assert.equal(collection.length, 2);
             });
         });
@@ -98,7 +98,7 @@ describe('Modeling', function() {
                 $(sandboxSelector).html(view.render().el);
 
                 assert.equal(collection.length, 3);
-                $('#sandbox #add-scenario').click();
+                $('#sandbox #add-scenario').trigger('click');
                 assert.equal(collection.length, 4);
             });
         });
@@ -109,7 +109,7 @@ describe('Modeling', function() {
                     view = new views.ScenarioDropDownMenuView({ collection: collection });
 
                 $(sandboxSelector).html(view.render().el);
-                $('#sandbox .dropdown-menu li:nth-child(2) a').click();
+                $('#sandbox .dropdown-menu li:nth-child(2) a').trigger('click');
 
                 assert.isTrue(collection.at(1).get('active'));
             });

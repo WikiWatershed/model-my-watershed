@@ -450,7 +450,7 @@ var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
                        '__' + this.model.get('name').replace(/\s/g, '_');
 
         this.ui.exportGmsForm.find('.gms-filename').val(filename);
-        this.ui.exportGmsForm.submit();
+        this.ui.exportGmsForm.trigger('submit');
     },
 
     templateHelpers: function() {
@@ -867,7 +867,7 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
                        '__' + this.currentConditions.get('name').replace(/\s/g, '_');
 
         this.ui.exportGmsForm.find('.gms-filename').val(filename);
-        this.ui.exportGmsForm.submit();
+        this.ui.exportGmsForm.trigger('submit');
     },
 
     templateHelpers: function() {

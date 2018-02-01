@@ -134,7 +134,7 @@ var ProfileView = Marionette.ItemView.extend({
             };
         addOptions('UserProfile', 'country', self.model.get('country') || 'US');
         addOptions('UserProfile', 'user_type', self.model.get('user_type') || 'Unspecified');
-        _.defer(function() { self.ui.firstName.focus(); });
+        _.defer(function() { self.ui.firstName.trigger('focus'); });
     },
 
     saveChanges: function () {

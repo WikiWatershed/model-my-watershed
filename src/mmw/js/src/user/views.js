@@ -176,11 +176,11 @@ var LoginModalView = ModalBaseView.extend({
     }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
-        this.ui.username.focus();
+        this.ui.username.trigger('focus');
     },
 
     onValidationError: function() {
-        this.ui.username.focus();
+        this.ui.username.trigger('focus');
     },
 
     setFields: function() {
@@ -295,7 +295,7 @@ var UserProfileModalView = ModalBaseView.extend({
                     e.preventDefault();
                     $(e.target).val('');
                     $element.find('.selectpicker').selectpicker('toggle');
-                    $element.find('button').focus();
+                    $element.find('button').trigger('focus');
                     return false;
                 }
             },
@@ -309,7 +309,7 @@ var UserProfileModalView = ModalBaseView.extend({
             $input.on('blur', function() { self.escapeHandler = undefined; });
         });
 
-        this.ui.firstName.focus();
+        this.ui.firstName.trigger('focus');
     },
 
     handleSuccess: function(response) {
@@ -384,7 +384,7 @@ var SignUpModalView = ModalBaseView.extend({
     }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
-        this.ui.username.focus();
+        this.ui.username.trigger('focus');
     },
 
     onModalHidden: function() {
@@ -395,7 +395,7 @@ var SignUpModalView = ModalBaseView.extend({
     },
 
     onValidationError: function() {
-        this.ui.username.focus();
+        this.ui.username.trigger('focus');
     },
 
     setFields: function() {
@@ -447,11 +447,11 @@ var ResendModalView = ModalBaseView.extend({
     }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
-        this.ui.email.focus();
+        this.ui.email.trigger('focus');
     },
 
     onValidationError: function() {
-        this.ui.email.focus();
+        this.ui.email.trigger('focus');
     },
 
     setFields: function() {
@@ -485,11 +485,11 @@ var ForgotModalView = ModalBaseView.extend({
     }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
-        this.ui.email.focus();
+        this.ui.email.trigger('focus');
     },
 
     onValidationError: function() {
-        this.ui.email.focus();
+        this.ui.email.trigger('focus');
     },
 
     setFields: function() {
@@ -544,11 +544,11 @@ var ChangePasswordModalView = ModalBaseView.extend({
     }, ModalBaseView.prototype.ui),
 
     onModalShown: function() {
-        this.ui.oldPassword.focus();
+        this.ui.oldPassword.trigger('focus');
     },
 
     onValidationError: function() {
-        this.ui.oldPassword.focus();
+        this.ui.oldPassword.trigger('focus');
     },
 
     setFields: function() {
