@@ -116,6 +116,27 @@ Once this ADR is approved, the next steps will be:
 This change is not limited to the geoprocessing service, so MMW will have to be
 updated accordingly.
 
+When running the new operation, we will get a list of lists of sets of results.
+These should be cached independently with the right keys, so when compiling a
+list of operations to perform we can check if the results are cached or not.
+This may require some rearchitecting of where the caching happens. In its
+current spot in [`geoprocessing.py`][github 14], it checks to see if the entire
+operation is cached or not. This will need to be changed to support checking
+sub-operation caches for every shape, and only execute those that haven't been
+cached.
+
+The workflow for the above may look something like:
+
+  1. `[django]` Receive request, start Celery job
+  2. `[celery]` Enumerate all the shapes and operations needed for a subbasin
+     MapShed run
+  3. `[celery]` Check the cache for their keys, and make a list of all that are
+     not available. Invoke geoprocessing.
+  4. `[geoprocessing]` Execute the new multi-operation geoprocessing for the
+     ones not available
+  5. `[celery]` Once the results come back, cache them with the right key
+  6. `[celery]` Get all results out of the cache and return
+
 The underlying wisdom seems to be that in order to gain efficiency, we must
 move more of the execution logic from Python to Scala. This efficiency could
 come at a loss of flexibility that we have had so far, but can be avoided with
@@ -136,5 +157,6 @@ Analyze tasks.
 [github 11]: https://github.com/WikiWatershed/model-my-watershed/blob/3ec450adc9ffb84b5483ccdc338cdeacb36f8b2b/src/mmw/mmw/settings/base.py#L513
 [github 12]: https://github.com/WikiWatershed/model-my-watershed/blob/3ec450adc9ffb84b5483ccdc338cdeacb36f8b2b/src/mmw/mmw/settings/base.py#L537
 [github 13]: https://github.com/locationtech/geotrellis/blob/master/raster/src/main/scala/geotrellis/raster/CompositeTile.scala
+[github 14]: https://github.com/WikiWatershed/model-my-watershed/blob/3ec450adc9ffb84b5483ccdc338cdeacb36f8b2b/src/mmw/apps/modeling/geoprocessing.py#L62
 [githubusercontent]: https://user-images.githubusercontent.com/1430060/35651490-e1fc5f38-06ad-11e8-8f07-994aae77a43c.png
 [ocks]: http://bl.ocks.org/anonymous/raw/bf3ee7a3e3315b4e872476bd7e4bb479/
