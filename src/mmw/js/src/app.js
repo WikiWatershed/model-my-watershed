@@ -10,6 +10,7 @@ var $ = require('jquery'),
     settings = require('./core/settings'),
     itsi = require('./core/itsiEmbed'),
     analyzeModels = require('./analyze/models'),
+    dataCatalogModels = require('./data_catalog/models'),
     userModels = require('./user/models'),
     userViews = require('./user/views');
 
@@ -117,6 +118,18 @@ var App = new Marionette.Application({
 
     clearAnalyzeCollection: function() {
         delete this.analyzeCollection;
+    },
+
+    getDataCatalogCollection: function() {
+        if (!this.dataCatalogCollection) {
+            this.dataCatalogCollection = dataCatalogModels.createCatalogCollection();
+        }
+
+        return this.dataCatalogCollection;
+    },
+
+    clearDataCatalogCollection: function() {
+        delete this.dataCatalogCollection;
     },
 
     getMapView: function() {

@@ -59,8 +59,9 @@
     // Set a specific height to allow y-scroll:
     // Calc height under the main header (height-lg), aoi region (aoi-header-height),
     // and analyze nav tabs (sidebar-header-height)
-    // and above the next-stage-region (2*height-lg).
-      height: calc(100% - #{$height-lg} * 3 - #{$aoi-header-height} - #{$sidebar-header-height}) !important;
+    // and above the next-stage-region (2*height-lg)
+    // and the Analyze / Monitor tabs (42px);
+      height: calc(100% - #{$height-lg} * 3 - #{$aoi-header-height} - #{$sidebar-header-height} - 42px) !important;
     }
 }
 
