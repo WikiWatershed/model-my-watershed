@@ -335,23 +335,9 @@ var InputsView = Marionette.LayoutView.extend({
             projectName = this.model.get('projectName'),
             timeStamp = moment().format('MMDDYYYYHHmmss'),
             fileName = projectName.replace(/[^a-z0-9+]+/gi, '_') + '_' +
-                timeStamp + '.csv',
-            blob = new Blob([csv], { type: 'application/octet-stream' });
+                timeStamp + '.csv';
 
-        if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-            window.navigator.msSaveOrOpenBlob(blob, fileName);
-        } else {
-            var url = window.URL.createObjectURL(blob),
-                tmpLink = document.createElement('a');
-
-            tmpLink.download = fileName;
-            tmpLink.href = url;
-            tmpLink.type = 'attachment/csv;charset=utf-8';
-            tmpLink.target = '_blank';
-            document.body.appendChild(tmpLink);
-            tmpLink.click();
-            document.body.removeChild(tmpLink);
-        }
+        coreUtils.downloadAsFile(csv, fileName);
     }
 });
 
