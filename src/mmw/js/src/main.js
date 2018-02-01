@@ -14,6 +14,8 @@ var $ = require('jquery'),
     App = require('./app'),
     router = require('./router').router;
 
+require('jquery-migrate');
+
 App.on('start', function() {
     $('body').on('click', '[data-url]', function(e) {
         e.preventDefault();
