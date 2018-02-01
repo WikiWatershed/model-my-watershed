@@ -596,11 +596,11 @@ var CompareWindow = Marionette.LayoutView.extend({
         // Resizing the window can change the column size,
         // so the offset of the container needs to be
         // recomputed.
-        $(window).bind('resize.app', _.debounce(_.bind(this.updateContainerPos, this)));
+        $(window).on('resize.app', _.debounce(_.bind(this.updateContainerPos, this)));
     },
 
     onDestroy: function() {
-        $(window).unbind('resize.app');
+        $(window).off('resize.app');
     },
 
     getColumnWidth: function() {

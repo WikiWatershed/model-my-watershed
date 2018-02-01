@@ -27,7 +27,7 @@ var widthCutoff = 400;
 // Therefore, we manually remove the tooltip when elements under chartEl are
 // destroyed.
 function removeTooltipOnDestroy(chartEl, tooltip) {
-    $(chartEl).children().bind('destroyed', function() {
+    $(chartEl).children().on('destroyed', function() {
         $('#' + tooltip.id()).remove();
     });
 }
