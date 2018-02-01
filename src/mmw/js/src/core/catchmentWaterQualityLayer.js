@@ -1,7 +1,6 @@
 "use strict";
 
 var L = require('leaflet'),
-    $ = require('jquery'),
     utils = require('./utils'),
     Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
@@ -9,7 +8,7 @@ var L = require('leaflet'),
 
 var Layer = {
     createLayer: function(geojsonFeatureCollection) {
-        return L.geoJson($.parseJSON(geojsonFeatureCollection), {
+        return L.geoJson(JSON.parse(geojsonFeatureCollection), {
             onEachFeature: function(feature, catchmentPolygon) {
                 var model = new Backbone.Model(feature.properties),
                     view = new CatchmentWaterQualityPopupView({ model: model });
