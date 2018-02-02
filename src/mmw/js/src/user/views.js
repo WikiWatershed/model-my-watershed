@@ -185,8 +185,8 @@ var LoginModalView = ModalBaseView.extend({
 
     setFields: function() {
         this.model.set({
-            username: $(this.ui.username.selector).val(),
-            password: $(this.ui.password.selector).val()
+            username: this.ui.username.val(),
+            password: this.ui.password.val()
         }, { silent: true });
     },
 
@@ -400,10 +400,10 @@ var SignUpModalView = ModalBaseView.extend({
 
     setFields: function() {
         this.model.set({
-            username: $(this.ui.username.selector).val(),
-            email: $(this.ui.email.selector).val(),
-            password1: $(this.ui.password1.selector).val(),
-            password2: $(this.ui.password2.selector).val(),
+            username: this.ui.username.val(),
+            email: this.ui.email.val(),
+            password1: this.ui.password1.val(),
+            password2: this.ui.password2.val(),
         }, { silent: true });
     },
 
@@ -456,7 +456,7 @@ var ResendModalView = ModalBaseView.extend({
 
     setFields: function() {
         this.model.set({
-            email: $(this.ui.email.selector).val()
+            email: this.ui.email.val()
         }, { silent: true });
     },
 
@@ -494,7 +494,7 @@ var ForgotModalView = ModalBaseView.extend({
 
     setFields: function() {
         this.model.set({
-            email: $(this.ui.email.selector).val()
+            email: this.ui.email.val()
         }, { silent: true });
     },
 
@@ -553,9 +553,9 @@ var ChangePasswordModalView = ModalBaseView.extend({
 
     setFields: function() {
         this.model.set({
-            old_password: $(this.ui.oldPassword.selector).val(),
-            new_password1: $(this.ui.password1.selector).val(),
-            new_password2: $(this.ui.password2.selector).val(),
+            old_password: this.ui.oldPassword.val(),
+            new_password1: this.ui.password1.val(),
+            new_password2: this.ui.password2.val(),
         }, { silent: true });
     }
 });
