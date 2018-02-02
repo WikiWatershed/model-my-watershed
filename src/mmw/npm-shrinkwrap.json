@@ -1106,11 +1106,6 @@
       "from": "https://registry.npmjs.org/jquery/-/jquery-3.3.1.tgz",
       "resolved": "https://registry.npmjs.org/jquery/-/jquery-3.3.1.tgz"
     },
-    "jquery-migrate": {
-      "version": "3.0.1",
-      "from": "jquery-migrate@*",
-      "resolved": "https://registry.npmjs.org/jquery-migrate/-/jquery-migrate-3.0.1.tgz"
-    },
     "jshint": {
       "version": "2.8.0",
       "from": "https://registry.npmjs.org/jshint/-/jshint-2.8.0.tgz",
