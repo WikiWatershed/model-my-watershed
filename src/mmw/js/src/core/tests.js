@@ -196,6 +196,7 @@ describe('Core', function() {
                     });
 
                     $(sandboxSelector).html(view.render().el);
+                    view.triggerMethod('show');
 
                     var $layers = $(sandboxSelector).find('#layerpicker-layers'),
                     layerNames = $layers.find('button').map(function() {
