@@ -22,3 +22,4 @@ vagrant ssh app -c "cd /opt/app && envdir /etc/mmw.d/env ./manage.py test --noin
 #    xvfb-run /opt/app/node_modules/.bin/testem -f /opt/app/testem.json ci"
 vagrant ssh app -c "cd /var/www/mmw/static &&
     xvfb-run /opt/app/node_modules/.bin/testem -f /opt/app/testem.json ci Firefox $*"
+echo "This is a test"
