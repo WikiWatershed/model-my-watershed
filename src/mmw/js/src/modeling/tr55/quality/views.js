@@ -51,8 +51,9 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        this.tableRegion.reset();
-        this.chartRegion.reset();
+        this.tableRegion.empty();
+        this.chartRegion.empty();
+
         if (this.model.get('result')) {
             var dataCollection = new Backbone.Collection(
                 this.model.get('result').quality['modified'].filter(
