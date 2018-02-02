@@ -84,10 +84,15 @@ matches the list of component shapes, and the second the list of operations.
 
 Since both the input and output of this operation can be quite different than
 the current implementation, it should be added as a new operation type rather
-than a modification to an existing one. MapShed should be updated to use this
-new format. The new operation should also support submitting a single shape
-instead of a list of shapes, i.e. the use case for a single HUC-12. In this
-case the output should be a singleton list of list of results.
+than a modification to an existing one. Subbasin modeling is just a wrapper
+around MapShed, as it decomposes a parent shape into child shapes and runs
+MapShed on each of them, before aggregating the results together. In order to
+fully take advantage of the optimization, MapShed itself must be updated to use
+the new operation. The new operation should also support submitting a single
+shape instead of a list of shapes, i.e. the use case for a single HUC-12. In
+this case the output should be a singleton list of list of results. This will
+allow regular MapShed to use the same operation, rather than have a competing
+implementation for Subbasin modeling.
 
 ## Decision
 
