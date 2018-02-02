@@ -13,6 +13,7 @@ var $ = require('jquery'),
     models = require('./models'),
     settings = require('../core/settings'),
     containerTmpl = require('./templates/container.html'),
+    pageToggleTmpl = require('./templates/pageToggle.html'),
     linkedAccountsTmpl = require('./templates/linkedAccounts.html'),
     profileTmpl = require('./templates/profile.html'),
     accountTmpl = require('./templates/account.html');
@@ -246,6 +247,16 @@ var AccountView = Marionette.ItemView.extend({
     }
 });
 
+var PageToggleView = Marionette.ItemView.extend({
+    // model AccountContainerModel
+
+    template: pageToggleTmpl,
+
+    modelEvents: {
+        'change:active_page': 'render'
+    }
+});
+
 var AccountContainerView = Marionette.LayoutView.extend({
     // model AccountContainerModel
 
@@ -264,10 +275,11 @@ var AccountContainerView = Marionette.LayoutView.extend({
     },
 
     modelEvents: {
-        'change:active_page': 'render'
+        'change:active_page': 'showActivePage'
     },
 
     regions: {
+        pageToggle: '.page-toggle-column',
         infoContainer: '.account-page-container'
     },
 
@@ -301,7 +313,10 @@ var AccountContainerView = Marionette.LayoutView.extend({
         }
     },
 
-    onRender: function() {
+    onShow: function() {
+        this.pageToggle.show(new PageToggleView({
+            model: this.model,
+        }));
         this.showActivePage();
     },
 
