@@ -173,7 +173,6 @@ var SearchBoxView = Marionette.LayoutView.extend({
 
     handleSearch: function(query) {
         var self = this;
-        var defer = $.Deferred();
 
         function fail(args) {
             if (args && args.cancelled) {
@@ -195,7 +194,7 @@ var SearchBoxView = Marionette.LayoutView.extend({
             .done(_.bind(this.setStateDefault, this))
             .fail(fail);
 
-        return defer.promise();
+        return this.searchRequest;
     },
 
     search: function(query) {
@@ -216,7 +215,7 @@ var SearchBoxView = Marionette.LayoutView.extend({
 
         this.setStateWorking();
 
-        this.collection
+        return this.collection
             .first()
             .select()
                 .done(function() {
@@ -225,8 +224,6 @@ var SearchBoxView = Marionette.LayoutView.extend({
                 })
                 .fail(_.bind(this.setStateError, this))
                 .always(_.bind(this.reset, this));
-
-        return defer.promise();
     },
 
     showResultsRegion: function() {
