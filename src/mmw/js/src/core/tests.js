@@ -448,7 +448,7 @@ describe('Core', function() {
                 var views = createTransitionRegionWithAnimatedHeightView('50%', '0%');
 
                 views.testSubView.on('animateIn', function() {
-                    assert.equal($('.test-subview').height(), 50);
+                    assert.equal($('.test-subview').css('height'), '50%');
                     views.destroy();
                     done();
                 });
@@ -460,7 +460,7 @@ describe('Core', function() {
                 var views = createTransitionRegionWithAnimatedHeightView('50%', '0%');
 
                 views.testSubView.on('animateOut', function() {
-                    assert.equal($('.test-subview').height(), 0);
+                    assert.equal($('.test-subview').css('height'), '0%');
                     views.destroy();
                     done();
                 });
