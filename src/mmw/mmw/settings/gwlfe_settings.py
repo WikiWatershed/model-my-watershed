@@ -619,3 +619,20 @@ SOIL_GROUP = {
     7: 4,  # C/D -> D
     NODATA: 3,  # NODATA -> C
 }
+
+SRAT_KEYS = {
+    'Hay/Pasture': 'hp',
+    'Cropland': 'crop',
+    'Wooded Areas': 'wooded',
+    'Open Land': 'open',
+    'Barren Areas': 'barren',
+    'Low-Density Mixed': 'ldm',
+    'Medium-Density Mixed': 'mdm',
+    'High-Density Mixed': 'hdm',
+    'Farm Animals': 'farman',
+    'Stream Bank Erosion': 'streambank',
+    'Subsurface Flow': 'subsurface',
+    'Wetlands': 'wetland',
+    'Point Sources': 'pointsource',
+    'Septic Systems': 'septics',
+}

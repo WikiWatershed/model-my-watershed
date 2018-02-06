@@ -20,6 +20,8 @@ envdir_config:
   MMW_HYDROSHARE_CLIENT_ID: "{{ hydroshare_client_id }}"
   MMW_HYDROSHARE_SECRET_KEY: "{{ hydroshare_secret_key }}"
   MMW_HYDROSHARE_BASE_URL: "{{ hydroshare_base_url }}"
+  MMW_SRAT_CATCHMENT_API_URL: "{{ srat_catchment_api_url }}"
+  MMW_SRAT_CATCHMENT_API_KEY: "{{ srat_catchment_api_key }}"
   MMW_CLIENT_APP_USER_PASSWORD: "{{ client_app_user_password }}"
   MMW_STACK_COLOR: "{{ stack_color }}"
   MMW_TILECACHE_BUCKET: "{{ tilecache_bucket_name }}"

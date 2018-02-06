@@ -424,7 +424,14 @@ HYDROSHARE = {
     'access_token_url': 'o/token/'
 }
 
-# Geoprocessing Settings
+# SRAT Catchment API Settings
+SRAT_CATCHMENT_API = {
+    'url': environ.get('MMW_SRAT_CATCHMENT_API_URL',
+                       'ERROR: Could not get SRAT Catchment API URL'),
+    'api_key': environ.get('MMW_SRAT_CATCHMENT_API_KEY',
+                           'ERROR: Could not get SRAT Catchment API Key'),
+}
+
 GEOP = {
     'cache': bool(int(environ.get('MMW_GEOPROCESSING_CACHE', 1))),
     'host': environ.get('MMW_GEOPROCESSING_HOST', 'localhost'),
