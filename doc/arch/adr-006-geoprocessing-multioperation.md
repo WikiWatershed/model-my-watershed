@@ -82,6 +82,18 @@ operations as well, each with an `operationType` and a list of `rasters`. The
 output should be a list of lists of sets of results, where the first list
 matches the list of component shapes, and the second the list of operations.
 
+Optionally, we can investigate capturing the sequence of tiles into a
+[`CompositeTile`][github 13] per raster. The benefit to using `CompositeTile`
+is when a child shape intersects with a small subset of the total tiles
+intersecting the parent shape, we can iterate over just those by intersecting
+that shape with the `CompositeTile`. However, since the current code is
+implemented as [operating over a sequence of tiles][github 14], changing to
+`CompositeTile` will remove the parallelism over each individual tile. However,
+we should parallelize over operations per query geometry, possibly alleviating
+this issue. Since the benefits of this optimization are hard to estimate, we
+should defer this refactor unless the performance is not good enough after the
+other changes.
+
 Since both the input and output of this operation can be quite different than
 the current implementation, it should be added as a new operation type rather
 than a modification to an existing one. Subbasin modeling is just a wrapper
@@ -99,12 +111,12 @@ implementation for Subbasin modeling.
 We will add a new operation to the geoprocessing service that takes a list of
 shapes and a list of operations. The first shape in the list is assumed to be
 the parent shape that contains all the other child shapes. Using the parent
-shape we pull tiles corresponding to every raster in the list of operations,
-and collect them in a [`CompositeTile`][github 13] per raster.
+shape we pull the tiles corresponding to every raster in the list of
+operations, and collect them in a sequence.
 
 Then, for each child shape, we go through the list of operations and calculate
-the results using the respective `CompositeTile`s from above. All the results
-are then collected in order and returned as a list.
+the results using the respective tile sequence from above. All the results are
+then collected in order and returned as a list.
 
 Once this ADR is approved, the next steps will be:
 
@@ -125,7 +137,7 @@ When running the new operation, we will get a list of lists of sets of results.
 These should be cached independently with the right keys, so when compiling a
 list of operations to perform we can check if the results are cached or not.
 This may require some rearchitecting of where the caching happens. In its
-current spot in [`geoprocessing.py`][github 14], it checks to see if the entire
+current spot in [`geoprocessing.py`][github 15], it checks to see if the entire
 operation is cached or not. This will need to be changed to support checking
 sub-operation caches for every shape, and only execute those that haven't been
 cached.
@@ -162,6 +174,7 @@ Analyze tasks.
 [github 11]: https://github.com/WikiWatershed/model-my-watershed/blob/3ec450adc9ffb84b5483ccdc338cdeacb36f8b2b/src/mmw/mmw/settings/base.py#L513
 [github 12]: https://github.com/WikiWatershed/model-my-watershed/blob/3ec450adc9ffb84b5483ccdc338cdeacb36f8b2b/src/mmw/mmw/settings/base.py#L537
 [github 13]: https://github.com/locationtech/geotrellis/blob/master/raster/src/main/scala/geotrellis/raster/CompositeTile.scala
-[github 14]: https://github.com/WikiWatershed/model-my-watershed/blob/3ec450adc9ffb84b5483ccdc338cdeacb36f8b2b/src/mmw/apps/modeling/geoprocessing.py#L62
+[github 14]: https://github.com/WikiWatershed/mmw-geoprocessing/blob/c212f29e0b090dd9624b8f637e59fdf6cbbf4f4c/api/src/main/scala/Geoprocessing.scala#L253-L262
+[github 15]: https://github.com/WikiWatershed/model-my-watershed/blob/3ec450adc9ffb84b5483ccdc338cdeacb36f8b2b/src/mmw/apps/modeling/geoprocessing.py#L62
 [githubusercontent]: https://user-images.githubusercontent.com/1430060/35651490-e1fc5f38-06ad-11e8-8f07-994aae77a43c.png
 [ocks]: http://bl.ocks.org/anonymous/raw/bf3ee7a3e3315b4e872476bd7e4bb479/
