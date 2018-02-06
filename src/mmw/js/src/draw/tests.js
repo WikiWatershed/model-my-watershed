@@ -335,10 +335,10 @@ function assertDrawToolIsVisible($el, drawToolRegion) {
         inactiveRegions = drawToolRegion ? _.without(regions, drawToolRegion) : regions;
 
     if (drawToolRegion) {
-        assert.equal($el.find(drawToolRegion + ' .draw-tool-selection').size(), 1);
+        assert.equal($el.find(drawToolRegion + ' .draw-tool-selection').length, 1);
     }
 
     _.each(inactiveRegions, function (inactiveDrawToolRegion) {
-        assert.equal($el.find(inactiveDrawToolRegion + ' .draw-tool-region').size(), 0);
+        assert.equal($el.find(inactiveDrawToolRegion + ' .draw-tool-region').length, 0);
     });
 }
