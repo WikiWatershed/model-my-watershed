@@ -1,0 +1,23 @@
+{% if hasPreviousPage %}
+    <button
+        class="btn-prev-page btn btn-primary col-sm-1 col-sm-offset-3"
+        data-toggle="tooltip"
+        title="Previous Page"
+        data-placement="right"
+    >
+        <span aria-hidden="true">&larr;</span>
+    </button>
+{% endif %}
+<p class="col-sm-3 {{ "col-sm-offset-4" if not hasPreviousPage else "" }}">
+    {{currentPage}} of {{totalPages}}
+</p>
+{% if hasNextPage %}
+    <button
+        class="btn-next-page btn btn-primary col-sm-1"
+        data-toggle="tooltip"
+        title="Next Page"
+        data-placement="right"
+    >
+        <span aria-hidden="true">&rarr;</span>
+    </button>
+{% endif %}

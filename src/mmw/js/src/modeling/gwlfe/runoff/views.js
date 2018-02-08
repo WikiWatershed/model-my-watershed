@@ -52,9 +52,9 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        this.selectorRegion.reset();
-        this.tableRegion.reset();
-        this.chartRegion.reset();
+        this.selectorRegion.empty();
+        this.tableRegion.empty();
+        this.chartRegion.empty();
         this.activateTooltip();
 
         if (this.model.get('result')) {

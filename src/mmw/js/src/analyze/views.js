@@ -36,6 +36,7 @@ var $ = require('jquery'),
     streamTableTmpl = require('./templates/streamTable.html'),
     streamTableRowTmpl = require('./templates/streamTableRow.html'),
     selectorTmpl = require('./templates/selector.html'),
+    paginationConrolTmpl = require('./templates/paginationControl.html'),
     pageableTableTmpl = require('./templates/pageableTable.html'),
     pointSourceTableTmpl = require('./templates/pointSourceTable.html'),
     pointSourceTableRowTmpl = require('./templates/pointSourceTableRow.html'),
@@ -402,7 +403,7 @@ var AoiView = Marionette.ItemView.extend({
     },
 
     downloadShapefile: function() {
-        this.ui.shapefileForm.submit();
+        this.ui.shapefileForm.trigger('submit');
     },
 
     downloadGeojson: function() {
@@ -761,22 +762,12 @@ var TerrainTableView = Marionette.CompositeView.extend({
     }
 });
 
-var PageableTableBaseView = Marionette.LayoutView.extend({
-    tableView: null, // a View that renders a bootstrap table. Required
-
-    template: pageableTableTmpl,
-    regions: {
-        'bootstrapTableRegion': '#bootstrap-table-region',
-    },
-
-    ui: {
-        'nextPageBtn': '.btn-next-page',
-        'prevPageBtn': '.btn-prev-page',
-    },
+var PaginationControlView = Marionette.ItemView.extend({
+    template: paginationConrolTmpl,
 
     events: {
-        'click @ui.nextPageBtn': 'nextPage',
-        'click @ui.prevPageBtn': 'prevPage',
+        'click .btn-next-page': 'nextPage',
+        'click .btn-prev-page': 'prevPage',
     },
 
     templateHelpers: function() {
@@ -786,6 +777,32 @@ var PageableTableBaseView = Marionette.LayoutView.extend({
             currentPage: this.collection.state.currentPage,
             totalPages: this.collection.state.totalPages,
         };
+    },
+
+    nextPage: function() {
+        if (this.collection.hasNextPage()) {
+            this.collection.getNextPage();
+        }
+    },
+
+    prevPage: function() {
+        if (this.collection.hasPreviousPage()) {
+            this.collection.getPreviousPage();
+        }
+    },
+});
+
+var PageableTableBaseView = Marionette.LayoutView.extend({
+    tableView: null, // a View that renders a bootstrap table. Required
+
+    template: pageableTableTmpl,
+    regions: {
+        'paginationControlsRegion': '.paging-ctl-row',
+        'bootstrapTableRegion': '#bootstrap-table-region',
+    },
+
+    collectionEvents: {
+        'pageable:state:change': 'onShow',
     },
 
     renderBootstrapTable: function() {
@@ -831,8 +848,6 @@ var PageableTableBaseView = Marionette.LayoutView.extend({
                 self.collection.fullCollection.sort();
 
                 self.collection.getFirstPage();
-
-                self.render();
             }
         });
 
@@ -849,25 +864,10 @@ var PageableTableBaseView = Marionette.LayoutView.extend({
         $(headerSelector + ' > div.th-inner').addClass(sortOrderClass);
     },
 
-    nextPage: function() {
-        if (this.collection.hasNextPage()) {
-            this.collection.getNextPage();
-            this.render();
-        }
-    },
-
-    prevPage: function() {
-        if (this.collection.hasPreviousPage()) {
-            this.collection.getPreviousPage();
-            this.render();
-        }
-    },
-
-    onAttach: function() {
-        this.renderBootstrapTable();
-    },
-
-    onRender: function() {
+    onShow: function() {
+        this.paginationControlsRegion.show(new PaginationControlView({
+            collection: this.collection,
+        }));
         this.bootstrapTableRegion.show(new this.tableView({
                 collection: this.collection,
                 units: this.options.units,

@@ -30,7 +30,7 @@ var ResultView = Marionette.LayoutView.extend({
 
     onShow: function() {
         var result = this.model.get('result');
-        this.tableRegion.reset();
+        this.tableRegion.empty();
         this.activateTooltip();
 
         if (result && result.Loads) {

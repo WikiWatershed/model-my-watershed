@@ -217,8 +217,12 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
         opacityControl: '#layerpicker-opacity-control',
     },
 
+    ui: {
+        messageArea: '.layerpicker-message',
+    },
+
     modelEvents: {
-        'change': 'render',
+        'change': 'onShow',
         'toggle:layer': 'addLayerControls',
     },
 
@@ -227,7 +231,7 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
         this.timeSliderRegion = options.timeSliderRegion;
     },
 
-    onRender: function() {
+    onShow: function() {
         if (this.model.get('name') === 'Observations' && !this.model.get('layers')) {
             this.model.fetchLayers(this.leafletMap);
         } else {
@@ -238,6 +242,15 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
             }));
             this.addLayerControls();
         }
+
+        var message = null;
+        if (this.model.get('error')) {
+            message = this.model.get('error');
+        } else if (this.model.get('polling')) {
+            message = '<div class="layerpicker-loading">Loading...</div>';
+        }
+
+        this.ui.messageArea.html(message);
     },
 
     addLayerControls: function() {
@@ -283,15 +296,8 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
     },
 
     templateHelpers: function() {
-        var message = null;
-        if (this.model.get('error')) {
-            message = this.model.get('error');
-        } else if (this.model.get('polling')) {
-            message = '<div class="layerpicker-loading">Loading...</div>';
-        }
         return {
             layerGroupName: this.model.get('name'),
-            message: message,
         };
     },
 
@@ -404,6 +410,7 @@ var LayerPickerView = Marionette.LayoutView.extend({
     },
 
     ui: {
+        headerIcon: '.layerpicker-header > i',
         header: '.layerpicker-header'
     },
 
@@ -412,11 +419,11 @@ var LayerPickerView = Marionette.LayoutView.extend({
     },
 
     collectionEvents: {
-        'change': 'render',
+        'change': 'onShow',
     },
 
     modelEvents: {
-        'change': 'render',
+        'change': 'onShow',
     },
 
     initialize: function (options) {
@@ -431,8 +438,18 @@ var LayerPickerView = Marionette.LayoutView.extend({
         });
     },
 
-    onRender: function() {
+    onShow: function() {
         var isOpen = this.model.get('isOpen');
+
+        if (isOpen) {
+            this.ui.headerIcon
+                .addClass('fa-chevron-down')
+                .removeClass('fa-chevron-up');
+        } else {
+            this.ui.headerIcon
+                .addClass('fa-chevron-up')
+                .removeClass('fa-chevron-down');
+        }
 
         this.layerTabNav.show(new LayerPickerNavView({
             collection: this.collection,
@@ -447,6 +464,8 @@ var LayerPickerView = Marionette.LayoutView.extend({
                 leafletMap: this.leafletMap,
                 timeSliderRegion: this.timeSliderRegion,
             }));
+        } else {
+            this.layerTab.empty();
         }
     },
 

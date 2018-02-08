@@ -450,7 +450,7 @@ var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
                        '__' + this.model.get('name').replace(/\s/g, '_');
 
         this.ui.exportGmsForm.find('.gms-filename').val(filename);
-        this.ui.exportGmsForm.submit();
+        this.ui.exportGmsForm.trigger('submit');
     },
 
     templateHelpers: function() {
@@ -506,6 +506,7 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
     ui: {
         selectScenario: '[data-action="select"]',
         showOptionsDropdown: '[data-action="show-options-dropdown"]',
+        scenarioDropdownActions: '.scenario-dropdown-actions',
     },
 
     events: {
@@ -521,12 +522,11 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
     },
 
     toggleOptionsDropdown: function() {
-        // Render to show the "dropdown open" styling on the toggle icon
-        this.render();
-
         if (this.optionsDropdown.hasView() && !this.model.get('options_menu_is_open')) {
+            this.ui.scenarioDropdownActions.removeClass('-open');
             this.optionsDropdown.empty();
         } else if (this.model.get('options_menu_is_open')) {
+            this.ui.scenarioDropdownActions.addClass('-open');
             this.optionsDropdown.show(new ScenarioDropDownMenuOptionsView({
                 model: this.model,
             }));
@@ -867,7 +867,7 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
                        '__' + this.currentConditions.get('name').replace(/\s/g, '_');
 
         this.ui.exportGmsForm.find('.gms-filename').val(filename);
-        this.ui.exportGmsForm.submit();
+        this.ui.exportGmsForm.trigger('submit');
     },
 
     templateHelpers: function() {

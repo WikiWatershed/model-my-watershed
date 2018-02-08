@@ -73,18 +73,18 @@ var AppRouter = PatchedRouter.extend({
         if (this._previousRouteName) {
             var prevContext = this._routeContext[this._previousRouteName],
                 cleanUp = this.getSuffixMethod(prevContext, 'CleanUp');
-            this._sequence = this._sequence.then(function() {
+            this._sequence = this._sequence.done(function() {
                 return cleanUp.apply(null, args);
             });
         }
 
         var self = this;
-        this._sequence = this._sequence.then(function() {
+        this._sequence = this._sequence.done(function() {
             var result = prepare.apply(null, args);
             // Assume result is a promise if an object is returned.
             if (_.isObject(result)) {
                 self._previousRouteName = routeName;
-                return result.then(function() {
+                return result.done(function() {
                     cb.apply(null, args);
                 });
             } else if (result !== false) {

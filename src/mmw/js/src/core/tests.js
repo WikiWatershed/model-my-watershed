@@ -196,6 +196,7 @@ describe('Core', function() {
                     });
 
                     $(sandboxSelector).html(view.render().el);
+                    view.triggerMethod('show');
 
                     var $layers = $(sandboxSelector).find('#layerpicker-layers'),
                     layerNames = $layers.find('button').map(function() {
@@ -222,7 +223,7 @@ describe('Core', function() {
                 var spy = sinon.spy(model, 'destroy');
 
                 $(sandboxSelector).html(view.render().el);
-                $(sandboxSelector + ' .delete-modification').click();
+                $(sandboxSelector + ' .delete-modification').trigger('click');
                 assert.equal(spy.callCount, 1);
 
                 view.destroy();
@@ -447,7 +448,7 @@ describe('Core', function() {
                 var views = createTransitionRegionWithAnimatedHeightView('50%', '0%');
 
                 views.testSubView.on('animateIn', function() {
-                    assert.equal($('.test-subview').height(), 50);
+                    assert.equal($('.test-subview').css('height'), '50%');
                     views.destroy();
                     done();
                 });
@@ -459,7 +460,7 @@ describe('Core', function() {
                 var views = createTransitionRegionWithAnimatedHeightView('50%', '0%');
 
                 views.testSubView.on('animateOut', function() {
-                    assert.equal($('.test-subview').height(), 0);
+                    assert.equal($('.test-subview').css('height'), '0%');
                     views.destroy();
                     done();
                 });

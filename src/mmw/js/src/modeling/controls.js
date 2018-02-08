@@ -301,6 +301,7 @@ var ModificationsView = ControlView.extend({
     },
 
     ui: {
+        dropdown: '.modification-dropdown',
         dropdownButton: '.dropdown-button'
     },
 
@@ -309,7 +310,7 @@ var ModificationsView = ControlView.extend({
     },
 
     modelEvents: {
-        'change:dropdownOpen': 'render',
+        'change:dropdownOpen': 'toggleDropdown',
         'change:manualMod': 'updateContent'
     },
 
@@ -317,15 +318,25 @@ var ModificationsView = ControlView.extend({
         modContentRegion: '.mod-content-region'
     },
 
+    toggleDropdown: function() {
+        if (this.model.get('dropdownOpen')) {
+            this.openDropdown();
+        } else {
+            this.closeDropdown();
+        }
+    },
+
     closeDropdown: function() {
+        this.$(this.ui.dropdown).removeClass('open');
         this.model.set({
-            dropdownOpen: false,
+            dropdown: false,
             manualMod: null,
             output: null
         });
     },
 
     openDropdown: function() {
+        this.$(this.ui.dropdown).addClass('open');
         this.model.set('dropdownOpen', true);
     },
 
@@ -337,7 +348,7 @@ var ModificationsView = ControlView.extend({
             } else {
                 this.openDropdown();
             }
-        } else if (!this.model.get('dropdownOpen')) {
+        } else if (!dropdownOpen) {
             this.openDropdown();
         }
     },

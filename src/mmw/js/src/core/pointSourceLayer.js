@@ -1,7 +1,6 @@
 "use strict";
 
 var L = require('leaflet'),
-    $ = require('jquery'),
     utils = require('./utils'),
     Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
@@ -15,7 +14,7 @@ var markerSizesForZoomLevels = [
 
 var Layer = {
     createLayer: function(geojsonFeatureCollection, leafletMap) {
-        return L.geoJson($.parseJSON(geojsonFeatureCollection), {
+        return L.geoJson(JSON.parse(geojsonFeatureCollection), {
             pointToLayer: function (feature, latlng) {
                 return L.circleMarker(latlng, {
                     fillColor: "#ff7800",

@@ -1080,16 +1080,17 @@ var ResultMapPopoverControllerView = Marionette.LayoutView.extend({
 
     initialize: function() {
         this.model = new models.PopoverControllerModel();
-        this.model.on('change:activeResult', this.render);
+        this.listenTo(this.model, 'change:activeResult', this.onShow);
     },
 
-    onRender: function() {
+    onShow: function() {
         var activeResult = this.model.get('activeResult');
         if (activeResult) {
             this.container.show(new ResultMapPopoverDetailView({
                 model: activeResult,
                 catalog: this.options.catalog
             }));
+            this.ui.back.removeClass('hidden');
         } else {
             App.map.set('dataCatalogActiveResult', null);
             this.model.set('active', false);
@@ -1098,6 +1099,7 @@ var ResultMapPopoverControllerView = Marionette.LayoutView.extend({
                 popoverModel: this.model,
                 catalog: this.options.catalog
             }));
+            this.ui.back.addClass('hidden');
         }
     },
 

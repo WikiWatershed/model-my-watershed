@@ -134,7 +134,7 @@ var InputView = ModalBaseView.extend({
     }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
-        this.ui.input.focus().select();
+        this.ui.input.trigger('focus').trigger('select');
     },
 
     primaryAction: function() {
@@ -205,7 +205,7 @@ var ShareView = ModalBaseView.extend({
     },
 
     onModalShown: function() {
-        this.ui.input.focus().select();
+        this.ui.input.trigger('focus').trigger('select');
     },
 
     signIn: function() {
@@ -417,7 +417,7 @@ var HydroShareView = ModalBaseView.extend({
             newwords = this.ui.keyword.val().split(',').map(entryToKeyword);
 
         this.model.set('keywords', _.union(keywords, _.compact(newwords)));
-        this.ui.keyword.focus();
+        this.ui.keyword.trigger('focus');
     },
 
     isKeywordFocused: function() {
@@ -442,13 +442,13 @@ var HydroShareView = ModalBaseView.extend({
 
         if (total === 1) {
             // There was only one keyword. Focus the input text box.
-            this.ui.keyword.focus();
+            this.ui.keyword.trigger('focus');
         } else if (index === total - 1) {
             // This was the last keyword. Focus the previous one.
-            this.$('.hydroshare-keyword')[index - 1].focus();
+            this.$('.hydroshare-keyword')[index - 1].trigger('focus');
         } else {
             // Focus the next one.
-            this.$('.hydroshare-keyword')[index].focus();
+            this.$('.hydroshare-keyword')[index].trigger('focus');
         }
     },
 
