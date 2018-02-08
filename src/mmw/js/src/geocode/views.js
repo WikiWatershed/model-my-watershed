@@ -97,11 +97,28 @@ var SearchBoxView = Marionette.LayoutView.extend({
     },
 
     modelEvents: {
-        'change:query change:selectedSuggestion': 'render'
+        'change:query change:selectedSuggestion': 'onShow'
     },
 
     regions: {
         'resultsRegion': '#geocode-search-results-region'
+    },
+
+    onShow: function() {
+        var query = this.model.get('query'),
+            selectedSuggestion = this.model.get('selectedSuggestion');
+
+        if (selectedSuggestion && selectedSuggestion.get('isBoundaryLayer')) {
+            this.ui.selectButton.removeClass('hidden');
+        } else {
+            this.ui.selectButton.addClass('hidden');
+        }
+
+        if (selectedSuggestion && selectedSuggestion.get('text')) {
+            this.ui.searchBox.val(selectedSuggestion.get('text'));
+        } else {
+            this.ui.searchBox.val(query);
+        }
     },
 
     onDestroy: function() {
