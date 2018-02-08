@@ -909,16 +909,19 @@ var MapView = Marionette.ItemView.extend({
                     resultIntersects = function(result) {
                         return _.includes(intersectingFeatureIds, result.get('id'));
                     },
-                    intersectingResults = resultModels.filter(resultIntersects);
-
-                self._leafletMap.openPopup(
-                    new ListPopoverView({
+                    intersectingResults = resultModels.filter(resultIntersects),
+                    listPopoverView = new ListPopoverView({
                         collection:
                         new models.DataCatalogPopoverResultCollection(intersectingResults),
                         catalog: catalogId
-                    }).render().el,
+                    });
+
+                self._leafletMap.openPopup(
+                    listPopoverView.render().el,
                     clickLatLng,
                     { className: 'data-catalog-popover-list' });
+
+                listPopoverView.triggerMethod('show');
 
                 self._leafletMap.once('popupclose', function() {
                     self.model.set('dataCatalogActiveResult', null);
