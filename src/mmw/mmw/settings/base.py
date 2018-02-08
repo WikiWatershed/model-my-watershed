@@ -15,7 +15,7 @@ from sys import path
 from layer_settings import (LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
                             NHD_REGION2_PERIMETER, DRB_PERIMETER, CONUS_PERIMETER)  # NOQA
 from gwlfe_settings import (GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, # NOQA
-                            CURVE_NUMBER, NODATA)  # NOQA
+                            CURVE_NUMBER, NODATA, SRAT_KEYS)  # NOQA
 from tr55_settings import (NLCD_MAPPING, SOIL_MAPPING)
 
 # Normally you should not import ANYTHING from Django directly
@@ -422,6 +422,14 @@ HYDROSHARE = {
                             'https://beta.hydroshare.org/'),
     'authorize_url': 'o/authorize/',
     'access_token_url': 'o/token/'
+}
+
+# SRAT Catchment API Settings
+SRAT_CATCHMENT_API = {
+    'url': environ.get('MMW_SRAT_CATCHMENT_API_URL',
+                       'ERROR: Could not get SRAT Catchment API URL'),
+    'api_key': environ.get('MMW_SRAT_CATCHMENT_API_KEY',
+                           'ERROR: Could not get SRAT Catchment API Key'),
 }
 
 # Geoprocessing Settings

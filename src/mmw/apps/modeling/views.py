@@ -223,6 +223,7 @@ def _initiate_subbasin_gwlfe_job_chain(model_input, inputmod_hash, job_id):
     return chain(
         group(huc12_jobs) |
         tasks.subbasin_results_to_dict.s() |
+        tasks.run_srat.s() |
         save_job_result.s(job_id, model_input)).apply_async()
 
 
