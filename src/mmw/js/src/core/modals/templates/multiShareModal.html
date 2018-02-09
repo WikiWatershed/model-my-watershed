@@ -7,13 +7,16 @@
             <div class="custom-input-group">
                 <div class="row toggle-row">
                     <h3>Link Sharing</h3>
-                    <label class="pull-right toggle">
+                    <label class="pull-right toggle {{ 'hidden' if hydroshare }}">
                         <input type="checkbox" id="share-enabled" {{ "checked" if not is_private }} />
                         <div class="toggle-switch"></div>
                     </label>
                 </div>
                 {% if not is_private %}
-                    <p>Anyone with this link will be able to view this project</p>
+                    <p>Anyone with this link will be able to view this project.</p>
+                    {% if hydroshare %}
+                        <p>Link sharing is always enabled for a project exported to HydroShare.</p>
+                    {% endif %}
                 {% endif %}
                 <div class="input-group {{ 'hidden' if is_private }}">
                     <input class="form-control" id="share-url" type="text" value="{{  url }}">

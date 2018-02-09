@@ -464,8 +464,12 @@ var ProjectModel = Backbone.Model.extend({
                 mapshed_data: mapshedData,
             }, payload))
         }).done(function(result) {
-            self.set('hydroshare', result);
-            self.set('hydroshare_errors', []);
+            self.set({
+                hydroshare: result,
+                hydroshare_errors: [],
+                is_private: false,
+            });
+            self.saveProjectAndScenarios();
         }).fail(function(result) {
             if (result.responseJSON && result.responseJSON.errors) {
                 self.set('hydroshare_errors', result.responseJSON.errors);
