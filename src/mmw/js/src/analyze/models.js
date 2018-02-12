@@ -31,7 +31,9 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
             wkaoi: null,
             taskName: 'analyze',
             taskType: 'api',
-            token: settings.get('api_token')
+            token: settings.get('api_token'),
+            // Include this task in Catalog Search results (ie, BigCZ)
+            enabledForCatalogMode: false,
         }, coreModels.TaskModel.prototype.defaults
     ),
 
@@ -100,67 +102,69 @@ var AnalyzeTaskCollection = Backbone.Collection.extend({
 function createAnalyzeTaskCollection(aoi, wkaoi) {
     var tasks = [
         {
+            name: "streams",
+            displayName: "Streams",
+            area_of_interest: aoi,
+            wkaoi: wkaoi,
+            taskName: "analyze/streams"
+        },
+        {
             name: "land",
             displayName: "Land",
             area_of_interest: aoi,
             wkaoi: wkaoi,
-            taskName: "analyze/land"
+            taskName: "analyze/land",
+            enabledForCatalogMode: true,
         },
         {
             name: "soil",
             displayName: "Soil",
             area_of_interest: aoi,
             wkaoi: wkaoi,
-            taskName: "analyze/soil"
+            taskName: "analyze/soil",
+            enabledForCatalogMode: true,
+        },
+        {
+            name: "terrain",
+            displayName: "Terrain",
+            area_of_interest: aoi,
+            wkaoi: wkaoi,
+            taskName: "analyze/terrain"
         },
         {
             name: "climate",
             displayName: "Climate",
             area_of_interest: aoi,
             wkaoi: wkaoi,
-            taskName: "analyze/climate"
+            taskName: "analyze/climate",
+            enabledForCatalogMode: true,
+        },
+        {
+            name: "pointsource",
+            displayName: "Pt Sources",
+            area_of_interest: aoi,
+            wkaoi: wkaoi,
+            taskName: "analyze/pointsource"
+        },
+        {
+            name: "animals",
+            displayName: "Animals",
+            area_of_interest: aoi,
+            wkaoi: wkaoi,
+            taskName: "analyze/animals"
+        },
+        {
+            name: "catchment_water_quality",
+            displayName: "Water Qual",
+            area_of_interest: aoi,
+            wkaoi: wkaoi,
+            taskName: "analyze/catchment-water-quality"
         },
     ];
 
-    if (!settings.get('data_catalog_enabled')) {
-        // MMW Analyses
-        tasks.push(
-            {
-                name: "animals",
-                displayName: "Animals",
-                area_of_interest: aoi,
-                wkaoi: wkaoi,
-                taskName: "analyze/animals"
-            },
-            {
-                name: "pointsource",
-                displayName: "Point Sources",
-                area_of_interest: aoi,
-                wkaoi: wkaoi,
-                taskName: "analyze/pointsource"
-            },
-            {
-                name: "catchment_water_quality",
-                displayName: "Water Quality",
-                area_of_interest: aoi,
-                wkaoi: wkaoi,
-                taskName: "analyze/catchment-water-quality"
-            },
-            {
-                name: "streams",
-                displayName: "Streams",
-                area_of_interest: aoi,
-                wkaoi: wkaoi,
-                taskName: "analyze/streams"
-            },
-            {
-                name: "terrain",
-                displayName: "Terrain",
-                area_of_interest: aoi,
-                wkaoi: wkaoi,
-                taskName: "analyze/terrain"
-            }
-        );
+    // Remove analyses which aren't available for catalog search mode
+    if (settings.get('data_catalog_enabled')) {
+        tasks = _.filter(tasks, { enabledForCatalogMode: true });
     }
 
     return new AnalyzeTaskCollection(tasks);
