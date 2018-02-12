@@ -143,9 +143,16 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
             detailResult = activeCatalog.get('detail_result');
 
         if (!detailResult) {
-            this.closeDetails();
+            this.detailsRegion.empty();
+            this.updateMap();
             App.map.set('dataCatalogDetailResult', null);
+            this.formRegion.$el.removeClass('hidden');
+            this.panelsRegion.$el.removeClass('hidden');
+            this.contentsRegion.$el.removeClass('hidden');
         } else {
+            this.formRegion.$el.addClass('hidden');
+            this.panelsRegion.$el.addClass('hidden');
+            this.contentsRegion.$el.addClass('hidden');
             this.detailsRegion.show(new ResultDetailsView({
                 model: detailResult,
                 catalog: activeCatalog.id
@@ -155,11 +162,6 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
                 'dataCatalogDetailResult': detailResult
             });
         }
-    },
-
-    closeDetails: function() {
-        this.detailsRegion.empty();
-        this.updateMap();
     },
 
     doSearch: function() {

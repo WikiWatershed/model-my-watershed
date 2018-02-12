@@ -4,23 +4,11 @@
     flex-direction: column;
 
     .tab-contents-region {
-        background-color: rgba(0, 0, 0, 0.06);
         flex: 1;
-        overflow: hidden;
-        position: relative;
     }
 
     .result-details-region {
         .result {
-            padding: 10px;
-            bottom: 0px;
-            top: 0px;
-            width: 100%;
-            position: absolute;
-            z-index: 1000;
-            background-color: #fff;
-            overflow: auto;
-
             p {
                 margin: 5px 0 0 0;
             }
@@ -91,18 +79,6 @@
         }
     }
 
-    .result-region {
-        height: auto !important;
-        padding: 6px 0px;
-
-        &.paginated {
-            position: absolute;
-            overflow-y: auto;
-            top: 0px;
-            bottom: 54px;  // .pager-region height + padding-top
-        }
-    }
-
     .pager-region {
         > div {
             padding: 10px 0;
@@ -125,6 +101,8 @@
     }
 
     .data-catalog-form {
+        padding: 1rem 1rem 0 1rem;
+
         &:hover {
             text-decoration: none;
         }
@@ -158,7 +136,7 @@
     }
 
     .intro-text {
-        margin-top: 15px;
+        padding: 1.5rem 1rem;
     }
 
     .output-tabs-wrapper {
@@ -168,18 +146,8 @@
         overflow-y: auto;
     }
 
-    .catalog-tab-pane {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 100%;
-    }
-
     .catalog-tab-content {
         padding: 0;
-        background: #E6E6E6;
-        top: 0;
-        bottom: 0;
 
         .loading-panel,
         .no-results-panel {
@@ -194,26 +162,24 @@
     }
 
     .resource {
-        background: $paper;
-        margin: 0 10px 3px 10px;
         cursor: pointer;
+
+        &+.resource{
+            border-top: 1px solid $black-12;
+        }
 
         &:hover {
             background: #F3F3F3;
         }
 
         .resource-wrapper {
-          padding: 10px;
+          padding: 15px 10px;
 
           &.active {
               background: #F3F3F3;
           }
         }
     }
-}
-
-.data-catalog-window {
-    padding: 1rem;
 }
 
 .data-catalog-window,
