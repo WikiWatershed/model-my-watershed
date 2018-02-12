@@ -1,21 +1,13 @@
-<button class="btn
-               {% if filterNumText %}
-               btn-secondary
-               {% else %}
-               btn-active
-               {% endif %}
-               btn-md filter-sidebar-toggle">
-    Filters {{filterNumText}}
-</button>
-
-<div class="data-catalog-search-component">
-    <i class="data-catalog-search-icon fa fa-search"></i>
-    <input
-        class="data-catalog-search-input"
-        type="text"
-        placeholder="Search data sources"
-        value="{{query}}"
-    />
+<div class="data-catalog-search">
+    <div class="search-group">
+        <input type="text" class="form-control" placeholder="Search data sources" />
+        <button class="btn btn-active btn-search" type="button">
+            <i class="fa fa-search"></i>
+        </button>
+    </div>
+    <button class="btn btn-secondary filter-sidebar-toggle">
+        Filters {{filterNumText}}
+    </button>
 </div>
 
 <button id="bigcz-catalog-results-download" class="{{ 'hidden' if not downloadVisible }}"

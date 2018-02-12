@@ -197,7 +197,7 @@ var FormView = Marionette.ItemView.extend({
 
     ui: {
         filterToggle: '.filter-sidebar-toggle',
-        searchInput: '.data-catalog-search-input',
+        searchInput: 'input[type="text"]',
         downloadButton: '#bigcz-catalog-results-download',
     },
 
@@ -1267,6 +1267,7 @@ var FilterSidebar = Marionette.CompositeView.extend({
 
 
 module.exports = {
+    DataCatalogWindow: DataCatalogWindow,
     HeaderView: HeaderView,
     ResultsWindow: ResultsWindow
 };
