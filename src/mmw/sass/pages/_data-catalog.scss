@@ -80,18 +80,13 @@
     }
 
     .pager-region {
-        > div {
+        > div > div {
             padding: 10px 0;
-            background-color: #e6e6e6;
+            background: $paper;
             border-top: 1px solid $black-12;
             position: fixed;
-            bottom: 0px;
+            bottom: 68px;
             width: $sidebar-width;
-
-            .row {
-                margin-left: -5px !important;
-                margin-right: -5px !important;
-            }
         }
     }
 

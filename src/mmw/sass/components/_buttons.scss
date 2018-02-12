@@ -224,3 +224,10 @@
 .input-group-btn > button {
   height: 34px;
 }
+
+.btn-page {
+  background: $paper;
+  border: solid 1px darken($ui-light, 10%);
+  text-align: center;
+  border-radius: 2px;
+}

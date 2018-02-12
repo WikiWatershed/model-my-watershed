@@ -134,6 +134,13 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         var nextCatalog = this.collection.get(catalogId);
         nextCatalog.set('active', true);
 
+        // Set pagination class for height adjustment
+        if (nextCatalog.get('is_pageable')) {
+            this.contentsRegion.currentView.$el.addClass('paginated');
+        } else {
+            this.contentsRegion.currentView.$el.removeClass('paginated');
+        }
+
         this.doSearch();
     },
 

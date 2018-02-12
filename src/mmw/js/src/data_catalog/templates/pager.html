@@ -1,13 +1,13 @@
 {% if has_results %}
 <div class="row">
-    <div class="col-xs-6">
-        <button id="pager-previous" class="btn btn-block" {{ "disabled" if not has_previous }}>
-            <i class="fa fa-arrow-left"></i> Previous
+    <div class="col-xs-2">
+        <button id="pager-previous" class="btn btn-block btn-page" {{ "disabled" if not has_previous }}>
+            <i class="fa fa-chevron-left"></i>
         </button>
     </div>
-    <div class="col-xs-6">
-        <button id="pager-next" class="btn btn-block" {{ "disabled" if not has_next }}>
-            Next <i class="fa fa-arrow-right"></i>
+    <div class="col-xs-2  col-xs-offset-8">
+        <button id="pager-next" class="btn btn-block btn-page" {{ "disabled" if not has_next }}>
+            <i class="fa fa-chevron-right"></i>
         </button>
     </div>
 </div>
