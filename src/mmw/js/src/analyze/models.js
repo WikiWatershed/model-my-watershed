@@ -141,7 +141,7 @@ function createAnalyzeTaskCollection(aoi, wkaoi) {
         },
         {
             name: "pointsource",
-            displayName: "Point Sources",
+            displayName: "Pt Sources",
             area_of_interest: aoi,
             wkaoi: wkaoi,
             taskName: "analyze/pointsource"
@@ -155,7 +155,7 @@ function createAnalyzeTaskCollection(aoi, wkaoi) {
         },
         {
             name: "catchment_water_quality",
-            displayName: "Water Quality",
+            displayName: "Water Qual",
             area_of_interest: aoi,
             wkaoi: wkaoi,
             taskName: "analyze/catchment-water-quality"
