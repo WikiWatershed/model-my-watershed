@@ -102,6 +102,13 @@ var AnalyzeTaskCollection = Backbone.Collection.extend({
 function createAnalyzeTaskCollection(aoi, wkaoi) {
     var tasks = [
         {
+            name: "streams",
+            displayName: "Streams",
+            area_of_interest: aoi,
+            wkaoi: wkaoi,
+            taskName: "analyze/streams"
+        },
+        {
             name: "land",
             displayName: "Land",
             area_of_interest: aoi,
@@ -118,19 +125,19 @@ function createAnalyzeTaskCollection(aoi, wkaoi) {
             enabledForCatalogMode: true,
         },
         {
+            name: "terrain",
+            displayName: "Terrain",
+            area_of_interest: aoi,
+            wkaoi: wkaoi,
+            taskName: "analyze/terrain"
+        },
+        {
             name: "climate",
             displayName: "Climate",
             area_of_interest: aoi,
             wkaoi: wkaoi,
             taskName: "analyze/climate",
             enabledForCatalogMode: true,
-        },
-        {
-            name: "animals",
-            displayName: "Animals",
-            area_of_interest: aoi,
-            wkaoi: wkaoi,
-            taskName: "analyze/animals"
         },
         {
             name: "pointsource",
@@ -140,27 +147,20 @@ function createAnalyzeTaskCollection(aoi, wkaoi) {
             taskName: "analyze/pointsource"
         },
         {
+            name: "animals",
+            displayName: "Animals",
+            area_of_interest: aoi,
+            wkaoi: wkaoi,
+            taskName: "analyze/animals"
+        },
+        {
             name: "catchment_water_quality",
             displayName: "Water Quality",
             area_of_interest: aoi,
             wkaoi: wkaoi,
             taskName: "analyze/catchment-water-quality"
         },
-        {
-            name: "streams",
-            displayName: "Streams",
-            area_of_interest: aoi,
-            wkaoi: wkaoi,
-            taskName: "analyze/streams"
-        },
-        {
-            name: "terrain",
-            displayName: "Terrain",
-            area_of_interest: aoi,
-            wkaoi: wkaoi,
-            taskName: "analyze/terrain"
-        }
-    ]
+    ];
 
     // Remove analyses which aren't available for catalog search mode
     if (settings.get('data_catalog_enabled')) {
