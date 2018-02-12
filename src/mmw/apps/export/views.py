@@ -211,6 +211,10 @@ def hydroshare(request):
     )
     hsresource.save()
 
+    # Make Project public and save
+    project.is_private = False
+    project.save()
+
     # Return newly created HydroShareResource
     serializer = HydroShareResourceSerializer(hsresource)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
