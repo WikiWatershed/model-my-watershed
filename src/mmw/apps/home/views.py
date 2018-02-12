@@ -16,6 +16,7 @@ from django.contrib.auth.models import User
 
 from rest_framework.authtoken.models import Token
 
+from apps.export.models import HydroShareResource
 from apps.modeling.models import Project, Scenario
 from apps.user.models import UserProfile
 from apps.user.countries import COUNTRY_CHOICES
@@ -86,6 +87,14 @@ def project_clone(request, proj_id=None):
         scenario.save()
 
     return redirect('/project/{0}'.format(project.id))
+
+
+def project_via_hydroshare(request, resource):
+    """Redirect to project given a HydroShare resource, if found."""
+
+    hsresource = get_object_or_404(HydroShareResource, resource=resource)
+
+    return redirect('/project/{}/'.format(hsresource.project_id))
 
 
 def get_layer_url(layer):
