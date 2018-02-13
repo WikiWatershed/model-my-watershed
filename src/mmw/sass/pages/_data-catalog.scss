@@ -9,19 +9,25 @@
 
     .result-details-region {
         .result {
+            background: $paper;
+            padding: 1rem;
+
             p {
                 margin: 5px 0 0 0;
             }
 
-            .spinner:after {
-              top: 22px;
-              right: 7px;
-            }
+            #cuahsi-status-region {
+                position: relative;
 
-            .error {
-                position: absolute;
-                top: 11px;
-                right: 10px;
+                .spinner:after {
+                    top: 1rem;
+                    right: 1rem;
+                }
+
+                .error {
+                    position: absolute;
+                    right: 13px;
+                }
             }
 
             .result-detail-header {
@@ -445,9 +451,28 @@
 }
 
 .result-details-region {
-    p,
-    .btn {
+    > div {
+        position: absolute;
+        width: $sidebar-width;
+        overflow-y: scroll;
+
+        .analyze-stage-monitor-tab-pane & {
+            // Set a specific height to allow y-scroll:
+            // Calc height under the main header (height-lg)
+            // and the Analyze / Monitor tabs (42px)
+            // and above the next-stage-region (68px)
+            height: calc(100% - #{$height-lg} - 42px - 68px) !important;
+            margin-top: -20px;
+        }
+    }
+
+    p {
         font-size: $font-size-h5;
+    }
+
+    .btn {
+        font-size: 14px;
+        border-radius: 2px;
     }
 }
 

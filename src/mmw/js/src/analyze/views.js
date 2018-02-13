@@ -395,6 +395,17 @@ var AoiView = Marionette.ItemView.extend({
         'click @ui.dlGeojson': 'downloadGeojson',
     },
 
+    initialize: function() {
+        // Toggle AoiView when showing Monitor details
+        this.listenTo(App.map, 'change:dataCatalogDetailResult', function(map, newValue) {
+            if (newValue === null) {
+                this.$el.removeClass('hidden');
+            } else {
+                this.$el.addClass('hidden');
+            }
+        });
+    },
+
     templateHelpers: function() {
         return {
             csrftoken: csrf.getToken(),
