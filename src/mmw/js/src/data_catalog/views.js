@@ -1226,6 +1226,7 @@ var FilterSidebar = Marionette.CompositeView.extend({
 
     className: 'data-catalog-filter-window',
     template: filterSidebarTmpl,
+    childViewContainer: '.data-catalog-filter-groups',
 
     ui: {
         reset: '[data-action="reset-filters"]'

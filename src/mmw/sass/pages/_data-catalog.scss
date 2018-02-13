@@ -328,45 +328,52 @@
 }
 
 .data-catalog-filter-window {
-    padding: 1rem;
-    padding-top: 1.4rem;
     left: $sidebar-width;
     width: $secondary-sidebar-width;
     transition: all 200ms;
-    background-color: #D8D8D8;
     display: flex;
     flex-direction: column;
     position: absolute;
     bottom: 0;
-    top: 90px;
+    top: 44px;
 }
 
 .data-catalog-filter-window > .data-catalog-filters-header {
     display: flex;
     flex-direction: row;
-    height: 44px;
-    padding-bottom: 6px;
+    height: 42px;
+    padding: 0 calc(1rem + 2px);
+    background-color: $black-06;
+    border-bottom: 1px solid $black-12;
+
     > .filter-title {
-        line-height: $height-md;
+        font-size: 16px;
+        font-weight: 800;
+        line-height: 42px;
     }
+
     > .btn-reset {
         margin-left: auto;
         font-weight: 600;
         color: $brand-primary;
-        padding: 0;
         font-size: 13px;
-        position: relative;
-        top: 0px;
+        line-height: 42px;
     }
 }
 
-.data-catalog-filter-window > .data-catalog-filter-group {
-    & > h5,
-    & > label {
-        font-weight: 700;
-        margin-top: 4px;
-        font-size: 12px;
-        color: #4d6d82;
+.data-catalog-filter-window > .data-catalog-filter-groups {
+    padding: 1rem;
+    border-left: 2px solid $ui-light;
+    flex: 1;
+
+    & > .data-catalog-filter-group {
+        h5,
+        label {
+            font-weight: 700;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #4d6d82;
+        }
     }
 }
 
