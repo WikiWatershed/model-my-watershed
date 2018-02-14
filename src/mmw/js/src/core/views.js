@@ -448,10 +448,8 @@ var MapView = Marionette.ItemView.extend({
             this.updateGoogleMaxZoom({ target: this._leafletMap });
         }
 
-        if (settings.get('data_catalog_enabled')) {
-            this._leafletMap.on('zoomend', this.renderDataCatalogDetailResult, this);
-            this._leafletMap.on('moveend', this.renderDataCatalogDetailResult, this);
-        }
+        this._leafletMap.on('zoomend', this.renderDataCatalogDetailResult, this);
+        this._leafletMap.on('moveend', this.renderDataCatalogDetailResult, this);
     },
 
     onBeforeDestroy: function() {
@@ -862,7 +860,7 @@ var MapView = Marionette.ItemView.extend({
 
     _renderDataCatalogResult: function(result, featureGroup, className, style) {
         featureGroup.clearLayers();
-        $("div.map-highlight").remove();
+        $('div.map-highlight.' + className).remove();
 
         // If nothing is selected, exit early
         if (!result) { return; }
