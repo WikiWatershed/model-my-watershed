@@ -160,6 +160,7 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
             this.formRegion.$el.addClass('hidden');
             this.panelsRegion.$el.addClass('hidden');
             this.contentsRegion.$el.addClass('hidden');
+            this.hideFilterSidebar();
             this.detailsRegion.show(new ResultDetailsView({
                 model: detailResult,
                 catalog: activeCatalog.id
@@ -190,9 +191,39 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
 
         if (catalog) {
             App.map.set('dataCatalogResults', catalog.get('results'));
+            this.bindDataCatalogPopovers(catalog);
+        }
+    },
+
+    bindDataCatalogPopovers: function(catalog) {
+        if (!catalog) {
+            catalog = this.collection.getActiveCatalog();
+        }
+
+        if (catalog) {
             App.getMapView().bindDataCatalogPopovers(
                 ResultMapPopoverDetailView, ResultMapPopoverControllerView,
                 catalog.id, catalog.get('results'));
+        }
+    },
+
+    hideFilterSidebar: function() {
+        if (App.rootView.secondarySidebarRegion.hasView()) {
+            App.rootView.secondarySidebarRegion.empty();
+            App.map.toggleSecondarySidebar();
+        }
+    },
+
+    // Enables or disables map item visibility
+    // For when the DataCatalogWindow is loaded but hidden
+    // Such as when showing the Analyze or Model tab instead of Monitor
+    setVisibility: function(visible) {
+        App.map.set('dataCatalogVisible', visible);
+
+        if (visible) {
+            this.bindDataCatalogPopovers();
+        } else {
+            this.hideFilterSidebar();
         }
     }
 });

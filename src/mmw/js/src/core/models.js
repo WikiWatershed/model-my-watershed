@@ -21,6 +21,7 @@ var MapModel = Backbone.Model.extend({
         wellKnownAreaOfInterest: null,  // "{layerCode}__{id}"
         geolocationEnabled: true,
         previousAreaOfInterest: null,
+        dataCatalogVisible: false,
         dataCatalogResults: null,       // GeoJSON array
         dataCatalogActiveResult: null,  // Model
         dataCatalogDetailResult: null,  // Model

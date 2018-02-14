@@ -187,6 +187,8 @@ var ResultsView = Marionette.LayoutView.extend({
     },
 
     events: {
+        'shown.bs.tab a[href="#analyze-tab-contents"]': 'onAnalyzeTabShown',
+        'shown.bs.tab a[href="#monitor-tab-contents"]': 'onMonitorTabShown',
         'click @ui.changeArea': 'changeArea'
     },
 
@@ -257,6 +259,21 @@ var ResultsView = Marionette.LayoutView.extend({
             self.trigger('animateIn');
         });
     },
+
+    onAnalyzeTabShown: function() {
+        // Hide Monitor items from the map
+        this.monitorRegion.currentView.setVisibility(false);
+        // Always show AoI region
+        this.aoiRegion.currentView.$el.removeClass('hidden');
+    },
+
+    onMonitorTabShown: function() {
+        this.monitorRegion.currentView.setVisibility(true);
+        // Hide AoI Region if details open
+        if (App.map.get('dataCatalogDetailResult') !== null) {
+            this.aoiRegion.currentView.$el.addClass('hidden');
+        }
+    }
 });
 
 var AnalyzeWindow = Marionette.LayoutView.extend({
