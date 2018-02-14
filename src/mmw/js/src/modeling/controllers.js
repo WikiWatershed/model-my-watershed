@@ -283,6 +283,7 @@ function projectCleanUp() {
     App.rootView.sidebarRegion.empty();
     App.rootView.compareRegion.empty();
     App.clearAnalyzeCollection();
+    App.clearDataCatalogCollection();
 }
 
 function projectErrorState() {

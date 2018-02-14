@@ -110,6 +110,15 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         'change:detail_result': 'onDetailResultChange'
     },
 
+    onBeforeDestroy: function() {
+        this.setVisibility(false);
+        App.map.set({
+            'dataCatalogResults': null,
+            'dataCatalogActiveResult': null,
+            'dataCatalogDetailResult': null,
+        });
+    },
+
     onShow: function() {
         this.formRegion.show(new FormView({
             model: this.model,
