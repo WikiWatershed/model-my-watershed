@@ -134,6 +134,19 @@
                 }
             }
         }
+
+        > .dropdown {
+            display: inherit;
+            line-height: inherit !important;
+            position: absolute;
+            left: 422px;
+            margin-top: 12px;
+
+            > button {
+                border: 0;
+                background-color: transparent;
+            }
+        }
     }
 
     .intro-text {
@@ -514,12 +527,4 @@
     font-weight: 600;
     color: #555;
     padding-left: 0;
-}
-
-#bigcz-catalog-results-download {
-    position: absolute;
-    right: 1.5rem;
-    top: 56px;
-    border: 0;
-    background-color: transparent;
 }
