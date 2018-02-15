@@ -464,8 +464,15 @@ var ProjectModel = Backbone.Model.extend({
                 mapshed_data: mapshedData,
             }, payload))
         }).done(function(result) {
-            self.set('hydroshare', result);
-            self.set('hydroshare_errors', []);
+            self.set({
+                hydroshare: result,
+                hydroshare_errors: [],
+                // Exporting to HydroShare make projects public
+                // in apps.export.views.hydroshare. We manually
+                // make the switch here rather than fetching it
+                // from the server, for efficiency.
+                is_private: false,
+            });
         }).fail(function(result) {
             if (result.responseJSON && result.responseJSON.errors) {
                 self.set('hydroshare_errors', result.responseJSON.errors);
