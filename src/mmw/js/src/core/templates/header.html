@@ -1,6 +1,14 @@
 <nav id="app-header" class="navbar-watershed">
     <ul class="global-navigation">
-        <li class="global-navigation-item"><button data-url="/">{{ title }}</button></li>
+        <li class="global-navigation-item">
+            {% if data_catalog_enabled %}
+            <button data-url="/">{{ title }}</button>
+            {% else %}
+            <a href="javascript:void(0);" data-url="/">
+                <img src="/static/images/logo-wikiwatershed-white.png" alt="WikiWatershed" />
+            </a>
+            {% endif %}
+        </li>
     </ul>
     <div class="navigation">
         <ul class="main">
