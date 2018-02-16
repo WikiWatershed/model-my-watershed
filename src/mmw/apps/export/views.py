@@ -33,6 +33,7 @@ hss = HydroShareService()
 HYDROSHARE_BASE_URL = settings.HYDROSHARE['base_url']
 SHAPEFILE_EXTENSIONS = ['cpg', 'dbf', 'prj', 'shp', 'shx']
 DEFAULT_KEYWORDS = {'mmw', 'model-my-watershed'}
+MMW_APP_KEY_FLAG = '{"appkey": "model-my-watershed"}'
 
 
 @decorators.api_view(['GET', 'POST', 'PATCH', 'DELETE'])
@@ -148,7 +149,8 @@ def hydroshare(request):
         'CompositeResource',
         params.get('title', project.name),
         abstract=params.get('abstract', ''),
-        keywords=tuple(DEFAULT_KEYWORDS | keywords)
+        keywords=tuple(DEFAULT_KEYWORDS | keywords),
+        extra_metadata=MMW_APP_KEY_FLAG,
     )
 
     # Files sent from the client
