@@ -10,7 +10,6 @@ var mmwSplashPageText = {
     drawToolThreeName: 'Model',
     drawToolThreeDescription: 'Use one of two models to simulate different scenarios of human impacts on water.',
     getStartedButtonTitle: 'Get started',
-    openProjectButtonTitle: 'Open Project',
 };
 
 var bigCZSplashPageText = {
