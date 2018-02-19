@@ -5,12 +5,11 @@ var mmwSplashPageText = {
     subheading: 'Analyze real geo-data, model storms, and compare potential impact of conservation and development scenarios in a watershed.',
     drawToolOneName: 'Select Area',
     drawToolOneDescription: 'Explore map layers and select an area of interest.',
-    drawToolTwoName: 'Analyze',
+    drawToolTwoName: 'Analyze & Monitor',
     drawToolTwoDescription: 'See land cover, soil groups, point sources and other factors impacting water.',
     drawToolThreeName: 'Model',
     drawToolThreeDescription: 'Use one of two models to simulate different scenarios of human impacts on water.',
     getStartedButtonTitle: 'Get started',
-    openProjectButtonTitle: 'Open Project',
 };
 
 var bigCZSplashPageText = {

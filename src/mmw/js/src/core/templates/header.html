@@ -1,10 +1,15 @@
 <nav id="app-header" class="navbar-watershed">
     <ul class="global-navigation">
-        <li class="global-navigation-item"><button data-url="/">{{ title }}</button></li>
+        <li class="global-navigation-item">
+            {% if data_catalog_enabled %}
+            <button data-url="/">{{ title }}</button>
+            {% else %}
+            <a href="javascript:void(0);" data-url="/">
+                <img src="/static/images/logo-wikiwatershed-white.png" alt="WikiWatershed" />
+            </a>
+            {% endif %}
+        </li>
     </ul>
-    {% if not data_catalog_enabled %}
-    <img src="/static/images/stroud-logo.png" alt="Stroud Water Research Center" />
-    {% endif %}
     <div class="navigation">
         <ul class="main">
             {% if data_catalog_enabled %}
@@ -12,6 +17,9 @@
             {% else %}
             <li class="header-link"><a href="javascript:void(0);" id="about-modal-trigger">About</a></li>
             <li class="header-link"><a href="https://wikiwatershed.org/help/" target="_blank">Help</a></li>
+                {% if not itsi_embed and not data_catalog_enabled %}
+                <li class="header-link"><a href="javascript:void(0);" id="header-open-project">Projects</a></li>
+                {% endif %}
             {% endif %}
             {% if guest %}
                 <li class="header-link"><a class="show-login" href="javascript:void(0);">Login</a></li>
@@ -36,9 +44,6 @@
                     <ul class="dropdown-menu">
                         {% if itsi %}
                             <li><a href="#" class="clone-project">Clone Project</a></li>
-                        {% endif %}
-                        {% if not itsi_embed %}
-                            <li><a data-url="/projects/">My Projects</a></li>
                         {% endif %}
                         <li><a data-url="/account/">My Account</a></li>
                         <li><a href="/user/logout" class="user-logout">Logout</a></li>

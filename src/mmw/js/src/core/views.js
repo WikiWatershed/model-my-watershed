@@ -115,13 +115,15 @@ var HeaderView = Marionette.ItemView.extend({
         cloneProject: '.clone-project',
         skippedProfilePopover: '[data-toggle="popover"]',
         about: '#about-modal-trigger',
+        openProject: '#header-open-project',
     },
 
     events: {
         'click @ui.about': 'showAbout',
         'click @ui.login': 'showLogin',
         'click @ui.logout': 'userLogout',
-        'click @ui.cloneProject': 'cloneProject'
+        'click @ui.cloneProject': 'cloneProject',
+        'click @ui.openProject': 'openOrLogin',
     },
 
     modelEvents: {
@@ -193,6 +195,20 @@ var HeaderView = Marionette.ItemView.extend({
                 });
         });
         view.render();
+    },
+
+    openOrLogin: function() {
+        // The core.Views are initialized during App initialization.
+        // If App is required at the module level, which is typical,
+        // the object instance won't be available to invoke methods on.
+        var App = require('../app');
+        if (this.model.get('guest')) {
+            App.showLoginModal(function() {
+                router.navigate('/projects', {trigger: true});
+            });
+        } else {
+            router.navigate('/projects', {trigger: true});
+        }
     },
 
     onRender: function() {

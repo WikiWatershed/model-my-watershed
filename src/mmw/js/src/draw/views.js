@@ -258,7 +258,6 @@ var SplashWindow = Marionette.ItemView.extend({
 
     ui: {
         'start': '#get-started',
-        'openProject': '#splash-open-project',
     },
 
     templateHelpers: function() {
@@ -285,22 +284,11 @@ var SplashWindow = Marionette.ItemView.extend({
 
     events: {
         'click @ui.start': 'moveToDraw',
-        'click @ui.openProject': 'openOrLogin',
     },
 
     moveToDraw: function() {
         router.navigate('/draw', {trigger: true});
     },
-
-    openOrLogin: function() {
-        if (App.user.get('guest')) {
-            App.showLoginModal(function() {
-                router.navigate('/projects', {trigger: true});
-            });
-        } else {
-            router.navigate('/projects', {trigger: true});
-        }
-    }
 });
 
 var AoIUploadView = Marionette.ItemView.extend({
