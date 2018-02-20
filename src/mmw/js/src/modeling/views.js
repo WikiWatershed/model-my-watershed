@@ -12,7 +12,9 @@ var _ = require('lodash'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
     gwlfeConfig = require('./gwlfeModificationConfig'),
-    analyzeViews = require('../analyze/views.js'),
+    analyzeViews = require('../analyze/views'),
+    dataCatalogModels = require('../data_catalog/models'),
+    dataCatalogViews = require('../data_catalog/views'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
     compareViews = require('../compare/views'),
@@ -900,6 +902,7 @@ var ResultsView = Marionette.LayoutView.extend({
     regions: {
         aoiRegion: '.aoi-region',
         analyzeRegion: '#analyze-tab-contents',
+        monitorRegion: '#monitor-tab-contents',
         modelingRegion: '#modeling-tab-contents'
     },
 
@@ -931,10 +934,16 @@ var ResultsView = Marionette.LayoutView.extend({
     onShow: function() {
         var scenarios = this.model.get('scenarios'),
             scenario = scenarios.getActiveScenario(),
-            analyzeCollection = App.getAnalyzeCollection();
+            analyzeCollection = App.getAnalyzeCollection(),
+            dataCatalogCollection = App.getDataCatalogCollection();
 
         this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
             collection: analyzeCollection
+        }));
+
+        this.monitorRegion.show(new dataCatalogViews.DataCatalogWindow({
+            model: new dataCatalogModels.SearchForm(),
+            collection: dataCatalogCollection
         }));
 
         if (scenario) {
@@ -956,14 +965,25 @@ var ResultsView = Marionette.LayoutView.extend({
     },
 
     toggleAoiRegion: function() {
-        if (this.model.get('sidebar_mode') === utils.MODEL) {
-            this.aoiRegion.$el.addClass('hidden');
-            this.analyzeRegion.$el.removeClass('active');
-            this.modelingRegion.$el.addClass('active');
-        } else {
-            this.aoiRegion.$el.removeClass('hidden');
-            this.analyzeRegion.$el.addClass('active');
-            this.modelingRegion.$el.removeClass('active');
+        switch (this.model.get('sidebar_mode')) {
+            case utils.ANALYZE:
+                this.aoiRegion.$el.removeClass('hidden');
+                this.analyzeRegion.$el.addClass('active');
+                this.monitorRegion.$el.removeClass('active');
+                this.modelingRegion.$el.removeClass('active');
+                break;
+            case utils.MONITOR:
+                this.aoiRegion.$el.removeClass('hidden');
+                this.analyzeRegion.$el.removeClass('active');
+                this.monitorRegion.$el.addClass('active');
+                this.modelingRegion.$el.removeClass('active');
+                break;
+            case utils.MODEL:
+                this.aoiRegion.$el.addClass('hidden');
+                this.analyzeRegion.$el.removeClass('active');
+                this.monitorRegion.$el.removeClass('active');
+                this.modelingRegion.$el.addClass('active');
+                break;
         }
     },
 
