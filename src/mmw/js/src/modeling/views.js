@@ -937,6 +937,16 @@ var ResultsView = Marionette.LayoutView.extend({
             analyzeCollection = App.getAnalyzeCollection(),
             dataCatalogCollection = App.getDataCatalogCollection();
 
+        // Add AoI Region but do not show it by default
+        this.aoiRegion.show(new analyzeViews.AoiView({
+            model: new coreModels.GeoModel({
+                place: App.map.get('areaOfInterestName'),
+                shape: App.map.get('areaOfInterest')
+            })
+        }));
+
+        this.aoiRegion.currentView.$el.addClass('hidden');
+
         this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
             collection: analyzeCollection
         }));
@@ -955,31 +965,24 @@ var ResultsView = Marionette.LayoutView.extend({
         }
     },
 
-    showAoiRegion: function() {
-        this.aoiRegion.show(new analyzeViews.AoiView({
-            model: new coreModels.GeoModel({
-                place: App.map.get('areaOfInterestName'),
-                shape: App.map.get('areaOfInterest')
-            })
-        }));
-    },
-
     toggleAoiRegion: function() {
         switch (this.model.get('sidebar_mode')) {
             case utils.ANALYZE:
-                this.aoiRegion.$el.removeClass('hidden');
+                this.aoiRegion.currentView.$el.removeClass('hidden');
                 this.analyzeRegion.$el.addClass('active');
                 this.monitorRegion.$el.removeClass('active');
                 this.modelingRegion.$el.removeClass('active');
                 break;
             case utils.MONITOR:
-                this.aoiRegion.$el.removeClass('hidden');
+                if (App.map.get('dataCatalogDetailResult') === null) {
+                    this.aoiRegion.currentView.$el.removeClass('hidden');
+                }
                 this.analyzeRegion.$el.removeClass('active');
                 this.monitorRegion.$el.addClass('active');
                 this.modelingRegion.$el.removeClass('active');
                 break;
             case utils.MODEL:
-                this.aoiRegion.$el.addClass('hidden');
+                this.aoiRegion.currentView.$el.addClass('hidden');
                 this.analyzeRegion.$el.removeClass('active');
                 this.monitorRegion.$el.removeClass('active');
                 this.modelingRegion.$el.addClass('active');
