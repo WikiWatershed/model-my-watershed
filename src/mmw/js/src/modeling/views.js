@@ -971,20 +971,25 @@ var ResultsView = Marionette.LayoutView.extend({
                 this.aoiRegion.currentView.$el.removeClass('hidden');
                 this.analyzeRegion.$el.addClass('active');
                 this.monitorRegion.$el.removeClass('active');
+                this.monitorRegion.currentView.setVisibility(false);
                 this.modelingRegion.$el.removeClass('active');
                 break;
             case utils.MONITOR:
-                if (App.map.get('dataCatalogDetailResult') === null) {
+                if (App.map.get('dataCatalogDetailResult') !== null) {
+                    this.aoiRegion.currentView.$el.addClass('hidden');
+                } else {
                     this.aoiRegion.currentView.$el.removeClass('hidden');
                 }
                 this.analyzeRegion.$el.removeClass('active');
                 this.monitorRegion.$el.addClass('active');
+                this.monitorRegion.currentView.setVisibility(true);
                 this.modelingRegion.$el.removeClass('active');
                 break;
             case utils.MODEL:
                 this.aoiRegion.currentView.$el.addClass('hidden');
                 this.analyzeRegion.$el.removeClass('active');
                 this.monitorRegion.$el.removeClass('active');
+                this.monitorRegion.currentView.setVisibility(false);
                 this.modelingRegion.$el.addClass('active');
                 break;
         }
