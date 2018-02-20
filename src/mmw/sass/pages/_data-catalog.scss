@@ -1,6 +1,5 @@
 .data-catalog-window {
     transition: all 200ms;
-    display: flex;
     flex-direction: column;
 
     .tab-contents-region {
@@ -154,7 +153,6 @@
     }
 
     .output-tabs-wrapper {
-        flex: 1;
         display: flex;
         flex-direction: column;
         overflow-y: auto;
