@@ -92,6 +92,10 @@
             position: fixed;
             bottom: 68px;
             width: $sidebar-width;
+
+            .model-stage-monitor-tab-pane & {
+                bottom: 0;
+            }
         }
     }
 

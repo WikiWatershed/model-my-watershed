@@ -82,6 +82,22 @@
   }
 }
 
+.model-stage-monitor-tab-pane {
+  .tab-content {
+    // Set a specific height to allow y-scroll:
+    // Calc height under the main header (height-lg), aoi region (aoi-header-height),
+    // and Modeling Sub Header (height-xl)
+    // and monitor nav tabs (sidebar-header-height)
+    // and search form (46px)
+    height: calc(100% - #{$height-lg} - #{$height-xl} - #{$aoi-header-height} - 42px - 46px - #{$sidebar-header-height}) !important;
+
+    &.paginated {
+      // Also account for pagination region (54px)
+      height: calc(100% - #{$height-lg} - #{$height-xl} - #{$aoi-header-height} - 42px - 46px - #{$sidebar-header-height} - 54px) !important;
+    }
+  }
+}
+
 .data-catalog-stage-results-tab-pane {
     .tab-content {
       // Set a specific height to allow y-scroll:

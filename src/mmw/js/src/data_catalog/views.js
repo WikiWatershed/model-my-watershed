@@ -486,7 +486,7 @@ var TabContentView = Marionette.LayoutView.extend({
 });
 
 var TabContentsView = Marionette.CollectionView.extend({
-    className: 'catalog-tab-content tab-content',
+    className: 'catalog-tab-content tab-content paginated',
     childView: TabContentView
 });
 
