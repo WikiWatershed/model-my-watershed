@@ -52,7 +52,7 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
     },
 
     modelEvents: {
-        'change:showing_analyze': 'toggleToolbar',
+        'change:sidebar_mode': 'toggleToolbar',
     },
 
     initialize: function() {
@@ -64,12 +64,12 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
     },
 
     toggleToolbar: function() {
-        this.ui.scenarioAndToolbarContainer.toggleClass('hidden');
-
-        if (this.model.get('showing_analyze')) {
-            App.map.setAnalyzeModelSize();
-        } else {
+        if (this.model.get('sidebar_mode') === utils.MODEL) {
+            this.ui.scenarioAndToolbarContainer.removeClass('hidden');
             App.map.setModelSize();
+        } else {
+            this.ui.scenarioAndToolbarContainer.addClass('hidden');
+            App.map.setAnalyzeModelSize();
         }
     },
 
@@ -126,6 +126,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
         newProject: '#new-project',
         changeAoI: '#change-aoi',
         showAnalyze: '#show-analyze',
+        showMonitor: '#show-monitor',
         showModel: '#show-model',
         modelDescriptionIcon: '#model-desc-icon'
     },
@@ -140,6 +141,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
         'click @ui.newProject': 'createNewProject',
         'click @ui.changeAoI': 'createNewProject',
         'click @ui.showAnalyze': 'showAnalyze',
+        'click @ui.showMonitor': 'showMonitor',
         'click @ui.showModel': 'showModel',
     },
 
@@ -295,11 +297,15 @@ var ProjectMenuView = Marionette.ItemView.extend({
     },
 
     showAnalyze: function() {
-        this.model.set('showing_analyze', true);
+        this.model.set('sidebar_mode', utils.ANALYZE);
+    },
+
+    showMonitor: function() {
+        this.model.set('sidebar_mode', utils.MONITOR);
     },
 
     showModel: function() {
-        this.model.set('showing_analyze', false);
+        this.model.set('sidebar_mode', utils.MODEL);
     }
 });
 
@@ -898,7 +904,7 @@ var ResultsView = Marionette.LayoutView.extend({
     },
 
     modelEvents: {
-        'change:showing_analyze': 'toggleAoiRegion',
+        'change:sidebar_mode': 'toggleAoiRegion',
     },
 
     initialize: function(options) {
@@ -950,16 +956,15 @@ var ResultsView = Marionette.LayoutView.extend({
     },
 
     toggleAoiRegion: function() {
-        this.aoiRegion.$el.toggleClass('hidden');
-
-        if (this.model.get('showing_analyze')) {
-            this.showAoiRegion();
+        if (this.model.get('sidebar_mode') === utils.MODEL) {
+            this.aoiRegion.$el.addClass('hidden');
+            this.analyzeRegion.$el.removeClass('active');
+            this.modelingRegion.$el.addClass('active');
         } else {
-            this.aoiRegion.empty();
+            this.aoiRegion.$el.removeClass('hidden');
+            this.analyzeRegion.$el.addClass('active');
+            this.modelingRegion.$el.removeClass('active');
         }
-
-        this.analyzeRegion.$el.toggleClass('active');
-        this.modelingRegion.$el.toggleClass('active');
     },
 
     transitionInCss: {

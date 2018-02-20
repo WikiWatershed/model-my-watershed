@@ -31,6 +31,12 @@ var utils = {
 
     TR55_PACKAGE: 'tr-55',
 
+    ANALYZE: 'ANALYZE',
+
+    MONITOR: 'MONITOR',
+
+    MODEL: 'MODEL',
+
     splashPageTitle: settings.get('title'),
 
     selectAreaPageTitle: 'Choose Area of Interest',

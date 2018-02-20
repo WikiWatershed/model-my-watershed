@@ -134,7 +134,7 @@ var ProjectModel = Backbone.Model.extend({
         gis_data: null,                    // Additionally gathered data, such as MapShed for GWLF-E
         needs_reset: false,                // Should we overwrite project data on next save?
         allow_save: true,                  // Is allowed to save to the server - false in compare mode
-        show_analyze: false,               // Show analyze results in the sidebar?
+        sidebar_mode: utils.MODEL,         // The current mode of the sidebar. ANALYZE, MONITOR, or MODEL.
         is_exporting: false,               // Is the project currently exporting?
         hydroshare_errors: [],             // List of errors from connecting to hydroshare
     },
