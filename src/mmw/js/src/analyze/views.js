@@ -1158,30 +1158,7 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
         var data = this.model.get('categories'),
             dataName = this.model.get('name'),
             timestamp = new Date().toISOString(),
-            filename = '';
-
-        switch (dataName) {
-            case 'land':
-                filename = 'nlcd_land_cover_';
-                break;
-            case 'soil':
-                filename = 'nlcd_soils_';
-                break;
-            case 'animals':
-                filename = 'animal_estimate_';
-                break;
-            case 'pointsource':
-                filename = 'pointsource_';
-                break;
-            case 'catchment_water_quality':
-                filename = 'catchment_water_quality_';
-                break;
-            default:
-                filename = this.model.get('name');
-                break;
-        }
-
-        filename = filename + timestamp;
+            filename = 'analyze_' + this.model.get('name') + '_' + timestamp;
 
         // Render an unpaginated table for tables that can be paginated.
         if (dataName === 'pointsource' || dataName === 'catchment_water_quality') {
