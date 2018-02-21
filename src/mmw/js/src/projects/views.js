@@ -135,7 +135,7 @@ var ProjectRowView = Marionette.ItemView.extend({
 
     openProject: function() {
         App.clearAnalyzeCollection();
-        App.clearDataCatalogCollection();
+        App.clearDataCatalog();
         App.map.set({
             'areaOfInterest': null,
             'areaOfInterestName': '',

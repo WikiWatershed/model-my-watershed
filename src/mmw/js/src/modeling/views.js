@@ -13,7 +13,6 @@ var _ = require('lodash'),
     coreViews = require('../core/views'),
     gwlfeConfig = require('./gwlfeModificationConfig'),
     analyzeViews = require('../analyze/views'),
-    dataCatalogModels = require('../data_catalog/models'),
     dataCatalogViews = require('../data_catalog/views'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
@@ -935,7 +934,7 @@ var ResultsView = Marionette.LayoutView.extend({
         var scenarios = this.model.get('scenarios'),
             scenario = scenarios.getActiveScenario(),
             analyzeCollection = App.getAnalyzeCollection(),
-            dataCatalogCollection = App.getDataCatalogCollection();
+            dataCatalog = App.getDataCatalog();
 
         // Add AoI Region but do not show it by default
         this.aoiRegion.show(new analyzeViews.AoiView({
@@ -951,10 +950,9 @@ var ResultsView = Marionette.LayoutView.extend({
             collection: analyzeCollection
         }));
 
-        this.monitorRegion.show(new dataCatalogViews.DataCatalogWindow({
-            model: new dataCatalogModels.SearchForm(),
-            collection: dataCatalogCollection
-        }));
+        this.monitorRegion.show(new dataCatalogViews.DataCatalogWindow(
+            dataCatalog
+        ));
 
         if (scenario) {
             this.modelingRegion.show(new ResultsDetailsView({

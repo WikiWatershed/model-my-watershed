@@ -120,16 +120,20 @@ var App = new Marionette.Application({
         delete this.analyzeCollection;
     },
 
-    getDataCatalogCollection: function() {
-        if (!this.dataCatalogCollection) {
-            this.dataCatalogCollection = dataCatalogModels.createCatalogCollection();
+    getDataCatalog: function() {
+        if (!this.dataCatalog) {
+            this.dataCatalog = {
+                model: new dataCatalogModels.SearchForm(),
+                collection: dataCatalogModels.createCatalogCollection()
+            };
         }
 
-        return this.dataCatalogCollection;
+        return this.dataCatalog;
     },
 
-    clearDataCatalogCollection: function() {
-        delete this.dataCatalogCollection;
+    clearDataCatalog: function() {
+        delete this.dataCatalog;
+
         this.map.set({
             'dataCatalogResults': null,
             'dataCatalogActiveResult': null,

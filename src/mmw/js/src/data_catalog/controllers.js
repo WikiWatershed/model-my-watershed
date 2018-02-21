@@ -3,7 +3,6 @@
 var App = require('../app'),
     router = require('../router').router,
     coreUtils = require('../core/utils'),
-    models = require('./models'),
     views = require('./views');
 
 var DataCatalogController = {
@@ -21,14 +20,7 @@ var DataCatalogController = {
             'active_page': coreUtils.dataCatalogPageTitle,
         });
 
-        var form = new models.SearchForm();
-
-        var catalogs = App.getDataCatalogCollection();
-
-        var resultsWindow = new views.ResultsWindow({
-                model: form,
-                collection: catalogs
-            }),
+        var resultsWindow = new views.ResultsWindow(App.getDataCatalog()),
             header = new views.HeaderView();
 
         App.rootView.subHeaderRegion.show(header);
