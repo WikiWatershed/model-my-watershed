@@ -130,6 +130,11 @@ var App = new Marionette.Application({
 
     clearDataCatalogCollection: function() {
         delete this.dataCatalogCollection;
+        this.map.set({
+            'dataCatalogResults': null,
+            'dataCatalogActiveResult': null,
+            'dataCatalogDetailResult': null,
+        });
     },
 
     getMapView: function() {

@@ -265,6 +265,7 @@ var MapView = Marionette.ItemView.extend({
         'change:areaOfInterest': 'updateAreaOfInterest',
         'change:size': 'toggleMapSize',
         'change:maskLayerApplied': 'toggleMask',
+        'change:dataCatalogVisible': 'toggleDataCatalog',
         'change:dataCatalogResults': 'renderDataCatalogResults',
         'change:dataCatalogActiveResult': 'renderDataCatalogActiveResult',
         'change:dataCatalogDetailResult': 'renderDataCatalogDetailResult',
@@ -463,10 +464,8 @@ var MapView = Marionette.ItemView.extend({
             this.updateGoogleMaxZoom({ target: this._leafletMap });
         }
 
-        if (settings.get('data_catalog_enabled')) {
-            this._leafletMap.on('zoomend', this.renderDataCatalogDetailResult, this);
-            this._leafletMap.on('moveend', this.renderDataCatalogDetailResult, this);
-        }
+        this._leafletMap.on('zoomend', this.renderDataCatalogDetailResult, this);
+        this._leafletMap.on('moveend', this.renderDataCatalogDetailResult, this);
     },
 
     onBeforeDestroy: function() {
@@ -760,6 +759,32 @@ var MapView = Marionette.ItemView.extend({
         });
     },
 
+    // Set various data catalog styles based on current visibility
+    refreshDataCatalogStyles: function() {
+        var visibility = this.model.get('dataCatalogVisible');
+
+        this.toggleDataCatalog(this.model, visibility);
+    },
+
+    toggleDataCatalog: function(model, visibility) {
+        var style =
+            visibility ?
+                { opacity: 1, fill: true } :
+                { opacity: 0, fill: false };
+
+        this._dataCatalogResultsLayer.setStyle(style);
+        this._dataCatalogActiveLayer.setStyle(style);
+        this._dataCatalogDetailLayer.setStyle(style);
+
+        if (visibility) {
+            $('div.map-highlight').removeClass('hidden');
+        } else {
+            this._dataCatalogResultsLayer.removeEventListener();
+            this._leafletMap.closePopup();
+            $('div.map-highlight').addClass('hidden');
+        }
+    },
+
     createDataCatalogShape: function(result) {
         var geom = result.get('geom'),
             style = dataCatalogPolygonStyle,
@@ -780,8 +805,10 @@ var MapView = Marionette.ItemView.extend({
             onEachFeature: function(feature, layer) {
                 layer.on('mouseover', function() {
                     // Only highlight the layer if detail mode is not active
+                    // and data catalog is visible
                     // and the layer bounds are within the viewport
                     if (self._dataCatalogDetailLayer.getLayers().length === 0 &&
+                        self.model.get('dataCatalogVisible') &&
                         self._leafletMap.getBounds().contains(layer.getBounds())) {
                         layer.setStyle(dataCatalogActiveStyle);
                         result.set('active', true);
@@ -789,7 +816,8 @@ var MapView = Marionette.ItemView.extend({
                 });
 
                 layer.on('mouseout', function() {
-                    if (self._dataCatalogDetailLayer.getLayers().length === 0) {
+                    if (self._dataCatalogDetailLayer.getLayers().length === 0 &&
+                        self.model.get('dataCatalogVisible')) {
                         if (geom.type === 'Point') {
                             // Preserve highlight of marker if popup is open.
                             // It will get restyled when the popup is closed.
@@ -821,6 +849,8 @@ var MapView = Marionette.ItemView.extend({
 
         // Close any popup that might be on the map
         this._leafletMap.closePopup();
+
+        this.refreshDataCatalogStyles();
     },
 
     renderDataCatalogActiveResult: function() {
@@ -828,6 +858,8 @@ var MapView = Marionette.ItemView.extend({
 
         this._renderDataCatalogResult(result, this._dataCatalogActiveLayer,
             'bigcz-highlight-map', dataCatalogActiveStyle);
+
+        this.refreshDataCatalogStyles();
     },
 
     renderDataCatalogDetailResult: function() {
@@ -838,11 +870,13 @@ var MapView = Marionette.ItemView.extend({
 
         // Close any popup that might be on the map
         this._leafletMap.closePopup();
+
+        this.refreshDataCatalogStyles();
     },
 
     _renderDataCatalogResult: function(result, featureGroup, className, style) {
         featureGroup.clearLayers();
-        $("div.map-highlight").remove();
+        $('div.map-highlight.' + className).remove();
 
         // If nothing is selected, exit early
         if (!result) { return; }
@@ -914,6 +948,7 @@ var MapView = Marionette.ItemView.extend({
                     layer.once('popupclose', function() {
                         layer.setStyle(dataCatalogPointStyle);
                         result.set('active', false);
+                        self.refreshDataCatalogStyles();
                     });
 
                     return;
@@ -944,6 +979,7 @@ var MapView = Marionette.ItemView.extend({
                     _.forEach(intersectingResults, function(result) {
                         result.set('active', false);
                     });
+                    self.refreshDataCatalogStyles();
                 });
         };
 

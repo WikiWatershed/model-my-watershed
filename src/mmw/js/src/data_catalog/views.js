@@ -110,6 +110,15 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         'change:detail_result': 'onDetailResultChange'
     },
 
+    onBeforeDestroy: function() {
+        this.setVisibility(false);
+        App.map.set({
+            'dataCatalogResults': null,
+            'dataCatalogActiveResult': null,
+            'dataCatalogDetailResult': null,
+        });
+    },
+
     onShow: function() {
         this.formRegion.show(new FormView({
             model: this.model,
@@ -134,6 +143,13 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         var nextCatalog = this.collection.get(catalogId);
         nextCatalog.set('active', true);
 
+        // Set pagination class for height adjustment
+        if (nextCatalog.get('is_pageable')) {
+            this.contentsRegion.currentView.$el.addClass('paginated');
+        } else {
+            this.contentsRegion.currentView.$el.removeClass('paginated');
+        }
+
         this.doSearch();
     },
 
@@ -143,9 +159,17 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
             detailResult = activeCatalog.get('detail_result');
 
         if (!detailResult) {
-            this.closeDetails();
+            this.detailsRegion.empty();
+            this.updateMap();
             App.map.set('dataCatalogDetailResult', null);
+            this.formRegion.$el.removeClass('hidden');
+            this.panelsRegion.$el.removeClass('hidden');
+            this.contentsRegion.$el.removeClass('hidden');
         } else {
+            this.formRegion.$el.addClass('hidden');
+            this.panelsRegion.$el.addClass('hidden');
+            this.contentsRegion.$el.addClass('hidden');
+            this.hideFilterSidebar();
             this.detailsRegion.show(new ResultDetailsView({
                 model: detailResult,
                 catalog: activeCatalog.id
@@ -155,11 +179,6 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
                 'dataCatalogDetailResult': detailResult
             });
         }
-    },
-
-    closeDetails: function() {
-        this.detailsRegion.empty();
-        this.updateMap();
     },
 
     doSearch: function() {
@@ -181,9 +200,39 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
 
         if (catalog) {
             App.map.set('dataCatalogResults', catalog.get('results'));
+            this.bindDataCatalogPopovers(catalog);
+        }
+    },
+
+    bindDataCatalogPopovers: function(catalog) {
+        if (!catalog) {
+            catalog = this.collection.getActiveCatalog();
+        }
+
+        if (catalog) {
             App.getMapView().bindDataCatalogPopovers(
                 ResultMapPopoverDetailView, ResultMapPopoverControllerView,
                 catalog.id, catalog.get('results'));
+        }
+    },
+
+    hideFilterSidebar: function() {
+        if (App.rootView.secondarySidebarRegion.hasView()) {
+            App.rootView.secondarySidebarRegion.empty();
+            App.map.toggleSecondarySidebar();
+        }
+    },
+
+    // Enables or disables map item visibility
+    // For when the DataCatalogWindow is loaded but hidden
+    // Such as when showing the Analyze or Model tab instead of Monitor
+    setVisibility: function(visible) {
+        App.map.set('dataCatalogVisible', visible);
+
+        if (visible) {
+            this.bindDataCatalogPopovers();
+        } else {
+            this.hideFilterSidebar();
         }
     }
 });
@@ -197,7 +246,7 @@ var FormView = Marionette.ItemView.extend({
 
     ui: {
         filterToggle: '.filter-sidebar-toggle',
-        searchInput: '.data-catalog-search-input',
+        searchInput: 'input[type="text"]',
         downloadButton: '#bigcz-catalog-results-download',
     },
 
@@ -1217,6 +1266,7 @@ var FilterSidebar = Marionette.CompositeView.extend({
 
     className: 'data-catalog-filter-window',
     template: filterSidebarTmpl,
+    childViewContainer: '.data-catalog-filter-groups',
 
     ui: {
         reset: '[data-action="reset-filters"]'
@@ -1267,6 +1317,7 @@ var FilterSidebar = Marionette.CompositeView.extend({
 
 
 module.exports = {
+    DataCatalogWindow: DataCatalogWindow,
     HeaderView: HeaderView,
     ResultsWindow: ResultsWindow
 };

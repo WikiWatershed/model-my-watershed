@@ -20,7 +20,7 @@ var $ = require('jquery'),
     pointSourceLayer = require('../core/pointSourceLayer'),
     catchmentWaterQualityLayer = require('../core/catchmentWaterQualityLayer'),
     dataCatalogModels = require('../data_catalog/models'),
-    monitorViews = require('../monitor/views'),
+    dataCatalogViews = require('../data_catalog/views'),
     windowTmpl = require('./templates/window.html'),
     AnalyzeDescriptionTmpl = require('./templates/analyzeDescription.html'),
     analyzeResultsTmpl = require('./templates/analyzeResults.html'),
@@ -187,6 +187,8 @@ var ResultsView = Marionette.LayoutView.extend({
     },
 
     events: {
+        'shown.bs.tab a[href="#analyze-tab-contents"]': 'onAnalyzeTabShown',
+        'shown.bs.tab a[href="#monitor-tab-contents"]': 'onMonitorTabShown',
         'click @ui.changeArea': 'changeArea'
     },
 
@@ -225,7 +227,7 @@ var ResultsView = Marionette.LayoutView.extend({
             collection: this.collection
         }));
 
-        this.monitorRegion.show(new monitorViews.MonitorWindow({
+        this.monitorRegion.show(new dataCatalogViews.DataCatalogWindow({
             model: new dataCatalogModels.SearchForm(),
             collection: App.getDataCatalogCollection(),
         }));
@@ -257,6 +259,21 @@ var ResultsView = Marionette.LayoutView.extend({
             self.trigger('animateIn');
         });
     },
+
+    onAnalyzeTabShown: function() {
+        // Hide Monitor items from the map
+        this.monitorRegion.currentView.setVisibility(false);
+        // Always show AoI region
+        this.aoiRegion.currentView.$el.removeClass('hidden');
+    },
+
+    onMonitorTabShown: function() {
+        this.monitorRegion.currentView.setVisibility(true);
+        // Hide AoI Region if details open
+        if (App.map.get('dataCatalogDetailResult') !== null) {
+            this.aoiRegion.currentView.$el.addClass('hidden');
+        }
+    }
 });
 
 var AnalyzeWindow = Marionette.LayoutView.extend({
@@ -393,6 +410,17 @@ var AoiView = Marionette.ItemView.extend({
     events: {
         'click @ui.dlShapefile': 'downloadShapefile',
         'click @ui.dlGeojson': 'downloadGeojson',
+    },
+
+    initialize: function() {
+        // Toggle AoiView when showing Monitor details
+        this.listenTo(App.map, 'change:dataCatalogDetailResult', function(map, newValue) {
+            if (newValue === null) {
+                this.$el.removeClass('hidden');
+            } else {
+                this.$el.addClass('hidden');
+            }
+        });
     },
 
     templateHelpers: function() {
