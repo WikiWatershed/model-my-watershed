@@ -107,6 +107,8 @@ var ModelingController = {
             }
             setPageTitle();
         }
+
+        $('body').addClass('modeling-stage');
     },
 
     makeNewProject: function(modelPackage) {
@@ -138,6 +140,8 @@ var ModelingController = {
             updateUrl();
             setPageTitle();
         }
+
+        $('body').addClass('modeling-stage');
     },
 
     projectCleanUp: function() {
@@ -284,6 +288,8 @@ function projectCleanUp() {
     App.rootView.compareRegion.empty();
     App.clearAnalyzeCollection();
     App.clearDataCatalog();
+
+    $('body').removeClass('modeling-stage');
 }
 
 function projectErrorState() {
