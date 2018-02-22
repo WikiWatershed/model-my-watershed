@@ -317,7 +317,7 @@ function updateUrl() {
 }
 
 function updateScenario(scenario) {
-    App.getMapView().updateModifications(scenario.get('modifications'));
+    App.getMapView().updateModifications(scenario);
     updateUrl();
 }
 

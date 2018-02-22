@@ -9,8 +9,10 @@
         <td class='strong text-right'>{{ effectiveArea|round(2)|toLocaleString(2) }} {{ effectiveUnits }}</td>
     </tr>
 </table>
+{% if editable %}
 <span>
     <button class="btn btn-sm btn-icon dark delete-modification" type="button">
         <i class="fa fa-trash"></i> Remove modification
     </button>
 </span>
+{% endif %}

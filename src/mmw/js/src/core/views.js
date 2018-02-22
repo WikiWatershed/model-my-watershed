@@ -630,9 +630,15 @@ var MapView = Marionette.ItemView.extend({
 
     // Add GeoJSON layer for each modification model in modificationsColl.
     // Pass null or empty argument to clear modification layers.
-    updateModifications: function(modificationsColl) {
+    updateModifications: function(scenario) {
         var self = this,
-            map = this._leafletMap;
+            // The core.Views are initialized during App initialization.
+            // If App is required at the module level, which is typical,
+            // the object instance won't be available to invoke methods on.
+            App = require('../app'),
+            map = this._leafletMap,
+            modificationsColl = scenario ? scenario.get('modifications') : null,
+            editable = scenario ? App.user.userMatch(scenario.get('user_id')) : false;
 
         drawUtils.cancelDrawing(map);
         this._modificationsLayer.clearLayers();
@@ -648,7 +654,10 @@ var MapView = Marionette.ItemView.extend({
                             style: style,
                             onEachFeature: function(feature, layer) {
                                 if (self.options.interactiveMode) {
-                                    var popupContent = new ModificationPopupView({ model: model }).render().el;
+                                    var popupContent = new ModificationPopupView({
+                                        model: model,
+                                        editable: editable
+                                    }).render().el;
                                     layer.bindPopup(popupContent);
                                 }
                             }
@@ -1071,6 +1080,13 @@ var ModificationPopupView = Marionette.ItemView.extend({
 
     events: {
         'click @ui.delete': 'deleteModification'
+    },
+
+    templateHelpers: function() {
+        var editable = this.options.editable;
+        return {
+            editable: editable
+        };
     },
 
     deleteModification: function() {

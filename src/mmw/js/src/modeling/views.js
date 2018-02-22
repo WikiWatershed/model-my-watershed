@@ -657,8 +657,7 @@ var ScenarioModelToolbarView = Marionette.CompositeView.extend({
 
     updateMap: function() {
         if (this.model.get('active')) {
-            var modificationsColl = this.model.get('modifications');
-            App.getMapView().updateModifications(modificationsColl);
+            App.getMapView().updateModifications(this.model);
         }
     },
 
