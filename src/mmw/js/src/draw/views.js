@@ -1154,7 +1154,7 @@ function clearAoiLayer() {
     App.projectNumber = undefined;
     App.map.setDrawSize(false);
     App.clearAnalyzeCollection();
-    App.clearDataCatalogCollection();
+    App.clearDataCatalog();
 
     return function revertLayer() {
         App.map.set({

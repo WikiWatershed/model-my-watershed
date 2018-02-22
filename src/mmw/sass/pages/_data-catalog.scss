@@ -92,6 +92,10 @@
             position: fixed;
             bottom: 68px;
             width: $sidebar-width;
+
+            .model-stage-monitor-tab-pane & {
+                bottom: 0;
+            }
         }
     }
 
@@ -347,124 +351,140 @@
     position: absolute;
     bottom: 0;
     top: 44px;
-}
 
-.data-catalog-filter-window > .data-catalog-filters-header {
-    display: flex;
-    flex-direction: row;
-    height: 42px;
-    padding: 0 calc(1rem + 2px);
-    background-color: $black-06;
-    border-bottom: 1px solid $black-12;
-
-    > .filter-title {
-        font-size: 16px;
-        font-weight: 800;
-        line-height: 42px;
+    body.modeling-stage & {
+        top: 91px;
     }
 
-    > .btn-reset {
-        margin-left: auto;
-        font-weight: 600;
-        color: $brand-primary;
-        font-size: 13px;
-        line-height: 42px;
-    }
-}
+    .data-catalog-filters-header {
+        display: flex;
+        flex-direction: row;
+        height: 42px;
+        padding: 0 calc(1rem + 2px);
+        background-color: $black-06;
+        border-bottom: 1px solid $black-12;
 
-.data-catalog-filter-window > .data-catalog-filter-groups {
-    padding: 1rem;
-    border-left: 2px solid $ui-light;
-    flex: 1;
+        body.modeling-stage & {
+            height: 47px;
+        }
 
-    & > .data-catalog-filter-group {
-        h5,
-        label {
-            font-weight: 700;
-            margin-top: 4px;
-            font-size: 12px;
-            color: #4d6d82;
+        > .filter-title {
+            font-size: 16px;
+            font-weight: 800;
+            line-height: 42px;
+
+            body.modeling-stage & {
+                line-height: 47px;
+            }
+        }
+
+        > .btn-reset {
+            margin-left: auto;
+            font-weight: 600;
+            color: $brand-primary;
+            font-size: 13px;
+            line-height: 42px;
+
+            body.modeling-stage & {
+                line-height: 47px;
+            }
         }
     }
-}
 
-.data-catalog-filter-group .data-catalog-filter-checkbox {
-    input[type=checkbox] {
-      position: relative;
-      margin-right: 5px;
-      display: none;
-      &:checked + .checkbox--styled {
-        background-color: $brand-primary;
-        border-color: $brand-primary;
-        text-align: center;
-        &:after {
-            content: "\f00c";
-            font-family: FontAwesome;
-            color: #fff;
-            position: absolute;
-            left: 0;
-            right: 0;
-            line-height: 18px;
+    .data-catalog-filter-groups {
+        padding: 1rem;
+        border-left: 2px solid $ui-light;
+        flex: 1;
+
+        .data-catalog-filter-group {
+            h5,
+            label {
+                font-weight: 700;
+                margin-top: 4px;
+                font-size: 12px;
+                color: #4d6d82;
+            }
+
+            .data-catalog-filter-checkbox {
+                input[type=checkbox] {
+                  position: relative;
+                  margin-right: 5px;
+                  display: none;
+                  &:checked + .checkbox--styled {
+                    background-color: $brand-primary;
+                    border-color: $brand-primary;
+                    text-align: center;
+                    &:after {
+                        content: "\f00c";
+                        font-family: FontAwesome;
+                        color: #fff;
+                        position: absolute;
+                        left: 0;
+                        right: 0;
+                        line-height: 18px;
+                    }
+                  }
+                }
+
+                .checkbox--styled {
+                    display: inline-block;
+                    width: 18px;
+                    height: 18px;
+                    border: 0;
+                    border-radius: 2px;
+                    position: relative;
+                    margin-right: 3px;
+                    top: 3px;
+                    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+                    background-color: #fff;
+                }
+
+                input, .checkbox--styled {
+                    border: 1px solid #ccc;
+                }
+
+                label {
+                  font-size: $font-size-h4;
+                }
+            }
+
+            .data-catalog-search-dates {
+                padding: 0 10px;
+                margin: 0 -10px 0;
+
+                label {
+                    display: block;
+                    font-size: $font-size-h5;
+                }
+            }
+
+            .data-catalog-clearable-input {
+                width: 100%;
+                display: inline-block;
+                position: relative;
+            }
+
+            .data-catalog-date-input {
+                height: 38px;
+                border-radius: 0;
+                display: inline;
+                margin-bottom: 12px;
+            }
+
+            .data-catalog-clear-icon {
+                color: $ui-secondary;
+                position: relative;
+                font-size: 13px;
+                position: absolute;
+                right: 10px;
+                top: 10px;
+            }
+
+            .data-catalog-validation-msg {
+                color: $ui-danger;
+                margin-top: 8px;
+            }
         }
-      }
-    }
-
-    .checkbox--styled {
-        display: inline-block;
-        width: 18px;
-        height: 18px;
-        border: 0;
-        border-radius: 2px;
-        position: relative;
-        margin-right: 3px;
-        top: 3px;
-        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-        background-color: #fff;
-    }
-
-    input, .checkbox--styled {
-        border: 1px solid #ccc;
-    }
-
-    label {
-      font-size: $font-size-h4;
-    }
-}
-
-.data-catalog-filter-group .data-catalog-search-dates {
-    padding: 0 10px;
-    margin: 0 -10px 0;
-
-    label {
-        display: block;
-        font-size: $font-size-h5;
-    }
-}
-
-.data-catalog-filter-group {
-    .data-catalog-clearable-input {
-        width: 100%;
-        display: inline-block;
-        position: relative;
-    }
-    .data-catalog-date-input {
-        height: 38px;
-        border-radius: 0;
-        display: inline;
-        margin-bottom: 12px;
-    }
-    .data-catalog-clear-icon {
-        color: $ui-secondary;
-        position: relative;
-        font-size: 13px;
-        position: absolute;
-        right: 10px;
-        top: 10px;
-    }
-
-    .data-catalog-validation-msg {
-        color: $ui-danger;
-        margin-top: 8px;
     }
 }
 
@@ -480,7 +500,6 @@
             // and the Analyze / Monitor tabs (42px)
             // and above the next-stage-region (68px)
             height: calc(100% - #{$height-lg} - 42px - 68px) !important;
-            margin-top: -20px;
         }
     }
 

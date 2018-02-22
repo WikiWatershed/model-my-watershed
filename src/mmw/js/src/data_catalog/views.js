@@ -130,6 +130,15 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         this.showChildView('contentsRegion', new TabContentsView({
             collection: this.collection
         }));
+
+        // Show search results if query already exists
+        if (this.model.get('query') !== '') {
+            this.ui.introText.addClass('hide');
+            this.ui.tabs.removeClass('hide');
+
+            // Show detail result if selected
+            this.onDetailResultChange();
+        }
     },
 
     onSelectCatalog: function(childView, catalogId) {
@@ -486,7 +495,7 @@ var TabContentView = Marionette.LayoutView.extend({
 });
 
 var TabContentsView = Marionette.CollectionView.extend({
-    className: 'catalog-tab-content tab-content',
+    className: 'catalog-tab-content tab-content paginated',
     childView: TabContentView
 });
 
