@@ -352,6 +352,10 @@
     bottom: 0;
     top: 44px;
 
+    body.modeling-stage & {
+        top: 91px;
+    }
+
     .data-catalog-filters-header {
         display: flex;
         flex-direction: row;
@@ -360,10 +364,18 @@
         background-color: $black-06;
         border-bottom: 1px solid $black-12;
 
+        body.modeling-stage & {
+            height: 47px;
+        }
+
         > .filter-title {
             font-size: 16px;
             font-weight: 800;
             line-height: 42px;
+
+            body.modeling-stage & {
+                line-height: 47px;
+            }
         }
 
         > .btn-reset {
@@ -372,6 +384,10 @@
             color: $brand-primary;
             font-size: 13px;
             line-height: 42px;
+
+            body.modeling-stage & {
+                line-height: 47px;
+            }
         }
     }
 
