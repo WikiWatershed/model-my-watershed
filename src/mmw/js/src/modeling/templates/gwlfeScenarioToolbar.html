@@ -39,9 +39,11 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                {% if editable %}
                 <button class="btn btn-sm btn-icon dark delete-modification" type="button">
                     <i class="fa fa-trash"></i>  Remove modification
                 </button>
+                {% endif %}
             </div>
         </div>
     {% endif %}
