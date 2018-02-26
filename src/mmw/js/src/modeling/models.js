@@ -439,6 +439,18 @@ var ProjectModel = Backbone.Model.extend({
             lowerAndHyphenate = function(name) {
                     return name.toLowerCase().replace(/\s/g, '-');
                 },
+            modelingFiles = _.flatten(scenarios.map(function(s) {
+                    return s.get('results').map(function(r) {
+                        return {
+                            name: 'scenario_' +
+                                    lowerAndHyphenate(s.get('name')) +
+                                    '_' +
+                                    lowerAndHyphenate(r.get('displayName')) +
+                                    '.json',
+                            contents: JSON.stringify(r.get('result')),
+                        };
+                    });
+                })),
             getMapshedData = function(scenario) {
                     var gisData = scenario.getGisData();
                     if (!gisData) { return null; }
@@ -462,7 +474,7 @@ var ProjectModel = Backbone.Model.extend({
             url: '/export/hydroshare?project=' + self.id,
             contentType: 'application/json',
             data: JSON.stringify(_.defaults({
-                files: analyzeFiles,
+                files: analyzeFiles.concat(modelingFiles),
                 mapshed_data: mapshedData,
             }, payload))
         }).done(function(result) {
