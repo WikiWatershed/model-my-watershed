@@ -657,8 +657,7 @@ var ScenarioModelToolbarView = Marionette.CompositeView.extend({
 
     updateMap: function() {
         if (this.model.get('active')) {
-            var modificationsColl = this.model.get('modifications');
-            App.getMapView().updateModifications(modificationsColl);
+            App.getMapView().updateModifications(this.model);
         }
     },
 
@@ -801,14 +800,15 @@ var GwlfeToolbarView = ScenarioModelToolbarView.extend({
 
     templateHelpers: function() {
         var activeMod = this.getActiveMod(),
-            modifications = this.model.get('modifications').toJSON();
+            modifications = this.model.get('modifications').toJSON(),
+            editable = isEditable(this.model);
 
         activeMod = activeMod ? activeMod.toJSON() : null;
-
         return {
             modifications: modifications,
             activeMod: activeMod,
-            displayNames: gwlfeConfig.displayNames
+            displayNames: gwlfeConfig.displayNames,
+            editable: editable
         };
     }
 });
@@ -881,13 +881,15 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
         var gisData = this.currentConditions.getGisData().model_input,
             isGwlfe = this.modelPackage === utils.GWLFE && !_.isEmpty(gisData),
             isOnlyCurrentConditions = this.collection.length === 1 &&
-                this.collection.first().get('is_current_conditions');
+                this.collection.first().get('is_current_conditions'),
+            editable = isEditable(this.model);
 
         return {
             isOnlyCurrentConditions: isOnlyCurrentConditions,
             isGwlfe: isGwlfe,
             csrftoken: csrf.getToken(),
             gis_data: gisData,
+            editable: editable
         };
     },
 });

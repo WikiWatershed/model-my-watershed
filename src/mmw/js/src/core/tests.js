@@ -218,13 +218,27 @@ describe('Core', function() {
                         area: 100,
                         units: 'm<sup>2</sup>',
                     }),
-                    view = new views.ModificationPopupView({ model: model });
-
+                    view = new views.ModificationPopupView({ model: model, editable: true});
                 var spy = sinon.spy(model, 'destroy');
 
                 $(sandboxSelector).html(view.render().el);
                 $(sandboxSelector + ' .delete-modification').trigger('click');
                 assert.equal(spy.callCount, 1);
+
+                view.destroy();
+            });
+
+            it('does not show a delete button if the project is not editable', function() {
+                var model = new Backbone.Model({
+                    value: 'developed_low',
+                    shape: {},
+                    area: 100,
+                    units: 'm<sup>2</sup>',
+                }),
+                    view = new views.ModificationPopupView({ model: model, editable: false});
+
+                $(sandboxSelector).html(view.render().el);
+                assert.equal($(sandboxSelector + ' .delete-modification').length, 0, 'Expected no dom elements to have the .delete-modification class.');
 
                 view.destroy();
             });
