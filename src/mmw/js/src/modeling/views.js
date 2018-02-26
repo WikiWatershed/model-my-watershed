@@ -973,6 +973,7 @@ var ResultsView = Marionette.LayoutView.extend({
                 this.monitorRegion.$el.removeClass('active');
                 this.monitorRegion.currentView.setVisibility(false);
                 this.modelingRegion.$el.removeClass('active');
+                App.getMapView().updateModifications(null);
                 break;
             case utils.MONITOR:
                 if (App.map.get('dataCatalogDetailResult') !== null) {
@@ -984,6 +985,7 @@ var ResultsView = Marionette.LayoutView.extend({
                 this.monitorRegion.$el.addClass('active');
                 this.monitorRegion.currentView.setVisibility(true);
                 this.modelingRegion.$el.removeClass('active');
+                App.getMapView().updateModifications(null);
                 break;
             case utils.MODEL:
                 this.aoiRegion.currentView.$el.addClass('hidden');
@@ -991,6 +993,9 @@ var ResultsView = Marionette.LayoutView.extend({
                 this.monitorRegion.$el.removeClass('active');
                 this.monitorRegion.currentView.setVisibility(false);
                 this.modelingRegion.$el.addClass('active');
+                App.getMapView().updateModifications(
+                    this.model.get('scenarios').getActiveScenario()
+                );
                 break;
         }
     },
