@@ -435,22 +435,24 @@ var ProjectModel = Backbone.Model.extend({
                         contents: at.getResultCSV(),
                     };
                 }),
+            scenarios = self.get('scenarios'),
+            lowerAndHyphenate = function(name) {
+                    return name.toLowerCase().replace(/\s/g, '-');
+                },
             getMapshedData = function(scenario) {
                     var gisData = scenario.getGisData();
                     if (!gisData) { return null; }
 
                     return {
                         name: 'scenario_' +
-                                scenario.get('name')
-                                    .toLowerCase()
-                                    .replace(/\s/g, '-') +
+                                lowerAndHyphenate(scenario.get('name')) +
                                 '.gms',
                         data: gisData.model_input
                     };
                 },
             includeMapShedData = self.get('model_package') === utils.GWLFE,
             mapshedData = includeMapShedData ?
-                            self.get('scenarios').map(getMapshedData) :
+                            scenarios.map(getMapshedData) :
                             [];
 
         self.set('is_exporting', true);
