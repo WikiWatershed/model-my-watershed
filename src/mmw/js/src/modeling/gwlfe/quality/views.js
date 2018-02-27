@@ -60,8 +60,8 @@ var TableView = Marionette.CompositeView.extend({
     ui: {
         downloadLoadsCSV: '[data-action="download-csv-granular"]',
         downloadSummaryLoadsCSV: '[data-action="download-csv-summary"]',
-        landuseTable: 'table.landuse',
-        summaryTable: 'table.summary'
+        landuseTable: 'table.waterquality-landuse',
+        summaryTable: 'table.waterquality-summary'
     },
 
     events: {
@@ -91,10 +91,10 @@ var TableView = Marionette.CompositeView.extend({
             MeanFlowPerSecond: result.MeanFlowPerSecond,
             landUseColumns: landUseColumns,
             landUseRows: landUseRows,
-            landUseClassName: 'landuse',
+            landUseClassName: 'waterquality-landuse',
             summaryColumns: summaryColumns,
             summaryRows: summaryRows,
-            summaryClassName: 'summary',
+            summaryClassName: 'waterquality-summary',
             renderPrecision: {
                 summaryTable: [
                     {source: 'Total Loads (kg)', precision: 1},
