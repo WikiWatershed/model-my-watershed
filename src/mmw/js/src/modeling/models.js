@@ -436,27 +436,43 @@ var ProjectModel = Backbone.Model.extend({
                     };
                 }),
             scenarios = self.get('scenarios'),
+            currentScenario = scenarios.getActiveScenario(),
             lowerAndHyphenate = function(name) {
                     return name.toLowerCase().replace(/\s/g, '-');
                 },
-            modelingFiles = _.flatten(scenarios.map(function(s) {
-                    return s.get('results').map(function(r) {
+            modelName = (function() {
+                    switch(self.get('model_package')) {
+                        case utils.GWLFE:
+                            return "model_multiyear_";
+                        case utils.TR55_PACKAGE:
+                            return "model_sitestorm_";
+                        default:
+                            return "model_";
+                    }
+                })(),
+            modelFiles = _.flatten(scenarios.map(function(s) {
+                    // Cycle through all the scenarios
+                    scenarios.setActiveScenario(s);
+
+                    // Capture contents of every model results table
+                    return $('.fixed-table-body > .model-results-table').map(function() {
+                        var $this = $(this);
+
                         return {
-                            name: 'scenario_' +
-                                    lowerAndHyphenate(s.get('name')) +
-                                    '_' +
-                                    lowerAndHyphenate(r.get('displayName')) +
-                                    '.json',
-                            contents: JSON.stringify(r.get('result')),
+                            name: modelName +
+                                    lowerAndHyphenate(s.get('name')) + '_' +
+                                    $this.find('tbody').attr('data-mmw-table') +
+                                    '.csv',
+                            contents: $this.tableExport({ type: 'csv', outputMode: 'string' }),
                         };
-                    });
+                    }).toArray();
                 })),
             getMapshedData = function(scenario) {
                     var gisData = scenario.getGisData();
                     if (!gisData) { return null; }
 
                     return {
-                        name: 'scenario_' +
+                        name: 'model_multiyear_' +
                                 lowerAndHyphenate(scenario.get('name')) +
                                 '.gms',
                         data: gisData.model_input
@@ -467,6 +483,9 @@ var ProjectModel = Backbone.Model.extend({
                             scenarios.map(getMapshedData) :
                             [];
 
+        // Restore pre-selected scenario after generating model exports
+        scenarios.setActiveScenario(currentScenario);
+
         self.set('is_exporting', true);
 
         return $.ajax({
@@ -474,7 +493,7 @@ var ProjectModel = Backbone.Model.extend({
             url: '/export/hydroshare?project=' + self.id,
             contentType: 'application/json',
             data: JSON.stringify(_.defaults({
-                files: analyzeFiles.concat(modelingFiles),
+                files: analyzeFiles.concat(modelFiles),
                 mapshed_data: mapshedData,
             }, payload))
         }).done(function(result) {
