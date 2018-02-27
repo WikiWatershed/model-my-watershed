@@ -300,8 +300,23 @@ var TabPanelView = Marionette.ItemView.extend({
         role: 'presentation'
     },
 
+    ui: {
+        'tabPanelButton': 'a[data-toggle="tab"]',
+    },
+
+    events: {
+        'shown.bs.tab @ui.tabPanelButton': 'onTabShown',
+    },
+
     initialize: function() {
         this.listenTo(this.model, 'change:polling', this.render);
+    },
+
+    onTabShown: function() {
+        var targetId = this.ui.tabPanelButton.attr('href'),
+            chartEl = targetId + ' .bar-chart';
+
+        $(chartEl).trigger('bar-chart:refresh');
     }
 });
 
