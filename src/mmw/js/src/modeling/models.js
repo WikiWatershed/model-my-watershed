@@ -428,94 +428,107 @@ var ProjectModel = Backbone.Model.extend({
      */
     exportToHydroShare: function(payload) {
         var self = this,
-            analyzeTasks = App.getAnalyzeCollection(),
-            analyzeFiles = analyzeTasks.map(function(at) {
-                    return {
-                        name: 'analyze_' + at.get('name') + '.csv',
-                        contents: at.getResultCSV(),
-                    };
-                }),
-            scenarios = self.get('scenarios'),
-            currentScenario = scenarios.getActiveScenario(),
-            lowerAndHyphenate = function(name) {
-                    return name.toLowerCase().replace(/\s/g, '-');
-                },
-            modelName = (function() {
-                    switch(self.get('model_package')) {
-                        case utils.GWLFE:
-                            return "model_multiyear_";
-                        case utils.TR55_PACKAGE:
-                            return "model_sitestorm_";
-                        default:
-                            return "model_";
-                    }
-                })(),
-            modelFiles = _.flatten(scenarios.map(function(s) {
-                    // Cycle through all the scenarios
-                    scenarios.setActiveScenario(s);
+            deferred = $.Deferred(),
+            gatherData = function() {
+                var analyzeTasks = App.getAnalyzeCollection(),
+                    analyzeFiles = analyzeTasks.map(function(at) {
+                        return {
+                            name: 'analyze_' + at.get('name') + '.csv',
+                            contents: at.getResultCSV(),
+                        };
+                    }),
+                    scenarios = self.get('scenarios'),
+                    currentScenario = scenarios.getActiveScenario(),
+                    lowerAndHyphenate = function(name) {
+                        return name.toLowerCase().replace(/\s/g, '-');
+                    },
+                    modelName = (function() {
+                        switch(self.get('model_package')) {
+                            case utils.GWLFE:
+                                return "model_multiyear_";
+                            case utils.TR55_PACKAGE:
+                                return "model_sitestorm_";
+                            default:
+                                return "model_";
+                        }
+                    })(),
+                    modelFiles = _.flatten(scenarios.map(function(s) {
+                        // Cycle through all the scenarios
+                        scenarios.setActiveScenario(s);
 
-                    // Capture contents of every model results table
-                    return $('.fixed-table-body > .model-results-table').map(function() {
-                        var $this = $(this);
+                        // Capture contents of every model results table
+                        return $('.fixed-table-body > .model-results-table').map(function() {
+                            var $this = $(this);
+
+                            return {
+                                name: modelName +
+                                        lowerAndHyphenate(s.get('name')) + '_' +
+                                        $this.find('tbody').attr('data-mmw-table') +
+                                        '.csv',
+                                contents: $this.tableExport({
+                                    type: 'csv',
+                                    outputMode: 'string'
+                                }),
+                            };
+                        }).toArray();
+                    })),
+                    getMapshedData = function(scenario) {
+                        var gisData = scenario.getGisData();
+                        if (!gisData) { return null; }
 
                         return {
-                            name: modelName +
-                                    lowerAndHyphenate(s.get('name')) + '_' +
-                                    $this.find('tbody').attr('data-mmw-table') +
-                                    '.csv',
-                            contents: $this.tableExport({ type: 'csv', outputMode: 'string' }),
+                            name: 'model_multiyear_' +
+                                    lowerAndHyphenate(scenario.get('name')) +
+                                    '.gms',
+                            data: gisData.model_input
                         };
-                    }).toArray();
-                })),
-            getMapshedData = function(scenario) {
-                    var gisData = scenario.getGisData();
-                    if (!gisData) { return null; }
+                    },
+                    includeMapShedData = self.get('model_package') === utils.GWLFE,
+                    mapshedData = includeMapShedData ?
+                                    scenarios.map(getMapshedData) :
+                                    [];
 
-                    return {
-                        name: 'model_multiyear_' +
-                                lowerAndHyphenate(scenario.get('name')) +
-                                '.gms',
-                        data: gisData.model_input
-                    };
-                },
-            includeMapShedData = self.get('model_package') === utils.GWLFE,
-            mapshedData = includeMapShedData ?
-                            scenarios.map(getMapshedData) :
-                            [];
+                // Restore pre-selected scenario after generating model exports
+                scenarios.setActiveScenario(currentScenario);
 
-        // Restore pre-selected scenario after generating model exports
-        scenarios.setActiveScenario(currentScenario);
+                deferred.resolve({
+                    files: analyzeFiles.concat(modelFiles),
+                    mapshed_data: mapshedData,
+                });
+            };
 
         self.set('is_exporting', true);
 
-        return $.ajax({
-            type: 'POST',
-            url: '/export/hydroshare?project=' + self.id,
-            contentType: 'application/json',
-            data: JSON.stringify(_.defaults({
-                files: analyzeFiles.concat(modelFiles),
-                mapshed_data: mapshedData,
-            }, payload))
-        }).done(function(result) {
-            self.set({
-                hydroshare: result,
-                hydroshare_errors: [],
-                // Exporting to HydroShare make projects public
-                // in apps.export.views.hydroshare. We manually
-                // make the switch here rather than fetching it
-                // from the server, for efficiency.
-                is_private: false,
+        // Gather data in the background
+        setTimeout(gatherData);
+
+        return deferred.promise().then(function(data) {
+            return $.ajax({
+                type: 'POST',
+                url: '/export/hydroshare?project=' + self.id,
+                contentType: 'application/json',
+                data: JSON.stringify(_.defaults(data, payload))
+            }).done(function(result) {
+                self.set({
+                    hydroshare: result,
+                    hydroshare_errors: [],
+                    // Exporting to HydroShare make projects public
+                    // in apps.export.views.hydroshare. We manually
+                    // make the switch here rather than fetching it
+                    // from the server, for efficiency.
+                    is_private: false,
+                });
+            }).fail(function(result) {
+                if (result.responseJSON && result.responseJSON.errors) {
+                    self.set('hydroshare_errors', result.responseJSON.errors);
+                } else if (result.status === 504) {
+                    self.set('hydroshare_errors', ['Server Timeout']);
+                } else {
+                    self.set('hydroshare_errors', ['Unknown Server Error']);
+                }
+            }) .always(function() {
+                self.set('is_exporting', false);
             });
-        }).fail(function(result) {
-            if (result.responseJSON && result.responseJSON.errors) {
-                self.set('hydroshare_errors', result.responseJSON.errors);
-            } else if (result.status === 504) {
-                self.set('hydroshare_errors', ['Server Timeout']);
-            } else {
-                self.set('hydroshare_errors', ['Unknown Server Error']);
-            }
-        }) .always(function() {
-            self.set('is_exporting', false);
         });
     },
 
