@@ -329,7 +329,7 @@ var ModificationsView = ControlView.extend({
     closeDropdown: function() {
         this.$(this.ui.dropdown).removeClass('open');
         this.model.set({
-            dropdown: false,
+            dropdownOpen: false,
             manualMod: null,
             output: null
         });
