@@ -458,17 +458,49 @@ var ProjectModel = Backbone.Model.extend({
 
                         // Capture contents of every model results table
                         return $('.fixed-table-body > .model-results-table').map(function() {
-                            var $this = $(this);
+                            var $this = $(this),
+                                scenarioName = lowerAndHyphenate(s.get('name')) + '_',
+                                tableName = $this.find('tbody').attr('data-mmw-table'),
+                                contents = $this.tableExport({
+                                    outputMode: 'string',
+                                    type: 'csv'
+                                });
+
+                            if (tableName === 'waterquality-summary') {
+                                // Add Mean Flow to Watery Quality Summary results
+                                var result = s.get('results')
+                                              .findWhere({ name: 'quality' })
+                                              .get('result'),
+                                    rows = contents.split('\n'),
+                                    // undefined picks up locale from browser. Options round to 0 decimal places.
+                                    meanFlow = result.MeanFlow.toLocaleString(undefined, { maximumFractionDigits: 0 }),
+                                    // undefined picks up locale from browser. Options round to 2 decimal places.
+                                    meanFlowPerSecond = result.MeanFlowPerSecond.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                                // Add Mean Flow labels to header row
+                                rows[0] += ',"Mean Flow (m3/year)","Mean Flow (m3/s)"';
+
+                                // Add Mean Flow values to Total Loads row
+                                // Add empty values to all other rows
+                                // except the final empty line
+                                for (var i = 1; i < rows.length - 1; i++) {
+                                    if (rows[i].startsWith('"Total Loads')) {
+                                        rows[i] += ',"' + meanFlow + '"' +
+                                                   ',"' + meanFlowPerSecond + '"';
+                                    } else {
+                                        rows[i] += ',,';
+                                    }
+                                }
+
+                                contents = rows.join('\n');
+                            }
 
                             return {
                                 name: modelName +
-                                        lowerAndHyphenate(s.get('name')) + '_' +
-                                        $this.find('tbody').attr('data-mmw-table') +
-                                        '.csv',
-                                contents: $this.tableExport({
-                                    type: 'csv',
-                                    outputMode: 'string'
-                                }),
+                                      scenarioName +
+                                      tableName +
+                                      '.csv',
+                                contents: contents,
                             };
                         }).toArray();
                     })),
