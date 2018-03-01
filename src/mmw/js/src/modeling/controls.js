@@ -282,7 +282,7 @@ var ModificationsView = ControlView.extend({
         function closeDropdownOnOutsideClick(e) {
             var isTargetOutsideDropdown = $(e.target).parents('.dropdown-menu').length === 0;
             if (isTargetOutsideDropdown && self.model.get('dropdownOpen')) {
-                self.closeDropdown();
+                self.model.set('dropdownOpen', false);
             }
         }
 
@@ -318,38 +318,24 @@ var ModificationsView = ControlView.extend({
         modContentRegion: '.mod-content-region'
     },
 
-    toggleDropdown: function() {
-        if (this.model.get('dropdownOpen')) {
-            this.openDropdown();
+    toggleDropdown: function(model, dropdownOpen) {
+        if (dropdownOpen) {
+            this.ui.dropdown.addClass('open');
         } else {
-            this.closeDropdown();
+            this.ui.dropdown.removeClass('open');
+            this.model.set({
+                manualMod: null,
+                output: null
+            });
         }
-    },
-
-    closeDropdown: function() {
-        this.$(this.ui.dropdown).removeClass('open');
-        this.model.set({
-            dropdown: false,
-            manualMod: null,
-            output: null
-        });
-    },
-
-    openDropdown: function() {
-        this.$(this.ui.dropdown).addClass('open');
-        this.model.set('dropdownOpen', true);
     },
 
     onClickDropdownButton: function() {
         var dropdownOpen = this.model.get('dropdownOpen');
-        if (this.model.get('manualMode')) {
-            if (dropdownOpen) {
-                this.closeDropdown();
-            } else {
-                this.openDropdown();
-            }
-        } else if (!dropdownOpen) {
-            this.openDropdown();
+
+        // Toggle dropdown if in manual mode, else just open it
+        if (this.model.get('manualMode') || !dropdownOpen) {
+            this.model.set('dropdownOpen', !dropdownOpen);
         }
     },
 
