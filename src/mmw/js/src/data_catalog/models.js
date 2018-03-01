@@ -4,11 +4,14 @@ var $ = require('jquery'),
     _ = require('lodash'),
     Backbone = require('../../shim/backbone'),
     moment = require('moment'),
-    settings = require('../core/settings');
+    settings = require('../core/settings'),
+    drawUtils = require('../draw/utils'),
+    utils = require('./utils');
 
 var REQUEST_TIMED_OUT_CODE = 408;
 var DESCRIPTION_MAX_LENGTH = 100;
 var PAGE_SIZE = settings.get('data_catalog_page_size');
+var CUAHSI_MAX_SIZE_SQKM = 1500;
 
 var DATE_FORMAT = 'MM/DD/YYYY';
 var WATERML_VARIABLE_TIME_INTERVAL = '{http://www.cuahsi.org/water_ml/1.1/}variable_time_interval';
@@ -201,6 +204,7 @@ var Catalog = Backbone.Model.extend({
             isSameGeom = geom === this.get('geom'),
             isSameSearch = isSameQuery && isSameGeom;
 
+        // Perform local text search for pre-existing CUAHSI results
         if (isCuahsi && isSameGeom && !isSameQuery) {
             this.set({ loading: true });
 
@@ -216,6 +220,23 @@ var Catalog = Backbone.Model.extend({
             return $.when();
         }
 
+        // Check if area of interest is too large for CUAHSI
+        if (isCuahsi) {
+            var area = utils.areaOfBounds(drawUtils.shapeBoundingBox(geom));
+
+            if (area > CUAHSI_MAX_SIZE_SQKM) {
+                this.set('error',
+                    'The selected area of interest with a bounding box of ' +
+                    area.toLocaleString(undefined, { maximumFractionDigits: 2 }) +
+                    ' km² is larger than the currently supported maximum size of ' +
+                    CUAHSI_MAX_SIZE_SQKM.toLocaleString(undefined, { maximumFractionDigits: 2 }) +
+                    ' km² for CUAHSI WDC.');
+
+                return $.Deferred().reject('Area of Interest too large');
+            }
+        }
+
+        // Perform server search
         if (!isSameSearch || stale || error) {
             this.cancelSearch();
             this.searchPromise = this.search(query, geom)
