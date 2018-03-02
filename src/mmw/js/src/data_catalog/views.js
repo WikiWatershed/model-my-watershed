@@ -256,11 +256,13 @@ var FormView = Marionette.ItemView.extend({
     ui: {
         filterToggle: '.filter-sidebar-toggle',
         searchInput: 'input[type="text"]',
+        searchButton: '.btn-search',
         downloadButton: '#bigcz-catalog-results-download',
     },
 
     events: {
         'keyup @ui.searchInput': 'onSearchInputChanged',
+        'click @ui.searchButton': 'triggerSearch',
         'click @ui.filterToggle': 'onFilterToggle',
         'click @ui.downloadButton': 'downloadResults',
     },

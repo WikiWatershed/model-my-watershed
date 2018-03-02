@@ -6,6 +6,7 @@ var $ = require('jquery'),
     moment = require('moment'),
     settings = require('../core/settings');
 
+var BAD_REQUEST_CODE = 400;
 var REQUEST_TIMED_OUT_CODE = 408;
 var DESCRIPTION_MAX_LENGTH = 100;
 var PAGE_SIZE = settings.get('data_catalog_page_size');
@@ -201,6 +202,7 @@ var Catalog = Backbone.Model.extend({
             isSameGeom = geom === this.get('geom'),
             isSameSearch = isSameQuery && isSameGeom;
 
+        // Perform local text search for pre-existing CUAHSI results
         if (isCuahsi && isSameGeom && !isSameQuery) {
             this.set({ loading: true });
 
@@ -216,6 +218,7 @@ var Catalog = Backbone.Model.extend({
             return $.when();
         }
 
+        // Perform server search
         if (!isSameSearch || stale || error) {
             this.cancelSearch();
             this.searchPromise = this.search(query, geom)
@@ -338,7 +341,10 @@ var Catalog = Backbone.Model.extend({
             // was purposefully cancelled
             return;
         }
-        if (response.status === REQUEST_TIMED_OUT_CODE){
+        if (response.status === BAD_REQUEST_CODE) {
+            this.set('error', response.responseJSON &&
+                              response.responseJSON.error || "Error");
+        } else if (response.status === REQUEST_TIMED_OUT_CODE) {
             this.set('error', "Searching took too long. " +
                               "Consider trying a smaller area of interest " +
                               "or a more specific search term.");
