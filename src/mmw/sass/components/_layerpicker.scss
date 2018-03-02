@@ -246,6 +246,29 @@ span.time-slider-end {
                                 rgba(171,63,0,    1) 100%);
 }
 
+#elevation-legend {
+    height: 20px;
+    width: 320px;
+    margin-left: 3px;
+    margin-right: 2px;
+    background: linear-gradient(90deg,
+                                rgba(0,92,230,    1) 0%,
+                                rgba(161,207,219, 1) 7%,
+                                rgba(206,245,221, 1) 15%,
+                                rgba(224,247,121, 1) 29%,
+                                rgba(126,204,88,  1) 40%,
+                                rgba(42,133,60,   1) 56%,
+                                rgba(204,175,29,  1) 69%,
+                                rgba(201,154,23,  1) 75%,
+                                rgba(189,70,2,    1) 84%,
+                                rgba(96,39,9,     1) 90%,
+                                rgba(107,45,12,   1) 92%,
+                                rgba(148,114, 95, 1) 94%,
+                                rgba(178,153,139, 1) 96%,
+                                rgba(194,194,194, 1) 97%,
+                                rgba(255,255,255, 1) 100%);
+}
+
 .climate-legend-tooltip {
   height: 65px;
 }
