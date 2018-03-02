@@ -615,7 +615,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'ned-nhdplus-30m-epsg5070',
+                    'ned-nhdplus-30m-epsg5070-512',
                     'us-percent-slope-30m-epsg5070-512',
                 ],
                 'rasterCRS': 'ConusAlbers',
