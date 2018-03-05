@@ -557,23 +557,92 @@ var ProjectModel = Backbone.Model.extend({
                         contents: at.getResultCSV(),
                     };
                 }),
+            scenarios = self.get('scenarios'),
+            lowerAndHyphenate = function(name) {
+                    return name.toLowerCase().replace(/\s/g, '-');
+                },
+            getTR55ModelFiles = function() {
+                    var modelName = 'model_sitestorm_',
+                        aoiVolumeModel = new AoiVolumeModel({
+                            areaOfInterest: App.map.get('areaOfInterest')
+                        }),
+                        modelFiles = [];
+
+                    scenarios.forEach(function(s) {
+                        var scenarioName = lowerAndHyphenate(s.get('name')),
+                            results = s.get('results'),
+                            runoffResult = results.findWhere({ name: 'runoff' }),
+                            qualityResult = results.findWhere({ name: 'quality' }),
+                            isCurrentConditions = s.get('is_current_conditions');
+
+                        if (runoffResult && !runoffResult.get('polling') && runoffResult.get('result')) {
+                            modelFiles.push({
+                                name: modelName + scenarioName + '_runoff.csv',
+                                contents: runoffResult
+                                    .toTR55RunoffCSV(isCurrentConditions, aoiVolumeModel),
+                            });
+                        }
+
+                        if (qualityResult && !qualityResult.get('polling') && qualityResult.get('result')) {
+                            modelFiles.push({
+                                name: modelName + scenarioName + '_waterquality.csv',
+                                contents: qualityResult
+                                    .toTR55WaterQualityCSV(isCurrentConditions, aoiVolumeModel),
+                            });
+                        }
+                    });
+
+                    return modelFiles;
+                },
+            getMapShedModelFiles = function() {
+                    var modelName = 'model_multiyear_',
+                        modelFiles = [];
+
+                    scenarios.forEach(function(s) {
+                        var scenarioName = lowerAndHyphenate(s.get('name')),
+                            results = s.get('results'),
+                            runoffResult = results.findWhere({ name: 'runoff' }),
+                            qualityResult = results.findWhere({ name: 'quality' });
+
+                        if (runoffResult && !runoffResult.get('polling') && runoffResult.get('result')) {
+                            modelFiles.push({
+                                name: modelName + scenarioName + '_hydrology.csv',
+                                contents: runoffResult
+                                    .toMapShedHydrologyCSV(),
+                            });
+                        }
+
+                        if (qualityResult && !qualityResult.get('polling') && qualityResult.get('result')) {
+                            modelFiles.push({
+                                name: modelName + scenarioName + '_waterquality-landuse.csv',
+                                contents: qualityResult
+                                    .toMapShedWaterQualityLandUseCSV(),
+                            }, {
+                                name: modelName + scenarioName + '_waterquality-summary.csv',
+                                contents: qualityResult
+                                    .toMapShedWaterQualitySummaryCSV(),
+                            });
+                        }
+                    });
+
+                    return modelFiles;
+                },
+            isTR55 = self.get('model_package') === utils.TR55_PACKAGE,
+            modelFiles = isTR55 ? getTR55ModelFiles() : getMapShedModelFiles(),
             getMapshedData = function(scenario) {
-                    var gisData = scenario.getGisData();
-                    if (!gisData) { return null; }
+                    var gisData = scenario.getGisData(),
+                        scenarioName = lowerAndHyphenate(scenario.get('name'));
+
+                    if (!gisData) {
+                        return null;
+                    }
 
                     return {
-                        name: 'scenario_' +
-                                scenario.get('name')
-                                    .toLowerCase()
-                                    .replace(/\s/g, '-') +
-                                '.gms',
+                        name: 'model_multiyear_' + scenarioName + '.gms',
                         data: gisData.model_input
                     };
                 },
-            includeMapShedData = self.get('model_package') === utils.GWLFE,
-            mapshedData = includeMapShedData ?
-                            self.get('scenarios').map(getMapshedData) :
-                            [];
+            mapshedData = isTR55 ? [] : scenarios.map(getMapshedData);
 
         self.set('is_exporting', true);
 
@@ -582,7 +651,7 @@ var ProjectModel = Backbone.Model.extend({
             url: '/export/hydroshare?project=' + self.id,
             contentType: 'application/json',
             data: JSON.stringify(_.defaults({
-                files: analyzeFiles,
+                files: analyzeFiles.concat(modelFiles),
                 mapshed_data: mapshedData,
             }, payload))
         }).done(function(result) {
