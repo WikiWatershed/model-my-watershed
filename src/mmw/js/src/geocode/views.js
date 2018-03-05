@@ -309,6 +309,8 @@ var SearchBoxView = Marionette.LayoutView.extend({
             })
             .done(function() {
                 App.map.set('selectedGeocoderArea', null);
+                App.clearAnalyzeCollection();
+                App.clearDataCatalog();
                 addBoundaryLayer(selectedBoundary, selectedBoundaryShape);
                 router.navigate('/analyze', { trigger: true});
             });
