@@ -278,15 +278,18 @@ def analyze_terrain(result):
 
     [elevation, slope] = result
 
+    def cm_to_m(x):
+        return x * M_PER_CM if x else None
+
     categories = [
         dict(type='average',
-             elevation=(elevation['avg'] * M_PER_CM),
+             elevation=cm_to_m(elevation['avg']),
              slope=slope['avg']),
         dict(type='minimum',
-             elevation=(elevation['min'] * M_PER_CM),
+             elevation=cm_to_m(elevation['min']),
              slope=slope['min']),
         dict(type='maximum',
-             elevation=(elevation['max'] * M_PER_CM),
+             elevation=cm_to_m(elevation['max']),
              slope=slope['max'])
     ]
 

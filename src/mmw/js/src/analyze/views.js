@@ -1314,7 +1314,7 @@ var TerrainResultView = AnalyzeResultView.extend({
         var title = 'Terrain Statistics',
             source = 'NHDPlus V2 NEDSnapshot DEM',
             helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
-            associatedLayerCodes = ['pct_slope'],
+            associatedLayerCodes = ['elevation', 'pct_slope'],
             chart = null;
 
         this.showAnalyzeResults(coreModels.TerrainCensusCollection, TerrainTableView,
