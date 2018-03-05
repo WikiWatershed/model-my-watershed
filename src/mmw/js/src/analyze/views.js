@@ -198,12 +198,14 @@ var ResultsView = Marionette.LayoutView.extend({
         nextStageRegion: '#next-stage-navigation-region',
     },
 
+    templateHelpers: {
+        'data_catalog_enabled': settings.get('data_catalog_enabled'),
+    },
+
     onShow: function() {
         this.showAoiRegion();
         this.showDetailsRegion();
-        if (settings.get('data_catalog_enabled')) {
-            this.showDataSourceButton();
-        } else {
+        if (!settings.get('data_catalog_enabled')) {
             this.showModelSelectionDropdown();
         }
     },

@@ -204,6 +204,10 @@
 // Buttons in Analyze stage
 #change-area-button {
     margin-right: 10px;
+
+    .data-catalog > & {
+        margin-right: 0;
+    }
 }
 
 #change-area-button,

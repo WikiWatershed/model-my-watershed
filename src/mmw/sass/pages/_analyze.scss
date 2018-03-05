@@ -32,6 +32,10 @@
 #next-stage-navigation-region {
     display: inline-block;
     width: 100%;
+
+    .data-catalog > & {
+        width: auto;
+    }
 }
 
 .navigation-footer > button,
