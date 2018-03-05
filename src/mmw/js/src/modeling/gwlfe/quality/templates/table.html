@@ -1,5 +1,5 @@
 {% macro table(columnNames, rows, isSortable, round_rows, default_precision, className) %}
-<table class="table custom-hover {{ className }}" data-toggle="table">
+<table class="table custom-hover model-results-table {{ className }}" data-toggle="table">
     <thead>
         <tr>
             {% for columnName in columnNames %}
@@ -11,7 +11,7 @@
             {% endfor %}
         </tr>
     </thead>
-    <tbody>
+    <tbody data-mmw-table="{{ className }}">
         {% for row in rows %}
             <tr>
                 {% set precision = default_precision %}

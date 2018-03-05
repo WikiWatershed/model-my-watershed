@@ -428,61 +428,139 @@ var ProjectModel = Backbone.Model.extend({
      */
     exportToHydroShare: function(payload) {
         var self = this,
-            analyzeTasks = App.getAnalyzeCollection(),
-            analyzeFiles = analyzeTasks.map(function(at) {
-                    return {
-                        name: 'analyze_' + at.get('name') + '.csv',
-                        contents: at.getResultCSV(),
-                    };
-                }),
-            getMapshedData = function(scenario) {
-                    var gisData = scenario.getGisData();
-                    if (!gisData) { return null; }
+            deferred = $.Deferred(),
+            gatherData = function() {
+                var analyzeTasks = App.getAnalyzeCollection(),
+                    analyzeFiles = analyzeTasks.map(function(at) {
+                        return {
+                            name: 'analyze_' + at.get('name') + '.csv',
+                            contents: at.getResultCSV(),
+                        };
+                    }),
+                    scenarios = self.get('scenarios'),
+                    currentScenario = scenarios.getActiveScenario(),
+                    lowerAndHyphenate = function(name) {
+                        return name.toLowerCase().replace(/\s/g, '-');
+                    },
+                    modelName = (function() {
+                        switch(self.get('model_package')) {
+                            case utils.GWLFE:
+                                return "model_multiyear_";
+                            case utils.TR55_PACKAGE:
+                                return "model_sitestorm_";
+                            default:
+                                return "model_";
+                        }
+                    })(),
+                    modelFiles = _.flatten(scenarios.map(function(s) {
+                        // Cycle through all the scenarios
+                        scenarios.setActiveScenario(s);
 
-                    return {
-                        name: 'scenario_' +
-                                scenario.get('name')
-                                    .toLowerCase()
-                                    .replace(/\s/g, '-') +
-                                '.gms',
-                        data: gisData.model_input
-                    };
-                },
-            includeMapShedData = self.get('model_package') === utils.GWLFE,
-            mapshedData = includeMapShedData ?
-                            self.get('scenarios').map(getMapshedData) :
-                            [];
+                        // Capture contents of every model results table
+                        return $('.fixed-table-body > .model-results-table').map(function() {
+                            var $this = $(this),
+                                scenarioName = lowerAndHyphenate(s.get('name')) + '_',
+                                tableName = $this.find('tbody').attr('data-mmw-table'),
+                                contents = $this.tableExport({
+                                    outputMode: 'string',
+                                    type: 'csv'
+                                });
+
+                            if (tableName === 'waterquality-summary') {
+                                // Add Mean Flow to Watery Quality Summary results
+                                var result = s.get('results')
+                                              .findWhere({ name: 'quality' })
+                                              .get('result'),
+                                    rows = contents.split('\n'),
+                                    // undefined picks up locale from browser. Options round to 0 decimal places.
+                                    meanFlow = result.MeanFlow.toLocaleString(undefined, { maximumFractionDigits: 0 }),
+                                    // undefined picks up locale from browser. Options round to 2 decimal places.
+                                    meanFlowPerSecond = result.MeanFlowPerSecond.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                                // Add Mean Flow labels to header row
+                                rows[0] += ',"Mean Flow (m3/year)","Mean Flow (m3/s)"';
+
+                                // Add Mean Flow values to Total Loads row
+                                // Add empty values to all other rows
+                                // except the final empty line
+                                for (var i = 1; i < rows.length - 1; i++) {
+                                    if (rows[i].startsWith('"Total Loads')) {
+                                        rows[i] += ',"' + meanFlow + '"' +
+                                                   ',"' + meanFlowPerSecond + '"';
+                                    } else {
+                                        rows[i] += ',,';
+                                    }
+                                }
+
+                                contents = rows.join('\n');
+                            }
+
+                            return {
+                                name: modelName +
+                                      scenarioName +
+                                      tableName +
+                                      '.csv',
+                                contents: contents,
+                            };
+                        }).toArray();
+                    })),
+                    getMapshedData = function(scenario) {
+                        var gisData = scenario.getGisData();
+                        if (!gisData) { return null; }
+
+                        return {
+                            name: 'model_multiyear_' +
+                                    lowerAndHyphenate(scenario.get('name')) +
+                                    '.gms',
+                            data: gisData.model_input
+                        };
+                    },
+                    includeMapShedData = self.get('model_package') === utils.GWLFE,
+                    mapshedData = includeMapShedData ?
+                                    scenarios.map(getMapshedData) :
+                                    [];
+
+                // Restore pre-selected scenario after generating model exports
+                scenarios.setActiveScenario(currentScenario);
+
+                deferred.resolve({
+                    files: analyzeFiles.concat(modelFiles),
+                    mapshed_data: mapshedData,
+                });
+            };
 
         self.set('is_exporting', true);
 
-        return $.ajax({
-            type: 'POST',
-            url: '/export/hydroshare?project=' + self.id,
-            contentType: 'application/json',
-            data: JSON.stringify(_.defaults({
-                files: analyzeFiles,
-                mapshed_data: mapshedData,
-            }, payload))
-        }).done(function(result) {
-            self.set({
-                hydroshare: result,
-                hydroshare_errors: [],
-                // Exporting to HydroShare make projects public
-                // in apps.export.views.hydroshare. We manually
-                // make the switch here rather than fetching it
-                // from the server, for efficiency.
-                is_private: false,
+        // Gather data in the background
+        setTimeout(gatherData);
+
+        return deferred.promise().then(function(data) {
+            return $.ajax({
+                type: 'POST',
+                url: '/export/hydroshare?project=' + self.id,
+                contentType: 'application/json',
+                data: JSON.stringify(_.defaults(data, payload))
+            }).done(function(result) {
+                self.set({
+                    hydroshare: result,
+                    hydroshare_errors: [],
+                    // Exporting to HydroShare make projects public
+                    // in apps.export.views.hydroshare. We manually
+                    // make the switch here rather than fetching it
+                    // from the server, for efficiency.
+                    is_private: false,
+                });
+            }).fail(function(result) {
+                if (result.responseJSON && result.responseJSON.errors) {
+                    self.set('hydroshare_errors', result.responseJSON.errors);
+                } else if (result.status === 504) {
+                    self.set('hydroshare_errors', ['Server Timeout']);
+                } else {
+                    self.set('hydroshare_errors', ['Unknown Server Error']);
+                }
+            }) .always(function() {
+                self.set('is_exporting', false);
             });
-        }).fail(function(result) {
-            if (result.responseJSON && result.responseJSON.errors) {
-                self.set('hydroshare_errors', result.responseJSON.errors);
-            } else if (result.status === 504) {
-                self.set('hydroshare_errors', ['Server Timeout']);
-            } else {
-                self.set('hydroshare_errors', ['Unknown Server Error']);
-            }
-        }) .always(function() {
-            self.set('is_exporting', false);
         });
     },
 

@@ -1,4 +1,4 @@
-<table class="table custom-hover" data-toggle="table" data-height="auto" data-show-footer="true">
+<table class="table custom-hover model-results-table" data-toggle="table" data-height="auto" data-show-footer="true">
     <thead>
         <tr>
             {% for columnName in columnNames %}
@@ -12,7 +12,7 @@
             {% endfor %}
         </tr>
     </thead>
-    <tbody>
+    <tbody data-mmw-table="hydrology">
         {% for row in rows %}
             <tr>
                 {% for value in row %}
