@@ -47,8 +47,7 @@ var $ = require('jquery'),
     tabContentTmpl = require('./templates/tabContent.html'),
     barChartTmpl = require('../core/templates/barChart.html'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
-    modelSelectionDropdownTmpl = require('./templates/modelSelectionDropdown.html'),
-    dataSourceButtonTmpl = require('./templates/dataSourceButton.html');
+    modelSelectionDropdownTmpl = require('./templates/modelSelectionDropdown.html');
 
 var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -159,22 +158,6 @@ var ModelSelectionDropdownView = Marionette.ItemView.extend({
     },
 });
 
-var DataSourceButtonView = Marionette.ItemView.extend({
-    template: dataSourceButtonTmpl,
-
-    ui: {
-        'dataSourceButton': '#data-source-button',
-    },
-
-    events: {
-        'click @ui.dataSourceButton': 'navigateSearchDataSource',
-    },
-
-    navigateSearchDataSource: function() {
-        router.navigate('search', { trigger: true });
-    },
-});
-
 var ResultsView = Marionette.LayoutView.extend({
     id: 'model-output-wrapper',
     className: 'analyze',
@@ -231,10 +214,6 @@ var ResultsView = Marionette.LayoutView.extend({
         this.monitorRegion.show(new dataCatalogViews.DataCatalogWindow(
             App.getDataCatalog()
         ));
-    },
-
-    showDataSourceButton: function() {
-        this.nextStageRegion.show(new DataSourceButtonView());
     },
 
     showModelSelectionDropdown: function() {
