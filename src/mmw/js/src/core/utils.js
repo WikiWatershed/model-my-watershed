@@ -522,6 +522,17 @@ var utils = {
         });
     },
 
+    toRoundedLocaleString: function(val, n) {
+        if (val === undefined || isNaN(val)) {
+            return val;
+        }
+
+        return val.toLocaleString(undefined, {
+            minimumFractionDigits: n,
+            maximumFractionDigits: n,
+        });
+    },
+
     // Convert polygon to MultiPolyon (mutates original argument).
     toMultiPolygon: function toMultiPolygon(polygon) {
         var geom = polygon.geometry ? polygon.geometry : polygon;
