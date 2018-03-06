@@ -12,7 +12,7 @@
             <a aria-controls="home" aria-expanded="false"
                data-toggle="tab" href="#monitor-tab-contents" role="tab">
                 <div class="sidebar-tab-header-label">
-                    Monitor
+                    {{ 'Data' if data_catalog_enabled else 'Monitor' }}
                 </div>
             </a>
         </li>
