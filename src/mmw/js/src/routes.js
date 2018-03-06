@@ -1,11 +1,9 @@
 'use strict';
 
 var router = require('./router').router,
-    settings = require('./core/settings'),
     DrawController = require('./draw/controllers').DrawController,
     AnalyzeController = require('./analyze/controllers').AnalyzeController,
     AccountController = require('./account/controllers').AccountController,
-    DataCatalogController = require('./data_catalog/controllers').DataCatalogController,
     ModelingController = require('./modeling/controllers').ModelingController,
     CompareController = require('./compare/controllers').CompareController,
     ProjectsController = require('./projects/controllers').ProjectsController,
@@ -25,10 +23,6 @@ router.addRoute('projects(/)', ProjectsController, 'projects');
 router.addRoute('error(/:type)(/)', ErrorController, 'error');
 router.addRoute('sign-up(/)', SignUpController, 'signUp');
 router.addRoute('sign-up/itsi(/:username)(/:first_name)(/:last_name)(/)', SignUpController, 'itsiSignUp');
-
-if (settings.get('data_catalog_enabled')) {
-    router.addRoute(/^search/, DataCatalogController, 'dataCatalog');
-}
 
 router.on('route', function() {
     // Allow Google Analytics to track virtual pageloads following approach in
