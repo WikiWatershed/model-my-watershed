@@ -15,8 +15,9 @@ var DATE_FORMAT = 'MM/DD/YYYY';
 var WATERML_VARIABLE_TIME_INTERVAL = '{http://www.cuahsi.org/water_ml/1.1/}variable_time_interval';
 
 var SERVICE_PERIODS = {
-    'NWISUV': 'months',  // For NWISUV sites, fetch 1 month of data
-    '*'     : 'years',   // For all else, fetch 1 year of data
+    'NWISUV':    '1 months', // For NWISUV sites, fetch 1 month of data
+    'EnviroDIY': '2 weeks',  // For EnviroDIY, fetch 2 weeks of data
+    '*':         '1 years',  // For all else, fetch 1 year of data
 };
 
 
@@ -723,14 +724,16 @@ var CuahsiVariable = Backbone.Model.extend({
                 variable: this.get('id'),
             },
             service = params.site.split(':')[0],
-            duration = SERVICE_PERIODS[service] || 'years';
+            duration = (SERVICE_PERIODS[service] || '1 years').split(' '),
+            duration_amount = parseInt(duration[0]),
+            duration_unit = duration[1];
 
         // If neither from date nor to date is specified, set time interval
-        // to be either from begin date to end date, or 1 `duration` up to end
-        // date, whichever is shorter.
+        // to be either from begin date to end date, or `duration_amount`
+        // `duration_units` up to end date, whichever is shorter.
         if (!from || moment(from).isBefore(begin_date)) {
-            if (end_date.diff(begin_date, duration, true) > 1) {
-                params.from_date = moment(end_date).subtract(1, duration);
+            if (end_date.diff(begin_date, duration_unit, true) > duration_amount) {
+                params.from_date = moment(end_date).subtract(duration_amount, duration_unit);
             } else {
                 params.from_date = begin_date;
             }
