@@ -16,6 +16,7 @@ var WATERML_VARIABLE_TIME_INTERVAL = '{http://www.cuahsi.org/water_ml/1.1/}varia
 
 var SERVICE_PERIODS = {
     'NWISUV':    '1 months', // For NWISUV sites, fetch 1 month of data
+    'EnviroDIY': '2 weeks',  // For EnviroDIY, fetch 2 weeks of data
     '*':         '1 years',  // For all else, fetch 1 year of data
 };
 
