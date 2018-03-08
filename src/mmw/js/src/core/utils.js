@@ -638,12 +638,12 @@ var utils = {
             version = 'Unknown';
         } else if (branch === 'local' && gitDescribe === null) {
             version = 'Local';
-        } else if (branch.startsWith('release')) {
-            version = branch.substr(branch.indexOf('/') + 1);
+        } else if (branch.startsWith('release') || branch.startsWith('origin/release')) {
+            version = branch.substr(branch.indexOf('release/') + 8);
             // Use this version for release notes
             url = RELEASE_NOTES_BASE_URL + '/tag/' + version;
-        } else if (branch.startsWith('hotfix')) {
-            version = branch.substr(branch.indexOf('/') + 1);
+        } else if (branch.startsWith('hotfix') || branch.startsWith('origin/hotfix')) {
+            version = branch.substr(branch.indexOf('hotfix/') + 7);
             // Use the original release notes
             url = RELEASE_NOTES_BASE_URL + '/tag/' + version.match(MINOR_MAJOR_REGEX) + '0';
         } else {
