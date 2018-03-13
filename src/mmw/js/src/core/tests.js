@@ -751,8 +751,16 @@ describe('Core', function() {
             assert.equal(output.version, 'Unknown');
             assert.equal(output.releaseNotesUrl, latestUrl);
 
+            output = utils.parseVersion('origin/release/1.22.0', gitDescribe);
+            assert.equal(output.version, '1.22.0');
+            assert.equal(output.releaseNotesUrl, taggedUrl);
+
             output = utils.parseVersion('release/1.22.0', gitDescribe);
             assert.equal(output.version, '1.22.0');
+            assert.equal(output.releaseNotesUrl, taggedUrl);
+
+            output = utils.parseVersion('origin/hotfix/1.22.2', gitDescribe);
+            assert.equal(output.version, '1.22.2');
             assert.equal(output.releaseNotesUrl, taggedUrl);
 
             output = utils.parseVersion('hotfix/1.22.2', gitDescribe);
