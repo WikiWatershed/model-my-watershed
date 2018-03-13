@@ -170,24 +170,41 @@ def start_gwlfe(request, format=None):
     """
     Starts a job to run GWLF-E.
 
+    The request body should contain the `inputmod_hash` of
+    the request and either the job UUID id of a successful
+    MapShed run as 'mapshed_job_uuid', or the serialized GMS
+    as 'model_input'.
+
     If ?subbasin=true, will expect a dictionary where the keys
-    are subbasin (HUC-12) ids, and the values are the mapshed data.
+    are subbasin (HUC-12) ids, and the values are the MapShed data.
     Will start a GWLF-E job, the result of which will be dictionary
-    of the subbasins and their results.
+    of the sub-basins and their results.
     """
     user = request.user if request.user.is_authenticated() else None
     created = now()
-    model_input = json.loads(request.POST['model_input'])
+
+    mapshed_job_uuid = request.POST.get('mapshed_job_uuid', None)
+
+    if mapshed_job_uuid:
+        mapshed_job = get_object_or_404(Job, uuid=mapshed_job_uuid)
+        model_input = json.loads(mapshed_job.result)
+    else:
+        model_input = json.loads(request.POST.get('model_input'))
+
+    modifications = json.loads(request.POST.get('modifications', '[]'))
+
     inputmod_hash = request.POST.get('inputmod_hash', '')
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
 
     if request.query_params.get('subbasin', False) == 'true':
         task_list = _initiate_subbasin_gwlfe_job_chain(model_input,
+                                                       modifications,
                                                        inputmod_hash,
                                                        job.id)
     else:
         task_list = _initiate_gwlfe_job_chain(model_input,
+                                              modifications,
                                               inputmod_hash,
                                               job.id)
 
@@ -202,20 +219,35 @@ def start_gwlfe(request, format=None):
     )
 
 
-def _initiate_gwlfe_job_chain(model_input, inputmod_hash, job_id):
-    chain = (tasks.run_gwlfe.s(model_input, inputmod_hash)
-             | save_job_result.s(job_id, model_input))
+def _apply_gwlfe_modifications(gms, modifications):
+    modified_gms = {}
+    modified_gms.update(gms)
+    for mod in modifications:
+        modified_gms.update(mod)
+    return modified_gms
+
+
+def _initiate_gwlfe_job_chain(model_input, modifications,
+                              inputmod_hash, job_id):
+    modified_model_input = _apply_gwlfe_modifications(model_input,
+                                                      modifications)
+    chain = (tasks.run_gwlfe.s(modified_model_input, inputmod_hash)
+             | save_job_result.s(job_id, modified_model_input))
 
     errback = save_job_error.s(job_id)
 
     return chain.apply_async(link_error=errback)
 
 
-def _initiate_subbasin_gwlfe_job_chain(model_input, inputmod_hash, job_id):
+def _initiate_subbasin_gwlfe_job_chain(model_input, modifications,
+                                       inputmod_hash, job_id):
     huc12_jobs = []
     errback = save_job_error.s(job_id)
 
     for (id, gms) in model_input.iteritems():
+        # TODO Certain fields need to be weighted for the HUC-12
+        # https://github.com/WikiWatershed/model-my-watershed/issues/2542
+        gms = _apply_gwlfe_modifications(gms, modifications)
         huc12_jobs.append(
             tasks.run_gwlfe.s(gms, inputmod_hash, id)
                  .set(link_error=errback))

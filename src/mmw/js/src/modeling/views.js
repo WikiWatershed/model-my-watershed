@@ -546,7 +546,7 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
     },
 
     templateHelpers: function() {
-        var gis_data = this.model.getGisData().model_input,
+        var gis_data = App.currentProject.get('gis_data'),
             is_gwlfe = App.currentProject.get('model_package') === utils.GWLFE &&
                         gis_data !== null &&
                         gis_data !== '{}' &&
