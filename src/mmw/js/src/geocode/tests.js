@@ -61,11 +61,11 @@ describe('Geocoder', function() {
             this.server.respondWith([500, { 'Content-Type': 'application/json' }, '[]']);
             var view = createView();
 
-            view.handleSearch('a query').then(function() {
+            view.handleSearch('a query').fail(function() {
                 assert.equal($('#sandbox li').length, 0);
                 assert.include($('.message').text().trim(), MSG_ERROR);
                 done();
-            }());
+            });
         });
 
         it('renders an error message if there was a problem selecting a suggestion', function(done) {
@@ -80,12 +80,12 @@ describe('Geocoder', function() {
             view.handleSearch('a query').done(function() {
                 self.server.respondWith([500, { 'Content-Type': 'application/json' }, responseData]);
 
-                view.selectFirst().done(function() {
+                view.selectFirst().fail(function() {
                     assert.equal($('#sandbox li').length, 0);
                     assert.include($('.message').text().trim(), MSG_ERROR);
                     done();
-                }());
-            }());
+                });
+            });
         });
 
         it('does nothing if the search input is blank and the enter key is pressed', function() {
@@ -138,7 +138,7 @@ describe('Geocoder', function() {
                 assert.equal(spy.callCount, 1);
 
                 done();
-            }());
+            });
         });
 
         it('does not attempt to select a suggestion when the enter key is pressed if there are no results', function(done) {
@@ -160,7 +160,7 @@ describe('Geocoder', function() {
                 assert.equal(spy.callCount, 0);
 
                 done();
-            }());
+            });
         });
     });
 
@@ -210,7 +210,7 @@ function testNumberOfResults(count, done) {
     view.handleSearch('a query').done(function() {
         assert.equal($('#sandbox li').length, count);
         done();
-    }());
+    });
 }
 
 function createView() {

@@ -1,0 +1,84 @@
+<div class="multi-share-modal modal-dialog modal-dialog-sm">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="light">Share your project</h2>
+        </div>
+        <div class="modal-body">
+            <div class="custom-input-group">
+                <div class="row toggle-row">
+                    <h3>Link Sharing</h3>
+                    <label class="pull-right toggle {{ 'hidden' if hydroshare }}">
+                        <input type="checkbox" id="share-enabled" {{ "checked" if not is_private }} />
+                        <div class="toggle-switch"></div>
+                    </label>
+                </div>
+                {% if not is_private %}
+                    <p>Anyone with this link will be able to view this project.</p>
+                    {% if hydroshare %}
+                        <p>Link sharing is always enabled for a project exported to HydroShare.</p>
+                    {% endif %}
+                {% endif %}
+                <div class="input-group {{ 'hidden' if is_private }}">
+                    <input class="form-control" id="share-url" type="text" value="{{  url }}">
+                    <span class="input-group-btn">
+                        <button class="btn btn-primary copy" type="button" data-clipboard-target="#share-url">
+                            <i class="fa fa-clipboard"></i> Copy
+                        </button>
+                    </span>
+                </div>
+            </div>
+            <hr />
+            <div class="custom-input-group">
+                <div class="row toggle-row">
+                    {% if is_exporting %}
+                    <i class="hydroshare-spinner fa fa-circle-o-notch fa-spin"></i>
+                    {% elif hydroshare_errors.length > 0 %}
+                    <a class="error-popover" tabindex="0"
+                       role="button" data-content="{{ hydroshare_errors.join('\n') }}">
+
+                        <i class="fa fa-warning ui-danger hydroshare-warning"></i>
+                    </a>
+                    {% endif %}
+                    <h3>HydroShare Export</h3>
+                    <label class="pull-right toggle">
+                        <input type="checkbox" id="hydroshare-enabled" {{ 'checked' if hydroshare }} {{ 'disabled' if is_exporting }} />
+                        <div class="toggle-switch"></div>
+                    </label>
+                </div>
+                <p class="{{ 'hidden' if hydroshare }}">
+                    HydroShare is an online collaboration environment for
+                    sharing data, models, and code. When you export to HydroShare,
+                    your project will be made public under a <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">
+                    Creative Commons 4.0</a> license.
+                </p>
+                <p id="hydroshare-notification" class="{{ 'hidden' if user_has_authorized_hydroshare }}">
+                    You will need to connect your HydroShare account to your
+                    Model My Watershed account, or create a new HydroShare
+                    account.
+                </p>
+                {% if hydroshare %}
+                <p>
+                    Your project <a href="{{ hydroshare.url }}" target="_blank" rel="noopener noreferrer">{{ hydroshare.title }}</a>
+                    has been exported to HydroShare.
+                </p>
+                <div class="hydroshare-autosync-container">
+                    <h5>Settings</h5>
+                    <label>
+                        <input type="checkbox" id="hydroshare-autosync" {{ 'checked' if hydroshare.autosync }} />
+                        Automatically push changes to HydroShare
+                    </label>
+                    <p>
+                        <span class="hydroshare-timestamp">Last change: {{ hydroshare.exported_at | toFriendlyDate }}</span>
+                        <a href="#" class="hydroshare-export {{ 'hidden' if hydroshare.autosync or is_exporting or hydroshare_errors.length > 0 }}">Export Now</a>
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="modal-footer" style="text-align:right;">
+            <div class="footer-content">
+                <button type="button" class="btn btn-md btn-active" data-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>

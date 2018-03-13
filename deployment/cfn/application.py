@@ -68,6 +68,10 @@ class Application(StackNode):
             'TileDeliveryNetwork:GreenTileServerDistributionEndpoint'],
         'ITSIBaseURL': ['global:ITSIBaseURL'],
         'ITSISecretKey': ['global:ITSISecretKey'],
+        'HydroShareBaseURL': ['global:HydroShareBaseURL'],
+        'HydroShareSecretKey': ['global:HydroShareSecretKey'],
+        'SRATCatchmentAPIURL': ['global:SRATCatchmentAPIURL'],
+        'SRATCatchmentAPIKey': ['global:SRATCatchmentAPIKey'],
         'RollbarServerSideAccessToken':
         ['global:RollbarServerSideAccessToken'],
         'ClientAppUserPassword': ['global:ClientAppUserPassword'],
@@ -240,6 +244,26 @@ class Application(StackNode):
             'ITSISecretKey', Type='String', NoEcho=True,
             Description='Secret key for ITSI portal integration'
         ), 'ITSISecretKey')
+
+        self.hydroshare_base_url = self.add_parameter(Parameter(
+            'HydroShareBaseURL', Type='String',
+            Description='Base URL for HydroShare portal'
+        ), 'HydroShareBaseURL')
+
+        self.hydroshare_secret_key = self.add_parameter(Parameter(
+            'HydroShareSecretKey', Type='String', NoEcho=True,
+            Description='Secret key for HydroShare portal integration'
+        ), 'HydroShareSecretKey')
+
+        self.srat_catchment_api_url = self.add_parameter(Parameter(
+            'SRATCatchmentAPIURL', Type='String',
+            Description='URL for the SRAT Catchment API'
+        ), 'SRATCatchmentAPIURL')
+
+        self.srat_catchment_api_key = self.add_parameter(Parameter(
+            'SRATCatchmentAPIKey', Type='String', NoEcho=True,
+            Description='API key for the SRAT Catchment API'
+        ), 'SRATCatchmentAPIKey')
 
         self.client_app_user_password = self.add_parameter(Parameter(
             'ClientAppUserPassword', Type='String', NoEcho=True,
@@ -589,6 +613,22 @@ class Application(StackNode):
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
                 '    content: ', Ref(self.itsi_secret_key), '\n',
+                '  - path: /etc/mmw.d/env/MMW_HYDROSHARE_BASE_URL\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.hydroshare_base_url), '\n',
+                '  - path: /etc/mmw.d/env/MMW_HYDROSHARE_SECRET_KEY\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.hydroshare_secret_key), '\n',
+                '  - path: /etc/mmw.d/env/MMW_SRAT_CATCHMENT_API_URL\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.srat_catchment_api_url), '\n',
+                '  - path: /etc/mmw.d/env/MMW_SRAT_CATCHMENT_API_KEY\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.srat_catchment_api_key), '\n',
                 '  - path: /etc/mmw.d/env/MMW_CLIENT_APP_USER_PASSWORD\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',

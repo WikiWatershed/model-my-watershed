@@ -10,6 +10,7 @@ var $ = require('jquery'),
     settings = require('./core/settings'),
     itsi = require('./core/itsiEmbed'),
     analyzeModels = require('./analyze/models'),
+    dataCatalogModels = require('./data_catalog/models'),
     userModels = require('./user/models'),
     userViews = require('./user/views');
 
@@ -71,6 +72,8 @@ var App = new Marionette.Application({
             $('[data-toggle="popover"]').popover('hide');
             $('.popover').remove();
         };
+
+        fetchVersion();
     },
 
     load: function(data) {
@@ -115,6 +118,27 @@ var App = new Marionette.Application({
 
     clearAnalyzeCollection: function() {
         delete this.analyzeCollection;
+    },
+
+    getDataCatalog: function() {
+        if (!this.dataCatalog) {
+            this.dataCatalog = {
+                model: new dataCatalogModels.SearchForm(),
+                collection: dataCatalogModels.createCatalogCollection()
+            };
+        }
+
+        return this.dataCatalog;
+    },
+
+    clearDataCatalog: function() {
+        delete this.dataCatalog;
+
+        this.map.set({
+            'dataCatalogResults': null,
+            'dataCatalogActiveResult': null,
+            'dataCatalogDetailResult': null,
+        });
     },
 
     getMapView: function() {
@@ -350,6 +374,29 @@ function initializeShutterbug() {
         });
 
     shutterbug.enable('body');
+}
+
+function fetchVersion() {
+    $.get('/version.txt')
+        .done(function(data) {
+            var versions = data.match(/(\S+)\s+(\S+)/),
+                branch = versions[1],
+                gitDescribe = versions[2];
+
+            settings.set('branch', branch);
+            settings.set('gitDescribe', gitDescribe);
+        })
+        .fail(function(error) {
+            if (error.status === 404) {
+                // No /version.txt found, this could be a development environment
+                settings.set('branch', 'local');
+                settings.set('gitDescribe', null);
+            } else {
+                // Some other error occurred. Could indicate a faulty deployment
+                settings.set('branch', null);
+                settings.set('gitDescribe', null);
+            }
+        });
 }
 
 module.exports = App;

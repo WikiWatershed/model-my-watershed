@@ -20,14 +20,16 @@ from apps.core.tasks import (save_job_error,
                              save_job_result)
 from apps.core.decorators import log_request
 from apps.modeling import geoprocessing
-from apps.modeling.views import load_area_of_interest
+from apps.modeling.mapshed.calcs import streams
+from apps.modeling.mapshed.tasks import nlcd_streams
+from apps.modeling.serializers import AoiSerializer
+
 from apps.geoprocessing_api import tasks
 from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
                                                SustainedRateThrottle)
 
-from validation import (validate_rwd,
-                        validate_aoi)
+from apps.geoprocessing_api.validation import validate_rwd
 
 
 @decorators.api_view(['POST'])
@@ -84,7 +86,8 @@ def get_auth_token(request, format=None):
 
 
 @decorators.api_view(['POST'])
-@decorators.authentication_classes((TokenAuthentication, ))
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
 @decorators.permission_classes((IsAuthenticated, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
@@ -257,7 +260,8 @@ def start_rwd(request, format=None):
 
 
 @decorators.api_view(['POST'])
-@decorators.authentication_classes((TokenAuthentication, ))
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
 @decorators.permission_classes((IsAuthenticated, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
@@ -440,11 +444,7 @@ def start_analyze_land(request, format=None):
         - application/json
     """
     user = request.user if request.user.is_authenticated() else None
-
-    wkaoi = request.query_params.get('wkaoi', None)
-    area_of_interest = load_area_of_interest(request.data, wkaoi)
-
-    validate_aoi(area_of_interest)
+    area_of_interest, wkaoi = _parse_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -455,7 +455,8 @@ def start_analyze_land(request, format=None):
 
 
 @decorators.api_view(['POST'])
-@decorators.authentication_classes((TokenAuthentication, ))
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
 @decorators.permission_classes((IsAuthenticated, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
@@ -570,11 +571,7 @@ def start_analyze_soil(request, format=None):
         - application/json
     """
     user = request.user if request.user.is_authenticated() else None
-
-    wkaoi = request.query_params.get('wkaoi', None)
-    area_of_interest = load_area_of_interest(request.data, wkaoi)
-
-    validate_aoi(area_of_interest)
+    area_of_interest, wkaoi = _parse_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -585,7 +582,171 @@ def start_analyze_soil(request, format=None):
 
 
 @decorators.api_view(['POST'])
-@decorators.authentication_classes((TokenAuthentication, ))
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_analyze_streams(request, format=None):
+    """
+    Starts a job to display streams & stream order within a given area of
+    interest.
+
+    For more information, see
+    the [technical documentation](https://wikiwatershedorg/documentation/
+    mmw-tech/#additional-data-layers)
+
+    ## Response
+
+    You can use the URL provided in the response's `Location` header
+    to poll for the job's results.
+
+    <summary>
+
+      **Example of a completed job's `result`**
+    </summary>
+
+    <details>
+
+        {
+            "survey": {
+                "displayName": "Streams",
+                "name": "streams",
+                "categories": [
+                    {
+                        "lengthkm": 2.598,
+                        "total_weighted_slope": 0.05225867338,
+                        "order": 1,
+                        "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": 0.020114962809853736
+                    },
+                    {
+                        "lengthkm": 0,
+                        "total_weighted_slope": null,
+                        "order": 2,
+                        "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": null
+                    },
+                    {
+                         lengthkm": 0,
+                         total_weighted_slope": null,
+                         order": 3,
+                         ag_stream_pct": 0.003416856492027335,
+                         avgslope": null
+                    },
+                    {
+                        "lengthkm": 0,
+                        "total_weighted_slope": null,
+                        "order": 4,
+                        "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": null
+                    },
+                    {
+                        "lengthkm": 0,
+                        "total_weighted_slope": null,
+                        "order": 5,
+                        "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": null
+                    },
+                    {
+                        "lengthkm": 21.228,
+                        "total_weighted_slope": 0.00577236831,
+                        "order": 6,
+                        "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": 0.0002719223812888637
+                    },
+                    {
+                        "lengthkm": 0,
+                        "total_weighted_slope": null,
+                        "order": 7,
+                        "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": null
+                    },
+                    {
+                        "lengthkm": 0,
+                        "total_weighted_slope": null,
+                        "order": 8,
+                        "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": null
+                    },
+                    {
+                        "lengthkm": 0,
+                        "total_weighted_slope": null,
+                        "order": 9,
+                        "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": null
+                    },
+                    {
+                        "lengthkm": 0,
+                        "total_weighted_slope": null,
+                        "order": 10,
+                        "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": null
+                    },
+                    {
+                        "lengthkm": 6.085,
+                        "total_weighted_slope": null,
+                        "order": 999,
+                        "ag_stream_pct": 0.003416856492027335,
+                        "avgslope": null
+                    }
+                ]
+            }
+        }
+
+    </details>
+
+    ---
+    type:
+      job:
+        required: true
+        type: string
+      status:
+        required: true
+        type: string
+
+    omit_serializer: true
+    parameters:
+       - name: body
+         description: A valid single-ringed Multipolygon GeoJSON
+                      representation of the shape to analyze.
+                      See the GeoJSON spec
+                      https://tools.ietf.org/html/rfc7946#section-3.1.7
+         paramType: body
+         type: object
+       - name: wkaoi
+         paramType: query
+         description: The table and ID for a well-known area of interest,
+                      such as a HUC.
+                      Format "table__id", eg. "huc12__55174" will analyze
+                      the HUC-12 City of Philadelphia-Schuylkill River.
+
+       - name: Authorization
+         paramType: header
+         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
+                      Swagger you may wish to set this for all requests via
+                      the field at the top right of the page.
+    consumes:
+        - application/json
+    produces:
+        - application/json
+
+    """
+    user = request.user if request.user.is_authenticated() else None
+    area_of_interest, wkaoi = _parse_input(request)
+
+    return start_celery_job([
+        geoprocessing.run.s('nlcd_streams',
+                            {'polygon': [area_of_interest],
+                             'vector': streams(area_of_interest)}, wkaoi),
+        nlcd_streams.s(),
+        tasks.analyze_streams.s(area_of_interest)
+    ], area_of_interest, user)
+
+
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
 @decorators.permission_classes((IsAuthenticated, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
@@ -687,11 +848,7 @@ def start_analyze_animals(request, format=None):
         - application/json
     """
     user = request.user if request.user.is_authenticated() else None
-
-    wkaoi = request.query_params.get('wkaoi', None)
-    area_of_interest = load_area_of_interest(request.data, wkaoi)
-
-    validate_aoi(area_of_interest)
+    area_of_interest, wkaoi = _parse_input(request)
 
     return start_celery_job([
         tasks.analyze_animals.s(area_of_interest)
@@ -699,7 +856,8 @@ def start_analyze_animals(request, format=None):
 
 
 @decorators.api_view(['POST'])
-@decorators.authentication_classes((TokenAuthentication, ))
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
 @decorators.permission_classes((IsAuthenticated, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
@@ -780,11 +938,7 @@ def start_analyze_pointsource(request, format=None):
         - application/json
     """
     user = request.user if request.user.is_authenticated() else None
-
-    wkaoi = request.query_params.get('wkaoi', None)
-    area_of_interest = load_area_of_interest(request.data, wkaoi)
-
-    validate_aoi(area_of_interest)
+    area_of_interest, wkaoi = _parse_input(request)
 
     return start_celery_job([
         tasks.analyze_pointsource.s(area_of_interest)
@@ -792,7 +946,8 @@ def start_analyze_pointsource(request, format=None):
 
 
 @decorators.api_view(['POST'])
-@decorators.authentication_classes((TokenAuthentication, ))
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
 @decorators.permission_classes((IsAuthenticated, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
@@ -902,11 +1057,7 @@ def start_analyze_catchment_water_quality(request, format=None):
         - application/json
     """
     user = request.user if request.user.is_authenticated() else None
-
-    wkaoi = request.query_params.get('wkaoi', None)
-    area_of_interest = load_area_of_interest(request.data, wkaoi)
-
-    validate_aoi(area_of_interest)
+    area_of_interest, wkaoi = _parse_input(request)
 
     return start_celery_job([
         tasks.analyze_catchment_water_quality.s(area_of_interest)
@@ -914,7 +1065,8 @@ def start_analyze_catchment_water_quality(request, format=None):
 
 
 @decorators.api_view(['POST'])
-@decorators.authentication_classes((TokenAuthentication, ))
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
 @decorators.permission_classes((IsAuthenticated, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
@@ -1000,14 +1152,10 @@ def start_analyze_climate(request, format=None):
     """
     user = request.user if request.user.is_authenticated() else None
 
-    wkaoi = request.query_params.get('wkaoi', None)
-    area_of_interest = load_area_of_interest(request.data, wkaoi)
-
-    validate_aoi(area_of_interest)
-
     geotasks = []
     ppt_raster = settings.GEOP['json']['ppt']['input']['targetRaster']
     tmean_raster = settings.GEOP['json']['tmean']['input']['targetRaster']
+    area_of_interest, wkaoi = _parse_input(request)
 
     for i in xrange(1, 13):
         ppt_input = {'polygon': [area_of_interest],
@@ -1026,6 +1174,107 @@ def start_analyze_climate(request, format=None):
         group(geotasks),
         tasks.collect_climate.s(),
     ], area_of_interest, user, link_error=False)
+
+
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_analyze_terrain(request, format=None):
+    """
+    Starts a job to produce summary statistics for elevation and slope in a
+    given area.
+
+    Source NHDPlus V2 NEDSnapshot DEM
+
+    For more information, see the
+    [technical documentation](https://wikiwatershed.org/
+    documentation/mmw-tech/#overlays-tab-coverage).
+
+    ## Response
+
+    You can use the URL provided in the response's `Location`
+    header to poll for the job's results.
+
+    <summary>
+       **Example of a completed job's `result`**
+    </summary>
+
+    <details>
+
+        {
+            "survey": {
+                "displayName": "Soil",
+                "name": "soil",
+                "categories": [
+                    {
+                        "elevation": 25.03116786250801,
+                        "slope": 2.708598957407307,
+                        "type": "average"
+                    },
+                    {
+                        "elevation": -0.84,
+                        "slope": 0.0,
+                        "type": "minimum"
+                    },
+                    {
+                        "elevation": 105.01,
+                        "slope": 44.52286911010742,
+                        "type": "maximum"
+                    }
+                ]
+            }
+        }
+
+    </details>
+
+    ---
+    type:
+      job:
+        required: true
+        type: string
+      status:
+        required: true
+        type: string
+
+    omit_serializer: true
+    parameters:
+       - name: body
+         description: A valid single-ringed Multipolygon GeoJSON
+                      representation of the shape to analyze.
+                      See the GeoJSON spec
+                      https://tools.ietf.org/html/rfc7946#section-3.1.7
+         paramType: body
+         type: object
+       - name: wkaoi
+         description: The table and ID for a well-known area of interest,
+                      such as a HUC.
+                      Format "table__id", eg. "huc12__55174" will analyze
+                      the HUC-12 City of Philadelphia-Schuylkill River.
+         type: string
+         paramType: query
+
+       - name: Authorization
+         paramType: header
+         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
+                      Swagger you may wish to set this for all requests via
+                      the field at the top right of the page.
+    consumes:
+        - application/json
+    produces:
+        - application/json
+    """
+    user = request.user if request.user.is_authenticated() else None
+    area_of_interest, wkaoi = _parse_input(request)
+
+    geop_input = {'polygon': [area_of_interest]}
+
+    return start_celery_job([
+        geoprocessing.run.s('terrain', geop_input, wkaoi),
+        tasks.analyze_terrain.s()
+    ], area_of_interest, user)
 
 
 def _initiate_rwd_job_chain(location, snapping, simplify, data_source,
@@ -1073,3 +1322,12 @@ def start_celery_job(task_list, job_input, user=None, link_error=True):
         },
         headers={'Location': reverse('get_job', args=[task_chain.id])}
     )
+
+
+def _parse_input(request):
+    wkaoi = request.query_params.get('wkaoi', None)
+    serializer = AoiSerializer(data={'area_of_interest': request.data,
+                                     'wkaoi': wkaoi})
+    serializer.is_valid(raise_exception=True)
+    return (serializer.validated_data.get('area_of_interest'),
+            wkaoi)

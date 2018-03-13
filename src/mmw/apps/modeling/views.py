@@ -8,7 +8,7 @@ from celery import chain, group
 
 from rest_framework.response import Response
 from rest_framework import decorators, status
-from rest_framework.exceptions import ParseError
+from rest_framework.exceptions import ValidationError
 from rest_framework.authentication import (SessionAuthentication,
                                            TokenAuthentication)
 from rest_framework.permissions import (AllowAny,
@@ -17,9 +17,8 @@ from rest_framework.permissions import (AllowAny,
 
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
-from django.conf import settings
 from django.db import connection
-from django.contrib.gis.geos import WKBReader
+from django.db.models.sql import EmptyResultSet
 from django.http import (HttpResponse,
                          Http404,
                          )
@@ -36,7 +35,11 @@ from apps.modeling.models import Project, Scenario
 from apps.modeling.serializers import (ProjectSerializer,
                                        ProjectListingSerializer,
                                        ProjectUpdateSerializer,
-                                       ScenarioSerializer)
+                                       ScenarioSerializer,
+                                       AoiSerializer)
+from apps.modeling.calcs import (get_layer_shape,
+                                 boundary_search_context,
+                                 split_into_huc12s)
 
 
 @decorators.api_view(['GET', 'POST'])
@@ -162,9 +165,15 @@ def scenario(request, scen_id):
 
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
+@log_request
 def start_gwlfe(request, format=None):
     """
     Starts a job to run GWLF-E.
+
+    If ?subbasin=true, will expect a dictionary where the keys
+    are subbasin (HUC-12) ids, and the values are the mapshed data.
+    Will start a GWLF-E job, the result of which will be dictionary
+    of the subbasins and their results.
     """
     user = request.user if request.user.is_authenticated() else None
     created = now()
@@ -173,7 +182,14 @@ def start_gwlfe(request, format=None):
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
 
-    task_list = _initiate_gwlfe_job_chain(model_input, inputmod_hash, job.id)
+    if request.query_params.get('subbasin', False) == 'true':
+        task_list = _initiate_subbasin_gwlfe_job_chain(model_input,
+                                                       inputmod_hash,
+                                                       job.id)
+    else:
+        task_list = _initiate_gwlfe_job_chain(model_input,
+                                              inputmod_hash,
+                                              job.id)
 
     job.uuid = task_list.id
     job.save()
@@ -195,12 +211,33 @@ def _initiate_gwlfe_job_chain(model_input, inputmod_hash, job_id):
     return chain.apply_async(link_error=errback)
 
 
+def _initiate_subbasin_gwlfe_job_chain(model_input, inputmod_hash, job_id):
+    huc12_jobs = []
+    errback = save_job_error.s(job_id)
+
+    for (id, gms) in model_input.iteritems():
+        huc12_jobs.append(
+            tasks.run_gwlfe.s(gms, inputmod_hash, id)
+                 .set(link_error=errback))
+
+    return chain(
+        group(huc12_jobs) |
+        tasks.subbasin_results_to_dict.s() |
+        tasks.run_srat.s() |
+        save_job_result.s(job_id, model_input)).apply_async()
+
+
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
+@log_request
 def start_mapshed(request, format=None):
     """
     Starts a MapShed job which gathers data from various sources which
     eventually is input to start_gwlfe to model the watershed.
+
+    If the input shape is a HUC-8 or HUC-10, it is split into its component
+    HUC-12s. The started MapShed job gathers data for each and returns
+    them in a dictionary where the keys are the huc12 ids.
     """
     user = request.user if request.user.is_authenticated() else None
     created = now()
@@ -208,7 +245,10 @@ def start_mapshed(request, format=None):
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
 
-    task_list = _initiate_mapshed_job_chain(mapshed_input, job.id)
+    if request.query_params.get('subbasin', False) == 'true':
+        task_list = _initiate_subbasin_mapshed_job_chain(mapshed_input, job.id)
+    else:
+        task_list = _initiate_mapshed_job_chain(mapshed_input, job.id)
 
     job.uuid = task_list.id
     job.save()
@@ -221,11 +261,41 @@ def start_mapshed(request, format=None):
     )
 
 
+def _initiate_subbasin_mapshed_job_chain(mapshed_input, job_id):
+    errback = save_job_error.s(job_id)
+
+    area_of_interest, wkaoi = _parse_input(mapshed_input)
+
+    if not wkaoi:
+        raise ValidationError('You must provide the `wkaoi` key: ' +
+                              'a HUC id is currently required for ' +
+                              'subbasin modeling.')
+
+    [layer_code, shape_id] = wkaoi.split('__')
+    if layer_code not in ['huc8', 'huc10']:
+        raise ValidationError('Only HUC-08s and HUC-10s are valid for ' +
+                              'subbasin modeling.')
+
+    huc12s = split_into_huc12s(layer_code, shape_id)
+    if not huc12s:
+        raise EmptyResultSet('No subbasins found')
+
+    huc12_job_chains = []
+    for (huc12_id, huc12, huc12_aoi) in huc12s:
+        huc12_wkaoi = 'huc12__{id}'.format(id=huc12_id)
+        huc12_job_chains.append(chain((
+            group(geoprocessing_chains(huc12_aoi, huc12_wkaoi, errback)) |
+            collect_data.s(huc12_aoi, huc12).set(link_error=errback))))
+
+    return chain(group(huc12_job_chains) |
+                 tasks.subbasin_results_to_dict.s() |
+                 save_job_result.s(job_id, mapshed_input)).apply_async()
+
+
 def _initiate_mapshed_job_chain(mapshed_input, job_id):
     errback = save_job_error.s(job_id)
 
-    area_of_interest, wkaoi = parse_input(mapshed_input)
-
+    area_of_interest, wkaoi = _parse_input(mapshed_input)
     job_chain = (
         group(geoprocessing_chains(area_of_interest, wkaoi, errback)) |
         collect_data.s(area_of_interest).set(link_error=errback) |
@@ -254,6 +324,7 @@ def export_gms(request, format=None):
 
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
+@log_request
 def start_tr55(request, format=None):
 
     user = request.user if request.user.is_authenticated() else None
@@ -283,7 +354,7 @@ def _construct_tr55_job_chain(model_input, job_id):
 
     job_chain = []
 
-    aoi_json_str, wkaoi = parse_input(model_input)
+    aoi_json_str, wkaoi = _parse_input(model_input)
     aoi = json.loads(aoi_json_str)
     aoi_census = model_input.get('aoi_census')
     modification_censuses = model_input.get('modification_censuses')
@@ -332,13 +403,6 @@ def _construct_tr55_job_chain(model_input, job_id):
     return job_chain
 
 
-def _get_boundary_layer_by_code(code):
-    for layer in settings.LAYER_GROUPS['boundary']:
-        if layer.get('code') == code:
-            return layer
-    return False
-
-
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
 def boundary_layer_detail(request, table_code, obj_id):
@@ -350,87 +414,6 @@ def boundary_layer_detail(request, table_code, obj_id):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-def _get_boundary_search_query(search_term):
-    """
-    Return raw SQL query to perform full text search against
-    all searchable boundary layers.
-    """
-    select_fmt = """
-        (SELECT id, '{code}' AS code, name, {rank} AS rank,
-            ST_Centroid(geom) as center
-        FROM {table}
-        WHERE UPPER(name) LIKE UPPER(%(term)s)
-        LIMIT 3)
-    """.strip()
-
-    selects = []
-    for layer in settings.LAYER_GROUPS['boundary']:
-        if not layer.get('searchable'):
-            continue
-
-        code = layer['code']
-        table_name = layer['table_name']
-        rank = layer.get('search_rank', 0)
-
-        selects.append(select_fmt.format(
-            code=code, table=table_name, rank=rank))
-
-    if len(selects) == 0:
-        raise Exception('No boundary layers are searchable')
-
-    subquery = ' UNION ALL '.join(selects)
-
-    return """
-        SELECT id, code, name, rank, center
-        FROM ({}) AS subquery
-        ORDER BY rank DESC, name
-    """.format(subquery)
-
-
-def _do_boundary_search(search_term):
-    """
-    Execute full text search against all searchable boundary layers.
-    """
-    result = []
-    query = _get_boundary_search_query(search_term)
-
-    with connection.cursor() as cursor:
-        wildcard_term = '%{}%'.format(search_term)
-        cursor.execute(query, {'term': wildcard_term})
-
-        wkb_r = WKBReader()
-
-        for row in cursor.fetchall():
-            id = row[0]
-            code = row[1]
-            name = row[2]
-            rank = row[3]
-            point = wkb_r.read(row[4])
-
-            layer = _get_boundary_layer_by_code(code)
-
-            result.append({
-                'id': id,
-                'code': code,
-                'text': name,
-                'label': layer['short_display'],
-                'rank': rank,
-                'y': point.y,
-                'x': point.x,
-            })
-
-    return result
-
-
-def _boundary_search_context(search_term):
-    suggestions = [] if len(search_term) < 3 else \
-        _do_boundary_search(search_term)
-    # Data format should match the ArcGIS API suggest endpoint response
-    return {
-        'suggestions': suggestions,
-    }
-
-
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
 def boundary_layer_search(request):
@@ -438,7 +421,7 @@ def boundary_layer_search(request):
     if not search_term:
         return Response('Missing query string param: text',
                         status=status.HTTP_400_BAD_REQUEST)
-    result = _boundary_search_context(search_term)
+    result = boundary_search_context(search_term)
     return Response(result)
 
 
@@ -483,8 +466,8 @@ def drb_point_sources(request):
 
 
 @decorators.api_view(['GET'])
-@decorators.authentication_classes((TokenAuthentication,
-                                    SessionAuthentication, ))
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
 @decorators.permission_classes((AllowAny, ))
 @log_request
 def get_job(request, job_uuid, format=None):
@@ -554,112 +537,9 @@ def get_job(request, job_uuid, format=None):
     )
 
 
-def get_layer_shape(table_code, id):
-    """
-    Fetch shape of well known area of interest.
-
-    :param table_code: Code of table
-    :param id: ID of the shape
-    :return: GeoJSON of shape if found, None otherwise
-    """
-    layer = _get_boundary_layer_by_code(table_code)
-    if not layer:
-        return None
-
-    table = layer['table_name']
-    field = layer.get('json_field', 'geom')
-
-    sql = '''
-          SELECT ST_AsGeoJSON({field})
-          FROM {table}
-          WHERE id = %s
-          '''.format(field=field, table=table)
-
-    with connection.cursor() as cursor:
-        cursor.execute(sql, [int(id)])
-        row = cursor.fetchone()
-
-        if row:
-            return row[0]
-        else:
-            return None
-
-
-def parse_area_of_interest(area_of_interest):
-    """
-    Returns a geojson string of the provided area of interest, formatted
-    as a one-ring multipolygon if necessary.
-
-    Args:
-       area_of_interest (dict): valid geojson. If MultiPolygon, can only have a
-                                single ring.
-    """
-    try:
-        shape = geoprocessing.to_one_ring_multipolygon(area_of_interest)
-    except:
-        raise ParseError(detail='Area of interest must be valid GeoJSON')
-
-    return json.dumps(shape)
-
-
-def load_wkaoi(wkaoi):
-    """
-    Returns a geojson string of a wellknown AoI's shape
-
-    Args:
-       wkaoi (string): '{table}__{id}', where table is the table to look up the
-                       wellknown AOIs shape in, and id is the shape's id
-    """
-    table, id = wkaoi.split('__')
-    shape = get_layer_shape(table, id)
-
-    if not shape:
-        raise ParseError(detail='Invalid wkaoi: {}'.format(wkaoi))
-
-    return shape
-
-
-def load_area_of_interest(aoi_geojson=None, wkaoi=None):
-    """
-    Returns a geojson string of the area of interest, either loaded from the
-    wkaoi, or processed from the aoi_geojson
-
-    Args:
-       aoi_geojson (dict): valid GeoJSON. If MultiPolygon can only have
-                           a single ring.
-                           No re-projection, expects EPSG: 4326
-       wkaoi (string):     '{table}__{id}'
-    """
-    if (aoi_geojson):
-        return parse_area_of_interest(aoi_geojson)
-
-    if (wkaoi):
-        return load_wkaoi(wkaoi)
-
-    raise ParseError(detail='Must supply either ' +
-                            'the area of interest (GeoJSON), ' +
-                            'or a WKAoI ID.')
-
-
-def parse_input(model_input):
-    """
-    Parse input into tuple of AoI JSON and WKAoI id.
-
-    If the input has an 'area_of_interest' key, it is returned as the AoI JSON
-    and None as the WKAoI. If the input has a 'wkaoi' key, its shape is pulled
-    from the appropriate database, and returned with the value of 'wkaoi' as
-    the WKAoI.
-
-    Args:
-        model_input: a dictionary, only one of the keys is necessary
-                         {
-                            'area_of_interest': { <geojson dict> }
-                            'wkaoi': '{table}__{id}',
-                         }
-    """
-    if not model_input:
-        raise ParseError(detail='model_input cannot be empty')
-
-    wkaoi = model_input.get('wkaoi', None)
-    return load_area_of_interest(model_input.get('area_of_interest', None),
-                                 wkaoi), wkaoi
+def _parse_input(model_input):
+    serializer = AoiSerializer(data=model_input)
+    serializer.is_valid(raise_exception=True)
+    area_of_interest = serializer.validated_data.get('area_of_interest')
+    wkaoi = serializer.validated_data.get('wkaoi')
+    return area_of_interest, wkaoi

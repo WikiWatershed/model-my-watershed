@@ -110,6 +110,15 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         'change:detail_result': 'onDetailResultChange'
     },
 
+    onBeforeDestroy: function() {
+        this.setVisibility(false);
+        App.map.set({
+            'dataCatalogResults': null,
+            'dataCatalogActiveResult': null,
+            'dataCatalogDetailResult': null,
+        });
+    },
+
     onShow: function() {
         this.formRegion.show(new FormView({
             model: this.model,
@@ -121,6 +130,15 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         this.showChildView('contentsRegion', new TabContentsView({
             collection: this.collection
         }));
+
+        // Show search results if query already exists
+        if (this.model.get('query') !== '') {
+            this.ui.introText.addClass('hide');
+            this.ui.tabs.removeClass('hide');
+
+            // Show detail result if selected
+            this.onDetailResultChange();
+        }
     },
 
     onSelectCatalog: function(childView, catalogId) {
@@ -134,6 +152,13 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         var nextCatalog = this.collection.get(catalogId);
         nextCatalog.set('active', true);
 
+        // Set pagination class for height adjustment
+        if (nextCatalog.get('is_pageable')) {
+            this.contentsRegion.currentView.$el.addClass('paginated');
+        } else {
+            this.contentsRegion.currentView.$el.removeClass('paginated');
+        }
+
         this.doSearch();
     },
 
@@ -143,9 +168,17 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
             detailResult = activeCatalog.get('detail_result');
 
         if (!detailResult) {
-            this.closeDetails();
+            this.detailsRegion.empty();
+            this.updateMap();
             App.map.set('dataCatalogDetailResult', null);
+            this.formRegion.$el.removeClass('hidden');
+            this.panelsRegion.$el.removeClass('hidden');
+            this.contentsRegion.$el.removeClass('hidden');
         } else {
+            this.formRegion.$el.addClass('hidden');
+            this.panelsRegion.$el.addClass('hidden');
+            this.contentsRegion.$el.addClass('hidden');
+            this.hideFilterSidebar();
             this.detailsRegion.show(new ResultDetailsView({
                 model: detailResult,
                 catalog: activeCatalog.id
@@ -155,11 +188,6 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
                 'dataCatalogDetailResult': detailResult
             });
         }
-    },
-
-    closeDetails: function() {
-        this.detailsRegion.empty();
-        this.updateMap();
     },
 
     doSearch: function() {
@@ -181,9 +209,39 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
 
         if (catalog) {
             App.map.set('dataCatalogResults', catalog.get('results'));
+            this.bindDataCatalogPopovers(catalog);
+        }
+    },
+
+    bindDataCatalogPopovers: function(catalog) {
+        if (!catalog) {
+            catalog = this.collection.getActiveCatalog();
+        }
+
+        if (catalog) {
             App.getMapView().bindDataCatalogPopovers(
                 ResultMapPopoverDetailView, ResultMapPopoverControllerView,
                 catalog.id, catalog.get('results'));
+        }
+    },
+
+    hideFilterSidebar: function() {
+        if (App.rootView.secondarySidebarRegion.hasView()) {
+            App.rootView.secondarySidebarRegion.empty();
+            App.map.toggleSecondarySidebar();
+        }
+    },
+
+    // Enables or disables map item visibility
+    // For when the DataCatalogWindow is loaded but hidden
+    // Such as when showing the Analyze or Model tab instead of Monitor
+    setVisibility: function(visible) {
+        App.map.set('dataCatalogVisible', visible);
+
+        if (visible) {
+            this.bindDataCatalogPopovers();
+        } else {
+            this.hideFilterSidebar();
         }
     }
 });
@@ -197,12 +255,14 @@ var FormView = Marionette.ItemView.extend({
 
     ui: {
         filterToggle: '.filter-sidebar-toggle',
-        searchInput: '.data-catalog-search-input',
+        searchInput: 'input[type="text"]',
+        searchButton: '.btn-search',
         downloadButton: '#bigcz-catalog-results-download',
     },
 
     events: {
         'keyup @ui.searchInput': 'onSearchInputChanged',
+        'click @ui.searchButton': 'triggerSearch',
         'click @ui.filterToggle': 'onFilterToggle',
         'click @ui.downloadButton': 'downloadResults',
     },
@@ -250,10 +310,6 @@ var FormView = Marionette.ItemView.extend({
 
                 return cr;
             }),
-            blob = new Blob([JSON.stringify(data)],
-                            { type: 'data:text/plain;charset=utf-8'}),
-            url = URL.createObjectURL(blob),
-            a = document.createElement('a'),
             dateString = (new Date()).toJSON()
                                      .replace(/[T:]/g, '-')
                                      .substr(0, 19),  // YYYY-MM-DD-hh-mm-ss
@@ -264,21 +320,7 @@ var FormView = Marionette.ItemView.extend({
             filename = 'bigcz-' + catalog.id + '-' +
                        dashedQuery + '-' + dateString + '.json';
 
-        if (navigator.msSaveBlob) {
-            // IE has a nicer interface for saving blobs
-            navigator.msSaveBlob(blob, filename);
-        } else {
-            // Other browsers have to use a hidden link hack
-            a.style.display = 'none';
-            a.setAttribute('download', filename);
-            a.setAttribute('href', url);
-
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-
-        URL.revokeObjectURL(url);
+        utils.downloadAsFile(data, filename);
     },
 
     getFilters: function() {
@@ -455,7 +497,7 @@ var TabContentView = Marionette.LayoutView.extend({
 });
 
 var TabContentsView = Marionette.CollectionView.extend({
-    className: 'catalog-tab-content tab-content',
+    className: 'catalog-tab-content tab-content paginated',
     childView: TabContentView
 });
 
@@ -1098,16 +1140,17 @@ var ResultMapPopoverControllerView = Marionette.LayoutView.extend({
 
     initialize: function() {
         this.model = new models.PopoverControllerModel();
-        this.model.on('change:activeResult', this.render);
+        this.listenTo(this.model, 'change:activeResult', this.onShow);
     },
 
-    onRender: function() {
+    onShow: function() {
         var activeResult = this.model.get('activeResult');
         if (activeResult) {
             this.container.show(new ResultMapPopoverDetailView({
                 model: activeResult,
                 catalog: this.options.catalog
             }));
+            this.ui.back.removeClass('hidden');
         } else {
             App.map.set('dataCatalogActiveResult', null);
             this.model.set('active', false);
@@ -1116,6 +1159,7 @@ var ResultMapPopoverControllerView = Marionette.LayoutView.extend({
                 popoverModel: this.model,
                 catalog: this.options.catalog
             }));
+            this.ui.back.addClass('hidden');
         }
     },
 
@@ -1233,6 +1277,7 @@ var FilterSidebar = Marionette.CompositeView.extend({
 
     className: 'data-catalog-filter-window',
     template: filterSidebarTmpl,
+    childViewContainer: '.data-catalog-filter-groups',
 
     ui: {
         reset: '[data-action="reset-filters"]'
@@ -1283,6 +1328,7 @@ var FilterSidebar = Marionette.CompositeView.extend({
 
 
 module.exports = {
+    DataCatalogWindow: DataCatalogWindow,
     HeaderView: HeaderView,
     ResultsWindow: ResultsWindow
 };

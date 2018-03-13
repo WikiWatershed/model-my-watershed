@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 
 import json
+from operator import itemgetter
 
 from django.contrib.gis.geos import GEOSGeometry
 
@@ -47,6 +48,75 @@ def animal_population(geojson):
         'displayName': 'Animals',
         'name': 'animals',
         'categories': aeu_return_values
+    }
+
+
+def stream_data(results, geojson):
+    """
+    Given a GeoJSON shape, retreive stream data from the `nhdflowline` table
+    to display in the Analyze tab
+
+    Returns a dictionary to append to outgoing JSON for analysis results.
+    """
+
+    NULL_SLOPE = -9998.0
+
+    sql = '''
+        SELECT sum(lengthkm) as lengthkm,
+               stream_order,
+               sum(lengthkm * NULLIF(slope, {NULL_SLOPE})) as slopesum
+        FROM nhdflowline
+        WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
+        GROUP BY stream_order;
+        '''.format(NULL_SLOPE=NULL_SLOPE)
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [geojson])
+
+        if cursor.rowcount:
+            columns = [col[0] for col in cursor.description]
+            streams = [
+                dict(zip(columns,
+                         [
+                             float(row[0]) if row[0] else 0,
+                             int(row[1]) if row[1] and row[1] != 0 else 999,
+                             float(row[2]) if row[2] else None,
+                         ]))
+                for row in cursor.fetchall()
+            ]
+        else:
+            streams = []
+
+    def calculate_avg_slope(slope, length):
+        if slope and length:
+            return slope / length
+        return None
+
+    stream_data = {
+        str(s['stream_order']): {
+            "order": s['stream_order'],
+            "lengthkm": s['lengthkm'],
+            "ag_stream_pct": results['ag_stream_pct'],
+            "total_weighted_slope": s['slopesum'],
+            "avgslope": calculate_avg_slope(s['slopesum'], s['lengthkm']),
+        } for s in streams
+    }
+
+    # Add stream orders missing from query result
+    for x in list(range(1, 11)) + [999]:
+        stream_data.setdefault(str(x), {
+            "order": x,
+            "lengthkm": 0,
+            "ag_stream_pct": results['ag_stream_pct'],
+            "avgslope": None,
+            "total_weighted_slope": None,
+        })
+
+    return {
+        'displayName': 'Streams',
+        'name': 'streams',
+        'categories': sorted(list(stream_data.values()),
+                             key=itemgetter('order')),
     }
 
 

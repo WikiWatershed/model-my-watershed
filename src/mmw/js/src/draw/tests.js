@@ -26,6 +26,43 @@ var sandboxId = 'sandbox',
           [-75.16287803649902, 39.95161218948083],
           [-75.16518473625183, 39.95194939669509],
           [-75.16472339630127, 39.953446247674904]]]]
+    },
+    TEST_MULTIPOLYGON = TEST_SHAPE,
+    TEST_TOUCHING_RING_POLYGON = {
+        "type": "Polygon",
+        "coordinates": [[
+                [-81.1334565281868, 34.5155012452405],
+                [-81.13281011581421, 34.51532885979015],
+                [-81.13242119550705, 34.516444938757026],
+                [-81.13294959068298, 34.515963148086456],
+                [-81.13310515880585, 34.5165200801701],
+                [-81.1334565281868, 34.5155012452405]], [
+                [-81.13294959068298, 34.515963148086456],
+                [-81.13285839557648, 34.515850435187986],
+                [-81.13307565450668, 34.51588137599882],
+                [-81.13294959068298, 34.515963148086456]]]
+    },
+    TEST_SELF_INTERSECTING_POLYGON = {
+        "type": "Polygon",
+        "coordinates": [[
+                [-81.13367110490799, 34.51589463634283],
+                [-81.13365232944489, 34.51609133119742],
+                [-81.13351553678513, 34.51586148547889],
+                [-81.1334753036499, 34.51606481056996],
+                [-81.13367110490799, 34.51589463634283]]]
+    },
+    TEST_POLYGON = (function() {
+                        var x = _.clone(TEST_SHAPE);
+                        x.type = 'Polygon';
+                        return x; })(),
+    TEST_FEATURE = {
+        'type': 'Feature',
+        'properties': {},
+        'geometry': TEST_MULTIPOLYGON,
+    },
+    TEST_FEATURECOLLECTION = {
+        'type': 'FeatureCollection',
+        'features': [TEST_FEATURE],
     };
 
 var SandboxRegion = Marionette.Region.extend({
@@ -214,6 +251,33 @@ describe('Draw', function() {
             assert.equal(spy.callCount, 1);
         });
     });
+
+    describe('DrawUtils', function() {
+        it ('parses GeoJSON correctly', function() {
+            var parse = utils.getPolygonFromGeoJson;
+
+            assert.equal(parse(TEST_POLYGON), TEST_POLYGON);
+            assert.equal(parse(TEST_MULTIPOLYGON), TEST_MULTIPOLYGON);
+            assert.equal(parse(TEST_FEATURE), TEST_MULTIPOLYGON);
+            assert.equal(parse(TEST_FEATURECOLLECTION), TEST_MULTIPOLYGON);
+        });
+
+        it ('finds self-intersections', function() {
+            var isSelfIntersecting = utils.isSelfIntersecting;
+
+            assert.equal(isSelfIntersecting(TEST_POLYGON), false,
+                         'found intersections in polygon where there were none');
+            assert.equal(isSelfIntersecting(TEST_MULTIPOLYGON), false,
+                         'found intersections in multipolygon where there were none');
+            assert.equal(isSelfIntersecting(TEST_FEATURE), false,
+                         'found intersections in feature multipolygon where there were none');
+            assert.equal(isSelfIntersecting(TEST_TOUCHING_RING_POLYGON), false,
+                         'found intersections in polygon with self-touching rings');
+
+            assert.equal(isSelfIntersecting(TEST_SELF_INTERSECTING_POLYGON), true,
+                         'did not find intersections in intersecting polygon');
+        });
+    });
 });
 
 function setupGetShapeAndAnalyze(successCount) {
@@ -271,10 +335,10 @@ function assertDrawToolIsVisible($el, drawToolRegion) {
         inactiveRegions = drawToolRegion ? _.without(regions, drawToolRegion) : regions;
 
     if (drawToolRegion) {
-        assert.equal($el.find(drawToolRegion + ' .draw-tool-selection').size(), 1);
+        assert.equal($el.find(drawToolRegion + ' .draw-tool-selection').length, 1);
     }
 
     _.each(inactiveRegions, function (inactiveDrawToolRegion) {
-        assert.equal($el.find(inactiveDrawToolRegion + ' .draw-tool-region').size(), 0);
+        assert.equal($el.find(inactiveDrawToolRegion + ' .draw-tool-region').length, 0);
     });
 }

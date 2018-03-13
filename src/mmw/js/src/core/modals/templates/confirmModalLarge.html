@@ -1,0 +1,18 @@
+<div class="modal-dialog modal-dialog-sm">
+    <div class="modal-content {{ className }}">
+        <div class="modal-header">
+            <h2 class="light"> {{ titleText }}</h2>
+        </div>
+        <div class="modal-body">
+            {% for q in question %}
+                <p>{{ q }}</p>
+            {% endfor %}
+        </div>
+        <div class="modal-footer" style="text-align: right;">
+            <div class="footer-content">
+                <button type="button" class="btn btn-md btn-default" data-dismiss="modal">{{ cancelLabel }}</button>
+                <button type="button" class="btn btn-md btn-active confirm" data-dismiss="modal">{{ confirmLabel }}</button>
+            </div>
+        </div>
+    </div>
+</div>

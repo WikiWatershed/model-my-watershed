@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from django.contrib.gis.geos import Polygon
+
 
 class ResourceLink(object):
     def __init__(self, type, href):
@@ -40,3 +42,11 @@ class BBox(object):
         self.xmax = xmax
         self.ymin = ymin
         self.ymax = ymax
+
+    def area(self):
+        polygon = Polygon.from_bbox((
+            self.xmin, self.ymin,
+            self.xmax, self.ymax))
+        polygon.set_srid(4326)
+
+        return polygon.transform(5070, clone=True).area

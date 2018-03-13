@@ -15,7 +15,7 @@ from sys import path
 from layer_settings import (LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
                             NHD_REGION2_PERIMETER, DRB_PERIMETER, CONUS_PERIMETER)  # NOQA
 from gwlfe_settings import (GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, # NOQA
-                            CURVE_NUMBER, NODATA)  # NOQA
+                            CURVE_NUMBER, NODATA, SRAT_KEYS)  # NOQA
 from tr55_settings import (NLCD_MAPPING, SOIL_MAPPING)
 
 # Normally you should not import ANYTHING from Django directly
@@ -262,6 +262,7 @@ TEMPLATE_DIRS = (
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#middleware-classes
 MIDDLEWARE_CLASSES = (
     # Default Django middleware.
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'mmw.middleware.BypassMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -298,6 +299,7 @@ THIRD_PARTY_APPS = (
     'rest_framework',
     'rest_framework_swagger',
     'rest_framework.authtoken',
+    'corsheaders',
     'registration',
     'django_celery_results',
 )
@@ -312,8 +314,14 @@ REST_FRAMEWORK = {
     },
 }
 
+# cors
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_URLS_REGEX = r'^/api/.*$'
+
 SWAGGER_SETTINGS = {
     'exclude_namespaces': ['bigcz',
+                           'export',
                            'mmw',
                            'user'],
     'doc_expansion': 'list',
@@ -347,6 +355,7 @@ AUTHENTICATION_BACKENDS = (
 LOCAL_APPS = (
     'apps.bigcz',
     'apps.core',
+    'apps.export',
     'apps.modeling',
     'apps.geoprocessing_api',
     'apps.home',
@@ -402,6 +411,25 @@ ITSI = {
     'access_token_url': 'auth/concord_id/access_token',
     'user_json_url': 'auth/concord_id/user.json',
     'embed_flag': 'itsi_embed',
+}
+
+# HydroShare Integration Settings
+HYDROSHARE = {
+    'client_id': environ.get('MMW_HYDROSHARE_CLIENT_ID', 'model-my-watershed'),
+    'client_secret': environ.get('MMW_HYDROSHARE_SECRET_KEY',
+                                 'MISSING MMW_HYDROSHARE_SECRET_KEY ENV VAR'),
+    'base_url': environ.get('MMW_HYDROSHARE_BASE_URL',
+                            'https://beta.hydroshare.org/'),
+    'authorize_url': 'o/authorize/',
+    'access_token_url': 'o/token/'
+}
+
+# SRAT Catchment API Settings
+SRAT_CATCHMENT_API = {
+    'url': environ.get('MMW_SRAT_CATCHMENT_API_URL',
+                       'ERROR: Could not get SRAT Catchment API URL'),
+    'api_key': environ.get('MMW_SRAT_CATCHMENT_API_KEY',
+                           'ERROR: Could not get SRAT Catchment API Key'),
 }
 
 # Geoprocessing Settings
@@ -581,6 +609,19 @@ GEOP = {
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0
             }
+        },
+        'terrain': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'ned-nhdplus-30m-epsg5070-512',
+                    'us-percent-slope-30m-epsg5070-512',
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterSummary',
+                'zoom': 0
+            }
         }
     }
 }
@@ -637,3 +678,9 @@ MODEL_PACKAGES = [
 DISABLED_MODEL_PACKAGES = []
 
 # END UI CONFIGURATION
+
+# FEATURE FLAGS
+
+ENABLED_FEATURES = environ.get('MMW_ENABLED_FEATURES', '').strip().split()
+
+# END FEATURE FLAGS

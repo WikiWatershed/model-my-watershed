@@ -28,6 +28,10 @@ urlpatterns = patterns(
         name='start_analyze_catchment_water_quality'),
     url(r'analyze/climate/$', views.start_analyze_climate,
         name='start_analyze_climate'),
+    url(r'analyze/streams/$', views.start_analyze_streams,
+        name='start_analyze_streams'),
+    url(r'analyze/terrain/$', views.start_analyze_terrain,
+        name='start_analyze_terrain'),
     url(r'jobs/' + uuid_regex, get_job, name='get_job'),
     url(r'watershed/$', views.start_rwd, name='start_rwd'),
 )

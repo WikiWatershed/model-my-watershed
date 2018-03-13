@@ -176,17 +176,17 @@ var LoginModalView = ModalBaseView.extend({
     }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
-        this.ui.username.focus();
+        this.ui.username.trigger('focus');
     },
 
     onValidationError: function() {
-        this.ui.username.focus();
+        this.ui.username.trigger('focus');
     },
 
     setFields: function() {
         this.model.set({
-            username: $(this.ui.username.selector).val(),
-            password: $(this.ui.password.selector).val()
+            username: this.ui.username.val(),
+            password: this.ui.password.val()
         }, { silent: true });
     },
 
@@ -295,7 +295,7 @@ var UserProfileModalView = ModalBaseView.extend({
                     e.preventDefault();
                     $(e.target).val('');
                     $element.find('.selectpicker').selectpicker('toggle');
-                    $element.find('button').focus();
+                    $element.find('button').trigger('focus');
                     return false;
                 }
             },
@@ -309,7 +309,7 @@ var UserProfileModalView = ModalBaseView.extend({
             $input.on('blur', function() { self.escapeHandler = undefined; });
         });
 
-        this.ui.firstName.focus();
+        this.ui.firstName.trigger('focus');
     },
 
     handleSuccess: function(response) {
@@ -384,7 +384,7 @@ var SignUpModalView = ModalBaseView.extend({
     }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
-        this.ui.username.focus();
+        this.ui.username.trigger('focus');
     },
 
     onModalHidden: function() {
@@ -395,15 +395,15 @@ var SignUpModalView = ModalBaseView.extend({
     },
 
     onValidationError: function() {
-        this.ui.username.focus();
+        this.ui.username.trigger('focus');
     },
 
     setFields: function() {
         this.model.set({
-            username: $(this.ui.username.selector).val(),
-            email: $(this.ui.email.selector).val(),
-            password1: $(this.ui.password1.selector).val(),
-            password2: $(this.ui.password2.selector).val(),
+            username: this.ui.username.val(),
+            email: this.ui.email.val(),
+            password1: this.ui.password1.val(),
+            password2: this.ui.password2.val(),
         }, { silent: true });
     },
 
@@ -447,16 +447,16 @@ var ResendModalView = ModalBaseView.extend({
     }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
-        this.ui.email.focus();
+        this.ui.email.trigger('focus');
     },
 
     onValidationError: function() {
-        this.ui.email.focus();
+        this.ui.email.trigger('focus');
     },
 
     setFields: function() {
         this.model.set({
-            email: $(this.ui.email.selector).val()
+            email: this.ui.email.val()
         }, { silent: true });
     },
 
@@ -485,16 +485,16 @@ var ForgotModalView = ModalBaseView.extend({
     }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
-        this.ui.email.focus();
+        this.ui.email.trigger('focus');
     },
 
     onValidationError: function() {
-        this.ui.email.focus();
+        this.ui.email.trigger('focus');
     },
 
     setFields: function() {
         this.model.set({
-            email: $(this.ui.email.selector).val()
+            email: this.ui.email.val()
         }, { silent: true });
     },
 
@@ -544,18 +544,18 @@ var ChangePasswordModalView = ModalBaseView.extend({
     }, ModalBaseView.prototype.ui),
 
     onModalShown: function() {
-        this.ui.oldPassword.focus();
+        this.ui.oldPassword.trigger('focus');
     },
 
     onValidationError: function() {
-        this.ui.oldPassword.focus();
+        this.ui.oldPassword.trigger('focus');
     },
 
     setFields: function() {
         this.model.set({
-            old_password: $(this.ui.oldPassword.selector).val(),
-            new_password1: $(this.ui.password1.selector).val(),
-            new_password2: $(this.ui.password2.selector).val(),
+            old_password: this.ui.oldPassword.val(),
+            new_password1: this.ui.password1.val(),
+            new_password2: this.ui.password2.val(),
         }, { silent: true });
     }
 });

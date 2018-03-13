@@ -139,7 +139,8 @@ JS_DEPS=(backbone
          turf-erase
          turf-intersect
          turf-kinks
-         underscore)
+         underscore
+         wellknown)
 
 BROWSERIFY_EXT=""
 BROWSERIFY_REQ=""

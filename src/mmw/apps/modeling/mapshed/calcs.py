@@ -10,7 +10,6 @@ from collections import namedtuple
 from gwlfe.enums import GrowFlag
 
 from django.conf import settings
-from django.contrib.gis.geos import GEOSGeometry
 from django.db import connection
 
 NRur = settings.GWLFE_DEFAULTS['NRur']
@@ -321,42 +320,24 @@ def stream_length(geom, drb=False):
         return cursor.fetchone()[0] or 0  # Aggregate query returns singleton
 
 
-def streams(geom, drb=False):
+def streams(geojson, drb=False):
     """
-    Given a geometry, returns a list of GeoJSON objects, either LineStrings or
-    MultiLineStrings, representing the set of streams contained inside the
-    geometry, in LatLng. If the drb flag is set, we use the Delaware River
-    Basin dataset instead of NHD Flowline.
+    Given a GeoJSON, returns a list containing a single MultiLineString, that
+    represents the set of streams that intersect with the geometry, in LatLng.
+    If the drb flag is set, we use the Delaware River Basin dataset instead of
+    NHD Flowline.
     """
     sql = '''
-          WITH clipped_streams AS (
-              SELECT ST_Intersection(geom,
-                                     ST_SetSRID(ST_GeomFromText(%s), 4326))
-                     AS stream
-              FROM {datasource}
-              WHERE ST_Intersects(geom,
-                                  ST_SetSRID(ST_GeomFromText(%s), 4326))
-          )
-          SELECT ST_AsGeoJSON(ST_Force2D(stream))
-          FROM clipped_streams
-          WHERE NOT ST_IsEmpty(stream)
+          SELECT ST_AsGeoJSON(ST_Collect(ST_Force2D(geom)))
+          FROM {datasource}
+          WHERE ST_Intersects(geom,
+                              ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
           '''.format(datasource='drb_streams_50' if drb else 'nhdflowline')
 
     with connection.cursor() as cursor:
-        cursor.execute(sql, [geom.wkt, geom.wkt])
+        cursor.execute(sql, [geojson])
 
         return [row[0] for row in cursor.fetchall()]  # List of GeoJSON strings
-
-
-def streams_from_geojson(geojson, drb=False):
-    """
-    Construct geometry from geojson and run streams routine.
-
-    Convenience method for running returning streams within a geometry using
-    GeoJSON as input.
-    """
-    geom = GEOSGeometry(geojson, srid=4326)
-    return streams(geom, drb)
 
 
 def get_point_source_table(drb):

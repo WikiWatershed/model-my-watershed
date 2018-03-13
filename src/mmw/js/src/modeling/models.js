@@ -10,12 +10,9 @@ var $ = require('jquery'),
     coreModels = require('../core/models'),
     turfArea = require('turf-area'),
     turfErase = require('turf-erase'),
-    turfIntersect = require('turf-intersect');
-
-var MAPSHED = 'mapshed';
-var GWLFE = 'gwlfe';
-var TR55_TASK = 'tr55';
-var TR55_PACKAGE = 'tr-55';
+    turfIntersect = require('turf-intersect'),
+    AoiVolumeModel = require('./tr55/models').AoiVolumeModel,
+    round = utils.toRoundedLocaleString;
 
 var ModelPackageControlModel = Backbone.Model.extend({
     defaults: {
@@ -49,7 +46,7 @@ var ModelPackageModel = Backbone.Model.extend();
 var Tr55TaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
         {
-            taskName: TR55_TASK,
+            taskName: utils.TR55_TASK,
             taskType: 'mmw/modeling'
         },
         coreModels.TaskModel.prototype.defaults
@@ -59,7 +56,7 @@ var Tr55TaskModel = coreModels.TaskModel.extend({
 var MapshedTaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
         {
-            taskName: MAPSHED,
+            taskName: utils.MAPSHED,
             taskType: 'mmw/modeling'
         },
         coreModels.TaskModel.prototype.defaults
@@ -69,7 +66,7 @@ var MapshedTaskModel = coreModels.TaskModel.extend({
 var GwlfeTaskModel = coreModels.TaskModel.extend({
     defaults: _.extend(
         {
-            taskName: GWLFE,
+            taskName: utils.GWLFE,
             taskType: 'mmw/modeling'
         },
         coreModels.TaskModel.prototype.defaults
@@ -85,7 +82,127 @@ var ResultModel = Backbone.Model.extend({
         polling: false, // True if currently polling
         active: false, // True if currently selected in Compare UI
         activeVar: null // For GWLFE, the currently selected variable in the UI
-    }
+    },
+
+    toTR55RunoffCSV: function(isCurrentConditions, aoiVolumeModel) {
+        var rows = ['"Runoff Partition","Water Depth (cm)","Water Volume (m3)"'],
+            resultKey = isCurrentConditions ? 'unmodified' : 'modified',
+            result = this.get('result')['runoff'][resultKey],
+            labels = [['runoff', 'Runoff'],
+                      ['et'    , 'Evapotranspiration'],
+                      ['inf'   , 'Infiltration']];
+
+        return rows.concat(labels.map(function(label) {
+            var key = label[0],
+                partition = label[1],
+                depth = result[key],
+                volume = aoiVolumeModel.adjust(depth),
+                row = [
+                        partition,
+                        round(depth, 3),
+                        round(volume, 2)
+                    ].join('","');
+
+            return '"' + row + '"';
+        })).join('\n');
+    },
+
+    toTR55WaterQualityCSV: function(isCurrentConditions, aoiVolumeModel) {
+        var rows = ['"Quality Measure","Load (kg)","Loading Rate (kg/ha)","Average Concentration (mg/L)"'],
+            resultKey = isCurrentConditions ? 'unmodified' : 'modified',
+            results = this.get('result')['quality'][resultKey];
+
+        return rows.concat(results.map(function(result) {
+            var load = result.load,
+                loadingRate = aoiVolumeModel.getLoadingRate(load),
+                adjustedRunoff = aoiVolumeModel.adjust(result.runoff),
+                concentration = adjustedRunoff ? 1000 * load / adjustedRunoff : 0,
+                row = [
+                        result.measure,
+                        round(load, 3),
+                        round(loadingRate, 3),
+                        round(concentration, 1)
+                    ].join('","');
+
+            return '"' + row + '"';
+        })).join('\n');
+    },
+
+    toMapShedHydrologyCSV: function() {
+        var rows = ['"Month","Precip (cm)","ET (cm)","Surface Runoff (cm)","Subsurface Flow (cm)","Point Src Flow (cm)","Stream Flow (cm)"'],
+            runoffVars = [
+                    'AvPrecipitation',
+                    'AvEvapoTrans',
+                    'AvRunoff',
+                    'AvGroundWater',
+                    'AvPtSrcFlow',
+                    'AvStreamFlow',
+                ],
+            monthNames = [
+                    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                ],
+            results = this.get('result')['monthly'];
+
+        // Monthly rows
+        rows = rows.concat(results.map(function(result, i) {
+            var cols = [monthNames[i]].concat(runoffVars.map(function(runoffVar) {
+                    return round(result[runoffVar], 2);
+                })).join('","');
+
+            return '"' + cols + '"';
+        }));
+
+        // Total row
+        var totalCols = ['Total'].concat(runoffVars.map(function(runoffVar) {
+                var total = 0;
+                for (var i = 0; i < 12; i++) {
+                    total += results[i][runoffVar];
+                }
+
+                return round(total, 2);
+            })).join('","'),
+            totals = '"' + totalCols + '"';
+
+        return rows.concat([totals]).join('\n');
+    },
+
+    toMapShedWaterQualityLandUseCSV: function() {
+        var rows = ['"Sources","Sediment (kg)","Total Nitrogen (kg)","Total Phosphorus (kg)"'],
+            results = this.get('result')['Loads'];
+
+        return rows.concat(results.map(function(result) {
+            var cols = [
+                    result.Source,
+                    round(result.Sediment, 1),
+                    round(result.TotalN, 1),
+                    round(result.TotalP, 1)
+                ].join('","');
+
+            return '"' + cols + '"';
+        })).join('\n');
+    },
+
+    toMapShedWaterQualitySummaryCSV: function() {
+        var rows = ['"Sources","Sediment","Total Nitrogen","Total Phosphorus","Mean Flow (m3/year)","Mean Flow (m3/s)"'],
+            result = this.get('result');
+
+        return rows.concat(result.SummaryLoads.map(function(sl) {
+            var isTotal = sl.Source === "Total Loads",
+                meanFlow = isTotal ? round(result.MeanFlow, 0) : '',
+                meanFlowPerSecond = isTotal ? round(result.MeanFlowPerSecond, 2) : '',
+                cols = [
+                        sl.Source + ' (' + sl.Unit + ')',
+                        round(sl.Sediment, isTotal ? 1 : 2),
+                        round(sl.TotalN, isTotal ? 1 : 2),
+                        round(sl.TotalP, isTotal ? 1 : 2),
+                        meanFlow,
+                        meanFlowPerSecond,
+                    ].join('","');
+
+                return '"' + cols + '"';
+        })).join('\n');
+    },
 });
 
 var ResultCollection = Backbone.Collection.extend({
@@ -127,24 +244,41 @@ var ProjectModel = Backbone.Model.extend({
 
     defaults: {
         name: '',
-        created_at: null,               // Date
-        area_of_interest: null,         // GeoJSON
-        area_of_interest_name: null,    // Human readable string for AOI.
-        wkaoi: null,                    // Well Known Area of Interest ID "{code}__{id}"
-        model_package: TR55_PACKAGE,    // Package name
-        scenarios: null,                // ScenariosCollection
-        user_id: 0,                     // User that created the project
-        is_activity: false,             // Project that persists across routes
-        gis_data: null,                 // Additionally gathered data, such as MapShed for GWLF-E
-        needs_reset: false,             // Should we overwrite project data on next save?
-        allow_save: true,               // Is allowed to save to the server - false in compare mode
-        show_analyze: false,            // Show analyze results in the sidebar?
+        created_at: null,                  // Date
+        area_of_interest: null,            // GeoJSON
+        area_of_interest_name: null,       // Human readable string for AOI.
+        wkaoi: null,                       // Well Known Area of Interest ID "{code}__{id}"
+        subbasin_modeling: false,          // Use subbasin modeling for MapShed/GWLF-E
+        model_package: utils.TR55_PACKAGE, // Package name
+        scenarios: null,                   // ScenariosCollection
+        user_id: 0,                        // User that created the project
+        is_activity: false,                // Project that persists across routes
+        gis_data: null,                    // Additionally gathered data, such as MapShed for GWLF-E
+        needs_reset: false,                // Should we overwrite project data on next save?
+        allow_save: true,                  // Is allowed to save to the server - false in compare mode
+        sidebar_mode: utils.MODEL,         // The current mode of the sidebar. ANALYZE, MONITOR, or MODEL.
+        is_exporting: false,               // Is the project currently exporting?
+        hydroshare_errors: [],             // List of errors from connecting to hydroshare
     },
 
     initialize: function() {
-        var scenarios = this.get('scenarios');
+        var scenarios = this.get('scenarios'),
+            subbasinFeatureOn = settings.featureEnabled('subbasin'),
+            setSubbasinModeling = _.bind(function() {
+                    var wkaoi = this.get('wkaoi'),
+                        shouldModelSubbasins = subbasinFeatureOn &&
+                            utils.isWKAoIValidForSubbasinModeling(wkaoi);
+                    this.set('subbasin_modeling', shouldModelSubbasins);
+                }, this);
+
         if (scenarios === null || typeof scenarios === 'string') {
             this.set('scenarios', new ScenariosCollection());
+        }
+
+        setSubbasinModeling();
+
+        if (subbasinFeatureOn) {
+            this.on('change:wkaoi', setSubbasinModeling);
         }
 
         this.set('user_id', App.user.get('id'));
@@ -154,6 +288,10 @@ var ProjectModel = Backbone.Model.extend({
         this.set('is_activity', settings.get('activityMode'));
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
+
+        // Debounce HydroShare export to 5 seconds to allow models to run and
+        // return without triggering two simultaneous exports
+        this.debouncedExportToHydroShare = _.debounce(_.bind(this.exportToHydroShare, this), 5000);
     },
 
     setProjectModel: function(modelPackage) {
@@ -323,18 +461,23 @@ var ProjectModel = Backbone.Model.extend({
      * lock immediately and return.
      */
     fetchGisData: function() {
-        if (this.get('model_package') === GWLFE) {
+        if (this.get('model_package') === utils.GWLFE) {
             var aoi = this.get('area_of_interest'),
                 wkaoi = this.get('wkaoi'),
                 promise = $.Deferred(),
                 mapshedInput = utils.isWKAoIValid(wkaoi) ?
                                    JSON.stringify({ 'wkaoi': wkaoi }) :
                                    JSON.stringify({ 'area_of_interest': aoi }),
-                taskModel = createTaskModel(MAPSHED),
+                queryParams = this.get('subbasin_modeling') ?
+                                   { subbasin: true } :
+                                   null,
+                taskModel = createTaskModel(utils.MAPSHED),
                 taskHelper = {
                     postData: {
                         mapshed_input: mapshedInput
                     },
+
+                    queryParams: queryParams,
 
                     onStart: function() {
                         console.log('Starting polling for MAPSHED');
@@ -396,6 +539,203 @@ var ProjectModel = Backbone.Model.extend({
 
         // Return fetchGisDataPromise if it exists, else an immediately resolved one.
         return self.fetchGisDataPromise || $.when();
+    },
+
+    /**
+     * Exports current project to HydroShare. Any key/value pairs provided in
+     * payload will also be sent to the server. In most cases this will be
+     * the title, abstract, and keywords from the initial modal.
+     *
+     * Returns a promise of the AJAX call.
+     */
+    exportToHydroShare: function(payload) {
+        var self = this,
+            analyzeTasks = App.getAnalyzeCollection(),
+            analyzeFiles = analyzeTasks.map(function(at) {
+                    return {
+                        name: 'analyze_' + at.get('name') + '.csv',
+                        contents: at.getResultCSV(),
+                    };
+                }),
+            scenarios = self.get('scenarios'),
+            lowerAndHyphenate = function(name) {
+                    return name.toLowerCase().replace(/\s/g, '-');
+                },
+            getTR55ModelFiles = function() {
+                    var modelName = 'model_sitestorm_',
+                        aoiVolumeModel = new AoiVolumeModel({
+                            areaOfInterest: App.map.get('areaOfInterest')
+                        }),
+                        modelFiles = [];
+
+                    scenarios.forEach(function(s) {
+                        var scenarioName = lowerAndHyphenate(s.get('name')),
+                            results = s.get('results'),
+                            runoffResult = results.findWhere({ name: 'runoff' }),
+                            qualityResult = results.findWhere({ name: 'quality' }),
+                            isCurrentConditions = s.get('is_current_conditions');
+
+                        if (runoffResult && !runoffResult.get('polling') && runoffResult.get('result')) {
+                            modelFiles.push({
+                                name: modelName + scenarioName + '_runoff.csv',
+                                contents: runoffResult
+                                    .toTR55RunoffCSV(isCurrentConditions, aoiVolumeModel),
+                            });
+                        }
+
+                        if (qualityResult && !qualityResult.get('polling') && qualityResult.get('result')) {
+                            modelFiles.push({
+                                name: modelName + scenarioName + '_waterquality.csv',
+                                contents: qualityResult
+                                    .toTR55WaterQualityCSV(isCurrentConditions, aoiVolumeModel),
+                            });
+                        }
+                    });
+
+                    return modelFiles;
+                },
+            getMapShedModelFiles = function() {
+                    var modelName = 'model_multiyear_',
+                        modelFiles = [];
+
+                    scenarios.forEach(function(s) {
+                        var scenarioName = lowerAndHyphenate(s.get('name')),
+                            results = s.get('results'),
+                            runoffResult = results.findWhere({ name: 'runoff' }),
+                            qualityResult = results.findWhere({ name: 'quality' });
+
+                        if (runoffResult && !runoffResult.get('polling') && runoffResult.get('result')) {
+                            modelFiles.push({
+                                name: modelName + scenarioName + '_hydrology.csv',
+                                contents: runoffResult
+                                    .toMapShedHydrologyCSV(),
+                            });
+                        }
+
+                        if (qualityResult && !qualityResult.get('polling') && qualityResult.get('result')) {
+                            modelFiles.push({
+                                name: modelName + scenarioName + '_waterquality-landuse.csv',
+                                contents: qualityResult
+                                    .toMapShedWaterQualityLandUseCSV(),
+                            }, {
+                                name: modelName + scenarioName + '_waterquality-summary.csv',
+                                contents: qualityResult
+                                    .toMapShedWaterQualitySummaryCSV(),
+                            });
+                        }
+                    });
+
+                    return modelFiles;
+                },
+            isTR55 = self.get('model_package') === utils.TR55_PACKAGE,
+            modelFiles = isTR55 ? getTR55ModelFiles() : getMapShedModelFiles(),
+            getMapshedData = function(scenario) {
+                    var gisData = scenario.getGisData(),
+                        scenarioName = lowerAndHyphenate(scenario.get('name'));
+
+                    if (!gisData) {
+                        return null;
+                    }
+
+                    return {
+                        name: 'model_multiyear_' + scenarioName + '.gms',
+                        data: gisData.model_input
+                    };
+                },
+            mapshedData = isTR55 ? [] : scenarios.map(getMapshedData);
+
+        self.set('is_exporting', true);
+
+        return $.ajax({
+            type: 'POST',
+            url: '/export/hydroshare?project=' + self.id,
+            contentType: 'application/json',
+            data: JSON.stringify(_.defaults({
+                files: analyzeFiles.concat(modelFiles),
+                mapshed_data: mapshedData,
+            }, payload))
+        }).done(function(result) {
+            self.set({
+                hydroshare: result,
+                hydroshare_errors: [],
+                // Exporting to HydroShare make projects public
+                // in apps.export.views.hydroshare. We manually
+                // make the switch here rather than fetching it
+                // from the server, for efficiency.
+                is_private: false,
+            });
+        }).fail(function(result) {
+            if (result.responseJSON && result.responseJSON.errors) {
+                self.set('hydroshare_errors', result.responseJSON.errors);
+            } else if (result.status === 504) {
+                self.set('hydroshare_errors', ['Server Timeout']);
+            } else {
+                self.set('hydroshare_errors', ['Unknown Server Error']);
+            }
+        }) .always(function() {
+            self.set('is_exporting', false);
+        });
+    },
+
+    /**
+     * Disconnects project from HydroShare and deletes the resource.
+     *
+     * Returns a promise of the AJAX call.
+     */
+    disconnectHydroShare: function() {
+        var self = this,
+            hydroshare = self.get('hydroshare');
+
+        self.set({
+            is_exporting: true,
+            hydroshare: null,
+        });
+
+        return $.ajax({
+            url: '/export/hydroshare?project=' + self.id,
+            type: 'DELETE',
+        }).done(function() {
+            self.set('hydroshare_errors', []);
+        }) .fail(function() {
+            // Restore local state in case deletion fails
+            self.set('hydroshare', hydroshare);
+        }).always(function() {
+            self.set('is_exporting', false);
+        });
+    },
+
+    /**
+     * Sets HydroShare Autosync to given value.
+     *
+     * Returns a promise of the AJAX call.
+     */
+    setHydroShareAutosync: function(autosync) {
+        var self = this,
+            hydroshare = self.get('hydroshare');
+
+        self.set({
+            is_exporting: true,
+            hydroshare: _.defaults({
+                autosync: autosync
+            }, hydroshare),
+        });
+
+        return $.ajax({
+            url: '/export/hydroshare?project=' + self.id,
+            type: 'PATCH',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                autosync: autosync
+            })
+        }).done(function () {
+            self.set('hydroshare_errors', []);
+        }) .fail(function(result) {
+            // Restore local state in case update fails
+            self.set('hydroshare', hydroshare);
+            self.set('hydroshare_errors', result.responseJSON.errors);
+        }).always(function() {
+            self.set('is_exporting', false);
+        });
     }
 });
 
@@ -621,7 +961,7 @@ var ScenarioModel = Backbone.Model.extend({
         this.set('user_id', App.user.get('id'));
 
         var defaultMods = {};
-        if (App.currentProject.get('model_package') === TR55_PACKAGE)  {
+        if (App.currentProject.get('model_package') === utils.TR55_PACKAGE)  {
             defaultMods = {
                inputs: [
                    {
@@ -636,7 +976,7 @@ var ScenarioModel = Backbone.Model.extend({
         this.set('inputs', new ModificationsCollection(attrs.inputs));
 
         var modifications =
-            App.currentProject.get('model_package') === TR55_PACKAGE ?
+            App.currentProject.get('model_package') === utils.TR55_PACKAGE ?
             new ModificationsCollection(attrs.modifications) :
             new Backbone.Collection(attrs.modifications);
 
@@ -678,6 +1018,14 @@ var ScenarioModel = Backbone.Model.extend({
 
         // Save silently so server values don't trigger reload
         this.save(null, { silent: true })
+            .done(function() {
+                // Export to HydroShare if available
+                var hydroshare = App.currentProject.get('hydroshare');
+
+                if (hydroshare && hydroshare.autosync) {
+                    App.currentProject.debouncedExportToHydroShare();
+                }
+            })
             .fail(function() {
                 console.log('Failed to save scenario');
             });
@@ -686,14 +1034,14 @@ var ScenarioModel = Backbone.Model.extend({
     addModification: function(modification) {
         var modifications = this.get('modifications'),
             modelPackage = App.currentProject.get('model_package'),
-            modKeyName = modelPackage === GWLFE ? 'modKey' : 'value';
+            modKeyName = modelPackage === utils.GWLFE ? 'modKey' : 'value';
 
         window.ga('send', 'event', constants.GA.MODEL_CATEGORY,
            modelPackage + constants.GA.MODEL_MOD_EVENT, modification.get(modKeyName));
 
         // For GWLFE, first remove existing mod with the same key since it
         // doesn't make sense to have multiples of the same type of BMP.
-        if (modelPackage === GWLFE) {
+        if (modelPackage === utils.GWLFE) {
             var modKey = modification.get('modKey'),
                 matches = modifications.where({'modKey': modKey});
 
@@ -811,8 +1159,14 @@ var ScenarioModel = Backbone.Model.extend({
             results = this.get('results'),
             taskModel = this.get('taskModel'),
             gisData = this.getGisData(),
+            subbasinModeling = App.currentProject.get('subbasin_modeling'),
+            queryParams = subbasinModeling ?
+                              { subbasin: true } :
+                              null,
             taskHelper = {
                 postData: gisData,
+
+                queryParams: queryParams,
 
                 onStart: function() {
                     self.set('poll_error', null);
@@ -877,7 +1231,7 @@ var ScenarioModel = Backbone.Model.extend({
             wkaoi = project.get('wkaoi');
 
         switch(App.currentProject.get('model_package')) {
-            case TR55_PACKAGE:
+            case utils.TR55_PACKAGE:
                 var nonZeroModifications = self.get('modifications').filter(function(mod) {
                         return mod.get('effectiveArea') > 0;
                     }),
@@ -900,14 +1254,23 @@ var ScenarioModel = Backbone.Model.extend({
                     model_input: JSON.stringify(modelInput)
                 };
 
-            case GWLFE:
+            case utils.GWLFE:
                 // Merge the values that came back from Mapshed with the values
                 // in the modifications from the user.
                 var modifications = self.get('modifications'),
-                    mergedGisData = _.cloneDeep(project.get('gis_data'));
+                    mergedGisData = _.cloneDeep(project.get('gis_data')),
+                    subbasinModeling = project.get('subbasin_modeling');
 
                 modifications.forEach(function(mod) {
-                    _.assign(mergedGisData, mod.get('output'));
+                    var updateGisData = function(gms) { _.assign(gms, mod.get('output')); };
+                    if (subbasinModeling) {
+                        // TODO This currenlty results in incorrect results
+                        // because we're not properly taking the subbasin areas
+                        // into account
+                        _.forEach(mergedGisData, updateGisData);
+                    } else {
+                        updateGisData(mergedGisData);
+                    }
                 });
 
                 return {
@@ -1088,7 +1451,7 @@ var ScenariosCollection = Backbone.Collection.extend({
 });
 
 function getControlsForModelPackage(modelPackageName, options) {
-    if (modelPackageName === TR55_PACKAGE) {
+    if (modelPackageName === utils.TR55_PACKAGE) {
         if (options && (options.compareMode ||
                         options.is_current_conditions)) {
             return new ModelPackageControlsCollection([
@@ -1101,7 +1464,7 @@ function getControlsForModelPackage(modelPackageName, options) {
                 new ModelPackageControlModel({ name: 'precipitation' })
             ]);
         }
-    } else if (modelPackageName === GWLFE) {
+    } else if (modelPackageName === utils.GWLFE) {
         if (options && (options.compareMode ||
                         options.is_current_conditions)) {
             return new ModelPackageControlsCollection();
@@ -1117,11 +1480,11 @@ function getControlsForModelPackage(modelPackageName, options) {
 
 function createTaskModel(modelPackage) {
     switch (modelPackage) {
-        case TR55_PACKAGE:
+        case utils.TR55_PACKAGE:
             return new Tr55TaskModel();
-        case GWLFE:
+        case utils.GWLFE:
             return new GwlfeTaskModel();
-        case MAPSHED:
+        case utils.MAPSHED:
             return new MapshedTaskModel();
     }
     throw 'Model package not supported: ' + modelPackage;
@@ -1129,7 +1492,7 @@ function createTaskModel(modelPackage) {
 
 function createTaskResultCollection(modelPackage) {
     switch (modelPackage) {
-        case TR55_PACKAGE:
+        case utils.TR55_PACKAGE:
             return new ResultCollection([
                 {
                     name: 'runoff',
@@ -1142,7 +1505,7 @@ function createTaskResultCollection(modelPackage) {
                     result: null
                 }
             ]);
-        case GWLFE:
+        case utils.GWLFE:
             return new ResultCollection([
                 {
                     name: 'runoff',
@@ -1169,9 +1532,6 @@ module.exports = {
     ModelPackageControlModel: ModelPackageControlModel,
     Tr55TaskModel: Tr55TaskModel,
     GwlfeTaskModel: GwlfeTaskModel,
-    TR55_TASK: TR55_TASK,
-    TR55_PACKAGE: TR55_PACKAGE,
-    GWLFE: GWLFE,
     ProjectModel: ProjectModel,
     ProjectCollection: ProjectCollection,
     ModificationModel: ModificationModel,

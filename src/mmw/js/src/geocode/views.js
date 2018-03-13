@@ -92,12 +92,33 @@ var SearchBoxView = Marionette.LayoutView.extend({
         'click @ui.selectButton': 'validateShapeAndGoToAnalyze'
     },
 
+    initialize: function() {
+        this.listenTo(App.map, 'change:selectedGeocoderArea', this.resetIfSelectedAreaIsCleared);
+    },
+
     modelEvents: {
-        'change:query change:selectedSuggestion': 'render'
+        'change:query change:selectedSuggestion': 'onShow'
     },
 
     regions: {
         'resultsRegion': '#geocode-search-results-region'
+    },
+
+    onShow: function() {
+        var query = this.model.get('query'),
+            selectedSuggestion = this.model.get('selectedSuggestion');
+
+        if (selectedSuggestion && selectedSuggestion.get('isBoundaryLayer')) {
+            this.ui.selectButton.removeClass('hidden');
+        } else {
+            this.ui.selectButton.addClass('hidden');
+        }
+
+        if (selectedSuggestion && selectedSuggestion.get('text')) {
+            this.ui.searchBox.val(selectedSuggestion.get('text'));
+        } else {
+            this.ui.searchBox.val(query);
+        }
     },
 
     onDestroy: function() {
@@ -169,7 +190,6 @@ var SearchBoxView = Marionette.LayoutView.extend({
 
     handleSearch: function(query) {
         var self = this;
-        var defer = $.Deferred();
 
         function fail(args) {
             if (args && args.cancelled) {
@@ -191,7 +211,7 @@ var SearchBoxView = Marionette.LayoutView.extend({
             .done(_.bind(this.setStateDefault, this))
             .fail(fail);
 
-        return defer.promise();
+        return this.searchRequest;
     },
 
     search: function(query) {
@@ -212,7 +232,7 @@ var SearchBoxView = Marionette.LayoutView.extend({
 
         this.setStateWorking();
 
-        this.collection
+        return this.collection
             .first()
             .select()
                 .done(function() {
@@ -221,8 +241,6 @@ var SearchBoxView = Marionette.LayoutView.extend({
                 })
                 .fail(_.bind(this.setStateError, this))
                 .always(_.bind(this.reset, this));
-
-        return defer.promise();
     },
 
     showResultsRegion: function() {
@@ -263,6 +281,12 @@ var SearchBoxView = Marionette.LayoutView.extend({
         App.map.set('selectedGeocoderArea', null);
     },
 
+    resetIfSelectedAreaIsCleared: function(model, selectedGeocoderArea) {
+        if (!selectedGeocoderArea) {
+            this.reset();
+        }
+    },
+
     dismissAction: function() {
         this.reset();
         this.setStateDefault();
@@ -285,6 +309,8 @@ var SearchBoxView = Marionette.LayoutView.extend({
             })
             .done(function() {
                 App.map.set('selectedGeocoderArea', null);
+                App.clearAnalyzeCollection();
+                App.clearDataCatalog();
                 addBoundaryLayer(selectedBoundary, selectedBoundaryShape);
                 router.navigate('/analyze', { trigger: true});
             });

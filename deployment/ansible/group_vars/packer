@@ -4,6 +4,12 @@ django_settings_module: "mmw.settings.production"
 itsi_base_url: ""
 itsi_secret_key: ""
 
+hydroshare_base_url: ""
+hydroshare_secret_key: ""
+
+srat_catchment_api_url: ""
+srat_catchment_api_key: ""
+
 postgresql_username: "modelmywatershed"
 postgresql_database: "modelmywatershed"
 

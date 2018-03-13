@@ -13,8 +13,92 @@ var $ = require('jquery'),
     models = require('./models'),
     settings = require('../core/settings'),
     containerTmpl = require('./templates/container.html'),
+    pageToggleTmpl = require('./templates/pageToggle.html'),
+    linkedAccountsTmpl = require('./templates/linkedAccounts.html'),
     profileTmpl = require('./templates/profile.html'),
     accountTmpl = require('./templates/account.html');
+
+var LinkedAccountsView = Marionette.ItemView.extend({
+    template: linkedAccountsTmpl,
+
+    ui: {
+        linkHydroShare: '[data-action="linkHydroShare"]',
+        unlinkHydroShare: '[data-action="unlinkHydroShare"]',
+        errorHydroShare: '.hydroshare > .linked-account-error',
+    },
+
+    events: {
+        'click @ui.linkHydroShare': 'linkHydroShare',
+        'click @ui.unlinkHydroShare': 'unlinkHydroShare',
+    },
+
+    modelEvents: {
+        'change': 'render'
+    },
+
+    linkHydroShare: function() {
+        var self = this,
+            iframe = new modalViews.IframeView({
+                model: new modalModels.IframeModel({
+                    href: '/user/hydroshare/login/',
+                    signalSuccess: 'mmw-hydroshare-success',
+                    signalFailure: 'mmw-hydroshare-failure',
+                    signalCancel: 'mmw-hydroshare-cancel',
+                })
+            });
+
+        iframe.render();
+        iframe.on('success', function() {
+            // Fetch user again to save new HydroShare Access state
+            self.model.fetch();
+        });
+    },
+
+    unlinkHydroShare: function() {
+        var self = this,
+            confirm = new modalViews.ConfirmLargeView({
+                model: new modalModels.ConfirmModel({
+                    titleText: 'Remove link',
+                    question: [
+                        'This will unlink your MMW account from HydroShare. ' +
+                        'Any currently syncing projects will disconnect from ' +
+                        'their HydroShare resources. Any resources already ' +
+                        'exported to HydroShare will remain there.',
+
+                        'If you re-link to HydroShare, project export will ' +
+                        'have to be re-enabled. They will export new resources.',
+
+                        'Continue?'
+                    ],
+                    confirmLabel: 'Remove link',
+                })
+            });
+
+        confirm.render();
+        confirm.on('confirmation', function() {
+            $.post('/user/hydroshare/logout/')
+                .done(function() {
+                    self.errorHydroShare(null);
+                    self.model.fetch();
+                })
+                .fail(function() {
+                    self.errorHydroShare('Error removing link');
+                });
+        });
+    },
+
+    errorHydroShare: function(message) {
+        var element = this.ui.errorHydroShare;
+
+        if (message) {
+            element.removeClass('hidden');
+            element.html(message);
+        } else {
+            element.addClass('hidden');
+            element.html('');
+        }
+    }
+});
 
 var ProfileView = Marionette.ItemView.extend({
     template: profileTmpl,
@@ -51,7 +135,7 @@ var ProfileView = Marionette.ItemView.extend({
             };
         addOptions('UserProfile', 'country', self.model.get('country') || 'US');
         addOptions('UserProfile', 'user_type', self.model.get('user_type') || 'Unspecified');
-        _.defer(function() { self.ui.firstName.focus(); });
+        _.defer(function() { self.ui.firstName.trigger('focus'); });
     },
 
     saveChanges: function () {
@@ -163,6 +247,16 @@ var AccountView = Marionette.ItemView.extend({
     }
 });
 
+var PageToggleView = Marionette.ItemView.extend({
+    // model AccountContainerModel
+
+    template: pageToggleTmpl,
+
+    modelEvents: {
+        'change:active_page': 'render'
+    }
+});
+
 var AccountContainerView = Marionette.LayoutView.extend({
     // model AccountContainerModel
 
@@ -170,19 +264,22 @@ var AccountContainerView = Marionette.LayoutView.extend({
 
     ui: {
         profile: '[data-action="viewprofile"]',
-        account: '[data-action="viewaccount"]'
+        account: '[data-action="viewaccount"]',
+        linkedAccounts: '[data-action="viewlinkedaccounts"]',
     },
 
     events: {
         'click @ui.profile': 'viewProfile',
-        'click @ui.account': 'viewAccount'
+        'click @ui.account': 'viewAccount',
+        'click @ui.linkedAccounts': 'viewLinkedAccounts',
     },
 
     modelEvents: {
-        'change:active_page': 'render'
+        'change:active_page': 'showActivePage'
     },
 
     regions: {
+        pageToggle: '.page-toggle-column',
         infoContainer: '.account-page-container'
     },
 
@@ -195,6 +292,11 @@ var AccountContainerView = Marionette.LayoutView.extend({
         var activePage = this.model.get('active_page');
 
         switch(activePage) {
+            case models.LINKED_ACCOUNTS:
+                this.infoContainer.show(new LinkedAccountsView({
+                    model: App.user
+                }));
+                break;
             case models.PROFILE:
                 this.infoContainer.show(new ProfileView({
                     model: this.profileModel
@@ -211,7 +313,10 @@ var AccountContainerView = Marionette.LayoutView.extend({
         }
     },
 
-    onRender: function() {
+    onShow: function() {
+        this.pageToggle.show(new PageToggleView({
+            model: this.model,
+        }));
         this.showActivePage();
     },
 
@@ -221,6 +326,10 @@ var AccountContainerView = Marionette.LayoutView.extend({
 
     viewAccount: function() {
         this.model.set('active_page', models.ACCOUNT);
+    },
+
+    viewLinkedAccounts: function() {
+        this.model.set('active_page', models.LINKED_ACCOUNTS);
     }
 });
 

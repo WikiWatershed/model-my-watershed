@@ -8,7 +8,6 @@ var $ = require('jquery'),
     turfBboxPolygon = require('turf-bbox-polygon'),
     turfDestination = require('turf-destination'),
     turfIntersect = require('turf-intersect'),
-    turfKinks = require('turf-kinks'),
     shapefile = require('shapefile'),
     reproject = require('reproject'),
     router = require('../router').router,
@@ -23,7 +22,6 @@ var $ = require('jquery'),
     windowTmpl = require('./templates/window.html'),
     aoiUploadTmpl = require('./templates/aoiUpload.html'),
     drawToolTmpl = require('./templates/drawTool.html'),
-    settings = require('../core/settings'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views');
 
@@ -79,10 +77,6 @@ function actOnLayer(datum) {
 function validateRwdShape(result) {
     var d = new $.Deferred();
     if (result.watershed) {
-        if (result.watershed.features[0].geometry.type === 'MultiPolygon') {
-            d.reject('Unfortunately, the watershed generated at this ' +
-                     'location is not available for analysis');
-        }
         validateShape(result.watershed)
             .done(function() {
                 d.resolve(result);
@@ -97,14 +91,26 @@ function validateRwdShape(result) {
 
 function validateShape(polygon) {
     var d = new $.Deferred(),
-        selfIntersectingShape = turfKinks(polygon).features.length > 0;
+        selfIntersectingShape = false,
+        invalidForAnalysis = false,
+        outsideConus = false;
+
+    try {
+        selfIntersectingShape = utils.isSelfIntersecting(polygon);
+        invalidForAnalysis = !utils.isValidForAnalysis(polygon);
+        outsideConus = !utils.withinConus(polygon);
+    } catch (exc) {
+        d.reject('Error during geometry validation.');
+        console.error(exc);
+        return d.promise();
+    }
 
     if (selfIntersectingShape) {
         var errorMsg = 'This watershed shape is invalid because it intersects ' +
                        'itself. Try drawing the shape again without crossing ' +
                        'over its own border.';
         d.reject(errorMsg);
-    } else if (!utils.isValidForAnalysis(polygon)) {
+    } else if (invalidForAnalysis) {
         var maxArea = utils.MAX_AREA.toLocaleString(),
             selectedBoundingBoxArea = Math.floor(utils.shapeBoundingBoxArea(polygon)).toLocaleString(),
             message = 'Sorry, the bounding box of the selected area is too large ' +
@@ -112,7 +118,7 @@ function validateShape(polygon) {
                       'selected, but the maximum supported size is ' +
                       'currently ' + maxArea + '&nbsp;km².';
         d.reject(message);
-    } else if (!utils.withinConus(polygon)) {
+    } else if (outsideConus) {
         var conusMessage = 'The area of interest must be within the Continental US.';
         d.reject(conusMessage);
     } else {
@@ -230,6 +236,8 @@ var DrawWindow = Marionette.LayoutView.extend({
         this.rwdTaskModel.reset();
         this.model.reset();
 
+        App.map.set('selectedGeocoderArea', null);
+
         utils.cancelDrawing(App.getLeafletMap());
 
         // RWD typically does not clear the AoI generated, even if it
@@ -250,7 +258,6 @@ var SplashWindow = Marionette.ItemView.extend({
 
     ui: {
         'start': '#get-started',
-        'openProject': '#splash-open-project',
     },
 
     templateHelpers: function() {
@@ -277,22 +284,11 @@ var SplashWindow = Marionette.ItemView.extend({
 
     events: {
         'click @ui.start': 'moveToDraw',
-        'click @ui.openProject': 'openOrLogin',
     },
 
     moveToDraw: function() {
         router.navigate('/draw', {trigger: true});
     },
-
-    openOrLogin: function() {
-        if (App.user.get('guest')) {
-            App.showLoginModal(function() {
-                router.navigate('/projects', {trigger: true});
-            });
-        } else {
-            router.navigate('/projects', {trigger: true});
-        }
-    }
 });
 
 var AoIUploadView = Marionette.ItemView.extend({
@@ -357,7 +353,7 @@ var AoIUploadView = Marionette.ItemView.extend({
     },
 
     onSelectFileButtonClick: function() {
-        this.ui.selectFileInput.click();
+        this.ui.selectFileInput.trigger('click');
     },
 
     selectFile: function(e) {
@@ -447,9 +443,16 @@ var AoIUploadView = Marionette.ItemView.extend({
     },
 
     handleGeoJSON: function(jsonString) {
-        var geojson = JSON.parse(jsonString);
+        var geojson = JSON.parse(jsonString),
+            polygon = utils.getPolygonFromGeoJson(geojson);
 
-        this.addPolygonToMap(geojson.features[0]);
+        if (polygon === null) {
+            this.handleShapefileError('Submitted JSON did not have ' +
+                '"coordinates" or "geometry" or "features" key. ' +
+                'Please submit a valid GeoJSON file.');
+        }
+
+        this.addPolygonToMap(polygon);
         window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'geojson');
     },
 
@@ -983,11 +986,6 @@ var WatershedDelineationView = DrawToolBaseView.extend({
                 self.model.set('polling', false);
 
                 var result = response.result;
-
-                if (result.watershed) {
-                    // Convert watershed to MultiPolygon to pass shape validation.
-                    result.watershed = coreUtils.toMultiPolygon(result.watershed);
-                }
                 deferred.resolve(result);
             },
 
@@ -1037,11 +1035,15 @@ var WatershedDelineationView = DrawToolBaseView.extend({
     },
 
     drawWatershed: function(result, itemName) {
-        var inputPoints = result.input_pt;
+        var inputPoint = result.input_pt,
+            inputPoints = {
+                type: "FeatureCollection",
+                features: [inputPoint]
+            };
 
         // add additional aoi points
-        if (inputPoints) {
-            var properties = inputPoints.features[0].properties;
+        if (inputPoint) {
+            var properties = inputPoint.properties;
 
             // If the point was snapped, there will be the original
             // point as attributes
@@ -1152,6 +1154,7 @@ function clearAoiLayer() {
     App.projectNumber = undefined;
     App.map.setDrawSize(false);
     App.clearAnalyzeCollection();
+    App.clearDataCatalog();
 
     return function revertLayer() {
         App.map.set({

@@ -1,0 +1,52 @@
+label.toggle {
+  width: 64px;
+  height: 38px;
+  border-radius: 3px;
+  background-color: $ui-medium-light;
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 3;
+  transition: 0.3s all ease-in-out;
+
+  input {
+    display: none;
+  }
+
+  input:checked + .toggle-switch {
+    background-color: $brand-primary;
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+
+  .toggle-switch {
+    background-color: $ui-grey;
+    color: $paper;
+    height: 38px;
+    width: 38px;
+    text-align: center;
+    display: inline-block;
+  }
+
+  input:checked + .toggle-switch:after {
+    content: "On"
+  }
+
+  input + .toggle-switch:after {
+    content: "Off"
+  }
+}
+
+.toggle-row {
+  margin-bottom: 8px !important;
+
+  h3 {
+    float: left;
+    margin: 2px 0;
+    padding: 7.5px 0;
+  }
+}

@@ -10,16 +10,6 @@
             <ul class="dropdown-menu menu-left" role="menu">
                 {% if not is_new and editable %}
                     <li role="presentation">
-                        <a role="menuitem" tabindex="-1" data-toggle="modal" id="share-project">
-                            Share
-                        </a>
-                    </li>
-                    <li role="presentation">
-                        <a role="menuitem" tabindex="-1" data-toggle="modal" id="project-privacy">
-                            {% if is_private %}Make Public{% else %}Make Private{% endif %}
-                        </a>
-                    </li>
-                    <li role="presentation">
                         <a role="menuitem" tabindex="-1" data-toggle="modal" id="delete-project">
                             Delete
                         </a>
@@ -70,7 +60,7 @@
 
 <div class="model-analyze-toggle-tab-header project-center" role="tabpanel">
     <ul class="nav nav-tabs" role="tablist">
-        <li {%- if showing_analyze %} class="active" {% endif %}
+        <li {% if sidebar_mode == 'ANALYZE' %} class="active" {% endif %}
             role="presentation">
             <a aria-controls="home" aria-expanded="false"
                data-toggle="tab" href="#analyze-tab-contents" role="tab"
@@ -78,7 +68,15 @@
                 <div> Analyze </div>
             </a>
         </li>
-        <li {%- if not showing_analyze %} class="active" {% endif %}
+        <li {% if sidebar_mode == 'MONITOR' %} class="active" {% endif %}
+            role="presentation">
+            <a aria-controls="home" aria-expanded="true"
+               data-toggle="tab" href="#monitor-tab-contents" role="tab"
+               id="show-monitor">
+                <div> Monitor </div>
+            </a>
+        </li>
+        <li {% if sidebar_mode == 'MODEL' %} class="active" {% endif %}
             role="presentation">
             <a aria-controls="home" aria-expanded="true"
                data-toggle="tab" href="#modeling-tab-contents" role="tab"
@@ -90,6 +88,12 @@
 </div>
 
 <div class="project-right">
+    {% if not is_new and editable %}
+    <button class="btn btn-md btn-secondary {{ 'is-exporting' if is_exporting }} {{ 'error' if hydroshare_errors.length > 0 }}"
+            id="share-project">
+        {{ 'Exporting ...' if is_exporting else 'Share' }}
+    </button>
+    {% endif %}
     <button class="btn btn-md btn-secondary" id="new-project">
         New Project
     </button>

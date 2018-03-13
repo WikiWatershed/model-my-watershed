@@ -63,7 +63,6 @@ var ProjectRowView = Marionette.ItemView.extend({
     ui: {
         rename: '.btn-rename',
         share: '.btn-share',
-        privacy: '.btn-privacy',
         remove: '.btn-delete',
         open: '.open-project'
     },
@@ -71,7 +70,6 @@ var ProjectRowView = Marionette.ItemView.extend({
     events: {
         'click @ui.rename': 'renameProject',
         'click @ui.share': 'shareProject',
-        'click @ui.privacy': 'setProjectPrivacy',
         'click @ui.remove': 'deleteProject',
         'click @ui.open': 'openProject'
     },
@@ -99,44 +97,12 @@ var ProjectRowView = Marionette.ItemView.extend({
     },
 
     shareProject: function() {
-        var share = new modalViews.ShareView({
-                model: new modalModels.ShareModel({
-                    text: 'Project',
-                    url: window.location.origin + this.model.getReferenceUrl(),
-                    guest: App.user.get('guest'),
-                    is_private: this.model.get('is_private')
-                }),
+        var share = new modalViews.MultiShareView({
+                model: this.model,
                 app: App,
-                project: this.model
             });
 
         share.render();
-    },
-
-    setProjectPrivacy: function() {
-        var self = this,
-            currentSettings = this.model.get('is_private') ? 'private' : 'public',
-            newSettings = currentSettings === 'private' ? 'public' : 'private',
-            primaryText = 'This project is currently ' + currentSettings + '. ' +
-                      'Are you sure you want to make it ' + newSettings + '? ',
-            additionalText = currentSettings === 'private' ?
-                    'Anyone with the URL will be able to access it.' :
-                    'Only you will be able to access it.',
-            question = primaryText + additionalText,
-            modal = new modalViews.ConfirmView({
-                model: new modalModels.ConfirmModel({
-                    question: question,
-                    confirmLabel: 'Confirm',
-                    cancelLabel: 'Cancel'
-                })
-            });
-
-        modal.render();
-
-        modal.on('confirmation', function() {
-            self.model.set('is_private', !self.model.get('is_private'));
-            self.model.saveProjectListing();
-        });
     },
 
     deleteProject: function() {
@@ -169,6 +135,7 @@ var ProjectRowView = Marionette.ItemView.extend({
 
     openProject: function() {
         App.clearAnalyzeCollection();
+        App.clearDataCatalog();
         App.map.set({
             'areaOfInterest': null,
             'areaOfInterestName': '',

@@ -107,6 +107,8 @@ var ModelingController = {
             }
             setPageTitle();
         }
+
+        $('body').addClass('modeling-stage');
     },
 
     makeNewProject: function(modelPackage) {
@@ -138,6 +140,8 @@ var ModelingController = {
             updateUrl();
             setPageTitle();
         }
+
+        $('body').addClass('modeling-stage');
     },
 
     projectCleanUp: function() {
@@ -283,6 +287,9 @@ function projectCleanUp() {
     App.rootView.sidebarRegion.empty();
     App.rootView.compareRegion.empty();
     App.clearAnalyzeCollection();
+    App.clearDataCatalog();
+
+    $('body').removeClass('modeling-stage');
 }
 
 function projectErrorState() {
@@ -310,7 +317,7 @@ function updateUrl() {
 }
 
 function updateScenario(scenario) {
-    App.getMapView().updateModifications(scenario.get('modifications'));
+    App.getMapView().updateModifications(scenario);
     updateUrl();
 }
 

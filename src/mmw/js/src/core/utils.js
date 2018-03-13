@@ -10,6 +10,8 @@ var L = require('leaflet'),
 
 var M2_IN_KM2 = 1000000;
 var noData = 'No Data';
+var RELEASE_NOTES_BASE_URL = 'https://github.com/WikiWatershed/model-my-watershed/releases';
+var MINOR_MAJOR_REGEX = /^[0-9]+\.[0-9]+\./; // Matches strings like 2.22.
 
 var utils = {
     layerGroupZIndices: {
@@ -20,6 +22,20 @@ var utils = {
     },
 
     MAX_GEOLOCATION_AGE: 60000,
+
+    MAPSHED: 'mapshed',
+
+    GWLFE: 'gwlfe',
+
+    TR55_TASK: 'tr55',
+
+    TR55_PACKAGE: 'tr-55',
+
+    ANALYZE: 'ANALYZE',
+
+    MONITOR: 'MONITOR',
+
+    MODEL: 'MODEL',
 
     splashPageTitle: settings.get('title'),
 
@@ -228,18 +244,44 @@ var utils = {
         }
     },
 
+    // A numeric comparator for ordinal numeric strings.
+    ordinalNumericSort: function(x, y) {
+        var other = 'Other';
+
+        if (x.indexOf(other) > -1) {
+            return 1;
+        } else if (y.indexOf(other) > -1) {
+            return -1;
+        }
+
+        return utils.numericSort(x.replace(/[^0-9]/g,''),
+            y.replace(/[^0-9]/g,''));
+    },
+
     noData: noData,
 
     noDataSort: function(x, y) {
-        if (x === noData && y !== noData) {
+        var trimmedX = x.trim(),
+            trimmedY = y.trim();
+
+        if (trimmedX === noData && trimmedY !== noData) {
             return -1;
-        } else if (x === noData && y === noData) {
+        } else if (trimmedX === noData && trimmedY === noData) {
             return 0;
-        } else if (x !== noData && y === noData) {
+        } else if (trimmedX !== noData && trimmedY === noData) {
             return 1;
         }
         return utils.numericSort(x, y);
     },
+
+    percentFormatter: function(value) {
+        var trimmedVal = value.trim();
+        if (trimmedVal === noData) {
+            return trimmedVal;
+        }
+        return trimmedVal + '%';
+    },
+
 
     negateString: function(str) {
         // From https://stackoverflow.com/a/5639070
@@ -480,14 +522,25 @@ var utils = {
         });
     },
 
+    toRoundedLocaleString: function(val, n) {
+        if (val === undefined || isNaN(val)) {
+            return val;
+        }
+
+        return val.toLocaleString(undefined, {
+            minimumFractionDigits: n,
+            maximumFractionDigits: n,
+        });
+    },
+
     // Convert polygon to MultiPolyon (mutates original argument).
-    toMultiPolygon: function(polygon) {
+    toMultiPolygon: function toMultiPolygon(polygon) {
         var geom = polygon.geometry ? polygon.geometry : polygon;
         if (geom.type !== 'MultiPolygon') {
             if (geom.type === 'Polygon') {
                 geom.coordinates = [geom.coordinates];
             } else if (geom.type === 'FeatureCollection') {
-                geom.coordinates = [geom.features[0].geometry.coordinates];
+                return toMultiPolygon(geom.features[0]);
             }
             geom.type = 'MultiPolygon';
         }
@@ -510,6 +563,15 @@ var utils = {
                !lodash.endsWith(wkaoi, '__');
     },
 
+    isWKAoIValidForSubbasinModeling: function(wkaoi) {
+        if (!wkaoi) {
+            return false;
+        }
+        var layerCode = wkaoi.split('__')[0];
+        return layerCode === 'huc8' ||
+               layerCode === 'huc10';
+    },
+
     // Array.filter(distinct) to get distinct values
     distinct: function(value, index, self) {
         return self.indexOf(value) === index;
@@ -520,6 +582,102 @@ var utils = {
             drb = _.findWhere(layers, {code: 'drb_streams_v2'}).perimeter;
 
         return !!intersect(geom, drb);
+    },
+
+    // Calculates a range from 0 to the upper bound
+    // of the order of magnitde of the value. Returns
+    // an object containing min and max.
+    // e.g. rangeInMagnitude(50)    => {min:  0,   max: 100}
+    //      rangeInMagnitude( 5)    => {min:  0,   max:  10}
+    //      rangeInMagnitude( 0.5)  => {min:  0,   max:   1}
+    //      rangeInMagnitude(-0.05) => {min: -0.1, max:   0}
+    rangeInMagnitude: function(value) {
+        var negative = value < 0,
+            exponent = 1,
+            min = 0,
+            max;
+
+        if (negative) {
+            value *= -1;
+        }
+
+        if (value === 0) {
+            return {min: 0, max: 1};
+        }
+
+        while (value < 1) {
+            value *= 10;
+            exponent -= 1;
+        }
+
+        while (value > 10) {
+            value /= 10;
+            exponent += 1;
+        }
+
+        max = Math.pow(10, exponent);
+
+        if (negative) {
+            min = -max;
+            max = 0;
+        }
+
+        return {
+            min: min,
+            max: max
+        };
+    },
+
+    // Parses version number from branch and git describe output
+    // Outputs version number and release notes URL
+    parseVersion: function(branch, gitDescribe) {
+        var version = 'Unknown',
+            url = RELEASE_NOTES_BASE_URL + '/latest';
+
+        if (branch === null && gitDescribe === null) {
+            version = 'Unknown';
+        } else if (branch === 'local' && gitDescribe === null) {
+            version = 'Local';
+        } else if (branch.startsWith('release') || branch.startsWith('origin/release')) {
+            version = branch.substr(branch.indexOf('release/') + 8);
+            // Use this version for release notes
+            url = RELEASE_NOTES_BASE_URL + '/tag/' + version;
+        } else if (branch.startsWith('hotfix') || branch.startsWith('origin/hotfix')) {
+            version = branch.substr(branch.indexOf('hotfix/') + 7);
+            // Use the original release notes
+            url = RELEASE_NOTES_BASE_URL + '/tag/' + version.match(MINOR_MAJOR_REGEX) + '0';
+        } else {
+            version = gitDescribe.substr(0, 18);
+        }
+
+        return {
+            version: version,
+            releaseNotesUrl: url
+        };
+    },
+
+    // Downloads given data as a text file with given filename
+    downloadAsFile: function(data, filename) {
+        var blob = new Blob([JSON.stringify(data)],
+                            { type: 'data:text/plain;charset=utf-8'}),
+            url = URL.createObjectURL(blob),
+            a = document.createElement('a');
+
+        if (navigator.msSaveBlob) {
+            // IE has a nicer interface for saving blobs
+            navigator.msSaveBlob(blob, filename);
+        } else {
+            // Other browsers have to use a hidden link hack
+            a.style.display = 'none';
+            a.setAttribute('download', filename);
+            a.setAttribute('href', url);
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        URL.revokeObjectURL(url);
     }
 };
 

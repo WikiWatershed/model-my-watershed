@@ -9,6 +9,7 @@ var $ = require('jquery'),
     App = require('../app'),
     router = require('../router').router,
     models = require('./models'),
+    csrf = require('../core/csrf'),
     settings = require('../core/settings'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
@@ -18,6 +19,7 @@ var $ = require('jquery'),
     utils = require('../core/utils'),
     pointSourceLayer = require('../core/pointSourceLayer'),
     catchmentWaterQualityLayer = require('../core/catchmentWaterQualityLayer'),
+    dataCatalogViews = require('../data_catalog/views'),
     windowTmpl = require('./templates/window.html'),
     AnalyzeDescriptionTmpl = require('./templates/analyzeDescription.html'),
     analyzeResultsTmpl = require('./templates/analyzeResults.html'),
@@ -30,18 +32,22 @@ var $ = require('jquery'),
     animalTableRowTmpl = require('./templates/animalTableRow.html'),
     climateTableTmpl = require('./templates/climateTable.html'),
     climateTableRowTmpl = require('./templates/climateTableRow.html'),
+    streamTableTmpl = require('./templates/streamTable.html'),
+    streamTableRowTmpl = require('./templates/streamTableRow.html'),
     selectorTmpl = require('./templates/selector.html'),
+    paginationConrolTmpl = require('./templates/paginationControl.html'),
     pageableTableTmpl = require('./templates/pageableTable.html'),
     pointSourceTableTmpl = require('./templates/pointSourceTable.html'),
     pointSourceTableRowTmpl = require('./templates/pointSourceTableRow.html'),
     catchmentWaterQualityTableTmpl = require('./templates/catchmentWaterQualityTable.html'),
     catchmentWaterQualityTableRowTmpl = require('./templates/catchmentWaterQualityTableRow.html'),
+    terrainTableRowTmpl = require('./templates/terrainTableRow.html'),
+    terrainTableTmpl = require('./templates/terrainTable.html'),
     tabPanelTmpl = require('../modeling/templates/resultsTabPanel.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     barChartTmpl = require('../core/templates/barChart.html'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
-    modelSelectionDropdownTmpl = require('./templates/modelSelectionDropdown.html'),
-    dataSourceButtonTmpl = require('./templates/dataSourceButton.html');
+    modelSelectionDropdownTmpl = require('./templates/modelSelectionDropdown.html');
 
 var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -75,7 +81,7 @@ var ModelSelectionDropdownView = Marionette.ItemView.extend({
                                   .get('result') || {},
             landResults = analysisResults.survey;
 
-        if (modelPackageName === 'gwlfe' && settings.get('mapshed_max_area')) {
+        if (modelPackageName === utils.GWLFE && settings.get('mapshed_max_area')) {
             var areaInSqKm = utils.changeOfAreaUnits(aoiModel.get('area'),
                                                      aoiModel.get('units'),
                                                      'km<sup>2</sup>'),
@@ -152,22 +158,6 @@ var ModelSelectionDropdownView = Marionette.ItemView.extend({
     },
 });
 
-var DataSourceButtonView = Marionette.ItemView.extend({
-    template: dataSourceButtonTmpl,
-
-    ui: {
-        'dataSourceButton': '#data-source-button',
-    },
-
-    events: {
-        'click @ui.dataSourceButton': 'navigateSearchDataSource',
-    },
-
-    navigateSearchDataSource: function() {
-        router.navigate('search', { trigger: true });
-    },
-});
-
 var ResultsView = Marionette.LayoutView.extend({
     id: 'model-output-wrapper',
     className: 'analyze',
@@ -179,21 +169,26 @@ var ResultsView = Marionette.LayoutView.extend({
     },
 
     events: {
+        'shown.bs.tab a[href="#analyze-tab-contents"]': 'onAnalyzeTabShown',
+        'shown.bs.tab a[href="#monitor-tab-contents"]': 'onMonitorTabShown',
         'click @ui.changeArea': 'changeArea'
     },
 
     regions: {
         aoiRegion: '.aoi-region',
         analyzeRegion: '#analyze-tab-contents',
+        monitorRegion: '#monitor-tab-contents',
         nextStageRegion: '#next-stage-navigation-region',
+    },
+
+    templateHelpers: {
+        'data_catalog_enabled': settings.get('data_catalog_enabled'),
     },
 
     onShow: function() {
         this.showAoiRegion();
         this.showDetailsRegion();
-        if (settings.get('data_catalog_enabled')) {
-            this.showDataSourceButton();
-        } else {
+        if (!settings.get('data_catalog_enabled')) {
             this.showModelSelectionDropdown();
         }
     },
@@ -215,10 +210,10 @@ var ResultsView = Marionette.LayoutView.extend({
         this.analyzeRegion.show(new AnalyzeWindow({
             collection: this.collection
         }));
-    },
 
-    showDataSourceButton: function() {
-        this.nextStageRegion.show(new DataSourceButtonView());
+        this.monitorRegion.show(new dataCatalogViews.DataCatalogWindow(
+            App.getDataCatalog()
+        ));
     },
 
     showModelSelectionDropdown: function() {
@@ -243,6 +238,21 @@ var ResultsView = Marionette.LayoutView.extend({
             self.trigger('animateIn');
         });
     },
+
+    onAnalyzeTabShown: function() {
+        // Hide Monitor items from the map
+        this.monitorRegion.currentView.setVisibility(false);
+        // Always show AoI region
+        this.aoiRegion.currentView.$el.removeClass('hidden');
+    },
+
+    onMonitorTabShown: function() {
+        this.monitorRegion.currentView.setVisibility(true);
+        // Hide AoI Region if details open
+        if (App.map.get('dataCatalogDetailResult') !== null) {
+            this.aoiRegion.currentView.$el.addClass('hidden');
+        }
+    }
 });
 
 var AnalyzeWindow = Marionette.LayoutView.extend({
@@ -271,8 +281,23 @@ var TabPanelView = Marionette.ItemView.extend({
         role: 'presentation'
     },
 
+    ui: {
+        'tabPanelButton': 'a[data-toggle="tab"]',
+    },
+
+    events: {
+        'shown.bs.tab @ui.tabPanelButton': 'onTabShown',
+    },
+
     initialize: function() {
         this.listenTo(this.model, 'change:polling', this.render);
+    },
+
+    onTabShown: function() {
+        var targetId = this.ui.tabPanelButton.attr('href'),
+            chartEl = targetId + ' .bar-chart';
+
+        $(chartEl).trigger('bar-chart:refresh');
     }
 });
 
@@ -368,7 +393,45 @@ var TabContentsView = Marionette.CollectionView.extend({
 });
 
 var AoiView = Marionette.ItemView.extend({
-    template: aoiHeaderTmpl
+    template: aoiHeaderTmpl,
+
+    ui: {
+        'shapefileForm': '#shapefile-form',
+        'dlShapefile': '#download-shapefile',
+        'dlGeojson': '#download-geojson',
+    },
+
+    events: {
+        'click @ui.dlShapefile': 'downloadShapefile',
+        'click @ui.dlGeojson': 'downloadGeojson',
+    },
+
+    initialize: function() {
+        // Toggle AoiView when showing Monitor details
+        this.listenTo(App.map, 'change:dataCatalogDetailResult', function(map, newValue) {
+            if (newValue === null) {
+                this.$el.removeClass('hidden');
+            } else {
+                this.$el.addClass('hidden');
+            }
+        });
+    },
+
+    templateHelpers: function() {
+        return {
+            csrftoken: csrf.getToken(),
+            shape: JSON.stringify(this.model.get('shape'))
+        };
+    },
+
+    downloadShapefile: function() {
+        this.ui.shapefileForm.trigger('submit');
+    },
+
+    downloadGeojson: function() {
+        utils.downloadAsFile(this.model.get('shape'),
+                             this.model.get('place') + '.geojson');
+    }
 });
 
 var AnalyzeLayerToggleView = Marionette.ItemView.extend({
@@ -638,22 +701,95 @@ var ClimateTableView = Marionette.CompositeView.extend({
     }
 });
 
-var PageableTableBaseView = Marionette.LayoutView.extend({
-    tableView: null, // a View that renders a bootstrap table. Required
+var StreamTableRowView = Marionette.ItemView.extend({
+    tagName: 'tr',
+    template: streamTableRowTmpl,
 
-    template: pageableTableTmpl,
-    regions: {
-        'bootstrapTableRegion': '#bootstrap-table-region',
+    templateHelpers: function() {
+        var order = this.model.get('order'),
+            displayOrder = (function() {
+                switch (order) {
+                    case 1:
+                        return order.toString() + 'st';
+                    case 2:
+                        return order.toString() + 'nd';
+                    case 3:
+                        return order.toString() + 'rd';
+                    case 999:
+                        return 'Other';
+                    default:
+                        return order.toString() + 'th';
+                }
+            })();
+
+        return {
+            displayOrder: displayOrder,
+            lengthkm: this.model.get('lengthkm'),
+            avgslope: this.model.get('avgslope'),
+            noData: utils.noData,
+        };
     },
+});
+
+var StreamTableView = Marionette.CompositeView.extend({
+    childView: StreamTableRowView,
+    childViewContainer: 'tbody',
+    template: streamTableTmpl,
 
     ui: {
-        'nextPageBtn': '.btn-next-page',
-        'prevPageBtn': '.btn-prev-page',
+        resultsTable: '[data-toggle="table"]',
     },
 
+    onAttach: function() {
+        this.ui.resultsTable.bootstrapTable();
+
+        // In order to select popover toggles rendered in the
+        // child view, select them directly and not via this.ui
+        this.$('[data-toggle="popover"]').popover({
+            trigger: 'focus',
+        });
+    },
+
+    templateHelpers: function() {
+        var data = lodash(this.collection.toJSON()),
+            totalLength = data.pluck('lengthkm').sum(),
+            avgChannelSlope = data.pluck('total_weighted_slope').sum() / totalLength,
+            // Currently we only calculate agricultral percent for the entire
+            // set, not per stream order, so we use the first value for total.
+            agPercent = data.first().ag_stream_pct,
+            lengthInAg = totalLength * agPercent,
+            lengthInNonAg = totalLength - lengthInAg;
+
+        return {
+            totalLength: totalLength,
+            avgChannelSlope: avgChannelSlope,
+            lengthInAg: lengthInAg,
+            lengthInNonAg: lengthInNonAg,
+        };
+    },
+});
+
+var TerrainTableRowView = Marionette.ItemView.extend({
+    tagName: 'tr',
+    template: terrainTableRowTmpl,
+});
+
+var TerrainTableView = Marionette.CompositeView.extend({
+    childView: TerrainTableRowView,
+    childViewContainer: 'tbody',
+    template: terrainTableTmpl,
+
+    onAttach: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    }
+});
+
+var PaginationControlView = Marionette.ItemView.extend({
+    template: paginationConrolTmpl,
+
     events: {
-        'click @ui.nextPageBtn': 'nextPage',
-        'click @ui.prevPageBtn': 'prevPage',
+        'click .btn-next-page': 'nextPage',
+        'click .btn-prev-page': 'prevPage',
     },
 
     templateHelpers: function() {
@@ -663,6 +799,32 @@ var PageableTableBaseView = Marionette.LayoutView.extend({
             currentPage: this.collection.state.currentPage,
             totalPages: this.collection.state.totalPages,
         };
+    },
+
+    nextPage: function() {
+        if (this.collection.hasNextPage()) {
+            this.collection.getNextPage();
+        }
+    },
+
+    prevPage: function() {
+        if (this.collection.hasPreviousPage()) {
+            this.collection.getPreviousPage();
+        }
+    },
+});
+
+var PageableTableBaseView = Marionette.LayoutView.extend({
+    tableView: null, // a View that renders a bootstrap table. Required
+
+    template: pageableTableTmpl,
+    regions: {
+        'paginationControlsRegion': '.paging-ctl-row',
+        'bootstrapTableRegion': '#bootstrap-table-region',
+    },
+
+    collectionEvents: {
+        'pageable:state:change': 'onShow',
     },
 
     renderBootstrapTable: function() {
@@ -708,8 +870,6 @@ var PageableTableBaseView = Marionette.LayoutView.extend({
                 self.collection.fullCollection.sort();
 
                 self.collection.getFirstPage();
-
-                self.render();
             }
         });
 
@@ -726,25 +886,10 @@ var PageableTableBaseView = Marionette.LayoutView.extend({
         $(headerSelector + ' > div.th-inner').addClass(sortOrderClass);
     },
 
-    nextPage: function() {
-        if (this.collection.hasNextPage()) {
-            this.collection.getNextPage();
-            this.render();
-        }
-    },
-
-    prevPage: function() {
-        if (this.collection.hasPreviousPage()) {
-            this.collection.getPreviousPage();
-            this.render();
-        }
-    },
-
-    onAttach: function() {
-        this.renderBootstrapTable();
-    },
-
-    onRender: function() {
+    onShow: function() {
+        this.paginationControlsRegion.show(new PaginationControlView({
+            collection: this.collection,
+        }));
         this.bootstrapTableRegion.show(new this.tableView({
                 collection: this.collection,
                 units: this.options.units,
@@ -1007,30 +1152,7 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
         var data = this.model.get('categories'),
             dataName = this.model.get('name'),
             timestamp = new Date().toISOString(),
-            filename = '';
-
-        switch (dataName) {
-            case 'land':
-                filename = 'nlcd_land_cover_';
-                break;
-            case 'soil':
-                filename = 'nlcd_soils_';
-                break;
-            case 'animals':
-                filename = 'animal_estimate_';
-                break;
-            case 'pointsource':
-                filename = 'pointsource_';
-                break;
-            case 'catchment_water_quality':
-                filename = 'catchment_water_quality_';
-                break;
-            default:
-                filename = this.model.get('name');
-                break;
-        }
-
-        filename = filename + timestamp;
+            filename = 'analyze_' + this.model.get('name') + '_' + timestamp;
 
         // Render an unpaginated table for tables that can be paginated.
         if (dataName === 'pointsource' || dataName === 'catchment_water_quality') {
@@ -1168,6 +1290,19 @@ var CatchmentWaterQualityResultView = AnalyzeResultView.extend({
     }
 });
 
+var TerrainResultView = AnalyzeResultView.extend({
+    onShow: function() {
+        var title = 'Terrain Statistics',
+            source = 'NHDPlus V2 NEDSnapshot DEM',
+            helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
+            associatedLayerCodes = ['elevation', 'pct_slope'],
+            chart = null;
+
+        this.showAnalyzeResults(coreModels.TerrainCensusCollection, TerrainTableView,
+            chart, title, source, helpText, associatedLayerCodes);
+    }
+});
+
 var SelectorView = Marionette.ItemView.extend({
     template: selectorTmpl,
 
@@ -1265,6 +1400,33 @@ var ClimateResultView = AnalyzeResultView.extend({
     }
 });
 
+var StreamResultView = AnalyzeResultView.extend({
+    onShow: function() {
+        var title = 'Stream Network Statistics',
+            source = 'NHDplusV2',
+            helpText = 'For more information on the data source, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-in-layers-streams\' target=\'_blank\' >MMW Technical Documentation</a>',
+            associatedLayerCodes = ['nhd_streams_v2'],
+            chart = null,
+            streamOrderHelpText = [
+                {
+                    order: 999, text: 'Contains canals, artificial paths, coastlines, and other flowlines without a flow direction'
+                }
+            ],
+            streamOrders = this.model.get('categories');
+
+        // Merge helptext in with stream order results
+        _.each(streamOrderHelpText, function(help) {
+            var stream = _.findWhere(streamOrders, { order: help.order });
+            if (stream) {
+                stream.helpText = help.text;
+            }
+        });
+
+        this.showAnalyzeResults(coreModels.StreamsCensusCollection, StreamTableView,
+                                chart, title,source, helpText, associatedLayerCodes);
+    },
+});
+
 var AnalyzeResultViews = {
     land: LandResultView,
     soil: SoilResultView,
@@ -1272,6 +1434,8 @@ var AnalyzeResultViews = {
     pointsource: PointSourceResultView,
     catchment_water_quality: CatchmentWaterQualityResultView,
     climate: ClimateResultView,
+    streams: StreamResultView,
+    terrain: TerrainResultView,
 };
 
 module.exports = {

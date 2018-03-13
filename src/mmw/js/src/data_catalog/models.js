@@ -6,6 +6,7 @@ var $ = require('jquery'),
     moment = require('moment'),
     settings = require('../core/settings');
 
+var BAD_REQUEST_CODE = 400;
 var REQUEST_TIMED_OUT_CODE = 408;
 var DESCRIPTION_MAX_LENGTH = 100;
 var PAGE_SIZE = settings.get('data_catalog_page_size');
@@ -14,8 +15,9 @@ var DATE_FORMAT = 'MM/DD/YYYY';
 var WATERML_VARIABLE_TIME_INTERVAL = '{http://www.cuahsi.org/water_ml/1.1/}variable_time_interval';
 
 var SERVICE_PERIODS = {
-    'NWISUV': 'months',  // For NWISUV sites, fetch 1 month of data
-    '*'     : 'years',   // For all else, fetch 1 year of data
+    'NWISUV':    '1 months', // For NWISUV sites, fetch 1 month of data
+    'EnviroDIY': '2 weeks',  // For EnviroDIY, fetch 2 weeks of data
+    '*':         '1 years',  // For all else, fetch 1 year of data
 };
 
 
@@ -201,6 +203,7 @@ var Catalog = Backbone.Model.extend({
             isSameGeom = geom === this.get('geom'),
             isSameSearch = isSameQuery && isSameGeom;
 
+        // Perform local text search for pre-existing CUAHSI results
         if (isCuahsi && isSameGeom && !isSameQuery) {
             this.set({ loading: true });
 
@@ -216,6 +219,7 @@ var Catalog = Backbone.Model.extend({
             return $.when();
         }
 
+        // Perform server search
         if (!isSameSearch || stale || error) {
             this.cancelSearch();
             this.searchPromise = this.search(query, geom)
@@ -338,7 +342,10 @@ var Catalog = Backbone.Model.extend({
             // was purposefully cancelled
             return;
         }
-        if (response.status === REQUEST_TIMED_OUT_CODE){
+        if (response.status === BAD_REQUEST_CODE) {
+            this.set('error', response.responseJSON &&
+                              response.responseJSON.error || "Error");
+        } else if (response.status === REQUEST_TIMED_OUT_CODE) {
             this.set('error', "Searching took too long. " +
                               "Consider trying a smaller area of interest " +
                               "or a more specific search term.");
@@ -717,14 +724,16 @@ var CuahsiVariable = Backbone.Model.extend({
                 variable: this.get('id'),
             },
             service = params.site.split(':')[0],
-            duration = SERVICE_PERIODS[service] || 'years';
+            duration = (SERVICE_PERIODS[service] || '1 years').split(' '),
+            duration_amount = parseInt(duration[0]),
+            duration_unit = duration[1];
 
         // If neither from date nor to date is specified, set time interval
-        // to be either from begin date to end date, or 1 `duration` up to end
-        // date, whichever is shorter.
+        // to be either from begin date to end date, or `duration_amount`
+        // `duration_units` up to end date, whichever is shorter.
         if (!from || moment(from).isBefore(begin_date)) {
-            if (end_date.diff(begin_date, duration, true) > 1) {
-                params.from_date = moment(end_date).subtract(1, duration);
+            if (end_date.diff(begin_date, duration_unit, true) > duration_amount) {
+                params.from_date = moment(end_date).subtract(duration_amount, duration_unit);
             } else {
                 params.from_date = begin_date;
             }
@@ -877,6 +886,42 @@ var ExpandableListModel = Backbone.Model.extend({
     }
 });
 
+function createCatalogCollection() {
+    var dateFilter = new DateFilter();
+
+    return new Catalogs([
+        new Catalog({
+            id: 'cinergi',
+            name: 'CINERGI',
+            active: true,
+            results: new Results(null, { catalog: 'cinergi' }),
+            filters: new FilterCollection([
+                dateFilter,
+            ]),
+        }),
+        new Catalog({
+            id: 'hydroshare',
+            name: 'HydroShare',
+            results: new Results(null, { catalog: 'hydroshare' }),
+            filters: new FilterCollection([
+                dateFilter,
+                new PrivateResourcesFilter(),
+            ]),
+        }),
+        new Catalog({
+            id: 'cuahsi',
+            name: 'CUAHSI WDC',
+            is_pageable: false,
+            results: new Results(null, { catalog: 'cuahsi' }),
+            serverResults: new Results(null, { catalog: 'cuahsi' }),
+            filters: new FilterCollection([
+                dateFilter,
+                new GriddedServicesFilter()
+            ])
+        })
+    ]);
+}
+
 module.exports = {
     GriddedServicesFilter: GriddedServicesFilter,
     PrivateResourcesFilter: PrivateResourcesFilter,
@@ -893,4 +938,5 @@ module.exports = {
     CuahsiVariable: CuahsiVariable,
     CuahsiVariables: CuahsiVariables,
     ExpandableListModel: ExpandableListModel,
+    createCatalogCollection: createCatalogCollection,
 };

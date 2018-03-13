@@ -204,6 +204,10 @@
 // Buttons in Analyze stage
 #change-area-button {
     margin-right: 10px;
+
+    .data-catalog > & {
+        margin-right: 0;
+    }
 }
 
 #change-area-button,
@@ -219,4 +223,15 @@
 
 .go-to-data-catalog-button > .fa-arrow-right {
     margin-left: 0.25rem;
+}
+
+.input-group-btn > button {
+  height: 34px;
+}
+
+.btn-page {
+  background: $paper;
+  border: solid 1px darken($ui-light, 10%);
+  text-align: center;
+  border-radius: 2px;
 }

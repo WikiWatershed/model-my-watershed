@@ -47,7 +47,7 @@ describe('User', function() {
 
             loginView.$el.find('#username').val('');
             loginView.$el.find('#password').val('password');
-            loginView.$el.find('#primary-button').click();
+            loginView.$el.find('#primary-button').trigger('click');
             var validationError = loginView.$el.find('ul li').first().text();
             assert.equal(validationError, 'Please enter a username', 'Could not find missing username message.');
         });
@@ -61,7 +61,7 @@ describe('User', function() {
 
             loginView.$el.find('#username').val('bob');
             loginView.$el.find('#password').val('');
-            loginView.$el.find('#primary-button').click();
+            loginView.$el.find('#primary-button').trigger('click');
             var validationError = loginView.$el.find('ul li').first().text();
             assert.equal(validationError, 'Please enter a password', 'Could not find missing password message.');
         });
@@ -76,7 +76,7 @@ describe('User', function() {
 
             loginView.$el.find('#username').val('bad');
             loginView.$el.find('#password').val('apple');
-            loginView.$el.find('#primary-button').click();
+            loginView.$el.find('#primary-button').trigger('click');
             var validationError = loginView.$el.find('ul li').first().text();
 
             assert.equal(validationError, 'Invalid username or password', 'Could not find failed login message.');
@@ -92,7 +92,7 @@ describe('User', function() {
 
             loginView.$el.find('#username').val('bad');
             loginView.$el.find('#password').val('apple');
-            loginView.$el.find('#primary-button').click();
+            loginView.$el.find('#primary-button').trigger('click');
             var validationError = loginView.$el.find('ul li').first().text();
 
             assert.equal(validationError, 'Server communication error', 'Could not find failed server message.');
@@ -112,7 +112,7 @@ describe('User', function() {
 
             loginView.$el.find('#username').val(username);
             loginView.$el.find('#password').val(username);
-            loginView.$el.find('#primary-button').click();
+            loginView.$el.find('#primary-button').trigger('click');
 
             assert.notOk(loginView.$el.is(':visible'), 'Modal should no longer be visible.');
             assert.equal(App.user.get('username'), username, 'Could not get username.');

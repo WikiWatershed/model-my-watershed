@@ -5,7 +5,7 @@ var $ = require('jquery'),
     Marionette = require('../../../../shim/backbone.marionette'),
     AoiVolumeModel = require('../models').AoiVolumeModel,
     chart = require('../../../core/chart.js'),
-    barChartTmpl = require('../../../core/templates/barChart.html'),
+    chartTmpl = require('./templates/chart.html'),
     resultTmpl = require('./templates/result.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
     tableTmpl = require('./templates/table.html'),
@@ -51,8 +51,9 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        this.tableRegion.reset();
-        this.chartRegion.reset();
+        this.tableRegion.empty();
+        this.chartRegion.empty();
+
         if (this.model.get('result')) {
             var dataCollection = new Backbone.Collection(
                 this.model.get('result').quality['modified'].filter(
@@ -115,32 +116,36 @@ var TableView = Marionette.CompositeView.extend({
     }
 });
 
-var ChartView = Marionette.ItemView.extend({
+var ChartRowView = Marionette.ItemView.extend({
+    template: false,
+
+    className: 'bullet-chart',
+
+    onShow: function() {
+        var chartEl = this.$el,
+            aoiVolumeModel = this.options.aoiVolumeModel,
+            measure = this.model.get('measure'),
+            title = measure.substr(0, measure.indexOf(' ')), // First word
+            subtitle = measure.substr(measure.indexOf(' ')), // All the rest
+            load = this.model.get('load'),
+            data = aoiVolumeModel.getLoadingRate(load);
+
+        chart.renderBulletChart(chartEl, title, subtitle, data);
+    }
+});
+
+var ChartView = Marionette.CompositeView.extend({
     // model ResultModel
-    template: barChartTmpl,
+    template: chartTmpl,
     className: 'chart-container quality-chart-container',
 
-    onAttach: function() {
-        this.addChart();
+    childView: ChartRowView,
+    childViewContainer: '.bullet-charts',
+    childViewOptions: function() {
+        return {
+            aoiVolumeModel: this.options.aoiVolumeModel
+        };
     },
-
-    addChart: function() {
-        var chartEl = this.$el.find('.bar-chart').get(0),
-            aoiVolumeModel = this.options.aoiVolumeModel,
-            data = this.collection.map(function(model) {
-                var load = model.attributes.load;
-                return {
-                    x: model.attributes.measure,
-                    y: aoiVolumeModel.getLoadingRate(load)
-                };
-            }),
-            chartOptions = {
-                yAxisLabel: 'Loading Rate (kg/ha)',
-                abbreviateTicks: true
-            };
-
-        chart.renderHorizontalBarChart(chartEl, data, chartOptions);
-    }
 });
 
 module.exports = {

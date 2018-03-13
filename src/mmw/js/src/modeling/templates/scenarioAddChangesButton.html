@@ -8,7 +8,7 @@
 {% endif %}
 <div class="right-controls-container">
     <div class="tab-content scenario-toolbar-tab-content"></div>
-    {% if isOnlyCurrentConditions %}
+    {% if isOnlyCurrentConditions and editable %}
     <button id="add-changes" class="btn btn-link" type="button" aria-expanded="true">
         <i class="fa fa-plus-circle"></i> Add changes to this area
     </button>

@@ -335,23 +335,9 @@ var InputsView = Marionette.LayoutView.extend({
             projectName = this.model.get('projectName'),
             timeStamp = moment().format('MMDDYYYYHHmmss'),
             fileName = projectName.replace(/[^a-z0-9+]+/gi, '_') + '_' +
-                timeStamp + '.csv',
-            blob = new Blob([csv], { type: 'application/octet-stream' });
+                timeStamp + '.csv';
 
-        if (window.navigator && window.navigator.msSaveOrOpenBlob) {
-            window.navigator.msSaveOrOpenBlob(blob, fileName);
-        } else {
-            var url = window.URL.createObjectURL(blob),
-                tmpLink = document.createElement('a');
-
-            tmpLink.download = fileName;
-            tmpLink.href = url;
-            tmpLink.type = 'attachment/csv;charset=utf-8';
-            tmpLink.target = '_blank';
-            document.body.appendChild(tmpLink);
-            tmpLink.click();
-            document.body.removeChild(tmpLink);
-        }
+        coreUtils.downloadAsFile(csv, fileName);
     }
 });
 
@@ -402,7 +388,7 @@ var ScenarioItemView = Marionette.ItemView.extend({
             interactiveMode: false,
         });
         mapView.updateAreaOfInterest();
-        mapView.updateModifications(this.model.get('modifications'));
+        mapView.updateModifications(this.model);
         mapView.fitToModificationsOrAoi();
         mapView.render();
     },
@@ -610,11 +596,11 @@ var CompareWindow = Marionette.LayoutView.extend({
         // Resizing the window can change the column size,
         // so the offset of the container needs to be
         // recomputed.
-        $(window).bind('resize.app', _.debounce(_.bind(this.updateContainerPos, this)));
+        $(window).on('resize.app', _.debounce(_.bind(this.updateContainerPos, this)));
     },
 
     onDestroy: function() {
-        $(window).unbind('resize.app');
+        $(window).off('resize.app');
     },
 
     getColumnWidth: function() {
@@ -702,7 +688,7 @@ var CompareScenarioView = Marionette.LayoutView.extend({
 
         this.mapView.fitToAoi();
         this.mapView.updateAreaOfInterest();
-        this.mapView.updateModifications(this.model.get('modifications'));
+        this.mapView.updateModifications(this.model);
         this.mapRegion.show(this.mapView);
         this.modelingRegion.show(new CompareModelingView({
             projectModel: this.projectModel,
@@ -1031,7 +1017,7 @@ function getCompareScenarios(isTr55) {
 function showCompare() {
     var model_package = App.currentProject.get('model_package'),
         projectName = App.currentProject.get('name'),
-        isTr55 = model_package === modelingModels.TR55_PACKAGE,
+        isTr55 = model_package === coreUtils.TR55_PACKAGE,
         scenarios = getCompareScenarios(isTr55),
         tabs = isTr55 ? getTr55Tabs(scenarios) : getGwlfeTabs(scenarios),
         controlsJson = isTr55 ? [{ name: 'precipitation' }] : [],

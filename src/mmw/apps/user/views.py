@@ -1,3 +1,5 @@
+import rollbar
+
 from uuid import uuid1
 
 from django.contrib.auth import (authenticate,
@@ -6,12 +8,13 @@ from django.contrib.auth import (authenticate,
                                  login as auth_login)
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render_to_response
 from django.contrib.auth.forms import (PasswordResetForm,
                                        PasswordChangeForm)
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.sites.shortcuts import get_current_site
 from django.conf import settings
+from django.db import transaction
 
 from registration.models import RegistrationProfile
 from registration.forms import RegistrationFormUniqueEmail
@@ -22,7 +25,10 @@ from rest_framework.response import Response
 from rest_framework.permissions import (AllowAny,
                                         IsAuthenticated)
 
-from apps.user.models import ItsiUser, UserProfile
+from apps.export.hydroshare import HydroShareService
+from apps.export.models import HydroShareResource
+from apps.home.views import get_context
+from apps.user.models import ItsiUser, UserProfile, HydroShareToken
 from apps.user.itsi import ItsiService
 from apps.user.serializers import UserProfileSerializer
 
@@ -41,6 +47,8 @@ def login(request):
             'result': 'success',
             'username': user.username,
             'itsi': ItsiUser.objects.filter(user_id=user.id).exists(),
+            'hydroshare': HydroShareToken.objects
+                                         .filter(user_id=user.id).exists(),
             'guest': False,
             'id': user.id,
             'profile_was_skipped': profile.was_skipped,
@@ -339,3 +347,58 @@ def change_password(request):
         status_code = status.HTTP_400_BAD_REQUEST
 
     return Response(data=response_data, status=status_code)
+
+
+hss = HydroShareService()
+
+
+@decorators.permission_classes((IsAuthenticated, ))
+def hydroshare_login(request):
+    redirect_uri = request.build_absolute_uri(reverse('user:hydroshare_auth'))
+    params = {'redirect_uri': redirect_uri, 'response_type': 'code'}
+    auth_url = hss.get_authorize_url(**params)
+    return redirect(auth_url)
+
+
+@decorators.permission_classes((IsAuthenticated, ))
+def hydroshare_auth(request):
+    context = get_context(request)
+
+    code = request.GET.get('code')
+
+    if code is None:
+        error = request.GET.get('error')
+        context.update({'error': error})
+    else:
+        reverse_uri = reverse('user:hydroshare_auth')
+        redirect_uri = request.build_absolute_uri(reverse_uri)
+        try:
+            token = hss.set_token_from_code(code, redirect_uri, request.user)
+            context.update({'token': token.access_token})
+        except (IOError, RuntimeError) as e:
+            context.update({'error': e.message})
+
+    if context.get('error') == 'invalid_client':
+        rollbar.report_message('HydroShare OAuth credentials '
+                               'possibly misconfigured', 'warning')
+
+    return render_to_response('user/hydroshare-auth.html', context)
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((IsAuthenticated, ))
+@transaction.atomic
+def hydroshare_logout(request):
+    try:
+        token = HydroShareToken.objects.get(user=request.user)
+    except ObjectDoesNotExist:
+        token = None
+
+    if token:
+        # Disconnect all of this user's projects from HydroShare
+        HydroShareResource.objects.filter(project__user=request.user).delete()
+
+        # Delete token
+        token.delete()
+
+    return Response(status=status.HTTP_204_NO_CONTENT)

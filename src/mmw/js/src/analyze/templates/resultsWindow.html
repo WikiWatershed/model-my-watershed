@@ -1,12 +1,35 @@
+<div class="sidebar-tab-header output-tabs-wrapper" role="tabpanel">
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="active" role="presentation">
+            <a aria-controls="home" aria-expanded="false"
+                               data-toggle="tab" href="#analyze-tab-contents" role="tab">
+                <div class="sidebar-tab-header-label">
+                    Analyze
+                </div>
+            </a>
+        </li>
+        <li role="presentation">
+            <a aria-controls="home" aria-expanded="false"
+               data-toggle="tab" href="#monitor-tab-contents" role="tab">
+                <div class="sidebar-tab-header-label">
+                    {{ 'Data' if data_catalog_enabled else 'Monitor' }}
+                </div>
+            </a>
+        </li>
+    </ul>
+</div>
+
 <div class="tab-contents-region">
     <div class="tab-content">
         <div class="aoi-region"></div>
         <div role="tabpanel" id="analyze-tab-contents"
             class="tab-pane analyze-stage-results-tab-pane"></div>
+        <div role="tabpanel" id="monitor-tab-contents"
+             class="tab-pane analyze-stage-monitor-tab-pane"></div>
     </div>
 </div>
-<div class="navigation-footer">
-    <button id="change-area-button" class="btn btn-lg" type="button" data-action="change-area">
+<div class="navigation-footer {{ 'data-catalog' if data_catalog_enabled }}">
+    <button id="change-area-button" class="btn btn-lg btn-primary" type="button" data-action="change-area">
         Change area
     </button>
     <div id="next-stage-navigation-region"></div>

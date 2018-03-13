@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 
 import logging
+import requests
+import json
 
 from ast import literal_eval as make_tuple
 
@@ -12,8 +14,6 @@ from StringIO import StringIO
 from celery import shared_task
 
 from django.conf import settings
-
-from apps.modeling.geoprocessing import to_one_ring_multipolygon
 
 from apps.modeling.tr55.utils import (aoi_resolution,
                                       precipitation,
@@ -68,6 +68,33 @@ def format_runoff(model_output):
     return model_output
 
 
+def format_for_srat(huc12_id, model_output):
+    formatted = {'huc12': huc12_id,
+                 # Tile Drain may be calculated by future versions of
+                 # Mapshed. The SRAT API requires a placeholder
+                 'tpload_tiledrain': 0,
+                 'tnload_tiledrain': 0,
+                 'tssload_tiledrain': 0,
+                 }
+
+    for load in model_output['Loads']:
+        source_key = settings.SRAT_KEYS.get(load['Source'], None)
+
+        if source_key is None:
+            continue
+
+        formatted['tpload_' + source_key] = load['TotalP']
+        formatted['tnload_' + source_key] = load['TotalN']
+
+        if source_key not in ['farman',
+                              'subsurface',
+                              'septics',
+                              'pointsource']:
+            formatted['tssload_' + source_key] = load['Sediment']
+
+    return formatted
+
+
 @shared_task(throws=Exception)
 def nlcd_soil(result):
     if 'error' in result:
@@ -112,10 +139,6 @@ def run_tr55(censuses, aoi, model_input, cached_aoi_census=None):
 
     # Get precipitation and cell resolution
     precip = precipitation(model_input)
-
-    # Normalize AOI to handle single-ring multipolygon
-    # inputs sent from RWD as well as shapes sent from the front-end
-    aoi = to_one_ring_multipolygon(aoi)
 
     width = aoi_resolution(aoi)
     resolution = width * width
@@ -198,7 +221,7 @@ def run_tr55(censuses, aoi, model_input, cached_aoi_census=None):
 
 
 @shared_task
-def run_gwlfe(model_input, inputmod_hash):
+def run_gwlfe(model_input, inputmod_hash, watershed_id=None):
     """
     Given a model_input resulting from a MapShed run, converts that dictionary
     to an intermediate GMS file representation, which is then parsed by GWLF-E
@@ -217,8 +240,46 @@ def run_gwlfe(model_input, inputmod_hash):
 
     result = gwlfe.run(z)
     result['inputmod_hash'] = inputmod_hash
+    result['watershed_id'] = watershed_id
 
     return result
+
+
+@shared_task
+def run_srat(watersheds):
+    try:
+        data = [format_for_srat(id, w) for id, w in watersheds.iteritems()]
+    except Exception as e:
+        logger.error('Formatting sub-basin GWLF-E results failed: %s' % e)
+
+    headers = {'x-api-key': settings.SRAT_CATCHMENT_API['api_key']}
+
+    try:
+        r = requests.post(settings.SRAT_CATCHMENT_API['url'],
+                          headers=headers,
+                          data=json.dumps(data))
+    except Exception as e:
+        logger.error('Request to SRAT Catchment API failed: %s' % e)
+
+    try:
+        result = r.json()
+    except ValueError:
+        logger.error('SRAT Catchment API did not return JSON')
+
+    if (r.status_code != 200):
+        logger.error('SRAT Catchment API request failed: %s' % result)
+
+    return result
+
+
+@shared_task
+def subbasin_results_to_dict(subbasin_results):
+    def popped_key_result(result):
+        watershed_id = result.pop('watershed_id')
+        return (watershed_id, result)
+
+    popped_key_results = [popped_key_result(r) for r in subbasin_results]
+    return dict(popped_key_results)
 
 
 def to_gms_file(mapshed_data):

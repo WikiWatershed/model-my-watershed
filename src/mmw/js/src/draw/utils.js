@@ -6,6 +6,7 @@ var $ = require('jquery'),
     JSZip = require('jszip'),
     turfArea = require('turf-area'),
     turfBboxPolygon = require('turf-bbox-polygon'),
+    turfKinks = require('turf-kinks'),
     coreUtils = require('../core/utils'),
     intersect = require('turf-intersect'),
     settings = require('../core/settings');
@@ -90,11 +91,14 @@ function cancelDrawing(map) {
 }
 
 function getGeoJsonLatLngs(shape) {
+    var nesting = 1;
+
     if (shape.coordinates) {
-        var nesting = shape.type === "MultiPolygon" ? 2 : 1;
+        nesting = shape.type === "MultiPolygon" ? 2 : 1;
         return L.GeoJSON.coordsToLatLngs(shape.coordinates, nesting);
     } else if (shape.geometry) {
-        return L.GeoJSON.coordsToLatLngs(shape.geometry.coordinates, 1);
+        nesting = shape.geometry.type === "MultiPolygon" ? 2 : 1;
+        return L.GeoJSON.coordsToLatLngs(shape.geometry.coordinates, nesting);
     } else if (shape.features) {
         var coordinates = [];
         _.forEach(shape.features, function(feature) {
@@ -156,6 +160,33 @@ function loadAsyncShpFilesFromZip(zipfile) {
         });
 }
 
+function isSelfIntersecting(shape) {
+    var selfIntersects = function(polygon) {
+            return turfKinks(polygon).features.length > 0;
+        },
+        geom = shape.geometry || shape;
+
+    if (!geom) {
+        return false;
+    }
+
+    if (geom.type === "Polygon") {
+        // turfKinks will include polgyons' self-touching rings
+        // as kinks, but shapes with self-touching rings are
+        // valid for geoprocessing.
+        // Assert only that each polygon ring doesn't intersect
+        // itself
+        return _.any(geom.coordinates, function(linearRing) {
+            return selfIntersects({
+                type: "Polygon",
+                coordinates: [linearRing],
+            });
+        });
+    }
+
+    return selfIntersects(geom);
+}
+
 function isValidForAnalysis(shape) {
     if (shape) {
         var area = shapeBoundingBoxArea(shape);
@@ -168,6 +199,35 @@ function withinConus(shape) {
     return intersect(settings.get('conus_perimeter'), shape);
 }
 
+function getPolygonFromGeoJson(geojson) {
+    var polygon = null;
+
+    if (geojson === null) {
+        return null;
+    }
+
+    if (geojson.coordinates) {
+        polygon = geojson;
+    } else if (geojson.geometry) {
+        polygon = geojson.geometry;
+    } else if (geojson.features &&
+               _.isArray(geojson.features) &&
+               geojson.features[0] &&
+               geojson.features[0].geometry) {
+
+        polygon = geojson.features[0].geometry;
+    }
+
+    if (polygon.type && (
+        polygon.type === "MultiPolygon" ||
+        polygon.type === "Polygon")) {
+
+        return polygon;
+    } else {
+        return null;
+    }
+}
+
 module.exports = {
     drawPolygon: drawPolygon,
     placeMarker: placeMarker,
@@ -176,8 +236,10 @@ module.exports = {
     polygonDefaults: polygonDefaults,
     shapeBoundingBox: shapeBoundingBox,
     shapeBoundingBoxArea: shapeBoundingBoxArea,
+    isSelfIntersecting: isSelfIntersecting,
     isValidForAnalysis: isValidForAnalysis,
     withinConus: withinConus,
+    getPolygonFromGeoJson: getPolygonFromGeoJson,
     loadAsyncShpFilesFromZip: loadAsyncShpFilesFromZip,
     NHD: 'nhd',
     DRB: 'drb',

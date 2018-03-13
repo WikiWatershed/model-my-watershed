@@ -6,12 +6,14 @@ var _ = require('lodash'),
     App = require('../app'),
     settings = require('../core/settings'),
     csrf = require('../core/csrf'),
+    utils = require('../core/utils'),
     models = require('./models'),
     controls = require('./controls'),
     coreModels = require('../core/models'),
     coreViews = require('../core/views'),
     gwlfeConfig = require('./gwlfeModificationConfig'),
-    analyzeViews = require('../analyze/views.js'),
+    analyzeViews = require('../analyze/views'),
+    dataCatalogViews = require('../data_catalog/views'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
     compareViews = require('../compare/views'),
@@ -51,7 +53,7 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
     },
 
     modelEvents: {
-        'change:showing_analyze': 'toggleToolbar',
+        'change:sidebar_mode': 'toggleToolbar',
     },
 
     initialize: function() {
@@ -63,12 +65,12 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
     },
 
     toggleToolbar: function() {
-        this.ui.scenarioAndToolbarContainer.toggleClass('hidden');
-
-        if (this.model.get('showing_analyze')) {
-            App.map.setAnalyzeModelSize();
-        } else {
+        if (this.model.get('sidebar_mode') === utils.MODEL) {
+            this.ui.scenarioAndToolbarContainer.removeClass('hidden');
             App.map.setModelSize();
+        } else {
+            this.ui.scenarioAndToolbarContainer.addClass('hidden');
+            App.map.setAnalyzeModelSize();
         }
     },
 
@@ -121,11 +123,11 @@ var ProjectMenuView = Marionette.ItemView.extend({
         remove: '#delete-project',
         print: '#print-project',
         save: '#save-project',
-        privacy: '#project-privacy',
         itsiClone: '#itsi-clone',
         newProject: '#new-project',
         changeAoI: '#change-aoi',
         showAnalyze: '#show-analyze',
+        showMonitor: '#show-monitor',
         showModel: '#show-model',
         modelDescriptionIcon: '#model-desc-icon'
     },
@@ -136,11 +138,11 @@ var ProjectMenuView = Marionette.ItemView.extend({
         'click @ui.share': 'shareProject',
         'click @ui.print': 'printProject',
         'click @ui.save': 'saveProjectOrLoginUser',
-        'click @ui.privacy': 'setProjectPrivacy',
         'click @ui.itsiClone': 'getItsiEmbedLink',
         'click @ui.newProject': 'createNewProject',
         'click @ui.changeAoI': 'createNewProject',
         'click @ui.showAnalyze': 'showAnalyze',
+        'click @ui.showMonitor': 'showMonitor',
         'click @ui.showModel': 'showModel',
     },
 
@@ -200,14 +202,9 @@ var ProjectMenuView = Marionette.ItemView.extend({
     },
 
     shareProject: function() {
-        var share = new modalViews.ShareView({
-                model: new modalModels.ShareModel({
-                    text: 'Project',
-                    url: window.location.href,
-                    guest: App.user.get('guest'),
-                    is_private: this.model.get('is_private')
-                }),
-                app: App
+        var share = new modalViews.MultiShareView({
+                model: this.model,
+                app: App,
             });
 
         share.render();
@@ -271,32 +268,6 @@ var ProjectMenuView = Marionette.ItemView.extend({
         }
     },
 
-    setProjectPrivacy: function() {
-        var self = this,
-            currentSettings = this.model.get('is_private') ? 'private' : 'public',
-            newSettings = currentSettings === 'private' ? 'public' : 'private',
-            primaryText = 'This project is currently ' + currentSettings + '. ' +
-                      'Are you sure you want to make it ' + newSettings + '? ',
-            additionalText = currentSettings === 'private' ?
-                    'Anyone with the URL will be able to access it.' :
-                    'Only you will be able to access it.',
-            question = primaryText + additionalText,
-            modal = new modalViews.ConfirmView({
-                model: new modalModels.ConfirmModel({
-                    question: question,
-                    confirmLabel: 'Confirm',
-                    cancelLabel: 'Cancel'
-                })
-            });
-
-        modal.render();
-
-        modal.on('confirmation', function() {
-            self.model.set('is_private', !self.model.get('is_private'));
-            self.model.saveProjectAndScenarios();
-        });
-    },
-
     getItsiEmbedLink: function() {
         var self = this,
             embedLink = window.location.origin +
@@ -327,11 +298,15 @@ var ProjectMenuView = Marionette.ItemView.extend({
     },
 
     showAnalyze: function() {
-        this.model.set('showing_analyze', true);
+        this.model.set('sidebar_mode', utils.ANALYZE);
+    },
+
+    showMonitor: function() {
+        this.model.set('sidebar_mode', utils.MONITOR);
     },
 
     showModel: function() {
-        this.model.set('showing_analyze', false);
+        this.model.set('sidebar_mode', utils.MODEL);
     }
 });
 
@@ -365,7 +340,7 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
         // entire collection.
         var scenario = this.collection.first(),
             isOnlyCurrentConditions = this.collection.length === 1,
-            showCompare = App.currentProject.get('model_package') === models.TR55_PACKAGE &&
+            showCompare = App.currentProject.get('model_package') === utils.TR55_PACKAGE &&
                 !isOnlyCurrentConditions,
             compareUrl = this.projectModel.getCompareUrl();
 
@@ -482,12 +457,12 @@ var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
                        '__' + this.model.get('name').replace(/\s/g, '_');
 
         this.ui.exportGmsForm.find('.gms-filename').val(filename);
-        this.ui.exportGmsForm.submit();
+        this.ui.exportGmsForm.trigger('submit');
     },
 
     templateHelpers: function() {
         var gis_data = this.model.getGisData().model_input,
-            is_gwlfe = App.currentProject.get('model_package') === models.GWLFE && !_.isEmpty(gis_data);
+            is_gwlfe = App.currentProject.get('model_package') === utils.GWLFE && !_.isEmpty(gis_data);
 
         return {
             is_gwlfe: is_gwlfe,
@@ -538,6 +513,7 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
     ui: {
         selectScenario: '[data-action="select"]',
         showOptionsDropdown: '[data-action="show-options-dropdown"]',
+        scenarioDropdownActions: '.scenario-dropdown-actions',
     },
 
     events: {
@@ -553,12 +529,11 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
     },
 
     toggleOptionsDropdown: function() {
-        // Render to show the "dropdown open" styling on the toggle icon
-        this.render();
-
         if (this.optionsDropdown.hasView() && !this.model.get('options_menu_is_open')) {
+            this.ui.scenarioDropdownActions.removeClass('-open');
             this.optionsDropdown.empty();
         } else if (this.model.get('options_menu_is_open')) {
+            this.ui.scenarioDropdownActions.addClass('-open');
             this.optionsDropdown.show(new ScenarioDropDownMenuOptionsView({
                 model: this.model,
             }));
@@ -572,7 +547,7 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
 
     templateHelpers: function() {
         var gis_data = this.model.getGisData().model_input,
-            is_gwlfe = App.currentProject.get('model_package') === models.GWLFE &&
+            is_gwlfe = App.currentProject.get('model_package') === utils.GWLFE &&
                         gis_data !== null &&
                         gis_data !== '{}' &&
                         gis_data !== '';
@@ -682,8 +657,7 @@ var ScenarioModelToolbarView = Marionette.CompositeView.extend({
 
     updateMap: function() {
         if (this.model.get('active')) {
-            var modificationsColl = this.model.get('modifications');
-            App.getMapView().updateModifications(modificationsColl);
+            App.getMapView().updateModifications(this.model);
         }
     },
 
@@ -826,14 +800,15 @@ var GwlfeToolbarView = ScenarioModelToolbarView.extend({
 
     templateHelpers: function() {
         var activeMod = this.getActiveMod(),
-            modifications = this.model.get('modifications').toJSON();
+            modifications = this.model.get('modifications').toJSON(),
+            editable = isEditable(this.model);
 
         activeMod = activeMod ? activeMod.toJSON() : null;
-
         return {
             modifications: modifications,
             activeMod: activeMod,
-            displayNames: gwlfeConfig.displayNames
+            displayNames: gwlfeConfig.displayNames,
+            editable: editable
         };
     }
 });
@@ -862,7 +837,7 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
     },
 
     getChildView: function() {
-        var isGwlfe = this.modelPackage === models.GWLFE;
+        var isGwlfe = this.modelPackage === utils.GWLFE;
 
         if (isGwlfe) {
             return GwlfeToolbarView;
@@ -899,20 +874,22 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
                        '__' + this.currentConditions.get('name').replace(/\s/g, '_');
 
         this.ui.exportGmsForm.find('.gms-filename').val(filename);
-        this.ui.exportGmsForm.submit();
+        this.ui.exportGmsForm.trigger('submit');
     },
 
     templateHelpers: function() {
         var gisData = this.currentConditions.getGisData().model_input,
-            isGwlfe = this.modelPackage === models.GWLFE && !_.isEmpty(gisData),
+            isGwlfe = this.modelPackage === utils.GWLFE && !_.isEmpty(gisData),
             isOnlyCurrentConditions = this.collection.length === 1 &&
-                this.collection.first().get('is_current_conditions');
+                this.collection.first().get('is_current_conditions'),
+            editable = isEditable(this.model);
 
         return {
             isOnlyCurrentConditions: isOnlyCurrentConditions,
             isGwlfe: isGwlfe,
             csrftoken: csrf.getToken(),
             gis_data: gisData,
+            editable: editable
         };
     },
 });
@@ -926,11 +903,12 @@ var ResultsView = Marionette.LayoutView.extend({
     regions: {
         aoiRegion: '.aoi-region',
         analyzeRegion: '#analyze-tab-contents',
+        monitorRegion: '#monitor-tab-contents',
         modelingRegion: '#modeling-tab-contents'
     },
 
     modelEvents: {
-        'change:showing_analyze': 'toggleAoiRegion',
+        'change:sidebar_mode': 'toggleAoiRegion',
     },
 
     initialize: function(options) {
@@ -957,11 +935,26 @@ var ResultsView = Marionette.LayoutView.extend({
     onShow: function() {
         var scenarios = this.model.get('scenarios'),
             scenario = scenarios.getActiveScenario(),
-            analyzeCollection = App.getAnalyzeCollection();
+            analyzeCollection = App.getAnalyzeCollection(),
+            dataCatalog = App.getDataCatalog();
+
+        // Add AoI Region but do not show it by default
+        this.aoiRegion.show(new analyzeViews.AoiView({
+            model: new coreModels.GeoModel({
+                place: App.map.get('areaOfInterestName'),
+                shape: App.map.get('areaOfInterest')
+            })
+        }));
+
+        this.aoiRegion.currentView.$el.addClass('hidden');
 
         this.analyzeRegion.show(new analyzeViews.AnalyzeWindow({
             collection: analyzeCollection
         }));
+
+        this.monitorRegion.show(new dataCatalogViews.DataCatalogWindow(
+            dataCatalog
+        ));
 
         if (scenario) {
             this.modelingRegion.show(new ResultsDetailsView({
@@ -972,26 +965,39 @@ var ResultsView = Marionette.LayoutView.extend({
         }
     },
 
-    showAoiRegion: function() {
-        this.aoiRegion.show(new analyzeViews.AoiView({
-            model: new coreModels.GeoModel({
-                place: App.map.get('areaOfInterestName'),
-                shape: App.map.get('areaOfInterest')
-            })
-        }));
-    },
-
     toggleAoiRegion: function() {
-        this.aoiRegion.$el.toggleClass('hidden');
-
-        if (this.model.get('showing_analyze')) {
-            this.showAoiRegion();
-        } else {
-            this.aoiRegion.empty();
+        switch (this.model.get('sidebar_mode')) {
+            case utils.ANALYZE:
+                this.aoiRegion.currentView.$el.removeClass('hidden');
+                this.analyzeRegion.$el.addClass('active');
+                this.monitorRegion.$el.removeClass('active');
+                this.monitorRegion.currentView.setVisibility(false);
+                this.modelingRegion.$el.removeClass('active');
+                App.getMapView().updateModifications(null);
+                break;
+            case utils.MONITOR:
+                if (App.map.get('dataCatalogDetailResult') !== null) {
+                    this.aoiRegion.currentView.$el.addClass('hidden');
+                } else {
+                    this.aoiRegion.currentView.$el.removeClass('hidden');
+                }
+                this.analyzeRegion.$el.removeClass('active');
+                this.monitorRegion.$el.addClass('active');
+                this.monitorRegion.currentView.setVisibility(true);
+                this.modelingRegion.$el.removeClass('active');
+                App.getMapView().updateModifications(null);
+                break;
+            case utils.MODEL:
+                this.aoiRegion.currentView.$el.addClass('hidden');
+                this.analyzeRegion.$el.removeClass('active');
+                this.monitorRegion.$el.removeClass('active');
+                this.monitorRegion.currentView.setVisibility(false);
+                this.modelingRegion.$el.addClass('active');
+                App.getMapView().updateModifications(
+                    this.model.get('scenarios').getActiveScenario()
+                );
+                break;
         }
-
-        this.analyzeRegion.$el.toggleClass('active');
-        this.modelingRegion.$el.toggleClass('active');
     },
 
     transitionInCss: {
@@ -1183,7 +1189,7 @@ function triggerBarChartRefresh() {
 
 function getResultView(modelPackage, resultName) {
     switch (modelPackage) {
-        case models.TR55_PACKAGE:
+        case utils.TR55_PACKAGE:
             switch(resultName) {
                 case 'runoff':
                     return tr55RunoffViews.ResultView;
@@ -1193,7 +1199,7 @@ function getResultView(modelPackage, resultName) {
                     console.log('Result not supported.');
             }
             break;
-        case models.GWLFE:
+        case utils.GWLFE:
             switch(resultName) {
                 case 'runoff':
                     return gwlfeRunoffViews.ResultView;

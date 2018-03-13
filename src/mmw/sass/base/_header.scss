@@ -11,6 +11,7 @@ header {
   background-color: $ui-primary;
   height: $height-lg;
   padding: 0 1rem;
+  text-align: center;
 
   .brand {
     a {
@@ -29,9 +30,9 @@ header {
   }
 
   img {
-    height: 24px;
+    height: 26px;
     position: relative;
-    top: -2px;
+    top: 10px;
   }
 
   .navigation {
@@ -103,11 +104,19 @@ header {
         display: flex;
       }
       .project-center {
-          margin-left: auto;
-          margin-right: auto;
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          margin-left: 0;
+      }
+      .project-left {
+        flex: 1;
       }
       .project-right {
           margin-right: 8px;
+          .btn + .btn {
+            margin-left: 8px;
+          }
       }
 
       .project-title {

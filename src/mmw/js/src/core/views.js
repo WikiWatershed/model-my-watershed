@@ -114,12 +114,16 @@ var HeaderView = Marionette.ItemView.extend({
         logout: '.user-logout',
         cloneProject: '.clone-project',
         skippedProfilePopover: '[data-toggle="popover"]',
+        about: '#about-modal-trigger',
+        openProject: '#header-open-project',
     },
 
     events: {
+        'click @ui.about': 'showAbout',
         'click @ui.login': 'showLogin',
         'click @ui.logout': 'userLogout',
-        'click @ui.cloneProject': 'cloneProject'
+        'click @ui.cloneProject': 'cloneProject',
+        'click @ui.openProject': 'openOrLogin',
     },
 
     modelEvents: {
@@ -136,9 +140,12 @@ var HeaderView = Marionette.ItemView.extend({
         return {
             'title': settings.get('title'),
             'itsi_embed': settings.get('itsi_embed'),
-            'aboutLink': settings.get('data_catalog_enabled') ?
-                'https://bigcz.org/' : 'https://wikiwatershed.org/',
+            'data_catalog_enabled': settings.get('data_catalog_enabled'),
         };
+    },
+
+    showAbout: function() {
+        new modalViews.AboutModal().render();
     },
 
     showLogin: function() {
@@ -188,6 +195,20 @@ var HeaderView = Marionette.ItemView.extend({
                 });
         });
         view.render();
+    },
+
+    openOrLogin: function() {
+        // The core.Views are initialized during App initialization.
+        // If App is required at the module level, which is typical,
+        // the object instance won't be available to invoke methods on.
+        var App = require('../app');
+        if (this.model.get('guest')) {
+            App.showLoginModal(function() {
+                router.navigate('/projects', {trigger: true});
+            });
+        } else {
+            router.navigate('/projects', {trigger: true});
+        }
     },
 
     onRender: function() {
@@ -244,6 +265,7 @@ var MapView = Marionette.ItemView.extend({
         'change:areaOfInterest': 'updateAreaOfInterest',
         'change:size': 'toggleMapSize',
         'change:maskLayerApplied': 'toggleMask',
+        'change:dataCatalogVisible': 'toggleDataCatalog',
         'change:dataCatalogResults': 'renderDataCatalogResults',
         'change:dataCatalogActiveResult': 'renderDataCatalogActiveResult',
         'change:dataCatalogDetailResult': 'renderDataCatalogDetailResult',
@@ -442,10 +464,8 @@ var MapView = Marionette.ItemView.extend({
             this.updateGoogleMaxZoom({ target: this._leafletMap });
         }
 
-        if (settings.get('data_catalog_enabled')) {
-            this._leafletMap.on('zoomend', this.renderDataCatalogDetailResult, this);
-            this._leafletMap.on('moveend', this.renderDataCatalogDetailResult, this);
-        }
+        this._leafletMap.on('zoomend', this.renderDataCatalogDetailResult, this);
+        this._leafletMap.on('moveend', this.renderDataCatalogDetailResult, this);
     },
 
     onBeforeDestroy: function() {
@@ -610,9 +630,15 @@ var MapView = Marionette.ItemView.extend({
 
     // Add GeoJSON layer for each modification model in modificationsColl.
     // Pass null or empty argument to clear modification layers.
-    updateModifications: function(modificationsColl) {
+    updateModifications: function(scenario) {
         var self = this,
-            map = this._leafletMap;
+            // The core.Views are initialized during App initialization.
+            // If App is required at the module level, which is typical,
+            // the object instance won't be available to invoke methods on.
+            App = require('../app'),
+            map = this._leafletMap,
+            modificationsColl = scenario ? scenario.get('modifications') : null,
+            editable = scenario ? App.user.userMatch(scenario.get('user_id')) : false;
 
         drawUtils.cancelDrawing(map);
         this._modificationsLayer.clearLayers();
@@ -628,7 +654,10 @@ var MapView = Marionette.ItemView.extend({
                             style: style,
                             onEachFeature: function(feature, layer) {
                                 if (self.options.interactiveMode) {
-                                    var popupContent = new ModificationPopupView({ model: model }).render().el;
+                                    var popupContent = new ModificationPopupView({
+                                        model: model,
+                                        editable: editable
+                                    }).render().el;
                                     layer.bindPopup(popupContent);
                                 }
                             }
@@ -739,6 +768,32 @@ var MapView = Marionette.ItemView.extend({
         });
     },
 
+    // Set various data catalog styles based on current visibility
+    refreshDataCatalogStyles: function() {
+        var visibility = this.model.get('dataCatalogVisible');
+
+        this.toggleDataCatalog(this.model, visibility);
+    },
+
+    toggleDataCatalog: function(model, visibility) {
+        var style =
+            visibility ?
+                { opacity: 1, fill: true } :
+                { opacity: 0, fill: false };
+
+        this._dataCatalogResultsLayer.setStyle(style);
+        this._dataCatalogActiveLayer.setStyle(style);
+        this._dataCatalogDetailLayer.setStyle(style);
+
+        if (visibility) {
+            $('div.map-highlight').removeClass('hidden');
+        } else {
+            this._dataCatalogResultsLayer.removeEventListener();
+            this._leafletMap.closePopup();
+            $('div.map-highlight').addClass('hidden');
+        }
+    },
+
     createDataCatalogShape: function(result) {
         var geom = result.get('geom'),
             style = dataCatalogPolygonStyle,
@@ -759,8 +814,10 @@ var MapView = Marionette.ItemView.extend({
             onEachFeature: function(feature, layer) {
                 layer.on('mouseover', function() {
                     // Only highlight the layer if detail mode is not active
+                    // and data catalog is visible
                     // and the layer bounds are within the viewport
                     if (self._dataCatalogDetailLayer.getLayers().length === 0 &&
+                        self.model.get('dataCatalogVisible') &&
                         self._leafletMap.getBounds().contains(layer.getBounds())) {
                         layer.setStyle(dataCatalogActiveStyle);
                         result.set('active', true);
@@ -768,7 +825,8 @@ var MapView = Marionette.ItemView.extend({
                 });
 
                 layer.on('mouseout', function() {
-                    if (self._dataCatalogDetailLayer.getLayers().length === 0) {
+                    if (self._dataCatalogDetailLayer.getLayers().length === 0 &&
+                        self.model.get('dataCatalogVisible')) {
                         if (geom.type === 'Point') {
                             // Preserve highlight of marker if popup is open.
                             // It will get restyled when the popup is closed.
@@ -800,6 +858,8 @@ var MapView = Marionette.ItemView.extend({
 
         // Close any popup that might be on the map
         this._leafletMap.closePopup();
+
+        this.refreshDataCatalogStyles();
     },
 
     renderDataCatalogActiveResult: function() {
@@ -807,6 +867,8 @@ var MapView = Marionette.ItemView.extend({
 
         this._renderDataCatalogResult(result, this._dataCatalogActiveLayer,
             'bigcz-highlight-map', dataCatalogActiveStyle);
+
+        this.refreshDataCatalogStyles();
     },
 
     renderDataCatalogDetailResult: function() {
@@ -817,11 +879,13 @@ var MapView = Marionette.ItemView.extend({
 
         // Close any popup that might be on the map
         this._leafletMap.closePopup();
+
+        this.refreshDataCatalogStyles();
     },
 
     _renderDataCatalogResult: function(result, featureGroup, className, style) {
         featureGroup.clearLayers();
-        $("div.map-highlight").remove();
+        $('div.map-highlight.' + className).remove();
 
         // If nothing is selected, exit early
         if (!result) { return; }
@@ -893,6 +957,7 @@ var MapView = Marionette.ItemView.extend({
                     layer.once('popupclose', function() {
                         layer.setStyle(dataCatalogPointStyle);
                         result.set('active', false);
+                        self.refreshDataCatalogStyles();
                     });
 
                     return;
@@ -904,22 +969,26 @@ var MapView = Marionette.ItemView.extend({
                     resultIntersects = function(result) {
                         return _.includes(intersectingFeatureIds, result.get('id'));
                     },
-                    intersectingResults = resultModels.filter(resultIntersects);
-
-                self._leafletMap.openPopup(
-                    new ListPopoverView({
+                    intersectingResults = resultModels.filter(resultIntersects),
+                    listPopoverView = new ListPopoverView({
                         collection:
                         new models.DataCatalogPopoverResultCollection(intersectingResults),
                         catalog: catalogId
-                    }).render().el,
+                    });
+
+                self._leafletMap.openPopup(
+                    listPopoverView.render().el,
                     clickLatLng,
                     { className: 'data-catalog-popover-list' });
+
+                listPopoverView.triggerMethod('show');
 
                 self._leafletMap.once('popupclose', function() {
                     self.model.set('dataCatalogActiveResult', null);
                     _.forEach(intersectingResults, function(result) {
                         result.set('active', false);
                     });
+                    self.refreshDataCatalogStyles();
                 });
         };
 
@@ -1011,6 +1080,13 @@ var ModificationPopupView = Marionette.ItemView.extend({
 
     events: {
         'click @ui.delete': 'deleteModification'
+    },
+
+    templateHelpers: function() {
+        var editable = this.options.editable;
+        return {
+            editable: editable
+        };
     },
 
     deleteModification: function() {

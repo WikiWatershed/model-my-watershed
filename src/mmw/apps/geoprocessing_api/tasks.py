@@ -22,6 +22,7 @@ from apps.modeling.tr55.utils import aoi_resolution
 from apps.geoprocessing_api.calcs import (animal_population,
                                           point_source_pollution,
                                           catchment_water_quality,
+                                          stream_data,
                                           )
 
 logger = logging.getLogger(__name__)
@@ -33,6 +34,7 @@ RWD_PORT = os.environ.get('RWD_PORT', '5000')
 
 ACRES_PER_SQM = 0.000247105
 CM_PER_MM = 0.1
+M_PER_CM = 0.01
 
 
 @shared_task
@@ -71,6 +73,15 @@ def start_rwd_job(location, snapping, simplify, data_source):
         raise Exception(response_json['error'])
 
     return response_json
+
+
+@shared_task
+def analyze_streams(results, area_of_interest):
+    """
+    Given geoprocessing results with stream data and an area of interest,
+    returns the streams and stream order within it.
+    """
+    return {'survey': stream_data(results, area_of_interest)}
 
 
 @shared_task
@@ -216,6 +227,76 @@ def collect_climate(results):
         'survey': {
             'name': 'climate',
             'displayName': 'Climate',
+            'categories': categories
+        }
+    }
+
+
+@shared_task
+def analyze_terrain(result):
+    """
+    Given a geoprocessing result in the shape of:
+
+        [
+          {
+            "avg": 2503.116786250801,
+            "max": 10501.0,
+            "min": -84.0
+          },
+          {
+            "avg": 2.708598957407307,
+            "max": 44.52286911010742,
+            "min": 0.0
+          }
+        ]
+
+    Assumes the first result is for Elevation in cm and the second for Slope
+    in %, and transforms it into a dictionary of the shape:
+
+        [
+          {
+            "elevation": 25.03116786250801,
+            "slope": 2.708598957407307,
+            "type": "average"
+          },
+          {
+            "elevation": -0.84,
+            "slope": 0.0,
+            "type": "minimum"
+          },
+          {
+            "elevation": 105.01,
+            "slope": 44.52286911010742,
+            "type": "maximum"
+          }
+        ]
+
+    which has Elevation in m and keeps Slope in %.
+    """
+    if 'error' in result:
+        raise Exception('[analyze_terrain] {}'.format(result['error']))
+
+    [elevation, slope] = result
+
+    def cm_to_m(x):
+        return x * M_PER_CM if x else None
+
+    categories = [
+        dict(type='average',
+             elevation=cm_to_m(elevation['avg']),
+             slope=slope['avg']),
+        dict(type='minimum',
+             elevation=cm_to_m(elevation['min']),
+             slope=slope['min']),
+        dict(type='maximum',
+             elevation=cm_to_m(elevation['max']),
+             slope=slope['max'])
+    ]
+
+    return {
+        'survey': {
+            'name': 'terrain',
+            'displayName': 'Terrain',
             'categories': categories
         }
     }

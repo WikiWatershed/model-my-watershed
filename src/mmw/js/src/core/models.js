@@ -21,6 +21,7 @@ var MapModel = Backbone.Model.extend({
         wellKnownAreaOfInterest: null,  // "{layerCode}__{id}"
         geolocationEnabled: true,
         previousAreaOfInterest: null,
+        dataCatalogVisible: false,
         dataCatalogResults: null,       // GeoJSON array
         dataCatalogActiveResult: null,  // Model
         dataCatalogDetailResult: null,  // Model
@@ -647,6 +648,14 @@ var CatchmentWaterQualityCensusCollection = Backbone.PageableCollection.extend({
     state: { pageSize: 6, firstPage: 1 }
 });
 
+var StreamsCensusCollection = Backbone.Collection.extend({
+    comparator: 'order',
+});
+
+var TerrainCensusCollection = Backbone.Collection.extend({
+    comparator: 'name',
+});
+
 var DataCatalogPopoverResultCollection = Backbone.PageableCollection.extend({
     mode: 'client',
     state: { pageSize: 3, firstPage: 1, currentPage: 1 }
@@ -723,6 +732,8 @@ module.exports = {
     PointSourceCensusCollection: PointSourceCensusCollection,
     CatchmentWaterQualityCensusCollection: CatchmentWaterQualityCensusCollection,
     DataCatalogPopoverResultCollection: DataCatalogPopoverResultCollection,
+    StreamsCensusCollection: StreamsCensusCollection,
+    TerrainCensusCollection: TerrainCensusCollection,
     GeoModel: GeoModel,
     AreaOfInterestModel: AreaOfInterestModel,
     AppStateModel: AppStateModel

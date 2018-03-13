@@ -68,6 +68,13 @@ def run(self, opname, input_data, wkaoi=None, cache_key=''):
     data = settings.GEOP['json'][opname].copy()
     data['input'].update(input_data)
 
+    # If no vector data is supplied for vector operation, shortcut to empty
+    if 'vector' in data['input'] and data['input']['vector'] == [None]:
+        result = {}
+        if key:
+            cache.set(key, result, None)
+        return result
+
     try:
         result = geoprocess(data, self.retry)
         if key:
@@ -132,20 +139,3 @@ def parse(result):
     :return: Dictionary mapping tuples of ints to ints
     """
     return {make_tuple(key[4:]): val for key, val in result.items()}
-
-
-def to_one_ring_multipolygon(area_of_interest):
-    """
-    Given a multipolygon comprising just a single ring structured in a
-    five-dimensional array, remove one level of nesting and make the AOI's
-    coordinates a four-dimensional array. Otherwise, no op.
-    """
-
-    if type(area_of_interest['coordinates'][0][0][0][0]) is list:
-        multipolygon_shapes = area_of_interest['coordinates'][0]
-        if len(multipolygon_shapes) > 1:
-            raise Exception('Unable to parse multi-ring RWD multipolygon')
-        else:
-            area_of_interest['coordinates'] = multipolygon_shapes
-
-    return area_of_interest
