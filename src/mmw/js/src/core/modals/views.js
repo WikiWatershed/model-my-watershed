@@ -2,6 +2,7 @@
 
 var _ = require('lodash'),
     $ = require('jquery'),
+    router = require('../../router').router,
     coreUtils = require('../utils.js'),
     HighstockChart = require('../../../shim/highstock'),
     Marionette = require('../../../shim/backbone.marionette'),
@@ -295,17 +296,47 @@ var MultiShareView = ModalBaseView.extend({
             // User has not connectd to HydroShare yet. Have them sign in
             // and allow MMW access, then enable the checkbox.
 
-            var checkbox = self.ui.hydroShareEnabled,
-                iframe = new IframeView({
-                    model: new models.IframeModel({
-                        href: '/user/hydroshare/login/',
-                        signalSuccess: 'mmw-hydroshare-success',
-                        signalFailure: 'mmw-hydroshare-failure',
-                        signalCancel: 'mmw-hydroshare-cancel',
+            var checkbox = self.ui.hydroShareEnabled;
+
+            checkbox.prop('checked', false);
+
+            if (coreUtils.getIEVersion()) {
+                // Special handling for IE which does not support 3rd party
+                // cookies in iframes, which are necessary for the iframe
+                // workflow.
+
+                var confirm = new ConfirmView({
+                    model: new models.ConfirmModel({
+                        titleText: 'Link Account to HydroShare',
+                        question: 'You must link your Model My Watershed ' +
+                                  'account to HydroShare before you can ' +
+                                  'export this project. This can be done ' +
+                                  'under "Linked Accounts" in your account ' +
+                                  'page. Would you like to do this now?',
+                        confirmLabel: 'Link Account to HydroShare',
+                        cancelLabel: 'Not Now'
                     })
                 });
 
-            checkbox.prop('checked', false);
+                confirm.render();
+
+                confirm.on('confirmation', function() {
+                    router.navigate('/account', { trigger: true });
+                    self.hide();
+                });
+
+                return;
+            }
+
+            var iframe = new IframeView({
+                model: new models.IframeModel({
+                    href: '/user/hydroshare/login/',
+                    signalSuccess: 'mmw-hydroshare-success',
+                    signalFailure: 'mmw-hydroshare-failure',
+                    signalCancel: 'mmw-hydroshare-cancel',
+                })
+            });
+
             iframe.render();
 
             iframe.on('success', function() {
