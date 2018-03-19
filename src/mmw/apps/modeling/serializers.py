@@ -14,6 +14,7 @@ from apps.modeling.models import Project, Scenario
 from apps.modeling.validation import validate_aoi
 from apps.modeling.calcs import get_layer_shape
 from apps.user.serializers import UserSerializer
+from apps.core.models import Job
 
 import json
 
@@ -84,6 +85,16 @@ class ProjectSerializer(gis_serializers.GeoModelSerializer):
 
     user = UserSerializer(default=serializers.CurrentUserDefault())
     gis_data = JsonField(required=False, allow_null=True)
+    mapshed_job_uuid = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=Job.objects.all(),
+        required=False,
+        allow_null=True)
+    subbasin_mapshed_job_uuid = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=Job.objects.all(),
+        required=False,
+        allow_null=True)
     scenarios = ScenarioSerializer(many=True, read_only=True)
     hydroshare = HydroShareResourceSerializer(read_only=True)
 
@@ -109,6 +120,16 @@ class ProjectUpdateSerializer(gis_serializers.GeoModelSerializer):
     user = UserSerializer(default=serializers.CurrentUserDefault(),
                           read_only=True)
     gis_data = JsonField(required=False, allow_null=True)
+    mapshed_job_uuid = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=Job.objects.all(),
+        required=False,
+        allow_null=True)
+    subbasin_mapshed_job_uuid = serializers.SlugRelatedField(
+        slug_field='uuid',
+        queryset=Job.objects.all(),
+        required=False,
+        allow_null=True)
 
 
 class AoiSerializer(serializers.BaseSerializer):

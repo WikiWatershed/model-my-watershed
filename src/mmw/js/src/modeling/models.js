@@ -248,12 +248,14 @@ var ProjectModel = Backbone.Model.extend({
         area_of_interest: null,            // GeoJSON
         area_of_interest_name: null,       // Human readable string for AOI.
         wkaoi: null,                       // Well Known Area of Interest ID "{code}__{id}"
-        subbasin_modeling: false,          // Use subbasin modeling for MapShed/GWLF-E
+        subbasin_modeling: false,          // (GWLFE) Use subbasin modeling
         model_package: utils.TR55_PACKAGE, // Package name
         scenarios: null,                   // ScenariosCollection
         user_id: 0,                        // User that created the project
         is_activity: false,                // Project that persists across routes
         gis_data: null,                    // Additionally gathered data, such as MapShed for GWLF-E
+        mapshed_job_uuid: null,            // (GWLF-E) The id of a successful MapShed job
+        subbasin_mapshed_job_uuid: null,   // (GWLF-E) The id of a successful sub-basin MapShed job
         needs_reset: false,                // Should we overwrite project data on next save?
         allow_save: true,                  // Is allowed to save to the server - false in compare mode
         sidebar_mode: utils.MODEL,         // The current mode of the sidebar. ANALYZE, MONITOR, or MODEL.
@@ -494,7 +496,7 @@ var ProjectModel = Backbone.Model.extend({
                     },
 
                     pollSuccess: function() {
-                        promise.resolve(taskModel.get('result'));
+                        promise.resolve(taskModel.get('result'), taskModel.get('job'));
                     },
 
                     pollFailure: function(err) {
@@ -521,12 +523,13 @@ var ProjectModel = Backbone.Model.extend({
         var self = this,
             saveProjectAndScenarios = _.bind(self.saveProjectAndScenarios, self);
 
-        if (self.get('gis_data') === null && self.fetchGisDataPromise === undefined) {
+        if (self.get('mapshed_job_uuid') === null && self.fetchGisDataPromise === undefined) {
             self.fetchGisDataPromise = self.fetchGisData();
             self.fetchGisDataPromise
-                .done(function(result) {
+                .done(function(result, job) {
                     if (result) {
                         self.set('gis_data', result);
+                        self.set('mapshed_job_uuid', job);
                         saveProjectAndScenarios();
                     }
                 })
@@ -1255,27 +1258,12 @@ var ScenarioModel = Backbone.Model.extend({
                 };
 
             case utils.GWLFE:
-                // Merge the values that came back from Mapshed with the values
-                // in the modifications from the user.
-                var modifications = self.get('modifications'),
-                    mergedGisData = _.cloneDeep(project.get('gis_data')),
-                    subbasinModeling = project.get('subbasin_modeling');
-
-                modifications.forEach(function(mod) {
-                    var updateGisData = function(gms) { _.assign(gms, mod.get('output')); };
-                    if (subbasinModeling) {
-                        // TODO This currenlty results in incorrect results
-                        // because we're not properly taking the subbasin areas
-                        // into account
-                        _.forEach(mergedGisData, updateGisData);
-                    } else {
-                        updateGisData(mergedGisData);
-                    }
-                });
+                var modifications = self.get('modifications').pluck('output');
 
                 return {
                     inputmod_hash: self.get('inputmod_hash'),
-                    model_input: JSON.stringify(mergedGisData)
+                    modifications: JSON.stringify(modifications),
+                    mapshed_job_uuid: project.get('mapshed_job_uuid'),
                 };
         }
     }

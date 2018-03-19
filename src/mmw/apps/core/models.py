@@ -10,7 +10,10 @@ AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 class Job(models.Model):
     user = models.ForeignKey(AUTH_USER_MODEL, null=True)
-    uuid = models.UUIDField(null=True)
+    uuid = models.UUIDField(
+        null=True,
+        unique=True
+    )
     model_input = models.TextField()
     created_at = models.DateTimeField()
     result = models.TextField()
