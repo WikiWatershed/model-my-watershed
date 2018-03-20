@@ -41,6 +41,9 @@ def run(self, opname, input_data, wkaoi=None, cache_key=''):
     cache_key can be provided which will be used for caching instead of the
     opname, which in this case is not unique to the operation.
 
+    To be used for single operation requests. Uses the /run endpoint of the
+    geoprocessing service.
+
     :param opname: Name of operation. Must exist in settings.GEOP['json']
     :param input_data: Dictionary of values to extend base operation JSON with
     :param wkaoi: String id of well-known area of interest. "{table}__{id}"
@@ -76,7 +79,7 @@ def run(self, opname, input_data, wkaoi=None, cache_key=''):
         return result
 
     try:
-        result = geoprocess(data, self.retry)
+        result = geoprocess('run', data, self.retry)
         if key:
             cache.set(key, result, None)
         return result
@@ -93,14 +96,15 @@ def run(self, opname, input_data, wkaoi=None, cache_key=''):
 
 
 @statsd.timer(__name__ + '.geop_run')
-def geoprocess(data, retry=None):
+def geoprocess(endpoint, data, retry=None):
     """
-    Submit a request to the geoprocessing service. Returns its result.
+    Submit a request to the specified endpoint of the geoprocessing service.
+    Returns its result.
     """
     host = settings.GEOP['host']
     port = settings.GEOP['port']
 
-    geop_url = 'http://{}:{}/run'.format(host, port)
+    geop_url = 'http://{}:{}/{}'.format(host, port, endpoint)
 
     try:
         response = requests.post(geop_url,
@@ -111,7 +115,11 @@ def geoprocess(data, retry=None):
             retry(exc=exc)
 
     if response.ok:
-        return response.json()['result']
+        result = response.json()
+        if 'result' in result:
+            return result['result']
+        else:
+            return result
     else:
         raise Exception('Geoprocessing Error.\n'
                         'Details: {}'.format(response.text))
