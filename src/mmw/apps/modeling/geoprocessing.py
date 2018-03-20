@@ -95,6 +95,78 @@ def run(self, opname, input_data, wkaoi=None, cache_key=''):
         }
 
 
+@shared_task(bind=True, default_retry_delay=1, max_retries=6)
+def multi(self, opname, shapes, stream_lines):
+    """
+    Perform a multi-operation geoprocessing request.
+
+    Given an operation name, a list of shapes, and a string of MultiLine
+    GeoJSON, where each item in 'shapes' is like:
+
+        { 'id': '', shape: '' }
+
+    where 'shape' is a stringified GeoJSON of a Polygon or MultiPolygon and
+    'stream_lines' is a stringified GeoJSON of a MultiLine, combines it with
+    the JSON saved in settings.GEOP.json corresponding to the opname, to make
+    a payload like this:
+
+        {
+            'shapes': [],
+            'streamLines': '',
+            'operations': []
+        }
+
+    where each item in 'operations' is like:
+
+        {
+            'name': '',
+            'label': '',
+            'rasters': [],
+            'targetRaster': '',
+            'pixelIsArea': false
+        }
+
+    where 'rasters' is an array of strings, and 'targetRaster' and
+    'pixelIsArea' are optional.
+
+    Error handling behaves identically to `run` above, i.e. any errors are
+    caught and passed along as 'error' keys so they may be handled in a task
+    further down the Celery chain.
+
+    If there is an operation with 'name' == 'RasterLinesJoin', 'streamLines'
+    should not be empty. If it is empty, that operation will be skipped.
+
+    The results will be in the format:
+
+        {
+            '{{ shape_id }}': {
+                '{{ operation_label }}': {{ operation_results }},
+                '{{ operation_label }}': {{ operation_results }},
+                ...
+            },
+            ...
+        }
+
+    where `shape_id` is for each shape, and `operation_label` is for each
+    operation. The `operation_results` are a dictionary with string keys and
+    double values. The keys need to be parsed with the `parse` method below.
+
+    Each `operation_results` is cached with the key:
+
+        {{ shape_id }}__{{ operation_label }}
+
+    Before running the geoprocessing service, we inspect the cache to see
+    if all the requested operations are already cached for this shape. If so,
+    we remove that shape from the payload.
+
+    If not found in the cache, the specified operations are run for that shape
+    as part of the payload. Once we have the results back, we cache them. Since
+    we are using the same cache naming scheme as run, any operation cached via
+    `multi` can be reused by `run`.
+    """
+    pass
+
+
 @statsd.timer(__name__ + '.geop_run')
 def geoprocess(endpoint, data, retry=None):
     """
