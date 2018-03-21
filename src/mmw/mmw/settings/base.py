@@ -622,6 +622,85 @@ GEOP = {
                 'operationType': 'RasterSummary',
                 'zoom': 0
             }
+        },
+        'mapshed': {
+            'shapes': [],
+            'streamLines': '',
+            'operations': [
+                {
+                    'name': 'RasterGroupedCount',
+                    'label': 'nlcd_soil',
+                    'rasters': [
+                        'nlcd-2011-30m-epsg5070-512-int8',
+                        'ssurgo-hydro-groups-30m-epsg5070-512-int8'
+                    ]
+                },
+                {
+                    'name': 'RasterLinesJoin',
+                    'label': 'nlcd_streams',
+                    'rasters': [
+                        'nlcd-2011-30m-epsg5070-512-int8'
+                    ]
+                },
+                {
+                    'name': 'RasterGroupedCount',
+                    'label': 'gwn',
+                    'rasters': [
+                        'us-groundwater-nitrogen-30m-epsg5070-512'
+                    ]
+                },
+                {
+                    'name': 'RasterGroupedAverage',
+                    'label': 'avg_awc',
+                    'targetRaster': 'us-ssurgo-aws100-30m-epsg5070-512',
+                    'rasters': [
+                        'us-groundwater-nitrogen-30m-epsg5070-512'
+                    ]
+                },
+                {
+                    'name': 'RasterGroupedCount',
+                    'label': 'nlcd_slope',
+                    'rasters': [
+                        'nlcd-2011-30m-epsg5070-512-int8',
+                        'us-percent-slope-30m-epsg5070-512'
+                    ]
+                },
+                {
+                    'name': 'RasterGroupedAverage',
+                    'label': 'slope',
+                    'targetRaster': 'us-percent-slope-30m-epsg5070-512',
+                    'rasters': []
+                },
+                {
+                    'name': 'RasterGroupedAverage',
+                    'label': 'nlcd_kfactor',
+                    'targetRaster': 'us-ssugro-kfactor-30m-epsg5070-512',
+                    'rasters': [
+                        'nlcd-2011-30m-epsg5070-512-int8'
+                    ]
+                },
+                {
+                    'name': 'RasterGroupedAverage',
+                    'label': 'soiln',
+                    'targetRaster': 'soiln-epsg5070',
+                    'rasters': [],
+                    'pixelIsArea': True
+                },
+                {
+                    'name': 'RasterGroupedAverage',
+                    'label': 'soilp',
+                    'targetRaster': 'soilpallland2-epsg5070',
+                    'rasters': [],
+                    'pixelIsArea': True
+                },
+                {
+                    'name': 'RasterGroupedAverage',
+                    'label': 'recess_coef',
+                    'targetRaster': 'bfi48grd-epsg5070',
+                    'rasters': [],
+                    'pixelIsArea': True
+                }
+            ]
         }
     }
 }
