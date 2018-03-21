@@ -7,7 +7,7 @@ from celery import shared_task
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 
-from apps.modeling.geoprocessing import run, parse
+from apps.modeling.geoprocessing import NOWKAOI, multi, run, parse
 from apps.modeling.mapshed.calcs import (day_lengths,
                                          nearest_weather_stations,
                                          growing_season,
@@ -471,6 +471,36 @@ def nlcd_kfactor(result):
     }
 
     return output
+
+
+def multi_mapshed(aoi, wkaoi):
+    shape = [{'id': wkaoi or NOWKAOI, 'shape': aoi}]
+    stream_lines = streams(aoi)[0]
+
+    return multi.s('mapshed', shape, stream_lines)
+
+
+@shared_task(throws=Exception)
+def convert_data(payload, wkaoi):
+    if 'error' in payload:
+        raise Exception(
+            '[convert_data] {} {}'.format(
+                wkaoi or NOWKAOI, payload['error']))
+
+    results = payload[wkaoi or NOWKAOI]
+
+    return [
+        nlcd_soil(results['nlcd_soil']),
+        soiln(results['soiln']),
+        soilp(results['soilp']),
+        recess_coef(results['recess_coef']),
+        gwn(results['gwn']),
+        avg_awc(results['avg_awc']),
+        nlcd_slope(results['nlcd_slope']),
+        slope(results['slope']),
+        nlcd_kfactor(results['nlcd_kfactor']),
+        nlcd_streams(results['nlcd_streams']),
+    ]
 
 
 def geoprocessing_chains(aoi, wkaoi, errback):

@@ -29,6 +29,8 @@ from apps.core.tasks import save_job_error, save_job_result
 from apps.core.decorators import log_request
 from apps.modeling import tasks, geoprocessing
 from apps.modeling.mapshed.tasks import (geoprocessing_chains,
+                                         multi_mapshed,
+                                         convert_data,
                                          collect_data,
                                          )
 from apps.modeling.models import Project, Scenario
@@ -328,12 +330,14 @@ def _initiate_mapshed_job_chain(mapshed_input, job_id):
     errback = save_job_error.s(job_id)
 
     area_of_interest, wkaoi = _parse_input(mapshed_input)
+
     job_chain = (
-        group(geoprocessing_chains(area_of_interest, wkaoi, errback)) |
-        collect_data.s(area_of_interest).set(link_error=errback) |
+        multi_mapshed(area_of_interest, wkaoi) |
+        convert_data.s(wkaoi) |
+        collect_data.s(area_of_interest) |
         save_job_result.s(job_id, mapshed_input))
 
-    return chain(job_chain).apply_async()
+    return chain(job_chain).apply_async(link_error=errback)
 
 
 @decorators.api_view(['POST'])
