@@ -164,7 +164,28 @@ def multi(self, opname, shapes, stream_lines):
     we are using the same cache naming scheme as run, any operation cached via
     `multi` can be reused by `run`.
     """
-    pass
+    data = settings.GEOP['json'][opname].copy()
+    data['shapes'] = shapes
+    data['streamLines'] = stream_lines
+
+    output = {}
+
+    try:
+        result = geoprocess('multi', data, self.retry)
+
+        output.update(result)
+
+        return output
+    except Retry as r:
+        raise r
+    except ConnectionError:
+        return {
+            'error': 'Could not reach the geoprocessing service'
+        }
+    except Exception as x:
+        return {
+            'error': str(x)
+        }
 
 
 @statsd.timer(__name__ + '.geop_run')
