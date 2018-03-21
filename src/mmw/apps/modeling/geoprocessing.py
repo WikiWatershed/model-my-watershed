@@ -18,6 +18,8 @@ from django_statsd.clients import statsd
 from django.core.cache import cache
 from django.conf import settings
 
+NOWKAOI = 'nowkaoi'
+
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=6)
 def run(self, opname, input_data, wkaoi=None, cache_key=''):
@@ -165,13 +167,40 @@ def multi(self, opname, shapes, stream_lines):
     `multi` can be reused by `run`.
     """
     data = settings.GEOP['json'][opname].copy()
-    data['shapes'] = shapes
+    data['shapes'] = []
     data['streamLines'] = stream_lines
 
+    operation_count = len(data['operations'])
     output = {}
+
+    # Get cached results
+    for shape in shapes:
+        if shape['id'] != NOWKAOI:
+            cached_operations = 0
+            output[shape['id']] = {}
+            for op in data['operations']:
+                key = 'geop_{}__{}'.format(shape['id'], op['label'])
+                cached = cache.get(key)
+                if cached:
+                    output[shape['id']][op['label']] = cached
+                    cached_operations += 1
+
+            if cached_operations != operation_count:
+                data['shapes'].append(shape)
+
+    # If no un-cached shapes, return cached output
+    if not data['shapes']:
+        return output
 
     try:
         result = geoprocess('multi', data, self.retry)
+
+        # Set cached results
+        for shape_id, operation_results in result.iteritems():
+            if shape_id != NOWKAOI:
+                for op_label, value in operation_results.iteritems():
+                    key = 'geop_{}__{}'.format(shape_id, op_label)
+                    cache.set(key, value, None)
 
         output.update(result)
 
