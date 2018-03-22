@@ -480,6 +480,14 @@ def multi_mapshed(aoi, wkaoi):
     return multi.s('mapshed', shape, stream_lines)
 
 
+def multi_subbasin(parent_aoi, child_shapes):
+    shapes = [{'id': wkaoi, 'shape': aoi}
+              for (wkaoi, _, aoi) in child_shapes]
+    stream_lines = streams(parent_aoi)[0]
+
+    return multi.s('mapshed', shapes, stream_lines)
+
+
 @shared_task(throws=Exception)
 def convert_data(payload, wkaoi):
     if 'error' in payload:
@@ -500,6 +508,14 @@ def convert_data(payload, wkaoi):
         slope(results['slope']),
         nlcd_kfactor(results['nlcd_kfactor']),
         nlcd_streams(results['nlcd_streams']),
+    ]
+
+
+@shared_task
+def collect_subbasin(payload, shapes):
+    return [
+        collect_data(convert_data(payload, wkaoi), aoi, watershed_id)
+        for (wkaoi, watershed_id, aoi) in shapes
     ]
 
 
