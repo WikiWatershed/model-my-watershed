@@ -250,7 +250,7 @@ def run_srat(watersheds):
     try:
         data = [format_for_srat(id, w) for id, w in watersheds.iteritems()]
     except Exception as e:
-        logger.error('Formatting sub-basin GWLF-E results failed: %s' % e)
+        raise Exception('Formatting sub-basin GWLF-E results failed: %s' % e)
 
     headers = {'x-api-key': settings.SRAT_CATCHMENT_API['api_key']}
 
@@ -259,12 +259,16 @@ def run_srat(watersheds):
                           headers=headers,
                           data=json.dumps(data))
     except Exception as e:
-        logger.error('Request to SRAT Catchment API failed: %s' % e)
+        raise Exception('Request to SRAT Catchment API failed: %s' % e)
+
+    if (r.status_code != 200):
+        raise Exception('SRAT Catchment API request failed: %s %s' %
+                        (r.status_code, r.text))
 
     try:
         result = r.json()
     except ValueError:
-        logger.error('SRAT Catchment API did not return JSON')
+        raise Exception('SRAT Catchment API did not return JSON')
 
     if (r.status_code != 200):
         logger.error('SRAT Catchment API request failed: %s' % result)
