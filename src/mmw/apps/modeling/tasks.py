@@ -95,6 +95,71 @@ def format_for_srat(huc12_id, model_output):
     return formatted
 
 
+def format_subbasin(huc12_gwlfe_results, srat_catchment_results):
+    def empty_source(s):
+        return {'Source': s, 'TotalN': 0, 'TotalP': 0, 'Sediment': 0}
+
+    def add_huc12_source(source, srat_huc12):
+        source_name = source['Source']
+        source_key = settings.SRAT_KEYS[source_name]
+        total_n = srat_huc12.get('tnload_' + source_key, 0)
+        total_p = srat_huc12.get('tpload_' + source_key, 0)
+        sediment = srat_huc12.get('tssload_' + source_key, 0)
+
+        source['TotalN'] += total_n
+        source['TotalP'] += total_p
+        source['Sediment'] += sediment
+
+        return {
+            'Source': source_name,
+            'TotalN': total_n,
+            'TotalP': total_p,
+            'Sediment': sediment
+        }
+
+    def format_catchment(srat_catchment):
+        return {
+            'TotalLoadingRates': {
+                'TotalN': srat_catchment['tnloadrate_total'],
+                'TotalP': srat_catchment['tploadrate_total'],
+                'Sediment': srat_catchment['tssloadrate_total'],
+            },
+            'LoadingRateConcentrations': {
+                'TotalN': srat_catchment['tnloadrate_conc'],
+                'TotalP': srat_catchment['tploadate_conc'],
+                'Sediment': srat_catchment['tssloadrate_conc'],
+            },
+        }
+
+    def add_huc12(srat_huc12, aggregate):
+        area = huc12_gwlfe_results[srat_huc12['huc12']]['AreaTotal']
+        aggregate['AreaTotal'] += area
+        return {
+            'Loads': [add_huc12_source(s, srat_huc12)
+                      for s in aggregate['Loads']],
+            'AreaTotal': area,
+            'Catchments': {comid: format_catchment(result)
+                           for comid, result
+                           in srat_huc12['catchments'].iteritems()}
+        }
+
+    aggregate = {
+        'Loads': [empty_source(source_name)
+                  for source_name in settings.SRAT_KEYS.keys()],
+        'AreaTotal': 0,
+        # All gwlf-e results should have the same inputmod hash,
+        # so grab any of them
+        'inputmod_hash': huc12_gwlfe_results.itervalues()
+                                            .next()['inputmod_hash'],
+    }
+
+    aggregate['HUC-12s'] = {huc12_id: add_huc12(result, aggregate)
+                            for huc12_id, result
+                            in srat_catchment_results['huc12s'].iteritems()}
+
+    return aggregate
+
+
 @shared_task(throws=Exception)
 def nlcd_soil(result):
     if 'error' in result:
@@ -266,12 +331,14 @@ def run_srat(watersheds):
                         (r.status_code, r.text))
 
     try:
-        result = r.json()
+        srat_catchment_result = r.json()
     except ValueError:
         raise Exception('SRAT Catchment API did not return JSON')
 
-    if (r.status_code != 200):
-        logger.error('SRAT Catchment API request failed: %s' % result)
+    try:
+        result = format_subbasin(watersheds, srat_catchment_result)
+    except KeyError as e:
+        raise Exception('SRAT Catchment API returned malformed result: %s' % e)
 
     return result
 
