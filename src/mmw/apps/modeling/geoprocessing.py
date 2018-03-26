@@ -175,8 +175,8 @@ def multi(self, opname, shapes, stream_lines):
 
     # Get cached results
     for shape in shapes:
+        cached_operations = 0
         if shape['id'] != NOWKAOI:
-            cached_operations = 0
             output[shape['id']] = {}
             for op in data['operations']:
                 key = 'geop_{}__{}'.format(shape['id'], op['label'])
@@ -185,8 +185,8 @@ def multi(self, opname, shapes, stream_lines):
                     output[shape['id']][op['label']] = cached
                     cached_operations += 1
 
-            if cached_operations != operation_count:
-                data['shapes'].append(shape)
+        if cached_operations != operation_count:
+            data['shapes'].append(shape)
 
     # If no un-cached shapes, return cached output
     if not data['shapes']:
