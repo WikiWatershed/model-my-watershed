@@ -236,7 +236,16 @@ var ResultCollection = Backbone.Collection.extend({
 
     makeFirstActive: function() {
         this.setActive(this.at(0).get('name'));
-    }
+    },
+
+    // Filter subbasin option out of modeling tabs
+    withoutSubbasin: function() {
+        return new ResultCollection(
+            this.filter(function(result) {
+                return result.get('name') !== 'subbasin';
+            })
+        );
+    },
 });
 
 var ProjectModel = Backbone.Model.extend({

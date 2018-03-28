@@ -12,7 +12,12 @@ var ResultView = Marionette.LayoutView.extend({
     template: resultTmpl,
 
     ui: {
-        tooltip: 'a.model-results-tooltip'
+        tooltip: 'a.model-results-tooltip',
+        subbasinResultsLink: '[data-action="view-subbasin-attenuated-results"]',
+    },
+
+    events: {
+        'click @ui.subbasinResultsLink': 'viewSubbasinResults',
     },
 
     regions: {
@@ -51,7 +56,11 @@ var ResultView = Marionette.LayoutView.extend({
             placement: 'top',
             trigger: 'focus'
         });
-    }
+    },
+
+    viewSubbasinResults() {
+        this.options.showSubbasinHotSpotView();
+    },
 });
 
 var TableView = Marionette.CompositeView.extend({
