@@ -98,6 +98,7 @@ def run(self, opname, input_data, wkaoi=None, cache_key=''):
 
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=6)
+@statsd.timer(__name__ + '.multi')
 def multi(self, opname, shapes, stream_lines):
     """
     Perform a multi-operation geoprocessing request.
