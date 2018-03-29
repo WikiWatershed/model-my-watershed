@@ -25,6 +25,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          stream_length,
                                          point_source_discharge,
                                          weather_data,
+                                         average_weather_data,
                                          curve_number,
                                          phosphorus_conc,
                                          groundwater_nitrogen_conc,
@@ -47,7 +48,7 @@ NO_LAND_COVER = 'NO_LAND_COVER'
 
 
 @shared_task
-def collect_data(geop_results, geojson, watershed_id=None):
+def collect_data(geop_results, geojson, watershed_id=None, weather=None):
     geop_result = {k: v for r in geop_results for k, v in r.items()}
 
     geom = GEOSGeometry(geojson, srid=4326)
@@ -62,7 +63,11 @@ def collect_data(geop_results, geojson, watershed_id=None):
     z['DayHrs'] = day_lengths(geom)
 
     # Data from the Weather Stations dataset
-    ws = nearest_weather_stations(geom)
+    if weather is not None:
+        ws, wd = weather
+    else:
+        ws = nearest_weather_stations([(None, watershed_id, geojson)])
+
     z['Grow'] = growing_season(ws)
     z['Acoef'] = erosion_coeff(ws, z['Grow'])
     z['PcntET'] = et_adjustment(ws)
@@ -97,7 +102,13 @@ def collect_data(geop_results, geojson, watershed_id=None):
     z['PointFlow'] = discharge
 
     # Data from National Weather dataset
-    temps, prcps = weather_data(ws, z['WxYrBeg'], z['WxYrEnd'])
+    if weather is None:
+        wd = weather_data(ws, z['WxYrBeg'], z['WxYrEnd'])
+        temps_dict, prcps_dict = wd
+        temps = average_weather_data(temps_dict.values())
+        prcps = average_weather_data(prcps_dict.values())
+    else:
+        temps, prcps = wd
     z['Temp'] = temps
     z['Prec'] = prcps
 
@@ -516,8 +527,29 @@ def convert_data(payload, wkaoi):
 @shared_task
 @statsd.timer(__name__ + '.collect_subbasin')
 def collect_subbasin(payload, shapes):
+    # Gather weather stations and their data
+    # collectively to avoid re-reading stations
+    # that are shared across huc-12s
+    huc12_ws = nearest_weather_stations(shapes)
+    # Find the weather stations unique across all huc12s
+    unique_ws = {w.station: w for w in huc12_ws}.values()
+    begyear = int(max([w.begyear for w in huc12_ws]))
+    endyear = int(min([w.endyear for w in huc12_ws]))
+    # Gather the temp and prcp values for each unique weather stations
+    unique_wd = weather_data(unique_ws, begyear, endyear)
+
+    # Get the stations and averaged tmp/prcp data for a specific huc-12
+    def get_weather(watershed_id):
+        ws = [w for w in huc12_ws if w.watershed_id == watershed_id]
+        stations = [w.station for w in ws]
+        temps_by_station = [unique_wd[0][station] for station in stations]
+        prcps_by_station = [unique_wd[1][station] for station in stations]
+        return (ws, (average_weather_data(temps_by_station),
+                     average_weather_data(prcps_by_station)))
+    # Build the GMS data for each huc-12
     return [
-        collect_data(convert_data(payload, wkaoi), aoi, watershed_id)
+        collect_data(convert_data(payload, wkaoi), aoi, watershed_id,
+                     get_weather(watershed_id))
         for (wkaoi, watershed_id, aoi) in shapes
     ]
 
