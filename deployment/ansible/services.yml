@@ -3,6 +3,8 @@
   become: True
 
   pre_tasks:
+    - name: Stop auto update
+      shell: systemctl disable apt-daily.timer
     - name: Update APT cache
       apt: update_cache=yes cache_valid_time=3600
 
