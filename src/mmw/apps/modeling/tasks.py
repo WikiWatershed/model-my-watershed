@@ -126,7 +126,7 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results):
             },
             'LoadingRateConcentrations': {
                 'TotalN': srat_catchment['tnloadrate_conc'],
-                'TotalP': srat_catchment['tploadate_conc'],
+                'TotalP': srat_catchment['tploadrate_conc'],
                 'Sediment': srat_catchment['tssloadrate_conc'],
             },
         }
