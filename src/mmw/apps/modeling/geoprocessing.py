@@ -11,7 +11,7 @@ from ast import literal_eval as make_tuple
 from celery import shared_task
 from celery.exceptions import Retry
 
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, Timeout
 
 from django_statsd.clients import statsd
 
@@ -232,10 +232,13 @@ def geoprocess(endpoint, data, retry=None):
     try:
         response = requests.post(geop_url,
                                  data=json.dumps(data),
-                                 headers={'Content-Type': 'application/json'})
+                                 headers={'Content-Type': 'application/json'},
+                                 timeout=settings.TASK_REQUEST_TIMEOUT)
     except ConnectionError as exc:
         if retry is not None:
             retry(exc=exc)
+    except Timeout as exc:
+        raise Exception('Geoprocessing service timed out.')
 
     if response.ok:
         result = response.json()

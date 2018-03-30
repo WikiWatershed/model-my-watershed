@@ -138,6 +138,12 @@ CELERY_TASK_QUEUES = {
 }
 CELERY_TASK_DEFAULT_EXCHANGE = 'tasks'
 CELERY_TASK_DEFAULT_ROUTING_KEY = "task.%s" % STACK_COLOR
+
+# The longest running tasks contain geoprocessing requests
+# Keep the task and request time limit above, but in the ballpark of
+# https://github.com/WikiWatershed/mmw-geoprocessing/blob/develop/api/src/main/resources/application.conf#L9
+CELERY_TASK_TIME_LIMIT = 90
+TASK_REQUEST_TIMEOUT = CELERY_TASK_TIME_LIMIT - 10
 # END CELERY CONFIGURATION
 
 

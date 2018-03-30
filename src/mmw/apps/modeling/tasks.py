@@ -8,7 +8,7 @@ import requests
 import json
 
 from ast import literal_eval as make_tuple
-
+from requests.exceptions import ConnectionError, Timeout
 from StringIO import StringIO
 
 from celery import shared_task
@@ -322,9 +322,12 @@ def run_srat(watersheds):
     try:
         r = requests.post(settings.SRAT_CATCHMENT_API['url'],
                           headers=headers,
-                          data=json.dumps(data))
-    except Exception as e:
-        raise Exception('Request to SRAT Catchment API failed: %s' % e)
+                          data=json.dumps(data),
+                          timeout=settings.TASK_REQUEST_TIMEOUT)
+    except Timeout as e:
+        raise Exception('Request to SRAT Catchment API timed out')
+    except ConnectionError:
+        raise Exception('Failed to connect to SRAT Catchment API')
 
     if (r.status_code != 200):
         raise Exception('SRAT Catchment API request failed: %s %s' %
