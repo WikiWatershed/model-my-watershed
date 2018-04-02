@@ -22,14 +22,18 @@ from django.db.models.sql import EmptyResultSet
 from django.http import (HttpResponse,
                          Http404,
                          )
+
 from django.core.servers.basehttp import FileWrapper
 
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
 from apps.core.decorators import log_request
 from apps.modeling import tasks, geoprocessing
-from apps.modeling.mapshed.tasks import (geoprocessing_chains,
+from apps.modeling.mapshed.tasks import (multi_subbasin,
+                                         multi_mapshed,
+                                         convert_data,
                                          collect_data,
+                                         collect_subbasin,
                                          )
 from apps.modeling.models import Project, Scenario
 from apps.modeling.serializers import (ProjectSerializer,
@@ -312,28 +316,26 @@ def _initiate_subbasin_mapshed_job_chain(mapshed_input, job_id):
     if not huc12s:
         raise EmptyResultSet('No subbasins found')
 
-    huc12_job_chains = []
-    for (huc12_id, huc12, huc12_aoi) in huc12s:
-        huc12_wkaoi = 'huc12__{id}'.format(id=huc12_id)
-        huc12_job_chains.append(chain((
-            group(geoprocessing_chains(huc12_aoi, huc12_wkaoi, errback)) |
-            collect_data.s(huc12_aoi, huc12).set(link_error=errback))))
-
-    return chain(group(huc12_job_chains) |
+    job_chain = (multi_subbasin(area_of_interest, huc12s) |
+                 collect_subbasin.s(huc12s) |
                  tasks.subbasin_results_to_dict.s() |
-                 save_job_result.s(job_id, mapshed_input)).apply_async()
+                 save_job_result.s(job_id, mapshed_input))
+
+    return job_chain.apply_async(link_error=errback)
 
 
 def _initiate_mapshed_job_chain(mapshed_input, job_id):
     errback = save_job_error.s(job_id)
 
     area_of_interest, wkaoi = _parse_input(mapshed_input)
+
     job_chain = (
-        group(geoprocessing_chains(area_of_interest, wkaoi, errback)) |
-        collect_data.s(area_of_interest).set(link_error=errback) |
+        multi_mapshed(area_of_interest, wkaoi) |
+        convert_data.s(wkaoi) |
+        collect_data.s(area_of_interest) |
         save_job_result.s(job_id, mapshed_input))
 
-    return chain(job_chain).apply_async()
+    return chain(job_chain).apply_async(link_error=errback)
 
 
 @decorators.api_view(['POST'])

@@ -18,7 +18,7 @@ def split_into_huc12s(code, id):
     huc_code = table_name.split('_')[1]
 
     sql = '''
-          SELECT boundary_huc12.id,
+          SELECT 'huc12__' || boundary_huc12.id,
                  boundary_huc12.huc12,
                  ST_AsGeoJSON(boundary_huc12.geom_detailed)
           FROM boundary_huc12, {table_name}

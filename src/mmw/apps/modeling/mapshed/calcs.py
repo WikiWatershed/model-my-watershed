@@ -4,13 +4,17 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 
 import math
+import numpy
 
 from collections import namedtuple
 
 from gwlfe.enums import GrowFlag
 
+from django_statsd.clients import statsd
 from django.conf import settings
 from django.db import connection
+
+from django.contrib.gis.geos import GEOSGeometry
 
 NRur = settings.GWLFE_DEFAULTS['NRur']
 NUM_WEATHER_STATIONS = settings.GWLFE_CONFIG['NumWeatherStations']
@@ -48,21 +52,31 @@ def day_lengths(geom):
     return [round(l, 1) for l in lengths]
 
 
-def nearest_weather_stations(geom, n=NUM_WEATHER_STATIONS):
+@statsd.timer(__name__ + '.nearest_weather_stations')
+def nearest_weather_stations(shapes, n=NUM_WEATHER_STATIONS):
     """
-    Given a geometry, returns a list of the n closest weather stations to it
+    Given a list of geometries, returns a list of the n closest
+    weather stations to each of them
     """
-    sql = '''
-          SELECT station, location, meanrh, meanwind, meanprecip,
-                 begyear, endyear, eroscoeff, rain_cool, rain_warm,
-                 etadj, grw_start, grw_end
+
+    subquery = '''
+          (SELECT %s watershed_id, station, location, meanrh, meanwind,
+                 meanprecip, begyear, endyear, eroscoeff, rain_cool,
+                 rain_warm, etadj, grw_start, grw_end
           FROM ms_weather_station
           ORDER BY geom <-> ST_SetSRID(ST_GeomFromText(%s), 4326)
-          LIMIT %s;
+          LIMIT %s)
           '''
+    subqueries, params = [], []
+    for (_, watershed_id, aoi) in shapes:
+        subqueries.append(subquery)
+        geom = GEOSGeometry(aoi, srid=4326)
+        params.extend([watershed_id, geom.wkt, n])
+
+    sql = ' UNION '.join(subqueries) + ';'
 
     with connection.cursor() as cursor:
-        cursor.execute(sql, [geom.wkt, n])
+        cursor.execute(sql, params)
 
         if cursor.rowcount == 0:
             raise Exception("No weather stations found.")
@@ -144,6 +158,7 @@ def kv_coefficient(area_pcts, season):
     return kv
 
 
+@statsd.timer(__name__ + '.animal_enery_units')
 def animal_energy_units(geom):
     """
     Given a geometry, returns the total livestock and poultry AEUs within it
@@ -212,6 +227,7 @@ def manure_spread(aeu):
     return [n_spread] * num_land_uses, [p_spread] * num_land_uses
 
 
+@statsd.timer(__name__ + '.ag_ls_c_p')
 def ag_ls_c_p(geom):
     """
     Given a geometry, calculates the area-weighted average value of LS, C, and
@@ -297,6 +313,7 @@ def ls_factor(stream_length, area, avg_slope, m):
         return ls
 
 
+@statsd.timer(__name__ + '.stream_length')
 def stream_length(geom, drb=False):
     """
     Given a geometry, finds the total length of streams in meters within it.
@@ -344,6 +361,7 @@ def get_point_source_table(drb):
     return 'ms_pointsource' + ('_drb' if drb else '')
 
 
+@statsd.timer(__name__ + '.point_source_discharge')
 def point_source_discharge(geom, area, drb=False):
     """
     Given a geometry and its area in square meters, returns three lists,
@@ -374,13 +392,14 @@ def point_source_discharge(geom, area, drb=False):
         return n_load, p_load, discharge
 
 
+@statsd.timer(__name__ + '.weather_data')
 def weather_data(ws, begyear, endyear):
     """
     Given a list of Weather Stations and beginning and end years, returns two
-    3D arrays, one for average temperature and the other for precipitation,
-    for each day in each month in each year in the range, averaged over all
-    stations in the list, in the format:
-        array[year][month][day] = value
+    dictionaries of 3D arrays keyed by station id,
+    one for average temperature and the other for precipitation,
+    for each day in each month in each year in the range
+        { station: array[year][month][day] = value }
     where `year` 0 corresponds to the first year in the range, 1 to the second,
     and so on; `month` 0 corresponds to January, 1 to February, and so on;
     `day` 0 corresponds to the 1st of the month, 1 to the 2nd, and so on.
@@ -390,31 +409,25 @@ def weather_data(ws, begyear, endyear):
         return (f - 32) * 5.0 / 9.0
 
     temp_sql = '''
-               SELECT year, EXTRACT(MONTH FROM TO_DATE(month, 'MON')) AS month,
-                      AVG("1") AS "1", AVG("2") AS "2", AVG("3") AS "3",
-                      AVG("4") AS "4", AVG("5") AS "5", AVG("6") AS "6",
-                      AVG("7") AS "7", AVG("8") AS "8", AVG("9") AS "9",
-                      AVG("10") AS "10", AVG("11") AS "11", AVG("12") AS "12",
-                      AVG("13") AS "13", AVG("14") AS "14", AVG("15") AS "15",
-                      AVG("16") AS "16", AVG("17") AS "17", AVG("18") AS "18",
-                      AVG("19") AS "19", AVG("20") AS "20", AVG("21") AS "21",
-                      AVG("22") AS "22", AVG("23") AS "23", AVG("24") AS "24",
-                      AVG("25") AS "25", AVG("26") AS "26", AVG("27") AS "27",
-                      AVG("28") AS "28", AVG("29") AS "29", AVG("30") AS "30",
-                      AVG("31") AS "31"
+               SELECT station, year,
+                   EXTRACT(MONTH FROM TO_DATE(month, 'MON')) AS month,
+                    "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9", "10",
+                   "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+                   "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+                   "31"
                FROM ms_weather
                WHERE station IN %s
                  AND measure IN ('TMax', 'TMin')
                  AND year BETWEEN %s AND %s
-               GROUP BY year, month
                ORDER BY year, month;
                '''
     prcp_sql = '''
-               SELECT year, EXTRACT(MONTH FROM TO_DATE(month, 'MON')) AS month,
-                     "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9", "10",
-                    "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
-                    "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
-                    "31"
+               SELECT station, year,
+                   EXTRACT(MONTH FROM TO_DATE(month, 'MON')) AS month,
+                    "1",  "2",  "3",  "4",  "5",  "6",  "7",  "8",  "9", "10",
+                   "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+                   "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+                   "31"
                FROM ms_weather
                WHERE station IN %s
                  AND measure = 'Prcp'
@@ -424,26 +437,41 @@ def weather_data(ws, begyear, endyear):
 
     year_range = endyear - begyear + 1
     stations = tuple([w.station for w in ws])
-    temps = [[[0] * 31 for m in range(12)] for y in range(year_range)]
-    prcps = [[[0] * 31 for m in range(12)] for y in range(year_range)]
-
+    # For each station id, create a 3D array of 0s
+    # where each 0 is a placeholder for a temperature/precipitation
+    # value on a given year, month, day: array[year][month][day] = 0
+    temps = {station_id: [[[0] * 31 for m in range(12)]
+                          for y in range(year_range)]
+             for station_id in stations}
+    prcps = {station_id: [[[0] * 31 for m in range(12)]
+                          for y in range(year_range)]
+             for station_id in stations}
+    # Query the DB for daily temperatures for each weather station
     with connection.cursor() as cursor:
         cursor.execute(temp_sql, [stations, begyear, endyear])
         for row in cursor.fetchall():
-            year = int(row[0]) - begyear
-            month = int(row[1]) - 1
+            station = int(row[0])
+            year = int(row[1]) - begyear
+            month = int(row[2]) - 1
             for day in range(31):
-                temps[year][month][day] = f_to_c(float(row[day + 2]))
-
+                temps[station][year][month][day] = f_to_c(float(row[day + 3]))
+    # Query the DB for daily precipitation values for each weather station
     with connection.cursor() as cursor:
         cursor.execute(prcp_sql, [stations, begyear, endyear])
         for row in cursor.fetchall():
-            year = int(row[0]) - begyear
-            month = int(row[1]) - 1
+            station = int(row[0])
+            year = int(row[1]) - begyear
+            month = int(row[2]) - 1
             for day in range(31):
-                prcps[year][month][day] = float(row[day + 2]) * CM_PER_INCH
+                prcp = float(row[day + 3]) * CM_PER_INCH
+                prcps[station][year][month][day] = prcp
 
     return temps, prcps
+
+
+def average_weather_data(wd):
+    A = numpy.array(wd)
+    return numpy.mean(A, axis=0).tolist()
 
 
 def curve_number(n_count, ng_count):
