@@ -59,6 +59,8 @@ class Worker(StackNode):
         'PublicHostedZoneName': ['global:PublicHostedZoneName'],
         'VpcId': ['global:VpcId', 'VPC:VpcId'],
         'GlobalNotificationsARN': ['global:GlobalNotificationsARN'],
+        'SRATCatchmentAPIURL': ['global:SRATCatchmentAPIURL'],
+        'SRATCatchmentAPIKey': ['global:SRATCatchmentAPIKey'],
         'RollbarServerSideAccessToken':
         ['global:RollbarServerSideAccessToken'],
     }
@@ -205,6 +207,16 @@ class Worker(StackNode):
             'GlobalNotificationsARN', Type='String',
             Description='ARN for an SNS topic to broadcast notifications'
         ), 'GlobalNotificationsARN')
+
+        self.srat_catchment_api_url = self.add_parameter(Parameter(
+            'SRATCatchmentAPIURL', Type='String',
+            Description='URL for the SRAT Catchment API'
+        ), 'SRATCatchmentAPIURL')
+
+        self.srat_catchment_api_key = self.add_parameter(Parameter(
+            'SRATCatchmentAPIKey', Type='String', NoEcho=True,
+            Description='API key for the SRAT Catchment API'
+        ), 'SRATCatchmentAPIKey')
 
         worker_lb_security_group, \
             worker_security_group = self.create_security_groups()
@@ -415,6 +427,14 @@ class Worker(StackNode):
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
                 '    content: ', self.get_input('RollbarServerSideAccessToken'), '\n',  # NOQA
+                '  - path: /etc/mmw.d/env/MMW_SRAT_CATCHMENT_API_URL\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.srat_catchment_api_url), '\n',
+                '  - path: /etc/mmw.d/env/MMW_SRAT_CATCHMENT_API_KEY\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.srat_catchment_api_key), '\n',
                 '  - path: /etc/fstab.rwd-data\n',
                 '    permissions: 0644\n',
                 '    owner: root:mmw\n',
