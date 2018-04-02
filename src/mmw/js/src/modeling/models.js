@@ -73,6 +73,26 @@ var GwlfeTaskModel = coreModels.TaskModel.extend({
     )
 });
 
+var SubbasinMapshedTaskModel = coreModels.TaskModel.extend({
+    defaults: _.extend(
+        {
+            taskName: utils.MAPSHED,
+            taskType: 'mmw/modeling'
+        },
+        coreModels.TaskModel.prototype.defaults
+    )
+});
+
+var SubbasinGwlfeTaskModel = coreModels.TaskModel.extend({
+    defaults: _.extend(
+        {
+            taskName: utils.GWLFE,
+            taskType: 'mmw/modeling'
+        },
+        coreModels.TaskModel.prototype.defaults
+    )
+});
+
 var ResultModel = Backbone.Model.extend({
     defaults: {
         name: '', // Code name for type of result, eg. runoff
@@ -317,15 +337,15 @@ var ProjectModel = Backbone.Model.extend({
         return createTaskResultCollection(this.get('model_package'));
     },
 
-    fetchResultsIfNeeded: function() {
+    fetchResultsIfNeeded: function(isSubbasinMode) {
         var promises = [];
 
         this.get('scenarios').forEach(function(scenario) {
-            promises.push(scenario.fetchResultsIfNeeded());
+            promises.push(scenario.fetchResultsIfNeeded(isSubbasinMode || false));
         });
 
         this.get('scenarios').on('add', function(scenario) {
-            scenario.fetchResultsIfNeeded();
+            scenario.fetchResultsIfNeeded(isSubbasinMode || false);
         });
 
         return $.when.apply($, promises);
@@ -471,7 +491,7 @@ var ProjectModel = Backbone.Model.extend({
      * If the project is not of the GWLFE package, we simply resolve the
      * lock immediately and return.
      */
-    fetchGisData: function() {
+    fetchGisData: function(isSubbasinMode) {
         if (this.get('model_package') === utils.GWLFE) {
             var aoi = this.get('area_of_interest'),
                 wkaoi = this.get('wkaoi'),
@@ -479,10 +499,10 @@ var ProjectModel = Backbone.Model.extend({
                 mapshedInput = utils.isWKAoIValid(wkaoi) ?
                                    JSON.stringify({ 'wkaoi': wkaoi }) :
                                    JSON.stringify({ 'area_of_interest': aoi }),
-                queryParams = this.get('subbasin_modeling') ?
-                                   { subbasin: true } :
-                                   null,
-                taskModel = createTaskModel(utils.MAPSHED),
+                queryParams = isSubbasinMode ? { subbasin: true } : null,
+                taskModel = isSubbasinMode ?
+                    createSubbasinTaskModel(utils.MAPSHED) :
+                    createTaskModel(utils.MAPSHED),
                 taskHelper = {
                     postData: {
                         mapshed_input: mapshedInput
@@ -491,11 +511,15 @@ var ProjectModel = Backbone.Model.extend({
                     queryParams: queryParams,
 
                     onStart: function() {
-                        console.log('Starting polling for MAPSHED');
+                        console.log(isSubbasinMode ?
+                            'Starting polling for SUBBASIN MAPSHED' :
+                            'Starting polling for MAPSHED');
                     },
 
                     startFailure: function(response) {
-                        console.log('Failed to start gathering data for MAPSHED');
+                        console.log(isSubbasinMode ?
+                            'Failed to start gathering data for SUBBASIN MAPSHED.' :
+                            'Failed to start gathering data for MAPSHED');
 
                         if (response.responseJSON && response.responseJSON.error) {
                             console.log(response.responseJSON.error);
@@ -505,11 +529,16 @@ var ProjectModel = Backbone.Model.extend({
                     },
 
                     pollSuccess: function() {
+                        console.log(isSubbasinMode ?
+                            'Polling for SUBBASIN MAPSHED succeeded' :
+                            'Polling for MAPSHED succeeded');
                         promise.resolve(taskModel.get('result'), taskModel.get('job'));
                     },
 
                     pollFailure: function(err) {
-                        console.log('Failed to gather data required for MAPSHED');
+                        console.log(isSubbasinMode ?
+                            'Failed to gather data required for SUBBASIN MAPSHED' :
+                            'Failed to gather data required for MAPSHED');
                         promise.reject(err);
                     }
                 };
@@ -528,17 +557,23 @@ var ProjectModel = Backbone.Model.extend({
      * Returns a promise that completes when GIS Data has been fetched. If fetching
      * is not required, returns an immediatley resolved promise.
      */
-    fetchGisDataIfNeeded: function() {
+    fetchGisDataIfNeeded: function(isSubbasinMode) {
         var self = this,
             saveProjectAndScenarios = _.bind(self.saveProjectAndScenarios, self);
 
-        if (self.get('mapshed_job_uuid') === null && self.fetchGisDataPromise === undefined) {
-            self.fetchGisDataPromise = self.fetchGisData();
+        if (isSubbasinMode || (self.get('mapshed_job_uuid') === null && self.fetchGisDataPromise === undefined)) {
+            self.fetchGisDataPromise = self.fetchGisData(isSubbasinMode);
             self.fetchGisDataPromise
                 .done(function(result, job) {
                     if (result) {
                         self.set('gis_data', result);
-                        self.set('mapshed_job_uuid', job);
+
+                        if (isSubbasinMode) {
+                            self.set('subbasin_mapshed_job_uuid', job);
+                        } else {
+                            self.set('mapshed_job_uuid', job);
+                        }
+
                         saveProjectAndScenarios();
                     }
                 })
@@ -1104,22 +1139,22 @@ var ScenarioModel = Backbone.Model.extend({
         return response;
     },
 
-    fetchResultsIfNeeded: function() {
+    fetchResultsIfNeeded: function(isSubbasinMode) {
         var self = this,
             inputmod_hash = this.get('inputmod_hash'),
             needsResults = this.get('results').some(function(resultModel) {
                 var emptyResults = !resultModel.get('result'),
                     staleResults = inputmod_hash !== resultModel.get('inputmod_hash');
 
-                return emptyResults || staleResults;
+                return emptyResults || staleResults || isSubbasinMode;
             });
 
         if (needsResults && self.fetchResultsPromise === undefined) {
             var fetchResults = _.bind(self.fetchResults, self),
-                fetchGisDataPromise = App.currentProject.fetchGisDataIfNeeded();
+                fetchGisDataPromise = App.currentProject.fetchGisDataIfNeeded(isSubbasinMode);
 
             self.fetchResultsPromise = fetchGisDataPromise.then(function() {
-                var promises = fetchResults();
+                var promises = fetchResults(isSubbasinMode);
                 return $.when(promises.startPromise, promises.pollingPromise);
             });
 
@@ -1163,46 +1198,69 @@ var ScenarioModel = Backbone.Model.extend({
 
     // Poll the taskModel for results and reset the results collection when done.
     // If not successful, the results collection is reset to be empty.
-    fetchResults: function() {
+    fetchResults: function(isSubbasinMode) {
         this.updateInputModHash();
         this.attemptSave();
 
         var self = this,
             results = this.get('results'),
             taskModel = this.get('taskModel'),
-            gisData = this.getGisData(),
-            subbasinModeling = App.currentProject.get('subbasin_modeling'),
-            queryParams = subbasinModeling ?
-                              { subbasin: true } :
-                              null,
+            gisData = this.getGisData(isSubbasinMode),
+            queryParams = isSubbasinMode ? { subbasin: true } : null,
             taskHelper = {
                 postData: gisData,
 
                 queryParams: queryParams,
 
                 onStart: function() {
-                    self.set('poll_error', null);
-                    results.setPolling(true);
+                    console.log(isSubbasinMode ?
+                        'Starting polling for SUBBASIN modeling results' :
+                                'Starting polling for modeling results');
+
+                    if (!isSubbasinMode) {
+                        self.set('poll_error', null);
+                        results.setPolling(true);
+                    }
                 },
 
                 pollSuccess: function() {
-                    self.setResults();
+                    console.log(isSubbasinMode ?
+                        'Polling for SUBBASIN modeling results succeeded' :
+                        'Polling for modeling results succeeded');
+                    if (!isSubbasinMode) {
+                        self.setResults();
+                    } else {
+                        console.log('Received SUBBBASIN results');
+                    }
                 },
 
                 pollFailure: function(error) {
-                    console.log('Failed to get modeling results.');
+                    console.log(isSubbasinMode ?
+                        'Failed to get SUBBASIN modeling results' :
+                        'Failed to get modeling results.');
                     self.set('poll_error', error);
                     results.setNullResults();
                 },
 
                 pollEnd: function() {
+                    console.log(isSubbasinMode ?
+                        'Completed polling for SUBBASIN modeling results' :
+                        'Completed polling for modeling results');
                     results.setPolling(false);
-                    self.attemptSave();
+                    if (!isSubbasinMode) {
+                        self.attemptSave();
+                    } else {
+                        console.log('Not saving SUBBASIN results');
+                    }
                 },
 
                 startFailure: function(response) {
-                    console.log('Failed to start modeling job.');
-                    var error = 'Failed to start modeling job';
+                    var error = isSubbasinMode ?
+                        'Failed to start SUBBASIN modeling job' :
+                        'Failed to start modeling job.';
+
+                    console.log(error);
+
                     if (response.responseJSON && response.responseJSON.error) {
                         console.log(response.responseJSON.error);
                         error = response.responseJSON.error;
@@ -1236,7 +1294,7 @@ var ScenarioModel = Backbone.Model.extend({
         this.set('modification_hash', hash);
     },
 
-    getGisData: function() {
+    getGisData: function(isSubbasinMode) {
         var self = this,
             project = App.currentProject,
             aoi = project.get('area_of_interest'),
@@ -1272,7 +1330,9 @@ var ScenarioModel = Backbone.Model.extend({
                 return {
                     inputmod_hash: self.get('inputmod_hash'),
                     modifications: JSON.stringify(modifications),
-                    mapshed_job_uuid: project.get('mapshed_job_uuid'),
+                    mapshed_job_uuid: isSubbasinMode ?
+                        project.get('subbasin_mapshed_job_uuid') :
+                        project.get('mapshed_job_uuid'),
                 };
         }
     }
@@ -1485,6 +1545,17 @@ function createTaskModel(modelPackage) {
             return new MapshedTaskModel();
     }
     throw 'Model package not supported: ' + modelPackage;
+}
+
+function createSubbasinTaskModel(modelPackage) {
+    switch (modelPackage) {
+        case utils.GWLFE:
+            return new SubbasinGwlfeTaskModel();
+        case utils.MAPSHED:
+            return new SubbasinMapshedTaskModel();
+        default:
+            throw 'Model package not supported with SUBBASIN: ' + modelPackage;
+    }
 }
 
 function createTaskResultCollection(modelPackage) {

@@ -3,8 +3,10 @@
 var $ = require('jquery'),
     _ = require('underscore'),
     Marionette = require('../../../../shim/backbone.marionette'),
+    App = require('../../../app'),
     resultTmpl = require('./templates/result.html'),
-    tableTmpl = require('./templates/table.html');
+    tableTmpl = require('./templates/table.html'),
+    utils = require('../../../core/utils');
 
 var ResultView = Marionette.LayoutView.extend({
     className: 'tab-pane',
@@ -26,6 +28,13 @@ var ResultView = Marionette.LayoutView.extend({
 
     modelEvents: {
         'change': 'onShow'
+    },
+
+    templateHelpers: function() {
+        return {
+            showSubbasinModelingButton: utils
+                .isWKAoIValidForSubbasinModeling(App.currentProject.get('wkaoi')),
+        };
     },
 
     initialize: function(options) {
@@ -58,7 +67,7 @@ var ResultView = Marionette.LayoutView.extend({
         });
     },
 
-    viewSubbasinResults() {
+    viewSubbasinResults: function() {
         this.options.showSubbasinHotSpotView();
     },
 });

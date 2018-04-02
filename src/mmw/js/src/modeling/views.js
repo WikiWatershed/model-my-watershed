@@ -38,12 +38,6 @@ var _ = require('lodash'),
     gwlfeQualityViews = require('./gwlfe/quality/views.js'),
     gwlfeSubbasinViews = require('./gwlfe/subbasin/views.js');
 
-// TODO: remove this!
-const mockSubbasinResultsModel = new models.ResultModel({
-    name: 'subbasin',
-    displayName: 'Subbasin',
-});
-
 // The entire modeling header.
 var ModelingHeaderView = Marionette.LayoutView.extend({
     model: models.ProjectModel,
@@ -1039,7 +1033,7 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
 
     initialize: function(options) {
         this.scenario = options.scenario;
-        this.showHydrologyAndWaterQualityResults = this.showHydrologyAndWaterQualityResults.bind(this);
+        this.showPrimaryModelingResults = this.showPrimaryModelingResults.bind(this);
         this.showSubbasinHotSpotView = this.showSubbasinHotSpotView.bind(this);
         this.hideSubbasinHotSpotView = this.hideSubbasinHotSpotView.bind(this);
     },
@@ -1051,12 +1045,10 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        // TODO: remove this in favor of real data
-        this.collection.add(mockSubbasinResultsModel);
-        this.showHydrologyAndWaterQualityResults();
+        this.showPrimaryModelingResults();
     },
 
-    showHydrologyAndWaterQualityResults: function() {
+    showPrimaryModelingResults: function() {
         this.panelsRegion.show(new ResultsTabPanelsView({
             collection: this.collection.withoutSubbasin(),
         }));
@@ -1067,27 +1059,21 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
             areaOfInterest: this.options.areaOfInterest,
             showSubbasinHotSpotView: this.showSubbasinHotSpotView,
         }));
-
-        return this;
     },
 
     showSubbasinHotSpotView: function() {
-        this.panelsRegion.empty();
-        this.contentRegion.empty();
+        this.panelsRegion.$el.hide();
+        this.contentRegion.$el.hide();
 
         this.subbasinRegion.show(new gwlfeSubbasinViews.ResultView({
             hideSubbasinHotSpotView: this.hideSubbasinHotSpotView,
-            model: this.collection.findWhere({ name: 'subbasin' }),
         }));
-
-        return this;
     },
 
     hideSubbasinHotSpotView: function() {
         this.subbasinRegion.empty();
-        this.showHydrologyAndWaterQualityResults();
-
-        return this;
+        this.panelsRegion.$el.show();
+        this.contentRegion.$el.show();
     },
 });
 
@@ -1248,7 +1234,7 @@ function getResultView(modelPackage, resultName) {
                 case 'quality':
                     return gwlfeQualityViews.ResultView;
                 case 'subbasin':
-                    console.log('Skipping creating a tab for subbasin results.');
+                    console.log('Skipping creating a tab for SUBBASIN results.');
                     break;
                 default:
                     console.log('Result not supported.');
