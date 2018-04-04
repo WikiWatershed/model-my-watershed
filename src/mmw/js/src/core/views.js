@@ -675,11 +675,13 @@ var MapView = Marionette.ItemView.extend({
     toggleMapSize: function() {
         var self = this,
             size = this.model.get('size'),
-            $container = this.$el.parent();
+            $container = this.$el.parent(),
+            $sidebar = $('#sidebar');
 
         $container.toggleClass('-projectheader', !!size.hasProjectHeader);
         $container.toggleClass('-toolbarheader', !!size.hasToolbarHeader);
         $container.toggleClass('-sidebar', !!size.hasSidebar);
+        $sidebar.toggleClass('hidden', !size.hasSidebar);
         $container.toggleClass('-double', !!size.hasSecondarySidebar);
 
         _.delay(function() {

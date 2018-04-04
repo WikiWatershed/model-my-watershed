@@ -1,7 +1,6 @@
 'use strict';
 
 var L = require('leaflet'),
-    $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     sidebarToggleControlButtonTmpl = require('./templates/sidebarToggleControlButton.html');
 
@@ -32,20 +31,18 @@ var SidebarToggleControlButton = Marionette.ItemView.extend({
         'click @ui.button': 'toggle'
     },
 
+    modelEvents: {
+        'change:size': 'render',
+    },
+
     templateHelpers: function() {
         return {
-            hidden: this.$sidebar.hasClass('hidden')
+            hidden: this.model.get('size') && !this.model.get('size').hasSidebar
         };
     },
 
-    initialize: function() {
-        this.$sidebar = $('#sidebar');
-    },
-
     toggle: function() {
-        this.$sidebar.toggleClass('hidden');
         this.model.toggleSidebar();
-
         this.render();
     }
 });
