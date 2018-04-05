@@ -35,7 +35,8 @@ var _ = require('lodash'),
     tr55RunoffViews = require('./tr55/runoff/views.js'),
     tr55QualityViews = require('./tr55/quality/views.js'),
     gwlfeRunoffViews = require('./gwlfe/runoff/views.js'),
-    gwlfeQualityViews = require('./gwlfe/quality/views.js');
+    gwlfeQualityViews = require('./gwlfe/quality/views.js'),
+    gwlfeSubbasinViews = require('./gwlfe/subbasin/views.js');
 
 // The entire modeling header.
 var ModelingHeaderView = Marionette.LayoutView.extend({
@@ -960,7 +961,7 @@ var ResultsView = Marionette.LayoutView.extend({
             this.modelingRegion.show(new ResultsDetailsView({
                 areaOfInterest: this.model.get('area_of_interest'),
                 collection: scenario.get('results'),
-                scenario: scenario
+                scenario: scenario,
             }));
         }
     },
@@ -1032,24 +1033,48 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
 
     initialize: function(options) {
         this.scenario = options.scenario;
+        this.showPrimaryModelingResults = this.showPrimaryModelingResults.bind(this);
+        this.showSubbasinHotSpotView = this.showSubbasinHotSpotView.bind(this);
+        this.hideSubbasinHotSpotView = this.hideSubbasinHotSpotView.bind(this);
     },
 
     regions: {
+        subbasinRegion: '.subbasin-region',
         panelsRegion: '.tab-panels-region',
         contentRegion: '.tab-contents-region'
     },
 
     onShow: function() {
+        this.showPrimaryModelingResults();
+    },
+
+    showPrimaryModelingResults: function() {
         this.panelsRegion.show(new ResultsTabPanelsView({
-            collection: this.collection
+            collection: this.collection.withoutSubbasin(),
         }));
 
         this.contentRegion.show(new ResultsTabContentsView({
             collection: this.collection,
             scenario: this.scenario,
-            areaOfInterest: this.options.areaOfInterest
+            areaOfInterest: this.options.areaOfInterest,
+            showSubbasinHotSpotView: this.showSubbasinHotSpotView,
         }));
-    }
+    },
+
+    showSubbasinHotSpotView: function() {
+        this.panelsRegion.$el.hide();
+        this.contentRegion.$el.hide();
+
+        this.subbasinRegion.show(new gwlfeSubbasinViews.ResultView({
+            hideSubbasinHotSpotView: this.hideSubbasinHotSpotView,
+        }));
+    },
+
+    hideSubbasinHotSpotView: function() {
+        this.subbasinRegion.empty();
+        this.panelsRegion.$el.show();
+        this.contentRegion.$el.show();
+    },
 });
 
 // A model result tab
@@ -1127,12 +1152,14 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
             error = self.scenario.get('poll_error');
 
         if (result) {
-            this.resultRegion.show(new ResultView({
-                model: this.model,
-                areaOfInterest: this.options.areaOfInterest,
-                scenario: this.scenario,
-            }));
-            return;
+            return resultName !== 'subbasin' ?
+                this.resultRegion.show(new ResultView({
+                    model: this.model,
+                    areaOfInterest: this.options.areaOfInterest,
+                    scenario: this.scenario,
+                    showSubbasinHotSpotView: this.options.showSubbasinHotSpotView,
+                })) :
+                null;
         }
 
         // Only show this on the initial polling. On subsequent polling, we
@@ -1167,7 +1194,8 @@ var ResultsTabContentsView = Marionette.CollectionView.extend({
     childViewOptions: function() {
         return {
             scenario: this.scenario,
-            areaOfInterest: this.options.areaOfInterest
+            areaOfInterest: this.options.areaOfInterest,
+            showSubbasinHotSpotView: this.options.showSubbasinHotSpotView,
         };
     },
     initialize: function(options) {
@@ -1205,6 +1233,9 @@ function getResultView(modelPackage, resultName) {
                     return gwlfeRunoffViews.ResultView;
                 case 'quality':
                     return gwlfeQualityViews.ResultView;
+                case 'subbasin':
+                    console.log('Skipping creating a tab for SUBBASIN results.');
+                    break;
                 default:
                     console.log('Result not supported.');
             }

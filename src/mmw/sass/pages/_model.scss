@@ -41,6 +41,12 @@
         margin-bottom: 4px;
     }
 
+    #view-subbasin-results-link {
+        font-weight: 800;
+        color: #389b96;
+        cursor: pointer;
+    }
+
     .mean-flow {
       font-size: $font-size-h4;
     }
@@ -115,4 +121,30 @@
   display: flex !important;
   -webkit-flex-wrap: nowrap !important;
   flex-wrap: nowrap !important;
+}
+
+.subbasin-region {
+    .tab-pane {
+        .result {
+            padding: 1rem;
+            background: $paper;
+
+            .result-detail-header {
+                a.zoom {
+                    display: block;
+                }
+
+                .close {
+                    float: none;
+                    display: block;
+                    opacity: 1;
+                    color: #389b96;
+                    text-shadow: none;
+                    font-size: 15px;
+                    font-weight: 450;
+                    padding: 6px 0 2px;
+                }
+            }
+        }
+    }
 }
