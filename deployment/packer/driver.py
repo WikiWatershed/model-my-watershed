@@ -1,37 +1,30 @@
 """Helper functions to handle AMI creation with packer"""
 
-import boto
 import os
 import shutil
 import subprocess
 
 import logging
-import urllib2
-import csv
 
+from boto import ec2
+
+CANONICAL_ACCOUNT_ID = '099720109477'
 
 LOGGER = logging.getLogger('mmw')
 
-UBUNTU_RELEASE_URL = 'http://cloud-images.ubuntu.com/query/trusty/server/released.current.txt'  # NOQA
-UBUNTU_RELEASE_FIELD_NAMES = ['version', 'version_type', 'release_status',
-                              'date', 'storage', 'arch', 'region', 'id',
-                              'kernel', 'unknown_col', 'virtualization_type']
 
-
-def get_recent_ubuntu_ami(region):
+def get_recent_ubuntu_ami(region, aws_profile):
     """Gets AMI ID for current release in region"""
-    response = urllib2.urlopen(UBUNTU_RELEASE_URL).readlines()
-    reader = csv.DictReader(response, fieldnames=UBUNTU_RELEASE_FIELD_NAMES,
-                            delimiter='\t')
+    conn = ec2.connect_to_region(region, profile_name=aws_profile)
 
-    def ami_filter(ami):
-        """Helper function to filter AMIs"""
-        return (ami['region'] == region and
-                ami['arch'] == 'amd64' and
-                ami['storage'] == 'ebs-ssd' and
-                ami['virtualization_type'] == 'hvm')
+    amis = conn.get_all_images(owners=[CANONICAL_ACCOUNT_ID], filters={
+        'name': 'ubuntu/images/hvm-ssd/ubuntu-trusty-14.04-amd64-server-*',
+        'architecture': 'x86_64',
+        'root-device-type': 'ebs',
+        'virtualization-type': 'hvm',
+    })
 
-    return [row for row in reader if ami_filter(row)][0]['id']
+    return sorted(amis, key=lambda ami: ami.creationDate, reverse=True)[0].id
 
 
 def update_ansible_roles():
@@ -91,24 +84,13 @@ def run_packer(mmw_config, machine_types, aws_profile):
     region = mmw_config['Region']
     stack_type = mmw_config['StackType']
 
-    # Get AWS credentials based on profile
-    aws_dir = os.path.expanduser('~/.aws')
-    boto_config_path = os.path.join(aws_dir, 'config')
-    aws_creds_path = os.path.join(aws_dir, 'credentials')
-    boto.config.read([boto_config_path, aws_creds_path])
-    aws_access_key_id = boto.config.get(aws_profile,
-                                        'aws_access_key_id')
-    aws_secret_access_key = boto.config.get(aws_profile,
-                                            'aws_secret_access_key')
-
     # Get most recent Ubuntu release AMI
-    aws_ubuntu_ami = get_recent_ubuntu_ami(region)
+    aws_ubuntu_ami = get_recent_ubuntu_ami(region, aws_profile)
 
     update_ansible_roles()
 
     env = os.environ.copy()
-    env['AWS_ACCESS_KEY'] = aws_access_key_id
-    env['AWS_SECRET_ACCESS_KEY'] = aws_secret_access_key
+    env['AWS_PROFILE'] = aws_profile
 
     packer_template_path = os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
