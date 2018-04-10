@@ -32,8 +32,9 @@ enableFeature() {
 RESTART_APP=0
 for n; do
     case $n in
-        subbasin)
-            enableFeature subbasin
+        # Replace 'example' with the feature you to be togglable
+        example)
+            enableFeature example
             shift
             ;;
         clear)

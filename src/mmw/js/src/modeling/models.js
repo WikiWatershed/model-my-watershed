@@ -277,7 +277,6 @@ var ProjectModel = Backbone.Model.extend({
         area_of_interest: null,            // GeoJSON
         area_of_interest_name: null,       // Human readable string for AOI.
         wkaoi: null,                       // Well Known Area of Interest ID "{code}__{id}"
-        subbasin_modeling: false,          // (GWLFE) Use subbasin modeling
         model_package: utils.TR55_PACKAGE, // Package name
         scenarios: null,                   // ScenariosCollection
         user_id: 0,                        // User that created the project
@@ -293,23 +292,10 @@ var ProjectModel = Backbone.Model.extend({
     },
 
     initialize: function() {
-        var scenarios = this.get('scenarios'),
-            subbasinFeatureOn = settings.featureEnabled('subbasin'),
-            setSubbasinModeling = _.bind(function() {
-                    var wkaoi = this.get('wkaoi'),
-                        shouldModelSubbasins = subbasinFeatureOn &&
-                            utils.isWKAoIValidForSubbasinModeling(wkaoi);
-                    this.set('subbasin_modeling', shouldModelSubbasins);
-                }, this);
+        var scenarios = this.get('scenarios');
 
         if (scenarios === null || typeof scenarios === 'string') {
             this.set('scenarios', new ScenariosCollection());
-        }
-
-        setSubbasinModeling();
-
-        if (subbasinFeatureOn) {
-            this.on('change:wkaoi', setSubbasinModeling);
         }
 
         this.set('user_id', App.user.get('id'));
