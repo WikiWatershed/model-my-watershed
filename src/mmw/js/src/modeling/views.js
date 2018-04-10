@@ -21,6 +21,7 @@ var _ = require('lodash'),
     resultsDetailsTmpl = require('./templates/resultsDetails.html'),
     resultsTabPanelTmpl = require('./templates/resultsTabPanel.html'),
     resultsTabContentTmpl = require('./templates/resultsTabContent.html'),
+    subbasinResultsTabContentTmpl = require('./templates/subbasinResultsTabContent.html'),
     router = require('../router').router,
     modelingHeaderTmpl = require('./templates/modelingHeader.html'),
     scenariosBarTmpl = require('./templates/scenariosBar.html'),
@@ -1049,12 +1050,14 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
     },
 
     showPrimaryModelingResults: function() {
+        var collection = this.collection.getFilteredResults();
+
         this.panelsRegion.show(new ResultsTabPanelsView({
-            collection: this.collection.withoutSubbasin(),
+            collection: collection,
         }));
 
         this.contentRegion.show(new ResultsTabContentsView({
-            collection: this.collection,
+            collection: collection,
             scenario: this.scenario,
             areaOfInterest: this.options.areaOfInterest,
             showSubbasinHotSpotView: this.showSubbasinHotSpotView,
@@ -1064,8 +1067,12 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
     showSubbasinHotSpotView: function() {
         this.panelsRegion.$el.hide();
         this.contentRegion.$el.hide();
+        var isSubbasinMode = true;
+        App.currentProject.fetchResultsIfNeeded(isSubbasinMode);
 
-        this.subbasinRegion.show(new gwlfeSubbasinViews.ResultView({
+        this.subbasinRegion.show(new SubbasinResultsTabContentView({
+            model: this.collection.getResult('subbasin'),
+            scenario: this.scenario,
             hideSubbasinHotSpotView: this.hideSubbasinHotSpotView,
         }));
     },
@@ -1139,6 +1146,7 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
 
     initialize: function(options) {
         this.scenario = options.scenario;
+        this.listenTo(App.currentProject, 'change:subbasin_mapshed_job_error change:mapshed_job_error', this.onShow);
     },
 
     onShow: function() {
@@ -1149,17 +1157,19 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
             tmvModel = new coreModels.TaskMessageViewModel(),
             polling = this.model.get('polling'),
             result = this.model.get('result'),
-            error = self.scenario.get('poll_error');
+            mapshedErrorAttribute = this.model.isSubbasin() ?
+                'subbasin_mapshed_job_error' :
+                'mapshed_job_error',
+            mapshedError = App.currentProject.get(mapshedErrorAttribute),
+            error = this.model.get('error') || mapshedError;
 
         if (result) {
-            return resultName !== 'subbasin' ?
-                this.resultRegion.show(new ResultView({
-                    model: this.model,
-                    areaOfInterest: this.options.areaOfInterest,
-                    scenario: this.scenario,
-                    showSubbasinHotSpotView: this.options.showSubbasinHotSpotView,
-                })) :
-                null;
+            return this.resultRegion.show(new ResultView({
+                model: this.model,
+                areaOfInterest: this.options.areaOfInterest,
+                scenario: this.scenario,
+                showSubbasinHotSpotView: this.options.showSubbasinHotSpotView,
+            }));
         }
 
         // Only show this on the initial polling. On subsequent polling, we
@@ -1183,6 +1193,37 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
 
         self.resultRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
     }
+});
+
+var SubbasinResultsTabContentView = Marionette.LayoutView.extend({
+    model: models.ResultModel,
+    template: subbasinResultsTabContentTmpl,
+    tagName: 'div',
+
+    className: 'tab-pane',
+
+    ui: {
+        'close': '[data-action="close-subbasin-view"]',
+    },
+
+    events: {
+        'click @ui.close': 'handleSubbasinCloseButtonClick',
+    },
+
+    regions: {
+        resultContentRegion: '.result-content-region',
+    },
+
+    handleSubbasinCloseButtonClick: function() {
+        this.options.hideSubbasinHotSpotView();
+    },
+
+    onShow: function() {
+        this.resultContentRegion.show(new ResultsTabContentView({
+            model: this.model,
+            scenario: this.options.scenario,
+        }));
+    },
 });
 
 // Collection of model result tab contents
@@ -1234,8 +1275,7 @@ function getResultView(modelPackage, resultName) {
                 case 'quality':
                     return gwlfeQualityViews.ResultView;
                 case 'subbasin':
-                    console.log('Skipping creating a tab for SUBBASIN results.');
-                    break;
+                    return gwlfeSubbasinViews.ResultView;
                 default:
                     console.log('Result not supported.');
             }
