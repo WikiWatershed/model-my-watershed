@@ -1067,6 +1067,10 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
     showSubbasinHotSpotView: function() {
         this.panelsRegion.$el.hide();
         this.contentRegion.$el.hide();
+        if (this.subbasinRegion.hasView()) {
+            return this.subbasinRegion.$el.show();
+        }
+
         var isSubbasinMode = true;
         App.currentProject.fetchResultsIfNeeded(isSubbasinMode);
 
@@ -1078,7 +1082,7 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
     },
 
     hideSubbasinHotSpotView: function() {
-        this.subbasinRegion.empty();
+        this.subbasinRegion.$el.hide();
         this.panelsRegion.$el.show();
         this.contentRegion.$el.show();
     },
