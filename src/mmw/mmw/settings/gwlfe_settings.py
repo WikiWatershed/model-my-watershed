@@ -636,3 +636,21 @@ SRAT_KEYS = {
     'Point Sources': 'pointsource',
     'Septic Systems': 'septics',
 }
+
+# Maps sources to their indices in the 'Area' array
+# in GMS results. Any sources missing from the list
+# can have their loads normalized by the shape's
+# total area.
+SUBBASIN_SOURCE_NORMALIZING_AREAS = {
+    'Hay/Pasture': [0],
+    'Cropland': [1],
+    'Wooded Areas': [2],
+    'Open Land': [6],
+    'Barren Areas': [7],
+    'Low-Density Mixed': [10],
+    'Medium-Density Mixed': [11],
+    'High-Density Mixed': [12],
+    'Farm Animals': [0, 1],
+    'Wetlands': [3],
+    'Septic Systems': [10],
+}
