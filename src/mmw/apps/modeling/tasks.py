@@ -13,8 +13,11 @@ from StringIO import StringIO
 
 from celery import shared_task
 
+from django_statsd.clients import statsd
 from django.conf import settings
 
+from apps.core.models import Job
+from apps.modeling.calcs import apply_gwlfe_modifications
 from apps.modeling.tr55.utils import (aoi_resolution,
                                       precipitation,
                                       apply_modifications_to_census,
@@ -286,6 +289,7 @@ def run_tr55(censuses, aoi, model_input, cached_aoi_census=None):
 
 
 @shared_task
+@statsd.timer(__name__ + '.run_gwlfe')
 def run_gwlfe(model_input, inputmod_hash, watershed_id=None):
     """
     Given a model_input resulting from a MapShed run, converts that dictionary
@@ -311,6 +315,20 @@ def run_gwlfe(model_input, inputmod_hash, watershed_id=None):
 
 
 @shared_task
+@statsd.timer(__name__ + '.run_gwlfe_chunks')
+def run_gwlfe_chunks(mapshed_job_uuid, modifications,
+                     inputmod_hash, watershed_ids):
+    mapshed_job = Job.objects.get(uuid=mapshed_job_uuid)
+    model_input = json.loads(mapshed_job.result)
+
+    return [run_gwlfe(apply_gwlfe_modifications(model_input[watershed_id],
+                                                modifications),
+                      inputmod_hash,
+                      watershed_id) for watershed_id in watershed_ids]
+
+
+@shared_task
+@statsd.timer(__name__ + '.run_srat')
 def run_srat(watersheds):
     try:
         data = [format_for_srat(id, w) for id, w in watersheds.iteritems()]
@@ -352,7 +370,10 @@ def subbasin_results_to_dict(subbasin_results):
         watershed_id = result.pop('watershed_id')
         return (watershed_id, result)
 
-    popped_key_results = [popped_key_result(r) for r in subbasin_results]
+    is_chunked = isinstance(subbasin_results[0], list)
+    popped_key_results = [popped_key_result(r) for chunk in subbasin_results
+                          for r in chunk] if is_chunked else \
+                         [popped_key_result(r) for r in subbasin_results]
     return dict(popped_key_results)
 
 

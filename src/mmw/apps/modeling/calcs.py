@@ -31,6 +31,14 @@ def split_into_huc12s(code, id):
         return cursor.fetchall()
 
 
+def apply_gwlfe_modifications(gms, modifications):
+    modified_gms = {}
+    modified_gms.update(gms)
+    for mod in modifications:
+        modified_gms.update(mod)
+    return modified_gms
+
+
 def get_layer_shape(table_code, id):
     """
     Fetch shape of well known area of interest.

@@ -42,6 +42,7 @@ from apps.modeling.serializers import (ProjectSerializer,
                                        ScenarioSerializer,
                                        AoiSerializer)
 from apps.modeling.calcs import (get_layer_shape,
+                                 apply_gwlfe_modifications,
                                  boundary_search_context,
                                  split_into_huc12s)
 
@@ -203,6 +204,7 @@ def start_gwlfe(request, format=None):
 
     if request.query_params.get('subbasin', False) == 'true':
         task_list = _initiate_subbasin_gwlfe_job_chain(model_input,
+                                                       mapshed_job_uuid,
                                                        modifications,
                                                        inputmod_hash,
                                                        job.id)
@@ -223,18 +225,10 @@ def start_gwlfe(request, format=None):
     )
 
 
-def _apply_gwlfe_modifications(gms, modifications):
-    modified_gms = {}
-    modified_gms.update(gms)
-    for mod in modifications:
-        modified_gms.update(mod)
-    return modified_gms
-
-
 def _initiate_gwlfe_job_chain(model_input, modifications,
                               inputmod_hash, job_id):
-    modified_model_input = _apply_gwlfe_modifications(model_input,
-                                                      modifications)
+    modified_model_input = apply_gwlfe_modifications(model_input,
+                                                     modifications)
     chain = (tasks.run_gwlfe.s(modified_model_input, inputmod_hash)
              | save_job_result.s(job_id, modified_model_input))
 
@@ -243,24 +237,38 @@ def _initiate_gwlfe_job_chain(model_input, modifications,
     return chain.apply_async(link_error=errback)
 
 
-def _initiate_subbasin_gwlfe_job_chain(model_input, modifications,
-                                       inputmod_hash, job_id):
-    huc12_jobs = []
+def _initiate_subbasin_gwlfe_job_chain(model_input, mapshed_job_uuid,
+                                       modifications, inputmod_hash,
+                                       job_id, chunk_size=8):
     errback = save_job_error.s(job_id)
 
-    for (id, gms) in model_input.iteritems():
-        # TODO Certain fields need to be weighted for the HUC-12
-        # https://github.com/WikiWatershed/model-my-watershed/issues/2542
-        gms = _apply_gwlfe_modifications(gms, modifications)
-        huc12_jobs.append(
-            tasks.run_gwlfe.s(gms, inputmod_hash, id)
-                 .set(link_error=errback))
+    # Split the sub-basin ids into a list of lists. (We'll refer to
+    # each inner list as a "chunk")
+    watershed_ids = list(model_input.keys())
+    watershed_id_chunks = [watershed_ids[x:x+chunk_size]
+                           for x in range(0, len(watershed_ids), chunk_size)]
 
-    return chain(
-        group(huc12_jobs) |
-        tasks.subbasin_results_to_dict.s().set(link_error=errback) |
-        tasks.run_srat.s().set(link_error=errback) |
-        save_job_result.s(job_id, model_input)).apply_async()
+    # Create a celery group where each task in the group
+    # runs gwlfe synchronously on a chunk of subbasin ids.
+    # This is to keep the number of tasks in the group low. Celery will
+    # not return the aggregate chain's job_id (which we need for the job
+    # submission response) until all tasks have been submitted.
+    # If we don't chunk, a shape that has 60+ subbasins could take >60sec
+    # to generate a response (and thus timeout) because we'll be waiting to
+    # submit one task for each subbasin.
+    gwlfe_chunked_group = group(iter([
+        tasks.run_gwlfe_chunks.s(mapshed_job_uuid,
+                                 modifications,
+                                 inputmod_hash,
+                                 watershed_id_chunk)
+        for watershed_id_chunk in watershed_id_chunks]))
+
+    post_process = \
+        tasks.subbasin_results_to_dict.s().set(link_error=errback) | \
+        tasks.run_srat.s().set(link_error=errback) | \
+        save_job_result.s(job_id, mapshed_job_uuid)
+
+    return (gwlfe_chunked_group | post_process).apply_async()
 
 
 @decorators.api_view(['POST'])
