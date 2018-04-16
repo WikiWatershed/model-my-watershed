@@ -232,6 +232,32 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         }
     },
 
+    // Since CUAHSI server results do not depend on the text, only the
+    // area of interest, this function runs a CUAHSI search for the entire
+    // area of interest, to cache the values for further text searches which
+    // will perform local filtering.
+    cacheCuahsiResults: function() {
+        var cuahsiCatalog = this.collection.findWhere({ id: 'cuahsi' }),
+            query = '',
+            aoiGeoJson = App.map.get('areaOfInterest');
+
+        return cuahsiCatalog
+            .searchIfNeeded(query, aoiGeoJson)
+            .done(function() {
+                // HACK: Text search something fake to set the result
+                // count to 0, since seeing a result count in CUAHSI
+                // without having searched for anything looks odd.
+
+                // But do this only if CUAHSI is not selected. If it is,
+                // the user may have searched for something else, which
+                // we shouldn't override.
+
+                if (!cuahsiCatalog.get('active')) {
+                    cuahsiCatalog.searchIfNeeded('show no results', aoiGeoJson);
+                }
+            });
+    },
+
     // Enables or disables map item visibility
     // For when the DataCatalogWindow is loaded but hidden
     // Such as when showing the Analyze or Model tab instead of Monitor
