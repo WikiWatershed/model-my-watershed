@@ -2,50 +2,121 @@
 
 var Marionette = require('../../../../shim/backbone.marionette'),
     App = require('../../../app'),
-    coreViews = require('../../../core/views'),
-    coreModels = require('../../../core/models'),
-    resultTmpl = require('./templates/result.html');
+    models = require('./models'),
+    resultTmpl = require('./templates/result.html'),
+    tableTabContentTmpl = require('./templates/tableTabContent.html'),
+    tableTabPanelTmpl = require('./templates/tableTabPanel.html'),
+    huc12TotalsTableTmpl = require('./templates/huc12TotalsTable.html'),
+    sourcesTableTmpl = require('./templates/sourcesTable.html');
 
 var ResultView = Marionette.LayoutView.extend({
-    className: 'tab-pane',
     template: resultTmpl,
 
     regions: {
-        resultRegion: '.result-region',
+        tabPanelRegion: '.subbasin-tab-panel-region',
+        tabContentRegion: '.subbasin-tab-content-region',
     },
 
-    ui: {
-        'close': '[data-action="close-subbasin-view"]',
-    },
-
-    events: {
-        'click @ui.close': 'handleSubbasinCloseButtonClick',
+    templateHelpers: function() {
+        return {
+            aoiDetails: App.currentProject.get('area_of_interest_name'),
+        };
     },
 
     onShow: function() {
-        var taskMessageViewModel = new coreModels.TaskMessageViewModel(),
-            polling = true;
-
-        taskMessageViewModel.setWorking(polling ?
-            'Calculating Results': 'Gathering Data');
-
-        this.resultRegion.show(
-            new coreViews.TaskMessageView({
-                model: taskMessageViewModel,
-            })
-        );
-
-        var isSubbasinMode = true;
-
-        App
-            .currentProject
-            .fetchResultsIfNeeded(isSubbasinMode);
-    },
-
-    handleSubbasinCloseButtonClick: function() {
-        this.options.hideSubbasinHotSpotView();
+        var tabCollection = new models.SubbasinTabCollection([
+            new models.SubbasinTabModel({
+                displayName: 'Sources',
+                name: 'aoiSources',
+            }),
+            new models.SubbasinTabModel({
+                displayName: 'HUC-12',
+                name: 'huc12Totals',
+            }),
+        ]);
+        this.tabPanelRegion.show(new TableTabPanelCollectionView({
+            collection: tabCollection,
+        }));
+        this.tabContentRegion.show(new TableTabContentCollectionView({
+            collection: tabCollection,
+        }));
     },
 });
+
+var TableTabPanelView = Marionette.ItemView.extend({
+    // model: SubbasinTabModel
+    tagName: 'li',
+    template: tableTabPanelTmpl,
+    attributes: {
+        role: 'presentation',
+    },
+});
+
+var TableTabPanelCollectionView = Marionette.CollectionView.extend({
+    // collection: SubbasinTabCollection
+    tagName: 'ul',
+    className: 'nav nav-tabs model-nav-tabs',
+    attributes: {
+        role: 'tablist'
+    },
+
+    childView: TableTabPanelView,
+
+    onRender: function() {
+        this.$el.find('li:first').addClass('active');
+    },
+});
+
+var TableTabContentView = Marionette.LayoutView.extend({
+    // model: SubbasinTabModel
+    template: tableTabContentTmpl,
+    tagName: 'div',
+    className: 'tab-pane',
+    attributes: {
+        role: 'tabpanel',
+    },
+    regions: {
+        tableRegion: '.table-region',
+    },
+
+    onShow: function() {
+        var tableViewKey = this.model.get('name'),
+            TableView = tableViews[tableViewKey];
+        if (!TableView) {
+            console.error('Use of table view key without TableView: ', tableViewKey);
+            return null;
+        }
+
+        this.tableRegion.show(new TableView({}));
+    },
+
+    id: function() {
+        return this.model.get('name');
+    }
+});
+
+var TableTabContentCollectionView = Marionette.CollectionView.extend({
+    // collection: SubbasinTabCollection
+    tagName: 'div',
+    className: 'tab-content model-tab-content',
+    childView: TableTabContentView,
+    onRender: function() {
+        this.$el.find('.tab-pane:first').addClass('active');
+    }
+});
+
+var AoiSourcesTableView = Marionette.ItemView.extend({
+    template: sourcesTableTmpl,
+});
+
+var Huc12TotalsTableView = Marionette.ItemView.extend({
+    template: huc12TotalsTableTmpl,
+});
+
+var tableViews = {
+    aoiSources: AoiSourcesTableView,
+    huc12Totals: Huc12TotalsTableView,
+};
 
 module.exports = {
     ResultView: ResultView,

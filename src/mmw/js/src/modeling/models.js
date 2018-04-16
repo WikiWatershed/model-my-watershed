@@ -100,8 +100,16 @@ var ResultModel = Backbone.Model.extend({
         inputmod_hash: null, // MD5 string generated from result
         result: null, // The actual result object
         polling: false, // True if currently polling
+        error: null,
         active: false, // True if currently selected in Compare UI
         activeVar: null // For GWLFE, the currently selected variable in the UI
+    },
+
+    isSubbasin: function() {
+        // Subbasin is a special case, not displayed as
+        // a tab in the UI, but as a secondary GWLFE view
+        // rendered on top of the original results
+        return this.get('name') === 'subbasin';
     },
 
     toTR55RunoffCSV: function(isCurrentConditions, aoiVolumeModel) {
@@ -228,14 +236,20 @@ var ResultModel = Backbone.Model.extend({
 var ResultCollection = Backbone.Collection.extend({
     model: ResultModel,
 
-    setPolling: function(polling) {
-        this.forEach(function(resultModel) {
+    setPolling: function(polling, isSubbasinMode) {
+        this.getFilteredResults(isSubbasinMode).forEach(function(resultModel) {
             resultModel.set('polling', polling);
         });
     },
 
-    setNullResults: function() {
-        this.forEach(function(resultModel) {
+    setError: function(error, isSubbasinMode) {
+        this.getFilteredResults(isSubbasinMode).forEach(function(resultModel) {
+            resultModel.set('error', error);
+        });
+    },
+
+    setNullResults: function(isSubbasinMode) {
+        this.getFilteredResults(isSubbasinMode).forEach(function(resultModel) {
             resultModel.set('result', null);
         });
     },
@@ -259,10 +273,10 @@ var ResultCollection = Backbone.Collection.extend({
     },
 
     // Filter subbasin option out of modeling tabs
-    withoutSubbasin: function() {
+    getFilteredResults: function(isSubbasinMode) {
         return new ResultCollection(
             this.filter(function(result) {
-                return result.get('name') !== 'subbasin';
+                return isSubbasinMode ? result.isSubbasin() : !result.isSubbasin();
             })
         );
     },
@@ -277,7 +291,6 @@ var ProjectModel = Backbone.Model.extend({
         area_of_interest: null,            // GeoJSON
         area_of_interest_name: null,       // Human readable string for AOI.
         wkaoi: null,                       // Well Known Area of Interest ID "{code}__{id}"
-        subbasin_modeling: false,          // (GWLFE) Use subbasin modeling
         model_package: utils.TR55_PACKAGE, // Package name
         scenarios: null,                   // ScenariosCollection
         user_id: 0,                        // User that created the project
@@ -285,6 +298,8 @@ var ProjectModel = Backbone.Model.extend({
         gis_data: null,                    // Additionally gathered data, such as MapShed for GWLF-E
         mapshed_job_uuid: null,            // (GWLF-E) The id of a successful MapShed job
         subbasin_mapshed_job_uuid: null,   // (GWLF-E) The id of a successful sub-basin MapShed job
+        mapshed_job_error: null,           // (GWLF-E) An error on the MapShed job
+        subbasin_mapshed_job_error: null,  // (GWLF-E) An error on the sub-basin MapShed job
         needs_reset: false,                // Should we overwrite project data on next save?
         allow_save: true,                  // Is allowed to save to the server - false in compare mode
         sidebar_mode: utils.MODEL,         // The current mode of the sidebar. ANALYZE, MONITOR, or MODEL.
@@ -293,23 +308,10 @@ var ProjectModel = Backbone.Model.extend({
     },
 
     initialize: function() {
-        var scenarios = this.get('scenarios'),
-            subbasinFeatureOn = settings.featureEnabled('subbasin'),
-            setSubbasinModeling = _.bind(function() {
-                    var wkaoi = this.get('wkaoi'),
-                        shouldModelSubbasins = subbasinFeatureOn &&
-                            utils.isWKAoIValidForSubbasinModeling(wkaoi);
-                    this.set('subbasin_modeling', shouldModelSubbasins);
-                }, this);
+        var scenarios = this.get('scenarios');
 
         if (scenarios === null || typeof scenarios === 'string') {
             this.set('scenarios', new ScenariosCollection());
-        }
-
-        setSubbasinModeling();
-
-        if (subbasinFeatureOn) {
-            this.on('change:wkaoi', setSubbasinModeling);
         }
 
         this.set('user_id', App.user.get('id'));
@@ -559,25 +561,22 @@ var ProjectModel = Backbone.Model.extend({
      */
     fetchGisDataIfNeeded: function(isSubbasinMode) {
         var self = this,
-            saveProjectAndScenarios = _.bind(self.saveProjectAndScenarios, self);
+            saveProjectAndScenarios = _.bind(self.saveProjectAndScenarios, self),
+            mapshedJobUUIDAttribute = isSubbasinMode ? 'subbasin_mapshed_job_uuid' : 'mapshed_job_uuid',
+            mapshedJobErrorAttribute = isSubbasinMode ? 'subbasin_mapshed_job_error' : 'mapshed_job_error';
 
-        if (isSubbasinMode || (self.get('mapshed_job_uuid') === null && self.fetchGisDataPromise === undefined)) {
+        if (self.get(mapshedJobUUIDAttribute) === null && self.fetchGisDataPromise === undefined) {
             self.fetchGisDataPromise = self.fetchGisData(isSubbasinMode);
             self.fetchGisDataPromise
                 .done(function(result, job) {
                     if (result) {
                         self.set('gis_data', result);
-
-                        if (isSubbasinMode) {
-                            self.set('subbasin_mapshed_job_uuid', job);
-                        } else {
-                            self.set('mapshed_job_uuid', job);
-                        }
-
+                        self.set(mapshedJobUUIDAttribute, job);
                         saveProjectAndScenarios();
                     }
-                })
-                .always(function() {
+                }).fail(function(error) {
+                    self.set(mapshedJobErrorAttribute, error);
+                }).always(function() {
                     // Clear promise once it completes, so we start a new one
                     // next time.
                     delete self.fetchGisDataPromise;
@@ -1143,10 +1142,13 @@ var ScenarioModel = Backbone.Model.extend({
         var self = this,
             inputmod_hash = this.get('inputmod_hash'),
             needsResults = this.get('results').some(function(resultModel) {
-                var emptyResults = !resultModel.get('result'),
-                    staleResults = inputmod_hash !== resultModel.get('inputmod_hash');
+                var results = resultModel.get('result'),
+                    isSubbasinModel = resultModel.isSubbasin(),
+                    shouldIncludeModel = isSubbasinMode ? isSubbasinModel : !isSubbasinModel,
+                    emptyResults = !results && shouldIncludeModel,
+                    staleResults = inputmod_hash !== resultModel.get('inputmod_hash') && shouldIncludeModel;
 
-                return emptyResults || staleResults || isSubbasinMode;
+                return emptyResults || staleResults;
             });
 
         if (needsResults && self.fetchResultsPromise === undefined) {
@@ -1169,13 +1171,15 @@ var ScenarioModel = Backbone.Model.extend({
         return self.fetchResultsPromise || $.when();
     },
 
-    setResults: function() {
+    setResults: function(isSubbasinMode) {
         var serverResults = this.get('taskModel').get('result');
 
         if (_.isEmpty(serverResults)) {
-            this.get('results').setNullResults();
+            this.get('results').setNullResults(isSubbasinMode);
         } else {
-            this.get('results').forEach(function(resultModel) {
+            var results = this.get('results').getFilteredResults(isSubbasinMode);
+
+            results.forEach(function(resultModel) {
                 var resultName = resultModel.get('name');
 
                 if (serverResults) {
@@ -1216,42 +1220,30 @@ var ScenarioModel = Backbone.Model.extend({
                     console.log(isSubbasinMode ?
                         'Starting polling for SUBBASIN modeling results' :
                                 'Starting polling for modeling results');
-
-                    if (!isSubbasinMode) {
-                        self.set('poll_error', null);
-                        results.setPolling(true);
-                    }
+                    results.setPolling(true, isSubbasinMode);
                 },
 
                 pollSuccess: function() {
                     console.log(isSubbasinMode ?
                         'Polling for SUBBASIN modeling results succeeded' :
                         'Polling for modeling results succeeded');
-                    if (!isSubbasinMode) {
-                        self.setResults();
-                    } else {
-                        console.log('Received SUBBBASIN results');
-                    }
+                    self.setResults(isSubbasinMode);
                 },
 
                 pollFailure: function(error) {
                     console.log(isSubbasinMode ?
                         'Failed to get SUBBASIN modeling results' :
                         'Failed to get modeling results.');
-                    self.set('poll_error', error);
-                    results.setNullResults();
+                    results.setError(error, isSubbasinMode);
+                    results.setNullResults(isSubbasinMode);
                 },
 
                 pollEnd: function() {
                     console.log(isSubbasinMode ?
                         'Completed polling for SUBBASIN modeling results' :
                         'Completed polling for modeling results');
-                    results.setPolling(false);
-                    if (!isSubbasinMode) {
-                        self.attemptSave();
-                    } else {
-                        console.log('Not saving SUBBASIN results');
-                    }
+                    results.setPolling(false, isSubbasinMode);
+                    self.attemptSave();
                 },
 
                 startFailure: function(response) {
@@ -1265,9 +1257,9 @@ var ScenarioModel = Backbone.Model.extend({
                         console.log(response.responseJSON.error);
                         error = response.responseJSON.error;
                     }
-                    self.set('poll_error', error);
-                    results.setNullResults();
-                    results.setPolling(false);
+                    results.setError(error, isSubbasinMode);
+                    results.setNullResults(isSubbasinMode);
+                    results.setPolling(false, isSubbasinMode);
                 }
             };
 
@@ -1584,7 +1576,11 @@ function createTaskResultCollection(modelPackage) {
                     name: 'quality',
                     displayName: 'Water Quality',
                     result: null
-                }
+                },
+                {
+                    name: 'subbasin',
+                    result: null
+                },
             ]);
     }
     throw 'Model package not supported: ' + modelPackage;
