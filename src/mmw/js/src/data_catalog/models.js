@@ -891,17 +891,9 @@ function createCatalogCollection() {
 
     return new Catalogs([
         new Catalog({
-            id: 'cinergi',
-            name: 'CINERGI',
-            active: true,
-            results: new Results(null, { catalog: 'cinergi' }),
-            filters: new FilterCollection([
-                dateFilter,
-            ]),
-        }),
-        new Catalog({
             id: 'hydroshare',
             name: 'HydroShare',
+            active: true,
             results: new Results(null, { catalog: 'hydroshare' }),
             filters: new FilterCollection([
                 dateFilter,
@@ -918,6 +910,14 @@ function createCatalogCollection() {
                 dateFilter,
                 new GriddedServicesFilter()
             ])
+        }),
+        new Catalog({
+            id: 'cinergi',
+            name: 'CINERGI',
+            results: new Results(null, { catalog: 'cinergi' }),
+            filters: new FilterCollection([
+                dateFilter,
+            ]),
         })
     ]);
 }
