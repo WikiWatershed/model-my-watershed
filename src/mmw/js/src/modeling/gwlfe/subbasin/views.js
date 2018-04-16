@@ -1,6 +1,7 @@
 "use strict";
 
 var Marionette = require('../../../../shim/backbone.marionette'),
+    $ = require('jquery'),
     App = require('../../../app'),
     models = require('./models'),
     resultTmpl = require('./templates/result.html'),
@@ -10,6 +11,7 @@ var Marionette = require('../../../../shim/backbone.marionette'),
     sourcesTableTmpl = require('./templates/sourcesTable.html');
 
 var ResultView = Marionette.LayoutView.extend({
+    // model: ResultModel
     template: resultTmpl,
 
     regions: {
@@ -39,6 +41,7 @@ var ResultView = Marionette.LayoutView.extend({
         }));
         this.tabContentRegion.show(new TableTabContentCollectionView({
             collection: tabCollection,
+            model: this.model,
         }));
     },
 });
@@ -87,7 +90,9 @@ var TableTabContentView = Marionette.LayoutView.extend({
             return null;
         }
 
-        this.tableRegion.show(new TableView({}));
+        this.tableRegion.show(new TableView({
+            model: this.options.result,
+        }));
     },
 
     id: function() {
@@ -100,6 +105,11 @@ var TableTabContentCollectionView = Marionette.CollectionView.extend({
     tagName: 'div',
     className: 'tab-content model-tab-content',
     childView: TableTabContentView,
+    childViewOptions: function() {
+        return {
+            result: this.model,
+        };
+    },
     onRender: function() {
         this.$el.find('.tab-pane:first').addClass('active');
     }
@@ -107,6 +117,18 @@ var TableTabContentCollectionView = Marionette.CollectionView.extend({
 
 var AoiSourcesTableView = Marionette.ItemView.extend({
     template: sourcesTableTmpl,
+
+    onAttach: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    },
+
+    templateHelpers: function() {
+        var result = this.model.get('result');
+        return {
+            rows: result.Loads,
+            summaryRow: result.SummaryLoads,
+        };
+    },
 });
 
 var Huc12TotalsTableView = Marionette.ItemView.extend({
