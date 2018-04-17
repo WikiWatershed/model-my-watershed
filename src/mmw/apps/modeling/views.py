@@ -265,7 +265,7 @@ def _initiate_subbasin_gwlfe_job_chain(model_input, mapshed_job_uuid,
 
     post_process = \
         tasks.subbasin_results_to_dict.s().set(link_error=errback) | \
-        tasks.run_srat.s().set(link_error=errback) | \
+        tasks.run_srat.s(mapshed_job_uuid).set(link_error=errback) | \
         save_job_result.s(job_id, mapshed_job_uuid)
 
     return (gwlfe_chunked_group | post_process).apply_async()

@@ -98,26 +98,35 @@ def format_for_srat(huc12_id, model_output):
     return formatted
 
 
-def format_subbasin(huc12_gwlfe_results, srat_catchment_results):
+def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
     def empty_source(s):
-        return {'Source': s, 'TotalN': 0, 'TotalP': 0, 'Sediment': 0}
+        return {'Source': s,
+                'TotalN': 0, 'TotalP': 0, 'Sediment': 0,
+                'Area': 0}
 
-    def add_huc12_source(source, srat_huc12):
+    def add_huc12_source(source, srat_huc12, source_areas, total_area):
         source_name = source['Source']
         source_key = settings.SRAT_KEYS[source_name]
         total_n = srat_huc12.get('tnload_' + source_key, 0)
         total_p = srat_huc12.get('tpload_' + source_key, 0)
         sediment = srat_huc12.get('tssload_' + source_key, 0)
 
+        normalizing_areas = settings.SUBBASIN_SOURCE_NORMALIZING_AREAS
+        source_area_idxs = normalizing_areas.get(source_name, None)
+        area = sum([source_areas[i] for i in source_area_idxs]) \
+            if source_area_idxs else total_area
+
         source['TotalN'] += total_n
         source['TotalP'] += total_p
         source['Sediment'] += sediment
+        source['Area'] += area
 
         return {
             'Source': source_name,
             'TotalN': total_n,
             'TotalP': total_p,
-            'Sediment': sediment
+            'Sediment': sediment,
+            'Area': area,
         }
 
     def format_catchment(srat_catchment):
@@ -134,13 +143,43 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results):
             },
         }
 
+    def sum_loads(loads):
+        def add_load(sums, load):
+            (sediment_sum,
+             nitrogen_sum,
+             phosphorus_sum) = sums
+            return (sediment_sum + load['Sediment'],
+                    nitrogen_sum + load['TotalN'],
+                    phosphorus_sum + load['TotalP'])
+
+        return reduce(add_load, loads, (0, 0, 0))
+
+    def build_summary_loads(loads, area):
+        (sum_sed, sum_n, sum_p) = sum_loads(loads)
+        return {
+            'Source': 'Entire area',
+            'Area': area,
+            'Sediment': sum_sed,
+            'TotalN': sum_n,
+            'TotalP': sum_p,
+        }
+
     def add_huc12(srat_huc12, aggregate):
         area = huc12_gwlfe_results[srat_huc12['huc12']]['AreaTotal']
-        aggregate['AreaTotal'] += area
+        source_areas = gmss[srat_huc12['huc12']]['Area']
+        loads = [add_huc12_source(s, srat_huc12, source_areas, area)
+                 for s in aggregate['Loads']]
+        summary_loads = build_summary_loads(loads, area)
+
+        # Build up the full AOI's values with the huc-12's
+        aggregate['SummaryLoads']['Area'] += area
+        aggregate['SummaryLoads']['Sediment'] += summary_loads['Sediment']
+        aggregate['SummaryLoads']['TotalN'] += summary_loads['TotalN']
+        aggregate['SummaryLoads']['TotalP'] += summary_loads['TotalP']
+
         return {
-            'Loads': [add_huc12_source(s, srat_huc12)
-                      for s in aggregate['Loads']],
-            'AreaTotal': area,
+            'Loads': loads,
+            'SummaryLoads': summary_loads,
             'Catchments': {comid: format_catchment(result)
                            for comid, result
                            in srat_huc12['catchments'].iteritems()}
@@ -149,7 +188,7 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results):
     aggregate = {
         'Loads': [empty_source(source_name)
                   for source_name in settings.SRAT_KEYS.keys()],
-        'AreaTotal': 0,
+        'SummaryLoads': empty_source('Entire area'),
         # All gwlf-e results should have the same inputmod hash,
         # so grab any of them
         'inputmod_hash': huc12_gwlfe_results.itervalues()
@@ -329,7 +368,7 @@ def run_gwlfe_chunks(mapshed_job_uuid, modifications,
 
 @shared_task
 @statsd.timer(__name__ + '.run_srat')
-def run_srat(watersheds):
+def run_srat(watersheds, mapshed_job_uuid):
     try:
         data = [format_for_srat(id, w) for id, w in watersheds.iteritems()]
     except Exception as e:
@@ -357,7 +396,9 @@ def run_srat(watersheds):
         raise Exception('SRAT Catchment API did not return JSON')
 
     try:
-        result = format_subbasin(watersheds, srat_catchment_result)
+        mapshed_job = Job.objects.get(uuid=mapshed_job_uuid)
+        gmss = json.loads(mapshed_job.result)
+        result = format_subbasin(watersheds, srat_catchment_result, gmss)
     except KeyError as e:
         raise Exception('SRAT Catchment API returned malformed result: %s' % e)
 
