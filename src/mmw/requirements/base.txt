@@ -20,7 +20,7 @@ requests[security]==2.9.1
 rollbar==0.13.8
 retry==0.9.1
 python-dateutil==2.6.0
-suds==0.4
+https://bitbucket.org/jurko/suds/get/94664ddd46a6.tar.gz#egg=suds-jurko
 django_celery_results==1.0.1
 git+git://github.com/emiliom/ulmo@wml_values_md#egg=ulmo
 numpy==1.13.0
