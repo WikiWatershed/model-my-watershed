@@ -300,6 +300,7 @@ var ProjectModel = Backbone.Model.extend({
         subbasin_mapshed_job_uuid: null,   // (GWLF-E) The id of a successful sub-basin MapShed job
         mapshed_job_error: null,           // (GWLF-E) An error on the MapShed job
         subbasin_mapshed_job_error: null,  // (GWLF-E) An error on the sub-basin MapShed job
+        subbasins: null,                   // SubbasinDetailCollection
         needs_reset: false,                // Should we overwrite project data on next save?
         allow_save: true,                  // Is allowed to save to the server - false in compare mode
         sidebar_mode: utils.MODEL,         // The current mode of the sidebar. ANALYZE, MONITOR, or MODEL.
@@ -321,6 +322,8 @@ var ProjectModel = Backbone.Model.extend({
         this.set('is_activity', settings.get('activityMode'));
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
+
+        this.listenTo(this, 'change:subbasin_mapshed_job_uuid', this.fetchSubbasins, this);
 
         // Debounce HydroShare export to 5 seconds to allow models to run and
         // return without triggering two simultaneous exports
@@ -587,6 +590,12 @@ var ProjectModel = Backbone.Model.extend({
         return self.fetchGisDataPromise || $.when();
     },
 
+    fetchSubbasins: function() {
+        var subbasins = new SubbasinDetailCollection(null);
+        this.set('subbasins', subbasins);
+        subbasins.fetch({ data: { mapshed_job_uuid: this.get('subbasin_mapshed_job_uuid') }});
+    },
+
     /**
      * Exports current project to HydroShare. Any key/value pairs provided in
      * payload will also be sent to the server. In most cases this will be
@@ -782,13 +791,26 @@ var ProjectModel = Backbone.Model.extend({
         }).always(function() {
             self.set('is_exporting', false);
         });
-    }
+    },
 });
 
 var ProjectCollection = Backbone.Collection.extend({
     url: '/mmw/modeling/projects/',
 
     model: ProjectModel
+});
+
+var SubbasinDetailModel = Backbone.Model.extend({
+    defaults: {
+        name: '',
+        shape: null,
+        catchments: null,
+    }
+});
+
+var SubbasinDetailCollection = Backbone.Collection.extend({
+    url: '/mmw/modeling/subbasins/',
+    model: SubbasinDetailModel,
 });
 
 /**
