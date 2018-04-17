@@ -23,7 +23,6 @@ from apps.bigcz.clients.cuahsi.models import CuahsiResource
 
 
 SQKM_PER_SQM = 0.000001
-CUAHSI_MAX_SIZE_SQKM = 1500
 CATALOG_NAME = 'cuahsi'
 CATALOG_URL = 'http://hiscentral.cuahsi.org/webservices/hiscentral.asmx?WSDL'
 
@@ -294,12 +293,12 @@ def search(**kwargs):
 
     bbox_area = bbox.area() * SQKM_PER_SQM
 
-    if bbox_area > CUAHSI_MAX_SIZE_SQKM:
+    if bbox_area > settings.BIGCZ_MAX_AREA:
         raise ValidationError({
             'error': 'The selected area of interest with a bounding box of {} '
                      'km² is larger than the currently supported maximum size '
                      'of {} km².'.format(round(bbox_area, 2),
-                                          CUAHSI_MAX_SIZE_SQKM)})
+                                          settings.BIGCZ_MAX_AREA)})
 
     world = BBox(-180, -90, 180, 90)
 
