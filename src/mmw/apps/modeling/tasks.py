@@ -182,7 +182,7 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
             'SummaryLoads': summary_loads,
             'Catchments': {comid: format_catchment(result)
                            for comid, result
-                           in srat_huc12['catchments'].iteritems()}
+                           in srat_huc12['catchments'].iteritems()},
         }
 
     aggregate = {
@@ -195,9 +195,9 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
                                             .next()['inputmod_hash'],
     }
 
-    aggregate['HUC-12s'] = {huc12_id: add_huc12(result, aggregate)
-                            for huc12_id, result
-                            in srat_catchment_results['huc12s'].iteritems()}
+    aggregate['HUC12s'] = {huc12_id: add_huc12(result, aggregate)
+                           for huc12_id, result
+                           in srat_catchment_results['huc12s'].iteritems()}
 
     return aggregate
 

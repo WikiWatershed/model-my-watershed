@@ -3,6 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+import json
+
 from django.conf import settings
 from django.db import connection
 
@@ -29,6 +31,30 @@ def split_into_huc12s(code, id):
     with connection.cursor() as cursor:
         cursor.execute(sql, [int(id)])
         return cursor.fetchall()
+
+
+def get_huc12s(huc12_ids):
+    """
+    Fetch the name and shapes of a list
+    of huc12 codes.
+    :param huc12_ids: a list of twelve-digit HUC-12 ids
+    :return: a dictionary keyed on the HUC-12 ids containing
+             the HUC-12 names and geoms
+             { <huc12_id>: { name: <huc12_name>,
+                             shape: <huc12 GeoJSON geometry> }}
+    """
+    sql = '''
+          SELECT huc12,
+                 name,
+                 ST_AsGeoJSON(geom_detailed)
+          FROM boundary_huc12
+          WHERE huc12 IN %s
+          '''
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [tuple(huc12_ids)])
+        rows = cursor.fetchall()
+        return [{'id': row[0], 'name': row[1], 'shape': json.loads(row[2])}
+                for row in rows]
 
 
 def apply_gwlfe_modifications(gms, modifications):

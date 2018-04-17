@@ -42,6 +42,7 @@ from apps.modeling.serializers import (ProjectSerializer,
                                        ScenarioSerializer,
                                        AoiSerializer)
 from apps.modeling.calcs import (get_layer_shape,
+                                 get_huc12s,
                                  apply_gwlfe_modifications,
                                  boundary_search_context,
                                  split_into_huc12s)
@@ -443,6 +444,19 @@ def _construct_tr55_job_chain(model_input, job_id):
     job_chain.append(save_job_result.s(job_id, model_input))
 
     return job_chain
+
+
+@decorators.api_view(['GET'])
+@decorators.permission_classes((AllowAny, ))
+def subbasins_detail(request):
+    mapshed_job_uuid = request.query_params.get('mapshed_job_uuid')
+    mapshed_job = Job.objects.get(uuid=mapshed_job_uuid)
+    gmss = json.loads(mapshed_job.result)
+    if gmss:
+        huc12s = get_huc12s(gmss.keys())
+        return Response(huc12s)
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 @decorators.api_view(['GET'])
