@@ -195,9 +195,9 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
                                             .next()['inputmod_hash'],
     }
 
-    aggregate['HUC-12s'] = {huc12_id: add_huc12(result, aggregate)
-                            for huc12_id, result
-                            in srat_catchment_results['huc12s'].iteritems()}
+    aggregate['HUC12s'] = {huc12_id: add_huc12(result, aggregate)
+                           for huc12_id, result
+                           in srat_catchment_results['huc12s'].iteritems()}
 
     return aggregate
 
