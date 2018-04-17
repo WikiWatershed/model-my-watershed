@@ -1037,10 +1037,13 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         this.showPrimaryModelingResults = this.showPrimaryModelingResults.bind(this);
         this.showSubbasinHotSpotView = this.showSubbasinHotSpotView.bind(this);
         this.hideSubbasinHotSpotView = this.hideSubbasinHotSpotView.bind(this);
+        this.showSubbasinHuc12View = this.showSubbasinHuc12View.bind(this);
+        this.hideSubbasinHuc12View = this.hideSubbasinHuc12View.bind(this);
     },
 
     regions: {
         subbasinRegion: '.subbasin-region',
+        subbasinHuc12Region: '.subbasin-huc12-region',
         panelsRegion: '.tab-panels-region',
         contentRegion: '.tab-contents-region'
     },
@@ -1078,6 +1081,7 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
             model: this.collection.getResult('subbasin'),
             scenario: this.scenario,
             hideSubbasinHotSpotView: this.hideSubbasinHotSpotView,
+            showHuc12: this.showSubbasinHuc12View,
         }));
     },
 
@@ -1086,6 +1090,22 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         this.panelsRegion.$el.show();
         this.contentRegion.$el.show();
     },
+
+    showSubbasinHuc12View: function(huc12Id) {
+        this.subbasinRegion.$el.hide();
+
+        this.subbasinHuc12Region.show(new SubbasinHuc12TabContentView({
+            model: this.collection.getResult('subbasin'),
+            scenario: this.scenario,
+            hideSubbasinHotSpotView: this.hideSubbasinHuc12View,
+            huc12: huc12Id,
+        }));
+    },
+
+    hideSubbasinHuc12View: function() {
+        this.subbasinRegion.$el.show();
+        this.subbasinHuc12Region.empty();
+    }
 });
 
 // A model result tab
@@ -1173,6 +1193,7 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
                 areaOfInterest: this.options.areaOfInterest,
                 scenario: this.scenario,
                 showSubbasinHotSpotView: this.options.showSubbasinHotSpotView,
+                showHuc12: this.options.showHuc12,
             }));
         }
 
@@ -1226,6 +1247,20 @@ var SubbasinResultsTabContentView = Marionette.LayoutView.extend({
         this.resultContentRegion.show(new ResultsTabContentView({
             model: this.model,
             scenario: this.options.scenario,
+            showHuc12: this.options.showHuc12,
+        }));
+    },
+});
+
+var SubbasinHuc12TabContentView = SubbasinResultsTabContentView.extend({
+    templateHelpers: {
+        backButtonText: 'Back',
+    },
+    onShow: function() {
+        this.resultContentRegion.show(new gwlfeSubbasinViews.Huc12ResultView({
+            model: this.model,
+            scenario: this.options.scenario,
+            huc12: this.options.huc12,
         }));
     },
 });

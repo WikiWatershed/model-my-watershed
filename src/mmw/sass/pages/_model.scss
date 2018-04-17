@@ -123,7 +123,8 @@
   flex-wrap: nowrap !important;
 }
 
-.subbasin-region {
+.subbasin-region,
+.subbasin-huc12-region {
     .tab-pane {
         .result {
             padding: 1rem;
