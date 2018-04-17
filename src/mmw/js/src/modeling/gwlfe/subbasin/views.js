@@ -133,6 +133,20 @@ var AoiSourcesTableView = Marionette.ItemView.extend({
 
 var Huc12TotalsTableView = Marionette.ItemView.extend({
     template: huc12TotalsTableTmpl,
+
+    onAttach: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    },
+
+    templateHelpers: function() {
+        var result = this.model.get('result');
+        return {
+            rows: result.HUC12s,
+            subbasins: App.currentProject.get('subbasins'),
+            summaryRow: result.SummaryLoads,
+        };
+    },
+
 });
 
 var tableViews = {
