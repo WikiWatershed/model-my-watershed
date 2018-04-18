@@ -158,6 +158,8 @@ var Huc12TotalsTableView = Marionette.ItemView.extend({
     },
     events: {
         'click @ui.rows': 'handleRowClick',
+        'mouseover @ui.rows': 'handleRowMouseOver',
+        'mouseout @ui.rows': 'handleRowMouseOut',
     },
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
@@ -183,6 +185,16 @@ var Huc12TotalsTableView = Marionette.ItemView.extend({
         var id = e.currentTarget.getAttribute('data-huc12-id');
         App.currentProject.get('subbasins').get(id).setActive();
         this.options.showHuc12();
+    },
+
+    handleRowMouseOver: function(e) {
+        var id = e.currentTarget.getAttribute('data-huc12-id');
+        App.currentProject.get('subbasins').get(id).set('highlighted', true);
+    },
+
+    handleRowMouseOut: function(e) {
+        var id = e.currentTarget.getAttribute('data-huc12-id');
+        App.currentProject.get('subbasins').get(id).set('highlighted', false);
     },
 
     highlightRow: function(subbasinDetail) {

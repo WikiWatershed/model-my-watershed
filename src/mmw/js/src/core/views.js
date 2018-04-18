@@ -1027,20 +1027,29 @@ var MapView = Marionette.ItemView.extend({
     },
 
     createSubbasinHuc12Shape: function(subbasinDetail) {
-        var geom = subbasinDetail.get('shape');
+        var self = this,
+            geom = subbasinDetail.get('shape');
 
         return new L.GeoJSON(geom, {
             style: subbasinHuc12Style,
             id: subbasinDetail.get('id'),
             onEachFeature: function(feature, layer) {
+                var highlightLayer = function() {
+                    if (subbasinDetail.get('highlighted')) {
+                        layer.setStyle(subbasinHuc12ActiveStyle);
+                        layer.bringToFront();
+                    } else {
+                        layer.setStyle(subbasinHuc12Style);
+                    }
+                };
+
+                self.listenTo(subbasinDetail, 'change:highlighted', highlightLayer);
+
                 layer.on('mouseover', function() {
-                    layer.setStyle(subbasinHuc12ActiveStyle);
                     subbasinDetail.set('highlighted', true);
-                    layer.bringToFront();
                 });
 
                 layer.on('mouseout', function() {
-                    layer.setStyle(subbasinHuc12Style);
                     subbasinDetail.set('highlighted', false);
                 });
 
