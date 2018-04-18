@@ -66,10 +66,19 @@ var subbasinHuc12Style = {
     fillOpacity: 0,
 };
 
-var subbasinHuc12ActiveStyle = {
+var subbasinHuc12HighlightedStyle = {
     stroke: true,
     color: '#1d3331',
     weight: 2,
+    opacity: 1,
+    fill: true,
+    fillOpacity: 0,
+};
+
+var subbasinHuc12ActiveStyle = {
+    stroke: true,
+    color: '#dbba29',
+    weight: 5,
     opacity: 1,
     fill: true,
     fillOpacity: 0,
@@ -1035,15 +1044,32 @@ var MapView = Marionette.ItemView.extend({
             id: subbasinDetail.get('id'),
             onEachFeature: function(feature, layer) {
                 var highlightLayer = function() {
-                    if (subbasinDetail.get('highlighted')) {
-                        layer.setStyle(subbasinHuc12ActiveStyle);
+                    if (subbasinDetail.get('highlighted') && !subbasinDetail.get('active')) {
+                        layer.setStyle(subbasinHuc12HighlightedStyle);
                         layer.bringToFront();
                     } else {
-                        layer.setStyle(subbasinHuc12Style);
+                        if (subbasinDetail.get('active')) {
+                            layer.setStyle(subbasinHuc12ActiveStyle);
+                        } else {
+                            layer.setStyle(subbasinHuc12Style);
+                            layer.bringToBack();
+                        }
                     }
-                };
+                },
+                    setActiveLayer = function() {
+                        if (subbasinDetail.get('active')) {
+                            layer.setStyle(subbasinHuc12ActiveStyle);
+                            layer.bringToFront();
+                            self._leafletMap.fitBounds(layer.getBounds(), { reset: true });
+                        } else {
+                            layer.setStyle(subbasinHuc12Style);
+                            self.fitToAoi();
+                        }
+                    };
+
 
                 self.listenTo(subbasinDetail, 'change:highlighted', highlightLayer);
+                self.listenTo(subbasinDetail, 'change:active', setActiveLayer);
 
                 layer.on('mouseover', function() {
                     subbasinDetail.set('highlighted', true);

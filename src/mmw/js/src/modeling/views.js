@@ -1107,6 +1107,7 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
     },
 
     hideSubbasinHuc12View: function() {
+        App.currentProject.get('subbasins').getActive().set('active', false);
         this.subbasinRegion.$el.show();
         this.subbasinHuc12Region.empty();
     }
