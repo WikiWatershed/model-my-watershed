@@ -97,7 +97,8 @@ def parse_details_url(record):
     Ref: https://github.com/WikiWatershed/model-my-watershed/issues/1931
     """
     location = record['location']
-    if any(code in location for code in ('NWISDV', 'NWISGW', 'NWISUV')):
+    if any(code in location
+           for code in ('NWISDV', 'NWISGW', 'NWISUV', 'EnviroDIY')):
         parts = location.split(':')
         if len(parts) == 2:
             code, id = parts
@@ -110,6 +111,9 @@ def parse_details_url(record):
             elif code == 'NWISGW':
                 url = ('https://nwis.waterdata.usgs.gov/' +
                        'usa/nwis/gwlevels/?site_no={}')
+                return url.format(id)
+            elif code == 'EnviroDIY':
+                url = 'http://data.envirodiy.org/sites/{}/'
                 return url.format(id)
     return None
 
