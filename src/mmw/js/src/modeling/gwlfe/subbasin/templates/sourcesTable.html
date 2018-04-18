@@ -23,9 +23,9 @@
                 <td class="strong text-right">{{ row.Sediment|round(2)|toLocaleString(2) }}</td>
                 <td class="strong text-right">{{ row.TotalN|round(2)|toLocaleString(2) }}</td>
                 <td class="strong text-right">{{ row.TotalP|round(2)|toLocaleString(2) }}</td>
-                <td class="strong text-right">{{ (row.Sediment/row.Area)|round(2)|toLocaleString(2) }}</td>
-                <td class="strong text-right">{{ (row.TotalN/row.Area)|round(2)|toLocaleString(2) }}</td>
-                <td class="strong text-right">{{ (row.TotalP/row.Area)|round(2)|toLocaleString(2) }}</td>
+                <td class="strong text-right">{{ ((row.Sediment/row.Area) or 0)|round(2)|toLocaleString(2) }}</td>
+                <td class="strong text-right">{{ ((row.TotalN/row.Area) or 0)|round(2)|toLocaleString(2) }}</td>
+                <td class="strong text-right">{{ ((row.TotalP/row.Area) or 0)|round(2)|toLocaleString(2) }}</td>
             </tr>
         {% endfor %}
     </tbody>

@@ -26,7 +26,20 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        var tabCollection = new models.SubbasinTabCollection([
+        var tabCollection = this.getTabCollection();
+        this.tabPanelRegion.show(new TableTabPanelCollectionView({
+            collection: tabCollection,
+        }));
+        this.tabContentRegion.show(new TableTabContentCollectionView({
+            collection: tabCollection,
+            model: this.model,
+            showHuc12: this.options.showHuc12,
+            huc12: this.options.huc12,
+        }));
+    },
+
+    getTabCollection: function() {
+        return new models.SubbasinTabCollection([
             new models.SubbasinTabModel({
                 displayName: 'Sources',
                 name: 'aoiSources',
@@ -36,13 +49,6 @@ var ResultView = Marionette.LayoutView.extend({
                 name: 'huc12Totals',
             }),
         ]);
-        this.tabPanelRegion.show(new TableTabPanelCollectionView({
-            collection: tabCollection,
-        }));
-        this.tabContentRegion.show(new TableTabContentCollectionView({
-            collection: tabCollection,
-            model: this.model,
-        }));
     },
 });
 
@@ -92,6 +98,8 @@ var TableTabContentView = Marionette.LayoutView.extend({
 
         this.tableRegion.show(new TableView({
             model: this.options.result,
+            huc12: this.options.huc12,
+            showHuc12: this.options.showHuc12,
         }));
     },
 
@@ -108,6 +116,8 @@ var TableTabContentCollectionView = Marionette.CollectionView.extend({
     childViewOptions: function() {
         return {
             result: this.model,
+            huc12: this.options.huc12,
+            showHuc12: this.options.showHuc12,
         };
     },
     onRender: function() {
@@ -115,7 +125,7 @@ var TableTabContentCollectionView = Marionette.CollectionView.extend({
     }
 });
 
-var AoiSourcesTableView = Marionette.ItemView.extend({
+var SourcesTableView = Marionette.ItemView.extend({
     template: sourcesTableTmpl,
 
     onAttach: function() {
@@ -123,17 +133,32 @@ var AoiSourcesTableView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
-        var result = this.model.get('result');
+        var result = this.getResult();
         return {
             rows: result.Loads,
             summaryRow: result.SummaryLoads,
         };
     },
+
+    getResult: function() {
+        return this.model.get('result');
+    }
+});
+
+var Huc12SourcesTableView = SourcesTableView.extend({
+    getResult: function() {
+        return this.model.get('result').HUC12s[this.options.huc12];
+    }
 });
 
 var Huc12TotalsTableView = Marionette.ItemView.extend({
     template: huc12TotalsTableTmpl,
-
+    ui: {
+        'rows': '.huc12-total',
+    },
+    events: {
+        'click @ui.rows': 'handleRowClick',
+    },
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
     },
@@ -147,13 +172,45 @@ var Huc12TotalsTableView = Marionette.ItemView.extend({
         };
     },
 
+    handleRowClick: function(e) {
+        this.options.showHuc12(e.currentTarget.getAttribute('data-huc12-id'));
+    }
 });
 
+var Huc12ResultView = ResultView.extend({
+    className: 'result-region',
+    templateHelpers: function() {
+        var subbasinDetail = App.currentProject.get('subbasins')
+                                .get(this.options.huc12);
+        return {
+            aoiDetails: subbasinDetail.get('name') + ', HUC-12 Watershed',
+        };
+    },
+
+    getTabCollection: function() {
+        return new models.SubbasinTabCollection([
+            new models.SubbasinTabModel({
+                displayName: 'Sources',
+                name: 'huc12Sources',
+            }),
+            new models.SubbasinTabModel({
+                displayName: 'Catchments',
+                name: 'catchments',
+            }),
+        ]);
+    },
+});
+
+
 var tableViews = {
-    aoiSources: AoiSourcesTableView,
+    aoiSources: SourcesTableView,
     huc12Totals: Huc12TotalsTableView,
+    huc12Sources: Huc12SourcesTableView,
+    // TODO CatchmentsTableView
+    catchments: Huc12SourcesTableView,
 };
 
 module.exports = {
     ResultView: ResultView,
+    Huc12ResultView: Huc12ResultView,
 };
