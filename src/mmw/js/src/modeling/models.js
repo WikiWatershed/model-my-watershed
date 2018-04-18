@@ -323,6 +323,7 @@ var ProjectModel = Backbone.Model.extend({
 
         this.listenTo(this.get('scenarios'), 'add', this.addIdsToScenarios, this);
 
+        this.set('subbasins', new SubbasinDetailCollection());
         this.listenTo(this, 'change:subbasin_mapshed_job_uuid', this.fetchSubbasins, this);
 
         // Debounce HydroShare export to 5 seconds to allow models to run and
@@ -591,9 +592,7 @@ var ProjectModel = Backbone.Model.extend({
     },
 
     fetchSubbasins: function() {
-        var subbasins = new SubbasinDetailCollection(null);
-        this.set('subbasins', subbasins);
-        subbasins.fetch({ data: { mapshed_job_uuid: this.get('subbasin_mapshed_job_uuid') }});
+        this.get('subbasins').fetch({ data: { mapshed_job_uuid: this.get('subbasin_mapshed_job_uuid') }});
     },
 
     /**
@@ -805,6 +804,8 @@ var SubbasinDetailModel = Backbone.Model.extend({
         name: '',
         shape: null,
         catchments: null,
+        highlighted: false,
+        active: false,
     }
 });
 

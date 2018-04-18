@@ -1070,6 +1070,9 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
     showSubbasinHotSpotView: function() {
         this.panelsRegion.$el.hide();
         this.contentRegion.$el.hide();
+
+        App.map.set('subbasinHuc12s', App.currentProject.get('subbasins'));
+
         if (this.subbasinRegion.hasView()) {
             return this.subbasinRegion.$el.show();
         }
@@ -1089,6 +1092,8 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         this.subbasinRegion.$el.hide();
         this.panelsRegion.$el.show();
         this.contentRegion.$el.show();
+
+        App.map.set('subbasinHuc12s', null);
     },
 
     showSubbasinHuc12View: function(huc12Id) {
