@@ -205,18 +205,21 @@ var Catalog = Backbone.Model.extend({
 
         // Perform local text search for pre-existing CUAHSI results
         if (isCuahsi && isSameGeom && !isSameQuery) {
-            this.set({ loading: true });
+            var searchPromise = this.searchPromise || $.when();
 
-            var results = this.get('serverResults').textFilter(query);
-            this.get('results').reset(results);
+            return searchPromise.then(function() {
+                self.set({ loading: true });
 
-            this.set({
-                loading: false,
-                query: query,
-                resultCount: results.length
+                var results = self.get('serverResults').textFilter(query);
+
+                self.get('results').reset(results);
+
+                self.set({
+                    loading: false,
+                    query: query,
+                    resultCount: results.length
+                });
             });
-
-            return $.when();
         }
 
         // Perform server search
