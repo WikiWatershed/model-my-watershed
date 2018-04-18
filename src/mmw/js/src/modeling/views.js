@@ -1096,14 +1096,13 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         App.map.set('subbasinHuc12s', null);
     },
 
-    showSubbasinHuc12View: function(huc12Id) {
+    showSubbasinHuc12View: function() {
         this.subbasinRegion.$el.hide();
 
         this.subbasinHuc12Region.show(new SubbasinHuc12TabContentView({
             model: this.collection.getResult('subbasin'),
             scenario: this.scenario,
             hideSubbasinHotSpotView: this.hideSubbasinHuc12View,
-            huc12: huc12Id,
         }));
     },
 
@@ -1265,7 +1264,6 @@ var SubbasinHuc12TabContentView = SubbasinResultsTabContentView.extend({
         this.resultContentRegion.show(new gwlfeSubbasinViews.Huc12ResultView({
             model: this.model,
             scenario: this.options.scenario,
-            huc12: this.options.huc12,
         }));
     },
 });

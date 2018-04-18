@@ -806,12 +806,26 @@ var SubbasinDetailModel = Backbone.Model.extend({
         catchments: null,
         highlighted: false,
         active: false,
+    },
+
+    setActive: function() {
+        var currentActive = this.collection.getActive();
+        if (currentActive) {
+            currentActive.set('active', false);
+        }
+        this.set('active', true);
     }
 });
 
 var SubbasinDetailCollection = Backbone.Collection.extend({
     url: '/mmw/modeling/subbasins/',
     model: SubbasinDetailModel,
+
+    getActive: function() {
+        return this.find(function(subbasinDetail) {
+            return subbasinDetail.get('active');
+        });
+    },
 });
 
 /**

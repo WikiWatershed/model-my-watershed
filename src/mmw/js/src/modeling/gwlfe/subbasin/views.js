@@ -34,7 +34,6 @@ var ResultView = Marionette.LayoutView.extend({
             collection: tabCollection,
             model: this.model,
             showHuc12: this.options.showHuc12,
-            huc12: this.options.huc12,
         }));
     },
 
@@ -98,7 +97,6 @@ var TableTabContentView = Marionette.LayoutView.extend({
 
         this.tableRegion.show(new TableView({
             model: this.options.result,
-            huc12: this.options.huc12,
             showHuc12: this.options.showHuc12,
         }));
     },
@@ -116,7 +114,6 @@ var TableTabContentCollectionView = Marionette.CollectionView.extend({
     childViewOptions: function() {
         return {
             result: this.model,
-            huc12: this.options.huc12,
             showHuc12: this.options.showHuc12,
         };
     },
@@ -134,6 +131,7 @@ var SourcesTableView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         var result = this.getResult();
+        if (!result) { return; }
         return {
             rows: result.Loads,
             summaryRow: result.SummaryLoads,
@@ -147,7 +145,9 @@ var SourcesTableView = Marionette.ItemView.extend({
 
 var Huc12SourcesTableView = SourcesTableView.extend({
     getResult: function() {
-        return this.model.get('result').HUC12s[this.options.huc12];
+        var huc12 = App.currentProject.get('subbasins').getActive();
+        if (!huc12) { return; }
+        return this.model.get('result').HUC12s[huc12.get('id')];
     }
 });
 
@@ -162,6 +162,13 @@ var Huc12TotalsTableView = Marionette.ItemView.extend({
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
     },
+    initialize: function() {
+        var self = this;
+        App.currentProject.get('subbasins').forEach(function(subbasin) {
+            self.listenTo(subbasin, 'change:highlighted', self.highlightRow, self);
+            self.listenTo(subbasin, 'change:active', self.options.showHuc12, self);
+        });
+    },
 
     templateHelpers: function() {
         var result = this.model.get('result');
@@ -173,7 +180,20 @@ var Huc12TotalsTableView = Marionette.ItemView.extend({
     },
 
     handleRowClick: function(e) {
-        this.options.showHuc12(e.currentTarget.getAttribute('data-huc12-id'));
+        var id = e.currentTarget.getAttribute('data-huc12-id');
+        App.currentProject.get('subbasins').get(id).setActive();
+        this.options.showHuc12();
+    },
+
+    highlightRow: function(subbasinDetail) {
+        var rowSelector = '[data-huc12-id="' + subbasinDetail.get('id') + '"]',
+            $rows = this.$el.find('.huc12-total'),
+            newHighlighted = $rows.filter(rowSelector),
+            oldHighlighted = $rows.filter('.highlighted');
+        oldHighlighted.removeClass('highlighted');
+        if (subbasinDetail.get('highlighted')) {
+            newHighlighted.addClass('highlighted');
+        }
     }
 });
 
@@ -181,7 +201,9 @@ var Huc12ResultView = ResultView.extend({
     className: 'result-region',
     templateHelpers: function() {
         var subbasinDetail = App.currentProject.get('subbasins')
-                                .get(this.options.huc12);
+                                .getActive();
+
+        if (!subbasinDetail) { return; }
         return {
             aoiDetails: subbasinDetail.get('name') + ', HUC-12 Watershed',
         };

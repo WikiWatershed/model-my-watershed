@@ -1045,7 +1045,7 @@ var MapView = Marionette.ItemView.extend({
                 });
 
                 layer.on('click', function() {
-                    subbasinDetail.set('active', true);
+                    subbasinDetail.setActive();
                 });
             }
         });
