@@ -166,10 +166,22 @@ var Huc12TotalsTableView = Marionette.ItemView.extend({
     },
     initialize: function() {
         var self = this;
-        App.currentProject.get('subbasins').forEach(function(subbasin) {
+        self.subbasinDetails = App.currentProject.get('subbasins');
+        if (this.subbasinDetails.isEmpty()) {
+            self.listenToOnce(self.subbasinDetails, 'add', this.setupSubbasinDetails, this);
+        } else {
+            this.setupSubbasinDetails();
+        }
+    },
+
+    setupSubbasinDetails: function() {
+        var self = this;
+        this.render();
+        this.subbasinDetails.forEach(function(subbasin) {
             self.listenTo(subbasin, 'change:highlighted', self.highlightRow, self);
             self.listenTo(subbasin, 'change:active', self.options.showHuc12, self);
         });
+        this.subbasinDetails.setClickable();
     },
 
     templateHelpers: function() {
@@ -182,17 +194,20 @@ var Huc12TotalsTableView = Marionette.ItemView.extend({
     },
 
     handleRowClick: function(e) {
+        if (this.subbasinDetails.isEmpty()) { return; }
         var id = e.currentTarget.getAttribute('data-huc12-id');
         App.currentProject.get('subbasins').get(id).setActive();
         this.options.showHuc12();
     },
 
     handleRowMouseOver: function(e) {
+        if (this.subbasinDetails.isEmpty()) { return; }
         var id = e.currentTarget.getAttribute('data-huc12-id');
         App.currentProject.get('subbasins').get(id).set('highlighted', true);
     },
 
     handleRowMouseOut: function(e) {
+        if (this.subbasinDetails.isEmpty()) { return; }
         var id = e.currentTarget.getAttribute('data-huc12-id');
         App.currentProject.get('subbasins').get(id).set('highlighted', false);
     },

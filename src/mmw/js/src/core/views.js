@@ -1080,7 +1080,9 @@ var MapView = Marionette.ItemView.extend({
                 });
 
                 layer.on('click', function() {
-                    subbasinDetail.setActive();
+                    if (subbasinDetail.get('clickable')) {
+                        subbasinDetail.setActive();
+                    }
                 });
             }
         });

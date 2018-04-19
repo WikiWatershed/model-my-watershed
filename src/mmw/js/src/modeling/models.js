@@ -806,6 +806,7 @@ var SubbasinDetailModel = Backbone.Model.extend({
         catchments: null,
         highlighted: false,
         active: false,
+        clickable: false,
     },
 
     setActive: function() {
@@ -826,6 +827,12 @@ var SubbasinDetailCollection = Backbone.Collection.extend({
             return subbasinDetail.get('active');
         });
     },
+
+    setClickable: function() {
+        this.forEach(function(subbasinDetail) {
+            subbasinDetail.set('clickable', true);
+        });
+    }
 });
 
 /**
