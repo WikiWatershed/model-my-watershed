@@ -574,7 +574,9 @@ var ProjectModel = Backbone.Model.extend({
             self.fetchGisDataPromise
                 .done(function(result, job) {
                     if (result) {
-                        self.set('gis_data', result);
+                        if (!isSubbasinMode) {
+                            self.set('gis_data', result);
+                        }
                         self.set(mapshedJobUUIDAttribute, job);
                         saveProjectAndScenarios();
                     }
