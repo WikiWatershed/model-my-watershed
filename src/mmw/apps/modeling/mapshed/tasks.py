@@ -113,12 +113,23 @@ def collect_data(geop_results, geojson, watershed_id=None, weather=None):
     z['Prec'] = prcps
 
     # Begin processing geop_result
-    z['AgLength'] = geop_result['ag_stream_pct'] * z['StreamLength']
-    z['UrbLength'] = z['StreamLength'] - z['AgLength']
-    z['n42'] = round(z['AgLength'] / 1000, 1)
-    z['n46e'] = (geop_result['med_high_urban_stream_pct'] *
-                 z['StreamLength'] / 1000)
-    z['n46f'] = geop_result['low_urban_stream_pct'] * z['StreamLength'] / 1000
+
+    # Set stream related variables to zero if AoI does not contain
+    # any streams.
+    if 'ag_stream_pct' in geop_result:
+        z['AgLength'] = geop_result['ag_stream_pct'] * z['StreamLength']
+        z['UrbLength'] = z['StreamLength'] - z['AgLength']
+        z['n42'] = round(z['AgLength'] / 1000, 1)
+        z['n46e'] = (geop_result['med_high_urban_stream_pct'] *
+                     z['StreamLength'] / 1000)
+        z['n46f'] = (geop_result['low_urban_stream_pct'] *
+                     z['StreamLength'] / 1000)
+    else:
+        z['AgLength'] = 0
+        z['UrbLength'] = 0
+        z['n42'] = 0
+        z['n46e'] = 0
+        z['n46f'] = 0
 
     z['CN'] = geop_result['cn']
     z['SedPhos'] = geop_result['soilp']
@@ -160,8 +171,14 @@ def collect_data(geop_results, geojson, watershed_id=None, weather=None):
     z['SedAFactor'] = sed_a_factor(geop_result['landuse_pcts'],
                                    z['CN'], z['AEU'], z['AvKF'], z['AvSlope'])
 
-    z['LS'] = ls_factors(geop_result['lu_stream_pct'], z['StreamLength'],
-                         z['Area'], z['AvSlope'], ag_lscp)
+    # Use zeroed out stream variables if there are no streams in the AoI
+    if 'lu_stream_pct' in geop_result:
+        z['LS'] = ls_factors(geop_result['lu_stream_pct'], z['StreamLength'],
+                             z['Area'], z['AvSlope'], ag_lscp)
+    else:
+        zeroed_lu_stream_pct = [0.0] * 16
+        z['LS'] = ls_factors(zeroed_lu_stream_pct, 0,
+                             z['Area'], z['AvSlope'], ag_lscp)
 
     z['P'] = p_factors(z['AvSlope'], ag_lscp)
 
@@ -510,7 +527,7 @@ def convert_data(payload, wkaoi):
 
     results = payload[wkaoi or NOWKAOI]
 
-    return [
+    data = [
         nlcd_soil(results['nlcd_soil']),
         soiln(results['soiln']),
         soilp(results['soilp']),
@@ -520,8 +537,12 @@ def convert_data(payload, wkaoi):
         nlcd_slope(results['nlcd_slope']),
         slope(results['slope']),
         nlcd_kfactor(results['nlcd_kfactor']),
-        nlcd_streams(results['nlcd_streams']),
     ]
+
+    if 'nlcd_streams' in results:
+        data.append(nlcd_streams(results['nlcd_streams']))
+
+    return data
 
 
 @shared_task
