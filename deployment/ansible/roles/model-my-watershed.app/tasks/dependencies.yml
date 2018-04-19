@@ -13,3 +13,13 @@
   when: "['packer'] | is_in(group_names)"
   notify:
     - Restart mmw-app
+
+- name: Remove suds
+  pip:
+    name: suds
+    state: absent
+
+- name: Reinstall suds-jurko
+  pip:
+    name: https://bitbucket.org/jurko/suds/get/94664ddd46a6.tar.gz#egg=suds-jurko
+    state: forcereinstall
