@@ -1037,10 +1037,12 @@ var MapView = Marionette.ItemView.extend({
 
     createSubbasinHuc12Shape: function(subbasinDetail) {
         var self = this,
-            geom = subbasinDetail.get('shape');
+            geom = subbasinDetail.get('shape'),
+            style = subbasinDetail.get('active') ?
+                subbasinHuc12ActiveStyle : subbasinHuc12Style;
 
         return new L.GeoJSON(geom, {
-            style: subbasinHuc12Style,
+            style: style,
             id: subbasinDetail.get('id'),
             onEachFeature: function(feature, layer) {
                 var highlightLayer = function() {
@@ -1088,6 +1090,16 @@ var MapView = Marionette.ItemView.extend({
         });
     },
 
+    clearSubbasinHuc12s: function() {
+        var self = this,
+            subbasins = this.model.get('subbasinHuc12s');
+        if (!subbasins) { return; }
+        subbasins.forEach(function(subbasinDetail) {
+            self.stopListening(subbasinDetail);
+        });
+        this.model.set('subbasinHuc12s', null);
+    },
+
     renderSubbasinHuc12s: function() {
         this._subbasinHuc12sLayer.clearLayers();
 
@@ -1104,6 +1116,16 @@ var MapView = Marionette.ItemView.extend({
             var layer = this.createSubbasinHuc12Shape(subbasinDetail);
             this._subbasinHuc12sLayer.addLayer(layer);
         }, this);
+
+        this._areaOfInterestLayer.bringToFront();
+        if (subbasinDetails.getActive()) {
+            var activeId = subbasinDetails.getActive().get('id');
+            _.forEach(this._subbasinHuc12sLayer.getLayers(), function(layer) {
+                if (layer.options.id === activeId) {
+                    layer.bringToFront();
+                }
+            });
+        }
     },
 
     renderSelectedGeocoderArea: function() {

@@ -976,6 +976,7 @@ var ResultsView = Marionette.LayoutView.extend({
                 this.monitorRegion.currentView.setVisibility(false);
                 this.modelingRegion.$el.removeClass('active');
                 App.getMapView().updateModifications(null);
+                App.getMapView().clearSubbasinHuc12s();
                 break;
             case utils.MONITOR:
                 if (App.map.get('dataCatalogDetailResult') !== null) {
@@ -988,6 +989,7 @@ var ResultsView = Marionette.LayoutView.extend({
                 this.monitorRegion.currentView.setVisibility(true);
                 this.modelingRegion.$el.removeClass('active');
                 App.getMapView().updateModifications(null);
+                App.getMapView().clearSubbasinHuc12s();
                 break;
             case utils.MODEL:
                 this.aoiRegion.currentView.$el.addClass('hidden');
@@ -998,6 +1000,9 @@ var ResultsView = Marionette.LayoutView.extend({
                 App.getMapView().updateModifications(
                     this.model.get('scenarios').getActiveScenario()
                 );
+                if (this.modelingRegion.currentView.subbasinRegion.hasView()) {
+                    App.map.set('subbasinHuc12s', App.currentProject.get('subbasins'));
+                }
                 break;
         }
     },
