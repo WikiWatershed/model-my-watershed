@@ -976,6 +976,7 @@ var ResultsView = Marionette.LayoutView.extend({
                 this.monitorRegion.currentView.setVisibility(false);
                 this.modelingRegion.$el.removeClass('active');
                 App.getMapView().updateModifications(null);
+                App.getMapView().clearSubbasinHuc12s();
                 break;
             case utils.MONITOR:
                 if (App.map.get('dataCatalogDetailResult') !== null) {
@@ -988,6 +989,7 @@ var ResultsView = Marionette.LayoutView.extend({
                 this.monitorRegion.currentView.setVisibility(true);
                 this.modelingRegion.$el.removeClass('active');
                 App.getMapView().updateModifications(null);
+                App.getMapView().clearSubbasinHuc12s();
                 break;
             case utils.MODEL:
                 this.aoiRegion.currentView.$el.addClass('hidden');
@@ -998,6 +1000,9 @@ var ResultsView = Marionette.LayoutView.extend({
                 App.getMapView().updateModifications(
                     this.model.get('scenarios').getActiveScenario()
                 );
+                if (this.modelingRegion.currentView.subbasinRegion.hasView()) {
+                    App.map.set('subbasinHuc12s', App.currentProject.get('subbasins'));
+                }
                 break;
         }
     },
@@ -1070,6 +1075,9 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
     showSubbasinHotSpotView: function() {
         this.panelsRegion.$el.hide();
         this.contentRegion.$el.hide();
+
+        App.map.set('subbasinHuc12s', App.currentProject.get('subbasins'));
+
         if (this.subbasinRegion.hasView()) {
             return this.subbasinRegion.$el.show();
         }
@@ -1089,20 +1097,22 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         this.subbasinRegion.$el.hide();
         this.panelsRegion.$el.show();
         this.contentRegion.$el.show();
+
+        App.map.set('subbasinHuc12s', null);
     },
 
-    showSubbasinHuc12View: function(huc12Id) {
+    showSubbasinHuc12View: function() {
         this.subbasinRegion.$el.hide();
 
         this.subbasinHuc12Region.show(new SubbasinHuc12TabContentView({
             model: this.collection.getResult('subbasin'),
             scenario: this.scenario,
             hideSubbasinHotSpotView: this.hideSubbasinHuc12View,
-            huc12: huc12Id,
         }));
     },
 
     hideSubbasinHuc12View: function() {
+        App.currentProject.get('subbasins').getActive().set('active', false);
         this.subbasinRegion.$el.show();
         this.subbasinHuc12Region.empty();
     }
@@ -1260,7 +1270,6 @@ var SubbasinHuc12TabContentView = SubbasinResultsTabContentView.extend({
         this.resultContentRegion.show(new gwlfeSubbasinViews.Huc12ResultView({
             model: this.model,
             scenario: this.options.scenario,
-            huc12: this.options.huc12,
         }));
     },
 });

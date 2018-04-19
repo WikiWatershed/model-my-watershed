@@ -19,7 +19,7 @@
     <tbody>
         {% for key, row in rows %}
             <tr class="huc12-total" data-huc12-id="{{ key }}">
-                <td class="text-left">{{ subbasins.get(key).get('name') }}</td>
+                <td class="text-left">{{ subbasins.get(key).get('name') if subbasins.get(key) else '--' }}</td>
                 <td class="text-right">{{ key }}</td>
                 <td class="strong text-right">{{ row.SummaryLoads.Area|round(2)|toLocaleString(2) }}</td>
                 <td class="strong text-right">{{ row.SummaryLoads.Sediment|round(2)|toLocaleString(2) }}</td>

@@ -31,6 +31,12 @@
     }
   }
 
+  tr.huc12-total.highlighted,
+  tr.huc12-total:hover,
+  tr.huc12-total:focus {
+    background-color: rgba(56, 155, 155, 0.3);
+  }
+
   tfoot th {
     border-left: 1px solid #ddd;
 

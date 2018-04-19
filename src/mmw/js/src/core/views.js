@@ -57,6 +57,33 @@ var dataCatalogDetailStyle = {
     fillOpacity: 0.5
 };
 
+var subbasinHuc12Style = {
+    stroke: true,
+    color: '#40c4c4',
+    weight: 2,
+    opacity: 1,
+    fill: true,
+    fillOpacity: 0,
+};
+
+var subbasinHuc12HighlightedStyle = {
+    stroke: true,
+    color: '#1d3331',
+    weight: 2,
+    opacity: 1,
+    fill: true,
+    fillOpacity: 0,
+};
+
+var subbasinHuc12ActiveStyle = {
+    stroke: true,
+    color: '#dbba29',
+    weight: 5,
+    opacity: 1,
+    fill: true,
+    fillOpacity: 0,
+};
+
 var selectedGeocoderAreaStyle = {
     stroke: true,
     fill: true,
@@ -270,6 +297,7 @@ var MapView = Marionette.ItemView.extend({
         'change:dataCatalogActiveResult': 'renderDataCatalogActiveResult',
         'change:dataCatalogDetailResult': 'renderDataCatalogDetailResult',
         'change:selectedGeocoderArea': 'renderSelectedGeocoderArea',
+        'change:subbasinHuc12s': 'renderSubbasinHuc12s',
     },
 
     // L.Map instance.
@@ -292,6 +320,9 @@ var MapView = Marionette.ItemView.extend({
     // The shape for a selected geocoder boundary result
     // L.FeatureGroup instance
     _selectedGeocoderAreaLayer: null,
+
+    // The HUC-12s that make up a shape in subbasin modeling mode
+    _subbasinHuc12sLayer: null,
 
     // Flag used to determine if AOI change should trigger a prompt.
     _areaOfInterestSet: false,
@@ -325,6 +356,7 @@ var MapView = Marionette.ItemView.extend({
         this._dataCatalogActiveLayer = new L.FeatureGroup();
         this._dataCatalogDetailLayer = new L.FeatureGroup();
         this._selectedGeocoderAreaLayer = new L.FeatureGroup();
+        this._subbasinHuc12sLayer = new L.FeatureGroup();
 
         this.fitToDefaultBounds();
 
@@ -366,6 +398,7 @@ var MapView = Marionette.ItemView.extend({
         map.addLayer(this._dataCatalogActiveLayer);
         map.addLayer(this._dataCatalogDetailLayer);
         map.addLayer(this._selectedGeocoderAreaLayer);
+        map.addLayer(this._subbasinHuc12sLayer);
     },
 
     fitToDefaultBounds: function() {
@@ -1000,6 +1033,99 @@ var MapView = Marionette.ItemView.extend({
 
         // Listen for clicks on the currently active layer
         this._dataCatalogResultsLayer.on('click', handleClick);
+    },
+
+    createSubbasinHuc12Shape: function(subbasinDetail) {
+        var self = this,
+            geom = subbasinDetail.get('shape'),
+            style = subbasinDetail.get('active') ?
+                subbasinHuc12ActiveStyle : subbasinHuc12Style;
+
+        return new L.GeoJSON(geom, {
+            style: style,
+            id: subbasinDetail.get('id'),
+            onEachFeature: function(feature, layer) {
+                var highlightLayer = function() {
+                    if (subbasinDetail.get('highlighted') && !subbasinDetail.get('active')) {
+                        layer.setStyle(subbasinHuc12HighlightedStyle);
+                        layer.bringToFront();
+                    } else {
+                        if (subbasinDetail.get('active')) {
+                            layer.setStyle(subbasinHuc12ActiveStyle);
+                        } else {
+                            layer.setStyle(subbasinHuc12Style);
+                            layer.bringToBack();
+                        }
+                    }
+                },
+                    setActiveLayer = function() {
+                        if (subbasinDetail.get('active')) {
+                            layer.setStyle(subbasinHuc12ActiveStyle);
+                            layer.bringToFront();
+                            self._leafletMap.fitBounds(layer.getBounds(), { reset: true });
+                        } else {
+                            layer.setStyle(subbasinHuc12Style);
+                            self.fitToAoi();
+                        }
+                    };
+
+
+                self.listenTo(subbasinDetail, 'change:highlighted', highlightLayer);
+                self.listenTo(subbasinDetail, 'change:active', setActiveLayer);
+
+                layer.on('mouseover', function() {
+                    subbasinDetail.set('highlighted', true);
+                });
+
+                layer.on('mouseout', function() {
+                    subbasinDetail.set('highlighted', false);
+                });
+
+                layer.on('click', function() {
+                    if (subbasinDetail.get('clickable')) {
+                        subbasinDetail.setActive();
+                    }
+                });
+            }
+        });
+    },
+
+    clearSubbasinHuc12s: function() {
+        var self = this,
+            subbasins = this.model.get('subbasinHuc12s');
+        if (!subbasins) { return; }
+        subbasins.forEach(function(subbasinDetail) {
+            self.stopListening(subbasinDetail);
+        });
+        this.model.set('subbasinHuc12s', null);
+    },
+
+    renderSubbasinHuc12s: function() {
+        this._subbasinHuc12sLayer.clearLayers();
+
+        var subbasinDetails = this.model.get('subbasinHuc12s');
+        if (!subbasinDetails) { return; }
+        // If there are no subbasins loaded yet to display,
+        // listen to the collection for changes, so we can try
+        // to render again when models get added
+        if (subbasinDetails.length <= 0) {
+            return this.listenToOnce(subbasinDetails, 'add', this.renderSubbasinHuc12s, this);
+        }
+
+        subbasinDetails.forEach(function(subbasinDetail) {
+            var layer = this.createSubbasinHuc12Shape(subbasinDetail);
+            this._subbasinHuc12sLayer.addLayer(layer);
+        }, this);
+
+        this._areaOfInterestLayer.bringToFront();
+        if (subbasinDetails.getActive()) {
+            var activeId = subbasinDetails.getActive().get('id');
+            _.forEach(this._subbasinHuc12sLayer.getLayers(), function(layer) {
+                if (layer.options.id === activeId) {
+                    layer.bringToFront();
+                }
+            });
+        }
     },
 
     renderSelectedGeocoderArea: function() {
