@@ -1103,9 +1103,15 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
 
     showSubbasinHuc12View: function() {
         this.subbasinRegion.$el.hide();
-
+        var activeSubbasin = App.currentProject.get('subbasins').getActive(),
+            subbasinResult = this.collection.getResult('subbasin');
+        if (activeSubbasin) {
+            var catchmentComids = Object.keys(
+                subbasinResult.get('result').HUC12s[activeSubbasin.get('id')].Catchments);
+            activeSubbasin.fetchCatchmentsIfNeeded(catchmentComids);
+        }
         this.subbasinHuc12Region.show(new SubbasinHuc12TabContentView({
-            model: this.collection.getResult('subbasin'),
+            model: subbasinResult,
             scenario: this.scenario,
             hideSubbasinHotSpotView: this.hideSubbasinHuc12View,
         }));
