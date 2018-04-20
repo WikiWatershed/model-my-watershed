@@ -169,7 +169,14 @@ def multi(self, opname, shapes, stream_lines):
     """
     data = settings.GEOP['json'][opname].copy()
     data['shapes'] = []
-    data['streamLines'] = stream_lines
+
+    # Don't include the RasterLinesJoin operation if the AoI does
+    # not contain streams
+    if stream_lines is not None:
+        data['streamLines'] = stream_lines
+    else:
+        data['operations'] = [o for o in data['operations']
+                              if not (o.get('name') == 'RasterLinesJoin')]
 
     operation_count = len(data['operations'])
     output = {}
