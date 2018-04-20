@@ -1103,7 +1103,7 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         this.panelsRegion.$el.show();
         this.contentRegion.$el.show();
 
-        App.map.set('subbasinHuc12s', null);
+        App.getMapView().clearSubbasinHuc12s();
     },
 
     showSubbasinHuc12View: function() {
