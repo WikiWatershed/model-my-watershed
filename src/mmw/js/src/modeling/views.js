@@ -1114,12 +1114,12 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
             var catchmentComids = Object.keys(
                 subbasinResult.get('result').HUC12s[activeSubbasin.get('id')].Catchments);
             activeSubbasin.fetchCatchmentsIfNeeded(catchmentComids);
+            this.subbasinHuc12Region.show(new SubbasinHuc12TabContentView({
+                model: subbasinResult,
+                scenario: this.scenario,
+                hideSubbasinHotSpotView: this.hideSubbasinHuc12View,
+            }));
         }
-        this.subbasinHuc12Region.show(new SubbasinHuc12TabContentView({
-            model: subbasinResult,
-            scenario: this.scenario,
-            hideSubbasinHotSpotView: this.hideSubbasinHuc12View,
-        }));
     },
 
     hideSubbasinHuc12View: function() {
