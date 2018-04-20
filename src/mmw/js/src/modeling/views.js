@@ -959,6 +959,11 @@ var ResultsView = Marionette.LayoutView.extend({
         ));
 
         if (scenario) {
+            // Close sub-basin of previous detail view if active
+            if (this.modelingRegion.hasView()) {
+                this.modelingRegion.currentView.hideSubbasinHotSpotView();
+            }
+
             this.modelingRegion.show(new ResultsDetailsView({
                 areaOfInterest: this.model.get('area_of_interest'),
                 collection: scenario.get('results'),
