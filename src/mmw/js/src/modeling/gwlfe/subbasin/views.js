@@ -166,23 +166,29 @@ var Huc12TotalsTableView = Marionette.ItemView.extend({
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
     },
+    onRender: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    },
     initialize: function() {
         var self = this;
         self.subbasinDetails = App.currentProject.get('subbasins');
         if (this.subbasinDetails.isEmpty()) {
-            self.listenToOnce(self.subbasinDetails, 'add', this.setupSubbasinDetails, this);
+            self.listenToOnce(self.subbasinDetails, 'add', this.renderAndSetup, this);
         } else {
             this.setupSubbasinDetails();
         }
     },
 
-    setupSubbasinDetails: function() {
-        var self = this;
+    renderAndSetup: function() {
         this.render();
+        this.setupSubbasinDetails();
+    },
+
+    setupSubbasinDetails: function() {
         this.subbasinDetails.forEach(function(subbasin) {
-            self.listenTo(subbasin, 'change:highlighted', self.highlightRow, self);
-            self.listenTo(subbasin, 'change:active', self.options.showHuc12, self);
-        });
+            this.listenTo(subbasin, 'change:highlighted', this.highlightRow, this);
+            this.listenTo(subbasin, 'change:active', this.options.showHuc12, this);
+        }, this);
         this.subbasinDetails.setClickable();
     },
 
@@ -235,25 +241,30 @@ var CatchmentsTableView = Marionette.ItemView.extend({
         'mouseover @ui.rows': 'handleRowMouseOver',
         'mouseout @ui.rows': 'handleRowMouseOut',
     },
+    onAttach: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    },
     onRender: function() {
         $('[data-toggle="table"]').bootstrapTable();
     },
     initialize: function() {
-        var self = this;
-        self.catchmentDetails = App.currentProject.get('subbasins').getActive().get('catchments');
+        this.catchmentDetails = App.currentProject.get('subbasins').getActive().get('catchments');
         if (this.catchmentDetails.isEmpty()) {
-            self.listenToOnce(self.catchmentDetails, 'add', this.setupCatchmentDetails, this);
+            this.listenToOnce(this.catchmentDetails, 'add', this.setupAndRender, this);
         } else {
             this.setupCatchmentDetails();
         }
     },
 
-    setupCatchmentDetails: function() {
-        var self = this;
+    setupAndRender: function() {
         this.render();
+        this.setupCatchmentDetails();
+    },
+
+    setupCatchmentDetails: function() {
         this.catchmentDetails.forEach(function(catchment) {
-            self.listenTo(catchment, 'change:highlighted', self.highlightRow, self);
-        });
+            this.listenTo(catchment, 'change:highlighted', this.highlightRow, this);
+        }, this);
     },
 
     templateHelpers: function() {
