@@ -2,12 +2,14 @@
 
 var Marionette = require('../../../../shim/backbone.marionette'),
     $ = require('jquery'),
+    _ = require('lodash'),
     App = require('../../../app'),
     models = require('./models'),
     resultTmpl = require('./templates/result.html'),
     tableTabContentTmpl = require('./templates/tableTabContent.html'),
     tableTabPanelTmpl = require('./templates/tableTabPanel.html'),
     huc12TotalsTableTmpl = require('./templates/huc12TotalsTable.html'),
+    catchmentTableTmpl = require('./templates/catchmentTable.html'),
     sourcesTableTmpl = require('./templates/sourcesTable.html');
 
 var ResultView = Marionette.LayoutView.extend({
@@ -224,6 +226,85 @@ var Huc12TotalsTableView = Marionette.ItemView.extend({
     }
 });
 
+var CatchmentsTableView = Marionette.ItemView.extend({
+    template: catchmentTableTmpl,
+    ui: {
+        'rows': '.subbasin-catchment-row',
+    },
+    events: {
+        'mouseover @ui.rows': 'handleRowMouseOver',
+        'mouseout @ui.rows': 'handleRowMouseOut',
+    },
+    onRender: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    },
+    initialize: function() {
+        var self = this;
+        self.catchmentDetails = App.currentProject.get('subbasins').getActive().get('catchments');
+        if (this.catchmentDetails.isEmpty()) {
+            self.listenToOnce(self.catchmentDetails, 'add', this.setupCatchmentDetails, this);
+        } else {
+            this.setupCatchmentDetails();
+        }
+    },
+
+    setupCatchmentDetails: function() {
+        var self = this;
+        this.render();
+        this.catchmentDetails.forEach(function(catchment) {
+            self.listenTo(catchment, 'change:highlighted', self.highlightRow, self);
+        });
+    },
+
+    templateHelpers: function() {
+        var catchmentDetails = this.catchmentDetails,
+            activeSubbasinId = App.currentProject.get('subbasins').getActive().get('id'),
+            huc12Result = this.model.get('result').HUC12s[activeSubbasinId],
+            catchments = huc12Result.Catchments,
+            summaryConcentrations = _.reduce(catchments, function(acc, catchment) {
+                acc.Sediment += catchment.LoadingRateConcentrations.Sediment;
+                acc.TotalN += catchment.LoadingRateConcentrations.TotalN;
+                acc.TotalP += catchment.LoadingRateConcentrations.TotalP;
+                return acc;
+            }, { Sediment: 0, TotalN: 0, TotalP: 0 }),
+            summaryRow = {
+                TotalLoadingRates: huc12Result.SummaryLoads,
+                LoadingRateConcentrations: summaryConcentrations,
+                Area: huc12Result.SummaryLoads.Area,
+                Source: 'Entire area',
+            };
+
+        return {
+            rows: catchments,
+            catchmentDetails: catchmentDetails,
+            summaryRow: summaryRow,
+        };
+    },
+
+    handleRowMouseOver: function(e) {
+        if (this.catchmentDetails.isEmpty()) { return; }
+        var id = e.currentTarget.getAttribute('data-comid');
+        this.catchmentDetails.get(id).set('highlighted', true);
+    },
+
+    handleRowMouseOut: function(e) {
+        if (this.catchmentDetails.isEmpty()) { return; }
+        var id = e.currentTarget.getAttribute('data-comid');
+        this.catchmentDetails.get(id).set('highlighted', false);
+    },
+
+    highlightRow: function(catchment) {
+        var rowSelector = '[data-comid="' + catchment.get('id') + '"]',
+            $rows = this.$el.find('.subbasin-catchment-row'),
+            newHighlighted = $rows.filter(rowSelector),
+            oldHighlighted = $rows.filter('.highlighted');
+        oldHighlighted.removeClass('highlighted');
+        if (catchment.get('highlighted')) {
+            newHighlighted.addClass('highlighted');
+        }
+    }
+});
+
 var Huc12ResultView = ResultView.extend({
     className: 'result-region',
     templateHelpers: function() {
@@ -255,8 +336,7 @@ var tableViews = {
     aoiSources: SourcesTableView,
     huc12Totals: Huc12TotalsTableView,
     huc12Sources: Huc12SourcesTableView,
-    // TODO CatchmentsTableView
-    catchments: Huc12SourcesTableView,
+    catchments: CatchmentsTableView,
 };
 
 module.exports = {
