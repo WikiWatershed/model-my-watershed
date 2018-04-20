@@ -1000,7 +1000,12 @@ var ResultsView = Marionette.LayoutView.extend({
                 App.getMapView().updateModifications(
                     this.model.get('scenarios').getActiveScenario()
                 );
-                if (this.modelingRegion.currentView.subbasinRegion.hasView()) {
+                var modelingView = this.modelingRegion.currentView,
+                    isVisible = function(region) {
+                        return region.hasView() && region.$el.is(':visible');
+                    };
+                if (isVisible(modelingView.subbasinRegion) ||
+                    isVisible(modelingView.subbasinHuc12Region)) {
                     App.map.set('subbasinHuc12s', App.currentProject.get('subbasins'));
                 }
                 break;
