@@ -381,7 +381,7 @@ WSGI_APPLICATION = '%s.wsgi.application' % SITE_NAME
 # END WSGI CONFIGURATION
 
 OMGEO_SETTINGS = [[
-    'omgeo.services.EsriWGSSSL',
+    'omgeo.services.esri.EsriWGS',
     {
         'preprocessors': [],
         'postprocessors': [
