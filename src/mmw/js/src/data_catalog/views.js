@@ -46,6 +46,7 @@ var ENTER_KEYCODE = 13,
         cinergi: searchResultCinergiTmpl,
         hydroshare: searchResultHydroshareTmpl,
         cuahsi: searchResultCuahsiTmpl,
+        usgswqp: searchResultUSGSWQPTmpl
     };
 
 var HeaderView = Marionette.LayoutView.extend({
@@ -851,10 +852,77 @@ var CuahsiSwitcherView = Marionette.ItemView.extend({
     }
 });
 
+var ResultDetailsUSGSWQPView = ResultDetailsBaseView.extend({
+    template: resultDetailsUSGSWQPTmpl,
+
+    templateHelpers: function() {
+        var id = this.model.get('id'),
+            location = id.substring(id.indexOf(':') + 1);
+
+        return {
+            location: location,
+        };
+    },
+
+    ui: _.defaults({
+        chartRegion: '#cuahsi-chart-region',
+        tableRegion: '#cuahsi-table-region',
+    }, ResultDetailsBaseView.prototype.ui),
+
+    regions: {
+        statusRegion: '#cuahsi-status-region',
+        switcherRegion: '#cuahsi-switcher-region',
+        chartRegion: '#cuahsi-chart-region',
+        tableRegion: '#cuahsi-table-region',
+    },
+
+    modelEvents: {
+        'change:mode': 'showChartOrTable',
+    },
+
+    initialize: function() {
+        this.model.set('mode', 'table');
+        // this.model.fetchCuahsiValues();
+    },
+
+    onShow: function() {
+        // var variables = this.model.get('variables');
+        //
+        // this.statusRegion.show(new CuahsiStatusView({ model: this.model }));
+        // this.switcherRegion.show(new CuahsiSwitcherView({ model: this.model }));
+        // this.tableRegion.show(new CuahsiTableView({ collection: variables }));
+    },
+
+    onDomRefresh: function() {
+        window.closePopover();
+        this.$('[data-toggle="popover"]').popover({
+            placement: 'right',
+            trigger: 'click',
+        });
+    },
+
+    showChartOrTable: function() {
+        if (this.model.get('mode') === 'table') {
+            this.ui.chartRegion.addClass('hidden');
+            this.ui.tableRegion.removeClass('hidden');
+        } else {
+            this.ui.chartRegion.removeClass('hidden');
+            this.ui.tableRegion.addClass('hidden');
+
+            if (!this.chartRegion.hasView()) {
+                this.chartRegion.show(new CuahsiChartView({
+                    collection: this.model.get('variables'),
+                }));
+            }
+        }
+    }
+});
+
 var CATALOG_RESULT_DETAILS_VIEW = {
     cinergi: ResultDetailsCinergiView,
     hydroshare: ResultDetailsHydroshareView,
     cuahsi: ResultDetailsCuahsiView,
+    usgswqp: ResultDetailsUSGSWQPView
 };
 
 var CuahsiTableView = Marionette.ItemView.extend({
