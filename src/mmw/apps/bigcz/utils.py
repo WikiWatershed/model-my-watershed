@@ -8,6 +8,24 @@ from apps.bigcz.models import BBox
 from rest_framework.exceptions import APIException
 import dateutil.parser
 
+from django.db import connection
+from geopandas import GeoDataFrame
+
+
+def get_huc_info(geom):
+    op = '@'
+    sql = '''select id,huc12,geom 
+             from boundary_huc12 
+             where geom {operator} st_setsrid(st_geomfromgeojson('{geom}'),4326)'''.format
+
+    gdf = GeoDataFrame.from_postgis(sql(operator=op, geom=geom), connection, geom_col='geom')
+
+    if len(gdf) == 0:
+        op = '&&'
+        gdf = GeoDataFrame.from_postgis(sql(operator=op, geom=geom), connection, geom_col='geom')
+
+    return gdf
+
 
 def parse_date(value):
     if not value:
