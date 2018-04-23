@@ -469,13 +469,13 @@ var LayerTabCollection = Backbone.Collection.extend({
 var TaskModel = Backbone.Model.extend({
     defaults: {
         pollInterval: 1000,
-        /* The timeout is set to 45 seconds here, while in the
-           src/mmw/apps/modeling/tasks.py file it is set to 42
-           seconds.  That was done because the countdown starts in the
-           front-end before it does in the back-end and the we would
-           like them to finish at approximately the same time (with the
-           back-end finishing earlier if they are not synced). */
-        timeout: 45000,
+        /* The timeout is set to 160 seconds here. It may be set
+           differently in other parts of the app, in most cases less.
+           The front-end timeout is the highest to allow for patient
+           users time to let large processing finish (subbasin, large
+           areas of interest, etc). In most cases, back-end jobs will
+           finish or fail before this is hit. */
+        timeout: 160000,
     },
 
     url: function(queryParams) {
