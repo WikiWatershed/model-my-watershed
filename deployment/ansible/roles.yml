@@ -47,4 +47,4 @@
 - src: azavea.java
   version: 0.6.1
 - src: azavea.docker
-  version: 1.0.2
+  version: 2.0.0
