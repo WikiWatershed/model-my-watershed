@@ -960,7 +960,9 @@ var ResultsView = Marionette.LayoutView.extend({
 
         if (scenario) {
             // Close sub-basin of previous detail view if active
+            // And make any active subbasin detail inactive
             if (this.modelingRegion.hasView()) {
+                this.modelingRegion.currentView.hideSubbasinHuc12View();
                 this.modelingRegion.currentView.hideSubbasinHotSpotView();
             }
 
@@ -1139,7 +1141,10 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
     },
 
     hideSubbasinHuc12View: function() {
-        App.currentProject.get('subbasins').getActive().set('active', false);
+        var activeSubbasin = App.currentProject.get('subbasins').getActive();
+        if (activeSubbasin) {
+            activeSubbasin.set('active', false);
+        }
         App.getMapView().clearSubbasinCatchments();
         this.subbasinRegion.$el.show();
         this.subbasinHuc12Region.empty();
