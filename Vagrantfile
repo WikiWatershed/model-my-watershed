@@ -74,7 +74,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     }.merge(VAGRANT_NETWORK_OPTIONS)
 
     services.vm.provider "virtualbox" do |v|
-      v.memory = 1024
+      v.memory = 2048
     end
 
     services.vm.provision "ansible" do |ansible|
@@ -109,6 +109,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     worker.vm.provider "virtualbox" do |v|
       v.memory = 2048
+      v.cpus = 2
     end
 
     worker.vm.provision "ansible" do |ansible|
@@ -150,7 +151,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     app.ssh.forward_x11 = true
 
     app.vm.provider "virtualbox" do |v|
-      v.memory = 1024
+      v.memory = 2048
     end
 
     app.vm.provision "ansible" do |ansible|
