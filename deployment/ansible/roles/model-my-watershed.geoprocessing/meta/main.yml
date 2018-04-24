@@ -1,9 +1,5 @@
 ---
 dependencies:
-  - {
-      role: "azavea.java",
-      java_major_version: "8",
-      java_version: "8u162*"
-    }
+  - { role: "azavea.java" }
   - { role: "model-my-watershed.base" }
   - { role: "model-my-watershed.nginx" }

@@ -36,8 +36,8 @@ nodejs_npm_version: 2.1.17
 
 apache_version: "2.4.7-*"
 
-java_version: "7u151-*"
-java_major_version: "7"
+java_version: "8u162-*"
+java_major_version: "8"
 java_flavor: "openjdk"
 
 graphite_carbon_version: "0.9.13-pre1"
