@@ -982,6 +982,7 @@ var ResultsView = Marionette.LayoutView.extend({
                 this.modelingRegion.$el.removeClass('active');
                 App.getMapView().updateModifications(null);
                 App.getMapView().clearSubbasinHuc12s();
+                App.getMapView().clearSubbasinCatchments();
                 break;
             case utils.MONITOR:
                 if (App.map.get('dataCatalogDetailResult') !== null) {
@@ -995,6 +996,7 @@ var ResultsView = Marionette.LayoutView.extend({
                 this.modelingRegion.$el.removeClass('active');
                 App.getMapView().updateModifications(null);
                 App.getMapView().clearSubbasinHuc12s();
+                App.getMapView().clearSubbasinCatchments();
                 break;
             case utils.MODEL:
                 this.aoiRegion.currentView.$el.addClass('hidden');
@@ -1006,12 +1008,17 @@ var ResultsView = Marionette.LayoutView.extend({
                     this.model.get('scenarios').getActiveScenario()
                 );
                 var modelingView = this.modelingRegion.currentView,
+                    subbasins = App.currentProject.get('subbasins'),
+                    activeSubbasin = subbasins.getActive(),
                     isVisible = function(region) {
                         return region.hasView() && region.$el.is(':visible');
                     };
                 if (isVisible(modelingView.subbasinRegion) ||
                     isVisible(modelingView.subbasinHuc12Region)) {
                     App.map.set('subbasinHuc12s', App.currentProject.get('subbasins'));
+                }
+                if (isVisible(modelingView.subbasinHuc12Region) && activeSubbasin) {
+                    App.map.set('subbasinCatchments', activeSubbasin.get('catchments'));
                 }
                 break;
         }
@@ -1119,6 +1126,10 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
             var catchmentComids = Object.keys(
                 subbasinResult.get('result').HUC12s[activeSubbasin.get('id')].Catchments);
             activeSubbasin.fetchCatchmentsIfNeeded(catchmentComids);
+
+            App.getMapView().clearSubbasinCatchments();
+            App.map.set('subbasinCatchments', activeSubbasin.get('catchments'));
+
             this.subbasinHuc12Region.show(new SubbasinHuc12TabContentView({
                 model: subbasinResult,
                 scenario: this.scenario,
@@ -1129,6 +1140,7 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
 
     hideSubbasinHuc12View: function() {
         App.currentProject.get('subbasins').getActive().set('active', false);
+        App.getMapView().clearSubbasinCatchments();
         this.subbasinRegion.$el.show();
         this.subbasinHuc12Region.empty();
     }

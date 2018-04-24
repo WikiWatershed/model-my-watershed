@@ -284,6 +284,7 @@ function projectCleanUp() {
 
     App.getMapView().updateModifications(null);
     App.getMapView().clearSubbasinHuc12s();
+    App.getMapView().clearSubbasinCatchments();
     App.rootView.subHeaderRegion.empty();
     App.rootView.sidebarRegion.empty();
     App.rootView.compareRegion.empty();

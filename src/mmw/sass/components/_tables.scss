@@ -33,7 +33,11 @@
 
   tr.huc12-total.highlighted,
   tr.huc12-total:hover,
-  tr.huc12-total:focus {
+  tr.huc12-total:focus,
+  tr.subbasin-catchment-row.highlighted,
+  tr.subbasin-catchment-row:hover,
+  tr.subbasin-catchment-row:focus,
+  {
     background-color: rgba(56, 155, 155, 0.3);
   }
 
