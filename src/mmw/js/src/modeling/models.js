@@ -817,7 +817,26 @@ var SubbasinDetailModel = Backbone.Model.extend({
             currentActive.set('active', false);
         }
         this.set('active', true);
-    }
+    },
+
+    initialize: function() {
+        this.set('catchments', new SubbasinCatchmentDetailCollection());
+    },
+
+    fetchCatchmentsIfNeeded: function(comids) {
+        var catchments = this.get('catchments');
+        if (!catchments.isEmpty() || this.fetchCatchmentsPromise) {
+            return this.fetchCatchmentsPromise || $.when();
+        }
+
+        var encodedComids = encodeURIComponent(JSON.stringify(comids));
+        this.fetchCatchmentsPromise = catchments.fetch({
+            data: { catchment_comids: encodedComids},
+        }).always(function() {
+            delete this.fetchCatchmentsPromise;
+        });
+        return this.fetchCatchmentsPromise;
+    },
 });
 
 var SubbasinDetailCollection = Backbone.Collection.extend({
@@ -835,6 +854,20 @@ var SubbasinDetailCollection = Backbone.Collection.extend({
             subbasinDetail.set('clickable', true);
         });
     }
+});
+
+var SubbasinCatchmentDetailModel = Backbone.Model.extend({
+    defaults: {
+        shape: null,
+        stream: null,
+        area: null,
+        highlighted: false,
+    }
+});
+
+var SubbasinCatchmentDetailCollection = Backbone.Collection.extend({
+    url: '/mmw/modeling/subbasins/catchments/',
+    model: SubbasinCatchmentDetailModel,
 });
 
 /**

@@ -11,6 +11,9 @@ from django.db import connection
 from django.contrib.gis.geos import WKBReader
 
 
+HECTARES_PER_SQM = 0.0001
+
+
 def split_into_huc12s(code, id):
     layer = _get_boundary_layer_by_code(code)
     if not layer or 'table_name' not in layer:
@@ -54,6 +57,23 @@ def get_huc12s(huc12_ids):
         cursor.execute(sql, [tuple(huc12_ids)])
         rows = cursor.fetchall()
         return [{'id': row[0], 'name': row[1], 'shape': json.loads(row[2])}
+                for row in rows]
+
+
+def get_catchments(comids):
+    sql = '''
+          SELECT comid,
+                 ST_Area(ST_Transform(geom_catch, 5070)),
+                 ST_AsGeoJSON(geom_catch),
+                 ST_AsGeoJSON(geom_stream)
+          FROM nhdpluscatchment
+          WHERE comid in %s
+          '''
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [tuple(comids)])
+        rows = cursor.fetchall()
+        return [{'id': row[0], 'area': row[1] * HECTARES_PER_SQM,
+                 'shape': json.loads(row[2]), 'stream': json.loads(row[3])}
                 for row in rows]
 
 
