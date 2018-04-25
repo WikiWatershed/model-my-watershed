@@ -47,7 +47,9 @@ from apps.modeling.calcs import (get_layer_shape,
                                  get_catchments,
                                  apply_gwlfe_modifications,
                                  boundary_search_context,
-                                 split_into_huc12s)
+                                 split_into_huc12s,
+                                 sum_subbasin_stream_lengths,
+                                 )
 
 
 @decorators.api_view(['GET', 'POST'])
@@ -251,6 +253,8 @@ def _initiate_subbasin_gwlfe_job_chain(model_input, mapshed_job_uuid,
     watershed_id_chunks = [watershed_ids[x:x+chunk_size]
                            for x in range(0, len(watershed_ids), chunk_size)]
 
+    stream_lengths = sum_subbasin_stream_lengths(model_input)
+
     # Create a celery group where each task in the group
     # runs gwlfe synchronously on a chunk of subbasin ids.
     # This is to keep the number of tasks in the group low. Celery will
@@ -260,10 +264,11 @@ def _initiate_subbasin_gwlfe_job_chain(model_input, mapshed_job_uuid,
     # to generate a response (and thus timeout) because we'll be waiting to
     # submit one task for each subbasin.
     gwlfe_chunked_group = group(iter([
-        tasks.run_gwlfe_chunks.s(mapshed_job_uuid,
-                                 modifications,
-                                 inputmod_hash,
-                                 watershed_id_chunk)
+        tasks.run_subbasin_gwlfe_chunks.s(mapshed_job_uuid,
+                                          modifications,
+                                          stream_lengths,
+                                          inputmod_hash,
+                                          watershed_id_chunk)
         for watershed_id_chunk in watershed_id_chunks]))
 
     post_process = \
