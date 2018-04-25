@@ -1094,13 +1094,11 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         this.contentRegion.$el.hide();
 
         App.map.set('subbasinHuc12s', App.currentProject.get('subbasins'));
+        this.scenario.set('is_subbasin_active', true);
 
         if (this.subbasinRegion.hasView()) {
             return this.subbasinRegion.$el.show();
         }
-
-        var isSubbasinMode = true;
-        App.currentProject.fetchResultsIfNeeded(isSubbasinMode);
 
         this.subbasinRegion.show(new SubbasinResultsTabContentView({
             model: this.collection.getResult('subbasin'),
@@ -1115,6 +1113,7 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         this.panelsRegion.$el.show();
         this.contentRegion.$el.show();
 
+        this.scenario.set('is_subbasin_active', false);
         App.getMapView().clearSubbasinHuc12s();
     },
 
