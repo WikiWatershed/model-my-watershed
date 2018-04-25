@@ -80,6 +80,42 @@ var subbasinHuc12ActiveStyle = {
     color: '#dbba29',
     weight: 5,
     opacity: 1,
+    fill: false,
+};
+
+var subbasinCatchmentStyle = {
+    stroke: true,
+    color: 'grey',
+    weight: 2,
+    opacity: 1,
+    fill: true,
+    fillOpacity: 0.3,
+};
+
+var subbasinCatchmentHighlightedStyle = {
+    stroke: true,
+    color: '#1d3331',
+    weight: 2,
+    opacity: 1,
+    fill: true,
+    fillColor: 'grey',
+    fillOpacity: 0.3,
+};
+
+var subbasinStreamCatchmentStyle = {
+    stroke: true,
+    color: 'blue',
+    weight: 2,
+    opacity: 1,
+    fill: true,
+    fillOpacity: 0,
+};
+
+var subbasinStreamCatchmentHighlightedStyle = {
+    stroke: true,
+    color: 'red',
+    weight: 2,
+    opacity: 1,
     fill: true,
     fillOpacity: 0,
 };
@@ -298,6 +334,7 @@ var MapView = Marionette.ItemView.extend({
         'change:dataCatalogDetailResult': 'renderDataCatalogDetailResult',
         'change:selectedGeocoderArea': 'renderSelectedGeocoderArea',
         'change:subbasinHuc12s': 'renderSubbasinHuc12s',
+        'change:subbasinCatchments': 'renderSubbasinCatchments',
     },
 
     // L.Map instance.
@@ -323,6 +360,8 @@ var MapView = Marionette.ItemView.extend({
 
     // The HUC-12s that make up a shape in subbasin modeling mode
     _subbasinHuc12sLayer: null,
+    // An active Subbasin HUC-12s catchments
+    _subbasinCatchmentsLayer: null,
 
     // Flag used to determine if AOI change should trigger a prompt.
     _areaOfInterestSet: false,
@@ -357,6 +396,7 @@ var MapView = Marionette.ItemView.extend({
         this._dataCatalogDetailLayer = new L.FeatureGroup();
         this._selectedGeocoderAreaLayer = new L.FeatureGroup();
         this._subbasinHuc12sLayer = new L.FeatureGroup();
+        this._subbasinCatchmentsLayer = new L.FeatureGroup();
 
         this.fitToDefaultBounds();
 
@@ -399,6 +439,7 @@ var MapView = Marionette.ItemView.extend({
         map.addLayer(this._dataCatalogDetailLayer);
         map.addLayer(this._selectedGeocoderAreaLayer);
         map.addLayer(this._subbasinHuc12sLayer);
+        map.addLayer(this._subbasinCatchmentsLayer);
     },
 
     fitToDefaultBounds: function() {
@@ -1090,14 +1131,33 @@ var MapView = Marionette.ItemView.extend({
         });
     },
 
-    clearSubbasinHuc12s: function() {
+    clearCollectionAndListeners: function(collectionAttributeName) {
         var self = this,
-            subbasins = this.model.get('subbasinHuc12s');
-        if (!subbasins) { return; }
-        subbasins.forEach(function(subbasinDetail) {
-            self.stopListening(subbasinDetail);
+            collection = this.model.get(collectionAttributeName);
+        if (!collection) { return; }
+        collection.forEach(function(collectionModel) {
+            self.stopListening(collectionModel);
         });
-        this.model.set('subbasinHuc12s', null);
+        this.model.set(collectionAttributeName, null);
+    },
+
+    clearSubbasinHuc12s: function() {
+        this.clearCollectionAndListeners('subbasinHuc12s');
+    },
+
+    clearSubbasinCatchments: function() {
+        this.clearCollectionAndListeners('subbasinCatchments');
+    },
+
+    bringActiveSubbasinToFront: function(subbasinDetails) {
+        if (subbasinDetails.getActive()) {
+            var activeId = subbasinDetails.getActive().get('id');
+            _.forEach(this._subbasinHuc12sLayer.getLayers(), function(layer) {
+                if (layer.options.id === activeId) {
+                    layer.bringToFront();
+                }
+            });
+        }
     },
 
     renderSubbasinHuc12s: function() {
@@ -1118,14 +1178,89 @@ var MapView = Marionette.ItemView.extend({
         }, this);
 
         this._areaOfInterestLayer.bringToFront();
-        if (subbasinDetails.getActive()) {
-            var activeId = subbasinDetails.getActive().get('id');
-            _.forEach(this._subbasinHuc12sLayer.getLayers(), function(layer) {
-                if (layer.options.id === activeId) {
-                    layer.bringToFront();
-                }
-            });
+        this.bringActiveSubbasinToFront(subbasinDetails);
+    },
+
+    createSubbasinCatchmentStreamLayer: function(catchment) {
+        var self = this,
+            geom = catchment.get('stream');
+
+        return new L.GeoJSON(geom, {
+            style: subbasinStreamCatchmentStyle,
+            id: catchment.get('id'),
+            onEachFeature: function(feature, layer) {
+                var highlightLayer = function() {
+                    if (catchment.get('highlighted')) {
+                        layer.setStyle(subbasinStreamCatchmentHighlightedStyle);
+                        layer.bringToFront();
+                    } else {
+                        layer.setStyle(subbasinStreamCatchmentStyle);
+                        layer.bringToBack();
+                    }
+                };
+
+                self.listenTo(catchment, 'change:highlighted', highlightLayer);
+
+                layer.on('mouseover', function() {
+                    catchment.set('highlighted', true);
+                });
+
+                layer.on('mouseout', function() {
+                    catchment.set('highlighted', false);
+                });
+            }
+        });
+    },
+
+    createSubbasinCatchmentLayer: function(catchment) {
+        var self = this,
+            geom = catchment.get('shape');
+
+        return new L.GeoJSON(geom, {
+            style: subbasinCatchmentStyle,
+            id: catchment.get('id'),
+            onEachFeature: function(feature, layer) {
+                var highlightLayer = function() {
+                    if (catchment.get('highlighted')) {
+                        layer.setStyle(subbasinCatchmentHighlightedStyle);
+                        layer.bringToFront();
+                    } else {
+                        layer.setStyle(subbasinCatchmentStyle);
+                        layer.bringToBack();
+                    }
+                };
+
+                self.listenTo(catchment, 'change:highlighted', highlightLayer);
+
+                layer.on('mouseover', function() {
+                    catchment.set('highlighted', true);
+                });
+
+                layer.on('mouseout', function() {
+                    catchment.set('highlighted', false);
+                });
+            }
+        });
+    },
+
+    renderSubbasinCatchments: function() {
+        this._subbasinCatchmentsLayer.clearLayers();
+        this._areaOfInterestLayer.bringToFront();
+
+        var catchments = this.model.get('subbasinCatchments');
+        if (!catchments) { return; }
+        if (catchments.isEmpty()) {
+            return this.listenToOnce(catchments, 'add', this.renderSubbasinCatchments, this);
         }
+
+        catchments.forEach(function(catchment) {
+            var catchmentLayer = this.createSubbasinCatchmentLayer(catchment);
+            var streamLayer = this.createSubbasinCatchmentStreamLayer(catchment);
+            this._subbasinCatchmentsLayer.addLayer(catchmentLayer);
+            this._subbasinCatchmentsLayer.addLayer(streamLayer);
+        }, this);
+
+        this.bringActiveSubbasinToFront(this.model.get('subbasinHuc12s'));
     },
 
     renderSelectedGeocoderArea: function() {
