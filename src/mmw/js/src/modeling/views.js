@@ -1261,6 +1261,7 @@ var SubbasinResultsTabContentView = Marionette.LayoutView.extend({
 
     ui: {
         'close': '[data-action="close-subbasin-view"]',
+        'spinner': '.subbasin-spinner',
     },
 
     events: {
@@ -1269,6 +1270,14 @@ var SubbasinResultsTabContentView = Marionette.LayoutView.extend({
 
     regions: {
         resultContentRegion: '.result-content-region',
+    },
+
+    modelEvents: {
+        'change:polling': 'showSpinner',
+    },
+
+    showSpinner: function() {
+        this.ui.spinner.toggleClass('hidden', !this.model.get('polling'));
     },
 
     handleSubbasinCloseButtonClick: function() {

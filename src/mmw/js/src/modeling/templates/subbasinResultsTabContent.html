@@ -5,6 +5,7 @@
            id="close-subbasin-view">
             <i class="fa fa-arrow-left black"></i> {{ backButtonText or "Exit subbasin attenuated results" }}
         </a>
+        <i class="subbasin-spinner fa fa-circle-o-notch fa-spin {{ 'hidden' if not polling }}"></i>
     </div>
     <div class="result-content-region"></div>
 </div>
