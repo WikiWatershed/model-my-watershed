@@ -127,6 +127,15 @@ var TableTabContentCollectionView = Marionette.CollectionView.extend({
 var SourcesTableView = Marionette.ItemView.extend({
     template: sourcesTableTmpl,
 
+    ui: {
+        'table': 'table.table',
+        'downloadCsvButton': '[data-action="download-csv"]',
+    },
+
+    events: {
+        'click @ui.downloadCsvButton': 'downloadCsv',
+    },
+
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
     },
@@ -142,6 +151,18 @@ var SourcesTableView = Marionette.ItemView.extend({
 
     getResult: function() {
         return this.model.get('result');
+    },
+
+    getCSVFileNamePrefix: function() {
+        return 'subbasin_water_quality_loads_';
+    },
+
+    downloadCsv: function() {
+        var prefix = this.getCSVFileNamePrefix(),
+            timestamp = new Date().toISOString(),
+            filename = prefix + timestamp;
+
+        this.ui.table.tableExport({ type: 'csv', fileName: filename });
     }
 });
 
@@ -150,6 +171,12 @@ var Huc12SourcesTableView = SourcesTableView.extend({
         var huc12 = App.currentProject.get('subbasins').getActive();
         if (!huc12) { return; }
         return this.model.get('result').HUC12s[huc12.get('id')];
+    },
+
+    getCSVFileNamePrefix: function() {
+        var huc12 = App.currentProject.get('subbasins').getActive();
+        if (!huc12) { return; }
+        return 'subbasin_huc12_' + huc12.get('id') + '_water_quality_loads_';
     }
 });
 
@@ -157,11 +184,15 @@ var Huc12TotalsTableView = Marionette.ItemView.extend({
     template: huc12TotalsTableTmpl,
     ui: {
         'rows': '.huc12-total',
+        'table': 'table.table',
+        'downloadCsvButton': '[data-action="download-csv"]',
     },
+
     events: {
         'click @ui.rows': 'handleRowClick',
         'mouseover @ui.rows': 'handleRowMouseOver',
         'mouseout @ui.rows': 'handleRowMouseOut',
+        'click @ui.downloadCsvButton': 'downloadCsv',
     },
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
@@ -229,6 +260,14 @@ var Huc12TotalsTableView = Marionette.ItemView.extend({
         if (subbasinDetail.get('highlighted')) {
             newHighlighted.addClass('highlighted');
         }
+    },
+
+    downloadCsv: function() {
+        var prefix = 'subbasin_huc12_water_quality_totals_',
+            timestamp = new Date().toISOString(),
+            filename = prefix + timestamp;
+
+        this.ui.table.tableExport({ type: 'csv', fileName: filename });
     }
 });
 
@@ -236,10 +275,13 @@ var CatchmentsTableView = Marionette.ItemView.extend({
     template: catchmentTableTmpl,
     ui: {
         'rows': '.subbasin-catchment-row',
+        'table': 'table.table',
+        'downloadCsvButton': '[data-action="download-csv"]',
     },
     events: {
         'mouseover @ui.rows': 'handleRowMouseOver',
         'mouseout @ui.rows': 'handleRowMouseOut',
+        'click @ui.downloadCsvButton': 'downloadCsv',
     },
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
@@ -313,6 +355,15 @@ var CatchmentsTableView = Marionette.ItemView.extend({
         if (catchment.get('highlighted')) {
             newHighlighted.addClass('highlighted');
         }
+    },
+
+    downloadCsv: function() {
+        var activeSubbasinId = App.currentProject.get('subbasins').getActive().get('id'),
+            prefix = 'subbasin_huc12_' + activeSubbasinId + '_catchments_water_quality_',
+            timestamp = new Date().toISOString(),
+            filename = prefix + timestamp;
+
+        this.ui.table.tableExport({ type: 'csv', fileName: filename });
     }
 });
 
