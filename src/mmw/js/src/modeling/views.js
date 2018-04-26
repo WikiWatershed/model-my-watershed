@@ -1221,7 +1221,7 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
             modelPackage = App.currentProject.get('model_package'),
             resultName = this.model.get('name'),
             ResultView = getResultView(modelPackage, resultName),
-            tmvModel = new coreModels.TaskMessageViewModel(),
+            tmvModel = new coreModels.TaskMessageViewModel({ numSteps: getNumSteps(modelPackage) }),
             polling = this.model.get('polling'),
             result = this.model.get('result'),
             mapshedErrorAttribute = this.model.isSubbasin() ?
@@ -1242,7 +1242,7 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
 
         // Only show this on the initial polling. On subsequent polling, we
         // keep showing the current results.
-        tmvModel.setWorking('Gathering Data');
+        tmvModel.setWorking('Gathering Data', 1, getExpectedWaitTime(modelPackage, resultName, true));
 
         if (error) {
             if (error.timeout) {
@@ -1256,10 +1256,12 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
         }
 
         if (polling) {
-            tmvModel.setWorking('Calculating Results');
+            tmvModel.setWorking('Calculating Results', 2, getExpectedWaitTime(modelPackage, resultName));
         }
 
-        self.resultRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
+        self.resultRegion.show(new coreViews.TaskMessageView({
+            model: tmvModel,
+        }));
     }
 });
 
@@ -1361,6 +1363,38 @@ function getResultView(modelPackage, resultName) {
                     console.log('Result not supported.');
             }
             break;
+        default:
+            console.log('Model package ' + modelPackage + ' not supported.');
+    }
+}
+
+function getNumSteps(modelPackage) {
+    switch (modelPackage) {
+        case utils.TR55_PACKAGE:
+            return 1;
+        case utils.GWLFE:
+            return 2;
+        default:
+            console.log('Model package ' + modelPackage + ' not supported.');
+    }
+}
+
+function getExpectedWaitTime(modelPackage, resultName, isGatheringData) {
+    switch (modelPackage) {
+        case utils.TR55_PACKAGE:
+            return null;
+        case utils.GWLFE:
+            if (resultName !== 'subbasin') {
+                if (isGatheringData) {
+                    return 'This may take up to 30 seconds';
+                }
+
+                return 'This may take a few seconds';
+            }
+            if (isGatheringData) {
+                return 'This may take up to a minute';
+            }
+            return 'This may take up to 3 minutes';
         default:
             console.log('Model package ' + modelPackage + ' not supported.');
     }

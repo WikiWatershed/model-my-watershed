@@ -4,5 +4,14 @@
     </div>
     <div class="analyze-message-text">
         {{ message }}
+        {% if numSteps > 1 and not hasError %}
+            ({{ currentStep }} / {{ numSteps }})
+        {% endif %}
     </div>
+
+    {% if not hasError %}
+        <div class="analyze-message-sub-text">
+            {{ waitTimeMessage }}
+        </div>
+    {% endif %}
 </div>
