@@ -272,18 +272,29 @@ var CatchmentsTableView = Marionette.ItemView.extend({
             activeSubbasinId = App.currentProject.get('subbasins').getActive().get('id'),
             huc12Result = this.model.get('result').HUC12s[activeSubbasinId],
             catchments = huc12Result.Catchments,
-            summaryConcentrations = _.reduce(catchments, function(acc, catchment) {
-                acc.Sediment += catchment.LoadingRateConcentrations.Sediment;
-                acc.TotalN += catchment.LoadingRateConcentrations.TotalN;
-                acc.TotalP += catchment.LoadingRateConcentrations.TotalP;
+            summaryRow = _.reduce(catchments, function(acc, catchment, comid) {
+                var summaryConcentrations = acc.LoadingRateConcentrations,
+                    summaryLoadingRates = acc.TotalLoadingRates;
+
+                summaryConcentrations.Sediment += catchment.LoadingRateConcentrations.Sediment;
+                summaryConcentrations.TotalN += catchment.LoadingRateConcentrations.TotalN;
+                summaryConcentrations.TotalP += catchment.LoadingRateConcentrations.TotalP;
+                acc.LoadingRateConcentrations = summaryConcentrations;
+
+                summaryLoadingRates.Sediment += catchment.TotalLoadingRates.Sediment;
+                summaryLoadingRates.TotalN += catchment.TotalLoadingRates.TotalN;
+                summaryLoadingRates.TotalP += catchment.TotalLoadingRates.TotalP;
+                acc.TotalLoadingRates = summaryLoadingRates;
+                if (!catchmentDetails.isEmpty()) {
+                    acc.Area += catchmentDetails.get(parseInt(comid)).get('area');
+                }
                 return acc;
-            }, { Sediment: 0, TotalN: 0, TotalP: 0 }),
-            summaryRow = {
-                TotalLoadingRates: huc12Result.SummaryLoads,
-                LoadingRateConcentrations: summaryConcentrations,
-                Area: huc12Result.SummaryLoads.Area,
-                Source: 'Entire area',
-            };
+            }, {
+                    TotalLoadingRates: { Sediment: 0, TotalN: 0, TotalP: 0 },
+                    LoadingRateConcentrations: { Sediment: 0, TotalN: 0, TotalP: 0 },
+                    Area: 0,
+                    Source: 'Entire area',
+            });
 
         return {
             rows: catchments,

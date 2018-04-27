@@ -5,6 +5,9 @@ from __future__ import absolute_import
 
 import json
 
+from copy import deepcopy
+from collections import namedtuple
+
 from django.conf import settings
 from django.db import connection
 
@@ -78,11 +81,43 @@ def get_catchments(comids):
 
 
 def apply_gwlfe_modifications(gms, modifications):
-    modified_gms = {}
-    modified_gms.update(gms)
+    modified_gms = deepcopy(gms)
     for mod in modifications:
         modified_gms.update(mod)
     return modified_gms
+
+
+def apply_subbasin_gwlfe_modifications(gms, modifications,
+                                       total_stream_lengths):
+    ag_stream_length_weighted_keys = ['n43', 'n45', 'n46c']
+    urban_stream_length_weighted_keys = ['UrbBankStab']
+    weighted_modifications = deepcopy(modifications)
+    ag_pct_total_stream_length = gms['AgLength'] / total_stream_lengths['ag']
+    urban_pct_total_stream_length = \
+        (gms['StreamLength'] - gms['AgLength']) / total_stream_lengths['urban']
+
+    for mod in weighted_modifications:
+        for key, val in mod.iteritems():
+            if key in ag_stream_length_weighted_keys:
+                val *= ag_pct_total_stream_length
+            elif key in urban_stream_length_weighted_keys:
+                val *= urban_pct_total_stream_length
+            mod[key] = val
+
+    return apply_gwlfe_modifications(gms, weighted_modifications)
+
+
+def sum_subbasin_stream_lengths(gmss):
+    stream_length_summary = namedtuple('StreamLengthSummary',
+                                       ['ag', 'urban'])
+
+    def add_stream_length(summary, gms):
+        ag = summary.ag + gms['AgLength']
+        urban = summary.urban + gms['StreamLength'] - gms['AgLength']
+        return stream_length_summary(ag=ag, urban=urban)
+
+    return reduce(add_stream_length, gmss.itervalues(),
+                  stream_length_summary(0, 0))
 
 
 def get_layer_shape(table_code, id):

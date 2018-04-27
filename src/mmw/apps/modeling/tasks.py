@@ -17,7 +17,7 @@ from django_statsd.clients import statsd
 from django.conf import settings
 
 from apps.core.models import Job
-from apps.modeling.calcs import apply_gwlfe_modifications
+from apps.modeling.calcs import apply_subbasin_gwlfe_modifications
 from apps.modeling.tr55.utils import (aoi_resolution,
                                       precipitation,
                                       apply_modifications_to_census,
@@ -355,15 +355,20 @@ def run_gwlfe(model_input, inputmod_hash, watershed_id=None):
 
 @shared_task
 @statsd.timer(__name__ + '.run_gwlfe_chunks')
-def run_gwlfe_chunks(mapshed_job_uuid, modifications,
-                     inputmod_hash, watershed_ids):
+def run_subbasin_gwlfe_chunks(mapshed_job_uuid, modifications,
+                              total_stream_lengths, inputmod_hash,
+                              watershed_ids):
     mapshed_job = Job.objects.get(uuid=mapshed_job_uuid)
     model_input = json.loads(mapshed_job.result)
 
-    return [run_gwlfe(apply_gwlfe_modifications(model_input[watershed_id],
-                                                modifications),
-                      inputmod_hash,
-                      watershed_id) for watershed_id in watershed_ids]
+    return [
+        run_gwlfe(apply_subbasin_gwlfe_modifications(model_input[watershed_id],
+                                                     modifications,
+                                                     total_stream_lengths),
+                  inputmod_hash,
+                  watershed_id)
+        for watershed_id in watershed_ids
+    ]
 
 
 @shared_task

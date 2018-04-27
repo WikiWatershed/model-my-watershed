@@ -463,13 +463,15 @@ var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
-        var gis_data = this.model.getGisData().model_input,
+        var gis_data = utils.applyGwlfeModifications(
+                App.currentProject.get('gis_data'),
+                this.model.get('modifications')),
             is_gwlfe = App.currentProject.get('model_package') === utils.GWLFE && !_.isEmpty(gis_data);
 
         return {
             is_gwlfe: is_gwlfe,
             csrftoken: csrf.getToken(),
-            gis_data: gis_data,
+            gis_data: JSON.stringify(gis_data),
             editable: isEditable(this.model),
             is_new: this.model.isNew(),
         };
@@ -548,7 +550,9 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
     },
 
     templateHelpers: function() {
-        var gis_data = App.currentProject.get('gis_data'),
+        var gis_data = utils.applyGwlfeModifications(
+                App.currentProject.get('gis_data'),
+                this.model.get('modifications')),
             is_gwlfe = App.currentProject.get('model_package') === utils.GWLFE &&
                         gis_data !== null &&
                         gis_data !== '{}' &&
@@ -556,7 +560,7 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
 
             return {
                 is_gwlfe: is_gwlfe,
-                gis_data: gis_data,
+                gis_data: JSON.stringify(gis_data),
                 csrftoken: csrf.getToken(),
                 editable: isEditable(this.model),
                 is_new: this.model.isNew(),
@@ -880,7 +884,10 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
     },
 
     templateHelpers: function() {
-        var gisData = this.currentConditions.getGisData().model_input,
+        // We don't need to apply modifications to gis_data here
+        // because it's only downloadable from this view if
+        // the only scenario is current conditions (ie no modifications)
+        var gisData = this.model.get('gis_data'),
             isGwlfe = this.modelPackage === utils.GWLFE && !_.isEmpty(gisData),
             isOnlyCurrentConditions = this.collection.length === 1 &&
                 this.collection.first().get('is_current_conditions'),
@@ -890,7 +897,7 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
             isOnlyCurrentConditions: isOnlyCurrentConditions,
             isGwlfe: isGwlfe,
             csrftoken: csrf.getToken(),
-            gis_data: gisData,
+            gis_data: JSON.stringify(gisData),
             editable: editable
         };
     },
@@ -1096,13 +1103,11 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         this.contentRegion.$el.hide();
 
         App.map.set('subbasinHuc12s', App.currentProject.get('subbasins'));
+        this.scenario.set('is_subbasin_active', true);
 
         if (this.subbasinRegion.hasView()) {
             return this.subbasinRegion.$el.show();
         }
-
-        var isSubbasinMode = true;
-        App.currentProject.fetchResultsIfNeeded(isSubbasinMode);
 
         this.subbasinRegion.show(new SubbasinResultsTabContentView({
             model: this.collection.getResult('subbasin'),
@@ -1117,6 +1122,7 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         this.panelsRegion.$el.show();
         this.contentRegion.$el.show();
 
+        this.scenario.set('is_subbasin_active', false);
         App.getMapView().clearSubbasinHuc12s();
     },
 
@@ -1272,6 +1278,7 @@ var SubbasinResultsTabContentView = Marionette.LayoutView.extend({
 
     ui: {
         'close': '[data-action="close-subbasin-view"]',
+        'spinner': '.subbasin-spinner',
     },
 
     events: {
@@ -1280,6 +1287,14 @@ var SubbasinResultsTabContentView = Marionette.LayoutView.extend({
 
     regions: {
         resultContentRegion: '.result-content-region',
+    },
+
+    modelEvents: {
+        'change:polling': 'showSpinner',
+    },
+
+    showSpinner: function() {
+        this.ui.spinner.toggleClass('hidden', !this.model.get('polling'));
     },
 
     handleSubbasinCloseButtonClick: function() {

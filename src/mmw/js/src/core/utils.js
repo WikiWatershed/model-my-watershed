@@ -707,6 +707,18 @@ var utils = {
 
         // other browser
         return false;
+    },
+
+    applyGwlfeModifications: function(gisData, modifications) {
+        // Merge the values that came back from Mapshed with the values
+        // in the modifications from the user.
+        var gms = lodash.cloneDeep(gisData);
+
+        modifications.forEach(function(mod) {
+            _.assign(gms, mod.get('output'));
+        });
+
+        return gms;
     }
 };
 
