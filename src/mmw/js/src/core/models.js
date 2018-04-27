@@ -597,12 +597,19 @@ var TaskModel = Backbone.Model.extend({
 });
 
 var TaskMessageViewModel = Backbone.Model.extend({
+    defaults: {
+        currentStep: 0,
+        numSteps: 1,
+        hasError: false,
+    },
     message: null,
+    waitTimeMessage: null,
     iconClass: null,
 
     setError: function(message) {
         this.set('message', message);
         this.set('iconClasses', 'fa fa-exclamation-triangle');
+        this.set('hasError', true);
     },
 
     setTimeoutError: function() {
@@ -611,11 +618,15 @@ var TaskMessageViewModel = Backbone.Model.extend({
 
         this.set('message', message);
         this.set('iconClasses', 'fa fa-exclamation-triangle');
+        this.set('hasError', true);
     },
 
-    setWorking: function(message) {
+    setWorking: function(message, step, waitTimeMessage) {
         this.set('message', message);
+        this.set('waitTimeMessage', waitTimeMessage);
+        this.set('currentStep', step);
         this.set('iconClasses', 'fa fa-circle-o-notch fa-spin');
+        this.set('hasError', false);
     }
 });
 
