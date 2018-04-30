@@ -634,7 +634,7 @@ var PlotView = ModalBaseView.extend({
     plotMeasurement: function(varId) {
         var self = this,
             series = self.model.get('seriesMap')[varId],
-            dataUrl = settings.vizerUrls.variable
+            dataUrl = settings.get('vizer_urls').variable
                .replace(/{{var_id}}/, varId)
                .replace(/{{asset_id}}/, this.model.get('siso_id'));
 

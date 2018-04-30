@@ -4,7 +4,7 @@
         dest="{{ envdir_home }}/{{ item.key }}"
         owner=root
         group=mmw
-        mode=0750
+        mode=0440
   with_dict: "{{ app_config }}"
   notify:
     - Restart mmw-app

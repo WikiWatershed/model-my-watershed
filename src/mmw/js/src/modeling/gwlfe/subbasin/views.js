@@ -2,12 +2,14 @@
 
 var Marionette = require('../../../../shim/backbone.marionette'),
     $ = require('jquery'),
+    _ = require('lodash'),
     App = require('../../../app'),
     models = require('./models'),
     resultTmpl = require('./templates/result.html'),
     tableTabContentTmpl = require('./templates/tableTabContent.html'),
     tableTabPanelTmpl = require('./templates/tableTabPanel.html'),
     huc12TotalsTableTmpl = require('./templates/huc12TotalsTable.html'),
+    catchmentTableTmpl = require('./templates/catchmentTable.html'),
     sourcesTableTmpl = require('./templates/sourcesTable.html');
 
 var ResultView = Marionette.LayoutView.extend({
@@ -125,6 +127,15 @@ var TableTabContentCollectionView = Marionette.CollectionView.extend({
 var SourcesTableView = Marionette.ItemView.extend({
     template: sourcesTableTmpl,
 
+    ui: {
+        'table': 'table.table',
+        'downloadCsvButton': '[data-action="download-csv"]',
+    },
+
+    events: {
+        'click @ui.downloadCsvButton': 'downloadCsv',
+    },
+
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
     },
@@ -140,6 +151,18 @@ var SourcesTableView = Marionette.ItemView.extend({
 
     getResult: function() {
         return this.model.get('result');
+    },
+
+    getCSVFileNamePrefix: function() {
+        return 'subbasin_water_quality_loads_';
+    },
+
+    downloadCsv: function() {
+        var prefix = this.getCSVFileNamePrefix(),
+            timestamp = new Date().toISOString(),
+            filename = prefix + timestamp;
+
+        this.ui.table.tableExport({ type: 'csv', fileName: filename });
     }
 });
 
@@ -148,6 +171,12 @@ var Huc12SourcesTableView = SourcesTableView.extend({
         var huc12 = App.currentProject.get('subbasins').getActive();
         if (!huc12) { return; }
         return this.model.get('result').HUC12s[huc12.get('id')];
+    },
+
+    getCSVFileNamePrefix: function() {
+        var huc12 = App.currentProject.get('subbasins').getActive();
+        if (!huc12) { return; }
+        return 'subbasin_huc12_' + huc12.get('id') + '_water_quality_loads_';
     }
 });
 
@@ -155,32 +184,42 @@ var Huc12TotalsTableView = Marionette.ItemView.extend({
     template: huc12TotalsTableTmpl,
     ui: {
         'rows': '.huc12-total',
+        'table': 'table.table',
+        'downloadCsvButton': '[data-action="download-csv"]',
     },
+
     events: {
         'click @ui.rows': 'handleRowClick',
         'mouseover @ui.rows': 'handleRowMouseOver',
         'mouseout @ui.rows': 'handleRowMouseOut',
+        'click @ui.downloadCsvButton': 'downloadCsv',
     },
     onAttach: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    },
+    onRender: function() {
         $('[data-toggle="table"]').bootstrapTable();
     },
     initialize: function() {
         var self = this;
         self.subbasinDetails = App.currentProject.get('subbasins');
         if (this.subbasinDetails.isEmpty()) {
-            self.listenToOnce(self.subbasinDetails, 'add', this.setupSubbasinDetails, this);
+            self.listenToOnce(self.subbasinDetails, 'add', this.renderAndSetup, this);
         } else {
             this.setupSubbasinDetails();
         }
     },
 
-    setupSubbasinDetails: function() {
-        var self = this;
+    renderAndSetup: function() {
         this.render();
+        this.setupSubbasinDetails();
+    },
+
+    setupSubbasinDetails: function() {
         this.subbasinDetails.forEach(function(subbasin) {
-            self.listenTo(subbasin, 'change:highlighted', self.highlightRow, self);
-            self.listenTo(subbasin, 'change:active', self.options.showHuc12, self);
-        });
+            this.listenTo(subbasin, 'change:highlighted', this.highlightRow, this);
+            this.listenTo(subbasin, 'change:active', this.options.showHuc12, this);
+        }, this);
         this.subbasinDetails.setClickable();
     },
 
@@ -221,6 +260,121 @@ var Huc12TotalsTableView = Marionette.ItemView.extend({
         if (subbasinDetail.get('highlighted')) {
             newHighlighted.addClass('highlighted');
         }
+    },
+
+    downloadCsv: function() {
+        var prefix = 'subbasin_huc12_water_quality_totals_',
+            timestamp = new Date().toISOString(),
+            filename = prefix + timestamp;
+
+        this.ui.table.tableExport({ type: 'csv', fileName: filename });
+    }
+});
+
+var CatchmentsTableView = Marionette.ItemView.extend({
+    template: catchmentTableTmpl,
+    ui: {
+        'rows': '.subbasin-catchment-row',
+        'table': 'table.table',
+        'downloadCsvButton': '[data-action="download-csv"]',
+    },
+    events: {
+        'mouseover @ui.rows': 'handleRowMouseOver',
+        'mouseout @ui.rows': 'handleRowMouseOut',
+        'click @ui.downloadCsvButton': 'downloadCsv',
+    },
+    onAttach: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    },
+    onRender: function() {
+        $('[data-toggle="table"]').bootstrapTable();
+    },
+    initialize: function() {
+        this.catchmentDetails = App.currentProject.get('subbasins').getActive().get('catchments');
+        if (this.catchmentDetails.isEmpty()) {
+            this.listenToOnce(this.catchmentDetails, 'add', this.setupAndRender, this);
+        } else {
+            this.setupCatchmentDetails();
+        }
+    },
+
+    setupAndRender: function() {
+        this.render();
+        this.setupCatchmentDetails();
+    },
+
+    setupCatchmentDetails: function() {
+        this.catchmentDetails.forEach(function(catchment) {
+            this.listenTo(catchment, 'change:highlighted', this.highlightRow, this);
+        }, this);
+    },
+
+    templateHelpers: function() {
+        var catchmentDetails = this.catchmentDetails,
+            activeSubbasinId = App.currentProject.get('subbasins').getActive().get('id'),
+            huc12Result = this.model.get('result').HUC12s[activeSubbasinId],
+            catchments = huc12Result.Catchments,
+            summaryRow = _.reduce(catchments, function(acc, catchment, comid) {
+                var summaryConcentrations = acc.LoadingRateConcentrations,
+                    summaryLoadingRates = acc.TotalLoadingRates;
+
+                summaryConcentrations.Sediment += catchment.LoadingRateConcentrations.Sediment;
+                summaryConcentrations.TotalN += catchment.LoadingRateConcentrations.TotalN;
+                summaryConcentrations.TotalP += catchment.LoadingRateConcentrations.TotalP;
+                acc.LoadingRateConcentrations = summaryConcentrations;
+
+                summaryLoadingRates.Sediment += catchment.TotalLoadingRates.Sediment;
+                summaryLoadingRates.TotalN += catchment.TotalLoadingRates.TotalN;
+                summaryLoadingRates.TotalP += catchment.TotalLoadingRates.TotalP;
+                acc.TotalLoadingRates = summaryLoadingRates;
+                if (!catchmentDetails.isEmpty()) {
+                    acc.Area += catchmentDetails.get(parseInt(comid)).get('area');
+                }
+                return acc;
+            }, {
+                    TotalLoadingRates: { Sediment: 0, TotalN: 0, TotalP: 0 },
+                    LoadingRateConcentrations: { Sediment: 0, TotalN: 0, TotalP: 0 },
+                    Area: 0,
+                    Source: 'Entire area',
+            });
+
+        return {
+            rows: catchments,
+            catchmentDetails: catchmentDetails,
+            summaryRow: summaryRow,
+        };
+    },
+
+    handleRowMouseOver: function(e) {
+        if (this.catchmentDetails.isEmpty()) { return; }
+        var id = e.currentTarget.getAttribute('data-comid');
+        this.catchmentDetails.get(id).set('highlighted', true);
+    },
+
+    handleRowMouseOut: function(e) {
+        if (this.catchmentDetails.isEmpty()) { return; }
+        var id = e.currentTarget.getAttribute('data-comid');
+        this.catchmentDetails.get(id).set('highlighted', false);
+    },
+
+    highlightRow: function(catchment) {
+        var rowSelector = '[data-comid="' + catchment.get('id') + '"]',
+            $rows = this.$el.find('.subbasin-catchment-row'),
+            newHighlighted = $rows.filter(rowSelector),
+            oldHighlighted = $rows.filter('.highlighted');
+        oldHighlighted.removeClass('highlighted');
+        if (catchment.get('highlighted')) {
+            newHighlighted.addClass('highlighted');
+        }
+    },
+
+    downloadCsv: function() {
+        var activeSubbasinId = App.currentProject.get('subbasins').getActive().get('id'),
+            prefix = 'subbasin_huc12_' + activeSubbasinId + '_catchments_water_quality_',
+            timestamp = new Date().toISOString(),
+            filename = prefix + timestamp;
+
+        this.ui.table.tableExport({ type: 'csv', fileName: filename });
     }
 });
 
@@ -255,8 +409,7 @@ var tableViews = {
     aoiSources: SourcesTableView,
     huc12Totals: Huc12TotalsTableView,
     huc12Sources: Huc12SourcesTableView,
-    // TODO CatchmentsTableView
-    catchments: Huc12SourcesTableView,
+    catchments: CatchmentsTableView,
 };
 
 module.exports = {

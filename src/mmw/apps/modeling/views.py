@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import json
+import urllib
 
 from celery import chain, group
 
@@ -43,9 +44,12 @@ from apps.modeling.serializers import (ProjectSerializer,
                                        AoiSerializer)
 from apps.modeling.calcs import (get_layer_shape,
                                  get_huc12s,
+                                 get_catchments,
                                  apply_gwlfe_modifications,
                                  boundary_search_context,
-                                 split_into_huc12s)
+                                 split_into_huc12s,
+                                 sum_subbasin_stream_lengths,
+                                 )
 
 
 @decorators.api_view(['GET', 'POST'])
@@ -249,6 +253,8 @@ def _initiate_subbasin_gwlfe_job_chain(model_input, mapshed_job_uuid,
     watershed_id_chunks = [watershed_ids[x:x+chunk_size]
                            for x in range(0, len(watershed_ids), chunk_size)]
 
+    stream_lengths = sum_subbasin_stream_lengths(model_input)
+
     # Create a celery group where each task in the group
     # runs gwlfe synchronously on a chunk of subbasin ids.
     # This is to keep the number of tasks in the group low. Celery will
@@ -258,10 +264,11 @@ def _initiate_subbasin_gwlfe_job_chain(model_input, mapshed_job_uuid,
     # to generate a response (and thus timeout) because we'll be waiting to
     # submit one task for each subbasin.
     gwlfe_chunked_group = group(iter([
-        tasks.run_gwlfe_chunks.s(mapshed_job_uuid,
-                                 modifications,
-                                 inputmod_hash,
-                                 watershed_id_chunk)
+        tasks.run_subbasin_gwlfe_chunks.s(mapshed_job_uuid,
+                                          modifications,
+                                          stream_lengths,
+                                          inputmod_hash,
+                                          watershed_id_chunk)
         for watershed_id_chunk in watershed_id_chunks]))
 
     post_process = \
@@ -455,6 +462,18 @@ def subbasins_detail(request):
     if gmss:
         huc12s = get_huc12s(gmss.keys())
         return Response(huc12s)
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@decorators.api_view(['GET'])
+@decorators.permission_classes((AllowAny, ))
+def subbasin_catchments_detail(request):
+    encoded_comids = request.query_params.get('catchment_comids')
+    catchment_comids = json.loads(urllib.unquote(encoded_comids))
+    if catchment_comids and len(catchment_comids) > 0:
+        catchments = get_catchments(catchment_comids)
+        return Response(catchments)
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
 

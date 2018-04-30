@@ -5,10 +5,16 @@ from __future__ import absolute_import
 
 import json
 
+from copy import deepcopy
+from collections import namedtuple
+
 from django.conf import settings
 from django.db import connection
 
 from django.contrib.gis.geos import WKBReader
+
+
+HECTARES_PER_SQM = 0.0001
 
 
 def split_into_huc12s(code, id):
@@ -57,12 +63,61 @@ def get_huc12s(huc12_ids):
                 for row in rows]
 
 
+def get_catchments(comids):
+    sql = '''
+          SELECT comid,
+                 ST_Area(ST_Transform(geom_catch, 5070)),
+                 ST_AsGeoJSON(geom_catch),
+                 ST_AsGeoJSON(geom_stream)
+          FROM nhdpluscatchment
+          WHERE comid in %s
+          '''
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [tuple(comids)])
+        rows = cursor.fetchall()
+        return [{'id': row[0], 'area': row[1] * HECTARES_PER_SQM,
+                 'shape': json.loads(row[2]), 'stream': json.loads(row[3])}
+                for row in rows]
+
+
 def apply_gwlfe_modifications(gms, modifications):
-    modified_gms = {}
-    modified_gms.update(gms)
+    modified_gms = deepcopy(gms)
     for mod in modifications:
         modified_gms.update(mod)
     return modified_gms
+
+
+def apply_subbasin_gwlfe_modifications(gms, modifications,
+                                       total_stream_lengths):
+    ag_stream_length_weighted_keys = ['n43', 'n45', 'n46c']
+    urban_stream_length_weighted_keys = ['UrbBankStab']
+    weighted_modifications = deepcopy(modifications)
+    ag_pct_total_stream_length = gms['AgLength'] / total_stream_lengths['ag']
+    urban_pct_total_stream_length = \
+        (gms['StreamLength'] - gms['AgLength']) / total_stream_lengths['urban']
+
+    for mod in weighted_modifications:
+        for key, val in mod.iteritems():
+            if key in ag_stream_length_weighted_keys:
+                val *= ag_pct_total_stream_length
+            elif key in urban_stream_length_weighted_keys:
+                val *= urban_pct_total_stream_length
+            mod[key] = val
+
+    return apply_gwlfe_modifications(gms, weighted_modifications)
+
+
+def sum_subbasin_stream_lengths(gmss):
+    stream_length_summary = namedtuple('StreamLengthSummary',
+                                       ['ag', 'urban'])
+
+    def add_stream_length(summary, gms):
+        ag = summary.ag + gms['AgLength']
+        urban = summary.urban + gms['StreamLength'] - gms['AgLength']
+        return stream_length_summary(ag=ag, urban=urban)
+
+    return reduce(add_stream_length, gmss.itervalues(),
+                  stream_length_summary(0, 0))
 
 
 def get_layer_shape(table_code, id):

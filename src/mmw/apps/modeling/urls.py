@@ -26,6 +26,8 @@ urlpatterns = patterns(
     url(r'tr55/$', views.start_tr55, name='start_tr55'),
     url(r'gwlfe/$', views.start_gwlfe, name='start_gwlfe'),
     url(r'subbasins/$', views.subbasins_detail, name='subbasins_detail'),
+    url(r'subbasins/catchments/$', views.subbasin_catchments_detail,
+        name='subbasin_catchments_detail'),
     url(r'boundary-layers/(?P<table_code>\w+)/(?P<obj_id>[0-9]+)/$',
         views.boundary_layer_detail, name='boundary_layer_detail'),
     url(r'boundary-layers-search/$',

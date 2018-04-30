@@ -16,7 +16,7 @@
   file: path="{{ envdir_home }}"
         owner=root
         group=mmw
-        mode=0750
+        mode=0550
         state=directory
 
 - name: Configure base settings
@@ -24,7 +24,7 @@
         dest="{{ envdir_home }}/{{ item.key }}"
         owner=root
         group=mmw
-        mode=0750
+        mode=0440
   with_dict: "{{ envdir_config }}"
   notify:
     - Restart mmw-app

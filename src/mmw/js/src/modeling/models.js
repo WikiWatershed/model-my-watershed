@@ -343,15 +343,15 @@ var ProjectModel = Backbone.Model.extend({
         return createTaskResultCollection(this.get('model_package'));
     },
 
-    fetchResultsIfNeeded: function(isSubbasinMode) {
+    fetchResultsIfNeeded: function() {
         var promises = [];
 
         this.get('scenarios').forEach(function(scenario) {
-            promises.push(scenario.fetchResultsIfNeeded(isSubbasinMode || false));
+            promises.push(scenario.fetchResultsIfNeeded());
         });
 
         this.get('scenarios').on('add', function(scenario) {
-            scenario.fetchResultsIfNeeded(isSubbasinMode || false);
+            scenario.fetchResultsIfNeeded();
         });
 
         return $.when.apply($, promises);
@@ -817,7 +817,26 @@ var SubbasinDetailModel = Backbone.Model.extend({
             currentActive.set('active', false);
         }
         this.set('active', true);
-    }
+    },
+
+    initialize: function() {
+        this.set('catchments', new SubbasinCatchmentDetailCollection());
+    },
+
+    fetchCatchmentsIfNeeded: function(comids) {
+        var catchments = this.get('catchments');
+        if (!catchments.isEmpty() || this.fetchCatchmentsPromise) {
+            return this.fetchCatchmentsPromise || $.when();
+        }
+
+        var encodedComids = encodeURIComponent(JSON.stringify(comids));
+        this.fetchCatchmentsPromise = catchments.fetch({
+            data: { catchment_comids: encodedComids},
+        }).always(function() {
+            delete this.fetchCatchmentsPromise;
+        });
+        return this.fetchCatchmentsPromise;
+    },
 });
 
 var SubbasinDetailCollection = Backbone.Collection.extend({
@@ -835,6 +854,20 @@ var SubbasinDetailCollection = Backbone.Collection.extend({
             subbasinDetail.set('clickable', true);
         });
     }
+});
+
+var SubbasinCatchmentDetailModel = Backbone.Model.extend({
+    defaults: {
+        shape: null,
+        stream: null,
+        area: null,
+        highlighted: false,
+    }
+});
+
+var SubbasinCatchmentDetailCollection = Backbone.Collection.extend({
+    url: '/mmw/modeling/subbasins/catchments/',
+    model: SubbasinCatchmentDetailModel,
 });
 
 /**
@@ -1039,6 +1072,7 @@ var ScenarioModel = Backbone.Model.extend({
         modifications: null, // ModificationsCollection
         modification_hash: null, // MD5 string
         active: false,
+        is_subbasin_active: false,
         job_id: null,
         poll_error: null,
         results: null, // ResultCollection
@@ -1078,6 +1112,7 @@ var ScenarioModel = Backbone.Model.extend({
         this.updateInputModHash();
 
         this.on('change:project change:name', this.attemptSave, this);
+        this.on('change:is_subbasin_active', this.queueFetchResultsIfNeeded, this);
         this.get('modifications').on('add remove change', this.updateModificationHash, this);
         this.debouncedFetchResults = _.debounce(_.bind(this.fetchResults, this), 500);
         this.get('inputs').on('add', _.bind(this.fetchResultsAfterInitial, this));
@@ -1184,8 +1219,9 @@ var ScenarioModel = Backbone.Model.extend({
         return response;
     },
 
-    fetchResultsIfNeeded: function(isSubbasinMode) {
+    fetchResultsIfNeeded: function() {
         var self = this,
+            isSubbasinMode = this.get('is_subbasin_active'),
             inputmod_hash = this.get('inputmod_hash'),
             needsResults = this.get('results').some(function(resultModel) {
                 var results = resultModel.get('result'),
@@ -1202,7 +1238,7 @@ var ScenarioModel = Backbone.Model.extend({
                 fetchGisDataPromise = App.currentProject.fetchGisDataIfNeeded(isSubbasinMode);
 
             self.fetchResultsPromise = fetchGisDataPromise.then(function() {
-                var promises = fetchResults(isSubbasinMode);
+                var promises = fetchResults();
                 return $.when(promises.startPromise, promises.pollingPromise);
             });
 
@@ -1217,8 +1253,9 @@ var ScenarioModel = Backbone.Model.extend({
         return self.fetchResultsPromise || $.when();
     },
 
-    setResults: function(isSubbasinMode) {
-        var serverResults = this.get('taskModel').get('result');
+    setResults: function() {
+        var serverResults = this.get('taskModel').get('result'),
+            isSubbasinMode = this.get('is_subbasin_active');
 
         if (_.isEmpty(serverResults)) {
             this.get('results').setNullResults(isSubbasinMode);
@@ -1248,11 +1285,12 @@ var ScenarioModel = Backbone.Model.extend({
 
     // Poll the taskModel for results and reset the results collection when done.
     // If not successful, the results collection is reset to be empty.
-    fetchResults: function(isSubbasinMode) {
+    fetchResults: function() {
         this.updateInputModHash();
         this.attemptSave();
 
         var self = this,
+            isSubbasinMode = this.get('is_subbasin_active'),
             results = this.get('results'),
             taskModel = this.get('taskModel'),
             gisData = this.getGisData(isSubbasinMode),
@@ -1273,7 +1311,7 @@ var ScenarioModel = Backbone.Model.extend({
                     console.log(isSubbasinMode ?
                         'Polling for SUBBASIN modeling results succeeded' :
                         'Polling for modeling results succeeded');
-                    self.setResults(isSubbasinMode);
+                    self.setResults();
                 },
 
                 pollFailure: function(error) {
@@ -1310,6 +1348,19 @@ var ScenarioModel = Backbone.Model.extend({
             };
 
         return taskModel.start(taskHelper);
+    },
+
+    queueFetchResultsIfNeeded: function() {
+        var fetchResultsIfNeeded = _.bind(this.fetchResultsIfNeeded, this);
+        if (this.fetchResultsPromise) {
+            this.fetchResultsPromise = this.fetchResultsPromise.then(
+                    // on success
+                    fetchResultsIfNeeded,
+                    // also on failure, so we can try subbasin
+                    // again if unattenuate run fails and vice-versa
+                    fetchResultsIfNeeded);
+        }
+        return this.fetchResultsIfNeeded();
     },
 
     fetchResultsAfterInitial: function() {

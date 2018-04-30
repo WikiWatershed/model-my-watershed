@@ -131,6 +131,16 @@
             background: $paper;
 
             .result-detail-header {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+
+                .subbasin-spinner {
+                    height: 14px;
+                    width: 14px;
+                    margin: 0.7rem;
+                }
+
                 a.zoom {
                     display: block;
                 }
