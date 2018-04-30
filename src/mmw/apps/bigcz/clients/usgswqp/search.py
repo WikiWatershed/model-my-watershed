@@ -61,7 +61,8 @@ def parse_record(record):
         service_title=None,
         service_citation=None,
         begin_date=None,
-        end_date=None
+        end_date=None,
+        monitoring_type=record['MonitoringLocationTypeName']
     )
 
 
@@ -109,9 +110,10 @@ def search(**kwargs):
             response = session.send(request)
             print(response.url)
             with ZipFile(BytesIO(response.content)) as z:
-                df = pd.read_csv(z.open('station.csv'))
+                df = pd.read_csv(z.open(z.filelist[0].filename))
             data = df[['MonitoringLocationIdentifier',
                        'MonitoringLocationName',
+                       'MonitoringLocationTypeName',
                        'OrganizationIdentifier',
                        'OrganizationFormalName',
                        'LongitudeMeasure',

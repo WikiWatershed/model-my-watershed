@@ -28,6 +28,7 @@ class USGSResourceSerializer(ResourceSerializer):
     service_org = CharField()
     service_code = CharField()
     service_url = CharField()
+    monitoring_type = CharField()
     service_title = CharField()
     service_citation = CharField()
     begin_date = DateTimeField()

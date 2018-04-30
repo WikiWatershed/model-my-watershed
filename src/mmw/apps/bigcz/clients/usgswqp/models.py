@@ -12,7 +12,7 @@ class USGSResource(Resource):
                  created_at, updated_at, geom, details_url, sample_mediums,
                  variables, service_org, service_code, service_url,
                  service_title, service_citation,
-                 begin_date, end_date):
+                 begin_date, end_date, monitoring_type):
         super(USGSResource, self).__init__(id, description, author, links,
                                              title, created_at, updated_at,
                                              geom)
@@ -27,3 +27,4 @@ class USGSResource(Resource):
         self.service_citation = service_citation
         self.begin_date = begin_date
         self.end_date = end_date
+        self.monitoring_type = monitoring_type
