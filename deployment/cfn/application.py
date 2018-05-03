@@ -83,7 +83,7 @@ class Application(StackNode):
         'StackType': 'Staging',
         'StackColor': 'Green',
         'KeyName': 'mmw-stg',
-        'AppServerInstanceType': 't2.micro',
+        'AppServerInstanceType': 't2.small',
         'AppServerInstanceProfile': 'AppServerInstanceProfile',
         'AppServerAutoScalingDesired': '1',
         'AppServerAutoScalingMin': '1',
@@ -128,7 +128,7 @@ class Application(StackNode):
         ), 'RDSPassword')
 
         self.app_server_instance_type = self.add_parameter(Parameter(
-            'AppServerInstanceType', Type='String', Default='t2.micro',
+            'AppServerInstanceType', Type='String', Default='t2.small',
             Description='Application server EC2 instance type',
             AllowedValues=EC2_INSTANCE_TYPES,
             ConstraintDescription='must be a valid EC2 instance type.'
