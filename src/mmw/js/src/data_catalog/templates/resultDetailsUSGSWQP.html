@@ -9,16 +9,42 @@
         </h2>
         <table class="table-data-detail">
             <tr>
-                <th>Source</th>
-                <td>{{ service_org }}<br>{{ title }}
+                <th>Site Description</th>
+                <td>
+                    {% if description %}
+                        {{ description }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Organization</th>
+                <td>
+                    {{ service_orgname }} ({{ service_org }})
                     <a data-toggle="popover" tabindex="0"
                        data-html="true" data-container="body" role="button"
-                       data-content="{{ description }}"
+                       data-content="<a href='https://www.waterqualitydata.us/provider/{{ provider_name }}/{{ service_org }}/' target='_blank'>{{ service_orgname }} ({{ service_org }})</a>"
                        data-template="<div class='popover'><div class='pull-right' id='popover-close-button' onclick='closePopover()'><i class='fa fa-times' /></div><div class='popover-content'></div><div class='arrow'></div></div>">
                         <i class="fa fa-info-circle black"></i>
                     </a>
                 </td>
             </tr>
+            <tr>
+                <th>Site Type</th>
+                <td>{{ monitoring_type }}</td>
+            </tr>
+{#            <tr>#}
+{#                <th>Source</th>#}
+{#                <td>{{ service_org }}<br>{{ title }}#}
+{#                    <a data-toggle="popover" tabindex="0"#}
+{#                       data-html="true" data-container="body" role="button"#}
+{#                       data-content="{{ description }}"#}
+{#                       data-template="<div class='popover'><div class='pull-right' id='popover-close-button' onclick='closePopover()'><i class='fa fa-times' /></div><div class='popover-content'></div><div class='arrow'></div></div>">#}
+{#                        <i class="fa fa-info-circle black"></i>#}
+{#                    </a>#}
+{#                </td>#}
+{#            </tr>#}
             {% if author %}
                 <tr>
                     <th>Author</th>
@@ -46,12 +72,27 @@
 {#                </td>#}
 {#            </tr>#}
             <tr>
+                <th>Provider</th>
+                <td>
+                    {{ provider_name }}
+                    <a data-toggle="popover" tabindex="0"
+                       data-html="true" data-container="body" role="button"
+                       data-content="<a href='https://www.waterqualitydata.us/provider/{{ provider_name }}/' target='_blank'>{{ provider_name }}</a>"
+                       data-template="<div class='popover'><div class='pull-right' id='popover-close-button' onclick='closePopover()'><i class='fa fa-times' /></div><div class='popover-content'></div><div class='arrow'></div></div>">
+                        <i class="fa fa-info-circle black"></i>
+                    </a>
+                </td>
+            </tr>
+            <tr>
                 <th>Catalog</th>
                 <td>
                     USGS Water Quality Portal (WQP)
                     <a data-toggle="popover" tabindex="0"
                        data-html="true" data-container="body" role="button"
-                       data-content="The Water Quality Portal (WQP) is a cooperative service sponsored by the United States Geological Survey (USGS), the Environmental Protection Agency (EPA), and the National Water Quality Monitoring Council (NWQMC). It serves data collected by over 400 state, federal, tribal, and local agencies."
+                       data-content="The Water Quality Portal (WQP) is a cooperative service sponsored
+                       by the United States Geological Survey (USGS), the Environmental Protection Agency (EPA),
+                       and the National Water Quality Monitoring Council (NWQMC).
+                       It serves data collected by over 400 state, federal, tribal, and local agencies."
                        data-template="<div class='popover'><div class='pull-right' id='popover-close-button' onclick='closePopover()'><i class='fa fa-times' /></div><div class='popover-content'></div><div class='arrow'></div></div>">
                         <i class="fa fa-info-circle black"></i>
                     </a>
@@ -59,24 +100,24 @@
             </tr>
         </table>
     </div>
-{#    <p>#}
-{#        {% if details_url %}#}
-{#            <a class="btn btn-secondary" href="{{ details_url }}"#}
-{#               target="_blank" rel="noreferrer noopener">#}
-{#                <i class="fa fa-external-link-square"></i>&nbsp;Source Data#}
-{#            </a>#}
-{#        {% endif %}#}
-{#        <a class="btn btn-secondary" href="{{ service_url }}"#}
-{#           target="_blank" rel="noreferrer noopener">#}
-{#            <i class="fa fa-globe"></i>&nbsp;Web Services#}
-{#        </a>#}
-{#    </p>#}
-{#    <hr />#}
+    <p>
+        {% if details_url %}
+            <a class="btn btn-secondary" href="{{ details_url }}"
+               target="_blank" rel="noreferrer noopener">
+                <i class="fa fa-external-link-square"></i>&nbsp;Site Page
+            </a>
+        {% endif %}
+        <a class="btn btn-secondary" href="{{ service_url }}"
+           rel="noreferrer noopener" download="{{ id }}.zip">
+            <i class="fa fa-download"></i>&nbsp;Download Sample Results
+        </a>
+    </p>
+    <hr />
 {#    <h3>Source Data</h3>#}
 {#    <div id="cuahsi-switcher-region"></div>#}
 {#    <div id="cuahsi-table-region" class="{{ 'hidden' if mode != 'table' }}"></div>#}
 {#    <div id="cuahsi-chart-region" class="{{ 'hidden' if mode != 'chart' }}"></div>#}
 {#    <hr />#}
-{#    <h3>Citation</h3>#}
-{#    <p>{{ service_citation }}</p>#}
+    <h3>Citation</h3>
+    <p>{{ service_citation }}</p>
 </div>

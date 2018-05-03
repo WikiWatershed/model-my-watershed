@@ -42,27 +42,32 @@ def parse_record(record):
     geom = parse_geom(record)
 
     links = []
+    monitoring_description = record['MonitoringLocationDescriptionText']
 
     return USGSResource(
         id=record['MonitoringLocationIdentifier'],
         title=record['MonitoringLocationName'],
-        description=None,
+        description=None if pd.isna(monitoring_description) else monitoring_description,
         author=None,
         links=links,
         created_at=None,
         updated_at=None,
         geom=geom,
-        details_url=None,
+        details_url='https://www.waterqualitydata.us/provider/{prov}/{org}/{id}/'.format(prov=record['ProviderName'],  # NOQA
+                                                                                         org=record['OrganizationIdentifier'],  # NOQA
+                                                                                         id=record['MonitoringLocationIdentifier']),  # NOQA
         sample_mediums=None,
         variables=None,
         service_org=record['OrganizationIdentifier'],
+        service_orgname= record['OrganizationFormalName'],
         service_code=record['MonitoringLocationIdentifier'],
-        service_url=None,
+        service_url='https://www.waterqualitydata.us/data/Result/search?siteid={}&mimeType=csv&sorted=no&zip=yes'.format(record['MonitoringLocationIdentifier']),  # NOQA
         service_title=None,
-        service_citation=None,
+        service_citation='We thank the water quality portal.',
         begin_date=None,
         end_date=None,
-        monitoring_type=record['MonitoringLocationTypeName']
+        monitoring_type=record['MonitoringLocationTypeName'],
+        provider_name=record['ProviderName']
     )
 
 
@@ -111,9 +116,11 @@ def search(**kwargs):
             print(response.url)
             with ZipFile(BytesIO(response.content)) as z:
                 df = pd.read_csv(z.open(z.filelist[0].filename))
-            data = df[['MonitoringLocationIdentifier',
+            data = df[['ProviderName',
+                       'MonitoringLocationIdentifier',
                        'MonitoringLocationName',
                        'MonitoringLocationTypeName',
+                       'MonitoringLocationDescriptionText',
                        'OrganizationIdentifier',
                        'OrganizationFormalName',
                        'LongitudeMeasure',
