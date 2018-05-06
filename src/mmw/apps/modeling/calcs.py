@@ -6,7 +6,6 @@ from __future__ import absolute_import
 import json
 
 from copy import deepcopy
-from collections import namedtuple
 
 from django.conf import settings
 from django.db import connection
@@ -108,16 +107,14 @@ def apply_subbasin_gwlfe_modifications(gms, modifications,
 
 
 def sum_subbasin_stream_lengths(gmss):
-    stream_length_summary = namedtuple('StreamLengthSummary',
-                                       ['ag', 'urban'])
+    ag = sum([gms['AgLength'] for gms in gmss.itervalues()])
+    urban = sum([gms['StreamLength'] - gms['AgLength']
+                 for gms in gmss.itervalues()])
 
-    def add_stream_length(summary, gms):
-        ag = summary.ag + gms['AgLength']
-        urban = summary.urban + gms['StreamLength'] - gms['AgLength']
-        return stream_length_summary(ag=ag, urban=urban)
-
-    return reduce(add_stream_length, gmss.itervalues(),
-                  stream_length_summary(0, 0))
+    return {
+        'ag': ag,
+        'urban': urban
+    }
 
 
 def get_layer_shape(table_code, id):
