@@ -17,7 +17,7 @@ RDSUsername: 'modelmywatershed'
 RDSPassword: 'modelmywatershed'
 ECInstanceType: 'cache.m1.small'
 GlobalNotificationsARN: 'arn:aws:sns:...'
-AppServerInstanceType: 't2.micro'
+AppServerInstanceType: 't2.small'
 # Leaving this commented dynamically looks up the
 # most recent AMI for this type.
 #AppServerAMI: ''
