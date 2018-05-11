@@ -863,6 +863,124 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
         stream: null,
         area: null,
         highlighted: false,
+        selectedLoad: null,   // one of: null, TotalN, TotalP, Sediment
+    },
+
+    getStyle: function() {
+        var self = this,
+            load = this.get('selectedLoad'),
+            defaultStyle = {
+                stroke: true,
+                color: 'grey',
+                weight: 2,
+                opacity: 1,
+                fill: true,
+                fillOpacity: 0.3,
+            },
+            // Keep in sync with _variables.scss and tiler/styles.mss
+            breaks = {
+                TotalN: [
+                    [ 5, '#A0A0A0'],
+                    [10, '#888888'],
+                    [15, '#707070'],
+                    [20, '#484848'],
+                    [Number.MAX_VALUE, '#202020']
+                ],
+                TotalP: [
+                    [0.30, '#A0A0A0'],
+                    [0.60, '#888888'],
+                    [0.90, '#707070'],
+                    [1.20, '#484848'],
+                    [Number.MAX_VALUE, '#202020']
+                ],
+                Sediment: [
+                    [ 250, '#A0A0A0'],
+                    [ 500, '#888888'],
+                    [ 750, '#707070'],
+                    [1000, '#484848'],
+                    [Number.MAX_VALUE, '#202020']
+                ]
+            },
+            loadingRates = self.get('TotalLoadingRates'),
+            loadValue = loadingRates && loadingRates.hasOwnProperty(load) &&
+                        loadingRates[load] / self.get('area');
+
+        if (loadValue !== null &&
+            ['TotalN', 'TotalP', 'Sediment'].indexOf(load) >= 0) {
+            var matchingBreak = _.find(breaks[load], function(b) {
+                    return loadValue <= b[0];
+                }),
+                fillColor = matchingBreak[1];
+
+            return _.defaults({ fillColor: fillColor }, defaultStyle);
+        } else {
+            return defaultStyle;
+        }
+    },
+
+    getHighlightStyle: function() {
+        return _.defaults({
+            fillOpacity: 0.4,
+            color: '#1d3331'
+        }, this.getStyle());
+    },
+
+    getStreamStyle: function() {
+        var self = this,
+            load = this.get('selectedLoad'),
+            defaultStyle = {
+                stroke: true,
+                color: '#49B8EA', // $water in _variables.scss
+                weight: 2,
+                opacity: 0.8,
+                fill: false
+            },
+            // Keep in sync with _variables.scss and tiler/styles.mss
+            breaks = {
+                TotalN: [
+                    [1, '#1A9641'],
+                    [2, '#A6D96A'],
+                    [3, '#FFFFBF'],
+                    [4, '#FDAE61'],
+                    [Number.MAX_VALUE, '#D7191C']
+                ],
+                TotalP: [
+                    [0.03, '#1A9641'],
+                    [0.06, '#A6D96A'],
+                    [0.09, '#FFFFBF'],
+                    [0.12, '#FDAE61'],
+                    [Number.MAX_VALUE, '#D7191C']
+                ],
+                Sediment: [
+                    [ 50, '#1A9641'],
+                    [100, '#A6D96A'],
+                    [150, '#FFFFBF'],
+                    [200, '#FDAE61'],
+                    [Number.MAX_VALUE, '#D7191C']
+                ]
+            },
+            concentrationRates = self.get('LoadingRateConcentrations'),
+            loadValue = concentrationRates &&
+                        concentrationRates.hasOwnProperty(load) &&
+                        concentrationRates[load];
+
+        if (loadValue !== null &&
+            ['TotalN', 'TotalP', 'Sediment'].indexOf(load) >= 0) {
+            var matchingBreak = _.find(breaks[load], function(b) {
+                    return loadValue <= b[0];
+                }),
+                color = matchingBreak[1];
+
+            return _.defaults({ color: color }, defaultStyle);
+        } else {
+            return defaultStyle;
+        }
+    },
+
+    getStreamHighlightStyle: function() {
+        return _.defaults({
+            opacity: 1
+        }, this.getStreamStyle());
     }
 });
 
