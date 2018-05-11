@@ -10,12 +10,12 @@ from apps.bigcz.models import Resource
 class USGSResource(Resource):
     def __init__(self, id, description, author, links, title,
                  created_at, updated_at, geom, details_url, sample_mediums,
-                 variables, service_org, service_orgname, service_code, service_url,
-                 service_title, service_citation,
+                 variables, service_org, service_orgname, service_code,
+                 service_url, service_title, service_citation,
                  begin_date, end_date, monitoring_type, provider_name):
         super(USGSResource, self).__init__(id, description, author, links,
-                                             title, created_at, updated_at,
-                                             geom)
+                                           title, created_at, updated_at,
+                                           geom)
 
         self.details_url = details_url
         self.sample_mediums = sample_mediums

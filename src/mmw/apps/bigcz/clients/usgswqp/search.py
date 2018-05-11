@@ -3,21 +3,20 @@ from __future__ import (absolute_import,
                         division,
                         print_function,
                         unicode_literals)
+import csv
+import requests
 
 from datetime import date
 from zipfile import ZipFile
 from io import BytesIO
 
 from rest_framework.exceptions import ValidationError
+
 from django.contrib.gis.geos import Point
-
-from django.core.cache import cache
-
-from requests import Request, Session, Timeout
-import pandas as pd
+from django.db import connection
 
 from apps.bigcz.models import ResourceList
-from apps.bigcz.utils import RequestTimedOutError, get_huc_info
+from apps.bigcz.utils import RequestTimedOutError
 
 from apps.bigcz.clients.usgswqp.models import USGSResource
 
@@ -30,6 +29,19 @@ CATALOG_URL = 'https://www.waterqualitydata.us/data/Station/search'
 DATE_MIN = date(1900, 1, 1)
 DATE_MAX = date(2100, 1, 1)
 DATE_FORMAT = '%m/%d/%Y'
+
+
+def unique_huc12s_in(geojson):
+    sql = '''
+          SELECT DISTINCT huc12
+          FROM boundary_huc12
+          WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
+          '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [geojson])
+
+        return ';'.join([row[0] for row in cursor.fetchall()])
 
 
 def parse_geom(record):
@@ -47,7 +59,7 @@ def parse_record(record):
     return USGSResource(
         id=record['MonitoringLocationIdentifier'],
         title=record['MonitoringLocationName'],
-        description=None if pd.isna(monitoring_description) else monitoring_description,
+        description=monitoring_description,
         author=None,
         links=links,
         created_at=None,
@@ -59,7 +71,7 @@ def parse_record(record):
         sample_mediums=None,
         variables=None,
         service_org=record['OrganizationIdentifier'],
-        service_orgname= record['OrganizationFormalName'],
+        service_orgname=record['OrganizationFormalName'],
         service_code=record['MonitoringLocationIdentifier'],
         service_url='https://www.waterqualitydata.us/data/Result/search?siteid={}&mimeType=csv&sorted=no&zip=yes'.format(record['MonitoringLocationIdentifier']),  # NOQA
         service_title=None,
@@ -73,11 +85,9 @@ def parse_record(record):
 
 def search(**kwargs):
     bbox = kwargs.get('bbox')
-    to_date = kwargs.get('to_date')
-    from_date = kwargs.get('from_date')
-    exclude_gridded = 'exclude_gridded' in kwargs.get('options')
-
-    hucgdf = get_huc_info(kwargs.get('geojson'))
+    # Currently not being used
+    # to_date = kwargs.get('to_date')
+    # from_date = kwargs.get('from_date')
 
     if not bbox:
         raise ValidationError({
@@ -89,51 +99,28 @@ def search(**kwargs):
         raise ValidationError({
             'error': 'The selected area of interest with a bounding box of {} '
                      'km² is larger than the currently supported maximum size '
-                     'of {} km².'.format(round(bbox_area, 2),
-                                         USGS_MAX_SIZE_SQKM)})
+                     'of {} km².'.format(round(bbox_area, 2), USGS_MAX_SIZE_SQKM)})  # NOQA
     params = {
-        # 'bBox': '{0:.3f},{1:.3f},{2:.3f},{3:.3f}'.format(bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax),
-        'huc': ';'.join(hucgdf.huc12.unique()),
+        # bBox might be used in the future
+        # 'bBox': '{0:.3f},{1:.3f},{2:.3f},{3:.3f}'.format(bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax),  # NOQA
+        'huc': unique_huc12s_in(kwargs.get('geojson')),
         'mimeType': 'csv',
         'sorted': 'no',
         'minresults': '1',
         'zip': 'yes'
     }
 
-    session = Session()
-    request = session.prepare_request(Request('GET',
-                                              CATALOG_URL,
-                                              params=params))
+    try:
+        response = requests.get(CATALOG_URL, params=params)
+        with ZipFile(BytesIO(response.content)) as z:
+            data = csv.DictReader(z.open(z.filelist[0].filename))
+    except requests.Timeout:
+        raise RequestTimedOutError()
 
-    key = 'bigcz_usgswqp_{}'.format(hash(frozenset(params.items())))
-    cached = cache.get(key)
-    if cached:
-        data = pd.DataFrame.from_records(cached)
+    if not data:
+        raise ValueError('Could not fetch data from USGS WQP portal.')
 
-    else:
-        try:
-            response = session.send(request)
-            print(response.url)
-            with ZipFile(BytesIO(response.content)) as z:
-                df = pd.read_csv(z.open(z.filelist[0].filename))
-            data = df[['ProviderName',
-                       'MonitoringLocationIdentifier',
-                       'MonitoringLocationName',
-                       'MonitoringLocationTypeName',
-                       'MonitoringLocationDescriptionText',
-                       'OrganizationIdentifier',
-                       'OrganizationFormalName',
-                       'LongitudeMeasure',
-                       'LatitudeMeasure']]
-            cache.set(key, data.to_dict(orient='record'), timeout=1800)  # Cache for half hour
-        except Timeout:
-            raise RequestTimedOutError()
-        # print(len(data))
-
-    if len(data) == 0:
-        raise ValueError(data)
-
-    results = list(map(lambda record: parse_record(record[1]), data.iterrows()))
+    results = [parse_record(row) for row in data]
 
     return ResourceList(
         api_url=None,
