@@ -236,7 +236,6 @@ var Huc12TotalsTableView = Marionette.ItemView.extend({
         if (this.subbasinDetails.isEmpty()) { return; }
         var id = e.currentTarget.getAttribute('data-huc12-id');
         App.currentProject.get('subbasins').get(id).setActive();
-        this.options.showHuc12();
     },
 
     handleRowMouseOver: function(e) {
