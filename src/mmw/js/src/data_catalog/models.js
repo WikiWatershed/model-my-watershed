@@ -924,7 +924,7 @@ function createCatalogCollection() {
         }),
         new Catalog({
             id: 'usgswqp',
-            name: 'USGS WQP',
+            name: 'WQP',
             is_pageable: false,
             results: new Results(null, { catalog: 'usgswqp' }),
             serverResults: new Results(null, { catalog: 'usgswqp' }),
