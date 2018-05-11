@@ -809,6 +809,7 @@ var SubbasinDetailModel = Backbone.Model.extend({
         highlighted: false,
         active: false,
         clickable: false,
+        selectedLoad: null,   // one of: null, TotalN, TotalP, Sediment
     },
 
     setActive: function() {
