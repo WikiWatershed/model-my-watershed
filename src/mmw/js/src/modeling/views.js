@@ -989,6 +989,7 @@ var ResultsView = Marionette.LayoutView.extend({
                 this.monitorRegion.$el.removeClass('active');
                 this.monitorRegion.currentView.setVisibility(false);
                 this.modelingRegion.$el.removeClass('active');
+                App.hideMapInfo();
                 App.getMapView().updateModifications(null);
                 App.getMapView().clearSubbasinHuc12s();
                 App.getMapView().clearSubbasinCatchments();
@@ -1003,6 +1004,7 @@ var ResultsView = Marionette.LayoutView.extend({
                 this.monitorRegion.$el.addClass('active');
                 this.monitorRegion.currentView.setVisibility(true);
                 this.modelingRegion.$el.removeClass('active');
+                App.hideMapInfo();
                 App.getMapView().updateModifications(null);
                 App.getMapView().clearSubbasinHuc12s();
                 App.getMapView().clearSubbasinCatchments();
@@ -1013,6 +1015,7 @@ var ResultsView = Marionette.LayoutView.extend({
                 this.monitorRegion.$el.removeClass('active');
                 this.monitorRegion.currentView.setVisibility(false);
                 this.modelingRegion.$el.addClass('active');
+                App.showMapInfo();
                 App.getMapView().updateModifications(
                     this.model.get('scenarios').getActiveScenario()
                 );
@@ -1113,6 +1116,10 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
             self.showCatchmentsOnMap(activeSubbasin, this);
         });
 
+        if (!App.user.get('has_seen_hotspot_info')) {
+            App.showMapInfo({ view: new gwlfeSubbasinViews.HotspotInfoView() });
+        }
+
         if (this.subbasinRegion.hasView()) {
             return this.subbasinRegion.$el.show();
         }
@@ -1133,6 +1140,7 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         this.collection.getResult('subbasin').off('change:selectedLoad');
 
         this.scenario.set('is_subbasin_active', false);
+        App.hideMapInfo({ empty: true });
         App.getMapView().clearSubbasinHuc12s();
     },
 
