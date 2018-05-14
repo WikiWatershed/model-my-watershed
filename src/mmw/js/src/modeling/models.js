@@ -909,7 +909,7 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
                 stroke: true,
                 color: '#49B8EA', // $water in _variables.scss
                 weight: 2,
-                opacity: 0.8,
+                opacity: 1,
                 fill: false
             },
             ramps = {
@@ -932,7 +932,7 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
 
     getStreamHighlightStyle: function() {
         return _.defaults({
-            opacity: 1
+            weight: 3,
         }, this.getStreamStyle());
     }
 });
