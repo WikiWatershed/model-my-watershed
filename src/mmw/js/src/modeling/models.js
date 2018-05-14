@@ -12,6 +12,7 @@ var $ = require('jquery'),
     turfErase = require('turf-erase'),
     turfIntersect = require('turf-intersect'),
     AoiVolumeModel = require('./tr55/models').AoiVolumeModel,
+    makeColorRamp = require('./gwlfe/subbasin/models').makeColorRamp,
     round = utils.toRoundedLocaleString;
 
 var ModelPackageControlModel = Backbone.Model.extend({
@@ -877,29 +878,10 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
                 fill: true,
                 fillOpacity: 0.3,
             },
-            // Keep in sync with _variables.scss and tiler/styles.mss
-            breaks = {
-                TotalN: [
-                    [ 5, '#A0A0A0'],
-                    [10, '#888888'],
-                    [15, '#707070'],
-                    [20, '#484848'],
-                    [Number.MAX_VALUE, '#202020']
-                ],
-                TotalP: [
-                    [0.30, '#A0A0A0'],
-                    [0.60, '#888888'],
-                    [0.90, '#707070'],
-                    [1.20, '#484848'],
-                    [Number.MAX_VALUE, '#202020']
-                ],
-                Sediment: [
-                    [ 250, '#A0A0A0'],
-                    [ 500, '#888888'],
-                    [ 750, '#707070'],
-                    [1000, '#484848'],
-                    [Number.MAX_VALUE, '#202020']
-                ]
+            ramps = {
+                TotalN: makeColorRamp([0, 2, 5, 10, 20]),
+                TotalP: makeColorRamp([0, 0.2, 0.5, 1.0, 2.0]),
+                Sediment: makeColorRamp([0, 200, 500, 1000, 2000]),
             },
             loadingRates = self.get('TotalLoadingRates'),
             loadValue = loadingRates && loadingRates.hasOwnProperty(load) &&
@@ -907,12 +889,7 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
 
         if (loadValue !== null &&
             ['TotalN', 'TotalP', 'Sediment'].indexOf(load) >= 0) {
-            var matchingBreak = _.find(breaks[load], function(b) {
-                    return loadValue <= b[0];
-                }),
-                fillColor = matchingBreak[1];
-
-            return _.defaults({ fillColor: fillColor }, defaultStyle);
+            return _.defaults({ fillColor: ramps[load](loadValue) }, defaultStyle);
         } else {
             return defaultStyle;
         }
@@ -935,29 +912,10 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
                 opacity: 0.8,
                 fill: false
             },
-            // Keep in sync with _variables.scss and tiler/styles.mss
-            breaks = {
-                TotalN: [
-                    [1, '#1A9641'],
-                    [2, '#A6D96A'],
-                    [3, '#FFFFBF'],
-                    [4, '#FDAE61'],
-                    [Number.MAX_VALUE, '#D7191C']
-                ],
-                TotalP: [
-                    [0.03, '#1A9641'],
-                    [0.06, '#A6D96A'],
-                    [0.09, '#FFFFBF'],
-                    [0.12, '#FDAE61'],
-                    [Number.MAX_VALUE, '#D7191C']
-                ],
-                Sediment: [
-                    [ 50, '#1A9641'],
-                    [100, '#A6D96A'],
-                    [150, '#FFFFBF'],
-                    [200, '#FDAE61'],
-                    [Number.MAX_VALUE, '#D7191C']
-                ]
+            ramps = {
+                TotalN: makeColorRamp([0, 1, 3, 6, 12]),
+                TotalP: makeColorRamp([0, 0.08, 0.2, 0.5, 1.0]),
+                Sediment: makeColorRamp([0, 8, 20, 50, 150]),
             },
             concentrationRates = self.get('LoadingRateConcentrations'),
             loadValue = concentrationRates &&
@@ -966,12 +924,7 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
 
         if (loadValue !== null &&
             ['TotalN', 'TotalP', 'Sediment'].indexOf(load) >= 0) {
-            var matchingBreak = _.find(breaks[load], function(b) {
-                    return loadValue <= b[0];
-                }),
-                color = matchingBreak[1];
-
-            return _.defaults({ color: color }, defaultStyle);
+            return _.defaults({ color: ramps[load](loadValue) }, defaultStyle);
         } else {
             return defaultStyle;
         }
