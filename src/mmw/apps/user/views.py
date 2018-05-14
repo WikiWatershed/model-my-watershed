@@ -51,6 +51,7 @@ def login(request):
                                          .filter(user_id=user.id).exists(),
             'guest': False,
             'id': user.id,
+            'has_seen_hotspot_info': profile.has_seen_hotspot_info,
             'profile_was_skipped': profile.was_skipped,
             'profile_is_complete': profile.is_complete,
             'profile': {

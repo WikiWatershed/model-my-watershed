@@ -69,6 +69,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, primary_key=True)
     was_skipped = models.BooleanField(default=False)
     is_complete = models.BooleanField(default=False)
+    has_seen_hotspot_info = models.BooleanField(default=False)
     organization = models.TextField(blank=True)
     user_type = models.TextField(choices=USER_TYPE_CHOICES,
                                  default=UNSPECIFIED)
