@@ -3,7 +3,6 @@ from __future__ import (absolute_import,
                         division,
                         print_function,
                         unicode_literals)
-import csv
 import requests
 
 from datetime import date
@@ -16,7 +15,7 @@ from django.contrib.gis.geos import Point
 from django.db import connection
 
 from apps.bigcz.models import ResourceList
-from apps.bigcz.utils import RequestTimedOutError
+from apps.bigcz.utils import read_unicode_csv, RequestTimedOutError
 
 from apps.bigcz.clients.usgswqp.models import USGSResource
 
@@ -113,7 +112,7 @@ def search(**kwargs):
     try:
         response = requests.get(CATALOG_URL, params=params)
         with ZipFile(BytesIO(response.content)) as z:
-            data = csv.DictReader(z.open(z.filelist[0].filename))
+            data = read_unicode_csv(z.open(z.filelist[0].filename))
     except requests.Timeout:
         raise RequestTimedOutError()
 
@@ -123,7 +122,7 @@ def search(**kwargs):
     results = [parse_record(row) for row in data]
 
     return ResourceList(
-        api_url=None,
+        api_url=response.url,
         catalog=CATALOG_NAME,
         count=len(results),
         results=results)

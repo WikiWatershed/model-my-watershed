@@ -882,15 +882,9 @@ var ResultDetailsUSGSWQPView = ResultDetailsBaseView.extend({
 
     initialize: function() {
         this.model.set('mode', 'table');
-        // this.model.fetchCuahsiValues();
     },
 
     onShow: function() {
-        // var variables = this.model.get('variables');
-        //
-        // this.statusRegion.show(new CuahsiStatusView({ model: this.model }));
-        // this.switcherRegion.show(new CuahsiSwitcherView({ model: this.model }));
-        // this.tableRegion.show(new CuahsiTableView({ collection: variables }));
     },
 
     onDomRefresh: function() {
