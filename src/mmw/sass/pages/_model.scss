@@ -130,6 +130,19 @@
             padding: 1rem;
             background: $paper;
 
+            .catchment-layertoggle {
+                padding-left: 0;
+                padding-bottom: 2px;
+                border: none;
+                background: none;
+                display: inline;
+                width: 100%;
+
+                font-size: 13px;
+                font-weight: 400;
+                color: $black-54;
+            }
+
             .result-detail-header {
                 display: flex;
                 flex-direction: row;

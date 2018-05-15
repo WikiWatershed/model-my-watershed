@@ -6,6 +6,7 @@ var Marionette = require('../../../../shim/backbone.marionette'),
     App = require('../../../app'),
     models = require('./models'),
     resultTmpl = require('./templates/result.html'),
+    layerSelectorTmpl = require('./templates/layerSelector.html'),
     tableTabContentTmpl = require('./templates/tableTabContent.html'),
     tableTabPanelTmpl = require('./templates/tableTabPanel.html'),
     huc12TotalsTableTmpl = require('./templates/huc12TotalsTable.html'),
@@ -17,6 +18,7 @@ var ResultView = Marionette.LayoutView.extend({
     template: resultTmpl,
 
     regions: {
+        layerSelectorRegion: '.subbasin-layer-selector-region',
         tabPanelRegion: '.subbasin-tab-panel-region',
         tabContentRegion: '.subbasin-tab-content-region',
     },
@@ -28,7 +30,9 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        var tabCollection = this.getTabCollection();
+        var tabCollection = this.getTabCollection(),
+            layerSelector = this.getLayerSelector();
+
         this.tabPanelRegion.show(new TableTabPanelCollectionView({
             collection: tabCollection,
         }));
@@ -37,6 +41,9 @@ var ResultView = Marionette.LayoutView.extend({
             model: this.model,
             showHuc12: this.options.showHuc12,
         }));
+        if (layerSelector) {
+            this.layerSelectorRegion.show(layerSelector);
+        }
     },
 
     getTabCollection: function() {
@@ -51,6 +58,52 @@ var ResultView = Marionette.LayoutView.extend({
             }),
         ]);
     },
+
+    getLayerSelector: function() {
+        return null;
+    }
+});
+
+var LayerSelectorView = Marionette.ItemView.extend({
+    // model: SubbasinDetailModel
+    template: layerSelectorTmpl,
+    className: 'dropdown',
+
+    events: {
+        'click a.layer-option': 'selectLoad',
+    },
+
+    modelEvents: {
+        'change:selectedLoad': 'render',
+    },
+
+    templateHelpers: function() {
+        var layers = [
+                { id: 'TotalN', name: 'Total Nitrogen' },
+                { id: 'TotalP', name: 'Total Phosphorous' },
+                { id: 'Sediment', name: 'Total Sediments' }
+            ],
+            selectedLoad = this.model.get('selectedLoad'),
+            selectedLoadName = selectedLoad &&
+                               _.findWhere(layers, { id: selectedLoad }).name;
+
+        return {
+            layers: layers,
+            selectedLoad: selectedLoad,
+            selectedLoadName: selectedLoadName,
+        };
+    },
+
+    selectLoad: function(e) {
+        var newLoad = e.currentTarget.getAttribute('data-layer-id'),
+            currentLoad = this.model.get('selectedLoad');
+
+        if (newLoad === currentLoad) {
+            this.model.set('selectedLoad', null);
+        } else {
+            this.model.set('selectedLoad', newLoad);
+        }
+    }
 });
 
 var TableTabPanelView = Marionette.ItemView.extend({
@@ -236,7 +289,6 @@ var Huc12TotalsTableView = Marionette.ItemView.extend({
         if (this.subbasinDetails.isEmpty()) { return; }
         var id = e.currentTarget.getAttribute('data-huc12-id');
         App.currentProject.get('subbasins').get(id).setActive();
-        this.options.showHuc12();
     },
 
     handleRowMouseOver: function(e) {
@@ -401,6 +453,12 @@ var Huc12ResultView = ResultView.extend({
                 name: 'catchments',
             }),
         ]);
+    },
+
+    getLayerSelector: function() {
+        return new LayerSelectorView({
+            model: this.model,
+        });
     },
 });
 

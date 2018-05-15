@@ -83,43 +83,6 @@ var subbasinHuc12ActiveStyle = {
     fill: false,
 };
 
-var subbasinCatchmentStyle = {
-    stroke: true,
-    color: 'grey',
-    weight: 2,
-    opacity: 1,
-    fill: true,
-    fillOpacity: 0.3,
-};
-
-var subbasinCatchmentHighlightedStyle = {
-    stroke: true,
-    color: '#1d3331',
-    weight: 2,
-    opacity: 1,
-    fill: true,
-    fillColor: 'grey',
-    fillOpacity: 0.3,
-};
-
-var subbasinStreamCatchmentStyle = {
-    stroke: true,
-    color: 'blue',
-    weight: 2,
-    opacity: 1,
-    fill: true,
-    fillOpacity: 0,
-};
-
-var subbasinStreamCatchmentHighlightedStyle = {
-    stroke: true,
-    color: 'red',
-    weight: 2,
-    opacity: 1,
-    fill: true,
-    fillOpacity: 0,
-};
-
 var selectedGeocoderAreaStyle = {
     stroke: true,
     fill: true,
@@ -1186,15 +1149,15 @@ var MapView = Marionette.ItemView.extend({
             geom = catchment.get('stream');
 
         return new L.GeoJSON(geom, {
-            style: subbasinStreamCatchmentStyle,
+            style: catchment.getStreamStyle(),
             id: catchment.get('id'),
             onEachFeature: function(feature, layer) {
                 var highlightLayer = function() {
                     if (catchment.get('highlighted')) {
-                        layer.setStyle(subbasinStreamCatchmentHighlightedStyle);
+                        layer.setStyle(catchment.getStreamHighlightStyle());
                         layer.bringToFront();
                     } else {
-                        layer.setStyle(subbasinStreamCatchmentStyle);
+                        layer.setStyle(catchment.getStreamStyle());
                         layer.bringToBack();
                     }
                 };
@@ -1217,15 +1180,15 @@ var MapView = Marionette.ItemView.extend({
             geom = catchment.get('shape');
 
         return new L.GeoJSON(geom, {
-            style: subbasinCatchmentStyle,
+            style: catchment.getStyle(),
             id: catchment.get('id'),
             onEachFeature: function(feature, layer) {
                 var highlightLayer = function() {
                     if (catchment.get('highlighted')) {
-                        layer.setStyle(subbasinCatchmentHighlightedStyle);
+                        layer.setStyle(catchment.getHighlightStyle());
                         layer.bringToFront();
                     } else {
-                        layer.setStyle(subbasinCatchmentStyle);
+                        layer.setStyle(catchment.getStyle());
                         layer.bringToBack();
                     }
                 };

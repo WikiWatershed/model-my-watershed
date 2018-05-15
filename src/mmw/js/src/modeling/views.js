@@ -1099,11 +1099,19 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
     },
 
     showSubbasinHotSpotView: function() {
+        var self = this;
+
         this.panelsRegion.$el.hide();
         this.contentRegion.$el.hide();
 
         App.map.set('subbasinHuc12s', App.currentProject.get('subbasins'));
         this.scenario.set('is_subbasin_active', true);
+
+        this.collection.getResult('subbasin').on('change:selectedLoad', function() {
+            var activeSubbasin = App.currentProject.get('subbasins').getActive();
+
+            self.showCatchmentsOnMap(activeSubbasin, this);
+        });
 
         if (this.subbasinRegion.hasView()) {
             return this.subbasinRegion.$el.show();
@@ -1122,6 +1130,8 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         this.panelsRegion.$el.show();
         this.contentRegion.$el.show();
 
+        this.collection.getResult('subbasin').off('change:selectedLoad');
+
         this.scenario.set('is_subbasin_active', false);
         App.getMapView().clearSubbasinHuc12s();
     },
@@ -1131,12 +1141,7 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         var activeSubbasin = App.currentProject.get('subbasins').getActive(),
             subbasinResult = this.collection.getResult('subbasin');
         if (activeSubbasin) {
-            var catchmentComids = Object.keys(
-                subbasinResult.get('result').HUC12s[activeSubbasin.get('id')].Catchments);
-            activeSubbasin.fetchCatchmentsIfNeeded(catchmentComids);
-
-            App.getMapView().clearSubbasinCatchments();
-            App.map.set('subbasinCatchments', activeSubbasin.get('catchments'));
+            this.showCatchmentsOnMap(activeSubbasin, subbasinResult);
 
             this.subbasinHuc12Region.show(new SubbasinHuc12TabContentView({
                 model: subbasinResult,
@@ -1154,6 +1159,28 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         App.getMapView().clearSubbasinCatchments();
         this.subbasinRegion.$el.show();
         this.subbasinHuc12Region.empty();
+    },
+
+    showCatchmentsOnMap: function(activeSubbasin, subbasinResult) {
+        var catchments = subbasinResult.get('result')
+                         .HUC12s[activeSubbasin.get('id')].Catchments,
+            catchmentComids = Object.keys(catchments);
+
+        return activeSubbasin
+            .fetchCatchmentsIfNeeded(catchmentComids)
+            .then(function() {
+                var activeCatchments = activeSubbasin.get('catchments'),
+                    selectedLoad = subbasinResult.get('selectedLoad');
+
+                activeCatchments.forEach(function(c) {
+                    c.set(_.defaults(
+                        { selectedLoad: selectedLoad },
+                        catchments[c.id]));
+                });
+
+                App.getMapView().clearSubbasinCatchments();
+                App.map.set('subbasinCatchments', activeCatchments);
+            });
     }
 });
 
