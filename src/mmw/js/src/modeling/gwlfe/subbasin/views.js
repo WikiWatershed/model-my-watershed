@@ -11,7 +11,8 @@ var Marionette = require('../../../../shim/backbone.marionette'),
     tableTabPanelTmpl = require('./templates/tableTabPanel.html'),
     huc12TotalsTableTmpl = require('./templates/huc12TotalsTable.html'),
     catchmentTableTmpl = require('./templates/catchmentTable.html'),
-    sourcesTableTmpl = require('./templates/sourcesTable.html');
+    sourcesTableTmpl = require('./templates/sourcesTable.html'),
+    hotspotInfoTmpl = require('./templates/hotspotInfo.html');
 
 var ResultView = Marionette.LayoutView.extend({
     // model: ResultModel
@@ -462,6 +463,23 @@ var Huc12ResultView = ResultView.extend({
     },
 });
 
+var HotspotInfoView = Marionette.ItemView.extend({
+    className: 'subbasin-hotspot-info',
+    template: hotspotInfoTmpl,
+    events: {
+        'click button': 'dismiss',
+    },
+
+    dismiss: function() {
+        App.user.set('has_seen_hotspot_info', true);
+        App.hideMapInfo({ empty: true });
+
+        if (!App.user.get('guest')) {
+            $.post('/user/profile', { has_seen_hotspot_info: true });
+        }
+    }
+});
+
 
 var tableViews = {
     aoiSources: SourcesTableView,
@@ -473,4 +491,5 @@ var tableViews = {
 module.exports = {
     ResultView: ResultView,
     Huc12ResultView: Huc12ResultView,
+    HotspotInfoView: HotspotInfoView,
 };

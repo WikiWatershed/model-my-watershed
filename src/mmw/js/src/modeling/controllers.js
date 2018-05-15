@@ -288,6 +288,7 @@ function projectCleanUp() {
     App.rootView.subHeaderRegion.empty();
     App.rootView.sidebarRegion.empty();
     App.rootView.compareRegion.empty();
+    App.hideMapInfo({ empty: true });
     App.clearAnalyzeCollection();
     App.clearDataCatalog();
 

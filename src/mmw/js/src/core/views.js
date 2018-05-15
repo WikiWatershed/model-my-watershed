@@ -114,6 +114,7 @@ var RootView = Marionette.LayoutView.extend({
             regionClass: TransitionRegion,
             selector: '#secondary-sidebar-content'
         },
+        mapInfoRegion: '#map-info-region',
         compareRegion: '#compare',
         footerRegion: '#footer'
     },

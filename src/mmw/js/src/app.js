@@ -200,6 +200,31 @@ var App = new Marionette.Application({
             }),
             app: this
         }).render();
+    },
+
+    // Hides Map Info View
+    // If passed { empty: true } will empty the region
+    hideMapInfo: function(options) {
+        var region = this.rootView.mapInfoRegion;
+
+        if (options && options.empty) {
+            region.empty();
+        }
+
+        region.$el.hide();
+    },
+
+    // Shows Map Info View if already populated
+    // If passed { view: $viewObject } will show the given $viewObject
+    showMapInfo: function(options) {
+        var region = this.rootView.mapInfoRegion;
+
+        if (options && options.view) {
+            region.empty();
+            region.show(options.view);
+        }
+
+        region.$el.show();
     }
 });
 
