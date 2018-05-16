@@ -39,16 +39,22 @@
         font-weight: 400;
         color: $black-54;
         margin-bottom: 4px;
+        margin: 2px 0;
     }
 
     #view-subbasin-results-link {
-        font-weight: 800;
+        font-weight: 400;
+        font-size: $font-size-h5;
         color: #389b96;
         cursor: pointer;
+        display: block;
+        margin-top: -2px;
     }
 
     .mean-flow {
-      font-size: $font-size-h4;
+      font-size: $font-size-h5;
+      font-weight: 700;
+      margin-top: 12px;
     }
 
     .runoff-chart-container {
@@ -138,7 +144,7 @@
                 display: inline;
                 width: 100%;
 
-                font-size: 13px;
+                font-size: $font-size-h5;
                 font-weight: 400;
                 color: $black-54;
             }
@@ -164,13 +170,22 @@
                     opacity: 1;
                     color: #389b96;
                     text-shadow: none;
-                    font-size: 15px;
-                    font-weight: 450;
+                    font-size: $font-size-h5;
+                    font-weight: 400;
                     padding: 6px 0 2px;
                 }
             }
         }
     }
+}
+
+
+.subbasin-huc12-region,
+.subbasin-region {
+  .nav-tabs {
+      margin-left: -10px;
+      margin-right: -10px;
+  }
 }
 
 .subbasin-hotspot-info {
