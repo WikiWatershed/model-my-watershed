@@ -554,8 +554,12 @@ def collect_subbasin(payload, shapes):
     huc12_ws = nearest_weather_stations(shapes)
     # Find the weather stations unique across all huc12s
     unique_ws = {w.station: w for w in huc12_ws}.values()
+    # Find largest time range for which ALL weather stations have values,
+    # then limit all stations to that range.
     begyear = int(max([w.begyear for w in huc12_ws]))
     endyear = int(min([w.endyear for w in huc12_ws]))
+    huc12_ws = [w._replace(begyear=begyear)._replace(endyear=endyear)
+                for w in huc12_ws]
     # Gather the temp and prcp values for each unique weather stations
     unique_wd = weather_data(unique_ws, begyear, endyear)
 

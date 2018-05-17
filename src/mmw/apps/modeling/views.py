@@ -269,6 +269,7 @@ def _initiate_subbasin_gwlfe_job_chain(model_input, mapshed_job_uuid,
                                           stream_lengths,
                                           inputmod_hash,
                                           watershed_id_chunk)
+        .set(link_error=errback)
         for watershed_id_chunk in watershed_id_chunks]))
 
     post_process = \

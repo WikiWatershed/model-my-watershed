@@ -91,9 +91,21 @@ def apply_subbasin_gwlfe_modifications(gms, modifications,
     ag_stream_length_weighted_keys = ['n43', 'n45', 'n46c']
     urban_stream_length_weighted_keys = ['UrbBankStab']
     weighted_modifications = deepcopy(modifications)
-    ag_pct_total_stream_length = gms['AgLength'] / total_stream_lengths['ag']
-    urban_pct_total_stream_length = \
-        (gms['StreamLength'] - gms['AgLength']) / total_stream_lengths['urban']
+
+    # Weight factors for this subbasin's stream length given
+    # total stream length in the AoI
+    try:
+        ag_pct_total_stream_length = (gms['AgLength'] /
+                                      total_stream_lengths['ag'])
+    except ZeroDivisionError:
+        ag_pct_total_stream_length = 1
+
+    try:
+        urban_pct_total_stream_length = ((gms['StreamLength'] -
+                                          gms['AgLength']) /
+                                         total_stream_lengths['urban'])
+    except ZeroDivisionError:
+        urban_pct_total_stream_length = 1
 
     for mod in weighted_modifications:
         for key, val in mod.iteritems():
