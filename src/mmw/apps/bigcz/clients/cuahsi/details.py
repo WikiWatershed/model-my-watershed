@@ -23,7 +23,7 @@ def details(wsdl, site):
         wsdl += '?WSDL'
 
     from ulmo.cuahsi import wof
-    return wof.get_site_info(wsdl, site)
+    return wof.get_site_info(wsdl, site, None)
 
 
 def values(wsdl, site, variable, from_date=None, to_date=None):
@@ -52,4 +52,4 @@ def values(wsdl, site, variable, from_date=None, to_date=None):
         wsdl += '?WSDL'
 
     from ulmo.cuahsi import wof
-    return wof.get_values(wsdl, site, variable, from_date, to_date)
+    return wof.get_values(wsdl, site, variable, from_date, to_date, None)
