@@ -466,6 +466,8 @@ LAYER_GROUPS = {
 
 
 DRB_PERIMETER = GEOSGeometry(json.dumps(drb_perimeter['geometry']), srid=4326)
+DRB_SIMPLE_PERIMETER = \
+    GEOSGeometry(json.dumps(drb_simple_perimeter['geometry']), srid=4326)
 
 # Vizer observation meta data URL.  Happens to be proxied through a local app
 # server to avoid Cross Domain request errors
