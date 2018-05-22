@@ -87,8 +87,18 @@
 .aoi-area {
   font-size: $font-size-h4;
   color: $black-39;
-  margin-left: 10px;
   font-weight: 400;
+}
+
+.aoi-suffix {
+  font-size: $font-size-h4;
+  color: $ui-grey;
+  margin-right: 10px;
+  font-weight: 400;
+}
+
+.aoi-primary {
+  margin-right: 10px;
 }
 
 .analyze-message-region {

@@ -656,6 +656,22 @@ var utils = {
         };
     },
 
+    // Parse Area Of Interest Name to return an object like to be formatted by
+    // the view. It looks for (ID XXXX) at the end of the name and separates it
+    // into a suffix. E.g.
+    //     parseAoIName('Schuylkill, HUC-8 Watershed (ID 02040203)') =>
+    //     { primary: 'Schuylkill, HUC-8 Watershed', suffix: '02040203' }
+    parseAoIName: function(name) {
+        var idIndex = name.indexOf('(ID');
+
+        return {
+            primary: idIndex < 0 ? name :
+                     name.substr(0, idIndex),
+            suffix: idIndex < 0 ? '' :
+                    name.substring(idIndex + 4, name.length - 1)
+        };
+    },
+
     // Downloads given data as a text file with given filename
     downloadAsFile: function(data, filename) {
         var blob = new Blob([JSON.stringify(data)],

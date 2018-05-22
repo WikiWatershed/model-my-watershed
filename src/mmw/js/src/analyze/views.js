@@ -429,6 +429,7 @@ var AoiView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         return {
+            name: utils.parseAoIName(this.model.get('place')),
             csrftoken: csrf.getToken(),
             shape: JSON.stringify(this.model.get('shape'))
         };
