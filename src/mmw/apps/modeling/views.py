@@ -485,7 +485,7 @@ def boundary_layer_detail(request, table_code, obj_id):
     geojson = get_layer_shape(table_code, obj_id)
 
     if geojson:
-        return Response(json.loads(geojson))
+        return Response(geojson)
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
