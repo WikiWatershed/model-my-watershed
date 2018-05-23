@@ -15,6 +15,7 @@ var $ = require('jquery'),
     checkboxFilterTmpl = require('./templates/checkboxFilter.html'),
     filterSidebarTmpl = require('./templates/filterSidebar.html'),
     formTmpl = require('./templates/form.html'),
+    contributeModalTmpl = require('./templates/contributeModal.html'),
     pagerTmpl = require('./templates/pager.html'),
     searchResultCinergiTmpl = require('./templates/searchResultCinergi.html'),
     searchResultHydroshareTmpl = require('./templates/searchResultHydroshare.html'),
@@ -281,6 +282,7 @@ var FormView = Marionette.ItemView.extend({
 
     ui: {
         filterToggle: '.filter-sidebar-toggle',
+        contributeButton: '.contribute-data',
         searchInput: 'input[type="text"]',
         searchButton: '.btn-search',
         downloadButton: '#bigcz-catalog-results-download',
@@ -290,6 +292,7 @@ var FormView = Marionette.ItemView.extend({
         'keyup @ui.searchInput': 'onSearchInputChanged',
         'click @ui.searchButton': 'triggerSearch',
         'click @ui.filterToggle': 'onFilterToggle',
+        'click @ui.contributeButton': 'showContributeModal',
         'click @ui.downloadButton': 'downloadResults',
     },
 
@@ -314,6 +317,9 @@ var FormView = Marionette.ItemView.extend({
         this.collection.forEach(function(catalog) {
             self.listenTo(catalog, 'change:loading', self.render);
         });
+
+        this.contributeModal = new ContributeModal();
+        this.contributeModal.render();
     },
 
     downloadResults: function() {
@@ -389,6 +395,10 @@ var FormView = Marionette.ItemView.extend({
         App.rootView.secondarySidebarRegion.show(new FilterSidebar({
             collection: filters
         }));
+    },
+
+    showContributeModal: function() {
+        this.contributeModal.$el.modal('show');
     },
 
     triggerSearch: function() {
@@ -1350,6 +1360,16 @@ var FilterSidebar = Marionette.CompositeView.extend({
     clearFilters: function() {
         this.collection.forEach(function(model) { model.reset(); });
     }
+});
+
+var ContributeModal = Marionette.ItemView.extend({
+    className: 'modal modal-about fade',
+    attributes: {
+        'tabindex': '-1',
+        'role': 'dialog'
+    },
+
+    template: contributeModalTmpl
 });
 
 

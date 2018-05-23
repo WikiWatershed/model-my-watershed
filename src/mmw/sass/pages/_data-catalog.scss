@@ -554,3 +554,14 @@
     color: #555;
     padding-left: 0;
 }
+
+.contribute-modal {
+    .contribute-group {
+        display: flex;
+        justify-content: space-between;
+
+        .contribute-description {
+            width: 80%;
+        }
+    }
+}
