@@ -558,10 +558,35 @@
 .contribute-modal {
     .contribute-group {
         display: flex;
-        justify-content: space-between;
+        flex-direction: column;
+
+        & + .contribute-group {
+            margin-top: 2rem;
+        }
+
+        .contribute-row {
+            display: flex;
+            justify-content: space-between;
+        }
 
         .contribute-description {
-            width: 80%;
+            p {
+                margin-bottom: 1rem;
+            }
+        }
+
+        .contribute-link {
+            margin-left: 1rem;
+        }
+
+        .contribute-logos {
+            display: flex;
+            justify-content: space-evenly;
+
+            img {
+                max-width: 250px;
+                margin: 1rem;
+            }
         }
     }
 }
