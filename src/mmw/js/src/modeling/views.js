@@ -157,7 +157,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
                                   {name: modelPackageName}),
             aoiModel = new coreModels.GeoModel({
                 shape: App.map.get('areaOfInterest'),
-                place: App.map.get('areaOfInterestName')
+                place: utils.parseAoIName(App.map.get('areaOfInterestName')),
             });
         return {
             itsi: App.user.get('itsi'),

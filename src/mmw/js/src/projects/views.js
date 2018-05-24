@@ -78,6 +78,12 @@ var ProjectRowView = Marionette.ItemView.extend({
         'change': 'render'
     },
 
+    templateHelpers: function() {
+        return {
+            aoiName: utils.parseAoIName(this.model.get('area_of_interest_name')),
+        };
+    },
+
     renameProject: function() {
         var self = this,
             rename = new modalViews.InputView({

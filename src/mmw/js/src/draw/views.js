@@ -1102,8 +1102,14 @@ function getShapeAndAnalyze(e, model, ofg, grid, layerCode, layerName) {
             })
             .then(validateShape)
             .then(function(shape) {
-                var wkaoi = layerCode + '__' + shapeId;
-                addLayer(shape, shapeName, layerName, wkaoi);
+                var wkaoi = layerCode + '__' + shapeId,
+                    parsedLayerName = layerName;
+
+                if (shape.properties && shape.properties.huc) {
+                    parsedLayerName += ' (ID ' + shape.properties.huc + ')';
+                }
+
+                addLayer(shape, shapeName, parsedLayerName, wkaoi);
                 clearBoundaryLayer(model);
                 navigateToAnalyze();
                 deferred.resolve();

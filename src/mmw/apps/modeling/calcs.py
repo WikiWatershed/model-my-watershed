@@ -143,12 +143,20 @@ def get_layer_shape(table_code, id):
 
     table = layer['table_name']
     field = layer.get('json_field', 'geom')
+    properties = ''
+
+    if table.startswith('boundary_huc'):
+        properties = "'huc', {}".format(table[-5:])
 
     sql = '''
-          SELECT ST_AsGeoJSON({field})
+          SELECT json_build_object(
+            'type', 'Feature',
+            'id', id,
+            'geometry', ST_AsGeoJSON({field})::json,
+            'properties', json_build_object({properties}))
           FROM {table}
           WHERE id = %s
-          '''.format(field=field, table=table)
+          '''.format(field=field, properties=properties, table=table)
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [int(id)])
