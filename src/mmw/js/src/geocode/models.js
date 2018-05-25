@@ -3,7 +3,10 @@
 var _ = require('underscore'),
     $ = require('jquery'),
     Backbone = require('../../shim/backbone'),
-    App = require('../app');
+    App = require('../app'),
+    utils = require('../core/utils');
+
+var CONUS_BBOX = _.flatten(_.values(utils.CONUS)).join(',');
 
 var GeocoderModel = Backbone.Model.extend({
     defaults: {
@@ -69,12 +72,7 @@ var GeocodeSuggestions = Backbone.Collection.extend({
     model: SuggestionModel,
     url: function() {
         return 'https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/suggest?f=json' +
-               '&searchExtent=' + this.getBoundingBox();
-    },
-
-    getBoundingBox: function() {
-        // Continental US
-        return '-127.17,24.76,-66.53,50.4575';
+               '&searchExtent=' + CONUS_BBOX;
     },
 
     parse: function(response) {

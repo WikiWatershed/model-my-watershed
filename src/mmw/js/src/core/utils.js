@@ -37,6 +37,11 @@ var utils = {
 
     MODEL: 'MODEL',
 
+    CONUS: {
+        NW: [-127.17,24.76],
+        SE: [-66.53,50.4575]
+    },
+
     splashPageTitle: settings.get('title'),
 
     selectAreaPageTitle: 'Choose Area of Interest',
@@ -735,6 +740,50 @@ var utils = {
         });
 
         return gms;
+    },
+
+    // Takes a string query, which is either "Lon,Lat" or "Lat,Lon",
+    // and returns an object {lng: 99.9, lat: 99.9}. If the string
+    // cannot be parsed in the expected way, returns false
+    parseLocation: function(query) {
+        if (!_.isString(query)) {
+            return false;
+        }
+
+        if (query.indexOf(',') < 0) {
+            return false;
+        }
+
+        var coords = _.compact(query.split(',').map(parseFloat)),
+            result = { lat: NaN, lng: NaN };
+
+        if (coords.length !== 2) {
+            // String did not parse correctly
+            return false;
+        }
+
+        if (coords[0] >= this.CONUS.NW[0] && coords[0] <= this.CONUS.SE[0]) {
+            result.lng = coords[0];
+            if (coords[1] >= this.CONUS.NW[1] && coords[1] <= this.CONUS.SE[1]) {
+                result.lat = coords[1];
+            } else {
+                // Out of bounds
+                return false;
+            }
+        } else if (coords[1] >= this.CONUS.NW[0] && coords[1] <= this.CONUS.SE[0]) {
+            result.lng = coords[1];
+            if (coords[0] >= this.CONUS.NW[1] && coords[0] <= this.CONUS.SE[1]) {
+                result.lat = coords[0];
+            } else {
+                // Out of bounds
+                return false;
+            }
+        } else {
+            // Out of bounds
+            return false;
+        }
+
+        return result;
     }
 };
 
