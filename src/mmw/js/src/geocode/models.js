@@ -11,7 +11,31 @@ var CONUS_BBOX = _.flatten(_.values(utils.CONUS)).join(',');
 var GeocoderModel = Backbone.Model.extend({
     defaults: {
         selectedSuggestion: null, // SuggestionModel
+        location: null,           // LocationModel
         query: ''
+    }
+});
+
+var LocationModel = Backbone.Model.extend({
+    defaults: {
+        lat: NaN,
+        lng: NaN,
+        zoom: 14,
+        selected: false
+    },
+
+    select: function(zoom) {
+        var lat = this.get('lat'),
+            lng = this.get('lng');
+        if (lat && lng) {
+            App.map.set({
+                lat: lat,
+                lng: lng,
+                zoom: zoom || this.get('zoom')
+            });
+
+            this.set('selected', true);
+        }
     }
 });
 
@@ -158,6 +182,7 @@ var SuggestionsCollection = Backbone.Collection.extend({
 
 module.exports = {
     GeocoderModel: GeocoderModel,
+    LocationModel: LocationModel,
     SuggestionModel: SuggestionModel,
     SuggestionsCollection: SuggestionsCollection
 };
