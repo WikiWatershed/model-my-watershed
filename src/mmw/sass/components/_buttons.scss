@@ -235,3 +235,24 @@
   text-align: center;
   border-radius: 2px;
 }
+
+.btn-search-option {
+  color: $black-74;
+  position: relative;
+  display: inline-block;
+  background-color: transparent;
+  border: none;
+
+  i {
+    color: $black-74;
+    margin-right: 1px;
+  }
+
+  &:hover, &:focus {
+    color: $black;
+  }
+
+  &:active {
+    box-shadow: none;
+  }
+}
