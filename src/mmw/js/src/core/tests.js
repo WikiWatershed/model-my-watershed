@@ -779,6 +779,31 @@ describe('Core', function() {
             assert.equal(output.version, 'Local');
             assert.equal(output.releaseNotesUrl, latestUrl);
         });
+
+        it('parses coordinates correctly', function() {
+            var lngLat = '-75.1542379,39.9614307',
+                latLng = '39.9614307,-75.1542379',
+                address = '990 Spring Garden, St',
+                hucName = 'Lower Schuylkill',
+                zipCode = '19123',
+                mexico = '23.294249,-111.6364102',
+                spain = '40.1217811,-8.200797',
+                africa = '2.1500228,5.2076582',
+                empty = '',
+                correct = { lat: 39.9614307, lng: -75.1542379 };
+
+            assert.deepEqual(utils.parseLocation(latLng), correct);
+            assert.deepEqual(utils.parseLocation(lngLat), correct);
+            assert.equal(utils.parseLocation(address), false);
+            assert.equal(utils.parseLocation(hucName), false);
+            assert.equal(utils.parseLocation(zipCode), false);
+            assert.equal(utils.parseLocation(mexico), false);
+            assert.equal(utils.parseLocation(spain), false);
+            assert.equal(utils.parseLocation(africa), false);
+            assert.equal(utils.parseLocation(empty), false);
+            assert.equal(utils.parseLocation(null), false);
+            assert.equal(utils.parseLocation(), false);
+        });
     });
 });
 

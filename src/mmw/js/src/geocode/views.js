@@ -6,11 +6,13 @@ var _ = require('underscore'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     router = require('../router').router,
+    utils = require('../core/utils'),
     drawViews = require('../draw/views'),
     modalModels = require('../core/modals/models'),
     models = require('./models'),
     geocoderTmpl = require('./templates/geocoder.html'),
     searchTmpl = require('./templates/search.html'),
+    locationTmpl = require('./templates/location.html'),
     suggestionsTmpl = require('./templates/suggestions.html');
 
 var ENTER_KEYCODE = 13,
@@ -176,6 +178,8 @@ var SearchBoxView = Marionette.LayoutView.extend({
         if (e.keyCode === ENTER_KEYCODE) {
             if (this.collection.length >= 1) {
                 this.selectFirst();
+            } else if (this.model.get('location') !== null) {
+                this.model.get('location').select();
             }
         } else if (query !== this.model.get('query')) {
             this.model.set('query', query, { silent: true });
@@ -201,6 +205,14 @@ var SearchBoxView = Marionette.LayoutView.extend({
         // Cancel in-progress search request
         if (this.searchRequest) {
             this.searchRequest.cancel();
+        }
+
+        var coords = utils.parseLocation(query);
+
+        if (coords) {
+            this.showLocationRegion(coords);
+            this.setStateDefault();
+            return;
         }
 
         // Make sure there's a place to put search results as they stream in
@@ -243,6 +255,17 @@ var SearchBoxView = Marionette.LayoutView.extend({
                 .always(_.bind(this.reset, this));
     },
 
+    showLocationRegion: function(coords) {
+        var model = new models.LocationModel(coords),
+            view = new LocationView({ model: model });
+
+        this.model.set('location', model);
+
+        model.on('change:selected', this.dismissAction, this);
+
+        this.getRegion('resultsRegion').show(view);
+    },
+
     showResultsRegion: function() {
         var view = new SuggestionsView({
             collection: this.collection
@@ -276,6 +299,7 @@ var SearchBoxView = Marionette.LayoutView.extend({
         this.model.set({
             query: '',
             selectedSuggestion: null,
+            location: null,
         });
         this.emptyResultsRegion();
         App.map.set('selectedGeocoderArea', null);
@@ -350,6 +374,20 @@ var SuggestionsView = Backbone.View.extend({
                 .groupBy('label')
         });
         this.$el.html(html);
+    }
+});
+
+var LocationView = Marionette.ItemView.extend({
+    className: 'geocoder-search-location-prompt',
+
+    template: locationTmpl,
+
+    events: {
+        'click': 'selectLocation',
+    },
+
+    selectLocation: function() {
+        this.model.select();
     }
 });
 
