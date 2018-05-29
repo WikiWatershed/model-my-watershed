@@ -13,9 +13,9 @@
         </span>
         {{ splashPageText.drawToolOneName }}
     </h2>
-    <p>
-        {{ splashPageText.drawToolOneDescription }}
-    </p>
+    {% for description in splashPageText.drawToolOneDescriptions %}
+        <p>{{ description }}</p>
+    {% endfor %}
 </div>
 <div class="splash-step">
     <h2>
@@ -24,9 +24,9 @@
         </span>
         {{ splashPageText.drawToolTwoName }}
     </h2>
-    <p>
-        {{ splashPageText.drawToolTwoDescription }}
-    </p>
+    {% for description in splashPageText.drawToolTwoDescriptions %}
+        <p>{{ description }}</p>
+    {% endfor %}
 </div>
 <div class="splash-step">
     <h2>
@@ -35,9 +35,9 @@
         </span>
         {{ splashPageText.drawToolThreeName }}
     </h2>
-    <p>
-        {{ splashPageText.drawToolThreeDescription }}
-    </p>
+    {% for description in splashPageText.drawToolThreeDescriptions %}
+        <p>{{ description }}</p>
+    {% endfor %}
     {% if dataCatalogEnabled %}
         <ol type="i">
             <li>
