@@ -91,7 +91,7 @@ def collect_data(geop_results, geojson, watershed_id=None, weather=None):
     z['ManNitr'], z['ManPhos'] = manure_spread(z['AEU'])
 
     # Data from Streams dataset
-    z['StreamLength'] = stream_length(geom)      # Meters
+    z['StreamLength'] = stream_length(geom) or 10   # Meters
     z['n42b'] = round(z['StreamLength'] / 1000, 1)  # Kilometers
 
     # Data from Point Source Discharge dataset
