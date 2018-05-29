@@ -541,6 +541,9 @@ var Result = Backbone.Model.extend({
                     // Handle error in /details/
                     setError();
                     endFetch();
+
+                    // Throw error to prevent fetching values
+                    throw "Error fetching details, not fetching values.";
                 })
                 .then(function() {
                     return $.when.apply($, runSearches())
