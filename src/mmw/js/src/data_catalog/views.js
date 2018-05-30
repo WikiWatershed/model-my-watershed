@@ -20,6 +20,7 @@ var $ = require('jquery'),
     searchResultCinergiTmpl = require('./templates/searchResultCinergi.html'),
     searchResultHydroshareTmpl = require('./templates/searchResultHydroshare.html'),
     searchResultCuahsiTmpl = require('./templates/searchResultCuahsi.html'),
+    searchResultUSGSWQPTmpl = require('./templates/searchResultUSGSWQP.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     tabPanelTmpl = require('./templates/tabPanel.html'),
     headerTmpl = require('./templates/header.html'),
@@ -32,6 +33,7 @@ var $ = require('jquery'),
     resultDetailsCuahsiChartTmpl = require('./templates/resultDetailsCuahsiChart.html'),
     resultDetailsCuahsiTableTmpl = require('./templates/resultDetailsCuahsiTable.html'),
     resultDetailsCuahsiTableRowVariableColTmpl = require('./templates/resultDetailsCuahsiTableRowVariableCol.html'),
+    resultDetailsUSGSWQPTmpl = require('./templates/resultDetailsUSGSWQP.html'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultMapPopoverDetailTmpl = require('./templates/resultMapPopoverDetail.html'),
     resultMapPopoverListTmpl = require('./templates/resultMapPopoverList.html'),
@@ -45,6 +47,7 @@ var ENTER_KEYCODE = 13,
         cinergi: searchResultCinergiTmpl,
         hydroshare: searchResultHydroshareTmpl,
         cuahsi: searchResultCuahsiTmpl,
+        usgswqp: searchResultUSGSWQPTmpl
     };
 
 var HeaderView = Marionette.LayoutView.extend({
@@ -859,10 +862,71 @@ var CuahsiSwitcherView = Marionette.ItemView.extend({
     }
 });
 
+var ResultDetailsUSGSWQPView = ResultDetailsBaseView.extend({
+    template: resultDetailsUSGSWQPTmpl,
+
+    templateHelpers: function() {
+        var id = this.model.get('id'),
+            location = id.substring(id.indexOf(':') + 1);
+
+        return {
+            location: location,
+        };
+    },
+
+    ui: _.defaults({
+        chartRegion: '#cuahsi-chart-region',
+        tableRegion: '#cuahsi-table-region',
+    }, ResultDetailsBaseView.prototype.ui),
+
+    regions: {
+        statusRegion: '#cuahsi-status-region',
+        switcherRegion: '#cuahsi-switcher-region',
+        chartRegion: '#cuahsi-chart-region',
+        tableRegion: '#cuahsi-table-region',
+    },
+
+    modelEvents: {
+        'change:mode': 'showChartOrTable',
+    },
+
+    initialize: function() {
+        this.model.set('mode', 'table');
+    },
+
+    onShow: function() {
+    },
+
+    onDomRefresh: function() {
+        window.closePopover();
+        this.$('[data-toggle="popover"]').popover({
+            placement: 'right',
+            trigger: 'click',
+        });
+    },
+
+    showChartOrTable: function() {
+        if (this.model.get('mode') === 'table') {
+            this.ui.chartRegion.addClass('hidden');
+            this.ui.tableRegion.removeClass('hidden');
+        } else {
+            this.ui.chartRegion.removeClass('hidden');
+            this.ui.tableRegion.addClass('hidden');
+
+            if (!this.chartRegion.hasView()) {
+                this.chartRegion.show(new CuahsiChartView({
+                    collection: this.model.get('variables'),
+                }));
+            }
+        }
+    }
+});
+
 var CATALOG_RESULT_DETAILS_VIEW = {
     cinergi: ResultDetailsCinergiView,
     hydroshare: ResultDetailsHydroshareView,
     cuahsi: ResultDetailsCuahsiView,
+    usgswqp: ResultDetailsUSGSWQPView
 };
 
 var CuahsiTableView = Marionette.ItemView.extend({
