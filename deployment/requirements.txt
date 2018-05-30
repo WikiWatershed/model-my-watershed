@@ -1,4 +1,4 @@
-ansible==2.0.1.0
+ansible==2.4.4.0
 majorkirby>=0.2.0,<0.2.99
 troposphere>=1.1.0
 boto==2.39.0
