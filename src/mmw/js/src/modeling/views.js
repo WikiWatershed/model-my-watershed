@@ -966,16 +966,21 @@ var ResultsView = Marionette.LayoutView.extend({
         ));
 
         if (scenario) {
+            var results = scenario.get('results'),
+                hasSubbasin = results.some(function(r) {
+                    return r.get('name') === 'subbasin';
+                });
+
             // Close sub-basin of previous detail view if active
             // And make any active subbasin detail inactive
-            if (this.modelingRegion.hasView()) {
+            if (hasSubbasin && this.modelingRegion.hasView()) {
                 this.modelingRegion.currentView.hideSubbasinHuc12View();
                 this.modelingRegion.currentView.hideSubbasinHotSpotView();
             }
 
             this.modelingRegion.show(new ResultsDetailsView({
                 areaOfInterest: this.model.get('area_of_interest'),
-                collection: scenario.get('results'),
+                collection: results,
                 scenario: scenario,
             }));
         }
