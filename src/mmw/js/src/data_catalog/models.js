@@ -10,6 +10,7 @@ var BAD_REQUEST_CODE = 400;
 var REQUEST_TIMED_OUT_CODE = 408;
 var DESCRIPTION_MAX_LENGTH = 100;
 var PAGE_SIZE = settings.get('data_catalog_page_size');
+var BIGCZ = settings.get('data_catalog_enabled');
 
 var DATE_FORMAT = 'MM/DD/YYYY';
 var WATERML_VARIABLE_TIME_INTERVAL = '{http://www.cuahsi.org/water_ml/1.1/}variable_time_interval';
@@ -893,49 +894,53 @@ var ExpandableListModel = Backbone.Model.extend({
 });
 
 function createCatalogCollection() {
-    var dateFilter = new DateFilter();
+    var dateFilter = new DateFilter(),
+        catalogs = new Catalogs([
+            new Catalog({
+                id: 'hydroshare',
+                name: 'HydroShare',
+                active: true,
+                results: new Results(null, { catalog: 'hydroshare' }),
+                filters: new FilterCollection([
+                    dateFilter,
+                    new PrivateResourcesFilter(),
+                ]),
+            }),
+            new Catalog({
+                id: 'cuahsi',
+                name: 'CUAHSI WDC',
+                is_pageable: false,
+                results: new Results(null, { catalog: 'cuahsi' }),
+                serverResults: new Results(null, { catalog: 'cuahsi' }),
+                filters: new FilterCollection([
+                    dateFilter,
+                    new GriddedServicesFilter(),
+                ]),
+            }),
+            new Catalog({
+                id: 'cinergi',
+                name: 'CINERGI',
+                results: new Results(null, { catalog: 'cinergi' }),
+                filters: new FilterCollection([
+                    dateFilter,
+                ]),
+            }),
+        ]);
 
-    return new Catalogs([
-        new Catalog({
-            id: 'hydroshare',
-            name: 'HydroShare',
-            active: true,
-            results: new Results(null, { catalog: 'hydroshare' }),
-            filters: new FilterCollection([
-                dateFilter,
-                new PrivateResourcesFilter(),
-            ]),
-        }),
-        new Catalog({
-            id: 'cuahsi',
-            name: 'CUAHSI WDC',
-            is_pageable: false,
-            results: new Results(null, { catalog: 'cuahsi' }),
-            serverResults: new Results(null, { catalog: 'cuahsi' }),
-            filters: new FilterCollection([
-                dateFilter,
-                new GriddedServicesFilter()
-            ])
-        }),
-        new Catalog({
-            id: 'cinergi',
-            name: 'CINERGI',
-            results: new Results(null, { catalog: 'cinergi' }),
-            filters: new FilterCollection([
-                dateFilter,
-            ]),
-        }),
-        new Catalog({
+    if (BIGCZ) {
+        catalogs.push(new Catalog({
             id: 'usgswqp',
             name: 'WQP',
             is_pageable: false,
             results: new Results(null, { catalog: 'usgswqp' }),
             serverResults: new Results(null, { catalog: 'usgswqp' }),
             filters: new FilterCollection([
-                dateFilter
-            ])
-        })
-    ]);
+                dateFilter,
+            ]),
+        }));
+    }
+
+    return catalogs;
 }
 
 module.exports = {
