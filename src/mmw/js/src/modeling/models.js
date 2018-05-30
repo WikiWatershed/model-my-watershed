@@ -870,12 +870,14 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
     getStyle: function() {
         var self = this,
             load = this.get('selectedLoad'),
+            fillOpacity = 1,
             defaultStyle = {
                 stroke: true,
                 color: 'grey',
                 weight: 2,
                 opacity: 1,
                 fill: true,
+                fillColor: '#FFFFFF',
                 fillOpacity: 0.3,
             },
             ramps = {
@@ -889,7 +891,10 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
 
         if (loadValue !== null &&
             ['TotalN', 'TotalP', 'Sediment'].indexOf(load) >= 0) {
-            return _.defaults({ fillColor: ramps[load](loadValue) }, defaultStyle);
+            return _.defaults({
+                fillColor: ramps[load](loadValue),
+                fillOpacity: fillOpacity,
+            }, defaultStyle);
         } else {
             return defaultStyle;
         }
@@ -897,7 +902,6 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
 
     getHighlightStyle: function() {
         return _.defaults({
-            fillOpacity: 0.4,
             color: '#1d3331'
         }, this.getStyle());
     },
