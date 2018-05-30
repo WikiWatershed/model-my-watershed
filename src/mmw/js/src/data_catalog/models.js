@@ -924,6 +924,16 @@ function createCatalogCollection() {
             filters: new FilterCollection([
                 dateFilter,
             ]),
+        }),
+        new Catalog({
+            id: 'usgswqp',
+            name: 'WQP',
+            is_pageable: false,
+            results: new Results(null, { catalog: 'usgswqp' }),
+            serverResults: new Results(null, { catalog: 'usgswqp' }),
+            filters: new FilterCollection([
+                dateFilter
+            ])
         })
     ]);
 }

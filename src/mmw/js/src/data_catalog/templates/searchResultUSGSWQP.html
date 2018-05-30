@@ -1,0 +1,27 @@
+<div class="resource-wrapper {% if active %}active{% endif %}">
+    <h3 class="resource-title">
+        {{ service_code }} {{ id | split(":", 1) }},
+        {{ title }}
+    </h3>
+    <div class="resource-detail">
+        <i class="fa fa-file-text-o"></i> {{ service_org }}
+    </div>
+    <div class="resource-detail">
+        <i class="fa fa-flask"></i> {{ monitoring_type }}
+    </div>
+{#    <div class="resource-detail -showall">#}
+{#        <i class="fa fa-subscript"></i>#}
+{#        <div class="detail-text">#}
+{#            {{ concept_keywords }}#}
+{#        </div>#}
+{#    </div>#}
+    <div class="resource-detail">
+        {% if begin_date and begin_date|toDateWithoutTime == end_date|toDateWithoutTime %}
+            <i class="fa fa-calendar"></i> {{ begin_date|toDateWithoutTime }}
+        {% elif begin_date %}
+            <i class="fa fa-calendar"></i> {{ begin_date|toDateWithoutTime }} - {{ end_date|toDateWithoutTime }}
+        {% else %}
+            <i class="fa fa-calendar"></i> Unknown Time Period
+        {% endif %}
+    </div>
+</div>

@@ -51,8 +51,10 @@ def _do_search(request):
             'error': 'Catalog must be one of: {}'
                      .format(', '.join(CATALOGS.keys()))})
 
+    # Store geojson to pass in search kwargs
+    geojson = json.dumps(params.get('geom'))
     # Use a proper GEOS shape and calculate the bbox
-    aoi = GEOSGeometry(json.dumps(params.get('geom')))
+    aoi = GEOSGeometry(geojson)
     bbox = get_bounds(aoi)
 
     search_kwargs = {
@@ -60,6 +62,7 @@ def _do_search(request):
         'to_date': parse_date(params.get('to_date')),
         'from_date': parse_date(params.get('from_date')),
         'bbox': bbox,
+        'geojson': geojson,
         'options': params.get('options', ''),
         'page': page,
     }

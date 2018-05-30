@@ -3,7 +3,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from apps.bigcz.clients import cinergi, hydroshare, cuahsi
+from apps.bigcz.clients import (cinergi,
+                                hydroshare,
+                                cuahsi,
+                                usgswqp)
 
 CATALOGS = {
     cinergi.CATALOG_NAME: {
@@ -26,4 +29,10 @@ CATALOGS = {
         'values': cuahsi.values,
         'is_pageable': False,
     },
+    usgswqp.CATALOG_NAME: {
+        'model': usgswqp.model,
+        'serializer': usgswqp.serializer,
+        'search': usgswqp.search,
+        'is_pageable': False,
+    }
 }
