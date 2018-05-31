@@ -7,7 +7,6 @@ from troposphere import (
     Base64,
     Join,
     Equals,
-    cloudwatch as cw,
     ec2,
     elasticloadbalancing as elb,
     autoscaling as asg
@@ -279,8 +278,6 @@ class Application(StackNode):
         self.create_auto_scaling_resources(app_server_security_group,
                                            app_server_lb,
                                            backward_compat_app_server_lb)
-
-        self.create_cloud_watch_resources(app_server_lb)
 
         self.add_output(Output('AppServerLoadBalancerEndpoint',
                                Value=GetAtt(app_server_lb, 'DNSName')))
@@ -633,47 +630,6 @@ class Application(StackNode):
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
                 '    content: ', Ref(self.client_app_user_password)]
-
-    def create_cloud_watch_resources(self, app_server_lb):
-        self.add_resource(cw.Alarm(
-            'alarmAppServerBackend4XX',
-            AlarmDescription='Application server backend 4XXs',
-            AlarmActions=[Ref(self.notification_topic_arn)],
-            Statistic='Sum',
-            Period=300,
-            Threshold='20',
-            EvaluationPeriods=1,
-            ComparisonOperator='GreaterThanThreshold',
-            MetricName='HTTPCode_Backend_4XX',
-            Namespace='AWS/ELB',
-            Dimensions=[
-                cw.MetricDimension(
-                    'metricLoadBalancerName',
-                    Name='LoadBalancerName',
-                    Value=Ref(app_server_lb)
-                )
-            ],
-        ))
-
-        self.add_resource(cw.Alarm(
-            'alarmAppServerBackend5XX',
-            AlarmDescription='Application server backend 5XXs',
-            AlarmActions=[Ref(self.notification_topic_arn)],
-            Statistic='Sum',
-            Period=60,
-            Threshold='0',
-            EvaluationPeriods=1,
-            ComparisonOperator='GreaterThanThreshold',
-            MetricName='HTTPCode_Backend_5XX',
-            Namespace='AWS/ELB',
-            Dimensions=[
-                cw.MetricDimension(
-                    'metricLoadBalancerName',
-                    Name='LoadBalancerName',
-                    Value=Ref(app_server_lb)
-                )
-            ],
-        ))
 
     def get_tags(self, **kwargs):
         """Helper method to return Troposphere tags + default tags

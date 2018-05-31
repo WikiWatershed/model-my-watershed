@@ -6,7 +6,6 @@ from troposphere import (
     GetAtt,
     Join,
     cloudfront as cf,
-    cloudwatch as cw,
     route53 as r53,
     s3
 )
@@ -107,56 +106,6 @@ class TileDeliveryNetwork(StackNode):
             )
         ))
 
-        self.add_resource(cw.Alarm(
-            'alarmTileDistributionBlueOrigin4XX',
-            AlarmDescription='Tile distribution origin 4XXs',
-            AlarmActions=[Ref(self.notification_topic_arn)],
-            Statistic='Average',
-            Period=300,
-            Threshold='20',
-            EvaluationPeriods=1,
-            ComparisonOperator='GreaterThanThreshold',
-            MetricName='4xxErrorRate',
-            Namespace='AWS/CloudFront',
-            Dimensions=[
-                cw.MetricDimension(
-                    'metricDistributionId',
-                    Name='DistributionId',
-                    Value=Ref(blue_tile_distribution)
-                ),
-                cw.MetricDimension(
-                    'metricRegion',
-                    Name='Region',
-                    Value='Global'
-                )
-            ]
-        ))
-
-        self.add_resource(cw.Alarm(
-            'alarmTileDistributionBlueOrigin5XX',
-            AlarmDescription='Tile distribution origin 5XXs',
-            AlarmActions=[Ref(self.notification_topic_arn)],
-            Statistic='Average',
-            Period=60,
-            Threshold='0',
-            EvaluationPeriods=1,
-            ComparisonOperator='GreaterThanThreshold',
-            MetricName='5xxErrorRate',
-            Namespace='AWS/CloudFront',
-            Dimensions=[
-                cw.MetricDimension(
-                    'metricDistributionId',
-                    Name='DistributionId',
-                    Value=Ref(blue_tile_distribution)
-                ),
-                cw.MetricDimension(
-                    'metricRegion',
-                    Name='Region',
-                    Value='Global'
-                )
-            ]
-        ))
-
         green_tile_distribution = self.add_resource(cf.Distribution(
             'tileDistributionGreen',
             DistributionConfig=cf.DistributionConfig(
@@ -178,56 +127,6 @@ class TileDeliveryNetwork(StackNode):
                 ),
                 Enabled=True
             )
-        ))
-
-        self.add_resource(cw.Alarm(
-            'alarmTileDistributionGreenOrigin4XX',
-            AlarmDescription='Tile distribution origin 4XXs',
-            AlarmActions=[Ref(self.notification_topic_arn)],
-            Statistic='Average',
-            Period=300,
-            Threshold='20',
-            EvaluationPeriods=1,
-            ComparisonOperator='GreaterThanThreshold',
-            MetricName='4xxErrorRate',
-            Namespace='AWS/CloudFront',
-            Dimensions=[
-                cw.MetricDimension(
-                    'metricDistributionId',
-                    Name='DistributionId',
-                    Value=Ref(green_tile_distribution)
-                ),
-                cw.MetricDimension(
-                    'metricRegion',
-                    Name='Region',
-                    Value='Global'
-                )
-            ]
-        ))
-
-        self.add_resource(cw.Alarm(
-            'alarmTileDistributionGreenOrigin5XX',
-            AlarmDescription='Tile distribution origin 5XXs',
-            AlarmActions=[Ref(self.notification_topic_arn)],
-            Statistic='Average',
-            Period=60,
-            Threshold='0',
-            EvaluationPeriods=1,
-            ComparisonOperator='GreaterThanThreshold',
-            MetricName='5xxErrorRate',
-            Namespace='AWS/CloudFront',
-            Dimensions=[
-                cw.MetricDimension(
-                    'metricDistributionId',
-                    Name='DistributionId',
-                    Value=Ref(green_tile_distribution)
-                ),
-                cw.MetricDimension(
-                    'metricRegion',
-                    Name='Region',
-                    Value='Global'
-                )
-            ]
         ))
 
         return blue_tile_distribution, green_tile_distribution
