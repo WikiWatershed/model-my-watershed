@@ -14,32 +14,39 @@ var SubbasinTabCollection = Backbone.Collection.extend({
     model: SubbasinTabModel,
 });
 
-// Matching $streamWaterQualityColors in _variables.scss
-var SubbasinColorScheme = [
-    '#1a9641',
-    '#a6d96a',
-    '#ffffbf',
-    '#fdae61',
-    '#d7191c',
-    '#42090a',
-    '#000000',
-];
+var ColorSchemes = {
+    catchment: [
+        '#00A151',
+        '#8BDE65',
+        '#FCFFBC',
+        '#FF9555',
+        '#FF6B55',
+        '#000000',
+    ],
+    stream: [
+        '#00602D',
+        '#00E72A',
+        '#EBFF5B',
+        '#FF6508',
+        '#CB1A00',
+        '#000000',
+    ],
+};
 
-function makeColorRamp(values) {
+function makeColorRamp(values, colorScheme) {
     if (!(Array.isArray(values) && values.length === 5)) {
         console.error('Can only make a color ramp with 5 values.');
         return false;
     }
 
-    // Add 1 after the end of given range, and MAX_VALUE to the very end,
-    // to allow for fade from dark red to black for overflow values.
-    var domain = values.concat([values[4] + 1, Number.MAX_VALUE]);
+    var domain = values.concat([Number.MAX_VALUE]);
 
-    return d3.scale.linear().domain(domain).range(SubbasinColorScheme);
+    return d3.scale.linear().domain(domain).range(colorScheme);
 }
 
 module.exports = {
     SubbasinTabModel: SubbasinTabModel,
     SubbasinTabCollection: SubbasinTabCollection,
     makeColorRamp: makeColorRamp,
+    ColorSchemes: ColorSchemes,
 };

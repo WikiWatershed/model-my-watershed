@@ -1114,13 +1114,22 @@ var MapView = Marionette.ItemView.extend({
     },
 
     bringActiveSubbasinToFront: function(subbasinDetails) {
-        if (subbasinDetails.getActive()) {
-            var activeId = subbasinDetails.getActive().get('id');
-            _.forEach(this._subbasinHuc12sLayer.getLayers(), function(layer) {
-                if (layer.options.id === activeId) {
-                    layer.bringToFront();
+        if (!subbasinDetails) {
+            subbasinDetails = this.model.get('subbasinHuc12s');
+        }
+
+        var activeSubbasin = subbasinDetails.getActive();
+
+        if (activeSubbasin) {
+            var activeId = activeSubbasin.get('id'),
+                subbasinLayers = this._subbasinHuc12sLayer.getLayers();
+
+            for (var i = 0; i < subbasinLayers.length; i++) {
+                if (subbasinLayers[i].options.id === activeId) {
+                    subbasinLayers[i].bringToFront();
+                    return;
                 }
-            });
+            }
         }
     },
 
@@ -1159,7 +1168,7 @@ var MapView = Marionette.ItemView.extend({
                         layer.bringToFront();
                     } else {
                         layer.setStyle(catchment.getStreamStyle());
-                        layer.bringToBack();
+                        self.bringActiveSubbasinToFront();
                     }
                 };
 
@@ -1190,7 +1199,7 @@ var MapView = Marionette.ItemView.extend({
                         layer.bringToFront();
                     } else {
                         layer.setStyle(catchment.getStyle());
-                        layer.bringToBack();
+                        self.bringActiveSubbasinToFront();
                     }
                 };
 
