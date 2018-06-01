@@ -876,7 +876,7 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
             defaultStyle = {
                 stroke: true,
                 color: 'grey',
-                weight: 2,
+                weight: 1,
                 opacity: 1,
                 fill: true,
                 fillColor: '#FFFFFF',
@@ -904,6 +904,7 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
 
     getHighlightStyle: function() {
         return _.defaults({
+            weight: 2,
             color: '#1d3331'
         }, this.getStyle());
     },
@@ -914,7 +915,7 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
             defaultStyle = {
                 stroke: true,
                 color: '#49B8EA', // $water in _variables.scss
-                weight: 2,
+                weight: 3,
                 opacity: 1,
                 fill: false
             },
@@ -937,9 +938,8 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
     },
 
     getStreamHighlightStyle: function() {
-        return _.defaults({
-            weight: 3,
-        }, this.getStreamStyle());
+        // No changes for highlighting streams
+        return this.getStreamStyle();
     }
 });
 
