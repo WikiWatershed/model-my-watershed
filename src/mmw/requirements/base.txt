@@ -28,3 +28,4 @@ numpy==1.13.0
 hs_restclient==1.2.10
 six==1.11.0
 fiona==1.7.11
+timeout-decorator==0.4.0
