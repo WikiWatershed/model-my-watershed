@@ -66,6 +66,12 @@ var ResultView = Marionette.LayoutView.extend({
     }
 });
 
+var LABELS = {
+    TotalN: 'Total Nitrogen',
+    TotalP: 'Total Phosphorous',
+    Sediment: 'Total Sediments',
+};
+
 var LayerSelectorView = Marionette.ItemView.extend({
     // model: SubbasinDetailModel
     template: layerSelectorTmpl,
@@ -80,17 +86,11 @@ var LayerSelectorView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
-        var layers = [
-                { id: 'TotalN', name: 'Total Nitrogen' },
-                { id: 'TotalP', name: 'Total Phosphorous' },
-                { id: 'Sediment', name: 'Total Sediments' }
-            ],
-            selectedLoad = this.model.get('selectedLoad'),
-            selectedLoadName = selectedLoad &&
-                               _.findWhere(layers, { id: selectedLoad }).name;
+        var selectedLoad = this.model.get('selectedLoad'),
+            selectedLoadName = selectedLoad && LABELS[selectedLoad];
 
         return {
-            layers: layers,
+            layers: LABELS,
             selectedLoad: selectedLoad,
             selectedLoadName: selectedLoadName,
         };
