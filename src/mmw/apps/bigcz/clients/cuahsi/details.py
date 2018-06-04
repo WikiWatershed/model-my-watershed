@@ -10,6 +10,8 @@ from rest_framework.exceptions import ValidationError
 
 from django.conf import settings
 
+from apps.bigcz.utils import ValuesTimedOutError
+
 DATE_FORMAT = '%m/%d/%Y'
 
 
@@ -29,7 +31,7 @@ def details(wsdl, site):
     return wof.get_site_info(wsdl, site, None)
 
 
-@timeout(settings.BIGCZ_CLIENT_TIMEOUT)
+@timeout(settings.BIGCZ_CLIENT_TIMEOUT, timeout_exception=ValuesTimedOutError)
 # NOTE: This @timeout decorator will have to be modified for a multi-threaded
 # environment, with the use_signals=false attribute. Unfortunately, that does
 # not support functions that return values that cannot be pickled, such as this

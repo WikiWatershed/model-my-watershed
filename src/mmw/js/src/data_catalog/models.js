@@ -769,7 +769,10 @@ var CuahsiVariable = Backbone.Model.extend({
                 processData: true,
             })
             .fail(function(error) {
-                self.set('error', 'Error ' + error.status + ' during fetch');
+                var detail =
+                    (error.responseJSON && error.responseJSON.detail) || '';
+                self.set('error',
+                    'Error ' + error.status + ' during fetch. ' + detail);
             });
     },
 
