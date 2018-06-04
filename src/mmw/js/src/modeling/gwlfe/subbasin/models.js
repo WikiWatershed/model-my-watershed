@@ -24,7 +24,7 @@ var ColorSchemes = {
         '#000000',
     ],
     stream: [
-        '#00602D',
+        '#007A39',
         '#00E72A',
         '#EBFF5B',
         '#FF6508',

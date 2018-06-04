@@ -59,27 +59,28 @@ var dataCatalogDetailStyle = {
 
 var subbasinHuc12Style = {
     stroke: true,
-    color: '#40c4c4',
-    weight: 2,
-    opacity: 1,
+    color: '#E77471',
+    weight: 1.2,
+    opacity: 0.75,
     fill: true,
     fillOpacity: 0,
 };
 
 var subbasinHuc12HighlightedStyle = {
     stroke: true,
-    color: '#1d3331',
-    weight: 2,
-    opacity: 1,
+    color: '#E77471',
+    weight: 1.2,
+    opacity: 0.75,
     fill: true,
-    fillOpacity: 0,
+    fillColor: '#E77471',
+    fillOpacity: 0.2,
 };
 
 var subbasinHuc12ActiveStyle = {
     stroke: true,
-    color: '#dbba29',
+    color: '#E77471',
     weight: 5,
-    opacity: 1,
+    opacity: 0.75,
     fill: false,
 };
 
