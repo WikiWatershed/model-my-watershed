@@ -7,6 +7,7 @@ var Marionette = require('../../../../shim/backbone.marionette'),
     models = require('./models'),
     resultTmpl = require('./templates/result.html'),
     layerSelectorTmpl = require('./templates/layerSelector.html'),
+    layerLegendTmpl = require('./templates/layerLegend.html'),
     tableTabContentTmpl = require('./templates/tableTabContent.html'),
     tableTabPanelTmpl = require('./templates/tableTabPanel.html'),
     huc12TotalsTableTmpl = require('./templates/huc12TotalsTable.html'),
@@ -104,7 +105,22 @@ var LayerSelectorView = Marionette.ItemView.extend({
         } else {
             this.model.set('selectedLoad', newLoad);
         }
+    },
+
+    onRender: function() {
+        if (this.model.get('selectedLoad')) {
+            App.rootView.subbasinSliderRegion.show(new LayerLegendView({
+                model: App.map,
+            }));
+        } else {
+            App.rootView.subbasinSliderRegion.empty();
+        }
     }
+});
+
+var LayerLegendView = Marionette.ItemView.extend({
+    // model: MapModel,
+    template: layerLegendTmpl,
 });
 
 var TableTabPanelView = Marionette.ItemView.extend({

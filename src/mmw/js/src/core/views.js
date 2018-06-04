@@ -106,6 +106,7 @@ var RootView = Marionette.LayoutView.extend({
         geocodeSearchRegion: '#geocode-search-region',
         layerPickerRegion: '#layer-picker-region',
         layerPickerSliderRegion: '#layer-picker-slider-region',
+        subbasinSliderRegion: '#subbasin-slider-region',
         subHeaderRegion: '#sub-header',
         sidebarRegion: {
             regionClass: TransitionRegion,

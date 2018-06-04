@@ -192,3 +192,18 @@
     padding: 10px 0;
   }
 }
+
+#subbasin-slider-region {
+  position: absolute;
+  z-index: 400;
+  left: 265px;
+  bottom: 102px;
+  padding: 8px;
+  width: 150px;
+  background-color: $paper;
+  box-shadow: 0 0 6px $black-74;
+
+  &:empty {
+    display: none;
+  }
+}
