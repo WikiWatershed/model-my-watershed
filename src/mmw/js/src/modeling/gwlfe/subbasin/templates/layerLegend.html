@@ -1,1 +1,57 @@
-<div>Here is where the legend will go.</div>
+<div class="main-label">{{ label }}</div>
+<input title="Drag to change opacity of overlay"
+       type="range"
+       min="0"
+       max="99"
+       step="3"
+       class="subbasin-slider custom-slider"
+       value="{{ sliderValue }}"
+>
+<div class="stream-units-label">
+    Mean Annual Concentration<br />(mg/L)
+</div>
+<div class="climate-legend-unit-breaks-labels">
+    <div class="climate-legend-label-values">
+        {% for break in streamBreaks %}
+            {% if loop.last %}
+                <div class="climate-legend-label-value max">
+                    {{break}}
+                </div>
+            {% else %}
+                <div class="climate-legend-label-value">
+                    {{break}}
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <div class="climate-legend-label-ticks">
+        {% for break in streamBreaks %}
+            <div class="climate-legend-label-tick"></div>
+        {% endfor %}
+    </div>
+</div>
+<div class="legend-stream"></div>
+<div class="legend-catchment"></div>
+<div class="climate-legend-unit-breaks-labels">
+    <div class="climate-legend-label-ticks">
+        {% for break in catchmentBreaks %}
+            <div class="climate-legend-label-tick"></div>
+        {% endfor %}
+    </div>
+    <div class="climate-legend-label-values">
+        {% for break in catchmentBreaks %}
+            {% if loop.last %}
+                <div class="climate-legend-label-value max">
+                    {{break}}
+                </div>
+            {% else %}
+                <div class="climate-legend-label-value">
+                    {{break}}
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+<div class="catchment-units-label">
+    Loading Rate<br />(kg/ha/y)
+</div>

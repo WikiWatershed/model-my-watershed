@@ -111,6 +111,8 @@ var LayerSelectorView = Marionette.ItemView.extend({
         if (this.model.get('selectedLoad')) {
             App.rootView.subbasinSliderRegion.show(new LayerLegendView({
                 model: App.map,
+                selectedLoad: this.model.get('selectedLoad'),
+                leafletMap: App.getLeafletMap(),
             }));
         } else {
             App.rootView.subbasinSliderRegion.empty();
@@ -121,6 +123,36 @@ var LayerSelectorView = Marionette.ItemView.extend({
 var LayerLegendView = Marionette.ItemView.extend({
     // model: MapModel,
     template: layerLegendTmpl,
+
+    events: {
+        'mousedown input': 'onMouseDown',
+        'mouseup input': 'onMouseUp',
+    },
+
+    templateHelpers: function() {
+        var load = this.selectedLoad;
+
+        return {
+            streamBreaks: models.Breaks.stream[load],
+            catchmentBreaks: models.Breaks.catchment[load],
+            label: LABELS[load],
+            sliderValue: this.model.get('subbasinOpacity') * 100,
+        };
+    },
+
+    initialize: function(options) {
+        this.leafletMap = options.leafletMap;
+        this.selectedLoad = options.selectedLoad;
+    },
+
+    onMouseDown: function() {
+        this.leafletMap.dragging.disable();
+    },
+
+    onMouseUp: function(e) {
+        this.model.set('subbasinOpacity', Number(e.target.value) / 100);
+        this.leafletMap.dragging.enable();
+    }
 });
 
 var TableTabPanelView = Marionette.ItemView.extend({
