@@ -1191,20 +1191,23 @@ var MapView = Marionette.ItemView.extend({
             geom = catchment.get('shape');
 
         return new L.GeoJSON(geom, {
-            style: catchment.getStyle(),
+            style: catchment.getStyle(this.model.get('subbasinOpacity')),
             id: catchment.get('id'),
             onEachFeature: function(feature, layer) {
                 var highlightLayer = function() {
+                    var opacity = self.model.get('subbasinOpacity');
+
                     if (catchment.get('highlighted')) {
-                        layer.setStyle(catchment.getHighlightStyle());
+                        layer.setStyle(catchment.getHighlightStyle(opacity));
                         layer.bringToFront();
                     } else {
-                        layer.setStyle(catchment.getStyle());
+                        layer.setStyle(catchment.getStyle(opacity));
                         self.bringActiveSubbasinToFront();
                     }
                 };
 
                 self.listenTo(catchment, 'change:highlighted', highlightLayer);
+                self.listenTo(self.model, 'change:subbasinOpacity', highlightLayer);
 
                 layer.on('mouseover', function() {
                     catchment.set('highlighted', true);
