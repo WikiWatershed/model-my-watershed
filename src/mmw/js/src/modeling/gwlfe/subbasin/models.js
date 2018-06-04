@@ -1,6 +1,7 @@
 "use strict";
 
 var Backbone = require('../../../../shim/backbone'),
+    _ = require('lodash'),
     d3 = require('d3');
 
 var SubbasinTabModel = Backbone.Model.extend({
@@ -13,6 +14,19 @@ var SubbasinTabModel = Backbone.Model.extend({
 var SubbasinTabCollection = Backbone.Collection.extend({
     model: SubbasinTabModel,
 });
+
+var Breaks = {
+    catchment: {
+        TotalN: [0, 2, 5, 10, 20],
+        TotalP: [0, 0.2, 0.5, 1.0, 2.0],
+        Sediment: [0, 200, 500, 1000, 2000],
+    },
+    stream: {
+        TotalN: [0, 1, 3, 6, 12],
+        TotalP: [0, 0.08, 0.2, 0.5, 1.0],
+        Sediment: [0, 8, 20, 50, 150],
+    }
+};
 
 var ColorSchemes = {
     catchment: [
@@ -44,9 +58,16 @@ function makeColorRamp(values, colorScheme) {
     return d3.scale.linear().domain(domain).range(colorScheme);
 }
 
+var ColorRamps = _.mapValues(Breaks, function(breakSets, scheme) {
+    return _.mapValues(breakSets, function(breaks) {
+        return makeColorRamp(breaks, ColorSchemes[scheme]);
+    });
+});
+
 module.exports = {
     SubbasinTabModel: SubbasinTabModel,
     SubbasinTabCollection: SubbasinTabCollection,
-    makeColorRamp: makeColorRamp,
+    Breaks: Breaks,
     ColorSchemes: ColorSchemes,
+    ColorRamps: ColorRamps,
 };

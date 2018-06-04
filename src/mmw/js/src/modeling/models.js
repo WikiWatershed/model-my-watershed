@@ -13,8 +13,7 @@ var $ = require('jquery'),
     turfIntersect = require('turf-intersect'),
     AoiVolumeModel = require('./tr55/models').AoiVolumeModel,
     subbasinModels = require('./gwlfe/subbasin/models'),
-    makeColorRamp = subbasinModels.makeColorRamp,
-    ColorSchemes = subbasinModels.ColorSchemes,
+    ColorRamps = subbasinModels.ColorRamps,
     round = utils.toRoundedLocaleString;
 
 var ModelPackageControlModel = Backbone.Model.extend({
@@ -881,11 +880,7 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
                 fillColor: '#FFFFFF',
                 fillOpacity: 0.3,
             },
-            ramps = {
-                TotalN: makeColorRamp([0, 2, 5, 10, 20], ColorSchemes.catchment),
-                TotalP: makeColorRamp([0, 0.2, 0.5, 1.0, 2.0], ColorSchemes.catchment),
-                Sediment: makeColorRamp([0, 200, 500, 1000, 2000], ColorSchemes.catchment),
-            },
+            ramps = ColorRamps.catchment,
             loadingRates = self.get('TotalLoadingRates'),
             loadValue = loadingRates && loadingRates.hasOwnProperty(load) &&
                         loadingRates[load] / self.get('area');
@@ -918,11 +913,7 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
                 opacity: 1,
                 fill: false
             },
-            ramps = {
-                TotalN: makeColorRamp([0, 1, 3, 6, 12], ColorSchemes.stream),
-                TotalP: makeColorRamp([0, 0.08, 0.2, 0.5, 1.0], ColorSchemes.stream),
-                Sediment: makeColorRamp([0, 8, 20, 50, 150], ColorSchemes.stream),
-            },
+            ramps = ColorRamps.stream,
             concentrationRates = self.get('LoadingRateConcentrations'),
             loadValue = concentrationRates &&
                         concentrationRates.hasOwnProperty(load) &&
