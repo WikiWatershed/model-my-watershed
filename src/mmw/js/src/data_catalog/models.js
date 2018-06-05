@@ -762,6 +762,13 @@ var CuahsiVariable = Backbone.Model.extend({
         params.from_date = params.from_date.format(DATE_FORMAT);
         params.to_date = params.to_date.format(DATE_FORMAT);
 
+        if (params.from_date === 'Invalid date' ||
+            params.to_date === 'Invalid date') {
+            this.set('error', 'Invalid date');
+
+            return $.Deferred().reject('Invalid date');
+        }
+
         this.set('error', null);
 
         return this.fetch({
