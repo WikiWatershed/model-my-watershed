@@ -1200,7 +1200,9 @@ var MapView = Marionette.ItemView.extend({
 
                     if (catchment.get('highlighted')) {
                         layer.setStyle(catchment.getHighlightStyle(opacity));
-                        layer.bringToFront();
+                        if (layer._map) {
+                            layer.bringToFront();
+                        }
                     } else {
                         layer.setStyle(catchment.getStyle(opacity));
                         self.bringActiveSubbasinToFront();
