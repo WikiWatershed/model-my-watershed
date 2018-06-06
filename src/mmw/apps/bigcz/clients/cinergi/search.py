@@ -11,7 +11,7 @@ from django.contrib.gis.geos import Polygon
 from django.conf import settings
 
 from apps.bigcz.models import ResourceLink, ResourceList
-from apps.bigcz.utils import RequestTimedOutError
+from apps.bigcz.utils import RequestTimedOutError, UnexpectedResponseError
 
 from apps.bigcz.clients.cinergi.models import CinergiResource
 
@@ -297,7 +297,7 @@ def search(**kwargs):
     data = response.json()
 
     if 'results' not in data:
-        raise ValueError(data)
+        raise UnexpectedResponseError()
 
     results = data['results']
     count = data['total']
