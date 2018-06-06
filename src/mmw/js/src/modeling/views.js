@@ -795,7 +795,7 @@ var GwlfeToolbarView = ScenarioModelToolbarView.extend({
 
     onThumbClick: function(e) {
         var modKey = $(e.currentTarget).data('value'),
-            thumbOffset = $(e.target).offset();
+            thumbOffset = e.target.getBoundingClientRect();
 
         this.model.set('activeModKey', modKey);
 
