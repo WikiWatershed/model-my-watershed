@@ -7,6 +7,7 @@ var Marionette = require('../../../../shim/backbone.marionette'),
     models = require('./models'),
     resultTmpl = require('./templates/result.html'),
     layerSelectorTmpl = require('./templates/layerSelector.html'),
+    layerLegendTmpl = require('./templates/layerLegend.html'),
     tableTabContentTmpl = require('./templates/tableTabContent.html'),
     tableTabPanelTmpl = require('./templates/tableTabPanel.html'),
     huc12TotalsTableTmpl = require('./templates/huc12TotalsTable.html'),
@@ -65,6 +66,12 @@ var ResultView = Marionette.LayoutView.extend({
     }
 });
 
+var LABELS = {
+    TotalN: 'Total Nitrogen',
+    TotalP: 'Total Phosphorous',
+    Sediment: 'Total Sediments',
+};
+
 var LayerSelectorView = Marionette.ItemView.extend({
     // model: SubbasinDetailModel
     template: layerSelectorTmpl,
@@ -79,17 +86,11 @@ var LayerSelectorView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
-        var layers = [
-                { id: 'TotalN', name: 'Total Nitrogen' },
-                { id: 'TotalP', name: 'Total Phosphorous' },
-                { id: 'Sediment', name: 'Total Sediments' }
-            ],
-            selectedLoad = this.model.get('selectedLoad'),
-            selectedLoadName = selectedLoad &&
-                               _.findWhere(layers, { id: selectedLoad }).name;
+        var selectedLoad = this.model.get('selectedLoad'),
+            selectedLoadName = selectedLoad && LABELS[selectedLoad];
 
         return {
-            layers: layers,
+            layers: LABELS,
             selectedLoad: selectedLoad,
             selectedLoadName: selectedLoadName,
         };
@@ -104,6 +105,53 @@ var LayerSelectorView = Marionette.ItemView.extend({
         } else {
             this.model.set('selectedLoad', newLoad);
         }
+    },
+
+    onRender: function() {
+        if (this.model.get('selectedLoad')) {
+            App.rootView.subbasinSliderRegion.show(new LayerLegendView({
+                model: App.map,
+                selectedLoad: this.model.get('selectedLoad'),
+                leafletMap: App.getLeafletMap(),
+            }));
+        } else {
+            App.rootView.subbasinSliderRegion.empty();
+        }
+    }
+});
+
+var LayerLegendView = Marionette.ItemView.extend({
+    // model: MapModel,
+    template: layerLegendTmpl,
+
+    events: {
+        'mousedown input': 'onMouseDown',
+        'mouseup input': 'onMouseUp',
+    },
+
+    templateHelpers: function() {
+        var load = this.selectedLoad;
+
+        return {
+            streamBreaks: models.Breaks.stream[load],
+            catchmentBreaks: models.Breaks.catchment[load],
+            label: LABELS[load],
+            sliderValue: this.model.get('subbasinOpacity') * 100,
+        };
+    },
+
+    initialize: function(options) {
+        this.leafletMap = options.leafletMap;
+        this.selectedLoad = options.selectedLoad;
+    },
+
+    onMouseDown: function() {
+        this.leafletMap.dragging.disable();
+    },
+
+    onMouseUp: function(e) {
+        this.model.set('subbasinOpacity', Number(e.target.value) / 100);
+        this.leafletMap.dragging.enable();
     }
 });
 

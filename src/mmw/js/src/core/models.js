@@ -26,6 +26,7 @@ var MapModel = Backbone.Model.extend({
         dataCatalogActiveResult: null,  // Model
         dataCatalogDetailResult: null,  // Model
         selectedGeocoderArea: null,     // GeoJSON
+        subbasinOpacity: 0.85,
     },
 
     revertMaskLayer: function() {

@@ -59,27 +59,28 @@ var dataCatalogDetailStyle = {
 
 var subbasinHuc12Style = {
     stroke: true,
-    color: '#40c4c4',
-    weight: 2,
-    opacity: 1,
+    color: '#E77471',
+    weight: 1.2,
+    opacity: 0.75,
     fill: true,
     fillOpacity: 0,
 };
 
 var subbasinHuc12HighlightedStyle = {
     stroke: true,
-    color: '#1d3331',
-    weight: 2,
-    opacity: 1,
+    color: '#E77471',
+    weight: 1.2,
+    opacity: 0.75,
     fill: true,
-    fillOpacity: 0,
+    fillColor: '#E77471',
+    fillOpacity: 0.2,
 };
 
 var subbasinHuc12ActiveStyle = {
     stroke: true,
-    color: '#dbba29',
+    color: '#E77471',
     weight: 5,
-    opacity: 1,
+    opacity: 0.75,
     fill: false,
 };
 
@@ -105,6 +106,7 @@ var RootView = Marionette.LayoutView.extend({
         geocodeSearchRegion: '#geocode-search-region',
         layerPickerRegion: '#layer-picker-region',
         layerPickerSliderRegion: '#layer-picker-slider-region',
+        subbasinSliderRegion: '#subbasin-slider-region',
         subHeaderRegion: '#sub-header',
         sidebarRegion: {
             regionClass: TransitionRegion,
@@ -1190,20 +1192,25 @@ var MapView = Marionette.ItemView.extend({
             geom = catchment.get('shape');
 
         return new L.GeoJSON(geom, {
-            style: catchment.getStyle(),
+            style: catchment.getStyle(this.model.get('subbasinOpacity')),
             id: catchment.get('id'),
             onEachFeature: function(feature, layer) {
                 var highlightLayer = function() {
+                    var opacity = self.model.get('subbasinOpacity');
+
                     if (catchment.get('highlighted')) {
-                        layer.setStyle(catchment.getHighlightStyle());
-                        layer.bringToFront();
+                        layer.setStyle(catchment.getHighlightStyle(opacity));
+                        if (layer._map) {
+                            layer.bringToFront();
+                        }
                     } else {
-                        layer.setStyle(catchment.getStyle());
+                        layer.setStyle(catchment.getStyle(opacity));
                         self.bringActiveSubbasinToFront();
                     }
                 };
 
                 self.listenTo(catchment, 'change:highlighted', highlightLayer);
+                self.listenTo(self.model, 'change:subbasinOpacity', highlightLayer);
 
                 layer.on('mouseover', function() {
                     catchment.set('highlighted', true);
