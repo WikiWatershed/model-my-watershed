@@ -7,6 +7,9 @@ import csv
 
 from apps.bigcz.models import BBox
 
+from django.conf import settings
+
+from rest_framework import status
 from rest_framework.exceptions import APIException
 import dateutil.parser
 
@@ -53,6 +56,13 @@ class RequestTimedOutError(APIException):
     status_code = 408
     default_detail = 'Requested resource timed out.'
     default_code = 'request_timeout'
+
+
+class ValuesTimedOutError(APIException):
+    status_code = status.HTTP_504_GATEWAY_TIMEOUT
+    default_detail = \
+        'Request for values did not finish in {} seconds'.format(
+            settings.BIGCZ_CLIENT_TIMEOUT)
 
 
 def read_unicode_csv(utf8_data, **kwargs):
