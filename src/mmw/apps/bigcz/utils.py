@@ -52,6 +52,11 @@ def get_bounds(aoi):
     return BBox(min(x_coords), min(y_coords), max(x_coords), max(y_coords))
 
 
+class UnexpectedResponseError(APIException):
+    status_code = 500
+    default_detail = 'Unexpected response from data service provider.'
+
+
 class RequestTimedOutError(APIException):
     status_code = 408
     default_detail = 'Requested resource timed out.'
