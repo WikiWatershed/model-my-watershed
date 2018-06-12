@@ -667,6 +667,13 @@ var utils = {
     //     parseAoIName('Schuylkill, HUC-8 Watershed (ID 02040203)') =>
     //     { primary: 'Schuylkill, HUC-8 Watershed', suffix: '02040203' }
     parseAoIName: function(name) {
+        if (!name) {
+            return {
+                primary: '',
+                suffix: '',
+            };
+        }
+
         var idIndex = name.indexOf('(ID');
 
         return {

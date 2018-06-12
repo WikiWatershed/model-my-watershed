@@ -4,8 +4,13 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from datetime import date, timedelta
+from timeout_decorator import timeout
 
 from rest_framework.exceptions import ValidationError
+
+from django.conf import settings
+
+from apps.bigcz.utils import ValuesTimedOutError
 
 DATE_FORMAT = '%m/%d/%Y'
 
@@ -26,6 +31,16 @@ def details(wsdl, site):
     return wof.get_site_info(wsdl, site, None)
 
 
+@timeout(settings.BIGCZ_CLIENT_TIMEOUT, timeout_exception=ValuesTimedOutError)
+# NOTE: This @timeout decorator will have to be modified for a multi-threaded
+# environment, with the use_signals=false attribute. Unfortunately, that does
+# not support functions that return values that cannot be pickled, such as this
+# very function, since suds responses are dynamic objects and not pickleable.
+# In this case, we may have to deserialize the values herein. Read more here:
+# https://github.com/pnpnpn/timeout-decorator#multithreading
+# Alternatively, if https://github.com/ulmo-dev/ulmo/issues/155 is addressed,
+# we can use the native timeout capabilities surfaced in Ulmo instead of this
+# wrapper decorator.
 def values(wsdl, site, variable, from_date=None, to_date=None):
     if not wsdl:
         raise ValidationError({

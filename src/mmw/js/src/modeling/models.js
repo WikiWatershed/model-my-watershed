@@ -12,7 +12,8 @@ var $ = require('jquery'),
     turfErase = require('turf-erase'),
     turfIntersect = require('turf-intersect'),
     AoiVolumeModel = require('./tr55/models').AoiVolumeModel,
-    makeColorRamp = require('./gwlfe/subbasin/models').makeColorRamp,
+    subbasinModels = require('./gwlfe/subbasin/models'),
+    ColorRamps = subbasinModels.ColorRamps,
     round = utils.toRoundedLocaleString;
 
 var ModelPackageControlModel = Backbone.Model.extend({
@@ -867,39 +868,39 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
         selectedLoad: null,   // one of: null, TotalN, TotalP, Sediment
     },
 
-    getStyle: function() {
+    getStyle: function(fillOpacity) {
         var self = this,
             load = this.get('selectedLoad'),
             defaultStyle = {
                 stroke: true,
                 color: 'grey',
-                weight: 2,
+                weight: 1,
                 opacity: 1,
                 fill: true,
+                fillColor: '#FFFFFF',
                 fillOpacity: 0.3,
             },
-            ramps = {
-                TotalN: makeColorRamp([0, 2, 5, 10, 20]),
-                TotalP: makeColorRamp([0, 0.2, 0.5, 1.0, 2.0]),
-                Sediment: makeColorRamp([0, 200, 500, 1000, 2000]),
-            },
+            ramps = ColorRamps.catchment,
             loadingRates = self.get('TotalLoadingRates'),
             loadValue = loadingRates && loadingRates.hasOwnProperty(load) &&
                         loadingRates[load] / self.get('area');
 
         if (loadValue !== null &&
             ['TotalN', 'TotalP', 'Sediment'].indexOf(load) >= 0) {
-            return _.defaults({ fillColor: ramps[load](loadValue) }, defaultStyle);
+            return _.defaults({
+                fillColor: ramps[load](loadValue),
+                fillOpacity: fillOpacity,
+            }, defaultStyle);
         } else {
             return defaultStyle;
         }
     },
 
-    getHighlightStyle: function() {
+    getHighlightStyle: function(fillOpacity) {
         return _.defaults({
-            fillOpacity: 0.4,
+            weight: 2,
             color: '#1d3331'
-        }, this.getStyle());
+        }, this.getStyle(fillOpacity));
     },
 
     getStreamStyle: function() {
@@ -908,15 +909,11 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
             defaultStyle = {
                 stroke: true,
                 color: '#49B8EA', // $water in _variables.scss
-                weight: 2,
+                weight: 3,
                 opacity: 1,
                 fill: false
             },
-            ramps = {
-                TotalN: makeColorRamp([0, 1, 3, 6, 12]),
-                TotalP: makeColorRamp([0, 0.08, 0.2, 0.5, 1.0]),
-                Sediment: makeColorRamp([0, 8, 20, 50, 150]),
-            },
+            ramps = ColorRamps.stream,
             concentrationRates = self.get('LoadingRateConcentrations'),
             loadValue = concentrationRates &&
                         concentrationRates.hasOwnProperty(load) &&
@@ -931,9 +928,8 @@ var SubbasinCatchmentDetailModel = Backbone.Model.extend({
     },
 
     getStreamHighlightStyle: function() {
-        return _.defaults({
-            weight: 3,
-        }, this.getStreamStyle());
+        // No changes for highlighting streams
+        return this.getStreamStyle();
     }
 });
 

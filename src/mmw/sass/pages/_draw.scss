@@ -22,7 +22,7 @@
 }
 
 .splash-step {
-  padding: 8px;
+  margin-top: 2rem;
 
   & .badge {
     margin-right: 10px;
@@ -34,10 +34,10 @@
 
   h2 {
     font-size: $font-size-h3;
+    margin-bottom: 1rem;
   }
 
   & p {
-    margin-left: 35px;
     font-size: $font-size-h4;
   }
 

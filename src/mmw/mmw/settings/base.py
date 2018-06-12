@@ -405,7 +405,7 @@ MMW_MAX_AREA = 75000  # Max area in km2, about the size of West Virginia
 
 BIGCZ_HOST = 'portal.bigcz.org'  # BiG-CZ Host, for enabling custom behavior
 BIGCZ_MAX_AREA = 5000  # Max area in km2, limited by CUAHSI
-BIGCZ_CLIENT_TIMEOUT = 5  # timeout in seconds
+BIGCZ_CLIENT_TIMEOUT = 8  # timeout in seconds
 BIGCZ_CLIENT_PAGE_SIZE = 100
 
 # ITSI Portal Settings

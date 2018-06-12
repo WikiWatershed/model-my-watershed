@@ -1,14 +1,14 @@
 'use strict';
 
 var mmwSplashPageText = {
-    heading: 'Explore, analyze and model human impacts on your watershed',
-    subheading: 'Analyze real geo-data, model storms, and compare potential impact of conservation and development scenarios in a watershed.',
-    drawToolOneName: 'Select Area',
-    drawToolOneDescription: 'Explore map layers and select an area of interest.',
-    drawToolTwoName: 'Analyze & Monitor',
-    drawToolTwoDescription: 'See land cover, soil groups, point sources and other factors impacting water.',
-    drawToolThreeName: 'Model',
-    drawToolThreeDescription: 'Use one of two models to simulate different scenarios of human impacts on water.',
+    heading: 'Explore Human Impacts on Your Watershed',
+    subheading: 'Analyze mapped watershed data, visualize monitoring data, and run model simulations of human impacts on water quality.',
+    drawToolOneName: 'Select Area and Analyze',
+    drawToolOneDescriptions: ['Explore map layers and select your area of interest.', 'Analyze land cover, hydrologic soil groups, permitted point source discharges and other natural and human influenced features.'],
+    drawToolTwoName: 'Monitor My WatershedⓇ',
+    drawToolTwoDescriptions: ['Search for monitoring data in various data repositories.', 'Share your monitoring data to view in WikiWatershed.'],
+    drawToolThreeName: 'Model My WatershedⓇ',
+    drawToolThreeDescriptions: ['Run one of two models to compare impacts of different conservation and development scenarios on water quality.', 'Share your modeling results for others to find, copy, and edit.'],
     getStartedButtonTitle: 'Get started',
 };
 
@@ -16,11 +16,11 @@ var bigCZSplashPageText = {
     heading: 'Discover, Visualize, and Access Data Integrated Across Bio- & Geo- Science of the Critical Zone',
     subheading: 'Discover and visualize datasets from diverse earth surface science disciplines and repositories.',
     drawToolOneName: 'Select Area',
-    drawToolOneDescription: 'Explore map layers and select an area of interest.',
+    drawToolOneDescriptions: ['Explore map layers and select an area of interest.'],
     drawToolTwoName: 'Analyze',
-    drawToolTwoDescription: 'See land cover, soil groups, and climate statistics.',
+    drawToolTwoDescriptions: ['See land cover, soil groups, and climate statistics.'],
     drawToolThreeName: 'Search Data',
-    drawToolThreeDescription: 'Search three catalogs with free text, area of interest, and other filters:',
+    drawToolThreeDescriptions: ['Search three catalogs with free text, area of interest, and other filters:'],
     getStartedButtonTitle: 'Get started',
     bigCZLinkTitle: 'Go to BigCZ.org for more info',
     bigCZLink: 'https://bigcz.org/',

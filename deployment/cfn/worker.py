@@ -7,7 +7,6 @@ from troposphere import (
     Base64,
     Join,
     Equals,
-    cloudwatch as cw,
     ec2,
     elasticloadbalancing as elb,
     autoscaling as asg,
@@ -222,11 +221,9 @@ class Worker(StackNode):
             worker_security_group = self.create_security_groups()
         worker_lb = self.create_load_balancer(worker_lb_security_group)
 
-        worker_auto_scaling_group = self.create_auto_scaling_resources(
+        self.create_auto_scaling_resources(
             worker_security_group,
             worker_lb)
-
-        self.create_cloud_watch_resources(worker_auto_scaling_group)
 
         self.create_dns_records(worker_lb)
 
@@ -405,8 +402,6 @@ class Worker(StackNode):
             )
         )
 
-        return worker_asg
-
     def get_cloud_config(self):
         return ['#cloud-config\n',
                 '\n',
@@ -445,27 +440,6 @@ class Worker(StackNode):
                 '  - cat /etc/fstab.rwd-data >> /etc/fstab\n',
                 '  - mount -t ext4 /dev/xvdf /opt/rwd-data && initctl emit rwd-ready\n',  # NOQA
                 '  - /opt/model-my-watershed/scripts/aws/ebs-warmer.sh']
-
-    def create_cloud_watch_resources(self, worker_auto_scaling_group):
-        self.add_resource(cw.Alarm(
-            'alarmWorkerCPU',
-            AlarmDescription='Worker scaling group high CPU',
-            AlarmActions=[Ref(self.notification_topic_arn)],
-            Statistic='Average',
-            Period=300,
-            Threshold='50',
-            EvaluationPeriods=1,
-            ComparisonOperator='GreaterThanThreshold',
-            MetricName='CPUUtilization',
-            Namespace='AWS/EC2',
-            Dimensions=[
-                cw.MetricDimension(
-                    'metricAutoScalingGroupName',
-                    Name='AutoScalingGroupName',
-                    Value=Ref(worker_auto_scaling_group)
-                )
-            ]
-        ))
 
     def create_dns_records(self, worker_lb):
         self.add_condition('BlueCondition', Equals('Blue', Ref(self.color)))

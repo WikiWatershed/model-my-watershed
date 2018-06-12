@@ -11,7 +11,7 @@ from django.contrib.gis.geos import Polygon
 from django.conf import settings
 
 from apps.bigcz.models import ResourceLink, ResourceList
-from apps.bigcz.utils import RequestTimedOutError
+from apps.bigcz.utils import RequestTimedOutError, UnexpectedResponseError
 
 from apps.bigcz.clients.cinergi.models import CinergiResource
 
@@ -197,7 +197,7 @@ def parse_record(item):
     links = parse_links(source)
     begin_date, end_date = parse_time_period(source.get('timeperiod_nst'))
     return CinergiResource(
-        id=item['_id'],
+        id=item['id'],
         title=source['title'],
         description=parse_description(source.get('description')),
         author=None,
@@ -296,11 +296,11 @@ def search(**kwargs):
 
     data = response.json()
 
-    if 'hits' not in data:
-        raise ValueError(data)
+    if 'results' not in data:
+        raise UnexpectedResponseError()
 
-    results = data['hits']['hits']
-    count = data['hits']['total']
+    results = data['results']
+    count = data['total']
 
     return ResourceList(
         api_url=response.url,
