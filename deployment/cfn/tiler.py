@@ -7,7 +7,6 @@ from troposphere import (
     Base64,
     Join,
     Equals,
-    cloudwatch as cw,
     ec2,
     elasticloadbalancing as elb,
     autoscaling as asg,
@@ -213,8 +212,6 @@ class Tiler(StackNode):
         self.create_auto_scaling_resources(tile_server_security_group,
                                            tile_server_lb)
 
-        self.create_cloud_watch_resources(tile_server_lb)
-
         self.create_dns_records(tile_server_lb)
 
         self.add_output(Output('TileServerLoadBalancerEndpoint',
@@ -405,66 +402,25 @@ class Tiler(StackNode):
                 '\n',
                 'write_files:\n',
                 '  - path: /etc/mmw.d/env/MMW_STACK_COLOR\n',
-                '    permissions: 0750\n',
+                '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: ', Ref(self.color), '\n',
                 '  - path: /etc/mmw.d/env/MMW_STACK_TYPE\n',
-                '    permissions: 0750\n',
+                '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: ', self.get_input('StackType'), '\n',
                 '  - path: /etc/mmw.d/env/MMW_DB_PASSWORD\n',
-                '    permissions: 0750\n',
+                '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: ', Ref(self.rds_password), '\n',
                 '  - path: /etc/mmw.d/env/MMW_TILECACHE_BUCKET\n',
-                '    permissions: 0750\n',
+                '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: ', Join('.', ['tile-cache', Ref(self.public_hosted_zone_name)]), '\n',  # NOQA
                 '  - path: /etc/mmw.d/env/ROLLBAR_SERVER_SIDE_ACCESS_TOKEN\n',
-                '    permissions: 0750\n',
+                '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: ', self.get_input('RollbarServerSideAccessToken')]  # NOQA
-
-    def create_cloud_watch_resources(self, tile_server_lb):
-        self.add_resource(cw.Alarm(
-            'alarmTileServerBackend4XX',
-            AlarmDescription='Tile server backend 4XXs',
-            AlarmActions=[Ref(self.notification_topic_arn)],
-            Statistic='Sum',
-            Period=300,
-            Threshold='20',
-            EvaluationPeriods=1,
-            ComparisonOperator='GreaterThanThreshold',
-            MetricName='HTTPCode_Backend_4XX',
-            Namespace='AWS/ELB',
-            Dimensions=[
-                cw.MetricDimension(
-                    'metricLoadBalancerName',
-                    Name='LoadBalancerName',
-                    Value=Ref(tile_server_lb)
-                )
-            ],
-        ))
-
-        self.add_resource(cw.Alarm(
-            'alarmTileServerBackend5XX',
-            AlarmDescription='Tile server backend 5XXs',
-            AlarmActions=[Ref(self.notification_topic_arn)],
-            Statistic='Sum',
-            Period=60,
-            Threshold='0',
-            EvaluationPeriods=1,
-            ComparisonOperator='GreaterThanThreshold',
-            MetricName='HTTPCode_Backend_5XX',
-            Namespace='AWS/ELB',
-            Dimensions=[
-                cw.MetricDimension(
-                    'metricLoadBalancerName',
-                    Name='LoadBalancerName',
-                    Value=Ref(tile_server_lb)
-                )
-            ],
-        ))
 
     def create_dns_records(self, tile_server_lb):
         self.add_condition('BlueCondition', Equals('Blue', Ref(self.color)))

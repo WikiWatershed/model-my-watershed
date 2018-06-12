@@ -8,36 +8,27 @@
 
 <div class="splash-step">
     <h2>
-        <span class="badge">
-            1
-        </span>
         {{ splashPageText.drawToolOneName }}
     </h2>
-    <p>
-        {{ splashPageText.drawToolOneDescription }}
-    </p>
+    {% for description in splashPageText.drawToolOneDescriptions %}
+        <p>{{ description }}</p>
+    {% endfor %}
 </div>
 <div class="splash-step">
     <h2>
-        <span class="badge">
-            2
-        </span>
         {{ splashPageText.drawToolTwoName }}
     </h2>
-    <p>
-        {{ splashPageText.drawToolTwoDescription }}
-    </p>
+    {% for description in splashPageText.drawToolTwoDescriptions %}
+        <p>{{ description }}</p>
+    {% endfor %}
 </div>
 <div class="splash-step">
     <h2>
-        <span class="badge">
-            3
-        </span>
         {{ splashPageText.drawToolThreeName }}
     </h2>
-    <p>
-        {{ splashPageText.drawToolThreeDescription }}
-    </p>
+    {% for description in splashPageText.drawToolThreeDescriptions %}
+        <p>{{ description }}</p>
+    {% endfor %}
     {% if dataCatalogEnabled %}
         <ol type="i">
             <li>
@@ -90,12 +81,12 @@
 <hr/>
 
 <div class="center">
-<a target="_blank" href="http://bigcz.org/"><img class="splash-logo" src="/static/images/logo-bigcz.png" alt="BiG CZ Logo" /></a>
+<a target="_blank" rel="noopener noreferrer" href="http://bigcz.org/"><img class="splash-logo" src="/static/images/logo-bigcz.png" alt="BiG CZ Logo" /></a>
 </div>
 
 <p>Supported by:</p>
 
-<a target="_blank" href="https://www.nsf.gov/"><img class="splash-sponsor-logo" src="/static/images/logo-nsf.png" alt="National Science Foundation Logo" /></a>
-<a target="_blank" href="http://www.williampennfoundation.org/"><img class="splash-sponsor-logo" src="/static/images/logo-wpf.png" alt="William Penn Foundation Logo" /></a>
-<a target="_blank" href="http://www.stroudcenter.org/"><img class="splash-sponsor-logo" src="/static/images/logo-stroud.png" alt="Stroud Logo" /></a>
+<a target="_blank" rel="noopener noreferrer" href="https://www.nsf.gov/"><img class="splash-sponsor-logo" src="/static/images/logo-nsf.png" alt="National Science Foundation Logo" /></a>
+<a target="_blank" rel="noopener noreferrer" href="http://www.williampennfoundation.org/"><img class="splash-sponsor-logo" src="/static/images/logo-wpf.png" alt="William Penn Foundation Logo" /></a>
+<a target="_blank" rel="noopener noreferrer" href="http://www.stroudcenter.org/"><img class="splash-sponsor-logo" src="/static/images/logo-stroud.png" alt="Stroud Logo" /></a>
 {% endif %}

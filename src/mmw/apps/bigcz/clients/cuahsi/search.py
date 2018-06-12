@@ -23,7 +23,6 @@ from apps.bigcz.clients.cuahsi.models import CuahsiResource
 
 
 SQKM_PER_SQM = 0.000001
-CUAHSI_MAX_SIZE_SQKM = 1500
 CATALOG_NAME = 'cuahsi'
 CATALOG_URL = 'http://hiscentral.cuahsi.org/webservices/hiscentral.asmx?WSDL'
 
@@ -97,7 +96,8 @@ def parse_details_url(record):
     Ref: https://github.com/WikiWatershed/model-my-watershed/issues/1931
     """
     location = record['location']
-    if any(code in location for code in ('NWISDV', 'NWISGW', 'NWISUV')):
+    if any(code in location
+           for code in ('NWISDV', 'NWISGW', 'NWISUV', 'EnviroDIY')):
         parts = location.split(':')
         if len(parts) == 2:
             code, id = parts
@@ -110,6 +110,9 @@ def parse_details_url(record):
             elif code == 'NWISGW':
                 url = ('https://nwis.waterdata.usgs.gov/' +
                        'usa/nwis/gwlevels/?site_no={}')
+                return url.format(id)
+            elif code == 'EnviroDIY':
+                url = 'http://data.envirodiy.org/sites/{}/'
                 return url.format(id)
     return None
 
@@ -290,12 +293,12 @@ def search(**kwargs):
 
     bbox_area = bbox.area() * SQKM_PER_SQM
 
-    if bbox_area > CUAHSI_MAX_SIZE_SQKM:
+    if bbox_area > settings.BIGCZ_MAX_AREA:
         raise ValidationError({
             'error': 'The selected area of interest with a bounding box of {} '
                      'km² is larger than the currently supported maximum size '
                      'of {} km².'.format(round(bbox_area, 2),
-                                          CUAHSI_MAX_SIZE_SQKM)})
+                                          settings.BIGCZ_MAX_AREA)})
 
     world = BBox(-180, -90, 180, 90)
 

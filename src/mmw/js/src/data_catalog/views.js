@@ -15,10 +15,12 @@ var $ = require('jquery'),
     checkboxFilterTmpl = require('./templates/checkboxFilter.html'),
     filterSidebarTmpl = require('./templates/filterSidebar.html'),
     formTmpl = require('./templates/form.html'),
+    contributeModalTmpl = require('./templates/contributeModal.html'),
     pagerTmpl = require('./templates/pager.html'),
     searchResultCinergiTmpl = require('./templates/searchResultCinergi.html'),
     searchResultHydroshareTmpl = require('./templates/searchResultHydroshare.html'),
     searchResultCuahsiTmpl = require('./templates/searchResultCuahsi.html'),
+    searchResultUSGSWQPTmpl = require('./templates/searchResultUSGSWQP.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     tabPanelTmpl = require('./templates/tabPanel.html'),
     headerTmpl = require('./templates/header.html'),
@@ -31,6 +33,7 @@ var $ = require('jquery'),
     resultDetailsCuahsiChartTmpl = require('./templates/resultDetailsCuahsiChart.html'),
     resultDetailsCuahsiTableTmpl = require('./templates/resultDetailsCuahsiTable.html'),
     resultDetailsCuahsiTableRowVariableColTmpl = require('./templates/resultDetailsCuahsiTableRowVariableCol.html'),
+    resultDetailsUSGSWQPTmpl = require('./templates/resultDetailsUSGSWQP.html'),
     resultsWindowTmpl = require('./templates/resultsWindow.html'),
     resultMapPopoverDetailTmpl = require('./templates/resultMapPopoverDetail.html'),
     resultMapPopoverListTmpl = require('./templates/resultMapPopoverList.html'),
@@ -44,6 +47,7 @@ var ENTER_KEYCODE = 13,
         cinergi: searchResultCinergiTmpl,
         hydroshare: searchResultHydroshareTmpl,
         cuahsi: searchResultCuahsiTmpl,
+        usgswqp: searchResultUSGSWQPTmpl
     };
 
 var HeaderView = Marionette.LayoutView.extend({
@@ -232,6 +236,32 @@ var DataCatalogWindow = Marionette.LayoutView.extend({
         }
     },
 
+    // Since CUAHSI server results do not depend on the text, only the
+    // area of interest, this function runs a CUAHSI search for the entire
+    // area of interest, to cache the values for further text searches which
+    // will perform local filtering.
+    cacheCuahsiResults: function() {
+        var cuahsiCatalog = this.collection.findWhere({ id: 'cuahsi' }),
+            query = '',
+            aoiGeoJson = App.map.get('areaOfInterest');
+
+        return cuahsiCatalog
+            .searchIfNeeded(query, aoiGeoJson)
+            .done(function() {
+                // HACK: Text search something fake to set the result
+                // count to 0, since seeing a result count in CUAHSI
+                // without having searched for anything looks odd.
+
+                // But do this only if CUAHSI is not selected. If it is,
+                // the user may have searched for something else, which
+                // we shouldn't override.
+
+                if (!cuahsiCatalog.get('active')) {
+                    cuahsiCatalog.searchIfNeeded('show no results', aoiGeoJson);
+                }
+            });
+    },
+
     // Enables or disables map item visibility
     // For when the DataCatalogWindow is loaded but hidden
     // Such as when showing the Analyze or Model tab instead of Monitor
@@ -255,6 +285,7 @@ var FormView = Marionette.ItemView.extend({
 
     ui: {
         filterToggle: '.filter-sidebar-toggle',
+        contributeButton: '.contribute-data',
         searchInput: 'input[type="text"]',
         searchButton: '.btn-search',
         downloadButton: '#bigcz-catalog-results-download',
@@ -264,6 +295,7 @@ var FormView = Marionette.ItemView.extend({
         'keyup @ui.searchInput': 'onSearchInputChanged',
         'click @ui.searchButton': 'triggerSearch',
         'click @ui.filterToggle': 'onFilterToggle',
+        'click @ui.contributeButton': 'showContributeModal',
         'click @ui.downloadButton': 'downloadResults',
     },
 
@@ -288,6 +320,9 @@ var FormView = Marionette.ItemView.extend({
         this.collection.forEach(function(catalog) {
             self.listenTo(catalog, 'change:loading', self.render);
         });
+
+        this.contributeModal = new ContributeModal();
+        this.contributeModal.render();
     },
 
     downloadResults: function() {
@@ -363,6 +398,10 @@ var FormView = Marionette.ItemView.extend({
         App.rootView.secondarySidebarRegion.show(new FilterSidebar({
             collection: filters
         }));
+    },
+
+    showContributeModal: function() {
+        this.contributeModal.$el.modal('show');
     },
 
     triggerSearch: function() {
@@ -823,10 +862,71 @@ var CuahsiSwitcherView = Marionette.ItemView.extend({
     }
 });
 
+var ResultDetailsUSGSWQPView = ResultDetailsBaseView.extend({
+    template: resultDetailsUSGSWQPTmpl,
+
+    templateHelpers: function() {
+        var id = this.model.get('id'),
+            location = id.substring(id.indexOf(':') + 1);
+
+        return {
+            location: location,
+        };
+    },
+
+    ui: _.defaults({
+        chartRegion: '#cuahsi-chart-region',
+        tableRegion: '#cuahsi-table-region',
+    }, ResultDetailsBaseView.prototype.ui),
+
+    regions: {
+        statusRegion: '#cuahsi-status-region',
+        switcherRegion: '#cuahsi-switcher-region',
+        chartRegion: '#cuahsi-chart-region',
+        tableRegion: '#cuahsi-table-region',
+    },
+
+    modelEvents: {
+        'change:mode': 'showChartOrTable',
+    },
+
+    initialize: function() {
+        this.model.set('mode', 'table');
+    },
+
+    onShow: function() {
+    },
+
+    onDomRefresh: function() {
+        window.closePopover();
+        this.$('[data-toggle="popover"]').popover({
+            placement: 'right',
+            trigger: 'click',
+        });
+    },
+
+    showChartOrTable: function() {
+        if (this.model.get('mode') === 'table') {
+            this.ui.chartRegion.addClass('hidden');
+            this.ui.tableRegion.removeClass('hidden');
+        } else {
+            this.ui.chartRegion.removeClass('hidden');
+            this.ui.tableRegion.addClass('hidden');
+
+            if (!this.chartRegion.hasView()) {
+                this.chartRegion.show(new CuahsiChartView({
+                    collection: this.model.get('variables'),
+                }));
+            }
+        }
+    }
+});
+
 var CATALOG_RESULT_DETAILS_VIEW = {
     cinergi: ResultDetailsCinergiView,
     hydroshare: ResultDetailsHydroshareView,
     cuahsi: ResultDetailsCuahsiView,
+    usgswqp: ResultDetailsUSGSWQPView
 };
 
 var CuahsiTableView = Marionette.ItemView.extend({
@@ -1324,6 +1424,16 @@ var FilterSidebar = Marionette.CompositeView.extend({
     clearFilters: function() {
         this.collection.forEach(function(model) { model.reset(); });
     }
+});
+
+var ContributeModal = Marionette.ItemView.extend({
+    className: 'modal modal-about fade',
+    attributes: {
+        'tabindex': '-1',
+        'role': 'dialog'
+    },
+
+    template: contributeModalTmpl
 });
 
 

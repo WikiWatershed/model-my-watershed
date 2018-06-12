@@ -38,11 +38,27 @@
             var message = 'mmw-hydroshare-success';
             {% endif %}
             parent.postMessage(message, window.location.origin);
+
+            {% if not error %}
+            // Redirect to home if not in iframe and already closed
+            // since iframes are closed after 500ms in core.modals.views.IframeView.
+            setTimeout(function() {
+                window.location.href = window.location.origin + '/account/';
+            }, 750);
+            {% endif %}
         });
 
         {% if error %}
         document.getElementById('hydroshare-cancel').addEventListener('click', function() {
             parent.postMessage('mmw-hydroshare-cancel', window.location.origin);
+
+            // Disable button to prevent double-clicking
+            document.getElementById('hydroshare-cancel').disabled = true;
+            // Redirect to home if not in iframe and already closed
+            // since iframes are closed after 500ms in core.modals.views.IframeView.
+            setTimeout(function() {
+                window.location.href = window.location.origin + '/account/';
+            }, 750);
         });
         {% endif %}
     </script>

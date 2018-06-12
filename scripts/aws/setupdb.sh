@@ -132,8 +132,9 @@ fi
 
 if [ "$load_mapshed" = "true" ] ; then
     # Fetch map shed specific vector features
-    FILES=("ms_weather.sql.gz" "ms_weather_station.sql.gz" "ms_pointsource.sql.gz"
-           "ms_pointsource_drb.sql.gz" "ms_county_animals.sql.gz")
+    FILES=("ms_weather.sql.gz" "ms_weather_station_1523624744.sql.gz"
+           "ms_pointsource.sql.gz" "ms_pointsource_drb.sql.gz"
+           "ms_county_animals.sql.gz")
 
     download_and_load $FILES
 fi

@@ -8,13 +8,16 @@ import requests
 import json
 
 from ast import literal_eval as make_tuple
-
+from requests.exceptions import ConnectionError, Timeout
 from StringIO import StringIO
 
 from celery import shared_task
 
+from django_statsd.clients import statsd
 from django.conf import settings
 
+from apps.core.models import Job
+from apps.modeling.calcs import apply_subbasin_gwlfe_modifications
 from apps.modeling.tr55.utils import (aoi_resolution,
                                       precipitation,
                                       apply_modifications_to_census,
@@ -93,6 +96,110 @@ def format_for_srat(huc12_id, model_output):
             formatted['tssload_' + source_key] = load['Sediment']
 
     return formatted
+
+
+def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
+    def empty_source(s):
+        return {'Source': s,
+                'TotalN': 0, 'TotalP': 0, 'Sediment': 0,
+                'Area': 0}
+
+    def add_huc12_source(source, srat_huc12, source_areas, total_area):
+        source_name = source['Source']
+        source_key = settings.SRAT_KEYS[source_name]
+        total_n = srat_huc12.get('tnload_' + source_key, 0)
+        total_p = srat_huc12.get('tpload_' + source_key, 0)
+        sediment = srat_huc12.get('tssload_' + source_key, 0)
+
+        normalizing_areas = settings.SUBBASIN_SOURCE_NORMALIZING_AREAS
+        source_area_idxs = normalizing_areas.get(source_name, None)
+        area = sum([source_areas[i] for i in source_area_idxs]) \
+            if source_area_idxs else total_area
+
+        source['TotalN'] += total_n
+        source['TotalP'] += total_p
+        source['Sediment'] += sediment
+        source['Area'] += area
+
+        return {
+            'Source': source_name,
+            'TotalN': total_n,
+            'TotalP': total_p,
+            'Sediment': sediment,
+            'Area': area,
+        }
+
+    def format_catchment(srat_catchment):
+        return {
+            'TotalLoadingRates': {
+                'TotalN': srat_catchment['tnloadrate_total'],
+                'TotalP': srat_catchment['tploadrate_total'],
+                'Sediment': srat_catchment['tssloadrate_total'],
+            },
+            'LoadingRateConcentrations': {
+                'TotalN': srat_catchment['tnloadrate_conc'],
+                'TotalP': srat_catchment['tploadrate_conc'],
+                'Sediment': srat_catchment['tssloadrate_conc'],
+            },
+        }
+
+    def sum_loads(loads):
+        def add_load(sums, load):
+            (sediment_sum,
+             nitrogen_sum,
+             phosphorus_sum) = sums
+            return (sediment_sum + load['Sediment'],
+                    nitrogen_sum + load['TotalN'],
+                    phosphorus_sum + load['TotalP'])
+
+        return reduce(add_load, loads, (0, 0, 0))
+
+    def build_summary_loads(loads, area):
+        (sum_sed, sum_n, sum_p) = sum_loads(loads)
+        return {
+            'Source': 'Entire area',
+            'Area': area,
+            'Sediment': sum_sed,
+            'TotalN': sum_n,
+            'TotalP': sum_p,
+        }
+
+    def add_huc12(srat_huc12, aggregate):
+        area = huc12_gwlfe_results[srat_huc12['huc12']]['AreaTotal']
+        source_areas = gmss[srat_huc12['huc12']]['Area']
+        loads = [add_huc12_source(s, srat_huc12, source_areas, area)
+                 for s in aggregate['Loads']]
+        summary_loads = build_summary_loads(loads, area)
+
+        # Build up the full AOI's values with the huc-12's
+        aggregate['SummaryLoads']['Area'] += area
+        aggregate['SummaryLoads']['Sediment'] += summary_loads['Sediment']
+        aggregate['SummaryLoads']['TotalN'] += summary_loads['TotalN']
+        aggregate['SummaryLoads']['TotalP'] += summary_loads['TotalP']
+
+        return {
+            'Loads': loads,
+            'SummaryLoads': summary_loads,
+            'Catchments': {comid: format_catchment(result)
+                           for comid, result
+                           in srat_huc12['catchments'].iteritems()},
+        }
+
+    aggregate = {
+        'Loads': [empty_source(source_name)
+                  for source_name in settings.SRAT_KEYS.keys()],
+        'SummaryLoads': empty_source('Entire area'),
+        # All gwlf-e results should have the same inputmod hash,
+        # so grab any of them
+        'inputmod_hash': huc12_gwlfe_results.itervalues()
+                                            .next()['inputmod_hash'],
+    }
+
+    aggregate['HUC12s'] = {huc12_id: add_huc12(result, aggregate)
+                           for huc12_id, result
+                           in srat_catchment_results['huc12s'].iteritems()}
+
+    return aggregate
 
 
 @shared_task(throws=Exception)
@@ -221,6 +328,7 @@ def run_tr55(censuses, aoi, model_input, cached_aoi_census=None):
 
 
 @shared_task
+@statsd.timer(__name__ + '.run_gwlfe')
 def run_gwlfe(model_input, inputmod_hash, watershed_id=None):
     """
     Given a model_input resulting from a MapShed run, converts that dictionary
@@ -246,28 +354,58 @@ def run_gwlfe(model_input, inputmod_hash, watershed_id=None):
 
 
 @shared_task
-def run_srat(watersheds):
+@statsd.timer(__name__ + '.run_gwlfe_chunks')
+def run_subbasin_gwlfe_chunks(mapshed_job_uuid, modifications,
+                              total_stream_lengths, inputmod_hash,
+                              watershed_ids):
+    mapshed_job = Job.objects.get(uuid=mapshed_job_uuid)
+    model_input = json.loads(mapshed_job.result)
+
+    return [
+        run_gwlfe(apply_subbasin_gwlfe_modifications(model_input[watershed_id],
+                                                     modifications,
+                                                     total_stream_lengths),
+                  inputmod_hash,
+                  watershed_id)
+        for watershed_id in watershed_ids
+    ]
+
+
+@shared_task
+@statsd.timer(__name__ + '.run_srat')
+def run_srat(watersheds, mapshed_job_uuid):
     try:
         data = [format_for_srat(id, w) for id, w in watersheds.iteritems()]
     except Exception as e:
-        logger.error('Formatting sub-basin GWLF-E results failed: %s' % e)
+        raise Exception('Formatting sub-basin GWLF-E results failed: %s' % e)
 
     headers = {'x-api-key': settings.SRAT_CATCHMENT_API['api_key']}
 
     try:
         r = requests.post(settings.SRAT_CATCHMENT_API['url'],
                           headers=headers,
-                          data=json.dumps(data))
-    except Exception as e:
-        logger.error('Request to SRAT Catchment API failed: %s' % e)
-
-    try:
-        result = r.json()
-    except ValueError:
-        logger.error('SRAT Catchment API did not return JSON')
+                          data=json.dumps(data),
+                          timeout=settings.TASK_REQUEST_TIMEOUT)
+    except Timeout as e:
+        raise Exception('Request to SRAT Catchment API timed out')
+    except ConnectionError:
+        raise Exception('Failed to connect to SRAT Catchment API')
 
     if (r.status_code != 200):
-        logger.error('SRAT Catchment API request failed: %s' % result)
+        raise Exception('SRAT Catchment API request failed: %s %s' %
+                        (r.status_code, r.text))
+
+    try:
+        srat_catchment_result = r.json()
+    except ValueError:
+        raise Exception('SRAT Catchment API did not return JSON')
+
+    try:
+        mapshed_job = Job.objects.get(uuid=mapshed_job_uuid)
+        gmss = json.loads(mapshed_job.result)
+        result = format_subbasin(watersheds, srat_catchment_result, gmss)
+    except KeyError as e:
+        raise Exception('SRAT Catchment API returned malformed result: %s' % e)
 
     return result
 
@@ -278,7 +416,10 @@ def subbasin_results_to_dict(subbasin_results):
         watershed_id = result.pop('watershed_id')
         return (watershed_id, result)
 
-    popped_key_results = [popped_key_result(r) for r in subbasin_results]
+    is_chunked = isinstance(subbasin_results[0], list)
+    popped_key_results = [popped_key_result(r) for chunk in subbasin_results
+                          for r in chunk] if is_chunked else \
+                         [popped_key_result(r) for r in subbasin_results]
     return dict(popped_key_results)
 
 

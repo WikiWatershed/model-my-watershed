@@ -26,6 +26,7 @@ var MapModel = Backbone.Model.extend({
         dataCatalogActiveResult: null,  // Model
         dataCatalogDetailResult: null,  // Model
         selectedGeocoderArea: null,     // GeoJSON
+        subbasinOpacity: 0.85,
     },
 
     revertMaskLayer: function() {
@@ -469,13 +470,13 @@ var LayerTabCollection = Backbone.Collection.extend({
 var TaskModel = Backbone.Model.extend({
     defaults: {
         pollInterval: 1000,
-        /* The timeout is set to 45 seconds here, while in the
-           src/mmw/apps/modeling/tasks.py file it is set to 42
-           seconds.  That was done because the countdown starts in the
-           front-end before it does in the back-end and the we would
-           like them to finish at approximately the same time (with the
-           back-end finishing earlier if they are not synced). */
-        timeout: 45000,
+        /* The timeout is set to 160 seconds here. It may be set
+           differently in other parts of the app, in most cases less.
+           The front-end timeout is the highest to allow for patient
+           users time to let large processing finish (subbasin, large
+           areas of interest, etc). In most cases, back-end jobs will
+           finish or fail before this is hit. */
+        timeout: 160000,
     },
 
     url: function(queryParams) {
@@ -597,12 +598,19 @@ var TaskModel = Backbone.Model.extend({
 });
 
 var TaskMessageViewModel = Backbone.Model.extend({
+    defaults: {
+        currentStep: 0,
+        numSteps: 1,
+        hasError: false,
+    },
     message: null,
+    waitTimeMessage: null,
     iconClass: null,
 
     setError: function(message) {
         this.set('message', message);
         this.set('iconClasses', 'fa fa-exclamation-triangle');
+        this.set('hasError', true);
     },
 
     setTimeoutError: function() {
@@ -611,11 +619,15 @@ var TaskMessageViewModel = Backbone.Model.extend({
 
         this.set('message', message);
         this.set('iconClasses', 'fa fa-exclamation-triangle');
+        this.set('hasError', true);
     },
 
-    setWorking: function(message) {
+    setWorking: function(message, step, waitTimeMessage) {
         this.set('message', message);
+        this.set('waitTimeMessage', waitTimeMessage);
+        this.set('currentStep', step);
         this.set('iconClasses', 'fa fa-circle-o-notch fa-spin');
+        this.set('hasError', false);
     }
 });
 

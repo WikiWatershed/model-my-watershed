@@ -3,8 +3,10 @@
 var $ = require('jquery'),
     _ = require('underscore'),
     Marionette = require('../../../../shim/backbone.marionette'),
+    App = require('../../../app'),
     resultTmpl = require('./templates/result.html'),
-    tableTmpl = require('./templates/table.html');
+    tableTmpl = require('./templates/table.html'),
+    utils = require('../../../core/utils');
 
 var ResultView = Marionette.LayoutView.extend({
     className: 'tab-pane',
@@ -12,7 +14,12 @@ var ResultView = Marionette.LayoutView.extend({
     template: resultTmpl,
 
     ui: {
-        tooltip: 'a.model-results-tooltip'
+        tooltip: 'a.model-results-tooltip',
+        subbasinResultsLink: '[data-action="view-subbasin-attenuated-results"]',
+    },
+
+    events: {
+        'click @ui.subbasinResultsLink': 'viewSubbasinResults',
     },
 
     regions: {
@@ -21,6 +28,13 @@ var ResultView = Marionette.LayoutView.extend({
 
     modelEvents: {
         'change': 'onShow'
+    },
+
+    templateHelpers: function() {
+        return {
+            showSubbasinModelingButton: utils
+                .isWKAoIValidForSubbasinModeling(App.currentProject.get('wkaoi')),
+        };
     },
 
     initialize: function(options) {
@@ -51,7 +65,11 @@ var ResultView = Marionette.LayoutView.extend({
             placement: 'top',
             trigger: 'focus'
         });
-    }
+    },
+
+    viewSubbasinResults: function() {
+        this.options.showSubbasinHotSpotView();
+    },
 });
 
 var TableView = Marionette.CompositeView.extend({

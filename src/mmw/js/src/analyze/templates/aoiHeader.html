@@ -22,4 +22,11 @@
     <!-- Put `shape` in single quotes, to keep any unescaped chars from breaking the template -->
     <input type="hidden" name="shape" value='{{ shape }}' />
 </form>
-<h2>{{ place }}<span class="aoi-area">{{ area|round|toLocaleString }}&nbsp;{{ units }}</span></h2>
+<h2>
+    <span class="aoi-primary">{{ name.primary }}</span>
+    {% if name.suffix %}
+        <span class="aoi-suffix">ID&nbsp;{{ name.suffix }}</span>&nbsp;<span class="aoi-area">{{ area|round|toLocaleString }}&nbsp;{{ units }}</span>
+    {% else %}
+        <span class="aoi-area">{{ area|round|toLocaleString }}&nbsp;{{ units }}</span>
+    {% endif %}
+</h2>

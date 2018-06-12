@@ -1,0 +1,21 @@
+<button class="catchment-layertoggle dropdown-toggle" type="button" data-toggle="dropdown">
+    {% if selectedLoadName %}
+        Related Layer: {{ selectedLoadName }}
+        <a class="on-off-toggle">
+            <i class="fa fa-check" aria-hidden="true"></i>
+        </a>
+    {% else %}
+        3 related layers
+    {% endif %}
+    <span class="caret"></span>
+</button>
+<ul class="dropdown-menu dropdown-menu-left catchment-layer-dropdown">
+    {% for id, name in layers %}
+        <li><a href="#" class="layer-option" data-layer-id="{{ id }}">
+            {{ name }}
+            {%  if selectedLoad == id %}
+                <i class="fa fa-check" aria-hidden="true"></i>
+            {% endif %}
+        </a></li>
+    {% endfor %}
+</ul>

@@ -1,6 +1,9 @@
 <div class="model-details-dropdown">
     <span>Area of Interest</span> (<button class="edit-btn" id="change-aoi">Edit</button>)
-    <h3>{{ aoiModel.get('place') }}</h3>
+    <h3>{{ aoiModel.get('place').primary }}</h3>
+    {% if aoiModel.get('place').suffix %}
+        <span class="aoi-suffix">ID&nbsp;{{ aoiModel.get('place').suffix }}</span>
+    {% endif %}
     <span class="aoi-area">{{ aoiModel.get('area')|round|toLocaleString }} {{ aoiModel.get('units') }}</span>
 
     <hr/>

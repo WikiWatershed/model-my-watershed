@@ -1,0 +1,51 @@
+<table class="table custom-hover" data-toggle="table">
+    <thead>
+        <tr>
+            <th rowspan="2" class="subbasin-source-col" data-sortable="true" data-sorter="window.numericSort">HUC-12 Name</th>
+            <th rowspan="2" class="subbasin-source-col" data-sortable="true" data-sorter="window.numericSort">HUC-12 Number</th>
+            <th rowspan="2" data-sortable="true" data-sorter="window.numericSort">Area (ha)</th>
+            <th colspan="3">Total Loads (not normalized)</th>
+            <th colspan="3">Loading Rates (area normalized)</th>
+        </tr>
+        <tr>
+            <th data-sortable="true" data-sorter="window.numericSort">Sediment (kg/y)</th>
+            <th data-sortable="true" data-sorter="window.numericSort">Total Nitrogen (kg/y)</th>
+            <th data-sortable="true" data-sorter="window.numericSort">Total Phosphorus (kg/y)</th>
+            <th data-sortable="true" data-sorter="window.numericSort">Sediment (kg/ha/y)</th>
+            <th data-sortable="true" data-sorter="window.numericSort">Total Nitrogen (kg/ha/y)</th>
+            <th data-sortable="true" data-sorter="window.numericSort">Total Phosphorus (kg/ha/y)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for key, row in rows %}
+            <tr class="huc12-total" data-huc12-id="{{ key }}">
+                <td class="text-left">{{ subbasins.get(key).get('name') if subbasins.get(key) else '--' }}</td>
+                <td class="text-right">{{ key }}</td>
+                <td class="strong text-right">{{ row.SummaryLoads.Area|round(2)|toLocaleString(2) }}</td>
+                <td class="strong text-right">{{ row.SummaryLoads.Sediment|round(2)|toLocaleString(2) }}</td>
+                <td class="strong text-right">{{ row.SummaryLoads.TotalN|round(2)|toLocaleString(2) }}</td>
+                <td class="strong text-right">{{ row.SummaryLoads.TotalP|round(2)|toLocaleString(2) }}</td>
+                <td class="strong text-right">{{ (row.SummaryLoads.Sediment/row.SummaryLoads.Area)|round(2)|toLocaleString(2) }}</td>
+                <td class="strong text-right">{{ (row.SummaryLoads.TotalN/row.SummaryLoads.Area)|round(2)|toLocaleString(2) }}</td>
+                <td class="strong text-right">{{ (row.SummaryLoads.TotalP/row.SummaryLoads.Area)|round(2)|toLocaleString(2) }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="2" class="text-left">{{ summaryRow.Source }}</th>
+            <th class="text-right">{{ summaryRow.Area|round(2)|toLocaleString(2) }}</th>
+            <th class="text-right">{{ summaryRow.Sediment|round(2)|toLocaleString(2) }}</th>
+            <th class="text-right">{{ summaryRow.TotalN|round(2)|toLocaleString(2) }}</th>
+            <th class="text-right">{{ summaryRow.TotalP|round(2)|toLocaleString(2) }}</th>
+            <th class="text-right">{{ (summaryRow.Sediment/summaryRow.Area)|round(2)|toLocaleString(2) }}</th>
+            <th class="text-right">{{ (summaryRow.TotalN/summaryRow.Area)|round(2)|toLocaleString(2) }}</th>
+            <th class="text-right">{{ (summaryRow.TotalP/summaryRow.Area)|round(2)|toLocaleString(2) }}</th>
+        </tr>
+    </tfoot>
+
+</table>
+
+<div class="downloadcsv-link" data-action="download-csv">
+    <i class="fa fa-download"></i> Download this data
+</div>

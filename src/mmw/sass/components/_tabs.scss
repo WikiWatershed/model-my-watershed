@@ -54,6 +54,18 @@
 }
 
 
+.subbasin-tab-content-region {
+    .tab-content.model-tab-content {
+      // Set a specific height to allow y-scroll:
+      // Calc: height under the main header (height-lg), project header, model-toolbar,
+      // (height-xl) and subbasin header (100px)
+      height: calc(100% - #{$height-xl} * 2 - #{$height-lg} - 100px) !important;
+      padding: 0;
+      width: calc(#{$sidebar-width} - 2rem);
+    }
+}
+
+
 .analyze-stage-results-tab-pane {
     .tab-content {
     // Set a specific height to allow y-scroll:

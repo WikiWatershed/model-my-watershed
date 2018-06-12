@@ -13,9 +13,10 @@ from os.path import abspath, basename, dirname, join, normpath
 from sys import path
 
 from layer_settings import (LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
-                            NHD_REGION2_PERIMETER, DRB_PERIMETER, CONUS_PERIMETER)  # NOQA
+                            DRB_PERIMETER, DRB_SIMPLE_PERIMETER,
+                            NHD_REGION2_PERIMETER, CONUS_PERIMETER)  # NOQA
 from gwlfe_settings import (GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, # NOQA
-                            CURVE_NUMBER, NODATA, SRAT_KEYS)  # NOQA
+                            CURVE_NUMBER, NODATA, SRAT_KEYS, SUBBASIN_SOURCE_NORMALIZING_AREAS)  # NOQA
 from tr55_settings import (NLCD_MAPPING, SOIL_MAPPING)
 
 # Normally you should not import ANYTHING from Django directly
@@ -138,6 +139,12 @@ CELERY_TASK_QUEUES = {
 }
 CELERY_TASK_DEFAULT_EXCHANGE = 'tasks'
 CELERY_TASK_DEFAULT_ROUTING_KEY = "task.%s" % STACK_COLOR
+
+# The longest running tasks contain geoprocessing requests
+# Keep the task and request time limit above, but in the ballpark of
+# https://github.com/WikiWatershed/mmw-geoprocessing/blob/develop/api/src/main/resources/application.conf#L9
+CELERY_TASK_TIME_LIMIT = 90
+TASK_REQUEST_TIMEOUT = CELERY_TASK_TIME_LIMIT - 10
 # END CELERY CONFIGURATION
 
 
@@ -375,7 +382,7 @@ WSGI_APPLICATION = '%s.wsgi.application' % SITE_NAME
 # END WSGI CONFIGURATION
 
 OMGEO_SETTINGS = [[
-    'omgeo.services.EsriWGSSSL',
+    'omgeo.services.esri.EsriWGS',
     {
         'preprocessors': [],
         'postprocessors': [
@@ -397,8 +404,8 @@ OMGEO_SETTINGS = [[
 MMW_MAX_AREA = 75000  # Max area in km2, about the size of West Virginia
 
 BIGCZ_HOST = 'portal.bigcz.org'  # BiG-CZ Host, for enabling custom behavior
-BIGCZ_MAX_AREA = 1500  # Max area in km2, limited by CUAHSI
-BIGCZ_CLIENT_TIMEOUT = 5  # timeout in seconds
+BIGCZ_MAX_AREA = 5000  # Max area in km2, limited by CUAHSI
+BIGCZ_CLIENT_TIMEOUT = 8  # timeout in seconds
 BIGCZ_CLIENT_PAGE_SIZE = 100
 
 # ITSI Portal Settings
@@ -622,6 +629,85 @@ GEOP = {
                 'operationType': 'RasterSummary',
                 'zoom': 0
             }
+        },
+        'mapshed': {
+            'shapes': [],
+            'streamLines': '',
+            'operations': [
+                {
+                    'name': 'RasterGroupedCount',
+                    'label': 'nlcd_soil',
+                    'rasters': [
+                        'nlcd-2011-30m-epsg5070-512-int8',
+                        'ssurgo-hydro-groups-30m-epsg5070-512-int8'
+                    ]
+                },
+                {
+                    'name': 'RasterLinesJoin',
+                    'label': 'nlcd_streams',
+                    'rasters': [
+                        'nlcd-2011-30m-epsg5070-512-int8'
+                    ]
+                },
+                {
+                    'name': 'RasterGroupedCount',
+                    'label': 'gwn',
+                    'rasters': [
+                        'us-groundwater-nitrogen-30m-epsg5070-512'
+                    ]
+                },
+                {
+                    'name': 'RasterGroupedAverage',
+                    'label': 'avg_awc',
+                    'targetRaster': 'us-ssurgo-aws100-30m-epsg5070-512',
+                    'rasters': [
+                        'us-groundwater-nitrogen-30m-epsg5070-512'
+                    ]
+                },
+                {
+                    'name': 'RasterGroupedCount',
+                    'label': 'nlcd_slope',
+                    'rasters': [
+                        'nlcd-2011-30m-epsg5070-512-int8',
+                        'us-percent-slope-30m-epsg5070-512'
+                    ]
+                },
+                {
+                    'name': 'RasterGroupedAverage',
+                    'label': 'slope',
+                    'targetRaster': 'us-percent-slope-30m-epsg5070-512',
+                    'rasters': []
+                },
+                {
+                    'name': 'RasterGroupedAverage',
+                    'label': 'nlcd_kfactor',
+                    'targetRaster': 'us-ssugro-kfactor-30m-epsg5070-512',
+                    'rasters': [
+                        'nlcd-2011-30m-epsg5070-512-int8'
+                    ]
+                },
+                {
+                    'name': 'RasterGroupedAverage',
+                    'label': 'soiln',
+                    'targetRaster': 'soiln-epsg5070',
+                    'rasters': [],
+                    'pixelIsArea': True
+                },
+                {
+                    'name': 'RasterGroupedAverage',
+                    'label': 'soilp',
+                    'targetRaster': 'soilpallland2-epsg5070',
+                    'rasters': [],
+                    'pixelIsArea': True
+                },
+                {
+                    'name': 'RasterGroupedAverage',
+                    'label': 'recess_coef',
+                    'targetRaster': 'bfi48grd-epsg5070',
+                    'rasters': [],
+                    'pixelIsArea': True
+                }
+            ]
         }
     }
 }

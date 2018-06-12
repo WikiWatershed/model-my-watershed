@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import json
+import urllib
 
 from celery import chain, group
 
@@ -22,14 +23,18 @@ from django.db.models.sql import EmptyResultSet
 from django.http import (HttpResponse,
                          Http404,
                          )
+
 from django.core.servers.basehttp import FileWrapper
 
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
 from apps.core.decorators import log_request
 from apps.modeling import tasks, geoprocessing
-from apps.modeling.mapshed.tasks import (geoprocessing_chains,
+from apps.modeling.mapshed.tasks import (multi_subbasin,
+                                         multi_mapshed,
+                                         convert_data,
                                          collect_data,
+                                         collect_subbasin,
                                          )
 from apps.modeling.models import Project, Scenario
 from apps.modeling.serializers import (ProjectSerializer,
@@ -38,8 +43,13 @@ from apps.modeling.serializers import (ProjectSerializer,
                                        ScenarioSerializer,
                                        AoiSerializer)
 from apps.modeling.calcs import (get_layer_shape,
+                                 get_huc12s,
+                                 get_catchments,
+                                 apply_gwlfe_modifications,
                                  boundary_search_context,
-                                 split_into_huc12s)
+                                 split_into_huc12s,
+                                 sum_subbasin_stream_lengths,
+                                 )
 
 
 @decorators.api_view(['GET', 'POST'])
@@ -170,24 +180,42 @@ def start_gwlfe(request, format=None):
     """
     Starts a job to run GWLF-E.
 
+    The request body should contain the `inputmod_hash` of
+    the request and either the job UUID id of a successful
+    MapShed run as 'mapshed_job_uuid', or the serialized GMS
+    as 'model_input'.
+
     If ?subbasin=true, will expect a dictionary where the keys
-    are subbasin (HUC-12) ids, and the values are the mapshed data.
+    are subbasin (HUC-12) ids, and the values are the MapShed data.
     Will start a GWLF-E job, the result of which will be dictionary
-    of the subbasins and their results.
+    of the sub-basins and their results.
     """
     user = request.user if request.user.is_authenticated() else None
     created = now()
-    model_input = json.loads(request.POST['model_input'])
+
+    mapshed_job_uuid = request.POST.get('mapshed_job_uuid', None)
+
+    if mapshed_job_uuid:
+        mapshed_job = get_object_or_404(Job, uuid=mapshed_job_uuid)
+        model_input = json.loads(mapshed_job.result)
+    else:
+        model_input = json.loads(request.POST.get('model_input'))
+
+    modifications = json.loads(request.POST.get('modifications', '[]'))
+
     inputmod_hash = request.POST.get('inputmod_hash', '')
     job = Job.objects.create(created_at=created, result='', error='',
                              traceback='', user=user, status='started')
 
     if request.query_params.get('subbasin', False) == 'true':
         task_list = _initiate_subbasin_gwlfe_job_chain(model_input,
+                                                       mapshed_job_uuid,
+                                                       modifications,
                                                        inputmod_hash,
                                                        job.id)
     else:
         task_list = _initiate_gwlfe_job_chain(model_input,
+                                              modifications,
                                               inputmod_hash,
                                               job.id)
 
@@ -202,29 +230,54 @@ def start_gwlfe(request, format=None):
     )
 
 
-def _initiate_gwlfe_job_chain(model_input, inputmod_hash, job_id):
-    chain = (tasks.run_gwlfe.s(model_input, inputmod_hash)
-             | save_job_result.s(job_id, model_input))
+def _initiate_gwlfe_job_chain(model_input, modifications,
+                              inputmod_hash, job_id):
+    modified_model_input = apply_gwlfe_modifications(model_input,
+                                                     modifications)
+    chain = (tasks.run_gwlfe.s(modified_model_input, inputmod_hash)
+             | save_job_result.s(job_id, modified_model_input))
 
     errback = save_job_error.s(job_id)
 
     return chain.apply_async(link_error=errback)
 
 
-def _initiate_subbasin_gwlfe_job_chain(model_input, inputmod_hash, job_id):
-    huc12_jobs = []
+def _initiate_subbasin_gwlfe_job_chain(model_input, mapshed_job_uuid,
+                                       modifications, inputmod_hash,
+                                       job_id, chunk_size=8):
     errback = save_job_error.s(job_id)
 
-    for (id, gms) in model_input.iteritems():
-        huc12_jobs.append(
-            tasks.run_gwlfe.s(gms, inputmod_hash, id)
-                 .set(link_error=errback))
+    # Split the sub-basin ids into a list of lists. (We'll refer to
+    # each inner list as a "chunk")
+    watershed_ids = list(model_input.keys())
+    watershed_id_chunks = [watershed_ids[x:x+chunk_size]
+                           for x in range(0, len(watershed_ids), chunk_size)]
 
-    return chain(
-        group(huc12_jobs) |
-        tasks.subbasin_results_to_dict.s() |
-        tasks.run_srat.s() |
-        save_job_result.s(job_id, model_input)).apply_async()
+    stream_lengths = sum_subbasin_stream_lengths(model_input)
+
+    # Create a celery group where each task in the group
+    # runs gwlfe synchronously on a chunk of subbasin ids.
+    # This is to keep the number of tasks in the group low. Celery will
+    # not return the aggregate chain's job_id (which we need for the job
+    # submission response) until all tasks have been submitted.
+    # If we don't chunk, a shape that has 60+ subbasins could take >60sec
+    # to generate a response (and thus timeout) because we'll be waiting to
+    # submit one task for each subbasin.
+    gwlfe_chunked_group = group(iter([
+        tasks.run_subbasin_gwlfe_chunks.s(mapshed_job_uuid,
+                                          modifications,
+                                          stream_lengths,
+                                          inputmod_hash,
+                                          watershed_id_chunk)
+        .set(link_error=errback)
+        for watershed_id_chunk in watershed_id_chunks]))
+
+    post_process = \
+        tasks.subbasin_results_to_dict.s().set(link_error=errback) | \
+        tasks.run_srat.s(mapshed_job_uuid).set(link_error=errback) | \
+        save_job_result.s(job_id, mapshed_job_uuid)
+
+    return (gwlfe_chunked_group | post_process).apply_async()
 
 
 @decorators.api_view(['POST'])
@@ -280,28 +333,26 @@ def _initiate_subbasin_mapshed_job_chain(mapshed_input, job_id):
     if not huc12s:
         raise EmptyResultSet('No subbasins found')
 
-    huc12_job_chains = []
-    for (huc12_id, huc12, huc12_aoi) in huc12s:
-        huc12_wkaoi = 'huc12__{id}'.format(id=huc12_id)
-        huc12_job_chains.append(chain((
-            group(geoprocessing_chains(huc12_aoi, huc12_wkaoi, errback)) |
-            collect_data.s(huc12_aoi, huc12).set(link_error=errback))))
-
-    return chain(group(huc12_job_chains) |
+    job_chain = (multi_subbasin(area_of_interest, huc12s) |
+                 collect_subbasin.s(huc12s) |
                  tasks.subbasin_results_to_dict.s() |
-                 save_job_result.s(job_id, mapshed_input)).apply_async()
+                 save_job_result.s(job_id, mapshed_input))
+
+    return job_chain.apply_async(link_error=errback)
 
 
 def _initiate_mapshed_job_chain(mapshed_input, job_id):
     errback = save_job_error.s(job_id)
 
     area_of_interest, wkaoi = _parse_input(mapshed_input)
+
     job_chain = (
-        group(geoprocessing_chains(area_of_interest, wkaoi, errback)) |
-        collect_data.s(area_of_interest).set(link_error=errback) |
+        multi_mapshed(area_of_interest, wkaoi) |
+        convert_data.s(wkaoi) |
+        collect_data.s(area_of_interest) |
         save_job_result.s(job_id, mapshed_input))
 
-    return chain(job_chain).apply_async()
+    return chain(job_chain).apply_async(link_error=errback)
 
 
 @decorators.api_view(['POST'])
@@ -405,11 +456,36 @@ def _construct_tr55_job_chain(model_input, job_id):
 
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
+def subbasins_detail(request):
+    mapshed_job_uuid = request.query_params.get('mapshed_job_uuid')
+    mapshed_job = Job.objects.get(uuid=mapshed_job_uuid)
+    gmss = json.loads(mapshed_job.result)
+    if gmss:
+        huc12s = get_huc12s(gmss.keys())
+        return Response(huc12s)
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@decorators.api_view(['GET'])
+@decorators.permission_classes((AllowAny, ))
+def subbasin_catchments_detail(request):
+    encoded_comids = request.query_params.get('catchment_comids')
+    catchment_comids = json.loads(urllib.unquote(encoded_comids))
+    if catchment_comids and len(catchment_comids) > 0:
+        catchments = get_catchments(catchment_comids)
+        return Response(catchments)
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@decorators.api_view(['GET'])
+@decorators.permission_classes((AllowAny, ))
 def boundary_layer_detail(request, table_code, obj_id):
     geojson = get_layer_shape(table_code, obj_id)
 
     if geojson:
-        return Response(json.loads(geojson))
+        return Response(geojson)
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
 

@@ -14,7 +14,7 @@ from django.db import connection
 from apps.modeling.mapshed.calcs import (animal_energy_units,
                                          get_point_source_table)
 
-DRB = settings.DRB_PERIMETER
+DRB = settings.DRB_SIMPLE_PERIMETER
 
 ANIMAL_DISPLAY_NAMES = {
     'sheep': 'Sheep',

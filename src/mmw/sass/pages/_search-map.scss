@@ -112,3 +112,16 @@
 .boundary-suggestions {
   padding-bottom: 0.3rem;
 }
+
+.geocoder-search-location-prompt {
+  padding: 0.7rem;
+  cursor: pointer;
+
+  &:hover {
+    color: $black-74;
+  }
+
+  i {
+    margin: 0 0.5rem;
+  }
+}

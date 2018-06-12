@@ -7,7 +7,6 @@ from troposphere import (
     Base64,
     Join,
     Equals,
-    cloudwatch as cw,
     ec2,
     elasticloadbalancing as elb,
     autoscaling as asg,
@@ -59,6 +58,8 @@ class Worker(StackNode):
         'PublicHostedZoneName': ['global:PublicHostedZoneName'],
         'VpcId': ['global:VpcId', 'VPC:VpcId'],
         'GlobalNotificationsARN': ['global:GlobalNotificationsARN'],
+        'SRATCatchmentAPIURL': ['global:SRATCatchmentAPIURL'],
+        'SRATCatchmentAPIKey': ['global:SRATCatchmentAPIKey'],
         'RollbarServerSideAccessToken':
         ['global:RollbarServerSideAccessToken'],
     }
@@ -206,15 +207,23 @@ class Worker(StackNode):
             Description='ARN for an SNS topic to broadcast notifications'
         ), 'GlobalNotificationsARN')
 
+        self.srat_catchment_api_url = self.add_parameter(Parameter(
+            'SRATCatchmentAPIURL', Type='String',
+            Description='URL for the SRAT Catchment API'
+        ), 'SRATCatchmentAPIURL')
+
+        self.srat_catchment_api_key = self.add_parameter(Parameter(
+            'SRATCatchmentAPIKey', Type='String', NoEcho=True,
+            Description='API key for the SRAT Catchment API'
+        ), 'SRATCatchmentAPIKey')
+
         worker_lb_security_group, \
             worker_security_group = self.create_security_groups()
         worker_lb = self.create_load_balancer(worker_lb_security_group)
 
-        worker_auto_scaling_group = self.create_auto_scaling_resources(
+        self.create_auto_scaling_resources(
             worker_security_group,
             worker_lb)
-
-        self.create_cloud_watch_resources(worker_auto_scaling_group)
 
         self.create_dns_records(worker_lb)
 
@@ -393,30 +402,36 @@ class Worker(StackNode):
             )
         )
 
-        return worker_asg
-
     def get_cloud_config(self):
         return ['#cloud-config\n',
                 '\n',
                 'write_files:\n',
                 '  - path: /etc/mmw.d/env/MMW_STACK_COLOR\n',
-                '    permissions: 0750\n',
+                '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: ', Ref(self.color), '\n',
                 '  - path: /etc/mmw.d/env/MMW_STACK_TYPE\n',
-                '    permissions: 0750\n',
+                '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: ', self.get_input('StackType'), '\n',
                 '  - path: /etc/mmw.d/env/MMW_DB_PASSWORD\n',
-                '    permissions: 0750\n',
+                '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: ', Ref(self.rds_password), '\n',
                 '  - path: /etc/mmw.d/env/ROLLBAR_SERVER_SIDE_ACCESS_TOKEN\n',
-                '    permissions: 0750\n',
+                '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: ', self.get_input('RollbarServerSideAccessToken'), '\n',  # NOQA
+                '  - path: /etc/mmw.d/env/MMW_SRAT_CATCHMENT_API_URL\n',
+                '    permissions: 0440\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.srat_catchment_api_url), '\n',
+                '  - path: /etc/mmw.d/env/MMW_SRAT_CATCHMENT_API_KEY\n',
+                '    permissions: 0440\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.srat_catchment_api_key), '\n',
                 '  - path: /etc/fstab.rwd-data\n',
-                '    permissions: 0644\n',
+                '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: |\n',
                 '      /dev/xvdf /opt/rwd-data\text4\tdefaults,nofail,discard\t0 2',  # NOQA
@@ -425,27 +440,6 @@ class Worker(StackNode):
                 '  - cat /etc/fstab.rwd-data >> /etc/fstab\n',
                 '  - mount -t ext4 /dev/xvdf /opt/rwd-data && initctl emit rwd-ready\n',  # NOQA
                 '  - /opt/model-my-watershed/scripts/aws/ebs-warmer.sh']
-
-    def create_cloud_watch_resources(self, worker_auto_scaling_group):
-        self.add_resource(cw.Alarm(
-            'alarmWorkerCPU',
-            AlarmDescription='Worker scaling group high CPU',
-            AlarmActions=[Ref(self.notification_topic_arn)],
-            Statistic='Average',
-            Period=300,
-            Threshold='50',
-            EvaluationPeriods=1,
-            ComparisonOperator='GreaterThanThreshold',
-            MetricName='CPUUtilization',
-            Namespace='AWS/EC2',
-            Dimensions=[
-                cw.MetricDimension(
-                    'metricAutoScalingGroupName',
-                    Name='AutoScalingGroupName',
-                    Value=Ref(worker_auto_scaling_group)
-                )
-            ]
-        ))
 
     def create_dns_records(self, worker_lb):
         self.add_condition('BlueCondition', Equals('Blue', Ref(self.color)))

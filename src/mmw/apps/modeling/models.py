@@ -6,6 +6,8 @@ from __future__ import division
 from django.contrib.gis.db import models
 from django.contrib.auth.models import User
 
+from apps.core.models import Job
+
 
 class Project(models.Model):
     TR55 = 'tr-55'
@@ -43,6 +45,20 @@ class Project(models.Model):
         null=True,
         help_text='Serialized JSON representation of additional'
                   ' data gathering steps, such as MapShed.')
+    mapshed_job_uuid = models.ForeignKey(
+        Job,
+        to_field='uuid',
+        related_name='mapshed_job',
+        null=True,
+        help_text='The job used to calculate the MapShed results.'
+                  ' Used for getting the results of that job.')
+    subbasin_mapshed_job_uuid = models.ForeignKey(
+        Job,
+        to_field='uuid',
+        related_name='subbasin_mapshed_job',
+        null=True,
+        help_text='The job used to calculate the MapShed results'
+                  ' for each HUC-12 sub-basin of the shape.')
     wkaoi = models.CharField(
         null=True,
         max_length=255,

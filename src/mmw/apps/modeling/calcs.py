@@ -3,10 +3,17 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+import json
+
+from copy import deepcopy
+
 from django.conf import settings
 from django.db import connection
 
 from django.contrib.gis.geos import WKBReader
+
+
+HECTARES_PER_SQM = 0.0001
 
 
 def split_into_huc12s(code, id):
@@ -18,7 +25,7 @@ def split_into_huc12s(code, id):
     huc_code = table_name.split('_')[1]
 
     sql = '''
-          SELECT boundary_huc12.id,
+          SELECT 'huc12__' || boundary_huc12.id,
                  boundary_huc12.huc12,
                  ST_AsGeoJSON(boundary_huc12.geom_detailed)
           FROM boundary_huc12, {table_name}
@@ -29,6 +36,97 @@ def split_into_huc12s(code, id):
     with connection.cursor() as cursor:
         cursor.execute(sql, [int(id)])
         return cursor.fetchall()
+
+
+def get_huc12s(huc12_ids):
+    """
+    Fetch the name and shapes of a list
+    of huc12 codes.
+    :param huc12_ids: a list of twelve-digit HUC-12 ids
+    :return: a dictionary keyed on the HUC-12 ids containing
+             the HUC-12 names and geoms
+             { <huc12_id>: { name: <huc12_name>,
+                             shape: <huc12 GeoJSON geometry> }}
+    """
+    sql = '''
+          SELECT huc12,
+                 name,
+                 ST_AsGeoJSON(geom_detailed)
+          FROM boundary_huc12
+          WHERE huc12 IN %s
+          '''
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [tuple(huc12_ids)])
+        rows = cursor.fetchall()
+        return [{'id': row[0], 'name': row[1], 'shape': json.loads(row[2])}
+                for row in rows]
+
+
+def get_catchments(comids):
+    sql = '''
+          SELECT comid,
+                 ST_Area(ST_Transform(geom_catch, 5070)),
+                 ST_AsGeoJSON(geom_catch),
+                 ST_AsGeoJSON(geom_stream)
+          FROM nhdpluscatchment
+          WHERE comid in %s
+          '''
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [tuple(comids)])
+        rows = cursor.fetchall()
+        return [{'id': row[0], 'area': row[1] * HECTARES_PER_SQM,
+                 'shape': json.loads(row[2]), 'stream': json.loads(row[3])}
+                for row in rows]
+
+
+def apply_gwlfe_modifications(gms, modifications):
+    modified_gms = deepcopy(gms)
+    for mod in modifications:
+        modified_gms.update(mod)
+    return modified_gms
+
+
+def apply_subbasin_gwlfe_modifications(gms, modifications,
+                                       total_stream_lengths):
+    ag_stream_length_weighted_keys = ['n43', 'n45', 'n46c']
+    urban_stream_length_weighted_keys = ['UrbBankStab']
+    weighted_modifications = deepcopy(modifications)
+
+    # Weight factors for this subbasin's stream length given
+    # total stream length in the AoI
+    try:
+        ag_pct_total_stream_length = (gms['AgLength'] /
+                                      total_stream_lengths['ag'])
+    except ZeroDivisionError:
+        ag_pct_total_stream_length = 1
+
+    try:
+        urban_pct_total_stream_length = ((gms['StreamLength'] -
+                                          gms['AgLength']) /
+                                         total_stream_lengths['urban'])
+    except ZeroDivisionError:
+        urban_pct_total_stream_length = 1
+
+    for mod in weighted_modifications:
+        for key, val in mod.iteritems():
+            if key in ag_stream_length_weighted_keys:
+                val *= ag_pct_total_stream_length
+            elif key in urban_stream_length_weighted_keys:
+                val *= urban_pct_total_stream_length
+            mod[key] = val
+
+    return apply_gwlfe_modifications(gms, weighted_modifications)
+
+
+def sum_subbasin_stream_lengths(gmss):
+    ag = sum([gms['AgLength'] for gms in gmss.itervalues()])
+    urban = sum([gms['StreamLength'] - gms['AgLength']
+                 for gms in gmss.itervalues()])
+
+    return {
+        'ag': ag,
+        'urban': urban
+    }
 
 
 def get_layer_shape(table_code, id):
@@ -45,12 +143,20 @@ def get_layer_shape(table_code, id):
 
     table = layer['table_name']
     field = layer.get('json_field', 'geom')
+    properties = ''
+
+    if table.startswith('boundary_huc'):
+        properties = "'huc', {}".format(table[-5:])
 
     sql = '''
-          SELECT ST_AsGeoJSON({field})
+          SELECT json_build_object(
+            'type', 'Feature',
+            'id', id,
+            'geometry', ST_AsGeoJSON({field})::json,
+            'properties', json_build_object({properties}))
           FROM {table}
           WHERE id = %s
-          '''.format(field=field, table=table)
+          '''.format(field=field, properties=properties, table=table)
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [int(id)])

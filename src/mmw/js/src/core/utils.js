@@ -37,6 +37,11 @@ var utils = {
 
     MODEL: 'MODEL',
 
+    CONUS: {
+        NW: [-127.17,24.76],
+        SE: [-66.53,50.4575]
+    },
+
     splashPageTitle: settings.get('title'),
 
     selectAreaPageTitle: 'Choose Area of Interest',
@@ -656,6 +661,29 @@ var utils = {
         };
     },
 
+    // Parse Area Of Interest Name to return an object like to be formatted by
+    // the view. It looks for (ID XXXX) at the end of the name and separates it
+    // into a suffix. E.g.
+    //     parseAoIName('Schuylkill, HUC-8 Watershed (ID 02040203)') =>
+    //     { primary: 'Schuylkill, HUC-8 Watershed', suffix: '02040203' }
+    parseAoIName: function(name) {
+        if (!name) {
+            return {
+                primary: '',
+                suffix: '',
+            };
+        }
+
+        var idIndex = name.indexOf('(ID');
+
+        return {
+            primary: idIndex < 0 ? name :
+                     name.substr(0, idIndex),
+            suffix: idIndex < 0 ? '' :
+                    name.substring(idIndex + 4, name.length - 1)
+        };
+    },
+
     // Downloads given data as a text file with given filename
     downloadAsFile: function(data, filename) {
         var blob = new Blob([JSON.stringify(data)],
@@ -678,6 +706,91 @@ var utils = {
         }
 
         URL.revokeObjectURL(url);
+    },
+
+    // Checks if current browser is Internet Explorer / Edge. If so,
+    // returns its version number. Else, returns false.
+    // Taken from https://codepen.io/gapcode/pen/vEJNZN
+    getIEVersion: function() {
+        var ua = window.navigator.userAgent;
+
+        var msie = ua.indexOf('MSIE ');
+        if (msie > 0) {
+            // IE 10 or older => return version number
+            return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
+        }
+
+        var trident = ua.indexOf('Trident/');
+        if (trident > 0) {
+            // IE 11 => return version number
+            var rv = ua.indexOf('rv:');
+            return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
+        }
+
+        var edge = ua.indexOf('Edge/');
+        if (edge > 0) {
+            // Edge (IE 12+) => return version number
+            return parseInt(ua.substring(edge + 5, ua.indexOf('.', edge)), 10);
+        }
+
+        // other browser
+        return false;
+    },
+
+    applyGwlfeModifications: function(gisData, modifications) {
+        // Merge the values that came back from Mapshed with the values
+        // in the modifications from the user.
+        var gms = lodash.cloneDeep(gisData);
+
+        modifications.forEach(function(mod) {
+            _.assign(gms, mod.get('output'));
+        });
+
+        return gms;
+    },
+
+    // Takes a string query, which is either "Lon,Lat" or "Lat,Lon",
+    // and returns an object {lng: 99.9, lat: 99.9}. If the string
+    // cannot be parsed in the expected way, returns false
+    parseLocation: function(query) {
+        if (!_.isString(query)) {
+            return false;
+        }
+
+        if (query.indexOf(',') < 0) {
+            return false;
+        }
+
+        var coords = _.compact(query.split(',').map(parseFloat)),
+            result = { lat: NaN, lng: NaN };
+
+        if (coords.length !== 2) {
+            // String did not parse correctly
+            return false;
+        }
+
+        if (coords[0] >= this.CONUS.NW[0] && coords[0] <= this.CONUS.SE[0]) {
+            result.lng = coords[0];
+            if (coords[1] >= this.CONUS.NW[1] && coords[1] <= this.CONUS.SE[1]) {
+                result.lat = coords[1];
+            } else {
+                // Out of bounds
+                return false;
+            }
+        } else if (coords[1] >= this.CONUS.NW[0] && coords[1] <= this.CONUS.SE[0]) {
+            result.lng = coords[1];
+            if (coords[0] >= this.CONUS.NW[1] && coords[0] <= this.CONUS.SE[1]) {
+                result.lat = coords[0];
+            } else {
+                // Out of bounds
+                return false;
+            }
+        } else {
+            // Out of bounds
+            return false;
+        }
+
+        return result;
     }
 };
 

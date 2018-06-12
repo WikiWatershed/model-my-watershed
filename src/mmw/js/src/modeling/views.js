@@ -21,6 +21,7 @@ var _ = require('lodash'),
     resultsDetailsTmpl = require('./templates/resultsDetails.html'),
     resultsTabPanelTmpl = require('./templates/resultsTabPanel.html'),
     resultsTabContentTmpl = require('./templates/resultsTabContent.html'),
+    subbasinResultsTabContentTmpl = require('./templates/subbasinResultsTabContent.html'),
     router = require('../router').router,
     modelingHeaderTmpl = require('./templates/modelingHeader.html'),
     scenariosBarTmpl = require('./templates/scenariosBar.html'),
@@ -35,7 +36,8 @@ var _ = require('lodash'),
     tr55RunoffViews = require('./tr55/runoff/views.js'),
     tr55QualityViews = require('./tr55/quality/views.js'),
     gwlfeRunoffViews = require('./gwlfe/runoff/views.js'),
-    gwlfeQualityViews = require('./gwlfe/quality/views.js');
+    gwlfeQualityViews = require('./gwlfe/quality/views.js'),
+    gwlfeSubbasinViews = require('./gwlfe/subbasin/views.js');
 
 // The entire modeling header.
 var ModelingHeaderView = Marionette.LayoutView.extend({
@@ -155,7 +157,7 @@ var ProjectMenuView = Marionette.ItemView.extend({
                                   {name: modelPackageName}),
             aoiModel = new coreModels.GeoModel({
                 shape: App.map.get('areaOfInterest'),
-                place: App.map.get('areaOfInterestName')
+                place: utils.parseAoIName(App.map.get('areaOfInterestName')),
             });
         return {
             itsi: App.user.get('itsi'),
@@ -461,13 +463,15 @@ var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
-        var gis_data = this.model.getGisData().model_input,
+        var gis_data = utils.applyGwlfeModifications(
+                App.currentProject.get('gis_data'),
+                this.model.get('modifications')),
             is_gwlfe = App.currentProject.get('model_package') === utils.GWLFE && !_.isEmpty(gis_data);
 
         return {
             is_gwlfe: is_gwlfe,
             csrftoken: csrf.getToken(),
-            gis_data: gis_data,
+            gis_data: JSON.stringify(gis_data),
             editable: isEditable(this.model),
             is_new: this.model.isNew(),
         };
@@ -546,7 +550,9 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
     },
 
     templateHelpers: function() {
-        var gis_data = this.model.getGisData().model_input,
+        var gis_data = utils.applyGwlfeModifications(
+                App.currentProject.get('gis_data'),
+                this.model.get('modifications')),
             is_gwlfe = App.currentProject.get('model_package') === utils.GWLFE &&
                         gis_data !== null &&
                         gis_data !== '{}' &&
@@ -554,7 +560,7 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
 
             return {
                 is_gwlfe: is_gwlfe,
-                gis_data: gis_data,
+                gis_data: JSON.stringify(gis_data),
                 csrftoken: csrf.getToken(),
                 editable: isEditable(this.model),
                 is_new: this.model.isNew(),
@@ -789,7 +795,7 @@ var GwlfeToolbarView = ScenarioModelToolbarView.extend({
 
     onThumbClick: function(e) {
         var modKey = $(e.currentTarget).data('value'),
-            thumbOffset = $(e.target).offset();
+            thumbOffset = e.target.getBoundingClientRect();
 
         this.model.set('activeModKey', modKey);
 
@@ -878,7 +884,10 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
     },
 
     templateHelpers: function() {
-        var gisData = this.currentConditions.getGisData().model_input,
+        // We don't need to apply modifications to gis_data here
+        // because it's only downloadable from this view if
+        // the only scenario is current conditions (ie no modifications)
+        var gisData = this.model.get('gis_data'),
             isGwlfe = this.modelPackage === utils.GWLFE && !_.isEmpty(gisData),
             isOnlyCurrentConditions = this.collection.length === 1 &&
                 this.collection.first().get('is_current_conditions'),
@@ -888,7 +897,7 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
             isOnlyCurrentConditions: isOnlyCurrentConditions,
             isGwlfe: isGwlfe,
             csrftoken: csrf.getToken(),
-            gis_data: gisData,
+            gis_data: JSON.stringify(gisData),
             editable: editable
         };
     },
@@ -957,10 +966,22 @@ var ResultsView = Marionette.LayoutView.extend({
         ));
 
         if (scenario) {
+            var results = scenario.get('results'),
+                hasSubbasin = results.some(function(r) {
+                    return r.get('name') === 'subbasin';
+                });
+
+            // Close sub-basin of previous detail view if active
+            // And make any active subbasin detail inactive
+            if (hasSubbasin && this.modelingRegion.hasView()) {
+                this.modelingRegion.currentView.hideSubbasinHuc12View();
+                this.modelingRegion.currentView.hideSubbasinHotSpotView();
+            }
+
             this.modelingRegion.show(new ResultsDetailsView({
                 areaOfInterest: this.model.get('area_of_interest'),
-                collection: scenario.get('results'),
-                scenario: scenario
+                collection: results,
+                scenario: scenario,
             }));
         }
     },
@@ -973,7 +994,10 @@ var ResultsView = Marionette.LayoutView.extend({
                 this.monitorRegion.$el.removeClass('active');
                 this.monitorRegion.currentView.setVisibility(false);
                 this.modelingRegion.$el.removeClass('active');
+                App.hideMapInfo();
                 App.getMapView().updateModifications(null);
+                App.getMapView().clearSubbasinHuc12s();
+                App.getMapView().clearSubbasinCatchments();
                 break;
             case utils.MONITOR:
                 if (App.map.get('dataCatalogDetailResult') !== null) {
@@ -985,7 +1009,10 @@ var ResultsView = Marionette.LayoutView.extend({
                 this.monitorRegion.$el.addClass('active');
                 this.monitorRegion.currentView.setVisibility(true);
                 this.modelingRegion.$el.removeClass('active');
+                App.hideMapInfo();
                 App.getMapView().updateModifications(null);
+                App.getMapView().clearSubbasinHuc12s();
+                App.getMapView().clearSubbasinCatchments();
                 break;
             case utils.MODEL:
                 this.aoiRegion.currentView.$el.addClass('hidden');
@@ -993,9 +1020,23 @@ var ResultsView = Marionette.LayoutView.extend({
                 this.monitorRegion.$el.removeClass('active');
                 this.monitorRegion.currentView.setVisibility(false);
                 this.modelingRegion.$el.addClass('active');
+                App.showMapInfo();
                 App.getMapView().updateModifications(
                     this.model.get('scenarios').getActiveScenario()
                 );
+                var modelingView = this.modelingRegion.currentView,
+                    subbasins = App.currentProject.get('subbasins'),
+                    activeSubbasin = subbasins.getActive(),
+                    isVisible = function(region) {
+                        return region.hasView() && region.$el.is(':visible');
+                    };
+                if (isVisible(modelingView.subbasinRegion) ||
+                    isVisible(modelingView.subbasinHuc12Region)) {
+                    App.map.set('subbasinHuc12s', App.currentProject.get('subbasins'));
+                }
+                if (isVisible(modelingView.subbasinHuc12Region) && activeSubbasin) {
+                    App.map.set('subbasinCatchments', activeSubbasin.get('catchments'));
+                }
                 break;
         }
     },
@@ -1032,23 +1073,127 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
 
     initialize: function(options) {
         this.scenario = options.scenario;
+        this.showPrimaryModelingResults = this.showPrimaryModelingResults.bind(this);
+        this.showSubbasinHotSpotView = this.showSubbasinHotSpotView.bind(this);
+        this.hideSubbasinHotSpotView = this.hideSubbasinHotSpotView.bind(this);
+        this.showSubbasinHuc12View = this.showSubbasinHuc12View.bind(this);
+        this.hideSubbasinHuc12View = this.hideSubbasinHuc12View.bind(this);
     },
 
     regions: {
+        subbasinRegion: '.subbasin-region',
+        subbasinHuc12Region: '.subbasin-huc12-region',
         panelsRegion: '.tab-panels-region',
         contentRegion: '.tab-contents-region'
     },
 
     onShow: function() {
+        this.showPrimaryModelingResults();
+    },
+
+    showPrimaryModelingResults: function() {
+        var collection = this.collection.getFilteredResults();
+
         this.panelsRegion.show(new ResultsTabPanelsView({
-            collection: this.collection
+            collection: collection,
         }));
 
         this.contentRegion.show(new ResultsTabContentsView({
-            collection: this.collection,
+            collection: collection,
             scenario: this.scenario,
-            areaOfInterest: this.options.areaOfInterest
+            areaOfInterest: this.options.areaOfInterest,
+            showSubbasinHotSpotView: this.showSubbasinHotSpotView,
         }));
+    },
+
+    showSubbasinHotSpotView: function() {
+        var self = this;
+
+        this.panelsRegion.$el.hide();
+        this.contentRegion.$el.hide();
+
+        App.map.set('subbasinHuc12s', App.currentProject.get('subbasins'));
+        this.scenario.set('is_subbasin_active', true);
+
+        this.collection.getResult('subbasin').on('change:selectedLoad', function() {
+            var activeSubbasin = App.currentProject.get('subbasins').getActive();
+
+            self.showCatchmentsOnMap(activeSubbasin, this);
+        });
+
+        if (!App.user.get('has_seen_hotspot_info')) {
+            App.showMapInfo({ view: new gwlfeSubbasinViews.HotspotInfoView() });
+        }
+
+        if (this.subbasinRegion.hasView()) {
+            return this.subbasinRegion.$el.show();
+        }
+
+        this.subbasinRegion.show(new SubbasinResultsTabContentView({
+            model: this.collection.getResult('subbasin'),
+            scenario: this.scenario,
+            hideSubbasinHotSpotView: this.hideSubbasinHotSpotView,
+            showHuc12: this.showSubbasinHuc12View,
+        }));
+    },
+
+    hideSubbasinHotSpotView: function() {
+        this.subbasinRegion.$el.hide();
+        this.panelsRegion.$el.show();
+        this.contentRegion.$el.show();
+
+        this.collection.getResult('subbasin').off('change:selectedLoad');
+
+        this.scenario.set('is_subbasin_active', false);
+        App.hideMapInfo({ empty: true });
+        App.getMapView().clearSubbasinHuc12s();
+    },
+
+    showSubbasinHuc12View: function() {
+        this.subbasinRegion.$el.hide();
+        var activeSubbasin = App.currentProject.get('subbasins').getActive(),
+            subbasinResult = this.collection.getResult('subbasin');
+        if (activeSubbasin) {
+            this.showCatchmentsOnMap(activeSubbasin, subbasinResult);
+
+            this.subbasinHuc12Region.show(new SubbasinHuc12TabContentView({
+                model: subbasinResult,
+                scenario: this.scenario,
+                hideSubbasinHotSpotView: this.hideSubbasinHuc12View,
+            }));
+        }
+    },
+
+    hideSubbasinHuc12View: function() {
+        var activeSubbasin = App.currentProject.get('subbasins').getActive();
+        if (activeSubbasin) {
+            activeSubbasin.set('active', false);
+        }
+        App.getMapView().clearSubbasinCatchments();
+        this.subbasinRegion.$el.show();
+        this.subbasinHuc12Region.empty();
+    },
+
+    showCatchmentsOnMap: function(activeSubbasin, subbasinResult) {
+        var catchments = subbasinResult.get('result')
+                         .HUC12s[activeSubbasin.get('id')].Catchments,
+            catchmentComids = Object.keys(catchments);
+
+        return activeSubbasin
+            .fetchCatchmentsIfNeeded(catchmentComids)
+            .then(function() {
+                var activeCatchments = activeSubbasin.get('catchments'),
+                    selectedLoad = subbasinResult.get('selectedLoad');
+
+                activeCatchments.forEach(function(c) {
+                    c.set(_.defaults(
+                        { selectedLoad: selectedLoad },
+                        catchments[c.id]));
+                });
+
+                App.getMapView().clearSubbasinCatchments();
+                App.map.set('subbasinCatchments', activeCatchments);
+            });
     }
 });
 
@@ -1114,6 +1259,7 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
 
     initialize: function(options) {
         this.scenario = options.scenario;
+        this.listenTo(App.currentProject, 'change:subbasin_mapshed_job_error change:mapshed_job_error', this.onShow);
     },
 
     onShow: function() {
@@ -1121,23 +1267,28 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
             modelPackage = App.currentProject.get('model_package'),
             resultName = this.model.get('name'),
             ResultView = getResultView(modelPackage, resultName),
-            tmvModel = new coreModels.TaskMessageViewModel(),
+            tmvModel = new coreModels.TaskMessageViewModel({ numSteps: getNumSteps(modelPackage) }),
             polling = this.model.get('polling'),
             result = this.model.get('result'),
-            error = self.scenario.get('poll_error');
+            mapshedErrorAttribute = this.model.isSubbasin() ?
+                'subbasin_mapshed_job_error' :
+                'mapshed_job_error',
+            mapshedError = App.currentProject.get(mapshedErrorAttribute),
+            error = this.model.get('error') || mapshedError;
 
         if (result) {
-            this.resultRegion.show(new ResultView({
+            return this.resultRegion.show(new ResultView({
                 model: this.model,
                 areaOfInterest: this.options.areaOfInterest,
                 scenario: this.scenario,
+                showSubbasinHotSpotView: this.options.showSubbasinHotSpotView,
+                showHuc12: this.options.showHuc12,
             }));
-            return;
         }
 
         // Only show this on the initial polling. On subsequent polling, we
         // keep showing the current results.
-        tmvModel.setWorking('Gathering Data');
+        tmvModel.setWorking('Gathering Data', 1, getExpectedWaitTime(modelPackage, resultName, true));
 
         if (error) {
             if (error.timeout) {
@@ -1151,11 +1302,66 @@ var ResultsTabContentView = Marionette.LayoutView.extend({
         }
 
         if (polling) {
-            tmvModel.setWorking('Calculating Results');
+            tmvModel.setWorking('Calculating Results', 2, getExpectedWaitTime(modelPackage, resultName));
         }
 
-        self.resultRegion.show(new coreViews.TaskMessageView({ model: tmvModel }));
+        self.resultRegion.show(new coreViews.TaskMessageView({
+            model: tmvModel,
+        }));
     }
+});
+
+var SubbasinResultsTabContentView = Marionette.LayoutView.extend({
+    model: models.ResultModel,
+    template: subbasinResultsTabContentTmpl,
+    tagName: 'div',
+
+    className: 'tab-pane',
+
+    ui: {
+        'close': '[data-action="close-subbasin-view"]',
+        'spinner': '.subbasin-spinner',
+    },
+
+    events: {
+        'click @ui.close': 'handleSubbasinCloseButtonClick',
+    },
+
+    regions: {
+        resultContentRegion: '.result-content-region',
+    },
+
+    modelEvents: {
+        'change:polling': 'showSpinner',
+    },
+
+    showSpinner: function() {
+        this.ui.spinner.toggleClass('hidden', !this.model.get('polling'));
+    },
+
+    handleSubbasinCloseButtonClick: function() {
+        this.options.hideSubbasinHotSpotView();
+    },
+
+    onShow: function() {
+        this.resultContentRegion.show(new ResultsTabContentView({
+            model: this.model,
+            scenario: this.options.scenario,
+            showHuc12: this.options.showHuc12,
+        }));
+    },
+});
+
+var SubbasinHuc12TabContentView = SubbasinResultsTabContentView.extend({
+    templateHelpers: {
+        backButtonText: 'Back',
+    },
+    onShow: function() {
+        this.resultContentRegion.show(new gwlfeSubbasinViews.Huc12ResultView({
+            model: this.model,
+            scenario: this.options.scenario,
+        }));
+    },
 });
 
 // Collection of model result tab contents
@@ -1167,7 +1373,8 @@ var ResultsTabContentsView = Marionette.CollectionView.extend({
     childViewOptions: function() {
         return {
             scenario: this.scenario,
-            areaOfInterest: this.options.areaOfInterest
+            areaOfInterest: this.options.areaOfInterest,
+            showSubbasinHotSpotView: this.options.showSubbasinHotSpotView,
         };
     },
     initialize: function(options) {
@@ -1205,10 +1412,44 @@ function getResultView(modelPackage, resultName) {
                     return gwlfeRunoffViews.ResultView;
                 case 'quality':
                     return gwlfeQualityViews.ResultView;
+                case 'subbasin':
+                    return gwlfeSubbasinViews.ResultView;
                 default:
                     console.log('Result not supported.');
             }
             break;
+        default:
+            console.log('Model package ' + modelPackage + ' not supported.');
+    }
+}
+
+function getNumSteps(modelPackage) {
+    switch (modelPackage) {
+        case utils.TR55_PACKAGE:
+            return 1;
+        case utils.GWLFE:
+            return 2;
+        default:
+            console.log('Model package ' + modelPackage + ' not supported.');
+    }
+}
+
+function getExpectedWaitTime(modelPackage, resultName, isGatheringData) {
+    switch (modelPackage) {
+        case utils.TR55_PACKAGE:
+            return null;
+        case utils.GWLFE:
+            if (resultName !== 'subbasin') {
+                if (isGatheringData) {
+                    return 'This may take up to 30 seconds';
+                }
+
+                return 'This may take a few seconds';
+            }
+            if (isGatheringData) {
+                return 'This may take up to a minute';
+            }
+            return 'This may take up to 3 minutes';
         default:
             console.log('Model package ' + modelPackage + ' not supported.');
     }

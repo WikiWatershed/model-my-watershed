@@ -13,10 +13,10 @@
     <div class="navigation">
         <ul class="main">
             {% if data_catalog_enabled %}
-            <li class="header-link"><a href="http://bigcz.org/" target="_blank">About</a></li>
+            <li class="header-link"><a target="_blank" rel="noopener noreferrer" href="http://bigcz.org/">About</a></li>
             {% else %}
             <li class="header-link"><a href="javascript:void(0);" id="about-modal-trigger">About</a></li>
-            <li class="header-link"><a href="https://wikiwatershed.org/help/" target="_blank">Help</a></li>
+            <li class="header-link"><a target="_blank" rel="noopener noreferrer" href="https://wikiwatershed.org/help/">Help</a></li>
                 {% if not itsi_embed and not data_catalog_enabled %}
                 <li class="header-link"><a href="javascript:void(0);" id="header-open-project">Projects</a></li>
                 {% endif %}

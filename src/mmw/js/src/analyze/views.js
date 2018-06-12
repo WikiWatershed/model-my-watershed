@@ -248,6 +248,16 @@ var ResultsView = Marionette.LayoutView.extend({
 
     onMonitorTabShown: function() {
         this.monitorRegion.currentView.setVisibility(true);
+        // Cache CUAHSI results
+        if (!this.cuahsiResultsHaveBeenCached) {
+            var self = this;
+
+            this.monitorRegion.currentView
+                .cacheCuahsiResults()
+                .done(function() {
+                    self.cuahsiResultsHaveBeenCached = true;
+                });
+        }
         // Hide AoI Region if details open
         if (App.map.get('dataCatalogDetailResult') !== null) {
             this.aoiRegion.currentView.$el.addClass('hidden');
@@ -419,6 +429,7 @@ var AoiView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         return {
+            name: utils.parseAoIName(this.model.get('place')),
             csrftoken: csrf.getToken(),
             shape: JSON.stringify(this.model.get('shape'))
         };

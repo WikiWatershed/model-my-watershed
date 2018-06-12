@@ -23,6 +23,7 @@ class UserProfileSerializer(serializers.Serializer):
     last_name = serializers.CharField(required=False, allow_blank=True)
     was_skipped = serializers.BooleanField(required=False)
     is_complete = serializers.BooleanField(required=True)
+    has_seen_hotspot_info = serializers.BooleanField(required=False)
 
     def create(self, validated_data):
         user_id = validated_data.get('user_id', None)

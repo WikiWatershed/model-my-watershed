@@ -222,11 +222,11 @@ LAYER_GROUPS = {
             'css_class_prefix': 'catchment',
             # Defined in tiler/styles.mss
             'legend_mapping': {
-                1: 'Less than 5 kg/y',
-                2: 'Less than 10 kg/y',
-                3: 'Less than 15 kg/y',
-                4: 'Less than 20 kg/y',
-                5: 'Greater than 20 kg/y',
+                1: 'Less than 5 kg/ha',
+                2: 'Less than 10 kg/ha',
+                3: 'Less than 15 kg/ha',
+                4: 'Less than 20 kg/ha',
+                5: 'Greater than 20 kg/ha',
             },
             'big_cz': False,
         },
@@ -243,11 +243,11 @@ LAYER_GROUPS = {
             'css_class_prefix': 'catchment',
             # Defined in tiler/styles.mss
             'legend_mapping': {
-                1: 'Less than 0.30 kg/y',
-                2: 'Less than 0.60 kg/y',
-                3: 'Less than 0.90 kg/y',
-                4: 'Less than 1.20 kg/y',
-                5: 'Greater than 1.20 kg/y',
+                1: 'Less than 0.30 kg/ha',
+                2: 'Less than 0.60 kg/ha',
+                3: 'Less than 0.90 kg/ha',
+                4: 'Less than 1.20 kg/ha',
+                5: 'Greater than 1.20 kg/ha',
             },
             'big_cz': False,
         },
@@ -264,11 +264,11 @@ LAYER_GROUPS = {
             'css_class_prefix': 'catchment',
             # Defined in tiler/styles.mss
             'legend_mapping': {
-                1: 'Less than 250 kg/y',
-                2: 'Less than 500 kg/y',
-                3: 'Less than 750 kg/y',
-                4: 'Less than 1000 kg/y',
-                5: 'Greater than 1000 kg/y',
+                1: 'Less than 250 kg/ha',
+                2: 'Less than 500 kg/ha',
+                3: 'Less than 750 kg/ha',
+                4: 'Less than 1000 kg/ha',
+                5: 'Greater than 1000 kg/ha',
             },
             'big_cz': False,
         }
@@ -466,6 +466,8 @@ LAYER_GROUPS = {
 
 
 DRB_PERIMETER = GEOSGeometry(json.dumps(drb_perimeter['geometry']), srid=4326)
+DRB_SIMPLE_PERIMETER = \
+    GEOSGeometry(json.dumps(drb_simple_perimeter['geometry']), srid=4326)
 
 # Vizer observation meta data URL.  Happens to be proxied through a local app
 # server to avoid Cross Domain request errors
