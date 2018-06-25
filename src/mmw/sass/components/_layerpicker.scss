@@ -269,6 +269,16 @@ span.time-slider-end {
                                 rgba(255,255,255, 1) 100%);
 }
 
+#shippensburg-legend {
+    height: 20px;
+    width: 320px;
+    margin-left: 3px;
+    margin-right: 2px;
+    background: linear-gradient(90deg,
+                                rgba(255,255,255, 1)   0%,
+                                rgba(183, 28, 28, 1) 100%);
+}
+
 .climate-legend-tooltip {
   height: 65px;
 }
