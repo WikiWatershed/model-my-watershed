@@ -143,6 +143,8 @@ var LayerModel = Backbone.Model.extend({
         hasOpacitySlider: false,
         hasTimeSlider: false,
         timeLayers: null,
+        hasOverLayers: false,
+        overLayers: null,
         legendMapping: null,
         cssClassPrefix: null,
         active: false,
@@ -156,6 +158,7 @@ var LayerModel = Backbone.Model.extend({
     buildLayer: function(layerSettings, layerType, initialActive) {
         var leafletLayer,
             timeLayers,
+            overLayers,
             googleMaps = (window.google ? window.google.maps : null);
 
         // Check to see if the google api service has been loaded
@@ -192,6 +195,20 @@ var LayerModel = Backbone.Model.extend({
             leafletLayer = timeLayers[0];
         }
 
+        if (layerSettings.overlay_codes) {
+            overLayers = new L.LayerGroup(
+                layerSettings.overlay_codes.map(function(code) {
+                    var overlayUrl = tileUrl.replace(layerSettings.code, code),
+                        overlaySettings = _.extend(layerSettings, {
+                            code: code,
+                            zIndex: utils.layerGroupZIndices[layerType],
+                            attribution: '',
+                            minZoom: 0 });
+
+                    return new L.TileLayer(overlayUrl, overlaySettings);
+                }));
+        }
+
         this.set({
             leafletLayer: leafletLayer,
             layerType: layerType,
@@ -206,6 +223,8 @@ var LayerModel = Backbone.Model.extend({
             hasOpacitySlider: layerSettings.has_opacity_slider,
             hasTimeSlider: !!layerSettings.time_slider_values,
             timeLayers: timeLayers,
+            hasOverLayers: !!layerSettings.overlay_codes,
+            overLayers: overLayers,
             legendMapping: layerSettings.legend_mapping,
             cssClassPrefix: layerSettings.css_class_prefix,
             active: layerSettings.display === initialActive ? true : false,
