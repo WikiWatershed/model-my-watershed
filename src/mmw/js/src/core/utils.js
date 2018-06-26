@@ -135,6 +135,11 @@ var utils = {
      */
     _removeLayer: function(layer, map) {
         layer.set('active', false);
+
+        if (layer.get('hasOverLayers')) {
+            map.removeLayer(layer.get('overLayers'));
+        }
+
         map.removeLayer(layer.get('leafletLayer'));
     },
 
@@ -148,6 +153,7 @@ var utils = {
      */
     _addLayer: function(layer, layerGroup, map) {
         var hasTimeSlider = layer.get('hasTimeSlider'),
+            hasOverLayers = layer.get('hasOverLayers'),
             leafletLayer = layer.get('leafletLayer');
 
         if (hasTimeSlider) {
@@ -160,6 +166,10 @@ var utils = {
 
         layer.set('active', true);
         map.addLayer(leafletLayer);
+
+        if (hasOverLayers) {
+            map.addLayer(layer.get('overLayers'));
+        }
     },
 
     // A function for enabling/disabling modal buttons.  In additiion
