@@ -209,6 +209,10 @@ LAYER_GROUPS = {
             'perimeter': pa_perimeter,
             'big_cz': False,
             'overlay_codes': ['municipalities'],
+            'legend_mapping': {
+                'pa-dep-area': 'Urbanized Area',
+                'pa-dep-muni': 'Municipality Boundary',
+            },
         },
         {
             'code': 'drb_catchment_water_quality_tn',
