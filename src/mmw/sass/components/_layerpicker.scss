@@ -161,6 +161,14 @@ span.time-slider-end {
 
 .layerpicker-legenditem {
   @include clearfix;
+
+  > .urban-land-cover-2011-30m-nonurban {
+    background-color: rgba(255, 255, 255, 1);
+  }
+
+  > .urban-land-cover-2011-30m-urban {
+    background-color: rgba(183, 28, 28, 1);
+  }
 }
 
 .layerpicker-legendcolor {

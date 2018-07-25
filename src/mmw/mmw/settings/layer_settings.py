@@ -212,6 +212,22 @@ LAYER_GROUPS = {
             'big_cz': False,
         },
         {
+            'display': 'DRB Urban Land 2011 Baseline',
+            'code': 'urban-land-cover-2011-30m',
+            'css_class_prefix': 'urban-land-cover-2011-30m',
+            'short_display': '2011 Urban Land Cover',
+            'url': 'https://{s}.tiles.azavea.com/urban-land-cover-2011-30m/{z}/{x}/{y}.png',  # NOQA
+            'maxNativeZoom': 13,
+            'maxZoom': 18,
+            'opacity': 0.618,
+            'has_opacity_slider': True,
+            'legend_mapping': {
+                'nonurban': 'Non-urban area',
+                'urban': 'Urban area',
+            },
+            'big_cz': False,
+        },
+        {
             'display': 'DRB Urban Land 2050 Business as Usual',
             'code': 'shippensburg-2050-baseline-30m',
             'css_class_prefix': 'shippensburg-2050',
