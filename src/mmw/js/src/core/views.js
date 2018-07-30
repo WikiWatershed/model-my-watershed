@@ -301,6 +301,7 @@ var MapView = Marionette.ItemView.extend({
         'change:selectedGeocoderArea': 'renderSelectedGeocoderArea',
         'change:subbasinHuc12s': 'renderSubbasinHuc12s',
         'change:subbasinCatchments': 'renderSubbasinCatchments',
+        'change:searchResult': 'renderSearchResult',
     },
 
     // L.Map instance.
@@ -309,6 +310,10 @@ var MapView = Marionette.ItemView.extend({
     // Active "area of interest" shape on the map.
     // L.FeatureGroup instance.
     _areaOfInterestLayer: null,
+
+    // For showing points, etc. that users searched for
+    // L.FeatureGroup instance
+    _searchResultLayer: null,
 
     // Scenario modification shapes drawn on top of area of interest.
     // L.FeatureGroup instance.
@@ -356,6 +361,7 @@ var MapView = Marionette.ItemView.extend({
 
         this._leafletMap = map;
         this._areaOfInterestLayer = new L.FeatureGroup();
+        this._searchResultLayer = new L.FeatureGroup();
         this._modificationsLayer = new L.FeatureGroup();
         this._dataCatalogResultsLayer = new L.FeatureGroup();
         this._dataCatalogActiveLayer = new L.FeatureGroup();
@@ -399,6 +405,7 @@ var MapView = Marionette.ItemView.extend({
         }
 
         map.addLayer(this._areaOfInterestLayer);
+        map.addLayer(this._searchResultLayer);
         map.addLayer(this._modificationsLayer);
         map.addLayer(this._dataCatalogResultsLayer);
         map.addLayer(this._dataCatalogActiveLayer);
@@ -1254,6 +1261,16 @@ var MapView = Marionette.ItemView.extend({
             var layer = new L.GeoJSON(geom, { style: selectedGeocoderAreaStyle });
             this._leafletMap.fitBounds(layer.getBounds(), { reset: true });
             this._selectedGeocoderAreaLayer.addLayer(layer);
+        }
+    },
+
+    renderSearchResult: function() {
+        var point = this.model.get('searchResult');
+
+        this._searchResultLayer.clearLayers();
+
+        if (point && _.isArray(point) && point.length === 2) {
+            this._searchResultLayer.addLayer(L.marker(point));
         }
     }
 });
