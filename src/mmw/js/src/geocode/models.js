@@ -31,6 +31,7 @@ var LocationModel = Backbone.Model.extend({
             App.map.set({
                 lat: lat,
                 lng: lng,
+                searchResult: [lat, lng],
                 zoom: zoom || this.get('zoom')
             });
 
@@ -50,11 +51,13 @@ var SuggestionModel = Backbone.Model.extend({
 
     setMapViewToLocation: function(zoom) {
         var lat = this.get('y'),
-            lng = this.get('x');
+            lng = this.get('x'),
+            addMarker = !this.get('isBoundaryLayer');
         if (lat && lng) {
             App.map.set({
                 lat: lat,
                 lng: lng,
+                searchResult: addMarker ? [lat, lng] : null,
                 zoom: zoom || this.get('zoom')
             });
         }
