@@ -44,7 +44,7 @@ BMP_SPREADSHEET_TOOL_URL = 'https://github.com/WikiWatershed/MMW-BMP-spreadsheet
 def hydroshare(request):
     # Get HydroShare client with user's credentials
     try:
-        hs = hss.get_client(request.user)
+        hs = hss.get_client(request.user.id)
     except ObjectDoesNotExist:
         return Response(
             data={'errors': ['User not connected to HydroShare']},

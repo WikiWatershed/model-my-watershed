@@ -47,9 +47,9 @@ class HydroShareService(OAuth2Service):
 
         return token
 
-    def renew_access_token(self, user):
+    def renew_access_token(self, user_id):
         # TODO Add checks for when user not found, refresh_token is null
-        token = HydroShareToken.objects.get(user=user)
+        token = HydroShareToken.objects.get(user_id=user_id)
         data = {'refresh_token': token.refresh_token,
                 'grant_type': 'refresh_token'}
 
@@ -63,11 +63,11 @@ class HydroShareService(OAuth2Service):
 
         return token
 
-    def get_client(self, user):
+    def get_client(self, user_id):
         # TODO Add check for when user not found
-        token = HydroShareToken.objects.get(user=user)
+        token = HydroShareToken.objects.get(user_id=user_id)
         if token.is_expired:
-            token = self.renew_access_token(user)
+            token = self.renew_access_token(user_id)
 
         auth = HydroShareAuthOAuth2(CLIENT_ID, CLIENT_SECRET,
                                     token=token.get_oauth_dict())
