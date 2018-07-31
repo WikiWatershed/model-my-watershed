@@ -284,6 +284,16 @@ var ResultCollection = Backbone.Collection.extend({
     },
 });
 
+var HydroShareExportTaskModel = coreModels.TaskModel.extend({
+    defaults: _.extend(coreModels.TaskModel.prototype.defaults,
+        {
+            taskType: 'export',
+            taskName: 'hydroshare',
+            pollInterval: 6000,
+        }
+    )
+});
+
 var ProjectModel = Backbone.Model.extend({
     urlRoot: '/mmw/modeling/projects/',
 
@@ -700,39 +710,54 @@ var ProjectModel = Backbone.Model.extend({
                         data: gisData.model_input
                     };
                 },
-            mapshedData = isTR55 ? [] : scenarios.map(getMapshedData);
+            mapshedData = isTR55 ? [] : scenarios.map(getMapshedData),
+            exportTask = new HydroShareExportTaskModel(),
+            taskHelper = {
+                contentType: 'application/json',
+                queryParams: { project: self.id },
+                postData: JSON.stringify(_.defaults({
+                    files: analyzeFiles.concat(modelFiles),
+                    mapshed_data: mapshedData,
+                }, payload))
+            };
 
         self.set('is_exporting', true);
 
-        return $.ajax({
-            type: 'POST',
-            url: '/export/hydroshare?project=' + self.id,
-            contentType: 'application/json',
-            data: JSON.stringify(_.defaults({
-                files: analyzeFiles.concat(modelFiles),
-                mapshed_data: mapshedData,
-            }, payload))
-        }).done(function(result) {
-            self.set({
-                hydroshare: result,
-                hydroshare_errors: [],
-                // Exporting to HydroShare make projects public
-                // in apps.export.views.hydroshare. We manually
-                // make the switch here rather than fetching it
-                // from the server, for efficiency.
-                is_private: false,
+        var promises = exportTask.start(taskHelper);
+
+        promises.startPromise
+            .fail(function(data) {
+                if (data && data.responseJSON && data.responseJSON.errors) {
+                    self.set('hydroshare_errors', data.responseJSON.errors);
+                } else {
+                    self.set('hydroshare_errors', [data.statusText]);
+                }
+
+                self.set('is_exporting', false);
             });
-        }).fail(function(result) {
-            if (result.responseJSON && result.responseJSON.errors) {
-                self.set('hydroshare_errors', result.responseJSON.errors);
-            } else if (result.status === 504) {
-                self.set('hydroshare_errors', ['Server Timeout']);
-            } else {
-                self.set('hydroshare_errors', ['Unknown Server Error']);
-            }
-        }) .always(function() {
-            self.set('is_exporting', false);
-        });
+
+        promises.pollingPromise
+            .done(function(data) {
+                self.set({
+                    hydroshare: data.result,
+                    hydroshare_errors: [],
+                    // Exporting to HydroShare make projects public
+                    // in apps.export.views.hydroshare. We manually
+                    // make the switch here rather than fetching it
+                    // from the server, for efficiency.
+                    is_private: false,
+                });
+            }).fail(function(data) {
+                if (data && data.error) {
+                    self.set('hydroshare_errors', [data.error]);
+                } else {
+                    self.set('hydroshare_errors', ['Unknown Server Error']);
+                }
+            }) .always(function() {
+                self.set('is_exporting', false);
+            });
+
+        return $.when(promises.startPromise, promises.pollingPromise);
     },
 
     /**
