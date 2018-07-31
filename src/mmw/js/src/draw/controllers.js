@@ -41,6 +41,7 @@ var DrawController = {
     },
 
     drawCleanUp: function() {
+        App.map.set('searchResult', null);
         App.rootView.geocodeSearchRegion.empty();
         App.rootView.footerRegion.empty();
     },
