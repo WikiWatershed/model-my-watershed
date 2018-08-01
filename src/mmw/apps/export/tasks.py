@@ -29,7 +29,7 @@ MMW_APP_KEY_FLAG = '{"appkey": "model-my-watershed"}'
 BMP_SPREADSHEET_TOOL_URL = 'https://github.com/WikiWatershed/MMW-BMP-spreadsheet-tool/raw/master/MMW_BMP_Spreadsheet_Tool.xlsx'  # NOQA
 
 
-@shared_task
+@shared_task(time_limit=300)
 def update_resource(user_id, project_id, params):
     hs = hss.get_client(user_id)
     hsresource = HydroShareResource.objects.get(project_id=project_id)
@@ -66,7 +66,7 @@ def update_resource(user_id, project_id, params):
     return serializer.data
 
 
-@shared_task
+@shared_task(time_limit=300)
 def create_resource(user_id, project_id, params):
     hs = hss.get_client(user_id)
     project = Project.objects.get(pk=project_id)

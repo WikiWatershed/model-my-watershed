@@ -290,6 +290,7 @@ var HydroShareExportTaskModel = coreModels.TaskModel.extend({
             taskType: 'export',
             taskName: 'hydroshare',
             pollInterval: 6000,
+            timeout: 300000,
         }
     )
 });
