@@ -63,13 +63,9 @@
                 </p>
                 <div class="hydroshare-autosync-container">
                     <h5>Settings</h5>
-                    <label>
-                        <input type="checkbox" id="hydroshare-autosync" {{ 'checked' if hydroshare.autosync }} />
-                        Automatically push changes to HydroShare
-                    </label>
                     <p>
-                        <span class="hydroshare-timestamp">Last change: {{ hydroshare.exported_at | toFriendlyDate }}</span>
-                        <a href="#" class="hydroshare-export {{ 'hidden' if hydroshare.autosync or is_exporting or hydroshare_errors.length > 0 }}">Export Now</a>
+                        <span class="hydroshare-timestamp">Last exported: {{ hydroshare.exported_at | toFriendlyDate }}</span>
+                        <a href="#" class="hydroshare-export {{ 'hidden' if is_exporting or hydroshare_errors.length > 0 }}">Export Now</a>
                     </p>
                 </div>
                 {% endif %}

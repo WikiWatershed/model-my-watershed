@@ -146,7 +146,7 @@ def create_resource(user_id, project_id, params):
         project=project,
         resource=resource,
         title=params.get('title', project.name),
-        autosync=params.get('autosync', True),
+        autosync=params.get('autosync', False),
         exported_at=now()
     )
     hsresource.save()
