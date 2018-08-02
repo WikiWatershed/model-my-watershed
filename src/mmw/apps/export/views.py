@@ -4,8 +4,10 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import fiona
+import io
 import json
 import os
+import requests
 import StringIO
 import tempfile
 import zipfile
@@ -34,6 +36,7 @@ HYDROSHARE_BASE_URL = settings.HYDROSHARE['base_url']
 SHAPEFILE_EXTENSIONS = ['cpg', 'dbf', 'prj', 'shp', 'shx']
 DEFAULT_KEYWORDS = {'mmw', 'model-my-watershed'}
 MMW_APP_KEY_FLAG = '{"appkey": "model-my-watershed"}'
+BMP_SPREADSHEET_TOOL_URL = 'https://github.com/WikiWatershed/MMW-BMP-spreadsheet-tool/raw/master/MMW_BMP_Spreadsheet_Tool.xlsx'  # NOQA
 
 
 @decorators.api_view(['GET', 'POST', 'PATCH', 'DELETE'])
@@ -191,6 +194,13 @@ def hydroshare(request):
             hs.addResourceFile(resource, shapefile,
                                'area-of-interest.{}'.format(ext))
         os.remove(filename)
+
+    # MapShed BMP Spreadsheet Tool
+    if params.get('mapshed_data'):
+        response = requests.get(BMP_SPREADSHEET_TOOL_URL,
+                                allow_redirects=True, stream=True)
+        hs.addResourceFile(resource, io.BytesIO(response.content),
+                           'MMW_BMP_Spreadsheet_Tool.xlsx')
 
     # Make resource public and shareable
     endpoint = hs.resource(resource)
