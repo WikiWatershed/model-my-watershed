@@ -1,6 +1,11 @@
-<input class="search-input" id="geocoder-search" type="text"
-       placeholder="Jump to location, HUC, or coordinates"
->
+<a data-toggle="popover" tabindex="0"
+   data-html="true" data-container="body" role="button"
+   data-placement="left" data-trigger="focus" data-delay="500"
+   data-content="Enter coordinates as <strong>Lat,Lng</strong><br />(e.g. <strong>32.9526,-75.1652</strong>)">
+    <input class="search-input" id="geocoder-search" type="text"
+           placeholder="Jump to location, HUC, or coordinates"
+    >
+</a>
 <i class="search-icon fa fa-search"></i>
 <button class="search-select-btn hidden">Select</button>
 <div id="geocode-search-results-region"></div>
