@@ -80,6 +80,7 @@ var SearchBoxView = Marionette.LayoutView.extend({
     template: searchTmpl,
 
     ui: {
+        'popover': '[data-toggle="popover"]',
         'searchBox': '#geocoder-search',
         'searchIcon': '.search-icon',
         'message': '.message',
@@ -121,6 +122,8 @@ var SearchBoxView = Marionette.LayoutView.extend({
         } else {
             this.ui.searchBox.val(query);
         }
+
+        this.ui.popover.popover();
     },
 
     onDestroy: function() {
