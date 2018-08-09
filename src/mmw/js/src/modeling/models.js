@@ -708,7 +708,7 @@ var ProjectModel = Backbone.Model.extend({
 
                     return {
                         name: 'model_multiyear_' + scenarioName + '.gms',
-                        data: gisData.model_input
+                        uuid: gisData.mapshed_job_uuid
                     };
                 },
             mapshedData = isTR55 ? [] : scenarios.map(getMapshedData),
