@@ -24,7 +24,7 @@ from apps.modeling.tr55.utils import (aoi_resolution,
                                       )
 
 from tr55.model import simulate_day
-from gwlfe import gwlfe, parser
+from gwlfe import gwlfe, Parser
 
 logger = logging.getLogger(__name__)
 
@@ -343,10 +343,10 @@ def run_gwlfe(model_input, inputmod_hash, watershed_id=None):
     """
     output = to_gms_file(model_input)
 
-    reader = parser.GmsReader(output)
+    reader = Parser.GmsReader(output)
     z = reader.read()
 
-    result = gwlfe.run(z)
+    result, _ = gwlfe.run(z)
     result['inputmod_hash'] = inputmod_hash
     result['watershed_id'] = watershed_id
 
@@ -430,9 +430,9 @@ def to_gms_file(mapshed_data):
     mapshed_areas = [round(a, 1) for a in mapshed_data['Area']]
     mapshed_data['Area'] = mapshed_areas
 
-    pre_z = parser.DataModel(mapshed_data)
+    pre_z = Parser.DataModel(mapshed_data)
     output = StringIO()
-    writer = parser.GmsWriter(output)
+    writer = Parser.GmsWriter(output)
     writer.write(pre_z)
 
     output.seek(0)

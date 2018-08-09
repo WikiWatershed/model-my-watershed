@@ -1,4 +1,7 @@
 ---
+- name: Install numba
+  pip: name=numba version={{ numba_version }}
+
 - name: Install application Python dependencies for development and test
   pip: chdir="{{ celery_dir }}/requirements" requirements={{ item }}.txt
   with_items:

@@ -5,6 +5,7 @@ dependencies:
   - { role: "azavea.pip" }
   - { role: "azavea.nodejs" }
   - { role: "azavea.phantomjs" }
+  - { role: "azavea.build-essential" }
   - { role: "model-my-watershed.monitoring", collectd_prefix: "collectd.app.", when: "['test'] | is_not_in(group_names)" }
   - { role: "model-my-watershed.celery" }
   - { role: "model-my-watershed.nginx" }
