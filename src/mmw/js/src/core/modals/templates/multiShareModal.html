@@ -67,6 +67,9 @@
                         <span class="hydroshare-timestamp">Last exported: {{ hydroshare.exported_at | toFriendlyDate }}</span>
                         <a href="#" class="hydroshare-export {{ 'hidden' if is_exporting or hydroshare_errors.length > 0 }}">Export Now</a>
                     </p>
+                    {% if has_changed_since_last_export %}
+                        <p>This project has changed since last export.</p>
+                    {% endif %}
                 </div>
                 {% endif %}
             </div>

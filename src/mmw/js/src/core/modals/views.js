@@ -240,10 +240,18 @@ var MultiShareView = ModalBaseView.extend({
     },
 
     templateHelpers: function() {
+        var hydroshare = this.model.get('hydroshare'),
+            lastScenarioModifiedAt = _.last(
+                this.model.get('scenarios').pluck('modified_at').sort()),
+            lastHydroShareExportAt = hydroshare && hydroshare.exported_at,
+            hasChangedSinceLastExport = hydroshare &&
+                lastScenarioModifiedAt > lastHydroShareExportAt;
+
         return {
             url: window.location.origin + "/project/" + this.model.id + "/",
             guest: this.options.app.user.get('guest'),
             user_has_authorized_hydroshare: this.options.app.user.get('hydroshare'),
+            has_changed_since_last_export: hasChangedSinceLastExport,
         };
     },
 

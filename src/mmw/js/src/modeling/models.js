@@ -1260,8 +1260,10 @@ var ScenarioModel = Backbone.Model.extend({
         }
 
         if (options.silent) {
-            // Don't reload server values
-            return this.attributes;
+            // Don't reload server values, except for modified_at
+            return _.assign({}, this.attributes, {
+                modified_at: response.modified_at
+            });
         }
 
         this.get('modifications').reset(response.modifications);
