@@ -22,7 +22,7 @@ var _ = require('lodash'),
     compareInputsTmpl = require('./templates/compareInputs.html'),
     tr55CompareScenarioItemTmpl = require('./templates/tr55CompareScenarioItem.html'),
     gwlfeCompareScenarioItemTmpl = require('./templates/gwlfeCompareScenarioItem.html'),
-    compareChartRowTmpl = require('./templates/compareChartRow.html'),
+    compareBarChartRowTmpl = require('./templates/compareBarChartRow.html'),
     compareTableRowTmpl = require('./templates/compareTableRow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
@@ -127,7 +127,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
 
     showSectionsView: function() {
         if (this.model.get('mode') === models.constants.CHART) {
-            this.sectionsRegion.show(new ChartView({
+            this.sectionsRegion.show(new TR55ChartView({
                 model: this.model,
                 collection: this.model.get('tabs')
                                 .findWhere({ active: true })
@@ -475,10 +475,10 @@ var ScenariosRowView = Marionette.CollectionView.extend({
     }
 });
 
-var ChartRowView = Marionette.ItemView.extend({
+var BarChartRowView = Marionette.ItemView.extend({
     model: models.ChartRowModel,
     className: 'compare-chart-row',
-    template: compareChartRowTmpl,
+    template: compareBarChartRowTmpl,
 
     modelEvents: {
         'change:values': 'renderChart',
@@ -530,8 +530,8 @@ var ChartRowView = Marionette.ItemView.extend({
     },
 });
 
-var ChartView = Marionette.CollectionView.extend({
-    childView: ChartRowView,
+var TR55ChartView = Marionette.CollectionView.extend({
+    childView: BarChartRowView,
 
     modelEvents: {
         'change:visibleScenarioIndex': 'slide',
