@@ -342,14 +342,12 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
         // entire collection.
         var scenario = this.collection.first(),
             isOnlyCurrentConditions = this.collection.length === 1,
-            showCompare = App.currentProject.get('model_package') === utils.TR55_PACKAGE &&
-                !isOnlyCurrentConditions,
             compareUrl = this.projectModel.getCompareUrl();
 
         return {
             isOnlyCurrentConditions: isOnlyCurrentConditions,
             editable: isEditable(scenario),
-            showCompare: showCompare,
+            showCompare: !isOnlyCurrentConditions,
             compareUrl: compareUrl
         };
     },

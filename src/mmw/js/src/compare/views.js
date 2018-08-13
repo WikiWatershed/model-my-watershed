@@ -20,7 +20,8 @@ var _ = require('lodash'),
     compareWindow2Tmpl = require('./templates/compareWindow2.html'),
     compareTabPanelTmpl = require('./templates/compareTabPanel.html'),
     compareInputsTmpl = require('./templates/compareInputs.html'),
-    compareScenarioItemTmpl = require('./templates/compareScenarioItem.html'),
+    tr55CompareScenarioItemTmpl = require('./templates/tr55CompareScenarioItem.html'),
+    gwlfeCompareScenarioItemTmpl = require('./templates/gwlfeCompareScenarioItem.html'),
     compareChartRowTmpl = require('./templates/compareChartRow.html'),
     compareTableRowTmpl = require('./templates/compareTableRow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
@@ -29,6 +30,12 @@ var _ = require('lodash'),
     compareModificationsTmpl = require('./templates/compareModifications.html'),
     compareModificationsPopoverTmpl = require('./templates/compareModificationsPopover.html'),
     compareDescriptionPopoverTmpl = require('./templates/compareDescriptionPopover.html');
+
+var SCENARIO_COLORS =  ['#3366cc','#dc3912','#ff9900','#109618','#990099',
+        '#0099c6','#dd4477', '#66aa00','#b82e2e','#316395','#3366cc','#994499',
+        '#22aa99','#aaaa11', '#6633cc','#e67300','#8b0707','#651067','#329262',
+        '#5574a6','#3b3eac', '#b77322','#16d620','#b91383','#f4359e','#9c5935',
+        '#a9c413','#2a778d', '#668d1c','#bea413','#0c5922','#743411'];
 
 var CompareWindow2 = modalViews.ModalBaseView.extend({
     template: compareWindow2Tmpl,
@@ -247,13 +254,16 @@ var InputsView = Marionette.LayoutView.extend({
                                .get('inputs')
                                .findWhere({ name: 'precipitation' }),
             precipitationModel = this.model.get('controls')
-                                     .findWhere({ name: 'precipitation' });
+                                     .findWhere({ name: 'precipitation' }),
+            showPrecipitationSlider = controlModel && precipitationModel;
 
-        this.precipitationRegion.show(new PrecipitationView({
-            model: precipitationModel,
-            controlModel: controlModel,
-            addOrReplaceInput: addOrReplaceInput,
-        }));
+        if (showPrecipitationSlider) {
+            this.precipitationRegion.show(new PrecipitationView({
+                model: precipitationModel,
+                controlModel: controlModel,
+                addOrReplaceInput: addOrReplaceInput,
+            }));
+        }
     },
 
     setChartView: function() {
@@ -364,9 +374,38 @@ var CompareDescriptionPopoverView = Marionette.ItemView.extend({
     className: 'compare-no-mods-popover'
 });
 
-var ScenarioItemView = Marionette.ItemView.extend({
-    className: 'compare-column',
-    template: compareScenarioItemTmpl,
+var GWLFEScenarioItemView = Marionette.ItemView.extend({
+    className: 'compare-column -gwlfe',
+    template: gwlfeCompareScenarioItemTmpl,
+
+    attributes: {
+        'data-html': 'true',
+        'data-toggle': 'popover',
+    },
+
+    onRender: function() {
+        var modifications = this.model.get('modifications'),
+            popOverView = modifications.length > 0 ?
+                new CompareModificationsPopoverView({
+                    model: modifications
+                }) :
+                new CompareDescriptionPopoverView({
+                    model: this.model
+                });
+
+        var popOverEl = popOverView.render().el;
+
+        this.$el.popover({
+            placement: 'bottom',
+            trigger: 'hover focus',
+            content: popOverEl
+        });
+    },
+});
+
+var TR55ScenarioItemView = Marionette.ItemView.extend({
+    className: 'compare-column -tr55',
+    template: tr55CompareScenarioItemTmpl,
 
     ui: {
         'mapContainer': '.compare-map-container',
@@ -413,7 +452,13 @@ var ScenarioItemView = Marionette.ItemView.extend({
 
 var ScenariosRowView = Marionette.CollectionView.extend({
     className: 'compare-scenario-row-content',
-    childView: ScenarioItemView,
+    getChildView: function() {
+        if (this.model.get('modelPackage') === coreUtils.TR55_PACKAGE) {
+            return TR55ScenarioItemView;
+        } else {
+            return GWLFEScenarioItemView;
+        }
+    },
 
     modelEvents: {
         'change:visibleScenarioIndex': 'slide',
@@ -961,7 +1006,7 @@ function getGwlfeTabs(scenarios) {
     ]);
 }
 
-function copyScenario(scenario, aoi_census) {
+function copyScenario(scenario, aoi_census, color) {
     var newScenario = new modelingModels.ScenarioModel({}),
         fetchResults = _.bind(newScenario.fetchResults, newScenario),
         debouncedFetchResults = _.debounce(fetchResults, 500);
@@ -978,6 +1023,7 @@ function copyScenario(scenario, aoi_census) {
         inputmod_hash: scenario.get('inputmod_hash'),
         allow_save: false,
         active: scenario.get('active'),
+        color: color,
     });
 
     newScenario.get('inputs').on('add', debouncedFetchResults);
@@ -1007,8 +1053,9 @@ function getCompareScenarios(isTr55) {
         tempScenarios.add(forestScenario);
     }
 
-    trueScenarios.forEach(function(scenario) {
-        tempScenarios.add(copyScenario(scenario, aoi_census));
+    trueScenarios.forEach(function(scenario, index) {
+        var color = SCENARIO_COLORS[index % 32];
+        tempScenarios.add(copyScenario(scenario, aoi_census, color));
     });
 
     return tempScenarios;
@@ -1027,6 +1074,7 @@ function showCompare() {
             tabs: tabs,
             scenarios: scenarios,
             projectName: projectName,
+            modelPackage: model_package,
         });
 
     if (isTr55) {

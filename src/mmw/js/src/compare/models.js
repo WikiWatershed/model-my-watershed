@@ -185,6 +185,7 @@ var WindowModel = Backbone.Model.extend({
         visibleScenarioIndex: 0, // Index of the first visible scenario
         polling: false,  // If any results are polling
         projectName: null,
+        modelPackage: coreUtils.TR55_PACKAGE,
     },
 
     initialize: function() {
