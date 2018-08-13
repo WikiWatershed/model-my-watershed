@@ -247,13 +247,16 @@ var InputsView = Marionette.LayoutView.extend({
                                .get('inputs')
                                .findWhere({ name: 'precipitation' }),
             precipitationModel = this.model.get('controls')
-                                     .findWhere({ name: 'precipitation' });
+                                     .findWhere({ name: 'precipitation' }),
+            showPrecipitationSlider = controlModel && precipitationModel;
 
-        this.precipitationRegion.show(new PrecipitationView({
-            model: precipitationModel,
-            controlModel: controlModel,
-            addOrReplaceInput: addOrReplaceInput,
-        }));
+        if (showPrecipitationSlider) {
+            this.precipitationRegion.show(new PrecipitationView({
+                model: precipitationModel,
+                controlModel: controlModel,
+                addOrReplaceInput: addOrReplaceInput,
+            }));
+        }
     },
 
     setChartView: function() {
