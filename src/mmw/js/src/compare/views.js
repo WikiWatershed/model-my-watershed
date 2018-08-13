@@ -20,7 +20,7 @@ var _ = require('lodash'),
     compareWindow2Tmpl = require('./templates/compareWindow2.html'),
     compareTabPanelTmpl = require('./templates/compareTabPanel.html'),
     compareInputsTmpl = require('./templates/compareInputs.html'),
-    compareScenarioItemTmpl = require('./templates/compareScenarioItem.html'),
+    tr55CompareScenarioItemTmpl = require('./templates/tr55CompareScenarioItem.html'),
     compareChartRowTmpl = require('./templates/compareChartRow.html'),
     compareTableRowTmpl = require('./templates/compareTableRow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
@@ -373,9 +373,9 @@ var CompareDescriptionPopoverView = Marionette.ItemView.extend({
     className: 'compare-no-mods-popover'
 });
 
-var ScenarioItemView = Marionette.ItemView.extend({
+var TR55ScenarioItemView = Marionette.ItemView.extend({
     className: 'compare-column',
-    template: compareScenarioItemTmpl,
+    template: tr55CompareScenarioItemTmpl,
 
     ui: {
         'mapContainer': '.compare-map-container',
@@ -422,7 +422,7 @@ var ScenarioItemView = Marionette.ItemView.extend({
 
 var ScenariosRowView = Marionette.CollectionView.extend({
     className: 'compare-scenario-row-content',
-    childView: ScenarioItemView,
+    childView: TR55ScenarioItemView,
 
     modelEvents: {
         'change:visibleScenarioIndex': 'slide',
