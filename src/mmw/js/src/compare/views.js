@@ -21,6 +21,7 @@ var _ = require('lodash'),
     compareTabPanelTmpl = require('./templates/compareTabPanel.html'),
     compareInputsTmpl = require('./templates/compareInputs.html'),
     tr55CompareScenarioItemTmpl = require('./templates/tr55CompareScenarioItem.html'),
+    gwlfeCompareScenarioItemTmpl = require('./templates/gwlfeCompareScenarioItem.html'),
     compareChartRowTmpl = require('./templates/compareChartRow.html'),
     compareTableRowTmpl = require('./templates/compareTableRow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
@@ -373,8 +374,37 @@ var CompareDescriptionPopoverView = Marionette.ItemView.extend({
     className: 'compare-no-mods-popover'
 });
 
+var GWLFEScenarioItemView = Marionette.ItemView.extend({
+    className: 'compare-column -gwlfe',
+    template: gwlfeCompareScenarioItemTmpl,
+
+    attributes: {
+        'data-html': 'true',
+        'data-toggle': 'popover',
+    },
+
+    onRender: function() {
+        var modifications = this.model.get('modifications'),
+            popOverView = modifications.length > 0 ?
+                new CompareModificationsPopoverView({
+                    model: modifications
+                }) :
+                new CompareDescriptionPopoverView({
+                    model: this.model
+                });
+
+        var popOverEl = popOverView.render().el;
+
+        this.$el.popover({
+            placement: 'bottom',
+            trigger: 'hover focus',
+            content: popOverEl
+        });
+    },
+});
+
 var TR55ScenarioItemView = Marionette.ItemView.extend({
-    className: 'compare-column',
+    className: 'compare-column -tr55',
     template: tr55CompareScenarioItemTmpl,
 
     ui: {
@@ -422,7 +452,13 @@ var TR55ScenarioItemView = Marionette.ItemView.extend({
 
 var ScenariosRowView = Marionette.CollectionView.extend({
     className: 'compare-scenario-row-content',
-    childView: TR55ScenarioItemView,
+    getChildView: function() {
+        if (this.model.get('modelPackage') === coreUtils.TR55_PACKAGE) {
+            return TR55ScenarioItemView;
+        } else {
+            return GWLFEScenarioItemView;
+        }
+    },
 
     modelEvents: {
         'change:visibleScenarioIndex': 'slide',
@@ -1036,6 +1072,7 @@ function showCompare() {
             tabs: tabs,
             scenarios: scenarios,
             projectName: projectName,
+            modelPackage: model_package,
         });
 
     if (isTr55) {

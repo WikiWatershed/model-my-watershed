@@ -545,6 +545,12 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
     width: 120px;
     transition: opacity 0.3s ease-in-out;
 
+    &.-gwlfe {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-around;
+    }
+
     .compare-scenario-title {
       font-size: $font-size-h5;
       font-weight: 400;
