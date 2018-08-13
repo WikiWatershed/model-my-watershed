@@ -159,14 +159,14 @@ var ResultModel = Backbone.Model.extend({
     },
 
     toMapShedHydrologyCSV: function() {
-        var rows = ['"Month","Precip (cm)","ET (cm)","Surface Runoff (cm)","Subsurface Flow (cm)","Point Src Flow (cm)","Stream Flow (cm)"'],
+        var rows = ['"Month","Stream Flow (cm)","Surface Runoff (cm)","Subsurface Flow (cm)","Point Src Flow (cm)","ET (cm)","Precip (cm)"'],
             runoffVars = [
-                    'AvPrecipitation',
-                    'AvEvapoTrans',
+                    'AvStreamFlow',
                     'AvRunoff',
                     'AvGroundWater',
                     'AvPtSrcFlow',
-                    'AvStreamFlow',
+                    'AvEvapoTrans',
+                    'AvPrecipitation',
                 ],
             monthNames = [
                     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',

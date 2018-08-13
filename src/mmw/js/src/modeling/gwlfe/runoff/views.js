@@ -10,12 +10,12 @@ var $ = require('jquery'),
     tableTmpl = require('./templates/table.html');
 
 var runoffVars = [
-        { name: 'AvPrecipitation', display: 'Precip' },
-        { name: 'AvEvapoTrans', display: 'ET' },
+        { name: 'AvStreamFlow', display: 'Stream Flow' },
         { name: 'AvRunoff', display: 'Surface Runoff' },
         { name: 'AvGroundWater', display: 'Subsurface Flow' },
         { name: 'AvPtSrcFlow', display: 'Point Src Flow' },
-        { name: 'AvStreamFlow', display: 'Stream Flow' },
+        { name: 'AvEvapoTrans', display: 'ET' },
+        { name: 'AvPrecipitation', display: 'Precip' },
     ],
     monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
