@@ -37,6 +37,8 @@ var LineChartRowModel = Backbone.Model.extend({
         key: '',
         name: '',
         chartDiv: '',
+        data: [],
+        scenarioNames: [],
     },
 });
 

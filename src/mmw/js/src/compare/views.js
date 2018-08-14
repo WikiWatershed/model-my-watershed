@@ -37,7 +37,17 @@ var SCENARIO_COLORS =  ['#3366cc','#dc3912','#ff9900','#109618','#990099',
         '#0099c6','#dd4477', '#66aa00','#b82e2e','#316395','#3366cc','#994499',
         '#22aa99','#aaaa11', '#6633cc','#e67300','#8b0707','#651067','#329262',
         '#5574a6','#3b3eac', '#b77322','#16d620','#b91383','#f4359e','#9c5935',
-        '#a9c413','#2a778d', '#668d1c','#bea413','#0c5922','#743411'];
+        '#a9c413','#2a778d', '#668d1c','#bea413','#0c5922','#743411'],
+    monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    hydrologyKeys = Object.freeze({
+        streamFlow: 'AvStreamFlow',
+        surfaceRunoff: 'AvRunoff',
+        subsurfaceFlow: 'AvGroundWater',
+        pointSourceFlow: 'AvPtSrcFlow',
+        evapotranspiration: 'AvEvapoTrans',
+        precipitation: 'AvPrecipitation',
+    });
+
 
 var CompareWindow2 = modalViews.ModalBaseView.extend({
     template: compareWindow2Tmpl,
@@ -1110,39 +1120,83 @@ function getTr55Tabs(scenarios) {
     ]);
 }
 
+function mapScenariosToHydrologyChartData(scenarios, key) {
+    return scenarios
+        .map(function(scenario) {
+            return scenario
+                .get('results')
+                .models
+                .reduce(function(accumulator, next) {
+                    if (next.get('displayName') !== models.constants.HYDROLOGY) {
+                        return accumulator;
+                    }
+
+                    return accumulator.concat(next
+                        .get('result')
+                        .monthly
+                        .map(function(result) {
+                            return result[key];
+                        }));
+                }, []);
+        });
+}
+
+var getMemoizedHydrologyChartData = _.memoize(mapScenariosToHydrologyChartData);
+
+function mapScenariosToNames(scenarios) {
+    return scenarios
+        .map(function(scenario) {
+            return scenario.get('name');
+        });
+}
+
+var getMemoizedScenarioNames = _.memoize(mapScenariosToNames);
+
 function getGwlfeTabs(scenarios) {
     // TODO Implement
     var hydrologyTable = [],
         hydrologyCharts = new models.GwlfeHydrologyCharts([
             {
-                key: 'AvStreamFlow',
+                key: hydrologyKeys.streamFlow,
                 name: 'Stream Flow',
                 chartDiv: 'hydrology-stream-flow-chart',
+                data: getMemoizedHydrologyChartData(scenarios, hydrologyKeys.streamFlow),
+                scenarioNames: getMemoizedScenarioNames(scenarios),
             },
             {
-                key: 'AvRunoff',
+                key: hydrologyKeys.surfaceRunoff,
                 name: 'Surface Runoff',
                 chartDiv: 'hydrology-surface-runoff-chart',
+                data: getMemoizedHydrologyChartData(scenarios, hydrologyKeys.surfaceRunoff),
+                scenarioNames: getMemoizedScenarioNames(scenarios),
             },
             {
-                key: 'AvGroundWater',
+                key: hydrologyKeys.subsurfaceFlow,
                 name: 'Subsurface Flow',
                 chartDiv: 'hydrology-subsurface-flow-chart',
+                data: getMemoizedHydrologyChartData(scenarios, hydrologyKeys.subsurfaceFlow),
+                scenarioNames: getMemoizedScenarioNames(scenarios),
             },
             {
-                key: 'AvPtSrcFlow',
+                key: hydrologyKeys.pointSourceFlow,
                 name: 'Point Source Flow',
                 chartDiv: 'hydrology-point-source-flow-chart',
+                data: getMemoizedHydrologyChartData(scenarios, hydrologyKeys.pointSourceFlow),
+                scenarioNames: getMemoizedScenarioNames(scenarios),
             },
             {
-                key: 'AvEvapoTrans',
+                key: hydrologyKeys.evapotranspiration,
                 name: 'Evapotranspiration',
                 chartDiv: 'hydrology-evapotranspiration-chart',
+                data: getMemoizedHydrologyChartData(scenarios, hydrologyKeys.evapotranspiration),
+                scenarioNames: getMemoizedScenarioNames(scenarios),
             },
             {
-                key: 'AvPrecipitation',
+                key: hydrologyKeys.precipitation,
                 name: 'Precipitation',
                 chartDiv: 'hydrology-precipitation-chart',
+                data: getMemoizedHydrologyChartData(scenarios, hydrologyKeys.precipitation),
+                scenarioNames: getMemoizedScenarioNames(scenarios),
             },
         ], { scenarios: scenarios }),
         qualityTable = [],
