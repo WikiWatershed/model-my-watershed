@@ -12,6 +12,26 @@ var CHART = 'chart',
     COMPARE_COLUMN_WIDTH = 134,
     HYDROLOGY = 'Hydrology';
 
+var SelectionOptionModel = Backbone.Model.extend({
+    defaults: {
+        group: '',
+        value: '',
+        name: '',
+        active: false,
+    },
+
+    initialize: function(attrs) {
+        // Default value to name, unless specified otherwise
+        if (attrs.value === undefined) {
+            this.set('value', attrs.name);
+        }
+    }
+});
+
+var SelectionOptionsCollection = Backbone.Collection.extend({
+    model: SelectionOptionModel,
+});
+
 var BarChartRowModel = Backbone.Model.extend({
     defaults: {
         key: '',
@@ -170,6 +190,7 @@ var TabModel = Backbone.Model.extend({
         active: false,
         table: null,  // TableRowsCollection
         charts: null, // ChartRowCollection
+        selections: null, // SelectionOptionsCollection
     },
 });
 
@@ -215,6 +236,8 @@ var WindowModel = Backbone.Model.extend({
 });
 
 module.exports = {
+    SelectionOptionModel: SelectionOptionModel,
+    SelectionOptionsCollection: SelectionOptionsCollection,
     ControlsCollection: ControlsCollection,
     BarChartRowModel: BarChartRowModel,
     Tr55QualityTable: Tr55QualityTable,
