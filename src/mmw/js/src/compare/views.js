@@ -504,7 +504,7 @@ var ScenariosRowView = Marionette.CollectionView.extend({
 });
 
 var BarChartRowView = Marionette.ItemView.extend({
-    model: models.ChartRowModel,
+    model: models.BarChartRowModel,
     className: 'compare-chart-row',
     template: compareBarChartRowTmpl,
 
