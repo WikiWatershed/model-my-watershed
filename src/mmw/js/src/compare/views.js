@@ -126,6 +126,20 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
     },
 
     showSectionsView: function() {
+        switch (this.model.get('modelPackage')) {
+            case coreUtils.GWLFE:
+                this.showGWLFESectionsView();
+                break;
+            case coreUtils.TR55_PACKAGE:
+                this.showTR55SectionsView();
+                break;
+            default:
+                window.console.warn('Invalid model package', this.model.get('modelPackage'));
+                break;
+        }
+    },
+
+    showTR55SectionsView: function() {
         if (this.model.get('mode') === models.constants.CHART) {
             this.sectionsRegion.show(new TR55ChartView({
                 model: this.model,
@@ -140,6 +154,14 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
                                 .findWhere({ active: true })
                                 .get('table'),
             }));
+        }
+    },
+
+    showGWLFESectionsView: function() {
+        if (this.model.get('mode') === models.constants.CHART) {
+            window.console.warn('TODO: Implement GWLFE Chart');
+        } else {
+            window.console.warn('TODO: Implement GWLFE Table');
         }
     },
 
