@@ -9,9 +9,10 @@ var CHART = 'chart',
     TABLE = 'table',
     MIN_VISIBLE_SCENARIOS = 5,
     CHART_AXIS_WIDTH = 82,
-    COMPARE_COLUMN_WIDTH = 134;
+    COMPARE_COLUMN_WIDTH = 134,
+    HYDROLOGY = 'Hydrology';
 
-var ChartRowModel = Backbone.Model.extend({
+var BarChartRowModel = Backbone.Model.extend({
     defaults: {
         key: '',
         name: '',
@@ -25,8 +26,8 @@ var ChartRowModel = Backbone.Model.extend({
     },
 });
 
-var ChartRowsCollection = Backbone.Collection.extend({
-    model: ChartRowModel,
+var BarChartRowsCollection = Backbone.Collection.extend({
+    model: BarChartRowModel,
 
     /**
      * Initialize collection by storing the given scenario collection
@@ -46,7 +47,7 @@ var ChartRowsCollection = Backbone.Collection.extend({
     }
 });
 
-var Tr55RunoffCharts = ChartRowsCollection.extend({
+var Tr55RunoffCharts = BarChartRowsCollection.extend({
     update: function() {
         var precipitationInput = this.scenarios.first()
                                                .get('inputs')
@@ -74,7 +75,7 @@ var Tr55RunoffCharts = ChartRowsCollection.extend({
     }
 });
 
-var Tr55QualityCharts = ChartRowsCollection.extend({
+var Tr55QualityCharts = BarChartRowsCollection.extend({
     update: function() {
         var aoivm = this.aoiVolumeModel,
             results = this.scenarios.map(coreUtils.getTR55WaterQualityResult, coreUtils);
@@ -215,7 +216,7 @@ var WindowModel = Backbone.Model.extend({
 
 module.exports = {
     ControlsCollection: ControlsCollection,
-    ChartRowModel: ChartRowModel,
+    BarChartRowModel: BarChartRowModel,
     Tr55QualityTable: Tr55QualityTable,
     Tr55QualityCharts: Tr55QualityCharts,
     Tr55RunoffTable: Tr55RunoffTable,
@@ -228,5 +229,6 @@ module.exports = {
         MIN_VISIBLE_SCENARIOS: MIN_VISIBLE_SCENARIOS,
         CHART_AXIS_WIDTH: CHART_AXIS_WIDTH,
         COMPARE_COLUMN_WIDTH: COMPARE_COLUMN_WIDTH,
+        HYDROLOGY: HYDROLOGY,
     },
 };

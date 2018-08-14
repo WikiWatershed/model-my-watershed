@@ -22,7 +22,7 @@ var _ = require('lodash'),
     compareInputsTmpl = require('./templates/compareInputs.html'),
     tr55CompareScenarioItemTmpl = require('./templates/tr55CompareScenarioItem.html'),
     gwlfeCompareScenarioItemTmpl = require('./templates/gwlfeCompareScenarioItem.html'),
-    compareChartRowTmpl = require('./templates/compareChartRow.html'),
+    compareBarChartRowTmpl = require('./templates/compareBarChartRow.html'),
     compareTableRowTmpl = require('./templates/compareTableRow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
@@ -126,8 +126,22 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
     },
 
     showSectionsView: function() {
+        switch (this.model.get('modelPackage')) {
+            case coreUtils.GWLFE:
+                this.showGWLFESectionsView();
+                break;
+            case coreUtils.TR55_PACKAGE:
+                this.showTR55SectionsView();
+                break;
+            default:
+                window.console.warn('Invalid model package', this.model.get('modelPackage'));
+                break;
+        }
+    },
+
+    showTR55SectionsView: function() {
         if (this.model.get('mode') === models.constants.CHART) {
-            this.sectionsRegion.show(new ChartView({
+            this.sectionsRegion.show(new TR55ChartView({
                 model: this.model,
                 collection: this.model.get('tabs')
                                 .findWhere({ active: true })
@@ -140,6 +154,20 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
                                 .findWhere({ active: true })
                                 .get('table'),
             }));
+        }
+    },
+
+    showGWLFESectionsView: function() {
+        if (this.model.get('mode') === models.constants.CHART) {
+            var activeCollection = this.model.get('tabs').findWhere({ active: true });
+
+            if (activeCollection.get('name') === models.constants.HYDROLOGY) {
+                window.console.warn('TODO: Implement GWLFE Hydrology Chart');
+            } else {
+                window.console.warn('TODO: Implement GWLFE Water Quality Chart');
+            }
+        } else {
+            window.console.warn('TODO: Implement GWLFE Table');
         }
     },
 
@@ -475,10 +503,10 @@ var ScenariosRowView = Marionette.CollectionView.extend({
     }
 });
 
-var ChartRowView = Marionette.ItemView.extend({
-    model: models.ChartRowModel,
+var BarChartRowView = Marionette.ItemView.extend({
+    model: models.BarChartRowModel,
     className: 'compare-chart-row',
-    template: compareChartRowTmpl,
+    template: compareBarChartRowTmpl,
 
     modelEvents: {
         'change:values': 'renderChart',
@@ -530,8 +558,8 @@ var ChartRowView = Marionette.ItemView.extend({
     },
 });
 
-var ChartView = Marionette.CollectionView.extend({
-    childView: ChartRowView,
+var TR55ChartView = Marionette.CollectionView.extend({
+    childView: BarChartRowView,
 
     modelEvents: {
         'change:visibleScenarioIndex': 'slide',
