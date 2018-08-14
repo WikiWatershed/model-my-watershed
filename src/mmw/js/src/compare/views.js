@@ -159,7 +159,13 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
 
     showGWLFESectionsView: function() {
         if (this.model.get('mode') === models.constants.CHART) {
-            window.console.warn('TODO: Implement GWLFE Chart');
+            var activeCollection = this.model.get('tabs').findWhere({ active: true });
+
+            if (activeCollection.get('name') === models.constants.HYDROLOGY) {
+                window.console.warn('TODO: Implement GWLFE Hydrology Chart');
+            } else {
+                window.console.warn('TODO: Implement GWLFE Water Quality Chart');
+            }
         } else {
             window.console.warn('TODO: Implement GWLFE Table');
         }

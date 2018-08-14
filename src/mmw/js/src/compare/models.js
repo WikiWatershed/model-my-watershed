@@ -9,7 +9,8 @@ var CHART = 'chart',
     TABLE = 'table',
     MIN_VISIBLE_SCENARIOS = 5,
     CHART_AXIS_WIDTH = 82,
-    COMPARE_COLUMN_WIDTH = 134;
+    COMPARE_COLUMN_WIDTH = 134,
+    HYDROLOGY = 'Hydrology';
 
 var ChartRowModel = Backbone.Model.extend({
     defaults: {
@@ -228,5 +229,6 @@ module.exports = {
         MIN_VISIBLE_SCENARIOS: MIN_VISIBLE_SCENARIOS,
         CHART_AXIS_WIDTH: CHART_AXIS_WIDTH,
         COMPARE_COLUMN_WIDTH: COMPARE_COLUMN_WIDTH,
+        HYDROLOGY: HYDROLOGY,
     },
 };
