@@ -1013,7 +1013,28 @@ function getGwlfeTabs(scenarios) {
     var hydrologyTable = [],
         hydrologyCharts = [],
         qualityTable = [],
-        qualityCharts = [];
+        qualityCharts = [],
+        qualitySelections = new models.SelectionOptionsCollection([
+            { group: 'Summary', name: 'Total Loads', active: true },
+            { group: 'Summary', name: 'Loading Rates' },
+            { group: 'Summary', name: 'Mean Annual Concentration' },
+            { group: 'Summary', name: 'Mean Low-Flow Concentration' },
+            { group: 'Land Use', name: 'Hay/Pasture' },
+            { group: 'Land Use', name: 'Cropland' },
+            { group: 'Land Use', name: 'Wooded Areas' },
+            { group: 'Land Use', name: 'Wetlands' },
+            { group: 'Land Use', name: 'Open Land' },
+            { group: 'Land Use', name: 'Barren Areas' },
+            { group: 'Land Use', name: 'Low-Density Mixed' },
+            { group: 'Land Use', name: 'Medium-Density Mixed' },
+            { group: 'Land Use', name: 'High-Density Mixed' },
+            { group: 'Land Use', name: 'Other Upland Areas' },
+            { group: 'Land Use', name: 'Farm Animals' },
+            { group: 'Land Use', name: 'Stream Bank Erosion' },
+            { group: 'Land Use', name: 'Subsurface Flow' },
+            { group: 'Land Use', name: 'Point Sources' },
+            { group: 'Land Use', name: 'Septic Systems' },
+        ]);
 
     // TODO Remove once scenarios is actually used.
     // This is to pacify the linter.
@@ -1030,6 +1051,7 @@ function getGwlfeTabs(scenarios) {
             name: 'Water Quality',
             table: qualityTable,
             charts: qualityCharts,
+            selections: qualitySelections,
         },
     ]);
 }
