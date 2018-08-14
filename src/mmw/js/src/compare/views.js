@@ -24,6 +24,7 @@ var _ = require('lodash'),
     tr55CompareScenarioItemTmpl = require('./templates/tr55CompareScenarioItem.html'),
     gwlfeCompareScenarioItemTmpl = require('./templates/gwlfeCompareScenarioItem.html'),
     compareBarChartRowTmpl = require('./templates/compareBarChartRow.html'),
+    compareLineChartRowTmpl = require('./templates/compareLineChartRow.html'),
     compareTableRowTmpl = require('./templates/compareTableRow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
@@ -167,7 +168,10 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
             var activeCollection = this.model.get('tabs').findWhere({ active: true });
 
             if (activeCollection.get('name') === models.constants.HYDROLOGY) {
-                window.console.warn('TODO: Implement GWLFE Hydrology Chart');
+                this.sectionsRegion.show(new GWLFEHydrologyChartView({
+                    model: this.model,
+                    collection: activeCollection.get('charts'),
+                }));
             } else {
                 window.console.warn('TODO: Implement GWLFE Water Quality Chart');
             }
@@ -642,6 +646,20 @@ var BarChartRowView = Marionette.ItemView.extend({
     },
 });
 
+var LineChartRowView = Marionette.ItemView.extend({
+    models: models.LineChartRowModel,
+    className: 'compare-chart-row -line',
+    template: compareLineChartRowTmpl,
+});
+
+var GWLFEHydrologyChartView = Marionette.CollectionView.extend({
+    childView: LineChartRowView,
+
+    onShow: function() {
+        window.console.log('TODO Implement GWLFE Hydrology chart');
+    }
+});
+
 var TR55ChartView = Marionette.CollectionView.extend({
     childView: BarChartRowView,
 
@@ -1095,7 +1113,38 @@ function getTr55Tabs(scenarios) {
 function getGwlfeTabs(scenarios) {
     // TODO Implement
     var hydrologyTable = [],
-        hydrologyCharts = [],
+        hydrologyCharts = new models.GwlfeHydrologyCharts([
+            {
+                key: 'AvStreamFlow',
+                name: 'Stream Flow',
+                chartDiv: 'hydrology-stream-flow-chart',
+            },
+            {
+                key: 'AvRunoff',
+                name: 'Surface Runoff',
+                chartDiv: 'hydrology-surface-runoff-chart',
+            },
+            {
+                key: 'AvGroundWater',
+                name: 'Subsurface Flow',
+                chartDiv: 'hydrology-subsurface-flow-chart',
+            },
+            {
+                key: 'AvPtSrcFlow',
+                name: 'Point Source Flow',
+                chartDiv: 'hydrology-point-source-flow-chart',
+            },
+            {
+                key: 'AvEvapoTrans',
+                name: 'Evapotranspiration',
+                chartDiv: 'hydrology-evapotranspiration-chart',
+            },
+            {
+                key: 'AvPrecipitation',
+                name: 'Precipitation',
+                chartDiv: 'hydrology-precipitation-chart',
+            },
+        ], { scenarios: scenarios }),
         qualityTable = [],
         qualityCharts = [],
         qualitySelections = new models.SelectionOptionsCollection([
