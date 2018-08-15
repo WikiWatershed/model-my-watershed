@@ -226,7 +226,6 @@ var MultiShareView = ModalBaseView.extend({
         'hydroShareNotification': '#hydroshare-notification',
         'hydroShareSpinner': '.hydroshare-spinner',
         'hydroShareExport': '.hydroshare-export',
-        'hydroShareAutosync': '#hydroshare-autosync',
         'hydroShareError': '.error-popover',
     },
 
@@ -234,7 +233,6 @@ var MultiShareView = ModalBaseView.extend({
         'click @ui.shareEnabled': 'onLinkToggle',
         'click @ui.hydroShareEnabled': 'connectHydroShare',
         'click @ui.hydroShareExport': 'reExportHydroShare',
-        'click @ui.hydroShareAutosync': 'setHydroShareAutosync',
     }, ModalBaseView.prototype.events),
 
     modelEvents: {
@@ -242,10 +240,18 @@ var MultiShareView = ModalBaseView.extend({
     },
 
     templateHelpers: function() {
+        var hydroshare = this.model.get('hydroshare'),
+            lastScenarioModifiedAt = _.last(
+                this.model.get('scenarios').pluck('modified_at').sort()),
+            lastHydroShareExportAt = hydroshare && hydroshare.exported_at,
+            hasChangedSinceLastExport = hydroshare &&
+                lastScenarioModifiedAt > lastHydroShareExportAt;
+
         return {
             url: window.location.origin + "/project/" + this.model.id + "/",
             guest: this.options.app.user.get('guest'),
             user_has_authorized_hydroshare: this.options.app.user.get('hydroshare'),
+            has_changed_since_last_export: hasChangedSinceLastExport,
         };
     },
 
@@ -397,10 +403,6 @@ var MultiShareView = ModalBaseView.extend({
         this.model.exportToHydroShare();
         return false;
     },
-
-    setHydroShareAutosync: function(e) {
-        this.model.setHydroShareAutosync(e.target.checked);
-    }
 });
 
 var HydroShareView = ModalBaseView.extend({

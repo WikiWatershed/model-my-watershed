@@ -284,6 +284,17 @@ var ResultCollection = Backbone.Collection.extend({
     },
 });
 
+var HydroShareExportTaskModel = coreModels.TaskModel.extend({
+    defaults: _.extend(coreModels.TaskModel.prototype.defaults,
+        {
+            taskType: 'export',
+            taskName: 'hydroshare',
+            pollInterval: 6000,
+            timeout: 300000,
+        }
+    )
+});
+
 var ProjectModel = Backbone.Model.extend({
     urlRoot: '/mmw/modeling/projects/',
 
@@ -615,6 +626,8 @@ var ProjectModel = Backbone.Model.extend({
                         contents: at.getResultCSV(),
                     };
                 }),
+            exportRecord = self.get('hydroshare'),
+            lastExportDate = exportRecord && exportRecord.exported_at,
             scenarios = self.get('scenarios'),
             lowerAndHyphenate = function(name) {
                     return name.toLowerCase().replace(/\s/g, '-');
@@ -631,7 +644,14 @@ var ProjectModel = Backbone.Model.extend({
                             results = s.get('results'),
                             runoffResult = results.findWhere({ name: 'runoff' }),
                             qualityResult = results.findWhere({ name: 'quality' }),
-                            isCurrentConditions = s.get('is_current_conditions');
+                            isCurrentConditions = s.get('is_current_conditions'),
+                            hasChangedSinceLastExport = !lastExportDate || (
+                                lastExportDate &&
+                                lastExportDate < s.get('modified_at'));
+
+                        if (!hasChangedSinceLastExport) {
+                            return;
+                        }
 
                         if (runoffResult && !runoffResult.get('polling') && runoffResult.get('result')) {
                             modelFiles.push({
@@ -660,7 +680,14 @@ var ProjectModel = Backbone.Model.extend({
                         var scenarioName = lowerAndHyphenate(s.get('name')),
                             results = s.get('results'),
                             runoffResult = results.findWhere({ name: 'runoff' }),
-                            qualityResult = results.findWhere({ name: 'quality' });
+                            qualityResult = results.findWhere({ name: 'quality' }),
+                            hasChangedSinceLastExport = !lastExportDate || (
+                                lastExportDate &&
+                                lastExportDate < s.get('modified_at'));
+
+                        if (!hasChangedSinceLastExport) {
+                            return;
+                        }
 
                         if (runoffResult && !runoffResult.get('polling') && runoffResult.get('result')) {
                             modelFiles.push({
@@ -689,7 +716,14 @@ var ProjectModel = Backbone.Model.extend({
             modelFiles = isTR55 ? getTR55ModelFiles() : getMapShedModelFiles(),
             getMapshedData = function(scenario) {
                     var gisData = scenario.getGisData(),
-                        scenarioName = lowerAndHyphenate(scenario.get('name'));
+                        scenarioName = lowerAndHyphenate(scenario.get('name')),
+                        hasChangedSinceLastExport = !lastExportDate || (
+                            lastExportDate &&
+                            lastExportDate < scenario.get('modified_at'));
+
+                    if (!hasChangedSinceLastExport) {
+                        return null;
+                    }
 
                     if (!gisData) {
                         return null;
@@ -697,42 +731,57 @@ var ProjectModel = Backbone.Model.extend({
 
                     return {
                         name: 'model_multiyear_' + scenarioName + '.gms',
-                        data: gisData.model_input
+                        uuid: gisData.mapshed_job_uuid
                     };
                 },
-            mapshedData = isTR55 ? [] : scenarios.map(getMapshedData);
+            mapshedData = isTR55 ? [] : _.compact(scenarios.map(getMapshedData)),
+            exportTask = new HydroShareExportTaskModel(),
+            taskHelper = {
+                contentType: 'application/json',
+                queryParams: { project: self.id },
+                postData: JSON.stringify(_.defaults({
+                    files: analyzeFiles.concat(modelFiles),
+                    mapshed_data: mapshedData,
+                }, payload))
+            };
 
         self.set('is_exporting', true);
 
-        return $.ajax({
-            type: 'POST',
-            url: '/export/hydroshare?project=' + self.id,
-            contentType: 'application/json',
-            data: JSON.stringify(_.defaults({
-                files: analyzeFiles.concat(modelFiles),
-                mapshed_data: mapshedData,
-            }, payload))
-        }).done(function(result) {
-            self.set({
-                hydroshare: result,
-                hydroshare_errors: [],
-                // Exporting to HydroShare make projects public
-                // in apps.export.views.hydroshare. We manually
-                // make the switch here rather than fetching it
-                // from the server, for efficiency.
-                is_private: false,
+        var promises = exportTask.start(taskHelper);
+
+        promises.startPromise
+            .fail(function(data) {
+                if (data && data.responseJSON && data.responseJSON.errors) {
+                    self.set('hydroshare_errors', data.responseJSON.errors);
+                } else {
+                    self.set('hydroshare_errors', [data.statusText]);
+                }
+
+                self.set('is_exporting', false);
             });
-        }).fail(function(result) {
-            if (result.responseJSON && result.responseJSON.errors) {
-                self.set('hydroshare_errors', result.responseJSON.errors);
-            } else if (result.status === 504) {
-                self.set('hydroshare_errors', ['Server Timeout']);
-            } else {
-                self.set('hydroshare_errors', ['Unknown Server Error']);
-            }
-        }) .always(function() {
-            self.set('is_exporting', false);
-        });
+
+        promises.pollingPromise
+            .done(function(data) {
+                self.set({
+                    hydroshare: data.result,
+                    hydroshare_errors: [],
+                    // Exporting to HydroShare make projects public
+                    // in apps.export.views.hydroshare. We manually
+                    // make the switch here rather than fetching it
+                    // from the server, for efficiency.
+                    is_private: false,
+                });
+            }).fail(function(data) {
+                if (data && data.error) {
+                    self.set('hydroshare_errors', [data.error]);
+                } else {
+                    self.set('hydroshare_errors', ['Unknown Server Error']);
+                }
+            }) .always(function() {
+                self.set('is_exporting', false);
+            });
+
+        return $.when(promises.startPromise, promises.pollingPromise);
     },
 
     /**
@@ -757,40 +806,6 @@ var ProjectModel = Backbone.Model.extend({
         }) .fail(function() {
             // Restore local state in case deletion fails
             self.set('hydroshare', hydroshare);
-        }).always(function() {
-            self.set('is_exporting', false);
-        });
-    },
-
-    /**
-     * Sets HydroShare Autosync to given value.
-     *
-     * Returns a promise of the AJAX call.
-     */
-    setHydroShareAutosync: function(autosync) {
-        var self = this,
-            hydroshare = self.get('hydroshare');
-
-        self.set({
-            is_exporting: true,
-            hydroshare: _.defaults({
-                autosync: autosync
-            }, hydroshare),
-        });
-
-        return $.ajax({
-            url: '/export/hydroshare?project=' + self.id,
-            type: 'PATCH',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                autosync: autosync
-            })
-        }).done(function () {
-            self.set('hydroshare_errors', []);
-        }) .fail(function(result) {
-            // Restore local state in case update fails
-            self.set('hydroshare', hydroshare);
-            self.set('hydroshare_errors', result.responseJSON.errors);
         }).always(function() {
             self.set('is_exporting', false);
         });
@@ -1268,8 +1283,10 @@ var ScenarioModel = Backbone.Model.extend({
         }
 
         if (options.silent) {
-            // Don't reload server values
-            return this.attributes;
+            // Don't reload server values, except for modified_at
+            return _.assign({}, this.attributes, {
+                modified_at: response.modified_at
+            });
         }
 
         this.get('modifications').reset(response.modifications);
