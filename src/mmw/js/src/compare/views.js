@@ -20,6 +20,7 @@ var _ = require('lodash'),
     compareWindow2Tmpl = require('./templates/compareWindow2.html'),
     compareTabPanelTmpl = require('./templates/compareTabPanel.html'),
     compareInputsTmpl = require('./templates/compareInputs.html'),
+    compareSelectionTmpl = require('./templates/compareSelection.html'),
     tr55CompareScenarioItemTmpl = require('./templates/tr55CompareScenarioItem.html'),
     gwlfeCompareScenarioItemTmpl = require('./templates/gwlfeCompareScenarioItem.html'),
     compareBarChartRowTmpl = require('./templates/compareBarChartRow.html'),
@@ -376,6 +377,51 @@ var InputsView = Marionette.LayoutView.extend({
                 timeStamp + '.csv';
 
         coreUtils.downloadAsFile(csv, fileName);
+    }
+});
+
+var SelectionView = Marionette.ItemView.extend({
+    // model: TabModel
+    template: compareSelectionTmpl,
+    tagName: 'select',
+    className: 'form-control btn btn-small btn-primary',
+
+    events: {
+        'change': 'select',
+    },
+
+    templateHelpers: function() {
+        var groups = [];
+
+        this.model.get('selections').forEach(function(opt) {
+            var group = _.find(groups, { name: opt.get('group') });
+
+            if (group === undefined) {
+                group = { name: opt.get('group'), options: [] };
+                groups.push(group);
+            }
+
+            group.options.push({
+                name: opt.get('name'),
+                active: opt.get('active'),
+            });
+        });
+
+        return {
+            groups: groups,
+        };
+    },
+
+    select: function() {
+        var selections = this.model.get('selections');
+
+        selections
+            .findWhere({ active: true })
+            .set({ active: false }, { silent: true });
+
+        selections
+            .findWhere({ value: this.$el.val() })
+            .set({ active: true });
     }
 });
 
