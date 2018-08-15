@@ -688,3 +688,18 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
   width: 70% !important;
   height: 100% !important;
 }
+
+.compare-scenario-row-content-container {
+    &.-line {
+        padding: 2%;
+
+        > .compare-scenario-row-content {
+            &.-line {
+                > .compare-line-chart {
+                    height: 350px;
+                    width: 700px;
+                }
+            }
+        }
+    }
+}

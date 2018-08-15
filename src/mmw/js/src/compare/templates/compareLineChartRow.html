@@ -2,19 +2,9 @@
     <h2>
         {{ name }}
     </h2>
-    {% if legendItems %}
-    <div>
-        {% for item in legendItems %}
-        <div>
-            <span class="scenario-badge" id={{ item.badgeId }}></span>
-            {{ item.name }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
 </div>
-<div class="compare-scenario-row-content-container">
-    <div class="compare-scenario-row-content">
+<div class="compare-scenario-row-content-container -line">
+    <div class="compare-scenario-row-content -line">
         <div class="compare-line-chart" id={{ chartDiv }}></div>
     </div>
 </div>

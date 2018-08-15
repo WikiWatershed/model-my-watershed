@@ -278,7 +278,7 @@ function renderVerticalBarChart(chartEl, data, options) {
 }
 
 // data is same format as for renderVerticalBarChart
-function renderLineChart(chartEl, data, options) {
+function renderLineChart(chartEl, data, options, tooltipKeyFormatFn) {
     var chart = nv.models.lineChart(),
         svg = makeSvg(chartEl);
 
@@ -301,6 +301,10 @@ function renderLineChart(chartEl, data, options) {
         chart.yAxis
             .axisLabel(options.yAxisLabel)
             .tickFormat(d3.format(options.yTickFormat));
+
+        if (!!tooltipKeyFormatFn) {
+            chart.tooltip.keyFormatter(tooltipKeyFormatFn);
+        }
 
         chart.tooltip.valueFormatter(function(d) {
             return chart.yAxis.tickFormat()(d) + ' ' + options.yAxisUnit;

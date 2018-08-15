@@ -184,9 +184,11 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
                 }));
             } else {
                 window.console.warn('TODO: Implement GWLFE Water Quality Chart');
+                this.sectionsRegion.empty();
             }
         } else {
             window.console.warn('TODO: Implement GWLFE Table');
+            this.sectionsRegion.empty();
         }
     },
 
@@ -660,14 +662,68 @@ var LineChartRowView = Marionette.ItemView.extend({
     models: models.LineChartRowModel,
     className: 'compare-chart-row -line',
     template: compareLineChartRowTmpl,
+
+    ui: function() {
+        return {
+            chartElement: '#' + this.model.get('chartDiv'),
+        };
+    },
+
+    onAttach: function() {
+        this.addChart();
+    },
+
+    onBeforeDestroy: function() {
+        this.destroyChart();
+    },
+
+    onRender: function() {
+        this.addChart();
+    },
+
+    addChart: function() {
+        this.destroyChart();
+
+        var scenarioNames = this.model.get('scenarioNames'),
+            chartData = this.model.get('data')
+                .map(function(scenarioData, index) {
+                    return {
+                        key: index,
+                        values: scenarioData.map(function(val, x) {
+                            return {
+                                x: x,
+                                y: Number(val),
+                            };
+                        }),
+                        color: SCENARIO_COLORS[index % 32],
+                    };
+                })
+                .slice()
+                .reverse(),
+            chartOptions = {
+                yAxisLabel: 'Water Depth (cm)',
+                yAxisUnit: 'cm',
+                xAxisLabel: function(xValue) {
+                    return monthNames[xValue];
+                },
+                xTickValues: _.range(12),
+            },
+            tooltipKeyFormatFn = function(d) {
+                return scenarioNames[d];
+            };
+
+        if (chartData.length && this.ui.chartElement) {
+            chart.renderLineChart(this.ui.chartElement, chartData, chartOptions, tooltipKeyFormatFn);
+        }
+    },
+
+    destroyChart: function() {
+        this.ui.chartElement.empty();
+    },
 });
 
 var GWLFEHydrologyChartView = Marionette.CollectionView.extend({
     childView: LineChartRowView,
-
-    onShow: function() {
-        window.console.log('TODO Implement GWLFE Hydrology chart');
-    }
 });
 
 var TR55ChartView = Marionette.CollectionView.extend({
@@ -1141,62 +1197,54 @@ function mapScenariosToHydrologyChartData(scenarios, key) {
         });
 }
 
-var getMemoizedHydrologyChartData = _.memoize(mapScenariosToHydrologyChartData);
-
-function mapScenariosToNames(scenarios) {
-    return scenarios
-        .map(function(scenario) {
-            return scenario.get('name');
-        });
-}
-
-var getMemoizedScenarioNames = _.memoize(mapScenariosToNames);
-
 function getGwlfeTabs(scenarios) {
     // TODO Implement
     var hydrologyTable = [],
+        scenarioNames = scenarios.map(function(s) {
+            return s.get('name');
+        }),
         hydrologyCharts = new models.GwlfeHydrologyCharts([
             {
                 key: hydrologyKeys.streamFlow,
                 name: 'Stream Flow',
                 chartDiv: 'hydrology-stream-flow-chart',
-                data: getMemoizedHydrologyChartData(scenarios, hydrologyKeys.streamFlow),
-                scenarioNames: getMemoizedScenarioNames(scenarios),
+                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.streamFlow),
+                scenarioNames: scenarioNames,
             },
             {
                 key: hydrologyKeys.surfaceRunoff,
                 name: 'Surface Runoff',
                 chartDiv: 'hydrology-surface-runoff-chart',
-                data: getMemoizedHydrologyChartData(scenarios, hydrologyKeys.surfaceRunoff),
-                scenarioNames: getMemoizedScenarioNames(scenarios),
+                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.surfaceRunoff),
+                scenarioNames: scenarioNames,
             },
             {
                 key: hydrologyKeys.subsurfaceFlow,
                 name: 'Subsurface Flow',
                 chartDiv: 'hydrology-subsurface-flow-chart',
-                data: getMemoizedHydrologyChartData(scenarios, hydrologyKeys.subsurfaceFlow),
-                scenarioNames: getMemoizedScenarioNames(scenarios),
+                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.subsurfaceFlow),
+                scenarioNames: scenarioNames,
             },
             {
                 key: hydrologyKeys.pointSourceFlow,
                 name: 'Point Source Flow',
                 chartDiv: 'hydrology-point-source-flow-chart',
-                data: getMemoizedHydrologyChartData(scenarios, hydrologyKeys.pointSourceFlow),
-                scenarioNames: getMemoizedScenarioNames(scenarios),
+                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.pointSourceFlow),
+                scenarioNames: scenarioNames,
             },
             {
                 key: hydrologyKeys.evapotranspiration,
                 name: 'Evapotranspiration',
                 chartDiv: 'hydrology-evapotranspiration-chart',
-                data: getMemoizedHydrologyChartData(scenarios, hydrologyKeys.evapotranspiration),
-                scenarioNames: getMemoizedScenarioNames(scenarios),
+                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.evapotranspiration),
+                scenarioNames: scenarioNames,
             },
             {
                 key: hydrologyKeys.precipitation,
                 name: 'Precipitation',
                 chartDiv: 'hydrology-precipitation-chart',
-                data: getMemoizedHydrologyChartData(scenarios, hydrologyKeys.precipitation),
-                scenarioNames: getMemoizedScenarioNames(scenarios),
+                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.precipitation),
+                scenarioNames: scenarioNames,
             },
         ], { scenarios: scenarios }),
         qualityTable = [],
