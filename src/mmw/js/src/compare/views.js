@@ -181,10 +181,30 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
                 this.model.get('mode') === models.constants.CHART &&
                 activeTab.get('name') === models.constants.HYDROLOGY;
 
+        var demoFunction = function() {
+            var selected =
+                activeTab.get('selections').findWhere({ active: true });
+
+            console.log(
+                selected.get('group') + ' ' + selected.get('name'));
+        };
+
+        // TODO Remove demo listener
+        this.model.get('tabs').forEach(function(tab) {
+            var selections = tab.get('selections');
+
+            if (selections) {
+                selections.off();
+            }
+        });
+
         if (activeTab.get('selections') && !isHydrologyChart) {
             this.selectionRegion.show(new SelectionView({
                 model: activeTab,
             }));
+
+            // TODO Demo Listening for Changes
+            activeTab.get('selections').on('change', demoFunction);
         } else {
             this.selectionRegion.empty();
         }
