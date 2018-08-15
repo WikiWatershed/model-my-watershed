@@ -46,6 +46,20 @@ var LineChartRowsCollection = Backbone.Collection.extend({
     model: LineChartRowModel,
 });
 
+var MonthlyTableRowModel = Backbone.Model.extend({
+    defaults: {
+        key: '',
+        name: '',
+        values: [],
+        unit: '',
+        selectedAttribute: '',
+    },
+});
+
+var MonthlyTableRowsCollection = Backbone.Collection.extend({
+    model: MonthlyTableRowModel,
+});
+
 var BarChartRowModel = Backbone.Model.extend({
     defaults: {
         key: '',
@@ -82,6 +96,14 @@ var BarChartRowsCollection = Backbone.Collection.extend({
 });
 
 var GwlfeHydrologyCharts = LineChartRowsCollection.extend();
+
+var GwlfeHydrologyTable = MonthlyTableRowsCollection.extend({
+    update: function(selectedAttribute) {
+        this.models.forEach(function(model) {
+            model.set({ selectedAttribute: selectedAttribute });
+        });
+    }
+});
 
 var Tr55RunoffCharts = BarChartRowsCollection.extend({
     update: function() {
@@ -258,6 +280,7 @@ module.exports = {
     BarChartRowModel: BarChartRowModel,
     LineChartRowModel: LineChartRowModel,
     GwlfeHydrologyCharts: GwlfeHydrologyCharts,
+    GwlfeHydrologyTable: GwlfeHydrologyTable,
     Tr55QualityTable: Tr55QualityTable,
     Tr55QualityCharts: Tr55QualityCharts,
     Tr55RunoffTable: Tr55RunoffTable,

@@ -554,6 +554,7 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
       display: flex;
       align-items: baseline;
       justify-content: space-around;
+      text-align: right;
     }
 
     .compare-scenario-title {
@@ -698,6 +699,18 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
                 > .compare-line-chart {
                     height: 350px;
                     width: 700px;
+                }
+            }
+        }
+    }
+}
+
+.compare-table-row {
+    &.-hydrology {
+        > .compare-scenario-row-content-container {
+            > .compare-scenario-row-content {
+                > .compare-column {
+                    opacity: 1.0 !important;
                 }
             }
         }

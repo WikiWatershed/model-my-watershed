@@ -174,20 +174,24 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
     },
 
     showGWLFESectionsView: function() {
-        if (this.model.get('mode') === models.constants.CHART) {
-            var activeCollection = this.model.get('tabs').findWhere({ active: true });
+        var activeTab = this.model.get('tabs').findWhere({ active: true }),
+            activeName = activeTab.get('name'),
+            activeMode = this.model.get('mode');
 
-            if (activeCollection.get('name') === models.constants.HYDROLOGY) {
-                this.sectionsRegion.show(new GWLFEHydrologyChartView({
-                    model: this.model,
-                    collection: activeCollection.get('charts'),
-                }));
-            } else {
-                window.console.warn('TODO: Implement GWLFE Water Quality Chart');
-                this.sectionsRegion.empty();
-            }
+        if (activeMode === models.constants.CHART &&
+            activeName === models.constants.HYDROLOGY) {
+            this.sectionsRegion.show(new GWLFEHydrologyChartView({
+                model: this.model,
+                collection: activeTab.get('charts'),
+            }));
+        } else if (activeMode === models.constants.TABLE &&
+                   activeName === models.constants.HYDROLOGY) {
+            this.sectionsRegion.show(new GWLFEHydrologyTableView({
+                model: this.model,
+                collection: activeTab.get('table'),
+            }));
         } else {
-            window.console.warn('TODO: Implement GWLFE Table');
+            window.console.log('TODO Implement GWLFE Water Quality table & chart');
             this.sectionsRegion.empty();
         }
     },
@@ -201,8 +205,19 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
             var selected =
                 activeTab.get('selections').findWhere({ active: true });
 
+
             console.log(
                 selected.get('group') + ' ' + selected.get('name'));
+        };
+
+        var hydrologyTableFunction = function() {
+            var table = activeTab.get('table'),
+                activeSelection = activeTab
+                    .get('selections')
+                    .findWhere({ active: true })
+                    .get('value');
+
+            table.update(activeSelection);
         };
 
         // TODO Remove demo listener
@@ -219,8 +234,13 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
                 model: activeTab,
             }));
 
+            var selectionChangeHandler =
+                activeTab.get('name') === models.constants.HYDROLOGY ?
+                hydrologyTableFunction :
+                demoFunction;
+
             // TODO Demo Listening for Changes
-            activeTab.get('selections').on('change', demoFunction);
+            activeTab.get('selections').on('change', selectionChangeHandler);
         } else {
             this.selectionRegion.empty();
         }
@@ -458,6 +478,7 @@ var SelectionView = Marionette.ItemView.extend({
             group.options.push({
                 name: opt.get('name'),
                 active: opt.get('active'),
+                value: opt.get('value'),
             });
         });
 
@@ -468,13 +489,13 @@ var SelectionView = Marionette.ItemView.extend({
 
     select: function() {
         var selections = this.model.get('selections');
+        var newValue = this.$el.val();
 
         selections
-            .findWhere({ active: true })
-            .set({ active: false }, { silent: true });
+            .invoke('set', { active: false }, { silent: true });
 
         selections
-            .findWhere({ value: this.$el.val() })
+            .findWhere({ value: newValue })
             .set({ active: true });
     }
 });
@@ -807,6 +828,28 @@ var TableView = Marionette.CollectionView.extend({
             'margin-left': marginLeft + 'px',
         });
     }
+});
+
+var GWLFEHydrologyTableRowView = TableRowView.extend({
+    models: models.MonthlyTableRowModel,
+    className: 'compare-table-row -hydrology',
+    template: compareTableRowTmpl,
+
+    templateHelpers: function() {
+        var selectedAttribute = this.model.get('selectedAttribute');
+
+        return {
+            values: this.model
+                .get('values')
+                .map(function(v) {
+                    return v[selectedAttribute];
+                }),
+        };
+    },
+});
+
+var GWLFEHydrologyTableView = TableView.extend({
+    childView: GWLFEHydrologyTableRowView,
 });
 
 var CompareWindow = Marionette.LayoutView.extend({
@@ -1197,9 +1240,42 @@ function mapScenariosToHydrologyChartData(scenarios, key) {
         });
 }
 
+function mapScenariosToHydrologyTableData(scenarios) {
+    var scenarioData = scenarios
+            .models
+            .reduce(function(accumulator, next) {
+                var results = next.get('results'),
+                    nextAttribute = results
+                        .filter(function(n) {
+                            return n.get('displayName') === models.constants.HYDROLOGY;
+                        })
+                        .map(function(m) {
+                            return m
+                                .get('result')
+                                .monthly;
+                        });
+
+                return accumulator.concat(nextAttribute);
+            }, []),
+        tableData = monthNames
+            .map(function(name, key) {
+                return {
+                    key: key,
+                    name: moment(name, 'MMM').format('MMMM'),
+                    unit: 'cm',
+                    values: scenarioData
+                        .map(function(element) {
+                            return element[key];
+                        }),
+                    selectedAttribute: hydrologyKeys.streamFlow,
+                };
+            });
+
+    return tableData;
+}
+
 function getGwlfeTabs(scenarios) {
-    // TODO Implement
-    var hydrologyTable = [],
+    var hydrologyTable = new models.GwlfeHydrologyTable(mapScenariosToHydrologyTableData(scenarios)),
         scenarioNames = scenarios.map(function(s) {
             return s.get('name');
         }),
@@ -1247,6 +1323,14 @@ function getGwlfeTabs(scenarios) {
                 scenarioNames: scenarioNames,
             },
         ], { scenarios: scenarios }),
+        hydrologySelections = new models.SelectionOptionsCollection([
+            { group: 'Water Flow', name: 'Stream Flow', value: hydrologyKeys.streamFlow, active: true },
+            { group: 'Water Flow', name: 'Surface Runoff', value: hydrologyKeys.surfaceRunoff },
+            { group: 'Water Flow', name: 'Subsurface Flow', value: hydrologyKeys.subsurfaceFlow },
+            { group: 'Water Flow', name: 'Point Source Flow', value: hydrologyKeys.pointSourceFlow },
+            { group: 'Water Flow', name: 'Evapotranspiration', value: hydrologyKeys.evapotranspiration },
+            { group: 'Water Flow', name: 'Precipitation', value: hydrologyKeys.precipitation },
+        ]),
         qualityTable = [],
         qualityCharts = [],
         qualitySelections = new models.SelectionOptionsCollection([
@@ -1281,6 +1365,7 @@ function getGwlfeTabs(scenarios) {
             table: hydrologyTable,
             charts: hydrologyCharts,
             active: true,
+            selections: hydrologySelections,
         },
         {
             name: 'Water Quality',
