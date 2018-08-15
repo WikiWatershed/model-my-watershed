@@ -66,6 +66,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
         tabRegion: '.compare-tabs',
         inputsRegion: '.compare-inputs',
         scenariosRegion: '#compare-title-row',
+        selectionRegion: '#compare-selection-region',
         sectionsRegion: '.compare-sections',
     },
 
@@ -127,9 +128,12 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
     },
 
     showSectionsView: function() {
+        var activeTab = this.model.get('tabs').findWhere({ active: true });
+
         switch (this.model.get('modelPackage')) {
             case coreUtils.GWLFE:
                 this.showGWLFESectionsView();
+                this.showSelectionView(activeTab);
                 break;
             case coreUtils.TR55_PACKAGE:
                 this.showTR55SectionsView();
@@ -169,6 +173,20 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
             }
         } else {
             window.console.warn('TODO: Implement GWLFE Table');
+        }
+    },
+
+    showSelectionView: function(activeTab) {
+        var isHydrologyChart =
+                this.model.get('mode') === models.constants.CHART &&
+                activeTab.get('name') === models.constants.HYDROLOGY;
+
+        if (activeTab.get('selections') && !isHydrologyChart) {
+            this.selectionRegion.show(new SelectionView({
+                model: activeTab,
+            }));
+        } else {
+            this.selectionRegion.empty();
         }
     },
 
