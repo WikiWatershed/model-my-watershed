@@ -1384,7 +1384,35 @@ function getGwlfeTabs(scenarios) {
             { group: 'Water Flow', name: 'Precipitation', value: hydrologyKeys.precipitation },
         ]),
         qualityTable = [],
-        qualityCharts = [],
+        qualityCharts = new models.GwlfeQualityCharts([
+            {
+                name: 'Sediment',
+                key: 'Sediment',
+                group: 'SummaryLoads',
+                source: 'Total Loads',
+                chartDiv: 's-chart',
+                unit: 'kg',
+                unitLabel: 'Total Loads',
+            },
+            {
+                name: 'Total Nitrogen',
+                key: 'TotalN',
+                group: 'SummaryLoads',
+                source: 'Total Loads',
+                chartDiv: 'tn-chart',
+                unit: 'kg',
+                unitLabel: 'Total Loads',
+            },
+            {
+                name: 'Total Phosphorus',
+                key: 'TotalP',
+                group: 'SummaryLoads',
+                source: 'Total Loads',
+                chartDiv: 'tp-chart',
+                unit: 'kg',
+                unitLabel: 'Total Loads',
+            }
+        ], { scenarios: scenarios }),
         qualitySelections = new models.SelectionOptionsCollection([
             { group: 'Summary', name: 'Total Loads', active: true },
             { group: 'Summary', name: 'Loading Rates' },
@@ -1410,6 +1438,8 @@ function getGwlfeTabs(scenarios) {
     // TODO Remove once scenarios is actually used.
     // This is to pacify the linter.
     scenarios.findWhere({ active: true});
+
+    qualityCharts.update();
 
     return new models.TabsCollection([
         {
