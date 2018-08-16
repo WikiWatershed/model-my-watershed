@@ -747,6 +747,52 @@ var GWLFEHydrologyChartView = Marionette.CollectionView.extend({
     childView: LineChartRowView,
 });
 
+var GwlfeBarChartRowView = Marionette.ItemView.extend({
+    className: 'compare-chart-row',
+    template: compareBarChartRowTmpl,
+
+    modelEvents: {
+        'change:values': 'renderChart',
+    },
+
+    onAttach: function() {
+        this.renderChart();
+    },
+
+    renderChart: function() {
+        var self = this,
+            chartDiv = this.model.get('chartDiv'),
+            chartEl = document.getElementById(chartDiv),
+            chartName = this.model.get('key'),
+            values = this.model.get('values'),
+            data = [{
+                key: name,
+                values: values.map(function(value, index) {
+                    return {
+                        x: 'Series ' + index,
+                        y: Number(value),
+                    };
+                }),
+            }],
+            parentWidth = (_.size(values) *
+                models.constants.COMPARE_COLUMN_WIDTH +
+                models.constants.CHART_AXIS_WIDTH) + 'px',
+            options = {
+                yAxisLabel: this.model.get('unitLabel'),
+                yAxisUnit: this.model.get('unit'),
+                colors: SCENARIO_COLORS,
+                columnWidth: models.constants.COMPARE_COLUMN_WIDTH,
+                xAxisWidth: models.constants.CHART_AXIS_WIDTH,
+                onRenderComplete: function() {
+                    self.triggerMethod('chart:rendered');
+                },
+            };
+
+        $(chartEl.parentNode).css({ width: parentWidth });
+        chart.renderDiscreteBarChart(chartEl, data, options);
+    },
+});
+
 var ChartView = Marionette.CollectionView.extend({
     modelEvents: {
         'change:visibleScenarioIndex': 'slide',
@@ -798,6 +844,10 @@ var ChartView = Marionette.CollectionView.extend({
 
 var Tr55ChartView = ChartView.extend({
     childView: Tr55BarChartRowView,
+});
+
+var GwlfeQualityChartView = ChartView.extend({
+    childView: GwlfeBarChartRowView,
 });
 
 var TableRowView = Marionette.ItemView.extend({
