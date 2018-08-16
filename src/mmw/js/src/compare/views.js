@@ -157,7 +157,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
 
     showTR55SectionsView: function() {
         if (this.model.get('mode') === models.constants.CHART) {
-            this.sectionsRegion.show(new TR55ChartView({
+            this.sectionsRegion.show(new Tr55ChartView({
                 model: this.model,
                 collection: this.model.get('tabs')
                                 .findWhere({ active: true })
@@ -624,7 +624,7 @@ var ScenariosRowView = Marionette.CollectionView.extend({
     }
 });
 
-var BarChartRowView = Marionette.ItemView.extend({
+var Tr55BarChartRowView = Marionette.ItemView.extend({
     model: models.BarChartRowModel,
     className: 'compare-chart-row',
     template: compareBarChartRowTmpl,
@@ -747,9 +747,7 @@ var GWLFEHydrologyChartView = Marionette.CollectionView.extend({
     childView: LineChartRowView,
 });
 
-var TR55ChartView = Marionette.CollectionView.extend({
-    childView: BarChartRowView,
-
+var ChartView = Marionette.CollectionView.extend({
     modelEvents: {
         'change:visibleScenarioIndex': 'slide',
     },
@@ -787,15 +785,19 @@ var TR55ChartView = Marionette.CollectionView.extend({
         });
 
         // Show charts from visibleScenarioIndex
-        this.$('.nv-group > rect:nth-child(n + ' + (i+1) + ')').css({
+        this.$('.nv-group > :nth-child(n + ' + (i+1) + ')').css({
             'opacity': '',
         });
 
         // Hide charts up to visibleScenarioIndex
-        this.$('.nv-group > rect:nth-child(-n + ' + i + ')').css({
+        this.$('.nv-group > :nth-child(-n + ' + i + ')').css({
             'opacity': 0,
         });
     },
+});
+
+var Tr55ChartView = ChartView.extend({
+    childView: Tr55BarChartRowView,
 });
 
 var TableRowView = Marionette.ItemView.extend({
