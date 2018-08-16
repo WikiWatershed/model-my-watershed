@@ -153,6 +153,29 @@ var Tr55QualityCharts = BarChartRowsCollection.extend({
     }
 });
 
+var GwlfeQualityCharts = BarChartRowsCollection.extend({
+    update: function() {
+        var results = this.scenarios.map(function(scenario) {
+            return scenario.get('results')
+                .findWhere({ name: 'quality' })
+                .get('result');
+        });
+
+        this.forEach(function(chart) {
+            var key = chart.get('key'),
+                group = chart.get('group'),
+                source = chart.get('source'),
+                values = _.map(results, function(result) {
+                    return _.find(result[group], { Source: source })[key];
+                });
+
+            chart.set({
+                values: values,
+            });
+        });
+    }
+});
+
 var TableRowModel = Backbone.Model.extend({
     defaults: {
         name: '',
@@ -285,6 +308,7 @@ module.exports = {
     Tr55QualityCharts: Tr55QualityCharts,
     Tr55RunoffTable: Tr55RunoffTable,
     Tr55RunoffCharts: Tr55RunoffCharts,
+    GwlfeQualityCharts: GwlfeQualityCharts,
     TabsCollection: TabsCollection,
     WindowModel: WindowModel,
     constants: {
