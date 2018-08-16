@@ -190,6 +190,13 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
                 model: this.model,
                 collection: activeTab.get('table'),
             }));
+        } else if (activeMode === models.constants.CHART) {
+            this.sectionsRegion.show(new GwlfeQualityChartView({
+                model: this.model,
+                collection: this.model.get('tabs')
+                    .findWhere({ active: true })
+                    .get('charts'),
+            }));
         } else {
             window.console.log('TODO Implement GWLFE Water Quality table & chart');
             this.sectionsRegion.empty();
