@@ -20,6 +20,7 @@ var _ = require('lodash'),
     compareWindow2Tmpl = require('./templates/compareWindow2.html'),
     compareTabPanelTmpl = require('./templates/compareTabPanel.html'),
     compareInputsTmpl = require('./templates/compareInputs.html'),
+    compareSelectionTmpl = require('./templates/compareSelection.html'),
     tr55CompareScenarioItemTmpl = require('./templates/tr55CompareScenarioItem.html'),
     gwlfeCompareScenarioItemTmpl = require('./templates/gwlfeCompareScenarioItem.html'),
     compareBarChartRowTmpl = require('./templates/compareBarChartRow.html'),
@@ -65,6 +66,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
         tabRegion: '.compare-tabs',
         inputsRegion: '.compare-inputs',
         scenariosRegion: '#compare-title-row',
+        selectionRegion: '#compare-selection-region',
         sectionsRegion: '.compare-sections',
     },
 
@@ -126,9 +128,12 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
     },
 
     showSectionsView: function() {
+        var activeTab = this.model.get('tabs').findWhere({ active: true });
+
         switch (this.model.get('modelPackage')) {
             case coreUtils.GWLFE:
                 this.showGWLFESectionsView();
+                this.showSelectionView(activeTab);
                 break;
             case coreUtils.TR55_PACKAGE:
                 this.showTR55SectionsView();
@@ -168,6 +173,40 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
             }
         } else {
             window.console.warn('TODO: Implement GWLFE Table');
+        }
+    },
+
+    showSelectionView: function(activeTab) {
+        var isHydrologyChart =
+                this.model.get('mode') === models.constants.CHART &&
+                activeTab.get('name') === models.constants.HYDROLOGY;
+
+        var demoFunction = function() {
+            var selected =
+                activeTab.get('selections').findWhere({ active: true });
+
+            console.log(
+                selected.get('group') + ' ' + selected.get('name'));
+        };
+
+        // TODO Remove demo listener
+        this.model.get('tabs').forEach(function(tab) {
+            var selections = tab.get('selections');
+
+            if (selections) {
+                selections.off();
+            }
+        });
+
+        if (activeTab.get('selections') && !isHydrologyChart) {
+            this.selectionRegion.show(new SelectionView({
+                model: activeTab,
+            }));
+
+            // TODO Demo Listening for Changes
+            activeTab.get('selections').on('change', demoFunction);
+        } else {
+            this.selectionRegion.empty();
         }
     },
 
@@ -376,6 +415,51 @@ var InputsView = Marionette.LayoutView.extend({
                 timeStamp + '.csv';
 
         coreUtils.downloadAsFile(csv, fileName);
+    }
+});
+
+var SelectionView = Marionette.ItemView.extend({
+    // model: TabModel
+    template: compareSelectionTmpl,
+    tagName: 'select',
+    className: 'form-control btn btn-small btn-primary',
+
+    events: {
+        'change': 'select',
+    },
+
+    templateHelpers: function() {
+        var groups = [];
+
+        this.model.get('selections').forEach(function(opt) {
+            var group = _.find(groups, { name: opt.get('group') });
+
+            if (group === undefined) {
+                group = { name: opt.get('group'), options: [] };
+                groups.push(group);
+            }
+
+            group.options.push({
+                name: opt.get('name'),
+                active: opt.get('active'),
+            });
+        });
+
+        return {
+            groups: groups,
+        };
+    },
+
+    select: function() {
+        var selections = this.model.get('selections');
+
+        selections
+            .findWhere({ active: true })
+            .set({ active: false }, { silent: true });
+
+        selections
+            .findWhere({ value: this.$el.val() })
+            .set({ active: true });
     }
 });
 
@@ -1013,7 +1097,28 @@ function getGwlfeTabs(scenarios) {
     var hydrologyTable = [],
         hydrologyCharts = [],
         qualityTable = [],
-        qualityCharts = [];
+        qualityCharts = [],
+        qualitySelections = new models.SelectionOptionsCollection([
+            { group: 'Summary', name: 'Total Loads', active: true },
+            { group: 'Summary', name: 'Loading Rates' },
+            { group: 'Summary', name: 'Mean Annual Concentration' },
+            { group: 'Summary', name: 'Mean Low-Flow Concentration' },
+            { group: 'Land Use', name: 'Hay/Pasture' },
+            { group: 'Land Use', name: 'Cropland' },
+            { group: 'Land Use', name: 'Wooded Areas' },
+            { group: 'Land Use', name: 'Wetlands' },
+            { group: 'Land Use', name: 'Open Land' },
+            { group: 'Land Use', name: 'Barren Areas' },
+            { group: 'Land Use', name: 'Low-Density Mixed' },
+            { group: 'Land Use', name: 'Medium-Density Mixed' },
+            { group: 'Land Use', name: 'High-Density Mixed' },
+            { group: 'Land Use', name: 'Other Upland Areas' },
+            { group: 'Land Use', name: 'Farm Animals' },
+            { group: 'Land Use', name: 'Stream Bank Erosion' },
+            { group: 'Land Use', name: 'Subsurface Flow' },
+            { group: 'Land Use', name: 'Point Sources' },
+            { group: 'Land Use', name: 'Septic Systems' },
+        ]);
 
     // TODO Remove once scenarios is actually used.
     // This is to pacify the linter.
@@ -1030,6 +1135,7 @@ function getGwlfeTabs(scenarios) {
             name: 'Water Quality',
             table: qualityTable,
             charts: qualityCharts,
+            selections: qualitySelections,
         },
     ]);
 }
