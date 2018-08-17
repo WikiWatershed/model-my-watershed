@@ -24,6 +24,7 @@ var _ = require('lodash'),
     tr55CompareScenarioItemTmpl = require('./templates/tr55CompareScenarioItem.html'),
     gwlfeCompareScenarioItemTmpl = require('./templates/gwlfeCompareScenarioItem.html'),
     compareBarChartRowTmpl = require('./templates/compareBarChartRow.html'),
+    compareLineChartRowTmpl = require('./templates/compareLineChartRow.html'),
     compareTableRowTmpl = require('./templates/compareTableRow.html'),
     compareScenariosTmpl = require('./templates/compareScenarios.html'),
     compareScenarioTmpl = require('./templates/compareScenario.html'),
@@ -36,7 +37,17 @@ var SCENARIO_COLORS =  ['#3366cc','#dc3912','#ff9900','#109618','#990099',
         '#0099c6','#dd4477', '#66aa00','#b82e2e','#316395','#3366cc','#994499',
         '#22aa99','#aaaa11', '#6633cc','#e67300','#8b0707','#651067','#329262',
         '#5574a6','#3b3eac', '#b77322','#16d620','#b91383','#f4359e','#9c5935',
-        '#a9c413','#2a778d', '#668d1c','#bea413','#0c5922','#743411'];
+        '#a9c413','#2a778d', '#668d1c','#bea413','#0c5922','#743411'],
+    monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+    hydrologyKeys = Object.freeze({
+        streamFlow: 'AvStreamFlow',
+        surfaceRunoff: 'AvRunoff',
+        subsurfaceFlow: 'AvGroundWater',
+        pointSourceFlow: 'AvPtSrcFlow',
+        evapotranspiration: 'AvEvapoTrans',
+        precipitation: 'AvPrecipitation',
+    });
+
 
 var CompareWindow2 = modalViews.ModalBaseView.extend({
     template: compareWindow2Tmpl,
@@ -167,12 +178,17 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
             var activeCollection = this.model.get('tabs').findWhere({ active: true });
 
             if (activeCollection.get('name') === models.constants.HYDROLOGY) {
-                window.console.warn('TODO: Implement GWLFE Hydrology Chart');
+                this.sectionsRegion.show(new GWLFEHydrologyChartView({
+                    model: this.model,
+                    collection: activeCollection.get('charts'),
+                }));
             } else {
                 window.console.warn('TODO: Implement GWLFE Water Quality Chart');
+                this.sectionsRegion.empty();
             }
         } else {
             window.console.warn('TODO: Implement GWLFE Table');
+            this.sectionsRegion.empty();
         }
     },
 
@@ -642,6 +658,74 @@ var BarChartRowView = Marionette.ItemView.extend({
     },
 });
 
+var LineChartRowView = Marionette.ItemView.extend({
+    models: models.LineChartRowModel,
+    className: 'compare-chart-row -line',
+    template: compareLineChartRowTmpl,
+
+    ui: function() {
+        return {
+            chartElement: '#' + this.model.get('chartDiv'),
+        };
+    },
+
+    onAttach: function() {
+        this.addChart();
+    },
+
+    onBeforeDestroy: function() {
+        this.destroyChart();
+    },
+
+    onRender: function() {
+        this.addChart();
+    },
+
+    addChart: function() {
+        this.destroyChart();
+
+        var scenarioNames = this.model.get('scenarioNames'),
+            chartData = this.model.get('data')
+                .map(function(scenarioData, index) {
+                    return {
+                        key: index,
+                        values: scenarioData.map(function(val, x) {
+                            return {
+                                x: x,
+                                y: Number(val),
+                            };
+                        }),
+                        color: SCENARIO_COLORS[index % 32],
+                    };
+                })
+                .slice()
+                .reverse(),
+            chartOptions = {
+                yAxisLabel: 'Water Depth (cm)',
+                yAxisUnit: 'cm',
+                xAxisLabel: function(xValue) {
+                    return monthNames[xValue];
+                },
+                xTickValues: _.range(12),
+            },
+            tooltipKeyFormatFn = function(d) {
+                return scenarioNames[d];
+            };
+
+        if (chartData.length && this.ui.chartElement) {
+            chart.renderLineChart(this.ui.chartElement, chartData, chartOptions, tooltipKeyFormatFn);
+        }
+    },
+
+    destroyChart: function() {
+        this.ui.chartElement.empty();
+    },
+});
+
+var GWLFEHydrologyChartView = Marionette.CollectionView.extend({
+    childView: LineChartRowView,
+});
+
 var TR55ChartView = Marionette.CollectionView.extend({
     childView: BarChartRowView,
 
@@ -1092,10 +1176,77 @@ function getTr55Tabs(scenarios) {
     ]);
 }
 
+function mapScenariosToHydrologyChartData(scenarios, key) {
+    return scenarios
+        .map(function(scenario) {
+            return scenario
+                .get('results')
+                .models
+                .reduce(function(accumulator, next) {
+                    if (next.get('displayName') !== models.constants.HYDROLOGY) {
+                        return accumulator;
+                    }
+
+                    return accumulator.concat(next
+                        .get('result')
+                        .monthly
+                        .map(function(result) {
+                            return result[key];
+                        }));
+                }, []);
+        });
+}
+
 function getGwlfeTabs(scenarios) {
     // TODO Implement
     var hydrologyTable = [],
-        hydrologyCharts = [],
+        scenarioNames = scenarios.map(function(s) {
+            return s.get('name');
+        }),
+        hydrologyCharts = new models.GwlfeHydrologyCharts([
+            {
+                key: hydrologyKeys.streamFlow,
+                name: 'Stream Flow',
+                chartDiv: 'hydrology-stream-flow-chart',
+                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.streamFlow),
+                scenarioNames: scenarioNames,
+            },
+            {
+                key: hydrologyKeys.surfaceRunoff,
+                name: 'Surface Runoff',
+                chartDiv: 'hydrology-surface-runoff-chart',
+                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.surfaceRunoff),
+                scenarioNames: scenarioNames,
+            },
+            {
+                key: hydrologyKeys.subsurfaceFlow,
+                name: 'Subsurface Flow',
+                chartDiv: 'hydrology-subsurface-flow-chart',
+                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.subsurfaceFlow),
+                scenarioNames: scenarioNames,
+            },
+            {
+                key: hydrologyKeys.pointSourceFlow,
+                name: 'Point Source Flow',
+                chartDiv: 'hydrology-point-source-flow-chart',
+                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.pointSourceFlow),
+                scenarioNames: scenarioNames,
+            },
+            {
+                key: hydrologyKeys.evapotranspiration,
+                name: 'Evapotranspiration',
+                chartDiv: 'hydrology-evapotranspiration-chart',
+                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.evapotranspiration),
+                scenarioNames: scenarioNames,
+            },
+            {
+                key: hydrologyKeys.precipitation,
+                name: 'Precipitation',
+                chartDiv: 'hydrology-precipitation-chart',
+                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.precipitation),
+                scenarioNames: scenarioNames,
+            },
+        ], { scenarios: scenarios }),
         qualityTable = [],
         qualityCharts = [],
         qualitySelections = new models.SelectionOptionsCollection([

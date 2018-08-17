@@ -32,6 +32,20 @@ var SelectionOptionsCollection = Backbone.Collection.extend({
     model: SelectionOptionModel,
 });
 
+var LineChartRowModel = Backbone.Model.extend({
+    defaults: {
+        key: '',
+        name: '',
+        chartDiv: '',
+        data: [],
+        scenarioNames: [],
+    },
+});
+
+var LineChartRowsCollection = Backbone.Collection.extend({
+    model: LineChartRowModel,
+});
+
 var BarChartRowModel = Backbone.Model.extend({
     defaults: {
         key: '',
@@ -66,6 +80,8 @@ var BarChartRowsCollection = Backbone.Collection.extend({
         });
     }
 });
+
+var GwlfeHydrologyCharts = LineChartRowsCollection.extend();
 
 var Tr55RunoffCharts = BarChartRowsCollection.extend({
     update: function() {
@@ -240,6 +256,8 @@ module.exports = {
     SelectionOptionsCollection: SelectionOptionsCollection,
     ControlsCollection: ControlsCollection,
     BarChartRowModel: BarChartRowModel,
+    LineChartRowModel: LineChartRowModel,
+    GwlfeHydrologyCharts: GwlfeHydrologyCharts,
     Tr55QualityTable: Tr55QualityTable,
     Tr55QualityCharts: Tr55QualityCharts,
     Tr55RunoffTable: Tr55RunoffTable,
