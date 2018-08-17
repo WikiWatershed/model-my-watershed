@@ -98,9 +98,9 @@ var BarChartRowsCollection = Backbone.Collection.extend({
 var GwlfeHydrologyCharts = LineChartRowsCollection.extend();
 
 var GwlfeHydrologyTable = MonthlyTableRowsCollection.extend({
-    update: function(selectedAttribute) {
-        this.models.forEach(function(model) {
-            model.set({ selectedAttribute: selectedAttribute });
+    update: function(selection) {
+        this.invoke('set', {
+            selectedAttribute: selection.get('value'),
         });
     }
 });
@@ -154,22 +154,37 @@ var Tr55QualityCharts = BarChartRowsCollection.extend({
 });
 
 var GwlfeQualityCharts = BarChartRowsCollection.extend({
-    update: function() {
+    update: function(selection) {
         var results = this.scenarios.map(function(scenario) {
-            return scenario.get('results')
-                .findWhere({ name: 'quality' })
-                .get('result');
+            return {
+                name: scenario.get('name'),
+                result: scenario.get('results')
+                    .findWhere({ name: 'quality' })
+                    .get('result'),
+            };
         });
 
         this.forEach(function(chart) {
             var key = chart.get('key'),
-                group = chart.get('group'),
-                source = chart.get('source'),
-                values = _.map(results, function(result) {
-                    return _.find(result[group], { Source: source })[key];
+                group = selection.get('group'),
+                source = selection.get('value'),
+                unit = selection.get('unit'),
+                unitLabel = selection.get('name'),
+                values = _.map(results, function(r) {
+                    return {
+                        x: r.name,
+                        y: Number(
+                            _.find(
+                                r.result[group],
+                                { Source: source }
+                            )[key]
+                        ),
+                    };
                 });
 
             chart.set({
+                unit: unit,
+                unitLabel: unitLabel,
                 values: values,
             });
         });

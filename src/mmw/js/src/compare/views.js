@@ -198,50 +198,31 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
     },
 
     showSelectionView: function(activeTab) {
-        var isHydrologyChart =
-                this.model.get('mode') === models.constants.CHART &&
-                activeTab.get('name') === models.constants.HYDROLOGY;
+        var activeMode = this.model.get('mode'),
+            chartsOrTable = activeTab.get(activeMode),
+            selections = activeTab.get('selections'),
+            isHydrologyChart = activeMode === models.constants.CHARTS &&
+                    activeTab.get('name') === models.constants.HYDROLOGY,
+            update = function() {
+                chartsOrTable.update(selections.findWhere({ active: true }));
+            };
 
-        var demoFunction = function() {
-            var selected =
-                activeTab.get('selections').findWhere({ active: true });
-
-
-            console.log(
-                selected.get('group') + ' ' + selected.get('name'));
-        };
-
-        var hydrologyTableFunction = function() {
-            var table = activeTab.get('table'),
-                activeSelection = activeTab
-                    .get('selections')
-                    .findWhere({ active: true })
-                    .get('value');
-
-            table.update(activeSelection);
-        };
-
-        // TODO Remove demo listener
+        // Remove old listeners
         this.model.get('tabs').forEach(function(tab) {
-            var selections = tab.get('selections');
+            var tabSelections = tab.get('selections');
 
-            if (selections) {
-                selections.off();
+            if (tabSelections) {
+                tabSelections.off();
             }
         });
 
-        if (activeTab.get('selections') && !isHydrologyChart) {
+        if (selections && !isHydrologyChart) {
             this.selectionRegion.show(new SelectionView({
                 model: activeTab,
             }));
 
-            var selectionChangeHandler =
-                activeTab.get('name') === models.constants.HYDROLOGY ?
-                hydrologyTableFunction :
-                demoFunction;
-
-            // TODO Demo Listening for Changes
-            activeTab.get('selections').on('change', selectionChangeHandler);
+            selections.on('change', update);
+            update();
         } else {
             this.selectionRegion.empty();
         }
@@ -469,10 +450,10 @@ var SelectionView = Marionette.ItemView.extend({
         var groups = [];
 
         this.model.get('selections').forEach(function(opt) {
-            var group = _.find(groups, { name: opt.get('group') });
+            var group = _.find(groups, { name: opt.get('groupName') });
 
             if (group === undefined) {
-                group = { name: opt.get('group'), options: [] };
+                group = { name: opt.get('groupName'), options: [] };
                 groups.push(group);
             }
 
@@ -767,13 +748,8 @@ var GwlfeBarChartRowView = Marionette.ItemView.extend({
             chartName = this.model.get('key'),
             values = this.model.get('values'),
             data = [{
-                key: name,
-                values: values.map(function(value, index) {
-                    return {
-                        x: 'Series ' + index,
-                        y: Number(value),
-                    };
-                }),
+                key: chartName,
+                values: values,
             }],
             parentWidth = (_.size(values) *
                 models.constants.COMPARE_COLUMN_WIDTH +
@@ -1377,70 +1353,59 @@ function getGwlfeTabs(scenarios) {
             },
         ], { scenarios: scenarios }),
         hydrologySelections = new models.SelectionOptionsCollection([
-            { group: 'Water Flow', name: 'Stream Flow', value: hydrologyKeys.streamFlow, active: true },
-            { group: 'Water Flow', name: 'Surface Runoff', value: hydrologyKeys.surfaceRunoff },
-            { group: 'Water Flow', name: 'Subsurface Flow', value: hydrologyKeys.subsurfaceFlow },
-            { group: 'Water Flow', name: 'Point Source Flow', value: hydrologyKeys.pointSourceFlow },
-            { group: 'Water Flow', name: 'Evapotranspiration', value: hydrologyKeys.evapotranspiration },
-            { group: 'Water Flow', name: 'Precipitation', value: hydrologyKeys.precipitation },
+            { groupName: 'Water Flow', name: 'Stream Flow', value: hydrologyKeys.streamFlow, active: true },
+            { groupName: 'Water Flow', name: 'Surface Runoff', value: hydrologyKeys.surfaceRunoff },
+            { groupName: 'Water Flow', name: 'Subsurface Flow', value: hydrologyKeys.subsurfaceFlow },
+            { groupName: 'Water Flow', name: 'Point Source Flow', value: hydrologyKeys.pointSourceFlow },
+            { groupName: 'Water Flow', name: 'Evapotranspiration', value: hydrologyKeys.evapotranspiration },
+            { groupName: 'Water Flow', name: 'Precipitation', value: hydrologyKeys.precipitation },
         ]),
         qualityTable = [],
         qualityCharts = new models.GwlfeQualityCharts([
             {
                 name: 'Sediment',
                 key: 'Sediment',
-                group: 'SummaryLoads',
-                source: 'Total Loads',
                 chartDiv: 's-chart',
                 unit: 'kg',
-                unitLabel: 'Total Loads',
             },
             {
                 name: 'Total Nitrogen',
                 key: 'TotalN',
-                group: 'SummaryLoads',
-                source: 'Total Loads',
                 chartDiv: 'tn-chart',
                 unit: 'kg',
-                unitLabel: 'Total Loads',
             },
             {
                 name: 'Total Phosphorus',
                 key: 'TotalP',
-                group: 'SummaryLoads',
-                source: 'Total Loads',
                 chartDiv: 'tp-chart',
                 unit: 'kg',
-                unitLabel: 'Total Loads',
             }
         ], { scenarios: scenarios }),
         qualitySelections = new models.SelectionOptionsCollection([
-            { group: 'Summary', name: 'Total Loads', active: true },
-            { group: 'Summary', name: 'Loading Rates' },
-            { group: 'Summary', name: 'Mean Annual Concentration' },
-            { group: 'Summary', name: 'Mean Low-Flow Concentration' },
-            { group: 'Land Use', name: 'Hay/Pasture' },
-            { group: 'Land Use', name: 'Cropland' },
-            { group: 'Land Use', name: 'Wooded Areas' },
-            { group: 'Land Use', name: 'Wetlands' },
-            { group: 'Land Use', name: 'Open Land' },
-            { group: 'Land Use', name: 'Barren Areas' },
-            { group: 'Land Use', name: 'Low-Density Mixed' },
-            { group: 'Land Use', name: 'Medium-Density Mixed' },
-            { group: 'Land Use', name: 'High-Density Mixed' },
-            { group: 'Land Use', name: 'Other Upland Areas' },
-            { group: 'Land Use', name: 'Farm Animals' },
-            { group: 'Land Use', name: 'Stream Bank Erosion' },
-            { group: 'Land Use', name: 'Subsurface Flow' },
-            { group: 'Land Use', name: 'Point Sources' },
-            { group: 'Land Use', name: 'Septic Systems' },
+            { group: 'SummaryLoads', groupName: 'Summary', name: 'Total Loads', unit: 'kg', active: true },
+            { group: 'SummaryLoads', groupName: 'Summary', name: 'Loading Rates', unit: 'kg/ha' },
+            { group: 'SummaryLoads', groupName: 'Summary', name: 'Mean Annual Concentration', unit: 'mg/l' },
+            { group: 'SummaryLoads', groupName: 'Summary', name: 'Mean Low-Flow Concentration', unit: 'mg/l' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Hay/Pasture', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Cropland', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Wooded Areas', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Wetlands', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Open Land', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Barren Areas', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Low-Density Mixed', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Medium-Density Mixed', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'High-Density Mixed', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Other Upland Areas', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Farm Animals', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Stream Bank Erosion', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Subsurface Flow', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Point Sources', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Septic Systems', unit: 'kg' },
         ]);
 
     // TODO Remove once scenarios is actually used.
     // This is to pacify the linter.
     scenarios.findWhere({ active: true});
-
-    qualityCharts.update();
 
     return new models.TabsCollection([
         {
