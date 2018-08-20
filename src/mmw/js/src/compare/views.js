@@ -157,7 +157,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
     },
 
     showTR55SectionsView: function() {
-        if (this.model.get('mode') === models.constants.CHART) {
+        if (this.model.get('mode') === models.constants.CHARTS) {
             this.sectionsRegion.show(new Tr55ChartView({
                 model: this.model,
                 collection: this.model.get('tabs')
@@ -177,29 +177,22 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
     showGWLFESectionsView: function() {
         var activeTab = this.model.get('tabs').findWhere({ active: true }),
             activeName = activeTab.get('name'),
-            activeMode = this.model.get('mode');
+            activeMode = this.model.get('mode'),
+            isHydrology = activeName === models.constants.HYDROLOGY,
+            config = { model: this.model, collection: activeTab.get(activeMode) },
+            View = (function() {
+                    if (activeMode === models.constants.CHARTS) {
+                        return isHydrology ?
+                            GWLFEHydrologyChartView : GwlfeQualityChartView;
+                    } else {
+                        return isHydrology ?
+                            GWLFEHydrologyTableView : null; // TODO Implement
+                    }
+                })();
 
-        if (activeMode === models.constants.CHART &&
-            activeName === models.constants.HYDROLOGY) {
-            this.sectionsRegion.show(new GWLFEHydrologyChartView({
-                model: this.model,
-                collection: activeTab.get('charts'),
-            }));
-        } else if (activeMode === models.constants.TABLE &&
-                   activeName === models.constants.HYDROLOGY) {
-            this.sectionsRegion.show(new GWLFEHydrologyTableView({
-                model: this.model,
-                collection: activeTab.get('table'),
-            }));
-        } else if (activeMode === models.constants.CHART) {
-            this.sectionsRegion.show(new GwlfeQualityChartView({
-                model: this.model,
-                collection: this.model.get('tabs')
-                    .findWhere({ active: true })
-                    .get('charts'),
-            }));
+        if (View) {
+            this.sectionsRegion.show(new View(config));
         } else {
-            window.console.log('TODO Implement GWLFE Water Quality table & chart');
             this.sectionsRegion.empty();
         }
     },
@@ -380,7 +373,7 @@ var InputsView = Marionette.LayoutView.extend({
     setChartView: function() {
         this.ui.chartButton.addClass('active');
         this.ui.tableButton.removeClass('active');
-        this.model.set({ mode: models.constants.CHART });
+        this.model.set({ mode: models.constants.CHARTS });
     },
 
     setTableView: function() {
