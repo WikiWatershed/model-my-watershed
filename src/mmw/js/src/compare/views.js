@@ -136,6 +136,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
 
         showSectionsView();
         this.highlightButtons();
+        this.setPolling();
     },
 
     showSectionsView: function() {
