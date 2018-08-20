@@ -628,10 +628,59 @@ function renderBulletChart(chartEl, title, subtitle, data) {
     return chart;
 }
 
+function renderDiscreteBarChart(chartEl, data, options) {
+    var chart = nv.models.discreteBarChart(),
+        svg = makeSvg(chartEl);
+
+    options = options || {};
+    _.defaults(options, {
+        margin: {
+            top: 20,
+            bottom: 20,
+            left: 60,
+        },
+        colors: nv.utils.getColor(),
+        yTickFormat: yFormat(data),
+        yAxisLabel: "",
+        onRenderComplete: _.noop,
+        columnWidth: 134, // compare.models.constants.COMPARE_COLUMN_WIDTH
+        xAxisWidth: 82, // compare.models.constants.CHART_AXIS_WIDTH
+    });
+
+    nv.addGraph(function() {
+        chart.showLegend(false)
+            .showXAxis(false)
+            .color(options.colors)
+            .margin(options.margin);
+
+        chart.yAxis
+            .axisLabel(options.yAxisLabel)
+            .tickFormat(d3.format(options.yTickFormat));
+
+        chart.tooltip
+            .headerEnabled(true)
+            .headerFormatter(function() { return options.yAxisLabel; })
+            .valueFormatter(function(d) {
+                return chart.yAxis.tickFormat()(d) + ' ' + options.yAxisUnit;
+            });
+
+        setChartWidth(chart, chartEl, data, options);
+
+        handleCommonOptions(chart, options);
+
+        d3.select(svg)
+            .datum(data)
+            .call(chart);
+
+        return chart;
+    }, options.onRenderComplete);
+}
+
 module.exports = {
     renderHorizontalBarChart: renderHorizontalBarChart,
     renderVerticalBarChart: renderVerticalBarChart,
     renderLineChart: renderLineChart,
     renderCompareMultibarChart: renderCompareMultibarChart,
     renderBulletChart: renderBulletChart,
+    renderDiscreteBarChart: renderDiscreteBarChart,
 };
