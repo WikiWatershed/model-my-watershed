@@ -16,6 +16,7 @@ var _ = require('lodash'),
     tr55Models = require('../modeling/tr55/models'),
     PrecipitationView = require('../modeling/controls').PrecipitationView,
     modConfigUtils = require('../modeling/modificationConfigUtils'),
+    gwlfeConfig = require('../modeling/gwlfeModificationConfig'),
     compareWindowTmpl = require('./templates/compareWindow.html'),
     compareWindow2Tmpl = require('./templates/compareWindow2.html'),
     compareTabPanelTmpl = require('./templates/compareTabPanel.html'),
@@ -487,7 +488,23 @@ var CompareModificationsPopoverView = Marionette.ItemView.extend({
     template: compareModificationsPopoverTmpl,
 
     templateHelpers: function() {
+        var isTr55 = App.currentProject.get('model_package') ===
+                     coreUtils.TR55_PACKAGE,
+            gwlfeModifications = isTr55 ? [] : _.flatten(
+                this.model.map(function(m) {
+                    return _.map(m.get('userInput'), function(value, key) {
+                        return {
+                            name: m.get('modKey'),
+                            value: value,
+                            input: gwlfeConfig.displayNames[key],
+                        };
+                    });
+                })
+            );
+
         return {
+            isTr55: isTr55,
+            gwlfeModifications: gwlfeModifications,
             conservationPractices: this.model.filter(function(modification) {
                 return modification.get('name') === 'conservation_practice';
             }),
