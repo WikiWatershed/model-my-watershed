@@ -57,6 +57,33 @@ function getNumBars(data) {
     return data[0].values.length;
 }
 
+function setChartWidth(chart, chartEl, data, options) {
+    var scenarioCount = _.size(_.head(data).values),
+        scenariosWidth =
+            scenarioCount * options.columnWidth + options.xAxisWidth;
+
+    chartEl.style.width = scenariosWidth + "px";
+    chart.width(chartEl.offsetWidth);
+}
+
+function yFormat(data) {
+    var getYs = function(d) { return _.map(d.values, 'y'); },
+        nonZero = function(x) { return x > 0; },
+        ys = _(data).map(getYs).flatten().filter(nonZero).value(),
+        minY = Math.min.apply(null, ys);
+
+    if (minY > 1) {
+        return '0.1f';
+    }
+
+    // Count decimal places to most significant digit, up to 4
+    for (var i = 0; minY < 1 && i < 4; i++) {
+        minY *= 10;
+    }
+
+    return '0.0' + i + 'f';
+}
+
 /*
     Renders a horizontal bar chart for a single series of data without a legend.
 
@@ -329,36 +356,10 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
             },
         },
         onRenderComplete = (callback) ? callback : _.noop,
-        yTickFormat = stacked ? '0.1f' : yFormat(),
+        yTickFormat = stacked ? '0.1f' : yFormat(data),
         chart = nv.models.multiBarChart(),
         svg = makeSvg(chartEl),
         $svg = $(svg);
-
-    function setChartWidth() {
-        var scenarioCount = _.size(_.head(data).values),
-            scenariosWidth = scenarioCount * columnWidth + xAxisWidth;
-
-        chartEl.style.width = scenariosWidth + "px";
-        chart.width(chartEl.offsetWidth);
-    }
-
-    function yFormat() {
-        var getYs = function(d) { return _.map(d.values, 'y'); },
-            nonZero = function(x) { return x > 0; },
-            ys = _(data).map(getYs).flatten().filter(nonZero).value(),
-            minY = Math.min.apply(null, ys);
-
-        if (minY > 1) {
-            return '0.1f';
-        }
-
-        // Count decimal places to most significant digit, up to 4
-        for (var i = 0; minY < 1 && i < 4; i++) {
-            minY *= 10;
-        }
-
-        return '0.0' + i + 'f';
-    }
 
     nv.addGraph(function() {
         chart.showLegend(false)
@@ -379,7 +380,10 @@ function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax,
 
         chart.tooltip.enabled(true);
 
-        setChartWidth();
+        setChartWidth(chart, chartEl, data, {
+            columnWidth: columnWidth,
+            xAxisWidth: xAxisWidth,
+        });
 
         if (yMax !== null) {
             chart.yDomain([0, yMax]);
@@ -624,10 +628,59 @@ function renderBulletChart(chartEl, title, subtitle, data) {
     return chart;
 }
 
+function renderDiscreteBarChart(chartEl, data, options) {
+    var chart = nv.models.discreteBarChart(),
+        svg = makeSvg(chartEl);
+
+    options = options || {};
+    _.defaults(options, {
+        margin: {
+            top: 20,
+            bottom: 20,
+            left: 60,
+        },
+        colors: nv.utils.getColor(),
+        yTickFormat: yFormat(data),
+        yAxisLabel: "",
+        onRenderComplete: _.noop,
+        columnWidth: 134, // compare.models.constants.COMPARE_COLUMN_WIDTH
+        xAxisWidth: 82, // compare.models.constants.CHART_AXIS_WIDTH
+    });
+
+    nv.addGraph(function() {
+        chart.showLegend(false)
+            .showXAxis(false)
+            .color(options.colors)
+            .margin(options.margin);
+
+        chart.yAxis
+            .axisLabel(options.yAxisLabel)
+            .tickFormat(d3.format(options.yTickFormat));
+
+        chart.tooltip
+            .headerEnabled(true)
+            .headerFormatter(function() { return options.yAxisLabel; })
+            .valueFormatter(function(d) {
+                return chart.yAxis.tickFormat()(d) + ' ' + options.yAxisUnit;
+            });
+
+        setChartWidth(chart, chartEl, data, options);
+
+        handleCommonOptions(chart, options);
+
+        d3.select(svg)
+            .datum(data)
+            .call(chart);
+
+        return chart;
+    }, options.onRenderComplete);
+}
+
 module.exports = {
     renderHorizontalBarChart: renderHorizontalBarChart,
     renderVerticalBarChart: renderVerticalBarChart,
     renderLineChart: renderLineChart,
     renderCompareMultibarChart: renderCompareMultibarChart,
     renderBulletChart: renderBulletChart,
+    renderDiscreteBarChart: renderDiscreteBarChart,
 };

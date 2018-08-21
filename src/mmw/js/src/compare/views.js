@@ -136,6 +136,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
 
         showSectionsView();
         this.highlightButtons();
+        this.setPolling();
     },
 
     showSectionsView: function() {
@@ -156,8 +157,8 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
     },
 
     showTR55SectionsView: function() {
-        if (this.model.get('mode') === models.constants.CHART) {
-            this.sectionsRegion.show(new TR55ChartView({
+        if (this.model.get('mode') === models.constants.CHARTS) {
+            this.sectionsRegion.show(new Tr55ChartView({
                 model: this.model,
                 collection: this.model.get('tabs')
                                 .findWhere({ active: true })
@@ -176,71 +177,52 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
     showGWLFESectionsView: function() {
         var activeTab = this.model.get('tabs').findWhere({ active: true }),
             activeName = activeTab.get('name'),
-            activeMode = this.model.get('mode');
+            activeMode = this.model.get('mode'),
+            isHydrology = activeName === models.constants.HYDROLOGY,
+            config = { model: this.model, collection: activeTab.get(activeMode) },
+            View = (function() {
+                    if (activeMode === models.constants.CHARTS) {
+                        return isHydrology ?
+                            GWLFEHydrologyChartView : GwlfeQualityChartView;
+                    } else {
+                        return isHydrology ?
+                            GWLFEHydrologyTableView : null; // TODO Implement
+                    }
+                })();
 
-        if (activeMode === models.constants.CHART &&
-            activeName === models.constants.HYDROLOGY) {
-            this.sectionsRegion.show(new GWLFEHydrologyChartView({
-                model: this.model,
-                collection: activeTab.get('charts'),
-            }));
-        } else if (activeMode === models.constants.TABLE &&
-                   activeName === models.constants.HYDROLOGY) {
-            this.sectionsRegion.show(new GWLFEHydrologyTableView({
-                model: this.model,
-                collection: activeTab.get('table'),
-            }));
+        if (View) {
+            this.sectionsRegion.show(new View(config));
         } else {
-            window.console.log('TODO Implement GWLFE Water Quality table & chart');
             this.sectionsRegion.empty();
         }
     },
 
     showSelectionView: function(activeTab) {
-        var isHydrologyChart =
-                this.model.get('mode') === models.constants.CHART &&
-                activeTab.get('name') === models.constants.HYDROLOGY;
+        var activeMode = this.model.get('mode'),
+            chartsOrTable = activeTab.get(activeMode),
+            selections = activeTab.get('selections'),
+            isHydrologyChart = activeMode === models.constants.CHARTS &&
+                    activeTab.get('name') === models.constants.HYDROLOGY,
+            update = function() {
+                chartsOrTable.update(selections.findWhere({ active: true }));
+            };
 
-        var demoFunction = function() {
-            var selected =
-                activeTab.get('selections').findWhere({ active: true });
-
-
-            console.log(
-                selected.get('group') + ' ' + selected.get('name'));
-        };
-
-        var hydrologyTableFunction = function() {
-            var table = activeTab.get('table'),
-                activeSelection = activeTab
-                    .get('selections')
-                    .findWhere({ active: true })
-                    .get('value');
-
-            table.update(activeSelection);
-        };
-
-        // TODO Remove demo listener
+        // Remove old listeners
         this.model.get('tabs').forEach(function(tab) {
-            var selections = tab.get('selections');
+            var tabSelections = tab.get('selections');
 
-            if (selections) {
-                selections.off();
+            if (tabSelections) {
+                tabSelections.off();
             }
         });
 
-        if (activeTab.get('selections') && !isHydrologyChart) {
+        if (selections && !isHydrologyChart) {
             this.selectionRegion.show(new SelectionView({
                 model: activeTab,
             }));
 
-            var selectionChangeHandler =
-                activeTab.get('name') === models.constants.HYDROLOGY ?
-                hydrologyTableFunction :
-                demoFunction;
-
-            // TODO Demo Listening for Changes
-            activeTab.get('selections').on('change', selectionChangeHandler);
+            selections.on('change', update);
+            update();
         } else {
             this.selectionRegion.empty();
         }
@@ -372,7 +354,7 @@ var InputsView = Marionette.LayoutView.extend({
     setChartView: function() {
         this.ui.chartButton.addClass('active');
         this.ui.tableButton.removeClass('active');
-        this.model.set({ mode: models.constants.CHART });
+        this.model.set({ mode: models.constants.CHARTS });
     },
 
     setTableView: function() {
@@ -468,10 +450,10 @@ var SelectionView = Marionette.ItemView.extend({
         var groups = [];
 
         this.model.get('selections').forEach(function(opt) {
-            var group = _.find(groups, { name: opt.get('group') });
+            var group = _.find(groups, { name: opt.get('groupName') });
 
             if (group === undefined) {
-                group = { name: opt.get('group'), options: [] };
+                group = { name: opt.get('groupName'), options: [] };
                 groups.push(group);
             }
 
@@ -624,7 +606,7 @@ var ScenariosRowView = Marionette.CollectionView.extend({
     }
 });
 
-var BarChartRowView = Marionette.ItemView.extend({
+var Tr55BarChartRowView = Marionette.ItemView.extend({
     model: models.BarChartRowModel,
     className: 'compare-chart-row',
     template: compareBarChartRowTmpl,
@@ -747,9 +729,48 @@ var GWLFEHydrologyChartView = Marionette.CollectionView.extend({
     childView: LineChartRowView,
 });
 
-var TR55ChartView = Marionette.CollectionView.extend({
-    childView: BarChartRowView,
+var GwlfeBarChartRowView = Marionette.ItemView.extend({
+    className: 'compare-chart-row',
+    template: compareBarChartRowTmpl,
 
+    modelEvents: {
+        'change:values': 'renderChart',
+    },
+
+    onAttach: function() {
+        this.renderChart();
+    },
+
+    renderChart: function() {
+        var self = this,
+            chartDiv = this.model.get('chartDiv'),
+            chartEl = document.getElementById(chartDiv),
+            chartName = this.model.get('key'),
+            values = this.model.get('values'),
+            data = [{
+                key: chartName,
+                values: values,
+            }],
+            parentWidth = (_.size(values) *
+                models.constants.COMPARE_COLUMN_WIDTH +
+                models.constants.CHART_AXIS_WIDTH) + 'px',
+            options = {
+                yAxisLabel: this.model.get('unitLabel'),
+                yAxisUnit: this.model.get('unit'),
+                colors: SCENARIO_COLORS,
+                columnWidth: models.constants.COMPARE_COLUMN_WIDTH,
+                xAxisWidth: models.constants.CHART_AXIS_WIDTH,
+                onRenderComplete: function() {
+                    self.triggerMethod('chart:rendered');
+                },
+            };
+
+        $(chartEl.parentNode).css({ width: parentWidth });
+        chart.renderDiscreteBarChart(chartEl, data, options);
+    },
+});
+
+var ChartView = Marionette.CollectionView.extend({
     modelEvents: {
         'change:visibleScenarioIndex': 'slide',
     },
@@ -787,15 +808,23 @@ var TR55ChartView = Marionette.CollectionView.extend({
         });
 
         // Show charts from visibleScenarioIndex
-        this.$('.nv-group > rect:nth-child(n + ' + (i+1) + ')').css({
+        this.$('.nv-group > :nth-child(n + ' + (i+1) + ')').css({
             'opacity': '',
         });
 
         // Hide charts up to visibleScenarioIndex
-        this.$('.nv-group > rect:nth-child(-n + ' + i + ')').css({
+        this.$('.nv-group > :nth-child(-n + ' + i + ')').css({
             'opacity': 0,
         });
     },
+});
+
+var Tr55ChartView = ChartView.extend({
+    childView: Tr55BarChartRowView,
+});
+
+var GwlfeQualityChartView = ChartView.extend({
+    childView: GwlfeBarChartRowView,
 });
 
 var TableRowView = Marionette.ItemView.extend({
@@ -1324,35 +1353,54 @@ function getGwlfeTabs(scenarios) {
             },
         ], { scenarios: scenarios }),
         hydrologySelections = new models.SelectionOptionsCollection([
-            { group: 'Water Flow', name: 'Stream Flow', value: hydrologyKeys.streamFlow, active: true },
-            { group: 'Water Flow', name: 'Surface Runoff', value: hydrologyKeys.surfaceRunoff },
-            { group: 'Water Flow', name: 'Subsurface Flow', value: hydrologyKeys.subsurfaceFlow },
-            { group: 'Water Flow', name: 'Point Source Flow', value: hydrologyKeys.pointSourceFlow },
-            { group: 'Water Flow', name: 'Evapotranspiration', value: hydrologyKeys.evapotranspiration },
-            { group: 'Water Flow', name: 'Precipitation', value: hydrologyKeys.precipitation },
+            { groupName: 'Water Flow', name: 'Stream Flow', value: hydrologyKeys.streamFlow, active: true },
+            { groupName: 'Water Flow', name: 'Surface Runoff', value: hydrologyKeys.surfaceRunoff },
+            { groupName: 'Water Flow', name: 'Subsurface Flow', value: hydrologyKeys.subsurfaceFlow },
+            { groupName: 'Water Flow', name: 'Point Source Flow', value: hydrologyKeys.pointSourceFlow },
+            { groupName: 'Water Flow', name: 'Evapotranspiration', value: hydrologyKeys.evapotranspiration },
+            { groupName: 'Water Flow', name: 'Precipitation', value: hydrologyKeys.precipitation },
         ]),
         qualityTable = [],
-        qualityCharts = [],
+        qualityCharts = new models.GwlfeQualityCharts([
+            {
+                name: 'Sediment',
+                key: 'Sediment',
+                chartDiv: 's-chart',
+                unit: 'kg',
+            },
+            {
+                name: 'Total Nitrogen',
+                key: 'TotalN',
+                chartDiv: 'tn-chart',
+                unit: 'kg',
+            },
+            {
+                name: 'Total Phosphorus',
+                key: 'TotalP',
+                chartDiv: 'tp-chart',
+                unit: 'kg',
+            }
+        ], { scenarios: scenarios }),
         qualitySelections = new models.SelectionOptionsCollection([
-            { group: 'Summary', name: 'Total Loads', active: true },
-            { group: 'Summary', name: 'Loading Rates' },
-            { group: 'Summary', name: 'Mean Annual Concentration' },
-            { group: 'Summary', name: 'Mean Low-Flow Concentration' },
-            { group: 'Land Use', name: 'Hay/Pasture' },
-            { group: 'Land Use', name: 'Cropland' },
-            { group: 'Land Use', name: 'Wooded Areas' },
-            { group: 'Land Use', name: 'Wetlands' },
-            { group: 'Land Use', name: 'Open Land' },
-            { group: 'Land Use', name: 'Barren Areas' },
-            { group: 'Land Use', name: 'Low-Density Mixed' },
-            { group: 'Land Use', name: 'Medium-Density Mixed' },
-            { group: 'Land Use', name: 'High-Density Mixed' },
-            { group: 'Land Use', name: 'Other Upland Areas' },
-            { group: 'Land Use', name: 'Farm Animals' },
-            { group: 'Land Use', name: 'Stream Bank Erosion' },
-            { group: 'Land Use', name: 'Subsurface Flow' },
-            { group: 'Land Use', name: 'Point Sources' },
-            { group: 'Land Use', name: 'Septic Systems' },
+            { group: 'SummaryLoads', groupName: 'Summary', name: 'Total Loads', unit: 'kg', active: true },
+            { group: 'SummaryLoads', groupName: 'Summary', name: 'Loading Rates', unit: 'kg/ha' },
+            { group: 'SummaryLoads', groupName: 'Summary', name: 'Mean Annual Concentration', unit: 'mg/l' },
+            { group: 'SummaryLoads', groupName: 'Summary', name: 'Mean Low-Flow Concentration', unit: 'mg/l' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Hay/Pasture', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Cropland', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Wooded Areas', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Wetlands', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Open Land', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Barren Areas', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Low-Density Mixed', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Medium-Density Mixed', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'High-Density Mixed', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Other Upland Areas', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Farm Animals', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Stream Bank Erosion', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Subsurface Flow', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Point Sources', unit: 'kg' },
+            { group: 'Loads', groupName: 'Land Use', name: 'Septic Systems', unit: 'kg' },
         ]);
 
     // TODO Remove once scenarios is actually used.

@@ -5,7 +5,7 @@ var _ = require('lodash'),
     Backbone = require('../../shim/backbone'),
     ControlsCollection = require('../modeling/models').ModelPackageControlsCollection;
 
-var CHART = 'chart',
+var CHARTS = 'charts',
     TABLE = 'table',
     MIN_VISIBLE_SCENARIOS = 5,
     CHART_AXIS_WIDTH = 82,
@@ -98,9 +98,9 @@ var BarChartRowsCollection = Backbone.Collection.extend({
 var GwlfeHydrologyCharts = LineChartRowsCollection.extend();
 
 var GwlfeHydrologyTable = MonthlyTableRowsCollection.extend({
-    update: function(selectedAttribute) {
-        this.models.forEach(function(model) {
-            model.set({ selectedAttribute: selectedAttribute });
+    update: function(selection) {
+        this.invoke('set', {
+            selectedAttribute: selection.get('value'),
         });
     }
 });
@@ -147,6 +147,44 @@ var Tr55QualityCharts = BarChartRowsCollection.extend({
                 });
 
             chart.set({
+                values: values,
+            });
+        });
+    }
+});
+
+var GwlfeQualityCharts = BarChartRowsCollection.extend({
+    update: function(selection) {
+        var results = this.scenarios.map(function(scenario) {
+            return {
+                name: scenario.get('name'),
+                result: scenario.get('results')
+                    .findWhere({ name: 'quality' })
+                    .get('result'),
+            };
+        });
+
+        this.forEach(function(chart) {
+            var key = chart.get('key'),
+                group = selection.get('group'),
+                source = selection.get('value'),
+                unit = selection.get('unit'),
+                unitLabel = selection.get('name'),
+                values = _.map(results, function(r) {
+                    return {
+                        x: r.name,
+                        y: Number(
+                            _.find(
+                                r.result[group],
+                                { Source: source }
+                            )[key]
+                        ),
+                    };
+                });
+
+            chart.set({
+                unit: unit,
+                unitLabel: unitLabel,
                 values: values,
             });
         });
@@ -239,7 +277,7 @@ var TabsCollection = Backbone.Collection.extend({
 var WindowModel = Backbone.Model.extend({
     defaults: {
         controls: null, // ModelPackageControlsCollection
-        mode: CHART, // or TABLE
+        mode: CHARTS, // or TABLE
         scenarios: null, // ScenariosCollection
         tabs: null,  // TabsCollection
         visibleScenarioIndex: 0, // Index of the first visible scenario
@@ -285,10 +323,11 @@ module.exports = {
     Tr55QualityCharts: Tr55QualityCharts,
     Tr55RunoffTable: Tr55RunoffTable,
     Tr55RunoffCharts: Tr55RunoffCharts,
+    GwlfeQualityCharts: GwlfeQualityCharts,
     TabsCollection: TabsCollection,
     WindowModel: WindowModel,
     constants: {
-        CHART: CHART,
+        CHARTS: CHARTS,
         TABLE: TABLE,
         MIN_VISIBLE_SCENARIOS: MIN_VISIBLE_SCENARIOS,
         CHART_AXIS_WIDTH: CHART_AXIS_WIDTH,

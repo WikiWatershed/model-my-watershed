@@ -474,7 +474,7 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
       transition: transform 0.3s ease-in-out;
     }
 
-    rect {
+    g, rect {
       transition: opacity 0.3s ease-in-out;
     }
 
