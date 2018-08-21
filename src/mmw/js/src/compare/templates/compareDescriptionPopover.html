@@ -6,11 +6,19 @@
 {% elif is_current_conditions %}
     <h3 class="compare-no-mod-title">{{name}}</h3>
     <p>
+    {% if isTr55 %}
         Model results based on 2011 NLCD land and 2016 gSSURGO soil datasets.
+    {% else %}
+        Model results based on 2011 NLCD Land, National Streams, Weather, Slope, Animal Types, Growing Season, Soil Erodibility Factor, Point-Source Discharge, and Groundwater Nitrogen datasets.
+    {% endif %}
     </p>
 {% else %}
     <h3 class="compare-no-mod-title">No modifications</h3>
     <p>
+    {% if isTr55 %}
         To add modifications, close this modal and select "Land cover" or "Conservation practices".
+    {% else %}
+        To add modifications, close this modal and select "Conservation Practice".
+    {% endif %}
     </p>
 {% endif %}

@@ -622,6 +622,10 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
       width: 100%;
       .modification-value {
           padding-right: 12px;
+
+        &.-gwlfe {
+          padding-top: 12px;
+        }
       }
       .modification-area {
           color: $brand-primary;
