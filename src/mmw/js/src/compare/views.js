@@ -502,7 +502,14 @@ var CompareModificationsPopoverView = Marionette.ItemView.extend({
 var CompareDescriptionPopoverView = Marionette.ItemView.extend({
     // model: ScenarioModel
     template: compareDescriptionPopoverTmpl,
-    className: 'compare-no-mods-popover'
+    className: 'compare-no-mods-popover',
+
+    templateHelpers: function() {
+        return {
+            isTr55: App.currentProject.get('model_package') ===
+                    coreUtils.TR55_PACKAGE,
+        };
+    },
 });
 
 var GWLFEScenarioItemView = Marionette.ItemView.extend({
