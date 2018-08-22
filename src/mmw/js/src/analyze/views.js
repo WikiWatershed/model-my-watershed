@@ -440,8 +440,8 @@ var AoiView = Marionette.ItemView.extend({
     },
 
     downloadGeojson: function() {
-        utils.downloadAsFile(this.model.get('shape'),
-                             this.model.get('place') + '.geojson');
+        utils.downloadJson(this.model.get('shape'),
+                           this.model.get('place') + '.geojson');
     }
 });
 

@@ -355,7 +355,7 @@ var FormView = Marionette.ItemView.extend({
             filename = 'bigcz-' + catalog.id + '-' +
                        dashedQuery + '-' + dateString + '.json';
 
-        utils.downloadAsFile(data, filename);
+        utils.downloadJson(data, filename);
     },
 
     getFilters: function() {

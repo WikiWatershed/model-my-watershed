@@ -433,7 +433,7 @@ var InputsView = Marionette.LayoutView.extend({
             fileName = projectName.replace(/[^a-z0-9+]+/gi, '_') + '_' +
                 timeStamp + '.csv';
 
-        coreUtils.downloadAsFile(csv, fileName);
+        coreUtils.downloadText(csv, fileName);
     }
 });
 
