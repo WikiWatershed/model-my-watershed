@@ -260,6 +260,35 @@ var Tr55QualityTable = TableRowsCollection.extend({
     }
 });
 
+var GwlfeQualityTable = TableRowsCollection.extend({
+    update: function(selection) {
+        var results = this.scenarios.map(function(scenario) {
+                return scenario.get('results')
+                    .findWhere({ name: 'quality' })
+                    .get('result');
+            }),
+            group = selection.get('group'),
+            source = selection.get('value'),
+            unit = selection.get('unit'),
+            get = function(key) {
+                return function(result) {
+                    return Number(
+                        _.find(result[group], { Source: source })[key]);
+                };
+            },
+            ss = _.map(results, get('Sediment')),
+            tn = _.map(results, get('TotalN')),
+            tp = _.map(results, get('TotalP')),
+            rows = [
+                { name: 'Sediment'        , unit: unit, values: ss },
+                { name: 'Total Nitrogen'  , unit: unit, values: tn },
+                { name: 'Total Phosphorus', unit: unit, values: tp },
+            ];
+
+        this.reset(rows);
+    }
+});
+
 var TabModel = Backbone.Model.extend({
     defaults: {
         name: '',
@@ -324,6 +353,7 @@ module.exports = {
     Tr55RunoffTable: Tr55RunoffTable,
     Tr55RunoffCharts: Tr55RunoffCharts,
     GwlfeQualityCharts: GwlfeQualityCharts,
+    GwlfeQualityTable: GwlfeQualityTable,
     TabsCollection: TabsCollection,
     WindowModel: WindowModel,
     constants: {

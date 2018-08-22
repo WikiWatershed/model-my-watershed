@@ -187,7 +187,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
                             GWLFEHydrologyChartView : GwlfeQualityChartView;
                     } else {
                         return isHydrology ?
-                            GWLFEHydrologyTableView : null; // TODO Implement
+                            GWLFEHydrologyTableView : GwlfeQualityTableView;
                     }
                 })();
 
@@ -905,6 +905,14 @@ var GWLFEHydrologyTableView = TableView.extend({
     childView: GWLFEHydrologyTableRowView,
 });
 
+var GwlfeQualityTableRowView = TableRowView.extend({
+    className: 'compare-table-row -gwlfe -quality',
+});
+
+var GwlfeQualityTableView = TableView.extend({
+    childView: GwlfeQualityTableRowView,
+});
+
 var CompareWindow = Marionette.LayoutView.extend({
     //model: modelingModels.ProjectModel,
 
@@ -1384,7 +1392,9 @@ function getGwlfeTabs(scenarios) {
             { groupName: 'Water Flow', name: 'Evapotranspiration', value: hydrologyKeys.evapotranspiration },
             { groupName: 'Water Flow', name: 'Precipitation', value: hydrologyKeys.precipitation },
         ]),
-        qualityTable = [],
+        qualityTable = new models.GwlfeQualityTable({
+            scenarios: scenarios,
+        }),
         qualityCharts = new models.GwlfeQualityCharts([
             {
                 name: 'Sediment',
@@ -1426,10 +1436,6 @@ function getGwlfeTabs(scenarios) {
             { group: 'Loads', groupName: 'Land Use', name: 'Point Sources', unit: 'kg' },
             { group: 'Loads', groupName: 'Land Use', name: 'Septic Systems', unit: 'kg' },
         ]);
-
-    // TODO Remove once scenarios is actually used.
-    // This is to pacify the linter.
-    scenarios.findWhere({ active: true});
 
     return new models.TabsCollection([
         {
