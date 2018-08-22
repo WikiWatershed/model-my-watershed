@@ -94,6 +94,12 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
                 model: self.model,
                 collection: self.model.get('scenarios'),
             }));
+
+            // Show Sections View and update polling because
+            // some charts need the Compare Window visible
+            // before they can render properly
+            self.showSectionsView();
+            self.setPolling();
         });
     },
 
@@ -135,9 +141,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
             model: this.model,
         }));
 
-        showSectionsView();
         this.highlightButtons();
-        this.setPolling();
     },
 
     showSectionsView: function() {
