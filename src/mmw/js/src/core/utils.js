@@ -695,8 +695,9 @@ var utils = {
     },
 
     // Downloads given data as a text file with given filename
-    downloadAsFile: function(data, filename) {
-        var blob = new Blob([JSON.stringify(data)],
+    _downloadAsFile: function(data, filename, stringify) {
+        var content = stringify ? JSON.stringify(data) : data,
+            blob = new Blob([content],
                             { type: 'data:text/plain;charset=utf-8'}),
             url = URL.createObjectURL(blob),
             a = document.createElement('a');
@@ -716,6 +717,16 @@ var utils = {
         }
 
         URL.revokeObjectURL(url);
+    },
+
+    // Expects data to be a JSON object
+    downloadJson: function(data, filename) {
+        this._downloadAsFile(data, filename, true);
+    },
+
+    // Expects data to be a string
+    downloadText: function(data, filename) {
+        this._downloadAsFile(data, filename, false);
     },
 
     // Checks if current browser is Internet Explorer / Edge. If so,
