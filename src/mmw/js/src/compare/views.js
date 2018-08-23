@@ -94,6 +94,12 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
                 model: self.model,
                 collection: self.model.get('scenarios'),
             }));
+
+            // Show Sections View and update polling because
+            // some charts need the Compare Window visible
+            // before they can render properly
+            self.showSectionsView();
+            self.setPolling();
         });
     },
 
@@ -135,9 +141,7 @@ var CompareWindow2 = modalViews.ModalBaseView.extend({
             model: this.model,
         }));
 
-        showSectionsView();
         this.highlightButtons();
-        this.setPolling();
     },
 
     showSectionsView: function() {
@@ -690,29 +694,19 @@ var LineChartRowView = Marionette.ItemView.extend({
     className: 'compare-chart-row -line',
     template: compareLineChartRowTmpl,
 
-    ui: function() {
-        return {
-            chartElement: '#' + this.model.get('chartDiv'),
-        };
+    modelEvents: {
+        'change:values': 'renderChart',
     },
 
     onAttach: function() {
-        this.addChart();
+        this.renderChart();
     },
 
-    onBeforeDestroy: function() {
-        this.destroyChart();
-    },
-
-    onRender: function() {
-        this.addChart();
-    },
-
-    addChart: function() {
-        this.destroyChart();
-
-        var scenarioNames = this.model.get('scenarioNames'),
-            chartData = this.model.get('data')
+    renderChart: function() {
+        var self = this,
+            chartDiv = this.model.get('chartDiv'),
+            chartEl = document.getElementById(chartDiv),
+            data = this.model.get('data')
                 .map(function(scenarioData, index) {
                     return {
                         key: index,
@@ -727,25 +721,23 @@ var LineChartRowView = Marionette.ItemView.extend({
                 })
                 .slice()
                 .reverse(),
-            chartOptions = {
+            options = {
                 yAxisLabel: 'Water Depth (cm)',
                 yAxisUnit: 'cm',
                 xAxisLabel: function(xValue) {
                     return monthNames[xValue];
                 },
                 xTickValues: _.range(12),
+                onRenderComplete: function() {
+                    self.triggerMethod('chart:rendered');
+                },
             },
+            scenarioNames = this.model.get('scenarioNames'),
             tooltipKeyFormatFn = function(d) {
                 return scenarioNames[d];
             };
 
-        if (chartData.length && this.ui.chartElement) {
-            chart.renderLineChart(this.ui.chartElement, chartData, chartOptions, tooltipKeyFormatFn);
-        }
-    },
-
-    destroyChart: function() {
-        this.ui.chartElement.empty();
+        chart.renderLineChart(chartEl, data, options, tooltipKeyFormatFn);
     },
 });
 

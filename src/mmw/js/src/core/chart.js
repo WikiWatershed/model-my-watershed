@@ -313,6 +313,7 @@ function renderLineChart(chartEl, data, options, tooltipKeyFormatFn) {
     _.defaults(options, {
         margin: {top: 20, right: 30, bottom: 40, left: 60},
         yTickFormat: '.02f',
+        onRenderComplete: _.noop,
     });
 
     nv.addGraph(function() {
@@ -344,7 +345,7 @@ function renderLineChart(chartEl, data, options, tooltipKeyFormatFn) {
             .call(chart);
 
         return chart;
-    });
+    }, options.onRenderComplete);
 }
 
 function renderCompareMultibarChart(chartEl, name, label, colors, stacked, yMax, data, columnWidth, xAxisWidth, callback) {
