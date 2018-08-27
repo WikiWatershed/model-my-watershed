@@ -27,7 +27,8 @@ var _ = require('lodash'),
     compareTableRowTmpl = require('./templates/compareTableRow.html'),
     compareModificationsPopoverTmpl = require('./templates/compareModificationsPopover.html'),
     compareDescriptionPopoverTmpl = require('./templates/compareDescriptionPopover.html'),
-    constants = require('./constants');
+    constants = require('./constants'),
+    utils = require('./utils');
 
 var CompareModal = modalViews.ModalBaseView.extend({
     template: compareModalTmpl,
@@ -917,63 +918,8 @@ function getTr55Tabs(scenarios) {
     ]);
 }
 
-function mapScenariosToHydrologyChartData(scenarios, key) {
-    return scenarios
-        .map(function(scenario) {
-            return scenario
-                .get('results')
-                .models
-                .reduce(function(accumulator, next) {
-                    if (next.get('displayName') !== constants.HYDROLOGY) {
-                        return accumulator;
-                    }
-
-                    return accumulator.concat(next
-                        .get('result')
-                        .monthly
-                        .map(function(result) {
-                            return result[key];
-                        }));
-                }, []);
-        });
-}
-
-function mapScenariosToHydrologyTableData(scenarios) {
-    var scenarioData = scenarios
-            .models
-            .reduce(function(accumulator, next) {
-                var results = next.get('results'),
-                    nextAttribute = results
-                        .filter(function(n) {
-                            return n.get('displayName') === constants.HYDROLOGY;
-                        })
-                        .map(function(m) {
-                            return m
-                                .get('result')
-                                .monthly;
-                        });
-
-                return accumulator.concat(nextAttribute);
-            }, []),
-        tableData = constants.monthNames
-            .map(function(name, key) {
-                return {
-                    key: key,
-                    name: moment(name, 'MMM').format('MMMM'),
-                    unit: 'cm',
-                    values: scenarioData
-                        .map(function(element) {
-                            return element[key];
-                        }),
-                    selectedAttribute: constants.hydrologyKeys.streamFlow,
-                };
-            });
-
-    return tableData;
-}
-
 function getGwlfeTabs(scenarios) {
-    var hydrologyTable = new models.GwlfeHydrologyTable(mapScenariosToHydrologyTableData(scenarios)),
+    var hydrologyTable = new models.GwlfeHydrologyTable(utils.mapScenariosToHydrologyTableData(scenarios)),
         scenarioNames = scenarios.map(function(s) {
             return s.get('name');
         }),
@@ -982,42 +928,42 @@ function getGwlfeTabs(scenarios) {
                 key: constants.hydrologyKeys.streamFlow,
                 name: 'Stream Flow',
                 chartDiv: 'hydrology-stream-flow-chart',
-                data: mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.streamFlow),
+                data: utils.mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.streamFlow),
                 scenarioNames: scenarioNames,
             },
             {
                 key: constants.hydrologyKeys.surfaceRunoff,
                 name: 'Surface Runoff',
                 chartDiv: 'hydrology-surface-runoff-chart',
-                data: mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.surfaceRunoff),
+                data: utils.mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.surfaceRunoff),
                 scenarioNames: scenarioNames,
             },
             {
                 key: constants.hydrologyKeys.subsurfaceFlow,
                 name: 'Subsurface Flow',
                 chartDiv: 'hydrology-subsurface-flow-chart',
-                data: mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.subsurfaceFlow),
+                data: utils.mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.subsurfaceFlow),
                 scenarioNames: scenarioNames,
             },
             {
                 key: constants.hydrologyKeys.pointSourceFlow,
                 name: 'Point Source Flow',
                 chartDiv: 'hydrology-point-source-flow-chart',
-                data: mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.pointSourceFlow),
+                data: utils.mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.pointSourceFlow),
                 scenarioNames: scenarioNames,
             },
             {
                 key: constants.hydrologyKeys.evapotranspiration,
                 name: 'Evapotranspiration',
                 chartDiv: 'hydrology-evapotranspiration-chart',
-                data: mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.evapotranspiration),
+                data: utils.mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.evapotranspiration),
                 scenarioNames: scenarioNames,
             },
             {
                 key: constants.hydrologyKeys.precipitation,
                 name: 'Precipitation',
                 chartDiv: 'hydrology-precipitation-chart',
-                data: mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.precipitation),
+                data: utils.mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.precipitation),
                 scenarioNames: scenarioNames,
             },
         ], { scenarios: scenarios }),
@@ -1074,7 +1020,6 @@ function copyScenario(scenario, aoi_census, color) {
 
     return newScenario;
 }
-
 
 // Makes a sandboxed copy of project scenarios which can be safely
 // edited and experimented in the Compare Window, and discarded on close.
