@@ -17,8 +17,7 @@ var _ = require('lodash'),
     PrecipitationView = require('../modeling/controls').PrecipitationView,
     modConfigUtils = require('../modeling/modificationConfigUtils'),
     gwlfeConfig = require('../modeling/gwlfeModificationConfig'),
-    compareWindowTmpl = require('./templates/compareWindow.html'),
-    compareWindow2Tmpl = require('./templates/compareWindow2.html'),
+    compareModalTmpl = require('./templates/compareModal.html'),
     compareTabPanelTmpl = require('./templates/compareTabPanel.html'),
     compareInputsTmpl = require('./templates/compareInputs.html'),
     compareSelectionTmpl = require('./templates/compareSelection.html'),
@@ -50,8 +49,8 @@ var SCENARIO_COLORS =  ['#3366cc','#dc3912','#ff9900','#109618','#990099',
     });
 
 
-var CompareWindow2 = modalViews.ModalBaseView.extend({
-    template: compareWindow2Tmpl,
+var CompareModal = modalViews.ModalBaseView.extend({
+    template: compareModalTmpl,
 
     id: 'compare-new',
 
@@ -905,81 +904,6 @@ var GwlfeQualityTableView = TableView.extend({
     childView: GwlfeQualityTableRowView,
 });
 
-var CompareWindow = Marionette.LayoutView.extend({
-    //model: modelingModels.ProjectModel,
-
-    template: compareWindowTmpl,
-
-    id: 'compare-window',
-
-    regions: {
-        containerRegion: '#compare-scenarios-region'
-    },
-
-    ui: {
-        'slideLeft': '#slide-left',
-        'slideRight': '#slide-right'
-    },
-
-    events: {
-        'click @ui.slideLeft': 'slideLeft',
-        'click @ui.slideRight': 'slideRight'
-    },
-
-    initialize: function() {
-        // Left-most visible scenario
-        this.slideInd = 0;
-
-        // Resizing the window can change the column size,
-        // so the offset of the container needs to be
-        // recomputed.
-        $(window).on('resize.app', _.debounce(_.bind(this.updateContainerPos, this)));
-    },
-
-    onDestroy: function() {
-        $(window).off('resize.app');
-    },
-
-    getColumnWidth: function() {
-        // Width is a function of screen size.
-        return parseInt($('#compare-row td').css('width'));
-    },
-
-    getContainerWidth: function() {
-        // Width is a function of screen size.
-        return parseInt($('body').get(0).offsetWidth);
-    },
-
-    updateContainerPos: function() {
-        var left = -1 * this.slideInd * this.getColumnWidth();
-        $('.compare-scenarios-container').css('left', left + 'px');
-    },
-
-    slideLeft: function() {
-        if (this.slideInd > 0) {
-            this.slideInd--;
-            this.updateContainerPos();
-        }
-    },
-
-    slideRight: function() {
-        var numScenarios = this.model.get('scenarios').length,
-            maxVisColumns = Math.floor(this.getContainerWidth() / this.getColumnWidth());
-
-        if (this.slideInd < numScenarios - maxVisColumns) {
-            this.slideInd++;
-            this.updateContainerPos();
-        }
-    },
-
-    onShow: function() {
-         this.containerRegion.show(new CompareScenariosView({
-            model: this.model,
-            collection: this.model.get('scenarios')
-         }));
-    }
-});
-
 var CompareScenarioView = Marionette.LayoutView.extend({
     //model: modelingModels.ScenarioModel,
 
@@ -1525,14 +1449,13 @@ function showCompare() {
                      .findWhere({ name: 'precipitation' }));
     }
 
-    App.rootView.compareRegion.show(new CompareWindow2({
+    App.rootView.compareRegion.show(new CompareModal({
         model: compareModel,
     }));
 }
 
 module.exports = {
     showCompare: showCompare,
-    CompareWindow2: CompareWindow2,
-    CompareWindow: CompareWindow,
+    CompareModal: CompareModal,
     getTr55Tabs: getTr55Tabs
 };
