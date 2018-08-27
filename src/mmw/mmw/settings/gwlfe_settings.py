@@ -38,7 +38,7 @@ GWLFE_DEFAULTS = {
                 lu.HD_RESIDENTIAL,  # Does not map to NLCD
                 ],
     'Imper': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         # Impervious surface area percentage
-              0.15, 0.52, 0.87, 0.15, 0.52, 0.87],  # only defined for urban land use types
+              0.35, 0.65, 0.90, 0.10, 0.52, 0.87],  # only defined for urban land use types
     'C': [0.03, 0.42, 0.002, 0.01, 0.08, 0.03, 0.04, 0.001, 0.01, 0.8,  # C Factor Defaults
           0, 0, 0, 0, 0, 0],                                            # only defined for rural land use types
     'CNI': [[0] * 16,
