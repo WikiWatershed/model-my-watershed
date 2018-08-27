@@ -26,26 +26,8 @@ var _ = require('lodash'),
     compareLineChartRowTmpl = require('./templates/compareLineChartRow.html'),
     compareTableRowTmpl = require('./templates/compareTableRow.html'),
     compareModificationsPopoverTmpl = require('./templates/compareModificationsPopover.html'),
-    compareDescriptionPopoverTmpl = require('./templates/compareDescriptionPopover.html');
-
-var SCENARIO_COLORS =  [
-        '#3366cc','#dc3912','#ff9900','#109618','#990099', '#0099c6', '#dd4477',
-        '#66aa00','#b82e2e','#316395','#3366cc','#994499', '#22aa99','#aaaa11',
-        '#6633cc','#e67300','#8b0707','#651067','#329262', '#5574a6','#3b3eac',
-        '#b77322','#16d620','#b91383','#f4359e','#9c5935', '#a9c413','#2a778d',
-        '#668d1c','#bea413','#0c5922','#743411'
-    ],
-    monthNames = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ],
-    hydrologyKeys = Object.freeze({
-        streamFlow: 'AvStreamFlow',
-        surfaceRunoff: 'AvRunoff',
-        subsurfaceFlow: 'AvGroundWater',
-        pointSourceFlow: 'AvPtSrcFlow',
-        evapotranspiration: 'AvEvapoTrans',
-        precipitation: 'AvPrecipitation',
-    });
+    compareDescriptionPopoverTmpl = require('./templates/compareDescriptionPopover.html'),
+    constants = require('./constants');
 
 var CompareModal = modalViews.ModalBaseView.extend({
     template: compareModalTmpl,
@@ -103,7 +85,7 @@ var CompareModal = modalViews.ModalBaseView.extend({
     highlightButtons: function() {
         var i = this.model.get('visibleScenarioIndex'),
             total = this.model.get('scenarios').length,
-            minScenarios = models.constants.MIN_VISIBLE_SCENARIOS,
+            minScenarios = constants.MIN_VISIBLE_SCENARIOS,
             prevButton = this.ui.prevButton,
             nextButton = this.ui.nextButton;
 
@@ -159,7 +141,7 @@ var CompareModal = modalViews.ModalBaseView.extend({
     },
 
     showTr55SectionsView: function() {
-        if (this.model.get('mode') === models.constants.CHARTS) {
+        if (this.model.get('mode') === constants.CHARTS) {
             this.sectionsRegion.show(new Tr55ChartView({
                 model: this.model,
                 collection: this.model.get('tabs')
@@ -180,10 +162,10 @@ var CompareModal = modalViews.ModalBaseView.extend({
         var activeTab = this.model.get('tabs').findWhere({ active: true }),
             activeName = activeTab.get('name'),
             activeMode = this.model.get('mode'),
-            isHydrology = activeName === models.constants.HYDROLOGY,
+            isHydrology = activeName === constants.HYDROLOGY,
             config = { model: this.model, collection: activeTab.get(activeMode) },
             View = (function() {
-                    if (activeMode === models.constants.CHARTS) {
+                    if (activeMode === constants.CHARTS) {
                         return isHydrology ?
                             GwlfeHydrologyChartView : GwlfeQualityChartView;
                     } else {
@@ -203,8 +185,8 @@ var CompareModal = modalViews.ModalBaseView.extend({
         var activeMode = this.model.get('mode'),
             chartsOrTable = activeTab.get(activeMode),
             selections = activeTab.get('selections'),
-            isHydrologyChart = activeMode === models.constants.CHARTS &&
-                    activeTab.get('name') === models.constants.HYDROLOGY,
+            isHydrologyChart = activeMode === constants.CHARTS &&
+                    activeTab.get('name') === constants.HYDROLOGY,
             update = function() {
                 chartsOrTable.update(selections.findWhere({ active: true }));
             };
@@ -237,7 +219,7 @@ var CompareModal = modalViews.ModalBaseView.extend({
     nextScenario: function() {
         var visibleScenarioIndex = this.model.get('visibleScenarioIndex'),
             last = Math.max(0, this.model.get('scenarios').length -
-                               models.constants.MIN_VISIBLE_SCENARIOS);
+                               constants.MIN_VISIBLE_SCENARIOS);
 
         this.model.set({
             visibleScenarioIndex: Math.min(++visibleScenarioIndex, last)
@@ -356,13 +338,13 @@ var InputsView = Marionette.LayoutView.extend({
     setChartView: function() {
         this.ui.chartButton.addClass('active');
         this.ui.tableButton.removeClass('active');
-        this.model.set({ mode: models.constants.CHARTS });
+        this.model.set({ mode: constants.CHARTS });
     },
 
     setTableView: function() {
         this.ui.chartButton.removeClass('active');
         this.ui.tableButton.addClass('active');
-        this.model.set({ mode: models.constants.TABLE });
+        this.model.set({ mode: constants.TABLE });
     },
 
     downloadCSV: function() {
@@ -622,7 +604,7 @@ var ScenariosRowView = Marionette.CollectionView.extend({
 
     slide: function() {
         var i = this.model.get('visibleScenarioIndex'),
-            width = models.constants.COMPARE_COLUMN_WIDTH,
+            width = constants.COMPARE_COLUMN_WIDTH,
             marginLeft = -i * width;
 
         this.$el.css({
@@ -679,10 +661,10 @@ var Tr55BarChartRowView = Marionette.ItemView.extend({
                 self.triggerMethod('chart:rendered');
             };
 
-        $(chartEl.parentNode).css({ 'width': ((_.size(this.model.get('values')) * models.constants.COMPARE_COLUMN_WIDTH + models.constants.CHART_AXIS_WIDTH)  + 'px') });
+        $(chartEl.parentNode).css({ 'width': ((_.size(this.model.get('values')) * constants.COMPARE_COLUMN_WIDTH + constants.CHART_AXIS_WIDTH)  + 'px') });
         chart.renderCompareMultibarChart(
             chartEl, chartName, label, colors, stacked, yMax, data,
-            models.constants.COMPARE_COLUMN_WIDTH, models.constants.CHART_AXIS_WIDTH, onRenderComplete);
+            constants.COMPARE_COLUMN_WIDTH, constants.CHART_AXIS_WIDTH, onRenderComplete);
     },
 });
 
@@ -713,7 +695,7 @@ var LineChartRowView = Marionette.ItemView.extend({
                                 y: Number(val),
                             };
                         }),
-                        color: SCENARIO_COLORS[index % 32],
+                        color: constants.SCENARIO_COLORS[index % 32],
                     };
                 })
                 .slice()
@@ -722,7 +704,7 @@ var LineChartRowView = Marionette.ItemView.extend({
                 yAxisLabel: 'Water Depth (cm)',
                 yAxisUnit: 'cm',
                 xAxisLabel: function(xValue) {
-                    return monthNames[xValue];
+                    return constants.monthNames[xValue];
                 },
                 xTickValues: _.range(12),
                 onRenderComplete: function() {
@@ -765,14 +747,14 @@ var GwlfeBarChartRowView = Marionette.ItemView.extend({
                 values: values,
             }],
             parentWidth = (_.size(values) *
-                models.constants.COMPARE_COLUMN_WIDTH +
-                models.constants.CHART_AXIS_WIDTH) + 'px',
+                constants.COMPARE_COLUMN_WIDTH +
+                constants.CHART_AXIS_WIDTH) + 'px',
             options = {
                 yAxisLabel: this.model.get('unitLabel'),
                 yAxisUnit: this.model.get('unit'),
-                colors: SCENARIO_COLORS,
-                columnWidth: models.constants.COMPARE_COLUMN_WIDTH,
-                xAxisWidth: models.constants.CHART_AXIS_WIDTH,
+                colors: constants.SCENARIO_COLORS,
+                columnWidth: constants.COMPARE_COLUMN_WIDTH,
+                xAxisWidth: constants.CHART_AXIS_WIDTH,
                 onRenderComplete: function() {
                     self.triggerMethod('chart:rendered');
                 },
@@ -800,7 +782,7 @@ var ChartView = Marionette.CollectionView.extend({
 
     slide: function() {
         var i = this.model.get('visibleScenarioIndex'),
-            width = models.constants.COMPARE_COLUMN_WIDTH,
+            width = constants.COMPARE_COLUMN_WIDTH,
             marginLeft = -i * width;
 
         // Slide charts
@@ -863,7 +845,7 @@ var TableView = Marionette.CollectionView.extend({
 
     slide: function() {
         var i = this.model.get('visibleScenarioIndex'),
-            width = models.constants.COMPARE_COLUMN_WIDTH,
+            width = constants.COMPARE_COLUMN_WIDTH,
             marginLeft = -i * width;
 
         this.$('.compare-scenario-row-content').css({
@@ -907,87 +889,18 @@ function getTr55Tabs(scenarios) {
     var aoi = App.currentProject.get('area_of_interest'),
         aoiVolumeModel = new tr55Models.AoiVolumeModel({ areaOfInterest: aoi }),
         runoffTable = new models.Tr55RunoffTable({ scenarios: scenarios }),
-        runoffCharts = new models.Tr55RunoffCharts([
-            {
-                key: 'combined',
-                name: 'Combined Hydrology',
-                chartDiv: 'combined-hydrology-chart',
-                seriesColors: ['#F8AA00', '#CF4300', '#C2D33C'],
-                legendItems: [
-                    {
-                        name: 'Evapotranspiration',
-                        badgeId: 'evapotranspiration-badge',
-                    },
-                    {
-                        name: 'Runoff',
-                        badgeId: 'runoff-badge',
-                    },
-                    {
-                        name: 'Infiltration',
-                        badgeId: 'infiltration-badge',
-                    },
-                ],
-                unit: 'cm',
-                unitLabel: 'Level',
-            },
-            {
-                key: 'et',
-                name: 'Evapotranspiration',
-                chartDiv: 'evapotranspiration-chart',
-                seriesColors: ['#C2D33C'],
-                legendItems: null,
-                unit: 'cm',
-                unitLabel: 'Level',
-            },
-            {
-                key: 'runoff',
-                name: 'Runoff',
-                chartDiv: 'runoff-chart',
-                seriesColors: ['#CF4300'],
-                legendItems: null,
-                unit: 'cm',
-                unitLabel: 'Level',
-            },
-            {
-                key: 'inf',
-                name: 'Infiltration',
-                chartDiv: 'infiltration-chart',
-                seriesColors: ['#F8AA00'],
-                legendItems: null,
-                unit: 'cm',
-                unitLabel: 'Level',
-            }
-        ], { scenarios: scenarios }),
+        runoffCharts = new models.Tr55RunoffCharts(
+            constants.tr55RunoffChartConfig,
+            { scenarios: scenarios }
+        ),
         qualityTable = new models.Tr55QualityTable({
             scenarios: scenarios,
             aoiVolumeModel: aoiVolumeModel,
         }),
-        qualityCharts = new models.Tr55QualityCharts([
-            {
-                name: 'Total Suspended Solids',
-                chartDiv: 'tss-chart',
-                seriesColors: ['#389b9b'],
-                legendItems: null,
-                unit: 'kg/ha',
-                unitLabel: 'Loading Rate',
-            },
-            {
-                name: 'Total Nitrogen',
-                chartDiv: 'tn-chart',
-                seriesColors: ['#389b9b'],
-                legendItems: null,
-                unit: 'kg/ha',
-                unitLabel: 'Loading Rate',
-            },
-            {
-                name: 'Total Phosphorus',
-                chartDiv: 'tp-chart',
-                seriesColors: ['#389b9b'],
-                legendItems: null,
-                unit: 'kg/ha',
-                unitLabel: 'Loading Rate',
-            }
-        ], { scenarios: scenarios, aoiVolumeModel: aoiVolumeModel });
+        qualityCharts = new models.Tr55QualityCharts(
+            constants.tr55QualityChartConfig,
+            { scenarios: scenarios, aoiVolumeModel: aoiVolumeModel }
+        );
 
     return new models.TabsCollection([
         {
@@ -1011,7 +924,7 @@ function mapScenariosToHydrologyChartData(scenarios, key) {
                 .get('results')
                 .models
                 .reduce(function(accumulator, next) {
-                    if (next.get('displayName') !== models.constants.HYDROLOGY) {
+                    if (next.get('displayName') !== constants.HYDROLOGY) {
                         return accumulator;
                     }
 
@@ -1032,7 +945,7 @@ function mapScenariosToHydrologyTableData(scenarios) {
                 var results = next.get('results'),
                     nextAttribute = results
                         .filter(function(n) {
-                            return n.get('displayName') === models.constants.HYDROLOGY;
+                            return n.get('displayName') === constants.HYDROLOGY;
                         })
                         .map(function(m) {
                             return m
@@ -1042,7 +955,7 @@ function mapScenariosToHydrologyTableData(scenarios) {
 
                 return accumulator.concat(nextAttribute);
             }, []),
-        tableData = monthNames
+        tableData = constants.monthNames
             .map(function(name, key) {
                 return {
                     key: key,
@@ -1052,7 +965,7 @@ function mapScenariosToHydrologyTableData(scenarios) {
                         .map(function(element) {
                             return element[key];
                         }),
-                    selectedAttribute: hydrologyKeys.streamFlow,
+                    selectedAttribute: constants.hydrologyKeys.streamFlow,
                 };
             });
 
@@ -1066,100 +979,59 @@ function getGwlfeTabs(scenarios) {
         }),
         hydrologyCharts = new models.GwlfeHydrologyCharts([
             {
-                key: hydrologyKeys.streamFlow,
+                key: constants.hydrologyKeys.streamFlow,
                 name: 'Stream Flow',
                 chartDiv: 'hydrology-stream-flow-chart',
-                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.streamFlow),
+                data: mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.streamFlow),
                 scenarioNames: scenarioNames,
             },
             {
-                key: hydrologyKeys.surfaceRunoff,
+                key: constants.hydrologyKeys.surfaceRunoff,
                 name: 'Surface Runoff',
                 chartDiv: 'hydrology-surface-runoff-chart',
-                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.surfaceRunoff),
+                data: mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.surfaceRunoff),
                 scenarioNames: scenarioNames,
             },
             {
-                key: hydrologyKeys.subsurfaceFlow,
+                key: constants.hydrologyKeys.subsurfaceFlow,
                 name: 'Subsurface Flow',
                 chartDiv: 'hydrology-subsurface-flow-chart',
-                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.subsurfaceFlow),
+                data: mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.subsurfaceFlow),
                 scenarioNames: scenarioNames,
             },
             {
-                key: hydrologyKeys.pointSourceFlow,
+                key: constants.hydrologyKeys.pointSourceFlow,
                 name: 'Point Source Flow',
                 chartDiv: 'hydrology-point-source-flow-chart',
-                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.pointSourceFlow),
+                data: mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.pointSourceFlow),
                 scenarioNames: scenarioNames,
             },
             {
-                key: hydrologyKeys.evapotranspiration,
+                key: constants.hydrologyKeys.evapotranspiration,
                 name: 'Evapotranspiration',
                 chartDiv: 'hydrology-evapotranspiration-chart',
-                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.evapotranspiration),
+                data: mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.evapotranspiration),
                 scenarioNames: scenarioNames,
             },
             {
-                key: hydrologyKeys.precipitation,
+                key: constants.hydrologyKeys.precipitation,
                 name: 'Precipitation',
                 chartDiv: 'hydrology-precipitation-chart',
-                data: mapScenariosToHydrologyChartData(scenarios, hydrologyKeys.precipitation),
+                data: mapScenariosToHydrologyChartData(scenarios, constants.hydrologyKeys.precipitation),
                 scenarioNames: scenarioNames,
             },
         ], { scenarios: scenarios }),
-        hydrologySelections = new models.SelectionOptionsCollection([
-            { groupName: 'Water Flow', name: 'Stream Flow', value: hydrologyKeys.streamFlow, active: true },
-            { groupName: 'Water Flow', name: 'Surface Runoff', value: hydrologyKeys.surfaceRunoff },
-            { groupName: 'Water Flow', name: 'Subsurface Flow', value: hydrologyKeys.subsurfaceFlow },
-            { groupName: 'Water Flow', name: 'Point Source Flow', value: hydrologyKeys.pointSourceFlow },
-            { groupName: 'Water Flow', name: 'Evapotranspiration', value: hydrologyKeys.evapotranspiration },
-            { groupName: 'Water Flow', name: 'Precipitation', value: hydrologyKeys.precipitation },
-        ]),
+        hydrologySelections = new models.SelectionOptionsCollection(
+            constants.gwlfeHydrologySelectionOptionConfig),
         qualityTable = new models.GwlfeQualityTable({
             scenarios: scenarios,
         }),
-        qualityCharts = new models.GwlfeQualityCharts([
-            {
-                name: 'Sediment',
-                key: 'Sediment',
-                chartDiv: 's-chart',
-                unit: 'kg',
-            },
-            {
-                name: 'Total Nitrogen',
-                key: 'TotalN',
-                chartDiv: 'tn-chart',
-                unit: 'kg',
-            },
-            {
-                name: 'Total Phosphorus',
-                key: 'TotalP',
-                chartDiv: 'tp-chart',
-                unit: 'kg',
-            }
-        ], { scenarios: scenarios }),
-        qualitySelections = new models.SelectionOptionsCollection([
-            { group: 'SummaryLoads', groupName: 'Summary', name: 'Total Loads', unit: 'kg', active: true },
-            { group: 'SummaryLoads', groupName: 'Summary', name: 'Loading Rates', unit: 'kg/ha' },
-            { group: 'SummaryLoads', groupName: 'Summary', name: 'Mean Annual Concentration', unit: 'mg/l' },
-            { group: 'SummaryLoads', groupName: 'Summary', name: 'Mean Low-Flow Concentration', unit: 'mg/l' },
-            { group: 'Loads', groupName: 'Land Use', name: 'Hay/Pasture', unit: 'kg' },
-            { group: 'Loads', groupName: 'Land Use', name: 'Cropland', unit: 'kg' },
-            { group: 'Loads', groupName: 'Land Use', name: 'Wooded Areas', unit: 'kg' },
-            { group: 'Loads', groupName: 'Land Use', name: 'Wetlands', unit: 'kg' },
-            { group: 'Loads', groupName: 'Land Use', name: 'Open Land', unit: 'kg' },
-            { group: 'Loads', groupName: 'Land Use', name: 'Barren Areas', unit: 'kg' },
-            { group: 'Loads', groupName: 'Land Use', name: 'Low-Density Mixed', unit: 'kg' },
-            { group: 'Loads', groupName: 'Land Use', name: 'Medium-Density Mixed', unit: 'kg' },
-            { group: 'Loads', groupName: 'Land Use', name: 'High-Density Mixed', unit: 'kg' },
-            { group: 'Loads', groupName: 'Land Use', name: 'Other Upland Areas', unit: 'kg' },
-            { group: 'Loads', groupName: 'Land Use', name: 'Farm Animals', unit: 'kg' },
-            { group: 'Loads', groupName: 'Land Use', name: 'Stream Bank Erosion', unit: 'kg' },
-            { group: 'Loads', groupName: 'Land Use', name: 'Subsurface Flow', unit: 'kg' },
-            { group: 'Loads', groupName: 'Land Use', name: 'Point Sources', unit: 'kg' },
-            { group: 'Loads', groupName: 'Land Use', name: 'Septic Systems', unit: 'kg' },
-        ]);
+        qualityCharts = new models.GwlfeQualityCharts(
+            constants.gwlfeQualityChartConfig,
+            { scenarios: scenarios }
+        ),
+        qualitySelections = new models.SelectionOptionsCollection(
+            constants.gwlfeQualitySelectionOptionConfig);
 
     return new models.TabsCollection([
         {
@@ -1226,7 +1098,7 @@ function getCompareScenarios(isTr55) {
     }
 
     trueScenarios.forEach(function(scenario, index) {
-        var color = SCENARIO_COLORS[index % 32];
+        var color = constants.SCENARIO_COLORS[index % 32];
         tempScenarios.add(copyScenario(scenario, aoi_census, color));
     });
 
