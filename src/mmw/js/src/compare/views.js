@@ -313,6 +313,12 @@ var InputsView = Marionette.LayoutView.extend({
         'change:polling': 'toggleDownloadButtonActive'
     },
 
+    templateHelpers: function() {
+        return {
+            showDownloadButton: this.model.get('modelPackage') === coreUtils.TR55_PACKAGE,
+        };
+    },
+
     toggleDownloadButtonActive: function() {
         this.ui.downloadButton.prop('disabled', this.model.get('polling'));
     },
