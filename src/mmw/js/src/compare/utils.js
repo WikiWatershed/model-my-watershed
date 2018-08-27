@@ -26,36 +26,36 @@ function mapScenariosToHydrologyChartData(scenarios, key) {
 
 function mapScenariosToHydrologyTableData(scenarios) {
     var scenarioData = scenarios
-            .models
-            .reduce(function(accumulator, next) {
-                var results = next.get('results'),
-                    nextAttribute = results
-                        .filter(function(n) {
-                            return n.get('displayName') === constants.HYDROLOGY;
-                        })
-                        .map(function(m) {
-                            return m
-                                .get('result')
-                                .monthly;
-                        });
+        .models
+        .reduce(function(accumulator, next) {
+            var results = next.get('results'),
+                nextAttribute = results
+                    .filter(function(n) {
+                        return n.get('displayName') === constants.HYDROLOGY;
+                    })
+                    .map(function(m) {
+                        return m
+                            .get('result')
+                            .monthly;
+                    });
 
-                return accumulator.concat(nextAttribute);
-            }, []),
-        tableData = constants.monthNames
-            .map(function(name, key) {
-                return {
-                    key: key,
-                    name: moment(name, 'MMM').format('MMMM'),
-                    unit: 'cm',
-                    values: scenarioData
-                        .map(function(element) {
-                            return element[key];
-                        }),
-                    selectedAttribute: constants.hydrologyKeys.streamFlow,
-                };
-            });
+            return accumulator.concat(nextAttribute);
+        }, []);
 
-    return tableData;
+    return constants
+        .monthNames
+        .map(function(name, key) {
+            return {
+                key: key,
+                name: moment(name, 'MMM').format('MMMM'),
+                unit: 'cm',
+                values: scenarioData
+                    .map(function(element) {
+                        return element[key];
+                    }),
+                selectedAttribute: constants.hydrologyKeys.streamFlow,
+            };
+        });
 }
 
 module.exports = {
