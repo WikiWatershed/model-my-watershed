@@ -30,10 +30,10 @@ GWLFE_DEFAULTS = {
                 lu.BARE_ROCK,  # Maps NLCD 12, 31
                 lu.SANDY_AREAS,     # Does not map to NLCD
                 lu.UNPAVED_ROAD,    # Does not map to NLCD
-                lu.LD_MIXED,   # Maps NLCD 21, 22
+                lu.LD_MIXED,   # Maps NLCD 22
                 lu.MD_MIXED,   # Maps NLCD 23
                 lu.HD_MIXED,   # Maps NLCD 24
-                lu.LD_RESIDENTIAL,  # Does not map to NLCD
+                lu.LD_RESIDENTIAL,  # Maps NLCD 21
                 lu.MD_RESIDENTIAL,  # Does not map to NLCD
                 lu.HD_RESIDENTIAL,  # Does not map to NLCD
                 ],
