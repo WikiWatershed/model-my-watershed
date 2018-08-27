@@ -148,11 +148,11 @@ var CompareModal = modalViews.ModalBaseView.extend({
 
         switch (this.model.get('modelPackage')) {
             case coreUtils.GWLFE:
-                this.showGWLFESectionsView();
+                this.showGwlfeSectionsView();
                 this.showSelectionView(activeTab);
                 break;
             case coreUtils.TR55_PACKAGE:
-                this.showTR55SectionsView();
+                this.showTr55SectionsView();
                 break;
             default:
                 window.console.warn('Invalid model package', this.model.get('modelPackage'));
@@ -160,7 +160,7 @@ var CompareModal = modalViews.ModalBaseView.extend({
         }
     },
 
-    showTR55SectionsView: function() {
+    showTr55SectionsView: function() {
         if (this.model.get('mode') === models.constants.CHARTS) {
             this.sectionsRegion.show(new Tr55ChartView({
                 model: this.model,
@@ -178,7 +178,7 @@ var CompareModal = modalViews.ModalBaseView.extend({
         }
     },
 
-    showGWLFESectionsView: function() {
+    showGwlfeSectionsView: function() {
         var activeTab = this.model.get('tabs').findWhere({ active: true }),
             activeName = activeTab.get('name'),
             activeMode = this.model.get('mode'),
@@ -187,10 +187,10 @@ var CompareModal = modalViews.ModalBaseView.extend({
             View = (function() {
                     if (activeMode === models.constants.CHARTS) {
                         return isHydrology ?
-                            GWLFEHydrologyChartView : GwlfeQualityChartView;
+                            GwlfeHydrologyChartView : GwlfeQualityChartView;
                     } else {
                         return isHydrology ?
-                            GWLFEHydrologyTableView : GwlfeQualityTableView;
+                            GwlfeHydrologyTableView : GwlfeQualityTableView;
                     }
                 })();
 
@@ -532,7 +532,7 @@ var CompareDescriptionPopoverView = Marionette.ItemView.extend({
     },
 });
 
-var GWLFEScenarioItemView = Marionette.ItemView.extend({
+var GwlfeScenarioItemView = Marionette.ItemView.extend({
     className: 'compare-column -gwlfe',
     template: gwlfeCompareScenarioItemTmpl,
 
@@ -561,7 +561,7 @@ var GWLFEScenarioItemView = Marionette.ItemView.extend({
     },
 });
 
-var TR55ScenarioItemView = Marionette.ItemView.extend({
+var Tr55ScenarioItemView = Marionette.ItemView.extend({
     className: 'compare-column -tr55',
     template: tr55CompareScenarioItemTmpl,
 
@@ -612,9 +612,9 @@ var ScenariosRowView = Marionette.CollectionView.extend({
     className: 'compare-scenario-row-content',
     getChildView: function() {
         if (this.model.get('modelPackage') === coreUtils.TR55_PACKAGE) {
-            return TR55ScenarioItemView;
+            return Tr55ScenarioItemView;
         } else {
-            return GWLFEScenarioItemView;
+            return GwlfeScenarioItemView;
         }
     },
 
@@ -740,7 +740,7 @@ var LineChartRowView = Marionette.ItemView.extend({
     },
 });
 
-var GWLFEHydrologyChartView = Marionette.CollectionView.extend({
+var GwlfeHydrologyChartView = Marionette.CollectionView.extend({
     childView: LineChartRowView,
 });
 
@@ -874,7 +874,7 @@ var TableView = Marionette.CollectionView.extend({
     }
 });
 
-var GWLFEHydrologyTableRowView = TableRowView.extend({
+var GwlfeHydrologyTableRowView = TableRowView.extend({
     models: models.MonthlyTableRowModel,
     className: 'compare-table-row -hydrology',
     template: compareTableRowTmpl,
@@ -892,8 +892,8 @@ var GWLFEHydrologyTableRowView = TableRowView.extend({
     },
 });
 
-var GWLFEHydrologyTableView = TableView.extend({
-    childView: GWLFEHydrologyTableRowView,
+var GwlfeHydrologyTableView = TableView.extend({
+    childView: GwlfeHydrologyTableRowView,
 });
 
 var GwlfeQualityTableRowView = TableRowView.extend({
