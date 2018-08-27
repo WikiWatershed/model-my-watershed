@@ -765,6 +765,7 @@ var GwlfeBarChartRowView = Marionette.ItemView.extend({
                 onRenderComplete: function() {
                     self.triggerMethod('chart:rendered');
                 },
+                abbreviateTicks: true,
             };
 
         $(chartEl.parentNode).css({ width: parentWidth });
