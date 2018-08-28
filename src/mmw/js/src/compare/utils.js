@@ -1,6 +1,7 @@
 'use strict';
 
-var moment = require('moment'),
+var _ = require('lodash'),
+    moment = require('moment'),
     constants = require('./constants');
 
 function mapScenariosToHydrologyChartData(scenarios, key) {
@@ -57,8 +58,33 @@ function mapScenariosToHydrologyTableData(scenarios) {
             };
         });
 }
+/**
+ * Returns a list of selections for water quality, filtered down to
+ * only those that are present in all scenarios. This allows for
+ * opening the Compare View when there are old scenarios with
+ * "Other Upland Areas", and new scenarios with "Low-Density Open Space".
+ * In this case, neither of these will be shown in the Compare View.
+ *
+ * @param scenarios ScenarioCollection
+ */
+function getQualitySelections(scenarios) {
+    return _.filter(constants.gwlfeQualitySelectionOptionConfig,
+                    function(selection) {
+        return scenarios.every(function(scenario) {
+            var result = scenario
+                         .get('results')
+                         .findWhere({ name: 'quality' })
+                         .get('result');
+
+            return _.some(result[selection.group], function(load) {
+                return load.Source === selection.name;
+            });
+        });
+    });
+}
 
 module.exports = {
     mapScenariosToHydrologyChartData: mapScenariosToHydrologyChartData,
     mapScenariosToHydrologyTableData: mapScenariosToHydrologyTableData,
+    getQualitySelections: getQualitySelections,
 };

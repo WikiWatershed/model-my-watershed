@@ -977,7 +977,7 @@ function getGwlfeTabs(scenarios) {
             { scenarios: scenarios }
         ),
         qualitySelections = new models.SelectionOptionsCollection(
-            constants.gwlfeQualitySelectionOptionConfig);
+            utils.getQualitySelections(scenarios));
 
     return new models.TabsCollection([
         {
