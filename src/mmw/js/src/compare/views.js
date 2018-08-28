@@ -313,6 +313,12 @@ var InputsView = Marionette.LayoutView.extend({
         'change:polling': 'toggleDownloadButtonActive'
     },
 
+    templateHelpers: function() {
+        return {
+            showDownloadButton: this.model.get('modelPackage') === coreUtils.TR55_PACKAGE,
+        };
+    },
+
     toggleDownloadButtonActive: function() {
         this.ui.downloadButton.prop('disabled', this.model.get('polling'));
     },
@@ -750,15 +756,18 @@ var GwlfeBarChartRowView = Marionette.ItemView.extend({
             parentWidth = (_.size(values) *
                 constants.COMPARE_COLUMN_WIDTH +
                 constants.CHART_AXIS_WIDTH) + 'px',
+            yAxisUnit = this.model.get('unit'),
+            yAxisLabel = this.model.get('unitLabel') + ' (' + yAxisUnit + ')',
             options = {
-                yAxisLabel: this.model.get('unitLabel'),
-                yAxisUnit: this.model.get('unit'),
+                yAxisUnit: yAxisUnit,
+                yAxisLabel: yAxisLabel,
                 colors: constants.SCENARIO_COLORS,
                 columnWidth: constants.COMPARE_COLUMN_WIDTH,
                 xAxisWidth: constants.CHART_AXIS_WIDTH,
                 onRenderComplete: function() {
                     self.triggerMethod('chart:rendered');
                 },
+                abbreviateTicks: true,
             };
 
         $(chartEl.parentNode).css({ width: parentWidth });
