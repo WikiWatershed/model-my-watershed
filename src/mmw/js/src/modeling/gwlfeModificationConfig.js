@@ -29,6 +29,8 @@ var n23Name = 'n23',
     areaToModifyName = 'areaToModify',
     percentAeuToModifyName = 'percentAeuToModify',
     percentAreaToModifyName = 'percentAreaToModify',
+    CurveNumberName = 'CN',
+    CroplandIndex = 1,
     AREA = 'area',
     LENGTH = 'length',
     FilterWidthDefault = 30,
@@ -192,6 +194,13 @@ function makeValidateDataModelFn(dataModelNames) {
             return dataModel[dataModelName] > 0;
         });
     };
+}
+
+// Given the current curve number, the percentage of treated cropland, and
+// tillFactor, computes the new curve number for cropland.
+function adjustCurveNumber(cn, fractionalVal, tillFactor) {
+    return (((1.7969 * cn) - 71.966) * fractionalVal * tillFactor) +
+           (cn * (1 - fractionalVal));
 }
 
 function makeAgBmpConfig(outputName) {
