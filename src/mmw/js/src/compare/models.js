@@ -3,14 +3,8 @@
 var _ = require('lodash'),
     coreUtils = require('../core/utils'),
     Backbone = require('../../shim/backbone'),
-    ControlsCollection = require('../modeling/models').ModelPackageControlsCollection;
-
-var CHARTS = 'charts',
-    TABLE = 'table',
-    MIN_VISIBLE_SCENARIOS = 5,
-    CHART_AXIS_WIDTH = 82,
-    COMPARE_COLUMN_WIDTH = 134,
-    HYDROLOGY = 'Hydrology';
+    ControlsCollection = require('../modeling/models').ModelPackageControlsCollection,
+    constants = require('./constants');
 
 var SelectionOptionModel = Backbone.Model.extend({
     defaults: {
@@ -306,7 +300,7 @@ var TabsCollection = Backbone.Collection.extend({
 var WindowModel = Backbone.Model.extend({
     defaults: {
         controls: null, // ModelPackageControlsCollection
-        mode: CHARTS, // or TABLE
+        mode: constants.CHARTS, // or TABLE
         scenarios: null, // ScenariosCollection
         tabs: null,  // TabsCollection
         visibleScenarioIndex: 0, // Index of the first visible scenario
@@ -356,12 +350,4 @@ module.exports = {
     GwlfeQualityTable: GwlfeQualityTable,
     TabsCollection: TabsCollection,
     WindowModel: WindowModel,
-    constants: {
-        CHARTS: CHARTS,
-        TABLE: TABLE,
-        MIN_VISIBLE_SCENARIOS: MIN_VISIBLE_SCENARIOS,
-        CHART_AXIS_WIDTH: CHART_AXIS_WIDTH,
-        COMPARE_COLUMN_WIDTH: COMPARE_COLUMN_WIDTH,
-        HYDROLOGY: HYDROLOGY,
-    },
 };
