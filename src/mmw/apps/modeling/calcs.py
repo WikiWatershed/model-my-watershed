@@ -80,9 +80,29 @@ def get_catchments(comids):
 
 
 def apply_gwlfe_modifications(gms, modifications):
+    # Partition modifications into array and key modifications.
+    # Array modifications target gms arrays, and have keys like
+    # {array}__{index}. Key modifications target gms keys and
+    # can be used by simply updating modified_gms.
+    array_mods = []
+    key_mods = []
     modified_gms = deepcopy(gms)
+
     for mod in modifications:
+        for key, value in mod.iteritems():
+            if '__' in key:
+                array_mods.append({key: value})
+            else:
+                key_mods.append({key: value})
+
+    for mod in array_mods:
+        for key, value in mod.iteritems():
+            gmskey, i = key.split('__')
+            modified_gms[gmskey][int(i)] = value
+
+    for mod in key_mods:
         modified_gms.update(mod)
+
     return modified_gms
 
 
