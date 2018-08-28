@@ -756,9 +756,11 @@ var GwlfeBarChartRowView = Marionette.ItemView.extend({
             parentWidth = (_.size(values) *
                 constants.COMPARE_COLUMN_WIDTH +
                 constants.CHART_AXIS_WIDTH) + 'px',
+            yAxisUnit = this.model.get('unit'),
+            yAxisLabel = this.model.get('unitLabel') + ' (' + yAxisUnit + ')',
             options = {
-                yAxisLabel: this.model.get('unitLabel'),
-                yAxisUnit: this.model.get('unit'),
+                yAxisUnit: yAxisUnit,
+                yAxisLabel: yAxisLabel,
                 colors: constants.SCENARIO_COLORS,
                 columnWidth: constants.COMPARE_COLUMN_WIDTH,
                 xAxisWidth: constants.CHART_AXIS_WIDTH,
