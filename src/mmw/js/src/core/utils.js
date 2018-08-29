@@ -764,7 +764,17 @@ var utils = {
         var gms = lodash.cloneDeep(gisData);
 
         modifications.forEach(function(mod) {
-            _.assign(gms, mod.get('output'));
+            lodash.forEach(mod.get('output'), function(value, key) {
+                if (key.indexOf('__') > 0) {
+                    var split = key.split('__'),
+                        gmskey = split[0],
+                        index = parseInt(split[1]);
+
+                    gms[gmskey][index] = value;
+                } else {
+                    gms[key] = value;
+                }
+            });
         });
 
         return gms;

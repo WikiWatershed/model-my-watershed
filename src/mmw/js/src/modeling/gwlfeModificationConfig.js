@@ -29,6 +29,8 @@ var n23Name = 'n23',
     areaToModifyName = 'areaToModify',
     percentAeuToModifyName = 'percentAeuToModify',
     percentAreaToModifyName = 'percentAreaToModify',
+    CurveNumberName = 'CN',
+    CroplandIndex = 1,
     AREA = 'area',
     LENGTH = 'length',
     FilterWidthDefault = 30,
@@ -177,7 +179,7 @@ function makeComputeOutputFn(dataModelName, inputName, getOutput) {
         if (inputVal) {
             fractionVal = inputVal / dataModelVal;
             infoMessages[inputName] = getPercentStr(fractionVal, dataModelName);
-            output = getOutput(inputVal, fractionVal);
+            output = getOutput(inputVal, fractionVal, dataModel);
         }
 
         return formatOutput(infoMessages, output);
@@ -191,6 +193,34 @@ function makeValidateDataModelFn(dataModelNames) {
         return _.every(dataModelNames, function(dataModelName) {
             return dataModel[dataModelName] > 0;
         });
+    };
+}
+
+// Given the current curve number, the percentage of treated cropland, and
+// tillFactor, computes the new curve number for cropland.
+function adjustCurveNumber(cn, fractionalVal, tillFactor) {
+    return (((1.7969 * cn) - 71.966) * fractionalVal * tillFactor) +
+           (cn * (1 - fractionalVal));
+}
+
+function makeCurveAdjustingAgBmpConfig(outputName, tillFactor) {
+    function getOutput(inputVal, fractionVal, dataModel) {
+        var currentCN = dataModel[CurveNumberName][CroplandIndex],
+            newCN = adjustCurveNumber(currentCN, fractionVal, tillFactor || 1),
+            curveNumberOutputName = CurveNumberName + '__' + CroplandIndex;
+
+        return fromPairs([
+            [curveNumberOutputName, newCN],
+            [outputName, fractionVal * 100]
+        ]);
+    }
+
+    return {
+        dataModelNames: [n23Name],
+        validateDataModel: makeValidateDataModelFn([n23Name]),
+        userInputNames: [areaToModifyName],
+        validate: makeThresholdValidateFn(n23Name, AREA, areaToModifyName),
+        computeOutput: makeComputeOutputFn(n23Name, areaToModifyName, getOutput)
     };
 }
 
@@ -284,8 +314,8 @@ function makeUrbanAreaBmpConfig(getOutput) {
     the values for a set of Mapshed variables.
 */
 var configs = {
-    'cover_crops': makeAgBmpConfig(n25Name),
-    'conservation_tillage': makeAgBmpConfig(n26Name),
+    'cover_crops': makeCurveAdjustingAgBmpConfig(n25Name, 1),
+    'conservation_tillage': makeCurveAdjustingAgBmpConfig(n26Name, 1.019),
     'nutrient_management':  makeAgBmpConfig(n28bName),
     'waste_management_livestock': makeAeuBmpConfig(n41bName),
     'waste_management_poultry': makeAeuBmpConfig(n41dName),
