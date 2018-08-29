@@ -224,6 +224,31 @@ function makeCurveAdjustingAgBmpConfig(outputName, tillFactor) {
     };
 }
 
+function makeCropTillageBmpConfig(outputName, tillFactor,
+                                  nEfficiency, pEfficiency, sEfficiency) {
+    function getOutput(inputVal, fractionVal, dataModel) {
+        var currentCN = dataModel[CurveNumberName][CroplandIndex],
+            newCN = adjustCurveNumber(currentCN, fractionVal, tillFactor || 1),
+            curveNumberOutputName = CurveNumberName + '__' + CroplandIndex;
+
+        return fromPairs([
+            ['n65', nEfficiency],
+            ['n73', pEfficiency],
+            ['n81', sEfficiency],
+            [curveNumberOutputName, newCN],
+            [outputName, fractionVal * 100]
+        ]);
+    }
+
+    return {
+        dataModelNames: [n23Name],
+        validateDataModel: makeValidateDataModelFn([n23Name]),
+        userInputNames: [areaToModifyName],
+        validate: makeThresholdValidateFn(n23Name, AREA, areaToModifyName),
+        computeOutput: makeComputeOutputFn(n23Name, areaToModifyName, getOutput)
+    };
+}
+
 function makeAgBmpConfig(outputName) {
     function getOutput(inputVal, fractionVal) {
         return fromPairs([
@@ -315,9 +340,9 @@ function makeUrbanAreaBmpConfig(getOutput) {
 */
 var configs = {
     'cover_crops': makeCurveAdjustingAgBmpConfig(n25Name, 1),
-    'crop_tillage_no': makeCurveAdjustingAgBmpConfig(n26Name, 1),
-    'conservation_tillage': makeCurveAdjustingAgBmpConfig(n26Name, 1.019),
-    'crop_tillage_reduced': makeCurveAdjustingAgBmpConfig(n26Name, 1.036),
+    'crop_tillage_no': makeCropTillageBmpConfig(n26Name, 1, 0.11, 0.29, 0.40),
+    'conservation_tillage': makeCropTillageBmpConfig(n26Name, 1.019, 0.08, 0.22, 0.30),
+    'crop_tillage_reduced': makeCropTillageBmpConfig(n26Name, 1.036, 0.06, 0.17, 0.23),
     'nutrient_management':  makeAgBmpConfig(n28bName),
     'waste_management_livestock': makeAeuBmpConfig(n41bName),
     'waste_management_poultry': makeAeuBmpConfig(n41dName),
