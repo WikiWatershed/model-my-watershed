@@ -315,7 +315,9 @@ function makeUrbanAreaBmpConfig(getOutput) {
 */
 var configs = {
     'cover_crops': makeCurveAdjustingAgBmpConfig(n25Name, 1),
+    'crop_tillage_no': makeCurveAdjustingAgBmpConfig(n26Name, 1),
     'conservation_tillage': makeCurveAdjustingAgBmpConfig(n26Name, 1.019),
+    'crop_tillage_reduced': makeCurveAdjustingAgBmpConfig(n26Name, 1.036),
     'nutrient_management':  makeAgBmpConfig(n28bName),
     'waste_management_livestock': makeAeuBmpConfig(n41bName),
     'waste_management_poultry': makeAeuBmpConfig(n41dName),

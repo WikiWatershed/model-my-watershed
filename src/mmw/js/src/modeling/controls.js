@@ -421,8 +421,8 @@ var GwlfeConservationPracticeView = ModificationsView.extend({
                 {
                     name: 'Rural',
                     rows: [
-                        ['cover_crops', 'conservation_tillage', 'nutrient_management', 'waste_management_livestock'],
-                        ['waste_management_poultry', 'buffer_strips', 'streambank_fencing', 'streambank_stabilization']
+                        ['cover_crops', 'crop_tillage_no', 'conservation_tillage', 'crop_tillage_reduced', 'nutrient_management'],
+                        ['waste_management_livestock', 'waste_management_poultry', 'buffer_strips', 'streambank_fencing', 'streambank_stabilization']
                     ]
                 },
                 {
