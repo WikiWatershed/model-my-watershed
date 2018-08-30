@@ -1469,6 +1469,39 @@ var ScenarioModel = Backbone.Model.extend({
     },
 
     /**
+     * Given an aggregate of GWLF-E modifications, validates them
+     * and warns about errors.
+     *
+     * In the future we may incorporate these warnings into a UI of
+     * some sort. For now, they are simply logged to the console.
+     */
+    validateGwlfeModifications: function(mods) {
+        var get = function(key) {
+            if (mods.hasOwnProperty(key)) {
+                return mods[key];
+            } else {
+                return 0;
+            }
+        };
+
+        if (get('n26') > 100) {
+            console.warn(
+                'GWLF-E: Crop Tillage Practice treated land use' +
+                'is too high: ' + round(get('n26'), 2) + '%'
+            );
+        }
+
+        if (get('n25') + get('n26') + get('n28b') > 100) {
+            console.warn(
+                'GWLF-E: Total treated percent of Cropland too high: ' +
+                round(get('n25') + get('n26') + get('n28b'), 2) + '%'
+            );
+        }
+
+        return true;
+    },
+
+    /**
      * Converts current modifications into a single object with key / value
      * pairs for overriding the baseline data model. Useful for aggregating
      * the final value when multiple BMPs target the same value in a GMS file.
@@ -1520,6 +1553,8 @@ var ScenarioModel = Backbone.Model.extend({
                 'n81': _.sum(input['n81']) / n26,
             });
         }
+
+        this.validateGwlfeModifications(output);
 
         // Technically `output` is a singleton that contains everything,
         // but we put it in an array to maintain backwards compatibility.
