@@ -758,28 +758,6 @@ var utils = {
         return false;
     },
 
-    applyGwlfeModifications: function(gisData, modifications) {
-        // Merge the values that came back from Mapshed with the values
-        // in the modifications from the user.
-        var gms = lodash.cloneDeep(gisData);
-
-        modifications.forEach(function(mod) {
-            lodash.forEach(mod.get('output'), function(value, key) {
-                if (key.indexOf('__') > 0) {
-                    var split = key.split('__'),
-                        gmskey = split[0],
-                        index = parseInt(split[1]);
-
-                    gms[gmskey][index] = value;
-                } else {
-                    gms[key] = value;
-                }
-            });
-        });
-
-        return gms;
-    },
-
     // Takes a string query, which is either "Lon,Lat" or "Lat,Lon",
     // and returns an object {lng: 99.9, lat: 99.9}. If the string
     // cannot be parsed in the expected way, returns false

@@ -1526,6 +1526,31 @@ var ScenarioModel = Backbone.Model.extend({
         return [output];
     },
 
+    /**
+     * Returns a `gis_data` object with the overriding modifications
+     * of this scenario applied.
+     */
+    getModifiedGwlfeGisData: function() {
+        var gisData = _.cloneDeep(App.currentProject.get('gis_data')),
+            modifications = this.aggregateGwlfeModifications();
+
+        _.forEach(modifications, function(override) {
+            _.forEach(override, function(value, key) {
+                if (key.indexOf('__') > 0) {
+                    var split = key.split('__'),
+                        gmskey = split[0],
+                        index = parseInt(split[1]);
+
+                    gisData[gmskey][index] = value;
+                } else {
+                    gisData[key] = value;
+                }
+            });
+        });
+
+        return gisData;
+    },
+
     getGisData: function(isSubbasinMode) {
         var self = this,
             project = App.currentProject,
