@@ -1468,6 +1468,64 @@ var ScenarioModel = Backbone.Model.extend({
         this.set('modification_hash', hash);
     },
 
+    /**
+     * Converts current modifications into a single object with key / value
+     * pairs for overriding the baseline data model. Useful for aggregating
+     * the final value when multiple BMPs target the same value in a GMS file.
+     */
+    aggregateGwlfeModifications: function() {
+        var gisData = App.currentProject.get('gis_data'),
+            overrides = this.get('modifications').pluck('output'),
+            input = {
+                'CN__1': [], // Cropland Curve Number
+                'n26': [],   // Crop Tillage Practice Application Percentage
+                'n65': [],   // Crop Tillage Practice Nitrogen Efficiency
+                'n73': [],   // Crop Tillage Practice Phosphorus Efficiency
+                'n81': [],   // Crop Tillage Practice Sediments Efficiency
+            },
+            output = {};
+
+        // For every override, if its key is present in `input`, add its
+        // value to the array to be aggregated later. Else, just add it
+        // to `output` directly.
+        _.forEach(overrides, function(o) {
+            _.forEach(o, function(value, key) {
+                if (['CN__1', 'n26'].indexOf(key) >= 0) {
+                    input[key].push(value);
+                } else if (['n65', 'n73', 'n81'].indexOf(key) >= 0) {
+                    // Multiply efficiency with its applied area
+                    // so it can be weighted by area later
+                    input[key].push(value * o['n26']);
+                } else {
+                    output[key] = value;
+                }
+            });
+        });
+
+        if (input['CN__1'].length > 0) {
+            // Curve Number aggregation is described in
+            // https://github.com/WikiWatershed/model-my-watershed/issues/2942
+            output['CN__1'] = _.sum(input['CN__1']) -
+                (input['CN__1'].length - 1) * gisData['CN'][1];
+        }
+
+        if (input['n26'].length > 0) {
+            // Area weight efficiencies
+            var n26 = _.sum(input['n26']);
+
+            _.extend(output, {
+                'n26': n26,
+                'n65': _.sum(input['n65']) / n26,
+                'n73': _.sum(input['n73']) / n26,
+                'n81': _.sum(input['n81']) / n26,
+            });
+        }
+
+        // Technically `output` is a singleton that contains everything,
+        // but we put it in an array to maintain backwards compatibility.
+        return [output];
+    },
+
     getGisData: function(isSubbasinMode) {
         var self = this,
             project = App.currentProject,
@@ -1499,7 +1557,7 @@ var ScenarioModel = Backbone.Model.extend({
                 };
 
             case utils.GWLFE:
-                var modifications = self.get('modifications').pluck('output');
+                var modifications = self.aggregateGwlfeModifications();
 
                 return {
                     inputmod_hash: self.get('inputmod_hash'),
