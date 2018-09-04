@@ -205,6 +205,10 @@ function makeValidateDataModelFn(dataModelNames) {
 // Given the current curve number, the percentage of treated cropland, and
 // tillFactor, computes the new curve number for cropland.
 function adjustCurveNumber(cn, fractionalVal, tillFactor) {
+    if (tillFactor === null || tillFactor === undefined) {
+        tillFactor = 1;
+    }
+
     return (((1.7969 * cn) - 71.966) * fractionalVal * tillFactor) +
            (cn * (1 - fractionalVal));
 }
@@ -212,7 +216,7 @@ function adjustCurveNumber(cn, fractionalVal, tillFactor) {
 function makeCurveAdjustingAgBmpConfig(outputName, tillFactor) {
     function getOutput(inputVal, fractionVal, dataModel) {
         var currentCN = dataModel[CurveNumberName][CroplandIndex],
-            newCN = adjustCurveNumber(currentCN, fractionVal, tillFactor || 1),
+            newCN = adjustCurveNumber(currentCN, fractionVal, tillFactor),
             curveNumberOutputName = CurveNumberName + '__' + CroplandIndex;
 
         return fromPairs([
@@ -233,7 +237,7 @@ function makeCurveAdjustingAgBmpConfig(outputName, tillFactor) {
 function makeCropTillageBmpConfig(outputName, tillFactor, efficiencies) {
     function getOutput(inputVal, fractionVal, dataModel) {
         var currentCN = dataModel[CurveNumberName][CroplandIndex],
-            newCN = adjustCurveNumber(currentCN, fractionVal, tillFactor || 1),
+            newCN = adjustCurveNumber(currentCN, fractionVal, tillFactor),
             curveNumberOutputName = CurveNumberName + '__' + CroplandIndex;
 
         return fromPairs([
