@@ -140,10 +140,20 @@
         "summary": "Use of annual or perennial plant cover to protect the soil from erosion during the time period between the harvesting and planting of the primary crop. In addition to reducing soil erosion, cover crops can also limit nitrogen loss from cropped areas. Use of annual or perennial plant cover to protect the soil from erosion during the time period between the harvesting and planting of the primary crop. In addition to reducing soil erosion, cover crops can also limit nitrogen loss from cropped areas.",
         "copyStyle": "deciduous_forest"
     },
+    "crop_tillage_no": {
+        "name": "No Till Ag",
+        "summary": "Growing crops or pasture from year to year without tilling or otherwise disturbing the soil, thereby increasing water infiltration, organic matter retention, and nutrient cycling in the soil.",
+        "copyStyle": "green_roof"
+    },
     "conservation_tillage": {
         "name": "Conservation Tillage",
         "summary": "The purpose of this BMP is to leave enough residue from harvested crops on the soil surface (at least 30%) to significantly reduce soil erosion. Variations include seasonal residue management, mulch tillage and no-till planting.",
         "copyStyle": "barren_land"
+    },
+    "crop_tillage_reduced": {
+        "name": "Reduced Tillage",
+        "summary": "The purpose of this BMP is to leave enough residue from harvested crops on the soil surface (at least 30%) to significantly reduce soil erosion. Variations include seasonal residue management, mulch tillage and no-till planting.",
+        "copyStyle": "cluster_housing"
     },
     "nutrient_management": {
         "name": "Nutrient Management",

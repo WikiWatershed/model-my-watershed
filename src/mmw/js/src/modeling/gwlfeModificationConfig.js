@@ -31,6 +31,12 @@ var n23Name = 'n23',
     percentAreaToModifyName = 'percentAreaToModify',
     CurveNumberName = 'CN',
     CroplandIndex = 1,
+    CropTillageEfficiencyName = { n: 'n65', p: 'n73', s: 'n81' },
+    CropTillageEfficiencyValues = {
+        crop_tillage_no:      { n: 0.11, p: 0.29, s: 0.40 },
+        conservation_tillage: { n: 0.08, p: 0.22, s: 0.30 },
+        crop_tillage_reduced: { n: 0.06, p: 0.17, s: 0.23 },
+    },
     AREA = 'area',
     LENGTH = 'length',
     FilterWidthDefault = 30,
@@ -199,6 +205,10 @@ function makeValidateDataModelFn(dataModelNames) {
 // Given the current curve number, the percentage of treated cropland, and
 // tillFactor, computes the new curve number for cropland.
 function adjustCurveNumber(cn, fractionalVal, tillFactor) {
+    if (tillFactor === null || tillFactor === undefined) {
+        tillFactor = 1;
+    }
+
     return (((1.7969 * cn) - 71.966) * fractionalVal * tillFactor) +
            (cn * (1 - fractionalVal));
 }
@@ -206,10 +216,34 @@ function adjustCurveNumber(cn, fractionalVal, tillFactor) {
 function makeCurveAdjustingAgBmpConfig(outputName, tillFactor) {
     function getOutput(inputVal, fractionVal, dataModel) {
         var currentCN = dataModel[CurveNumberName][CroplandIndex],
-            newCN = adjustCurveNumber(currentCN, fractionVal, tillFactor || 1),
+            newCN = adjustCurveNumber(currentCN, fractionVal, tillFactor),
             curveNumberOutputName = CurveNumberName + '__' + CroplandIndex;
 
         return fromPairs([
+            [curveNumberOutputName, newCN],
+            [outputName, fractionVal * 100]
+        ]);
+    }
+
+    return {
+        dataModelNames: [n23Name],
+        validateDataModel: makeValidateDataModelFn([n23Name]),
+        userInputNames: [areaToModifyName],
+        validate: makeThresholdValidateFn(n23Name, AREA, areaToModifyName),
+        computeOutput: makeComputeOutputFn(n23Name, areaToModifyName, getOutput)
+    };
+}
+
+function makeCropTillageBmpConfig(outputName, tillFactor, efficiencies) {
+    function getOutput(inputVal, fractionVal, dataModel) {
+        var currentCN = dataModel[CurveNumberName][CroplandIndex],
+            newCN = adjustCurveNumber(currentCN, fractionVal, tillFactor),
+            curveNumberOutputName = CurveNumberName + '__' + CroplandIndex;
+
+        return fromPairs([
+            [CropTillageEfficiencyName.n, efficiencies.n],
+            [CropTillageEfficiencyName.p, efficiencies.p],
+            [CropTillageEfficiencyName.s, efficiencies.s],
             [curveNumberOutputName, newCN],
             [outputName, fractionVal * 100]
         ]);
@@ -315,7 +349,9 @@ function makeUrbanAreaBmpConfig(getOutput) {
 */
 var configs = {
     'cover_crops': makeCurveAdjustingAgBmpConfig(n25Name, 1),
-    'conservation_tillage': makeCurveAdjustingAgBmpConfig(n26Name, 1.019),
+    'crop_tillage_no': makeCropTillageBmpConfig(n26Name, 1, CropTillageEfficiencyValues['crop_tillage_no']),
+    'conservation_tillage': makeCropTillageBmpConfig(n26Name, 1.019, CropTillageEfficiencyValues['conservation_tillage']),
+    'crop_tillage_reduced': makeCropTillageBmpConfig(n26Name, 1.036, CropTillageEfficiencyValues['crop_tillage_reduced']),
     'nutrient_management':  makeAgBmpConfig(n28bName),
     'waste_management_livestock': makeAeuBmpConfig(n41bName),
     'waste_management_poultry': makeAeuBmpConfig(n41dName),
