@@ -141,18 +141,18 @@
         "copyStyle": "deciduous_forest"
     },
     "crop_tillage_no": {
-        "name": "No Till Ag",
-        "summary": "Growing crops or pasture from year to year without tilling or otherwise disturbing the soil, thereby increasing water infiltration, organic matter retention, and nutrient cycling in the soil.",
+        "name": "No Till Agriculture",
+        "summary": "The purpose of this BMP is to leave some residue from harvested crops on the soil surface to reduce soil erosion. This practice is similar to the “Conservation Tillage” and “Reduced Tillage” practices, and only differs with respect to the amount of residue left on the ground. In this case, it is assumed that there is 60% or more residue left.",
         "copyStyle": "green_roof"
     },
     "conservation_tillage": {
         "name": "Conservation Tillage",
-        "summary": "The purpose of this BMP is to leave enough residue from harvested crops on the soil surface (at least 30%) to significantly reduce soil erosion. Variations include seasonal residue management, mulch tillage and no-till planting.",
+        "summary": "The purpose of this BMP is to leave some residue from harvested crops on the soil surface to reduce soil erosion. This practice is similar to the “No Till Agriculture” and “Reduced Tillage” practices, and only differs with respect to the amount of residue left on the ground. In this case, it is assumed that there is between 30-60% residue left.",
         "copyStyle": "barren_land"
     },
     "crop_tillage_reduced": {
         "name": "Reduced Tillage",
-        "summary": "The purpose of this BMP is to leave enough residue from harvested crops on the soil surface (at least 30%) to significantly reduce soil erosion. Variations include seasonal residue management, mulch tillage and no-till planting.",
+        "summary": "The purpose of this BMP is to leave some residue from harvested crops on the soil surface to reduce soil erosion. This practice is similar to the “No Till Agriculture” and “Conservation Tillage” practices, and only differs with respect to the amount of residue left on the ground. In this case, it is assumed that there is between 15-30% residue left.",
         "copyStyle": "cluster_housing"
     },
     "nutrient_management": {
