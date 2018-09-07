@@ -15,6 +15,7 @@ var $ = require('jquery'),
     userInputTmpl = require('./templates/controls/userInput.html'),
     inputInfoTmpl = require('./templates/controls/inputInfo.html'),
     thumbSelectTmpl = require('./templates/controls/thumbSelect.html'),
+    settingsTmpl = require('./templates/controls/settings.html'),
     modDropdownTmpl = require('./templates/controls/modDropdown.html');
 
 var ENTER_KEYCODE = 13;
@@ -441,6 +442,37 @@ var GwlfeConservationPracticeView = ModificationsView.extend({
     }
 });
 
+var GwlfeSettingsView = ControlView.extend({
+    template: settingsTmpl,
+
+    events: {
+        'click button': 'showSettingsModal',
+    },
+
+    getControlName: function() {
+        return 'gwlfe_settings';
+    },
+
+    initialize: function(options) {
+        ControlView.prototype.initialize.apply(this, [options]);
+
+        this.model.set({
+            controlName: this.getControlName(),
+            controlDisplayName: 'Settings',
+            dataModel: gwlfeConfig.cleanDataModel(App.currentProject.get('gis_data')),
+            errorMessages: null,
+            infoMessages: null,
+        });
+    },
+
+    showSettingsModal: function() {
+        // TODO Implement
+        window.alert('Settings Modal');
+        console.warn('Not implemented');
+    },
+});
+
+
 var PrecipitationView = ControlView.extend({
     template: precipitationTmpl,
 
@@ -509,6 +541,8 @@ function getControlView(controlName) {
             return ConservationPracticeView;
         case 'gwlfe_conservation_practice':
             return GwlfeConservationPracticeView;
+        case 'gwlfe_settings':
+            return GwlfeSettingsView;
         case 'precipitation':
             return PrecipitationView;
     }

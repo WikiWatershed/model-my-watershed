@@ -1819,7 +1819,8 @@ function getControlsForModelPackage(modelPackageName, options) {
             return new ModelPackageControlsCollection();
         } else {
             return new ModelPackageControlsCollection([
-                new ModelPackageControlModel({ name: 'gwlfe_conservation_practice' })
+                new ModelPackageControlModel({ name: 'gwlfe_conservation_practice' }),
+                new ModelPackageControlModel({ name: 'gwlfe_settings' }),
             ]);
         }
     }
