@@ -10,6 +10,8 @@ var $ = require('jquery'),
     models = require('./models'),
     modificationConfigUtils = require('./modificationConfigUtils'),
     gwlfeConfig = require('./gwlfeModificationConfig'),
+    entryModels = require('./gwlfe/entry/models'),
+    EntryModal = require('./gwlfe/entry/views').EntryModal,
     precipitationTmpl = require('./templates/controls/precipitation.html'),
     manualEntryTmpl = require('./templates/controls/manualEntry.html'),
     userInputTmpl = require('./templates/controls/userInput.html'),
@@ -466,9 +468,12 @@ var GwlfeSettingsView = ControlView.extend({
     },
 
     showSettingsModal: function() {
-        // TODO Implement
-        window.alert('Settings Modal');
-        console.warn('Not implemented');
+        var window = new entryModels.WindowModel({
+                dataModel: this.model.get('dataModel'),
+                title: this.model.get('controlDisplayName'),
+            });
+
+        new EntryModal({ model: window }).render();
     },
 });
 

@@ -372,3 +372,20 @@
     }
   }
 }
+
+#entry-modal {
+  .modal-header {
+    background: $ui-light;
+    padding: 2rem;
+    border-bottom: 1px solid $black-12;
+  }
+
+  .modal-body {
+    padding: 0;
+  }
+
+  .modal-footer > .footer-content {
+    background: $paper;
+    border-top: 1px solid $black-12;
+  }
+}
