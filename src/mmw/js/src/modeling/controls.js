@@ -468,9 +468,16 @@ var GwlfeSettingsView = ControlView.extend({
     },
 
     showSettingsModal: function() {
-        var window = new entryModels.WindowModel({
+        var tabs = new entryModels.EntryTabCollection([
+                { name: 'efficiencies', displayName: 'Efficiencies' },
+                { name: 'waste_water', displayName: 'Waste Water' },
+                { name: 'animals', displayName: 'Animals' },
+                { name: 'other', displayName: 'Other Model Data' },
+            ]),
+            window = new entryModels.WindowModel({
                 dataModel: this.model.get('dataModel'),
                 title: this.model.get('controlDisplayName'),
+                tabs: tabs,
             });
 
         new EntryModal({ model: window }).render();
