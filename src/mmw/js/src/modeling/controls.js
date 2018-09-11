@@ -10,11 +10,14 @@ var $ = require('jquery'),
     models = require('./models'),
     modificationConfigUtils = require('./modificationConfigUtils'),
     gwlfeConfig = require('./gwlfeModificationConfig'),
+    entryModels = require('./gwlfe/entry/models'),
+    EntryModal = require('./gwlfe/entry/views').EntryModal,
     precipitationTmpl = require('./templates/controls/precipitation.html'),
     manualEntryTmpl = require('./templates/controls/manualEntry.html'),
     userInputTmpl = require('./templates/controls/userInput.html'),
     inputInfoTmpl = require('./templates/controls/inputInfo.html'),
     thumbSelectTmpl = require('./templates/controls/thumbSelect.html'),
+    settingsTmpl = require('./templates/controls/settings.html'),
     modDropdownTmpl = require('./templates/controls/modDropdown.html');
 
 var ENTER_KEYCODE = 13;
@@ -441,6 +444,47 @@ var GwlfeConservationPracticeView = ModificationsView.extend({
     }
 });
 
+var GwlfeSettingsView = ControlView.extend({
+    template: settingsTmpl,
+
+    events: {
+        'click button': 'showSettingsModal',
+    },
+
+    getControlName: function() {
+        return 'gwlfe_settings';
+    },
+
+    initialize: function(options) {
+        ControlView.prototype.initialize.apply(this, [options]);
+
+        this.model.set({
+            controlName: this.getControlName(),
+            controlDisplayName: 'Settings',
+            dataModel: gwlfeConfig.cleanDataModel(App.currentProject.get('gis_data')),
+            errorMessages: null,
+            infoMessages: null,
+        });
+    },
+
+    showSettingsModal: function() {
+        var tabs = new entryModels.EntryTabCollection([
+                { name: 'efficiencies', displayName: 'Efficiencies' },
+                { name: 'waste_water', displayName: 'Waste Water' },
+                { name: 'animals', displayName: 'Animals' },
+                { name: 'other', displayName: 'Other Model Data' },
+            ]),
+            window = new entryModels.WindowModel({
+                dataModel: this.model.get('dataModel'),
+                title: this.model.get('controlDisplayName'),
+                tabs: tabs,
+            });
+
+        new EntryModal({ model: window }).render();
+    },
+});
+
+
 var PrecipitationView = ControlView.extend({
     template: precipitationTmpl,
 
@@ -509,6 +553,8 @@ function getControlView(controlName) {
             return ConservationPracticeView;
         case 'gwlfe_conservation_practice':
             return GwlfeConservationPracticeView;
+        case 'gwlfe_settings':
+            return GwlfeSettingsView;
         case 'precipitation':
             return PrecipitationView;
     }
