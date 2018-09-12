@@ -10,8 +10,7 @@ var $ = require('jquery'),
     models = require('./models'),
     modificationConfigUtils = require('./modificationConfigUtils'),
     gwlfeConfig = require('./gwlfeModificationConfig'),
-    entryModels = require('./gwlfe/entry/models'),
-    EntryModal = require('./gwlfe/entry/views').EntryModal,
+    entryViews = require('./gwlfe/entry/views'),
     precipitationTmpl = require('./templates/controls/precipitation.html'),
     manualEntryTmpl = require('./templates/controls/manualEntry.html'),
     userInputTmpl = require('./templates/controls/userInput.html'),
@@ -468,19 +467,15 @@ var GwlfeSettingsView = ControlView.extend({
     },
 
     showSettingsModal: function() {
-        var tabs = new entryModels.EntryTabCollection([
-                { name: 'efficiencies', displayName: 'Efficiencies' },
-                { name: 'waste_water', displayName: 'Waste Water' },
-                { name: 'animals', displayName: 'Animals' },
-                { name: 'other', displayName: 'Other Model Data' },
-            ]),
-            window = new entryModels.WindowModel({
-                dataModel: this.model.get('dataModel'),
-                title: this.model.get('controlDisplayName'),
-                tabs: tabs,
-            });
+        var currentScenario = App.currentProject.get('scenarios')
+                                 .findWhere({ active: true });
 
-        new EntryModal({ model: window }).render();
+        entryViews.showSettingsModal(
+            this.model.get('controlDisplayName'),
+            this.model.get('dataModel'),
+            currentScenario.get('modifications'),
+            this.addModification
+        );
     },
 });
 

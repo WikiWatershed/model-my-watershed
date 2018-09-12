@@ -59,6 +59,30 @@ var WindowModel = Backbone.Model.extend({
     },
 });
 
+/**
+ * Returns a FieldCollection for a section
+ * @param tabName  Name of the tab
+ * @param dataModel  Project's gis_data, cleaned
+ * @param modifications  Scenario's current modification collection
+ * @param fields  Object with {name, label, calculator} for each field, with
+ *                minValue and maxValue optionally specified
+ * @returns A FieldCollection with specified fields
+ */
+function makeFieldCollection(tabName, dataModel, modifications, fields) {
+    var mods = modifications.findWhere({ modKey: 'entry_' + tabName }),
+        userInput = mods ? mods.get('userInput') : {};
+
+    return new EntryFieldCollection(fields.map(function(fieldInfo) {
+        var field = new EntryFieldModel(fieldInfo, dataModel);
+
+        if (userInput.hasOwnProperty(fieldInfo.name)) {
+            field.set('userValue', userInput[fieldInfo.name]);
+        }
+
+        return field;
+    }));
+}
+
 module.exports = {
     EntryFieldModel: EntryFieldModel,
     EntryFieldCollection: EntryFieldCollection,
@@ -67,4 +91,5 @@ module.exports = {
     EntryTabCollection: EntryTabCollection,
     EntryTabModel: EntryTabModel,
     WindowModel: WindowModel,
+    makeFieldCollection: makeFieldCollection,
 };

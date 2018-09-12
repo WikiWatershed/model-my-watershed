@@ -146,6 +146,83 @@ var SectionsView = Marionette.CollectionView.extend({
     childView: SectionView,
 });
 
+function showSettingsModal(title, dataModel, modifications, addModification) {
+    var tabs = new models.EntryTabCollection([
+            // { name: 'efficiencies', displayName: 'Efficiencies' },
+            {
+                name: 'waste_water',
+                displayName: 'Waste Water',
+                sections: new models.EntrySectionCollection([
+                    {
+                        title: 'Wastewater Treatment Plants',
+                        fields: models.makeFieldCollection('waste_water', dataModel, modifications, [
+                            {
+                                name: 'PointNitr',
+                                label: 'Annual TN Load (kg/yr)',
+                                calculator: calcs.EqualMonths,
+                                minValue: 0
+                            },
+                            {
+                                name: 'PointPhos',
+                                label: 'Annual TP Load (kg/yr)',
+                                calculator: calcs.EqualMonths,
+                                minValue: 0
+                            },
+                            {
+                                name: 'PointFlow',
+                                label: 'Daily Effluent Discharge (MGD)',
+                                calculator: calcs.PointSourceDischarge,
+                                minValue: 0
+                            },
+                        ]),
+                    },
+                    {
+                        title: 'Number of Persons on Different Septic System Types',
+                        fields: models.makeFieldCollection('waste_water', dataModel, modifications, [
+                            {
+                                name: 'NumNormalSys',
+                                label: 'Normally Functioning Systems',
+                                calculator: calcs.Array12,
+                                minValue: 0
+                            },
+                            {
+                                name: 'NumPondSys',
+                                label: 'Surface Failures',
+                                calculator: calcs.Array12,
+                                minValue: 0
+                            },
+                            {
+                                name: 'NumShortSys',
+                                label: 'Subsurface Failures',
+                                calculator: calcs.Array12,
+                                minValue: 0
+                            },
+                            {
+                                name: 'NumDischargeSys',
+                                label: 'Direct Discharges',
+                                calculator: calcs.Array12,
+                                minValue: 0
+                            },
+                        ]),
+                    },
+                ]),
+            },
+            // { name: 'animals', displayName: 'Animals' },
+            // { name: 'other', displayName: 'Other Model Data' },
+        ]),
+        window = new models.WindowModel({
+            dataModel: dataModel,
+            title: title,
+            tabs: tabs,
+        });
+
+    new EntryModal({
+        model: window,
+        addModification: addModification,
+    }).render();
+}
+
 module.exports = {
     EntryModal: EntryModal,
+    showSettingsModal: showSettingsModal,
 };
