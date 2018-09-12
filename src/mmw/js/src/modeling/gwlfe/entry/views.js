@@ -2,6 +2,8 @@
 
 var Marionette = require('../../../../shim/backbone.marionette'),
     modalViews = require('../../../core/modals/views'),
+    models = require('./models'),
+    calcs = require('./calcs'),
     fieldTmpl = require('./templates/field.html'),
     modalTmpl = require('./templates/modal.html'),
     sectionTmpl = require('./templates/section.html'),
@@ -14,9 +16,21 @@ var EntryModal = modalViews.ModalBaseView.extend({
     id: 'entry-modal',
     className: 'modal modal-large fade',
 
+    ui: {
+        saveButton: '.btn-active',
+    },
+
+    events: {
+        'click @ui.saveButton': 'saveAndClose',
+    },
+
     regions: {
         panelsRegion: '.tab-panels-region',
         contentsRegion: '.tab-contents-region',
+    },
+
+    initialize: function(options) {
+        this.mergeOptions(options, ['addModification']);
     },
 
     // Override to populate tabs
@@ -31,6 +45,16 @@ var EntryModal = modalViews.ModalBaseView.extend({
         }));
 
         this.$el.modal('show');
+    },
+
+    saveAndClose: function() {
+        var addModification = this.addModification;
+
+        this.model.get('tabs').forEach(function(tab) {
+            addModification(tab.getOutput());
+        });
+
+        this.hide();
     }
 });
 

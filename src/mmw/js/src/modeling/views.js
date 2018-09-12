@@ -800,12 +800,13 @@ var GwlfeToolbarView = ScenarioModelToolbarView.extend({
 
     templateHelpers: function() {
         var activeMod = this.getActiveMod(),
+            isEntry = function(m) { return m.modKey.startsWith('entry_'); },
             modifications = this.model.get('modifications').toJSON(),
             editable = isEditable(this.model);
 
         activeMod = activeMod ? activeMod.toJSON() : null;
         return {
-            modifications: modifications,
+            modifications: _.reject(modifications, isEntry),
             activeMod: activeMod,
             displayNames: gwlfeConfig.displayNames,
             editable: editable

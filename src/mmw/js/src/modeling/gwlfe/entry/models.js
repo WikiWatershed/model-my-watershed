@@ -1,6 +1,7 @@
 "use strict";
 
-var Backbone = require('../../../../shim/backbone');
+var Backbone = require('../../../../shim/backbone'),
+    GwlfeModificationModel = require('../../models').GwlfeModificationModel;
 
 var EntryFieldModel = Backbone.Model.extend({
     defaults: {
@@ -44,6 +45,31 @@ var EntryTabModel = Backbone.Model.extend({
         name: '',
         sections: null,  // EntrySectionCollection
     },
+
+    getOutput: function() {
+        var output = {},
+            userInput = {};
+
+        this.get('sections').forEach(function(section) {
+            section.get('fields').forEach(function(field) {
+                var name = field.get('name'),
+                    userValue = field.get('userValue');
+
+                if (userValue !== null &&
+                    userValue !== undefined &&
+                    userValue !== '') {
+                    output[name] = field.toOutput(userValue);
+                    userInput[name] = userValue;
+                }
+            });
+        });
+
+        return new GwlfeModificationModel({
+            modKey: 'entry_' + this.get('name'),
+            output: output,
+            userInput: userInput,
+        });
+    }
 });
 
 var EntryTabCollection = Backbone.Collection.extend({
