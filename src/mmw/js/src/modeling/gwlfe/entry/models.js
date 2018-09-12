@@ -11,6 +11,16 @@ var EntryFieldModel = Backbone.Model.extend({
         autoValue: null,
         userValue: null,
     },
+
+    initialize: function(attrs, dataModel) {
+        this.toOutput = attrs.calculator.toOutput;
+        this.set('autoValue',
+            attrs.calculator.getAutoValue(attrs.name, dataModel));
+    },
+
+    toOutput: function() {
+        throw "Calculator not provided.";
+    }
 });
 
 var EntryFieldCollection = Backbone.Collection.extend({
