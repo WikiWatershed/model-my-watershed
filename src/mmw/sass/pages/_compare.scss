@@ -333,6 +333,7 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
   .compare-sections {
     flex: 0 1 auto;
     overflow: auto;
+    z-index: 1000;
 
     &.polling {
       .compare-column, rect {
