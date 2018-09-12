@@ -429,5 +429,52 @@
 
   .tab-pane {
     padding: 2rem;
+
+    .rows {
+      padding: 2rem 0;
+
+      .row {
+        padding-bottom: 0.5rem;
+
+        .manual-entry-label {
+          padding-top: 7px;
+        }
+
+        input[type='number'] {
+          -moz-appearance: textfield;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+        }
+
+        .form-control {
+          border-radius: 0;
+
+          &:invalid {
+            border-color: $ui-danger;
+
+            &:focus {
+              box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px #ce8483;
+            }
+          }
+        }
+
+        .btn-icon {
+          position: absolute;
+          top: 0;
+          right: 13px;
+
+          i {
+            color: #449ff0;
+          }
+
+          &:focus {
+            outline: none;
+          }
+        }
+      }
+    }
   }
 }

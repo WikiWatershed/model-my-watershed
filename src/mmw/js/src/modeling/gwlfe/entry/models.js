@@ -2,10 +2,37 @@
 
 var Backbone = require('../../../../shim/backbone');
 
+var EntryFieldModel = Backbone.Model.extend({
+    defaults: {
+        label: '',
+        name: '',
+        minValue: null,
+        maxValue: null,
+        autoValue: null,
+        userValue: null,
+    },
+});
+
+var EntryFieldCollection = Backbone.Collection.extend({
+    model: EntryFieldModel,
+});
+
+var EntrySectionModel = Backbone.Model.extend({
+    defaults: {
+        title: '',
+        fields: null,  // EntryFieldCollection
+    }
+});
+
+var EntrySectionCollection = Backbone.Collection.extend({
+    model: EntrySectionModel,
+});
+
 var EntryTabModel = Backbone.Model.extend({
     defaults: {
         displayName: '',
         name: '',
+        sections: null,  // EntrySectionCollection
     },
 });
 
@@ -23,6 +50,10 @@ var WindowModel = Backbone.Model.extend({
 });
 
 module.exports = {
+    EntryFieldModel: EntryFieldModel,
+    EntryFieldCollection: EntryFieldCollection,
+    EntrySectionModel: EntrySectionModel,
+    EntrySectionCollection: EntrySectionCollection,
     EntryTabCollection: EntryTabCollection,
     EntryTabModel: EntryTabModel,
     WindowModel: WindowModel,

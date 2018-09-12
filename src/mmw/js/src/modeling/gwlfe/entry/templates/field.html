@@ -1,0 +1,30 @@
+<div class="col-sm-8">
+    <div class="manual-entry-label">
+        {{ label }}
+    </div>
+</div>
+<div class="col-sm-4">
+    <input
+            type="number"
+            class="form-control"
+            name="{{ name }}"
+            step="0.000001"
+            {% if minValue != null %} min="{{ minValue }}" {% endif %}
+            {% if maxValue != null %} max="{{ maxValue }}" {% endif %}
+            placeholder="{{ autoValue | round(3) }}"
+            value="{{ userValue }}"
+    >
+    {% if userValue %}
+    <button
+            type="button"
+            class="btn btn-icon"
+            data-toggle="popover"
+            data-placement="bottom"
+            data-trigger="hover"
+            data-html="true"
+            data-content="<strong>Reset to auto-estimated:</strong><br />{{ autoValue | round(3) }}"
+    >
+        <i class="fa fa-undo"></i>
+    </button>
+    {% endif %}
+</div>
