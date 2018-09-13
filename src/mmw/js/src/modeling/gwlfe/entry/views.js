@@ -1,6 +1,7 @@
 "use strict";
 
-var Marionette = require('../../../../shim/backbone.marionette'),
+var _ = require('lodash'),
+    Marionette = require('../../../../shim/backbone.marionette'),
     modalViews = require('../../../core/modals/views'),
     models = require('./models'),
     calcs = require('./calcs'),
@@ -20,9 +21,9 @@ var EntryModal = modalViews.ModalBaseView.extend({
         saveButton: '.btn-active',
     },
 
-    events: {
+    events: _.defaults({
         'click @ui.saveButton': 'saveAndClose',
-    },
+    }, modalViews.ModalBaseView.prototype.events),
 
     regions: {
         panelsRegion: '.tab-panels-region',
@@ -117,7 +118,7 @@ var FieldView = Marionette.ItemView.extend({
     template: fieldTmpl,
 
     ui: {
-        input: 'input',
+        input: '.form-control',
     },
 
     events: {
@@ -231,17 +232,124 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                     },
                 ]),
             },
-            // { name: 'animals', displayName: 'Animals' },
+            {
+                name: 'animals',
+                displayName: 'Animals',
+                sections: new models.EntrySectionCollection([
+                    {
+                        title: 'Animal Populations',
+                        fields: models.makeFieldCollection('animals', dataModel, modifications, [
+                            {
+                                name: 'NumAnimals__0',
+                                label: 'Cows, Dairy',
+                                calculator: calcs.ArrayIndex,
+                                minValue: 0
+                            },
+                            {
+                                name: 'GrazingAnimal__0',
+                                label: 'Are Dairy Cows allowed to graze?',
+                                calculator: calcs.ArrayIndex,
+                                type: models.ENTRY_FIELD_TYPES.YESNO
+                            },
+                            {
+                                name: 'NumAnimals__1',
+                                label: 'Cows, Beef',
+                                calculator: calcs.ArrayIndex,
+                                minValue: 0
+                            },
+                            {
+                                name: 'GrazingAnimal__1',
+                                label: 'Are Beef Cows allowed to graze?',
+                                calculator: calcs.ArrayIndex,
+                                type: models.ENTRY_FIELD_TYPES.YESNO
+                            },
+                            {
+                                name: 'NumAnimals__2',
+                                label: 'Chickens, Broilers',
+                                calculator: calcs.ArrayIndex,
+                                minValue: 0
+                            },
+                            {
+                                name: 'NumAnimals__3',
+                                label: 'Chickens, Layers',
+                                calculator: calcs.ArrayIndex,
+                                minValue: 0
+                            },
+                            {
+                                name: 'NumAnimals__4',
+                                label: 'Pigs / Hogs / Swine',
+                                calculator: calcs.ArrayIndex,
+                                minValue: 0
+                            },
+                            {
+                                name: 'GrazingAnimal__4',
+                                label: 'Are Pigs / Hogs / Swine allowed to graze?',
+                                calculator: calcs.ArrayIndex,
+                                type: models.ENTRY_FIELD_TYPES.YESNO
+                            },
+                            {
+                                name: 'NumAnimals__5',
+                                label: 'Sheep',
+                                calculator: calcs.ArrayIndex,
+                                minValue: 0
+                            },
+                            {
+                                name: 'GrazingAnimal__5',
+                                label: 'Are Sheep allowed to graze?',
+                                calculator: calcs.ArrayIndex,
+                                type: models.ENTRY_FIELD_TYPES.YESNO
+                            },
+                            {
+                                name: 'NumAnimals__6',
+                                label: 'Horses',
+                                calculator: calcs.ArrayIndex,
+                                minValue: 0
+                            },
+                            {
+                                name: 'GrazingAnimal__6',
+                                label: 'Are Horses allowed to graze?',
+                                calculator: calcs.ArrayIndex,
+                                type: models.ENTRY_FIELD_TYPES.YESNO
+                            },
+                            {
+                                name: 'NumAnimals__7',
+                                label: 'Turkeys',
+                                calculator: calcs.ArrayIndex,
+                                minValue: 0
+                            },
+                        ]),
+                    },
+                    {
+                        title: 'Populations Served by Animal Waste Management Systems',
+                        fields: models.makeFieldCollection('animals', dataModel, modifications, [
+                            {
+                                name: 'AWMSGrPct',
+                                label: 'Fraction of Livestock served by AWMS (0-1)',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1
+                            },
+                            {
+                                name: 'AWMSNgPct',
+                                label: 'Fraction of Poultry served by AWMS (0-1)',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1
+                            },
+                        ]),
+                    }
+                ]),
+            },
             // { name: 'other', displayName: 'Other Model Data' },
         ]),
-        window = new models.WindowModel({
+        windowModel = new models.WindowModel({
             dataModel: dataModel,
             title: title,
             tabs: tabs,
         });
 
     new EntryModal({
-        model: window,
+        model: windowModel,
         addModification: addModification,
     }).render();
 }

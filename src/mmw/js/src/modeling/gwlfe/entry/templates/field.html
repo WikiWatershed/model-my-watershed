@@ -3,6 +3,7 @@
         {{ label }}
     </div>
 </div>
+{% if type == 'NUMERIC' %}
 <div class="col-sm-4">
     <input
             type="number"
@@ -28,3 +29,45 @@
     </button>
     {% endif %}
 </div>
+{% elif type == 'YESNO' %}
+<div class="col-sm-4">
+    <select
+            class="form-control {{ '-unmodified' if not userValue }}"
+            name="{{ name }}"
+    >
+        <option
+            value="<Yes>"
+            {% if (userValue and userValue == '<Yes>') or (not userValue and autoValue == '<Yes>') %}
+            selected
+            {% endif %}
+        >
+            Yes
+        </option>
+        <option
+            value="<No>"
+            {% if (userValue and userValue == '<No>') or (not userValue and autoValue == '<No>') %}
+            selected
+            {% endif %}
+        >
+            No
+        </option>
+    </select>
+    {% if userValue %}
+    <button
+            type="button"
+            class="btn btn-icon"
+            data-toggle="popover"
+            data-placement="bottom"
+            data-trigger="hover"
+            data-html="true"
+            data-content="<strong>Reset to auto-estimated:</strong><br />{{ autoValue | replace('<', '') | replace('>', '') }}"
+    >
+        <i class="fa fa-undo"></i>
+    </button>
+    {% endif %}
+</div>
+{% else %}
+<div class="col-sm-4">
+    Missing Field Type
+</div>
+{% endif %}

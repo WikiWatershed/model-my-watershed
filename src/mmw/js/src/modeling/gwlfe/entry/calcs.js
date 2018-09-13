@@ -70,5 +70,20 @@ module.exports = {
             return _.sum(dataModel[fieldName]) /
                 (DAYS_PER_YEAR * M3_PER_MGAL * CM_PER_M / AREA_SQM);
         },
+    },
+
+    // Corresponds to a certain index of a given array. The fieldName must be
+    // in the format {ArrayName}__{index}
+    ArrayIndex: {
+        toOutput: function(userValue) {
+            return userValue;
+        },
+        getAutoValue: function(fieldName, dataModel) {
+            var arrayIndex = fieldName.split('__'),
+                arrayName = arrayIndex[0],
+                index = parseInt(arrayIndex[1]);
+
+            return dataModel[arrayName][index];
+        },
     }
 };
