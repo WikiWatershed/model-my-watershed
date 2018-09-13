@@ -118,7 +118,7 @@ var FieldView = Marionette.ItemView.extend({
     template: fieldTmpl,
 
     ui: {
-        input: 'input',
+        input: '.form-control',
     },
 
     events: {
@@ -246,10 +246,22 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                                 minValue: 0
                             },
                             {
+                                name: 'GrazingAnimal__0',
+                                label: 'Are Dairy Cows allowed to graze?',
+                                calculator: calcs.ArrayIndex,
+                                type: models.ENTRY_FIELD_TYPES.YESNO
+                            },
+                            {
                                 name: 'NumAnimals__1',
                                 label: 'Cows, Beef',
                                 calculator: calcs.ArrayIndex,
                                 minValue: 0
+                            },
+                            {
+                                name: 'GrazingAnimal__1',
+                                label: 'Are Beef Cows allowed to graze?',
+                                calculator: calcs.ArrayIndex,
+                                type: models.ENTRY_FIELD_TYPES.YESNO
                             },
                             {
                                 name: 'NumAnimals__2',
@@ -270,16 +282,34 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                                 minValue: 0
                             },
                             {
+                                name: 'GrazingAnimal__4',
+                                label: 'Are Pigs / Hogs / Swine allowed to graze?',
+                                calculator: calcs.ArrayIndex,
+                                type: models.ENTRY_FIELD_TYPES.YESNO
+                            },
+                            {
                                 name: 'NumAnimals__5',
                                 label: 'Sheep',
                                 calculator: calcs.ArrayIndex,
                                 minValue: 0
                             },
                             {
+                                name: 'GrazingAnimal__5',
+                                label: 'Are Sheep allowed to graze?',
+                                calculator: calcs.ArrayIndex,
+                                type: models.ENTRY_FIELD_TYPES.YESNO
+                            },
+                            {
                                 name: 'NumAnimals__6',
                                 label: 'Horses',
                                 calculator: calcs.ArrayIndex,
                                 minValue: 0
+                            },
+                            {
+                                name: 'GrazingAnimal__6',
+                                label: 'Are Horses allowed to graze?',
+                                calculator: calcs.ArrayIndex,
+                                type: models.ENTRY_FIELD_TYPES.YESNO
                             },
                             {
                                 name: 'NumAnimals__7',

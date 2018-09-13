@@ -459,12 +459,16 @@
               box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px #ce8483;
             }
           }
+
+          &.-unmodified {
+            color: #999;
+          }
         }
 
         .btn-icon {
           position: absolute;
           top: 0;
-          right: 13px;
+          right: 20px;
 
           i {
             color: #449ff0;

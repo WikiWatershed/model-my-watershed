@@ -3,10 +3,16 @@
 var Backbone = require('../../../../shim/backbone'),
     GwlfeModificationModel = require('../../models').GwlfeModificationModel;
 
+var ENTRY_FIELD_TYPES = {
+    NUMERIC: 'NUMERIC',
+    YESNO: 'YESNO',
+};
+
 var EntryFieldModel = Backbone.Model.extend({
     defaults: {
         label: '',
         name: '',
+        type: ENTRY_FIELD_TYPES.NUMERIC,
         minValue: null,
         maxValue: null,
         autoValue: null,
@@ -110,6 +116,7 @@ function makeFieldCollection(tabName, dataModel, modifications, fields) {
 }
 
 module.exports = {
+    ENTRY_FIELD_TYPES: ENTRY_FIELD_TYPES,
     EntryFieldModel: EntryFieldModel,
     EntryFieldCollection: EntryFieldCollection,
     EntrySectionModel: EntrySectionModel,
