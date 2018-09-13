@@ -1,6 +1,7 @@
 "use strict";
 
-var Marionette = require('../../../../shim/backbone.marionette'),
+var _ = require('lodash'),
+    Marionette = require('../../../../shim/backbone.marionette'),
     modalViews = require('../../../core/modals/views'),
     models = require('./models'),
     calcs = require('./calcs'),
@@ -20,9 +21,9 @@ var EntryModal = modalViews.ModalBaseView.extend({
         saveButton: '.btn-active',
     },
 
-    events: {
+    events: _.defaults({
         'click @ui.saveButton': 'saveAndClose',
-    },
+    }, modalViews.ModalBaseView.prototype.events),
 
     regions: {
         panelsRegion: '.tab-panels-region',
@@ -234,14 +235,14 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
             // { name: 'animals', displayName: 'Animals' },
             // { name: 'other', displayName: 'Other Model Data' },
         ]),
-        window = new models.WindowModel({
+        windowModel = new models.WindowModel({
             dataModel: dataModel,
             title: title,
             tabs: tabs,
         });
 
     new EntryModal({
-        model: window,
+        model: windowModel,
         addModification: addModification,
     }).render();
 }
