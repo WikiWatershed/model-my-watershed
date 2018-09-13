@@ -232,7 +232,84 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                     },
                 ]),
             },
-            // { name: 'animals', displayName: 'Animals' },
+            {
+                name: 'animals',
+                displayName: 'Animals',
+                sections: new models.EntrySectionCollection([
+                    {
+                        title: 'Animal Populations',
+                        fields: models.makeFieldCollection('animals', dataModel, modifications, [
+                            {
+                                name: 'NumAnimals__0',
+                                label: 'Cows, Dairy',
+                                calculator: calcs.ArrayIndex,
+                                minValue: 0
+                            },
+                            {
+                                name: 'NumAnimals__1',
+                                label: 'Cows, Beef',
+                                calculator: calcs.ArrayIndex,
+                                minValue: 0
+                            },
+                            {
+                                name: 'NumAnimals__2',
+                                label: 'Chickens, Broilers',
+                                calculator: calcs.ArrayIndex,
+                                minValue: 0
+                            },
+                            {
+                                name: 'NumAnimals__3',
+                                label: 'Chickens, Layers',
+                                calculator: calcs.ArrayIndex,
+                                minValue: 0
+                            },
+                            {
+                                name: 'NumAnimals__4',
+                                label: 'Pigs / Hogs / Swine',
+                                calculator: calcs.ArrayIndex,
+                                minValue: 0
+                            },
+                            {
+                                name: 'NumAnimals__5',
+                                label: 'Sheep',
+                                calculator: calcs.ArrayIndex,
+                                minValue: 0
+                            },
+                            {
+                                name: 'NumAnimals__6',
+                                label: 'Horses',
+                                calculator: calcs.ArrayIndex,
+                                minValue: 0
+                            },
+                            {
+                                name: 'NumAnimals__7',
+                                label: 'Turkeys',
+                                calculator: calcs.ArrayIndex,
+                                minValue: 0
+                            },
+                        ]),
+                    },
+                    {
+                        title: 'Populations Served by Animal Waste Management Systems',
+                        fields: models.makeFieldCollection('animals', dataModel, modifications, [
+                            {
+                                name: 'AWMSGrPct',
+                                label: 'Fraction of Livestock served by AWMS (0-1)',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1
+                            },
+                            {
+                                name: 'AWMSNgPct',
+                                label: 'Fraction of Poultry served by AWMS (0-1)',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1
+                            },
+                        ]),
+                    }
+                ]),
+            },
             // { name: 'other', displayName: 'Other Model Data' },
         ]),
         windowModel = new models.WindowModel({
