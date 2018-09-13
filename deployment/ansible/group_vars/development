@@ -28,7 +28,7 @@ itsi_secret_key: "{{ lookup('env', 'MMW_ITSI_SECRET_KEY') }}"
 hydroshare_base_url: "https://beta.hydroshare.org/"
 hydroshare_secret_key: "{{ lookup('env', 'MMW_HYDROSHARE_SECRET_KEY') }}"
 
-srat_catchment_api_url: "https://rychrnjrs6.execute-api.us-east-1.amazonaws.com/prod/SratRunModel"
+srat_catchment_api_url: "https://rychrnjrs6.execute-api.us-east-1.amazonaws.com/dev/SratRunModel_DEV"
 srat_catchment_api_key: "{{ lookup('env', 'MMW_SRAT_CATCHMENT_API_KEY') }}"
 
 tilecache_bucket_name: "{{ lookup('env', 'MMW_TILECACHE_BUCKET') | default('', true) }}"
