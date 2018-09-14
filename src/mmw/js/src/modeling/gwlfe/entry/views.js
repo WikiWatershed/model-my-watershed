@@ -114,7 +114,7 @@ var TabContentsView = Marionette.CollectionView.extend({
 });
 
 var FieldView = Marionette.ItemView.extend({
-    className: 'row',
+    className: 'row manual-entry',
     template: fieldTmpl,
 
     ui: {
