@@ -562,6 +562,11 @@ var utils = {
         return geom;
     },
 
+    // Round a number x to n decimal places
+    round: function(x, n) {
+        return Math.round(parseFloat(x) * Math.pow(10, n)) / Math.pow(10, n);
+    },
+
     calculateVisibleRows: function(minScreenHeight, avgRowHeight, minRows) {
         var screenHeight = document.documentElement.clientHeight;
         if (screenHeight <= minScreenHeight) {

@@ -443,6 +443,33 @@
   }
 }
 
+#land-cover-modal {
+  .rows {
+    padding: 2rem 0;
+
+    .row {
+      padding-bottom: 0.5rem;
+    }
+  }
+
+  .modal-footer > .footer-content {
+    display: flex;
+    flex-direction: row;
+
+    .total-content {
+      flex: 1;
+      text-align: left;
+      line-height: 36px;
+      font-size: 15px;
+
+      .error {
+        color: $ui-danger;
+        font-weight: bold;
+      }
+    }
+  }
+}
+
 .manual-entry {
   .manual-entry-label {
     padding-top: 7px;

@@ -97,6 +97,45 @@ var EntryWindowModel = WindowModel.extend({
     }, WindowModel.prototype.defaults),
 });
 
+var LandCoverWindowModel = WindowModel.extend({
+    defaults: _.defaults({
+        autoTotal: 0,
+        userTotal: 0,
+        fields: null, // FieldCollection
+    }, WindowModel.prototype.defaults),
+
+    initialize: function(attrs) {
+        var totalArea = _.sum(attrs.dataModel['Area']);
+        this.set({
+            autoTotal: totalArea,
+            userTotal: totalArea,
+        });
+    },
+
+    getOutput: function() {
+        var output = {},
+            userInput = {};
+
+        this.get('fields').forEach(function(field) {
+            var name = field.get('name'),
+                userValue = field.get('userValue');
+
+            if (userValue !== null &&
+                userValue !== undefined &&
+                userValue !== '') {
+                output[name] = field.toOutput(parseFloat(userValue));
+                userInput[name] = userValue;
+            }
+        });
+
+        return new GwlfeModificationModel({
+            modKey: 'entry_landcover',
+            output: output,
+            userInput: userInput,
+        });
+    }
+});
+
 /**
  * Returns a FieldCollection for a section
  * @param tabName  Name of the tab
@@ -130,5 +169,6 @@ module.exports = {
     EntryTabCollection: EntryTabCollection,
     EntryTabModel: EntryTabModel,
     EntryWindowModel: EntryWindowModel,
+    LandCoverWindowModel: LandCoverWindowModel,
     makeFieldCollection: makeFieldCollection,
 };
