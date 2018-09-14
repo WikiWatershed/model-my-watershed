@@ -340,7 +340,96 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                     }
                 ]),
             },
-            // { name: 'other', displayName: 'Other Model Data' },
+            {
+                name: 'other',
+                displayName: 'Other Model Data',
+                sections: new models.EntrySectionCollection([
+                    {
+                        title: 'Other Model Data',
+                        fields: models.makeFieldCollection('other', dataModel, modifications, [
+                            {
+                                name: 'SedAAdjust',
+                                label: 'Streambank Erosion Adjustment Factor (0-2)',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 2,
+                            },
+                            {
+                                name: 'SedDelivRatio',
+                                label: 'Sediment Delivery Ratio (0-1)',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'TileDrainDensity',
+                                label: 'Fraction of Cropland Tile Drained (0-1)',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'TileNconc',
+                                label: 'Avg. Tile Drain N Concentration (mg/l)',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                            },
+                            {
+                                name: 'TilePConc',
+                                label: 'Avg. Tile Drain P Concentration (mg/l)',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                            },
+                            {
+                                name: 'TileSedConc',
+                                label: 'Avg. Tile Drain Sediment Concentration (mg/l)',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                            },
+                            {
+                                name: 'GrNitrConc',
+                                label: 'Groundwater N Concentration (mg/l)',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                            },
+                            {
+                                name: 'GrPhosConc',
+                                label: 'Groundwater P Concentration (mg/l)',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                            },
+                            {
+                                name: 'ShedAreaDrainLake',
+                                label: 'Wetland / Water Filtration Fraction (0-1)',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'RetentNLake',
+                                label: 'N Wetland / Water Retention Fraction (0-1)',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'RetentPLake',
+                                label: 'P Wetland / Water Retention Fraction (0-1)',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'RetentSedLake',
+                                label: 'TSS Wetland / Water Retention Fraction (0-1)',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                        ]),
+                    },
+                ]),
+            },
         ]),
         windowModel = new models.WindowModel({
             dataModel: dataModel,
