@@ -1,6 +1,7 @@
 "use strict";
 
-var Backbone = require('../../../../shim/backbone'),
+var _ = require('lodash'),
+    Backbone = require('../../../../shim/backbone'),
     GwlfeModificationModel = require('../../models').GwlfeModificationModel;
 
 var ENTRY_FIELD_TYPES = {
@@ -87,8 +88,13 @@ var WindowModel = Backbone.Model.extend({
         feedbackRequired: true,
         dataModel: null, // Cleaned MapShed GIS Data
         title: '',
-        tabs: null,      // EntryTabCollection
     },
+});
+
+var EntryWindowModel = WindowModel.extend({
+    defaults: _.defaults({
+        tabs: null, // EntryTabCollection
+    }, WindowModel.prototype.defaults),
 });
 
 /**
@@ -123,6 +129,6 @@ module.exports = {
     EntrySectionCollection: EntrySectionCollection,
     EntryTabCollection: EntryTabCollection,
     EntryTabModel: EntryTabModel,
-    WindowModel: WindowModel,
+    EntryWindowModel: EntryWindowModel,
     makeFieldCollection: makeFieldCollection,
 };

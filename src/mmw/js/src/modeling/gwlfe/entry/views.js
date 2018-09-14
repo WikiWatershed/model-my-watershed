@@ -431,7 +431,7 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                 ]),
             },
         ]),
-        windowModel = new models.WindowModel({
+        windowModel = new models.EntryWindowModel({
             dataModel: dataModel,
             title: title,
             tabs: tabs,
