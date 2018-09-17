@@ -7,6 +7,7 @@ var $ = require('jquery'),
     settings = require('../core/settings');
 
 var BAD_REQUEST_CODE = 400;
+var SERVICE_UNAVAILABLE_CODE = 503;
 var REQUEST_TIMED_OUT_CODE = 408;
 var DESCRIPTION_MAX_LENGTH = 100;
 var PAGE_SIZE = settings.get('data_catalog_page_size');
@@ -346,7 +347,7 @@ var Catalog = Backbone.Model.extend({
             // was purposefully cancelled
             return;
         }
-        if (response.status === BAD_REQUEST_CODE) {
+        if (response.status === BAD_REQUEST_CODE || SERVICE_UNAVAILABLE_CODE) {
             this.set('error', response.responseJSON &&
                               response.responseJSON.error || "Error");
         } else if (response.status === REQUEST_TIMED_OUT_CODE) {
