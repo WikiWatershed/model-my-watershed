@@ -10,7 +10,7 @@ from apps.bigcz.models import BBox
 from django.conf import settings
 
 from rest_framework import status
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, ValidationError
 import dateutil.parser
 
 
@@ -68,6 +68,11 @@ class ValuesTimedOutError(APIException):
     default_detail = \
         'Request for values did not finish in {} seconds'.format(
             settings.BIGCZ_CLIENT_TIMEOUT)
+
+
+class ServiceNotAvailableError(ValidationError):
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = 'Underlying service is not available.'
 
 
 def read_unicode_csv(utf8_data, **kwargs):
