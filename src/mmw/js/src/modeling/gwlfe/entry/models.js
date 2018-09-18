@@ -65,6 +65,9 @@ var EntryTabModel = Backbone.Model.extend({
                 if (userValue !== null &&
                     userValue !== undefined &&
                     userValue !== '') {
+                    if (field.get('type') === ENTRY_FIELD_TYPES.NUMERIC) {
+                        userValue = parseFloat(userValue);
+                    }
                     output[name] = field.toOutput(userValue);
                     userInput[name] = userValue;
                 }
