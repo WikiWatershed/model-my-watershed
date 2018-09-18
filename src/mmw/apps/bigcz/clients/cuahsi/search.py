@@ -10,6 +10,7 @@ from operator import attrgetter, itemgetter
 
 from suds.client import Client
 from suds.sudsobject import asdict
+from suds.transport.http import TransportError
 from rest_framework.exceptions import ValidationError
 from django.contrib.gis.geos import Point
 
@@ -17,7 +18,11 @@ from django.core.cache import cache
 from django.conf import settings
 
 from apps.bigcz.models import ResourceLink, ResourceList, BBox
-from apps.bigcz.utils import parse_date, RequestTimedOutError
+from apps.bigcz.utils import (
+    parse_date,
+    RequestTimedOutError,
+    ServiceNotAvailableError,
+)
 
 from apps.bigcz.clients.cuahsi.models import CuahsiResource
 
@@ -41,7 +46,21 @@ GRIDDED = [
     'TRMM_3B42_7',
 ]
 
-client = Client(CATALOG_URL, timeout=settings.BIGCZ_CLIENT_TIMEOUT)
+_client = None
+
+
+def get_client():
+    global _client
+
+    if not _client:
+        try:
+            _client = Client(CATALOG_URL,
+                             timeout=settings.BIGCZ_CLIENT_TIMEOUT)
+        except TransportError:
+            raise ServiceNotAvailableError({
+                'error': 'CUAHSI Service is unavailable.'})
+
+    return _client
 
 
 def recursive_asdict(d):
@@ -235,6 +254,7 @@ def make_request(request, expiry, **kwargs):
 
 
 def get_services_in_box(box):
+    client = get_client()
     result = make_request(client.service.GetServicesInBox2,
                           604800,  # Cache for one week
                           xmin=box.xmin,
@@ -253,6 +273,7 @@ def get_services_in_box(box):
 
 
 def get_series_catalog_in_box(box, from_date, to_date, networkIDs):
+    client = get_client()
     from_date = from_date or DATE_MIN
     to_date = to_date or DATE_MAX
 
