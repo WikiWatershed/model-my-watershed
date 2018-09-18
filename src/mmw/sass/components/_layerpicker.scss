@@ -169,6 +169,54 @@ span.time-slider-end {
   > .urban-land-cover-2011-30m-urban {
     background-color: rgba(183, 28, 28, 1);
   }
+
+  > .protected-lands-30m-park-federal {
+      background-color: #AFB42B;
+  }
+
+  > .protected-lands-30m-park-state {
+      background-color: #C0CA33;
+  }
+
+  > .protected-lands-30m-park-local {
+      background-color: #CDDC39;
+  }
+
+  > .protected-lands-30m-park-private {
+      background-color: #D4E157;
+  }
+
+  > .protected-lands-30m-park-unknown {
+      background-color: #E6EE9C;
+  }
+
+  > .protected-lands-30m-natural-resource-federal {
+      background-color: #388E3C;
+  }
+
+  > .protected-lands-30m-natural-resource-state {
+      background-color: #43A047;
+  }
+
+  > .protected-lands-30m-natural-resource-local {
+      background-color: #4CAF50;
+  }
+
+  > .protected-lands-30m-natural-resource-private {
+      background-color: #66BB6A;
+  }
+
+  > .protected-lands-30m-natural-resource-unknown {
+      background-color: #A5D6A7;
+  }
+
+  > .protected-lands-30m-conservation-easement {
+      background-color: #827717;
+  }
+
+  > .protected-lands-30m-agricultural-easement {
+      background-color: #8D6E63;
+  }
 }
 
 .layerpicker-legendcolor {
