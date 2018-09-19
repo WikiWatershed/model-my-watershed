@@ -15,10 +15,9 @@
             placeholder="{{ autoValue | round(3) }}"
             value="{{ userValue }}"
     >
-    {% if userValue %}
     <button
             type="button"
-            class="btn btn-icon"
+            class="btn btn-icon btn-undo"
             data-toggle="popover"
             data-placement="bottom"
             data-trigger="hover"
@@ -27,7 +26,6 @@
     >
         <i class="fa fa-undo"></i>
     </button>
-    {% endif %}
 </div>
 {% elif type == 'YESNO' %}
 <div class="col-sm-4">
@@ -52,10 +50,9 @@
             No
         </option>
     </select>
-    {% if userValue %}
     <button
             type="button"
-            class="btn btn-icon"
+            class="btn btn-icon btn-undo"
             data-toggle="popover"
             data-placement="bottom"
             data-trigger="hover"
@@ -64,7 +61,6 @@
     >
         <i class="fa fa-undo"></i>
     </button>
-    {% endif %}
 </div>
 {% else %}
 <div class="col-sm-4">

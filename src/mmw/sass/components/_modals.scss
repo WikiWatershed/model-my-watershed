@@ -500,7 +500,8 @@
     }
   }
 
-  .btn-icon {
+  .btn-undo {
+    display: none;
     position: absolute;
     top: 0;
     right: 20px;
@@ -511,6 +512,10 @@
 
     &:focus {
       outline: none;
+    }
+
+    &.has-user-value {
+      display: block;
     }
   }
 }
