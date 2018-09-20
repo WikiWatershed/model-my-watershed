@@ -3,13 +3,110 @@
 var _ = require('lodash'),
     Marionette = require('../../../../shim/backbone.marionette'),
     modalViews = require('../../../core/modals/views'),
+    round = require('../../../core/utils').round,
     models = require('./models'),
     calcs = require('./calcs'),
     fieldTmpl = require('./templates/field.html'),
     modalTmpl = require('./templates/modal.html'),
+    landCoverModalTmpl = require('./templates/landCoverModal.html'),
+    landCoverTotalTmpl = require('./templates/landCoverTotal.html'),
     sectionTmpl = require('./templates/section.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     tabPanelTmpl = require('./templates/tabPanel.html');
+
+var LandCoverModal = modalViews.ModalBaseView.extend({
+    template: landCoverModalTmpl,
+
+    id: 'land-cover-modal',
+    className: 'modal modal-large fade',
+
+    ui: {
+        saveButton: '.btn-active',
+    },
+
+    events: _.defaults({
+        'click @ui.saveButton': 'saveAndClose',
+    }, modalViews.ModalBaseView.prototype.events),
+
+    regions: {
+        fieldsRegion: '.rows',
+        totalRegion: '.total-content',
+    },
+
+    initialize: function(options) {
+        this.mergeOptions(options, ['addModification']);
+
+        var onFieldUpdated = _.bind(this.onFieldUpdated, this),
+            fields = this.model.get('fields');
+
+        this.listenTo(fields, 'change', onFieldUpdated);
+    },
+
+    // Override to populate fields
+    onRender: function() {
+        this.fieldsRegion.show(new FieldsView({
+            collection: this.model.get('fields'),
+        }));
+        this.totalRegion.show(new LandCoverTotalView({
+            model: this.model,
+        }));
+
+        this.$el.modal('show');
+    },
+
+    onFieldUpdated: function() {
+        var areas = _.cloneDeep(this.model.get('dataModel')['Area']),
+            fields = this.model.get('fields'),
+            hasUserValue = function(field) {
+                return field.get('userValue') !== null;
+            };
+
+        fields.filter(hasUserValue).forEach(function(field) {
+            var index = parseInt(field.get('name').split('__')[1]);
+
+            areas[index] = parseFloat(field.get('userValue'));
+        });
+
+        this.model.set('userTotal', _.sum(areas));
+
+        this.validateModal();
+    },
+
+    validateModal: function() {
+        var autoTotal = round(this.model.get('autoTotal'), 3),
+            userTotal = round(this.model.get('userTotal'), 3);
+
+        this.ui.saveButton.prop('disabled', autoTotal !== userTotal);
+    },
+
+    saveAndClose: function() {
+        this.addModification(this.model.getOutput());
+
+        this.hide();
+    }
+});
+
+var LandCoverTotalView = Marionette.ItemView.extend({
+    template: landCoverTotalTmpl,
+    templateHelpers: function() {
+        var fields = this.model.get('fields'),
+            hasUserValue = function(field) {
+                return field.get('userValue') !== null;
+            },
+            autoTotal = round(this.model.get('autoTotal'), 3),
+            userTotal = round(this.model.get('userTotal'), 3);
+
+        return {
+            is_modified: fields.some(hasUserValue),
+            autoTotal: autoTotal,
+            userTotal: userTotal,
+        };
+    },
+
+    modelEvents: {
+        'change:userTotal': 'render',
+    },
+});
 
 var EntryModal = modalViews.ModalBaseView.extend({
     template: modalTmpl,
@@ -114,36 +211,46 @@ var TabContentsView = Marionette.CollectionView.extend({
 });
 
 var FieldView = Marionette.ItemView.extend({
-    className: 'row',
+    className: 'row manual-entry',
     template: fieldTmpl,
 
     ui: {
         input: '.form-control',
+        undo: '.btn-undo',
     },
 
     events: {
-        'change @ui.input': 'updateUserValue',
-        'click button': 'resetUserValue',
-    },
-
-    modelEvents: {
-        'change:userValue': 'render',
+        'keyup @ui.input': 'updateUserValue',
+        'click @ui.undo': 'resetUserValue',
     },
 
     onRender: function() {
         this.$('[data-toggle="popover"]').popover();
+        this.toggleUndoButton();
     },
 
     updateUserValue: function() {
         var value = this.ui.input.val();
 
         this.model.set('userValue', value || null);
+        this.toggleUndoButton();
     },
 
     resetUserValue: function() {
         this.ui.input.val('');
         this.$('[data-toggle="popover"]').popover('destroy');
         this.model.set('userValue', null);
+    },
+
+    toggleUndoButton: function() {
+        var userValue = this.model.get('userValue'),
+            undo = this.ui.undo;
+
+        if (userValue) {
+            undo.addClass('has-user-value');
+        } else {
+            undo.removeClass('has-user-value');
+        }
     }
 });
 
@@ -431,7 +538,7 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                 ]),
             },
         ]),
-        windowModel = new models.WindowModel({
+        windowModel = new models.EntryWindowModel({
             dataModel: dataModel,
             title: title,
             tabs: tabs,
@@ -443,7 +550,83 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
     }).render();
 }
 
+function showLandCoverModal(dataModel, modifications, addModification) {
+    var fields = models.makeFieldCollection('landcover', dataModel, modifications, [
+            {
+                name: 'Area__0',
+                label: 'Hay / Pasture (ha)',
+                calculator: calcs.ArrayIndex,
+                minValue: 0
+            },
+            {
+                name: 'Area__1',
+                label: 'Cropland (ha)',
+                calculator: calcs.ArrayIndex,
+                minValue: 0
+            },
+            {
+                name: 'Area__2',
+                label: 'Wooded Areas (ha)',
+                calculator: calcs.ArrayIndex,
+                minValue: 0
+            },
+            {
+                name: 'Area__3',
+                label: 'Wetlands (ha)',
+                calculator: calcs.ArrayIndex,
+                minValue: 0
+            },
+            {
+                name: 'Area__6',
+                label: 'Open Land (ha)',
+                calculator: calcs.ArrayIndex,
+                minValue: 0
+            },
+            {
+                name: 'Area__7',
+                label: 'Barren Areas (ha)',
+                calculator: calcs.ArrayIndex,
+                minValue: 0
+            },
+            {
+                name: 'Area__10',
+                label: 'Low-Density Mixed (ha)',
+                calculator: calcs.ArrayIndex,
+                minValue: 0
+            },
+            {
+                name: 'Area__11',
+                label: 'Medium-Density Mixed (ha)',
+                calculator: calcs.ArrayIndex,
+                minValue: 0
+            },
+            {
+                name: 'Area__12',
+                label: 'High-Density Mixed (ha)',
+                calculator: calcs.ArrayIndex,
+                minValue: 0
+            },
+            {
+                name: 'Area__13',
+                label: 'Low-Density Open Space (ha)',
+                calculator: calcs.ArrayIndex,
+                minValue: 0
+            },
+        ]),
+        windowModel = new models.LandCoverWindowModel({
+            dataModel: dataModel,
+            title: 'Land Cover',
+            fields: fields,
+        });
+
+    new LandCoverModal({
+        model: windowModel,
+        addModification: addModification,
+    }).render();
+}
+
 module.exports = {
     EntryModal: EntryModal,
+    showLandCoverModal: showLandCoverModal,
     showSettingsModal: showSettingsModal,
 };

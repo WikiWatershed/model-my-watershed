@@ -373,7 +373,8 @@
   }
 }
 
-#entry-modal {
+#entry-modal,
+#land-cover-modal {
   .modal-header {
     background: $ui-light;
     padding: 2rem;
@@ -388,7 +389,9 @@
     background: $paper;
     border-top: 1px solid $black-12;
   }
+}
 
+#entry-modal {
   .nav-tabs {
     padding: 0 2rem;
     font-weight: 400;
@@ -435,50 +438,84 @@
 
       .row {
         padding-bottom: 0.5rem;
-
-        .manual-entry-label {
-          padding-top: 7px;
-        }
-
-        input[type='number'] {
-          -moz-appearance: textfield;
-        }
-
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button {
-          -webkit-appearance: none;
-        }
-
-        .form-control {
-          border-radius: 0;
-
-          &:invalid {
-            border-color: $ui-danger;
-
-            &:focus {
-              box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px #ce8483;
-            }
-          }
-
-          &.-unmodified {
-            color: #999;
-          }
-        }
-
-        .btn-icon {
-          position: absolute;
-          top: 0;
-          right: 20px;
-
-          i {
-            color: #449ff0;
-          }
-
-          &:focus {
-            outline: none;
-          }
-        }
       }
+    }
+  }
+}
+
+#land-cover-modal {
+  .rows {
+    padding: 2rem 0;
+
+    .row {
+      padding-bottom: 0.5rem;
+    }
+  }
+
+  .modal-footer > .footer-content {
+    display: flex;
+    flex-direction: row;
+
+    .total-content {
+      flex: 1;
+      text-align: left;
+      line-height: 36px;
+      font-size: 15px;
+
+      .error {
+        color: $ui-danger;
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+.manual-entry {
+  .manual-entry-label {
+    padding-top: 7px;
+  }
+
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+  }
+
+  .form-control {
+    border-radius: 0;
+
+    &:invalid {
+      border-color: $ui-danger;
+
+      &:focus {
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px #ce8483;
+      }
+    }
+
+    &.-unmodified {
+      color: #999;
+    }
+  }
+
+  .btn-undo {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 20px;
+
+    i {
+      color: #449ff0;
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    &.has-user-value {
+      display: block;
     }
   }
 }

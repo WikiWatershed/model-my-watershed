@@ -1,0 +1,13 @@
+{% if is_modified %}
+    Total: <strong>{{ userTotal }} ha</strong>
+    {% if (userTotal) != (autoTotal) %}
+    <small>
+        (<span class="error">{{ (userTotal - autoTotal) | abs | round(3) }}
+            {{ 'less' if userTotal < autoTotal else 'more' }} than
+        </span>
+        required {{ autoTotal }})
+    </small>
+    {% endif %}
+{% else %}
+    Total: {{ autoTotal }} ha
+{% endif %}

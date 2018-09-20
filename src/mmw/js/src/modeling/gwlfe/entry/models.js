@@ -1,6 +1,7 @@
 "use strict";
 
-var Backbone = require('../../../../shim/backbone'),
+var _ = require('lodash'),
+    Backbone = require('../../../../shim/backbone'),
     GwlfeModificationModel = require('../../models').GwlfeModificationModel;
 
 var ENTRY_FIELD_TYPES = {
@@ -64,6 +65,9 @@ var EntryTabModel = Backbone.Model.extend({
                 if (userValue !== null &&
                     userValue !== undefined &&
                     userValue !== '') {
+                    if (field.get('type') === ENTRY_FIELD_TYPES.NUMERIC) {
+                        userValue = parseFloat(userValue);
+                    }
                     output[name] = field.toOutput(userValue);
                     userInput[name] = userValue;
                 }
@@ -87,8 +91,52 @@ var WindowModel = Backbone.Model.extend({
         feedbackRequired: true,
         dataModel: null, // Cleaned MapShed GIS Data
         title: '',
-        tabs: null,      // EntryTabCollection
     },
+});
+
+var EntryWindowModel = WindowModel.extend({
+    defaults: _.defaults({
+        tabs: null, // EntryTabCollection
+    }, WindowModel.prototype.defaults),
+});
+
+var LandCoverWindowModel = WindowModel.extend({
+    defaults: _.defaults({
+        autoTotal: 0,
+        userTotal: 0,
+        fields: null, // FieldCollection
+    }, WindowModel.prototype.defaults),
+
+    initialize: function(attrs) {
+        var totalArea = _.sum(attrs.dataModel['Area']);
+        this.set({
+            autoTotal: totalArea,
+            userTotal: totalArea,
+        });
+    },
+
+    getOutput: function() {
+        var output = {},
+            userInput = {};
+
+        this.get('fields').forEach(function(field) {
+            var name = field.get('name'),
+                userValue = field.get('userValue');
+
+            if (userValue !== null &&
+                userValue !== undefined &&
+                userValue !== '') {
+                output[name] = field.toOutput(parseFloat(userValue));
+                userInput[name] = userValue;
+            }
+        });
+
+        return new GwlfeModificationModel({
+            modKey: 'entry_landcover',
+            output: output,
+            userInput: userInput,
+        });
+    }
 });
 
 /**
@@ -123,6 +171,7 @@ module.exports = {
     EntrySectionCollection: EntrySectionCollection,
     EntryTabCollection: EntryTabCollection,
     EntryTabModel: EntryTabModel,
-    WindowModel: WindowModel,
+    EntryWindowModel: EntryWindowModel,
+    LandCoverWindowModel: LandCoverWindowModel,
     makeFieldCollection: makeFieldCollection,
 };

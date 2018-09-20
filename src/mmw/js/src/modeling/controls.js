@@ -17,6 +17,7 @@ var $ = require('jquery'),
     inputInfoTmpl = require('./templates/controls/inputInfo.html'),
     thumbSelectTmpl = require('./templates/controls/thumbSelect.html'),
     settingsTmpl = require('./templates/controls/settings.html'),
+    greenButtonTmpl = require('./templates/controls/greenButton.html'),
     modDropdownTmpl = require('./templates/controls/modDropdown.html');
 
 var ENTER_KEYCODE = 13;
@@ -411,6 +412,41 @@ var ConservationPracticeView = ModificationsView.extend({
     }
 });
 
+var GwlfeLandCoverView = ControlView.extend({
+    template: greenButtonTmpl,
+
+    events: {
+        'click button': 'showLandCoverModal',
+    },
+
+    getControlName: function() {
+        return 'gwlfe_landcover';
+    },
+
+    initialize: function(options) {
+        ControlView.prototype.initialize.apply(this, [options]);
+
+        this.model.set({
+            controlName: this.getControlName(),
+            controlDisplayName: 'Land Cover',
+            dataModel: gwlfeConfig.cleanDataModel(App.currentProject.get('gis_data')),
+            errorMessages: null,
+            infoMessages: null,
+        });
+    },
+
+    showLandCoverModal: function() {
+        var currentScenario = App.currentProject.get('scenarios')
+                                 .findWhere({ active: true });
+
+        entryViews.showLandCoverModal(
+            this.model.get('dataModel'),
+            currentScenario.get('modifications'),
+            this.addModification
+        );
+    },
+});
+
 var GwlfeConservationPracticeView = ModificationsView.extend({
     initialize: function(options) {
         ModificationsView.prototype.initialize.apply(this, [options]);
@@ -546,6 +582,8 @@ function getControlView(controlName) {
             return LandCoverView;
         case 'conservation_practice':
             return ConservationPracticeView;
+        case 'gwlfe_landcover':
+            return GwlfeLandCoverView;
         case 'gwlfe_conservation_practice':
             return GwlfeConservationPracticeView;
         case 'gwlfe_settings':
