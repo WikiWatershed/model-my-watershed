@@ -221,36 +221,35 @@ var FieldView = Marionette.ItemView.extend({
 
     events: {
         'keyup @ui.input': 'updateUserValue',
+        'change select': 'updateUserValue',
         'click @ui.undo': 'resetUserValue',
     },
 
     onRender: function() {
         this.$('[data-toggle="popover"]').popover();
-        this.toggleUndoButton();
+        this.toggleUserValueState();
     },
 
     updateUserValue: function() {
         var value = this.ui.input.val();
 
         this.model.set('userValue', value || null);
-        this.toggleUndoButton();
+        this.toggleUserValueState();
     },
 
     resetUserValue: function() {
-        this.ui.input.val('');
         this.$('[data-toggle="popover"]').popover('destroy');
         this.model.set('userValue', null);
-        this.toggleUndoButton();
+        this.render();
     },
 
-    toggleUndoButton: function() {
-        var userValue = this.model.get('userValue'),
-            undo = this.ui.undo;
+    toggleUserValueState: function() {
+        var userValue = this.model.get('userValue');
 
         if (userValue) {
-            undo.addClass('has-user-value');
+            this.$el.addClass('has-user-value');
         } else {
-            undo.removeClass('has-user-value');
+            this.$el.removeClass('has-user-value');
         }
     }
 });
