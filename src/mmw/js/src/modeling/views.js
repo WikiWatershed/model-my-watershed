@@ -320,11 +320,14 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
     },
 
     ui: {
+        exportGms: '#export-gms',
+        exportGmsForm: '#export-gms-form',
         addScenario: '#add-scenario',
         showCompare: '#show-compare',
     },
 
     events: {
+        'click @ui.exportGms': 'downloadGmsFile',
         'click @ui.addScenario': 'addScenario',
         'click @ui.showCompare': 'showCompare',
     },
@@ -341,12 +344,19 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
         // Check the first scenario in the collection as a proxy for the
         // entire collection.
         var scenario = this.collection.first(),
+            activeScenario = this.collection.findWhere({ active: true }),
+            gis_data = activeScenario && activeScenario.getModifiedGwlfeGisData(),
+            isGwlfe = App.currentProject.get('model_package') === utils.GWLFE && !_.isEmpty(gis_data),
             isOnlyCurrentConditions = this.collection.length === 1,
             compareUrl = this.projectModel.getCompareUrl();
 
         return {
             isOnlyCurrentConditions: isOnlyCurrentConditions,
             editable: isEditable(scenario),
+            activeScenario: activeScenario,
+            isGwlfe: isGwlfe,
+            csrftoken: csrf.getToken(),
+            gis_data: JSON.stringify(gis_data),
             showCompare: !isOnlyCurrentConditions,
             compareUrl: compareUrl
         };
@@ -354,6 +364,22 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
 
     showCompare: function() {
         compareViews.showCompare();
+    },
+
+    downloadGmsFile: function() {
+        // Refresh the view to update gis_data with any changes made since
+        // last render
+        this.render();
+
+        // We can't download a file from an AJAX call. One either has to
+        // load the data in an iframe, or submit a form that responds with
+        // Content-Disposition: attachment. We prefer submitting a form.
+        var activeScenario = this.collection.findWhere({ active: true }),
+            filename = App.currentProject.get('name').replace(/\s/g, '_') +
+                       '__' + activeScenario.get('name').replace(/\s/g, '_');
+
+        this.ui.exportGmsForm.find('.gms-filename').val(filename);
+        this.ui.exportGmsForm.trigger('submit');
     },
 });
 
