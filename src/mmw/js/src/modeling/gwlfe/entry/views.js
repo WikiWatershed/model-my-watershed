@@ -240,6 +240,7 @@ var FieldView = Marionette.ItemView.extend({
         this.ui.input.val('');
         this.$('[data-toggle="popover"]').popover('destroy');
         this.model.set('userValue', null);
+        this.toggleUndoButton();
     },
 
     toggleUndoButton: function() {
