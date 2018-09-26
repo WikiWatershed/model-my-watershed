@@ -201,6 +201,14 @@
     padding-left: 0;
     position: relative;
     top: -1px;
+
+    > span {
+      display: inline-block;
+      max-width: 240px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: middle;
+    }
 }
 
 .scenario-dropdown > i,
@@ -218,6 +226,7 @@
 }
 .scenario-dropdown-menu-item > #scenario-name {
     text-transform: initial;
+    white-space: normal;
     display: block;
 }
 

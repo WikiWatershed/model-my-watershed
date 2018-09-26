@@ -1,5 +1,5 @@
 <button class="btn dropdown-toggle scenario-dropdown" {%- if hasNoScenarios %} disabled {% endif -%} type="button" data-toggle="dropdown" aria-expanded="true">
-    {{ name }}
+    <span>{{ name }}</span>
     {% if not hasNoScenarios %}
         <i class="fa fa-caret-down"></i>
     {% endif %}
