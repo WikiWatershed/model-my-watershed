@@ -211,7 +211,7 @@ var TabContentsView = Marionette.CollectionView.extend({
 });
 
 var FieldView = Marionette.ItemView.extend({
-    className: 'row manual-entry',
+    className: 'row mapshed-manual-entry',
     template: fieldTmpl,
 
     ui: {
