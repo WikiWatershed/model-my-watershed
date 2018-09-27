@@ -26,6 +26,18 @@ module.exports = {
         },
     },
 
+    // Always returns the same static value
+    Static: function(staticValue) {
+        return {
+            toOutput: function() {
+                return staticValue;
+            },
+            getAutoValue: function() {
+                return staticValue;
+            },
+        };
+    },
+
     // Takes the userValue and makes an array with the value repeated 12 times
     Array12: {
         toOutput: function(userValue) {
