@@ -13,7 +13,9 @@ var _ = require('lodash'),
     landCoverTotalTmpl = require('./templates/landCoverTotal.html'),
     sectionTmpl = require('./templates/section.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
-    tabPanelTmpl = require('./templates/tabPanel.html');
+    tabPanelTmpl = require('./templates/tabPanel.html'),
+    tripletSectionTmpl = require('./templates/tripletSection.html'),
+    tripletTabContentTmpl = require('./templates/tripletTabContent.html');
 
 var LandCoverModal = modalViews.ModalBaseView.extend({
     template: landCoverModalTmpl,
@@ -201,10 +203,59 @@ var TabContentView = Marionette.LayoutView.extend({
     },
 });
 
+var TripletSectionView = Marionette.LayoutView.extend({
+    tagName: 'tr',
+    template: tripletSectionTmpl,
+
+    regions: {
+        nRegion: '.n-region',
+        pRegion: '.p-region',
+        sRegion: '.s-region',
+    },
+
+    onShow: function() {
+        var fields = this.model.get('fields'),
+            nModel = fields.findWhere({ label: 'Nitrogen' }),
+            pModel = fields.findWhere({ label: 'Phosphorus' }),
+            sModel = fields.findWhere({ label: 'Sediment' });
+
+        if (nModel) {
+            this.nRegion.show(new FieldView({ model: nModel }));
+        }
+        if (pModel) {
+            this.pRegion.show(new FieldView({ model: pModel }));
+        }
+        if (sModel) {
+            this.sRegion.show(new FieldView({ model: sModel }));
+        }
+    }
+});
+
+var TripletTabContentView = Marionette.CompositeView.extend({
+    className: 'tab-pane triplet-tab-pane',
+    template: tripletTabContentTmpl,
+    attributes: {
+        role: 'tabpanel'
+    },
+
+    id: function() {
+        return 'entry_' + this.model.get('name');
+    },
+
+    childView: TripletSectionView,
+    childViewContainer: 'tbody',
+
+    initialize: function(args) {
+        this.collection = args.model.get('sections');
+    },
+});
+
 var TabContentsView = Marionette.CollectionView.extend({
     className: 'tab-content',
 
-    childView: TabContentView,
+    getChildView: function(tab) {
+        return tab.get('triplet') ? TripletTabContentView : TabContentView;
+    },
 
     onRender: function() {
         this.$('.tab-pane:first').addClass('active');
@@ -289,6 +340,7 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
             {
                 name: 'efficiencies',
                 displayName: 'Efficiencies',
+                triplet: true,
                 sections: new models.EntrySectionCollection([
                     {
                         title: 'Cover Crops',

@@ -52,6 +52,7 @@ var EntryTabModel = Backbone.Model.extend({
         displayName: '',
         name: '',
         sections: null,  // EntrySectionCollection
+        triplet: false,
     },
 
     getOutput: function() {
