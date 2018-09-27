@@ -1,10 +1,4 @@
-<div class="col-sm-8">
-    <div class="mapshed-manual-entry-label">
-        {{ label }}
-    </div>
-</div>
 {% if type == 'NUMERIC' %}
-<div class="col-sm-4">
     <input
             type="number"
             class="form-control"
@@ -27,9 +21,7 @@
     >
         <i class="fa fa-undo"></i>
     </button>
-</div>
 {% elif type == 'YESNO' %}
-<div class="col-sm-4">
     <select
             class="form-control {{ '-unmodified' if not userValue }}"
             name="{{ name }}"
@@ -62,9 +54,6 @@
     >
         <i class="fa fa-undo"></i>
     </button>
-</div>
 {% else %}
-<div class="col-sm-4">
     Missing Field Type
-</div>
 {% endif %}

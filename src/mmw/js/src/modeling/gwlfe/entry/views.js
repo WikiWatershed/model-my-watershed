@@ -7,6 +7,7 @@ var _ = require('lodash'),
     models = require('./models'),
     calcs = require('./calcs'),
     fieldTmpl = require('./templates/field.html'),
+    fieldWithLabelTmpl = require('./templates/fieldWithLabel.html'),
     modalTmpl = require('./templates/modal.html'),
     landCoverModalTmpl = require('./templates/landCoverModal.html'),
     landCoverTotalTmpl = require('./templates/landCoverTotal.html'),
@@ -211,7 +212,7 @@ var TabContentsView = Marionette.CollectionView.extend({
 });
 
 var FieldView = Marionette.ItemView.extend({
-    className: 'row mapshed-manual-entry',
+    className: 'mapshed-manual-entry',
     template: fieldTmpl,
 
     ui: {
@@ -254,8 +255,13 @@ var FieldView = Marionette.ItemView.extend({
     }
 });
 
+var FieldWithLabelView = FieldView.extend({
+    className: 'row mapshed-manual-entry',
+    template: fieldWithLabelTmpl,
+});
+
 var FieldsView = Marionette.CollectionView.extend({
-    childView: FieldView,
+    childView: FieldWithLabelView,
 });
 
 var SectionView = Marionette.LayoutView.extend({
