@@ -165,13 +165,15 @@ var ResultsView = Marionette.LayoutView.extend({
     template: resultsWindowTmpl,
 
     ui: {
-        changeArea: '[data-action="change-area"]'
+        changeArea: '[data-action="change-area"]',
+        modelPackageLinks: 'a.analyze-model-package-link',
     },
 
     events: {
         'shown.bs.tab a[href="#analyze-tab-contents"]': 'onAnalyzeTabShown',
         'shown.bs.tab a[href="#monitor-tab-contents"]': 'onMonitorTabShown',
-        'click @ui.changeArea': 'changeArea'
+        'click @ui.changeArea': 'changeArea',
+        'click @ui.modelPackageLinks': 'selectModelPackage',
     },
 
     regions: {
@@ -183,6 +185,7 @@ var ResultsView = Marionette.LayoutView.extend({
 
     templateHelpers: {
         'data_catalog_enabled': settings.get('data_catalog_enabled'),
+        'model_packages': settings.get('model_packages'),
     },
 
     onShow: function() {
@@ -262,7 +265,105 @@ var ResultsView = Marionette.LayoutView.extend({
         if (App.map.get('dataCatalogDetailResult') !== null) {
             this.aoiRegion.currentView.$el.addClass('hidden');
         }
-    }
+    },
+
+    selectModelPackage: function(e) {
+        e.preventDefault();
+
+        var modelPackages = settings.get('model_packages'),
+            modelPackageName = $(e.currentTarget).data('id'),
+            modelPackage = lodash.find(modelPackages, {name: modelPackageName}),
+            newProjectUrl = '/project/new/' + modelPackageName,
+            projectUrl = '/project',
+            alertView,
+            aoiModel = new coreModels.GeoModel({
+                shape: App.map.get('areaOfInterest'),
+                place: App.map.get('areaOfInterestName')
+            }),
+            analysisResults = App.getAnalyzeCollection()
+                                 .findWhere({taskName: 'analyze/land'})
+                                 .get('result') || {},
+            landResults = analysisResults.survey;
+
+        if (modelPackageName === utils.GWLFE &&
+            settings.get('mapshed_max_area')) {
+            var areaInSqKm = utils.changeOfAreaUnits(aoiModel.get('area'),
+                                                     aoiModel.get('units'),
+                                                     'km<sup>2</sup>'),
+                mapshedMaxArea = settings.get('mapshed_max_area');
+
+            if (areaInSqKm > mapshedMaxArea) {
+                alertView = new modalViews.AlertView({
+                    model: new modalModels.AlertModel({
+                        alertMessage:
+                            "The selected Area of Interest is too big for " +
+                            "the Watershed Multi-Year Model. The currently " +
+                            "maximum supported size is " + mapshedMaxArea +
+                            " km².",
+                        alertType: modalModels.AlertTypes.warn
+                    })
+                });
+                alertView.render();
+                return;
+            }
+        }
+
+        if (landResults) {
+            var landCoverTotal = lodash.sum(lodash.map(landResults.categories,
+                function(category) {
+                    if (category.type === 'Open Water') {
+                        return 0;
+                    }
+                    return category.area;
+                }));
+
+            if (landCoverTotal === 0) {
+                alertView = new modalViews.AlertView({
+                    model: new modalModels.AlertModel({
+                        alertMessage:
+                            "The selected Area of Interest doesn't " +
+                            "include any land cover to run the model.",
+                        alertType: modalModels.AlertTypes.warn
+                    })
+                });
+
+                alertView.render();
+                return;
+            }
+        }
+
+        if (modelPackage.disabled) {
+            return;
+        }
+
+        if (settings.get('itsi_embed') &&
+            App.currentProject &&
+            !App.currentProject.get('needs_reset')) {
+            var currModelPackageName = App.currentProject.get('model_package');
+            if (modelPackageName === currModelPackageName) {
+                // Go to existing project
+                router.navigate(projectUrl, {trigger: true});
+            } else {
+                var confirmNewProject = new modalViews.ConfirmView({
+                    model: new modalModels.ConfirmModel({
+                        question:
+                            'If you change the model you will ' +
+                            'lose your current work.',
+                        confirmLabel: 'Switch Model',
+                        cancelLabel: 'Cancel',
+                        feedbackRequired: true
+                    }),
+                });
+
+                confirmNewProject.on('confirmation', function() {
+                    router.navigate(newProjectUrl, {trigger: true});
+                });
+                confirmNewProject.render();
+            }
+        } else {
+            router.navigate(newProjectUrl, {trigger: true});
+        }
+    },
 });
 
 var AnalyzeWindow = Marionette.LayoutView.extend({

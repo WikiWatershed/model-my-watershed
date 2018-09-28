@@ -208,3 +208,38 @@
 #climate select.form-control {
   margin: 10px 0;
 }
+
+.analyze-stage-model-tab-pane {
+  .tab-content {
+    > h3 {
+      margin-bottom: 12px;
+    }
+
+    > p {
+      font-size: $font-size-p;
+      margin-bottom: 12px;
+    }
+
+    .model-package {
+      margin-bottom: 6px;
+      background-color: $ui-light;
+      border-radius: $radius-sm;
+      padding: 1rem;
+
+      > .analyze-model-package-link {
+        white-space: normal;
+
+        > .analyze-model-name {
+          font-size: $font-size-h4;
+          color: $ui-primary;
+          font-weight: 600;
+        }
+
+        > p {
+          font-size: $font-size-h5;
+          color: $ui-grey;
+        }
+      }
+    }
+  }
+}
