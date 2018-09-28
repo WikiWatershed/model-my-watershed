@@ -29,17 +29,7 @@
     display: inline-flex;
 }
 
-#next-stage-navigation-region {
-    display: inline-block;
-    width: 100%;
-
-    .data-catalog > & {
-        width: auto;
-    }
-}
-
-.navigation-footer > button,
-#next-stage-navigation-region > button {
+.navigation-footer > button {
     height: 46px;
 }
 
