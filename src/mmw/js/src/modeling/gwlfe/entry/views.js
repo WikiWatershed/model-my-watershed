@@ -7,12 +7,15 @@ var _ = require('lodash'),
     models = require('./models'),
     calcs = require('./calcs'),
     fieldTmpl = require('./templates/field.html'),
+    fieldWithLabelTmpl = require('./templates/fieldWithLabel.html'),
     modalTmpl = require('./templates/modal.html'),
     landCoverModalTmpl = require('./templates/landCoverModal.html'),
     landCoverTotalTmpl = require('./templates/landCoverTotal.html'),
     sectionTmpl = require('./templates/section.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
-    tabPanelTmpl = require('./templates/tabPanel.html');
+    tabPanelTmpl = require('./templates/tabPanel.html'),
+    tripletSectionTmpl = require('./templates/tripletSection.html'),
+    tripletTabContentTmpl = require('./templates/tripletTabContent.html');
 
 var LandCoverModal = modalViews.ModalBaseView.extend({
     template: landCoverModalTmpl,
@@ -200,10 +203,59 @@ var TabContentView = Marionette.LayoutView.extend({
     },
 });
 
+var TripletSectionView = Marionette.LayoutView.extend({
+    tagName: 'tr',
+    template: tripletSectionTmpl,
+
+    regions: {
+        nRegion: '.n-region',
+        pRegion: '.p-region',
+        sRegion: '.s-region',
+    },
+
+    onShow: function() {
+        var fields = this.model.get('fields'),
+            nModel = fields.findWhere({ label: 'Nitrogen' }),
+            pModel = fields.findWhere({ label: 'Phosphorus' }),
+            sModel = fields.findWhere({ label: 'Sediment' });
+
+        if (nModel) {
+            this.nRegion.show(new FieldView({ model: nModel }));
+        }
+        if (pModel) {
+            this.pRegion.show(new FieldView({ model: pModel }));
+        }
+        if (sModel) {
+            this.sRegion.show(new FieldView({ model: sModel }));
+        }
+    }
+});
+
+var TripletTabContentView = Marionette.CompositeView.extend({
+    className: 'tab-pane triplet-tab-pane',
+    template: tripletTabContentTmpl,
+    attributes: {
+        role: 'tabpanel'
+    },
+
+    id: function() {
+        return 'entry_' + this.model.get('name');
+    },
+
+    childView: TripletSectionView,
+    childViewContainer: 'tbody',
+
+    initialize: function(args) {
+        this.collection = args.model.get('sections');
+    },
+});
+
 var TabContentsView = Marionette.CollectionView.extend({
     className: 'tab-content',
 
-    childView: TabContentView,
+    getChildView: function(tab) {
+        return tab.get('triplet') ? TripletTabContentView : TabContentView;
+    },
 
     onRender: function() {
         this.$('.tab-pane:first').addClass('active');
@@ -211,7 +263,7 @@ var TabContentsView = Marionette.CollectionView.extend({
 });
 
 var FieldView = Marionette.ItemView.extend({
-    className: 'row manual-entry',
+    className: 'mapshed-manual-entry',
     template: fieldTmpl,
 
     ui: {
@@ -254,8 +306,13 @@ var FieldView = Marionette.ItemView.extend({
     }
 });
 
+var FieldWithLabelView = FieldView.extend({
+    className: 'row mapshed-manual-entry',
+    template: fieldWithLabelTmpl,
+});
+
 var FieldsView = Marionette.CollectionView.extend({
-    childView: FieldView,
+    childView: FieldWithLabelView,
 });
 
 var SectionView = Marionette.LayoutView.extend({
@@ -280,7 +337,295 @@ var SectionsView = Marionette.CollectionView.extend({
 
 function showSettingsModal(title, dataModel, modifications, addModification) {
     var tabs = new models.EntryTabCollection([
-            // { name: 'efficiencies', displayName: 'Efficiencies' },
+            {
+                name: 'efficiencies',
+                displayName: 'Efficiencies',
+                triplet: true,
+                sections: new models.EntrySectionCollection([
+                    {
+                        title: 'Cover Crops',
+                        fields: models.makeFieldCollection('efficiencies', dataModel, modifications, [
+                            {
+                                name: 'n63',
+                                label: 'Nitrogen',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'n71',
+                                label: 'Phosphorus',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'n79',
+                                label: 'Sediment',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                        ]),
+                    },
+                    {
+                        title: 'No Till Agriculture',
+                        fields: models.makeFieldCollection('efficiencies', dataModel, modifications, [
+                            {
+                                name: 'n65',
+                                label: 'Nitrogen',
+                                calculator: calcs.Static(0.11),
+                                readOnly: true,
+                            },
+                            {
+                                name: 'n73',
+                                label: 'Phosphorus',
+                                calculator: calcs.Static(0.29),
+                                readOnly: true,
+                            },
+                            {
+                                name: 'n81',
+                                label: 'Sediment',
+                                calculator: calcs.Static(0.40),
+                                readOnly: true,
+                            },
+                        ]),
+                    },
+                    {
+                        title: 'Conservation Tillage',
+                        fields: models.makeFieldCollection('efficiencies', dataModel, modifications, [
+                            {
+                                name: 'n65',
+                                label: 'Nitrogen',
+                                calculator: calcs.Static(0.08),
+                                readOnly: true,
+                            },
+                            {
+                                name: 'n73',
+                                label: 'Phosphorus',
+                                calculator: calcs.Static(0.22),
+                                readOnly: true,
+                            },
+                            {
+                                name: 'n81',
+                                label: 'Sediment',
+                                calculator: calcs.Static(0.30),
+                                readOnly: true,
+                            },
+                        ]),
+                    },
+                    {
+                        title: 'Reduced Tillage',
+                        fields: models.makeFieldCollection('efficiencies', dataModel, modifications, [
+                            {
+                                name: 'n65',
+                                label: 'Nitrogen',
+                                calculator: calcs.Static(0.06),
+                                readOnly: true,
+                            },
+                            {
+                                name: 'n73',
+                                label: 'Phosphorus',
+                                calculator: calcs.Static(0.17),
+                                readOnly: true,
+                            },
+                            {
+                                name: 'n81',
+                                label: 'Sediment',
+                                calculator: calcs.Static(0.23),
+                                readOnly: true,
+                            },
+                        ]),
+                    },
+                    {
+                        title: 'Nutrient Management',
+                        fields: models.makeFieldCollection('efficiencies', dataModel, modifications, [
+                            {
+                                name: 'n70',
+                                label: 'Nitrogen',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'n78',
+                                label: 'Phosphorus',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                        ]),
+                    },
+                    {
+                        title: 'Livestock Waste Management',
+                        fields: models.makeFieldCollection('efficiencies', dataModel, modifications, [
+                            {
+                                name: 'n85h',
+                                label: 'Nitrogen',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'n85i',
+                                label: 'Phosphorus',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                        ]),
+                    },
+                    {
+                        title: 'Poultry Waste Management',
+                        fields: models.makeFieldCollection('efficiencies', dataModel, modifications, [
+                            {
+                                name: 'n85j',
+                                label: 'Nitrogen',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'n85k',
+                                label: 'Phosphorus',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                        ]),
+                    },
+                    {
+                        title: 'Vegetated Buffer Strips',
+                        fields: models.makeFieldCollection('efficiencies', dataModel, modifications, [
+                            {
+                                name: 'n64',
+                                label: 'Nitrogen',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'n72',
+                                label: 'Phosphorus',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'n80',
+                                label: 'Sediment',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                        ]),
+                    },
+                    {
+                        title: 'Streambank Fencing',
+                        fields: models.makeFieldCollection('efficiencies', dataModel, modifications, [
+                            {
+                                name: 'n69',
+                                label: 'Nitrogen',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'n77',
+                                label: 'Phosphorus',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'n85',
+                                label: 'Sediment',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                        ]),
+                    },
+                    {
+                        title: 'Streambank Stabilization',
+                        fields: models.makeFieldCollection('efficiencies', dataModel, modifications, [
+                            {
+                                name: 'n69c',
+                                label: 'Nitrogen',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'n77c',
+                                label: 'Phosphorus',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'n85d',
+                                label: 'Sediment',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                        ]),
+                    },
+                    {
+                        title: 'Surface Water Retention',
+                        fields: models.makeFieldCollection('efficiencies', dataModel, modifications, [
+                            {
+                                name: 'n70b',
+                                label: 'Nitrogen',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'n78b',
+                                label: 'Phosphorus',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'n85c',
+                                label: 'Sediment',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                        ]),
+                    },
+                    {
+                        title: 'Infiltration / Bioretention',
+                        fields: models.makeFieldCollection('efficiencies', dataModel, modifications, [
+                            {
+                                name: 'n71b',
+                                label: 'Nitrogen',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'n79b',
+                                label: 'Phosphorus',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                            {
+                                name: 'n79c',
+                                label: 'Sediment',
+                                calculator: calcs.Direct,
+                                minValue: 0,
+                                maxValue: 1,
+                            },
+                        ]),
+                    },
+                ]),
+            },
             {
                 name: 'waste_water',
                 displayName: 'Waste Water',

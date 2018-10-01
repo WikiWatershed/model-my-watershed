@@ -470,8 +470,8 @@
   }
 }
 
-.manual-entry {
-  .manual-entry-label {
+.mapshed-manual-entry {
+  .mapshed-manual-entry-label {
     padding-top: 7px;
   }
 
@@ -519,6 +519,30 @@
 
     .form-control {
       color: #555;
+    }
+  }
+}
+
+.triplet-tab-pane {
+  table {
+    width: 100%;
+
+    th {
+      padding-bottom: 5px;
+    }
+
+    td {
+      padding-right: 5px;
+      padding-bottom: 5px;
+
+      .mapshed-manual-entry {
+        width: 100px;
+        position: relative;
+
+        .btn-undo {
+          right: 0;
+        }
+      }
     }
   }
 }

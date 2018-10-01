@@ -18,6 +18,7 @@ var EntryFieldModel = Backbone.Model.extend({
         maxValue: null,
         autoValue: null,
         userValue: null,
+        readOnly: false,  // Used to indicate a field that cannot be edited
     },
 
     initialize: function(attrs, dataModel) {
@@ -51,6 +52,7 @@ var EntryTabModel = Backbone.Model.extend({
         displayName: '',
         name: '',
         sections: null,  // EntrySectionCollection
+        triplet: false,
     },
 
     getOutput: function() {
