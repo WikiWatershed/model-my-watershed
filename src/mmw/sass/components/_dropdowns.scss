@@ -272,37 +272,6 @@
     }
 }
 
-.select-model-dropdown {
-    width: 320px;
-    padding: 1.6rem;
-    > .select-model-dropdown-header {
-        margin-bottom: 12px;
-    }
-    > p {
-        font-size: $font-size-p;
-        margin-bottom: 12px;
-    }
-    .select-model-dropdown-menu-item {
-        margin-bottom: 6px;
-        background-color: $ui-light;
-        border-radius: $radius-sm!important;
-
-        > .analyze-model-package-link {
-            white-space: normal;
-            padding: 1rem;
-            > .analyze-model-name {
-                font-size: $font-size-h4;
-                color: $ui-primary;
-                font-weight: 600;
-            }
-            > p {
-                font-size: $font-size-h5;
-                color: $ui-grey;
-            }
-        }
-    }
-}
-
 #draw-pane-buttons .dropdown-menu .divider {
   margin: 6px 0;
 }
