@@ -1,13 +1,13 @@
 {% if is_modified %}
-    Total: <strong>{{ userTotal | toLocaleString(3) }} ha</strong>
+    Total: <strong>{{ userTotal | toLocaleString(1) }} ha</strong>
     {% if (userTotal) != (autoTotal) %}
     <small>
-        (<span class="error">{{ (userTotal - autoTotal) | abs | toLocaleString(3) }}
+        (<span class="error">{{ (userTotal - autoTotal) | abs | toLocaleString(1) }}
             {{ 'less' if userTotal < autoTotal else 'more' }} than
         </span>
-        required {{ autoTotal | toLocaleString(3) }})
+        required {{ autoTotal | toLocaleString(1) }})
     </small>
     {% endif %}
 {% else %}
-    Total: {{ autoTotal | toLocaleString(3) }} ha
+    Total: {{ autoTotal | toLocaleString(1) }} ha
 {% endif %}

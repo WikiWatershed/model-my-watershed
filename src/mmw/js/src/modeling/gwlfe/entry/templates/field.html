@@ -3,10 +3,10 @@
             type="number"
             class="form-control"
             name="{{ name }}"
-            step="0.000001"
+            step="{{ step }}"
             {% if minValue != null %} min="{{ minValue }}" {% endif %}
             {% if maxValue != null %} max="{{ maxValue }}" {% endif %}
-            placeholder="{{ autoValue | round(3) }}"
+            placeholder="{{ autoValue }}"
             value="{{ userValue }}"
             {% if readOnly %} disabled {% endif %}
     >
@@ -17,7 +17,7 @@
             data-placement="bottom"
             data-trigger="hover"
             data-html="true"
-            data-content="<strong>Reset to auto-estimated:</strong><br />{{ autoValue | round(3) }}"
+            data-content="<strong>Reset to auto-estimated:</strong><br />{{ autoValue }}"
     >
         <i class="fa fa-undo"></i>
     </button>
