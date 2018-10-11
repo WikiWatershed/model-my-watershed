@@ -202,7 +202,7 @@ LAYER_GROUPS = {
             'code': 'protected-lands-30m',
             'display': 'Protected Lands',
             'short_display': 'Protected Lands',
-            'css_class_prefix': 'protected-lands-30m',
+            'css_class_prefix': 'protected-lands-30m ',
             'help_text': '',
             'url': 'https://{s}.tiles.azavea.com/protected-lands-30m/{z}/{x}/{y}.png',
             'maxNativeZoom': 13,
