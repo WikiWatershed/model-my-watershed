@@ -14,6 +14,7 @@ var EntryFieldModel = Backbone.Model.extend({
         label: '',
         name: '',
         type: ENTRY_FIELD_TYPES.NUMERIC,
+        decimalPlaces: 3,
         minValue: null,
         maxValue: null,
         autoValue: null,

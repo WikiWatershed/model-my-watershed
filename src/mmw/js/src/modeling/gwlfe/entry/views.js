@@ -76,8 +76,8 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
     },
 
     validateModal: function() {
-        var autoTotal = round(this.model.get('autoTotal'), 3),
-            userTotal = round(this.model.get('userTotal'), 3);
+        var autoTotal = round(this.model.get('autoTotal'), 1),
+            userTotal = round(this.model.get('userTotal'), 1);
 
         this.ui.saveButton.prop('disabled', autoTotal !== userTotal);
     },
@@ -96,8 +96,8 @@ var LandCoverTotalView = Marionette.ItemView.extend({
             hasUserValue = function(field) {
                 return field.get('userValue') !== null;
             },
-            autoTotal = round(this.model.get('autoTotal'), 3),
-            userTotal = round(this.model.get('userTotal'), 3);
+            autoTotal = round(this.model.get('autoTotal'), 1),
+            userTotal = round(this.model.get('userTotal'), 1);
 
         return {
             is_modified: fields.some(hasUserValue),
@@ -309,6 +309,28 @@ var FieldView = Marionette.ItemView.extend({
 var FieldWithLabelView = FieldView.extend({
     className: 'row mapshed-manual-entry',
     template: fieldWithLabelTmpl,
+
+    templateHelpers: function() {
+        var type = this.model.get('type');
+
+        if (type !== models.ENTRY_FIELD_TYPES.NUMERIC) {
+            return {};
+        }
+
+        var autoValue = this.model.get('autoValue'),
+            decimalPlaces = this.model.get('decimalPlaces'),
+            // How many decimal places are allowed for the field in the UI
+            //   decimalPlaces = 0 => step = 1
+            //   decimalPlaces = 1 => step = 0.1
+            //   decimalPlaces = 3 => step = 0.001
+            // and so on.
+            step = Math.pow(10, -decimalPlaces);
+
+        return {
+            step: step,
+            autoValue: round(autoValue, decimalPlaces),
+        };
+    },
 });
 
 var FieldsView = Marionette.CollectionView.extend({
@@ -695,6 +717,7 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                                 name: 'NumAnimals__0',
                                 label: 'Cows, Dairy',
                                 calculator: calcs.ArrayIndex,
+                                decimalPlaces: 0,
                                 minValue: 0
                             },
                             {
@@ -707,6 +730,7 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                                 name: 'NumAnimals__1',
                                 label: 'Cows, Beef',
                                 calculator: calcs.ArrayIndex,
+                                decimalPlaces: 0,
                                 minValue: 0
                             },
                             {
@@ -719,18 +743,21 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                                 name: 'NumAnimals__2',
                                 label: 'Chickens, Broilers',
                                 calculator: calcs.ArrayIndex,
+                                decimalPlaces: 0,
                                 minValue: 0
                             },
                             {
                                 name: 'NumAnimals__3',
                                 label: 'Chickens, Layers',
                                 calculator: calcs.ArrayIndex,
+                                decimalPlaces: 0,
                                 minValue: 0
                             },
                             {
                                 name: 'NumAnimals__4',
                                 label: 'Pigs / Hogs / Swine',
                                 calculator: calcs.ArrayIndex,
+                                decimalPlaces: 0,
                                 minValue: 0
                             },
                             {
@@ -743,6 +770,7 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                                 name: 'NumAnimals__5',
                                 label: 'Sheep',
                                 calculator: calcs.ArrayIndex,
+                                decimalPlaces: 0,
                                 minValue: 0
                             },
                             {
@@ -755,6 +783,7 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                                 name: 'NumAnimals__6',
                                 label: 'Horses',
                                 calculator: calcs.ArrayIndex,
+                                decimalPlaces: 0,
                                 minValue: 0
                             },
                             {
@@ -767,6 +796,7 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                                 name: 'NumAnimals__7',
                                 label: 'Turkeys',
                                 calculator: calcs.ArrayIndex,
+                                decimalPlaces: 0,
                                 minValue: 0
                             },
                         ]),
@@ -901,60 +931,70 @@ function showLandCoverModal(dataModel, modifications, addModification) {
                 name: 'Area__0',
                 label: 'Hay / Pasture (ha)',
                 calculator: calcs.ArrayIndex,
+                decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__1',
                 label: 'Cropland (ha)',
                 calculator: calcs.ArrayIndex,
+                decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__2',
                 label: 'Wooded Areas (ha)',
                 calculator: calcs.ArrayIndex,
+                decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__3',
                 label: 'Wetlands (ha)',
                 calculator: calcs.ArrayIndex,
+                decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__6',
                 label: 'Open Land (ha)',
                 calculator: calcs.ArrayIndex,
+                decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__7',
                 label: 'Barren Areas (ha)',
                 calculator: calcs.ArrayIndex,
+                decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__10',
                 label: 'Low-Density Mixed (ha)',
                 calculator: calcs.ArrayIndex,
+                decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__11',
                 label: 'Medium-Density Mixed (ha)',
                 calculator: calcs.ArrayIndex,
+                decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__12',
                 label: 'High-Density Mixed (ha)',
                 calculator: calcs.ArrayIndex,
+                decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__13',
                 label: 'Low-Density Open Space (ha)',
                 calculator: calcs.ArrayIndex,
+                decimalPlaces: 1,
                 minValue: 0
             },
         ]),
