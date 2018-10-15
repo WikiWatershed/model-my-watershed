@@ -170,52 +170,58 @@ span.time-slider-end {
     background-color: rgba(183, 28, 28, 1);
   }
 
-  > .protected-lands-30m-park-federal {
+  > .protected-lands-30m {
+    border: none;
+    width: 14px;
+    height: 14px;
+
+    &.-park-federal {
       background-color: #AFB42B;
-  }
+    }
 
-  > .protected-lands-30m-park-state {
+    &.-park-state {
       background-color: #C0CA33;
-  }
+    }
 
-  > .protected-lands-30m-park-local {
+    &.-park-local {
       background-color: #CDDC39;
-  }
+    }
 
-  > .protected-lands-30m-park-private {
+    &.-park-private {
       background-color: #D4E157;
-  }
+    }
 
-  > .protected-lands-30m-park-unknown {
+    &.-park-unknown {
       background-color: #E6EE9C;
-  }
+    }
 
-  > .protected-lands-30m-natural-resource-federal {
+    &.-natural-resource-federal {
       background-color: #388E3C;
-  }
+    }
 
-  > .protected-lands-30m-natural-resource-state {
+    &.-natural-resource-state {
       background-color: #43A047;
-  }
+    }
 
-  > .protected-lands-30m-natural-resource-local {
+    &.-natural-resource-local {
       background-color: #4CAF50;
-  }
+    }
 
-  > .protected-lands-30m-natural-resource-private {
+    &.-natural-resource-private {
       background-color: #66BB6A;
-  }
+    }
 
-  > .protected-lands-30m-natural-resource-unknown {
+    &.-natural-resource-unknown {
       background-color: #A5D6A7;
-  }
+    }
 
-  > .protected-lands-30m-conservation-easement {
-      background-color: #827717;
-  }
+    &.-conservation-easement {
+      background-color: #9E9446; // Originally #827717, changed for distinguishability
+    }
 
-  > .protected-lands-30m-agricultural-easement {
+    &.-agricultural-easement {
       background-color: #8D6E63;
+    }
   }
 }
 
