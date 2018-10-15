@@ -277,6 +277,28 @@ var FieldView = Marionette.ItemView.extend({
         'click @ui.undo': 'resetUserValue',
     },
 
+    templateHelpers: function() {
+        var type = this.model.get('type');
+
+        if (type !== models.ENTRY_FIELD_TYPES.NUMERIC) {
+            return {};
+        }
+
+        var autoValue = this.model.get('autoValue'),
+            decimalPlaces = this.model.get('decimalPlaces'),
+            // How many decimal places are allowed for the field in the UI
+            //   decimalPlaces = 0 => step = 1
+            //   decimalPlaces = 1 => step = 0.1
+            //   decimalPlaces = 3 => step = 0.001
+            // and so on.
+            step = Math.pow(10, -decimalPlaces);
+
+        return {
+            step: step,
+            autoValue: round(autoValue, decimalPlaces),
+        };
+    },
+
     onRender: function() {
         this.$('[data-toggle="popover"]').popover();
         this.toggleUserValueState();
@@ -309,28 +331,6 @@ var FieldView = Marionette.ItemView.extend({
 var FieldWithLabelView = FieldView.extend({
     className: 'row mapshed-manual-entry',
     template: fieldWithLabelTmpl,
-
-    templateHelpers: function() {
-        var type = this.model.get('type');
-
-        if (type !== models.ENTRY_FIELD_TYPES.NUMERIC) {
-            return {};
-        }
-
-        var autoValue = this.model.get('autoValue'),
-            decimalPlaces = this.model.get('decimalPlaces'),
-            // How many decimal places are allowed for the field in the UI
-            //   decimalPlaces = 0 => step = 1
-            //   decimalPlaces = 1 => step = 0.1
-            //   decimalPlaces = 3 => step = 0.001
-            // and so on.
-            step = Math.pow(10, -decimalPlaces);
-
-        return {
-            step: step,
-            autoValue: round(autoValue, decimalPlaces),
-        };
-    },
 });
 
 var FieldsView = Marionette.CollectionView.extend({
