@@ -682,24 +682,28 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                                 name: 'NumNormalSys',
                                 label: 'Normally Functioning Systems',
                                 calculator: calcs.Array12,
+                                decimalPlaces: 0,
                                 minValue: 0
                             },
                             {
                                 name: 'NumPondSys',
                                 label: 'Surface Failures',
                                 calculator: calcs.Array12,
+                                decimalPlaces: 0,
                                 minValue: 0
                             },
                             {
                                 name: 'NumShortSys',
                                 label: 'Subsurface Failures',
                                 calculator: calcs.Array12,
+                                decimalPlaces: 0,
                                 minValue: 0
                             },
                             {
                                 name: 'NumDischargeSys',
                                 label: 'Direct Discharges',
                                 calculator: calcs.Array12,
+                                decimalPlaces: 0,
                                 minValue: 0
                             },
                         ]),
