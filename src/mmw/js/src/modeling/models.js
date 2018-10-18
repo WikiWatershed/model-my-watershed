@@ -502,6 +502,12 @@ var ProjectModel = Backbone.Model.extend({
         return url;
     },
 
+    getSnapshot: function() {
+        // Stringify and parse the project to convert all Backbone models and
+        // collections to JSON objects and arrays.
+        return JSON.parse(JSON.stringify(this));
+    },
+
     /**
      * If a project is of the GWLFE package, we trigger the mapshed GIS
      * data gathering chain, and poll for it to finish. Once it finishes,
@@ -735,12 +741,16 @@ var ProjectModel = Backbone.Model.extend({
                     };
                 },
             mapshedData = isTR55 ? [] : _.compact(scenarios.map(getMapshedData)),
+            snapshotFile = [{
+                name: 'mmw_project_snapshot.json',
+                contents: JSON.stringify(self.getSnapshot()),
+            }],
             exportTask = new HydroShareExportTaskModel(),
             taskHelper = {
                 contentType: 'application/json',
                 queryParams: { project: self.id },
                 postData: JSON.stringify(_.defaults({
-                    files: analyzeFiles.concat(modelFiles),
+                    files: analyzeFiles.concat(modelFiles).concat(snapshotFile),
                     mapshed_data: mapshedData,
                 }, payload))
             };
