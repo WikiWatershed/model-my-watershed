@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import json
 import StringIO
 
 from rauth import OAuth2Service
@@ -125,5 +126,17 @@ class HydroShareClient(HydroShare):
     def get_file_list(self, resource_id):
         try:
             return self.getResourceFileList(resource_id)
+        except HydroShareNotFound:
+            return None
+
+    def get_project_snapshot(self, resource_id):
+        snapshot_path = 'mmw_project_snapshot.json'
+        try:
+            stream = self.getResourceFile(resource_id, snapshot_path)
+            fio = StringIO.StringIO()
+            for chunk in stream:
+                fio.write(chunk)
+
+            return json.loads(fio.getvalue())
         except HydroShareNotFound:
             return None
