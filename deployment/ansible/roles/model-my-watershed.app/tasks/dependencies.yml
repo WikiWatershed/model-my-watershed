@@ -3,7 +3,7 @@
   pip: name=numba version={{ numba_version }}
 
 - name: Install application Python dependencies for development and test
-  pip: chdir={{ app_home }}/requirements requirements={{ item }}.txt
+  pip: requirements="{{ app_home }}/requirements/{{ item }}.txt"
   with_items:
     - development
     - test
@@ -12,7 +12,7 @@
     - Restart mmw-app
 
 - name: Install application Python dependencies for production
-  pip: chdir="{{ app_home }}/requirements" requirements=production.txt
+  pip: requirements="{{ app_home }}/requirements/production.txt"
   when: "['packer'] | is_in(group_names)"
   notify:
     - Restart mmw-app
