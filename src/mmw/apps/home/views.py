@@ -89,7 +89,7 @@ def project_clone(request, proj_id=None):
     return redirect('/project/{0}'.format(project.id))
 
 
-def project_via_hydroshare(request, resource):
+def project_via_hydroshare_open(request, resource):
     """Redirect to project given a HydroShare resource, if found."""
 
     hsresource = get_object_or_404(HydroShareResource, resource=resource)

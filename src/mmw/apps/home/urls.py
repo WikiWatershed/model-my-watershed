@@ -8,7 +8,7 @@ from apps.home.views import (
     home_page,
     project,
     project_clone,
-    project_via_hydroshare,
+    project_via_hydroshare_open,
     projects,
 )
 
@@ -29,7 +29,9 @@ urlpatterns = patterns(
     url(r'^project/compare/$', project, name='project'),
     url(r'^project/(?P<proj_id>[0-9]+)/compare/$', project, name='project'),
     url(r'^project/via/hydroshare/(?P<resource>\w+)/?$',
-        project_via_hydroshare, name='project_via_hydroshare'),
+        project_via_hydroshare_open, name='project_via_hydroshare_open'),
+    url(r'^project/via/hydroshare/(?P<resource>\w+)/open/?$',
+        project_via_hydroshare_open, name='project_via_hydroshare_open'),
     url(r'^analyze$', home_page, name='analyze'),
     url(r'^search$', home_page, name='search'),
     url(r'^error', home_page, name='error'),
