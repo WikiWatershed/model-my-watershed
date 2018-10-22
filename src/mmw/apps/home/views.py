@@ -91,8 +91,18 @@ def project_clone(request, proj_id=None):
     return redirect('/project/{0}'.format(project.id))
 
 
-def project_via_hydroshare_open(request, resource):
-    """Redirect to project given a HydroShare resource, if found."""
+def _via_hydroshare(request, resource, callback, errback):
+    """
+    Tries to match a HydroShare resource to a project_id, and if found, calls
+    the success callback with it, else calls the error callback. The callback
+    is returned to the caller.
+
+    :param request: The Django Request object
+    :param resource: String of HydroShare Resource ID
+    :param callback: Function that takes project_id and does something
+    :param errback: Function that takes nothing and does something
+    :return: Output of the called callback
+    """
 
     # Try to match resource to a project
     try:
@@ -102,7 +112,7 @@ def project_via_hydroshare_open(request, resource):
         project_id = None
 
     if project_id:
-        return redirect('/project/{}/'.format(project_id))
+        return callback(project_id)
 
     # If no matching project found, try and fetch project snapshot directly
     snapshot_url = '{base_url}resource/{resource}/{snapshot_path}'.format(
@@ -117,7 +127,7 @@ def project_via_hydroshare_open(request, resource):
         if snapshot_json:
             project_id = snapshot_json['id'] if 'id' in snapshot_json else None
             if project_id:
-                return redirect('/project/{}/'.format(project_id))
+                return callback(project_id)
 
     # If project snapshot couldn't be fetched directly, try fetching it as
     # a HydroShare user. This is useful for cases when an existing resource
@@ -127,7 +137,7 @@ def project_via_hydroshare_open(request, resource):
         try:
             HydroShareToken.objects.get(user_id=request.user.id)
         except HydroShareToken.DoesNotExist:
-            return redirect('/error/hydroshare-not-found')
+            return errback()
 
         hss = HydroShareService()
         hs = hss.get_client(request.user.id)
@@ -136,9 +146,21 @@ def project_via_hydroshare_open(request, resource):
         if snapshot_json:
             project_id = snapshot_json['id'] if 'id' in snapshot_json else None
             if project_id:
-                return redirect('/project/{}/'.format(project_id))
+                return callback(project_id)
 
-    return redirect('/error/hydroshare-not-found')
+    return errback()
+
+
+def project_via_hydroshare_open(request, resource):
+    """Redirect to project given a HydroShare resource, if found."""
+
+    def callback(project_id):
+        return redirect('/project/{}/'.format(project_id))
+
+    def errback():
+        return redirect('/error/hydroshare-not-found')
+
+    return _via_hydroshare(request, resource, callback, errback)
 
 
 def get_layer_url(layer):
