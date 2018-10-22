@@ -7,7 +7,7 @@ var router = require('../../router').router,
 
 var ErrorHandlers = {
     itsi: function() {
-        router.navigate('');
+        router.navigate('', { trigger: true });
         var alertView = new modalViews.AlertView({
             model: new modalModels.AlertModel({
                 alertMessage: "We're sorry, but there was an error logging you in with your" +
@@ -22,7 +22,7 @@ var ErrorHandlers = {
     },
 
     hydroshareNotFound: function() {
-        router.navigate('');
+        router.navigate('', { trigger: true });
         var alertView = new modalViews.AlertView({
             model: new modalModels.AlertModel({
                 alertMessage:
@@ -39,7 +39,7 @@ var ErrorHandlers = {
     },
 
     generic: function(type) {
-        router.navigate('');
+        router.navigate('', { trigger: true });
         var alertView = new modalViews.AlertView({
             model: new modalModels.AlertModel({
                 alertMessage: "We're sorry, but an error occurred in the application.", 
