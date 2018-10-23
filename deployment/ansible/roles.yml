@@ -18,6 +18,8 @@
   version: 0.3.0
 - src: azavea.pgweb
   version: 0.2.0
+- src: azavea.python
+  version: 0.1.0
 - src: azavea.redis
   version: 0.1.0
 - src: azavea.graphite
