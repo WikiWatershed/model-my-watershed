@@ -11,6 +11,9 @@ var ErrorController = {
             case 'hydroshare-not-found':
                 ErrorHandlers.hydroshareNotFound();
                 break;
+            case 'hydroshare-not-logged-in':
+                ErrorHandlers.hydroshareNotLoggedIn();
+                break;
             default:
                 ErrorHandlers.generic(type);
         }
