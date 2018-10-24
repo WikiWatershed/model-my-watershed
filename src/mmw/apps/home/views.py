@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 import json
+import requests
 from urlparse import urljoin
 from copy import deepcopy
 
@@ -16,9 +17,10 @@ from django.contrib.auth.models import User
 
 from rest_framework.authtoken.models import Token
 
+from apps.export.hydroshare import HydroShareService
 from apps.export.models import HydroShareResource
 from apps.modeling.models import Project, Scenario
-from apps.user.models import UserProfile
+from apps.user.models import UserProfile, HydroShareToken
 from apps.user.countries import COUNTRY_CHOICES
 
 
@@ -89,12 +91,54 @@ def project_clone(request, proj_id=None):
     return redirect('/project/{0}'.format(project.id))
 
 
-def project_via_hydroshare(request, resource):
+def project_via_hydroshare_open(request, resource):
     """Redirect to project given a HydroShare resource, if found."""
 
-    hsresource = get_object_or_404(HydroShareResource, resource=resource)
+    # Try to match resource to a project
+    try:
+        hsresource = HydroShareResource.objects.get(resource=resource)
+        project_id = hsresource.project_id
+    except HydroShareResource.DoesNotExist:
+        project_id = None
 
-    return redirect('/project/{}/'.format(hsresource.project_id))
+    if project_id:
+        return redirect('/project/{}/'.format(project_id))
+
+    # If no matching project found, try and fetch project snapshot directly
+    snapshot_url = '{base_url}resource/{resource}/{snapshot_path}'.format(
+        base_url=settings.HYDROSHARE['base_url'],
+        resource=resource,
+        snapshot_path='data/contents/mmw_project_snapshot.json')
+
+    response = requests.get(snapshot_url)
+
+    if response.status_code == 200:
+        snapshot_json = response.json()
+        if snapshot_json:
+            project_id = snapshot_json['id'] if 'id' in snapshot_json else None
+            if project_id:
+                return redirect('/project/{}/'.format(project_id))
+
+    # If project snapshot couldn't be fetched directly, try fetching it as
+    # a HydroShare user. This is useful for cases when an existing resource
+    # is copied, since the copy isn't public by default.
+    if request.user.is_authenticated():
+        # Make sure the user has linked their account to HydroShare
+        try:
+            HydroShareToken.objects.get(user_id=request.user.id)
+        except HydroShareToken.DoesNotExist:
+            return redirect('/error/hydroshare-not-found')
+
+        hss = HydroShareService()
+        hs = hss.get_client(request.user.id)
+
+        snapshot_json = hs.get_project_snapshot(resource)
+        if snapshot_json:
+            project_id = snapshot_json['id'] if 'id' in snapshot_json else None
+            if project_id:
+                return redirect('/project/{}/'.format(project_id))
+
+    return redirect('/error/hydroshare-not-found')
 
 
 def get_layer_url(layer):

@@ -8,6 +8,9 @@ var ErrorController = {
             case 'itsi':
                 ErrorHandlers.itsi();
                 break;
+            case 'hydroshare-not-found':
+                ErrorHandlers.hydroshareNotFound();
+                break;
             default:
                 ErrorHandlers.generic(type);
         }
