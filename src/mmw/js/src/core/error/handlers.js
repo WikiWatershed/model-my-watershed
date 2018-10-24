@@ -38,6 +38,25 @@ var ErrorHandlers = {
         alertView.render();
     },
 
+    hydroshareNotLoggedIn: function() {
+        router.navigate('', { trigger: true });
+        var alertView = new modalViews.AlertView({
+            model: new modalModels.AlertModel({
+                alertMessage:
+                    "Only logged in users are allowed to edit projects. Please " +
+                    "log in to or create an account, and then try to edit the " +
+                    "HydroShare resource again.",
+                alertType: modalModels.AlertTypes.error
+            })
+        });
+
+        alertView.on('dismiss', function() {
+            App.showLoginModal();
+        });
+
+        alertView.render();
+    },
+
     generic: function(type) {
         router.navigate('', { trigger: true });
         var alertView = new modalViews.AlertView({
