@@ -66,6 +66,13 @@
         </div>
     </div>
     <div class="row">
+        <div class="col-sm-6">
+            <p>
+                {{ select(unit_scheme, 'unit_scheme', 'UserProfile', 'unit_scheme', 'METRIC', 'Unit Scheme') }}
+            </p>
+        </div>
+    </div>
+    <div class="row">
         <button class="btn btn-active btn-save"
                 type="button"
                 data-action="save_changes"

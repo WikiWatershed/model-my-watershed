@@ -276,6 +276,7 @@ var UserProfileModalView = ModalBaseView.extend({
         userType: '#user_type',
         country: '#country',
         postalCode: '#postal_code',
+        unitScheme: '#unit_scheme',
         submitProfile: '.submit-profile',
         skip: '.skip'
     }, ModalBaseView.prototype.ui),
@@ -319,6 +320,7 @@ var UserProfileModalView = ModalBaseView.extend({
             'profile_is_complete': response.is_complete
         });
         this.handleServerSuccess(response);
+        settings.set('unit_scheme', this.model.get('unit_scheme'));
         this.$el.modal('hide');
     },
 
@@ -333,7 +335,8 @@ var UserProfileModalView = ModalBaseView.extend({
             organization: this.ui.organization.val(),
             user_type: this.ui.userType.val(),
             country: this.ui.country.val(),
-            postal_code: this.ui.postalCode.val()
+            postal_code: this.ui.postalCode.val(),
+            unit_scheme: this.ui.unitScheme.val(),
         }, { silent: true });
     },
 

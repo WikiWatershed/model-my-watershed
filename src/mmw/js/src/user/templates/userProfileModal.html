@@ -17,6 +17,7 @@
 {{ select(user_type, 'user_type', 'UserProfile', 'user_type', 'Unspecified', 'User Type') }}
 {{ select(country, 'country', 'UserProfile', 'country', 'US', 'Country') }}
 {{ field(postal_code, 'postal_code', 'Postal Code') }}
+{{ select(unit_scheme, 'unit_scheme', 'UserProfile', 'unit_scheme', 'METRIC', 'Unit Scheme') }}
 
 <button type="button" class="btn btn-lg btn-block btn-active margin-bottom-sm" id="primary-button">Submit profile</button>
 <button type="button" class="btn btn-lg btn-block btn-default" id="dismiss-button">I'll do this later</button>

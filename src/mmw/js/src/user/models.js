@@ -66,6 +66,7 @@ var UserProfileModel = Backbone.Model.extend({
         country: '',
         user_type: '',
         postal_code: '',
+        unit_scheme: 'METRIC',
         error: null,
         saving: false
     },
