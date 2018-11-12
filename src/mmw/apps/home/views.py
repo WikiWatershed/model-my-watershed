@@ -20,6 +20,7 @@ from django.contrib.auth.models import User
 
 from rest_framework.authtoken.models import Token
 
+from apps.core.models import UnitScheme
 from apps.export.hydroshare import HydroShareService
 from apps.export.models import HydroShareResource
 from apps.modeling.models import Project, Scenario
@@ -326,6 +327,15 @@ def get_client_settings(request):
     title = 'BiG CZ Data Portal' if bigcz else 'Model My Watershed'
     max_area = settings.BIGCZ_MAX_AREA if bigcz else settings.MMW_MAX_AREA
     EMBED_FLAG = settings.ITSI['embed_flag']
+
+    unit_scheme = UnitScheme.METRIC
+    if request.user.is_authenticated():
+        try:
+            profile = UserProfile.objects.get(user=request.user)
+            unit_scheme = profile.unit_scheme
+        except UserProfile.DoesNotExist:
+            pass
+
     client_settings = {
         'client_settings': json.dumps({
             EMBED_FLAG: request.session.get(EMBED_FLAG, False),
@@ -352,9 +362,11 @@ def get_client_settings(request):
                 'UserProfile': {
                     'user_type': UserProfile.USER_TYPE_CHOICES,
                     'country': COUNTRY_CHOICES,
+                    'unit_scheme': UserProfile.UNIT_SCHEME_CHOICES,
                 }
             },
             'enabled_features': settings.ENABLED_FEATURES,
+            'unit_scheme': unit_scheme,
         }),
         'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
         'title': title,
