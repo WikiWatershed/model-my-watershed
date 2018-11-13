@@ -52,6 +52,9 @@ var $ = require('jquery'),
 var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+// Factor to convert km to miles. Multiply by 1000 to convert km instead of m.
+var MI_IN_KM = 1000 / coreUnits.USCUSTOMARY.LENGTH_XL.factor;
+
 var ResultsView = Marionette.LayoutView.extend({
     id: 'model-output-wrapper',
     className: 'analyze',
@@ -707,6 +710,8 @@ var StreamTableRowView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         var order = this.model.get('order'),
+            isMetric = settings.get('unit_scheme') === coreUnits.UNIT_SCHEME.METRIC,
+            length = isMetric ? this.model.get('lengthkm') : this.model.get('lengthkm') * MI_IN_KM,
             displayOrder = (function() {
                 switch (order) {
                     case 1:
@@ -724,7 +729,7 @@ var StreamTableRowView = Marionette.ItemView.extend({
 
         return {
             displayOrder: displayOrder,
-            lengthkm: this.model.get('lengthkm'),
+            length: length,
             avgslope: this.model.get('avgslope'),
             noData: utils.noData,
         };
@@ -752,7 +757,12 @@ var StreamTableView = Marionette.CompositeView.extend({
 
     templateHelpers: function() {
         var data = lodash(this.collection.toJSON()),
-            totalLength = data.pluck('lengthkm').sum(),
+            scheme = settings.get('unit_scheme'),
+            lengthUnit = coreUnits[scheme].LENGTH_XL.name,
+            isMetric = scheme === coreUnits.UNIT_SCHEME.METRIC,
+            totalLength = isMetric ?
+                data.pluck('lengthkm').sum() :
+                data.pluck('lengthkm').sum() * MI_IN_KM,
             avgChannelSlope = data.pluck('total_weighted_slope').sum() / totalLength,
             // Currently we only calculate agricultral percent for the entire
             // set, not per stream order, so we use the first value for total.
@@ -761,6 +771,7 @@ var StreamTableView = Marionette.CompositeView.extend({
             lengthInNonAg = totalLength - lengthInAg;
 
         return {
+            lengthUnit: lengthUnit,
             totalLength: totalLength,
             avgChannelSlope: avgChannelSlope,
             lengthInAg: lengthInAg,

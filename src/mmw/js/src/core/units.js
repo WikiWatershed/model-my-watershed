@@ -23,6 +23,21 @@ var units = {
             factor: 9.29030E-02,
             offset: 0
         },
+        LENGTH_XL: {
+            name: 'mi',
+            factor: 1.60934E+03,
+            offset: 0
+        },
+        LENGTH_M: {
+            name: 'ft',
+            factor: 3.04800E-01,
+            offset: 0
+        },
+        LENGTH_S: {
+            name: 'in',
+            factor: 2.54000E-02,
+            offset: 0
+        },
     },
     METRIC: {
         AREA_XL: {
@@ -38,6 +53,21 @@ var units = {
         AREA_M: {
             name: 'm²',
             factor: 1,
+            offset: 0
+        },
+        LENGTH_XL: {
+            name: 'km',
+            factor: 1.00000E+03,
+            offset: 0
+        },
+        LENGTH_M: {
+            name: 'm',
+            factor: 1,
+            offset: 0
+        },
+        LENGTH_S: {
+            name: 'cm',
+            factor: 1.00000E-02,
             offset: 0
         },
     },

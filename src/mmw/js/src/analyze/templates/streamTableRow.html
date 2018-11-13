@@ -12,7 +12,7 @@
     {% endif %}
 </td>
 <td class="strong text-right">
-    {{ lengthkm|round(2)|toLocaleString(2) }}
+    {{ length|round(2)|toLocaleString(2) }}
 </td>
 <td class="strong text-right">
     {% if avgslope %}
@@ -21,4 +21,3 @@
         {{ noData }}
     {% endif %}
 </td>
-
