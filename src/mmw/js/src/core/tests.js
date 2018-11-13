@@ -216,7 +216,7 @@ describe('Core', function() {
                         value: 'developed_low',
                         shape: {},
                         area: 100,
-                        units: 'm<sup>2</sup>',
+                        units: 'm²',
                     }),
                     view = new views.ModificationPopupView({ model: model, editable: true});
                 var spy = sinon.spy(model, 'destroy');
@@ -233,7 +233,7 @@ describe('Core', function() {
                     value: 'developed_low',
                     shape: {},
                     area: 100,
-                    units: 'm<sup>2</sup>',
+                    units: 'm²',
                 }),
                     view = new views.ModificationPopupView({ model: model, editable: false});
 
@@ -254,7 +254,7 @@ describe('Core', function() {
                     });
 
                     assert.equal(Math.round(model.get('area')), 270);
-                    assert.equal(model.get('units'), 'm<sup>2</sup>');
+                    assert.equal(model.get('units'), 'm²');
                 });
 
                 it('calculates and sets the area attribute to sq. km. if the area is greater than 1,000 sq. m.', function() {
@@ -263,7 +263,7 @@ describe('Core', function() {
                     });
 
                     assert.equal(Math.round(model.get('area')), 7);
-                    assert.equal(model.get('units'), 'km<sup>2</sup>');
+                    assert.equal(model.get('units'), 'km²');
                 });
 
                 it('sets the provided fields instead of the defaults if arguments are passed', function() {
@@ -275,7 +275,7 @@ describe('Core', function() {
 
                     model.setDisplayArea('effectiveShape', 'effectiveArea', 'effectiveUnits');
                     assert.equal(Math.round(model.get('effectiveArea')), 7);
-                    assert.equal(model.get('effectiveUnits'), 'km<sup>2</sup>');
+                    assert.equal(model.get('effectiveUnits'), 'km²');
                 });
             });
         });

@@ -8,6 +8,8 @@ var _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
     coreModels = require('../core/models'),
     coreUtils = require('../core/utils'),
+    settings = require('../core/settings'),
+    coreUnits = require('../core/units'),
     models = require('./models'),
     views = require('./views'),
     mocks = require('./mocks'),
@@ -34,6 +36,8 @@ describe('Analyze', function() {
         if ($(sandboxSelector).length === 0) {
             $('<div>', {id: sandboxId}).appendTo('body');
         }
+
+        settings.set('unit_scheme', coreUnits.UNIT_SCHEME.METRIC);
     });
 
     beforeEach(function() {
@@ -96,9 +100,7 @@ function landTableFormatter(categories) {
 
     return collection.map(function(category) {
         var name = category.get('type'),
-            areaKm2 = coreUtils.changeOfAreaUnits(category.get('area'),
-                                                  'm<sup>2</sup>',
-                                                  'km<sup>2</sup>'),
+            areaKm2 = category.get('area') / coreUnits.METRIC.AREA_XL.factor,
             coverage = category.get('coverage') * 100;
 
         return [name, areaKm2.toFixed(2), coverage.toFixed(1)];
@@ -110,9 +112,7 @@ function soilTableFormatter(categories) {
 
     return collection.map(function(category) {
         var name = category.get('type'),
-            areaKm2 = coreUtils.changeOfAreaUnits(category.get('area'),
-                'm<sup>2</sup>',
-                'km<sup>2</sup>'),
+            areaKm2 = category.get('area') / coreUnits.METRIC.AREA_XL.factor,
             coverage = category.get('coverage') * 100;
 
         return [name, areaKm2.toFixed(2), coverage.toFixed(1)];
@@ -173,8 +173,8 @@ var dataFormatters = {
 };
 
 var tableHeaders = {
-    land: ['Type', 'Area (km2)', 'Coverage (%)'],
-    soil: ['Type', 'Area (km2)', 'Coverage (%)'],
+    land: ['Type', 'Area (km²)', 'Coverage (%)'],
+    soil: ['Type', 'Area (km²)', 'Coverage (%)'],
     animals: ['Animal', 'Count'],
     pointsource: ['NPDES Code', 'City', 'Discharge (MGD)', 'TN Load (kg/yr)', 'TP Load (kg/yr)'],
     catchment_water_quality: ['Id', 'Area (ha)', 'Total N (kg/ha)', 'Total P (kg/ha)',

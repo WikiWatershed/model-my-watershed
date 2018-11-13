@@ -17,7 +17,7 @@ var scenarios = {
                 "value": 0.984252,
                 "shape": null,
                 "effectiveShape": null,
-                "units": "m<sup>2</sup>",
+                "units": "m²",
                 "effectiveArea": null,
                 "type": "",
                 "isValidForAnalysis": false
@@ -2165,14 +2165,14 @@ var modifications = {
         "name":"Land Cover",
         "value":"developed_low",
         "shape":{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[-76.00479125976562,40.19251207621169],[-76.04324340820312,40.13794057716276],[-75.95260620117188,40.136890695345905],[-75.93338012695312,40.182020964319086],[-75.96221923828125,40.199854889057676],[-76.00479125976562,40.19251207621169]]]}},
-        "area":10977.041602204828,
-        "units":"acres"
+        "area": 44.42257988387458,
+        "units":"km²"
     },
 
     sample1OutOfOrder: {
-        "area":10977.041602204828,
+        "area": 44.42257988387458,
         "name":"Land Cover",
-        "units":"acres",
+        "units":"km²",
         "shape":{"type":"Feature","geometry":{"coordinates":[[[-76.00479125976562,40.19251207621169],[-76.04324340820312,40.13794057716276],[-75.95260620117188,40.136890695345905],[-75.93338012695312,40.182020964319086],[-75.96221923828125,40.199854889057676],[-76.00479125976562,40.19251207621169]]], "type":"Polygon"},"properties":{}},
         "value":"developed_low"
     },
@@ -2181,8 +2181,8 @@ var modifications = {
         "name":"Conservation Practice",
         "value":"rain_garden",
         "shape":{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[-75.53237915039062,40.18307014852534],[-75.66009521484375,40.107487419012415],[-75.50491333007812,40.10118506258701],[-75.43350219726561,40.13899044275822],[-75.42800903320312,40.1673306817866],[-75.53237915039062,40.18307014852534]]]}},
-        "area":26292.18855342856,
-        "units":"acres"
+        "area": 106.40087636198604,
+        "units":"km²"
     },
 
     // Identical to sample1 except has a slightly smaller area
@@ -2190,8 +2190,8 @@ var modifications = {
         "name":"Land Cover",
         "value":"developed_low",
         "shape":{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[-76.00479125976562,40.19252207621169],[-76.04324340820312,40.13794057716276],[-75.95260620117188,40.136890695345905],[-75.93338012695312,40.182020964319086],[-75.96221923828125,40.199854889057676],[-76.00479125976562,40.19251207621169]]]}},
-        "area":10777.041602204828,
-        "units":"acres"
+        "area": 10777.041602204828,
+        "units":"km²"
     }
 };
 

@@ -9,6 +9,7 @@ var Backbone = require('../../shim/backbone'),
     pointSourceLayer = require('../core/pointSourceLayer'),
     drawUtils = require('../draw/utils'),
     settings = require('./settings'),
+    coreUnits = require('./units'),
     VizerLayers = require('./vizerLayers');
 
 var MapModel = Backbone.Model.extend({
@@ -700,7 +701,7 @@ var GeoModel = Backbone.Model.extend({
         name: '',
         shape: null,        // GeoJSON
         area: '0',
-        units: 'm<sup>2</sup>',
+        units: 'm²',
         isValidForAnalysis: true
     },
 
@@ -722,20 +723,33 @@ var GeoModel = Backbone.Model.extend({
         if (!this.get(shape)) { return; }
 
         var areaInMeters = turfArea(this.get(shape));
+        var unit = areaInMeters < this.M_IN_KM ? 'AREA_M' : 'AREA_XL';
+        var value = coreUnits.get(unit, areaInMeters);
 
-        // If the area is less than 1 km, use m
-        if (areaInMeters < this.M_IN_KM) {
-            this.set(area, areaInMeters);
-            this.set(units, 'm<sup>2</sup>');
-        } else {
-            this.set(area, areaInMeters / this.M_IN_KM);
-            this.set(units, 'km<sup>2</sup>');
-        }
+        this.set(area, value.value);
+        this.set(units, value.unit);
     },
 
     setValidForAnalysis: function() {
         var shape = this.get('shape');
         this.set('isValidForAnalysis', drawUtils.isValidForAnalysis(shape));
+    },
+
+    getAreaInMeters: function() {
+        var area = this.get('area');
+
+        switch(this.get('units')) {
+            case 'm²':
+                return area;
+            case 'km²':
+                return area * coreUnits.METRIC.AREA_XL.factor;
+            case 'mi²':
+                return area * coreUnits.USCUSTOMARY.AREA_XL.factor;
+            case 'ft²':
+                return area * coreUnits.USCUSTOMARY.AREA_M.factor;
+            default:
+                throw "Unsupported unit type";
+        }
     }
 });
 

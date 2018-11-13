@@ -15,6 +15,7 @@ var $ = require('jquery'),
     utils = require('./utils'),
     models = require('./models'),
     settings = require('../core/settings'),
+    coreUnits = require('../core/units'),
     coreUtils = require('../core/utils'),
     drawUtils = require('../draw/utils'),
     drawSettings = require('./settings'),
@@ -111,12 +112,16 @@ function validateShape(polygon) {
                        'over its own border.';
         d.reject(errorMsg);
     } else if (invalidForAnalysis) {
-        var maxArea = utils.MAX_AREA.toLocaleString(),
-            selectedBoundingBoxArea = Math.floor(utils.shapeBoundingBoxArea(polygon)).toLocaleString(),
+        var maxArea = coreUnits.get('AREA_XL', settings.get('max_area')),
+            maxAreaString = Math.floor(maxArea.value).toLocaleString() +
+                            '&nbsp;' + maxArea.unit,
+            selectedBoundingBoxArea = coreUnits.get('AREA_XL', utils.shapeBoundingBoxArea(polygon)),
+            selectedBoundingBoxAreaString = Math.floor(selectedBoundingBoxArea.value).toLocaleString() +
+                                            '&nbsp;' + selectedBoundingBoxArea.unit,
             message = 'Sorry, the bounding box of the selected area is too large ' +
-                      'to analyze or model. ' + selectedBoundingBoxArea + '&nbsp;km² were ' +
+                      'to analyze or model. ' + selectedBoundingBoxAreaString + ' were ' +
                       'selected, but the maximum supported size is ' +
-                      'currently ' + maxArea + '&nbsp;km².';
+                      'currently ' + maxAreaString + '.';
         d.reject(message);
     } else if (outsideConus) {
         var conusMessage = 'The area of interest must be within the Continental US.';

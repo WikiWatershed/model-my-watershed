@@ -11,6 +11,7 @@ var $ = require('jquery'),
     models = require('./models'),
     csrf = require('../core/csrf'),
     settings = require('../core/settings'),
+    coreUnits = require('../core/units'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
     coreModels = require('../core/models'),
@@ -172,19 +173,18 @@ var ResultsView = Marionette.LayoutView.extend({
 
         if (modelPackageName === utils.GWLFE &&
             settings.get('mapshed_max_area')) {
-            var areaInSqKm = utils.changeOfAreaUnits(aoiModel.get('area'),
-                                                     aoiModel.get('units'),
-                                                     'km<sup>2</sup>'),
+            var area = aoiModel.getAreaInMeters(),
                 mapshedMaxArea = settings.get('mapshed_max_area');
 
-            if (areaInSqKm > mapshedMaxArea) {
+            if (area > mapshedMaxArea) {
+                var mmaValue = coreUnits.get('AREA_XL', mapshedMaxArea);
                 alertView = new modalViews.AlertView({
                     model: new modalModels.AlertModel({
                         alertMessage:
                             "The selected Area of Interest is too big for " +
                             "the Watershed Multi-Year Model. The currently " +
-                            "maximum supported size is " + mapshedMaxArea +
-                            " km².",
+                            "maximum supported size is " + mmaValue.value +
+                            " " + mmaValue.unit + ".",
                         alertType: modalModels.AlertTypes.warn
                     })
                 });
@@ -614,7 +614,7 @@ var TableRowView = Marionette.ItemView.extend({
             // Convert coverage to percentage for display.
             coveragePct: (this.model.get('coverage') * 100),
             // Scale the area to display units.
-            scaledArea: utils.changeOfAreaUnits(area, 'm<sup>2</sup>', units),
+            scaledArea: coreUnits.get(units, area).value,
             code: code,
             isLandTable: isLandTable
         };
@@ -630,8 +630,11 @@ var TableView = Marionette.CompositeView.extend({
         };
     },
     templateHelpers: function() {
+        var scheme = settings.get('unit_scheme'),
+            units = this.options.units;
+
         return {
-            headerUnits: this.options.units,
+            headerUnits: coreUnits[scheme][units].name,
             isLandTable: this.options.modelName === 'land'
         };
     },
