@@ -43,6 +43,16 @@ var units = {
             factor: 5.55556E-01,
             offset: 32
         },
+        MASSPERAREA_L: {
+            name: 'ton/ac', // US short ton
+            factor: 2.24170E+03, // from kg/ha
+            offset: 0
+        },
+        MASSPERAREA_M: {
+            name: 'lb/ac',
+            factor: 1.12085,
+            offset: 0
+        },
         MASSPERTIME: {
             name: 'lb/a',
             factor: 1/2.204620532,
@@ -50,6 +60,11 @@ var units = {
         },
         VOLUMETRICFLOWRATE: {
             name: 'mgd',
+            factor: 1,
+            offset: 0
+        },
+        CONCENTRATION: {
+            name: 'mg/L',
             factor: 1,
             offset: 0
         },
@@ -90,6 +105,16 @@ var units = {
             factor: 1,
             offset: 0
         },
+        MASSPERAREA_L: { // both MASSPERAREA are kg/ha in METRIC
+            name: 'kg/ha',
+            factor: 1,
+            offset: 0
+        },
+        MASSPERAREA_M: {
+            name: 'kg/ha',
+            factor: 1,
+            offset: 0
+        },
         MASSPERTIME: {
             name: 'kg/a',
             factor: 1,
@@ -98,6 +123,11 @@ var units = {
         VOLUMETRICFLOWRATE: {
             name: 'm³/d',
             factor: 1/3785.411784,
+            offset: 0
+        },
+        CONCENTRATION: {
+            name: 'mg/L',
+            factor: 1,
             offset: 0
         },
     },

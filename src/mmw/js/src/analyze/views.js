@@ -1046,8 +1046,17 @@ var CatchmentWaterQualityTableRowView = Marionette.ItemView.extend({
     template: catchmentWaterQualityTableRowTmpl,
 
     templateHelpers: function() {
+        // Standardize input hectare to m² before converting units
+        var area = coreUnits.get('AREA_L', 10000 * this.model.get('areaha')),
+            tn_tot = coreUnits.get('MASSPERAREA_M', this.model.get('tn_tot_kgy')),
+            tp_tot = coreUnits.get('MASSPERAREA_M', this.model.get('tp_tot_kgy')),
+            tss_tot = coreUnits.get('MASSPERAREA_L', this.model.get('tss_tot_kg'));
+
         return {
-            val: this.model.get('value'),
+            area: area.value,
+            tn_tot: tn_tot.value,
+            tp_tot: tp_tot.value,
+            tss_tot: tss_tot.value,
             noData: utils.noData
         };
     }
@@ -1061,8 +1070,15 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
         };
     },
     templateHelpers: function() {
+        var scheme = settings.get('unit_scheme'),
+            areaUnit = coreUnits[scheme].AREA_L.name,
+            massPerAreaMUnit = coreUnits[scheme].MASSPERAREA_M.name,
+            massPerAreaLUnit = coreUnits[scheme].MASSPERAREA_L.name;
+
         return {
-            headerUnits: this.options.units,
+            areaUnit: areaUnit,
+            massPerAreaMUnit: massPerAreaMUnit,
+            massPerAreaLUnit: massPerAreaLUnit,
         };
     },
     childViewContainer: 'tbody',
