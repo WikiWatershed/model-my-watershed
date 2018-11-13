@@ -943,8 +943,14 @@ var PointSourceTableRowView = Marionette.ItemView.extend({
     template: pointSourceTableRowTmpl,
 
     templateHelpers: function() {
+        var mgd = coreUnits.get('VOLUMETRICFLOWRATE', this.model.get('mgd')),
+            kgn = coreUnits.get('MASSPERTIME', this.model.get('kgn_yr')),
+            kgp = coreUnits.get('MASSPERTIME', this.model.get('kgp_yr'));
+
         return {
-            val: this.model.get('value'),
+            discharge: mgd.value,
+            n_load: kgn.value,
+            p_load: kgp.value,
             noData: utils.noData
         };
     }
@@ -958,13 +964,18 @@ var PointSourceTableView = Marionette.CompositeView.extend({
         };
     },
     templateHelpers: function() {
+        var models = this.collection.fullCollection.models,
+            getValue = function(key) { return utils.totalForPointSourceCollection(models, key); },
+            totalMGD = coreUnits.get('VOLUMETRICFLOWRATE', getValue('mgd')),
+            totalKGN = coreUnits.get('MASSPERTIME', getValue('kgn_yr')),
+            totalKGP = coreUnits.get('MASSPERTIME', getValue('kgp_yr'));
+
         return {
-            totalMGD: utils.totalForPointSourceCollection(
-                this.collection.fullCollection.models, 'mgd'),
-            totalKGN: utils.totalForPointSourceCollection(
-                this.collection.fullCollection.models, 'kgn_yr'),
-            totalKGP: utils.totalForPointSourceCollection(
-                this.collection.fullCollection.models, 'kgp_yr'),
+            totalMGD: totalMGD.value,
+            totalKGN: totalKGN.value,
+            totalKGP: totalKGP.value,
+            massPerTimeUnit: totalKGN.unit,
+            volumetricFlowRateUnit: totalMGD.unit,
         };
     },
     childViewContainer: 'tbody',

@@ -43,6 +43,16 @@ var units = {
             factor: 5.55556E-01,
             offset: 32
         },
+        MASSPERTIME: {
+            name: 'lb/a',
+            factor: 1/2.204620532,
+            offset: 0
+        },
+        VOLUMETRICFLOWRATE: {
+            name: 'mgd',
+            factor: 1,
+            offset: 0
+        },
     },
     METRIC: {
         AREA_XL: {
@@ -78,6 +88,16 @@ var units = {
         TEMPERATURE: {
             name: '°C',
             factor: 1,
+            offset: 0
+        },
+        MASSPERTIME: {
+            name: 'kg/a',
+            factor: 1,
+            offset: 0
+        },
+        VOLUMETRICFLOWRATE: {
+            name: 'm³/d',
+            factor: 1/3785.411784,
             offset: 0
         },
     },
