@@ -1,7 +1,8 @@
 "use strict";
 
 var Backbone = require('../../shim/backbone'),
-    _ = require('underscore');
+    _ = require('underscore'),
+    settings = require('../core/settings');
 
 var UserModel = Backbone.Model.extend({
     defaults: {
@@ -24,6 +25,10 @@ var UserModel = Backbone.Model.extend({
             data: {
                 'username': attrs.username,
                 'password': attrs.password
+            }
+        }).done(function(response) {
+            if (response && response.profile && response.profile.unit_scheme) {
+                settings.set('unit_scheme', response.profile.unit_scheme);
             }
         });
     },
@@ -66,6 +71,7 @@ var UserProfileModel = Backbone.Model.extend({
         country: '',
         user_type: '',
         postal_code: '',
+        unit_scheme: 'METRIC',
         error: null,
         saving: false
     },
