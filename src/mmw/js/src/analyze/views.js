@@ -682,6 +682,13 @@ var AnimalTableView = Marionette.CompositeView.extend({
 var ClimateTableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
     template: climateTableRowTmpl,
+
+    templateHelpers: function() {
+        return {
+            ppt: coreUnits.get('LENGTH_S', this.model.get('ppt') / 100).value,
+            tmean: coreUnits.get('TEMPERATURE', this.model.get('tmean')).value,
+        };
+    },
 });
 
 var ClimateTableView = Marionette.CompositeView.extend({
@@ -690,12 +697,15 @@ var ClimateTableView = Marionette.CompositeView.extend({
     template: climateTableTmpl,
     templateHelpers: function() {
         var data = this.collection.toJSON(),
-            totalPpt = lodash(data).pluck('ppt').sum(),
-            avgTmean = lodash(data).pluck('tmean').sum() / 12;
+            // Standardize precipitation in cm to m before converting to appropriate unit
+            totalPpt = coreUnits.get('LENGTH_S', lodash(data).pluck('ppt').sum() / 100),
+            avgTmean = coreUnits.get('TEMPERATURE', lodash(data).pluck('tmean').sum() / 12);
 
         return {
-            totalPpt: totalPpt,
-            avgTmean: avgTmean,
+            totalPpt: totalPpt.value,
+            lengthUnit: totalPpt.unit,
+            avgTmean: avgTmean.value,
+            tempUnit: avgTmean.unit,
         };
     },
 
@@ -1370,17 +1380,31 @@ var ClimateChartView = ChartView.extend({
 
     addChart: function() {
         var chartEl = this.$('.bar-chart').get(0),
+            scheme = settings.get('unit_scheme'),
+            lengthUnit = coreUnits[scheme].LENGTH_S.name,
+            tempUnit = coreUnits[scheme].TEMPERATURE.name,
             activeVar = this.model.get('activeVar'),
             config = activeVar === 'ppt' ?
-                {label: 'Water Depth (cm)', unit: 'cm', key: 'Mean Precipitation'} :
-                {label: 'Temperature (°C)', unit: '°C', key: 'Mean Temperature'  },
+                {
+                    label: 'Water Depth (' + lengthUnit + ')',
+                    unit: lengthUnit,
+                    key: 'Mean Precipitation'
+                } : {
+                    label: 'Temperature (' + tempUnit + ')',
+                    unit: tempUnit,
+                    key: 'Mean Temperature'
+                },
             data = [
                 {
                     key: config.key,
                     values: this.collection.map(function(model, idx) {
                         return {
                             x: idx,
-                            y: model.get(activeVar)
+                            y: activeVar === 'ppt' ?
+                                // Standardize precipitation in cm to m before
+                                // converting to appropriate unit
+                                coreUnits.get('LENGTH_S', model.get(activeVar) / 100).value :
+                                coreUnits.get('TEMPERATURE', model.get(activeVar)).value,
                         };
                     }),
                 },

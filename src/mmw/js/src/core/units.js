@@ -38,6 +38,11 @@ var units = {
             factor: 2.54000E-02,
             offset: 0
         },
+        TEMPERATURE: {
+            name: '°F',
+            factor: 5.55556E-01,
+            offset: 32
+        },
     },
     METRIC: {
         AREA_XL: {
@@ -68,6 +73,11 @@ var units = {
         LENGTH_S: {
             name: 'cm',
             factor: 1.00000E-02,
+            offset: 0
+        },
+        TEMPERATURE: {
+            name: '°C',
+            factor: 1,
             offset: 0
         },
     },
