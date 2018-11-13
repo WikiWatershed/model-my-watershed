@@ -783,12 +783,29 @@ var StreamTableView = Marionette.CompositeView.extend({
 var TerrainTableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
     template: terrainTableRowTmpl,
+
+    templateHelpers: function() {
+        var elevation = coreUnits.get('LENGTH_M', this.model.get('elevation')).value;
+
+        return {
+            elevation: elevation,
+        };
+    },
 });
 
 var TerrainTableView = Marionette.CompositeView.extend({
     childView: TerrainTableRowView,
     childViewContainer: 'tbody',
     template: terrainTableTmpl,
+
+    templateHelpers: function() {
+        var scheme = settings.get('unit_scheme'),
+            lengthUnit = coreUnits[scheme].LENGTH_M.name;
+
+        return {
+            lengthUnit: lengthUnit,
+        };
+    },
 
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
