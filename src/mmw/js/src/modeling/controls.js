@@ -6,7 +6,8 @@ var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     drawUtils = require('../draw/utils'),
-    coreUtils = require('../core/utils'),
+    settings = require('../core/settings'),
+    coreUnits = require('../core/units'),
     models = require('./models'),
     modificationConfigUtils = require('./modificationConfigUtils'),
     gwlfeConfig = require('./gwlfeModificationConfig'),
@@ -20,7 +21,8 @@ var $ = require('jquery'),
     greenButtonTmpl = require('./templates/controls/greenButton.html'),
     modDropdownTmpl = require('./templates/controls/modDropdown.html');
 
-var ENTER_KEYCODE = 13;
+var ENTER_KEYCODE = 13,
+    CM_PER_IN = 2.54;
 
 // Simulation input controls base class.
 var ControlView = Marionette.LayoutView.extend({
@@ -529,12 +531,26 @@ var PrecipitationView = ControlView.extend({
         'change @ui.slider': 'onSliderChanged'
     },
 
+    templateHelpers: function() {
+        var scheme = settings.get('unit_scheme'),
+            sliderMax = scheme === coreUnits.UNIT_SCHEME.METRIC ?
+                        25 : // 25 cm
+                        10;  // 10 in
+
+        return {
+            sliderMax: sliderMax,
+        };
+    },
+
     getControlName: function() {
         return 'precipitation';
     },
 
     getDisplayValue: function(value) {
-        return value.toFixed(2) + ' cm';
+        var scheme = settings.get('unit_scheme'),
+            lengthUnit = coreUnits[scheme].LENGTH_S.name;
+
+        return value.toFixed(2) + ' ' + lengthUnit;
     },
 
     onSliderDragged: function() {
@@ -546,12 +562,15 @@ var PrecipitationView = ControlView.extend({
     },
 
     onSliderChanged: function() {
-        var value = parseFloat(this.ui.slider.val()),
-            // Model expects Imperial inputs.
-            imperialValue = coreUtils.convertToImperial(value, 'cm'),
+        var scheme = settings.get('unit_scheme'),
+            sliderValue = parseFloat(this.ui.slider.val()),
+            // Always store in inches
+            value = scheme === coreUnits.UNIT_SCHEME.METRIC ?
+                    sliderValue / CM_PER_IN :
+                    sliderValue,
             modification = new models.ModificationModel({
                 name: this.getControlName(),
-                value: imperialValue
+                value: value,
             });
 
         // Update values for IE which doesn't trigger onSliderDragged. Will
@@ -564,12 +583,15 @@ var PrecipitationView = ControlView.extend({
     },
 
     onRender: function() {
-        var model = this.controlModel,
+        var scheme = settings.get('unit_scheme'),
+            model = this.controlModel,
             value = model && model.get('value') || 0;
 
-        // Model values are stored in Imperial and need to be displayed as
-        // metric.
-        value = coreUtils.convertToMetric(value, 'in');
+        // Convert from inches if necessary
+        if (scheme === coreUnits.UNIT_SCHEME.METRIC) {
+            value *= CM_PER_IN;
+        }
+
         this.ui.slider.val(value);
         this.ui.slider.attr('value', value);
         this.ui.displayValue.text(this.getDisplayValue(value));

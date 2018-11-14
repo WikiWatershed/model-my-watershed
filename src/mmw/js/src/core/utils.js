@@ -413,30 +413,6 @@ var utils = {
         }
     },
 
-    convertToImperial: function(value, fromUnit) {
-        fromUnit = fromUnit.toLowerCase();
-        switch (fromUnit) {
-            case 'cm':
-                // return in.
-                return value * 0.393701;
-
-            case 'm':
-                // return feet.
-                return value * 3.28084;
-
-            case 'km':
-                // return miles.
-                return value * 0.621371;
-
-            case 'kg':
-                // return Lbs.
-                return value * 2.20462;
-
-            default:
-                throw 'Conversion not implemented.';
-        }
-    },
-
     filterOutOxygenDemand: function(element) {
         return element.measure !== "Biochemical Oxygen Demand";
     },
