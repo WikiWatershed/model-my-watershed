@@ -68,6 +68,11 @@ var units = {
             factor: 1,
             offset: 0
         },
+        VOLUME: {
+            name: 'ft³',
+            factor: 2.83168E-02,
+            offset: 0
+        },
     },
     METRIC: {
         AREA_XL: {
@@ -127,6 +132,11 @@ var units = {
         },
         CONCENTRATION: {
             name: 'mg/L',
+            factor: 1,
+            offset: 0
+        },
+        VOLUME: {
+            name: 'm³',
             factor: 1,
             offset: 0
         },
