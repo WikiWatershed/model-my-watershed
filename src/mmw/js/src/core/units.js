@@ -43,6 +43,11 @@ var units = {
             factor: 5.55556E-01,
             offset: 32
         },
+        MASS_M: {
+            name: 'lb',
+            factor: 4.53592E-01,
+            offset: 0
+        },
         MASSPERAREA_L: {
             name: 'ton/ac', // US short ton
             factor: 2.24170E+03, // from kg/ha
@@ -107,6 +112,11 @@ var units = {
         },
         TEMPERATURE: {
             name: '°C',
+            factor: 1,
+            offset: 0
+        },
+        MASS_M: {
+            name: 'kg',
             factor: 1,
             offset: 0
         },
