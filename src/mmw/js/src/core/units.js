@@ -161,6 +161,9 @@ var units = {
                 this[scheme][unit].offset,
         };
     },
+    CONVERSIONS: {
+        CM_PER_IN: 2.54,
+    },
 };
 
 module.exports = units;

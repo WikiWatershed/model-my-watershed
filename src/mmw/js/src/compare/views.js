@@ -8,6 +8,8 @@ var _ = require('lodash'),
     coreModels = require('../core/models'),
     coreUtils = require('../core/utils'),
     coreViews = require('../core/views'),
+    settings = require('../core/settings'),
+    coreUnits = require('../core/units'),
     chart = require('../core/chart.js'),
     modalViews = require('../core/modals/views'),
     models = require('./models'),
@@ -635,15 +637,20 @@ var Tr55BarChartRowView = Marionette.ItemView.extend({
 
     renderChart: function() {
         var self = this,
+            scheme = settings.get('unit_scheme'),
+            unit = this.model.get('unit'),
             chartDiv = this.model.get('chartDiv'),
             chartEl = document.getElementById(chartDiv),
             name = this.model.get('name'),
             chartName = name.replace(/\s/g, ''),
             label = this.model.get('unitLabel') +
-                    ' (' + this.model.get('unit') + ')',
+                    ' (' + coreUnits[scheme][unit].name + ')',
             colors = this.model.get('seriesColors'),
             stacked = name.indexOf('Hydrology') > -1,
-            yMax = stacked ? this.model.get('precipitation') : null,
+            precipitation = this.model.get('precipitation'),
+            yMax = stacked ?
+                    coreUnits.get(unit, precipitation).value :
+                    null,
             values = this.model.get('values'),
             data = stacked ? ['inf', 'runoff', 'et'].map(function(key) {
                     return {
@@ -651,7 +658,7 @@ var Tr55BarChartRowView = Marionette.ItemView.extend({
                         values: values.map(function(value, index) {
                             return {
                                 x: 'Series ' + index,
-                                y: value[key],
+                                y: coreUnits.get(unit, value[key] / 100).value,
                             };
                         })
                     };
@@ -660,7 +667,7 @@ var Tr55BarChartRowView = Marionette.ItemView.extend({
                     values: values.map(function(value, index) {
                         return {
                             x: 'Series ' + index,
-                            y: value,
+                            y: coreUnits.get(unit, value).value,
                         };
                     }),
                 }],

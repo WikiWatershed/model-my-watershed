@@ -21,8 +21,7 @@ var $ = require('jquery'),
     greenButtonTmpl = require('./templates/controls/greenButton.html'),
     modDropdownTmpl = require('./templates/controls/modDropdown.html');
 
-var ENTER_KEYCODE = 13,
-    CM_PER_IN = 2.54;
+var ENTER_KEYCODE = 13;
 
 // Simulation input controls base class.
 var ControlView = Marionette.LayoutView.extend({
@@ -566,7 +565,7 @@ var PrecipitationView = ControlView.extend({
             sliderValue = parseFloat(this.ui.slider.val()),
             // Always store in inches
             value = scheme === coreUnits.UNIT_SCHEME.METRIC ?
-                    sliderValue / CM_PER_IN :
+                    sliderValue / coreUnits.CONVERSIONS.CM_PER_IN :
                     sliderValue,
             modification = new models.ModificationModel({
                 name: this.getControlName(),
@@ -589,7 +588,7 @@ var PrecipitationView = ControlView.extend({
 
         // Convert from inches if necessary
         if (scheme === coreUnits.UNIT_SCHEME.METRIC) {
-            value *= CM_PER_IN;
+            value *= coreUnits.CONVERSIONS.CM_PER_IN;
         }
 
         this.ui.slider.val(value);

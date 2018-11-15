@@ -2,6 +2,7 @@
 
 var _ = require('lodash'),
     coreUtils = require('../core/utils'),
+    coreUnits = require('../core/units'),
     Backbone = require('../../shim/backbone'),
     ControlsCollection = require('../modeling/models').ModelPackageControlsCollection,
     constants = require('./constants');
@@ -104,7 +105,7 @@ var Tr55RunoffCharts = BarChartRowsCollection.extend({
         var precipitationInput = this.scenarios.first()
                                                .get('inputs')
                                                .findWhere({ name: 'precipitation' }),
-            precipitation = coreUtils.convertToMetric(precipitationInput.get('value'), 'in'),
+            precipitationMeters = precipitationInput.get('value') * coreUnits.CONVERSIONS.CM_PER_IN / 100,
             results = this.scenarios.map(coreUtils.getTR55RunoffResult, coreUtils);
 
         this.forEach(function(chart) {
@@ -115,12 +116,12 @@ var Tr55RunoffCharts = BarChartRowsCollection.extend({
                 values = results;
             } else {
                 values = _.map(results, function(result) {
-                    return result[key];
+                    return result[key] / 100; // Convert cm to m
                 });
             }
 
             chart.set({
-                precipitation: precipitation,
+                precipitation: precipitationMeters,
                 values: values
             });
         });
