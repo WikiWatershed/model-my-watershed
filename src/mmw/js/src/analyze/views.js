@@ -11,6 +11,7 @@ var $ = require('jquery'),
     models = require('./models'),
     csrf = require('../core/csrf'),
     settings = require('../core/settings'),
+    coreUnits = require('../core/units'),
     modalModels = require('../core/modals/models'),
     modalViews = require('../core/modals/views'),
     coreModels = require('../core/models'),
@@ -50,6 +51,9 @@ var $ = require('jquery'),
 
 var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+// Factor to convert km to miles. Multiply by 1000 to convert km instead of m.
+var MI_IN_KM = 1000 / coreUnits.USCUSTOMARY.LENGTH_XL.factor;
 
 var ResultsView = Marionette.LayoutView.extend({
     id: 'model-output-wrapper',
@@ -172,19 +176,18 @@ var ResultsView = Marionette.LayoutView.extend({
 
         if (modelPackageName === utils.GWLFE &&
             settings.get('mapshed_max_area')) {
-            var areaInSqKm = utils.changeOfAreaUnits(aoiModel.get('area'),
-                                                     aoiModel.get('units'),
-                                                     'km<sup>2</sup>'),
+            var area = aoiModel.getAreaInMeters(),
                 mapshedMaxArea = settings.get('mapshed_max_area');
 
-            if (areaInSqKm > mapshedMaxArea) {
+            if (area > mapshedMaxArea) {
+                var mmaValue = coreUnits.get('AREA_XL', mapshedMaxArea);
                 alertView = new modalViews.AlertView({
                     model: new modalModels.AlertModel({
                         alertMessage:
                             "The selected Area of Interest is too big for " +
                             "the Watershed Multi-Year Model. The currently " +
-                            "maximum supported size is " + mapshedMaxArea +
-                            " km².",
+                            "maximum supported size is " + mmaValue.value +
+                            " " + mmaValue.unit + ".",
                         alertType: modalModels.AlertTypes.warn
                     })
                 });
@@ -614,7 +617,7 @@ var TableRowView = Marionette.ItemView.extend({
             // Convert coverage to percentage for display.
             coveragePct: (this.model.get('coverage') * 100),
             // Scale the area to display units.
-            scaledArea: utils.changeOfAreaUnits(area, 'm<sup>2</sup>', units),
+            scaledArea: coreUnits.get(units, area).value,
             code: code,
             isLandTable: isLandTable
         };
@@ -630,8 +633,11 @@ var TableView = Marionette.CompositeView.extend({
         };
     },
     templateHelpers: function() {
+        var scheme = settings.get('unit_scheme'),
+            units = this.options.units;
+
         return {
-            headerUnits: this.options.units,
+            headerUnits: coreUnits[scheme][units].name,
             isLandTable: this.options.modelName === 'land'
         };
     },
@@ -676,6 +682,13 @@ var AnimalTableView = Marionette.CompositeView.extend({
 var ClimateTableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
     template: climateTableRowTmpl,
+
+    templateHelpers: function() {
+        return {
+            ppt: coreUnits.get('LENGTH_S', this.model.get('ppt') / 100).value,
+            tmean: coreUnits.get('TEMPERATURE', this.model.get('tmean')).value,
+        };
+    },
 });
 
 var ClimateTableView = Marionette.CompositeView.extend({
@@ -684,12 +697,15 @@ var ClimateTableView = Marionette.CompositeView.extend({
     template: climateTableTmpl,
     templateHelpers: function() {
         var data = this.collection.toJSON(),
-            totalPpt = lodash(data).pluck('ppt').sum(),
-            avgTmean = lodash(data).pluck('tmean').sum() / 12;
+            // Standardize precipitation in cm to m before converting to appropriate unit
+            totalPpt = coreUnits.get('LENGTH_S', lodash(data).pluck('ppt').sum() / 100),
+            avgTmean = coreUnits.get('TEMPERATURE', lodash(data).pluck('tmean').sum() / 12);
 
         return {
-            totalPpt: totalPpt,
-            avgTmean: avgTmean,
+            totalPpt: totalPpt.value,
+            lengthUnit: totalPpt.unit,
+            avgTmean: avgTmean.value,
+            tempUnit: avgTmean.unit,
         };
     },
 
@@ -704,6 +720,8 @@ var StreamTableRowView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         var order = this.model.get('order'),
+            isMetric = settings.get('unit_scheme') === coreUnits.UNIT_SCHEME.METRIC,
+            length = isMetric ? this.model.get('lengthkm') : this.model.get('lengthkm') * MI_IN_KM,
             displayOrder = (function() {
                 switch (order) {
                     case 1:
@@ -721,7 +739,7 @@ var StreamTableRowView = Marionette.ItemView.extend({
 
         return {
             displayOrder: displayOrder,
-            lengthkm: this.model.get('lengthkm'),
+            length: length,
             avgslope: this.model.get('avgslope'),
             noData: utils.noData,
         };
@@ -749,7 +767,12 @@ var StreamTableView = Marionette.CompositeView.extend({
 
     templateHelpers: function() {
         var data = lodash(this.collection.toJSON()),
-            totalLength = data.pluck('lengthkm').sum(),
+            scheme = settings.get('unit_scheme'),
+            lengthUnit = coreUnits[scheme].LENGTH_XL.name,
+            isMetric = scheme === coreUnits.UNIT_SCHEME.METRIC,
+            totalLength = isMetric ?
+                data.pluck('lengthkm').sum() :
+                data.pluck('lengthkm').sum() * MI_IN_KM,
             avgChannelSlope = data.pluck('total_weighted_slope').sum() / totalLength,
             // Currently we only calculate agricultral percent for the entire
             // set, not per stream order, so we use the first value for total.
@@ -758,6 +781,7 @@ var StreamTableView = Marionette.CompositeView.extend({
             lengthInNonAg = totalLength - lengthInAg;
 
         return {
+            lengthUnit: lengthUnit,
             totalLength: totalLength,
             avgChannelSlope: avgChannelSlope,
             lengthInAg: lengthInAg,
@@ -769,12 +793,29 @@ var StreamTableView = Marionette.CompositeView.extend({
 var TerrainTableRowView = Marionette.ItemView.extend({
     tagName: 'tr',
     template: terrainTableRowTmpl,
+
+    templateHelpers: function() {
+        var elevation = coreUnits.get('LENGTH_M', this.model.get('elevation')).value;
+
+        return {
+            elevation: elevation,
+        };
+    },
 });
 
 var TerrainTableView = Marionette.CompositeView.extend({
     childView: TerrainTableRowView,
     childViewContainer: 'tbody',
     template: terrainTableTmpl,
+
+    templateHelpers: function() {
+        var scheme = settings.get('unit_scheme'),
+            lengthUnit = coreUnits[scheme].LENGTH_M.name;
+
+        return {
+            lengthUnit: lengthUnit,
+        };
+    },
 
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
@@ -902,8 +943,14 @@ var PointSourceTableRowView = Marionette.ItemView.extend({
     template: pointSourceTableRowTmpl,
 
     templateHelpers: function() {
+        var mgd = coreUnits.get('VOLUMETRICFLOWRATE', this.model.get('mgd')),
+            kgn = coreUnits.get('MASSPERTIME', this.model.get('kgn_yr')),
+            kgp = coreUnits.get('MASSPERTIME', this.model.get('kgp_yr'));
+
         return {
-            val: this.model.get('value'),
+            discharge: mgd.value,
+            n_load: kgn.value,
+            p_load: kgp.value,
             noData: utils.noData
         };
     }
@@ -917,13 +964,18 @@ var PointSourceTableView = Marionette.CompositeView.extend({
         };
     },
     templateHelpers: function() {
+        var models = this.collection.fullCollection.models,
+            getValue = function(key) { return utils.totalForPointSourceCollection(models, key); },
+            totalMGD = coreUnits.get('VOLUMETRICFLOWRATE', getValue('mgd')),
+            totalKGN = coreUnits.get('MASSPERTIME', getValue('kgn_yr')),
+            totalKGP = coreUnits.get('MASSPERTIME', getValue('kgp_yr'));
+
         return {
-            totalMGD: utils.totalForPointSourceCollection(
-                this.collection.fullCollection.models, 'mgd'),
-            totalKGN: utils.totalForPointSourceCollection(
-                this.collection.fullCollection.models, 'kgn_yr'),
-            totalKGP: utils.totalForPointSourceCollection(
-                this.collection.fullCollection.models, 'kgp_yr'),
+            totalMGD: totalMGD.value,
+            totalKGN: totalKGN.value,
+            totalKGP: totalKGP.value,
+            massPerTimeUnit: totalKGN.unit,
+            volumetricFlowRateUnit: totalMGD.unit,
         };
     },
     childViewContainer: 'tbody',
@@ -994,8 +1046,17 @@ var CatchmentWaterQualityTableRowView = Marionette.ItemView.extend({
     template: catchmentWaterQualityTableRowTmpl,
 
     templateHelpers: function() {
+        // Standardize input hectare to m² before converting units
+        var area = coreUnits.get('AREA_L', 10000 * this.model.get('areaha')),
+            tn_tot = coreUnits.get('MASSPERAREA_M', this.model.get('tn_tot_kgy')),
+            tp_tot = coreUnits.get('MASSPERAREA_M', this.model.get('tp_tot_kgy')),
+            tss_tot = coreUnits.get('MASSPERAREA_L', this.model.get('tss_tot_kg'));
+
         return {
-            val: this.model.get('value'),
+            area: area.value,
+            tn_tot: tn_tot.value,
+            tp_tot: tp_tot.value,
+            tss_tot: tss_tot.value,
             noData: utils.noData
         };
     }
@@ -1009,8 +1070,15 @@ var CatchmentWaterQualityTableView = Marionette.CompositeView.extend({
         };
     },
     templateHelpers: function() {
+        var scheme = settings.get('unit_scheme'),
+            areaUnit = coreUnits[scheme].AREA_L.name,
+            massPerAreaMUnit = coreUnits[scheme].MASSPERAREA_M.name,
+            massPerAreaLUnit = coreUnits[scheme].MASSPERAREA_L.name;
+
         return {
-            headerUnits: this.options.units,
+            areaUnit: areaUnit,
+            massPerAreaMUnit: massPerAreaMUnit,
+            massPerAreaLUnit: massPerAreaLUnit,
         };
     },
     childViewContainer: 'tbody',
@@ -1339,17 +1407,31 @@ var ClimateChartView = ChartView.extend({
 
     addChart: function() {
         var chartEl = this.$('.bar-chart').get(0),
+            scheme = settings.get('unit_scheme'),
+            lengthUnit = coreUnits[scheme].LENGTH_S.name,
+            tempUnit = coreUnits[scheme].TEMPERATURE.name,
             activeVar = this.model.get('activeVar'),
             config = activeVar === 'ppt' ?
-                {label: 'Water Depth (cm)', unit: 'cm', key: 'Mean Precipitation'} :
-                {label: 'Temperature (°C)', unit: '°C', key: 'Mean Temperature'  },
+                {
+                    label: 'Water Depth (' + lengthUnit + ')',
+                    unit: lengthUnit,
+                    key: 'Mean Precipitation'
+                } : {
+                    label: 'Temperature (' + tempUnit + ')',
+                    unit: tempUnit,
+                    key: 'Mean Temperature'
+                },
             data = [
                 {
                     key: config.key,
                     values: this.collection.map(function(model, idx) {
                         return {
                             x: idx,
-                            y: model.get(activeVar)
+                            y: activeVar === 'ppt' ?
+                                // Standardize precipitation in cm to m before
+                                // converting to appropriate unit
+                                coreUnits.get('LENGTH_S', model.get(activeVar) / 100).value :
+                                coreUnits.get('TEMPERATURE', model.get(activeVar)).value,
                         };
                     }),
                 },

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Django settings for model_my_watershed project.
 
@@ -401,10 +402,10 @@ OMGEO_SETTINGS = [[
 ]]
 
 # Keep in sync with src/api/main.py in rapid-watershed-delineation.
-MMW_MAX_AREA = 75000  # Max area in km2, about the size of West Virginia
+MMW_MAX_AREA = 7.5e+9  # Max area in m², about the size of West Virginia
 
 BIGCZ_HOST = 'portal.bigcz.org'  # BiG-CZ Host, for enabling custom behavior
-BIGCZ_MAX_AREA = 5000  # Max area in km2, limited by CUAHSI
+BIGCZ_MAX_AREA = 5e+9  # Max area in m², limited by CUAHSI
 BIGCZ_CLIENT_TIMEOUT = 8  # timeout in seconds
 BIGCZ_CLIENT_PAGE_SIZE = 100
 

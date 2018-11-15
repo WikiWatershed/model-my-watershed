@@ -4,6 +4,7 @@ var L = require('leaflet'),
     utils = require('./utils'),
     Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
+    coreUnits = require('./units'),
     pointSourcePopupTmpl = require('./templates/pointSourcePopup.html');
 
 // Increase or decrease the marker size based on the map zoom level
@@ -46,7 +47,16 @@ var PointSourcePopupView = Marionette.ItemView.extend({
     className: 'point-source-popup',
 
     templateHelpers: function() {
+        var mgd = coreUnits.get('VOLUMETRICFLOWRATE', this.model.get('mgd')),
+            kgn = coreUnits.get('MASSPERTIME', this.model.get('kgn_yr')),
+            kgp = coreUnits.get('MASSPERTIME', this.model.get('kgp_yr'));
+
         return {
+            mgd: mgd.value,
+            kgn_yr: kgn.value,
+            kgp_yr: kgp.value,
+            volumetricFlowRateUnit: mgd.unit,
+            massPerTimeUnit: kgn.unit,
             noData: utils.noData
         };
     }

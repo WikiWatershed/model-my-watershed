@@ -481,7 +481,7 @@ GWLFE_CONFIG = {
     'SSLDR': 4.4,
     'SSLDM': 2.2,
     'WeatherNull': -99999,  # This value is used to indicate NULL in ms_weather dataset
-    'MaxAoIArea': 5000,  # Maximum allowed area in square kilometers
+    'MaxAoIArea': 5e+9,  # Maximum allowed area in square meters
     'ETGrowCoeff': [
         1.00,  # Hay/Pasture
         0.80,  # Cropland

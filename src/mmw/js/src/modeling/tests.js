@@ -206,9 +206,9 @@ describe('Modeling', function() {
             it('lists all of the modifications and their effective area', function() {
                 this.model.get('modifications').add([this.modsModel1, this.modsModel2]);
                 assert.equal($('#sandbox #mod-landcover tbody tr td:first-child').text(), 'Developed, Low Intensity');
-                assert.equal($('#sandbox #mod-landcover tbody tr td:nth-child(2)').text(), '44.42 km2');
+                assert.equal($('#sandbox #mod-landcover tbody tr td:nth-child(2)').text(), '44.42 km²');
                 assert.equal($('#sandbox #mod-conservationpractice tbody tr td:first-child').text(), 'Rain Garden');
-                assert.equal($('#sandbox #mod-conservationpractice tbody tr td:nth-child(2)').text(), '106.40 km2');
+                assert.equal($('#sandbox #mod-conservationpractice tbody tr td:nth-child(2)').text(), '106.40 km²');
             });
 
             it('ensures each modification has a pattern', function() {
@@ -547,7 +547,7 @@ describe('Modeling', function() {
             it('inherits defaults from coreModels.GeoModel', function() {
                 var model = new models.ModificationModel({});
 
-                assert.equal(model.get('units'), 'm<sup>2</sup>');
+                assert.equal(model.get('units'), 'm²');
                 assert.equal(model.get('area'), 0);
             });
 
@@ -562,7 +562,7 @@ describe('Modeling', function() {
 
                 assert.equal(JSON.stringify(modification.get('effectiveShape')), JSON.stringify(effectiveShape));
                 assert.equal(Math.round(modification.get('effectiveArea')), 30295);
-                assert.equal(modification.get('effectiveUnits'), 'm<sup>2</sup>');
+                assert.equal(modification.get('effectiveUnits'), 'm²');
             });
 
             it('has an effective area which is equal to the total area if the modification is contained within the AoI', function() {
@@ -666,14 +666,14 @@ describe('Modeling', function() {
                     });
 
                     model.updateModificationHash();
-                    assert.equal(model.get('modification_hash'), '582b6178186440159bd4ea25f0260892');
+                    assert.equal(model.get('modification_hash'), '95abe779fa6e7c59668acc5c3f2881e6');
 
                     var mod = new models.ModificationModel(mocks.modifications.sample2);
                     model.get('modifications').add(mod);
-                    assert.equal(model.get('modification_hash'), 'd95d0c983f0e3d0b171aaa0a84540205');
+                    assert.equal(model.get('modification_hash'), '6d99c132e843a5257bfd0f7f2561c890');
 
                     model.get('modifications').remove(mod);
-                    assert.equal(model.get('modification_hash'), '582b6178186440159bd4ea25f0260892');
+                    assert.equal(model.get('modification_hash'), '95abe779fa6e7c59668acc5c3f2881e6');
                 });
 
                 it('is called when the modifications for a scenario changes', function() {

@@ -6,9 +6,9 @@ var L = require('leaflet'),
     md5 = require('blueimp-md5').md5,
     intersect = require('turf-intersect'),
     centroid = require('turf-centroid'),
-    settings = require('./settings');
+    settings = require('./settings'),
+    units = require('./units');
 
-var M2_IN_KM2 = 1000000;
 var noData = 'No Data';
 var RELEASE_NOTES_BASE_URL = 'https://github.com/WikiWatershed/model-my-watershed/releases';
 var MINOR_MAJOR_REGEX = /^[0-9]+\.[0-9]+\./; // Matches strings like 2.22.
@@ -379,27 +379,13 @@ var utils = {
     },
 
     magnitudeOfArea: function(value) {
-        if (value >= M2_IN_KM2) {
-            return 'km<sup>2</sup>';
+        var scheme = settings.get('unit_scheme'),
+            minLargeValue = units[scheme].AREA_XL.factor;
+
+        if (value >= minLargeValue) {
+            return 'AREA_XL';
         } else {
-            return 'm<sup>2</sup>';
-        }
-    },
-
-    changeOfAreaUnits: function(value, fromUnit, toUnit) {
-        var fromTo = (fromUnit + ':' + toUnit).toLowerCase();
-
-        switch (fromTo) {
-            case 'm<sup>2</sup>:km<sup>2</sup>':
-                 return value / M2_IN_KM2;
-            case 'km<sup>2</sup>:m<sup>2</sup>':
-                 return value * M2_IN_KM2;
-            case 'km<sup>2</sup>:km<sup>2</sup>':
-                 return value;
-            case 'm<sup>2</sup>:m<sup>2</sup>':
-                 return value;
-            default:
-                 throw 'Conversion not implemented.';
+            return 'AREA_M';
         }
     },
 
