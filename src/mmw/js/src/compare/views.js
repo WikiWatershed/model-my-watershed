@@ -357,17 +357,39 @@ var InputsView = Marionette.LayoutView.extend({
     },
 
     downloadCSV: function() {
-        var aoi = App.currentProject.get('area_of_interest'),
+        var scheme = settings.get('unit_scheme'),
+            lengthUnit = coreUnits[scheme].LENGTH_S.name,
+            massPerAreaUnit = coreUnits[scheme].MASSPERAREA_M.name,
+            getLength = function(value) {
+                return coreUnits.get('LENGTH_S', value / 100).value;
+            },
+            getMassPerArea = function(value) {
+                return coreUnits.get('MASSPERAREA_M', value).value;
+            },
+            aoi = App.currentProject.get('area_of_interest'),
             aoiVolumeModel = new tr55Models.AoiVolumeModel({ areaOfInterest: aoi }),
-            csvHeadings = [['scenario_name', 'precipitation_cm', 'runoff_cm',
-                'evapotranspiration_cm', 'infiltration_cm', 'tss_load_cm', 'tss_runoff_cm',
-                'tss_loading_rate_kgha', 'tn_load_cm', 'tn_runoff_cm', 'tn_loading_rate_kgha',
-                'tp_load_cm', 'tp_runoff_cm', 'tp_loading_rate_kgha']],
+            csvHeadings = [[
+                'scenario_name',
+                'precipitation_' + lengthUnit,
+                'runoff_' + lengthUnit,
+                'evapotranspiration_' + lengthUnit,
+                'infiltration_' + lengthUnit,
+                'tss_load_' + lengthUnit,
+                'tss_runoff_' + lengthUnit,
+                'tss_loading_rate_' + massPerAreaUnit,
+                'tn_load_' + lengthUnit,
+                'tn_runoff_' + lengthUnit,
+                'tn_loading_rate_' + massPerAreaUnit,
+                'tp_load_' + lengthUnit,
+                'tp_runoff_' + lengthUnit,
+                'tp_loading_rate_' + massPerAreaUnit
+            ]],
             precipitation = this.model.get('scenarios')
                 .findWhere({ active: true })
                 .get('inputs')
                 .findWhere({ name: 'precipitation' })
                 .get('value'),
+            precipitationMeters = precipitation * coreUnits.CONVERSIONS.CM_PER_IN / 100,
             csvData = this.model.get('scenarios')
                 .map(function(scenario) {
                     var result = scenario
@@ -399,19 +421,19 @@ var InputsView = Marionette.LayoutView.extend({
 
                     return [
                         scenario.get('name'),
-                        coreUtils.convertToMetric(precipitation, 'in').toFixed(2),
-                        runoff.runoff,
-                        runoff.et,
-                        runoff.inf,
-                        tss.load,
-                        tss.runoff,
-                        aoiVolumeModel.getLoadingRate(tss.load),
-                        tn.load,
-                        tn.runoff,
-                        aoiVolumeModel.getLoadingRate(tn.load),
-                        tp.load,
-                        tp.runoff,
-                        aoiVolumeModel.getLoadingRate(tp.load),
+                        getLength(precipitationMeters).toFixed(2),
+                        getLength(runoff.runoff),
+                        getLength(runoff.et),
+                        getLength(runoff.inf),
+                        getLength(tss.load),
+                        getLength(tss.runoff),
+                        getMassPerArea(aoiVolumeModel.getLoadingRate(tss.load)),
+                        getLength(tn.load),
+                        getLength(tn.runoff),
+                        getMassPerArea(aoiVolumeModel.getLoadingRate(tn.load)),
+                        getLength(tp.load),
+                        getLength(tp.runoff),
+                        getMassPerArea(aoiVolumeModel.getLoadingRate(tp.load)),
                     ];
                 }),
             csv = csvHeadings
