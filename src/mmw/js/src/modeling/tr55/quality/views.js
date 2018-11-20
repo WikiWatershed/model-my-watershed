@@ -9,6 +9,8 @@ var $ = require('jquery'),
     resultTmpl = require('./templates/result.html'),
     tableRowTmpl = require('./templates/tableRow.html'),
     tableTmpl = require('./templates/table.html'),
+    settings = require('../../../core/settings'),
+    coreUnits = require('../../../core/units'),
     utils = require('../../../core/utils.js');
 
 var ResultView = Marionette.LayoutView.extend({
@@ -94,8 +96,9 @@ var TableRowView = Marionette.ItemView.extend({
             concentration = adjustedRunoff ? load / adjustedRunoff : 0;
 
         return {
-            loadingRate: loadingRate,
-            concentration: concentration * 1000 // g -> mg
+            load: coreUnits.get('MASS_M', load).value,
+            loadingRate: coreUnits.get('MASSPERAREA_M', loadingRate).value,
+            concentration: coreUnits.get('CONCENTRATION', concentration * 1000).value, // g -> mg
         };
     }
 });
@@ -110,6 +113,16 @@ var TableView = Marionette.CompositeView.extend({
     },
 
     template: tableTmpl,
+
+    templateHelpers: function() {
+        var scheme = settings.get('unit_scheme');
+
+        return {
+            massUnit: coreUnits[scheme].MASS_M.name,
+            massPerAreaUnit: coreUnits[scheme].MASSPERAREA_M.name,
+            concentrationUnit: coreUnits[scheme].CONCENTRATION.name,
+        };
+    },
 
     onAttach: function() {
         $('[data-toggle="table"]').bootstrapTable();
@@ -128,7 +141,8 @@ var ChartRowView = Marionette.ItemView.extend({
             title = measure.substr(0, measure.indexOf(' ')), // First word
             subtitle = measure.substr(measure.indexOf(' ')), // All the rest
             load = this.model.get('load'),
-            data = aoiVolumeModel.getLoadingRate(load);
+            loadingRate = aoiVolumeModel.getLoadingRate(load),
+            data = coreUnits.get('MASSPERAREA_M', loadingRate).value;
 
         chart.renderBulletChart(chartEl, title, subtitle, data);
     }
@@ -144,6 +158,14 @@ var ChartView = Marionette.CompositeView.extend({
     childViewOptions: function() {
         return {
             aoiVolumeModel: this.options.aoiVolumeModel
+        };
+    },
+
+    templateHelpers: function() {
+        var scheme = settings.get('unit_scheme');
+
+        return {
+            massPerAreaUnit: coreUnits[scheme].MASSPERAREA_M.name,
         };
     },
 });

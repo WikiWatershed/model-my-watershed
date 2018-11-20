@@ -43,6 +43,11 @@ var units = {
             factor: 5.55556E-01,
             offset: 32
         },
+        MASS_M: {
+            name: 'lb',
+            factor: 4.53592E-01,
+            offset: 0
+        },
         MASSPERAREA_L: {
             name: 'ton/ac', // US short ton
             factor: 2.24170E+03, // from kg/ha
@@ -66,6 +71,11 @@ var units = {
         CONCENTRATION: {
             name: 'mg/L',
             factor: 1,
+            offset: 0
+        },
+        VOLUME: {
+            name: 'ft³',
+            factor: 2.83168E-02,
             offset: 0
         },
     },
@@ -105,6 +115,11 @@ var units = {
             factor: 1,
             offset: 0
         },
+        MASS_M: {
+            name: 'kg',
+            factor: 1,
+            offset: 0
+        },
         MASSPERAREA_L: { // both MASSPERAREA are kg/ha in METRIC
             name: 'kg/ha',
             factor: 1,
@@ -130,6 +145,11 @@ var units = {
             factor: 1,
             offset: 0
         },
+        VOLUME: {
+            name: 'm³',
+            factor: 1,
+            offset: 0
+        },
     },
     get: function(unit, value) {
         var scheme = settings.get('unit_scheme');
@@ -140,6 +160,9 @@ var units = {
                 this[scheme][unit].factor +
                 this[scheme][unit].offset,
         };
+    },
+    CONVERSIONS: {
+        CM_PER_IN: 2.54,
     },
 };
 

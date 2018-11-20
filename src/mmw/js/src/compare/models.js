@@ -2,6 +2,8 @@
 
 var _ = require('lodash'),
     coreUtils = require('../core/utils'),
+    settings = require('../core/settings'),
+    coreUnits = require('../core/units'),
     Backbone = require('../../shim/backbone'),
     ControlsCollection = require('../modeling/models').ModelPackageControlsCollection,
     constants = require('./constants');
@@ -104,7 +106,7 @@ var Tr55RunoffCharts = BarChartRowsCollection.extend({
         var precipitationInput = this.scenarios.first()
                                                .get('inputs')
                                                .findWhere({ name: 'precipitation' }),
-            precipitation = coreUtils.convertToMetric(precipitationInput.get('value'), 'in'),
+            precipitationMeters = precipitationInput.get('value') * coreUnits.CONVERSIONS.CM_PER_IN / 100,
             results = this.scenarios.map(coreUtils.getTR55RunoffResult, coreUtils);
 
         this.forEach(function(chart) {
@@ -115,12 +117,12 @@ var Tr55RunoffCharts = BarChartRowsCollection.extend({
                 values = results;
             } else {
                 values = _.map(results, function(result) {
-                    return result[key];
+                    return result[key] / 100; // Convert cm to m
                 });
             }
 
             chart.set({
-                precipitation: precipitation,
+                precipitation: precipitationMeters,
                 values: values
             });
         });
@@ -216,14 +218,21 @@ var TableRowsCollection = Backbone.Collection.extend({
 
 var Tr55RunoffTable = TableRowsCollection.extend({
     update: function() {
-        var results = this.scenarios.map(coreUtils.getTR55RunoffResult, coreUtils),
-            runoff = _.map(results, 'runoff'),
-            et     = _.map(results, 'et'    ),
-            inf    = _.map(results, 'inf'   ),
+        var scheme = settings.get('unit_scheme'),
+            unit = coreUnits[scheme].LENGTH_S.name,
+            get = function(key) {
+                return function(result) {
+                    return coreUnits.get('LENGTH_S', result[key] / 100).value;
+                };
+            },
+            results = this.scenarios.map(coreUtils.getTR55RunoffResult, coreUtils),
+            runoff = _.map(results, get('runoff')),
+            et     = _.map(results, get('et'    )),
+            inf    = _.map(results, get('inf'   )),
             rows   = [
-                { name: "Runoff"            , unit: "cm", values: runoff },
-                { name: "Evapotranspiration", unit: "cm", values: et     },
-                { name: "Infiltration"      , unit: "cm", values: inf    },
+                { name: "Runoff"            , unit: unit, values: runoff },
+                { name: "Evapotranspiration", unit: unit, values: et     },
+                { name: "Infiltration"      , unit: unit, values: inf    },
             ];
 
         this.reset(rows);
@@ -232,22 +241,27 @@ var Tr55RunoffTable = TableRowsCollection.extend({
 
 var Tr55QualityTable = TableRowsCollection.extend({
     update: function() {
-        var aoivm = this.aoiVolumeModel,
+        var scheme = settings.get('unit_scheme'),
+            unit = coreUnits[scheme].MASSPERAREA_M.name,
+            aoivm = this.aoiVolumeModel,
             results = this.scenarios.map(coreUtils.getTR55WaterQualityResult, coreUtils),
             get = function(key) {
                 return function(result) {
                     var load = _.find(result, { measure: key }).load;
 
-                    return aoivm.getLoadingRate(load);
+                    return coreUnits.get(
+                        'MASSPERAREA_M',
+                        aoivm.getLoadingRate(load)
+                    ).value;
                 };
             },
             tss  = _.map(results, get('Total Suspended Solids')),
             tn   = _.map(results, get('Total Nitrogen')),
             tp   = _.map(results, get('Total Phosphorus')),
             rows = [
-                { name: "Total Suspended Solids", unit: "kg/ha", values: tss },
-                { name: "Total Nitrogen"        , unit: "kg/ha", values: tn  },
-                { name: "Total Phosphorus"      , unit: "kg/ha", values: tp  },
+                { name: "Total Suspended Solids", unit: unit, values: tss },
+                { name: "Total Nitrogen"        , unit: unit, values: tn  },
+                { name: "Total Phosphorus"      , unit: unit, values: tp  },
             ];
 
         this.reset(rows);
