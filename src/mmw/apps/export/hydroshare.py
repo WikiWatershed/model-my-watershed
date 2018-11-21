@@ -6,6 +6,7 @@ from __future__ import division
 import json
 import StringIO
 
+from zipfile import ZipFile
 from rauth import OAuth2Service
 from urlparse import urljoin, urlparse
 from hs_restclient import HydroShare, HydroShareAuthOAuth2, HydroShareNotFound
@@ -81,40 +82,34 @@ class HydroShareClient(HydroShare):
     Helper class for utility methods for HydroShare
     """
 
-    def add_files(self, resource_id, files, overwrite=False):
+    def add_files(self, resource_id, files):
         """
         Helper method that will add an array of files to a resource.
 
         :param resource_id: ID of the resource to add files to
         :param files: List of dicts in the format
-                      {'name': 'String', 'contents': 'String', 'object': False}
-                      or
-                      {'name': 'String', 'contents': file_like_object, 'object': True}  # NOQA
-        :param overwrite: Whether to overwrite files or not. False by default.
+                      {'name': 'String', 'contents': 'String'}
         """
+        zippath = resource_id + '.zip'
+        stream = StringIO.StringIO()
 
-        for f in files:
-            fobject = f.get('object', False)
-            fcontents = f.get('contents')
-            fname = f.get('name')
-            if fcontents and fname:
-                # Overwrite files if specified
-                if overwrite:
-                    try:
-                        # Delete the resource file if it already exists
-                        self.deleteResourceFile(resource_id, fname)
-                    except HydroShareNotFound:
-                        # File didn't already exists, move on
-                        pass
+        # Zip all given files into the stream
+        with ZipFile(stream, 'w') as zf:
+            for f in files:
+                fcontents = f.get('contents')
+                fname = f.get('name')
+                if fname and fcontents:
+                    zf.writestr(fname, fcontents.encode('utf-8'))
 
-                if fobject:
-                    fio = fcontents
-                else:
-                    fio = StringIO.StringIO()
-                    fio.write(fcontents)
+        # Send zip file to HydroShare
+        self.addResourceFile(resource_id, stream, zippath)
 
-                # Add the new file
-                self.addResourceFile(resource_id, fio, fname)
+        # Unzip file in HydroShare and replace any existing files
+        self.resource(resource_id).functions.unzip({
+            'zip_with_rel_path': zippath,
+            'remove_original_zip': True,
+            'overwrite': True,
+        })
 
     def check_resource_exists(self, resource_id):
         try:
