@@ -74,7 +74,7 @@ def parse_record(record):
         service_code=record['MonitoringLocationIdentifier'],
         service_url='https://www.waterqualitydata.us/data/Result/search?siteid={}&mimeType=csv&sorted=no&zip=yes'.format(record['MonitoringLocationIdentifier']),  # NOQA
         service_title=None,
-        service_citation='We thank the water quality portal.',
+        service_citation='National Water Quality Monitoring Council, [YEAR]. Water Quality Portal. Accessed [DATE ACCESSED]. https://www.waterqualitydata.us/',  # NOQA
         begin_date=None,
         end_date=None,
         monitoring_type=record['MonitoringLocationTypeName'],
