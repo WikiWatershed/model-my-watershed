@@ -3,6 +3,8 @@
 var $ = require('jquery'),
     _ = require('lodash'),
     Marionette = require('../../../../shim/backbone.marionette'),
+    settings = require('../../../core/settings'),
+    coreUnits = require('../../../core/units'),
     chart = require('../../../core/chart.js'),
     barChartTmpl = require('../../../core/templates/barChart.html'),
     selectorTmpl = require('./templates/selector.html'),
@@ -42,6 +44,15 @@ var ResultView = Marionette.LayoutView.extend({
 
     modelEvents: {
         'change': 'onShow'
+    },
+
+    templateHelpers: function() {
+        var scheme = settings.get('unit_scheme'),
+            lengthUnit = coreUnits[scheme].LENGTH_S.name;
+
+        return {
+            lengthUnit: lengthUnit,
+        };
     },
 
     initialize: function(options) {
@@ -138,6 +149,8 @@ var ChartView = Marionette.ItemView.extend({
 
     addChart: function() {
         var chartEl = this.$el.find('.bar-chart').get(0),
+            scheme = settings.get('unit_scheme'),
+            lengthUnit = coreUnits[scheme].LENGTH_S.name,
             result = this.model.get('result'),
             activeVar = this.model.get('activeVar');
 
@@ -150,14 +163,14 @@ var ChartView = Marionette.ItemView.extend({
                         values: _.map(result.monthly, function(monthResult, monthInd) {
                             return {
                                 x: monthInd,
-                                y: Number(monthResult[activeVar])
+                                y: coreUnits.get('LENGTH_S', Number(monthResult[activeVar]) / 100).value
                             };
                         })
                     }
                 ],
                 chartOptions = {
-                    yAxisLabel: 'Water Depth (cm)',
-                    yAxisUnit: 'cm',
+                    yAxisLabel: 'Water Depth (' + lengthUnit + ')',
+                    yAxisUnit: lengthUnit,
                     xAxisLabel: function(xValue) {
                         return monthNames[xValue];
                     },
@@ -202,12 +215,14 @@ var TableView = Marionette.CompositeView.extend({
     },
 
     templateHelpers: function() {
-        var columnNames = ['Month'].concat(_.map(runoffVars, function(runoffVar) {
-                return runoffVar.display;
+        var scheme = settings.get('unit_scheme'),
+            lengthUnit = coreUnits[scheme].LENGTH_S.name,
+            columnNames = ['Month'].concat(_.map(runoffVars, function(runoffVar) {
+                return runoffVar.display + ' (' + lengthUnit + ')';
             })),
             rows = _.map(this.model.get('result').monthly, function(month, i) {
                 return [i].concat(_.map(runoffVars, function(runoffVar) {
-                    return Number(month[runoffVar.name]);
+                    return coreUnits.get('LENGTH_S', Number(month[runoffVar.name]) / 100).value;
                 }));
             });
 
