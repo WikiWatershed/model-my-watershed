@@ -35,7 +35,7 @@
 
 {{ table(summaryColumns, summaryRows, false, renderPrecision.summaryTable, defaultPrecision.summaryTable, summaryClassName) }}
 <div class="mean-flow">
-    Mean Flow: {{ MeanFlow|round(0)|toLocaleString }} (m<sup>3</sup>/year) and {{ MeanFlowPerSecond|round(2)|toLocaleString }} (m<sup>3</sup>/s)
+    Mean Flow: {{ MeanFlow|round(0)|toLocaleString }} ({{ volumeUnit }}/year) and {{ MeanFlowPerSecond|round(2)|toLocaleString }} ({{ volumeUnit }}/s)
 </div>
 <div class="downloadcsv-link" data-action="download-csv-summary">
     <i class="fa fa-download"></i> Download this data
