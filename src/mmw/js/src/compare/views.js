@@ -901,13 +901,16 @@ var GwlfeHydrologyTableRowView = TableRowView.extend({
     template: compareTableRowTmpl,
 
     templateHelpers: function() {
-        var selectedAttribute = this.model.get('selectedAttribute');
+        var selectedAttribute = this.model.get('selectedAttribute'),
+            scheme = settings.get('unit_scheme'),
+            unit = this.model.get('unit');
 
         return {
+            unit: coreUnits[scheme][unit].name,
             values: this.model
                 .get('values')
                 .map(function(v) {
-                    return v[selectedAttribute];
+                    return coreUnits.get(unit, v[selectedAttribute]).value;
                 }),
         };
     },
