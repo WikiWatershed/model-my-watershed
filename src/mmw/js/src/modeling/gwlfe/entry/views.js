@@ -3,6 +3,8 @@
 var _ = require('lodash'),
     Marionette = require('../../../../shim/backbone.marionette'),
     modalViews = require('../../../core/modals/views'),
+    settings = require('../../../core/settings'),
+    coreUnits = require('../../../core/units'),
     round = require('../../../core/utils').round,
     models = require('./models'),
     calcs = require('./calcs'),
@@ -278,10 +280,11 @@ var FieldView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
-        var type = this.model.get('type');
+        var type = this.model.get('type'),
+            output = {};
 
         if (type !== models.ENTRY_FIELD_TYPES.NUMERIC) {
-            return {};
+            return output;
         }
 
         var autoValue = this.model.get('autoValue'),
@@ -293,10 +296,30 @@ var FieldView = Marionette.ItemView.extend({
             // and so on.
             step = Math.pow(10, -decimalPlaces);
 
-        return {
+        _.assign(output, {
             step: step,
             autoValue: round(autoValue, decimalPlaces),
-        };
+        });
+
+        var unit = this.model.get('unit'),
+            userValue = this.model.get('userValue');
+
+        if (unit) {
+            if (userValue !== null) {
+                userValue = coreUnits.get(unit, userValue).value;
+                _.assign(output, {
+                    userValue: round(userValue, decimalPlaces),
+                });
+            }
+
+            autoValue = coreUnits.get(unit, autoValue).value;
+
+            _.assign(output, {
+                autoValue: round(autoValue, decimalPlaces),
+            });
+        }
+
+        return output;
     },
 
     onRender: function() {
@@ -305,7 +328,13 @@ var FieldView = Marionette.ItemView.extend({
     },
 
     updateUserValue: function() {
-        var value = this.ui.input.val();
+        var value = this.ui.input.val(),
+            unit = this.model.get('unit');
+
+        if (unit) {
+            // Convert user preferred unit into underlying representation
+            value /= coreUnits.get(unit, 1).value;
+        }
 
         this.model.set('userValue', value || null);
         this.toggleUserValueState();
@@ -358,7 +387,11 @@ var SectionsView = Marionette.CollectionView.extend({
 });
 
 function showSettingsModal(title, dataModel, modifications, addModification) {
-    var tabs = new models.EntryTabCollection([
+    var scheme = settings.get('unit_scheme'),
+        massPerTimeUnit = coreUnits[scheme].MASSPERTIME.name,
+        volumetricFlowRateUnit = coreUnits[scheme].VOLUMETRICFLOWRATE.name,
+        concentrationUnit = coreUnits[scheme].CONCENTRATION.name,
+        tabs = new models.EntryTabCollection([
             {
                 name: 'efficiencies',
                 displayName: 'Efficiencies',
@@ -657,19 +690,22 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                         fields: models.makeFieldCollection('waste_water', dataModel, modifications, [
                             {
                                 name: 'PointNitr',
-                                label: 'Annual TN Load (kg/yr)',
+                                label: 'Annual TN Load (' + massPerTimeUnit + ')',
+                                unit: 'MASSPERTIME',
                                 calculator: calcs.EqualMonths,
                                 minValue: 0
                             },
                             {
                                 name: 'PointPhos',
-                                label: 'Annual TP Load (kg/yr)',
+                                label: 'Annual TP Load (' + massPerTimeUnit + ')',
+                                unit: 'MASSPERTIME',
                                 calculator: calcs.EqualMonths,
                                 minValue: 0
                             },
                             {
                                 name: 'PointFlow',
-                                label: 'Daily Effluent Discharge (MGD)',
+                                label: 'Daily Effluent Discharge (' + volumetricFlowRateUnit + ')',
+                                unit: 'VOLUMETRICFLOWRATE',
                                 calculator: calcs.PointSourceDischarge,
                                 minValue: 0
                             },
@@ -856,31 +892,36 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                             },
                             {
                                 name: 'TileNconc',
-                                label: 'Avg. Tile Drain N Concentration (mg/l)',
+                                label: 'Avg. Tile Drain N Concentration (' + concentrationUnit + ')',
+                                unit: 'CONCENTRATION',
                                 calculator: calcs.Direct,
                                 minValue: 0,
                             },
                             {
                                 name: 'TilePConc',
-                                label: 'Avg. Tile Drain P Concentration (mg/l)',
+                                label: 'Avg. Tile Drain P Concentration (' + concentrationUnit + ')',
+                                unit: 'CONCENTRATION',
                                 calculator: calcs.Direct,
                                 minValue: 0,
                             },
                             {
                                 name: 'TileSedConc',
-                                label: 'Avg. Tile Drain Sediment Concentration (mg/l)',
+                                label: 'Avg. Tile Drain Sediment Concentration (' + concentrationUnit + ')',
+                                unit: 'CONCENTRATION',
                                 calculator: calcs.Direct,
                                 minValue: 0,
                             },
                             {
                                 name: 'GrNitrConc',
-                                label: 'Groundwater N Concentration (mg/l)',
+                                label: 'Groundwater N Concentration (' + concentrationUnit + ')',
+                                unit: 'CONCENTRATION',
                                 calculator: calcs.Direct,
                                 minValue: 0,
                             },
                             {
                                 name: 'GrPhosConc',
-                                label: 'Groundwater P Concentration (mg/l)',
+                                label: 'Groundwater P Concentration (' + concentrationUnit + ')',
+                                unit: 'CONCENTRATION',
                                 calculator: calcs.Direct,
                                 minValue: 0,
                             },
