@@ -1,5 +1,5 @@
 {% if is_modified %}
-    Total: <strong>{{ userTotal | toLocaleString(1) }} ha</strong>
+    Total: <strong>{{ userTotal | toLocaleString(1) }} {{ unit }}</strong>
     {% if (userTotal) != (autoTotal) %}
     <small>
         (<span class="error">{{ (userTotal - autoTotal) | abs | toLocaleString(1) }}
@@ -9,5 +9,5 @@
     </small>
     {% endif %}
 {% else %}
-    Total: {{ autoTotal | toLocaleString(1) }} ha
+    Total: {{ autoTotal | toLocaleString(1) }} {{ unit }}
 {% endif %}

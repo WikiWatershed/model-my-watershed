@@ -13,6 +13,11 @@ var units = {
             factor: 2.58999E+06,
             offset: 0
         },
+        AREA_L_FROM_HA: { // Used for converting ha values
+            name: 'acre',
+            factor: 4.04686E-01,
+            offset: 0
+        },
         AREA_L: {
             name: 'acre',
             factor: 4.04686E+03,
@@ -83,6 +88,11 @@ var units = {
         AREA_XL: {
             name: 'km²',
             factor: 1.00000E+06,
+            offset: 0
+        },
+        AREA_L_FROM_HA: {
+            name: 'ha',
+            factor: 1,
             offset: 0
         },
         AREA_L: {

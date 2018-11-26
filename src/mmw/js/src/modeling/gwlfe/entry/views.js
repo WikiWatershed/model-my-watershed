@@ -98,13 +98,18 @@ var LandCoverTotalView = Marionette.ItemView.extend({
             hasUserValue = function(field) {
                 return field.get('userValue') !== null;
             },
-            autoTotal = round(this.model.get('autoTotal'), 1),
-            userTotal = round(this.model.get('userTotal'), 1);
+            scheme = settings.get('unit_scheme'),
+            get = function(value) {
+                return coreUnits.get('AREA_L_FROM_HA', value).value;
+            },
+            autoTotal = round(get(this.model.get('autoTotal')), 1),
+            userTotal = round(get(this.model.get('userTotal')), 1);
 
         return {
             is_modified: fields.some(hasUserValue),
             autoTotal: autoTotal,
             userTotal: userTotal,
+            unit: coreUnits[scheme].AREA_L_FROM_HA.name,
         };
     },
 
@@ -971,73 +976,85 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
 }
 
 function showLandCoverModal(dataModel, modifications, addModification) {
-    var fields = models.makeFieldCollection('landcover', dataModel, modifications, [
+    var scheme = settings.get('unit_scheme'),
+        areaLUnits = coreUnits[scheme].AREA_L_FROM_HA.name,
+        fields = models.makeFieldCollection('landcover', dataModel, modifications, [
             {
                 name: 'Area__0',
-                label: 'Hay / Pasture (ha)',
+                label: 'Hay / Pasture (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__1',
-                label: 'Cropland (ha)',
+                label: 'Cropland (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__2',
-                label: 'Wooded Areas (ha)',
+                label: 'Wooded Areas (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__3',
-                label: 'Wetlands (ha)',
+                label: 'Wetlands (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__6',
-                label: 'Open Land (ha)',
+                label: 'Open Land (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__7',
-                label: 'Barren Areas (ha)',
+                label: 'Barren Areas (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__10',
-                label: 'Low-Density Mixed (ha)',
+                label: 'Low-Density Mixed (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__11',
-                label: 'Medium-Density Mixed (ha)',
+                label: 'Medium-Density Mixed (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__12',
-                label: 'High-Density Mixed (ha)',
+                label: 'High-Density Mixed (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__13',
-                label: 'Low-Density Open Space (ha)',
+                label: 'Low-Density Open Space (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
