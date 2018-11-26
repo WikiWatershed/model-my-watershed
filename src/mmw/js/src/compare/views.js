@@ -922,6 +922,23 @@ var GwlfeHydrologyTableView = TableView.extend({
 
 var GwlfeQualityTableRowView = TableRowView.extend({
     className: 'compare-table-row -gwlfe -quality',
+
+    templateHelpers: function() {
+        var scheme = settings.get('unit_scheme'),
+            unit = this.model.get('unit');
+
+        if (!unit) {
+            // Special header case
+            return {};
+        }
+
+        return {
+            unit: coreUnits[scheme][unit].name ,
+            values: this.model.get('values').map(function(v) {
+                return coreUnits.get(unit, v).value;
+            }),
+        };
+    }
 });
 
 var GwlfeQualityTableView = TableView.extend({
