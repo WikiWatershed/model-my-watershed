@@ -28,6 +28,11 @@ var units = {
             factor: 9.29030E-02,
             offset: 0
         },
+        LENGTH_XL_FROM_KM: {
+            name: 'mi',
+            factor: 1.60934,
+            offset: 0
+        },
         LENGTH_XL: {
             name: 'mi',
             factor: 1.60934E+03,
@@ -102,6 +107,11 @@ var units = {
         },
         AREA_M: {
             name: 'm²',
+            factor: 1,
+            offset: 0
+        },
+        LENGTH_XL_FROM_KM: {
+            name: 'km',
             factor: 1,
             offset: 0
         },

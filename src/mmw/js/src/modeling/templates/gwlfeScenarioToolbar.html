@@ -31,7 +31,7 @@
                         {% for inputName, inputVal in activeMod.userInput %}
                             <tr>
                                 <td class="text-left">{{ displayNames[inputName] }}</td>
-                                <td class="strong text-right">{{ inputVal|round(0)|toLocaleString(0) }}</td>
+                                <td class="strong text-right">{{ inputVal|toUnit(displayUnits[inputName])|round(0)|toLocaleString(0) }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

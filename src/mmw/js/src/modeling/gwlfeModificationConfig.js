@@ -1,6 +1,7 @@
 "use strict";
 
-var _ = require('lodash');
+var _ = require('lodash'),
+    coreUnits = require('../core/units');
 
 // These variable names include 'Name' to indicate
 // that they reference the name of the variable, and not the value.
@@ -59,17 +60,28 @@ function fromPairs(pairs) {
     return obj;
 }
 
+var displayUnits = fromPairs([
+    [areaToModifyName, 'AREA_L_FROM_HA'],
+    [lengthToModifyName, 'LENGTH_XL_FROM_KM'],
+    [lengthToModifyInAgName, 'LENGTH_XL_FROM_KM'],
+    [n23Name, 'AREA_L_FROM_HA'],
+    [n42Name, 'LENGTH_XL_FROM_KM'],
+    [n42bName, 'LENGTH_XL_FROM_KM'],
+    [UrbAreaTotalName, 'AREA_L_FROM_HA'],
+    [UrbLengthName, 'LENGTH_XL_FROM_KM']
+]);
+
 var displayNames = fromPairs([
     [percentAeuToModifyName, '% of AEUs to modify'],
     [percentAreaToModifyName, '% of area to modify'],
-    [areaToModifyName, 'Area to modify (ha)'],
-    [lengthToModifyName, 'Length to modify (km)'],
-    [lengthToModifyInAgName, 'Length to modify in ag areas (km)'],
-    [n23Name, 'Area of row crops (ha)'],
-    [n42Name, 'Length of streams in ag areas (km)'],
-    [n42bName, 'Length of streams in watershed (km)'],
-    [UrbAreaTotalName, 'Total urban area (ha)'],
-    [UrbLengthName, 'Length of streams in non-ag areas (km)']
+    [areaToModifyName, 'Area to modify (AREAUNITNAME)'],
+    [lengthToModifyName, 'Length to modify (LENGTHUNITNAME)'],
+    [lengthToModifyInAgName, 'Length to modify in ag areas (LENGTHUNITNAME)'],
+    [n23Name, 'Area of row crops (AREAUNITNAME)'],
+    [n42Name, 'Length of streams in ag areas (LENGTHUNITNAME)'],
+    [n42bName, 'Length of streams in watershed (LENGTHUNITNAME)'],
+    [UrbAreaTotalName, 'Total urban area (AREAUNITNAME)'],
+    [UrbLengthName, 'Length of streams in non-ag areas (LENGTHUNITNAME)']
 ]);
 
 var shortDisplayNames = fromPairs([
@@ -133,9 +145,13 @@ function makeThresholdValidateFn(thresholdName, thresholdType, userInputName) {
             cleanUserInput = {},
             threshold = dataModel[thresholdName],
             userInputVal = convertToNumber(userInput[userInputName]),
-            thresholdNum = Number(threshold).toFixed(2).toLocaleString('en', {
-                minimumFractionDigits: 2
-            }),
+            unit = thresholdType === AREA ? 'AREA_L_FROM_HA' : 'LENGTH_XL_FROM_KM',
+            thresholdNum =
+                coreUnits.get(unit, Number(threshold)).value
+                    .toFixed(2)
+                    .toLocaleString('en', {
+                        minimumFractionDigits: 2
+                    }),
             errorMessage = 'Enter ' + thresholdType +
                 ' > 0 and <= ' + thresholdNum;
 
@@ -226,6 +242,7 @@ function makeCurveAdjustingAgBmpConfig(outputName, tillFactor) {
     }
 
     return {
+        unit: 'AREA_L_FROM_HA',
         dataModelNames: [n23Name],
         validateDataModel: makeValidateDataModelFn([n23Name]),
         userInputNames: [areaToModifyName],
@@ -250,6 +267,7 @@ function makeCropTillageBmpConfig(outputName, tillFactor, efficiencies) {
     }
 
     return {
+        unit: 'AREA_L_FROM_HA',
         dataModelNames: [n23Name],
         validateDataModel: makeValidateDataModelFn([n23Name]),
         userInputNames: [areaToModifyName],
@@ -266,6 +284,7 @@ function makeAgBmpConfig(outputName) {
     }
 
     return {
+        unit: 'AREA_L_FROM_HA',
         dataModelNames: [n23Name],
         validateDataModel: makeValidateDataModelFn([n23Name]),
         userInputNames: [areaToModifyName],
@@ -303,6 +322,7 @@ function makeRuralStreamsBmpConfig(outputName) {
     }
 
     return {
+        unit: 'LENGTH_XL_FROM_KM',
         dataModelNames: [n42Name, n42bName],
         validateDataModel: makeValidateDataModelFn([n42Name]),
         userInputNames: [lengthToModifyInAgName],
@@ -313,6 +333,7 @@ function makeRuralStreamsBmpConfig(outputName) {
 
 function makeUrbanStreamsBmpConfig(getOutput) {
     return {
+        unit: 'LENGTH_XL_FROM_KM',
         dataModelNames: [UrbLengthName],
         validateDataModel: makeValidateDataModelFn([UrbLengthName]),
         userInputNames: [lengthToModifyName],
@@ -323,6 +344,7 @@ function makeUrbanStreamsBmpConfig(getOutput) {
 
 function makeUrbanAreaBmpConfig(getOutput) {
     return {
+        unit: 'AREA_L_FROM_HA',
         dataModelNames: [UrbAreaTotalName],
         validateDataModel: makeValidateDataModelFn([UrbAreaTotalName]),
         userInputNames: [areaToModifyName],
@@ -384,6 +406,7 @@ var configs = {
 module.exports = {
     cleanDataModel: cleanDataModel,
     displayNames: displayNames,
+    displayUnits: displayUnits,
     isValid: isValid,
     aggregateOutput: aggregateOutput,
     configs: configs
