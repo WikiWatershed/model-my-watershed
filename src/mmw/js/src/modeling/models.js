@@ -5,6 +5,7 @@ var $ = require('jquery'),
     _ = require('lodash'),
     utils = require('../core/utils'),
     settings = require('../core/settings'),
+    coreUnits = require('../core/units'),
     constants = require('./constants.js'),
     App = require('../app'),
     coreModels = require('../core/models'),
@@ -115,7 +116,13 @@ var ResultModel = Backbone.Model.extend({
     },
 
     toTR55RunoffCSV: function(isCurrentConditions, aoiVolumeModel) {
-        var rows = ['"Runoff Partition","Water Depth (cm)","Water Volume (m3)"'],
+        var scheme = settings.get('unit_scheme'),
+            lengthUnit = coreUnits[scheme].LENGTH_S.name,
+            volumeUnit = coreUnits[scheme].VOLUME.name,
+            rows = [
+                '"Runoff Partition",' +
+                '"Water Depth (' + lengthUnit + ')",' +
+                '"Water Volume (' + volumeUnit + ')"'],
             resultKey = isCurrentConditions ? 'unmodified' : 'modified',
             result = this.get('result')['runoff'][resultKey],
             labels = [['runoff', 'Runoff'],
@@ -129,8 +136,8 @@ var ResultModel = Backbone.Model.extend({
                 volume = aoiVolumeModel.adjust(depth),
                 row = [
                         partition,
-                        round(depth, 3),
-                        round(volume, 2)
+                        round(coreUnits.get('LENGTH_S', depth / 100).value, 3),
+                        round(coreUnits.get('VOLUME', volume).value, 2)
                     ].join('","');
 
             return '"' + row + '"';
@@ -138,7 +145,15 @@ var ResultModel = Backbone.Model.extend({
     },
 
     toTR55WaterQualityCSV: function(isCurrentConditions, aoiVolumeModel) {
-        var rows = ['"Quality Measure","Load (kg)","Loading Rate (kg/ha)","Average Concentration (mg/L)"'],
+        var scheme = settings.get('unit_scheme'),
+            massMUnit = coreUnits[scheme].MASS_M.name,
+            massPerAreaMUnit = coreUnits[scheme].MASSPERAREA_M.name,
+            concentrationUnit = coreUnits[scheme].CONCENTRATION.name,
+            rows = [
+                '"Quality Measure",' +
+                '"Load (' + massMUnit + ')",' +
+                '"Loading Rate (' + massPerAreaMUnit + ')",' +
+                '"Average Concentration (' + concentrationUnit + ')"'],
             resultKey = isCurrentConditions ? 'unmodified' : 'modified',
             results = this.get('result')['quality'][resultKey];
 
@@ -149,9 +164,9 @@ var ResultModel = Backbone.Model.extend({
                 concentration = adjustedRunoff ? 1000 * load / adjustedRunoff : 0,
                 row = [
                         result.measure,
-                        round(load, 3),
-                        round(loadingRate, 3),
-                        round(concentration, 1)
+                        round(coreUnits.get('MASS_M', load).value, 3),
+                        round(coreUnits.get('MASSPERAREA_M', loadingRate).value, 3),
+                        round(coreUnits.get('CONCENTRATION', concentration).value, 1)
                     ].join('","');
 
             return '"' + row + '"';
@@ -159,7 +174,16 @@ var ResultModel = Backbone.Model.extend({
     },
 
     toMapShedHydrologyCSV: function() {
-        var rows = ['"Month","Stream Flow (cm)","Surface Runoff (cm)","Subsurface Flow (cm)","Point Src Flow (cm)","ET (cm)","Precip (cm)"'],
+        var scheme = settings.get('unit_scheme'),
+            lengthUnit = coreUnits[scheme].LENGTH_S.name,
+            rows = [
+                '"Month",' +
+                '"Stream Flow (' + lengthUnit + ')",' +
+                '"Surface Runoff (' + lengthUnit + ')",' +
+                '"Subsurface Flow (' + lengthUnit + ')",' +
+                '"Point Src Flow (' + lengthUnit + ')",' +
+                '"ET (' + lengthUnit + ')",' +
+                '"Precip (' + lengthUnit + ')"'],
             runoffVars = [
                     'AvStreamFlow',
                     'AvRunoff',
@@ -177,7 +201,7 @@ var ResultModel = Backbone.Model.extend({
         // Monthly rows
         rows = rows.concat(results.map(function(result, i) {
             var cols = [monthNames[i]].concat(runoffVars.map(function(runoffVar) {
-                    return round(result[runoffVar], 2);
+                    return round(coreUnits.get('LENGTH_S', result[runoffVar] / 100).value, 2);
                 })).join('","');
 
             return '"' + cols + '"';
@@ -190,7 +214,7 @@ var ResultModel = Backbone.Model.extend({
                     total += results[i][runoffVar];
                 }
 
-                return round(total, 2);
+                return round(coreUnits.get('LENGTH_S', total / 100).value, 2);
             })).join('","'),
             totals = '"' + totalCols + '"';
 
@@ -198,15 +222,21 @@ var ResultModel = Backbone.Model.extend({
     },
 
     toMapShedWaterQualityLandUseCSV: function() {
-        var rows = ['"Sources","Sediment (kg)","Total Nitrogen (kg)","Total Phosphorus (kg)"'],
+        var scheme = settings.get('unit_scheme'),
+            massMUnit = coreUnits[scheme].MASS_M.name,
+            rows = [
+                '"Sources",' +
+                '"Sediment (' + massMUnit + ')",' +
+                '"Total Nitrogen (' + massMUnit + ')",' +
+                '"Total Phosphorus (' + massMUnit + ')"'],
             results = this.get('result')['Loads'];
 
         return rows.concat(results.map(function(result) {
             var cols = [
                     result.Source,
-                    round(result.Sediment, 1),
-                    round(result.TotalN, 1),
-                    round(result.TotalP, 1)
+                    round(coreUnits.get('MASS_M', result.Sediment).value, 1),
+                    round(coreUnits.get('MASS_M', result.TotalN).value, 1),
+                    round(coreUnits.get('MASS_M', result.TotalP).value, 1)
                 ].join('","');
 
             return '"' + cols + '"';
@@ -214,18 +244,34 @@ var ResultModel = Backbone.Model.extend({
     },
 
     toMapShedWaterQualitySummaryCSV: function() {
-        var rows = ['"Sources","Sediment","Total Nitrogen","Total Phosphorus","Mean Flow (m3/year)","Mean Flow (m3/s)"'],
+        var scheme = settings.get('unit_scheme'),
+            volumeUnit = coreUnits[scheme].VOLUME.name,
+            rows = [
+                '"Sources","Sediment","Total Nitrogen","Total Phosphorus",' +
+                '"Mean Flow (' + volumeUnit + '/year)",' +
+                '"Mean Flow (' + volumeUnit + '/s)"'],
             result = this.get('result');
 
         return rows.concat(result.SummaryLoads.map(function(sl) {
-            var isTotal = sl.Source === "Total Loads",
-                meanFlow = isTotal ? round(result.MeanFlow, 0) : '',
-                meanFlowPerSecond = isTotal ? round(result.MeanFlowPerSecond, 2) : '',
+            var unit = (function() {
+                    switch(sl.Unit) {
+                        case 'kg/ha':
+                            return 'MASSPERAREA_M';
+                        case 'mg/l':
+                            return 'CONCENTRATION';
+                        default:
+                            return 'MASS_M';
+                    }
+                })(),
+                unitName = coreUnits[scheme][unit].name,
+                isTotal = sl.Source === "Total Loads",
+                meanFlow = isTotal ? round(coreUnits.get('VOLUME', result.MeanFlow).value, 0) : '',
+                meanFlowPerSecond = isTotal ? round(coreUnits.get('VOLUME', result.MeanFlowPerSecond).value, 2) : '',
                 cols = [
-                        sl.Source + ' (' + sl.Unit + ')',
-                        round(sl.Sediment, isTotal ? 1 : 2),
-                        round(sl.TotalN, isTotal ? 1 : 2),
-                        round(sl.TotalP, isTotal ? 1 : 2),
+                        sl.Source + ' (' + unitName + ')',
+                        round(coreUnits.get(unit, sl.Sediment).value, isTotal ? 1 : 2),
+                        round(coreUnits.get(unit, sl.TotalN).value, isTotal ? 1 : 2),
+                        round(coreUnits.get(unit, sl.TotalP).value, isTotal ? 1 : 2),
                         meanFlow,
                         meanFlowPerSecond,
                     ].join('","');
