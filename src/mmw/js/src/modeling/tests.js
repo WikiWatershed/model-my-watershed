@@ -466,7 +466,7 @@ describe('Modeling', function() {
                     runoffResult = scenario.get('results').findWhere({name: 'runoff'}),
                     qualityResult = scenario.get('results').findWhere({name: 'quality'});
 
-                var runoffCSV = '"Runoff Partition","Water Depth (cm)","Water Volume (m3)"\n' +
+                var runoffCSV = '"Runoff Partition","Water Depth (cm)","Water Volume (m³)"\n' +
                                 '"Runoff","1.603","16,052.95"\n' +
                                 '"Evapotranspiration","0.051","511.76"\n' +
                                 '"Infiltration","0.846","8,475.61"',
@@ -514,11 +514,11 @@ describe('Modeling', function() {
                                         '"Subsurface Flow","0.0","469,466.9","5,868.2"\n' +
                                         '"Point Sources","0.0","617,635.1","209,745.7"\n' +
                                         '"Septic Systems","0.0","27,777.3","0.0"',
-                    qualitySummaryCSV = '"Sources","Sediment","Total Nitrogen","Total Phosphorus","Mean Flow (m3/year)","Mean Flow (m3/s)"\n' +
+                    qualitySummaryCSV = '"Sources","Sediment","Total Nitrogen","Total Phosphorus","Mean Flow (m³/year)","Mean Flow (m³/s)"\n' +
                                         '"Total Loads (kg)","1,985,908,048.7","2,331,581.3","704,248.9","10,717,549,462","339.85"\n' +
                                         '"Loading Rates (kg/ha)","38,726.98","45.47","13.73","",""\n' +
-                                        '"Mean Annual Concentration (mg/l)","185.29","0.22","0.07","",""\n' +
-                                        '"Mean Low-Flow Concentration (mg/l)","198.57","0.29","0.07","",""';
+                                        '"Mean Annual Concentration (mg/L)","185.29","0.22","0.07","",""\n' +
+                                        '"Mean Low-Flow Concentration (mg/L)","198.57","0.29","0.07","",""';
 
                 assert.equal(runoffCSV, runoffResult.toMapShedHydrologyCSV());
                 assert.equal(qualityLandUseCSV, qualityResult.toMapShedWaterQualityLandUseCSV());
