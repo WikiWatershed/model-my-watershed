@@ -990,6 +990,14 @@ function getTestScenarioModel() {
     return new models.ScenarioModel(mocks.scenarios.sample);
 }
 
+function getTR55ScenarioModel() {
+    return new models.ScenarioModel(mocks.scenarios.tr55SquareKm);
+}
+
+function getSubbasinScenarioModel() {
+    return new models.ScenarioModel(mocks.scenarios.subbasin);
+}
+
 function getTestScenarioCollection() {
     var collection = new models.ScenariosCollection([
         new models.ScenarioModel({
