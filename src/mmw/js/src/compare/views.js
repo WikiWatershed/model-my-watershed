@@ -719,6 +719,8 @@ var LineChartRowView = Marionette.ItemView.extend({
 
     renderChart: function() {
         var self = this,
+            scheme = settings.get('unit_scheme'),
+            lengthUnit = coreUnits[scheme].LENGTH_S.name,
             chartDiv = this.model.get('chartDiv'),
             chartEl = document.getElementById(chartDiv),
             data = this.model.get('data')
@@ -728,7 +730,7 @@ var LineChartRowView = Marionette.ItemView.extend({
                         values: scenarioData.map(function(val, x) {
                             return {
                                 x: x,
-                                y: Number(val),
+                                y: coreUnits.get('LENGTH_S', Number(val) / 100).value,
                             };
                         }),
                         color: constants.SCENARIO_COLORS[index % 32],
@@ -737,8 +739,8 @@ var LineChartRowView = Marionette.ItemView.extend({
                 .slice()
                 .reverse(),
             options = {
-                yAxisLabel: 'Water Depth (cm)',
-                yAxisUnit: 'cm',
+                yAxisLabel: 'Water Depth (' + lengthUnit + ')',
+                yAxisUnit: lengthUnit,
                 xAxisLabel: function(xValue) {
                     return constants.monthNames[xValue];
                 },
@@ -899,13 +901,16 @@ var GwlfeHydrologyTableRowView = TableRowView.extend({
     template: compareTableRowTmpl,
 
     templateHelpers: function() {
-        var selectedAttribute = this.model.get('selectedAttribute');
+        var selectedAttribute = this.model.get('selectedAttribute'),
+            scheme = settings.get('unit_scheme'),
+            unit = this.model.get('unit');
 
         return {
+            unit: coreUnits[scheme][unit].name,
             values: this.model
                 .get('values')
                 .map(function(v) {
-                    return v[selectedAttribute];
+                    return coreUnits.get(unit, v[selectedAttribute]).value;
                 }),
         };
     },
@@ -917,6 +922,23 @@ var GwlfeHydrologyTableView = TableView.extend({
 
 var GwlfeQualityTableRowView = TableRowView.extend({
     className: 'compare-table-row -gwlfe -quality',
+
+    templateHelpers: function() {
+        var scheme = settings.get('unit_scheme'),
+            unit = this.model.get('unit');
+
+        if (!unit) {
+            // Special header case
+            return {};
+        }
+
+        return {
+            unit: coreUnits[scheme][unit].name ,
+            values: this.model.get('values').map(function(v) {
+                return coreUnits.get(unit, v).value;
+            }),
+        };
+    }
 });
 
 var GwlfeQualityTableView = TableView.extend({

@@ -169,8 +169,17 @@ var UserInputView = Marionette.LayoutView.extend({
     },
 
     templateHelpers: function() {
+        var scheme = settings.get('unit_scheme'),
+            areaUnit = coreUnits[scheme].AREA_L_FROM_HA.name,
+            lengthUnit = coreUnits[scheme].LENGTH_XL_FROM_KM.name,
+            labelUnits = function(string) {
+                return string
+                        .replace('AREAUNITNAME', areaUnit)
+                        .replace('LENGTHUNITNAME', lengthUnit);
+            };
+
         return {
-            displayNames: gwlfeConfig.displayNames
+            displayNames: _.mapValues(gwlfeConfig.displayNames, labelUnits),
         };
     }
 });
@@ -204,10 +213,20 @@ var ManualEntryView = Marionette.CompositeView.extend({
     },
 
     templateHelpers: function() {
-        var manualMod = this.model.get('manualMod');
+        var manualMod = this.model.get('manualMod'),
+            scheme = settings.get('unit_scheme'),
+            areaUnit = coreUnits[scheme].AREA_L_FROM_HA.name,
+            lengthUnit = coreUnits[scheme].LENGTH_XL_FROM_KM.name,
+            labelUnits = function(string) {
+                return string
+                    .replace('AREAUNITNAME', areaUnit)
+                    .replace('LENGTHUNITNAME', lengthUnit);
+            };
+
         return {
             modConfig: gwlfeConfig.configs[manualMod],
-            displayNames: gwlfeConfig.displayNames,
+            displayNames: _.mapValues(gwlfeConfig.displayNames, labelUnits),
+            displayUnits: gwlfeConfig.displayUnits,
             dataModel: this.model.get('dataModel')
         };
     },
@@ -243,7 +262,13 @@ var ManualEntryView = Marionette.CompositeView.extend({
     computeOutput: function() {
         var modConfig = gwlfeConfig.configs[this.model.get('manualMod')],
             userInput = _.map(modConfig.userInputNames, function(userInputName) {
-                return $('#'+userInputName).val();
+                var value = $('#'+userInputName).val();
+
+                if (modConfig.unit) {
+                    value /= coreUnits.get(modConfig.unit, 1).value;
+                }
+
+                return value.toString();
             }),
             output;
 

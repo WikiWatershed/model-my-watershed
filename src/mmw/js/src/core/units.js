@@ -13,6 +13,11 @@ var units = {
             factor: 2.58999E+06,
             offset: 0
         },
+        AREA_L_FROM_HA: { // Used for converting ha values
+            name: 'acre',
+            factor: 4.04686E-01,
+            offset: 0
+        },
         AREA_L: {
             name: 'acre',
             factor: 4.04686E+03,
@@ -21,6 +26,11 @@ var units = {
         AREA_M: {
             name: 'ft²',
             factor: 9.29030E-02,
+            offset: 0
+        },
+        LENGTH_XL_FROM_KM: {
+            name: 'mi',
+            factor: 1.60934,
             offset: 0
         },
         LENGTH_XL: {
@@ -85,6 +95,11 @@ var units = {
             factor: 1.00000E+06,
             offset: 0
         },
+        AREA_L_FROM_HA: {
+            name: 'ha',
+            factor: 1,
+            offset: 0
+        },
         AREA_L: {
             name: 'ha',
             factor: 1.00000E+04,
@@ -92,6 +107,11 @@ var units = {
         },
         AREA_M: {
             name: 'm²',
+            factor: 1,
+            offset: 0
+        },
+        LENGTH_XL_FROM_KM: {
+            name: 'km',
             factor: 1,
             offset: 0
         },

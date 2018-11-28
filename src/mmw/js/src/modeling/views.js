@@ -5,6 +5,7 @@ var _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     settings = require('../core/settings'),
+    coreUnits = require('../core/units'),
     csrf = require('../core/csrf'),
     utils = require('../core/utils'),
     models = require('./models'),
@@ -828,13 +829,23 @@ var GwlfeToolbarView = ScenarioModelToolbarView.extend({
         var activeMod = this.getActiveMod(),
             isEntry = function(m) { return m.modKey.startsWith('entry_'); },
             modifications = this.model.get('modifications').toJSON(),
-            editable = isEditable(this.model);
+            editable = isEditable(this.model),
+            scheme = settings.get('unit_scheme'),
+            areaUnit = coreUnits[scheme].AREA_L_FROM_HA.name,
+            lengthUnit = coreUnits[scheme].LENGTH_XL_FROM_KM.name,
+            labelUnits = function(string) {
+                return string
+                    .replace('AREAUNITNAME', areaUnit)
+                    .replace('LENGTHUNITNAME', lengthUnit);
+            };
 
         activeMod = activeMod ? activeMod.toJSON() : null;
+
         return {
             modifications: _.reject(modifications, isEntry),
             activeMod: activeMod,
-            displayNames: gwlfeConfig.displayNames,
+            displayNames: _.mapValues(gwlfeConfig.displayNames, labelUnits),
+            displayUnits: gwlfeConfig.displayUnits,
             editable: editable
         };
     }

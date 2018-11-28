@@ -17,7 +17,7 @@
                 {% for dataModelName in modConfig.dataModelNames %}
                     <tr>
                         <td class="text-left">{{ displayNames[dataModelName] }}</td>
-                        <td class="strong text-right">{{ dataModel[dataModelName]|round(2)|toLocaleString(2) }}</td>
+                        <td class="strong text-right">{{ dataModel[dataModelName]|toUnit(displayUnits[dataModelName])|round(2)|toLocaleString(2) }}</td>
                     </tr>
                 {% endfor %}
             </tbody>

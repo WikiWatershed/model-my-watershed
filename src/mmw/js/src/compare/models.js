@@ -161,25 +161,27 @@ var GwlfeQualityCharts = BarChartRowsCollection.extend({
         });
 
         this.forEach(function(chart) {
-            var key = chart.get('key'),
+            var scheme = settings.get('unit_scheme'),
+                key = chart.get('key'),
                 group = selection.get('group'),
                 source = selection.get('value'),
                 unit = selection.get('unit'),
+                unitName = coreUnits[scheme][unit].name,
                 unitLabel = selection.get('name'),
                 values = _.map(results, function(r) {
                     return {
                         x: r.name,
-                        y: Number(
+                        y: coreUnits.get(unit, Number(
                             _.find(
                                 r.result[group],
                                 { Source: source }
                             )[key]
-                        ),
+                        )).value,
                     };
                 });
 
             chart.set({
-                unit: unit,
+                unit: unitName,
                 unitLabel: unitLabel,
                 values: values,
             });

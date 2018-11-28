@@ -3,6 +3,8 @@
 var _ = require('lodash'),
     Marionette = require('../../../../shim/backbone.marionette'),
     modalViews = require('../../../core/modals/views'),
+    settings = require('../../../core/settings'),
+    coreUnits = require('../../../core/units'),
     round = require('../../../core/utils').round,
     models = require('./models'),
     calcs = require('./calcs'),
@@ -96,13 +98,18 @@ var LandCoverTotalView = Marionette.ItemView.extend({
             hasUserValue = function(field) {
                 return field.get('userValue') !== null;
             },
-            autoTotal = round(this.model.get('autoTotal'), 1),
-            userTotal = round(this.model.get('userTotal'), 1);
+            scheme = settings.get('unit_scheme'),
+            get = function(value) {
+                return coreUnits.get('AREA_L_FROM_HA', value).value;
+            },
+            autoTotal = round(get(this.model.get('autoTotal')), 1),
+            userTotal = round(get(this.model.get('userTotal')), 1);
 
         return {
             is_modified: fields.some(hasUserValue),
             autoTotal: autoTotal,
             userTotal: userTotal,
+            unit: coreUnits[scheme].AREA_L_FROM_HA.name,
         };
     },
 
@@ -278,10 +285,11 @@ var FieldView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
-        var type = this.model.get('type');
+        var type = this.model.get('type'),
+            output = {};
 
         if (type !== models.ENTRY_FIELD_TYPES.NUMERIC) {
-            return {};
+            return output;
         }
 
         var autoValue = this.model.get('autoValue'),
@@ -293,10 +301,30 @@ var FieldView = Marionette.ItemView.extend({
             // and so on.
             step = Math.pow(10, -decimalPlaces);
 
-        return {
+        _.assign(output, {
             step: step,
             autoValue: round(autoValue, decimalPlaces),
-        };
+        });
+
+        var unit = this.model.get('unit'),
+            userValue = this.model.get('userValue');
+
+        if (unit) {
+            if (userValue !== null) {
+                userValue = coreUnits.get(unit, userValue).value;
+                _.assign(output, {
+                    userValue: round(userValue, decimalPlaces),
+                });
+            }
+
+            autoValue = coreUnits.get(unit, autoValue).value;
+
+            _.assign(output, {
+                autoValue: round(autoValue, decimalPlaces),
+            });
+        }
+
+        return output;
     },
 
     onRender: function() {
@@ -305,7 +333,13 @@ var FieldView = Marionette.ItemView.extend({
     },
 
     updateUserValue: function() {
-        var value = this.ui.input.val();
+        var value = this.ui.input.val(),
+            unit = this.model.get('unit');
+
+        if (unit) {
+            // Convert user preferred unit into underlying representation
+            value /= coreUnits.get(unit, 1).value;
+        }
 
         this.model.set('userValue', value || null);
         this.toggleUserValueState();
@@ -358,7 +392,11 @@ var SectionsView = Marionette.CollectionView.extend({
 });
 
 function showSettingsModal(title, dataModel, modifications, addModification) {
-    var tabs = new models.EntryTabCollection([
+    var scheme = settings.get('unit_scheme'),
+        massPerTimeUnit = coreUnits[scheme].MASSPERTIME.name,
+        volumetricFlowRateUnit = coreUnits[scheme].VOLUMETRICFLOWRATE.name,
+        concentrationUnit = coreUnits[scheme].CONCENTRATION.name,
+        tabs = new models.EntryTabCollection([
             {
                 name: 'efficiencies',
                 displayName: 'Efficiencies',
@@ -657,19 +695,22 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                         fields: models.makeFieldCollection('waste_water', dataModel, modifications, [
                             {
                                 name: 'PointNitr',
-                                label: 'Annual TN Load (kg/yr)',
+                                label: 'Annual TN Load (' + massPerTimeUnit + ')',
+                                unit: 'MASSPERTIME',
                                 calculator: calcs.EqualMonths,
                                 minValue: 0
                             },
                             {
                                 name: 'PointPhos',
-                                label: 'Annual TP Load (kg/yr)',
+                                label: 'Annual TP Load (' + massPerTimeUnit + ')',
+                                unit: 'MASSPERTIME',
                                 calculator: calcs.EqualMonths,
                                 minValue: 0
                             },
                             {
                                 name: 'PointFlow',
-                                label: 'Daily Effluent Discharge (MGD)',
+                                label: 'Daily Effluent Discharge (' + volumetricFlowRateUnit + ')',
+                                unit: 'VOLUMETRICFLOWRATE',
                                 calculator: calcs.PointSourceDischarge,
                                 minValue: 0
                             },
@@ -856,31 +897,36 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
                             },
                             {
                                 name: 'TileNconc',
-                                label: 'Avg. Tile Drain N Concentration (mg/l)',
+                                label: 'Avg. Tile Drain N Concentration (' + concentrationUnit + ')',
+                                unit: 'CONCENTRATION',
                                 calculator: calcs.Direct,
                                 minValue: 0,
                             },
                             {
                                 name: 'TilePConc',
-                                label: 'Avg. Tile Drain P Concentration (mg/l)',
+                                label: 'Avg. Tile Drain P Concentration (' + concentrationUnit + ')',
+                                unit: 'CONCENTRATION',
                                 calculator: calcs.Direct,
                                 minValue: 0,
                             },
                             {
                                 name: 'TileSedConc',
-                                label: 'Avg. Tile Drain Sediment Concentration (mg/l)',
+                                label: 'Avg. Tile Drain Sediment Concentration (' + concentrationUnit + ')',
+                                unit: 'CONCENTRATION',
                                 calculator: calcs.Direct,
                                 minValue: 0,
                             },
                             {
                                 name: 'GrNitrConc',
-                                label: 'Groundwater N Concentration (mg/l)',
+                                label: 'Groundwater N Concentration (' + concentrationUnit + ')',
+                                unit: 'CONCENTRATION',
                                 calculator: calcs.Direct,
                                 minValue: 0,
                             },
                             {
                                 name: 'GrPhosConc',
-                                label: 'Groundwater P Concentration (mg/l)',
+                                label: 'Groundwater P Concentration (' + concentrationUnit + ')',
+                                unit: 'CONCENTRATION',
                                 calculator: calcs.Direct,
                                 minValue: 0,
                             },
@@ -930,73 +976,85 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
 }
 
 function showLandCoverModal(dataModel, modifications, addModification) {
-    var fields = models.makeFieldCollection('landcover', dataModel, modifications, [
+    var scheme = settings.get('unit_scheme'),
+        areaLUnits = coreUnits[scheme].AREA_L_FROM_HA.name,
+        fields = models.makeFieldCollection('landcover', dataModel, modifications, [
             {
                 name: 'Area__0',
-                label: 'Hay / Pasture (ha)',
+                label: 'Hay / Pasture (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__1',
-                label: 'Cropland (ha)',
+                label: 'Cropland (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__2',
-                label: 'Wooded Areas (ha)',
+                label: 'Wooded Areas (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__3',
-                label: 'Wetlands (ha)',
+                label: 'Wetlands (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__6',
-                label: 'Open Land (ha)',
+                label: 'Open Land (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__7',
-                label: 'Barren Areas (ha)',
+                label: 'Barren Areas (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__10',
-                label: 'Low-Density Mixed (ha)',
+                label: 'Low-Density Mixed (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__11',
-                label: 'Medium-Density Mixed (ha)',
+                label: 'Medium-Density Mixed (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__12',
-                label: 'High-Density Mixed (ha)',
+                label: 'High-Density Mixed (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0
             },
             {
                 name: 'Area__13',
-                label: 'Low-Density Open Space (ha)',
+                label: 'Low-Density Open Space (' + areaLUnits + ')',
+                unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
                 minValue: 0

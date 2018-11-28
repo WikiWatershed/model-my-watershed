@@ -35,9 +35,12 @@ function mapScenariosToHydrologyTableData(scenarios) {
                         return n.get('displayName') === constants.HYDROLOGY;
                     })
                     .map(function(m) {
-                        return m
-                            .get('result')
-                            .monthly;
+                        // Convert cm to m
+                        return m.get('result').monthly.map(function(monthly) {
+                            return _.mapValues(monthly, function(value) {
+                                return value / 100;
+                            });
+                        });
                     });
 
             return accumulator.concat(nextAttribute);
@@ -49,7 +52,7 @@ function mapScenariosToHydrologyTableData(scenarios) {
             return {
                 key: key,
                 name: moment(name, 'MMM').format('MMMM'),
-                unit: 'cm',
+                unit: 'LENGTH_S',
                 values: scenarioData
                     .map(function(element) {
                         return element[key];

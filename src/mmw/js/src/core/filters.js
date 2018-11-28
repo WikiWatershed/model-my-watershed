@@ -2,6 +2,7 @@
 
 var nunjucks = require('nunjucks');
 var utils = require('./utils');
+var coreUnits = require('./units');
 var _ = require('lodash');
 var moment = require('moment');
 
@@ -93,4 +94,8 @@ nunjucks.env.addFilter('toFriendlyBytes', function(bytes) {
     bytes /= 1024;
 
     return roundToOneDecimal(bytes) + '&nbsp;GB';
+});
+
+nunjucks.env.addFilter('toUnit', function(value, unit) {
+    return coreUnits.get(unit, value).value;
 });
