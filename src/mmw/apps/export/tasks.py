@@ -35,15 +35,8 @@ def update_resource(user_id, project_id, params):
     hs = hss.get_client(user_id)
     hsresource = HydroShareResource.objects.get(project_id=project_id)
 
-    existing_files = hs.get_file_list(hsresource.resource)
-    if not existing_files:
+    if not hs.check_resource_exists(hsresource.resource):
         raise RuntimeError('HydroShare could not find requested resource')
-
-    current_analyze_files = [
-        f['url'][(1 + f['url'].index('/analyze_')):]
-        for f in existing_files
-        if '/analyze_' in f['url']
-    ]
 
     # Update files
     files = params.get('files', [])
@@ -60,9 +53,6 @@ def update_resource(user_id, project_id, params):
             except (Job.DoesNotExist, ValueError):
                 # Either the job wasn't found, or its content isn't JSON
                 pass
-
-    # Except the existing analyze files
-    files = [f for f in files if f['name'] not in current_analyze_files]
 
     hs.add_files(hsresource.resource, files)
 

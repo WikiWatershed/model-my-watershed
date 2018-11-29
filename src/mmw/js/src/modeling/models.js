@@ -678,8 +678,6 @@ var ProjectModel = Backbone.Model.extend({
                         contents: at.getResultCSV(),
                     };
                 }),
-            exportRecord = self.get('hydroshare'),
-            lastExportDate = exportRecord && exportRecord.exported_at,
             scenarios = self.get('scenarios'),
             lowerAndHyphenate = function(name) {
                     return name.toLowerCase().replace(/\s/g, '-');
@@ -696,14 +694,7 @@ var ProjectModel = Backbone.Model.extend({
                             results = s.get('results'),
                             runoffResult = results.findWhere({ name: 'runoff' }),
                             qualityResult = results.findWhere({ name: 'quality' }),
-                            isCurrentConditions = s.get('is_current_conditions'),
-                            hasChangedSinceLastExport = !lastExportDate || (
-                                lastExportDate &&
-                                lastExportDate < s.get('modified_at'));
-
-                        if (!hasChangedSinceLastExport) {
-                            return;
-                        }
+                            isCurrentConditions = s.get('is_current_conditions');
 
                         if (runoffResult && !runoffResult.get('polling') && runoffResult.get('result')) {
                             modelFiles.push({
@@ -732,14 +723,7 @@ var ProjectModel = Backbone.Model.extend({
                         var scenarioName = lowerAndHyphenate(s.get('name')),
                             results = s.get('results'),
                             runoffResult = results.findWhere({ name: 'runoff' }),
-                            qualityResult = results.findWhere({ name: 'quality' }),
-                            hasChangedSinceLastExport = !lastExportDate || (
-                                lastExportDate &&
-                                lastExportDate < s.get('modified_at'));
-
-                        if (!hasChangedSinceLastExport) {
-                            return;
-                        }
+                            qualityResult = results.findWhere({ name: 'quality' });
 
                         if (runoffResult && !runoffResult.get('polling') && runoffResult.get('result')) {
                             modelFiles.push({
@@ -768,14 +752,7 @@ var ProjectModel = Backbone.Model.extend({
             modelFiles = isTR55 ? getTR55ModelFiles() : getMapShedModelFiles(),
             getMapshedData = function(scenario) {
                     var gisData = scenario.getGisData(),
-                        scenarioName = lowerAndHyphenate(scenario.get('name')),
-                        hasChangedSinceLastExport = !lastExportDate || (
-                            lastExportDate &&
-                            lastExportDate < scenario.get('modified_at'));
-
-                    if (!hasChangedSinceLastExport) {
-                        return null;
-                    }
+                        scenarioName = lowerAndHyphenate(scenario.get('name'));
 
                     if (!gisData) {
                         return null;
