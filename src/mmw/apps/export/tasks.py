@@ -55,8 +55,7 @@ def update_resource(user_id, project_id, params):
                 mdata = json.loads(job.result)
                 files.append({
                     'name': md.get('name'),
-                    'contents': to_gms_file(mdata),
-                    'object': True,
+                    'contents': to_gms_file(mdata).read(),
                 })
             except (Job.DoesNotExist, ValueError):
                 # Either the job wasn't found, or its content isn't JSON
@@ -65,7 +64,7 @@ def update_resource(user_id, project_id, params):
     # Except the existing analyze files
     files = [f for f in files if f['name'] not in current_analyze_files]
 
-    hs.add_files(hsresource.resource, files, overwrite=True)
+    hs.add_files(hsresource.resource, files)
 
     hsresource.exported_at = now()
     hsresource.save()
@@ -111,8 +110,7 @@ def create_resource(user_id, project_id, params):
                 mdata = json.loads(job.result)
                 files.append({
                     'name': md.get('name'),
-                    'contents': to_gms_file(mdata),
-                    'object': True,
+                    'contents': to_gms_file(mdata).read(),
                 })
             except (Job.DoesNotExist, ValueError):
                 # Either the job wasn't found, or its content isn't JSON
