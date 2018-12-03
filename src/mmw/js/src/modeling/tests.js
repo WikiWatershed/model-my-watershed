@@ -8,8 +8,10 @@ var _ = require('lodash'),
     assert = require('chai').assert,
     sinon = require('sinon'),
     mocks = require('./mocks'),
+    settings = require('../core/settings'),
     utils = require('../core/utils'),
     models = require('./models'),
+    AoiVolumeModel = require('./tr55/models').AoiVolumeModel,
     views = require('./views'),
     App = require('../app.js'),
     testUtils = require('../core/testUtils'),
@@ -40,6 +42,8 @@ describe('Modeling', function() {
         // cached copy of the setTimeout function. So, we mock debounce.
         this.origDebounce = _.debounce;
         _.debounce = _.identity;
+
+        settings.set('unit_scheme', 'METRIC');
     });
 
     afterEach(function() {
@@ -450,6 +454,75 @@ describe('Modeling', function() {
                         assert.isNull(result.get('result'), 'Should have set result to null');
                     });
                 });
+            });
+        });
+
+        describe('ResultModel', function() {
+            it('Generates TR-55 CSV Correctly', function () {
+                var aoi = mocks.polygons.tr55SquareKm,
+                    aoiVolumeModel = new AoiVolumeModel({areaOfInterest: aoi}),
+                    scenario = getTR55ScenarioModel(),
+                    isCurrentConditions = scenario.get('is_current_conditions'),
+                    runoffResult = scenario.get('results').findWhere({name: 'runoff'}),
+                    qualityResult = scenario.get('results').findWhere({name: 'quality'});
+
+                var runoffCSV = '"Runoff Partition","Water Depth (cm)","Water Volume (m³)"\n' +
+                                '"Runoff","1.603","16,052.95"\n' +
+                                '"Evapotranspiration","0.051","511.76"\n' +
+                                '"Infiltration","0.846","8,475.61"',
+                    qualityCSV = '"Quality Measure","Load (kg)","Loading Rate (kg/ha)","Average Concentration (mg/L)"\n' +
+                                 '"Total Suspended Solids","2,558.953","25.548","159.4"\n' +
+                                 '"Total Nitrogen","56.575","0.565","3.5"\n' +
+                                 '"Total Phosphorus","5.651","0.056","0.4"';
+
+                assert.equal(runoffCSV, runoffResult.toTR55RunoffCSV(isCurrentConditions, aoiVolumeModel));
+                assert.equal(qualityCSV, qualityResult.toTR55WaterQualityCSV(isCurrentConditions, aoiVolumeModel));
+            });
+
+            it('Generates MapShed CSV Correctly', function () {
+                var scenario = getSubbasinScenarioModel(),
+                    runoffResult = scenario.get('results').findWhere({name: 'runoff'}),
+                    qualityResult = scenario.get('results').findWhere({name: 'quality'});
+
+                var runoffCSV = '"Month","Stream Flow (cm)","Surface Runoff (cm)","Subsurface Flow (cm)","Point Src Flow (cm)","ET (cm)","Precip (cm)"\n' +
+                                '"Jan","179.96","1.58","4.57","173.81","0.57","7.92"\n' +
+                                '"Feb","163.29","1.54","4.76","156.99","0.87","7.25"\n' +
+                                '"Mar","180.82","1.43","5.59","173.81","2.53","8.75"\n' +
+                                '"Apr","173.89","0.35","5.34","168.21","5.04","8.91"\n' +
+                                '"May","177.95","0.38","3.76","173.81","9.11","9.63"\n' +
+                                '"Jun","170.65","0.44","2.01","168.21","11.28","9.26"\n' +
+                                '"Jul","175.48","0.74","0.94","173.81","10.56","10.81"\n' +
+                                '"Aug","174.68","0.48","0.39","173.81","8.83","9.15"\n' +
+                                '"Sep","169.20","0.55","0.44","168.21","5.49","8.69"\n' +
+                                '"Oct","175.11","0.59","0.70","173.81","4.02","6.98"\n' +
+                                '"Nov","170.53","1.01","1.31","168.21","2.21","8.40"\n' +
+                                '"Dec","178.46","1.35","3.30","173.81","1.07","8.71"\n' +
+                                '"Total","2,090.02","10.43","33.09","2,046.50","61.59","104.47"',
+                    qualityLandUseCSV = '"Sources","Sediment (kg)","Total Nitrogen (kg)","Total Phosphorus (kg)"\n' +
+                                        '"Hay/Pasture","525,778.1","2,680.8","1,011.1"\n' +
+                                        '"Cropland","2,366,486.8","9,873.3","2,799.1"\n' +
+                                        '"Wooded Areas","26,327.8","1,006.5","75.0"\n' +
+                                        '"Wetlands","413.8","511.8","27.3"\n' +
+                                        '"Open Land","9,092.3","155.9","11.4"\n' +
+                                        '"Barren Areas","25.2","65.6","2.2"\n' +
+                                        '"Low-Density Mixed","122,541.6","3,097.8","331.4"\n' +
+                                        '"Medium-Density Mixed","518,413.5","12,026.5","1,237.9"\n' +
+                                        '"High-Density Mixed","330,756.7","7,673.1","789.8"\n' +
+                                        '"Low-Density Open Space","222,403.8","5,622.2","601.4"\n' +
+                                        '"Farm Animals","0.0","35,168.6","8,233.0"\n' +
+                                        '"Stream Bank Erosion","1,982,008,213.0","1,144,442.0","474,117.0"\n' +
+                                        '"Subsurface Flow","0.0","469,466.9","5,868.2"\n' +
+                                        '"Point Sources","0.0","617,635.1","209,745.7"\n' +
+                                        '"Septic Systems","0.0","27,777.3","0.0"',
+                    qualitySummaryCSV = '"Sources","Sediment","Total Nitrogen","Total Phosphorus","Mean Flow (m³/year)","Mean Flow (m³/s)"\n' +
+                                        '"Total Loads (kg)","1,985,908,048.7","2,331,581.3","704,248.9","10,717,549,462","339.85"\n' +
+                                        '"Loading Rates (kg/ha)","38,726.98","45.47","13.73","",""\n' +
+                                        '"Mean Annual Concentration (mg/L)","185.29","0.22","0.07","",""\n' +
+                                        '"Mean Low-Flow Concentration (mg/L)","198.57","0.29","0.07","",""';
+
+                assert.equal(runoffCSV, runoffResult.toMapShedHydrologyCSV());
+                assert.equal(qualityLandUseCSV, qualityResult.toMapShedWaterQualityLandUseCSV());
+                assert.equal(qualitySummaryCSV, qualityResult.toMapShedWaterQualitySummaryCSV());
             });
         });
 
@@ -988,6 +1061,14 @@ describe('Modeling', function() {
 
 function getTestScenarioModel() {
     return new models.ScenarioModel(mocks.scenarios.sample);
+}
+
+function getTR55ScenarioModel() {
+    return new models.ScenarioModel(mocks.scenarios.tr55SquareKm);
+}
+
+function getSubbasinScenarioModel() {
+    return new models.ScenarioModel(mocks.scenarios.subbasin);
 }
 
 function getTestScenarioCollection() {
