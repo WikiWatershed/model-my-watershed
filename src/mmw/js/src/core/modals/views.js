@@ -770,6 +770,12 @@ var AboutModal = Marionette.ItemView.extend({
         'role': 'dialog',
     },
 
+    events: {
+        'click .open-tos-modal': 'openTosModal',
+        'click .open-privacy-modal': 'openPrivacyModal',
+        'click .open-cookie-modal': 'openCookieModal',
+    },
+
     template: modalAboutTmpl,
     templateHelpers: function() {
         return coreUtils.parseVersion(
@@ -780,6 +786,18 @@ var AboutModal = Marionette.ItemView.extend({
 
     onRender: function() {
         this.$el.modal('show');
+    },
+
+    openTosModal: function() {
+        new TosModal().render();
+    },
+
+    openPrivacyModal: function() {
+        new PrivacyModal().render();
+    },
+
+    openCookieModal: function() {
+        new CookieModal().render();
     }
 });
 
