@@ -19,6 +19,9 @@ var _ = require('lodash'),
     modalHydroShareTmpl = require('./templates/hydroShareExportModal.html'),
     modalAlertTmpl = require('./templates/alertModal.html'),
     modalIframeTmpl = require('./templates/iframeModal.html'),
+    modalTosTmpl = require('./templates/tosModal.html'),
+    modalPrivacyTmpl = require('./templates/privacyModal.html'),
+    modalCookieTmpl = require('./templates/cookieModal.html'),
     settings = require('../settings'),
 
     ENTER_KEYCODE = 13,
@@ -767,6 +770,12 @@ var AboutModal = Marionette.ItemView.extend({
         'role': 'dialog',
     },
 
+    events: {
+        'click .open-tos-modal': 'openTosModal',
+        'click .open-privacy-modal': 'openPrivacyModal',
+        'click .open-cookie-modal': 'openCookieModal',
+    },
+
     template: modalAboutTmpl,
     templateHelpers: function() {
         return coreUtils.parseVersion(
@@ -777,11 +786,92 @@ var AboutModal = Marionette.ItemView.extend({
 
     onRender: function() {
         this.$el.modal('show');
+    },
+
+    openTosModal: function() {
+        new TosModal().render();
+    },
+
+    openPrivacyModal: function() {
+        new PrivacyModal().render();
+    },
+
+    openCookieModal: function() {
+        new CookieModal().render();
     }
+});
+
+var TosModal = Marionette.ItemView.extend({
+    className: 'modal modal-text fade',
+    attributes: {
+        'tabindex': '-1',
+        'role': 'dialog',
+    },
+
+    events: {
+        'click .open-privacy-modal': 'openPrivacyModal',
+    },
+
+    template: modalTosTmpl,
+
+    onRender: function() {
+        this.$el.modal('show');
+    },
+
+    openPrivacyModal: function() {
+        new PrivacyModal().render();
+    },
+});
+
+var PrivacyModal = Marionette.ItemView.extend({
+    className: 'modal modal-text fade',
+    attributes: {
+        'tabindex': '-1',
+        'role': 'dialog',
+    },
+
+    events: {
+        'click .open-cookie-modal': 'openCookieModal',
+    },
+
+    template: modalPrivacyTmpl,
+
+    onRender: function() {
+        this.$el.modal('show');
+    },
+
+    openCookieModal: function() {
+        new CookieModal().render();
+    },
+});
+
+var CookieModal = Marionette.ItemView.extend({
+    className: 'modal modal-text fade',
+    attributes: {
+        'tabindex': '-1',
+        'role': 'dialog',
+    },
+
+    events: {
+        'click .open-privacy-modal': 'openPrivacyModal',
+    },
+
+    template: modalCookieTmpl,
+
+    onRender: function() {
+        this.$el.modal('show');
+    },
+
+    openPrivacyModal: function() {
+        new PrivacyModal().render();
+    },
 });
 
 module.exports = {
     AboutModal: AboutModal,
+    TosModal: TosModal,
+    PrivacyModal: PrivacyModal,
+    CookieModal: CookieModal,
     ModalBaseView: ModalBaseView,
     ShareView: ShareView,
     MultiShareView: MultiShareView,

@@ -286,7 +286,7 @@
   }
 }
 
-.modal-about {
+.modal-about, .modal-text {
   .modal-content {
     padding: 2rem;
   }
@@ -320,6 +320,31 @@
 
     img.splash-sponsor-logo {
       height: 100px;
+    }
+
+    p.about-footer {
+      padding-top: 1rem;
+      font-size: 13px;
+      font-weight: normal;
+      color: $black-39;
+      margin-bottom: 0;
+    }
+  }
+}
+
+.modal-text {
+  .modal-body {
+    max-height: 600px;
+    overflow-y: auto;
+
+    h2 {
+      margin-bottom: 10px;
+    }
+    h3 {
+      margin-bottom: 8px;
+    }
+    li {
+      padding-bottom: 0.5rem;
     }
   }
 }

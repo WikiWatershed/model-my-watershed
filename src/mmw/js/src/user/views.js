@@ -7,6 +7,7 @@ var _ = require('underscore'),
     Marionette = require('../../shim/backbone.marionette'),
     router = require('../router').router,
     settings = require('../core/settings'),
+    TosModal = require('../core/modals/views').TosModal,
     models = require('./models'),
     loginModalTmpl = require('./templates/loginModal.html'),
     userProfileModalTmpl = require('./templates/userProfileModal.html'),
@@ -384,6 +385,7 @@ var SignUpModalView = ModalBaseView.extend({
     events: _.defaults({
         'click @ui.login': 'login',
         'click @ui.resend': 'resend',
+        'click .open-tos-modal': 'openTosModal',
     }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
@@ -395,6 +397,10 @@ var SignUpModalView = ModalBaseView.extend({
         if (Backbone.history.getFragment() === 'sign-up') {
             router.navigate('', { trigger: true });
         }
+    },
+
+    openTosModal: function() {
+        new TosModal().render();
     },
 
     onValidationError: function() {
