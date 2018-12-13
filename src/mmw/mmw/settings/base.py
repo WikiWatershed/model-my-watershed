@@ -340,7 +340,7 @@ SWAGGER_SETTINGS = {
                        'You can read more about the work at '
                        '<a href="http://www.wikiwatershed.org/">'
                        'WikiWatershed</a> '
-                       'or use the <a href="https://www.app.wikiwatershed.org">'
+                       'or use the <a href="https://modelmywatershed.org">'
                        'web app.',
         'license': 'Apache 2.0',
         'licenseUrl': 'http://www.apache.org/licenses/LICENSE-2.0.html',
