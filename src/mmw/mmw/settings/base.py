@@ -402,7 +402,7 @@ OMGEO_SETTINGS = [[
 ]]
 
 # Keep in sync with src/api/main.py in rapid-watershed-delineation.
-MMW_MAX_AREA = 7.5e+9  # Max area in m², about the size of West Virginia
+MMW_MAX_AREA = 75e+9  # Max area in m², about the size of West Virginia
 
 BIGCZ_HOST = 'portal.bigcz.org'  # BiG-CZ Host, for enabling custom behavior
 BIGCZ_MAX_AREA = 5e+9  # Max area in m², limited by CUAHSI
