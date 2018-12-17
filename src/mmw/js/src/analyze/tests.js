@@ -178,7 +178,7 @@ var tableHeaders = {
     land: ['Type', 'Area (km²)', 'Coverage (%)'],
     soil: ['Type', 'Area (km²)', 'Coverage (%)'],
     animals: ['Animal', 'Count'],
-    pointsource: ['NPDES Code', 'City', 'Discharge (m³/d)', 'TN Load (kg/a)', 'TP Load (kg/a)'],
+    pointsource: ['NPDES Code', 'City', 'Discharge (m³/d)', 'TN Load (kg/yr)', 'TP Load (kg/yr)'],
     catchment_water_quality: ['Id', 'Area (ha)', 'Total N (kg/ha)', 'Total P (kg/ha)',
         'Total SS (kg/ha)', 'Avg TN (mg/l)', 'Avg TP (mg/l)', 'Avg TSS (mg/l)'],
 };
