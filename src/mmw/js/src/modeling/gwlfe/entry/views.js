@@ -78,8 +78,11 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
     },
 
     validateModal: function() {
-        var autoTotal = round(this.model.get('autoTotal'), 1),
-            userTotal = round(this.model.get('userTotal'), 1);
+        var get = function(value) {
+                return coreUnits.get('AREA_L_FROM_HA', value).value;
+            },
+            autoTotal = round(get(this.model.get('autoTotal')), 1),
+            userTotal = round(get(this.model.get('userTotal')), 1);
 
         this.ui.saveButton.prop('disabled', autoTotal !== userTotal);
     },
