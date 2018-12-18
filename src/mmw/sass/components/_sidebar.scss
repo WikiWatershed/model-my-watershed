@@ -10,3 +10,17 @@
       border-width: 1px;
     }
 }
+
+.download-bmp {
+    padding-bottom: 20px;
+
+    hr {
+        margin-top: 0;
+    }
+
+    i {
+        font-size: 32px;
+        color: $ui-medium-light;
+        margin-top: 5px;
+    }
+}

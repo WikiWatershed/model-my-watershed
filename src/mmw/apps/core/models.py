@@ -62,3 +62,9 @@ class RequestLog(models.Model):
 
     def __unicode__(self):
         return self.user + " " + self.path
+
+
+class UnitScheme:
+    # Really an Enum, not a true Class
+    METRIC = 'METRIC'
+    USCUSTOMARY = 'USCUSTOMARY'

@@ -157,6 +157,10 @@
       color: $black-74;
     }
   }
+
+  .gwlfe_settings > & {
+    z-index: 3;
+  }
 }
 
 .btn-scenario {

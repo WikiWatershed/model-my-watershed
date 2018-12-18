@@ -159,6 +159,9 @@ var App = new Marionette.Application({
         this.user.fetch().always(function() {
             if (App.user.get('guest')) {
                 App.showLoginModal();
+            } else {
+                settings.set('unit_scheme',
+                    App.user.get('profile').unit_scheme);
             }
         });
     },

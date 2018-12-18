@@ -2,16 +2,61 @@
 
 var _ = require('lodash'),
     coreUtils = require('../core/utils'),
+    settings = require('../core/settings'),
+    coreUnits = require('../core/units'),
     Backbone = require('../../shim/backbone'),
-    ControlsCollection = require('../modeling/models').ModelPackageControlsCollection;
+    ControlsCollection = require('../modeling/models').ModelPackageControlsCollection,
+    constants = require('./constants');
 
-var CHART = 'chart',
-    TABLE = 'table',
-    MIN_VISIBLE_SCENARIOS = 5,
-    CHART_AXIS_WIDTH = 82,
-    COMPARE_COLUMN_WIDTH = 134;
+var SelectionOptionModel = Backbone.Model.extend({
+    defaults: {
+        group: '',
+        value: '',
+        name: '',
+        active: false,
+    },
 
-var ChartRowModel = Backbone.Model.extend({
+    initialize: function(attrs) {
+        // Default value to name, unless specified otherwise
+        if (attrs.value === undefined) {
+            this.set('value', attrs.name);
+        }
+    }
+});
+
+var SelectionOptionsCollection = Backbone.Collection.extend({
+    model: SelectionOptionModel,
+});
+
+var LineChartRowModel = Backbone.Model.extend({
+    defaults: {
+        key: '',
+        name: '',
+        chartDiv: '',
+        data: [],
+        scenarioNames: [],
+    },
+});
+
+var LineChartRowsCollection = Backbone.Collection.extend({
+    model: LineChartRowModel,
+});
+
+var MonthlyTableRowModel = Backbone.Model.extend({
+    defaults: {
+        key: '',
+        name: '',
+        values: [],
+        unit: '',
+        selectedAttribute: '',
+    },
+});
+
+var MonthlyTableRowsCollection = Backbone.Collection.extend({
+    model: MonthlyTableRowModel,
+});
+
+var BarChartRowModel = Backbone.Model.extend({
     defaults: {
         key: '',
         name: '',
@@ -25,8 +70,8 @@ var ChartRowModel = Backbone.Model.extend({
     },
 });
 
-var ChartRowsCollection = Backbone.Collection.extend({
-    model: ChartRowModel,
+var BarChartRowsCollection = Backbone.Collection.extend({
+    model: BarChartRowModel,
 
     /**
      * Initialize collection by storing the given scenario collection
@@ -46,12 +91,22 @@ var ChartRowsCollection = Backbone.Collection.extend({
     }
 });
 
-var Tr55RunoffCharts = ChartRowsCollection.extend({
+var GwlfeHydrologyCharts = LineChartRowsCollection.extend();
+
+var GwlfeHydrologyTable = MonthlyTableRowsCollection.extend({
+    update: function(selection) {
+        this.invoke('set', {
+            selectedAttribute: selection.get('value'),
+        });
+    }
+});
+
+var Tr55RunoffCharts = BarChartRowsCollection.extend({
     update: function() {
         var precipitationInput = this.scenarios.first()
                                                .get('inputs')
                                                .findWhere({ name: 'precipitation' }),
-            precipitation = coreUtils.convertToMetric(precipitationInput.get('value'), 'in'),
+            precipitationMeters = precipitationInput.get('value') * coreUnits.CONVERSIONS.CM_PER_IN / 100,
             results = this.scenarios.map(coreUtils.getTR55RunoffResult, coreUtils);
 
         this.forEach(function(chart) {
@@ -62,19 +117,19 @@ var Tr55RunoffCharts = ChartRowsCollection.extend({
                 values = results;
             } else {
                 values = _.map(results, function(result) {
-                    return result[key];
+                    return result[key] / 100; // Convert cm to m
                 });
             }
 
             chart.set({
-                precipitation: precipitation,
+                precipitation: precipitationMeters,
                 values: values
             });
         });
     }
 });
 
-var Tr55QualityCharts = ChartRowsCollection.extend({
+var Tr55QualityCharts = BarChartRowsCollection.extend({
     update: function() {
         var aoivm = this.aoiVolumeModel,
             results = this.scenarios.map(coreUtils.getTR55WaterQualityResult, coreUtils);
@@ -88,6 +143,46 @@ var Tr55QualityCharts = ChartRowsCollection.extend({
                 });
 
             chart.set({
+                values: values,
+            });
+        });
+    }
+});
+
+var GwlfeQualityCharts = BarChartRowsCollection.extend({
+    update: function(selection) {
+        var results = this.scenarios.map(function(scenario) {
+            return {
+                name: scenario.get('name'),
+                result: scenario.get('results')
+                    .findWhere({ name: 'quality' })
+                    .get('result'),
+            };
+        });
+
+        this.forEach(function(chart) {
+            var scheme = settings.get('unit_scheme'),
+                key = chart.get('key'),
+                group = selection.get('group'),
+                source = selection.get('value'),
+                unit = selection.get('unit'),
+                unitName = coreUnits[scheme][unit].name,
+                unitLabel = selection.get('name'),
+                values = _.map(results, function(r) {
+                    return {
+                        x: r.name,
+                        y: coreUnits.get(unit, Number(
+                            _.find(
+                                r.result[group],
+                                { Source: source }
+                            )[key]
+                        )).value,
+                    };
+                });
+
+            chart.set({
+                unit: unitName,
+                unitLabel: unitLabel,
                 values: values,
             });
         });
@@ -125,14 +220,21 @@ var TableRowsCollection = Backbone.Collection.extend({
 
 var Tr55RunoffTable = TableRowsCollection.extend({
     update: function() {
-        var results = this.scenarios.map(coreUtils.getTR55RunoffResult, coreUtils),
-            runoff = _.map(results, 'runoff'),
-            et     = _.map(results, 'et'    ),
-            inf    = _.map(results, 'inf'   ),
+        var scheme = settings.get('unit_scheme'),
+            unit = coreUnits[scheme].LENGTH_S.name,
+            get = function(key) {
+                return function(result) {
+                    return coreUnits.get('LENGTH_S', result[key] / 100).value;
+                };
+            },
+            results = this.scenarios.map(coreUtils.getTR55RunoffResult, coreUtils),
+            runoff = _.map(results, get('runoff')),
+            et     = _.map(results, get('et'    )),
+            inf    = _.map(results, get('inf'   )),
             rows   = [
-                { name: "Runoff"            , unit: "cm", values: runoff },
-                { name: "Evapotranspiration", unit: "cm", values: et     },
-                { name: "Infiltration"      , unit: "cm", values: inf    },
+                { name: "Runoff"            , unit: unit, values: runoff },
+                { name: "Evapotranspiration", unit: unit, values: et     },
+                { name: "Infiltration"      , unit: unit, values: inf    },
             ];
 
         this.reset(rows);
@@ -141,22 +243,56 @@ var Tr55RunoffTable = TableRowsCollection.extend({
 
 var Tr55QualityTable = TableRowsCollection.extend({
     update: function() {
-        var aoivm = this.aoiVolumeModel,
+        var scheme = settings.get('unit_scheme'),
+            unit = coreUnits[scheme].MASSPERAREA_M.name,
+            aoivm = this.aoiVolumeModel,
             results = this.scenarios.map(coreUtils.getTR55WaterQualityResult, coreUtils),
             get = function(key) {
                 return function(result) {
                     var load = _.find(result, { measure: key }).load;
 
-                    return aoivm.getLoadingRate(load);
+                    return coreUnits.get(
+                        'MASSPERAREA_M',
+                        aoivm.getLoadingRate(load)
+                    ).value;
                 };
             },
             tss  = _.map(results, get('Total Suspended Solids')),
             tn   = _.map(results, get('Total Nitrogen')),
             tp   = _.map(results, get('Total Phosphorus')),
             rows = [
-                { name: "Total Suspended Solids", unit: "kg/ha", values: tss },
-                { name: "Total Nitrogen"        , unit: "kg/ha", values: tn  },
-                { name: "Total Phosphorus"      , unit: "kg/ha", values: tp  },
+                { name: "Total Suspended Solids", unit: unit, values: tss },
+                { name: "Total Nitrogen"        , unit: unit, values: tn  },
+                { name: "Total Phosphorus"      , unit: unit, values: tp  },
+            ];
+
+        this.reset(rows);
+    }
+});
+
+var GwlfeQualityTable = TableRowsCollection.extend({
+    update: function(selection) {
+        var results = this.scenarios.map(function(scenario) {
+                return scenario.get('results')
+                    .findWhere({ name: 'quality' })
+                    .get('result');
+            }),
+            group = selection.get('group'),
+            source = selection.get('value'),
+            unit = selection.get('unit'),
+            get = function(key) {
+                return function(result) {
+                    return Number(
+                        _.find(result[group], { Source: source })[key]);
+                };
+            },
+            ss = _.map(results, get('Sediment')),
+            tn = _.map(results, get('TotalN')),
+            tp = _.map(results, get('TotalP')),
+            rows = [
+                { name: 'Sediment'        , unit: unit, values: ss },
+                { name: 'Total Nitrogen'  , unit: unit, values: tn },
+                { name: 'Total Phosphorus', unit: unit, values: tp },
             ];
 
         this.reset(rows);
@@ -169,6 +305,7 @@ var TabModel = Backbone.Model.extend({
         active: false,
         table: null,  // TableRowsCollection
         charts: null, // ChartRowCollection
+        selections: null, // SelectionOptionsCollection
     },
 });
 
@@ -179,12 +316,13 @@ var TabsCollection = Backbone.Collection.extend({
 var WindowModel = Backbone.Model.extend({
     defaults: {
         controls: null, // ModelPackageControlsCollection
-        mode: CHART, // or TABLE
+        mode: constants.CHARTS, // or TABLE
         scenarios: null, // ScenariosCollection
         tabs: null,  // TabsCollection
         visibleScenarioIndex: 0, // Index of the first visible scenario
         polling: false,  // If any results are polling
         projectName: null,
+        modelPackage: coreUtils.TR55_PACKAGE,
     },
 
     initialize: function() {
@@ -213,19 +351,19 @@ var WindowModel = Backbone.Model.extend({
 });
 
 module.exports = {
+    SelectionOptionModel: SelectionOptionModel,
+    SelectionOptionsCollection: SelectionOptionsCollection,
     ControlsCollection: ControlsCollection,
-    ChartRowModel: ChartRowModel,
+    BarChartRowModel: BarChartRowModel,
+    LineChartRowModel: LineChartRowModel,
+    GwlfeHydrologyCharts: GwlfeHydrologyCharts,
+    GwlfeHydrologyTable: GwlfeHydrologyTable,
     Tr55QualityTable: Tr55QualityTable,
     Tr55QualityCharts: Tr55QualityCharts,
     Tr55RunoffTable: Tr55RunoffTable,
     Tr55RunoffCharts: Tr55RunoffCharts,
+    GwlfeQualityCharts: GwlfeQualityCharts,
+    GwlfeQualityTable: GwlfeQualityTable,
     TabsCollection: TabsCollection,
     WindowModel: WindowModel,
-    constants: {
-        CHART: CHART,
-        TABLE: TABLE,
-        MIN_VISIBLE_SCENARIOS: MIN_VISIBLE_SCENARIOS,
-        CHART_AXIS_WIDTH: CHART_AXIS_WIDTH,
-        COMPARE_COLUMN_WIDTH: COMPARE_COLUMN_WIDTH,
-    },
 };

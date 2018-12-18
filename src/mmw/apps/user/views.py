@@ -61,6 +61,7 @@ def login(request):
                 'country': profile.country,
                 'user_type': profile.user_type,
                 'postal_code': profile.postal_code,
+                'unit_scheme': profile.unit_scheme,
             }
         }
 

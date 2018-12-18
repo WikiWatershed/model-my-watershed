@@ -1,7 +1,7 @@
 <div>
     <label>
         <span class="name">Precipitation</span>
-        <input type="range" min="0" max="25" step="0.25" class="precipitation-slider custom-slider" />
+        <input type="range" min="0" max="{{ sliderMax }}" step="{{ sliderMax / 100 }}" class="precipitation-slider custom-slider" />
         <span class="value"></span>
     </label>
 </div>

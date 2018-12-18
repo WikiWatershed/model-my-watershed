@@ -161,6 +161,68 @@ span.time-slider-end {
 
 .layerpicker-legenditem {
   @include clearfix;
+
+  > .urban-land-cover-2011-30m-nonurban {
+    background-color: rgba(255, 255, 255, 1);
+  }
+
+  > .urban-land-cover-2011-30m-urban {
+    background-color: rgba(183, 28, 28, 1);
+  }
+
+  > .protected-lands-30m {
+    border: none;
+    width: 14px;
+    height: 14px;
+
+    &.-park-federal {
+      background-color: #AFB42B;
+    }
+
+    &.-park-state {
+      background-color: #C0CA33;
+    }
+
+    &.-park-local {
+      background-color: #CDDC39;
+    }
+
+    &.-park-private {
+      background-color: #D4E157;
+    }
+
+    &.-park-unknown {
+      background-color: #E6EE9C;
+    }
+
+    &.-natural-resource-federal {
+      background-color: #388E3C;
+    }
+
+    &.-natural-resource-state {
+      background-color: #43A047;
+    }
+
+    &.-natural-resource-local {
+      background-color: #4CAF50;
+    }
+
+    &.-natural-resource-private {
+      background-color: #66BB6A;
+    }
+
+    &.-natural-resource-unknown {
+      background-color: #A5D6A7;
+    }
+
+    &.-conservation-easement {
+      background-color: #9E9446; // Originally #827717, changed for distinguishability
+    }
+
+    &.-agricultural-easement {
+      background-color: #8D6E63;
+    }
+  }
 }
 
 .layerpicker-legendcolor {
@@ -267,6 +329,24 @@ span.time-slider-end {
                                 rgba(178,153,139, 1) 96%,
                                 rgba(194,194,194, 1) 97%,
                                 rgba(255,255,255, 1) 100%);
+}
+
+#shippensburg-legend {
+    height: 20px;
+    width: 320px;
+    margin-left: 3px;
+    margin-right: 2px;
+    background: linear-gradient(90deg,
+                                rgba(255,255,255, 1)   0%,
+                                rgba(183, 28, 28, 1) 100%);
+}
+
+.-pa-dep-area {
+  background-color: #cccccc;
+}
+
+.-pa-dep-muni {
+  background-color: #1d3331;
 }
 
 .climate-legend-tooltip {

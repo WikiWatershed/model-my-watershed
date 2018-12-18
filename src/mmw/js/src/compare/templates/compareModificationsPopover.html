@@ -18,6 +18,30 @@
 </table>
 {% endmacro %}
 
+{% macro gwlfeModificationsTable(caption, mods) %}
+<table class="compare-modifications-table -gwlfe">
+{% if modifications.length > 0 %}
+    <h5>{{ caption }}</h5>
+{% endif %}
+    <tbody>
+    {% for mod in mods %}
+        <tr>
+            <td class="modification-value -gwlfe">
+                {{ mod.name | replace("_", " ") | title }}
+            </td>
+            <td class="modification-area -gwlfe">
+                +{{ mod.value }} {{ mod.input }}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endmacro %}
+
 <h3>Modifications</h3>
+{% if isTr55 %}
 {{ modificationsTable('Land Cover', landCovers) }}
 {{ modificationsTable('Conservation Practices', conservationPractices) }}
+{% else %}
+{{ gwlfeModificationsTable('Conservation Practices', gwlfeModifications) }}
+{% endif %}

@@ -5,10 +5,14 @@ from __future__ import division
 
 from django.conf.urls import patterns, url
 
+from apps.modeling.views import get_job
+from apps.modeling.urls import uuid_regex
+
 from apps.export.views import hydroshare, shapefile
 
 urlpatterns = patterns(
     '',
     url(r'^hydroshare/?$', hydroshare, name='hydroshare'),
     url(r'^shapefile/?$', shapefile, name='shapefile'),
+    url(r'jobs/' + uuid_regex, get_job, name='get_job'),
 )

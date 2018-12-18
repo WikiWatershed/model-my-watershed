@@ -404,7 +404,7 @@ def soiln(result):
 
     result = parse(result)
 
-    soiln = result.values()[0] * 7.0
+    soiln = result.values()[0] * 9.0
 
     return {
         'soiln': soiln

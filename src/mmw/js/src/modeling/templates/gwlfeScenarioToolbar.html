@@ -2,10 +2,7 @@
 
 {% if not compareMode and modifications.length > 0 %}
     <div id="gwlfe-modifications-bar">
-        <div class="title-icon">
-            <i class="fa fa-database" data-toggle="tooltip" title="Applied Conservation Practices"
-                data-placement="left"></i>
-        </div>
+        <div class="title-icon"></div>
         {% for mod in modifications %}
             <div class="thumb" data-value="{{ mod.modKey }}"
                 data-toggle="tooltip" title="{{ mod.modKey|modShortName }}"
@@ -34,7 +31,7 @@
                         {% for inputName, inputVal in activeMod.userInput %}
                             <tr>
                                 <td class="text-left">{{ displayNames[inputName] }}</td>
-                                <td class="strong text-right">{{ inputVal|round(0)|toLocaleString(0) }}</td>
+                                <td class="strong text-right">{{ inputVal|toUnit(displayUnits[inputName])|round(0)|toLocaleString(0) }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>

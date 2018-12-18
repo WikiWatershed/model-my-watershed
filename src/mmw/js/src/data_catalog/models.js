@@ -11,7 +11,6 @@ var SERVICE_UNAVAILABLE_CODE = 503;
 var REQUEST_TIMED_OUT_CODE = 408;
 var DESCRIPTION_MAX_LENGTH = 100;
 var PAGE_SIZE = settings.get('data_catalog_page_size');
-var BIGCZ = settings.get('data_catalog_enabled');
 
 var DATE_FORMAT = 'MM/DD/YYYY';
 var WATERML_VARIABLE_TIME_INTERVAL = '{http://www.cuahsi.org/water_ml/1.1/}variable_time_interval';
@@ -168,7 +167,8 @@ var Catalog = Backbone.Model.extend({
         is_pageable: true,
         page: 1,
         error: '',
-        detail_result: null
+        detail_result: null,
+        client_search: false
     },
 
     initialize: function() {
@@ -200,19 +200,19 @@ var Catalog = Backbone.Model.extend({
         var self = this,
             error = this.get('error'),
             stale = this.get('stale'),
-            isCuahsi = this.id === 'cuahsi',
+            isLocalSearch = this.get('client_search'),
             isSameQuery = query === this.get('query'),
             isSameGeom = geom === this.get('geom'),
             isSameSearch = isSameQuery && isSameGeom;
 
         // Perform local text search for pre-existing CUAHSI results
-        if (isCuahsi && isSameGeom && !isSameQuery) {
+        if (isLocalSearch && isSameGeom && !isSameQuery) {
             var searchPromise = this.searchPromise || $.when();
 
             return searchPromise.then(function() {
                 self.set({ loading: true });
 
-                var results = self.get('serverResults').textFilter(query);
+                var results = self.get('serverResults').textFilter(query, self.id);
 
                 self.get('results').reset(results);
 
@@ -261,7 +261,7 @@ var Catalog = Backbone.Model.extend({
 
     startSearch: function(page) {
         var filters = this.get('filters'),
-            results = this.id === 'cuahsi' ?
+            results = this.get('client_search') ?
                       this.get('serverResults') :
                       this.get('results'),
             dateFilter = filters.findWhere({ id: 'date' }),
@@ -321,13 +321,13 @@ var Catalog = Backbone.Model.extend({
                 resultCount: data.count,
             };
 
-        if (this.id === 'cuahsi') {
+        if (this.get('client_search')) {
             var results = this.get('results'),
                 filtered = this.get('serverResults')
-                               .textFilter(this.get('query'));
+                               .textFilter(this.get('query'), this.id);
 
             if (results === null) {
-                results = new Results(filtered, { catalog: 'cuahsi' });
+                results = new Results(filtered, { catalog: this.id });
             } else {
                 results.reset(filtered);
             }
@@ -557,7 +557,7 @@ var Result = Backbone.Model.extend({
         return this.fetchPromise;
     },
 
-    textFilter: function(query) {
+    cuahsiTextFilter: function(query) {
         var fields = [
             this.get('id').toLowerCase(),
             this.get('title').toLowerCase(),
@@ -565,6 +565,21 @@ var Result = Backbone.Model.extend({
             (this.get('service_org') || '').toLowerCase(),
             this.get('sample_mediums').join(' ').toLowerCase(),
             this.get('variables').pluck('concept_keyword').join(' ').toLowerCase(),
+        ];
+
+        return _.some(fields, function(field) {
+            return field.indexOf(query) >= 0;
+        });
+    },
+
+    wqpTextFilter: function(query) {
+        var fields = [
+            this.get('id').toLowerCase(),
+            (this.get('description') || '').toLowerCase(),
+            (this.get('monitoring_type') || '').toLowerCase(),
+            (this.get('service_org') || '').toLowerCase(),
+            (this.get('service_orgname') || '').toLowerCase(),
+            (this.get('title') || '').toLowerCase(),
         ];
 
         return _.some(fields, function(field) {
@@ -655,15 +670,25 @@ var Results = Backbone.Collection.extend({
         currentDetail.set('show_detail', false);
     },
 
-    textFilter: function(query) {
+    textFilter: function(query, catalog) {
         var lcQueries = query.toLowerCase().split(' ').filter(function(x) {
             // Exclude empty, search logic terms
             return x !== '' && x !== 'and' && x !== 'or';
         });
 
+        // Choose a text filter function based on the catalog type
+        // New functions will need to be implemented if client search
+        // is enabled for a catalog.
+        var textFilterFn = '';
+        if (catalog === 'usgswqp') {
+            textFilterFn = 'wqpTextFilter';
+        } else if (catalog === 'cuahsi') {
+            textFilterFn = 'cuahsiTextFilter';
+        }
+
         return this.filter(function(result) {
             return _.every(lcQueries, function(lcQuery) {
-                return result.textFilter(lcQuery);
+                return result[textFilterFn](lcQuery);
             });
         });
     }
@@ -905,53 +930,51 @@ var ExpandableListModel = Backbone.Model.extend({
 });
 
 function createCatalogCollection() {
-    var dateFilter = new DateFilter(),
-        catalogs = new Catalogs([
-            new Catalog({
-                id: 'hydroshare',
-                name: 'HydroShare',
-                active: true,
-                results: new Results(null, { catalog: 'hydroshare' }),
-                filters: new FilterCollection([
-                    dateFilter,
-                    new PrivateResourcesFilter(),
-                ]),
-            }),
-            new Catalog({
-                id: 'cuahsi',
-                name: 'CUAHSI WDC',
-                is_pageable: false,
-                results: new Results(null, { catalog: 'cuahsi' }),
-                serverResults: new Results(null, { catalog: 'cuahsi' }),
-                filters: new FilterCollection([
-                    dateFilter,
-                    new GriddedServicesFilter(),
-                ]),
-            }),
-            new Catalog({
-                id: 'cinergi',
-                name: 'CINERGI',
-                results: new Results(null, { catalog: 'cinergi' }),
-                filters: new FilterCollection([
-                    dateFilter,
-                ]),
-            }),
-        ]);
+    var dateFilter = new DateFilter();
 
-    if (BIGCZ) {
-        catalogs.push(new Catalog({
+    return new Catalogs([
+        new Catalog({
+            id: 'hydroshare',
+            name: 'HydroShare',
+            active: true,
+            results: new Results(null, { catalog: 'hydroshare' }),
+            filters: new FilterCollection([
+                dateFilter,
+                new PrivateResourcesFilter(),
+            ]),
+        }),
+        new Catalog({
+            id: 'cuahsi',
+            name: 'CUAHSI WDC',
+            is_pageable: false,
+            results: new Results(null, { catalog: 'cuahsi' }),
+            serverResults: new Results(null, { catalog: 'cuahsi' }),
+            filters: new FilterCollection([
+                dateFilter,
+                new GriddedServicesFilter()
+            ]),
+            client_search: true
+        }),
+        new Catalog({
+            id: 'cinergi',
+            name: 'CINERGI',
+            results: new Results(null, { catalog: 'cinergi' }),
+            filters: new FilterCollection([
+                dateFilter,
+            ]),
+        }),
+        new Catalog({
             id: 'usgswqp',
             name: 'WQP',
             is_pageable: false,
             results: new Results(null, { catalog: 'usgswqp' }),
             serverResults: new Results(null, { catalog: 'usgswqp' }),
             filters: new FilterCollection([
-                dateFilter,
+                dateFilter
             ]),
-        }));
-    }
-
-    return catalogs;
+            client_search: true
+        })
+    ]);
 }
 
 module.exports = {

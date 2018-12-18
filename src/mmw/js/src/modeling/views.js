@@ -5,6 +5,7 @@ var _ = require('lodash'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     settings = require('../core/settings'),
+    coreUnits = require('../core/units'),
     csrf = require('../core/csrf'),
     utils = require('../core/utils'),
     models = require('./models'),
@@ -320,11 +321,14 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
     },
 
     ui: {
+        exportGms: '#export-gms',
+        exportGmsForm: '#export-gms-form',
         addScenario: '#add-scenario',
         showCompare: '#show-compare',
     },
 
     events: {
+        'click @ui.exportGms': 'downloadGmsFile',
         'click @ui.addScenario': 'addScenario',
         'click @ui.showCompare': 'showCompare',
     },
@@ -341,21 +345,42 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
         // Check the first scenario in the collection as a proxy for the
         // entire collection.
         var scenario = this.collection.first(),
+            activeScenario = this.collection.findWhere({ active: true }),
+            gis_data = activeScenario && activeScenario.getModifiedGwlfeGisData(),
+            isGwlfe = App.currentProject.get('model_package') === utils.GWLFE && !_.isEmpty(gis_data),
             isOnlyCurrentConditions = this.collection.length === 1,
-            showCompare = App.currentProject.get('model_package') === utils.TR55_PACKAGE &&
-                !isOnlyCurrentConditions,
             compareUrl = this.projectModel.getCompareUrl();
 
         return {
             isOnlyCurrentConditions: isOnlyCurrentConditions,
             editable: isEditable(scenario),
-            showCompare: showCompare,
+            activeScenario: activeScenario,
+            isGwlfe: isGwlfe,
+            csrftoken: csrf.getToken(),
+            gis_data: JSON.stringify(gis_data),
+            showCompare: !isOnlyCurrentConditions,
             compareUrl: compareUrl
         };
     },
 
     showCompare: function() {
         compareViews.showCompare();
+    },
+
+    downloadGmsFile: function() {
+        // Refresh the view to update gis_data with any changes made since
+        // last render
+        this.render();
+
+        // We can't download a file from an AJAX call. One either has to
+        // load the data in an iframe, or submit a form that responds with
+        // Content-Disposition: attachment. We prefer submitting a form.
+        var activeScenario = this.collection.findWhere({ active: true }),
+            filename = App.currentProject.get('name').replace(/\s/g, '_') +
+                       '__' + activeScenario.get('name').replace(/\s/g, '_');
+
+        this.ui.exportGmsForm.find('.gms-filename').val(filename);
+        this.ui.exportGmsForm.trigger('submit');
     },
 });
 
@@ -463,9 +488,7 @@ var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
-        var gis_data = utils.applyGwlfeModifications(
-                App.currentProject.get('gis_data'),
-                this.model.get('modifications')),
+        var gis_data = this.model.getModifiedGwlfeGisData(),
             is_gwlfe = App.currentProject.get('model_package') === utils.GWLFE && !_.isEmpty(gis_data);
 
         return {
@@ -550,9 +573,7 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
     },
 
     templateHelpers: function() {
-        var gis_data = utils.applyGwlfeModifications(
-                App.currentProject.get('gis_data'),
-                this.model.get('modifications')),
+        var gis_data = this.model.getModifiedGwlfeGisData(),
             is_gwlfe = App.currentProject.get('model_package') === utils.GWLFE &&
                         gis_data !== null &&
                         gis_data !== '{}' &&
@@ -806,14 +827,25 @@ var GwlfeToolbarView = ScenarioModelToolbarView.extend({
 
     templateHelpers: function() {
         var activeMod = this.getActiveMod(),
+            isEntry = function(m) { return m.modKey.startsWith('entry_'); },
             modifications = this.model.get('modifications').toJSON(),
-            editable = isEditable(this.model);
+            editable = isEditable(this.model),
+            scheme = settings.get('unit_scheme'),
+            areaUnit = coreUnits[scheme].AREA_L_FROM_HA.name,
+            lengthUnit = coreUnits[scheme].LENGTH_XL_FROM_KM.name,
+            labelUnits = function(string) {
+                return string
+                    .replace('AREAUNITNAME', areaUnit)
+                    .replace('LENGTHUNITNAME', lengthUnit);
+            };
 
         activeMod = activeMod ? activeMod.toJSON() : null;
+
         return {
-            modifications: modifications,
+            modifications: _.reject(modifications, isEntry),
             activeMod: activeMod,
-            displayNames: gwlfeConfig.displayNames,
+            displayNames: _.mapValues(gwlfeConfig.displayNames, labelUnits),
+            displayUnits: gwlfeConfig.displayUnits,
             editable: editable
         };
     }

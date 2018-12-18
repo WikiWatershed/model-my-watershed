@@ -4,6 +4,8 @@ require('../core/setup');
 
 var _ = require('lodash'),
     assert = require('chai').assert,
+    settings = require('../core/settings'),
+    coreUnits = require('../core/units'),
     mocks = require('../modeling/mocks'),
     modelingModels = require('../modeling/models'),
     views = require('./views'),
@@ -22,6 +24,8 @@ describe('Compare', function() {
         // The water quality charts expect an area of
         // interest for the AoIVolumeModel to use
         App.currentProject.set('area_of_interest', sqKm);
+
+        settings.set('unit_scheme', coreUnits.UNIT_SCHEME.METRIC);
     });
 
     afterEach(function() {
@@ -56,8 +60,10 @@ describe('Compare', function() {
                            if (chart.get('key') === 'combined') {
                                assert.equal(forestValue, precolumbianValue);
                            } else {
-                               assert.equal(forestValue,
-                                            precolumbianValue[chart.get('key')]);
+                               assert.equal(
+                                   coreUnits.get('LENGTH_S', forestValue).value,
+                                   precolumbianValue[chart.get('key')]
+                               );
                            }
                        });
                    });
@@ -80,8 +86,10 @@ describe('Compare', function() {
                                assert.equal(currentConditionsValue,
                                             unmodifiedValue);
                            } else {
-                               assert.equal(currentConditionsValue,
-                                            unmodifiedValue[chart.get('key')]);
+                               assert.equal(
+                                   coreUnits.get('LENGTH_S', currentConditionsValue).value,
+                                   unmodifiedValue[chart.get('key')]
+                               );
                            }
                        });
                    });
@@ -108,8 +116,10 @@ describe('Compare', function() {
                                assert.equal(value,
                                             modifiedValue);
                            } else {
-                               assert.equal(value,
-                                            modifiedValue[chart.get('key')]);
+                               assert.equal(
+                                   coreUnits.get('LENGTH_S', value).value,
+                                   modifiedValue[chart.get('key')]
+                               );
                            }
                        });
                    });

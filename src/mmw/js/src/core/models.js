@@ -9,6 +9,7 @@ var Backbone = require('../../shim/backbone'),
     pointSourceLayer = require('../core/pointSourceLayer'),
     drawUtils = require('../draw/utils'),
     settings = require('./settings'),
+    coreUnits = require('./units'),
     VizerLayers = require('./vizerLayers');
 
 var MapModel = Backbone.Model.extend({
@@ -27,6 +28,7 @@ var MapModel = Backbone.Model.extend({
         dataCatalogDetailResult: null,  // Model
         selectedGeocoderArea: null,     // GeoJSON
         subbasinOpacity: 0.85,
+        searchResult: null,             // [lat, lng]
     },
 
     revertMaskLayer: function() {
@@ -143,6 +145,8 @@ var LayerModel = Backbone.Model.extend({
         hasOpacitySlider: false,
         hasTimeSlider: false,
         timeLayers: null,
+        hasOverLayers: false,
+        overLayers: null,
         legendMapping: null,
         cssClassPrefix: null,
         active: false,
@@ -156,6 +160,7 @@ var LayerModel = Backbone.Model.extend({
     buildLayer: function(layerSettings, layerType, initialActive) {
         var leafletLayer,
             timeLayers,
+            overLayers,
             googleMaps = (window.google ? window.google.maps : null);
 
         // Check to see if the google api service has been loaded
@@ -192,6 +197,20 @@ var LayerModel = Backbone.Model.extend({
             leafletLayer = timeLayers[0];
         }
 
+        if (layerSettings.overlay_codes) {
+            overLayers = new L.LayerGroup(
+                layerSettings.overlay_codes.map(function(code) {
+                    var overlayUrl = tileUrl.replace(layerSettings.code, code),
+                        overlaySettings = _.extend(layerSettings, {
+                            code: code,
+                            zIndex: utils.layerGroupZIndices[layerType],
+                            attribution: '',
+                            minZoom: 0 });
+
+                    return new L.TileLayer(overlayUrl, overlaySettings);
+                }));
+        }
+
         this.set({
             leafletLayer: leafletLayer,
             layerType: layerType,
@@ -206,6 +225,8 @@ var LayerModel = Backbone.Model.extend({
             hasOpacitySlider: layerSettings.has_opacity_slider,
             hasTimeSlider: !!layerSettings.time_slider_values,
             timeLayers: timeLayers,
+            hasOverLayers: !!layerSettings.overlay_codes,
+            overLayers: overLayers,
             legendMapping: layerSettings.legend_mapping,
             cssClassPrefix: layerSettings.css_class_prefix,
             active: layerSettings.display === initialActive ? true : false,
@@ -680,7 +701,7 @@ var GeoModel = Backbone.Model.extend({
         name: '',
         shape: null,        // GeoJSON
         area: '0',
-        units: 'm<sup>2</sup>',
+        units: 'm²',
         isValidForAnalysis: true
     },
 
@@ -702,20 +723,33 @@ var GeoModel = Backbone.Model.extend({
         if (!this.get(shape)) { return; }
 
         var areaInMeters = turfArea(this.get(shape));
+        var unit = areaInMeters < this.M_IN_KM ? 'AREA_M' : 'AREA_XL';
+        var value = coreUnits.get(unit, areaInMeters);
 
-        // If the area is less than 1 km, use m
-        if (areaInMeters < this.M_IN_KM) {
-            this.set(area, areaInMeters);
-            this.set(units, 'm<sup>2</sup>');
-        } else {
-            this.set(area, areaInMeters / this.M_IN_KM);
-            this.set(units, 'km<sup>2</sup>');
-        }
+        this.set(area, value.value);
+        this.set(units, value.unit);
     },
 
     setValidForAnalysis: function() {
         var shape = this.get('shape');
         this.set('isValidForAnalysis', drawUtils.isValidForAnalysis(shape));
+    },
+
+    getAreaInMeters: function() {
+        var area = this.get('area');
+
+        switch(this.get('units')) {
+            case 'm²':
+                return area;
+            case 'km²':
+                return area * coreUnits.METRIC.AREA_XL.factor;
+            case 'mi²':
+                return area * coreUnits.USCUSTOMARY.AREA_XL.factor;
+            case 'ft²':
+                return area * coreUnits.USCUSTOMARY.AREA_M.factor;
+            default:
+                throw "Unsupported unit type";
+        }
     }
 });
 

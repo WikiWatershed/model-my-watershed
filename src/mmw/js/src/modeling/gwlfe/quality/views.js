@@ -6,6 +6,8 @@ var $ = require('jquery'),
     App = require('../../../app'),
     resultTmpl = require('./templates/result.html'),
     tableTmpl = require('./templates/table.html'),
+    settings = require('../../../core/settings'),
+    coreUnits = require('../../../core/units'),
     utils = require('../../../core/utils');
 
 var ResultView = Marionette.LayoutView.extend({
@@ -93,20 +95,48 @@ var TableView = Marionette.CompositeView.extend({
 
     templateHelpers: function() {
         function makeRow(addUnit, load) {
-            var source = addUnit ? load.Source + ' (' + load.Unit + ')'
-                : load.Source;
-            return [source, load.Sediment, load.TotalN, load.TotalP];
+            var scheme = settings.get('unit_scheme'),
+                unit = (function() {
+                    switch(load.Unit) {
+                        case 'kg/ha':
+                            return 'MASSPERAREA_M';
+                        case 'mg/l':
+                            return 'CONCENTRATION';
+                        default:
+                            return 'MASS_M';
+                    }
+                })(),
+                unitName = coreUnits[scheme][unit].name,
+                source = addUnit ? load.Source + ' (' + unitName + ')' : load.Source;
+
+            return [
+                source,
+                coreUnits.get(unit, load.Sediment).value,
+                coreUnits.get(unit, load.TotalN).value,
+                coreUnits.get(unit, load.TotalP).value
+            ];
         }
 
-        var result = this.model.get('result'),
-            landUseColumns = ['Sources', 'Sediment (kg)', 'Total Nitrogen (kg)', 'Total Phosphorus (kg)'],
+        var scheme = settings.get('unit_scheme'),
+            massMUnit = coreUnits[scheme].MASS_M.name,
+            massPerAreaMUnit = coreUnits[scheme].MASSPERAREA_M.name,
+            concentrationUnit = coreUnits[scheme].CONCENTRATION.name,
+            volumeUnit = coreUnits[scheme].VOLUME.name,
+            result = this.model.get('result'),
+            landUseColumns = [
+                'Sources',
+                'Sediment (' + massMUnit + ')',
+                'Total Nitrogen (' + massMUnit + ')',
+                'Total Phosphorus (' + massMUnit + ')'
+            ],
             landUseRows = _.map(result.Loads, _.partial(makeRow, false)),
             summaryColumns = ['Sources', 'Sediment', 'Total Nitrogen', 'Total Phosphorus'],
             summaryRows = _.map(result.SummaryLoads, _.partial(makeRow, true));
 
         return {
-            MeanFlow: result.MeanFlow,
-            MeanFlowPerSecond: result.MeanFlowPerSecond,
+            volumeUnit: volumeUnit,
+            MeanFlow: coreUnits.get('VOLUME', result.MeanFlow).value,
+            MeanFlowPerSecond: coreUnits.get('VOLUME', result.MeanFlowPerSecond).value,
             landUseColumns: landUseColumns,
             landUseRows: landUseRows,
             landUseClassName: 'landuse',
@@ -115,10 +145,10 @@ var TableView = Marionette.CompositeView.extend({
             summaryClassName: 'summary',
             renderPrecision: {
                 summaryTable: [
-                    {source: 'Total Loads (kg)', precision: 1},
-                    {source: 'Loading Rates (kg/ha)', precision: 2},
-                    {source: 'Mean Annual Concentration (mg/l)', precision: 2},
-                    {source: 'Mean Low-Flow Concentration (mg/l)', precision: 2}],
+                    {source: 'Total Loads (' + massMUnit + ')', precision: 1},
+                    {source: 'Loading Rates (' + massPerAreaMUnit + ')', precision: 2},
+                    {source: 'Mean Annual Concentration (' + concentrationUnit + ')', precision: 2},
+                    {source: 'Mean Low-Flow Concentration (' + concentrationUnit + ')', precision: 2}],
                 landUseTable: [],
             },
             defaultPrecision: {

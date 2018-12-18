@@ -7,6 +7,7 @@ var _ = require('underscore'),
     Marionette = require('../../shim/backbone.marionette'),
     router = require('../router').router,
     settings = require('../core/settings'),
+    TosModal = require('../core/modals/views').TosModal,
     models = require('./models'),
     loginModalTmpl = require('./templates/loginModal.html'),
     userProfileModalTmpl = require('./templates/userProfileModal.html'),
@@ -276,6 +277,7 @@ var UserProfileModalView = ModalBaseView.extend({
         userType: '#user_type',
         country: '#country',
         postalCode: '#postal_code',
+        unitScheme: '#unit_scheme',
         submitProfile: '.submit-profile',
         skip: '.skip'
     }, ModalBaseView.prototype.ui),
@@ -319,6 +321,7 @@ var UserProfileModalView = ModalBaseView.extend({
             'profile_is_complete': response.is_complete
         });
         this.handleServerSuccess(response);
+        settings.set('unit_scheme', this.model.get('unit_scheme'));
         this.$el.modal('hide');
     },
 
@@ -333,7 +336,8 @@ var UserProfileModalView = ModalBaseView.extend({
             organization: this.ui.organization.val(),
             user_type: this.ui.userType.val(),
             country: this.ui.country.val(),
-            postal_code: this.ui.postalCode.val()
+            postal_code: this.ui.postalCode.val(),
+            unit_scheme: this.ui.unitScheme.val(),
         }, { silent: true });
     },
 
@@ -381,6 +385,7 @@ var SignUpModalView = ModalBaseView.extend({
     events: _.defaults({
         'click @ui.login': 'login',
         'click @ui.resend': 'resend',
+        'click .open-tos-modal': 'openTosModal',
     }, ModalBaseView.prototype.events),
 
     onModalShown: function() {
@@ -392,6 +397,10 @@ var SignUpModalView = ModalBaseView.extend({
         if (Backbone.history.getFragment() === 'sign-up') {
             router.navigate('', { trigger: true });
         }
+    },
+
+    openTosModal: function() {
+        new TosModal().render();
     },
 
     onValidationError: function() {

@@ -119,6 +119,7 @@ var ProfileView = Marionette.ItemView.extend({
         userType: '#user_type',
         country: '#country',
         postalCode: '#postal_code',
+        unitScheme: '#unit_scheme',
         saveChanges: '[data-action="save_changes"]'
     },
 
@@ -144,11 +145,13 @@ var ProfileView = Marionette.ItemView.extend({
             };
         addOptions('UserProfile', 'country', self.model.get('country') || 'US');
         addOptions('UserProfile', 'user_type', self.model.get('user_type') || 'Unspecified');
+        addOptions('UserProfile', 'unit_scheme', self.model.get('unit_scheme') || 'METRIC');
         _.defer(function() { self.ui.firstName.trigger('focus'); });
     },
 
     saveChanges: function () {
-        var model = this.model;
+        var model = this.model,
+            unit_scheme = this.ui.unitScheme.val();
 
         model.save({
                 first_name: this.ui.firstName.val(),
@@ -157,11 +160,13 @@ var ProfileView = Marionette.ItemView.extend({
                 user_type: this.ui.userType.val(),
                 country: this.ui.country.val(),
                 postal_code: this.ui.postalCode.val(),
+                unit_scheme: unit_scheme,
                 error: null,
                 saving: true
             })
             .done(function() {
                 App.user.set('profile_is_complete', true);
+                settings.set('unit_scheme', unit_scheme);
             })
             .fail(function() {
                 model.set('error', 'There was a problem saving your profile.');

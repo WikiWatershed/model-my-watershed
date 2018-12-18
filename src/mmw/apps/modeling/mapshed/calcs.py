@@ -586,10 +586,10 @@ def landuse_pcts(n_count):
         n_pct.get(12, 0) + n_pct.get(31, 0),  # Bare Rock
         0,  # Sandy Areas
         0,  # Unpaved Road
-        n_pct.get(21, 0) + n_pct.get(22, 0),  # Low Density Mixed
+        n_pct.get(22, 0),  # Low Density Mixed
         n_pct.get(23, 0),  # Medium Density Mixed
         n_pct.get(24, 0),  # High Density Mixed
-        0,  # Low Density Residential
+        n_pct.get(21, 0),  # Low Density Residential
         0,  # Medium Density Residential
         0,  # High Density Residential
     ]

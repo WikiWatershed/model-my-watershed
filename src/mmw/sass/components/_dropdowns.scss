@@ -201,6 +201,14 @@
     padding-left: 0;
     position: relative;
     top: -1px;
+
+    > span {
+      display: inline-block;
+      max-width: 240px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: middle;
+    }
 }
 
 .scenario-dropdown > i,
@@ -218,6 +226,7 @@
 }
 .scenario-dropdown-menu-item > #scenario-name {
     text-transform: initial;
+    white-space: normal;
     display: block;
 }
 
@@ -260,37 +269,6 @@
         // Push it to the side of the dropdown item
         left: 31px;
         top: -25px;
-    }
-}
-
-.select-model-dropdown {
-    width: 320px;
-    padding: 1.6rem;
-    > .select-model-dropdown-header {
-        margin-bottom: 12px;
-    }
-    > p {
-        font-size: $font-size-p;
-        margin-bottom: 12px;
-    }
-    .select-model-dropdown-menu-item {
-        margin-bottom: 6px;
-        background-color: $ui-light;
-        border-radius: $radius-sm!important;
-
-        > .analyze-model-package-link {
-            white-space: normal;
-            padding: 1rem;
-            > .analyze-model-name {
-                font-size: $font-size-h4;
-                color: $ui-primary;
-                font-weight: 600;
-            }
-            > p {
-                font-size: $font-size-h5;
-                color: $ui-grey;
-            }
-        }
     }
 }
 

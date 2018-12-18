@@ -7,13 +7,10 @@ var $ = require('jquery'),
     turfArea = require('turf-area'),
     turfBboxPolygon = require('turf-bbox-polygon'),
     turfKinks = require('turf-kinks'),
-    coreUtils = require('../core/utils'),
     intersect = require('turf-intersect'),
     settings = require('../core/settings');
 
 var CANCEL_DRAWING = 'CANCEL_DRAWING';
-
-var MAX_AREA = settings.get('max_area');
 
 var polygonDefaults = {
         fillColor: '#E77471',
@@ -109,17 +106,11 @@ function getGeoJsonLatLngs(shape) {
     return null;
 }
 
-// Return shape area in km2.
-function shapeArea(shape) {
-    return coreUtils.changeOfAreaUnits(turfArea(shape),
-            'm<sup>2</sup>', 'km<sup>2</sup>');
-}
-
 function shapeBoundingBox(shape) {
     return L.latLngBounds(getGeoJsonLatLngs(shape));
 }
 
-// Get the bounding box of the shape and return its area in km2
+// Get the bounding box of the shape and return its area in m²
 function shapeBoundingBoxArea(shape) {
     var latLngBounds = shapeBoundingBox(shape),
         boundingBox = [
@@ -129,7 +120,8 @@ function shapeBoundingBoxArea(shape) {
             latLngBounds.getNorth()
         ],
         boundingBoxPolygon = turfBboxPolygon(boundingBox);
-    return shapeArea(boundingBoxPolygon);
+
+    return turfArea(boundingBoxPolygon);
 }
 
 function getFileFromZipObjects(zipObjects, extension) {
@@ -189,8 +181,10 @@ function isSelfIntersecting(shape) {
 
 function isValidForAnalysis(shape) {
     if (shape) {
-        var area = shapeBoundingBoxArea(shape);
-        return area > 0 && area <= MAX_AREA;
+        var area = shapeBoundingBoxArea(shape),
+            maxArea = settings.get('max_area');
+
+        return area > 0 && area <= maxArea;
     }
     return false;
 }
@@ -244,5 +238,4 @@ module.exports = {
     NHD: 'nhd',
     DRB: 'drb',
     CANCEL_DRAWING: CANCEL_DRAWING,
-    MAX_AREA: MAX_AREA
 };

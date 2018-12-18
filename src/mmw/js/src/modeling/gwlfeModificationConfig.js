@@ -1,6 +1,7 @@
 "use strict";
 
-var _ = require('lodash');
+var _ = require('lodash'),
+    coreUnits = require('../core/units');
 
 // These variable names include 'Name' to indicate
 // that they reference the name of the variable, and not the value.
@@ -29,6 +30,14 @@ var n23Name = 'n23',
     areaToModifyName = 'areaToModify',
     percentAeuToModifyName = 'percentAeuToModify',
     percentAreaToModifyName = 'percentAreaToModify',
+    CurveNumberName = 'CN',
+    CroplandIndex = 1,
+    CropTillageEfficiencyName = { n: 'n65', p: 'n73', s: 'n81' },
+    CropTillageEfficiencyValues = {
+        crop_tillage_no:      { n: 0.11, p: 0.29, s: 0.40 },
+        conservation_tillage: { n: 0.08, p: 0.22, s: 0.30 },
+        crop_tillage_reduced: { n: 0.06, p: 0.17, s: 0.23 },
+    },
     AREA = 'area',
     LENGTH = 'length',
     FilterWidthDefault = 30,
@@ -51,17 +60,28 @@ function fromPairs(pairs) {
     return obj;
 }
 
+var displayUnits = fromPairs([
+    [areaToModifyName, 'AREA_L_FROM_HA'],
+    [lengthToModifyName, 'LENGTH_XL_FROM_KM'],
+    [lengthToModifyInAgName, 'LENGTH_XL_FROM_KM'],
+    [n23Name, 'AREA_L_FROM_HA'],
+    [n42Name, 'LENGTH_XL_FROM_KM'],
+    [n42bName, 'LENGTH_XL_FROM_KM'],
+    [UrbAreaTotalName, 'AREA_L_FROM_HA'],
+    [UrbLengthName, 'LENGTH_XL_FROM_KM']
+]);
+
 var displayNames = fromPairs([
     [percentAeuToModifyName, '% of AEUs to modify'],
     [percentAreaToModifyName, '% of area to modify'],
-    [areaToModifyName, 'Area to modify (ha)'],
-    [lengthToModifyName, 'Length to modify (km)'],
-    [lengthToModifyInAgName, 'Length to modify in ag areas (km)'],
-    [n23Name, 'Area of row crops (ha)'],
-    [n42Name, 'Length of streams in ag areas (km)'],
-    [n42bName, 'Length of streams in watershed (km)'],
-    [UrbAreaTotalName, 'Total urban area (ha)'],
-    [UrbLengthName, 'Length of streams in non-ag areas (km)']
+    [areaToModifyName, 'Area to modify (AREAUNITNAME)'],
+    [lengthToModifyName, 'Length to modify (LENGTHUNITNAME)'],
+    [lengthToModifyInAgName, 'Length to modify in ag areas (LENGTHUNITNAME)'],
+    [n23Name, 'Area of row crops (AREAUNITNAME)'],
+    [n42Name, 'Length of streams in ag areas (LENGTHUNITNAME)'],
+    [n42bName, 'Length of streams in watershed (LENGTHUNITNAME)'],
+    [UrbAreaTotalName, 'Total urban area (AREAUNITNAME)'],
+    [UrbLengthName, 'Length of streams in non-ag areas (LENGTHUNITNAME)']
 ]);
 
 var shortDisplayNames = fromPairs([
@@ -125,9 +145,13 @@ function makeThresholdValidateFn(thresholdName, thresholdType, userInputName) {
             cleanUserInput = {},
             threshold = dataModel[thresholdName],
             userInputVal = convertToNumber(userInput[userInputName]),
-            thresholdNum = Number(threshold).toFixed(2).toLocaleString('en', {
-                minimumFractionDigits: 2
-            }),
+            unit = thresholdType === AREA ? 'AREA_L_FROM_HA' : 'LENGTH_XL_FROM_KM',
+            thresholdNum =
+                coreUnits.get(unit, Number(threshold)).value
+                    .toFixed(2)
+                    .toLocaleString('en', {
+                        minimumFractionDigits: 2
+                    }),
             errorMessage = 'Enter ' + thresholdType +
                 ' > 0 and <= ' + thresholdNum;
 
@@ -177,7 +201,7 @@ function makeComputeOutputFn(dataModelName, inputName, getOutput) {
         if (inputVal) {
             fractionVal = inputVal / dataModelVal;
             infoMessages[inputName] = getPercentStr(fractionVal, dataModelName);
-            output = getOutput(inputVal, fractionVal);
+            output = getOutput(inputVal, fractionVal, dataModel);
         }
 
         return formatOutput(infoMessages, output);
@@ -194,6 +218,64 @@ function makeValidateDataModelFn(dataModelNames) {
     };
 }
 
+// Given the current curve number, the percentage of treated cropland, and
+// tillFactor, computes the new curve number for cropland.
+function adjustCurveNumber(cn, fractionalVal, tillFactor) {
+    if (tillFactor === null || tillFactor === undefined) {
+        tillFactor = 1;
+    }
+
+    return (((1.7969 * cn) - 71.966) * fractionalVal * tillFactor) +
+           (cn * (1 - fractionalVal));
+}
+
+function makeCurveAdjustingAgBmpConfig(outputName, tillFactor) {
+    function getOutput(inputVal, fractionVal, dataModel) {
+        var currentCN = dataModel[CurveNumberName][CroplandIndex],
+            newCN = adjustCurveNumber(currentCN, fractionVal, tillFactor),
+            curveNumberOutputName = CurveNumberName + '__' + CroplandIndex;
+
+        return fromPairs([
+            [curveNumberOutputName, newCN],
+            [outputName, fractionVal * 100]
+        ]);
+    }
+
+    return {
+        unit: 'AREA_L_FROM_HA',
+        dataModelNames: [n23Name],
+        validateDataModel: makeValidateDataModelFn([n23Name]),
+        userInputNames: [areaToModifyName],
+        validate: makeThresholdValidateFn(n23Name, AREA, areaToModifyName),
+        computeOutput: makeComputeOutputFn(n23Name, areaToModifyName, getOutput)
+    };
+}
+
+function makeCropTillageBmpConfig(outputName, tillFactor, efficiencies) {
+    function getOutput(inputVal, fractionVal, dataModel) {
+        var currentCN = dataModel[CurveNumberName][CroplandIndex],
+            newCN = adjustCurveNumber(currentCN, fractionVal, tillFactor),
+            curveNumberOutputName = CurveNumberName + '__' + CroplandIndex;
+
+        return fromPairs([
+            [CropTillageEfficiencyName.n, efficiencies.n],
+            [CropTillageEfficiencyName.p, efficiencies.p],
+            [CropTillageEfficiencyName.s, efficiencies.s],
+            [curveNumberOutputName, newCN],
+            [outputName, fractionVal * 100]
+        ]);
+    }
+
+    return {
+        unit: 'AREA_L_FROM_HA',
+        dataModelNames: [n23Name],
+        validateDataModel: makeValidateDataModelFn([n23Name]),
+        userInputNames: [areaToModifyName],
+        validate: makeThresholdValidateFn(n23Name, AREA, areaToModifyName),
+        computeOutput: makeComputeOutputFn(n23Name, areaToModifyName, getOutput)
+    };
+}
+
 function makeAgBmpConfig(outputName) {
     function getOutput(inputVal, fractionVal) {
         return fromPairs([
@@ -202,6 +284,7 @@ function makeAgBmpConfig(outputName) {
     }
 
     return {
+        unit: 'AREA_L_FROM_HA',
         dataModelNames: [n23Name],
         validateDataModel: makeValidateDataModelFn([n23Name]),
         userInputNames: [areaToModifyName],
@@ -239,6 +322,7 @@ function makeRuralStreamsBmpConfig(outputName) {
     }
 
     return {
+        unit: 'LENGTH_XL_FROM_KM',
         dataModelNames: [n42Name, n42bName],
         validateDataModel: makeValidateDataModelFn([n42Name]),
         userInputNames: [lengthToModifyInAgName],
@@ -249,6 +333,7 @@ function makeRuralStreamsBmpConfig(outputName) {
 
 function makeUrbanStreamsBmpConfig(getOutput) {
     return {
+        unit: 'LENGTH_XL_FROM_KM',
         dataModelNames: [UrbLengthName],
         validateDataModel: makeValidateDataModelFn([UrbLengthName]),
         userInputNames: [lengthToModifyName],
@@ -259,6 +344,7 @@ function makeUrbanStreamsBmpConfig(getOutput) {
 
 function makeUrbanAreaBmpConfig(getOutput) {
     return {
+        unit: 'AREA_L_FROM_HA',
         dataModelNames: [UrbAreaTotalName],
         validateDataModel: makeValidateDataModelFn([UrbAreaTotalName]),
         userInputNames: [areaToModifyName],
@@ -284,8 +370,10 @@ function makeUrbanAreaBmpConfig(getOutput) {
     the values for a set of Mapshed variables.
 */
 var configs = {
-    'cover_crops': makeAgBmpConfig(n25Name),
-    'conservation_tillage': makeAgBmpConfig(n26Name),
+    'cover_crops': makeCurveAdjustingAgBmpConfig(n25Name, 1),
+    'crop_tillage_no': makeCropTillageBmpConfig(n26Name, 1, CropTillageEfficiencyValues['crop_tillage_no']),
+    'conservation_tillage': makeCropTillageBmpConfig(n26Name, 1.019, CropTillageEfficiencyValues['conservation_tillage']),
+    'crop_tillage_reduced': makeCropTillageBmpConfig(n26Name, 1.036, CropTillageEfficiencyValues['crop_tillage_reduced']),
     'nutrient_management':  makeAgBmpConfig(n28bName),
     'waste_management_livestock': makeAeuBmpConfig(n41bName),
     'waste_management_poultry': makeAeuBmpConfig(n41dName),
@@ -318,6 +406,7 @@ var configs = {
 module.exports = {
     cleanDataModel: cleanDataModel,
     displayNames: displayNames,
+    displayUnits: displayUnits,
     isValid: isValid,
     aggregateOutput: aggregateOutput,
     configs: configs

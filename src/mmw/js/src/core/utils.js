@@ -6,9 +6,9 @@ var L = require('leaflet'),
     md5 = require('blueimp-md5').md5,
     intersect = require('turf-intersect'),
     centroid = require('turf-centroid'),
-    settings = require('./settings');
+    settings = require('./settings'),
+    units = require('./units');
 
-var M2_IN_KM2 = 1000000;
 var noData = 'No Data';
 var RELEASE_NOTES_BASE_URL = 'https://github.com/WikiWatershed/model-my-watershed/releases';
 var MINOR_MAJOR_REGEX = /^[0-9]+\.[0-9]+\./; // Matches strings like 2.22.
@@ -135,6 +135,11 @@ var utils = {
      */
     _removeLayer: function(layer, map) {
         layer.set('active', false);
+
+        if (layer.get('hasOverLayers')) {
+            map.removeLayer(layer.get('overLayers'));
+        }
+
         map.removeLayer(layer.get('leafletLayer'));
     },
 
@@ -148,6 +153,7 @@ var utils = {
      */
     _addLayer: function(layer, layerGroup, map) {
         var hasTimeSlider = layer.get('hasTimeSlider'),
+            hasOverLayers = layer.get('hasOverLayers'),
             leafletLayer = layer.get('leafletLayer');
 
         if (hasTimeSlider) {
@@ -160,6 +166,10 @@ var utils = {
 
         layer.set('active', true);
         map.addLayer(leafletLayer);
+
+        if (hasOverLayers) {
+            map.addLayer(layer.get('overLayers'));
+        }
     },
 
     // A function for enabling/disabling modal buttons.  In additiion
@@ -369,27 +379,13 @@ var utils = {
     },
 
     magnitudeOfArea: function(value) {
-        if (value >= M2_IN_KM2) {
-            return 'km<sup>2</sup>';
+        var scheme = settings.get('unit_scheme'),
+            minLargeValue = units[scheme].AREA_XL.factor;
+
+        if (value >= minLargeValue) {
+            return 'AREA_XL';
         } else {
-            return 'm<sup>2</sup>';
-        }
-    },
-
-    changeOfAreaUnits: function(value, fromUnit, toUnit) {
-        var fromTo = (fromUnit + ':' + toUnit).toLowerCase();
-
-        switch (fromTo) {
-            case 'm<sup>2</sup>:km<sup>2</sup>':
-                 return value / M2_IN_KM2;
-            case 'km<sup>2</sup>:m<sup>2</sup>':
-                 return value * M2_IN_KM2;
-            case 'km<sup>2</sup>:km<sup>2</sup>':
-                 return value;
-            case 'm<sup>2</sup>:m<sup>2</sup>':
-                 return value;
-            default:
-                 throw 'Conversion not implemented.';
+            return 'AREA_M';
         }
     },
 
@@ -411,30 +407,6 @@ var utils = {
             case 'lb':
                 // return kg.
                 return value * 0.453592;
-
-            default:
-                throw 'Conversion not implemented.';
-        }
-    },
-
-    convertToImperial: function(value, fromUnit) {
-        fromUnit = fromUnit.toLowerCase();
-        switch (fromUnit) {
-            case 'cm':
-                // return in.
-                return value * 0.393701;
-
-            case 'm':
-                // return feet.
-                return value * 3.28084;
-
-            case 'km':
-                // return miles.
-                return value * 0.621371;
-
-            case 'kg':
-                // return Lbs.
-                return value * 2.20462;
 
             default:
                 throw 'Conversion not implemented.';
@@ -550,6 +522,11 @@ var utils = {
             geom.type = 'MultiPolygon';
         }
         return geom;
+    },
+
+    // Round a number x to n decimal places
+    round: function(x, n) {
+        return Math.round(parseFloat(x) * Math.pow(10, n)) / Math.pow(10, n);
     },
 
     calculateVisibleRows: function(minScreenHeight, avgRowHeight, minRows) {
@@ -685,8 +662,9 @@ var utils = {
     },
 
     // Downloads given data as a text file with given filename
-    downloadAsFile: function(data, filename) {
-        var blob = new Blob([JSON.stringify(data)],
+    _downloadAsFile: function(data, filename, stringify) {
+        var content = stringify ? JSON.stringify(data) : data,
+            blob = new Blob([content],
                             { type: 'data:text/plain;charset=utf-8'}),
             url = URL.createObjectURL(blob),
             a = document.createElement('a');
@@ -706,6 +684,16 @@ var utils = {
         }
 
         URL.revokeObjectURL(url);
+    },
+
+    // Expects data to be a JSON object
+    downloadJson: function(data, filename) {
+        this._downloadAsFile(data, filename, true);
+    },
+
+    // Expects data to be a string
+    downloadText: function(data, filename) {
+        this._downloadAsFile(data, filename, false);
     },
 
     // Checks if current browser is Internet Explorer / Edge. If so,
@@ -735,18 +723,6 @@ var utils = {
 
         // other browser
         return false;
-    },
-
-    applyGwlfeModifications: function(gisData, modifications) {
-        // Merge the values that came back from Mapshed with the values
-        // in the modifications from the user.
-        var gms = lodash.cloneDeep(gisData);
-
-        modifications.forEach(function(mod) {
-            _.assign(gms, mod.get('output'));
-        });
-
-        return gms;
     },
 
     // Takes a string query, which is either "Lon,Lat" or "Lat,Lon",

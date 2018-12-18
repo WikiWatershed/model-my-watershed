@@ -318,6 +318,11 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
       flex-direction: column;
       height: calc(100% - 20px);
       -webkit-font-smoothing: antialiased;
+
+    #compare-selection-region > select {
+      width: 250px;
+      margin: 1.5rem;
+    }
   }
 
   .compare-actions {
@@ -328,6 +333,7 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
   .compare-sections {
     flex: 0 1 auto;
     overflow: auto;
+    z-index: 1000;
 
     &.polling {
       .compare-column, rect {
@@ -469,7 +475,7 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
       transition: transform 0.3s ease-in-out;
     }
 
-    rect {
+    g, rect {
       transition: opacity 0.3s ease-in-out;
     }
 
@@ -545,6 +551,17 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
     width: 120px;
     transition: opacity 0.3s ease-in-out;
 
+    &.-gwlfe {
+      display: flex;
+      align-items: baseline;
+      justify-content: left;
+      text-align: left;
+
+      > .compare-scenario-title {
+          padding-left: 5px;
+      }
+    }
+
     .compare-scenario-title {
       font-size: $font-size-h5;
       font-weight: 400;
@@ -610,6 +627,10 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
       width: 100%;
       .modification-value {
           padding-right: 12px;
+
+        &.-gwlfe {
+          padding-top: 12px;
+        }
       }
       .modification-area {
           color: $brand-primary;
@@ -652,6 +673,7 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
       margin-right: 20px;
       label {
         font-size: 12px;
+        margin-bottom: 0;
       }
     }
   }
@@ -676,4 +698,31 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
   max-height: 100% !important;
   width: 70% !important;
   height: 100% !important;
+}
+
+.compare-scenario-row-content-container {
+    &.-line {
+        padding: 2%;
+
+        > .compare-scenario-row-content {
+            &.-line {
+                > .compare-line-chart {
+                    height: 350px;
+                    width: 700px;
+                }
+            }
+        }
+    }
+}
+
+.compare-table-row {
+    &.-hydrology {
+        > .compare-scenario-row-content-container {
+            > .compare-scenario-row-content {
+                > .compare-column {
+                    opacity: 1.0 !important;
+                }
+            }
+        }
+    }
 }

@@ -10,6 +10,8 @@ var $ = require('jquery'),
     AoiVolumeModel = require('../models').AoiVolumeModel,
     tableRowTmpl = require('./templates/tableRow.html'),
     tableTmpl = require('./templates/table.html'),
+    settings = require('../../../core/settings'),
+    coreUnits = require('../../../core/units'),
     utils = require('../../../core/utils.js');
 
 var ResultView = Marionette.LayoutView.extend({
@@ -88,7 +90,7 @@ var ChartView = Marionette.ItemView.extend({
                     values: _.map(labelDisplayNames, function(labelDisplayName) {
                         return {
                             x: labelDisplayName,
-                            y: result[seriesName]
+                            y: coreUnits.get('LENGTH_S', result[seriesName] / 100).value
                         };
                     })
                 };
@@ -99,6 +101,8 @@ var ChartView = Marionette.ItemView.extend({
             result = utils.getTR55RunoffResult(this.model),
             seriesNames = ['inf', 'runoff', 'et'],
             seriesDisplayNames = ['Infiltration', 'Runoff', 'Evapotranspiration'],
+            scheme = settings.get('unit_scheme'),
+            lengthUnit = coreUnits[scheme].LENGTH_S.name,
             labelDisplayNames,
             data,
             chartOptions;
@@ -116,8 +120,8 @@ var ChartView = Marionette.ItemView.extend({
                            labelDisplayNames);
             chartOptions = {
                 seriesColors: ['#F8AA00', '#CF4300', '#C2D33C'],
-                yAxisLabel: 'Level (cm)',
-                yAxisUnit: 'cm',
+                yAxisLabel: 'Level (' + lengthUnit + ')',
+                yAxisUnit: lengthUnit,
                 reverseLegend: true,
                 disableToggle: true,
                 margin: {top: 0, right: 0, bottom: 40, left: 150}
@@ -139,6 +143,15 @@ var TableView = Marionette.CompositeView.extend({
     childView: TableRowView,
     childViewContainer: 'tbody',
     template: tableTmpl,
+
+    templateHelpers: function() {
+        var scheme = settings.get('unit_scheme');
+
+        return {
+            lengthUnit: coreUnits[scheme].LENGTH_S.name,
+            volumeUnit: coreUnits[scheme].VOLUME.name,
+        };
+    },
 
     runoffTypes: [
         { name: 'runoff', display: 'Runoff' },
@@ -175,12 +188,14 @@ var TableView = Marionette.CompositeView.extend({
     },
 
     getRunoffTypeValue: function(runoffPartition, runoffType) {
-        var depth = runoffPartition[runoffType.name];
+        var depth = runoffPartition[runoffType.name],
+            adjustedVolume = this.aoiVolumeModel.adjust(depth);
 
         return {
             runoffType: runoffType.display,
-            depth: depth,
-            adjustedVolume: this.aoiVolumeModel.adjust(depth)
+            // Convert cm depth to standard units
+            depth: coreUnits.get('LENGTH_S', depth / 100).value,
+            adjustedVolume: coreUnits.get('VOLUME', adjustedVolume).value
         };
     }
 });

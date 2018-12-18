@@ -1,0 +1,59 @@
+{% if type == 'NUMERIC' %}
+    <input
+            type="number"
+            class="form-control"
+            name="{{ name }}"
+            step="{{ step }}"
+            {% if minValue != null %} min="{{ minValue }}" {% endif %}
+            {% if maxValue != null %} max="{{ maxValue }}" {% endif %}
+            placeholder="{{ autoValue }}"
+            value="{{ userValue }}"
+            {% if readOnly %} disabled {% endif %}
+    >
+    <button
+            type="button"
+            class="btn btn-icon btn-undo"
+            data-toggle="popover"
+            data-placement="bottom"
+            data-trigger="hover"
+            data-html="true"
+            data-content="<strong>Reset to auto-estimated:</strong><br />{{ autoValue }}"
+    >
+        <i class="fa fa-undo"></i>
+    </button>
+{% elif type == 'YESNO' %}
+    <select
+            class="form-control {{ '-unmodified' if not userValue }}"
+            name="{{ name }}"
+    >
+        <option
+            value="<Yes>"
+            {% if (userValue and userValue == '<Yes>') or (not userValue and autoValue == '<Yes>') %}
+            selected
+            {% endif %}
+        >
+            Yes
+        </option>
+        <option
+            value="<No>"
+            {% if (userValue and userValue == '<No>') or (not userValue and autoValue == '<No>') %}
+            selected
+            {% endif %}
+        >
+            No
+        </option>
+    </select>
+    <button
+            type="button"
+            class="btn btn-icon btn-undo"
+            data-toggle="popover"
+            data-placement="bottom"
+            data-trigger="hover"
+            data-html="true"
+            data-content="<strong>Reset to auto-estimated:</strong><br />{{ autoValue | replace('<', '') | replace('>', '') }}"
+    >
+        <i class="fa fa-undo"></i>
+    </button>
+{% else %}
+    Missing Field Type
+{% endif %}

@@ -5,7 +5,7 @@
                 Stream Order
             </th>
             <th class="text-right" data-field="lengthkm" data-sortable="true" data-sorter="window.numericSort">
-                Total Length (km)
+                Total Length ({{ lengthUnit }})
             </th>
             <th class="text-right" data-field="avgslope" data-sortable="true" data-sorter="window.noDataSort" data-formatter="window.percentFormatter">
                 Mean Channel Slope (%)
@@ -30,11 +30,11 @@
 </table>
 <div id="streams-tab-ag-section">
     <div class="streams-tab-ag-line-item">
-        Length in agricultural areas = {{ lengthInAg|round(2)|toLocaleString(2) }} km
+        Length in agricultural areas = {{ lengthInAg|round(2)|toLocaleString(2) }} {{ lengthUnit }}
         {% include "./streamLengthPopover.html" %}
     </div>
     <div class="streams-tab-ag-line-item">
-        Length in non-agricultural areas = {{ lengthInNonAg|round(2)|toLocaleString(2) }} km
+        Length in non-agricultural areas = {{ lengthInNonAg|round(2)|toLocaleString(2) }} {{ lengthUnit }}
         {% include "./streamLengthPopover.html" %}
     </div>
 </div>

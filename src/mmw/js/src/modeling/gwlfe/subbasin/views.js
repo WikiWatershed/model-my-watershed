@@ -5,6 +5,8 @@ var Marionette = require('../../../../shim/backbone.marionette'),
     _ = require('lodash'),
     App = require('../../../app'),
     models = require('./models'),
+    settings = require('../../../core/settings'),
+    coreUnits = require('../../../core/units'),
     resultTmpl = require('./templates/result.html'),
     layerSelectorTmpl = require('./templates/layerSelector.html'),
     layerLegendTmpl = require('./templates/layerLegend.html'),
@@ -243,11 +245,20 @@ var SourcesTableView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
-        var result = this.getResult();
+        var result = this.getResult(),
+            scheme = settings.get('unit_scheme');
+
         if (!result) { return; }
+
         return {
             rows: result.Loads,
             summaryRow: result.SummaryLoads,
+            areaUnit: coreUnits[scheme].AREA_L_FROM_HA.name,
+            areaDisplayUnit: 'AREA_L_FROM_HA',
+            massPerAreaUnit: coreUnits[scheme].MASSPERAREA_M.name,
+            massPerAreaDisplayUnit: 'MASSPERAREA_M',
+            massPerTimeUnit: coreUnits[scheme].MASSPERTIME.name,
+            massPerTimeDisplayUnit: 'MASSPERTIME'
         };
     },
 
@@ -326,11 +337,19 @@ var Huc12TotalsTableView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
-        var result = this.model.get('result');
+        var result = this.model.get('result'),
+            scheme = settings.get('unit_scheme');
+
         return {
             rows: result.HUC12s,
             subbasins: App.currentProject.get('subbasins'),
             summaryRow: result.SummaryLoads,
+            areaUnit: coreUnits[scheme].AREA_L_FROM_HA.name,
+            areaDisplayUnit: 'AREA_L_FROM_HA',
+            massPerAreaUnit: coreUnits[scheme].MASSPERAREA_M.name,
+            massPerAreaDisplayUnit: 'MASSPERAREA_M',
+            massPerTimeUnit: coreUnits[scheme].MASSPERTIME.name,
+            massPerTimeDisplayUnit: 'MASSPERTIME'
         };
     },
 
@@ -414,6 +433,7 @@ var CatchmentsTableView = Marionette.ItemView.extend({
         var catchmentDetails = this.catchmentDetails,
             activeSubbasinId = App.currentProject.get('subbasins').getActive().get('id'),
             huc12Result = this.model.get('result').HUC12s[activeSubbasinId],
+            scheme = settings.get('unit_scheme'),
             catchments = huc12Result.Catchments,
             summaryRow = _.reduce(catchments, function(acc, catchment, comid) {
                 var summaryConcentrations = acc.LoadingRateConcentrations,
@@ -443,6 +463,14 @@ var CatchmentsTableView = Marionette.ItemView.extend({
             rows: catchments,
             catchmentDetails: catchmentDetails,
             summaryRow: summaryRow,
+            areaUnit: coreUnits[scheme].AREA_L_FROM_HA.name,
+            areaDisplayUnit: 'AREA_L_FROM_HA',
+            massPerAreaUnit: coreUnits[scheme].MASSPERAREA_M.name,
+            massPerAreaDisplayUnit: 'MASSPERAREA_M',
+            massPerTimeUnit: coreUnits[scheme].MASSPERTIME.name,
+            massPerTimeDisplayUnit: 'MASSPERTIME',
+            concentrationUnit: coreUnits[scheme].CONCENTRATION.name,
+            concentrationDisplayUnit: 'CONCENTRATION'
         };
     },
 

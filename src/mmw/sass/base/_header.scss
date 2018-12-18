@@ -167,11 +167,10 @@ header {
       top: $height-xl;
       right: 0;
       background-color: $ui-light;
-      z-index: 1001;
+      z-index: 2;
 
       .title-icon {
-        text-align: center;
-        font-size: 15px;
+        height: 45px;
       }
     }
 

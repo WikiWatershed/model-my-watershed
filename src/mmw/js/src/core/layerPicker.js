@@ -88,9 +88,18 @@ var LayerOpacitySliderView = Marionette.ItemView.extend({
 
     onMouseUp: function(e) {
         this.leafletMap.dragging.enable();
+
         var el = $(e.target),
-        sliderValue = el.val();
-        this.layer.get('leafletLayer').setOpacity(sliderValue / 100);
+            sliderValue = el.val(),
+            leafletLayer = this.layer.get('leafletLayer'),
+            hasOverLayers = this.layer.get('hasOverLayers'),
+            overLayers = this.layer.get('overLayers');
+
+        leafletLayer.setOpacity(sliderValue / 100);
+        if (hasOverLayers) {
+            overLayers.invoke('setOpacity', sliderValue / 100);
+        }
+
         el.attr('value', sliderValue);
         this.model.set('selectedOpacityValue', Number(sliderValue));
     },

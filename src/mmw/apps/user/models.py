@@ -11,6 +11,8 @@ from django.utils import timezone
 
 from rest_framework.authtoken.models import Token
 
+from apps.core.models import UnitScheme
+
 import countries
 
 
@@ -66,6 +68,11 @@ class UserProfile(models.Model):
         (OTHER, OTHER),
     )
 
+    UNIT_SCHEME_CHOICES = (
+        (UnitScheme.METRIC, 'Metric'),
+        (UnitScheme.USCUSTOMARY, 'US Customary'),
+    )
+
     user = models.OneToOneField(User, primary_key=True)
     was_skipped = models.BooleanField(default=False)
     is_complete = models.BooleanField(default=False)
@@ -76,6 +83,8 @@ class UserProfile(models.Model):
     country = models.TextField(choices=countries.COUNTRY_CHOICES,
                                default=countries.US)
     postal_code = models.TextField(blank=True)
+    unit_scheme = models.TextField(choices=UNIT_SCHEME_CHOICES,
+                                   default=UnitScheme.METRIC)
 
 
 class HydroShareToken(models.Model):

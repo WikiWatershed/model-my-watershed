@@ -15,7 +15,7 @@ cryptography==2.1.4
 pyOpenSSL==17.4.0
 markdown==2.6.9
 tr55==1.3.0
-gwlf-e==0.6.3
+gwlf-e==2.0.0
 requests[security]==2.9.1
 rollbar==0.13.8
 retry==0.9.1
@@ -24,8 +24,10 @@ https://bitbucket.org/jurko/suds/get/94664ddd46a6.tar.gz#egg=suds-jurko
 django_celery_results==1.0.1
 pandas==0.22.0
 git+git://github.com/emiliom/ulmo@wml_values_md#egg=ulmo
-numpy==1.13.0
+numpy==1.14.5
 hs_restclient==1.2.10
 six==1.11.0
 fiona==1.7.11
 timeout-decorator==0.4.0
+numba==0.38.1
+redis==2.10.6

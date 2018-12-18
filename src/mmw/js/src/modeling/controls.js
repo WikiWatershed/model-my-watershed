@@ -6,15 +6,19 @@ var $ = require('jquery'),
     Marionette = require('../../shim/backbone.marionette'),
     App = require('../app'),
     drawUtils = require('../draw/utils'),
-    coreUtils = require('../core/utils'),
+    settings = require('../core/settings'),
+    coreUnits = require('../core/units'),
     models = require('./models'),
     modificationConfigUtils = require('./modificationConfigUtils'),
     gwlfeConfig = require('./gwlfeModificationConfig'),
+    entryViews = require('./gwlfe/entry/views'),
     precipitationTmpl = require('./templates/controls/precipitation.html'),
     manualEntryTmpl = require('./templates/controls/manualEntry.html'),
     userInputTmpl = require('./templates/controls/userInput.html'),
     inputInfoTmpl = require('./templates/controls/inputInfo.html'),
     thumbSelectTmpl = require('./templates/controls/thumbSelect.html'),
+    settingsTmpl = require('./templates/controls/settings.html'),
+    greenButtonTmpl = require('./templates/controls/greenButton.html'),
     modDropdownTmpl = require('./templates/controls/modDropdown.html');
 
 var ENTER_KEYCODE = 13;
@@ -165,8 +169,17 @@ var UserInputView = Marionette.LayoutView.extend({
     },
 
     templateHelpers: function() {
+        var scheme = settings.get('unit_scheme'),
+            areaUnit = coreUnits[scheme].AREA_L_FROM_HA.name,
+            lengthUnit = coreUnits[scheme].LENGTH_XL_FROM_KM.name,
+            labelUnits = function(string) {
+                return string
+                        .replace('AREAUNITNAME', areaUnit)
+                        .replace('LENGTHUNITNAME', lengthUnit);
+            };
+
         return {
-            displayNames: gwlfeConfig.displayNames
+            displayNames: _.mapValues(gwlfeConfig.displayNames, labelUnits),
         };
     }
 });
@@ -200,10 +213,20 @@ var ManualEntryView = Marionette.CompositeView.extend({
     },
 
     templateHelpers: function() {
-        var manualMod = this.model.get('manualMod');
+        var manualMod = this.model.get('manualMod'),
+            scheme = settings.get('unit_scheme'),
+            areaUnit = coreUnits[scheme].AREA_L_FROM_HA.name,
+            lengthUnit = coreUnits[scheme].LENGTH_XL_FROM_KM.name,
+            labelUnits = function(string) {
+                return string
+                    .replace('AREAUNITNAME', areaUnit)
+                    .replace('LENGTHUNITNAME', lengthUnit);
+            };
+
         return {
             modConfig: gwlfeConfig.configs[manualMod],
-            displayNames: gwlfeConfig.displayNames,
+            displayNames: _.mapValues(gwlfeConfig.displayNames, labelUnits),
+            displayUnits: gwlfeConfig.displayUnits,
             dataModel: this.model.get('dataModel')
         };
     },
@@ -239,7 +262,13 @@ var ManualEntryView = Marionette.CompositeView.extend({
     computeOutput: function() {
         var modConfig = gwlfeConfig.configs[this.model.get('manualMod')],
             userInput = _.map(modConfig.userInputNames, function(userInputName) {
-                return $('#'+userInputName).val();
+                var value = $('#'+userInputName).val();
+
+                if (modConfig.unit) {
+                    value /= coreUnits.get(modConfig.unit, 1).value;
+                }
+
+                return value.toString();
             }),
             output;
 
@@ -409,6 +438,41 @@ var ConservationPracticeView = ModificationsView.extend({
     }
 });
 
+var GwlfeLandCoverView = ControlView.extend({
+    template: greenButtonTmpl,
+
+    events: {
+        'click button': 'showLandCoverModal',
+    },
+
+    getControlName: function() {
+        return 'gwlfe_landcover';
+    },
+
+    initialize: function(options) {
+        ControlView.prototype.initialize.apply(this, [options]);
+
+        this.model.set({
+            controlName: this.getControlName(),
+            controlDisplayName: 'Land Cover',
+            dataModel: gwlfeConfig.cleanDataModel(App.currentProject.get('gis_data')),
+            errorMessages: null,
+            infoMessages: null,
+        });
+    },
+
+    showLandCoverModal: function() {
+        var currentScenario = App.currentProject.get('scenarios')
+                                 .findWhere({ active: true });
+
+        entryViews.showLandCoverModal(
+            this.model.get('dataModel'),
+            currentScenario.get('modifications'),
+            this.addModification
+        );
+    },
+});
+
 var GwlfeConservationPracticeView = ModificationsView.extend({
     initialize: function(options) {
         ModificationsView.prototype.initialize.apply(this, [options]);
@@ -421,8 +485,8 @@ var GwlfeConservationPracticeView = ModificationsView.extend({
                 {
                     name: 'Rural',
                     rows: [
-                        ['cover_crops', 'conservation_tillage', 'nutrient_management', 'waste_management_livestock'],
-                        ['waste_management_poultry', 'buffer_strips', 'streambank_fencing', 'streambank_stabilization']
+                        ['cover_crops', 'crop_tillage_no', 'conservation_tillage', 'crop_tillage_reduced', 'nutrient_management'],
+                        ['waste_management_livestock', 'waste_management_poultry', 'buffer_strips', 'streambank_fencing', 'streambank_stabilization']
                     ]
                 },
                 {
@@ -441,6 +505,43 @@ var GwlfeConservationPracticeView = ModificationsView.extend({
     }
 });
 
+var GwlfeSettingsView = ControlView.extend({
+    template: settingsTmpl,
+
+    events: {
+        'click button': 'showSettingsModal',
+    },
+
+    getControlName: function() {
+        return 'gwlfe_settings';
+    },
+
+    initialize: function(options) {
+        ControlView.prototype.initialize.apply(this, [options]);
+
+        this.model.set({
+            controlName: this.getControlName(),
+            controlDisplayName: 'Settings',
+            dataModel: gwlfeConfig.cleanDataModel(App.currentProject.get('gis_data')),
+            errorMessages: null,
+            infoMessages: null,
+        });
+    },
+
+    showSettingsModal: function() {
+        var currentScenario = App.currentProject.get('scenarios')
+                                 .findWhere({ active: true });
+
+        entryViews.showSettingsModal(
+            this.model.get('controlDisplayName'),
+            this.model.get('dataModel'),
+            currentScenario.get('modifications'),
+            this.addModification
+        );
+    },
+});
+
+
 var PrecipitationView = ControlView.extend({
     template: precipitationTmpl,
 
@@ -454,12 +555,26 @@ var PrecipitationView = ControlView.extend({
         'change @ui.slider': 'onSliderChanged'
     },
 
+    templateHelpers: function() {
+        var scheme = settings.get('unit_scheme'),
+            sliderMax = scheme === coreUnits.UNIT_SCHEME.METRIC ?
+                        25 : // 25 cm
+                        10;  // 10 in
+
+        return {
+            sliderMax: sliderMax,
+        };
+    },
+
     getControlName: function() {
         return 'precipitation';
     },
 
     getDisplayValue: function(value) {
-        return value.toFixed(2) + ' cm';
+        var scheme = settings.get('unit_scheme'),
+            lengthUnit = coreUnits[scheme].LENGTH_S.name;
+
+        return value.toFixed(2) + ' ' + lengthUnit;
     },
 
     onSliderDragged: function() {
@@ -471,12 +586,15 @@ var PrecipitationView = ControlView.extend({
     },
 
     onSliderChanged: function() {
-        var value = parseFloat(this.ui.slider.val()),
-            // Model expects Imperial inputs.
-            imperialValue = coreUtils.convertToImperial(value, 'cm'),
+        var scheme = settings.get('unit_scheme'),
+            sliderValue = parseFloat(this.ui.slider.val()),
+            // Always store in inches
+            value = scheme === coreUnits.UNIT_SCHEME.METRIC ?
+                    sliderValue / coreUnits.CONVERSIONS.CM_PER_IN :
+                    sliderValue,
             modification = new models.ModificationModel({
                 name: this.getControlName(),
-                value: imperialValue
+                value: value,
             });
 
         // Update values for IE which doesn't trigger onSliderDragged. Will
@@ -489,12 +607,15 @@ var PrecipitationView = ControlView.extend({
     },
 
     onRender: function() {
-        var model = this.controlModel,
+        var scheme = settings.get('unit_scheme'),
+            model = this.controlModel,
             value = model && model.get('value') || 0;
 
-        // Model values are stored in Imperial and need to be displayed as
-        // metric.
-        value = coreUtils.convertToMetric(value, 'in');
+        // Convert from inches if necessary
+        if (scheme === coreUnits.UNIT_SCHEME.METRIC) {
+            value *= coreUnits.CONVERSIONS.CM_PER_IN;
+        }
+
         this.ui.slider.val(value);
         this.ui.slider.attr('value', value);
         this.ui.displayValue.text(this.getDisplayValue(value));
@@ -507,8 +628,12 @@ function getControlView(controlName) {
             return LandCoverView;
         case 'conservation_practice':
             return ConservationPracticeView;
+        case 'gwlfe_landcover':
+            return GwlfeLandCoverView;
         case 'gwlfe_conservation_practice':
             return GwlfeConservationPracticeView;
+        case 'gwlfe_settings':
+            return GwlfeSettingsView;
         case 'precipitation':
             return PrecipitationView;
     }

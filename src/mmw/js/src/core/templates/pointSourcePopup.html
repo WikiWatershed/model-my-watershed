@@ -14,19 +14,19 @@
     </thead>
     <tbody>
         <tr>
-            <td>Discharge (MGD)</td>
+            <td>Discharge ({{ volumetricFlowRateUnit }})</td>
             <td class="text-right">
                 {{ mgd|filterNoData()|toLocaleString(3) }}
             </td>
         </tr>
         <tr>
-            <td>TN Load (kg/yr)</td>
+            <td>TN Load ({{ massPerTimeUnit }})</td>
             <td class="text-right">
                 {{ kgn_yr|filterNoData()|toLocaleString(3) }}
             </td>
         </tr>
         <tr>
-            <td>TP Load (kg/yr)</td>
+            <td>TP Load ({{ massPerTimeUnit }})</td>
             <td class="text-right">
                 {{ kgp_yr|filterNoData()|toLocaleString(3) }}
             </td>

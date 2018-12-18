@@ -1,0 +1,11 @@
+{% for group in groups %}
+    <optgroup label="{{ group.name }}">
+    {% for option in group.options %}
+        <option value="{{ option.value or option.name }}"
+                {{ 'selected' if option.active }}
+        >
+            {{ option.name }}
+        </option>
+    {% endfor %}
+    </optgroup>
+{% endfor %}

@@ -30,15 +30,15 @@ GWLFE_DEFAULTS = {
                 lu.BARE_ROCK,  # Maps NLCD 12, 31
                 lu.SANDY_AREAS,     # Does not map to NLCD
                 lu.UNPAVED_ROAD,    # Does not map to NLCD
-                lu.LD_MIXED,   # Maps NLCD 21, 22
+                lu.LD_MIXED,   # Maps NLCD 22
                 lu.MD_MIXED,   # Maps NLCD 23
                 lu.HD_MIXED,   # Maps NLCD 24
-                lu.LD_RESIDENTIAL,  # Does not map to NLCD
+                lu.LD_RESIDENTIAL,  # Maps NLCD 21
                 lu.MD_RESIDENTIAL,  # Does not map to NLCD
                 lu.HD_RESIDENTIAL,  # Does not map to NLCD
                 ],
     'Imper': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         # Impervious surface area percentage
-              0.15, 0.52, 0.87, 0.15, 0.52, 0.87],  # only defined for urban land use types
+              0.35, 0.65, 0.90, 0.10, 0.52, 0.87],  # only defined for urban land use types
     'C': [0.03, 0.42, 0.002, 0.01, 0.08, 0.03, 0.04, 0.001, 0.01, 0.8,  # C Factor Defaults
           0, 0, 0, 0, 0, 0],                                            # only defined for rural land use types
     'CNI': [[0] * 16,
@@ -57,7 +57,7 @@ GWLFE_DEFAULTS = {
     'CountyFlag': b.NO,  # Flag: County Layer Detected (0 No; 1 Yes)
     'SoilPFlag': b.YES,  # Flag: Soil P Layer Detected (0 No; 1 Yes)
     'GWNFlag': b.YES,  # Flag: Groundwater N Layer Detected (0 No; 1 Yes)
-    'SedAAdjust': 1.4,  # Default Percent ET
+    'SedAAdjust': 1.5,  # Default Percent ET
     'BankNFrac': 0.25,  # % Bank N Fraction (0 - 1)
     'BankPFrac': 0.25,  # % Bank P Fraction (0 - 1)
     'ManuredAreas': 2,  # Manure Spreading Periods (Default = 2)
@@ -481,7 +481,7 @@ GWLFE_CONFIG = {
     'SSLDR': 4.4,
     'SSLDM': 2.2,
     'WeatherNull': -99999,  # This value is used to indicate NULL in ms_weather dataset
-    'MaxAoIArea': 5000,  # Maximum allowed area in square kilometers
+    'MaxAoIArea': 5e+9,  # Maximum allowed area in square meters
     'ETGrowCoeff': [
         1.00,  # Hay/Pasture
         0.80,  # Cropland
@@ -629,6 +629,7 @@ SRAT_KEYS = {
     'Low-Density Mixed': 'ldm',
     'Medium-Density Mixed': 'mdm',
     'High-Density Mixed': 'hdm',
+    'Low-Density Open Space': 'tiledrain',
     'Farm Animals': 'farman',
     'Stream Bank Erosion': 'streambank',
     'Subsurface Flow': 'subsurface',
@@ -650,6 +651,7 @@ SUBBASIN_SOURCE_NORMALIZING_AREAS = {
     'Low-Density Mixed': [10],
     'Medium-Density Mixed': [11],
     'High-Density Mixed': [12],
+    'Low-Density Open Space': [13],
     'Farm Animals': [0, 1],
     'Wetlands': [3],
     'Septic Systems': [10],

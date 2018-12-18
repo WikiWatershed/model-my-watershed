@@ -18,7 +18,7 @@ var defaultSettings = {
     vizer_ignore: [],
     vizer_names: {},
     model_packages: [],
-    max_area: 75000,
+    max_area: 75000,  // Default. Populated at runtime by MAX_AREA in base.py
     enabled_features: [],
     branch: null,
     gitDescribe: null,
