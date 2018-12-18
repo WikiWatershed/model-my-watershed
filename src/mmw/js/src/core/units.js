@@ -69,7 +69,7 @@ var units = {
             offset: 0
         },
         MASSPERTIME: {
-            name: 'lb/a',
+            name: 'lb/yr',
             factor: 1/2.204620532,
             offset: 0
         },
@@ -151,7 +151,7 @@ var units = {
             offset: 0
         },
         MASSPERTIME: {
-            name: 'kg/a',
+            name: 'kg/yr',
             factor: 1,
             offset: 0
         },

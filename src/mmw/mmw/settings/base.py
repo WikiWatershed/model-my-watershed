@@ -340,7 +340,7 @@ SWAGGER_SETTINGS = {
                        'You can read more about the work at '
                        '<a href="http://www.wikiwatershed.org/">'
                        'WikiWatershed</a> '
-                       'or use the <a href="https://www.app.wikiwatershed.org">'
+                       'or use the <a href="https://modelmywatershed.org">'
                        'web app.',
         'license': 'Apache 2.0',
         'licenseUrl': 'http://www.apache.org/licenses/LICENSE-2.0.html',
@@ -402,7 +402,7 @@ OMGEO_SETTINGS = [[
 ]]
 
 # Keep in sync with src/api/main.py in rapid-watershed-delineation.
-MMW_MAX_AREA = 7.5e+9  # Max area in m², about the size of West Virginia
+MMW_MAX_AREA = 75e+9  # Max area in m², about the size of West Virginia
 
 BIGCZ_HOST = 'portal.bigcz.org'  # BiG-CZ Host, for enabling custom behavior
 BIGCZ_MAX_AREA = 5e+9  # Max area in m², limited by CUAHSI
