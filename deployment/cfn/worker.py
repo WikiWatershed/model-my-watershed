@@ -58,6 +58,8 @@ class Worker(StackNode):
         'PublicHostedZoneName': ['global:PublicHostedZoneName'],
         'VpcId': ['global:VpcId', 'VPC:VpcId'],
         'GlobalNotificationsARN': ['global:GlobalNotificationsARN'],
+        'HydroShareBaseURL': ['global:HydroShareBaseURL'],
+        'HydroShareSecretKey': ['global:HydroShareSecretKey'],
         'SRATCatchmentAPIURL': ['global:SRATCatchmentAPIURL'],
         'SRATCatchmentAPIKey': ['global:SRATCatchmentAPIKey'],
         'RollbarServerSideAccessToken':
@@ -206,6 +208,16 @@ class Worker(StackNode):
             'GlobalNotificationsARN', Type='String',
             Description='ARN for an SNS topic to broadcast notifications'
         ), 'GlobalNotificationsARN')
+
+        self.hydroshare_base_url = self.add_parameter(Parameter(
+            'HydroShareBaseURL', Type='String',
+            Description='Base URL for HydroShare portal'
+        ), 'HydroShareBaseURL')
+
+        self.hydroshare_secret_key = self.add_parameter(Parameter(
+            'HydroShareSecretKey', Type='String', NoEcho=True,
+            Description='Secret key for HydroShare portal integration'
+        ), 'HydroShareSecretKey')
 
         self.srat_catchment_api_url = self.add_parameter(Parameter(
             'SRATCatchmentAPIURL', Type='String',
@@ -422,6 +434,14 @@ class Worker(StackNode):
                 '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: ', self.get_input('RollbarServerSideAccessToken'), '\n',  # NOQA
+                '  - path: /etc/mmw.d/env/MMW_HYDROSHARE_BASE_URL\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.hydroshare_base_url), '\n',
+                '  - path: /etc/mmw.d/env/MMW_HYDROSHARE_SECRET_KEY\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.hydroshare_secret_key), '\n',
                 '  - path: /etc/mmw.d/env/MMW_SRAT_CATCHMENT_API_URL\n',
                 '    permissions: 0440\n',
                 '    owner: root:mmw\n',
