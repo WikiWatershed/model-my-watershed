@@ -61,6 +61,8 @@ function fromPairs(pairs) {
 }
 
 var displayUnits = fromPairs([
+    [percentAeuToModifyName, 'PERCENT'],
+    [percentAreaToModifyName, 'PERCENT'],
     [areaToModifyName, 'AREA_L_FROM_HA'],
     [lengthToModifyName, 'LENGTH_XL_FROM_KM'],
     [lengthToModifyInAgName, 'LENGTH_XL_FROM_KM'],
@@ -295,6 +297,7 @@ function makeAgBmpConfig(outputName) {
 
 function makeAeuBmpConfig(outputName) {
     return {
+        unit: 'PERCENT',
         dataModelNames: [],
         validateDataModel: makeValidateDataModelFn([]),
         userInputNames: [percentAeuToModifyName],

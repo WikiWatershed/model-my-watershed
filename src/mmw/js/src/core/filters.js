@@ -97,5 +97,9 @@ nunjucks.env.addFilter('toFriendlyBytes', function(bytes) {
 });
 
 nunjucks.env.addFilter('toUnit', function(value, unit) {
+    if (!unit) {
+        return value;
+    }
+
     return coreUnits.get(unit, value).value;
 });
