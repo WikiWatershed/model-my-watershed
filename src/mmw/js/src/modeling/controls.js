@@ -600,8 +600,8 @@ var PrecipitationView = ControlView.extend({
         // Update values for IE which doesn't trigger onSliderDragged. Will
         // effectively noop on other browsers, since the same values were
         // already set by onSliderDragged.
-        this.ui.slider.attr('value', value);
-        this.ui.displayValue.text(this.getDisplayValue(value));
+        this.ui.slider.attr('value', sliderValue);
+        this.ui.displayValue.text(this.getDisplayValue(sliderValue));
 
         this.addOrReplaceInput(modification);
     },
