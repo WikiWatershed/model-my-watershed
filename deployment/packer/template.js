@@ -112,7 +112,7 @@
                 "sleep 5",
                 "sudo apt-get update -qq",
                 "sudo apt-get install python-pip python-dev -y",
-                "sudo pip install --upgrade pip",
+                "sudo pip install --upgrade pip==18.1",
                 "sudo pip install ansible==2.4.4.0",
                 "sudo /bin/sh -c 'echo {{user `branch`}} {{user `description`}} > /srv/version.txt'"
             ]
