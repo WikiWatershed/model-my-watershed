@@ -13,3 +13,10 @@
 
 - name: Enable Celery service
   service: name=celeryd enabled=yes state=started
+
+- name: Setup daily Celery service restart
+  cron:
+    name: celery-restart
+    special_time: daily
+    job: service celeryd restart
+    state: present
