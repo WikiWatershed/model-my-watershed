@@ -690,13 +690,23 @@ var SelectBoundaryView = DrawToolBaseView.extend({
 
     changeOutlineLayer: function(tileUrl, layerCode, shortDisplay, minZoom) {
         var self = this,
-            ofg = self.model.get('outlineFeatureGroup');
+            ofg = self.model.get('outlineFeatureGroup'),
+            // Generate 50 random strings to append to UtfGrid requests so we
+            // don't use the cached verions, which may be incorrect.
+            // The tiler may sometimes generate incorrect tiles because of
+            // https://github.com/CartoDB/Windshaft/issues/310
+            cacheBusters = _.range(50).map(function() {
+                // Generate and return a random string
+                // https://stackoverflow.com/a/8084248
+                return Math.random().toString(36).substring(7);
+            });
 
         // Go about the business of adding the outline and UTFgrid layers.
         if (tileUrl && layerCode !== undefined) {
             var ol = new L.TileLayer(tileUrl + '.png', {minZoom: minZoom || 0}),
-                grid = new L.UtfGrid(tileUrl + '.grid.json',
+                grid = new L.UtfGrid(tileUrl + '.grid.json?{s}',
                                      {
+                                         subdomains: cacheBusters,
                                          minZoom: minZoom,
                                          useJsonP: false,
                                          resolution: 4,
