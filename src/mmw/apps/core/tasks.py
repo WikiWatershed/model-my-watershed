@@ -32,7 +32,7 @@ def save_job_error(request, exc, traceback, job_id):
     try:
         job = Job.objects.get(id=job_id)
         job.error = exc
-        job.traceback = traceback
+        job.traceback = traceback or 'No traceback'
         job.delivered_at = now()
         job.status = 'failed'
         job.save()
