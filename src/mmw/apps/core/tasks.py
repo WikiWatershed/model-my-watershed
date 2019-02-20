@@ -39,8 +39,7 @@ def save_job_error(request, exc, traceback, job_id):
     except Exception as e:
         logger.error('Failed to save job error status. Job will appear hung. \
                      Job Id: {0}'.format(job.id))
-        logger.error('Error number: {0} - Error: {1}'
-                     .format(e.errno, e.strerror))
+        logger.error('Error: {}'.format(e))
 
 
 @shared_task(bind=True)
