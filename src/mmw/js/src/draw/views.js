@@ -231,6 +231,8 @@ var DrawWindow = Marionette.LayoutView.extend({
             model: this.model,
             resetDrawingState: resetDrawingState
         }));
+
+        this.listenTo(App.map, 'change:lat, change:lng', resetDrawingState);
     },
 
     resetDrawingState: function(options) {
