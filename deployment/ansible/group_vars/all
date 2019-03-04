@@ -60,5 +60,6 @@ observation_api_url: "http://www.wikiwatershed-vs.org/"
 enabled_features: ''
 
 numba_version: "0.38.1"
+numpy_version: "1.14.5"
 
 redis_version: "2:2.8.4-2ubuntu0.2"

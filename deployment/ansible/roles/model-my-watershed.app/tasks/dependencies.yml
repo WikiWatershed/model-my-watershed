@@ -2,6 +2,9 @@
 - name: Install numba
   pip: name=numba version={{ numba_version }}
 
+- name: Install numpy
+  pip: name=numpy version={{ numpy_version }}
+
 - name: Install application Python dependencies for development and test
   pip: requirements="{{ app_home }}/requirements/{{ item }}.txt"
   with_items:
