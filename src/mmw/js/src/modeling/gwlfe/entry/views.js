@@ -339,12 +339,15 @@ var FieldView = Marionette.ItemView.extend({
         var value = this.ui.input.val(),
             unit = this.model.get('unit');
 
-        if (unit) {
+        // Treat empty string as null
+        if (value === '') {
+            value = null;
+        } else if (unit) {
             // Convert user preferred unit into underlying representation
             value /= coreUnits.get(unit, 1).value;
         }
 
-        this.model.set('userValue', value || null);
+        this.model.set('userValue', value);
         this.toggleUserValueState();
     },
 
@@ -357,7 +360,7 @@ var FieldView = Marionette.ItemView.extend({
     toggleUserValueState: function() {
         var userValue = this.model.get('userValue');
 
-        if (userValue) {
+        if (userValue !== null) {
             this.$el.addClass('has-user-value');
         } else {
             this.$el.removeClass('has-user-value');
