@@ -17,16 +17,17 @@ postgresql_password: mmw
 postgresql_database: mmw
 
 postgresql_version: "9.4"
-postgresql_package_version: "9.4.*.pgdg14.04+1"
+postgresql_package_version: "9.4.*.pgdg16.04+1"
 postgresql_support_repository_channel: "main"
-postgresql_support_libpq_version: "11.*.pgdg14.04+1"
+postgresql_support_libpq_version: "11.*.pgdg16.04+1"
 postgresql_support_psycopg2_version: "2.7"
 postgis_version: "2.2"
-postgis_package_version: "2.2.*.pgdg14.04+1"
+postgis_package_version: "2.2.*.pgdg16.04+1"
 
 
 nodejs_npm_version: 2.1.17
 
+python_version: "2.7.12-1~16.04"
 
 java_version: "8u*"
 java_major_version: "8"
@@ -50,4 +51,4 @@ enabled_features: ''
 numba_version: "0.38.1"
 numpy_version: "1.14.5"
 
-redis_version: "2:2.8.4-2ubuntu0.2"
+redis_version: "2:3.0.6-1ubuntu0.3"

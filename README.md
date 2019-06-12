@@ -110,8 +110,6 @@ The Vagrant configuration maps the following host ports to services running in t
 
 ### Caching
 
-In order to speed up things up, you may want to consider leveraging the `vagrant-cachier` plugin. If installed, it is automatically used by Vagrant.
-
 To speed up geoprocessing, those requests are cached in Redis. To disable this caching for development purposes, set the value of `MMW_GEOPROCESSING_CACHE` to `0`:
 
 ```bash

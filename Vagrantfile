@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-Vagrant.require_version ">= 1.6"
+Vagrant.require_version ">= 2.2"
 
 if ["up", "provision", "status"].include?(ARGV.first)
   require_relative "vagrant/ansible_galaxy_helper"
@@ -33,15 +33,8 @@ else
   VAGRANT_NETWORK_OPTIONS = { auto_correct: false }
 end
 
-VAGRANTFILE_API_VERSION = "2"
-
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "ubuntu/trusty64"
-
-  # Wire up package caching:
-  if Vagrant.has_plugin?("vagrant-cachier")
-    config.cache.scope = :machine
-  end
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-16.04"
 
   config.vm.define "services" do |services|
     services.vm.hostname = "services"
@@ -64,6 +57,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
 
     services.vm.provision "ansible" do |ansible|
+      ansible.compatibility_mode = "2.0"
       ansible.playbook = "deployment/ansible/services.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
