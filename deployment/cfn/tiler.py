@@ -18,14 +18,11 @@ from utils.cfn import get_recent_ami
 from utils.constants import (
     ALLOW_ALL_CIDR,
     EC2_INSTANCE_TYPES,
-    GRAPHITE,
     HTTP,
     HTTPS,
     POSTGRESQL,
     REDIS,
-    RELP,
     SSH,
-    STATSITE,
     VPC_CIDR
 )
 
@@ -276,12 +273,7 @@ class Tiler(StackNode):
                 ec2.SecurityGroupRule(
                     IpProtocol='tcp', CidrIp=VPC_CIDR, FromPort=p, ToPort=p
                 )
-                for p in [GRAPHITE, POSTGRESQL, REDIS, STATSITE, RELP]
-            ] + [
-                ec2.SecurityGroupRule(
-                    IpProtocol='udp', CidrIp=VPC_CIDR, FromPort=p, ToPort=p
-                )
-                for p in [STATSITE]
+                for p in [POSTGRESQL, REDIS]
             ] + [
                 ec2.SecurityGroupRule(
                     IpProtocol='tcp', CidrIp=ALLOW_ALL_CIDR, FromPort=p,

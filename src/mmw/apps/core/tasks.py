@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
-from django_statsd.clients import statsd
 from django.utils.timezone import now
 from celery import shared_task
 from apps.core.models import Job
@@ -43,7 +42,6 @@ def save_job_error(request, exc, traceback, job_id):
 
 
 @shared_task(bind=True)
-@statsd.timer(__name__ + '.save_job_result')
 def save_job_result(self, result, id, model_input):
     """
     Updates a job row in the database with final results.

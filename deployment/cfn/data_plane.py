@@ -18,17 +18,12 @@ from utils.constants import (
     ALLOW_ALL_CIDR,
     EC2_INSTANCE_TYPES,
     ELASTICACHE_INSTANCE_TYPES,
-    GRAPHITE,
-    GRAPHITE_WEB,
     HTTP,
     HTTPS,
-    KIBANA,
     POSTGRESQL,
     RDS_INSTANCE_TYPES,
     REDIS,
-    RELP,
     SSH,
-    STATSITE,
     VPC_CIDR
 )
 
@@ -208,16 +203,7 @@ class DataPlane(StackNode):
                 ec2.SecurityGroupRule(IpProtocol='tcp',
                                       CidrIp=Ref(self.ip_access),
                                       FromPort=p, ToPort=p)
-                for p in [GRAPHITE_WEB, KIBANA, SSH]
-            ] + [
-                ec2.SecurityGroupRule(IpProtocol='tcp',
-                                      CidrIp=VPC_CIDR,
-                                      FromPort=p, ToPort=p)
-                for p in [GRAPHITE, RELP, STATSITE]
-            ] + [
-                ec2.SecurityGroupRule(IpProtocol='udp', CidrIp=VPC_CIDR,
-                                      FromPort=p, ToPort=p)
-                for p in [STATSITE]
+                for p in [SSH]
             ],
             SecurityGroupEgress=[
                 ec2.SecurityGroupRule(IpProtocol='tcp',

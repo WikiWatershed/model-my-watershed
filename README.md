@@ -12,12 +12,7 @@ A combination of Vagrant 1.6+ and Ansible 1.8+ is used to setup the development 
 The `app` virtual machine contains an instance of the Django application, `services` contains:
 
 - PostgreSQL
-- Pgweb
 - Redis
-- Logstash
-- Kibana
-- Graphite
-- Statsite
 
 `tiler` contains:
 
@@ -105,17 +100,13 @@ envdir: fatal: unable to switch to directory /etc/mmw.d/env: access denied
 
 The Vagrant configuration maps the following host ports to services running in the virtual machines.
 
-Service                | Port | URL
----------------------- | -----| ------------------------------------------------
-Django Web Application | 8000 | [http://localhost:8000](http://localhost:8000)
-Graphite Dashboard     | 8080 | [http://localhost:8080](http://localhost:8080)
-Kibana Dashboard       | 5601 | [http://localhost:5601](http://localhost:5601)
-PostgreSQL             | 5432 | `psql -h localhost`
-pgweb                  | 5433 | [http://localhost:5433](http://localhost:5433)
-Redis                  | 6379 | `redis-cli -h localhost 6379`
-Testem                 | 7357 | [http://localhost:7357](http://localhost:7357)
-Tiler                  | 4000 | [http://localhost:4000](http://localhost:4000)
-Spark Job Server       | 8090 | [http://localhost:8090](http://localhost:8090)
+| Service                | Port | URL                                            |
+| ---------------------- | ---- | ---------------------------------------------- |
+| Django Web Application | 8000 | [http://localhost:8000](http://localhost:8000) |
+| PostgreSQL             | 5432 | `psql -h localhost`                            |
+| Redis                  | 6379 | `redis-cli -h localhost 6379`                  |
+| Testem                 | 7357 | [http://localhost:7357](http://localhost:7357) |
+| Tiler                  | 4000 | [http://localhost:4000](http://localhost:4000) |
 
 ### Caching
 

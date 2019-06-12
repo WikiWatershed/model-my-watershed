@@ -3,12 +3,6 @@ django_test_database: "{{ lookup('env', 'MMW_TEST_DB_NAME') | default('test_mmw'
 
 redis_port: 6379
 postgresql_port: 5432
-kibana_port: 5601
-relp_port: 20514
-graphite_port: 2003
-statsite_port: 8125
-apache_port: 8080
-graphite_web_port: "{{ apache_port }}"
 
 stack_color: "Black"
 
@@ -30,19 +24,13 @@ postgresql_support_psycopg2_version: "2.7"
 postgis_version: "2.2"
 postgis_package_version: "2.2.*.pgdg14.04+1"
 
-elasticsearch_cluster_name: "logstash"
 
 nodejs_npm_version: 2.1.17
 
-apache_version: "2.4.7-*"
 
 java_version: "8u*"
 java_major_version: "8"
 java_flavor: "openjdk"
-
-graphite_carbon_version: "0.9.13-pre1"
-graphite_whisper_version: "0.9.13-pre1"
-graphite_web_version: "0.9.13-pre1"
 
 docker_version: "1.9.*"
 docker_py_version: "1.2.3"

@@ -47,25 +47,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     services.vm.hostname = "services"
     services.vm.network "private_network", ip: ENV.fetch("MMW_SERVICES_IP", "33.33.34.30")
 
-    # Graphite Web
-    services.vm.network "forwarded_port", {
-      guest: 8080,
-      host: 8080
-    }.merge(VAGRANT_NETWORK_OPTIONS)
-    # Kibana
-    services.vm.network "forwarded_port", {
-      guest: 5601,
-      host: 5601
-    }.merge(VAGRANT_NETWORK_OPTIONS)
     # PostgreSQL
     services.vm.network "forwarded_port", {
       guest: 5432,
       host: 5432
-    }.merge(VAGRANT_NETWORK_OPTIONS)
-    # Pgweb
-    services.vm.network "forwarded_port", {
-      guest: 5433,
-      host: 5433
     }.merge(VAGRANT_NETWORK_OPTIONS)
     # Redis
     services.vm.network "forwarded_port", {
