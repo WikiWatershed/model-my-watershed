@@ -2,5 +2,4 @@
 dependencies:
   - { role: "model-my-watershed.base" }
   - { role: "azavea.nodejs" }
-  - { role: "azavea.mapnik" }
   - { role: "model-my-watershed.nginx" }

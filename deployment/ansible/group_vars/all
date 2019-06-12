@@ -24,10 +24,11 @@ postgresql_support_psycopg2_version: "2.7"
 postgis_version: "2.2"
 postgis_package_version: "2.2.*.pgdg16.04+1"
 
-
-nodejs_npm_version: 2.1.17
+daemontools_version: "1:0.76-6ubuntu1"
 
 python_version: "2.7.12-1~16.04"
+
+nodejs_npm_version: 2.1.17
 
 java_version: "8u*"
 java_major_version: "8"

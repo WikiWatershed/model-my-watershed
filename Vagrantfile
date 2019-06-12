@@ -147,11 +147,7 @@ Vagrant.configure("2") do |config|
     tiler.vm.hostname = "tiler"
     tiler.vm.network "private_network", ip: ENV.fetch("MMW_TILER_IP", "33.33.34.35")
 
-    if Vagrant::Util::Platform.windows? || Vagrant::Util::Platform.cygwin?
-      tiler.vm.synced_folder "src/tiler", "/opt/tiler/", type: "rsync", rsync__exclude: ["node_modules/"]
-    else
-      tiler.vm.synced_folder "src/tiler", "/opt/tiler/"
-    end
+    tiler.vm.synced_folder "src/tiler", "/opt/tiler"
 
     # Expose the tiler. Tiler is served by Nginx.
     tiler.vm.network "forwarded_port", {
@@ -164,6 +160,7 @@ Vagrant.configure("2") do |config|
     end
 
     tiler.vm.provision "ansible" do |ansible|
+      ansible.compatibility_mode = "2.0"
       ansible.playbook = "deployment/ansible/tile-servers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
