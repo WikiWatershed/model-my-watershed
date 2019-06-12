@@ -2,4 +2,4 @@
 dependencies:
   - { role: "model-my-watershed.base" }
   - { role: "azavea.nodejs" }
-  - { role: "azavea.nginx" }
+  - { role: "azavea.nginx", nginx_delete_default_site: True }
