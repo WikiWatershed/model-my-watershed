@@ -106,12 +106,7 @@ Vagrant.configure("2") do |config|
     app.vm.hostname = "app"
     app.vm.network "private_network", ip: ENV.fetch("MMW_APP_IP", "33.33.34.10")
 
-    if Vagrant::Util::Platform.windows? || Vagrant::Util::Platform.cygwin?
-      app.vm.synced_folder "src/mmw", "/opt/app/", type: "rsync", rsync__exclude: ["node_modules/", "apps/"]
-      app.vm.synced_folder "src/mmw/apps", "/opt/app/apps"
-    else
-      app.vm.synced_folder "src/mmw", "/opt/app/"
-    end
+    app.vm.synced_folder "src/mmw", "/opt/app"
 
     # Django via Nginx/Gunicorn
     app.vm.network "forwarded_port", {
@@ -137,6 +132,7 @@ Vagrant.configure("2") do |config|
     end
 
     app.vm.provision "ansible" do |ansible|
+      ansible.compatibility_mode = "2.0"
       ansible.playbook = "deployment/ansible/app-servers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]

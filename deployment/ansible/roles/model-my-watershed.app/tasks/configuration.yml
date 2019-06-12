@@ -15,6 +15,7 @@
     - Restart mmw-app
 
 - name: Configure service definition
-  template: src=upstart-app.conf.j2 dest=/etc/init/mmw-app.conf
+  template: src=systemd-app.conf.j2
+            dest=/etc/systemd/system/mmw-app.service
   notify:
     - Restart mmw-app
