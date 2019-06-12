@@ -1,0 +1,26 @@
+[Unit]
+Description=mmw-app
+After=network.target
+
+[Service]
+PermissionsStartOnly=true
+PIDFile=/run/mmw-app/mmw-app.pid
+User=mmw
+Group=mmw
+WorkingDirectory={{ app_home }}
+ExecStartPre=/bin/mkdir /run/mmw-app
+ExecStartPre=/bin/chown -R mmw:mmw /run/mmw-app
+ExecStart=/usr/bin/envdir /etc/mmw.d/env /usr/local/bin/gunicorn --pid /run/mmw-app/mmw-app.pid --config /etc/mmw.d/gunicorn.py mmw.wsgi
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+ExecStopPost=/bin/rm -rf /run/mmw-app
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=gunicorn
+
+[Install]
+{% if ['development', 'test'] | some_are_in(group_names) -%}
+WantedBy=opt_tiler.mount
+{% else %}
+WantedBy=multi-user.target
+{% endif %}
