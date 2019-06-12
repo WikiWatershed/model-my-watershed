@@ -1,6 +1,6 @@
 ---
 - name: Configure Nginx site
-  template: src=nginx-mmw-tiler.conf.j2
+  template: src=nginx-tiler.conf.j2
             dest=/etc/nginx/sites-available/mmw-tiler.conf
   notify:
     - Restart Nginx
@@ -11,3 +11,6 @@
         state=link
   notify:
     - Restart Nginx
+
+- name: Enable nginx service
+  service: name=nginx.service enabled=yes
