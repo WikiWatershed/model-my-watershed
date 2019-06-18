@@ -6,7 +6,7 @@
   "dependencies": {
     "aws-sdk": "2.1.45",
     "rollbar": "~0.6.2",
-    "windshaft": "0.36.0"
+    "windshaft": "5.2.1"
   },
   "devDependencies": {
     "supervisor": "^0.6.0"

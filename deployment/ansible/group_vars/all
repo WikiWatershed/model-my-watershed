@@ -28,7 +28,8 @@ daemontools_version: "1:0.76-6ubuntu1"
 
 python_version: "2.7.12-1~16.04"
 
-nodejs_npm_version: 2.1.17
+nodejs_version: 10.16.0
+nodejs_npm_version: 6.9.0
 
 java_version: "8u*"
 java_major_version: "8"
