@@ -68,7 +68,7 @@ Vagrant.configure("2") do |config|
     worker.vm.hostname = "worker"
     worker.vm.network "private_network", ip: ENV.fetch("MMW_WORKER_IP", "33.33.34.20")
 
-    worker.vm.synced_folder "src/mmw", "/opt/app/"
+    worker.vm.synced_folder "src/mmw", "/opt/app"
 
     # Path to RWD data (ex. /media/passport/rwd-nhd)
     worker.vm.synced_folder ENV.fetch("RWD_DATA", "/tmp"), "/opt/rwd-data"
@@ -94,6 +94,7 @@ Vagrant.configure("2") do |config|
     end
 
     worker.vm.provision "ansible" do |ansible|
+      ansible.compatibility_mode = "2.0"
       ansible.playbook = "deployment/ansible/workers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
