@@ -98,8 +98,6 @@ Vagrant.configure("2") do |config|
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
     end
-
-    worker.vm.provision "shell", inline: "service celeryd restart >> /dev/null 2>&1", run: "always"
   end
 
   config.vm.define "app" do |app|
