@@ -14,8 +14,11 @@
   notify:
     - Restart mmw-app
 
-- name: Configure service definition
-  template: src=systemd-app.conf.j2
+- name: Configure Gunicorn service definition
+  template: src=systemd-app.service.j2
             dest=/etc/systemd/system/mmw-app.service
   notify:
     - Restart mmw-app
+
+- name: Enable Gunicorn service
+  systemd: name=mmw-app.service enabled=yes state=started daemon_reload=yes

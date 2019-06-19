@@ -20,7 +20,7 @@ SyslogIdentifier=gunicorn
 
 [Install]
 {% if ['development', 'test'] | some_are_in(group_names) -%}
-WantedBy=opt_tiler.mount
+WantedBy=opt_app.mount
 {% else %}
 WantedBy=multi-user.target
 {% endif %}
