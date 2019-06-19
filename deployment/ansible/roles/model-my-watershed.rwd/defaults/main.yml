@@ -5,5 +5,5 @@ rwd_port: 5000
 rwd_docker_image: "quay.io/wikiwatershed/rwd:2.0.0"
 
 app_config:
-    RWD_HOST: "{{ rwd_host }}"
-    RWD_PORT: "{{ rwd_port }}"
+  RWD_HOST: "{{ rwd_host }}"
+  RWD_PORT: "{{ rwd_port }}"

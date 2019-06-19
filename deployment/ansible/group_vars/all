@@ -35,6 +35,7 @@ java_major_version: "8"
 java_flavor: "openjdk"
 
 docker_version: "5:18.*"
+docker_compose_version: "1.23.*"
 
 geop_host: "localhost"
 geop_port: 8090
