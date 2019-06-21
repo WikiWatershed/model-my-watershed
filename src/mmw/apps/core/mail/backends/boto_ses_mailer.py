@@ -34,7 +34,6 @@ class EmailBackend(BaseEmailBackend):
 
         if self.check_quota:
             remaining_quota = self.mailer.get_remaining_message_quota()
-            self._log_quota(remaining_quota)
         else:
             remaining_quota = sys.maxint
 
@@ -72,9 +71,6 @@ class EmailBackend(BaseEmailBackend):
         logger.error('Exception raised while sending email '
                      'with subject "%s" to %s: %s' % (
                          email_message.subject, email_message.to, trace))
-
-    def _log_quota(self, quota):
-        pass
 
 
 class SESQuotaException(Exception):
