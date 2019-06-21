@@ -20,11 +20,14 @@
   notify:
     - Restart Nginx
 
+- name: Enable Nginx service
+  service: name=nginx.service enabled=yes
+
 - name: Configure geoprocessing service definition
-  template: src=upstart-geoprocessing.conf.j2
-            dest=/etc/init/geoprocessing.conf
+  template: src=systemd-geoprocessing.service.j2
+            dest=/etc/systemd/system/mmw-geoprocessing.service
   notify:
     - Restart geoprocessing service
 
-- name: Ensure geoprocessing service is running
-  service: name=geoprocessing state=started
+- name: Enable geoprocessing service
+  systemd: name=mmw-geoprocessing.service enabled=yes state=started daemon_reload=yes

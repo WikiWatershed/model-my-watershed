@@ -1,5 +1,0 @@
----
-dependencies:
-  - { role: "azavea.relp" }
-  - { role: "model-my-watershed.elasticsearch" }
-  - { role: "azavea.logstash" }

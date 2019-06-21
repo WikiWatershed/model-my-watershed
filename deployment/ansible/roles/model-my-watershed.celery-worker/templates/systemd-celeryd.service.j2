@@ -1,0 +1,42 @@
+[Unit]
+Description=celeryd
+After=network.target
+
+[Service]
+Type=forking
+User=celery
+Group=celery
+PermissionsStartOnly=true
+Environment="CELERY_BIN=/usr/bin/envdir /etc/mmw.d/env /usr/local/bin/celery"
+Environment="CELERY_APP={{ celery_app }}"
+Environment="CELERYD_LOG_LEVEL={{ celery_log_level }}"
+Environment="CELERYD_OPTS=--time-limit=300 --concurrency={{ celery_processes_per_worker }}"
+Environment="CELERYD_PID_FILE={{ celery_pid_files | replace("%", "%%") }}"
+Environment="CELERYD_LOG_FILE={{ celery_logs | replace("%", "%%") }}"
+WorkingDirectory={{ celery_dir }}
+ExecStartPre=/bin/mkdir -p {{ celery_pid_dir }} {{ celery_log_dir }}
+ExecStartPre=/bin/chown -R celery:celery {{ celery_pid_dir }}
+ExecStartPre=/bin/chown -R celery:celery {{ celery_log_dir }}
+ExecStartPre=/bin/chmod -R 755 {{ celery_pid_dir }}
+ExecStartPre=/bin/chmod -R 755 {{ celery_log_dir }}
+ExecStart=/bin/sh -c '${CELERY_BIN} multi start {% for id in range(0,celery_number_of_workers) %}$(/bin/cat /etc/mmw.d/env/MMW_STACK_COLOR)-worker{{ id }} {% endfor %} -A \
+	$CELERY_APP --loglevel=${CELERYD_LOG_LEVEL} \
+	--pidfile=${CELERYD_PID_FILE} \
+	--logfile=${CELERYD_LOG_FILE} \
+	$CELERYD_OPTS'
+ExecStop=/bin/sh -c '${CELERY_BIN} multi stopwait {% for id in range(0,celery_number_of_workers) %}$(/bin/cat /etc/mmw.d/env/MMW_STACK_COLOR)-worker{{ id }} {% endfor %} \
+	--pidfile=${CELERYD_PID_FILE}'
+ExecStopPost=/bin/rm -rf {{ celery_pid_dir }}
+ExecStopPost=/bin/rm -rf {{ celery_pid_dir }}
+ExecReload=/bin/sh -c '${CELERY_BIN} multi restart {% for id in range(0,celery_number_of_workers) %}$(/bin/cat /etc/mmw.d/env/MMW_STACK_COLOR)-worker{{ id }} {% endfor %} -A \
+	$CELERY_APP --loglevel=${CELERYD_LOG_LEVEL} \
+	--pidfile=${CELERYD_PID_FILE} \
+	--logfile=${CELERYD_LOG_FILE} \
+	$CELERYD_OPTS'
+
+[Install]
+{% if ['development', 'test'] | some_are_in(group_names) -%}
+WantedBy=opt-app.mount
+{% else %}
+WantedBy=multi-user.target
+{% endif %}

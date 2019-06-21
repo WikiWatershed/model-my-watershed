@@ -13,9 +13,6 @@ services_ip: "{{ lookup('env', 'MMW_SERVICES_IP') | default('33.33.34.30', true)
 
 redis_host: "{{ services_ip }}"
 postgresql_host: "{{ services_ip }}"
-relp_host: "{{ services_ip }}"
-graphite_host: "{{ services_ip }}"
-statsite_host: "{{ services_ip }}"
 tiler_host: "{{ lookup('env', 'MMW_TILER_IP') | default('33.33.34.35', true) }}"
 
 celery_log_level: "DEBUG"

@@ -2,7 +2,8 @@ server {
   listen *:80;
   server_name _;
 
-  access_log /var/log/nginx/geoprocessing.access.log logstash_json;
+  error_log syslog:server=unix:/dev/log,facility=local7,tag=nginx_app,severity=error;
+  access_log syslog:server=unix:/dev/log,facility=local7,tag=nginx_geop,severity=info combined;
 
   {% if ['packer'] | is_in(group_names) -%}
   location /version.txt {

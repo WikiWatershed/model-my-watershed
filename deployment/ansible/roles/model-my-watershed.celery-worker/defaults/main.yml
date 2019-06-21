@@ -13,8 +13,10 @@ app_config:
 app_postgis_version: 2.1.3
 app_secret_key: "{{ postgresql_password | md5 }}"
 
-celery_pid_files: "/var/run/celery/%n.pid"
-celery_logs: "/var/log/celery/%n.log"
+celery_pid_dir: "/run/celery"
+celery_log_dir: "/var/log/celery"
+celery_pid_files: "{{ celery_pid_dir }}/%n.pid"
+celery_logs: "{{ celery_log_dir }}/%n.log"
 celery_number_of_workers: 2
 celery_processes_per_worker: 1
 celery_log_level: "INFO"

@@ -64,13 +64,6 @@ TEMPLATE_DEBUG = DEBUG
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 # END FILE STORAGE CONFIGURATION
 
-
-# STATSD CONFIGURATION
-STATSD_CLIENT = 'django_statsd.clients.normal'
-STATSD_PREFIX = 'django'
-STATSD_HOST = environ.get('MMW_STATSD_HOST', 'localhost')
-# END STATSD CONFIGURATION
-
 # STACK COLOR CONFIGURATION
 STACK_COLOR = environ.get('MMW_STACK_COLOR', 'Black')
 # END STACK COLOR CONFIGURATION
@@ -79,7 +72,6 @@ STACK_COLOR = environ.get('MMW_STACK_COLOR', 'Black')
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#caches
 CACHES = {
     'default': {
-        # The Redis database at index 0 is used by Logstash/Beaver
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': 'redis://{0}:{1}/1'.format(
             environ.get('MMW_CACHE_HOST', 'localhost'),
@@ -129,7 +121,6 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'django-cache'
-STATSD_CELERY_SIGNALS = True
 CELERY_CREATE_MISSING_QUEUES = True
 CELERY_CHORD_PROPAGATES = True
 CELERY_TASK_DEFAULT_QUEUE = STACK_COLOR
@@ -277,8 +268,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django_statsd.middleware.GraphiteRequestTimingMiddleware',
-    'django_statsd.middleware.GraphiteMiddleware',
     'apps.user.middleware.ItsiAuthenticationMiddleware',
 )
 # END MIDDLEWARE CONFIGURATION

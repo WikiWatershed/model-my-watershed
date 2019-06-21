@@ -6,7 +6,6 @@ from __future__ import absolute_import
 from celery import shared_task
 from django.conf import settings
 
-from django_statsd.clients import statsd
 from django.contrib.gis.geos import GEOSGeometry
 
 from apps.modeling.geoprocessing import NOWKAOI, multi, run, parse
@@ -546,7 +545,6 @@ def convert_data(payload, wkaoi):
 
 
 @shared_task
-@statsd.timer(__name__ + '.collect_subbasin')
 def collect_subbasin(payload, shapes):
     # Gather weather stations and their data
     # collectively to avoid re-reading stations

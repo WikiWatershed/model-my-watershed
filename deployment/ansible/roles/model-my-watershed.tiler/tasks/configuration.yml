@@ -1,6 +1,9 @@
 ---
-- name: Configure service definition
-  template: src=upstart-mmw-tiler.conf.j2
-            dest=/etc/init/mmw-tiler.conf
+- name: Configure Windshaft service definition
+  template: src=systemd-tiler.service.j2
+            dest=/etc/systemd/system/mmw-tiler.service
   notify:
     - Restart mmw-tiler
+
+- name: Enable Windshaft service
+  systemd: name=mmw-tiler.service enabled=yes state=started daemon_reload=yes

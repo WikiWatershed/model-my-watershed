@@ -1,18 +1,13 @@
 ---
 - name: Configure Celery service definition
-  template: src=celeryd.j2
-            dest=/etc/init.d/celeryd
+  template: src=systemd-celeryd.service.j2
+            dest=/etc/systemd/system/celeryd.service
             mode=0755
   notify:
     - Restart Celery
 
-- name: Configure Celery service definition defaults
-  template: src=celeryd-defaults.j2 dest=/etc/default/celeryd
-  notify:
-    - Restart Celery
-
 - name: Enable Celery service
-  service: name=celeryd enabled=yes state=started
+  systemd: name=celeryd.service enabled=yes state=started daemon_reload=yes
 
 - name: Setup daily Celery service restart
   cron:

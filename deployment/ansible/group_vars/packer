@@ -21,9 +21,6 @@ ntp_servers:
 
 redis_host: "cache.service.mmw.internal"
 postgresql_host: "database.service.mmw.internal"
-relp_host: "monitoring.service.mmw.internal"
-graphite_host: "monitoring.service.mmw.internal"
-statsite_host: "monitoring.service.mmw.internal"
 
 tiler_host: ""
 tilecache_bucket_name: ""

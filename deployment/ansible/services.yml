@@ -8,9 +8,4 @@
 
   roles:
     - { role: "model-my-watershed.postgresql", when: "['development', 'test'] | some_are_in(group_names)" }
-    - { role: "model-my-watershed.pgweb", when: "['development', 'test'] | some_are_in(group_names)" }
     - { role: "azavea.redis", when: "['development', 'test'] | some_are_in(group_names)" }
-
-    - { role: "model-my-watershed.graphite", when: "['test'] | is_not_in(group_names)" }
-    - { role: "model-my-watershed.logstash", when: "['test'] | is_not_in(group_names)" }
-    - { role: "azavea.kibana", when: "['test'] | is_not_in(group_names)" }

@@ -3,4 +3,3 @@
 - { include: app.yml, when: "['packer'] | is_in(group_names)" }
 - { include: dependencies.yml }
 - { include: reverse-proxy.yml }
-- { include: log-rotation.yml }
