@@ -72,7 +72,6 @@ STACK_COLOR = environ.get('MMW_STACK_COLOR', 'Black')
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#caches
 CACHES = {
     'default': {
-        # The Redis database at index 0 is used by Logstash/Beaver
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': 'redis://{0}:{1}/1'.format(
             environ.get('MMW_CACHE_HOST', 'localhost'),
