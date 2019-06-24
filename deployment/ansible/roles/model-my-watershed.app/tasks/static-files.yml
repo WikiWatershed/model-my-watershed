@@ -11,17 +11,9 @@
     - "{{ app_static_cache }}"
 
 - name: Install application JavaScript dependencies
-  command: "npm install --unsafe-perm"
-  args:
-    chdir: "{{ app_home }}"
+  npm:
+    path: "{{ app_home }}"
   become: False
-
-- name: Check for lint
-  command: "npm run lint"
-  args:
-    chdir: "{{ app_home }}"
-  become: False
-  ignore_errors: True
 
 - name: Create JS bundles (staging/production)
   command: "./bundle.sh --vendor --tests"

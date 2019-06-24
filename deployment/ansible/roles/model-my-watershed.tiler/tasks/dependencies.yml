@@ -16,9 +16,6 @@
     state: present
 
 - name: Install Windshaft JavaScript dependencies
-  command: npm install --unsafe-perm
-  args:
-    chdir: "{{ tiler_home }}"
-  environment:
-    PKG_CONFIG_PATH: "/usr/lib/pkgconfig/pycairo.pc"
+  npm:
+    path: "{{ tiler_home }}"
   become: False
