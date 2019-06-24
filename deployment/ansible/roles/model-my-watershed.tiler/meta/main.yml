@@ -1,5 +1,5 @@
 ---
 dependencies:
   - { role: "model-my-watershed.base" }
-  - { role: "azavea.nodejs" }
+  - { role: "azavea.nodejs", nodejs_version: "{{ tiler_nodejs_version }}", nodejs_npm_version: "{{ tiler_nodejs_npm_version }}" }
   - { role: "azavea.nginx", nginx_delete_default_site: True }
