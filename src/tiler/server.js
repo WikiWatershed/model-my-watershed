@@ -123,7 +123,7 @@ var interactivity = {
 
         var waterQualitySql = function(qualityMap, streamOrder) {
             var sql = [];
-            sql.push('(SELECT geom, stream_order, ')
+            sql.push('SELECT geom, stream_order, ')
             sql.push(qualityMap.join(''), ' ')
             sql.push('AS nhd_qual_grp ')
             sql.push('FROM ',tables.nhd_streams_v2,' ')
@@ -141,8 +141,8 @@ var interactivity = {
         } else if (tableId === 'nhd_quality_tss') {
             return waterQualitySql(caseSql(NHD_QUALITY_TSS_MAP, 'tss_concmgl'), stream_order);
         } else {
-            return '(SELECT geom, stream_order FROM ' + tableName +
-              ' WHERE stream_order >= ' + stream_order + ') as q';
+            return 'SELECT geom, stream_order FROM ' + tableName +
+              ' WHERE stream_order >= ' + stream_order;
         }
     },
 
