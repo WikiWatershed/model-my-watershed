@@ -9,7 +9,6 @@ var RedisPool = require('redis-mpool');
 var _ = require('underscore');
 var mapnik = require('@carto/mapnik');
 var aws = require('aws-sdk');
-var rollbar = require('rollbar');
 var stream = require('stream');
 
 // Express Middleware
@@ -17,6 +16,7 @@ var morgan = require('morgan');
 
 var windshaft = require('windshaft');
 
+var rollbar = require('./rollbar');
 var MapController = require('./mapController.js');
 
 //

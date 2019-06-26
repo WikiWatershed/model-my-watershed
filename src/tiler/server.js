@@ -1,6 +1,6 @@
 var WindshaftServer = require('./http/windshaftServer'),
+    rollbar = require('./http/rollbar'),
     healthCheck = require('./healthCheck'),
-    rollbar = require('rollbar'),
     fs = require('fs'),
     getStyle = name =>
         fs.readFileSync('styles/_variables.mss', { encoding: 'utf8' }) +
@@ -24,8 +24,7 @@ var dbUser = process.env.MMW_DB_USER,
     redisHost = process.env.MMW_CACHE_HOST,
     redisPort = process.env.MMW_CACHE_PORT,
     tileCacheBucket = process.env.MMW_TILECACHE_BUCKET,
-    stackType = process.env.MMW_STACK_TYPE,
-    rollbarAccessToken = process.env.ROLLBAR_SERVER_SIDE_ACCESS_TOKEN;
+    stackType = process.env.MMW_STACK_TYPE;
 
 // Updates to steps should also be made to the legend_mappings in mmw/settings/layer_settings
 var NHD_QUALITY_TSS_MAP = {
@@ -292,5 +291,5 @@ var config = {
 var ws = new WindshaftServer(config);
 ws.get('/health-check', healthCheck(config));
 ws.listen(4000);
-ws.use(rollbar.errorHandler(rollbarAccessToken, {environment: stackType}));
+ws.use(rollbar.errorHandler({ environment: stackType }));
 console.log('Starting MMW Windshaft tiler on http://localhost:4000' + config.base_url + '/:z/:x/:y.*');
