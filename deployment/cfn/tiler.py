@@ -57,6 +57,8 @@ class Tiler(StackNode):
         'GlobalNotificationsARN': ['global:GlobalNotificationsARN'],
         'RollbarServerSideAccessToken':
         ['global:RollbarServerSideAccessToken'],
+        'PapertrailHost': ['global:PapertrailHost'],
+        'PapertrailPort': ['global:PapertrailPort'],
     }
 
     DEFAULTS = {
@@ -80,10 +82,7 @@ class Tiler(StackNode):
     def set_up_stack(self):
         super(Tiler, self).set_up_stack()
 
-        tags = self.get_input('Tags').copy()
-        tags.update({'StackType': 'Tiler'})
-
-        self.default_tags = tags
+        self.default_tags = self.get_input('Tags').copy()
         self.region = self.get_input('Region')
 
         self.add_description('Tile server stack for MMW')
@@ -201,6 +200,16 @@ class Tiler(StackNode):
             Description='ARN for an SNS topic to broadcast notifications'
         ), 'GlobalNotificationsARN')
 
+        self.papertrail_host = self.add_parameter(Parameter(
+            'PapertrailHost', Type='String',
+            Description='Hostname for Papertrail log destination',
+        ), 'PapertrailHost')
+
+        self.papertrail_port = self.add_parameter(Parameter(
+            'PapertrailPort', Type='String',
+            Description='Port for Papertrail log destination',
+        ), 'PapertrailPort')
+
         tile_server_lb_security_group, \
             tile_server_security_group = self.create_security_groups()
         tile_server_lb = self.create_load_balancer(
@@ -221,8 +230,11 @@ class Tiler(StackNode):
         try:
             tile_server_ami_id = self.get_input('TileServerAMI')
         except MKUnresolvableInputError:
-            tile_server_ami_id = get_recent_ami(self.aws_profile,
-                                                'mmw-tiler-*')
+            filters = {'name': 'mmw-tiler*'}
+
+            tile_server_ami_id = get_recent_ami(
+                self.aws_profile, filters=filters, region=self.region
+            )
 
         return tile_server_ami_id
 
@@ -279,7 +291,7 @@ class Tiler(StackNode):
                     IpProtocol='tcp', CidrIp=ALLOW_ALL_CIDR, FromPort=p,
                     ToPort=p
                 )
-                for p in [HTTP, HTTPS]
+                for p in [HTTP, HTTPS, self.get_input('PapertrailPort')]
             ],
             Tags=self.get_tags(Name=tile_server_security_group_name)
         ))
@@ -412,7 +424,29 @@ class Tiler(StackNode):
                 '  - path: /etc/mmw.d/env/ROLLBAR_SERVER_SIDE_ACCESS_TOKEN\n',
                 '    permissions: 0440\n',
                 '    owner: root:mmw\n',
-                '    content: ', self.get_input('RollbarServerSideAccessToken')]  # NOQA
+                '    content: ', self.get_input('RollbarServerSideAccessToken'), '\n' # NOQA
+                '\n',
+                'rsyslog:\n',
+                '  - $DefaultNetstreamDriverCAFile /etc/papertrail-bundle.pem # trust these CAs\n',
+                '  - $PreserveFQDN off\n',
+                '  - $ActionSendStreamDriver gtls # use gtls netstream driver\n',
+                '  - $ActionSendStreamDriverMode 1 # require TLS\n',
+                '  - $ActionSendStreamDriverAuthMode x509/name # authenticate by hostname\n',
+                '  - $ActionSendStreamDriverPermittedPeer *.papertrailapp.com\n',
+                '  - $ActionResumeInterval 10\n',
+                '  - $ActionQueueSize 100000\n',
+                '  - $ActionQueueDiscardMark 97500\n',
+                '  - $ActionQueueHighWaterMark 80000\n',
+                '  - $ActionQueueType LinkedList\n',
+                '  - $ActionQueueFileName papertrailqueue\n',
+                '  - $ActionQueueCheckpointInterval 100\n',
+                '  - $ActionQueueMaxDiskSpace 2g\n',
+                '  - $ActionResumeRetryCount -1\n',
+                '  - $ActionQueueSaveOnShutdown on\n',
+                '  - $ActionQueueTimeoutEnqueue 2\n',
+                '  - $ActionQueueDiscardSeverity 0\n',
+                '  - "*.*  @@', Ref(self.papertrail_host), ':', Ref(self.papertrail_port), '"\n',
+                'rsyslog_filename: 22-mmw-papertrail.conf\n']
 
     def create_dns_records(self, tile_server_lb):
         self.add_condition('BlueCondition', Equals('Blue', Ref(self.color)))

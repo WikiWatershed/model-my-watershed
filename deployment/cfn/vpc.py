@@ -23,10 +23,6 @@ from utils.constants import (
 
 from majorkirby import StackNode, MKUnresolvableInputError
 
-
-cidr_generator = get_subnet_cidr_block()
-
-
 class VPC(StackNode):
     INPUTS = {
         'Tags': ['global:Tags'],
@@ -36,6 +32,7 @@ class VPC(StackNode):
         'AvailabilityZones': ['global:AvailabilityZones'],
         'NATInstanceType': ['global:NATInstanceType'],
         'NATInstanceAMI': ['global:NATInstanceAMI'],
+        'PapertrailPort': ['global:PapertrailPort'],
     }
 
     DEFAULTS = {
@@ -49,20 +46,17 @@ class VPC(StackNode):
 
     ATTRIBUTES = {'StackType': 'StackType'}
 
-    PUBLIC_SUBNETS = []
-    PRIVATE_SUBNETS = []
-
     _NAT_SECURITY_GROUP_CACHE = None
 
     def set_up_stack(self):
         super(VPC, self).set_up_stack()
 
-        tags = self.get_input('Tags').copy()
-        tags.update({'StackType': 'VPC'})
-
-        self.default_tags = tags
+        self.default_tags = self.get_input('Tags').copy()
         self.region = self.get_input('Region')
-        self.availability_zones = get_availability_zones(self.aws_profile)
+        self.availability_zones = get_availability_zones(self.aws_profile,
+                                                        ['us-east-1b', 'us-east-1d'])
+        self.public_subnet_cidr_ranges = iter(['10.0.2.0/24', '10.0.4.0/24'])
+        self.private_subnet_cidr_ranges = iter(['10.0.3.0/24', '10.0.5.0/24'])
 
         self.add_description('VPC stack for MMW')
 
@@ -84,6 +78,11 @@ class VPC(StackNode):
             Description='NAT EC2 Instance AMI'
         ), 'NATInstanceAMI')
 
+        self.papertrail_port = self.add_parameter(Parameter(
+            'PapertrailPort', Type='String',
+            Description='Port for Papertrail log destination',
+        ), 'PapertrailPort')
+
         public_route_table = self.create_vpc()
 
         self.add_output(Output('AvailabilityZones',
@@ -98,8 +97,11 @@ class VPC(StackNode):
         try:
             nat_ami_id = self.get_input('NATInstanceAMI')
         except MKUnresolvableInputError:
-            nat_ami_id = get_recent_ami(self.aws_profile, '*ami-vpc-nat-hvm*',
-                                        owner='amazon')
+            filters = {'name': '*ami-vpc-nat-hvm*'}
+
+            nat_ami_id = get_recent_ami(
+                self.aws_profile, filters=filters, region=self.region, owner='amazon'
+            )
 
         return nat_ami_id
 
@@ -162,7 +164,7 @@ class VPC(StackNode):
             public_subnet = self.create_resource(ec2.Subnet(
                 public_subnet_name,
                 VpcId=Ref(self.vpc),
-                CidrBlock=cidr_generator.next(),
+                CidrBlock=next(self.public_subnet_cidr_ranges),
                 AvailabilityZone=availability_zone.name,
                 Tags=self.get_tags(Name=public_subnet_name)
             ))
@@ -178,7 +180,7 @@ class VPC(StackNode):
             private_subnet = self.create_resource(ec2.Subnet(
                 private_subnet_name,
                 VpcId=Ref(self.vpc),
-                CidrBlock=cidr_generator.next(),
+                CidrBlock=next(self.private_subnet_cidr_ranges),
                 AvailabilityZone=availability_zone.name,
                 Tags=self.get_tags(Name=private_subnet_name)
                 ))
@@ -196,9 +198,6 @@ class VPC(StackNode):
                 SubnetId=Ref(private_subnet),
                 RouteTableId=Ref(private_route_table)
             ))
-
-            self.PUBLIC_SUBNETS.append(public_subnet)
-            self.PRIVATE_SUBNETS.append(private_subnet)
 
             if availability_zone.name in self.get_input('AvailabilityZones').split(','):  # NOQA
                 self.create_nat(availability_zone, public_subnet,
@@ -253,14 +252,14 @@ class VPC(StackNode):
                                           IpProtocol='tcp', CidrIp=VPC_CIDR,
                                           FromPort=p, ToPort=p
                                       )
-                                      for p in [HTTP, HTTPS]
+                                      for p in [HTTP, HTTPS, self.get_input('PapertrailPort')]
                                   ],
                                   SecurityGroupEgress=[
                                       ec2.SecurityGroupRule(
                                           IpProtocol='tcp',
                                           CidrIp=ALLOW_ALL_CIDR,
                                           FromPort=port, ToPort=port
-                                      ) for port in [HTTP, HTTPS]
+                                      ) for port in [HTTP, HTTPS, self.get_input('PapertrailPort')]
                                   ],
                                   Tags=self.get_tags(Name=nat_security_group_name)),  # NOQA
                                   'NATSecurityGroup'

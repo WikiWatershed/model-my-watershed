@@ -1,0 +1,8 @@
+module(load="imfile")
+
+{% for id in range(0,celery_number_of_workers) %}
+input(type="imfile"
+      File="/var/log/celery/*-worker{{ id }}.log"
+      stateFile="imfile-state:-var-log-celery-worker{{ id }}.log"
+      Tag="celery-worker-{{ id }}")
+{% endfor %}

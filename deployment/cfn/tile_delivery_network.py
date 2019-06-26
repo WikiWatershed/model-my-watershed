@@ -41,10 +41,7 @@ class TileDeliveryNetwork(StackNode):
     def set_up_stack(self):
         super(TileDeliveryNetwork, self).set_up_stack()
 
-        tags = self.get_input('Tags').copy()
-        tags.update({'StackType': 'TileDeliveryNetwork'})
-
-        self.default_tags = tags
+        self.default_tags = self.get_input('Tags').copy()
         self.region = self.get_input('Region')
 
         self.add_description('Tile delivery network stack for MMW')
