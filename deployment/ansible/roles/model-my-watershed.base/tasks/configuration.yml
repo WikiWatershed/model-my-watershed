@@ -29,3 +29,6 @@
   notify:
     - Restart mmw-app
     - Restart Celery
+
+- import_tasks: papertrail.yml
+  when: "['development'] | is_not_in(group_names)"

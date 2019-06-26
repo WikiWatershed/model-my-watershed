@@ -28,3 +28,5 @@
   version: 0.6.2
 - src: azavea.docker
   version: 4.0.0
+- src: azavea.papertrail
+  version: 2.0.0

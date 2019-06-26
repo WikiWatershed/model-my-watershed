@@ -25,4 +25,7 @@ postgresql_host: "database.service.mmw.internal"
 tiler_host: ""
 tilecache_bucket_name: ""
 
+papertrail_host: ""
+papertrail_port: ""
+
 stack_type: "Packer"

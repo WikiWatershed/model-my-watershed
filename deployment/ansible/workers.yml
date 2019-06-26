@@ -2,6 +2,10 @@
 - hosts: workers
   become: True
 
+  vars:
+    papertrail_files:
+      - "/var/log/celery/*.log"
+
   pre_tasks:
     - name: Update APT cache
       apt: update_cache=yes cache_valid_time=3600

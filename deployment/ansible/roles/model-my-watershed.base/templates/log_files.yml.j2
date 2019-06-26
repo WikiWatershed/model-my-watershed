@@ -1,0 +1,11 @@
+{% if papertrail_files is defined %}
+files:
+{% for file in papertrail_files %}
+  - {{ file }}
+{% endfor %}
+{% endif %}
+destination:
+  host: {{ papertrail_host }}
+  port: {{ papertrail_port }}
+  protocol: tls
+new_file_check_interval: "10"
