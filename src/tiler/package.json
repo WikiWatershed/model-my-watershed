@@ -4,8 +4,17 @@
   "description": "",
   "main": "server.js",
   "dependencies": {
+    "@carto/mapnik": "^3.6.2-carto.15",
     "aws-sdk": "^2.482.0",
+    "debug": "^4.1.1",
+    "express": "^4.17.1",
+    "morgan": "^1.9.1",
+    "pg": "^7.11.0",
+    "redis": "^2.8.0",
+    "redis-mpool": "^0.7.0",
     "rollbar": "^2.7.1",
+    "step": "^1.0.0",
+    "underscore": "^1.9.1",
     "windshaft": "5.4.0"
   },
   "devDependencies": {
