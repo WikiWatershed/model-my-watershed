@@ -1,5 +1,4 @@
-var aws = require('aws-sdk'),
-    Windshaft = require('windshaft'),
+var WindshaftServer = require('./http/windshaftServer'),
     healthCheck = require('./healthCheck'),
     rollbar = require('rollbar'),
     fs = require('fs'),
@@ -201,49 +200,9 @@ var config = {
 
     enable_cors: true,
 
-    beforeTileRender: function(req, res, callback) {
-        try {
-            callback(null);
-        } catch (ex) {
-            rollbar.handleError(ex, req);
-            callback(ex);
-        }
-    },
-
-    afterTileRender: function(req, res, tile, headers, callback) {
-        try {
-            // Complete render pipline first, add cache header for
-            // 30 days
-            headers['Cache-Control'] = 'max-age=2592000';
-            callback(null, tile, headers);
-
-            // Check if the environment is set up to cache tiles
-            if (!shouldCacheRequest(req)) { return; }
-
-            var cleanUrl = req.url[0] === '/' ? req.url.substr(1) : req.url,
-                s3Obj = new aws.S3({params: {Bucket: tileCacheBucket, Key: cleanUrl}}),
-                body;
-
-            if (Buffer.isBuffer(tile)) {
-                body = new stream.PassThrough();
-                body.end(tile);
-            } else {
-                body = JSON.stringify(tile);
-            }
-
-            if (body) {
-                s3Obj.upload({Body: body}, function(err, data) {
-                    if (err) {
-                        throw (err);
-                    }
-                });
-            }
-
-            callback(null);
-        } catch (ex) {
-            rollbar.handleError(ex, req);
-            callback(ex, null);
-        }
+    // Custom config used for caching tiles to S3
+    s3Cache: {
+        bucket: tileCacheBucket,
     },
 
     req2params: function(req, callback) {
@@ -279,7 +238,7 @@ var config = {
 };
 
 // Initialize tile server on port 4000
-var ws = new Windshaft.Server(config);
+var ws = new WindshaftServer(config);
 ws.get('/health-check', healthCheck(config));
 ws.listen(4000);
 ws.use(rollbar.errorHandler(rollbarAccessToken, {environment: stackType}));
