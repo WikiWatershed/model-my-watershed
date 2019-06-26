@@ -4,8 +4,8 @@
   "description": "",
   "main": "server.js",
   "dependencies": {
-    "aws-sdk": "2.1.45",
-    "rollbar": "~0.6.2",
+    "aws-sdk": "^2.482.0",
+    "rollbar": "^2.7.1",
     "windshaft": "5.4.0"
   },
   "devDependencies": {
