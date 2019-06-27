@@ -31,4 +31,4 @@
     - Restart Celery
 
 - import_tasks: papertrail.yml
-  when: "['development'] | is_not_in(group_names)"
+  when: "['packer'] | is_in(group_names)"
