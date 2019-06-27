@@ -11,8 +11,9 @@
     - "{{ app_static_cache }}"
 
 - name: Install application JavaScript dependencies
-  npm:
-    path: "{{ app_home }}"
+  command: "npm install --unsafe-perm"
+  args:
+    chdir: "{{ app_home }}"
   become: False
 
 - name: Create JS bundles (staging/production)
