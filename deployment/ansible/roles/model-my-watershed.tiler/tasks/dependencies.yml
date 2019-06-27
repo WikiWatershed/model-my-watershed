@@ -19,6 +19,4 @@
   command: npm install --unsafe-perm
   args:
     chdir: "{{ tiler_home }}"
-  environment:
-    PKG_CONFIG_PATH: "/usr/lib/pkgconfig/pycairo.pc"
   become: False

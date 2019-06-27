@@ -1,10 +1,20 @@
-var aws = require('aws-sdk'),
-    Windshaft = require('windshaft'),
+var WindshaftServer = require('./http/windshaftServer'),
+    rollbar = require('./http/rollbar'),
     healthCheck = require('./healthCheck'),
-    rollbar = require('rollbar'),
     fs = require('fs'),
-    stream = require('stream'),
-    styles = fs.readFileSync('styles.mss', { encoding: 'utf8' });
+    getStyle = name =>
+        fs.readFileSync('styles/_variables.mss', { encoding: 'utf8' }) +
+        fs.readFileSync(`styles/${name}.mss`, { encoding: 'utf8' }),
+    styles = {
+        boundary: getStyle('boundary'),
+        dep_municipalities: getStyle('dep_municipalities'),
+        dep_urban_areas: getStyle('dep_urban_areas'),
+        drb_catchment_water_quality_tn: getStyle('drb_catchment_water_quality_tn'),
+        drb_catchment_water_quality_tp: getStyle('drb_catchment_water_quality_tp'),
+        drb_catchment_water_quality_tss: getStyle('drb_catchment_water_quality_tss'),
+        quality: getStyle('quality'),
+        streams: getStyle('streams'),
+    };
 
 var dbUser = process.env.MMW_DB_USER,
     dbPass = process.env.MMW_DB_PASSWORD,
@@ -14,8 +24,7 @@ var dbUser = process.env.MMW_DB_USER,
     redisHost = process.env.MMW_CACHE_HOST,
     redisPort = process.env.MMW_CACHE_PORT,
     tileCacheBucket = process.env.MMW_TILECACHE_BUCKET,
-    stackType = process.env.MMW_STACK_TYPE,
-    rollbarAccessToken = process.env.ROLLBAR_SERVER_SIDE_ACCESS_TOKEN;
+    stackType = process.env.MMW_STACK_TYPE;
 
 // Updates to steps should also be made to the legend_mappings in mmw/settings/layer_settings
 var NHD_QUALITY_TSS_MAP = {
@@ -49,25 +58,76 @@ var interactivity = {
         'boundary_huc12': 'name,id'
     },
     tables = {
-        county: 'boundary_county',
-        district: 'boundary_district',
-        school: 'boundary_school_district',
-        huc8: 'boundary_huc08',
-        huc10: 'boundary_huc10',
-        huc12: 'boundary_huc12',
-        drb_streams_v2: 'drb_streams_50',
-        nhd_streams_v2: 'nhdflowline',
-        nhd_quality_tn: 'nhd_quality_tn',
-        nhd_quality_tp: 'nhd_quality_tp',
-        nhd_quality_tss: 'nhd_quality_tss',
-        municipalities: 'dep_municipalities',
-        urban_areas: 'dep_urban_areas',
+        county: {
+            name: 'boundary_county',
+            style: styles.boundary,
+        },
+        district: {
+            name: 'boundary_district',
+            style: styles.boundary,
+        },
+        school: {
+            name: 'boundary_school_district',
+            style: styles.boundary,
+        },
+        huc8: {
+            name: 'boundary_huc08',
+            style: styles.boundary,
+        },
+        huc10: {
+            name: 'boundary_huc10',
+            style: styles.boundary,
+        },
+        huc12: {
+            name: 'boundary_huc12',
+            style: styles.boundary,
+        },
+        drb_streams_v2: {
+            name: 'drb_streams_50',
+            style: styles.streams,
+        },
+        nhd_streams_v2: {
+            name: 'nhdflowline',
+            style: styles.streams,
+        },
+        nhd_quality_tn: {
+            name: 'nhd_quality_tn',
+            style: styles.quality,
+        },
+        nhd_quality_tp: {
+            name: 'nhd_quality_tp',
+            style: styles.quality,
+        },
+        nhd_quality_tss: {
+            name: 'nhd_quality_tss',
+            style: styles.quality,
+        },
+        municipalities: {
+            name: 'dep_municipalities',
+            style: styles.dep_municipalities,
+        },
+        urban_areas: {
+            name: 'dep_urban_areas',
+            style: styles.dep_urban_areas,
+        },
         // The DRB Catchment tables here use aliases to match data from different
         // columns in the `drb_catchment_water_quality` table to different
         // rendering rules.
-        drb_catchment_water_quality_tn: 'drb_catchment_water_quality_tn',
-        drb_catchment_water_quality_tp: 'drb_catchment_water_quality_tp',
-        drb_catchment_water_quality_tss: 'drb_catchment_water_quality_tss'
+        drb_catchment_water_quality_tn: {
+            name: 'drb_catchment_water_quality_tn',
+            style: styles.drb_catchment_water_quality_tn,
+            column: 'tn_tot_kgy',
+        },
+        drb_catchment_water_quality_tp: {
+            name: 'drb_catchment_water_quality_tp',
+            style: styles.drb_catchment_water_quality_tp,
+            column: 'tp_tot_kgy',
+        },
+        drb_catchment_water_quality_tss: {
+            name: 'drb_catchment_water_quality_tss',
+            style: styles.drb_catchment_water_quality_tss,
+            column: 'tss_tot_kg',
+        },
     },
     drbCatchmentWaterQualityTable = 'drb_catchment_water_quality';
     nhdQualityTable = 'nhd_water_quality',
@@ -89,7 +149,7 @@ var interactivity = {
         tableId = req.params.tableId;
         stream_order = 0;  // All streams
 
-        if (tableName === tables.drb_streams_v2) {
+        if (tableName === tables.drb_streams_v2.name) {
             // drb_zoom_levels: { zoomLevel : stream_order }
             drb_zoom_levels = {
                 1:7, 2:7, 3:7, 4:7, 5:7, 6:6, 7:6, 8:5, 9:5, 10:4,
@@ -124,14 +184,13 @@ var interactivity = {
 
         var waterQualitySql = function(qualityMap, streamOrder) {
             var sql = [];
-            sql.push('(SELECT geom, stream_order, ')
+            sql.push('SELECT geom, stream_order, ')
             sql.push(qualityMap.join(''), ' ')
             sql.push('AS nhd_qual_grp ')
-            sql.push('FROM ',tables.nhd_streams_v2,' ')
+            sql.push('FROM ',tables.nhd_streams_v2.name,' ')
             sql.push('LEFT OUTER JOIN ',nhdQualityTable,' ')
-            sql.push('ON ',nhdQualityTable,'.comid','=',tables.nhd_streams_v2,'.comid',' ')
+            sql.push('ON ',nhdQualityTable,'.comid','=',tables.nhd_streams_v2.name,'.comid',' ')
             sql.push('WHERE stream_order >= ',streamOrder)
-            sql.push(') as q');
             return sql.join('');
         }
 
@@ -142,33 +201,15 @@ var interactivity = {
         } else if (tableId === 'nhd_quality_tss') {
             return waterQualitySql(caseSql(NHD_QUALITY_TSS_MAP, 'tss_concmgl'), stream_order);
         } else {
-            return '(SELECT geom, stream_order FROM ' + tableName +
-              ' WHERE stream_order >= ' + stream_order + ') as q';
+            return 'SELECT geom, stream_order FROM ' + tableName +
+              ' WHERE stream_order >= ' + stream_order;
         }
     },
 
     getSqlForDRBCatchmentByTableId = function(tableId) {
-        var columnToRetrive = null,
-            resultsAliasName = null;
-        switch (tableId) {
-            case 'drb_catchment_water_quality_tn':
-                columnToRetrive = 'tn_tot_kgy';
-                resultsAliasName = 'drb_wq_tn';
-                break;
-            case 'drb_catchment_water_quality_tp':
-                columnToRetrive = 'tp_tot_kgy';
-                resultsAliasName = 'drb_wq_tp';
-                break;
-            case 'drb_catchment_water_quality_tss':
-                columnToRetrive = 'tss_tot_kg';
-                resultsAliasName = 'drb_wq_tss';
-                break;
-            default:
-                throw new Error('Invalid drb_catchment_water_quality value');
-                break;
-        }
-        return '(SELECT geom, ' + columnToRetrive + ' FROM ' +
-            drbCatchmentWaterQualityTable + ') AS ' + resultsAliasName;
+        var { column } = tables[tableId];
+
+        return `SELECT geom, ${column} FROM ${drbCatchmentWaterQualityTable}`;
     };
 
 var config = {
@@ -191,7 +232,7 @@ var config = {
     },
     mapnik: {
         metatile: 4,
-        bufferSize:64,
+        bufferSize: 64,
     },
     redis: {
         host: redisHost,
@@ -201,57 +242,17 @@ var config = {
 
     enable_cors: true,
 
-    beforeTileRender: function(req, res, callback) {
-        try {
-            callback(null);
-        } catch (ex) {
-            rollbar.handleError(ex, req);
-            callback(ex);
-        }
-    },
-
-    afterTileRender: function(req, res, tile, headers, callback) {
-        try {
-            // Complete render pipline first, add cache header for
-            // 30 days
-            headers['Cache-Control'] = 'max-age=2592000';
-            callback(null, tile, headers);
-
-            // Check if the environment is set up to cache tiles
-            if (!shouldCacheRequest(req)) { return; }
-
-            var cleanUrl = req.url[0] === '/' ? req.url.substr(1) : req.url,
-                s3Obj = new aws.S3({params: {Bucket: tileCacheBucket, Key: cleanUrl}}),
-                body;
-
-            if (Buffer.isBuffer(tile)) {
-                body = new stream.PassThrough();
-                body.end(tile);
-            } else {
-                body = JSON.stringify(tile);
-            }
-
-            if (body) {
-                s3Obj.upload({Body: body}, function(err, data) {
-                    if (err) {
-                        throw (err);
-                    }
-                });
-            }
-
-            callback(null);
-        } catch (ex) {
-            rollbar.handleError(ex, req);
-            callback(ex, null);
-        }
+    // Custom config used for caching tiles to S3
+    s3Cache: {
+        bucket: tileCacheBucket,
     },
 
     req2params: function(req, callback) {
         try {
             var tableId = req.params.tableId,
-                tableName = tables[tableId];
+                { name, style } = tables[tableId];
 
-            req.params.table = tableName;
+            req.params.table = name;
 
             // Streams have special performance optimized SQL queries
             if (tableId.indexOf('streams') >= 0) {
@@ -263,13 +264,21 @@ var config = {
             }
 
             if (tableId.indexOf('nhd_quality') >= 0) {
-                req.params.table = tables[tableId];
                 req.params.sql = getSqlForStreamByReq(req);
             }
 
+            if (name.indexOf('boundary') >= 0) {
+                req.params.sql = `SELECT id, geom, name FROM ${name}`;
+            }
+
+            if (!req.params.sql) {
+                req.params.sql = `SELECT geom FROM ${name}`;
+            }
+
             req.params.dbname = dbName;
-            req.params.style = styles;
-            req.params.interactivity = interactivity[tableName];
+            req.params.style = style;
+            req.params.interactivity = interactivity[name];
+
             callback(null, req);
         } catch (ex) {
             rollbar.handleError(ex, req);
@@ -279,8 +288,8 @@ var config = {
 };
 
 // Initialize tile server on port 4000
-var ws = new Windshaft.Server(config);
+var ws = new WindshaftServer(config);
 ws.get('/health-check', healthCheck(config));
 ws.listen(4000);
-ws.use(rollbar.errorHandler(rollbarAccessToken, {environment: stackType}));
+ws.use(rollbar.errorHandler({ environment: stackType }));
 console.log('Starting MMW Windshaft tiler on http://localhost:4000' + config.base_url + '/:z/:x/:y.*');

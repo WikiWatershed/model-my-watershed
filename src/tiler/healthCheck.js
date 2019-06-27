@@ -1,6 +1,6 @@
-var Step = require('windshaft/node_modules/step');
-var Pg = require('windshaft/node_modules/cartodb-psql/node_modules/pg');
-var Redis = require('windshaft/node_modules/redis-mpool/node_modules/redis');
+var Step = require('step');
+var Pg = require('pg');
+var Redis = require('redis');
 
 /**
  * Attempts to connect to a PostgreSQL database, providing the
