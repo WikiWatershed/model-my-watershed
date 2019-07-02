@@ -61,7 +61,8 @@ class VPC(StackNode):
         self.availability_zones = get_availability_zones(self.aws_profile,
                                                          self.get_input('AvailabilityZones').split(','))
         self.public_subnets = iter(self.get_input('PublicSubnets').split(','))
-        self.private_subnets = iter(self.get_input('PrivateSubnets').split(','))
+        self.private_subnets = iter(
+            self.get_input('PrivateSubnets').split(','))
 
         self.add_description('VPC stack for MMW')
 
@@ -104,8 +105,8 @@ class VPC(StackNode):
         except MKUnresolvableInputError:
             filters = {'name': '*ami-vpc-nat-hvm*'}
 
-            nat_ami_id = get_recent_ami(
-                self.aws_profile, filters=filters, region=self.region, owner='amazon')
+            nat_ami_id = get_recent_ami(self.aws_profile, filters=filters,
+                                        region=self.region, owner='amazon')
 
         return nat_ami_id
 

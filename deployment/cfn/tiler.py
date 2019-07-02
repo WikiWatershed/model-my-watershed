@@ -232,8 +232,8 @@ class Tiler(StackNode):
         except MKUnresolvableInputError:
             filters = {'name': 'mmw-tiler*'}
 
-            tile_server_ami_id = get_recent_ami(
-                self.aws_profile, filters=filters, region=self.region)
+            tile_server_ami_id = get_recent_ami(self.aws_profile, filters=filters,
+                                                region=self.region)
 
         return tile_server_ami_id
 

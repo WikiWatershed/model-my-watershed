@@ -24,7 +24,8 @@ def get_recent_ubuntu_ami(region, aws_profile):
         'virtualization-type': 'hvm',
     }
 
-    return get_recent_ami(aws_profile, region=region, filters=filters, owner=CANONICAL_ACCOUNT_ID)
+    return get_recent_ami(aws_profile, region=region,
+                          filters=filters, owner=CANONICAL_ACCOUNT_ID)
 
 
 def get_project_root():

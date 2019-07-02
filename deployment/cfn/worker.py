@@ -257,8 +257,8 @@ class Worker(StackNode):
         except MKUnresolvableInputError:
             filters = {'name': 'mmw-worker-*'}
 
-            worker_ami_id = get_recent_ami(
-                self.aws_profile, filters=filters, region=self.region)
+            worker_ami_id = get_recent_ami(self.aws_profile, filters=filters,
+                                           region=self.region)
 
         return worker_ami_id
 

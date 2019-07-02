@@ -304,8 +304,8 @@ class Application(StackNode):
         except MKUnresolvableInputError:
             filters = {'name': 'mmw-app-*'}
 
-            app_server_ami_id = get_recent_ami(
-                self.aws_profile, filters=filters, region=self.region)
+            app_server_ami_id = get_recent_ami(self.aws_profile, filters=filters,
+                                               region=self.region)
 
         return app_server_ami_id
 
