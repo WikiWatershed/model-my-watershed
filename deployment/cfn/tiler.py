@@ -233,8 +233,7 @@ class Tiler(StackNode):
             filters = {'name': 'mmw-tiler*'}
 
             tile_server_ami_id = get_recent_ami(
-                self.aws_profile, filters=filters, region=self.region
-            )
+                self.aws_profile, filters=filters, region=self.region)
 
         return tile_server_ami_id
 
@@ -424,7 +423,7 @@ class Tiler(StackNode):
                 '  - path: /etc/mmw.d/env/ROLLBAR_SERVER_SIDE_ACCESS_TOKEN\n',
                 '    permissions: 0440\n',
                 '    owner: root:mmw\n',
-                '    content: ', self.get_input('RollbarServerSideAccessToken'), '\n' # NOQA
+                '    content: ', self.get_input('RollbarServerSideAccessToken'), '\n'  # NOQA
                 '\n',
                 'rsyslog:\n',
                 '  - $DefaultNetstreamDriverCAFile /etc/papertrail-bundle.pem # trust these CAs\n',
@@ -445,7 +444,8 @@ class Tiler(StackNode):
                 '  - $ActionQueueSaveOnShutdown on\n',
                 '  - $ActionQueueTimeoutEnqueue 2\n',
                 '  - $ActionQueueDiscardSeverity 0\n',
-                '  - "*.*  @@', Ref(self.papertrail_host), ':', Ref(self.papertrail_port), '"\n',
+                '  - "*.*  @@', Ref(self.papertrail_host), ':', Ref(
+                    self.papertrail_port), '"\n',
                 'rsyslog_filename: 22-mmw-papertrail.conf\n']
 
     def create_dns_records(self, tile_server_lb):

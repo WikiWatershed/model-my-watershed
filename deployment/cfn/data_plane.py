@@ -239,7 +239,7 @@ class DataPlane(StackNode):
                 ec2.NetworkInterfaceProperty(
                     Description='ENI for BastionHost',
                     GroupSet=[Ref(bastion_security_group)],
-                    SubnetId=Select("0", Ref(self.public_subnets)),
+                    SubnetId=Select('0', Ref(self.public_subnets)),
                     AssociatePublicIpAddress=True,
                     DeviceIndex=0,
                     DeleteOnTermination=True
@@ -367,9 +367,9 @@ class DataPlane(StackNode):
                     'metricDatabaseServerName',
                     Name='DBInstanceIdentifier',
                     Value=Ref(rds_database)
-                    )
-                ],
-            ))
+                )
+            ],
+        ))
 
         self.add_resource(cloudwatch.Alarm(
             'alarmDatabaseServerFreeableMemory',
@@ -387,9 +387,9 @@ class DataPlane(StackNode):
                     'metricDatabaseServerName',
                     Name='DBInstanceIdentifier',
                     Value=Ref(rds_database)
-                    )
-                ],
-            ))
+                )
+            ],
+        ))
 
     def create_elasticache_replication_group(self):
         elasticache_security_group_name = 'sgCacheCluster'
@@ -500,7 +500,7 @@ class DataPlane(StackNode):
                 r53.RecordSet(
                     'dnsBastionServer',
                     Name=Join('', ['bastion.',
-                              Ref(self.public_hosted_zone_name), '.']),
+                                   Ref(self.public_hosted_zone_name), '.']),
                     Type='A',
                     TTL='300',
                     ResourceRecords=[GetAtt(bastion_host, 'PublicIp')]
@@ -515,7 +515,7 @@ class DataPlane(StackNode):
                 r53.RecordSet(
                     'dnsDatabaseServer',
                     Name=Join('', ['database.service.',
-                              Ref(self.private_hosted_zone_name), '.']),
+                                   Ref(self.private_hosted_zone_name), '.']),
                     Type='CNAME',
                     TTL='10',
                     ResourceRecords=[
@@ -525,7 +525,7 @@ class DataPlane(StackNode):
                 r53.RecordSet(
                     'dnsCacheServer',
                     Name=Join('', ['cache.service.',
-                              Ref(self.private_hosted_zone_name), '.']),
+                                   Ref(self.private_hosted_zone_name), '.']),
                     Type='CNAME',
                     TTL='10',
                     ResourceRecords=[

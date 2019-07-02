@@ -25,7 +25,7 @@ class AvailabilityZone(object):
         Utility method to return a string appropriate for CloudFormation
         name of a resource (e.g. UsEast1a)
         """
-        return self.availability_zone.name.title().replace("-", "")
+        return self.availability_zone.name.title().replace('-', '')
 
     @property
     def name(self):
@@ -60,24 +60,26 @@ def get_subnet_cidr_block():
     current = 0
     high = 255
     while current <= high:
-        yield "10.0.%s.0/24" % current
+        yield '10.0.%s.0/24' % current
         current += 1
 
 
 def get_recent_ami(
-    aws_profile, filters={}, owner="self", region="us-east-1", executable_by="self"
+    aws_profile, filters={}, owner='self', region='us-east-1', executable_by='self'
 ):
-    conn = boto.connect_ec2(profile_name=aws_profile, region=get_region(region))
+    conn = boto.connect_ec2(profile_name=aws_profile,
+                            region=get_region(region))
 
     # Filter images by owned by self first.
     images = conn.get_all_images(owners=owner, filters=filters)
 
     # If no images are owned by self, look for images self can execute.
     if not images:
-        images = conn.get_all_images(executable_by=executable_by, filters=filters)
+        images = conn.get_all_images(
+            executable_by=executable_by, filters=filters)
 
     # Make sure RC images are omitted from results
-    images = filter(lambda i: True if ".rc-" not in i.name else False, images)
+    images = filter(lambda i: True if '.rc-' not in i.name else False, images)
 
     return sorted(images, key=lambda i: i.creationDate, reverse=True)[0].id
 
@@ -88,5 +90,5 @@ def read_file(file_name):
     Arguments
     :param file_name: A path to a file
     """
-    with open(file_name, "r") as f:
+    with open(file_name, 'r') as f:
         return f.read()

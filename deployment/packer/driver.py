@@ -24,8 +24,7 @@ def get_recent_ubuntu_ami(region, aws_profile):
         'virtualization-type': 'hvm',
     }
 
-    return get_recent_ami(aws_profile, region=region,
-                          filters=filters, owner=CANONICAL_ACCOUNT_ID)
+    return get_recent_ami(aws_profile, region=region, filters=filters, owner=CANONICAL_ACCOUNT_ID)
 
 
 def get_project_root():
@@ -71,6 +70,7 @@ def get_git_branch():
 
     return subprocess.check_output(git_command).rstrip()
 
+
 def get_git_desc():
     """Function that executes Git to determine the description"""
     git_command = ['git',
@@ -81,6 +81,7 @@ def get_git_desc():
                    '--abbrev=40']
 
     return subprocess.check_output(git_command).rstrip()
+
 
 def run_packer(mmw_config, machine_types, aws_profile):
     """Function to run packer

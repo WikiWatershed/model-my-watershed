@@ -23,6 +23,7 @@ from utils.constants import (
 
 from majorkirby import StackNode, MKUnresolvableInputError
 
+
 class VPC(StackNode):
     INPUTS = {
         'Tags': ['global:Tags'],
@@ -54,7 +55,7 @@ class VPC(StackNode):
         self.default_tags = self.get_input('Tags').copy()
         self.region = self.get_input('Region')
         self.availability_zones = get_availability_zones(self.aws_profile,
-                                                        ['us-east-1b', 'us-east-1d'])
+                                                         ['us-east-1b', 'us-east-1d'])
         self.public_subnet_cidr_ranges = iter(['10.0.2.0/24', '10.0.4.0/24'])
         self.private_subnet_cidr_ranges = iter(['10.0.3.0/24', '10.0.5.0/24'])
 
@@ -100,8 +101,7 @@ class VPC(StackNode):
             filters = {'name': '*ami-vpc-nat-hvm*'}
 
             nat_ami_id = get_recent_ami(
-                self.aws_profile, filters=filters, region=self.region, owner='amazon'
-            )
+                self.aws_profile, filters=filters, region=self.region, owner='amazon')
 
         return nat_ami_id
 
@@ -183,7 +183,7 @@ class VPC(StackNode):
                 CidrBlock=next(self.private_subnet_cidr_ranges),
                 AvailabilityZone=availability_zone.name,
                 Tags=self.get_tags(Name=private_subnet_name)
-                ))
+            ))
 
             private_route_table_name = '{}PrivateRouteTable'.format(availability_zone.cfn_name)  # NOQA
 

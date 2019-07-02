@@ -258,8 +258,7 @@ class Worker(StackNode):
             filters = {'name': 'mmw-worker-*'}
 
             worker_ami_id = get_recent_ami(
-                self.aws_profile, filters=filters, region=self.region
-            )
+                self.aws_profile, filters=filters, region=self.region)
 
         return worker_ami_id
 
@@ -458,7 +457,7 @@ class Worker(StackNode):
                 '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: |\n',
-                '      /dev/xvdf /opt/rwd-data\text4\tdefaults,nofail,discard\t0 2\n', # NOQA
+                '      /dev/xvdf /opt/rwd-data\text4\tdefaults,nofail,discard\t0 2\n',  # NOQA
                 '\n',
                 'rsyslog:\n',
                 '  - $DefaultNetstreamDriverCAFile /etc/papertrail-bundle.pem # trust these CAs\n',
@@ -479,7 +478,8 @@ class Worker(StackNode):
                 '  - $ActionQueueSaveOnShutdown on\n',
                 '  - $ActionQueueTimeoutEnqueue 2\n',
                 '  - $ActionQueueDiscardSeverity 0\n',
-                '  - "*.*  @@', Ref(self.papertrail_host), ':', Ref(self.papertrail_port), '"\n',
+                '  - "*.*  @@', Ref(self.papertrail_host), ':', Ref(
+                    self.papertrail_port), '"\n',
                 'rsyslog_filename: 22-mmw-papertrail.conf\n',
                 '\n',
                 'runcmd:\n',

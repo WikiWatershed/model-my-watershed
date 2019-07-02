@@ -305,8 +305,7 @@ class Application(StackNode):
             filters = {'name': 'mmw-app-*'}
 
             app_server_ami_id = get_recent_ami(
-                self.aws_profile, filters=filters, region=self.region
-            )
+                self.aws_profile, filters=filters, region=self.region)
 
         return app_server_ami_id
 
@@ -655,7 +654,8 @@ class Application(StackNode):
                 '  - $ActionQueueSaveOnShutdown on\n',
                 '  - $ActionQueueTimeoutEnqueue 2\n',
                 '  - $ActionQueueDiscardSeverity 0\n',
-                '  - "*.*  @@', Ref(self.papertrail_host), ':', Ref(self.papertrail_port), '"\n',
+                '  - "*.*  @@', Ref(self.papertrail_host), ':', Ref(
+                    self.papertrail_port), '"\n',
                 'rsyslog_filename: 22-mmw-papertrail.conf\n']
 
     def get_tags(self, **kwargs):
