@@ -484,7 +484,7 @@ class Worker(StackNode):
                 '\n',
                 'runcmd:\n',
                 '  - cat /etc/fstab.rwd-data >> /etc/fstab\n',
-                '  - mount -t ext4 /dev/xvdf /opt/rwd-data && initctl emit rwd-ready\n',  # NOQA
+                '  - mount -t ext4 /dev/xvdf /opt/rwd-data && docker restart $(docker ps -q)\n',  # NOQA
                 '  - /opt/model-my-watershed/scripts/aws/ebs-warmer.sh']
 
     def create_dns_records(self, worker_lb):

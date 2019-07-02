@@ -31,6 +31,8 @@ class VPC(StackNode):
         'StackType': ['global:StackType'],
         'KeyName': ['global:KeyName'],
         'AvailabilityZones': ['global:AvailabilityZones'],
+        'PublicSubnets': ['global:PublicSubnets'],
+        'PrivateSubnets': ['global:PrivateSubnets'],
         'NATInstanceType': ['global:NATInstanceType'],
         'NATInstanceAMI': ['global:NATInstanceAMI'],
         'PapertrailPort': ['global:PapertrailPort'],
@@ -42,6 +44,8 @@ class VPC(StackNode):
         'StackType': 'Staging',
         'KeyName': 'mmw-stg',
         'AvailabilityZones': 'us-east-1b,us-east-1d',
+        'PublicSubnets': '10.0.2.0/24,10.0.4.0/24',
+        'PrivateSubnets': '10.0.3.0/24,10.0.5.0/24',
         'NATInstanceType': 't2.micro',
     }
 
@@ -55,9 +59,9 @@ class VPC(StackNode):
         self.default_tags = self.get_input('Tags').copy()
         self.region = self.get_input('Region')
         self.availability_zones = get_availability_zones(self.aws_profile,
-                                                         ['us-east-1b', 'us-east-1d'])
-        self.public_subnet_cidr_ranges = iter(['10.0.2.0/24', '10.0.4.0/24'])
-        self.private_subnet_cidr_ranges = iter(['10.0.3.0/24', '10.0.5.0/24'])
+                                                         self.get_input('AvailabilityZones').split(','))
+        self.public_subnets = iter(self.get_input('PublicSubnets').split(','))
+        self.private_subnets = iter(self.get_input('PrivateSubnets').split(','))
 
         self.add_description('VPC stack for MMW')
 
@@ -164,7 +168,7 @@ class VPC(StackNode):
             public_subnet = self.create_resource(ec2.Subnet(
                 public_subnet_name,
                 VpcId=Ref(self.vpc),
-                CidrBlock=next(self.public_subnet_cidr_ranges),
+                CidrBlock=next(self.public_subnets),
                 AvailabilityZone=availability_zone.name,
                 Tags=self.get_tags(Name=public_subnet_name)
             ))
@@ -180,7 +184,7 @@ class VPC(StackNode):
             private_subnet = self.create_resource(ec2.Subnet(
                 private_subnet_name,
                 VpcId=Ref(self.vpc),
-                CidrBlock=next(self.private_subnet_cidr_ranges),
+                CidrBlock=next(self.private_subnets),
                 AvailabilityZone=availability_zone.name,
                 Tags=self.get_tags(Name=private_subnet_name)
             ))
