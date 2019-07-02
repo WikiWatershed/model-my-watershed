@@ -2,8 +2,8 @@ server {
   listen *:80;
   server_name _;
 
-  error_log syslog:server=unix:/dev/log,facility=local7,tag=nginx_tiler,severity=error;
-  access_log syslog:server=unix:/dev/log,facility=local7,tag=nginx_tiler,severity=info combined;
+  error_log syslog:server=unix:/dev/log,nohostname,facility=local7,tag=nginx_tiler,severity=error;
+  access_log syslog:server=unix:/dev/log,nohostname,facility=local7,tag=nginx_tiler,severity=info combined;
 
   {% if ['packer'] | is_in(group_names) -%}
   location = /version.txt {
