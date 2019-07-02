@@ -64,9 +64,8 @@ def get_subnet_cidr_block():
         current += 1
 
 
-def get_recent_ami(
-    aws_profile, filters={}, owner='self', region='us-east-1', executable_by='self'
-):
+def get_recent_ami(aws_profile, filters={}, owner='self', region='us-east-1',
+                   executable_by='self'):
     conn = boto.connect_ec2(profile_name=aws_profile,
                             region=get_region(region))
 
