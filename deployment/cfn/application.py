@@ -71,6 +71,8 @@ class Application(StackNode):
         'RollbarServerSideAccessToken':
         ['global:RollbarServerSideAccessToken'],
         'ClientAppUserPassword': ['global:ClientAppUserPassword'],
+        'PapertrailHost': ['global:PapertrailHost'],
+        'PapertrailPort': ['global:PapertrailPort'],
     }
 
     DEFAULTS = {
@@ -94,10 +96,7 @@ class Application(StackNode):
     def set_up_stack(self):
         super(Application, self).set_up_stack()
 
-        tags = self.get_input('Tags').copy()
-        tags.update({'StackType': 'Application'})
-
-        self.default_tags = tags
+        self.default_tags = self.get_input('Tags').copy()
         self.region = self.get_input('Region')
 
         self.add_description('Application server stack for MMW')
@@ -266,6 +265,16 @@ class Application(StackNode):
             Description='Password for the client apps django account',
         ), 'ClientAppUserPassword')
 
+        self.papertrail_host = self.add_parameter(Parameter(
+            'PapertrailHost', Type='String',
+            Description='Hostname for Papertrail log destination',
+        ), 'PapertrailHost')
+
+        self.papertrail_port = self.add_parameter(Parameter(
+            'PapertrailPort', Type='String',
+            Description='Port for Papertrail log destination',
+        ), 'PapertrailPort')
+
         app_server_lb_security_group, \
             app_server_security_group = self.create_security_groups()
         app_server_lb, \
@@ -293,7 +302,10 @@ class Application(StackNode):
         try:
             app_server_ami_id = self.get_input('AppServerAMI')
         except MKUnresolvableInputError:
-            app_server_ami_id = get_recent_ami(self.aws_profile, 'mmw-app-*')
+            filters = {'name': 'mmw-app-*'}
+
+            app_server_ami_id = get_recent_ami(self.aws_profile, filters=filters,
+                                               region=self.region)
 
         return app_server_ami_id
 
@@ -350,7 +362,7 @@ class Application(StackNode):
                     IpProtocol='tcp', CidrIp=ALLOW_ALL_CIDR, FromPort=p,
                     ToPort=p
                 )
-                for p in [HTTP, HTTPS]
+                for p in [HTTP, HTTPS, self.get_input('PapertrailPort')]
             ],
             Tags=self.get_tags(Name=app_server_security_group_name)
         ))
@@ -621,7 +633,30 @@ class Application(StackNode):
                 '  - path: /etc/mmw.d/env/MMW_CLIENT_APP_USER_PASSWORD\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
-                '    content: ', Ref(self.client_app_user_password)]
+                '    content: ', Ref(self.client_app_user_password), '\n',
+                '\n',
+                'rsyslog:\n',
+                '  - $DefaultNetstreamDriverCAFile /etc/papertrail-bundle.pem # trust these CAs\n',
+                '  - $PreserveFQDN off\n',
+                '  - $ActionSendStreamDriver gtls # use gtls netstream driver\n',
+                '  - $ActionSendStreamDriverMode 1 # require TLS\n',
+                '  - $ActionSendStreamDriverAuthMode x509/name # authenticate by hostname\n',
+                '  - $ActionSendStreamDriverPermittedPeer *.papertrailapp.com\n',
+                '  - $ActionResumeInterval 10\n',
+                '  - $ActionQueueSize 100000\n',
+                '  - $ActionQueueDiscardMark 97500\n',
+                '  - $ActionQueueHighWaterMark 80000\n',
+                '  - $ActionQueueType LinkedList\n',
+                '  - $ActionQueueFileName papertrailqueue\n',
+                '  - $ActionQueueCheckpointInterval 100\n',
+                '  - $ActionQueueMaxDiskSpace 2g\n',
+                '  - $ActionResumeRetryCount -1\n',
+                '  - $ActionQueueSaveOnShutdown on\n',
+                '  - $ActionQueueTimeoutEnqueue 2\n',
+                '  - $ActionQueueDiscardSeverity 0\n',
+                '  - "*.*  @@', Ref(self.papertrail_host), ':', Ref(
+                    self.papertrail_port), '"\n',
+                'rsyslog_filename: 22-mmw-papertrail.conf\n']
 
     def get_tags(self, **kwargs):
         """Helper method to return Troposphere tags + default tags

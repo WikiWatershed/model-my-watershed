@@ -1,4 +1,5 @@
 EC2_INSTANCE_TYPES = [
+    't3.micro',
     't2.micro',
     't2.small',
     't2.medium',
@@ -26,5 +27,8 @@ POSTGRESQL = 5432
 REDIS = 6379
 SSH = 22
 
+CANONICAL_ACCOUNT_ID = '099720109477'
+
 AMAZON_S3_HOSTED_ZONE_ID = 'Z3AQBSTGFYJSTF'
+
 AMAZON_S3_WEBSITE_DOMAIN = 's3-website-us-east-1.amazonaws.com'
