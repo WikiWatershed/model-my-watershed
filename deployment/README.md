@@ -41,7 +41,7 @@ Before launching the Model My Watershed stack, AMIs for each service need to be 
 
 ```bash
 $ ./mmw_stack.py create-ami --aws-profile mmw-stg --mmw-profile staging \
-                            --machine-type mmw-{app,monitoring,tiler,worker}
+                            --machine-type mmw-{app,tiler,worker}
 ```
 
 ### Pruning AMIs
@@ -50,7 +50,7 @@ After creating several AMIs, older ones become stale and are no longer needed. T
 
 ```bash
 $ ./mmw_stack.py prune-ami --aws-profile mmw-stg --mmw-profile staging \
-                           --keep 5 --machine-type mmw-{app,monitoring,tiler,worker}
+                           --keep 5 --machine-type mmw-{app,tiler,worker}
 ```
 
 ### Launching Stacks
