@@ -41,7 +41,7 @@ $ ssh-add -L
 ### SSH into Bastion
 
 ```bash
-$ ssh -A -l ubuntu monitoring.mmw.foo.com
+$ ssh -A -l ubuntu bastion.mmw.foo.com
 ```
 
 The `-A`  enables forwarding of the authentication agent connection so that the `.pem` file doesn't have to by copied to the bastion.

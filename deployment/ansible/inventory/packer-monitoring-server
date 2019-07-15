@@ -1,8 +1,0 @@
-[mmw-monitoring]
-localhost ansible_user=ubuntu
-
-[monitoring-servers]
-mmw-monitoring
-
-[packer:children]
-monitoring-servers
