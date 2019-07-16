@@ -24,7 +24,7 @@ from django.http import (HttpResponse,
                          Http404,
                          )
 
-from django.core.servers.basehttp import FileWrapper
+from wsgiref.util import FileWrapper
 
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
