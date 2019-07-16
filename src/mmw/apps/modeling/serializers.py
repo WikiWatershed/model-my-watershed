@@ -7,7 +7,6 @@ from django.contrib.gis.geos import (GEOSGeometry,
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework_gis import serializers as gis_serializers
 
 from apps.export.serializers import HydroShareResourceSerializer
 from apps.modeling.models import Project, Scenario
@@ -80,7 +79,7 @@ class ScenarioSerializer(serializers.ModelSerializer):
     results = JsonField(required=False, allow_null=True)
 
 
-class ProjectSerializer(gis_serializers.GeoModelSerializer):
+class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
@@ -107,7 +106,7 @@ class ProjectSerializer(gis_serializers.GeoModelSerializer):
     hydroshare = HydroShareResourceSerializer(read_only=True)
 
 
-class ProjectListingSerializer(gis_serializers.GeoModelSerializer):
+class ProjectListingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
@@ -118,7 +117,7 @@ class ProjectListingSerializer(gis_serializers.GeoModelSerializer):
     hydroshare = HydroShareResourceSerializer(read_only=True)
 
 
-class ProjectUpdateSerializer(gis_serializers.GeoModelSerializer):
+class ProjectUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
