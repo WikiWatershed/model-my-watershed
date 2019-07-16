@@ -253,11 +253,11 @@ def trim_to_valid_length(basename, suffix):
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
 def sign_up(request):
-    view = RegistrationView()
+    view = RegistrationView(request=request)
     form = RegistrationFormUniqueEmail(request.POST)
 
     if form.is_valid():
-        user = view.register(request, form)
+        user = view.register(form)
         response_data = {'result': 'success',
                          'username': user.username,
                          'guest': False}
