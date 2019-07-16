@@ -8,7 +8,7 @@ from django.contrib.auth import (authenticate,
                                  login as auth_login)
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from django.shortcuts import redirect, render_to_response
+from django.shortcuts import redirect, render
 from django.contrib.auth.forms import (PasswordResetForm,
                                        PasswordChangeForm)
 from django.core.exceptions import ObjectDoesNotExist
@@ -365,6 +365,10 @@ def hydroshare_login(request):
 @decorators.permission_classes((IsAuthenticated, ))
 def hydroshare_auth(request):
     context = get_context(request)
+    context.update({
+        'error': None,
+        'token': None,
+    })
 
     code = request.GET.get('code')
 
@@ -384,7 +388,7 @@ def hydroshare_auth(request):
         rollbar.report_message('HydroShare OAuth credentials '
                                'possibly misconfigured', 'warning')
 
-    return render_to_response('user/hydroshare-auth.html', context)
+    return render(request, 'user/hydroshare-auth.html', context)
 
 
 @decorators.api_view(['POST'])

@@ -11,8 +11,7 @@ from hs_restclient import HydroShareNotAuthorized
 
 from django.db import transaction, IntegrityError
 from django.http import Http404
-from django.shortcuts import render_to_response, get_object_or_404, redirect
-from django.template import RequestContext
+from django.shortcuts import render, get_object_or_404, redirect
 from django.template.context_processors import csrf
 from django.utils.timezone import now
 from django.conf import settings
@@ -29,12 +28,12 @@ from apps.user.countries import COUNTRY_CHOICES
 
 
 def home_page(request):
-    return render_to_response('home/home.html', get_context(request))
+    return render(request, 'home/home.html', get_context(request))
 
 
 def projects(request):
     if request.user.is_authenticated():
-        return render_to_response('home/home.html', get_context(request))
+        return render(request, 'home/home.html', get_context(request))
     else:
         return redirect('/')
 
@@ -59,7 +58,7 @@ def project(request, proj_id=None, scenario_id=None):
         context = get_context(request)
         context.update({'project': True})
 
-        return render_to_response('home/home.html', context)
+        return render(request, 'home/home.html', context)
     else:
         return redirect('/projects/')
 
@@ -378,7 +377,10 @@ def get_client_settings(request):
 
 
 def get_context(request):
-    context = RequestContext(request)
+    context = {
+        'project': False,
+        'GOOGLE_ANALYTICS_ACCOUNT': settings.GOOGLE_ANALYTICS_ACCOUNT,
+    }
     context.update(csrf(request))
     context.update(get_client_settings(request))
 

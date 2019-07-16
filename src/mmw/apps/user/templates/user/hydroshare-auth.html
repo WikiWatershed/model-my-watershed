@@ -12,7 +12,7 @@
             <h1>Error</h1>
             <p>{{ error }}</p>
             <p style="margin: 20px;">
-            {% if error = "access_denied" %}
+            {% if error == "access_denied" %}
                 Model My Watershed needs to be authorized to post to your
                 HydroShare account in order to export projects.
             {% else %}
