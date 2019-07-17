@@ -12,7 +12,9 @@ HYDROSHARE_BASE_URL = settings.HYDROSHARE['base_url']
 
 
 class HydroShareResource(models.Model):
-    project = models.OneToOneField(Project, related_name='hydroshare')
+    project = models.OneToOneField(Project,
+                                   on_delete=models.CASCADE,
+                                   related_name='hydroshare')
     resource = models.CharField(
         max_length=63,
         help_text='ID of Resource in HydroShare')

@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.db import models, migrations
 from django.conf import settings
 import django.contrib.gis.db.models.fields
+import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
@@ -24,7 +25,7 @@ class Migration(migrations.Migration):
                 ('model_package', models.CharField(help_text='Which model pack was chosen for this project', max_length=255, choices=[('tr-55', 'Simple Model')])),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('modified_at', models.DateTimeField(auto_now=True)),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=django.db.models.deletion.PROTECT)),
             ],
         ),
         migrations.CreateModel(
@@ -38,7 +39,7 @@ class Migration(migrations.Migration):
                 ('results', models.TextField(help_text='Serialized JSON representation of the model results', null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('modified_at', models.DateTimeField(auto_now=True)),
-                ('project', models.ForeignKey(related_name='scenarios', to='modeling.Project')),
+                ('project', models.ForeignKey(related_name='scenarios', to='modeling.Project', on_delete=django.db.models.deletion.CASCADE)),
             ],
         ),
         migrations.AlterUniqueTogether(

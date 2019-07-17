@@ -32,7 +32,9 @@ class ItsiUserManager(models.Manager):
 
 
 class ItsiUser(models.Model):
-    user = models.OneToOneField(User, primary_key=True)
+    user = models.OneToOneField(User,
+                                on_delete=models.CASCADE,
+                                primary_key=True)
     itsi_id = models.IntegerField()
 
     objects = ItsiUserManager()
@@ -73,7 +75,9 @@ class UserProfile(models.Model):
         (UnitScheme.USCUSTOMARY, 'US Customary'),
     )
 
-    user = models.OneToOneField(User, primary_key=True)
+    user = models.OneToOneField(User,
+                                on_delete=models.CASCADE,
+                                primary_key=True)
     was_skipped = models.BooleanField(default=False)
     is_complete = models.BooleanField(default=False)
     has_seen_hotspot_info = models.BooleanField(default=False)
@@ -95,7 +99,9 @@ class HydroShareToken(models.Model):
     authorization interface and cannot be changed:
     access_token, token_type, expires_in, refresh_token, scope
     """
-    user = models.OneToOneField(User, primary_key=True)
+    user = models.OneToOneField(User,
+                                on_delete=models.CASCADE,
+                                primary_key=True)
 
     access_token = models.CharField(max_length=255)
     token_type = models.CharField(max_length=255, default='Bearer')

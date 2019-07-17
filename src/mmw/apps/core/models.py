@@ -9,7 +9,9 @@ AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
 class Job(models.Model):
-    user = models.ForeignKey(AUTH_USER_MODEL, null=True)
+    user = models.ForeignKey(AUTH_USER_MODEL,
+                             on_delete=models.SET_NULL,
+                             null=True)
     uuid = models.UUIDField(
         null=True,
         unique=True
