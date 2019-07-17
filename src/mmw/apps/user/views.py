@@ -66,8 +66,8 @@ def login(request):
         }
 
     if request.method == 'POST':
-        user = authenticate(username=request.REQUEST.get('username'),
-                            password=request.REQUEST.get('password'))
+        user = authenticate(username=request.POST.get('username'),
+                            password=request.POST.get('password'))
 
         if user is not None:
             if user.is_active:
