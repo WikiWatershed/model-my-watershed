@@ -256,8 +256,8 @@ TEMPLATES = [
 
 
 # MIDDLEWARE CONFIGURATION
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#middleware-classes
-MIDDLEWARE_CLASSES = (
+# See: https://docs.djangoproject.com/en/1.11/topics/http/middleware/
+MIDDLEWARE = (
     # Default Django middleware.
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
