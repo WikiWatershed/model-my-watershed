@@ -3,36 +3,32 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import requests
-
 from django.test import LiveServerTestCase
 from django.test import (TestCase,
                          Client)
 from django.contrib.auth.models import User
+from django.urls import reverse
 from apps.user.views import trim_to_valid_length
 from apps.user.models import UserProfile
 
 
 class TaskRunnerTestCase(LiveServerTestCase):
-    HOMEPAGE_URL = 'http://localhost:8081/'
-    LOGIN_URL = 'http://localhost:8081/user/login'
+    LOGIN_URL = reverse('user:login')
 
     def setUp(self):
         User.objects.create_user(username='bob', email='bob@azavea.com',
                                  password='bob')
 
     def attempt_login(self, username, password):
-        try:
-            payload = {'username': username, 'password': password}
-            response = requests.post(self.LOGIN_URL, params=payload)
-        except requests.RequestException:
-            response = {}
+        c = Client()
+        payload = {'username': username, 'password': password}
+        response = c.post(self.LOGIN_URL, payload)
         return response
 
     def attempt_login_without_token(self, username, password):
         c = Client(enforce_csrf_checks=True)
         payload = {'username': username, 'password': password}
-        response = c.post(self.LOGIN_URL, params=payload)
+        response = c.post(self.LOGIN_URL, payload)
         return response
 
     def test_no_username_returns_400(self):
