@@ -12,7 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 
 from django.utils.timezone import now
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.conf import settings
 
 from apps.core.models import Job
@@ -255,7 +255,8 @@ def start_rwd(request, format=None):
             'job': task_list.id,
             'status': 'started',
         },
-        headers={'Location': reverse('get_job', args=[task_list.id])}
+        headers={'Location': reverse('geoprocessing_api:get_job',
+                                     args=[task_list.id])}
     )
 
 
@@ -1320,7 +1321,8 @@ def start_celery_job(task_list, job_input, user=None, link_error=True):
             'job': task_chain.id,
             'status': 'started',
         },
-        headers={'Location': reverse('get_job', args=[task_chain.id])}
+        headers={'Location': reverse('geoprocessing_api:get_job',
+                                     args=[task_chain.id])}
     )
 
 

@@ -7,7 +7,7 @@ from django.contrib.auth import (authenticate,
                                  logout as auth_logout,
                                  login as auth_login)
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.shortcuts import redirect, render
 from django.contrib.auth.forms import (PasswordResetForm,
                                        PasswordChangeForm)
