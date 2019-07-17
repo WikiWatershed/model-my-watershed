@@ -107,7 +107,7 @@ def login(request):
 @decorators.api_view(['POST'])
 @decorators.permission_classes((IsAuthenticated, ))
 def profile(request):
-    data = request.data
+    data = request.data.copy()
     if 'was_skipped' in data:
         data['was_skipped'] = str(data['was_skipped']).lower() == 'true'
         data['is_complete'] = not data['was_skipped']
