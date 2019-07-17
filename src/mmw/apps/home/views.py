@@ -32,7 +32,7 @@ def home_page(request):
 
 
 def projects(request):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return render(request, 'home/home.html', get_context(request))
     else:
         return redirect('/')
@@ -72,7 +72,7 @@ def project_clone(request, proj_id=None):
     current user, and redirect to it.
     """
 
-    if not proj_id or not request.user.is_authenticated():
+    if not proj_id or not request.user.is_authenticated:
         raise Http404
 
     project = get_object_or_404(Project, id=proj_id)
@@ -135,7 +135,7 @@ def _via_hydroshare(request, resource, callback, errback):
     # If project snapshot couldn't be fetched directly, try fetching it as
     # a HydroShare user. This is useful for cases when an existing resource
     # is copied, since the copy isn't public by default.
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         # Make sure the user has linked their account to HydroShare
         try:
             HydroShareToken.objects.get(user_id=request.user.id)
@@ -328,7 +328,7 @@ def get_client_settings(request):
     EMBED_FLAG = settings.ITSI['embed_flag']
 
     unit_scheme = UnitScheme.METRIC
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         try:
             profile = UserProfile.objects.get(user=request.user)
             unit_scheme = profile.unit_scheme

@@ -90,7 +90,7 @@ def login(request):
 
     elif request.method == 'GET':
         user = request.user
-        if user.is_authenticated() and user.is_active:
+        if user.is_authenticated and user.is_active:
             response_data = make_successful_response_data(user)
         else:
             response_data = {
