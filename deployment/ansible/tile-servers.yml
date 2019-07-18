@@ -23,11 +23,5 @@
         mode: "0755"
       when: "['development', 'test'] | some_are_in(group_names)"
 
-    - name: Create bind mount for node_modules cache
-      command: "mount --bind /var/cache/node_modules /opt/tiler/node_modules"
-      args:
-        warn: no
-      when: "['development', 'test'] | some_are_in(group_names)"
-
   roles:
     - { role: "model-my-watershed.tiler" }
