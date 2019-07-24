@@ -25,12 +25,6 @@ class TaskRunnerTestCase(LiveServerTestCase):
         response = c.post(self.LOGIN_URL, payload)
         return response
 
-    def attempt_login_without_token(self, username, password):
-        c = Client(enforce_csrf_checks=True)
-        payload = {'username': username, 'password': password}
-        response = c.post(self.LOGIN_URL, payload)
-        return response
-
     def test_no_username_returns_400(self):
         response = self.attempt_login('', 'bob')
         self.assertEqual(response.status_code, 400,
@@ -65,18 +59,6 @@ class TaskRunnerTestCase(LiveServerTestCase):
         response = self.attempt_login('bob', 'bob')
         self.assertEqual(response.status_code, 200,
                          'Incorrect server response. Expected 200 found %s'
-                         % response.status_code)
-
-    def test_no_token_good_credentials_returns_400(self):
-        response = self.attempt_login_without_token('bob', 'bob')
-        self.assertEqual(response.status_code, 400,
-                         'Incorrect server response. Expected 400 found %s'
-                         % response.status_code)
-
-    def test_no_token_bad_credentials_returns_400(self):
-        response = self.attempt_login_without_token('badbob', 'badpass')
-        self.assertEqual(response.status_code, 400,
-                         'Incorrect server response. Expected 400 found %s'
                          % response.status_code)
 
 
