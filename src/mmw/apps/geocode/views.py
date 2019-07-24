@@ -17,8 +17,8 @@ geocoder = Geocoder(sources=settings.OMGEO_SETTINGS)
 @decorators.api_view(['GET'])
 @decorators.permission_classes((AllowAny, ))
 def geocode(request, format=None):
-    query = request.REQUEST.get('search', None)
-    key = request.REQUEST.get('key', None)
+    query = request.GET.get('search', None)
+    key = request.GET.get('key', None)
     if (not query):
         response = Response(data={'error': 'Search parameter is required.'},
                             status=400)

@@ -1,6 +1,6 @@
-from django.conf import settings
 from django.core.handlers.base import BaseHandler
-from django.core import urlresolvers
+from django.urls import resolve
+from django.utils.deprecation import MiddlewareMixin
 
 
 def bypass_middleware(view):
@@ -9,7 +9,7 @@ def bypass_middleware(view):
     return view
 
 
-class BypassMiddleware(object):
+class BypassMiddleware(MiddlewareMixin):
     """
     Customized version of a gist detailing this technique by @bryanhelmig
 
@@ -17,12 +17,7 @@ class BypassMiddleware(object):
     """
     def process_request(self, request):
         """Replicates a lot of code from BaseHandler#get_response."""
-        # Setup URL resolver
-        urlconf = settings.ROOT_URLCONF
-        urlresolvers.set_urlconf(urlconf)
-        resolver = urlresolvers.RegexURLResolver(r'^/', urlconf)
-        callback, callback_args, \
-            callback_kwargs = resolver.resolve(request.path_info)
+        callback, callback_args, callback_kwargs = resolve(request.path_info)
 
         if getattr(callback, 'bypass_middleware', False):
             # bypass_middleware decorator was used; zero out all

@@ -12,7 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 
 from django.utils.timezone import now
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.conf import settings
 
 from apps.core.models import Job
@@ -231,7 +231,7 @@ def start_rwd(request, format=None):
     produces:
         - application/json
     """
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
     created = now()
 
     location = request.data.get('location')
@@ -255,7 +255,8 @@ def start_rwd(request, format=None):
             'job': task_list.id,
             'status': 'started',
         },
-        headers={'Location': reverse('get_job', args=[task_list.id])}
+        headers={'Location': reverse('geoprocessing_api:get_job',
+                                     args=[task_list.id])}
     )
 
 
@@ -443,7 +444,7 @@ def start_analyze_land(request, format=None):
     produces:
         - application/json
     """
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
@@ -570,7 +571,7 @@ def start_analyze_soil(request, format=None):
     produces:
         - application/json
     """
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
@@ -732,7 +733,7 @@ def start_analyze_streams(request, format=None):
         - application/json
 
     """
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_input(request)
 
     return start_celery_job([
@@ -847,7 +848,7 @@ def start_analyze_animals(request, format=None):
     produces:
         - application/json
     """
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_input(request)
 
     return start_celery_job([
@@ -937,7 +938,7 @@ def start_analyze_pointsource(request, format=None):
     produces:
         - application/json
     """
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_input(request)
 
     return start_celery_job([
@@ -1056,7 +1057,7 @@ def start_analyze_catchment_water_quality(request, format=None):
     produces:
         - application/json
     """
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_input(request)
 
     return start_celery_job([
@@ -1150,7 +1151,7 @@ def start_analyze_climate(request, format=None):
         - application/json
 
     """
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
 
     geotasks = []
     ppt_raster = settings.GEOP['json']['ppt']['input']['targetRaster']
@@ -1266,7 +1267,7 @@ def start_analyze_terrain(request, format=None):
     produces:
         - application/json
     """
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
@@ -1320,7 +1321,8 @@ def start_celery_job(task_list, job_input, user=None, link_error=True):
             'job': task_chain.id,
             'status': 'started',
         },
-        headers={'Location': reverse('get_job', args=[task_chain.id])}
+        headers={'Location': reverse('geoprocessing_api:get_job',
+                                     args=[task_chain.id])}
     )
 
 

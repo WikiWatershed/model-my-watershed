@@ -27,7 +27,7 @@ def log_request(view):
 
         view_result = view(request, *args, **kwargs)
 
-        user = request.user if request.user.is_authenticated() else None
+        user = request.user if request.user.is_authenticated else None
 
         response_time = now() - requested_at
         response_ms = int(response_time.total_seconds() * 1000)

@@ -7,8 +7,8 @@ from django.contrib.auth import (authenticate,
                                  logout as auth_logout,
                                  login as auth_login)
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
-from django.shortcuts import redirect, render_to_response
+from django.urls import reverse
+from django.shortcuts import redirect, render
 from django.contrib.auth.forms import (PasswordResetForm,
                                        PasswordChangeForm)
 from django.core.exceptions import ObjectDoesNotExist
@@ -66,8 +66,8 @@ def login(request):
         }
 
     if request.method == 'POST':
-        user = authenticate(username=request.REQUEST.get('username'),
-                            password=request.REQUEST.get('password'))
+        user = authenticate(username=request.POST.get('username'),
+                            password=request.POST.get('password'))
 
         if user is not None:
             if user.is_active:
@@ -90,7 +90,7 @@ def login(request):
 
     elif request.method == 'GET':
         user = request.user
-        if user.is_authenticated() and user.is_active:
+        if user.is_authenticated and user.is_active:
             response_data = make_successful_response_data(user)
         else:
             response_data = {
@@ -107,7 +107,7 @@ def login(request):
 @decorators.api_view(['POST'])
 @decorators.permission_classes((IsAuthenticated, ))
 def profile(request):
-    data = request.data
+    data = request.data.copy()
     if 'was_skipped' in data:
         data['was_skipped'] = str(data['was_skipped']).lower() == 'true'
         data['is_complete'] = not data['was_skipped']
@@ -253,11 +253,11 @@ def trim_to_valid_length(basename, suffix):
 @decorators.api_view(['POST'])
 @decorators.permission_classes((AllowAny, ))
 def sign_up(request):
-    view = RegistrationView()
+    view = RegistrationView(request=request)
     form = RegistrationFormUniqueEmail(request.POST)
 
     if form.is_valid():
-        user = view.register(request, form)
+        user = view.register(form)
         response_data = {'result': 'success',
                          'username': user.username,
                          'guest': False}
@@ -365,6 +365,10 @@ def hydroshare_login(request):
 @decorators.permission_classes((IsAuthenticated, ))
 def hydroshare_auth(request):
     context = get_context(request)
+    context.update({
+        'error': None,
+        'token': None,
+    })
 
     code = request.GET.get('code')
 
@@ -384,7 +388,7 @@ def hydroshare_auth(request):
         rollbar.report_message('HydroShare OAuth credentials '
                                'possibly misconfigured', 'warning')
 
-    return render_to_response('user/hydroshare-auth.html', context)
+    return render(request, 'user/hydroshare-auth.html', context)
 
 
 @decorators.api_view(['POST'])

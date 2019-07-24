@@ -12,5 +12,7 @@ class HydroShareResourceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = HydroShareResource
+        fields = ('id', 'project', 'resource', 'title', 'autosync',
+                  'exported_at', 'created_at', 'modified_at', 'url')
 
     url = serializers.ReadOnlyField()

@@ -37,7 +37,7 @@ def filter_results(results, aoi, is_pageable):
 
 
 def _do_search(request):
-    params = json.loads(request.body)
+    params = request.data
     catalog = params.get('catalog')
     page = int(params.get('page', 1))
     request_uri = request.build_absolute_uri()

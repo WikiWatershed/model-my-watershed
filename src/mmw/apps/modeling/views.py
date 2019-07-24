@@ -24,7 +24,7 @@ from django.http import (HttpResponse,
                          Http404,
                          )
 
-from django.core.servers.basehttp import FileWrapper
+from wsgiref.util import FileWrapper
 
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
@@ -190,7 +190,7 @@ def start_gwlfe(request, format=None):
     Will start a GWLF-E job, the result of which will be dictionary
     of the sub-basins and their results.
     """
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
     created = now()
 
     mapshed_job_uuid = request.POST.get('mapshed_job_uuid', None)
@@ -292,7 +292,7 @@ def start_mapshed(request, format=None):
     HUC-12s. The started MapShed job gathers data for each and returns
     them in a dictionary where the keys are the huc12 ids.
     """
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
     created = now()
     mapshed_input = json.loads(request.POST['mapshed_input'])
     job = Job.objects.create(created_at=created, result='', error='',
@@ -378,7 +378,7 @@ def export_gms(request, format=None):
 @log_request
 def start_tr55(request, format=None):
 
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
     created = now()
 
     model_input = json.loads(request.POST['model_input'])
@@ -588,7 +588,7 @@ def get_job(request, job_uuid, format=None):
 
     # Get the user so that logged in users can only see jobs that they started
     # or anonymous ones
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
     if job.user and job.user != user:
         raise Http404("Not found.")
 

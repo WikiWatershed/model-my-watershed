@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from apps.home.views import (
     home_page,
     project,
@@ -14,8 +14,8 @@ from apps.home.views import (
 )
 
 
-urlpatterns = patterns(
-    '',
+app_name = 'home'
+urlpatterns = [
     url(r'^$', home_page, name='home_page'),
     url(r'^draw/?$', home_page, name='home_page'),
     url(r'^account/?$', home_page, name='account'),
@@ -39,4 +39,4 @@ urlpatterns = patterns(
     url(r'^search$', home_page, name='search'),
     url(r'^error', home_page, name='error'),
     url(r'^sign-up', home_page, name='sign_up'),
-)
+]

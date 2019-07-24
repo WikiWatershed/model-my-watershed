@@ -7,4 +7,4 @@ set -x
 
 vagrant ssh app -c "sudo service mmw-app stop || /bin/true"
 vagrant ssh app -c "cd /opt/app/ && envdir /etc/mmw.d/env gunicorn --config /etc/mmw.d/gunicorn.py mmw.wsgi"
-vagrant ssh app -c "sudo start mmw-app"
+vagrant ssh app -c "sudo service mmw-app start"
