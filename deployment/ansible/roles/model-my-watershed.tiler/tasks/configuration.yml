@@ -1,4 +1,13 @@
 ---
+- name: Configure Node Modules mount
+  template: src=systemd-tiler.mount.j2
+            dest=/etc/systemd/system/opt-tiler-node_modules.mount
+  when: "['development', 'test'] | some_are_in(group_names)"
+
+- name: Enable Node Modules Mount
+  systemd: name=opt-tiler-node_modules.mount enabled=yes state=started daemon_reload=yes
+  when: "['development', 'test'] | some_are_in(group_names)"
+
 - name: Configure Windshaft service definition
   template: src=systemd-tiler.service.j2
             dest=/etc/systemd/system/mmw-tiler.service

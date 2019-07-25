@@ -1,0 +1,12 @@
+[Unit]
+Description=Mount Node Modules to Prevent Race Conditions
+Before=mmw-tiler.service
+
+[Mount]
+What=/var/cache/node_modules
+Where=/opt/tiler/node_modules
+Type=none
+Options=bind
+
+[Install]
+WantedBy=opt-tiler.mount
