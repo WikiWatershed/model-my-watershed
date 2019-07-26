@@ -30,6 +30,6 @@ class BypassMiddleware(MiddlewareMixin):
             handler._response_middleware = []
             handler._exception_middleware = []
 
-            response = handler.get_response(request)
+            response = handler._get_response(request)
 
             return response
