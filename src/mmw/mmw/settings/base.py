@@ -293,7 +293,7 @@ DJANGO_APPS = (
 THIRD_PARTY_APPS = (
     'rest_framework',
     'rest_framework_gis',
-    'rest_framework_swagger',
+    'drf_yasg',
     'rest_framework.authtoken',
     'corsheaders',
     'registration',
@@ -316,24 +316,39 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_URLS_REGEX = r'^/api/.*$'
 
 SWAGGER_SETTINGS = {
-    'exclude_namespaces': ['bigcz',
-                           'export',
-                           'mmw',
-                           'user'],
-    'doc_expansion': 'list',
-    'info': {
-        'description': 'The Model My Watershed API allows '
-                       'you to delineate watersheds and analyze '
-                       'geo-data for watersheds and arbitrary areas. '
-                       'You can read more about the work at '
-                       '<a href="http://www.wikiwatershed.org/">'
-                       'WikiWatershed</a> '
-                       'or use the <a href="https://modelmywatershed.org">'
-                       'web app.',
-        'license': 'Apache 2.0',
-        'licenseUrl': 'http://www.apache.org/licenses/LICENSE-2.0.html',
-        'title': 'Model My Watershed API',
-    }
+    'MMW_API_DESCRIPTION':
+        '<p>'
+        'The Model My Watershed API allows you to delineate watersheds and analyze geo-data for watersheds and arbitrary areas. '  # NOQA
+        'You can read more about the work at <a href="http://www.wikiwatershed.org/">WikiWatershed</a> or use the <a href="https://modelmywatershed.org">web app</a>. '  # NOQA
+        '</p>'
+        '<p>'
+        'To use this interactive API documentation, first get your API key from My Account > Account in the web app. '  # NOQA
+        'Then, click on the green Authorize button just below and paste in <code>Token $YOUR_MMW_TOKEN</code> in the "Value" textbox, then click Authorize, then Close. '  # NOQA
+        'All the endpoints in this documentation will then be prepared with your token, and you will now be able to run them interactively. '  # NOQA
+        'Do not use the Django Login / Logout buttons. This API uses Token Authentication only. '  # NOQA
+        '</p>'
+        '<p>'
+        'All <strong>analyze</strong> endpoints take <em>either</em> a MultiPolygon request body <em>or</em> a well-known area of interest query parameter. '  # NOQA
+        'The shape of their result object is documented individually. '
+        '</p>'
+        '<p>'
+        'All <strong>analyze</strong> and <strong>watershed</strong> endpoints return a <strong>Job Started Response</strong> on success. '  # NOQA
+        'This response has a <code>job</code> value, as well as a <code>Location</code> header, either of which can be used with the <strong>jobs</strong> endpoint to get the result. '  # NOQA
+        '</p>'
+        '<p>'
+        'The <strong>jobs</strong> endpoint has a <code>status</code> key, whose value is either <strong>started</strong>, <strong>complete</strong>, or <strong>failed</strong>. '  # NOQA
+        'In cases of completion and failure, the <code>finished</code> key has a timestamp. '  # NOQA
+        'The value of <code>result</code> depends on the kind of job it was. '  # NOQA
+        '</p>',
+    'SECURITY_DEFINITIONS': {
+        'Token': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'Paste in `Token $YOUR_MMW_TOKEN` here',
+            'scheme': 'Token',
+        },
+    },
 }
 
 # registration
