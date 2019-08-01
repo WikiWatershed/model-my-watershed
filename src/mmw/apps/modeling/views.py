@@ -15,6 +15,7 @@ from rest_framework.authentication import (SessionAuthentication,
 from rest_framework.permissions import (AllowAny,
                                         IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
+from drf_yasg.utils import swagger_auto_schema
 
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
@@ -29,6 +30,7 @@ from wsgiref.util import FileWrapper
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
 from apps.core.decorators import log_request
+from apps.geoprocessing_api.schemas import JOB_RESPONSE
 from apps.modeling import tasks, geoprocessing
 from apps.modeling.mapshed.tasks import (multi_subbasin,
                                          multi_mapshed,
@@ -541,6 +543,8 @@ def drb_point_sources(request):
                     headers={'Cache-Control': 'max-age: 604800'})
 
 
+@swagger_auto_schema(method='get',
+                     responses={200: JOB_RESPONSE})
 @decorators.api_view(['GET'])
 @decorators.authentication_classes((SessionAuthentication,
                                     TokenAuthentication, ))
@@ -549,35 +553,6 @@ def drb_point_sources(request):
 def get_job(request, job_uuid, format=None):
     """
     Get a job's status. If it's complete, get its result.
-
-    ---
-    type:
-      job_uuid:
-        required: true
-        type: string
-      status:
-        required: true
-        type: string
-      started:
-        required: true
-        type: datetime
-      finished:
-        required: true
-        type: datetime
-      result:
-        required: true
-        type: object
-      error:
-        required: true
-        type: string
-
-    omit_serializer: true
-    parameters:
-       - name: Authorization
-         paramType: header
-         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
-                      Swagger you may wish to set this for all requests via
-                      the field at the top right of the page.
     """
     # TODO consider if we should have some sort of session id check to ensure
     # you can only view your own jobs.
