@@ -40,9 +40,9 @@
       "resolved": "https://registry.npmjs.org/blueimp-md5/-/blueimp-md5-1.1.0.tgz"
     },
     "bootstrap": {
-      "version": "3.3.4",
-      "from": "https://registry.npmjs.org/bootstrap/-/bootstrap-3.3.4.tgz",
-      "resolved": "https://registry.npmjs.org/bootstrap/-/bootstrap-3.3.4.tgz"
+      "version": "3.4.1",
+      "from": "bootstrap@3.4.1",
+      "resolved": "https://registry.npmjs.org/bootstrap/-/bootstrap-3.4.1.tgz"
     },
     "bootstrap-datepicker": {
       "version": "1.7.1",
