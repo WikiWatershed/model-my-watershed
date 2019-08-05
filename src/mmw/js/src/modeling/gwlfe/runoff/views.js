@@ -159,7 +159,7 @@ var ChartView = Marionette.ItemView.extend({
         if (result) {
             var data = [
                     {
-                        key: _.findWhere(runoffVars, {name: activeVar}).display,
+                        key: _.find(runoffVars, {name: activeVar}).display,
                         values: _.map(result.monthly, function(monthResult, monthInd) {
                             return {
                                 x: monthInd,

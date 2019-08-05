@@ -347,10 +347,10 @@ var MapView = Marionette.ItemView.extend({
         this.layerTabCollection = options.layerTabCollection;
 
         _.defaults(options, {
-            addZoomControl: _.contains(map_controls, 'ZoomControl'),
-            addSidebarToggleControl: _.contains(map_controls, 'SidebarToggleControl'),
-            addLocateMeButton: _.contains(map_controls, 'LocateMeButton'),
-            showLayerAttribution: _.contains(map_controls, 'LayerAttribution'),
+            addZoomControl: _.includes(map_controls, 'ZoomControl'),
+            addSidebarToggleControl: _.includes(map_controls, 'SidebarToggleControl'),
+            addLocateMeButton: _.includes(map_controls, 'LocateMeButton'),
+            showLayerAttribution: _.includes(map_controls, 'LayerAttribution'),
             interactiveMode: true // True if clicking on map does stuff
         });
 
@@ -654,7 +654,7 @@ var MapView = Marionette.ItemView.extend({
             additionalShapes = this.model.get('areaOfInterestAdditionals');
 
         if (additionalShapes) {
-            _.each(additionalShapes.features, function(geoJSONpoint) {
+            _.forEach(additionalShapes.features, function(geoJSONpoint) {
                 var newLayer = L.geoJson(geoJSONpoint, {
                     pointToLayer: function(feature, latLngForPoint) {
                         var customIcon = feature.properties.original ?
@@ -714,7 +714,7 @@ var MapView = Marionette.ItemView.extend({
                 }
             }, []);
 
-        _.each(layers, function(layer) {
+        _.forEach(layers, function(layer) {
             self._modificationsLayer.addLayer(layer);
         });
     },

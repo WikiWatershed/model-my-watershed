@@ -48,7 +48,7 @@ var ThumbSelectView = Marionette.ItemView.extend({
     template: thumbSelectTmpl,
 
     initialize: function(options) {
-        var modKeys = _.flatten(_.pluck(this.model.get('modRowGroups'), 'rows'), true),
+        var modKeys = _.flattenDeep(_.map(this.model.get('modRowGroups'), 'rows')),
             dataModel = this.model.get('dataModel'),
             manualMode = this.model.get('manualMode'),
             modEnabled = {};

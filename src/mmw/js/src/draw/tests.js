@@ -338,7 +338,7 @@ function assertDrawToolIsVisible($el, drawToolRegion) {
         assert.equal($el.find(drawToolRegion + ' .draw-tool-selection').length, 1);
     }
 
-    _.each(inactiveRegions, function (inactiveDrawToolRegion) {
+    _.forEach(inactiveRegions, function (inactiveDrawToolRegion) {
         assert.equal($el.find(inactiveDrawToolRegion + ' .draw-tool-region').length, 0);
     });
 }

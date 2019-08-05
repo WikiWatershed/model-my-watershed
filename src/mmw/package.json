@@ -41,7 +41,7 @@
     "leaflet-plugins": "git://github.com/azavea/leaflet-plugins#feature/browserify",
     "leaflet.locatecontrol": "0.43.0",
     "livereload": "0.3.7",
-    "lodash": "3.6.0",
+    "lodash": "4.17.15",
     "minifyify": "7.0.0",
     "mocha": "2.0.1",
     "moment": "2.24.0",

@@ -1,7 +1,7 @@
 'use strict';
 
 var $ = require('jquery'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     L = require('leaflet'),
     Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
@@ -69,7 +69,7 @@ function VizerLayers() {
                 });
 
                 // All layers are loaded have have markers created for all assets
-                layersReady.resolve(_.object(layers));
+                layersReady.resolve(_.fromPairs(layers));
             })
             .fail(function() {
                 layersReady.reject(error_msg);
@@ -105,7 +105,7 @@ function attachPopups(featureGroup) {
  * result for each category (variable) available in the asset */
 function updatePopup(popup, model, recentValues) {
     var values = _.map(model.get('measurements'), function(category) {
-        var measurement = _.findWhere(recentValues.result, {var_id: category.var_id});
+        var measurement = _.find(recentValues.result, {var_id: category.var_id});
 
         if (measurement) {
             measurement.lastUpdated = new Date(measurement.time * 1000); // seconds -> ms
@@ -179,7 +179,7 @@ var ObservationPopupView = Marionette.LayoutView.extend({
 
     templateHelpers: function() {
         var measurements = this.model.get('measurements'),
-            lastUpdatedTimes = _.pluck(measurements, 'lastUpdated'),
+            lastUpdatedTimes = _.map(measurements, 'lastUpdated'),
             latestTime = _.reduce(lastUpdatedTimes, function(latestTime, time) {
                 if (time > latestTime) {
                     return time;

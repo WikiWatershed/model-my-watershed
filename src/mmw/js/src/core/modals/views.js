@@ -603,7 +603,7 @@ var PlotView = ModalBaseView.extend({
         this.listenTo(this.model, 'change', this.render);
 
         // Cache series data after it is fetched.
-        var seriesMap = _.object(_.map(this.model.get('measurements'), function(measurement) {
+        var seriesMap = _.fromPairs(_.map(this.model.get('measurements'), function(measurement) {
             return [measurement.var_id, null];
         }));
         this.model.set('seriesMap', seriesMap);
@@ -749,7 +749,7 @@ var PlotView = ModalBaseView.extend({
 
     templateHelpers: function() {
         var currVarId = this.model.get('currVarId'),
-            measurement = _.findWhere(this.model.get('measurements'), {
+            measurement = _.find(this.model.get('measurements'), {
                 var_id: currVarId
             }),
             series = this.model.get('seriesMap')[currVarId],

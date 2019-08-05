@@ -955,12 +955,12 @@ describe('Modeling', function() {
                     assert.equal(collection.at(3).get('active'), true);
                 });
 
-                it('give the new scenario a name that contains "New Scenario"', function() {
+                it('give the new scenario a name that includes "New Scenario"', function() {
                     var collection = getTestScenarioCollection();
 
                     collection.createNewScenario();
 
-                    assert.isTrue(_.contains(collection.at(3).get('name'), 'New Scenario'));
+                    assert.isTrue(_.includes(collection.at(3).get('name'), 'New Scenario'));
                 });
             });
 
