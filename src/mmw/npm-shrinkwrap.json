@@ -47,12 +47,26 @@
     "bootstrap-datepicker": {
       "version": "1.7.1",
       "from": "https://registry.npmjs.org/bootstrap-datepicker/-/bootstrap-datepicker-1.7.1.tgz",
-      "resolved": "https://registry.npmjs.org/bootstrap-datepicker/-/bootstrap-datepicker-1.7.1.tgz"
+      "resolved": "https://registry.npmjs.org/bootstrap-datepicker/-/bootstrap-datepicker-1.7.1.tgz",
+      "dependencies": {
+        "jquery": {
+          "version": "3.4.1",
+          "from": "jquery@3.4.1",
+          "resolved": "https://registry.npmjs.org/jquery/-/jquery-3.4.1.tgz"
+        }
+      }
     },
     "bootstrap-select": {
       "version": "1.12.4",
       "from": "https://registry.npmjs.org/bootstrap-select/-/bootstrap-select-1.12.4.tgz",
-      "resolved": "https://registry.npmjs.org/bootstrap-select/-/bootstrap-select-1.12.4.tgz"
+      "resolved": "https://registry.npmjs.org/bootstrap-select/-/bootstrap-select-1.12.4.tgz",
+      "dependencies": {
+        "jquery": {
+          "version": "3.4.1",
+          "from": "jquery@3.4.1",
+          "resolved": "https://registry.npmjs.org/jquery/-/jquery-3.4.1.tgz"
+        }
+      }
     },
     "bootstrap-table": {
       "version": "1.11.0",
@@ -1102,9 +1116,9 @@
       "resolved": "git://github.com/concord-consortium/iframe-phone#200f47f43ee32d640868072c17de4a675e16d96a"
     },
     "jquery": {
-      "version": "3.3.1",
-      "from": "https://registry.npmjs.org/jquery/-/jquery-3.3.1.tgz",
-      "resolved": "https://registry.npmjs.org/jquery/-/jquery-3.3.1.tgz"
+      "version": "3.4.1",
+      "from": "jquery@3.4.1",
+      "resolved": "https://registry.npmjs.org/jquery/-/jquery-3.4.1.tgz"
     },
     "jshint": {
       "version": "2.8.0",
