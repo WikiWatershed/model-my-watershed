@@ -2161,9 +2161,9 @@
       }
     },
     "moment": {
-      "version": "2.19.2",
-      "from": "https://registry.npmjs.org/moment/-/moment-2.19.2.tgz",
-      "resolved": "https://registry.npmjs.org/moment/-/moment-2.19.2.tgz"
+      "version": "2.24.0",
+      "from": "moment@2.24.0",
+      "resolved": "https://registry.npmjs.org/moment/-/moment-2.24.0.tgz"
     },
     "node-sass": {
       "version": "3.3.2",
