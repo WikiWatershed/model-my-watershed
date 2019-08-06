@@ -10,6 +10,7 @@ from rest_framework.authentication import (TokenAuthentication,
                                            SessionAuthentication)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
+from drf_yasg.utils import swagger_auto_schema
 
 from django.utils.timezone import now
 from django.urls import reverse
@@ -24,7 +25,7 @@ from apps.modeling.mapshed.calcs import streams
 from apps.modeling.mapshed.tasks import nlcd_streams
 from apps.modeling.serializers import AoiSerializer
 
-from apps.geoprocessing_api import tasks
+from apps.geoprocessing_api import schemas, tasks
 from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
                                                SustainedRateThrottle)
@@ -32,6 +33,9 @@ from apps.geoprocessing_api.throttling import (BurstRateThrottle,
 from apps.geoprocessing_api.validation import validate_rwd
 
 
+@swagger_auto_schema(method='post',
+                     request_body=schemas.TOKEN_REQUEST,
+                     responses={200: schemas.TOKEN_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((AuthTokenSerializerAuthentication,
                                     SessionAuthentication, ))
@@ -68,12 +72,6 @@ def get_auth_token(request, format=None):
            "token": "ea467ed7f67c53cfdd313198647a1d187b4d3ab9",
            "created_at": "2017-09-11T14:50:54.738Z"
         }
-    ---
-    omit_serializer: true
-    consumes:
-        - application/json
-    produces:
-        - application/json
     """
 
     should_regenerate = request.data.get('regenerate', False)
@@ -85,6 +83,9 @@ def get_auth_token(request, format=None):
                      'created_at': token.created})
 
 
+@swagger_auto_schema(method='post',
+                     request_body=schemas.RWD_REQUEST,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
                                     TokenAuthentication, ))
@@ -207,29 +208,6 @@ def start_rwd(request, format=None):
         }
 
     </details>
-    ---
-    type:
-      job:
-        required: true
-        type: string
-      status:
-        required: true
-        type: string
-
-    omit_serializer: true
-    parameters:
-       - name: body
-         required: true
-         paramType: body
-       - name: Authorization
-         paramType: header
-         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
-                      Swagger you may wish to set this for all requests via
-                      the field at the top right of the page.
-    consumes:
-        - application/json
-    produces:
-        - application/json
     """
     user = request.user if request.user.is_authenticated else None
     created = now()
@@ -260,6 +238,10 @@ def start_rwd(request, format=None):
     )
 
 
+@swagger_auto_schema(method='post',
+                     manual_parameters=[schemas.WKAOI],
+                     request_body=schemas.MULTIPOLYGON,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
                                     TokenAuthentication, ))
@@ -409,40 +391,6 @@ def start_analyze_land(request, format=None):
         }
 
     </details>
-    ---
-    type:
-      job:
-        required: true
-        type: string
-      status:
-        required: true
-        type: string
-
-    omit_serializer: true
-    parameters:
-       - name: body
-         description: A valid single-ringed Multipolygon GeoJSON
-                      representation of the shape to analyze.
-                      See the GeoJSON spec
-                      https://tools.ietf.org/html/rfc7946#section-3.1.7
-         paramType: body
-         type: object
-       - name: wkaoi
-         description: The table and ID for a well-known area of interest,
-                      such as a HUC.
-                      Format "table__id", eg. "huc12__55174" will analyze
-                      the HUC-12 City of Philadelphia-Schuylkill River.
-         type: string
-         paramType: query
-       - name: Authorization
-         paramType: header
-         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
-                      Swagger you may wish to set this for all requests via
-                      the field at the top right of the page.
-    consumes:
-        - application/json
-    produces:
-        - application/json
     """
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_input(request)
@@ -455,6 +403,10 @@ def start_analyze_land(request, format=None):
     ], area_of_interest, user)
 
 
+@swagger_auto_schema(method='post',
+                     manual_parameters=[schemas.WKAOI],
+                     request_body=schemas.MULTIPOLYGON,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
                                     TokenAuthentication, ))
@@ -534,42 +486,6 @@ def start_analyze_soil(request, format=None):
         }
 
     </details>
-
-    ---
-    type:
-      job:
-        required: true
-        type: string
-      status:
-        required: true
-        type: string
-
-    omit_serializer: true
-    parameters:
-       - name: body
-         description: A valid single-ringed Multipolygon GeoJSON
-                      representation of the shape to analyze.
-                      See the GeoJSON spec
-                      https://tools.ietf.org/html/rfc7946#section-3.1.7
-         paramType: body
-         type: object
-       - name: wkaoi
-         description: The table and ID for a well-known area of interest,
-                      such as a HUC.
-                      Format "table__id", eg. "huc12__55174" will analyze
-                      the HUC-12 City of Philadelphia-Schuylkill River.
-         type: string
-         paramType: query
-
-       - name: Authorization
-         paramType: header
-         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
-                      Swagger you may wish to set this for all requests via
-                      the field at the top right of the page.
-    consumes:
-        - application/json
-    produces:
-        - application/json
     """
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_input(request)
@@ -582,6 +498,10 @@ def start_analyze_soil(request, format=None):
     ], area_of_interest, user)
 
 
+@swagger_auto_schema(method='post',
+                     manual_parameters=[schemas.WKAOI],
+                     request_body=schemas.MULTIPOLYGON,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
                                     TokenAuthentication, ))
@@ -696,42 +616,6 @@ def start_analyze_streams(request, format=None):
         }
 
     </details>
-
-    ---
-    type:
-      job:
-        required: true
-        type: string
-      status:
-        required: true
-        type: string
-
-    omit_serializer: true
-    parameters:
-       - name: body
-         description: A valid single-ringed Multipolygon GeoJSON
-                      representation of the shape to analyze.
-                      See the GeoJSON spec
-                      https://tools.ietf.org/html/rfc7946#section-3.1.7
-         paramType: body
-         type: object
-       - name: wkaoi
-         paramType: query
-         description: The table and ID for a well-known area of interest,
-                      such as a HUC.
-                      Format "table__id", eg. "huc12__55174" will analyze
-                      the HUC-12 City of Philadelphia-Schuylkill River.
-
-       - name: Authorization
-         paramType: header
-         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
-                      Swagger you may wish to set this for all requests via
-                      the field at the top right of the page.
-    consumes:
-        - application/json
-    produces:
-        - application/json
-
     """
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_input(request)
@@ -745,6 +629,10 @@ def start_analyze_streams(request, format=None):
     ], area_of_interest, user)
 
 
+@swagger_auto_schema(method='post',
+                     manual_parameters=[schemas.WKAOI],
+                     request_body=schemas.MULTIPOLYGON,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
                                     TokenAuthentication, ))
@@ -813,40 +701,6 @@ def start_analyze_animals(request, format=None):
             }
         }
     </details>
-    ---
-    type:
-      job:
-        required: true
-        type: string
-      status:
-        required: true
-        type: string
-
-    omit_serializer: true
-    parameters:
-       - name: body
-         description: A valid single-ringed Multipolygon GeoJSON
-                      representation of the shape to analyze.
-                      See the GeoJSON spec
-                      https://tools.ietf.org/html/rfc7946#section-3.1.7
-         paramType: body
-         type: object
-       - name: wkaoi
-         paramType: query
-         description: The table and ID for a well-known area of interest,
-                      such as a HUC.
-                      Format "table__id", eg. "huc12__55174" will analyze
-                      the HUC-12 City of Philadelphia-Schuylkill River.
-
-       - name: Authorization
-         paramType: header
-         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
-                      Swagger you may wish to set this for all requests via
-                      the field at the top right of the page.
-    consumes:
-        - application/json
-    produces:
-        - application/json
     """
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_input(request)
@@ -856,6 +710,10 @@ def start_analyze_animals(request, format=None):
     ], area_of_interest, user)
 
 
+@swagger_auto_schema(method='post',
+                     manual_parameters=[schemas.WKAOI],
+                     request_body=schemas.MULTIPOLYGON,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
                                     TokenAuthentication, ))
@@ -905,38 +763,6 @@ def start_analyze_pointsource(request, format=None):
         }
 
     </details>
-    ---
-    type:
-      job:
-        required: true
-        type: string
-      status:
-        required: true
-        type: string
-
-    omit_serializer: true
-    parameters:
-       - name: body
-         description: A valid single-ringed Multipolygon GeoJSON
-                      representation of the shape to analyze.
-                      See the GeoJSON spec
-                      https://tools.ietf.org/html/rfc7946#section-3.1.7
-         paramType: body
-         type: object
-       - name: wkaoi
-         description: The table and ID for a well-known area of interest,
-                      such as a HUC.
-                      Format "table__id", eg. "huc12__55174" will analyze
-                      the HUC-12 City of Philadelphia-Schuylkill River.
-       - name: Authorization
-         paramType: header
-         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
-                      Swagger you may wish to set this for all requests via
-                      the field at the top right of the page.
-    consumes:
-        - application/json
-    produces:
-        - application/json
     """
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_input(request)
@@ -946,6 +772,10 @@ def start_analyze_pointsource(request, format=None):
     ], area_of_interest, user)
 
 
+@swagger_auto_schema(method='post',
+                     manual_parameters=[schemas.WKAOI],
+                     request_body=schemas.MULTIPOLYGON,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
                                     TokenAuthentication, ))
@@ -1022,40 +852,6 @@ def start_analyze_catchment_water_quality(request, format=None):
         }
 
     </details>
-
-    ---
-    type:
-      job:
-        required: true
-        type: string
-      status:
-        required: true
-        type: string
-
-    omit_serializer: true
-    parameters:
-       - name: body
-         description: A valid single-ringed Multipolygon GeoJSON
-                      representation of the shape to analyze.
-                      See the GeoJSON spec
-                      https://tools.ietf.org/html/rfc7946#section-3.1.7
-         paramType: body
-         type: object
-       - name: wkaoi
-         paramType: query
-         description: The table and ID for a well-known area of interest,
-                      such as a HUC.
-                      Format "table__id", eg. "huc12__55174" will analyze
-                      the HUC-12 City of Philadelphia-Schuylkill River.
-       - name: Authorization
-         paramType: header
-         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
-                      Swagger you may wish to set this for all requests via
-                      the field at the top right of the page.
-    consumes:
-        - application/json
-    produces:
-        - application/json
     """
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_input(request)
@@ -1065,6 +861,10 @@ def start_analyze_catchment_water_quality(request, format=None):
     ], area_of_interest, user)
 
 
+@swagger_auto_schema(method='post',
+                     manual_parameters=[schemas.WKAOI],
+                     request_body=schemas.MULTIPOLYGON,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
                                     TokenAuthentication, ))
@@ -1115,41 +915,6 @@ def start_analyze_climate(request, format=None):
         }
 
     </details>
-
-    ---
-    type:
-      job:
-        required: true
-        type: string
-      status:
-        required: true
-        type: string
-
-    omit_serializer: true
-    parameters:
-       - name: body
-         description: A valid single-ringed Multipolygon GeoJSON
-                      representation of the shape to analyze.
-                      See the GeoJSON spec
-                      https://tools.ietf.org/html/rfc7946#section-3.1.7
-         paramType: body
-         type: object
-       - name: wkaoi
-         paramType: query
-         description: The table and ID for a well-known area of interest,
-                      such as a HUC.
-                      Format "table__id", eg. "huc12__55174" will analyze
-                      the HUC-12 City of Philadelphia-Schuylkill River.
-       - name: Authorization
-         paramType: header
-         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
-                      Swagger you may wish to set this for all requests via
-                      the field at the top right of the page.
-    consumes:
-        - application/json
-    produces:
-        - application/json
-
     """
     user = request.user if request.user.is_authenticated else None
 
@@ -1177,6 +942,10 @@ def start_analyze_climate(request, format=None):
     ], area_of_interest, user, link_error=False)
 
 
+@swagger_auto_schema(method='post',
+                     manual_parameters=[schemas.WKAOI],
+                     request_body=schemas.MULTIPOLYGON,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
                                     TokenAuthentication, ))
@@ -1230,42 +999,6 @@ def start_analyze_terrain(request, format=None):
         }
 
     </details>
-
-    ---
-    type:
-      job:
-        required: true
-        type: string
-      status:
-        required: true
-        type: string
-
-    omit_serializer: true
-    parameters:
-       - name: body
-         description: A valid single-ringed Multipolygon GeoJSON
-                      representation of the shape to analyze.
-                      See the GeoJSON spec
-                      https://tools.ietf.org/html/rfc7946#section-3.1.7
-         paramType: body
-         type: object
-       - name: wkaoi
-         description: The table and ID for a well-known area of interest,
-                      such as a HUC.
-                      Format "table__id", eg. "huc12__55174" will analyze
-                      the HUC-12 City of Philadelphia-Schuylkill River.
-         type: string
-         paramType: query
-
-       - name: Authorization
-         paramType: header
-         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
-                      Swagger you may wish to set this for all requests via
-                      the field at the top right of the page.
-    consumes:
-        - application/json
-    produces:
-        - application/json
     """
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_input(request)
