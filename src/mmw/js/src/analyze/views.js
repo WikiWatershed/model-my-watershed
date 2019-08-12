@@ -1,8 +1,7 @@
 "use strict";
 
 var $ = require('jquery'),
-    _ = require('underscore'),
-    lodash = require('lodash'),
+    _ = require('lodash'),
     L = require('leaflet'),
     Marionette = require('../../shim/backbone.marionette'),
     Backbone = require('../../shim/backbone'),
@@ -123,7 +122,7 @@ var ResultsView = Marionette.LayoutView.extend({
 
     animateIn: function(fitToBounds) {
         var self = this,
-            fit = lodash.isUndefined(fitToBounds) ? true : fitToBounds;
+            fit = _.isUndefined(fitToBounds) ? true : fitToBounds;
 
         this.$el.animate({ width: '400px', opacity: 1 }, 200, function() {
             App.map.setAnalyzeSize(fit);
@@ -161,7 +160,7 @@ var ResultsView = Marionette.LayoutView.extend({
 
         var modelPackages = settings.get('model_packages'),
             modelPackageName = $(e.currentTarget).data('id'),
-            modelPackage = lodash.find(modelPackages, {name: modelPackageName}),
+            modelPackage = _.find(modelPackages, {name: modelPackageName}),
             newProjectUrl = '/project/new/' + modelPackageName,
             projectUrl = '/project',
             alertView,
@@ -197,7 +196,7 @@ var ResultsView = Marionette.LayoutView.extend({
         }
 
         if (landResults) {
-            var landCoverTotal = lodash.sum(lodash.map(landResults.categories,
+            var landCoverTotal = _.sum(_.map(landResults.categories,
                 function(category) {
                     if (category.type === 'Open Water') {
                         return 0;
@@ -330,8 +329,8 @@ var TabContentView = Marionette.LayoutView.extend({
         this.showAnalyzingMessage();
 
         this.model.fetchAnalysisIfNeeded()
-            .done(lodash.bind(this.showResultsIfNotDestroyed, this))
-            .fail(lodash.bind(this.showErrorIfNotDestroyed, this));
+            .done(_.bind(this.showResultsIfNotDestroyed, this))
+            .fail(_.bind(this.showErrorIfNotDestroyed, this));
     },
 
     showAnalyzingMessage: function() {
@@ -698,8 +697,8 @@ var ClimateTableView = Marionette.CompositeView.extend({
     templateHelpers: function() {
         var data = this.collection.toJSON(),
             // Standardize precipitation in cm to m before converting to appropriate unit
-            totalPpt = coreUnits.get('LENGTH_S', lodash(data).pluck('ppt').sum() / 100),
-            avgTmean = coreUnits.get('TEMPERATURE', lodash(data).pluck('tmean').sum() / 12);
+            totalPpt = coreUnits.get('LENGTH_S', _(data).map('ppt').sum() / 100),
+            avgTmean = coreUnits.get('TEMPERATURE', _(data).map('tmean').sum() / 12);
 
         return {
             totalPpt: totalPpt.value,
@@ -766,14 +765,14 @@ var StreamTableView = Marionette.CompositeView.extend({
     },
 
     templateHelpers: function() {
-        var data = lodash(this.collection.toJSON()),
+        var data = _(this.collection.toJSON()),
             scheme = settings.get('unit_scheme'),
             lengthUnit = coreUnits[scheme].LENGTH_XL.name,
             isMetric = scheme === coreUnits.UNIT_SCHEME.METRIC,
             totalLength = isMetric ?
-                data.pluck('lengthkm').sum() :
-                data.pluck('lengthkm').sum() * MI_IN_KM,
-            avgChannelSlope = data.pluck('total_weighted_slope').sum() / totalLength,
+                data.map('lengthkm').sum() :
+                data.map('lengthkm').sum() * MI_IN_KM,
+            avgChannelSlope = data.map('total_weighted_slope').sum() / totalLength,
             // Currently we only calculate agricultral percent for the entire
             // set, not per stream order, so we use the first value for total.
             agPercent = data.first().ag_stream_pct,
@@ -1175,7 +1174,7 @@ var ChartView = Marionette.ItemView.extend({
     addChart: function() {
         var self = this,
             chartEl = this.$el.find('.bar-chart').get(0),
-            data = lodash.map(this.collection.toJSON(), function(model) {
+            data = _.map(this.collection.toJSON(), function(model) {
                 return {
                     x: model.type,
                     y: model.coverage,
@@ -1186,7 +1185,7 @@ var ChartView = Marionette.ItemView.extend({
             chartOptions = {
                yAxisLabel: 'Coverage',
                isPercentage: true,
-               barClasses: lodash.pluck(data, 'class')
+               barClasses: _.map(data, 'class')
            };
 
         chart.renderHorizontalBarChart(chartEl, data, chartOptions);
@@ -1221,7 +1220,7 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
 
         // Render an unpaginated table for tables that can be paginated.
         if (dataName === 'pointsource' || dataName === 'catchment_water_quality') {
-            var largestArea = lodash.max(lodash.pluck(data, 'area')),
+            var largestArea = _.max(_.map(data, 'area')),
                 units = utils.magnitudeOfArea(largestArea),
                 census,
                 TableView;
@@ -1252,7 +1251,7 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
     showAnalyzeResults: function(CategoriesToCensus, AnalyzeTableView,
         AnalyzeChartView, title, source, helpText, associatedLayerCodes, pageSize) {
         var categories = this.model.get('categories'),
-            largestArea = lodash.max(lodash.pluck(categories, 'area')),
+            largestArea = _.max(_.map(categories, 'area')),
             units = utils.magnitudeOfArea(largestArea),
             census = new CategoriesToCensus(categories);
 
@@ -1442,7 +1441,7 @@ var ClimateChartView = ChartView.extend({
                 xAxisLabel: function(x) {
                     return monthNames[x];
                 },
-                xTickValues: lodash.range(12),
+                xTickValues: _.range(12),
                 yTickFormat: '0.01f',
             };
 
@@ -1494,8 +1493,8 @@ var StreamResultView = AnalyzeResultView.extend({
             streamOrders = this.model.get('categories');
 
         // Merge helptext in with stream order results
-        _.each(streamOrderHelpText, function(help) {
-            var stream = _.findWhere(streamOrders, { order: help.order });
+        _.forEach(streamOrderHelpText, function(help) {
+            var stream = _.find(streamOrders, { order: help.order });
             if (stream) {
                 stream.helpText = help.text;
             }

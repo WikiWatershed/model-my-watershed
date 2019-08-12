@@ -34,7 +34,7 @@ var ModelPackageControlModel = Backbone.Model.extend({
     // Return true if this is an input control and false if it is a
     // modification control.
     isInputControl: function() {
-        return _.contains([
+        return _.includes([
             'precipitation'
         ], this.get('name'));
     }
@@ -1793,11 +1793,11 @@ var ScenariosCollection = Backbone.Collection.extend({
     makeNewScenarioName: function(baseName) {
         var existingNames = this.pluck('name');
 
-        if (!_.contains(existingNames, baseName)) {
+        if (!_.includes(existingNames, baseName)) {
             return baseName;
         }
 
-        for (var i = 1; _.contains(existingNames, baseName + ' ' + i); i++) {
+        for (var i = 1; _.includes(existingNames, baseName + ' ' + i); i++) {
             continue;
         }
 

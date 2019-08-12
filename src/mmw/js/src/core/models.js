@@ -245,7 +245,7 @@ var LayersCollection = Backbone.Collection.extend({
     initialize: function(model, options) {
         var self = this;
         if (options) {
-            _.each(settings.get(options.type), function(layer) {
+            _.forEach(settings.get(options.type), function(layer) {
                 var layerModel = new LayerModel();
                 layerModel.buildLayer(layer, options.type, options.initialActive);
                 if (!settings.get('data_catalog_enabled') || layerModel.get('bigCZ')) {
@@ -364,7 +364,7 @@ var LayerTabCollection = Backbone.Collection.extend({
     model: LayerTabModel,
 
     initialize: function() {
-        var defaultBaseLayer = _.findWhere(settings.get('base_layers'), function(layer) {
+        var defaultBaseLayer = _.find(settings.get('base_layers'), function(layer) {
                 return layer.default === true;
             }),
             defaultBaseLayerName = defaultBaseLayer ? defaultBaseLayer['display'] : 'Streets';

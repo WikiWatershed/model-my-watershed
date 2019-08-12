@@ -215,7 +215,7 @@ function itsiResetProject(project) {
     // collection events that are disassociating the model during
     // the loop.
     var locks = [];
-    _.each(project.get('scenarios').toArray(), function(model) {
+    _.forEach(project.get('scenarios').toArray(), function(model) {
         var $lock = $.Deferred();
         locks.push($lock);
         model.destroy({

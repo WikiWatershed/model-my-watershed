@@ -56,7 +56,7 @@ describe('Analyze', function() {
 
     describe('Views', function() {
         describe('AnalysisResultView', function() {
-            _.each(['land', 'soil', 'animals', 'pointsource', 'catchment_water_quality'], testAnalysisType);
+            _.forEach(['land', 'soil', 'animals', 'pointsource', 'catchment_water_quality'], testAnalysisType);
         });
     });
 });

@@ -315,7 +315,7 @@ var Catalog = Backbone.Model.extend({
     },
 
     doneSearch: function(response) {
-        var data = _.findWhere(response, { catalog: this.id }),
+        var data = _.find(response, { catalog: this.id }),
             setFields = {
                 page: data.page || 1,
                 resultCount: data.count,
@@ -599,7 +599,7 @@ var Result = Backbone.Model.extend({
 
     getDetailsUrl: function() {
         var links = this.get('links') || [],
-            detailsUrl = _.findWhere(links, { type: 'details' });
+            detailsUrl = _.find(links, { type: 'details' });
         return detailsUrl && detailsUrl.href;
     },
 
@@ -637,7 +637,7 @@ var Results = Backbone.Collection.extend({
     },
 
     parse: function(response) {
-        return _.findWhere(response, { catalog: this.catalog }).results;
+        return _.find(response, { catalog: this.catalog }).results;
     },
 
     getDetail: function() {

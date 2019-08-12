@@ -204,7 +204,7 @@ describe('Core', function() {
                     }).get();
 
                 assert.equal(layerNames.length, 2, 'Did not add layer selector');
-                assert.deepEqual(layerNames, _.pluck(baseLayers, 'display'));
+                assert.deepEqual(layerNames, _.map(baseLayers, 'display'));
 
                 view.destroy();
             });
@@ -636,7 +636,7 @@ describe('Core', function() {
                 'TRACE'
             ];
 
-            _.each(requestMethods, function(method) {
+            _.forEach(requestMethods, function(method) {
                 $.ajax({
                     method: method,
                     url: '/foo',
@@ -658,7 +658,7 @@ describe('Core', function() {
                 'DELETE'
             ];
 
-            _.each(requestMethods, function(method) {
+            _.forEach(requestMethods, function(method) {
                 $.ajax({
                     method: method,
                     url: '/foo',
@@ -686,7 +686,7 @@ describe('Core', function() {
                 'PATCH'
             ];
 
-            _.each(requestMethods, function(method) {
+            _.forEach(requestMethods, function(method) {
                 $.ajax({
                     method: method,
                     url: 'http://www.example.com',
@@ -714,7 +714,7 @@ describe('Core', function() {
                 'PATCH'
             ];
 
-            _.each(requestMethods, function(method) {
+            _.forEach(requestMethods, function(method) {
                 $.ajax({
                     method: method,
                     url: 'https://www.secure-example.com',

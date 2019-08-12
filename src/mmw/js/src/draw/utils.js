@@ -168,7 +168,7 @@ function isSelfIntersecting(shape) {
         // valid for geoprocessing.
         // Assert only that each polygon ring doesn't intersect
         // itself
-        return _.any(geom.coordinates, function(linearRing) {
+        return _.some(geom.coordinates, function(linearRing) {
             return selfIntersects({
                 type: "Polygon",
                 coordinates: [linearRing],

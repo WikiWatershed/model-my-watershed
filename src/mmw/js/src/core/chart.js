@@ -123,7 +123,7 @@ function renderHorizontalBarChart(chartEl, data, options) {
             oldClass,
             newClass;
 
-        _.each(bars, function(bar, i) {
+        _.forEach(bars, function(bar, i) {
             // Can't use addClass on SVG elements.
             oldClass = $(bar).attr('class');
             newClass = oldClass + ' ' + options.barClasses[i];

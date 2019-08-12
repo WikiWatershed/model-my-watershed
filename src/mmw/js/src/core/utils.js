@@ -1,8 +1,7 @@
 "use strict";
 
 var L = require('leaflet'),
-    _ = require('underscore'),
-    lodash = require('lodash'),
+    _ = require('lodash'),
     md5 = require('blueimp-md5').md5,
     intersect = require('turf-intersect'),
     centroid = require('turf-centroid'),
@@ -314,7 +313,7 @@ var utils = {
     parseQueryString: function(queryString) {
         var params = {};
         if (queryString) {
-            _.each(
+            _.forEach(
                 _.map(decodeURI(queryString).split(/&/g), function(el) {
                     var aux = el.split('='), o = {};
                     if (aux.length >= 1) {
@@ -475,13 +474,13 @@ var utils = {
     },
 
     totalForPointSourceCollection: function(collection, key) {
-        return lodash.sum(lodash.map(collection, function(element) {
+        return _.sum(_.map(collection, function(element) {
             return element.attributes[key] || 0;
         }));
     },
 
     geomForIdInCatchmentWaterQualityCollection: function(collection, key, id) {
-        return lodash.find(collection, function(element) {
+        return _.find(collection, function(element) {
             return element.attributes[key] === id;
         }).attributes['geom'] || null;
     },
@@ -541,8 +540,8 @@ var utils = {
     isWKAoIValid: function(wkaoi) {
         return wkaoi &&
                wkaoi.includes('__') &&
-               !lodash.startsWith(wkaoi, '__') &&
-               !lodash.endsWith(wkaoi, '__');
+               !_.startsWith(wkaoi, '__') &&
+               !_.endsWith(wkaoi, '__');
     },
 
     isWKAoIValidForSubbasinModeling: function(wkaoi) {
@@ -561,7 +560,7 @@ var utils = {
 
     isInDrb: function(geom) {
         var layers = settings.get('stream_layers'),
-            drb = _.findWhere(layers, {code: 'drb_streams_v2'}).perimeter;
+            drb = _.find(layers, {code: 'drb_streams_v2'}).perimeter;
 
         return !!intersect(geom, drb);
     },
