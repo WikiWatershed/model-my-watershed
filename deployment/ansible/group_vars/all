@@ -52,7 +52,6 @@ observation_api_url: "http://www.wikiwatershed-vs.org/"
 enabled_features: ''
 
 numba_version: "0.38.1"
-numpy_version: "1.14.5"
 phantomjs_version: "2.1.*"
 
 redis_version: "2:3.0.6-1ubuntu0.*"
