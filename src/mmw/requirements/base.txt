@@ -27,3 +27,4 @@ hs_restclient==1.3.4
 six==1.11.0
 fiona==1.7.11
 redis==2.10.6
+numpy==1.16.4
