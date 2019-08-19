@@ -12,7 +12,7 @@ set -x
 vagrant ssh app -c "flake8 /opt/app/apps --exclude migrations || echo flake8 check failed"
 
 # Run the Django test suite with --noinput flag.
-vagrant ssh app -c "cd /opt/app && envdir /etc/mmw.d/env ./manage.py test --noinput"
+vagrant ssh app -c "cd /opt/app && envdir /etc/mmw.d/env ./manage.py test --noinput --exclude-tag=mapshed"
 
 # Check for client-side JS lint.
 # vagrant ssh app -c "cd /opt/app && npm run lint"
