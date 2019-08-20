@@ -475,6 +475,10 @@ var GwlfeLandCoverView = ControlView.extend({
 
 var GwlfeConservationPracticeView = ModificationsView.extend({
     initialize: function(options) {
+        var gis_data = App.currentProject.get('gis_data'),
+            currentScenario = App.currentProject.get('scenarios').getActiveScenario(),
+            mods = currentScenario && currentScenario.get('modifications');
+
         ModificationsView.prototype.initialize.apply(this, [options]);
         this.model.set({
             controlName: this.getControlName(),
@@ -494,7 +498,7 @@ var GwlfeConservationPracticeView = ModificationsView.extend({
                     rows: [['urban_buffer_strips', 'urban_streambank_stabilization', 'water_retention', 'infiltration']]
                 }
             ],
-            dataModel: gwlfeConfig.cleanDataModel(App.currentProject.get('gis_data')),
+            dataModel: gwlfeConfig.cleanDataModel(gis_data, mods),
             errorMessages: null,
             infoMessages: null
         });
