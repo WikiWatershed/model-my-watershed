@@ -100,7 +100,7 @@ DATABASES = {
 }
 
 POSTGIS_VERSION = tuple(
-    map(int, environ.get('DJANGO_POSTGIS_VERSION', '2.1.3').split("."))
+    map(int, environ.get('DJANGO_POSTGIS_VERSION', '2.3.7').split("."))
 )
 # END DATABASE CONFIGURATION
 

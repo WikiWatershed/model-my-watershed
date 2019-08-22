@@ -1,11 +1,4 @@
 ---
-- name: Configure PostgreSQL service definition
-  template: src=postgresql.j2
-            dest=/etc/init.d/postgresql
-            mode=0755
-  notify:
-    - Restart PostgreSQL
-
 - name: Create PostgreSQL super user
   become_user: postgres
   postgresql_user: name="{{ postgresql_username }}"
