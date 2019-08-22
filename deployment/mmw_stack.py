@@ -56,6 +56,15 @@ def main():
     mmw_stacks.add_argument('--activate-dns', action='store_true',
                             default=False,
                             help='Activate DNS for current stack color')
+    mmw_stacks.add_argument('--vpc', action='store_true',
+                            default=False,
+                            help='Activate VPC only')
+    mmw_stacks.add_argument('--data-plane', action='store_true',
+                            default=False,
+                            help='Activate data plane only')
+    mmw_stacks.add_argument('--print-json', action='store_true',
+                            default=False,
+                            help='Print JSON instead of applying for VPC and DataPlane stacks')
     mmw_stacks.set_defaults(func=launch_stacks)
 
     mmw_remove_stacks = subparsers.add_parser('remove-stacks',
