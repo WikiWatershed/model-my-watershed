@@ -35,6 +35,31 @@ A configuration file is required to launch the stack. An example file (`default.
 
 Stack launching is managed with `mmw_stack.py`. This command provides an interface for automatically generating AMIs and launching Model My Watershed stacks.
 
+### VPC and Data Plane Stacks
+
+The VPC and Data Plane stacks are decoupled from the Model My Watershed stack.
+
+To launch the VPC stack:
+
+```bash
+$ ./mmw_stack.py launch-stacks --aws-profile mmw-stg --mmw-profile staging \
+                               --mmw-config-path default.yml --vpc
+```
+
+To launch the Data Plane stack:
+
+```bash
+$ ./mmw_stack.py launch-stacks --aws-profile mmw-stg --mmw-profile staging \
+                               --mmw-config-path default.yml --data-plane
+```
+
+It is reccomended to use the `--print-json` flag to dump the CloudFormation JSON, and to apply changes to these stacks via a change set in the AWS Console:
+
+```bash
+$ ./mmw_stack.py launch-stacks --aws-profile mmw-stg --mmw-profile staging \
+                               --mmw-config-path default.yml --data-plane --print-json > data-plane.json
+```
+
 ### Generating AMIs
 
 Before launching the Model My Watershed stack, AMIs for each service need to be generated:
