@@ -6,6 +6,7 @@ var $ = require('jquery'),
     JSZip = require('jszip'),
     turfArea = require('turf-area'),
     turfBboxPolygon = require('turf-bbox-polygon'),
+    turfDestination = require('turf-destination'),
     turfKinks = require('turf-kinks'),
     intersect = require('turf-intersect'),
     settings = require('../core/settings');
@@ -124,6 +125,33 @@ function shapeBoundingBoxArea(shape) {
     return turfArea(boundingBoxPolygon);
 }
 
+// Given a point, returns a 1 KM Square bounding box around it
+function getSquareKmBoxForPoint(point) {
+    var halfKmbufferPoints = _.map([-180, -90, 0, 90], function(bearing) {
+            var p = turfDestination(point, 0.5, bearing, 'kilometers');
+            return L.latLng(p.geometry.coordinates[1], p.geometry.coordinates[0]);
+        }),
+        // Convert the four points into two SW and NE for the bounding
+        // box. Do this by splitting the array into two arrays of two
+        // points. Then map each array of two to a single point by
+        // taking the lat from one and lng from the other.
+        swNe = _.map(_.toArray(_.groupBy(halfKmbufferPoints, function(p, i) {
+            // split the array of four in half.
+            return i < 2;
+        })), function(pointGroup) {
+            return L.latLng(pointGroup[0].lat, pointGroup[1].lng);
+        }),
+        bounds = L.latLngBounds(swNe),
+        box = turfBboxPolygon(bounds.toBBoxString().split(','));
+
+    // Convert coordinates from using strings to floats so that backend can parse them.
+    box.geometry.coordinates[0] = _.map(box.geometry.coordinates[0], function(coord) {
+        return [parseFloat(coord[0]), parseFloat(coord[1])];
+    });
+
+    return box;
+}
+
 function getFileFromZipObjects(zipObjects, extension) {
     return _.find(zipObjects.files, function(zipObject) {
         var fileExtension = zipObject.name.substr(zipObject.name.lastIndexOf(".") + 1);
@@ -234,6 +262,7 @@ module.exports = {
     isValidForAnalysis: isValidForAnalysis,
     withinConus: withinConus,
     getPolygonFromGeoJson: getPolygonFromGeoJson,
+    getSquareKmBoxForPoint: getSquareKmBoxForPoint,
     loadAsyncShpFilesFromZip: loadAsyncShpFilesFromZip,
     NHD: 'nhd',
     DRB: 'drb',
