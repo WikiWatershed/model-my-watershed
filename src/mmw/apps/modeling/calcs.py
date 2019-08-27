@@ -12,6 +12,8 @@ from django.db import connection
 
 from django.contrib.gis.geos import WKBReader
 
+from apps.modeling.mapshed.calcs import area_calculations
+
 
 HECTARES_PER_SQM = 0.0001
 
@@ -102,6 +104,9 @@ def apply_gwlfe_modifications(gms, modifications):
 
     for mod in key_mods:
         modified_gms.update(mod)
+
+    # Update keys that derive values from other keys
+    modified_gms = area_calculations(modified_gms['Area'], modified_gms)
 
     return modified_gms
 
