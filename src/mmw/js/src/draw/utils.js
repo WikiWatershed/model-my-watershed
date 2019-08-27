@@ -132,15 +132,12 @@ function getSquareKmBoxForPoint(point) {
             return L.latLng(p.geometry.coordinates[1], p.geometry.coordinates[0]);
         }),
         // Convert the four points into two SW and NE for the bounding
-        // box. Do this by splitting the array into two arrays of two
-        // points. Then map each array of two to a single point by
-        // taking the lat from one and lng from the other.
-        swNe = _.map(_.toArray(_.groupBy(halfKmbufferPoints, function(p, i) {
-            // split the array of four in half.
-            return i < 2;
-        })), function(pointGroup) {
-            return L.latLng(pointGroup[0].lat, pointGroup[1].lng);
-        }),
+        // box. South-west has the lat from 0, lng from 1, North-east has
+        // the lat from 2, lng from 3.
+        swNe = [
+            L.latLng(halfKmbufferPoints[0].lat, halfKmbufferPoints[1].lng),
+            L.latLng(halfKmbufferPoints[2].lat, halfKmbufferPoints[3].lng),
+        ],
         bounds = L.latLngBounds(swNe),
         box = turfBboxPolygon(bounds.toBBoxString().split(','));
 
