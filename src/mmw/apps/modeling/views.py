@@ -15,6 +15,7 @@ from rest_framework.authentication import (SessionAuthentication,
 from rest_framework.permissions import (AllowAny,
                                         IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
+from drf_yasg.utils import swagger_auto_schema
 
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
@@ -24,11 +25,12 @@ from django.http import (HttpResponse,
                          Http404,
                          )
 
-from django.core.servers.basehttp import FileWrapper
+from wsgiref.util import FileWrapper
 
 from apps.core.models import Job
 from apps.core.tasks import save_job_error, save_job_result
 from apps.core.decorators import log_request
+from apps.geoprocessing_api.schemas import JOB_RESPONSE
 from apps.modeling import tasks, geoprocessing
 from apps.modeling.mapshed.tasks import (multi_subbasin,
                                          multi_mapshed,
@@ -190,7 +192,7 @@ def start_gwlfe(request, format=None):
     Will start a GWLF-E job, the result of which will be dictionary
     of the sub-basins and their results.
     """
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
     created = now()
 
     mapshed_job_uuid = request.POST.get('mapshed_job_uuid', None)
@@ -292,7 +294,7 @@ def start_mapshed(request, format=None):
     HUC-12s. The started MapShed job gathers data for each and returns
     them in a dictionary where the keys are the huc12 ids.
     """
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
     created = now()
     mapshed_input = json.loads(request.POST['mapshed_input'])
     job = Job.objects.create(created_at=created, result='', error='',
@@ -378,7 +380,7 @@ def export_gms(request, format=None):
 @log_request
 def start_tr55(request, format=None):
 
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
     created = now()
 
     model_input = json.loads(request.POST['model_input'])
@@ -541,6 +543,8 @@ def drb_point_sources(request):
                     headers={'Cache-Control': 'max-age: 604800'})
 
 
+@swagger_auto_schema(method='get',
+                     responses={200: JOB_RESPONSE})
 @decorators.api_view(['GET'])
 @decorators.authentication_classes((SessionAuthentication,
                                     TokenAuthentication, ))
@@ -549,35 +553,6 @@ def drb_point_sources(request):
 def get_job(request, job_uuid, format=None):
     """
     Get a job's status. If it's complete, get its result.
-
-    ---
-    type:
-      job_uuid:
-        required: true
-        type: string
-      status:
-        required: true
-        type: string
-      started:
-        required: true
-        type: datetime
-      finished:
-        required: true
-        type: datetime
-      result:
-        required: true
-        type: object
-      error:
-        required: true
-        type: string
-
-    omit_serializer: true
-    parameters:
-       - name: Authorization
-         paramType: header
-         description: Format "Token&nbsp;YOUR_API_TOKEN_HERE". When using
-                      Swagger you may wish to set this for all requests via
-                      the field at the top right of the page.
     """
     # TODO consider if we should have some sort of session id check to ensure
     # you can only view your own jobs.
@@ -588,7 +563,7 @@ def get_job(request, job_uuid, format=None):
 
     # Get the user so that logged in users can only see jobs that they started
     # or anonymous ones
-    user = request.user if request.user.is_authenticated() else None
+    user = request.user if request.user.is_authenticated else None
     if job.user and job.user != user:
         raise Http404("Not found.")
 

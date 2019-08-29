@@ -90,7 +90,7 @@ _SUCCESS
 .settings
 .history
 .idea
-
+.vscode
 
 # Emacs
 \#*#

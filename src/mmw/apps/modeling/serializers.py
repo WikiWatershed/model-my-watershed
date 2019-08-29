@@ -7,7 +7,6 @@ from django.contrib.gis.geos import (GEOSGeometry,
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework_gis import serializers as gis_serializers
 
 from apps.export.serializers import HydroShareResourceSerializer
 from apps.modeling.models import Project, Scenario
@@ -68,6 +67,10 @@ class ScenarioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Scenario
+        fields = ('id', 'name', 'project', 'is_current_conditions', 'inputs',
+                  'inputmod_hash', 'modifications', 'modification_hash',
+                  'aoi_census', 'modification_censuses', 'results',
+                  'created_at', 'modified_at')
 
     inputs = JsonField()
     modifications = JsonField()
@@ -76,12 +79,16 @@ class ScenarioSerializer(serializers.ModelSerializer):
     results = JsonField(required=False, allow_null=True)
 
 
-class ProjectSerializer(gis_serializers.GeoModelSerializer):
+class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
         depth = 1
         geo_field = 'area_of_interest'
+        fields = ('id', 'name', 'area_of_interest', 'area_of_interest_name',
+                  'scenarios', 'model_package', 'created_at', 'modified_at',
+                  'is_private', 'is_activity', 'gis_data', 'mapshed_job_uuid',
+                  'subbasin_mapshed_job_uuid', 'wkaoi', 'user', 'hydroshare')
 
     user = UserSerializer(default=serializers.CurrentUserDefault())
     gis_data = JsonField(required=False, allow_null=True)
@@ -99,7 +106,7 @@ class ProjectSerializer(gis_serializers.GeoModelSerializer):
     hydroshare = HydroShareResourceSerializer(read_only=True)
 
 
-class ProjectListingSerializer(gis_serializers.GeoModelSerializer):
+class ProjectListingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
@@ -110,12 +117,16 @@ class ProjectListingSerializer(gis_serializers.GeoModelSerializer):
     hydroshare = HydroShareResourceSerializer(read_only=True)
 
 
-class ProjectUpdateSerializer(gis_serializers.GeoModelSerializer):
+class ProjectUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
         depth = 1
         geo_field = 'area_of_interest'
+        fields = ('id', 'name', 'area_of_interest', 'area_of_interest_name',
+                  'model_package', 'created_at', 'modified_at',
+                  'is_private', 'is_activity', 'gis_data', 'mapshed_job_uuid',
+                  'subbasin_mapshed_job_uuid', 'wkaoi', 'user')
 
     user = UserSerializer(default=serializers.CurrentUserDefault(),
                           read_only=True)
@@ -130,6 +141,21 @@ class ProjectUpdateSerializer(gis_serializers.GeoModelSerializer):
         queryset=Job.objects.all(),
         required=False,
         allow_null=True)
+
+    def create(self, validated_data):
+        """
+        Override ``create`` to provide a user via request.user by default.
+        This is required since the read_only ``user`` field is not included by
+        default anymore since
+        https://github.com/encode/django-rest-framework/pull/5886
+
+        From https://github.com/lock8/django-rest-framework-jwt-refresh-token/pull/35/files#diff-84229b1d4af72d928beddfa32e80cc8eR23  # NOQA
+        via https://github.com/encode/django-rest-framework/issues/6031#issuecomment-398242587  # NOQA
+        """
+        if 'user' not in validated_data:
+            validated_data['user'] = self.context['request'].user
+
+        return super(ProjectUpdateSerializer, self).create(validated_data)
 
 
 class AoiSerializer(serializers.BaseSerializer):

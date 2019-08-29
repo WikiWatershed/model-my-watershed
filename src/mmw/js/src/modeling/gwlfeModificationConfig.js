@@ -6,6 +6,9 @@ var _ = require('lodash'),
 // These variable names include 'Name' to indicate
 // that they reference the name of the variable, and not the value.
 var n23Name = 'n23',
+    n23bName = 'n23b',
+    n24Name = 'n24',
+    n24bName = 'n24b',
     n25Name = 'n25',
     n26Name = 'n26',
     n28bName = 'n28b',
@@ -94,10 +97,31 @@ var shortDisplayNames = fromPairs([
     [UrbLengthName, 'length of streams in non-ag areas']
 ]);
 
-function cleanDataModel(dataModel) {
-    return _.mapValues(dataModel, function(val, varName) {
-        return varName === UrbLengthName ? val / 1000 : val;
-    });
+function cleanDataModel(dataModel, mods) {
+    var newModel = _.mapValues(dataModel, function(val, varName) {
+            return varName === UrbLengthName ? val / 1000 : val;
+        }),
+        landCoverChanges = mods && mods.findWhere({ modKey: 'entry_landcover' }),
+        landCoverOutput = landCoverChanges && landCoverChanges.get('output');
+
+    if (landCoverOutput) {
+        // Same as in apps.modeling.mapshed.calcs.area_calculations
+        // Update with modified values if available, else use default values
+        newModel[n23Name] = _.get(landCoverOutput, 'Area__1', newModel.Area[1]);
+        newModel[n23bName] = _.get(landCoverOutput, 'Area__13', newModel.Area[13]);
+        newModel[n24Name] = _.get(landCoverOutput, 'Area__0', newModel.Area[0]);
+        newModel[n24bName] = _.get(landCoverOutput, 'Area__11', newModel.Area[11]);
+        newModel[UrbAreaTotalName] = _.sum([
+            _.get(landCoverOutput, 'Area__10', newModel.Area[10]),
+            _.get(landCoverOutput, 'Area__11', newModel.Area[11]),
+            _.get(landCoverOutput, 'Area__12', newModel.Area[12]),
+            _.get(landCoverOutput, 'Area__13', newModel.Area[13]),
+            _.get(landCoverOutput, 'Area__14', newModel.Area[14]),
+            _.get(landCoverOutput, 'Area__15', newModel.Area[15]),
+        ]);
+    }
+
+    return newModel;
 }
 
 function getPercentStr(fraction, dataModelName) {

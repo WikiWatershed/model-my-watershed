@@ -17,7 +17,7 @@ class Project(models.Model):
         (GWLFE, 'Watershed Multi-Year Model'),
     )
 
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
     name = models.CharField(
         max_length=255)
     area_of_interest = models.MultiPolygonField(
@@ -49,6 +49,7 @@ class Project(models.Model):
         Job,
         to_field='uuid',
         related_name='mapshed_job',
+        on_delete=models.SET_NULL,
         null=True,
         help_text='The job used to calculate the MapShed results.'
                   ' Used for getting the results of that job.')
@@ -56,6 +57,7 @@ class Project(models.Model):
         Job,
         to_field='uuid',
         related_name='subbasin_mapshed_job',
+        on_delete=models.SET_NULL,
         null=True,
         help_text='The job used to calculate the MapShed results'
                   ' for each HUC-12 sub-basin of the shape.')
@@ -75,7 +77,9 @@ class Scenario(models.Model):
 
     name = models.CharField(
         max_length=255)
-    project = models.ForeignKey(Project, related_name='scenarios')
+    project = models.ForeignKey(Project,
+                                on_delete=models.CASCADE,
+                                related_name='scenarios')
     is_current_conditions = models.BooleanField(
         default=False,
         help_text='A special type of scenario without modification abilities')

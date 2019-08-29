@@ -1,6 +1,6 @@
 ---
-- { include: configuration.yml }
 - { include: app.yml, when: "['packer'] | is_in(group_names)" }
+- { include: configuration.yml }
 - { include: dependencies.yml }
 - { include: celery-user.yml }
 - { include: celery-service.yml }

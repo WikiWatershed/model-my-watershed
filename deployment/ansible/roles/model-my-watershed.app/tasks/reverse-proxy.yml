@@ -19,3 +19,6 @@
         state=link
   notify:
     - Restart Nginx
+
+- name: Enable Nginx service
+  service: name=nginx.service enabled=yes

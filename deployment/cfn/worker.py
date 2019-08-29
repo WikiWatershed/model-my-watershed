@@ -18,14 +18,11 @@ from utils.cfn import get_recent_ami
 from utils.constants import (
     ALLOW_ALL_CIDR,
     EC2_INSTANCE_TYPES,
-    GRAPHITE,
     HTTP,
     HTTPS,
     POSTGRESQL,
     REDIS,
-    RELP,
     SSH,
-    STATSITE,
     VPC_CIDR
 )
 
@@ -64,6 +61,8 @@ class Worker(StackNode):
         'SRATCatchmentAPIKey': ['global:SRATCatchmentAPIKey'],
         'RollbarServerSideAccessToken':
         ['global:RollbarServerSideAccessToken'],
+        'PapertrailHost': ['global:PapertrailHost'],
+        'PapertrailPort': ['global:PapertrailPort'],
     }
 
     DEFAULTS = {
@@ -88,10 +87,7 @@ class Worker(StackNode):
     def set_up_stack(self):
         super(Worker, self).set_up_stack()
 
-        tags = self.get_input('Tags').copy()
-        tags.update({'StackType': 'Worker'})
-
-        self.default_tags = tags
+        self.default_tags = self.get_input('Tags').copy()
         self.region = self.get_input('Region')
 
         self.add_description('Worker stack for MMW')
@@ -229,6 +225,16 @@ class Worker(StackNode):
             Description='API key for the SRAT Catchment API'
         ), 'SRATCatchmentAPIKey')
 
+        self.papertrail_host = self.add_parameter(Parameter(
+            'PapertrailHost', Type='String',
+            Description='Hostname for Papertrail log destination',
+        ), 'PapertrailHost')
+
+        self.papertrail_port = self.add_parameter(Parameter(
+            'PapertrailPort', Type='String',
+            Description='Port for Papertrail log destination',
+        ), 'PapertrailPort')
+
         worker_lb_security_group, \
             worker_security_group = self.create_security_groups()
         worker_lb = self.create_load_balancer(worker_lb_security_group)
@@ -249,8 +255,10 @@ class Worker(StackNode):
         try:
             worker_ami_id = self.get_input('WorkerAMI')
         except MKUnresolvableInputError:
-            worker_ami_id = get_recent_ami(self.aws_profile,
-                                           'mmw-worker-*')
+            filters = {'name': 'mmw-worker-*'}
+
+            worker_ami_id = get_recent_ami(self.aws_profile, filters=filters,
+                                           region=self.region)
 
         return worker_ami_id
 
@@ -299,18 +307,13 @@ class Worker(StackNode):
                 ec2.SecurityGroupRule(
                     IpProtocol='tcp', CidrIp=VPC_CIDR, FromPort=p, ToPort=p
                 )
-                for p in [GRAPHITE, POSTGRESQL, REDIS, STATSITE, RELP]
-            ] + [
-                ec2.SecurityGroupRule(
-                    IpProtocol='udp', CidrIp=VPC_CIDR, FromPort=p, ToPort=p
-                )
-                for p in [STATSITE]
+                for p in [POSTGRESQL, REDIS]
             ] + [
                 ec2.SecurityGroupRule(
                     IpProtocol='tcp', CidrIp=ALLOW_ALL_CIDR, FromPort=p,
                     ToPort=p
                 )
-                for p in [HTTP, HTTPS]
+                for p in [HTTP, HTTPS, self.get_input('PapertrailPort')]
             ],
             Tags=self.get_tags(Name=worker_security_group_name)
         ))
@@ -454,11 +457,34 @@ class Worker(StackNode):
                 '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: |\n',
-                '      /dev/xvdf /opt/rwd-data\text4\tdefaults,nofail,discard\t0 2',  # NOQA
+                '      /dev/xvdf /opt/rwd-data\text4\tdefaults,nofail,discard\t0 2\n',  # NOQA
+                '\n',
+                'rsyslog:\n',
+                '  - $DefaultNetstreamDriverCAFile /etc/papertrail-bundle.pem # trust these CAs\n',
+                '  - $PreserveFQDN off\n',
+                '  - $ActionSendStreamDriver gtls # use gtls netstream driver\n',
+                '  - $ActionSendStreamDriverMode 1 # require TLS\n',
+                '  - $ActionSendStreamDriverAuthMode x509/name # authenticate by hostname\n',
+                '  - $ActionSendStreamDriverPermittedPeer *.papertrailapp.com\n',
+                '  - $ActionResumeInterval 10\n',
+                '  - $ActionQueueSize 100000\n',
+                '  - $ActionQueueDiscardMark 97500\n',
+                '  - $ActionQueueHighWaterMark 80000\n',
+                '  - $ActionQueueType LinkedList\n',
+                '  - $ActionQueueFileName papertrailqueue\n',
+                '  - $ActionQueueCheckpointInterval 100\n',
+                '  - $ActionQueueMaxDiskSpace 2g\n',
+                '  - $ActionResumeRetryCount -1\n',
+                '  - $ActionQueueSaveOnShutdown on\n',
+                '  - $ActionQueueTimeoutEnqueue 2\n',
+                '  - $ActionQueueDiscardSeverity 0\n',
+                '  - "*.*  @@', Ref(self.papertrail_host), ':', Ref(
+                    self.papertrail_port), '"\n',
+                'rsyslog_filename: 22-mmw-papertrail.conf\n',
                 '\n',
                 'runcmd:\n',
                 '  - cat /etc/fstab.rwd-data >> /etc/fstab\n',
-                '  - mount -t ext4 /dev/xvdf /opt/rwd-data && initctl emit rwd-ready\n',  # NOQA
+                '  - mount -t ext4 /dev/xvdf /opt/rwd-data && docker restart mmw_mmw-rwd_1\n',  # NOQA
                 '  - /opt/model-my-watershed/scripts/aws/ebs-warmer.sh']
 
     def create_dns_records(self, worker_lb):

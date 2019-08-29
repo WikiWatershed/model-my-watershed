@@ -1,0 +1,21 @@
+[Unit]
+Description=mmw-geoprocessing
+After=network.target
+
+[Service]
+{% if ['development', 'test'] | some_are_in(group_names) -%}
+Environment=AWS_PROFILE={{ aws_profile }}
+{% endif %}
+User=mmw
+WorkingDirectory={{ geop_home }}
+ExecStart=/usr/bin/java -jar mmw-geoprocessing-{{ geop_version }}.jar
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=geoprocessing
+
+[Install]
+{% if ['development', 'test'] | some_are_in(group_names) -%}
+WantedBy=opt-app.mount
+{% else %}
+WantedBy=multi-user.target
+{% endif %}

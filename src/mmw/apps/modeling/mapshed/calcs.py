@@ -10,7 +10,6 @@ from collections import namedtuple
 
 from gwlfe.enums import GrowFlag
 
-from django_statsd.clients import statsd
 from django.conf import settings
 from django.db import connection
 
@@ -52,7 +51,6 @@ def day_lengths(geom):
     return [round(l, 1) for l in lengths]
 
 
-@statsd.timer(__name__ + '.nearest_weather_stations')
 def nearest_weather_stations(shapes, n=NUM_WEATHER_STATIONS):
     """
     Given a list of geometries, returns a list of the n closest
@@ -158,7 +156,6 @@ def kv_coefficient(area_pcts, season):
     return kv
 
 
-@statsd.timer(__name__ + '.animal_enery_units')
 def animal_energy_units(geom):
     """
     Given a geometry, returns the total livestock and poultry AEUs within it
@@ -227,7 +224,6 @@ def manure_spread(aeu):
     return [n_spread] * num_land_uses, [p_spread] * num_land_uses
 
 
-@statsd.timer(__name__ + '.ag_ls_c_p')
 def ag_ls_c_p(geom):
     """
     Given a geometry, calculates the area-weighted average value of LS, C, and
@@ -313,7 +309,6 @@ def ls_factor(stream_length, area, avg_slope, m):
         return ls
 
 
-@statsd.timer(__name__ + '.stream_length')
 def stream_length(geom, drb=False):
     """
     Given a geometry, finds the total length of streams in meters within it.
@@ -361,7 +356,6 @@ def get_point_source_table(drb):
     return 'ms_pointsource' + ('_drb' if drb else '')
 
 
-@statsd.timer(__name__ + '.point_source_discharge')
 def point_source_discharge(geom, area, drb=False):
     """
     Given a geometry and its area in square meters, returns three lists,
@@ -392,7 +386,6 @@ def point_source_discharge(geom, area, drb=False):
         return n_load, p_load, discharge
 
 
-@statsd.timer(__name__ + '.weather_data')
 def weather_data(ws, begyear, endyear):
     """
     Given a list of Weather Stations and beginning and end years, returns two
@@ -697,3 +690,29 @@ def phosphorus_conc(sed_phos):
         0.01,          # Unpaved
         0, 0, 0, 0, 0, 0  # Urban Land Use Types
     ]
+
+
+def area_calculations(areas_h, z):
+    """
+    Given a list of areas per land use in hectares and MapShed Dictionary z,
+    calculates all fields that rely on the land use distribution, and returns
+    an updated dictionary z.
+
+    Useful when users customize the land use distribution.
+    """
+    percents = [a_h / z['TotArea'] for a_h in areas_h]
+
+    z['UrbAreaTotal'] = sum(areas_h[NRur:])
+    z['NumNormalSys'] = num_normal_sys(areas_h)
+    z['KV'] = kv_coefficient(percents, z['Grow'])
+
+    # Original at Class1.vb@1.3.0:9803-9807
+    z['n23'] = areas_h[1]    # Row Crops Area
+    z['n23b'] = areas_h[13]  # High Density Mixed Urban Area
+    z['n24'] = areas_h[0]    # Hay/Pasture Area
+    z['n24b'] = areas_h[11]  # Low Density Mixed Urban Area
+
+    z['SedAFactor'] = sed_a_factor(percents,
+                                   z['CN'], z['AEU'], z['AvKF'], z['AvSlope'])
+
+    return z

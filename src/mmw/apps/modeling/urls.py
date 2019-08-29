@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from apps.modeling import views
 
@@ -15,8 +15,8 @@ from apps.modeling import views
 uuid_regex = '(?P<job_uuid>[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-' \
              + '[89abAB][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12})/$'
 
-urlpatterns = patterns(
-    '',
+app_name = 'modeling'
+urlpatterns = [
     url(r'projects/$', views.projects, name='projects'),
     url(r'projects/(?P<proj_id>[0-9]+)$', views.project, name='project'),
     url(r'scenarios/$', views.scenarios, name='scenarios'),
@@ -34,4 +34,4 @@ urlpatterns = patterns(
         views.boundary_layer_search, name='boundary_layer_search'),
     url(r'export/gms/?$', views.export_gms, name='export_gms'),
     url(r'point-source/$', views.drb_point_sources, name='drb_point_sources'),
-)
+]

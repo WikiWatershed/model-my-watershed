@@ -8,6 +8,7 @@ import json
 from django.test import (Client,
                          TestCase,
                          LiveServerTestCase)
+from django.urls import reverse
 from django.contrib.auth.models import User
 
 from rest_framework.authtoken.models import Token
@@ -18,7 +19,7 @@ from apps.geoprocessing_api import (tasks, calcs)
 
 
 class ExerciseManageApiToken(LiveServerTestCase):
-    TOKEN_URL = 'http://localhost:8081/api/token/'
+    TOKEN_URL = reverse('geoprocessing_api:authtoken')
 
     def setUp(self):
         User.objects.create_user(username='bob', email='bob@azavea.com',

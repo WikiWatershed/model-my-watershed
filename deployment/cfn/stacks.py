@@ -75,18 +75,33 @@ def build_graph(mmw_config, aws_profile, **kwargs):
                                           Application=application,
                                           aws_profile=aws_profile)
 
-    return s3_vpc_endpoint, data_plane, tiler, application, \
+    return vpc, s3_vpc_endpoint, data_plane, tiler, application, \
         worker, public_hosted_zone
 
 
 def build_stacks(mmw_config, aws_profile, **kwargs):
     """Trigger actual building of graphs"""
-    s3_vpc_endpoint_graph, data_plane_graph, tiler_graph, \
+    vpc_graph, s3_vpc_endpoint_graph, data_plane_graph, tiler_graph, \
         application_graph, worker_graph, \
         public_hosted_zone_graph = build_graph(mmw_config, aws_profile,
                                                **kwargs)
+    if kwargs['vpc']:
+        if kwargs['print_json']:
+            vpc_graph.set_up_stack()
+            print(vpc_graph.to_json())
+        else:
+            vpc_graph.go()
+        return
+
+    if kwargs['data_plane']:
+        if kwargs['print_json']:
+            data_plane_graph.set_up_stack()
+            print(data_plane_graph.to_json())
+        else:
+            data_plane_graph.go()
+        return
+
     s3_vpc_endpoint_graph.go()
-    data_plane_graph.go()
 
     if kwargs['stack_color'] is not None:
         tiler_graph.go()

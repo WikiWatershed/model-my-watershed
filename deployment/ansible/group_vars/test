@@ -11,9 +11,6 @@ services_ip: "{{ lookup('env', 'MMW_SERVICES_IP') | default('33.33.34.30', true)
 
 redis_host: "{{ services_ip }}"
 postgresql_host: "{{ services_ip }}"
-relp_host: "{{ services_ip }}"
-graphite_host: "{{ services_ip }}"
-statsite_host: "{{ services_ip }}"
 tiler_host: "{{ lookup('env', 'MMW_TILER_IP') | default('33.33.34.35', true) }}"
 
 celery_number_of_workers: 2
@@ -25,7 +22,7 @@ itsi_secret_key: "{{ lookup('env', 'MMW_ITSI_SECRET_KEY') }}"
 hydroshare_base_url: "https://beta.hydroshare.org/"
 hydroshare_secret_key: "{{ lookup('env', 'MMW_HYDROSHARE_SECRET_KEY') }}"
 
-srat_catchment_api_url: "https://rychrnjrs6.execute-api.us-east-1.amazonaws.com/dev/SratRunModel_DEV"
+srat_catchment_api_url: "https://802or9kkk2.execute-api.us-east-2.amazonaws.com/prod/SratRunModel_DEV"
 srat_catchment_api_key: "{{ lookup('env', 'MMW_SRAT_CATCHMENT_API_KEY') }}"
 
 tilecache_bucket_name: "tile-cache.staging.app.wikiwatershed.org"

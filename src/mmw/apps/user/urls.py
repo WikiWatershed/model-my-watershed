@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 
 from apps.user.views import (login,
                              profile,
@@ -19,8 +19,8 @@ from apps.user.views import (login,
                              hydroshare_logout,
                              )
 
-urlpatterns = patterns(
-    '',
+app_name = 'user'
+urlpatterns = [
     url(r'^logout$', logout, name='logout'),
     url(r'^itsi/login$', itsi_login, name='itsi_login'),
     url(r'^itsi/authenticate$', itsi_auth, name='itsi_auth'),
@@ -34,4 +34,4 @@ urlpatterns = patterns(
     url(r'^forgot$', forgot, name='forgot'),
     url(r'^change-password$', change_password,
         name='change_password'),
-)
+]

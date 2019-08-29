@@ -63,6 +63,28 @@ var sandboxId = 'sandbox',
     TEST_FEATURECOLLECTION = {
         'type': 'FeatureCollection',
         'features': [TEST_FEATURE],
+    },
+    TEST_POINT = {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-75.180344581604, 39.9603954838161]
+        }
+    },
+    TEST_1KM_BOX = {
+        "type": "Feature",
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [[
+                [-75.18620924421529, 39.955900286929776],
+                [-75.17447991899269, 39.955900286929776],
+                [-75.17447991899269, 39.96489068070241],
+                [-75.18620924421529, 39.96489068070241],
+                [-75.18620924421529, 39.955900286929776]
+            ]]
+        },
+        "properties": {}
     };
 
 var SandboxRegion = Marionette.Region.extend({
@@ -277,6 +299,13 @@ describe('Draw', function() {
             assert.equal(isSelfIntersecting(TEST_SELF_INTERSECTING_POLYGON), true,
                          'did not find intersections in intersecting polygon');
         });
+
+        it('calculates 1km square box around a point', function() {
+            var box = utils.getSquareKmBoxForPoint(TEST_POINT);
+
+            assert.deepEqual(TEST_1KM_BOX, box,
+                             'did not generate 1km square box correctly');
+        });
     });
 });
 
@@ -338,7 +367,7 @@ function assertDrawToolIsVisible($el, drawToolRegion) {
         assert.equal($el.find(drawToolRegion + ' .draw-tool-selection').length, 1);
     }
 
-    _.each(inactiveRegions, function (inactiveDrawToolRegion) {
+    _.forEach(inactiveRegions, function (inactiveDrawToolRegion) {
         assert.equal($el.find(inactiveDrawToolRegion + ' .draw-tool-region').length, 0);
     });
 }

@@ -1,2 +1,5 @@
 ---
-- meta: flush_handlers
+- name: Install Docker Compose
+  pip:
+    name: docker-compose
+    version: "{{ docker_compose_version }}"

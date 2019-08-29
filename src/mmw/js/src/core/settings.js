@@ -29,11 +29,11 @@ var settings = (function() {
 })();
 
 function isLayerSelectorEnabled() {
-    return _.contains(settings['map_controls'], 'LayerSelector');
+    return _.includes(settings['map_controls'], 'LayerSelector');
 }
 
 function featureEnabled(feature) {
-    return _.contains(settings['enabled_features'], feature);
+    return _.includes(settings['enabled_features'], feature);
 }
 
 function set(key, value) {

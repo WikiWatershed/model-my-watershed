@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-Vagrant.require_version ">= 1.6"
+Vagrant.require_version ">= 2.2"
 
 if ["up", "provision", "status"].include?(ARGV.first)
   require_relative "vagrant/ansible_galaxy_helper"
@@ -13,7 +13,6 @@ ANSIBLE_GROUPS = {
   "app-servers" => [ "app" ],
   "services" => [ "services" ],
   "workers" => [ "worker" ],
-  "monitoring-servers" => [ "services" ],
   "tile-servers" => [ "tiler" ]
 }
 
@@ -27,45 +26,23 @@ if !ENV["VAGRANT_ENV"].nil? && ENV["VAGRANT_ENV"] == "TEST"
 else
   ANSIBLE_ENV_GROUPS = {
     "development:children" => [
-      "app-servers", "services", "monitoring-servers", "workers", "tile-servers"
+      "app-servers", "services", "workers", "tile-servers"
     ]
   }
   VAGRANT_NETWORK_OPTIONS = { auto_correct: false }
 end
 
-VAGRANTFILE_API_VERSION = "2"
-
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "ubuntu/trusty64"
-
-  # Wire up package caching:
-  if Vagrant.has_plugin?("vagrant-cachier")
-    config.cache.scope = :machine
-  end
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-16.04"
 
   config.vm.define "services" do |services|
     services.vm.hostname = "services"
     services.vm.network "private_network", ip: ENV.fetch("MMW_SERVICES_IP", "33.33.34.30")
 
-    # Graphite Web
-    services.vm.network "forwarded_port", {
-      guest: 8080,
-      host: 8080
-    }.merge(VAGRANT_NETWORK_OPTIONS)
-    # Kibana
-    services.vm.network "forwarded_port", {
-      guest: 5601,
-      host: 5601
-    }.merge(VAGRANT_NETWORK_OPTIONS)
     # PostgreSQL
     services.vm.network "forwarded_port", {
       guest: 5432,
       host: 5432
-    }.merge(VAGRANT_NETWORK_OPTIONS)
-    # Pgweb
-    services.vm.network "forwarded_port", {
-      guest: 5433,
-      host: 5433
     }.merge(VAGRANT_NETWORK_OPTIONS)
     # Redis
     services.vm.network "forwarded_port", {
@@ -79,6 +56,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
 
     services.vm.provision "ansible" do |ansible|
+      ansible.compatibility_mode = "2.0"
       ansible.playbook = "deployment/ansible/services.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
@@ -89,7 +67,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     worker.vm.hostname = "worker"
     worker.vm.network "private_network", ip: ENV.fetch("MMW_WORKER_IP", "33.33.34.20")
 
-    worker.vm.synced_folder "src/mmw", "/opt/app/"
+    worker.vm.synced_folder "src/mmw", "/opt/app"
 
     # Path to RWD data (ex. /media/passport/rwd-nhd)
     worker.vm.synced_folder ENV.fetch("RWD_DATA", "/tmp"), "/opt/rwd-data"
@@ -115,24 +93,18 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
 
     worker.vm.provision "ansible" do |ansible|
+      ansible.compatibility_mode = "2.0"
       ansible.playbook = "deployment/ansible/workers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
     end
-
-    worker.vm.provision "shell", inline: "service celeryd restart >> /dev/null 2>&1", run: "always"
   end
 
   config.vm.define "app" do |app|
     app.vm.hostname = "app"
     app.vm.network "private_network", ip: ENV.fetch("MMW_APP_IP", "33.33.34.10")
 
-    if Vagrant::Util::Platform.windows? || Vagrant::Util::Platform.cygwin?
-      app.vm.synced_folder "src/mmw", "/opt/app/", type: "rsync", rsync__exclude: ["node_modules/", "apps/"]
-      app.vm.synced_folder "src/mmw/apps", "/opt/app/apps"
-    else
-      app.vm.synced_folder "src/mmw", "/opt/app/"
-    end
+    app.vm.synced_folder "src/mmw", "/opt/app"
 
     # Django via Nginx/Gunicorn
     app.vm.network "forwarded_port", {
@@ -158,6 +130,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
 
     app.vm.provision "ansible" do |ansible|
+      ansible.compatibility_mode = "2.0"
       ansible.playbook = "deployment/ansible/app-servers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
@@ -168,11 +141,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     tiler.vm.hostname = "tiler"
     tiler.vm.network "private_network", ip: ENV.fetch("MMW_TILER_IP", "33.33.34.35")
 
-    if Vagrant::Util::Platform.windows? || Vagrant::Util::Platform.cygwin?
-      tiler.vm.synced_folder "src/tiler", "/opt/tiler/", type: "rsync", rsync__exclude: ["node_modules/"]
-    else
-      tiler.vm.synced_folder "src/tiler", "/opt/tiler/"
-    end
+    tiler.vm.synced_folder "src/tiler", "/opt/tiler"
 
     # Expose the tiler. Tiler is served by Nginx.
     tiler.vm.network "forwarded_port", {
@@ -185,6 +154,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
 
     tiler.vm.provision "ansible" do |ansible|
+      ansible.compatibility_mode = "2.0"
       ansible.playbook = "deployment/ansible/tile-servers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]

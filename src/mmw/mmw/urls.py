@@ -3,41 +3,46 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.contrib import admin
+from django.conf import settings
 
-import registration.backends.default.urls
-import rest_framework.urls
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 
-import apps.bigcz.urls
-import apps.geocode.urls
-import apps.modeling.urls
-import apps.geoprocessing_api.urls
-import apps.home.urls
-import apps.export.urls
-import apps.water_balance.urls
-import apps.user.urls
-import apps.monitoring.urls
 
 admin.autodiscover()
 
-urlpatterns = patterns(
-    '',
-    url(r'^', include(apps.home.urls)),
-    url(r'^health-check/', include(apps.monitoring.urls)),
-    url(r'^api-auth/', include(rest_framework.urls,
-                               namespace='rest_framework')),
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^accounts/', include(registration.backends.default.urls)),
-    url(r'^bigcz/', include(apps.bigcz.urls,
-                            namespace='bigcz')),
-    url(r'^mmw/geocode/', include(apps.geocode.urls,
-                                  namespace='mmw')),
-    url(r'^mmw/modeling/', include(apps.modeling.urls,
-                                   namespace='mmw')),
-    url(r'^export/', include(apps.export.urls, namespace='export')),
-    url(r'^api/', include(apps.geoprocessing_api.urls)),
-    url(r'^micro/', include(apps.water_balance.urls)),
-    url(r'^user/', include(apps.user.urls,
-                           namespace='user'))
+apipatterns = [
+    url(r'^api/', include('apps.geoprocessing_api.urls')),
+]
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title='Model My Watershed API',
+        default_version='v1',
+        description=settings.SWAGGER_SETTINGS['MMW_API_DESCRIPTION'],
+        license=openapi.License(name='Apache 2.0')
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+    patterns=apipatterns,
 )
+
+urlpatterns = [
+    url(r'^', include('apps.home.urls')),
+    url(r'^health-check/', include('apps.monitoring.urls')),
+    url(r'^api-auth/', include('rest_framework.urls')),
+    url(r'^accounts/', include('registration.backends.default.urls')),
+    url(r'^bigcz/', include('apps.bigcz.urls')),
+    url(r'^mmw/geocode/', include('apps.geocode.urls')),
+    url(r'^mmw/modeling/', include('apps.modeling.urls')),
+    url(r'^export/', include('apps.export.urls')),
+    url(r'^api/docs/$', schema_view.with_ui('swagger', cache_timeout=0),
+        name='schema-swagger-ui'),
+    url(r'^api/', include('apps.geoprocessing_api.urls')),
+    url(r'^micro/', include('apps.water_balance.urls')),
+    url(r'^user/', include('apps.user.urls')),
+    url(r'^admin/', admin.site.urls),
+]

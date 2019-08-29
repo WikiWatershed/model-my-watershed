@@ -1,7 +1,5 @@
 ---
 dependencies:
   - { role: "model-my-watershed.base" }
-  - { role: "azavea.nodejs" }
-  - { role: "azavea.mapnik" }
-  - { role: "model-my-watershed.monitoring", collectd_prefix: "collectd.tiler.", when: "['test'] | is_not_in(group_names)" }
-  - { role: "model-my-watershed.nginx" }
+  - { role: "azavea.nodejs", nodejs_version: "{{ tiler_nodejs_version }}", nodejs_npm_version: "{{ tiler_nodejs_npm_version }}" }
+  - { role: "azavea.nginx", nginx_delete_default_site: True }

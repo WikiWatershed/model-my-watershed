@@ -1,0 +1,8 @@
+- name: Download Papertrail root certificate
+  get_url:
+    url: https://papertrailapp.com/tools/papertrail-bundle.pem
+    dest: /etc/papertrail-bundle.pem
+    checksum: sha256:79ea479e9f329de7075c40154c591b51eb056d458bc4dff76d9a4b9c6c4f6d0b
+
+- name: Install rsyslog TLS utils
+  apt: name=rsyslog-gnutls

@@ -6,6 +6,7 @@ var $ = require('jquery'),
     JSZip = require('jszip'),
     turfArea = require('turf-area'),
     turfBboxPolygon = require('turf-bbox-polygon'),
+    turfDestination = require('turf-destination'),
     turfKinks = require('turf-kinks'),
     intersect = require('turf-intersect'),
     settings = require('../core/settings');
@@ -124,6 +125,30 @@ function shapeBoundingBoxArea(shape) {
     return turfArea(boundingBoxPolygon);
 }
 
+// Given a point, returns a 1 KM Square bounding box around it
+function getSquareKmBoxForPoint(point) {
+    var halfKmbufferPoints = _.map([-180, -90, 0, 90], function(bearing) {
+            var p = turfDestination(point, 0.5, bearing, 'kilometers');
+            return L.latLng(p.geometry.coordinates[1], p.geometry.coordinates[0]);
+        }),
+        // Convert the four points into two SW and NE for the bounding
+        // box. South-west has the lat from 0, lng from 1, North-east has
+        // the lat from 2, lng from 3.
+        swNe = [
+            L.latLng(halfKmbufferPoints[0].lat, halfKmbufferPoints[1].lng),
+            L.latLng(halfKmbufferPoints[2].lat, halfKmbufferPoints[3].lng),
+        ],
+        bounds = L.latLngBounds(swNe),
+        box = turfBboxPolygon(bounds.toBBoxString().split(','));
+
+    // Convert coordinates from using strings to floats so that backend can parse them.
+    box.geometry.coordinates[0] = _.map(box.geometry.coordinates[0], function(coord) {
+        return [parseFloat(coord[0]), parseFloat(coord[1])];
+    });
+
+    return box;
+}
+
 function getFileFromZipObjects(zipObjects, extension) {
     return _.find(zipObjects.files, function(zipObject) {
         var fileExtension = zipObject.name.substr(zipObject.name.lastIndexOf(".") + 1);
@@ -168,7 +193,7 @@ function isSelfIntersecting(shape) {
         // valid for geoprocessing.
         // Assert only that each polygon ring doesn't intersect
         // itself
-        return _.any(geom.coordinates, function(linearRing) {
+        return _.some(geom.coordinates, function(linearRing) {
             return selfIntersects({
                 type: "Polygon",
                 coordinates: [linearRing],
@@ -234,6 +259,7 @@ module.exports = {
     isValidForAnalysis: isValidForAnalysis,
     withinConus: withinConus,
     getPolygonFromGeoJson: getPolygonFromGeoJson,
+    getSquareKmBoxForPoint: getSquareKmBoxForPoint,
     loadAsyncShpFilesFromZip: loadAsyncShpFilesFromZip,
     NHD: 'nhd',
     DRB: 'drb',

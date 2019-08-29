@@ -13,7 +13,6 @@ from django.conf import settings
 from django.core.mail.backends.base import BaseEmailBackend
 from django.core.exceptions import ImproperlyConfigured
 
-from django_statsd.clients import statsd
 from email.mime.text import MIMEText
 from boto.utils import get_instance_metadata
 
@@ -35,7 +34,6 @@ class EmailBackend(BaseEmailBackend):
 
         if self.check_quota:
             remaining_quota = self.mailer.get_remaining_message_quota()
-            self._log_quota(remaining_quota)
         else:
             remaining_quota = sys.maxint
 
@@ -66,18 +64,13 @@ class EmailBackend(BaseEmailBackend):
                 raise
 
     def _log_message(self, email_message, response):
-        statsd.incr('email.message.success')
         logger.debug('Sent email with subject "%s" to %s: %s' % (
             email_message.subject, email_message.to, json.dumps(response)))
 
     def _log_message_failure(self, email_message, trace):
-        statsd.incr('email.message.failure')
         logger.error('Exception raised while sending email '
                      'with subject "%s" to %s: %s' % (
                          email_message.subject, email_message.to, trace))
-
-    def _log_quota(self, quota):
-        statsd.gauge('email.quota', quota)
 
 
 class SESQuotaException(Exception):

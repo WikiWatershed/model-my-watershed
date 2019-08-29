@@ -47,7 +47,7 @@ DEFAULT_FROM_EMAIL = 'noreply@modelmywatershed.org'
 # END EMAIL CONFIGURATION
 
 # MIDDLEWARE CONFIGURATION
-MIDDLEWARE_CLASSES += (
+MIDDLEWARE += (
     'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
 )
 # END MIDDLEWARE CONFIGURATION

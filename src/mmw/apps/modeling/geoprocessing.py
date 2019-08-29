@@ -13,8 +13,6 @@ from celery.exceptions import Retry
 
 from requests.exceptions import ConnectionError, Timeout
 
-from django_statsd.clients import statsd
-
 from django.core.cache import cache
 from django.conf import settings
 
@@ -98,7 +96,6 @@ def run(self, opname, input_data, wkaoi=None, cache_key=''):
 
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=6)
-@statsd.timer(__name__ + '.multi')
 def multi(self, opname, shapes, stream_lines):
     """
     Perform a multi-operation geoprocessing request.
@@ -225,7 +222,6 @@ def multi(self, opname, shapes, stream_lines):
         }
 
 
-@statsd.timer(__name__ + '.geop_run')
 def geoprocess(endpoint, data, retry=None):
     """
     Submit a request to the specified endpoint of the geoprocessing service.

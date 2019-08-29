@@ -54,22 +54,12 @@ path.append(DJANGO_ROOT)
 # DEBUG CONFIGURATION
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#debug
 DEBUG = False
-
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#template-debug
-TEMPLATE_DEBUG = DEBUG
 # END DEBUG CONFIGURATION
 
 
 # FILE STORAGE CONFIGURATION
 DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 # END FILE STORAGE CONFIGURATION
-
-
-# STATSD CONFIGURATION
-STATSD_CLIENT = 'django_statsd.clients.normal'
-STATSD_PREFIX = 'django'
-STATSD_HOST = environ.get('MMW_STATSD_HOST', 'localhost')
-# END STATSD CONFIGURATION
 
 # STACK COLOR CONFIGURATION
 STACK_COLOR = environ.get('MMW_STACK_COLOR', 'Black')
@@ -79,7 +69,6 @@ STACK_COLOR = environ.get('MMW_STACK_COLOR', 'Black')
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#caches
 CACHES = {
     'default': {
-        # The Redis database at index 0 is used by Logstash/Beaver
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': 'redis://{0}:{1}/1'.format(
             environ.get('MMW_CACHE_HOST', 'localhost'),
@@ -111,7 +100,7 @@ DATABASES = {
 }
 
 POSTGIS_VERSION = tuple(
-    map(int, environ.get('DJANGO_POSTGIS_VERSION', '2.1.3').split("."))
+    map(int, environ.get('DJANGO_POSTGIS_VERSION', '2.3.7').split("."))
 )
 # END DATABASE CONFIGURATION
 
@@ -129,7 +118,6 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_RESULT_BACKEND = 'django-cache'
-STATSD_CELERY_SIGNALS = True
 CELERY_CREATE_MISSING_QUEUES = True
 CELERY_CHORD_PROPAGATES = True
 CELERY_TASK_DEFAULT_QUEUE = STACK_COLOR
@@ -241,34 +229,35 @@ FIXTURE_DIRS = (
 
 
 # TEMPLATE CONFIGURATION
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#template-context-processors  # NOQA
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.contrib.auth.context_processors.auth',
-    'django.core.context_processors.debug',
-    'django.core.context_processors.media',
-    'django.core.context_processors.static',
-    'django.core.context_processors.tz',
-    'django.contrib.messages.context_processors.messages',
-    'django.core.context_processors.request',
-    'mmw.context_processors.google_analytics_account',
-)
-
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#template-loaders
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
-
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#template-dirs
-TEMPLATE_DIRS = (
-    normpath(join(SITE_ROOT, 'templates')),
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [join(SITE_ROOT, 'templates')],
+        'OPTIONS': {
+            'context_processors': [
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.request',
+            ],
+            'debug': DEBUG,
+            'loaders': [
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
+            ],
+        },
+    },
+]
 # END TEMPLATE CONFIGURATION
 
 
 # MIDDLEWARE CONFIGURATION
-# See: https://docs.djangoproject.com/en/dev/ref/settings/#middleware-classes
-MIDDLEWARE_CLASSES = (
+# See: https://docs.djangoproject.com/en/1.11/topics/http/middleware/
+MIDDLEWARE = (
     # Default Django middleware.
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -277,8 +266,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django_statsd.middleware.GraphiteRequestTimingMiddleware',
-    'django_statsd.middleware.GraphiteMiddleware',
     'apps.user.middleware.ItsiAuthenticationMiddleware',
 )
 # END MIDDLEWARE CONFIGURATION
@@ -305,7 +292,8 @@ DJANGO_APPS = (
 
 THIRD_PARTY_APPS = (
     'rest_framework',
-    'rest_framework_swagger',
+    'rest_framework_gis',
+    'drf_yasg',
     'rest_framework.authtoken',
     'corsheaders',
     'registration',
@@ -328,24 +316,39 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_URLS_REGEX = r'^/api/.*$'
 
 SWAGGER_SETTINGS = {
-    'exclude_namespaces': ['bigcz',
-                           'export',
-                           'mmw',
-                           'user'],
-    'doc_expansion': 'list',
-    'info': {
-        'description': 'The Model My Watershed API allows '
-                       'you to delineate watersheds and analyze '
-                       'geo-data for watersheds and arbitrary areas. '
-                       'You can read more about the work at '
-                       '<a href="http://www.wikiwatershed.org/">'
-                       'WikiWatershed</a> '
-                       'or use the <a href="https://modelmywatershed.org">'
-                       'web app.',
-        'license': 'Apache 2.0',
-        'licenseUrl': 'http://www.apache.org/licenses/LICENSE-2.0.html',
-        'title': 'Model My Watershed API',
-    }
+    'MMW_API_DESCRIPTION':
+        '<p>'
+        'The Model My Watershed API allows you to delineate watersheds and analyze geo-data for watersheds and arbitrary areas. '  # NOQA
+        'You can read more about the work at <a href="http://www.wikiwatershed.org/">WikiWatershed</a> or use the <a href="https://modelmywatershed.org">web app</a>. '  # NOQA
+        '</p>'
+        '<p>'
+        'To use this interactive API documentation, first get your API key from My Account > Account in the web app. '  # NOQA
+        'Then, click on the green Authorize button just below and paste in <code>Token $YOUR_MMW_TOKEN</code> in the "Value" textbox, then click Authorize, then Close. '  # NOQA
+        'All the endpoints in this documentation will then be prepared with your token, and you will now be able to run them interactively. '  # NOQA
+        'Do not use the Django Login / Logout buttons. This API uses Token Authentication only. '  # NOQA
+        '</p>'
+        '<p>'
+        'All <strong>analyze</strong> endpoints take <em>either</em> a MultiPolygon request body <em>or</em> a well-known area of interest query parameter. '  # NOQA
+        'The shape of their result object is documented individually. '
+        '</p>'
+        '<p>'
+        'All <strong>analyze</strong> and <strong>watershed</strong> endpoints return a <strong>Job Started Response</strong> on success. '  # NOQA
+        'This response has a <code>job</code> value, as well as a <code>Location</code> header, either of which can be used with the <strong>jobs</strong> endpoint to get the result. '  # NOQA
+        '</p>'
+        '<p>'
+        'The <strong>jobs</strong> endpoint has a <code>status</code> key, whose value is either <strong>started</strong>, <strong>complete</strong>, or <strong>failed</strong>. '  # NOQA
+        'In cases of completion and failure, the <code>finished</code> key has a timestamp. '  # NOQA
+        'The value of <code>result</code> depends on the kind of job it was. '  # NOQA
+        '</p>',
+    'SECURITY_DEFINITIONS': {
+        'Token': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'Paste in `Token $YOUR_MMW_TOKEN` here',
+            'scheme': 'Token',
+        },
+    },
 }
 
 # registration

@@ -2,7 +2,7 @@
 
 ## Local Development
 
-A combination of Vagrant 1.6+ and Ansible 1.8+ is used to setup the development environment for this project. The project consists of the following virtual machines:
+A combination of Vagrant 2.2+ and Ansible 2.x+ is used to setup the development environment for this project. The project consists of the following virtual machines:
 
 - `app`
 - `services`
@@ -12,12 +12,7 @@ A combination of Vagrant 1.6+ and Ansible 1.8+ is used to setup the development 
 The `app` virtual machine contains an instance of the Django application, `services` contains:
 
 - PostgreSQL
-- Pgweb
 - Redis
-- Logstash
-- Kibana
-- Graphite
-- Statsite
 
 `tiler` contains:
 
@@ -28,7 +23,6 @@ The `app` virtual machine contains an instance of the Django application, `servi
 
 - Celery
 - Docker
-- Spark Job Server (container)
 
 ### Getting Started
 
@@ -105,21 +99,15 @@ envdir: fatal: unable to switch to directory /etc/mmw.d/env: access denied
 
 The Vagrant configuration maps the following host ports to services running in the virtual machines.
 
-Service                | Port | URL
----------------------- | -----| ------------------------------------------------
-Django Web Application | 8000 | [http://localhost:8000](http://localhost:8000)
-Graphite Dashboard     | 8080 | [http://localhost:8080](http://localhost:8080)
-Kibana Dashboard       | 5601 | [http://localhost:5601](http://localhost:5601)
-PostgreSQL             | 5432 | `psql -h localhost`
-pgweb                  | 5433 | [http://localhost:5433](http://localhost:5433)
-Redis                  | 6379 | `redis-cli -h localhost 6379`
-Testem                 | 7357 | [http://localhost:7357](http://localhost:7357)
-Tiler                  | 4000 | [http://localhost:4000](http://localhost:4000)
-Spark Job Server       | 8090 | [http://localhost:8090](http://localhost:8090)
+| Service                | Port | URL                                            |
+| ---------------------- | ---- | ---------------------------------------------- |
+| Django Web Application | 8000 | [http://localhost:8000](http://localhost:8000) |
+| PostgreSQL             | 5432 | `psql -h localhost`                            |
+| Redis                  | 6379 | `redis-cli -h localhost 6379`                  |
+| Testem                 | 7357 | [http://localhost:7357](http://localhost:7357) |
+| Tiler                  | 4000 | [http://localhost:4000](http://localhost:4000) |
 
 ### Caching
-
-In order to speed up things up, you may want to consider leveraging the `vagrant-cachier` plugin. If installed, it is automatically used by Vagrant.
 
 To speed up geoprocessing, those requests are cached in Redis. To disable this caching for development purposes, set the value of `MMW_GEOPROCESSING_CACHE` to `0`:
 
@@ -163,6 +151,13 @@ $ ./scripts/manage.sh test apps.app_name.tests
 ```
 
 More info [here](https://docs.djangoproject.com/en/1.8/topics/testing/).
+
+Run MapShed tests, which require MapShed tables installed in the local database
+(using `setupdb.sh`):
+
+```console
+$ ./scripts/manage.sh test_mapshed
+```
 
 ##### JavaScript
 

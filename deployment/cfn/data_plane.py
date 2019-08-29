@@ -16,19 +16,15 @@ from utils.cfn import get_recent_ami
 
 from utils.constants import (
     ALLOW_ALL_CIDR,
+    CANONICAL_ACCOUNT_ID,
     EC2_INSTANCE_TYPES,
     ELASTICACHE_INSTANCE_TYPES,
-    GRAPHITE,
-    GRAPHITE_WEB,
     HTTP,
     HTTPS,
-    KIBANA,
     POSTGRESQL,
     RDS_INSTANCE_TYPES,
     REDIS,
-    RELP,
     SSH,
-    STATSITE,
     VPC_CIDR
 )
 
@@ -80,10 +76,7 @@ class DataPlane(StackNode):
     def set_up_stack(self):
         super(DataPlane, self).set_up_stack()
 
-        tags = self.get_input('Tags').copy()
-        tags.update({'StackType': 'DataPlane'})
-
-        self.default_tags = tags
+        self.default_tags = self.get_input('Tags').copy()
         self.region = self.get_input('Region')
 
         self.add_description('Data plane stack for MMW')
@@ -113,7 +106,7 @@ class DataPlane(StackNode):
 
         self.bastion_host_ami = self.add_parameter(Parameter(
             'BastionHostAMI', Type='String',
-            Default=self.get_recent_monitoring_ami(),
+            Default=self.get_recent_bastion_ami(),
             Description='Bastion host AMI'
         ), 'BastionHostAMI')
 
@@ -127,6 +120,10 @@ class DataPlane(StackNode):
             'RDSDbName', Type='String', Description='Database name'
         ), 'RDSDbName')
 
+        self.rds_parameter_group_name = self.add_parameter(Parameter(
+            'RDSParameterGroupName', Type='String', Description='Parameter group name'
+        ), 'RDSParameterGroupName')
+
         self.rds_username = self.add_parameter(Parameter(
             'RDSUsername', Type='String', Description='Database username'
         ), 'RDSUsername')
@@ -135,6 +132,11 @@ class DataPlane(StackNode):
             'RDSPassword', Type='String', NoEcho=True,
             Description='Database password',
         ), 'RDSPassword')
+
+        self.rds_multi_az = self.add_parameter(Parameter(
+            'RDSMultiAZ', Type='String', Description='Multi-AZ',
+            AllowedValues=['True', 'False']
+        ), 'RDSMultiAZ')
 
         self.elasticache_instance_type = self.add_parameter(Parameter(
             'ECInstanceType', Type='String', Default='cache.m1.small',
@@ -188,18 +190,25 @@ class DataPlane(StackNode):
 
         self.create_dns_records(bastion_host, rds_database, elasticache_group)
 
-    def get_recent_monitoring_ami(self):
+    def get_recent_bastion_ami(self):
         try:
-            monitoring_ami_id = self.get_input('BastionHostAMI')
+            bastion_ami_id = self.get_input('BastionHostAMI')
         except MKUnresolvableInputError:
-            monitoring_ami_id = get_recent_ami(self.aws_profile,
-                                               'mmw-monitoring-*')
+            filters = {'name':
+                       'ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*',
+                       'architecture': 'x86_64',
+                       'block-device-mapping.volume-type': 'gp2',
+                       'root-device-type': 'ebs',
+                       'virtualization-type': 'hvm'}
 
-        return monitoring_ami_id
+            bastion_ami_id = get_recent_ami(self.aws_profile, filters,
+                                            region=self.region,
+                                            owner=CANONICAL_ACCOUNT_ID)
+
+        return bastion_ami_id
 
     def create_bastion(self):
         bastion_security_group_name = 'sgBastion'
-
         bastion_security_group = self.add_resource(ec2.SecurityGroup(
             bastion_security_group_name,
             GroupDescription='Enables access to the BastionHost',
@@ -208,16 +217,7 @@ class DataPlane(StackNode):
                 ec2.SecurityGroupRule(IpProtocol='tcp',
                                       CidrIp=Ref(self.ip_access),
                                       FromPort=p, ToPort=p)
-                for p in [GRAPHITE_WEB, KIBANA, SSH]
-            ] + [
-                ec2.SecurityGroupRule(IpProtocol='tcp',
-                                      CidrIp=VPC_CIDR,
-                                      FromPort=p, ToPort=p)
-                for p in [GRAPHITE, RELP, STATSITE]
-            ] + [
-                ec2.SecurityGroupRule(IpProtocol='udp', CidrIp=VPC_CIDR,
-                                      FromPort=p, ToPort=p)
-                for p in [STATSITE]
+                for p in [SSH]
             ],
             SecurityGroupEgress=[
                 ec2.SecurityGroupRule(IpProtocol='tcp',
@@ -234,18 +234,8 @@ class DataPlane(StackNode):
         ))
 
         bastion_host_name = 'BastionHost'
-
         return self.add_resource(ec2.Instance(
             bastion_host_name,
-            BlockDeviceMappings=[
-                {
-                    "DeviceName": "/dev/sda1",
-                    "Ebs": {
-                        "VolumeType": "gp2",
-                        "VolumeSize": "256"
-                    }
-                }
-            ],
             InstanceType=Ref(self.bastion_instance_type),
             KeyName=Ref(self.keyname),
             ImageId=Ref(self.bastion_host_ami),
@@ -253,7 +243,7 @@ class DataPlane(StackNode):
                 ec2.NetworkInterfaceProperty(
                     Description='ENI for BastionHost',
                     GroupSet=[Ref(bastion_security_group)],
-                    SubnetId=Select("0", Ref(self.public_subnets)),
+                    SubnetId=Select('0', Ref(self.public_subnets)),
                     AssociatePublicIpAddress=True,
                     DeviceIndex=0,
                     DeleteOnTermination=True
@@ -293,13 +283,6 @@ class DataPlane(StackNode):
             Tags=self.get_tags(Name=rds_subnet_group_name)
         ))
 
-        rds_parameter_group = self.add_resource(rds.DBParameterGroup(
-            'dbpgDatabaseServer',
-            Family='postgres9.4',
-            Description='Parameter group for the RDS instances',
-            Parameters={'log_min_duration_statement': '500'}
-        ))
-
         rds_database_name = 'DatabaseServer'
 
         return self.add_resource(rds.DBInstance(
@@ -310,13 +293,13 @@ class DataPlane(StackNode):
             BackupRetentionPeriod=30,
             DBInstanceClass=Ref(self.rds_instance_type),
             DBName=Ref(self.rds_db_name),
-            DBParameterGroupName=Ref(rds_parameter_group),
+            DBParameterGroupName=Ref(self.rds_parameter_group_name),
             DBSubnetGroupName=Ref(rds_subnet_group),
             Engine='postgres',
-            EngineVersion='9.4.1',
+            EngineVersion='9.6.14',
             MasterUsername=Ref(self.rds_username),
             MasterUserPassword=Ref(self.rds_password),
-            MultiAZ=True,
+            MultiAZ=Ref(self.rds_multi_az),
             PreferredBackupWindow='04:00-04:30',  # 12:00AM-12:30AM ET
             PreferredMaintenanceWindow='sun:04:30-sun:05:30',  # SUN 12:30AM-01:30AM ET
             StorageType='gp2',
@@ -381,9 +364,9 @@ class DataPlane(StackNode):
                     'metricDatabaseServerName',
                     Name='DBInstanceIdentifier',
                     Value=Ref(rds_database)
-                    )
-                ],
-            ))
+                )
+            ],
+        ))
 
         self.add_resource(cloudwatch.Alarm(
             'alarmDatabaseServerFreeableMemory',
@@ -401,9 +384,9 @@ class DataPlane(StackNode):
                     'metricDatabaseServerName',
                     Name='DBInstanceIdentifier',
                     Value=Ref(rds_database)
-                    )
-                ],
-            ))
+                )
+            ],
+        ))
 
     def create_elasticache_replication_group(self):
         elasticache_security_group_name = 'sgCacheCluster'
@@ -512,9 +495,9 @@ class DataPlane(StackNode):
             HostedZoneName=Join('', [Ref(self.public_hosted_zone_name), '.']),
             RecordSets=[
                 r53.RecordSet(
-                    'dnsMonitoringServer',
-                    Name=Join('', ['monitoring.',
-                              Ref(self.public_hosted_zone_name), '.']),
+                    'dnsBastionServer',
+                    Name=Join('', ['bastion.',
+                                   Ref(self.public_hosted_zone_name), '.']),
                     Type='A',
                     TTL='300',
                     ResourceRecords=[GetAtt(bastion_host, 'PublicIp')]
@@ -527,17 +510,9 @@ class DataPlane(StackNode):
             HostedZoneId=Ref(self.private_hosted_zone_id),
             RecordSets=[
                 r53.RecordSet(
-                    'dnsBastionHost',
-                    Name=Join('', ['monitoring.service.',
-                              Ref(self.private_hosted_zone_name), '.']),
-                    Type='A',
-                    TTL='10',
-                    ResourceRecords=[GetAtt(bastion_host, 'PrivateIp')]
-                ),
-                r53.RecordSet(
                     'dnsDatabaseServer',
                     Name=Join('', ['database.service.',
-                              Ref(self.private_hosted_zone_name), '.']),
+                                   Ref(self.private_hosted_zone_name), '.']),
                     Type='CNAME',
                     TTL='10',
                     ResourceRecords=[
@@ -547,7 +522,7 @@ class DataPlane(StackNode):
                 r53.RecordSet(
                     'dnsCacheServer',
                     Name=Join('', ['cache.service.',
-                              Ref(self.private_hosted_zone_name), '.']),
+                                   Ref(self.private_hosted_zone_name), '.']),
                     Type='CNAME',
                     TTL='10',
                     ResourceRecords=[

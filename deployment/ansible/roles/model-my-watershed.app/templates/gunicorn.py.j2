@@ -12,7 +12,7 @@ preload_app = False
 reload = True
 {% else %}
 accesslog = None
-errorlog = "{{ app_gunicorn_log }}"
+errorlog = "-"
 loglevel = 'info'
 preload_app = True
 reload = False

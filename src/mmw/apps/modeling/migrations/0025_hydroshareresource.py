@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
@@ -21,7 +22,7 @@ class Migration(migrations.Migration):
                 ('exported_at', models.DateTimeField(help_text='Most recent export date')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('modified_at', models.DateTimeField(auto_now=True)),
-                ('project', models.OneToOneField(related_name='hydroshare', to='modeling.Project')),
+                ('project', models.OneToOneField(related_name='hydroshare', to='modeling.Project', on_delete=django.db.models.deletion.CASCADE)),
             ],
         ),
     ]

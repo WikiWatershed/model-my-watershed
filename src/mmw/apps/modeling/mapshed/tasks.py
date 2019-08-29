@@ -6,7 +6,6 @@ from __future__ import absolute_import
 from celery import shared_task
 from django.conf import settings
 
-from django_statsd.clients import statsd
 from django.contrib.gis.geos import GEOSGeometry
 
 from apps.modeling.geoprocessing import NOWKAOI, multi, run, parse
@@ -15,7 +14,6 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          growing_season,
                                          erosion_coeff,
                                          et_adjustment,
-                                         kv_coefficient,
                                          animal_energy_units,
                                          ag_ls_c_p,
                                          ls_factors,
@@ -31,8 +29,7 @@ from apps.modeling.mapshed.calcs import (day_lengths,
                                          groundwater_nitrogen_conc,
                                          sediment_delivery_ratio,
                                          landuse_pcts,
-                                         num_normal_sys,
-                                         sed_a_factor
+                                         area_calculations,
                                          )
 
 
@@ -140,10 +137,7 @@ def collect_data(geop_results, geojson, watershed_id=None, weather=None):
     if sum(z['Area']) == 0:
         raise Exception(NO_LAND_COVER)
 
-    z['UrbAreaTotal'] = sum(z['Area'][NRur:])
     z['PhosConc'] = phosphorus_conc(z['SedPhos'])
-
-    z['NumNormalSys'] = num_normal_sys(z['Area'])
 
     z['AgSlope3'] = geop_result['ag_slope_3_pct'] * area * HECTARES_PER_SQM
     z['AgSlope3To8'] = (geop_result['ag_slope_3_8_pct'] *
@@ -155,21 +149,14 @@ def collect_data(geop_results, geojson, watershed_id=None, weather=None):
     z['AvKF'] = geop_result['avg_kf']
     z['KF'] = geop_result['kf']
 
-    z['KV'] = kv_coefficient(geop_result['landuse_pcts'], z['Grow'])
-
-    # Original at Class1.vb@1.3.0:9803-9807
-    z['n23'] = z['Area'][1]    # Row Crops Area
-    z['n23b'] = z['Area'][13]  # High Density Mixed Urban Area
-    z['n24'] = z['Area'][0]    # Hay/Pasture Area
-    z['n24b'] = z['Area'][11]  # Low Density Mixed Urban Area
-
     z['SedDelivRatio'] = sediment_delivery_ratio(area * SQKM_PER_SQM)
     z['TotArea'] = area * HECTARES_PER_SQM
     z['GrNitrConc'] = geop_result['gr_nitr_conc']
     z['GrPhosConc'] = geop_result['gr_phos_conc']
     z['MaxWaterCap'] = geop_result['avg_awc']
-    z['SedAFactor'] = sed_a_factor(geop_result['landuse_pcts'],
-                                   z['CN'], z['AEU'], z['AvKF'], z['AvSlope'])
+
+    # Calculate fields derived from land use distribution
+    z = area_calculations(z['Area'], z)
 
     # Use zeroed out stream variables if there are no streams in the AoI
     if 'lu_stream_pct' in geop_result:
@@ -546,7 +533,6 @@ def convert_data(payload, wkaoi):
 
 
 @shared_task
-@statsd.timer(__name__ + '.collect_subbasin')
 def collect_subbasin(payload, shapes):
     # Gather weather stations and their data
     # collectively to avoid re-reading stations
