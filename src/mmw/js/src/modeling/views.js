@@ -1179,6 +1179,7 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         this.scenario.set('is_subbasin_active', false);
         App.hideMapInfo({ empty: true });
         App.getMapView().clearSubbasinHuc12s();
+        App.rootView.subbasinSliderRegion.empty();
     },
 
     showSubbasinHuc12View: function() {
@@ -1204,6 +1205,7 @@ var ResultsDetailsView = Marionette.LayoutView.extend({
         App.getMapView().clearSubbasinCatchments();
         this.subbasinRegion.$el.show();
         this.subbasinHuc12Region.empty();
+        App.rootView.subbasinSliderRegion.empty();
     },
 
     showCatchmentsOnMap: function(activeSubbasin, subbasinResult) {

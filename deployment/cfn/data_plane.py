@@ -120,6 +120,10 @@ class DataPlane(StackNode):
             'RDSDbName', Type='String', Description='Database name'
         ), 'RDSDbName')
 
+        self.rds_parameter_group_name = self.add_parameter(Parameter(
+            'RDSParameterGroupName', Type='String', Description='Parameter group name'
+        ), 'RDSParameterGroupName')
+
         self.rds_username = self.add_parameter(Parameter(
             'RDSUsername', Type='String', Description='Database username'
         ), 'RDSUsername')
@@ -279,13 +283,6 @@ class DataPlane(StackNode):
             Tags=self.get_tags(Name=rds_subnet_group_name)
         ))
 
-        rds_parameter_group = self.add_resource(rds.DBParameterGroup(
-            'dbpgDatabaseServer',
-            Family='postgres9.4',
-            Description='Parameter group for the RDS instances',
-            Parameters={'log_min_duration_statement': '500'}
-        ))
-
         rds_database_name = 'DatabaseServer'
 
         return self.add_resource(rds.DBInstance(
@@ -296,10 +293,10 @@ class DataPlane(StackNode):
             BackupRetentionPeriod=30,
             DBInstanceClass=Ref(self.rds_instance_type),
             DBName=Ref(self.rds_db_name),
-            DBParameterGroupName=Ref(rds_parameter_group),
+            DBParameterGroupName=Ref(self.rds_parameter_group_name),
             DBSubnetGroupName=Ref(rds_subnet_group),
             Engine='postgres',
-            EngineVersion='9.4.20',
+            EngineVersion='9.6.14',
             MasterUsername=Ref(self.rds_username),
             MasterUserPassword=Ref(self.rds_password),
             MultiAZ=Ref(self.rds_multi_az),

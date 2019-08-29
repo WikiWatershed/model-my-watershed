@@ -690,3 +690,29 @@ def phosphorus_conc(sed_phos):
         0.01,          # Unpaved
         0, 0, 0, 0, 0, 0  # Urban Land Use Types
     ]
+
+
+def area_calculations(areas_h, z):
+    """
+    Given a list of areas per land use in hectares and MapShed Dictionary z,
+    calculates all fields that rely on the land use distribution, and returns
+    an updated dictionary z.
+
+    Useful when users customize the land use distribution.
+    """
+    percents = [a_h / z['TotArea'] for a_h in areas_h]
+
+    z['UrbAreaTotal'] = sum(areas_h[NRur:])
+    z['NumNormalSys'] = num_normal_sys(areas_h)
+    z['KV'] = kv_coefficient(percents, z['Grow'])
+
+    # Original at Class1.vb@1.3.0:9803-9807
+    z['n23'] = areas_h[1]    # Row Crops Area
+    z['n23b'] = areas_h[13]  # High Density Mixed Urban Area
+    z['n24'] = areas_h[0]    # Hay/Pasture Area
+    z['n24b'] = areas_h[11]  # Low Density Mixed Urban Area
+
+    z['SedAFactor'] = sed_a_factor(percents,
+                                   z['CN'], z['AEU'], z['AvKF'], z['AvSlope'])
+
+    return z

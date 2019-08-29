@@ -152,6 +152,13 @@ $ ./scripts/manage.sh test apps.app_name.tests
 
 More info [here](https://docs.djangoproject.com/en/1.8/topics/testing/).
 
+Run MapShed tests, which require MapShed tables installed in the local database
+(using `setupdb.sh`):
+
+```console
+$ ./scripts/manage.sh test_mapshed
+```
+
 ##### JavaScript
 
 To check for JavaScript lint:
