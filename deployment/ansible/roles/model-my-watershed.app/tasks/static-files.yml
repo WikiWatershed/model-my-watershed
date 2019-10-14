@@ -11,7 +11,7 @@
     - "{{ app_static_cache }}"
 
 - name: Install application JavaScript dependencies
-  command: "npm install --unsafe-perm"
+  command: "yarn"
   args:
     chdir: "{{ app_home }}"
   become: False

@@ -28,6 +28,7 @@ daemontools_version: "1:0.76-6ubuntu1"
 
 python_version: "2.7.12-1~16.04"
 
+yarn_version: "1.19.*"
 app_nodejs_version: "12.11.1"
 app_nodejs_npm_version: "6.9.0"
 tiler_nodejs_version: "10.16.0"
