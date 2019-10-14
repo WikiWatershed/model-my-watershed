@@ -323,136 +323,132 @@ describe('Core', function() {
                                           JSON.stringify(this.pollingResponse) ]);
             });
 
-            describe('#pollForResults', function() {
-                it('resolves promise when response status is complete', function(done) {
-                    var self = this;
-                    self.taskModel.pollForResults(self.pollingDefer)
-                        .done(function() {
-                            self.isDone = true;
-                        }).fail(function() {
-                        }).always(function(response) {
-                            assert(self.isDone, 'Promise was not resolved');
-                            assert.equal(response.status, 'complete',
-                                         'Response was not returned or status is not complete');
-                            done();
-                        });
-                });
-
-                it('rejects promise when timeout occurs', function(done) {
-                    var self = this;
-                    self.pollingResponse = {
-                        status: '' // Status is never complete, so times out.
-                    };
-                    self.server.respondWith('GET', '/mmw/modeling/jobs/1/',
-                                       [ 200,
-                                         { 'Content-Type': 'application/json' },
-                                         JSON.stringify(self.pollingResponse) ]);
-
-                    self.taskModel.pollForResults(self.pollingDefer)
-                        .done(function() {
-                            self.isDone = true;
-                        }).fail(function() {
-                        }).always(function() {
-                            assert.isFalse(self.isDone, 'Promise was resolved');
-                            done();
-                        });
-                });
-
-                it('rejects promise after reset() is called', function(done) {
-                    var self = this;
-                    self.pollingResponse = {
-                        status: ''
-                    };
-                    self.server.respondWith('GET', '/mmw/modeling/jobs/1/',
-                                            [ 200,
-                                              { 'Content-Type': 'application/json' },
-                                              JSON.stringify(self.pollingResponse) ]);
-
-                    var pollingPromise = self.taskModel.pollForResults(self.pollingDefer);
-                    self.taskModel.reset();
-                    pollingPromise.done(function() {
+            it('resolves promise when response status is complete', function(done) {
+                var self = this;
+                self.taskModel.pollForResults(self.pollingDefer)
+                    .done(function() {
                         self.isDone = true;
-                    }).fail(function(failObject) {
-                        assert.equal(failObject.cancelledJob, self.startJob, 'Cancelled job was not start job');
-                    }).always(function() {
-                        assert.isFalse(self.isDone, 'Promise was resolved');
+                    }).fail(function() {
+                    }).always(function(response) {
+                        assert(self.isDone, 'Promise was not resolved');
+                        assert.equal(response.status, 'complete',
+                                        'Response was not returned or status is not complete');
                         done();
                     });
-                });
+            });
 
-                it('rejects promise when request is bad', function(done) {
-                    var self = this;
-                    self.server.respondWith('GET', '/mmw/modeling/jobs/1/',
-                                            [ 400, // Bad request
-                                              { 'Content-Type': 'application/json' },
-                                              JSON.stringify(self.pollingResponse) ]);
+            it('rejects promise when timeout occurs', function(done) {
+                var self = this;
+                self.pollingResponse = {
+                    status: '' // Status is never complete, so times out.
+                };
+                self.server.respondWith('GET', '/mmw/modeling/jobs/1/',
+                                    [ 200,
+                                        { 'Content-Type': 'application/json' },
+                                        JSON.stringify(self.pollingResponse) ]);
 
-                    var pollingPromise = self.taskModel.pollForResults(self.pollingDefer);
-                    pollingPromise.done(function() {
+                self.taskModel.pollForResults(self.pollingDefer)
+                    .done(function() {
                         self.isDone = true;
                     }).fail(function() {
                     }).always(function() {
                         assert.isFalse(self.isDone, 'Promise was resolved');
                         done();
                     });
+            });
+
+            it('rejects promise after reset() is called', function(done) {
+                var self = this;
+                self.pollingResponse = {
+                    status: ''
+                };
+                self.server.respondWith('GET', '/mmw/modeling/jobs/1/',
+                                        [ 200,
+                                            { 'Content-Type': 'application/json' },
+                                            JSON.stringify(self.pollingResponse) ]);
+
+                var pollingPromise = self.taskModel.pollForResults(self.pollingDefer);
+                self.taskModel.reset();
+                pollingPromise.done(function() {
+                    self.isDone = true;
+                }).fail(function(failObject) {
+                    assert.equal(failObject.cancelledJob, self.startJob, 'Cancelled job was not start job');
+                }).always(function() {
+                    assert.isFalse(self.isDone, 'Promise was resolved');
+                    done();
                 });
             });
 
-            describe('#start', function() {
-                it('calls onStart and startFailure if initial fetch fails', function(done) {
-                    var self = this;
-                    self.server.respondWith('POST', '/mmw/modeling/tr55/',
-                                       [ 400, // Make initial fetch fail.
-                                         { 'Content-Type': 'application/json' },
-                                         JSON.stringify(self.startResponse) ]);
+            it('rejects promise when request is bad', function(done) {
+                var self = this;
+                self.server.respondWith('GET', '/mmw/modeling/jobs/1/',
+                                        [ 400, // Bad request
+                                            { 'Content-Type': 'application/json' },
+                                            JSON.stringify(self.pollingResponse) ]);
 
-                    var startPromises = self.taskModel.start(self.taskHelper);
-                    startPromises.startPromise.done(function() {
-                        self.isDone = true;
-                    }).fail(function() {
-                        assert(self.onStartSpy.calledOnce, 'onStart not called once');
-                        assert(self.startFailureSpy.calledOnce, 'startFailure not called once');
-                    }).always(function() {
-                        assert.isFalse(self.isDone, 'Promise was resolved despite fetch failure');
-                        done();
-                    });
+                var pollingPromise = self.taskModel.pollForResults(self.pollingDefer);
+                pollingPromise.done(function() {
+                    self.isDone = true;
+                }).fail(function() {
+                }).always(function() {
+                    assert.isFalse(self.isDone, 'Promise was resolved');
+                    done();
                 });
-
-                it('calls pollSuccess and pollEnd if polling successful', function(done) {
-                    var self = this,
-                        startPromises = self.taskModel.start(self.taskHelper);
-
-                    startPromises.pollingPromise.done(function() {
-                        self.isDone = true;
-                        assert(self.pollSuccessSpy.calledOnce, 'pollSuccess not called once');
-                        assert(self.pollEndSpy.calledOnce, 'pollEndSpy not called once');
-                    }).fail(function() {
-                    }).always(function() {
-                        assert(self.isDone, 'Promise was rejected');
-                        done();
-                    });
-                });
-
-                it('calls pollFailure and pollEnd if polling fails', function(done) {
-                    var self = this;
-                    self.server.respondWith('GET', '/mmw/modeling/jobs/1/',
-                                       [ 400, // Make polling fail
-                                         { 'Content-Type': 'application/json' },
-                                         JSON.stringify(self.pollingResponse) ]);
-
-                    var startPromises = self.taskModel.start(self.taskHelper);
-                    startPromises.pollingPromise.done(function() {
-                        self.isDone = true;
-                    }).fail(function() {
-                        assert(self.pollFailureSpy.calledOnce, 'pollFailure not called once');
-                        assert(self.pollEndSpy.calledOnce, 'pollEndSpy not called once');
-                    }).always(function() {
-                        assert.isFalse(self.isDone, 'Promise was resolved');
-                        done();
-                    });
-                });
-
             });
+
+            it('calls onStart and startFailure if initial fetch fails', function(done) {
+                var self = this;
+                self.server.respondWith('POST', '/mmw/modeling/tr55/',
+                                    [ 400, // Make initial fetch fail.
+                                        { 'Content-Type': 'application/json' },
+                                        JSON.stringify(self.startResponse) ]);
+
+                var startPromises = self.taskModel.start(self.taskHelper);
+                startPromises.startPromise.done(function() {
+                    self.isDone = true;
+                }).fail(function() {
+                    assert(self.onStartSpy.calledOnce, 'onStart not called once');
+                    assert(self.startFailureSpy.calledOnce, 'startFailure not called once');
+                }).always(function() {
+                    assert.isFalse(self.isDone, 'Promise was resolved despite fetch failure');
+                    done();
+                });
+            });
+
+            it('calls pollSuccess and pollEnd if polling successful', function(done) {
+                var self = this,
+                    startPromises = self.taskModel.start(self.taskHelper);
+
+                startPromises.pollingPromise.done(function() {
+                    self.isDone = true;
+                    assert(self.pollSuccessSpy.calledOnce, 'pollSuccess not called once');
+                    assert(self.pollEndSpy.calledOnce, 'pollEndSpy not called once');
+                }).fail(function() {
+                }).always(function() {
+                    assert(self.isDone, 'Promise was rejected');
+                    done();
+                });
+            });
+
+            it('calls pollFailure and pollEnd if polling fails', function(done) {
+                var self = this;
+                self.server.respondWith('GET', '/mmw/modeling/jobs/1/',
+                                    [ 400, // Make polling fail
+                                        { 'Content-Type': 'application/json' },
+                                        JSON.stringify(self.pollingResponse) ]);
+
+                var startPromises = self.taskModel.start(self.taskHelper);
+                startPromises.pollingPromise.done(function() {
+                    self.isDone = true;
+                }).fail(function() {
+                    assert(self.pollFailureSpy.calledOnce, 'pollFailure not called once');
+                    assert(self.pollEndSpy.calledOnce, 'pollEndSpy not called once');
+                }).always(function() {
+                    assert.isFalse(self.isDone, 'Promise was resolved');
+                    done();
+                });
+            });
+
         });
     });
 

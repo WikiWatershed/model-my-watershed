@@ -23,7 +23,7 @@ vagrant ssh app -c "cd /opt/app && envdir /etc/mmw.d/env ./manage.py test --noin
 
 if [[ -z "${MMW_SKIP_JS_TESTS}" ]]; then
     vagrant ssh app -c "cd /var/www/mmw/static &&
-        xvfb-run /opt/app/node_modules/.bin/testem -f /opt/app/testem.json ci Firefox $*"
+        xvfb-run /opt/app/node_modules/.bin/testem -f /opt/app/testem.json ci $*"
 else
     echo "SKIPPING JS TESTS"
 fi
