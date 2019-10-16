@@ -4,6 +4,8 @@
   version: 2.0.0
 - src: azavea.nodejs
   version: 0.3.0
+- src: azavea.yarn
+  version: 0.1.0
 - src: azavea.git
   version: 0.1.0
 - src: azavea.nginx
