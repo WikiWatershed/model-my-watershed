@@ -40,7 +40,7 @@
     "leaflet-draw": "git://github.com/azavea/Leaflet.draw",
     "leaflet-plugins": "git://github.com/azavea/leaflet-plugins#feature/browserify",
     "leaflet.locatecontrol": "0.43.0",
-    "livereload": "0.3.7",
+    "livereload": "0.8.2",
     "lodash": "4.17.15",
     "minifyify": "7.0.0",
     "mocha": "6.2.2",
