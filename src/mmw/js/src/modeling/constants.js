@@ -1,3 +1,5 @@
+"use strict";
+
 module.exports = {
     GA: {
         MODEL_CATEGORY: "Modeling",
