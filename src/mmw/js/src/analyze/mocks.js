@@ -1,3 +1,5 @@
+"use strict";
+
 module.exports = {
     // Congressional District PA-02
     area_of_interest: {
