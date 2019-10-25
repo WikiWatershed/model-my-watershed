@@ -278,3 +278,34 @@ def catchment_intersects_aoi(aoi, catchment):
                          min_summed_intersection_pct)
 
     return include_catchment
+
+
+def huc12s_with_aois(geojson):
+    """
+    Get list of HUC-12s and clipped AoIs for the given GeoJSON.
+
+    Finds all HUC-12s the given GeoJSON intersects with, and for each
+    matching one, returns a tuple of the HUC-12 shape and the GeoJSON
+    clipped to that HUC-12.
+    """
+    sql = '''
+          SELECT ST_AsGeoJSON(geom_detailed) AS huc12,
+                 ST_AsGeoJSON(ST_Intersection(
+                     geom_detailed, ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326)
+                 )) AS aoi
+          FROM boundary_huc12
+          WHERE ST_Intersects(geom_detailed,
+                              ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
+          '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [geojson, geojson])
+
+        pairs = []
+        if cursor.rowcount > 0:
+            pairs = [{
+                'huc12': json.loads(row[0]),
+                'aoi': json.loads(row[1]),
+            } for row in cursor.fetchall()]
+
+    return pairs
