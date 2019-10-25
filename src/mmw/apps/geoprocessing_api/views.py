@@ -1011,6 +1011,35 @@ def start_analyze_terrain(request, format=None):
     ], area_of_interest, user)
 
 
+@swagger_auto_schema(method='post',
+                     request_body=schemas.MULTIPOLYGON,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_modeling_worksheet(request, format=None):
+    """
+    Generate a set of BMP Worksheets prefilled with relevant data.
+
+    Takes a model_input that contains an area of interest, and uses it to
+    find which HUC-12s intersect with it. For every HUC-12 that intersects
+    with the area of interest, we make pairs of thue HUC-12 and the clipped
+    area which is contained within it. For every pair, we make a dictionary
+    of numbers needed to make the BMP Worksheet. This job returns an array
+    of dictionaries, which should be posted to the /export/worksheet/ endpoint
+    to get the actual Excel files.
+    """
+    # TODO Implement
+
+    return Response({
+        'job': '00000000-0000-0000-0000-000000000000',
+        'status': 'started',
+    })
+
+
 def _initiate_rwd_job_chain(location, snapping, simplify, data_source,
                             job_id, testing=False):
     errback = save_job_error.s(job_id)
