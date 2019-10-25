@@ -164,7 +164,7 @@ $ ./scripts/manage.sh test_mapshed
 To check for JavaScript lint:
 
 ```bash
-$ ./scripts/npm.sh run lint
+$ ./scripts/yarn.sh run lint
 ```
 
 When creating new tests or debugging old tests, it may be easier to open the testem page, which polls for changes to the test bundle and updates the test state dynamically.
@@ -180,7 +180,7 @@ To enable livereload, [download the browser extension](http://livereload.com/ext
 and start the livereload server with the following command:
 
 ```bash
-./scripts/npm.sh run livereload
+./scripts/yarn.sh run livereload
 ```
 
 #### Bundling static assets
@@ -219,7 +219,14 @@ This flag is for troubleshooting purposes only.
 
 #### Adding JS dependencies
 
-To add a new JS dependency, update the `JS_DEPS` array in `bundle.sh`, and `package.json` accordingly.
-Because our dependencies are shrinkwrapped, follow the [instructions](https://docs.npmjs.com/cli/shrinkwrap#building-shrinkwrapped-packages) for adding a dependency to a shrinkwrapped package.
+To add a new JS dependency, use
+
+```console
+$ ./scripts/yarn.sh add --exact <dependency>
+```
+
+this will download the dependency to `node_modules`, add to the `package.json`, and to `yarn.lock`.
+Furthermore, it will be pinned to the current version.
+Then, update the `JS_DEPS` array in `bundle.sh`.
 Rebuild the vendor bundle using `./scripts/bundle.sh --vendor`.
-`npm` commands can be run using `./scripts/npm.sh`.
+`yarn` commands can be run using `./scripts/yarn.sh`.
