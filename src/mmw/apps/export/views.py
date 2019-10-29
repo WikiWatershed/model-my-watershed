@@ -3,9 +3,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import BMPxlsx
 import fiona
+import glob
 import json
 import os
+import shutil
 import StringIO
 import tempfile
 import zipfile
@@ -33,6 +36,8 @@ HYDROSHARE_BASE_URL = settings.HYDROSHARE['base_url']
 SHAPEFILE_EXTENSIONS = ['cpg', 'dbf', 'prj', 'shp', 'shx']
 DEFAULT_KEYWORDS = {'mmw', 'model-my-watershed'}
 MMW_APP_KEY_FLAG = '{"appkey": "model-my-watershed"}'
+EXCEL_TEMPLATE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                              'templates/MMW_BMP_Spreadsheet_Tool.xlsx')
 
 
 @decorators.api_view(['GET', 'POST', 'PATCH', 'DELETE'])
@@ -158,4 +163,51 @@ def shapefile(request):
     resp = HttpResponse(stream.getvalue(), content_type='application/zip')
     resp['Content-Disposition'] = 'attachment; '\
                                   'filename="{}.zip"'.format(filename)
+    return resp
+
+
+@decorators.api_view(['POST'])
+def worksheet(request):
+    """Generate a ZIP of BMP Excel Worksheets prefilled with relevant data."""
+    # Extract list of pairs of HUC-12 + AoI
+    pairs = request.data
+
+    # Make a temporary directory to save the files in
+    tempdir = tempfile.mkdtemp()
+
+    for index, pair in enumerate(pairs):
+        worksheet_path = '{}/{}.xlsx'.format(tempdir, index)
+
+        # Copy the Excel template
+        shutil.copyfile(EXCEL_TEMPLATE, worksheet_path)
+
+        # Write Excel Worksheet
+        writer = BMPxlsx.Writer(worksheet_path)
+        # TODO Get this from the request body
+        writer.write({
+            'MMW Output': {
+                'L18': 96.66,
+                'L19': 10.09,
+                'L20': 86.57,
+            }
+        })
+        writer.close()
+
+    worksheets = glob.glob('{}/*.xlsx'.format(tempdir))
+
+    # Create a zip file in memory for all the worksheets
+    stream = StringIO.StringIO()
+    with zipfile.ZipFile(stream, 'w') as zf:
+        for fpath in worksheets:
+            _, fname = os.path.split(fpath)
+            zf.write(fpath, fname)
+            os.remove(fpath)
+
+    # Delete the temporary directory
+    os.rmdir(tempdir)
+
+    # Return the zip file from memory with appropriate headers
+    resp = HttpResponse(stream.getvalue(), content_type='application/zip')
+    resp['Content-Disposition'] = 'attachment; '\
+                                  'filename="MMW_BMP_Spreadsheets.zip"'
     return resp
