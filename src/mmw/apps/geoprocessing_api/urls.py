@@ -32,5 +32,7 @@ urlpatterns = [
     url(r'analyze/terrain/$', views.start_analyze_terrain,
         name='start_analyze_terrain'),
     url(r'jobs/' + uuid_regex, get_job, name='get_job'),
+    url(r'modeling/worksheet/$', views.start_modeling_worksheet,
+        name='start_modeling_worksheet'),
     url(r'watershed/$', views.start_rwd, name='start_rwd'),
 ]

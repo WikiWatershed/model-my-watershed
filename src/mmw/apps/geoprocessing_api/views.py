@@ -2,6 +2,8 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import json
+
 from celery import chain, group
 
 from rest_framework.response import Response
@@ -26,6 +28,7 @@ from apps.modeling.mapshed.tasks import nlcd_streams
 from apps.modeling.serializers import AoiSerializer
 
 from apps.geoprocessing_api import schemas, tasks
+from apps.geoprocessing_api.calcs import huc12s_with_aois
 from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
                                                SustainedRateThrottle)
@@ -1009,6 +1012,40 @@ def start_analyze_terrain(request, format=None):
         geoprocessing.run.s('terrain', geop_input, wkaoi),
         tasks.analyze_terrain.s()
     ], area_of_interest, user)
+
+
+@swagger_auto_schema(method='post',
+                     request_body=schemas.MULTIPOLYGON,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_modeling_worksheet(request, format=None):
+    """
+    Generate a set of BMP Worksheets prefilled with relevant data.
+
+    Takes a model_input that contains an area of interest, and uses it to
+    find which HUC-12s intersect with it. For every HUC-12 that intersects
+    with the area of interest, we make pairs of thue HUC-12 and the clipped
+    area which is contained within it. For every pair, we make a dictionary
+    of numbers needed to make the BMP Worksheet. This job returns an array
+    of dictionaries, which should be posted to the /export/worksheet/ endpoint
+    to get the actual Excel files.
+    """
+    area_of_interest, _ = _parse_input(request)
+
+    pairs = huc12s_with_aois(area_of_interest)
+
+    # TODO Run Celery chain to calculate numbers needed for the worksheet
+    print('==> pairs\n{}'.format(json.dumps(pairs)))
+
+    return Response({
+        'job': '00000000-0000-0000-0000-000000000000',
+        'status': 'started',
+    })
 
 
 def _initiate_rwd_job_chain(location, snapping, simplify, data_source,
