@@ -48,7 +48,6 @@ geop_version: "4.0.1"
 geop_cache_enabled: 1
 
 nginx_cache_dir: "/var/cache/nginx"
-observation_api_url: "http://www.wikiwatershed-vs.org/"
 
 enabled_features: ''
 
