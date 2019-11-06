@@ -298,6 +298,7 @@ THIRD_PARTY_APPS = (
     'corsheaders',
     'registration',
     'django_celery_results',
+    'django_extensions',
 )
 
 # THIRD-PARTY CONFIGURATION
