@@ -136,30 +136,44 @@ class ExerciseManageApiToken(LiveServerTestCase):
 class ExerciseAnalyze(TestCase):
     def test_survey_land(self):
         self.maxDiff = None
-        # NLCD Histogram of Little Neshaminy HUC-12
+        # NLCD + ARA Histogram of Little Neshaminy HUC-12
         histogram = {
-            'List(11)': 39,
-            'List(21)': 40558,
-            'List(22)': 25230,
-            'List(23)': 10976,
-            'List(24)': 3793,
-            'List(31)': 364,
-            'List(41)': 19218,
-            'List(42)': 153,
-            'List(43)': 329,
-            'List(52)': 3309,
-            'List(71)': 684,
-            'List(81)': 8922,
-            'List(82)': 6345,
-            'List(90)': 3940,
-            'List(95)': 112,
+            'List(11, -2147483648)': 5,
+            'List(11, 1)': 34,
+            'List(21, -2147483648)': 31228,
+            'List(21, 1)': 9330,
+            'List(22, -2147483648)': 20546,
+            'List(22, 1)': 4684,
+            'List(23, -2147483648)': 9019,
+            'List(23, 1)': 1957,
+            'List(24, -2147483648)': 3303,
+            'List(24, 1)': 490,
+            'List(31, -2147483648)': 232,
+            'List(31, 1)': 132,
+            'List(41, -2147483648)': 11964,
+            'List(41, 1)': 7254,
+            'List(42, -2147483648)': 138,
+            'List(42, 1)': 15,
+            'List(43, -2147483648)': 212,
+            'List(43, 1)': 117,
+            'List(52, -2147483648)': 2346,
+            'List(52, 1)': 963,
+            'List(71, -2147483648)': 424,
+            'List(71, 1)': 260,
+            'List(81, -2147483648)': 6814,
+            'List(81, 1)': 2108,
+            'List(82, -2147483648)': 4713,
+            'List(82, 1)': 1632,
+            'List(90, -2147483648)': 184,
+            'List(90, 1)': 3756,
+            'List(95, -2147483648)': 7,
+            'List(95, 1)': 105
         }
         expected = {
             "survey": {
-                "displayName": "Land",
-                "name": "land",
                 "categories": [
                     {
+                        "active_river_area": 117,
                         "area": 329,
                         "code": "mixed_forest",
                         "coverage": 0.002653825057270997,
@@ -167,6 +181,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Mixed Forest"
                     },
                     {
+                        "active_river_area": 260,
                         "area": 684,
                         "code": "grassland",
                         "coverage": 0.005517374891104443,
@@ -174,6 +189,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Grassland/Herbaceous"
                     },
                     {
+                        "active_river_area": 7254,
                         "area": 19218,
                         "code": "deciduous_forest",
                         "coverage": 0.1550188752298906,
@@ -181,6 +197,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Deciduous Forest"
                     },
                     {
+                        "active_river_area": 15,
                         "area": 153,
                         "code": "evergreen_forest",
                         "coverage": 0.001234149646694415,
@@ -188,6 +205,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Evergreen Forest"
                     },
                     {
+                        "active_river_area": 34,
                         "area": 39,
                         "code": "open_water",
                         "coverage": 0.00031458716484367437,
@@ -195,13 +213,15 @@ class ExerciseAnalyze(TestCase):
                         "type": "Open Water"
                     },
                     {
+                        "active_river_area": 0,
                         "area": 0,
                         "code": "perennial_ice",
-                        "coverage": 0,
+                        "coverage": 0.0,
                         "nlcd": 12,
                         "type": "Perennial Ice/Snow"
                     },
                     {
+                        "active_river_area": 2108,
                         "area": 8922,
                         "code": "pasture",
                         "coverage": 0.07196786371116058,
@@ -209,6 +229,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Pasture/Hay"
                     },
                     {
+                        "active_river_area": 1632,
                         "area": 6345,
                         "code": "cultivated_crops",
                         "coverage": 0.051180911818797796,
@@ -216,6 +237,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Cultivated Crops"
                     },
                     {
+                        "active_river_area": 963,
                         "area": 3309,
                         "code": "shrub",
                         "coverage": 0.026691510986351755,
@@ -223,6 +245,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Shrub/Scrub"
                     },
                     {
+                        "active_river_area": 9330,
                         "area": 40558,
                         "code": "developed_open",
                         "coverage": 0.32715451876230117,
@@ -230,6 +253,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Developed, Open Space"
                     },
                     {
+                        "active_river_area": 4684,
                         "area": 25230,
                         "code": "developed_low",
                         "coverage": 0.20351369664117705,
@@ -237,6 +261,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Developed, Low Intensity"
                     },
                     {
+                        "active_river_area": 1957,
                         "area": 10976,
                         "code": "developed_med",
                         "coverage": 0.0885361210595941,
@@ -244,6 +269,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Developed, Medium Intensity"
                     },
                     {
+                        "active_river_area": 490,
                         "area": 3793,
                         "code": "developed_high",
                         "coverage": 0.030595618365437355,
@@ -251,6 +277,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Developed, High Intensity"
                     },
                     {
+                        "active_river_area": 3756,
                         "area": 3940,
                         "code": "woody_wetlands",
                         "coverage": 0.0317813699867712,
@@ -258,6 +285,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Woody Wetlands"
                     },
                     {
+                        "active_river_area": 105,
                         "area": 112,
                         "code": "herbaceous_wetlands",
                         "coverage": 0.000903429806730552,
@@ -265,13 +293,16 @@ class ExerciseAnalyze(TestCase):
                         "type": "Emergent Herbaceous Wetlands"
                     },
                     {
+                        "active_river_area": 132,
                         "area": 364,
                         "code": "barren_land",
                         "coverage": 0.0029361468718742943,
                         "nlcd": 31,
                         "type": "Barren Land (Rock/Sand/Clay)"
                     }
-                ]
+                ],
+                "displayName": "Land",
+                "name": "land"
             }
         }
 

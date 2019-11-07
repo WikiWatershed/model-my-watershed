@@ -282,112 +282,128 @@ def start_analyze_land(request, format=None):
                         "code": "mixed_forest",
                         "type": "Mixed Forest",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 71,
                         "code": "grassland",
                         "type": "Grassland/Herbaceous",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 41,
                         "code": "deciduous_forest",
                         "type": "Deciduous Forest",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 42,
                         "code": "evergreen_forest",
                         "type": "Evergreen Forest",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 11,
                         "code": "open_water",
                         "type": "Open Water",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 12,
                         "code": "perennial_ice",
                         "type": "Perennial Ice/Snow",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 81,
                         "code": "pasture",
                         "type": "Pasture/Hay",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 82,
                         "code": "cultivated_crops",
                         "type": "Cultivated Crops",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 52,
                         "code": "shrub",
                         "type": "Shrub/Scrub",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 21,
                         "code": "developed_open",
                         "type": "Developed, Open Space",
                         "coverage": 0.030303030303030304,
-                        "area": 2691.709835265247
+                        "area": 2691.709835265247,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 22,
                         "code": "developed_low",
                         "type": "Developed, Low Intensity",
                         "coverage": 0.18181818181818182,
-                        "area": 16150.259011591483
+                        "area": 16150.259011591483,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 23,
                         "code": "developed_med",
                         "type": "Developed, Medium Intensity",
                         "coverage": 0.5151515151515151,
-                        "area": 45759.0671995092
+                        "area": 45759.0671995092,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 24,
                         "code": "developed_high",
                         "type": "Developed, High Intensity",
                         "coverage": 0.2727272727272727,
-                        "area": 24225.388517387222
+                        "area": 24225.388517387222,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 90,
                         "code": "woody_wetlands",
                         "type": "Woody Wetlands",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 95,
                         "code": "herbaceous_wetlands",
                         "type": "Emergent Herbaceous Wetlands",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 31,
                         "code": "barren_land",
                         "type": "Barren Land (Rock/Sand/Clay)",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     }
                 ]
             }
@@ -401,7 +417,7 @@ def start_analyze_land(request, format=None):
     geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
-        geoprocessing.run.s('nlcd', geop_input, wkaoi),
+        geoprocessing.run.s('nlcd_ara', geop_input, wkaoi),
         tasks.analyze_nlcd.s(area_of_interest)
     ], area_of_interest, user)
 

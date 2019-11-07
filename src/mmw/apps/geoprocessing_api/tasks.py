@@ -116,18 +116,21 @@ def analyze_nlcd(result, area_of_interest=None):
 
     pixel_width = aoi_resolution(area_of_interest) if area_of_interest else 1
 
+    result = parse(result)
     histogram = {}
     total_count = 0
     categories = []
 
     # Convert results to histogram, calculate total
-    for key, count in result.iteritems():
+    for (nlcd, ara), count in result.iteritems():
         total_count += count
-        histogram[make_tuple(key[4:])] = count  # Change {"List(1)":5} to {1:5}
+        histogram[nlcd] = count + histogram.get(nlcd, 0)
 
     for nlcd, (code, name) in settings.NLCD_MAPPING.iteritems():
         categories.append({
             'area': histogram.get(nlcd, 0) * pixel_width * pixel_width,
+            'active_river_area':
+                result.get((nlcd, 1), 0) * pixel_width * pixel_width,
             'code': code,
             'coverage': float(histogram.get(nlcd, 0)) / total_count,
             'nlcd': nlcd,

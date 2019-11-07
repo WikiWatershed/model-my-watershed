@@ -462,6 +462,19 @@ GEOP = {
                 'zoom': 0
             }
         },
+        'nlcd_ara': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'nlcd-2011-30m-epsg5070-512-int8',
+                    'ara-30m-epsg5070-512'
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedCount',
+                'zoom': 0
+            }
+        },
         'soil': {
             'input': {
                 'polygon': [],
