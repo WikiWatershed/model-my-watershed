@@ -169,36 +169,37 @@ def shapefile(request):
 @decorators.api_view(['POST'])
 def worksheet(request):
     """Generate a ZIP of BMP Excel Worksheets prefilled with relevant data."""
-    # Extract list of pairs of HUC-12 + AoI
-    pairs = request.data
+    # Extract list of items containing worksheet specifications and geojsons
+    items = request.data
 
     # Make a temporary directory to save the files in
     tempdir = tempfile.mkdtemp()
 
-    for index, pair in enumerate(pairs):
-        worksheet_path = '{}/{}.xlsx'.format(tempdir, index)
+    for item in items:
+        worksheet_path = '{}/{}.xlsx'.format(tempdir, item['name'])
 
         # Copy the Excel template
         shutil.copyfile(EXCEL_TEMPLATE, worksheet_path)
 
         # Write Excel Worksheet
         writer = BMPxlsx.Writer(worksheet_path)
-        # TODO Get this from the request body
-        writer.write({
-            'MMW Output': {
-                'L18': 96.66,
-                'L19': 10.09,
-                'L20': 86.57,
-            }
-        })
+        writer.write(item['worksheet'])
         writer.close()
 
-    worksheets = glob.glob('{}/*.xlsx'.format(tempdir))
+        # If geojson specified, write it to file
+        if 'geojson' in item:
+            geojson_path = '{}/{}__Urban_Area.geojson'.format(tempdir,
+                                                              item['name'])
 
-    # Create a zip file in memory for all the worksheets
+            with open(geojson_path, 'w') as geojson_file:
+                json.dump(item['geojson'], geojson_file)
+
+    files = glob.glob('{}/*.*'.format(tempdir))
+
+    # Create a zip file in memory for all the files
     stream = StringIO.StringIO()
     with zipfile.ZipFile(stream, 'w') as zf:
-        for fpath in worksheets:
+        for fpath in files:
             _, fname = os.path.split(fpath)
             zf.write(fpath, fname)
             os.remove(fpath)
