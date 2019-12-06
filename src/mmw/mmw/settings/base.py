@@ -726,6 +726,26 @@ GEOP = {
                     'pixelIsArea': True
                 }
             ]
+        },
+        'worksheet_aoi': {
+            'shapes': [],
+            'streamLines': '',
+            'operations': [
+                {
+                    'name': 'RasterGroupedCount',
+                    'label': 'nlcd',
+                    'rasters': [
+                        'nlcd-2011-30m-epsg5070-512-int8'
+                    ]
+                },
+                {
+                    'name': 'RasterLinesJoin',
+                    'label': 'nlcd_streams',
+                    'rasters': [
+                        'nlcd-2011-30m-epsg5070-512-int8'
+                    ]
+                }
+            ]
         }
     }
 }
