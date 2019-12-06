@@ -298,6 +298,7 @@ def nlcd_soil(result):
     return {
         'cn': curve_number(n_count, ng2_count),
         'landuse_pcts': landuse_pcts(n_count),
+        'n_count': n_count,
     }
 
 
