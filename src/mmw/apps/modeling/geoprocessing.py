@@ -16,7 +16,7 @@ from requests.exceptions import ConnectionError, Timeout
 from django.core.cache import cache
 from django.conf import settings
 
-NOWKAOI = 'nowkaoi'
+NOCACHE = 'nocache'
 
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=6)
@@ -181,7 +181,7 @@ def multi(self, opname, shapes, stream_lines):
     # Get cached results
     for shape in shapes:
         cached_operations = 0
-        if shape['id'] != NOWKAOI:
+        if not shape['id'].startswith(NOCACHE):
             output[shape['id']] = {}
             for op in data['operations']:
                 key = 'geop_{}__{}'.format(shape['id'], op['label'])
@@ -202,7 +202,7 @@ def multi(self, opname, shapes, stream_lines):
 
         # Set cached results
         for shape_id, operation_results in result.iteritems():
-            if shape_id != NOWKAOI:
+            if not shape_id.startswith(NOCACHE):
                 for op_label, value in operation_results.iteritems():
                     key = 'geop_{}__{}'.format(shape_id, op_label)
                     cache.set(key, value, None)
