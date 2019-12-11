@@ -56,8 +56,8 @@ LAYER_GROUPS = {
     'basemap': [
         {
             'display': 'Streets',
-            'url': 'https://{s}.tiles.mapbox.com/v4/stroudcenter.1f06e119'
-                    '/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic3Ryb3VkY2VudGVyIiwiYSI6ImNpd2NhMmZiMDA1enUyb2xrdjlhYzV6N24ifQ.3dFii4MfQFOqYEDg9kVguA',  # NOQA
+            'url': 'https://api.mapbox.com/styles/v1/stroudcenter/'
+                   'ck41nno7j13nj1cphp3ew8igk/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1Ijoic3Ryb3VkY2VudGVyIiwiYSI6ImNpdzJpYTQzYzBjajQyeWxvb2Z5ZzFlM2gifQ.CpASF54p0qQzY_qSiu4Dvw',  # NOQA
             'attribution': 'Map data &copy; <a href="http://openstreetmap.org">'
                            'OpenStreetMap</a> contributors, '
                            '<a href="http://creativecommons.org/licenses/by-sa/'
