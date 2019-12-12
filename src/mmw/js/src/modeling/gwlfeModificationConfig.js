@@ -251,7 +251,7 @@ function adjustCurveNumber(cn, fractionalVal, tillFactor) {
         tillFactor = 1;
     }
 
-    return (((1.7969 * cn) - 71.966) * fractionalVal * tillFactor) +
+    return (((1.3985 * cn) - 35.983) * fractionalVal * tillFactor) +
            (cn * (1 - fractionalVal));
 }
 
