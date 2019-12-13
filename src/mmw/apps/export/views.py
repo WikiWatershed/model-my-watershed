@@ -29,7 +29,7 @@ from apps.geoprocessing_api.views import start_celery_job
 from hydroshare import HydroShareService
 from models import HydroShareResource
 from serializers import HydroShareResourceSerializer
-from tasks import create_resource, update_resource
+from tasks import create_resource, update_resource, padep_worksheet
 
 hss = HydroShareService()
 HYDROSHARE_BASE_URL = settings.HYDROSHARE['base_url']
@@ -170,7 +170,7 @@ def shapefile(request):
 def worksheet(request):
     """Generate a ZIP of BMP Excel Worksheets prefilled with relevant data."""
     # Extract list of items containing worksheet specifications and geojsons
-    items = request.data
+    items = padep_worksheet(request.data)
 
     # Make a temporary directory to save the files in
     tempdir = tempfile.mkdtemp()

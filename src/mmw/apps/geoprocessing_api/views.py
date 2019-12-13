@@ -1053,7 +1053,6 @@ def start_modeling_worksheet(request, format=None):
 
     return start_celery_job([
         tasks.collect_worksheet.s(area_of_interest),
-        tasks.transform_worksheet.s(),
     ], area_of_interest, user)
 
 
