@@ -18,7 +18,7 @@ import requests
 from django.conf import settings
 from django.utils.timezone import now
 
-from apps.modeling.geoprocessing import parse
+from apps.modeling.geoprocessing import multi, parse
 from apps.modeling.tr55.utils import aoi_resolution
 
 from apps.modeling.tasks import run_gwlfe
@@ -33,6 +33,8 @@ from apps.geoprocessing_api.calcs import (animal_population,
                                           point_source_pollution,
                                           catchment_water_quality,
                                           stream_data,
+                                          streams_for_huc12s,
+                                          huc12s_with_aois,
                                           )
 
 logger = logging.getLogger(__name__)
@@ -341,20 +343,19 @@ def collect_worksheet_aois(result, shapes):
     their processed results.
     """
     if 'error' in result:
-        result['error'] = '[collect_worksheet_aois] {}'.format(
-            result['error'])
-        return result
+        raise Exception('[collect_worksheet_aois] {}'
+                        .format(result['error']))
 
     NULL_RESULT = {'nlcd_streams': {}, 'nlcd': {}}
     collection = {}
 
     for shape in shapes:
-        output = result.get(shape['wkaoi'], NULL_RESULT)
+        output = result.get(shape['id'], NULL_RESULT)
         nlcd = collect_nlcd(parse(output['nlcd']),
-                            shape['geom'])
+                            shape['shape'])
         streams = stream_data(nlcd_streams(output['nlcd_streams']),
-                              shape['geom'])
-        collection[shape['wkaoi']] = {'nlcd': nlcd, 'streams': streams}
+                              shape['shape'])
+        collection[shape['id']] = {'nlcd': nlcd, 'streams': streams}
 
     return collection
 
@@ -367,15 +368,14 @@ def collect_worksheet_wkaois(result, shapes):
     modeled results, and also the processed NLCD and NLCD+Streams.
     """
     if 'error' in result:
-        result['error'] = '[collect_worksheet_wkaois] {}'.format(
-            result['error'])
-        return result
+        raise Exception('[collect_worksheet_wkaois] {}'
+                        .format(result['error']))
 
     collection = {}
 
     for shape in shapes:
-        wkaoi = shape['wkaoi']
-        geojson = shape['geom']
+        wkaoi = shape['id']
+        geojson = shape['shape']
 
         converted = convert_data(result, wkaoi)
 
@@ -395,26 +395,49 @@ def collect_worksheet_wkaois(result, shapes):
     return collection
 
 
-@shared_task
-def collect_worksheet(results, filenames):
+@shared_task(time_limit=300)
+def collect_worksheet(area_of_interest):
     """
-    Given a list of results for areas of interest, and another list of results
-    for HUC-12s, rearranges them to be grouped by the filename and returns this
-    new arrangement.
+    Given an area of interest, matches it to HUC-12s and generates a dictionary
+    containing land and stream analysis for the matched AoIs, land and stream
+    analysis for the matched HUC-12s, and GWLF-E results for the HUC-12s.
+
+    This dictionary can be POSTed to /export/worksheet to generate an Excel
+    worksheet containing these values, which can be used for further modeling.
     """
-    for result in results:
-        if 'error' in result:
-            raise Exception('[collect_worksheet] {}'
-                            .format(result['error']))
+    def to_aoi_id(m):
+        return '{}-{}'.format(NOCACHE, m['wkaoi'])
+
+    matches = huc12s_with_aois(area_of_interest)
+
+    huc12_ids = [m['huc12'] for m in matches]
+    streams = streams_for_huc12s(huc12_ids)[0]
+
+    aoi_shapes = [{
+        'id': to_aoi_id(m),
+        'shape': m['aoi_geom'],
+    } for m in matches]
+    aoi_results = collect_worksheet_aois(
+        multi('worksheet_aoi', aoi_shapes, streams),
+        aoi_shapes)
+
+    wkaoi_shapes = [{
+        'id': m['wkaoi'],
+        'shape': m['huc12_geom']
+    } for m in matches]
+    wkaoi_results = collect_worksheet_wkaois(
+        multi('mapshed', wkaoi_shapes, streams),
+        wkaoi_shapes)
 
     collection = {}
 
-    for f in filenames:
-        collection[f['filename']] = {
-            'name': f['name'],
-            'aoi': results[0].get('{}-{}'.format(NOCACHE, f['wkaoi']), {}),
-            'huc12': results[1].get(f['wkaoi'], {}),
-            'geojson': f['aoi'],
+    for m in matches:
+        filename = '{}__{}'.format(m['huc12'], m['name'].replace(' ', '_'))
+        collection[filename] = {
+            'name': m['name'],
+            'aoi': aoi_results.get(to_aoi_id(m), {}),
+            'huc12': wkaoi_results.get(m['wkaoi'], {}),
+            'geojson': m['aoi_geom'],
         }
 
     return collection

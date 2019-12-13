@@ -22,11 +22,10 @@ from apps.core.tasks import (save_job_error,
 from apps.core.decorators import log_request
 from apps.modeling import geoprocessing
 from apps.modeling.mapshed.calcs import streams
-from apps.modeling.mapshed.tasks import NOCACHE, nlcd_streams
+from apps.modeling.mapshed.tasks import nlcd_streams
 from apps.modeling.serializers import AoiSerializer
 
 from apps.geoprocessing_api import schemas, tasks
-from apps.geoprocessing_api.calcs import huc12s_with_aois, streams_for_huc12s
 from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
                                                SustainedRateThrottle)
@@ -1052,64 +1051,10 @@ def start_modeling_worksheet(request, format=None):
     user = request.user if request.user.is_authenticated else None
     area_of_interest, _ = _parse_input(request)
 
-    matches = huc12s_with_aois(area_of_interest)
-    filenames = [{
-        'filename': '{}__{}'.format(m['huc12'], m['name'].replace(' ', '_')),
-        'name': m['name'],
-        'wkaoi': m['wkaoi'],
-        'aoi_geom': m['aoi_geom'],
-    } for m in matches]
-    huc12_ids = [m['huc12'] for m in matches]
-    streams = streams_for_huc12s(huc12_ids)[0]
-
-    aoi_shapes = [
-        {
-            'wkaoi': '{}-{}'.format(NOCACHE, m['wkaoi']),
-            'geom': m['aoi_geom'],
-        }
-        for m in matches]
-
-    wkaoi_shapes = [
-        {
-            'wkaoi': m['wkaoi'],
-            'geom': m['huc12_geom']
-        }
-        for m in matches]
-
-    # Since this is a more complex Celery workflow, start_celery_job cannot
-    # be used here, because its error handling only works on simple chains.
-    # We replicate most of that code here, and add error handlers to the
-    # tasks individually.
-
-    created = now()
-    job = Job.objects.create(created_at=created, result='', error='',
-                             traceback='', user=user, status='started',
-                             model_input=area_of_interest)
-
-    success = save_job_result.s(job.id, area_of_interest)
-    error = save_job_error.s(job.id)
-
-    task_chain = chain([
-        group([
-            geoprocessing.multi.s('worksheet_aoi', aoi_shapes, streams) |
-            tasks.collect_worksheet_aois.s(aoi_shapes),
-
-            geoprocessing.multi.s('mapshed', wkaoi_shapes, streams) |
-            tasks.collect_worksheet_wkaois.s(wkaoi_shapes),
-        ]),
-        tasks.collect_worksheet.s(filenames).set(link_error=error),
-        tasks.transform_worksheet.s().set(link_error=error),
-        success
-    ]).apply_async()
-
-    job.uuid = task_chain.id
-    job.save()
-
-    return Response(
-        {'job': task_chain.id, 'status': 'started'},
-        headers={'Location': reverse('geoprocessing_api:get_job',
-                                     args=[task_chain.id])}
-    )
+    return start_celery_job([
+        tasks.collect_worksheet.s(area_of_interest),
+        tasks.transform_worksheet.s(),
+    ], area_of_interest, user)
 
 
 def _initiate_rwd_job_chain(location, snapping, simplify, data_source,
