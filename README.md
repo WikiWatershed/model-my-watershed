@@ -50,13 +50,15 @@ $ ./scripts/bundle.sh
 To load or reload boundary data, from an `app` server, run (`scripts` is not mounted by default to the VM, you may need to copy the file over):
 
 ```bash
-$ ./scripts/setupdb.sh -b
+$ vagrant upload ./scripts/ app
+$ vagrant ssh app
+$ ./scripts/aws/setupdb.sh -b
 ```
 
 The same script can be used to load the stream network data:
 
 ```bash
-$ ./scripts/setupdb.sh -s
+$ ./scripts/aws/setupdb.sh -s
 ```
 
 Note that if you receive out of memory errors while loading the data, you may want to increase the RAM on your `services` VM (1512 MB may be all that is necessary).

@@ -68,6 +68,9 @@ export PUBLIC_HOSTED_ZONE_NAME=$(cat /etc/mmw.d/env/MMW_PUBLIC_HOSTED_ZONE_NAME)
 psql -c "CREATE EXTENSION IF NOT EXISTS postgis;"
 psql -c "ALTER TABLE spatial_ref_sys OWNER TO ${PGUSER};"
 
+# Create pg_trgm extension for faster LIKE matches
+psql -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+
 # Run migrations
 envdir /etc/mmw.d/env /opt/app/manage.py migrate
 
@@ -80,6 +83,14 @@ function download_and_load {
 function purge_tile_cache {
     for path in "${PATHS[@]}"; do
         aws s3 rm --recursive "s3://tile-cache.${PUBLIC_HOSTED_ZONE_NAME}/${path}/"
+    done
+}
+
+function create_trgm_indexes {
+    # Creates a trgm index on the 'name' column for each table.
+    for table in "${TRGM_TABLES[@]}"; do
+        psql -c "CREATE INDEX IF NOT EXISTS trgm_idx_${table}_name ON ${table}"`
+                `" USING gin (name gin_trgm_ops);"
     done
 }
 
@@ -107,8 +118,10 @@ if [ "$load_boundary" = "true" ] ; then
     # Fetch boundary layer sql files
     FILES=("boundary_county.sql.gz" "boundary_school_district.sql.gz" "boundary_district.sql.gz" "boundary_huc12_deduped.sql.gz" "boundary_huc10.sql.gz" "boundary_huc08.sql.gz")
     PATHS=("county" "district" "huc8" "huc10" "huc12" "school")
+    TRGM_TABLES=("boundary_huc08" "boundary_huc10" "boundary_huc12")
 
     download_and_load $FILES
+    create_trgm_indexes $TRGM_TABLES
     purge_tile_cache $PATHS
 fi
 
