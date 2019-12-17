@@ -139,25 +139,27 @@ def shapefile(request):
     # Make a temporary directory to save the files in
     tempdir = tempfile.mkdtemp()
 
-    # Write shapefiles
-    with fiona.open('{}/area-of-interest.shp'.format(tempdir), 'w',
-                    driver='ESRI Shapefile',
-                    crs=crs, schema=schema) as sf:
-        sf.write({'geometry': aoi_json, 'properties': {}})
+    try:
+        # Write shapefiles
+        with fiona.open('{}/area-of-interest.shp'.format(tempdir), 'w',
+                        driver='ESRI Shapefile',
+                        crs=crs, schema=schema) as sf:
+            sf.write({'geometry': aoi_json, 'properties': {}})
 
-    shapefiles = ['{}/area-of-interest.{}'.format(tempdir, ext)
-                  for ext in SHAPEFILE_EXTENSIONS]
+        shapefiles = ['{}/area-of-interest.{}'.format(tempdir, ext)
+                      for ext in SHAPEFILE_EXTENSIONS]
 
-    # Create a zip file in memory from all the shapefiles
-    stream = StringIO.StringIO()
-    with zipfile.ZipFile(stream, 'w') as zf:
-        for fpath in shapefiles:
-            _, fname = os.path.split(fpath)
-            zf.write(fpath, fname)
-            os.remove(fpath)
+        # Create a zip file in memory from all the shapefiles
+        stream = StringIO.StringIO()
+        with zipfile.ZipFile(stream, 'w') as zf:
+            for fpath in shapefiles:
+                _, fname = os.path.split(fpath)
+                zf.write(fpath, fname)
+                os.remove(fpath)
 
-    # Delete the temporary directory
-    os.rmdir(tempdir)
+    finally:
+        # Delete the temporary directory
+        os.rmdir(tempdir)
 
     # Return the zip file from memory with appropriate headers
     resp = HttpResponse(stream.getvalue(), content_type='application/zip')
@@ -175,37 +177,39 @@ def worksheet(request):
     # Make a temporary directory to save the files in
     tempdir = tempfile.mkdtemp()
 
-    for item in items:
-        worksheet_path = '{}/{}.xlsx'.format(tempdir, item['name'])
+    try:
+        for item in items:
+            worksheet_path = '{}/{}.xlsx'.format(tempdir, item['name'])
 
-        # Copy the Excel template
-        shutil.copyfile(EXCEL_TEMPLATE, worksheet_path)
+            # Copy the Excel template
+            shutil.copyfile(EXCEL_TEMPLATE, worksheet_path)
 
-        # Write Excel Worksheet
-        writer = BMPxlsx.Writer(worksheet_path)
-        writer.write(item['worksheet'])
-        writer.close()
+            # Write Excel Worksheet
+            writer = BMPxlsx.Writer(worksheet_path)
+            writer.write(item['worksheet'])
+            writer.close()
 
-        # If geojson specified, write it to file
-        if 'geojson' in item:
-            geojson_path = '{}/{}__Urban_Area.geojson'.format(tempdir,
-                                                              item['name'])
+            # If geojson specified, write it to file
+            if 'geojson' in item:
+                geojson_path = '{}/{}__Urban_Area.geojson'.format(tempdir,
+                                                                  item['name'])
 
-            with open(geojson_path, 'w') as geojson_file:
-                json.dump(item['geojson'], geojson_file)
+                with open(geojson_path, 'w') as geojson_file:
+                    json.dump(item['geojson'], geojson_file)
 
-    files = glob.glob('{}/*.*'.format(tempdir))
+        files = glob.glob('{}/*.*'.format(tempdir))
 
-    # Create a zip file in memory for all the files
-    stream = StringIO.StringIO()
-    with zipfile.ZipFile(stream, 'w') as zf:
-        for fpath in files:
-            _, fname = os.path.split(fpath)
-            zf.write(fpath, fname)
-            os.remove(fpath)
+        # Create a zip file in memory for all the files
+        stream = StringIO.StringIO()
+        with zipfile.ZipFile(stream, 'w') as zf:
+            for fpath in files:
+                _, fname = os.path.split(fpath)
+                zf.write(fpath, fname)
+                os.remove(fpath)
 
-    # Delete the temporary directory
-    os.rmdir(tempdir)
+    finally:
+        # Delete the temporary directory
+        os.rmdir(tempdir)
 
     # Return the zip file from memory with appropriate headers
     resp = HttpResponse(stream.getvalue(), content_type='application/zip')
