@@ -16,13 +16,23 @@ import requests
 
 from django.conf import settings
 
-from apps.modeling.geoprocessing import parse
+from apps.modeling.geoprocessing import multi, parse
 from apps.modeling.tr55.utils import aoi_resolution
+
+from apps.modeling.tasks import run_gwlfe
+
+from apps.modeling.mapshed.tasks import (NOCACHE,
+                                         collect_data,
+                                         convert_data,
+                                         nlcd_streams,
+                                         )
 
 from apps.geoprocessing_api.calcs import (animal_population,
                                           point_source_pollution,
                                           catchment_water_quality,
                                           stream_data,
+                                          streams_for_huc12s,
+                                          huc12s_with_aois,
                                           )
 
 logger = logging.getLogger(__name__)
@@ -303,3 +313,128 @@ def analyze_terrain(result):
             'categories': categories
         }
     }
+
+
+def collect_nlcd(histogram, geojson=None):
+    """
+    Convert raw NLCD geoprocessing result to area dictionary
+    """
+    pixel_width = aoi_resolution(geojson) if geojson else 1
+
+    categories = [{
+        'area': histogram.get(nlcd, 0) * pixel_width * pixel_width,
+        'code': code,
+        'nlcd': nlcd,
+        'type': name,
+    } for nlcd, (code, name) in settings.NLCD_MAPPING.iteritems()]
+
+    return {'categories': categories}
+
+
+@shared_task
+def collect_worksheet_aois(result, shapes):
+    """
+    Given a geoprocessing result of NLCD and NLCD+Streams for every
+    area of interest within every HUC-12, processes the raw results
+    and returns a dictionary a area of interest IDs corresponding to
+    their processed results.
+    """
+    if 'error' in result:
+        raise Exception('[collect_worksheet_aois] {}'
+                        .format(result['error']))
+
+    NULL_RESULT = {'nlcd_streams': {}, 'nlcd': {}}
+    collection = {}
+
+    for shape in shapes:
+        output = result.get(shape['id'], NULL_RESULT)
+        nlcd = collect_nlcd(parse(output['nlcd']),
+                            shape['shape'])
+        streams = stream_data(nlcd_streams(output['nlcd_streams']),
+                              shape['shape'])
+        collection[shape['id']] = {'nlcd': nlcd, 'streams': streams}
+
+    return collection
+
+
+@shared_task
+def collect_worksheet_wkaois(result, shapes):
+    """
+    Given a geoprocessing result of MapShed and a list of HUC-12s, processes
+    the raw results through GWLFE and returns a dictionary of WKAOIs to the
+    modeled results, and also the processed NLCD and NLCD+Streams.
+    """
+    if 'error' in result:
+        raise Exception('[collect_worksheet_wkaois] {}'
+                        .format(result['error']))
+
+    collection = {}
+
+    for shape in shapes:
+        wkaoi = shape['id']
+        geojson = shape['shape']
+
+        converted = convert_data(result, wkaoi)
+
+        histogram = converted[0]['n_count']
+
+        collected = collect_data(converted, geojson)
+        modeled = run_gwlfe(collected, None, None)
+
+        collection[wkaoi] = {
+            'mapshed': collected,
+            'gwlfe': modeled,
+            'nlcd': collect_nlcd(histogram, geojson),
+            'streams': stream_data(nlcd_streams(result[wkaoi]['nlcd_streams']),
+                                   geojson)
+        }
+
+    return collection
+
+
+@shared_task(time_limit=300)
+def collect_worksheet(area_of_interest):
+    """
+    Given an area of interest, matches it to HUC-12s and generates a dictionary
+    containing land and stream analysis for the matched AoIs, land and stream
+    analysis for the matched HUC-12s, and GWLF-E results for the HUC-12s.
+
+    This dictionary can be POSTed to /export/worksheet to generate an Excel
+    worksheet containing these values, which can be used for further modeling.
+    """
+    def to_aoi_id(m):
+        return '{}-{}'.format(NOCACHE, m['wkaoi'])
+
+    matches = huc12s_with_aois(area_of_interest)
+
+    huc12_ids = [m['huc12'] for m in matches]
+    streams = streams_for_huc12s(huc12_ids)[0]
+
+    aoi_shapes = [{
+        'id': to_aoi_id(m),
+        'shape': m['aoi_geom'],
+    } for m in matches]
+    aoi_results = collect_worksheet_aois(
+        multi('worksheet_aoi', aoi_shapes, streams),
+        aoi_shapes)
+
+    wkaoi_shapes = [{
+        'id': m['wkaoi'],
+        'shape': m['huc12_geom']
+    } for m in matches]
+    wkaoi_results = collect_worksheet_wkaois(
+        multi('mapshed', wkaoi_shapes, streams),
+        wkaoi_shapes)
+
+    collection = {}
+
+    for m in matches:
+        filename = '{}__{}'.format(m['huc12'], m['name'].replace(' ', '_'))
+        collection[filename] = {
+            'name': m['name'],
+            'aoi': aoi_results.get(to_aoi_id(m), {}),
+            'huc12': wkaoi_results.get(m['wkaoi'], {}),
+            'geojson': m['aoi_geom'],
+        }
+
+    return collection

@@ -2,8 +2,6 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import json
-
 from celery import chain, group
 
 from rest_framework.response import Response
@@ -28,7 +26,6 @@ from apps.modeling.mapshed.tasks import nlcd_streams
 from apps.modeling.serializers import AoiSerializer
 
 from apps.geoprocessing_api import schemas, tasks
-from apps.geoprocessing_api.calcs import huc12s_with_aois
 from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
                                                SustainedRateThrottle)
@@ -1051,17 +1048,12 @@ def start_modeling_worksheet(request, format=None):
     of dictionaries, which should be posted to the /export/worksheet/ endpoint
     to get the actual Excel files.
     """
+    user = request.user if request.user.is_authenticated else None
     area_of_interest, _ = _parse_input(request)
 
-    pairs = huc12s_with_aois(area_of_interest)
-
-    # TODO Run Celery chain to calculate numbers needed for the worksheet
-    print('==> pairs\n{}'.format(json.dumps(pairs)))
-
-    return Response({
-        'job': '00000000-0000-0000-0000-000000000000',
-        'status': 'started',
-    })
+    return start_celery_job([
+        tasks.collect_worksheet.s(area_of_interest),
+    ], area_of_interest, user)
 
 
 def _initiate_rwd_job_chain(location, snapping, simplify, data_source,

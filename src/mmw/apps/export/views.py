@@ -29,7 +29,7 @@ from apps.geoprocessing_api.views import start_celery_job
 from hydroshare import HydroShareService
 from models import HydroShareResource
 from serializers import HydroShareResourceSerializer
-from tasks import create_resource, update_resource
+from tasks import create_resource, update_resource, padep_worksheet
 
 hss = HydroShareService()
 HYDROSHARE_BASE_URL = settings.HYDROSHARE['base_url']
@@ -139,25 +139,27 @@ def shapefile(request):
     # Make a temporary directory to save the files in
     tempdir = tempfile.mkdtemp()
 
-    # Write shapefiles
-    with fiona.open('{}/area-of-interest.shp'.format(tempdir), 'w',
-                    driver='ESRI Shapefile',
-                    crs=crs, schema=schema) as sf:
-        sf.write({'geometry': aoi_json, 'properties': {}})
+    try:
+        # Write shapefiles
+        with fiona.open('{}/area-of-interest.shp'.format(tempdir), 'w',
+                        driver='ESRI Shapefile',
+                        crs=crs, schema=schema) as sf:
+            sf.write({'geometry': aoi_json, 'properties': {}})
 
-    shapefiles = ['{}/area-of-interest.{}'.format(tempdir, ext)
-                  for ext in SHAPEFILE_EXTENSIONS]
+        shapefiles = ['{}/area-of-interest.{}'.format(tempdir, ext)
+                      for ext in SHAPEFILE_EXTENSIONS]
 
-    # Create a zip file in memory from all the shapefiles
-    stream = StringIO.StringIO()
-    with zipfile.ZipFile(stream, 'w') as zf:
-        for fpath in shapefiles:
-            _, fname = os.path.split(fpath)
-            zf.write(fpath, fname)
-            os.remove(fpath)
+        # Create a zip file in memory from all the shapefiles
+        stream = StringIO.StringIO()
+        with zipfile.ZipFile(stream, 'w') as zf:
+            for fpath in shapefiles:
+                _, fname = os.path.split(fpath)
+                zf.write(fpath, fname)
+                os.remove(fpath)
 
-    # Delete the temporary directory
-    os.rmdir(tempdir)
+    finally:
+        # Delete the temporary directory
+        os.rmdir(tempdir)
 
     # Return the zip file from memory with appropriate headers
     resp = HttpResponse(stream.getvalue(), content_type='application/zip')
@@ -169,42 +171,45 @@ def shapefile(request):
 @decorators.api_view(['POST'])
 def worksheet(request):
     """Generate a ZIP of BMP Excel Worksheets prefilled with relevant data."""
-    # Extract list of pairs of HUC-12 + AoI
-    pairs = request.data
+    # Extract list of items containing worksheet specifications and geojsons
+    items = padep_worksheet(request.data)
 
     # Make a temporary directory to save the files in
     tempdir = tempfile.mkdtemp()
 
-    for index, pair in enumerate(pairs):
-        worksheet_path = '{}/{}.xlsx'.format(tempdir, index)
+    try:
+        for item in items:
+            worksheet_path = '{}/{}.xlsx'.format(tempdir, item['name'])
 
-        # Copy the Excel template
-        shutil.copyfile(EXCEL_TEMPLATE, worksheet_path)
+            # Copy the Excel template
+            shutil.copyfile(EXCEL_TEMPLATE, worksheet_path)
 
-        # Write Excel Worksheet
-        writer = BMPxlsx.Writer(worksheet_path)
-        # TODO Get this from the request body
-        writer.write({
-            'MMW Output': {
-                'L18': 96.66,
-                'L19': 10.09,
-                'L20': 86.57,
-            }
-        })
-        writer.close()
+            # Write Excel Worksheet
+            writer = BMPxlsx.Writer(worksheet_path)
+            writer.write(item['worksheet'])
+            writer.close()
 
-    worksheets = glob.glob('{}/*.xlsx'.format(tempdir))
+            # If geojson specified, write it to file
+            if 'geojson' in item:
+                geojson_path = '{}/{}__Urban_Area.geojson'.format(tempdir,
+                                                                  item['name'])
 
-    # Create a zip file in memory for all the worksheets
-    stream = StringIO.StringIO()
-    with zipfile.ZipFile(stream, 'w') as zf:
-        for fpath in worksheets:
-            _, fname = os.path.split(fpath)
-            zf.write(fpath, fname)
-            os.remove(fpath)
+                with open(geojson_path, 'w') as geojson_file:
+                    json.dump(item['geojson'], geojson_file)
 
-    # Delete the temporary directory
-    os.rmdir(tempdir)
+        files = glob.glob('{}/*.*'.format(tempdir))
+
+        # Create a zip file in memory for all the files
+        stream = StringIO.StringIO()
+        with zipfile.ZipFile(stream, 'w') as zf:
+            for fpath in files:
+                _, fname = os.path.split(fpath)
+                zf.write(fpath, fname)
+                os.remove(fpath)
+
+    finally:
+        # Delete the temporary directory
+        os.rmdir(tempdir)
 
     # Return the zip file from memory with appropriate headers
     resp = HttpResponse(stream.getvalue(), content_type='application/zip')
