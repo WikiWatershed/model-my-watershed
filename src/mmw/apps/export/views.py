@@ -171,8 +171,11 @@ def shapefile(request):
 @decorators.api_view(['POST'])
 def worksheet(request):
     """Generate a ZIP of BMP Excel Worksheets prefilled with relevant data."""
+    params = request.data
+    payload = json.loads(params.get('payload', '{}'))
+
     # Extract list of items containing worksheet specifications and geojsons
-    items = padep_worksheet(request.data)
+    items = padep_worksheet(payload)
 
     # Make a temporary directory to save the files in
     tempdir = tempfile.mkdtemp()
