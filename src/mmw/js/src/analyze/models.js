@@ -23,6 +23,48 @@ var LayerCategoryCollection = Backbone.Collection.extend({
 
 });
 
+var WorksheetModel = coreModels.TaskModel.extend({
+    defaults: _.extend({
+            name: 'worksheet',
+            displayName: 'Worksheet',
+            area_of_interest: null,
+            wkaoi: null,
+            taskName: 'modeling/worksheet',
+            taskType: 'api',
+            token: settings.get('api_token'),
+        }, coreModels.TaskModel.prototype.defaults
+    ),
+
+    runWorksheetAnalysis: function() {
+        var self = this,
+            aoi = self.get('area_of_interest'),
+            wkaoi = self.get('wkaoi'),
+            result = self.get('result');
+
+        if (aoi &&
+            !result &&
+            !utils.isWKAoIValid(wkaoi) &&
+            self.runWorksheetPromise === undefined) {
+            var taskHelper = {
+                    contentType: 'application/json',
+                    queryParams: null,
+                    postData: JSON.stringify(aoi),
+                },
+                promises = self.start(taskHelper);
+
+            self.runWorksheetPromise = $.when(promises.startPromise,
+                                              promises.pollingPromise);
+
+            self.runWorksheetPromise
+                .always(function() {
+                    delete self.runWorksheetPromise;
+                });
+        }
+
+        return self.runWorksheetPromise || $.when();
+    },
+});
+
 var AnalyzeTaskModel = coreModels.TaskModel.extend({
     defaults: _.extend( {
             name: 'analysis',
@@ -176,4 +218,5 @@ module.exports = {
     LayerCollection: LayerCollection,
     LayerCategoryCollection: LayerCategoryCollection,
     createAnalyzeTaskCollection: createAnalyzeTaskCollection,
+    WorksheetModel: WorksheetModel,
 };
