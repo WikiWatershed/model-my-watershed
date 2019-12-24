@@ -216,7 +216,7 @@
       border-radius: $radius-sm;
       padding: 1rem;
 
-      > .analyze-model-package-link {
+      > a {
         white-space: normal;
 
         > .analyze-model-name {
@@ -228,6 +228,27 @@
         > p {
           font-size: $font-size-h5;
           color: $ui-grey;
+        }
+
+        &.analyze-worksheet-status {
+          display: block;
+          margin-top: 10px;
+
+          &.status-started {
+            color: $ui-primary;
+          }
+
+          &.status-complete {
+            color: $brand-primary;
+          }
+
+          &.status-failed {
+            color: $ui-danger;
+          }
+        }
+
+        &.disabled {
+          opacity: 0.75;
         }
       }
     }
