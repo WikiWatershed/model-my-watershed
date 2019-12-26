@@ -134,7 +134,153 @@ class ExerciseManageApiToken(LiveServerTestCase):
 
 
 class ExerciseAnalyze(TestCase):
-    def test_survey_land(self):
+    def test_survey_land_only(self):
+        self.maxDiff = None
+        # NLCD Histogram of Cave Creek-Arizona Canal Diversion Channel HUC-10
+        histogram = {
+            'List(0)': 95,
+            'List(43)': 35,
+            'List(71)': 3228,
+            'List(42)': 5758,
+            'List(11)': 279,
+            'List(81)': 57,
+            'List(82)': 682,
+            'List(52)': 499636,
+            'List(21)': 73992,
+            'List(22)': 110043,
+            'List(23)': 105894,
+            'List(24)': 20719,
+            'List(90)': 461,
+            'List(31)': 25,
+            'List(95)': 159
+        }
+
+        expected = {
+            "survey": {
+                "displayName": "Land",
+                "name": "land",
+                "categories": [
+                    {
+                        "code": "mixed_forest",
+                        "active_river_area": None,
+                        "area": 35,
+                        "nlcd": 43,
+                        "coverage": 4.2627666817284424e-05,
+                        "type": "Mixed Forest"
+                    }, {
+                        "code": "grassland",
+                        "active_river_area": None,
+                        "area": 3228,
+                        "nlcd": 71,
+                        "coverage": 0.00393148881389126,
+                        "type": "Grassland/Herbaceous"
+                    }, {
+                        "code": "deciduous_forest",
+                        "active_river_area": None,
+                        "area": 0,
+                        "nlcd": 41,
+                        "coverage": 0.0,
+                        "type": "Deciduous Forest"
+                    }, {
+                        "code": "evergreen_forest",
+                        "active_river_area": None,
+                        "area": 5758,
+                        "nlcd": 42,
+                        "coverage": 0.007012860158112106,
+                        "type": "Evergreen Forest"
+                    }, {
+                        "code": "open_water",
+                        "active_river_area": None,
+                        "area": 279,
+                        "nlcd": 11,
+                        "coverage": 0.0003398034012006387,
+                        "type": "Open Water"
+                    }, {
+                        "code": "perennial_ice",
+                        "active_river_area": None,
+                        "area": 0,
+                        "nlcd": 12,
+                        "coverage": 0.0,
+                        "type": "Perennial Ice/Snow"
+                    }, {
+                        "code": "pasture",
+                        "active_river_area": None,
+                        "area": 57,
+                        "nlcd": 81,
+                        "coverage": 6.942220024529177e-05,
+                        "type": "Pasture/Hay"
+                    }, {
+                        "code": "cultivated_crops",
+                        "active_river_area": None,
+                        "area": 682,
+                        "nlcd": 82,
+                        "coverage": 0.0008306305362682279,
+                        "type": "Cultivated Crops"
+                    }, {
+                        "code": "shrub",
+                        "active_river_area": None,
+                        "area": 499636,
+                        "nlcd": 52,
+                        "coverage": 0.6085233410834492,
+                        "type": "Shrub/Scrub"
+                    }, {
+                        "code": "developed_open",
+                        "active_river_area": None,
+                        "area": 73992,
+                        "nlcd": 21,
+                        "coverage": 0.09011732351841455,
+                        "type": "Developed, Open Space"
+                    }, {
+                        "code": "developed_low",
+                        "active_river_area": None,
+                        "area": 110043,
+                        "nlcd": 22,
+                        "coverage": 0.13402503827355514,
+                        "type": "Developed, Low Intensity"
+                    }, {
+                        "code": "developed_med",
+                        "active_river_area": None,
+                        "area": 105894,
+                        "nlcd": 23,
+                        "coverage": 0.12897183285570046,
+                        "type": "Developed, Medium Intensity"
+                    }, {
+                        "code": "developed_high",
+                        "active_river_area": None,
+                        "area": 20719,
+                        "nlcd": 24,
+                        "coverage": 0.025234360822494743,
+                        "type": "Developed, High Intensity"
+                    }, {
+                        "code": "woody_wetlands",
+                        "active_river_area": None,
+                        "area": 461,
+                        "nlcd": 90,
+                        "coverage": 0.0005614672686505177,
+                        "type": "Woody Wetlands"
+                    }, {
+                        "code": "herbaceous_wetlands",
+                        "active_river_area": None,
+                        "area": 159,
+                        "nlcd": 95,
+                        "coverage": 0.00019365140068423496,
+                        "type": "Emergent Herbaceous Wetlands"
+                    }, {
+                        "code": "barren_land",
+                        "active_river_area": None,
+                        "area": 25,
+                        "nlcd": 31,
+                        "coverage": 3.0448333440917446e-05,
+                        "type": "Barren Land (Rock/Sand/Clay)"
+                    }
+                ]
+            }
+        }
+
+        actual = tasks.analyze_nlcd(histogram)
+        self.assertEqual(actual, expected)
+
+    def test_survey_land_with_ara(self):
         self.maxDiff = None
         # NLCD + ARA Histogram of Little Neshaminy HUC-12
         histogram = {
