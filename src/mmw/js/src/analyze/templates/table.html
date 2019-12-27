@@ -12,3 +12,10 @@
     <tbody>
     </tbody>
 </table>
+{% if isLandTable and not araNull %}
+<div id="land-tab-ara-section">
+    <div class="land-tab-ara-line-item">
+        Active river area = {{ araTotal|round(2)|toLocaleString(2) }} {{ headerUnits }}
+    </div>
+</div>
+{% endif %}

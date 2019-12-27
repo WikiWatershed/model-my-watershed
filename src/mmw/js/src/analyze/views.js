@@ -698,11 +698,17 @@ var TableView = Marionette.CompositeView.extend({
     },
     templateHelpers: function() {
         var scheme = settings.get('unit_scheme'),
-            units = this.options.units;
+            units = this.options.units,
+            isLandTable = this.options.modelName === 'land',
+            araData = isLandTable && _(this.collection.toJSON()).map('active_river_area'),
+            araTotal = isLandTable && araData.sum(),
+            araNull = isLandTable && araData.every(_.isNull);
 
         return {
             headerUnits: coreUnits[scheme][units].name,
-            isLandTable: this.options.modelName === 'land'
+            isLandTable: isLandTable,
+            araTotal: araTotal && coreUnits.get(units, araTotal).value,
+            araNull: araNull,
         };
     },
     childViewContainer: 'tbody',
