@@ -131,16 +131,21 @@ def analyze_nlcd(result, area_of_interest=None):
     total_count = 0
     categories = []
 
+    has_ara = type(result.keys()[0]) == tuple
+
+    def area(dictionary, key, default=0):
+        return dictionary.get(key, default) * pixel_width * pixel_width
+
     # Convert results to histogram, calculate total
-    for (nlcd, ara), count in result.iteritems():
+    for key, count in result.iteritems():
+        nlcd = key[0] if has_ara else key
         total_count += count
         histogram[nlcd] = count + histogram.get(nlcd, 0)
 
     for nlcd, (code, name) in settings.NLCD_MAPPING.iteritems():
         categories.append({
-            'area': histogram.get(nlcd, 0) * pixel_width * pixel_width,
-            'active_river_area':
-                result.get((nlcd, 1), 0) * pixel_width * pixel_width,
+            'area': area(histogram, nlcd),
+            'active_river_area': area(result, (nlcd, 1)) if has_ara else None,
             'code': code,
             'coverage': float(histogram.get(nlcd, 0)) / total_count,
             'nlcd': nlcd,
