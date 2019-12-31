@@ -522,6 +522,117 @@ class ExerciseAnalyze(TestCase):
         actual = tasks.analyze_soil(histogram)
         self.assertEqual(actual, expected)
 
+    def test_analyze_climate(self):
+        histogram = {'nocache': {
+            'ppt__1': {'List(0)': 86.10894775390625},
+            'ppt__2': {'List(0)': 77.05979919433594},
+            'ppt__3': {'List(0)': 97.3456802368164},
+            'ppt__4': {'List(0)': 92.16392517089844},
+            'ppt__5': {'List(0)': 92.18870544433594},
+            'ppt__6': {'List(0)': 98.5276107788086},
+            'ppt__7': {'List(0)': 114.81684112548828},
+            'ppt__8': {'List(0)': 118.24303436279297},
+            'ppt__9': {'List(0)': 93.80207061767578},
+            'ppt__10': {'List(0)': 82.33834075927734},
+            'ppt__11': {'List(0)': 79.2877426147461},
+            'ppt__12': {'List(0)': 91.07259368896484},
+            'tmean__1': {'List(0)': 0.7002114057540894},
+            'tmean__2': {'List(0)': 1.3823009729385376},
+            'tmean__3': {'List(0)': 6.08829927444458},
+            'tmean__4': {'List(0)': 11.881658554077148},
+            'tmean__5': {'List(0)': 17.683929443359375},
+            'tmean__6': {'List(0)': 22.579280853271484},
+            'tmean__7': {'List(0)': 25.288223266601562},
+            'tmean__8': {'List(0)': 24.355039596557617},
+            'tmean__9': {'List(0)': 20.743885040283203},
+            'tmean__10': {'List(0)': 14.532132148742676},
+            'tmean__11': {'List(0)': 8.510452270507812},
+            'tmean__12': {'List(0)': 2.786508560180664},
+        }}
+        expected = {
+            "survey": {
+                "categories": [
+                    {
+                        "month": "January",
+                        "monthidx": 1,
+                        "ppt": 8.610894775390625,
+                        "tmean": 0.7002114057540894
+                    },
+                    {
+                        "month": "February",
+                        "monthidx": 2,
+                        "ppt": 7.705979919433594,
+                        "tmean": 1.3823009729385376
+                    },
+                    {
+                        "month": "March",
+                        "monthidx": 3,
+                        "ppt": 9.734568023681641,
+                        "tmean": 6.08829927444458
+                    },
+                    {
+                        "month": "April",
+                        "monthidx": 4,
+                        "ppt": 9.216392517089844,
+                        "tmean": 11.881658554077148
+                    },
+                    {
+                        "month": "May",
+                        "monthidx": 5,
+                        "ppt": 9.218870544433594,
+                        "tmean": 17.683929443359375
+                    },
+                    {
+                        "month": "June",
+                        "monthidx": 6,
+                        "ppt": 9.85276107788086,
+                        "tmean": 22.579280853271484
+                    },
+                    {
+                        "month": "July",
+                        "monthidx": 7,
+                        "ppt": 11.481684112548828,
+                        "tmean": 25.288223266601562
+                    },
+                    {
+                        "month": "August",
+                        "monthidx": 8,
+                        "ppt": 11.824303436279298,
+                        "tmean": 24.355039596557617
+                    },
+                    {
+                        "month": "September",
+                        "monthidx": 9,
+                        "ppt": 9.380207061767578,
+                        "tmean": 20.743885040283203
+                    },
+                    {
+                        "month": "October",
+                        "monthidx": 10,
+                        "ppt": 8.233834075927735,
+                        "tmean": 14.532132148742676
+                    },
+                    {
+                        "month": "November",
+                        "monthidx": 11,
+                        "ppt": 7.92877426147461,
+                        "tmean": 8.510452270507812
+                    },
+                    {
+                        "month": "December",
+                        "monthidx": 12,
+                        "ppt": 9.107259368896484,
+                        "tmean": 2.786508560180664
+                    }
+                ],
+                "displayName": "Climate",
+                "name": "climate"
+            }
+        }
+
+        actual = tasks.analyze_climate(histogram, 'nocache')
+        self.assertEqual(actual, expected)
+
 
 class ExerciseCatchmentIntersectsAOI(TestCase):
     def test_sq_km_aoi(self):

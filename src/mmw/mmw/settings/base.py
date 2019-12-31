@@ -575,30 +575,6 @@ GEOP = {
                 'zoom': 0
             }
         },
-        'ppt': {
-            'input': {
-                'polygon': [],
-                'polygonCRS': 'LatLng',
-                'rasters': [],
-                'targetRaster': 'climatology-ppt-{:02d}-epsg5070',
-                'pixelIsArea': True,
-                'rasterCRS': 'ConusAlbers',
-                'operationType': 'RasterGroupedAverage',
-                'zoom': 0
-            }
-        },
-        'tmean': {
-            'input': {
-                'polygon': [],
-                'polygonCRS': 'LatLng',
-                'rasters': [],
-                'targetRaster': 'climatology-tmean-{:02d}-epsg5070',
-                'pixelIsArea': True,
-                'rasterCRS': 'ConusAlbers',
-                'operationType': 'RasterGroupedAverage',
-                'zoom': 0
-            }
-        },
         'soiln': {
             'input': {
                 'polygon': [],
@@ -746,6 +722,180 @@ GEOP = {
                     ]
                 }
             ]
+        },
+        'climate': {
+            'operations': [
+                {
+                    'label': 'ppt__1',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-ppt-01-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'ppt__2',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-ppt-02-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'ppt__3',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-ppt-03-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'ppt__4',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-ppt-04-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'ppt__5',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-ppt-05-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'ppt__6',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-ppt-06-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'ppt__7',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-ppt-07-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'ppt__8',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-ppt-08-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'ppt__9',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-ppt-09-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'ppt__10',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-ppt-10-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'ppt__11',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-ppt-11-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'ppt__12',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-ppt-12-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'tmean__1',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-tmean-01-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'tmean__2',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-tmean-02-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'tmean__3',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-tmean-03-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'tmean__4',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-tmean-04-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'tmean__5',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-tmean-05-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'tmean__6',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-tmean-06-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'tmean__7',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-tmean-07-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'tmean__8',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-tmean-08-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'tmean__9',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-tmean-09-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'tmean__10',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-tmean-10-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'tmean__11',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-tmean-11-epsg5070',
+                    'pixelIsArea': True
+                },
+                {
+                    'label': 'tmean__12',
+                    'name': 'RasterGroupedAverage',
+                    'rasters': [],
+                    'targetRaster': 'climatology-tmean-12-epsg5070',
+                    'pixelIsArea': True
+                }
+            ],
+            'shapes': [],
+            'streamLines': '',
         }
     }
 }
