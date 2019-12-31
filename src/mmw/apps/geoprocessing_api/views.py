@@ -2,7 +2,7 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from celery import chain, group
+from celery import chain
 
 from rest_framework.response import Response
 from rest_framework import decorators
@@ -941,28 +941,13 @@ def start_analyze_climate(request, format=None):
     """
     user = request.user if request.user.is_authenticated else None
 
-    geotasks = []
-    ppt_raster = settings.GEOP['json']['ppt']['input']['targetRaster']
-    tmean_raster = settings.GEOP['json']['tmean']['input']['targetRaster']
     area_of_interest, wkaoi = _parse_input(request)
-
-    for i in xrange(1, 13):
-        ppt_input = {'polygon': [area_of_interest],
-                     'targetRaster': ppt_raster.format(i)}
-        tmean_input = {'polygon': [area_of_interest],
-                       'targetRaster': tmean_raster.format(i)}
-
-        geotasks.extend([
-            geoprocessing.run.s('ppt', ppt_input, wkaoi, i) |
-            tasks.analyze_climate.s('ppt', i),
-            geoprocessing.run.s('tmean', tmean_input, wkaoi, i) |
-            tasks.analyze_climate.s('tmean', i)
-        ])
+    shape = [{'id': wkaoi or geoprocessing.NOCACHE, 'shape': area_of_interest}]
 
     return start_celery_job([
-        group(geotasks),
-        tasks.collect_climate.s(),
-    ], area_of_interest, user, link_error=False)
+        geoprocessing.multi.s('climate', shape, None),
+        tasks.analyze_climate.s(wkaoi or geoprocessing.NOCACHE),
+    ], area_of_interest, user)
 
 
 @swagger_auto_schema(method='post',

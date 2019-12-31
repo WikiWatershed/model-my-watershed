@@ -197,30 +197,10 @@ def analyze_soil(result, area_of_interest=None):
 
 
 @shared_task(throws=Exception)
-def analyze_climate(result, category, month):
+def analyze_climate(result, wkaoi):
     """
-    Given a climate category ('ppt' or 'tmean') and a month (1 - 12), tags
-    the resulting value with that category and month and returns it as a
-    dictionary.
-    """
-    if 'error' in result:
-        raise Exception('[analyze_climate_{category}_{month}] {error}'.format(
-            category=category,
-            month=month,
-            error=result['error']
-        ))
-
-    result = parse(result)
-    key = '{}__{}'.format(category, month)
-
-    return {key: result[0]}
-
-
-@shared_task
-def collect_climate(results):
-    """
-    Given an array of dictionaries resulting from multiple analyze_climate
-    calls, combines them so that the 'ppt' values are grouped together and
+    Given the result of multigeoprocessing call for climate rasters,
+    combines them so that the 'ppt' values are grouped together and
     'tmean' together. Each group is a dictionary where the keys are strings
     of the month '1', '2', ..., '12', and the values the average in the
     area of interest.
@@ -231,8 +211,13 @@ def collect_climate(results):
     and 'ppt' and 'tmean' fields with corresponding values. The 'index' can be
     used for sorting purposes on the client side.
     """
-    ppt = {k[5:]: v for r in results for k, v in r.items() if 'ppt' in k}
-    tmean = {k[7:]: v for r in results for k, v in r.items() if 'tmean' in k}
+    if 'error' in result:
+        raise Exception('[analyze_climate] {}'.format(result['error']))
+
+    ppt = {k[5:]: v['List(0)']
+           for k, v in result[wkaoi].items() if 'ppt' in k}
+    tmean = {k[7:]: v['List(0)']
+             for k, v in result[wkaoi].items() if 'tmean' in k}
 
     categories = [{
         'monthidx': i,
