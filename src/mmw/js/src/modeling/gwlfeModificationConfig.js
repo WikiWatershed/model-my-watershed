@@ -37,9 +37,9 @@ var n23Name = 'n23',
     CroplandIndex = 1,
     CropTillageEfficiencyName = { n: 'n65', p: 'n73', s: 'n81' },
     CropTillageEfficiencyValues = {
-        crop_tillage_no:      { n: 0.11, p: 0.29, s: 0.40 },
-        conservation_tillage: { n: 0.08, p: 0.22, s: 0.30 },
-        crop_tillage_reduced: { n: 0.06, p: 0.17, s: 0.23 },
+        crop_tillage_no:      { n: 0.22, p: 0.29, s: 0.40 },
+        conservation_tillage: { n: 0.16, p: 0.22, s: 0.30 },
+        crop_tillage_reduced: { n: 0.12, p: 0.17, s: 0.23 },
     },
     AREA = 'area',
     LENGTH = 'length',
@@ -431,6 +431,7 @@ var configs = {
 };
 
 module.exports = {
+    CropTillageEfficiencyValues: CropTillageEfficiencyValues,
     cleanDataModel: cleanDataModel,
     displayNames: displayNames,
     displayUnits: displayUnits,
