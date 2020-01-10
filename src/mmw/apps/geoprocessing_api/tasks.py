@@ -16,6 +16,8 @@ import requests
 
 from django.conf import settings
 
+from mmw.settings import layer_classmaps
+
 from apps.modeling.geoprocessing import multi, parse
 from apps.modeling.tr55.utils import aoi_resolution
 
@@ -142,7 +144,7 @@ def analyze_nlcd(result, area_of_interest=None):
         total_count += count
         histogram[nlcd] = count + histogram.get(nlcd, 0)
 
-    for nlcd, (code, name) in settings.NLCD_MAPPING.iteritems():
+    for nlcd, (code, name) in layer_classmaps.NLCD.iteritems():
         categories.append({
             'area': area(histogram, nlcd),
             'active_river_area': area(result, (nlcd, 1)) if has_ara else None,
@@ -179,7 +181,7 @@ def analyze_soil(result, area_of_interest=None):
         s = s if s != settings.NODATA else 3  # Map NODATA to 3
         histogram[s] = count + histogram.get(s, 0)
 
-    for soil, (code, name) in settings.SOIL_MAPPING.iteritems():
+    for soil, (code, name) in layer_classmaps.SOIL.iteritems():
         categories.append({
             'area': histogram.get(soil, 0) * pixel_width * pixel_width,
             'code': code,
@@ -316,7 +318,7 @@ def collect_nlcd(histogram, geojson=None):
         'code': code,
         'nlcd': nlcd,
         'type': name,
-    } for nlcd, (code, name) in settings.NLCD_MAPPING.iteritems()]
+    } for nlcd, (code, name) in layer_classmaps.NLCD.iteritems()]
 
     return {'categories': categories}
 

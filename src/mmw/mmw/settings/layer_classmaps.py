@@ -2,7 +2,7 @@
 # rasters), and the values of the dictionary are arrays of length two.
 # The first element of each array is the name of the NLCD category in
 # the TR-55 code.  The second string is a short, human-readable name.
-NLCD_MAPPING = {
+NLCD = {
     11: ['open_water', 'Open Water'],
     12: ['perennial_ice', 'Perennial Ice/Snow'],
     21: ['developed_open', 'Developed, Open Space'],
@@ -27,7 +27,7 @@ NLCD_MAPPING = {
 # used for the corresponding soil-type in the TR-55 code.  The second
 # member of each array is a human-readable description of that
 # soil-type.
-SOIL_MAPPING = {
+SOIL = {
     1: ['a', 'A - High Infiltration'],
     2: ['b', 'B - Moderate Infiltration'],
     3: ['c', 'C - Slow Infiltration'],
