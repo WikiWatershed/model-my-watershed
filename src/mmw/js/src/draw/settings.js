@@ -28,7 +28,7 @@ var bigCZSplashPageText = {
 
 var mmwSelectAreaText = {
     headerDescription: 'Explore mapped layers, such as streams, land cover, soils, boundaries and observations, using the layer selector in the lower left of the map.',
-    selectAreaExplanation: '<a href="https://wikiwatershed.org/documentation/mmw-tech/#choose-area-of-interest-aoi" target="_blank" rel="noreferrer noopener">Select an Area of Interest</a> in the continental United States, using the suite of tools below, to analyze the factors that impact water in your area and to begin to model different scenarios of human impacts.',
+    selectAreaExplanation: '<a href="https://wikiwatershed.org/documentation/mmw-tech/#choose-area-of-interest-aoi" target="_blank" rel="noreferrer noopener">Select an Area of Interest</a> in the continental United States, using the suite of tools below, to analyze the factors that impact water in your area and to begin to model different scenarios of human impacts. Different modeling options for using these tools are described in the <a href="https://wikiwatershed.org/help/model-help/mmw-tech/#water-quantity-and-quality-models" target="_blank">technical documentation</a>.',
 };
 
 var bigCZSelectAreaText = {
