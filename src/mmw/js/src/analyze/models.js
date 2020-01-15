@@ -202,6 +202,13 @@ function createAnalyzeTaskCollection(aoi, wkaoi) {
             wkaoi: wkaoi,
             taskName: "analyze/catchment-water-quality"
         },
+        {
+            name: "protected_lands",
+            displayName: "Protected Lands",
+            area_of_interest: aoi,
+            wkaoi: wkaoi,
+            taskName: "analyze/protected-lands"
+        },
     ];
 
     // Remove analyses which aren't available for catalog search mode
