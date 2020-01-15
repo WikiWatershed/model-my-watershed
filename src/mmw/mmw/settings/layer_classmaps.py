@@ -36,3 +36,18 @@ SOIL = {
     6: ['bd', 'B/D - Medium/Very Slow Infiltration'],
     7: ['cd', 'C/D - Medium/Very Slow Infiltration']
 }
+
+PROTECTED_LANDS = {
+    1: ['pra_f', 'Park or Recreational Area - Federal'],
+    2: ['pra_s', 'Park or Recreational Area - State'],
+    3: ['pra_l', 'Park or Recreational Area - Local'],
+    4: ['pra_p', 'Park or Recreational Area - Private'],
+    5: ['pra_u', 'Park or Recreational Area - Unknown'],
+    6: ['nra_f', 'Natural Resource Area - Federal'],
+    7: ['nra_s', 'Natural Resource Area - State'],
+    8: ['nra_l', 'Natural Resource Area - Local'],
+    9: ['nra_p', 'Natural Resource Area - Private'],
+    10: ['nra_u', 'Natural Resource Area - Unknown'],
+    11: ['con_ease', 'Conservation Easement'],
+    12: ['ag_ease', 'Agricultural Easement'],
+}

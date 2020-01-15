@@ -623,6 +623,18 @@ GEOP = {
                 'zoom': 0
             }
         },
+        'protected_lands': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    'protected-lands-30m-epsg5070-512'
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedCount',
+                'zoom': 0
+            }
+        },
         'mapshed': {
             'shapes': [],
             'streamLines': '',

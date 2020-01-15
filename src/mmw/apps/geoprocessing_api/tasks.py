@@ -307,6 +307,40 @@ def analyze_terrain(result):
     }
 
 
+@shared_task
+def analyze_protected_lands(result, area_of_interest=None):
+    if 'error' in result:
+        raise Exception('[analyze_protected_lands] {}'.format(result['error']))
+
+    pixel_width = aoi_resolution(area_of_interest) if area_of_interest else 1
+
+    result = parse(result)
+    histogram = {}
+    total_count = 0
+    categories = []
+
+    for key, count in result.iteritems():
+        total_count += count
+        histogram[key] = count + histogram.get(key, 0)
+
+    for class_id, (code, name) in layer_classmaps.PROTECTED_LANDS.iteritems():
+        categories.append({
+            'area': histogram.get(class_id, 0) * pixel_width * pixel_width,
+            'class_id': class_id,
+            'code': code,
+            'coverage': float(histogram.get(class_id, 0)) / total_count,
+            'type': name,
+        })
+
+    return {
+        'survey': {
+            'name': 'protected_lands',
+            'displayName': 'Protected Lands',
+            'categories': categories,
+        }
+    }
+
+
 def collect_nlcd(histogram, geojson=None):
     """
     Convert raw NLCD geoprocessing result to area dictionary
