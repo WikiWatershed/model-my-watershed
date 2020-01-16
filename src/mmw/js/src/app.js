@@ -110,7 +110,7 @@ var App = new Marionette.Application({
             var aoi = this.map.get('areaOfInterest'),
                 wkaoi = this.map.get('wellKnownAreaOfInterest');
 
-            this.analyzeCollection = analyzeModels.createAnalyzeTaskCollection(aoi, wkaoi);
+            this.analyzeCollection = analyzeModels.createAnalyzeTaskGroupCollection(aoi, wkaoi);
         }
 
         return this.analyzeCollection;

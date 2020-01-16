@@ -181,6 +181,7 @@ var ResultsView = Marionette.LayoutView.extend({
                 place: App.map.get('areaOfInterestName')
             }),
             analysisResults = App.getAnalyzeCollection()
+                                 .findWhere({name: 'land'}).get('tasks')
                                  .findWhere({taskName: 'analyze/land'})
                                  .get('result') || {},
             landResults = analysisResults.survey;
@@ -429,14 +430,16 @@ var TabContentView = Marionette.LayoutView.extend({
     },
 
     showResults: function() {
-        var name = this.model.get('name'),
-            result = this.model.get('result').survey,
+        var activeTask = this.model.getActiveTask(),
+            name = activeTask.get('name'),
+            result = activeTask.get('result').survey,
             resultModel = new models.LayerModel(result),
-            ResultView = AnalyzeResultViews[name];
+            resultView = new AnalyzeResultViews[name]({
+                model: resultModel,
+                taskGroup: this.model
+            });
 
-        this.resultRegion.show(new ResultView({
-            model: resultModel
-        }));
+        this.resultRegion.show(resultView);
         this.model.set({ polling: false });
     },
 

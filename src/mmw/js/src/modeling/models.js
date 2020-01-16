@@ -671,13 +671,18 @@ var ProjectModel = Backbone.Model.extend({
      */
     exportToHydroShare: function(payload) {
         var self = this,
-            analyzeTasks = App.getAnalyzeCollection(),
+            analyzeTaskGroups = App.getAnalyzeCollection(),
+            analyzeTasks = _.flattenDeep(
+                analyzeTaskGroups.map(function(tg) {
+                    return tg.get('tasks').models;
+                })
+            ),
             analyzeFiles = analyzeTasks.map(function(at) {
-                    return {
-                        name: 'analyze_' + at.get('name') + '.csv',
-                        contents: at.getResultCSV(),
-                    };
-                }),
+                return {
+                    name: 'analyze_' + at.get('name') + '.csv',
+                    contents: at.getResultCSV(),
+                };
+            }),
             scenarios = self.get('scenarios'),
             lowerAndHyphenate = function(name) {
                     return name.toLowerCase().replace(/\s/g, '-');
