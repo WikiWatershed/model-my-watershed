@@ -1247,7 +1247,11 @@ var ChartView = Marionette.ItemView.extend({
             return 'nlcd-fill-' + item.nlcd;
         } else if (name === 'soil') {
             return 'soil-fill-' + item.code;
+        } else if (name === 'protected_lands') {
+            return 'protected-lands-fill-' + item.code;
         }
+
+        return null;
     },
 
     addChart: function() {
@@ -1370,13 +1374,38 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
 });
 
 var LandResultView  = AnalyzeResultView.extend({
-    onShow: function() {
+    onShowNlcd: function() {
         var title = 'Land cover distribution',
             source = 'National Land Cover Database (NLCD 2011)',
             helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
             associatedLayerCodes = ['nlcd'];
         this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView,
             ChartView, title, source, helpText, associatedLayerCodes);
+    },
+    onShowProtectedLands: function() {
+        var title = 'Protected Lands Distribution',
+            source = 'National Inventory of Protected Areas (2016)',
+            helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
+            associatedLayerCodes = ['protected-lands-30m'];
+        this.showAnalyzeResults(coreModels.ProtectedLandsCensusCollection, TableView,
+            ChartView, title, source, helpText, associatedLayerCodes);
+    },
+    onShow: function() {
+        var taskName = this.model.get('name'),
+            taskGroup = this.taskGroup;
+
+        if(taskName === 'protected_lands') {
+            this.onShowProtectedLands();
+        } else {
+            this.onShowNlcd();
+        }
+
+        if(taskGroup.get('tasks').length > 1) {
+            this.taskSelectorRegion.show(new TaskSelectorView({
+                model: this.model,
+                taskGroup: taskGroup
+            }));
+        }
     }
 });
 

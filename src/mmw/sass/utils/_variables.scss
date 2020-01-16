@@ -77,6 +77,26 @@ $nlcdColors: (
   }
 }
 
+$protectedLandsColors: (
+    pra_f: #AFB42B, /* Park or Recreation Area - Federal */
+    pra_s: #C0CA33, /* Park or Recreation Area - State */
+    pra_l: #CDDC39, /* Park or Recreation Area - Local */
+    pra_p: #D4E157, /* Park or Recreation Area - Private */
+    pra_u: #E6EE9C, /* Park or Recreation Area - Unknown */
+    nra_f: #388E3C, /* Natural Resource Area - Federal */
+    nra_s: #43A047, /* Natural Resource Area - State */
+    nra_l: #4CAF50, /* Natural Resource Area - Local */
+    nra_p: #66BB6A, /* Natural Resource Area - Private */
+    nra_u: #A5D6A7, /* Natural Resource Area - Unknown */
+    con_ease: #9E9446, /* Conservation Easement - Originally #827717, changed for distinguishability */
+    ag_ease: #8D6E63, /* Agricultural Easement */
+);
+
+@each $id, $color in $protectedLandsColors {
+  .protected-lands-#{$id} {
+    background-color: $color;
+  }
+}
 
 //Hydrologic Soil Groups
 $soilColors: (
