@@ -1585,6 +1585,7 @@ var AnalyzeResultViews = {
     climate: ClimateResultView,
     streams: StreamResultView,
     terrain: TerrainResultView,
+    protected_lands: LandResultView,
 };
 
 module.exports = {

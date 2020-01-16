@@ -15,6 +15,8 @@ from celery import shared_task
 
 from django.conf import settings
 
+from mmw.settings import layer_classmaps
+
 from apps.core.models import Job
 from apps.modeling.calcs import apply_subbasin_gwlfe_modifications
 from apps.modeling.tr55.utils import (aoi_resolution,
@@ -215,10 +217,10 @@ def nlcd_soil(result):
         # Map [NODATA, ad, bd] to c, [cd] to d
         s2 = 3 if s in [settings.NODATA, 5, 6] else 4 if s == 7 else s
         # Only count those values for which we have mappings
-        if n in settings.NLCD_MAPPING and s2 in settings.SOIL_MAPPING:
+        if n in layer_classmaps.NLCD and s2 in layer_classmaps.SOIL:
             total_count += count
-            label = '{soil}:{nlcd}'.format(soil=settings.SOIL_MAPPING[s2][0],
-                                           nlcd=settings.NLCD_MAPPING[n][0])
+            label = '{soil}:{nlcd}'.format(soil=layer_classmaps.SOIL[s2][0],
+                                           nlcd=layer_classmaps.NLCD[n][0])
             dist[label] = {'cell_count': (
                 count + (dist[label]['cell_count'] if label in dist else 0)
             )}

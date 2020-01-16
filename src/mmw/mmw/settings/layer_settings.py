@@ -16,7 +16,7 @@ from collections import OrderedDict
 import json
 
 from django.contrib.gis.geos import GEOSGeometry
-from tr55_settings import NLCD_MAPPING, SOIL_MAPPING
+from layer_classmaps import NLCD, SOIL
 
 # [01, 02, ...] style list for layer time sliders
 MONTH_CODES = [str(m).zfill(2) for m in range(1, 13)]
@@ -111,7 +111,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in NLCD_MAPPING.iteritems()},
+            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
             'big_cz': True,
         },
         {
@@ -130,13 +130,13 @@ LAYER_GROUPS = {
             'opacity': 0.618,
             'has_opacity_slider': True,
             'legend_mapping': OrderedDict([
-                SOIL_MAPPING[1],
-                SOIL_MAPPING[2],
-                SOIL_MAPPING[3],
-                SOIL_MAPPING[5],
-                SOIL_MAPPING[6],
-                SOIL_MAPPING[7],
-                SOIL_MAPPING[4],
+                SOIL[1],
+                SOIL[2],
+                SOIL[3],
+                SOIL[5],
+                SOIL[6],
+                SOIL[7],
+                SOIL[4],
             ]),
             'big_cz': True,
         },

@@ -31,6 +31,8 @@ urlpatterns = [
         name='start_analyze_streams'),
     url(r'analyze/terrain/$', views.start_analyze_terrain,
         name='start_analyze_terrain'),
+    url(r'analyze/protected-lands/$', views.start_analyze_protected_lands,
+        name='start_analyze_protected_lands'),
     url(r'jobs/' + uuid_regex, get_job, name='get_job'),
     url(r'modeling/worksheet/$', views.start_modeling_worksheet,
         name='start_modeling_worksheet'),
