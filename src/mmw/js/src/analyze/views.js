@@ -34,7 +34,8 @@ var $ = require('jquery'),
     climateTableRowTmpl = require('./templates/climateTableRow.html'),
     streamTableTmpl = require('./templates/streamTable.html'),
     streamTableRowTmpl = require('./templates/streamTableRow.html'),
-    selectorTmpl = require('./templates/selector.html'),
+    taskSelectorTmpl = require('./templates/taskSelector.html'),
+    varSelectorTmpl = require('./templates/varSelector.html'),
     paginationConrolTmpl = require('./templates/paginationControl.html'),
     pageableTableTmpl = require('./templates/pageableTable.html'),
     pointSourceTableTmpl = require('./templates/pointSourceTable.html'),
@@ -389,6 +390,10 @@ var TabContentView = Marionette.LayoutView.extend({
     },
     regions: {
         resultRegion: '.result-region'
+    },
+
+    initialize: function() {
+        this.listenTo(this.model, 'change:activeTask', this.onShow);
     },
 
     onShow: function() {
@@ -1269,8 +1274,9 @@ var ChartView = Marionette.ItemView.extend({
 var AnalyzeResultView = Marionette.LayoutView.extend({
     template: analyzeResultsTmpl,
     regions: {
+        taskSelectorRegion: '.task-selector-region',
         descriptionRegion: '.desc-region',
-        selectorRegion: '.selector-region',
+        varSelectorRegion: '.var-selector-region',
         chartRegion: '.chart-region',
         tableRegion: '.table-region',
         printTableRegion: '.print-table-region'
@@ -1284,6 +1290,10 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
 
     events: {
         'click @ui.downloadCSV': 'downloadCSV'
+    },
+
+    initialize: function(options) {
+        this.taskGroup = options.taskGroup;
     },
 
     downloadCSV: function() {
@@ -1441,8 +1451,42 @@ var TerrainResultView = AnalyzeResultView.extend({
     }
 });
 
-var SelectorView = Marionette.ItemView.extend({
-    template: selectorTmpl,
+var TaskSelectorView = Marionette.ItemView.extend({
+    template: taskSelectorTmpl,
+
+    ui: {
+        selector: 'select',
+    },
+
+    events: {
+        'change @ui.selector': 'updateTask',
+    },
+
+    modelEvents: {
+        'change:name': 'render',
+    },
+
+    initialize: function(options) {
+        this.taskGroup = options.taskGroup;
+        this.keys = this.taskGroup.get('tasks').map(function(t) {
+            return { name: t.get('name'), label: t.get('displayName') };
+        });
+    },
+
+    templateHelpers: function() {
+        return {
+            keys: this.keys,
+        };
+    },
+
+    updateTask: function() {
+        var taskName = this.ui.selector.val();
+        this.taskGroup.setActiveTask(taskName);
+    }
+});
+
+var VarSelectorView = Marionette.ItemView.extend({
+    template: varSelectorTmpl,
 
     ui: {
         selector: 'select',
@@ -1526,7 +1570,8 @@ var ClimateChartView = ChartView.extend({
 });
 
 var ClimateResultView = AnalyzeResultView.extend({
-    initialize: function() {
+    initialize: function(options) {
+        AnalyzeResultView.prototype.initialize.call(this, options);
         this.model.set('activeVar', 'ppt');
     },
 
@@ -1542,7 +1587,7 @@ var ClimateResultView = AnalyzeResultView.extend({
         this.showAnalyzeResults(coreModels.ClimateCensusCollection, ClimateTableView,
             ClimateChartView, title, source, helpText, associatedLayerCodes);
 
-        this.selectorRegion.show(new SelectorView({
+        this.varSelectorRegion.show(new VarSelectorView({
             model: this.model,
             keys: [
                 { name: 'ppt', label: 'Mean Precipitation' },
