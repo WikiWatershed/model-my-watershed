@@ -153,9 +153,8 @@ var AnalyzeTaskGroupModel = Backbone.Model.extend({
     initialize: function() {
         var tasks = this.get('tasks');
 
-        if (tasks === null) {
-            this.set('tasks', new AnalyzeTaskCollection());
-        }
+        // Convert tasks array to collection
+        this.set('tasks', new AnalyzeTaskCollection(tasks));
     },
 
     /**
@@ -331,11 +330,6 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
             })
             .value();
     }
-
-    taskGroups = _.map(taskGroups, function (tg) {
-        tg.set('tasks', new AnalyzeTaskCollection(tg.tasks));
-        return tg;
-    });
 
     return new AnalyzeTaskGroupCollection(taskGroups);
 }
