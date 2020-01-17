@@ -335,7 +335,7 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
 }
 
 module.exports = {
-    AnalyzeTaskModel: AnalyzeTaskModel,
+    AnalyzeTaskGroupModel: AnalyzeTaskGroupModel,
     LayerModel: LayerModel,
     LayerCollection: LayerCollection,
     LayerCategoryCollection: LayerCategoryCollection,
