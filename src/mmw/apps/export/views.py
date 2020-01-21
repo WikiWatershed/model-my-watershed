@@ -3,9 +3,12 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import BMPxlsx
 import fiona
+import glob
 import json
 import os
+import shutil
 import StringIO
 import tempfile
 import zipfile
@@ -26,13 +29,15 @@ from apps.geoprocessing_api.views import start_celery_job
 from hydroshare import HydroShareService
 from models import HydroShareResource
 from serializers import HydroShareResourceSerializer
-from tasks import create_resource, update_resource
+from tasks import create_resource, update_resource, padep_worksheet
 
 hss = HydroShareService()
 HYDROSHARE_BASE_URL = settings.HYDROSHARE['base_url']
 SHAPEFILE_EXTENSIONS = ['cpg', 'dbf', 'prj', 'shp', 'shx']
 DEFAULT_KEYWORDS = {'mmw', 'model-my-watershed'}
 MMW_APP_KEY_FLAG = '{"appkey": "model-my-watershed"}'
+EXCEL_TEMPLATE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                              'templates/MMW_BMP_Spreadsheet_Tool.xlsx')
 
 
 @decorators.api_view(['GET', 'POST', 'PATCH', 'DELETE'])
@@ -134,28 +139,83 @@ def shapefile(request):
     # Make a temporary directory to save the files in
     tempdir = tempfile.mkdtemp()
 
-    # Write shapefiles
-    with fiona.open('{}/area-of-interest.shp'.format(tempdir), 'w',
-                    driver='ESRI Shapefile',
-                    crs=crs, schema=schema) as sf:
-        sf.write({'geometry': aoi_json, 'properties': {}})
+    try:
+        # Write shapefiles
+        with fiona.open('{}/area-of-interest.shp'.format(tempdir), 'w',
+                        driver='ESRI Shapefile',
+                        crs=crs, schema=schema) as sf:
+            sf.write({'geometry': aoi_json, 'properties': {}})
 
-    shapefiles = ['{}/area-of-interest.{}'.format(tempdir, ext)
-                  for ext in SHAPEFILE_EXTENSIONS]
+        shapefiles = ['{}/area-of-interest.{}'.format(tempdir, ext)
+                      for ext in SHAPEFILE_EXTENSIONS]
 
-    # Create a zip file in memory from all the shapefiles
-    stream = StringIO.StringIO()
-    with zipfile.ZipFile(stream, 'w') as zf:
-        for fpath in shapefiles:
-            _, fname = os.path.split(fpath)
-            zf.write(fpath, fname)
-            os.remove(fpath)
+        # Create a zip file in memory from all the shapefiles
+        stream = StringIO.StringIO()
+        with zipfile.ZipFile(stream, 'w') as zf:
+            for fpath in shapefiles:
+                _, fname = os.path.split(fpath)
+                zf.write(fpath, fname)
+                os.remove(fpath)
 
-    # Delete the temporary directory
-    os.rmdir(tempdir)
+    finally:
+        # Delete the temporary directory
+        os.rmdir(tempdir)
 
     # Return the zip file from memory with appropriate headers
     resp = HttpResponse(stream.getvalue(), content_type='application/zip')
     resp['Content-Disposition'] = 'attachment; '\
                                   'filename="{}.zip"'.format(filename)
+    return resp
+
+
+@decorators.api_view(['POST'])
+def worksheet(request):
+    """Generate a ZIP of BMP Excel Worksheets prefilled with relevant data."""
+    params = request.data
+    payload = json.loads(params.get('payload', '{}'))
+
+    # Extract list of items containing worksheet specifications and geojsons
+    items = padep_worksheet(payload)
+
+    # Make a temporary directory to save the files in
+    tempdir = tempfile.mkdtemp()
+
+    try:
+        for item in items:
+            worksheet_path = '{}/{}.xlsx'.format(tempdir, item['name'])
+
+            # Copy the Excel template
+            shutil.copyfile(EXCEL_TEMPLATE, worksheet_path)
+
+            # Write Excel Worksheet
+            writer = BMPxlsx.Writer(worksheet_path)
+            writer.write(item['worksheet'])
+            writer.close()
+
+            # If geojson specified, write it to file
+            if 'geojson' in item:
+                geojson_path = '{}/{}__Urban_Area.geojson'.format(tempdir,
+                                                                  item['name'])
+
+                with open(geojson_path, 'w') as geojson_file:
+                    json.dump(item['geojson'], geojson_file)
+
+        files = glob.glob('{}/*.*'.format(tempdir))
+
+        # Create a zip file in memory for all the files
+        stream = StringIO.StringIO()
+        with zipfile.ZipFile(stream, 'w') as zf:
+            for fpath in files:
+                _, fname = os.path.split(fpath)
+                zf.write(fpath, fname)
+                os.remove(fpath)
+
+    finally:
+        # Delete the temporary directory
+        os.rmdir(tempdir)
+
+    # Return the zip file from memory with appropriate headers
+    resp = HttpResponse(stream.getvalue(), content_type='application/zip')
+    resp['Content-Disposition'] = 'attachment; '\
+                                  'filename="MMW_BMP_Spreadsheets.zip"'
     return resp

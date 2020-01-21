@@ -46,6 +46,7 @@ var $ = require('jquery'),
     tabPanelTmpl = require('../modeling/templates/resultsTabPanel.html'),
     tabContentTmpl = require('./templates/tabContent.html'),
     barChartTmpl = require('../core/templates/barChart.html'),
+    worksheetExportTmpl = require('./templates/worksheetExport.html'),
     resultsWindowTmpl = require('./templates/resultsWindow.html');
 
 var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -76,6 +77,7 @@ var ResultsView = Marionette.LayoutView.extend({
         aoiRegion: '.aoi-region',
         analyzeRegion: '#analyze-tab-contents',
         monitorRegion: '#monitor-tab-contents',
+        worksheetRegion: '#worksheet-export-region',
     },
 
     templateHelpers: {
@@ -86,6 +88,7 @@ var ResultsView = Marionette.LayoutView.extend({
     onShow: function() {
         this.showAoiRegion();
         this.showDetailsRegion();
+        this.showWorksheetExportRegion();
     },
 
     onRender: function() {
@@ -109,6 +112,15 @@ var ResultsView = Marionette.LayoutView.extend({
         this.monitorRegion.show(new dataCatalogViews.DataCatalogWindow(
             App.getDataCatalog()
         ));
+    },
+
+    showWorksheetExportRegion: function() {
+        this.worksheetRegion.show(new WorksheetExportView({
+            model: new models.WorksheetModel({
+                area_of_interest: App.map.get('areaOfInterest'),
+                wkaoi: App.map.get('wellKnownAreaOfInterest'),
+            }),
+        }));
     },
 
     changeArea: function() {
@@ -250,6 +262,59 @@ var ResultsView = Marionette.LayoutView.extend({
         } else {
             router.navigate(newProjectUrl, {trigger: true});
         }
+    },
+});
+
+var WorksheetExportView = Marionette.ItemView.extend({
+    template: worksheetExportTmpl,
+    className: 'model-package',
+
+    ui: {
+        'worksheetLink': 'a.analyze-worksheet-link',
+        'worksheetForm': '#worksheet-form',
+        'downloadButton': 'a.status-complete',
+    },
+
+    events: {
+        'click @ui.worksheetLink': 'onWorksheetClick',
+        'click @ui.downloadButton': 'downloadWorksheet',
+    },
+
+    modelEvents: {
+        'change:status': 'render',
+    },
+
+    templateHelpers: function() {
+        return {
+            csrftoken: csrf.getToken(),
+            payload: JSON.stringify(this.model.get('result')),
+            disabled: !!this.model.get('wkaoi'),
+            started: this.model.get('status') === 'started',
+            complete: this.model.get('status') === 'complete',
+            failed: this.model.get('status') === 'failed',
+        };
+    },
+
+    onRender: function() {
+        var helpers = this.templateHelpers();
+
+        if (helpers.disabled || helpers.failed) {
+            this.$('[data-toggle="popover"]').popover({
+                trigger: 'focus',
+            });
+        }
+    },
+
+    onWorksheetClick: function(e) {
+        e.preventDefault();
+
+        this.model.runWorksheetAnalysis();
+    },
+
+    downloadWorksheet: function(e) {
+        e.preventDefault();
+
+        this.ui.worksheetForm.trigger('submit');
     },
 });
 
@@ -633,11 +698,17 @@ var TableView = Marionette.CompositeView.extend({
     },
     templateHelpers: function() {
         var scheme = settings.get('unit_scheme'),
-            units = this.options.units;
+            units = this.options.units,
+            isLandTable = this.options.modelName === 'land',
+            araData = isLandTable && _(this.collection.toJSON()).map('active_river_area'),
+            araTotal = isLandTable && araData.sum(),
+            araNull = isLandTable && araData.every(_.isNull);
 
         return {
             headerUnits: coreUnits[scheme][units].name,
-            isLandTable: this.options.modelName === 'land'
+            isLandTable: isLandTable,
+            araTotal: araTotal && coreUnits.get(units, araTotal).value,
+            araNull: araNull,
         };
     },
     childViewContainer: 'tbody',

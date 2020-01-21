@@ -16,13 +16,23 @@ import requests
 
 from django.conf import settings
 
-from apps.modeling.geoprocessing import parse
+from apps.modeling.geoprocessing import multi, parse
 from apps.modeling.tr55.utils import aoi_resolution
+
+from apps.modeling.tasks import run_gwlfe
+
+from apps.modeling.mapshed.tasks import (NOCACHE,
+                                         collect_data,
+                                         convert_data,
+                                         nlcd_streams,
+                                         )
 
 from apps.geoprocessing_api.calcs import (animal_population,
                                           point_source_pollution,
                                           catchment_water_quality,
                                           stream_data,
+                                          streams_for_huc12s,
+                                          huc12s_with_aois,
                                           )
 
 logger = logging.getLogger(__name__)
@@ -116,18 +126,26 @@ def analyze_nlcd(result, area_of_interest=None):
 
     pixel_width = aoi_resolution(area_of_interest) if area_of_interest else 1
 
+    result = parse(result)
     histogram = {}
     total_count = 0
     categories = []
 
+    has_ara = type(result.keys()[0]) == tuple
+
+    def area(dictionary, key, default=0):
+        return dictionary.get(key, default) * pixel_width * pixel_width
+
     # Convert results to histogram, calculate total
     for key, count in result.iteritems():
+        nlcd = key[0] if has_ara else key
         total_count += count
-        histogram[make_tuple(key[4:])] = count  # Change {"List(1)":5} to {1:5}
+        histogram[nlcd] = count + histogram.get(nlcd, 0)
 
     for nlcd, (code, name) in settings.NLCD_MAPPING.iteritems():
         categories.append({
-            'area': histogram.get(nlcd, 0) * pixel_width * pixel_width,
+            'area': area(histogram, nlcd),
+            'active_river_area': area(result, (nlcd, 1)) if has_ara else None,
             'code': code,
             'coverage': float(histogram.get(nlcd, 0)) / total_count,
             'nlcd': nlcd,
@@ -179,30 +197,10 @@ def analyze_soil(result, area_of_interest=None):
 
 
 @shared_task(throws=Exception)
-def analyze_climate(result, category, month):
+def analyze_climate(result, wkaoi):
     """
-    Given a climate category ('ppt' or 'tmean') and a month (1 - 12), tags
-    the resulting value with that category and month and returns it as a
-    dictionary.
-    """
-    if 'error' in result:
-        raise Exception('[analyze_climate_{category}_{month}] {error}'.format(
-            category=category,
-            month=month,
-            error=result['error']
-        ))
-
-    result = parse(result)
-    key = '{}__{}'.format(category, month)
-
-    return {key: result[0]}
-
-
-@shared_task
-def collect_climate(results):
-    """
-    Given an array of dictionaries resulting from multiple analyze_climate
-    calls, combines them so that the 'ppt' values are grouped together and
+    Given the result of multigeoprocessing call for climate rasters,
+    combines them so that the 'ppt' values are grouped together and
     'tmean' together. Each group is a dictionary where the keys are strings
     of the month '1', '2', ..., '12', and the values the average in the
     area of interest.
@@ -213,8 +211,13 @@ def collect_climate(results):
     and 'ppt' and 'tmean' fields with corresponding values. The 'index' can be
     used for sorting purposes on the client side.
     """
-    ppt = {k[5:]: v for r in results for k, v in r.items() if 'ppt' in k}
-    tmean = {k[7:]: v for r in results for k, v in r.items() if 'tmean' in k}
+    if 'error' in result:
+        raise Exception('[analyze_climate] {}'.format(result['error']))
+
+    ppt = {k[5:]: v['List(0)']
+           for k, v in result[wkaoi].items() if 'ppt' in k}
+    tmean = {k[7:]: v['List(0)']
+             for k, v in result[wkaoi].items() if 'tmean' in k}
 
     categories = [{
         'monthidx': i,
@@ -300,3 +303,128 @@ def analyze_terrain(result):
             'categories': categories
         }
     }
+
+
+def collect_nlcd(histogram, geojson=None):
+    """
+    Convert raw NLCD geoprocessing result to area dictionary
+    """
+    pixel_width = aoi_resolution(geojson) if geojson else 1
+
+    categories = [{
+        'area': histogram.get(nlcd, 0) * pixel_width * pixel_width,
+        'code': code,
+        'nlcd': nlcd,
+        'type': name,
+    } for nlcd, (code, name) in settings.NLCD_MAPPING.iteritems()]
+
+    return {'categories': categories}
+
+
+@shared_task
+def collect_worksheet_aois(result, shapes):
+    """
+    Given a geoprocessing result of NLCD and NLCD+Streams for every
+    area of interest within every HUC-12, processes the raw results
+    and returns a dictionary a area of interest IDs corresponding to
+    their processed results.
+    """
+    if 'error' in result:
+        raise Exception('[collect_worksheet_aois] {}'
+                        .format(result['error']))
+
+    NULL_RESULT = {'nlcd_streams': {}, 'nlcd': {}}
+    collection = {}
+
+    for shape in shapes:
+        output = result.get(shape['id'], NULL_RESULT)
+        nlcd = collect_nlcd(parse(output['nlcd']),
+                            shape['shape'])
+        streams = stream_data(nlcd_streams(output['nlcd_streams']),
+                              shape['shape'])
+        collection[shape['id']] = {'nlcd': nlcd, 'streams': streams}
+
+    return collection
+
+
+@shared_task
+def collect_worksheet_wkaois(result, shapes):
+    """
+    Given a geoprocessing result of MapShed and a list of HUC-12s, processes
+    the raw results through GWLFE and returns a dictionary of WKAOIs to the
+    modeled results, and also the processed NLCD and NLCD+Streams.
+    """
+    if 'error' in result:
+        raise Exception('[collect_worksheet_wkaois] {}'
+                        .format(result['error']))
+
+    collection = {}
+
+    for shape in shapes:
+        wkaoi = shape['id']
+        geojson = shape['shape']
+
+        converted = convert_data(result, wkaoi)
+
+        histogram = converted[0]['n_count']
+
+        collected = collect_data(converted, geojson)
+        modeled = run_gwlfe(collected, None, None)
+
+        collection[wkaoi] = {
+            'mapshed': collected,
+            'gwlfe': modeled,
+            'nlcd': collect_nlcd(histogram, geojson),
+            'streams': stream_data(nlcd_streams(result[wkaoi]['nlcd_streams']),
+                                   geojson)
+        }
+
+    return collection
+
+
+@shared_task(time_limit=300)
+def collect_worksheet(area_of_interest):
+    """
+    Given an area of interest, matches it to HUC-12s and generates a dictionary
+    containing land and stream analysis for the matched AoIs, land and stream
+    analysis for the matched HUC-12s, and GWLF-E results for the HUC-12s.
+
+    This dictionary can be POSTed to /export/worksheet to generate an Excel
+    worksheet containing these values, which can be used for further modeling.
+    """
+    def to_aoi_id(m):
+        return '{}-{}'.format(NOCACHE, m['wkaoi'])
+
+    matches = huc12s_with_aois(area_of_interest)
+
+    huc12_ids = [m['huc12'] for m in matches]
+    streams = streams_for_huc12s(huc12_ids)[0]
+
+    aoi_shapes = [{
+        'id': to_aoi_id(m),
+        'shape': m['aoi_geom'],
+    } for m in matches]
+    aoi_results = collect_worksheet_aois(
+        multi('worksheet_aoi', aoi_shapes, streams),
+        aoi_shapes)
+
+    wkaoi_shapes = [{
+        'id': m['wkaoi'],
+        'shape': m['huc12_geom']
+    } for m in matches]
+    wkaoi_results = collect_worksheet_wkaois(
+        multi('mapshed', wkaoi_shapes, streams),
+        wkaoi_shapes)
+
+    collection = {}
+
+    for m in matches:
+        filename = '{}__{}'.format(m['huc12'], m['name'].replace(' ', '_'))
+        collection[filename] = {
+            'name': m['name'],
+            'aoi': aoi_results.get(to_aoi_id(m), {}),
+            'huc12': wkaoi_results.get(m['wkaoi'], {}),
+            'geojson': m['aoi_geom'],
+        }
+
+    return collection

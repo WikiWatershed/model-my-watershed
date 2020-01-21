@@ -1,0 +1,36 @@
+<a href="#"
+    class="analyze-worksheet-link {{ 'disabled' if started or complete or disabled }}"
+    {% if disabled %}
+        data-toggle="popover" tabindex="0"
+        data-html="true" data-container="body" role="button"
+        data-content="Worksheets cannot be generated for boundary shapes. Please draw, delineate, or upload a shape. For more details, see <a href='https://wikiwatershed.org/help/model-help/mmw-tech/#watershed-multi-year-worksheet' target='_blank'>our technical documentation.</a>"
+        data-template="<div class='popover'><div class='pull-right' id='popover-close-button' onclick='closePopover()'><i class='fa fa-times' /></div><div class='popover-content'></div><div class='arrow'></div></div>"
+    {% endif %}
+>
+    <div class="analyze-model-name">
+        Watershed Multi-Year Worksheet
+    </div>
+    <p>
+        Generates an Excel worksheet using the given urban
+        area of interest, pairing it with the HUC-12s
+        it belongs to. It contains Land, Stream, and
+        Water Quality analyses generated using the
+        Watershed Multi-Year Model for the HUC-12.
+        The worksheet allows for more detailed BMP analyses.
+    </p>
+</a>
+<a href="#" class="analyze-worksheet-status status-started disabled {{ 'hidden' if not started }}">
+    <i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i> Gathering data ...
+</a>
+<a href="#" class="analyze-worksheet-status status-complete {{ 'hidden' if not complete }}">
+    <i class="fa fa-check" aria-hidden="true"></i> Download worksheet
+</a>
+<a href="#" class="analyze-worksheet-status status-failed {{ 'hidden' if not failed }}"
+   data-toggle="popover" data-content="{{ error }}" data-container="body" data-placement="bottom">
+    <i class="fa fa-exclamation-triangle"></i> An error occurred.
+</a>
+<form id="worksheet-form" method="post" action="/export/worksheet/" target="_blank">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrftoken }}">
+    <!-- Put `payload` in single quotes, to keep any unescaped chars from breaking the template -->
+    <input type="hidden" name="payload" value='{{ payload }}' />
+</form>

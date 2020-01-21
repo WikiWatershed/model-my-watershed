@@ -278,3 +278,57 @@ def catchment_intersects_aoi(aoi, catchment):
                          min_summed_intersection_pct)
 
     return include_catchment
+
+
+def huc12s_with_aois(geojson):
+    """
+    Get list of HUC-12s and clipped AoIs for the given GeoJSON.
+
+    Finds all HUC-12s the given GeoJSON intersects with, and for each
+    matching one, returns a tuple of the HUC-12 shape and the GeoJSON
+    clipped to that HUC-12, with the name and wkaoi of the HUC-12.
+    """
+    sql = '''
+          SELECT ST_AsGeoJSON(geom_detailed) AS huc12_geom,
+                 name,
+                 ('huc12__' || id) AS wkaoi,
+                 ST_AsGeoJSON(ST_Multi(ST_Intersection(
+                     geom_detailed, ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326)
+                 ))) AS aoi_geom,
+                 huc12
+          FROM boundary_huc12
+          WHERE ST_Intersects(geom_detailed,
+                              ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
+          '''
+
+    matches = []
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [geojson, geojson])
+
+        if cursor.rowcount > 0:
+            matches = [{
+                'huc12_geom': row[0],
+                'name': row[1],
+                'wkaoi': row[2],
+                'aoi_geom': row[3],
+                'huc12': row[4],
+            } for row in cursor.fetchall()]
+
+    return matches
+
+
+def streams_for_huc12s(huc12s, drb=False):
+    """
+    Get MultiLineString of all streams in the given HUC-12s
+    """
+    sql = '''
+          SELECT ST_AsGeoJSON(ST_Collect(ST_Force2D(s.geom)))
+          FROM {datasource} s INNER JOIN boundary_huc12 b
+            ON ST_Intersects(s.geom, b.geom_detailed)
+          WHERE b.huc12 IN %s
+          '''.format(datasource='drb_streams_50' if drb else 'nhdflowline')
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [tuple(huc12s)])
+
+        return [row[0] for row in cursor.fetchall()]  # List of GeoJSON strings

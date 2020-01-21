@@ -2,7 +2,7 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from celery import chain, group
+from celery import chain
 
 from rest_framework.response import Response
 from rest_framework import decorators
@@ -15,6 +15,7 @@ from drf_yasg.utils import swagger_auto_schema
 from django.utils.timezone import now
 from django.urls import reverse
 from django.conf import settings
+from django.contrib.gis.geos import GEOSGeometry
 
 from apps.core.models import Job
 from apps.core.tasks import (save_job_error,
@@ -279,112 +280,128 @@ def start_analyze_land(request, format=None):
                         "code": "mixed_forest",
                         "type": "Mixed Forest",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 71,
                         "code": "grassland",
                         "type": "Grassland/Herbaceous",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 41,
                         "code": "deciduous_forest",
                         "type": "Deciduous Forest",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 42,
                         "code": "evergreen_forest",
                         "type": "Evergreen Forest",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 11,
                         "code": "open_water",
                         "type": "Open Water",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 12,
                         "code": "perennial_ice",
                         "type": "Perennial Ice/Snow",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 81,
                         "code": "pasture",
                         "type": "Pasture/Hay",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 82,
                         "code": "cultivated_crops",
                         "type": "Cultivated Crops",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 52,
                         "code": "shrub",
                         "type": "Shrub/Scrub",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 21,
                         "code": "developed_open",
                         "type": "Developed, Open Space",
                         "coverage": 0.030303030303030304,
-                        "area": 2691.709835265247
+                        "area": 2691.709835265247,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 22,
                         "code": "developed_low",
                         "type": "Developed, Low Intensity",
                         "coverage": 0.18181818181818182,
-                        "area": 16150.259011591483
+                        "area": 16150.259011591483,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 23,
                         "code": "developed_med",
                         "type": "Developed, Medium Intensity",
                         "coverage": 0.5151515151515151,
-                        "area": 45759.0671995092
+                        "area": 45759.0671995092,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 24,
                         "code": "developed_high",
                         "type": "Developed, High Intensity",
                         "coverage": 0.2727272727272727,
-                        "area": 24225.388517387222
+                        "area": 24225.388517387222,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 90,
                         "code": "woody_wetlands",
                         "type": "Woody Wetlands",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 95,
                         "code": "herbaceous_wetlands",
                         "type": "Emergent Herbaceous Wetlands",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     },
                     {
                         "nlcd": 31,
                         "code": "barren_land",
                         "type": "Barren Land (Rock/Sand/Clay)",
                         "coverage": 0,
-                        "area": 0
+                        "area": 0,
+                        "active_river_area": 0
                     }
                 ]
             }
@@ -397,8 +414,14 @@ def start_analyze_land(request, format=None):
 
     geop_input = {'polygon': [area_of_interest]}
 
+    aoi_geom = GEOSGeometry(area_of_interest, srid=4326)
+    geop_task = 'nlcd'
+
+    if settings.ARA_PERIMETER.contains(aoi_geom):
+        geop_task = 'nlcd_ara'
+
     return start_celery_job([
-        geoprocessing.run.s('nlcd', geop_input, wkaoi),
+        geoprocessing.run.s(geop_task, geop_input, wkaoi),
         tasks.analyze_nlcd.s(area_of_interest)
     ], area_of_interest, user)
 
@@ -918,28 +941,13 @@ def start_analyze_climate(request, format=None):
     """
     user = request.user if request.user.is_authenticated else None
 
-    geotasks = []
-    ppt_raster = settings.GEOP['json']['ppt']['input']['targetRaster']
-    tmean_raster = settings.GEOP['json']['tmean']['input']['targetRaster']
     area_of_interest, wkaoi = _parse_input(request)
-
-    for i in xrange(1, 13):
-        ppt_input = {'polygon': [area_of_interest],
-                     'targetRaster': ppt_raster.format(i)}
-        tmean_input = {'polygon': [area_of_interest],
-                       'targetRaster': tmean_raster.format(i)}
-
-        geotasks.extend([
-            geoprocessing.run.s('ppt', ppt_input, wkaoi, i) |
-            tasks.analyze_climate.s('ppt', i),
-            geoprocessing.run.s('tmean', tmean_input, wkaoi, i) |
-            tasks.analyze_climate.s('tmean', i)
-        ])
+    shape = [{'id': wkaoi or geoprocessing.NOCACHE, 'shape': area_of_interest}]
 
     return start_celery_job([
-        group(geotasks),
-        tasks.collect_climate.s(),
-    ], area_of_interest, user, link_error=False)
+        geoprocessing.multi.s('climate', shape, None),
+        tasks.analyze_climate.s(wkaoi or geoprocessing.NOCACHE),
+    ], area_of_interest, user)
 
 
 @swagger_auto_schema(method='post',
@@ -1008,6 +1016,35 @@ def start_analyze_terrain(request, format=None):
     return start_celery_job([
         geoprocessing.run.s('terrain', geop_input, wkaoi),
         tasks.analyze_terrain.s()
+    ], area_of_interest, user)
+
+
+@swagger_auto_schema(method='post',
+                     request_body=schemas.MULTIPOLYGON,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_modeling_worksheet(request, format=None):
+    """
+    Generate a set of BMP Worksheets prefilled with relevant data.
+
+    Takes a model_input that contains an area of interest, and uses it to
+    find which HUC-12s intersect with it. For every HUC-12 that intersects
+    with the area of interest, we make pairs of thue HUC-12 and the clipped
+    area which is contained within it. For every pair, we make a dictionary
+    of numbers needed to make the BMP Worksheet. This job returns an array
+    of dictionaries, which should be posted to the /export/worksheet/ endpoint
+    to get the actual Excel files.
+    """
+    user = request.user if request.user.is_authenticated else None
+    area_of_interest, _ = _parse_input(request)
+
+    return start_celery_job([
+        tasks.collect_worksheet.s(area_of_interest),
     ], area_of_interest, user)
 
 

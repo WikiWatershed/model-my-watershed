@@ -134,32 +134,192 @@ class ExerciseManageApiToken(LiveServerTestCase):
 
 
 class ExerciseAnalyze(TestCase):
-    def test_survey_land(self):
+    def test_survey_land_only(self):
         self.maxDiff = None
-        # NLCD Histogram of Little Neshaminy HUC-12
+        # NLCD Histogram of Cave Creek-Arizona Canal Diversion Channel HUC-10
         histogram = {
-            'List(11)': 39,
-            'List(21)': 40558,
-            'List(22)': 25230,
-            'List(23)': 10976,
-            'List(24)': 3793,
-            'List(31)': 364,
-            'List(41)': 19218,
-            'List(42)': 153,
-            'List(43)': 329,
-            'List(52)': 3309,
-            'List(71)': 684,
-            'List(81)': 8922,
-            'List(82)': 6345,
-            'List(90)': 3940,
-            'List(95)': 112,
+            'List(0)': 95,
+            'List(43)': 35,
+            'List(71)': 3228,
+            'List(42)': 5758,
+            'List(11)': 279,
+            'List(81)': 57,
+            'List(82)': 682,
+            'List(52)': 499636,
+            'List(21)': 73992,
+            'List(22)': 110043,
+            'List(23)': 105894,
+            'List(24)': 20719,
+            'List(90)': 461,
+            'List(31)': 25,
+            'List(95)': 159
         }
+
         expected = {
             "survey": {
                 "displayName": "Land",
                 "name": "land",
                 "categories": [
                     {
+                        "code": "mixed_forest",
+                        "active_river_area": None,
+                        "area": 35,
+                        "nlcd": 43,
+                        "coverage": 4.2627666817284424e-05,
+                        "type": "Mixed Forest"
+                    }, {
+                        "code": "grassland",
+                        "active_river_area": None,
+                        "area": 3228,
+                        "nlcd": 71,
+                        "coverage": 0.00393148881389126,
+                        "type": "Grassland/Herbaceous"
+                    }, {
+                        "code": "deciduous_forest",
+                        "active_river_area": None,
+                        "area": 0,
+                        "nlcd": 41,
+                        "coverage": 0.0,
+                        "type": "Deciduous Forest"
+                    }, {
+                        "code": "evergreen_forest",
+                        "active_river_area": None,
+                        "area": 5758,
+                        "nlcd": 42,
+                        "coverage": 0.007012860158112106,
+                        "type": "Evergreen Forest"
+                    }, {
+                        "code": "open_water",
+                        "active_river_area": None,
+                        "area": 279,
+                        "nlcd": 11,
+                        "coverage": 0.0003398034012006387,
+                        "type": "Open Water"
+                    }, {
+                        "code": "perennial_ice",
+                        "active_river_area": None,
+                        "area": 0,
+                        "nlcd": 12,
+                        "coverage": 0.0,
+                        "type": "Perennial Ice/Snow"
+                    }, {
+                        "code": "pasture",
+                        "active_river_area": None,
+                        "area": 57,
+                        "nlcd": 81,
+                        "coverage": 6.942220024529177e-05,
+                        "type": "Pasture/Hay"
+                    }, {
+                        "code": "cultivated_crops",
+                        "active_river_area": None,
+                        "area": 682,
+                        "nlcd": 82,
+                        "coverage": 0.0008306305362682279,
+                        "type": "Cultivated Crops"
+                    }, {
+                        "code": "shrub",
+                        "active_river_area": None,
+                        "area": 499636,
+                        "nlcd": 52,
+                        "coverage": 0.6085233410834492,
+                        "type": "Shrub/Scrub"
+                    }, {
+                        "code": "developed_open",
+                        "active_river_area": None,
+                        "area": 73992,
+                        "nlcd": 21,
+                        "coverage": 0.09011732351841455,
+                        "type": "Developed, Open Space"
+                    }, {
+                        "code": "developed_low",
+                        "active_river_area": None,
+                        "area": 110043,
+                        "nlcd": 22,
+                        "coverage": 0.13402503827355514,
+                        "type": "Developed, Low Intensity"
+                    }, {
+                        "code": "developed_med",
+                        "active_river_area": None,
+                        "area": 105894,
+                        "nlcd": 23,
+                        "coverage": 0.12897183285570046,
+                        "type": "Developed, Medium Intensity"
+                    }, {
+                        "code": "developed_high",
+                        "active_river_area": None,
+                        "area": 20719,
+                        "nlcd": 24,
+                        "coverage": 0.025234360822494743,
+                        "type": "Developed, High Intensity"
+                    }, {
+                        "code": "woody_wetlands",
+                        "active_river_area": None,
+                        "area": 461,
+                        "nlcd": 90,
+                        "coverage": 0.0005614672686505177,
+                        "type": "Woody Wetlands"
+                    }, {
+                        "code": "herbaceous_wetlands",
+                        "active_river_area": None,
+                        "area": 159,
+                        "nlcd": 95,
+                        "coverage": 0.00019365140068423496,
+                        "type": "Emergent Herbaceous Wetlands"
+                    }, {
+                        "code": "barren_land",
+                        "active_river_area": None,
+                        "area": 25,
+                        "nlcd": 31,
+                        "coverage": 3.0448333440917446e-05,
+                        "type": "Barren Land (Rock/Sand/Clay)"
+                    }
+                ]
+            }
+        }
+
+        actual = tasks.analyze_nlcd(histogram)
+        self.assertEqual(actual, expected)
+
+    def test_survey_land_with_ara(self):
+        self.maxDiff = None
+        # NLCD + ARA Histogram of Little Neshaminy HUC-12
+        histogram = {
+            'List(11, -2147483648)': 5,
+            'List(11, 1)': 34,
+            'List(21, -2147483648)': 31228,
+            'List(21, 1)': 9330,
+            'List(22, -2147483648)': 20546,
+            'List(22, 1)': 4684,
+            'List(23, -2147483648)': 9019,
+            'List(23, 1)': 1957,
+            'List(24, -2147483648)': 3303,
+            'List(24, 1)': 490,
+            'List(31, -2147483648)': 232,
+            'List(31, 1)': 132,
+            'List(41, -2147483648)': 11964,
+            'List(41, 1)': 7254,
+            'List(42, -2147483648)': 138,
+            'List(42, 1)': 15,
+            'List(43, -2147483648)': 212,
+            'List(43, 1)': 117,
+            'List(52, -2147483648)': 2346,
+            'List(52, 1)': 963,
+            'List(71, -2147483648)': 424,
+            'List(71, 1)': 260,
+            'List(81, -2147483648)': 6814,
+            'List(81, 1)': 2108,
+            'List(82, -2147483648)': 4713,
+            'List(82, 1)': 1632,
+            'List(90, -2147483648)': 184,
+            'List(90, 1)': 3756,
+            'List(95, -2147483648)': 7,
+            'List(95, 1)': 105
+        }
+        expected = {
+            "survey": {
+                "categories": [
+                    {
+                        "active_river_area": 117,
                         "area": 329,
                         "code": "mixed_forest",
                         "coverage": 0.002653825057270997,
@@ -167,6 +327,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Mixed Forest"
                     },
                     {
+                        "active_river_area": 260,
                         "area": 684,
                         "code": "grassland",
                         "coverage": 0.005517374891104443,
@@ -174,6 +335,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Grassland/Herbaceous"
                     },
                     {
+                        "active_river_area": 7254,
                         "area": 19218,
                         "code": "deciduous_forest",
                         "coverage": 0.1550188752298906,
@@ -181,6 +343,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Deciduous Forest"
                     },
                     {
+                        "active_river_area": 15,
                         "area": 153,
                         "code": "evergreen_forest",
                         "coverage": 0.001234149646694415,
@@ -188,6 +351,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Evergreen Forest"
                     },
                     {
+                        "active_river_area": 34,
                         "area": 39,
                         "code": "open_water",
                         "coverage": 0.00031458716484367437,
@@ -195,13 +359,15 @@ class ExerciseAnalyze(TestCase):
                         "type": "Open Water"
                     },
                     {
+                        "active_river_area": 0,
                         "area": 0,
                         "code": "perennial_ice",
-                        "coverage": 0,
+                        "coverage": 0.0,
                         "nlcd": 12,
                         "type": "Perennial Ice/Snow"
                     },
                     {
+                        "active_river_area": 2108,
                         "area": 8922,
                         "code": "pasture",
                         "coverage": 0.07196786371116058,
@@ -209,6 +375,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Pasture/Hay"
                     },
                     {
+                        "active_river_area": 1632,
                         "area": 6345,
                         "code": "cultivated_crops",
                         "coverage": 0.051180911818797796,
@@ -216,6 +383,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Cultivated Crops"
                     },
                     {
+                        "active_river_area": 963,
                         "area": 3309,
                         "code": "shrub",
                         "coverage": 0.026691510986351755,
@@ -223,6 +391,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Shrub/Scrub"
                     },
                     {
+                        "active_river_area": 9330,
                         "area": 40558,
                         "code": "developed_open",
                         "coverage": 0.32715451876230117,
@@ -230,6 +399,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Developed, Open Space"
                     },
                     {
+                        "active_river_area": 4684,
                         "area": 25230,
                         "code": "developed_low",
                         "coverage": 0.20351369664117705,
@@ -237,6 +407,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Developed, Low Intensity"
                     },
                     {
+                        "active_river_area": 1957,
                         "area": 10976,
                         "code": "developed_med",
                         "coverage": 0.0885361210595941,
@@ -244,6 +415,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Developed, Medium Intensity"
                     },
                     {
+                        "active_river_area": 490,
                         "area": 3793,
                         "code": "developed_high",
                         "coverage": 0.030595618365437355,
@@ -251,6 +423,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Developed, High Intensity"
                     },
                     {
+                        "active_river_area": 3756,
                         "area": 3940,
                         "code": "woody_wetlands",
                         "coverage": 0.0317813699867712,
@@ -258,6 +431,7 @@ class ExerciseAnalyze(TestCase):
                         "type": "Woody Wetlands"
                     },
                     {
+                        "active_river_area": 105,
                         "area": 112,
                         "code": "herbaceous_wetlands",
                         "coverage": 0.000903429806730552,
@@ -265,13 +439,16 @@ class ExerciseAnalyze(TestCase):
                         "type": "Emergent Herbaceous Wetlands"
                     },
                     {
+                        "active_river_area": 132,
                         "area": 364,
                         "code": "barren_land",
                         "coverage": 0.0029361468718742943,
                         "nlcd": 31,
                         "type": "Barren Land (Rock/Sand/Clay)"
                     }
-                ]
+                ],
+                "displayName": "Land",
+                "name": "land"
             }
         }
 
@@ -343,6 +520,117 @@ class ExerciseAnalyze(TestCase):
         }
 
         actual = tasks.analyze_soil(histogram)
+        self.assertEqual(actual, expected)
+
+    def test_analyze_climate(self):
+        histogram = {'nocache': {
+            'ppt__1': {'List(0)': 86.10894775390625},
+            'ppt__2': {'List(0)': 77.05979919433594},
+            'ppt__3': {'List(0)': 97.3456802368164},
+            'ppt__4': {'List(0)': 92.16392517089844},
+            'ppt__5': {'List(0)': 92.18870544433594},
+            'ppt__6': {'List(0)': 98.5276107788086},
+            'ppt__7': {'List(0)': 114.81684112548828},
+            'ppt__8': {'List(0)': 118.24303436279297},
+            'ppt__9': {'List(0)': 93.80207061767578},
+            'ppt__10': {'List(0)': 82.33834075927734},
+            'ppt__11': {'List(0)': 79.2877426147461},
+            'ppt__12': {'List(0)': 91.07259368896484},
+            'tmean__1': {'List(0)': 0.7002114057540894},
+            'tmean__2': {'List(0)': 1.3823009729385376},
+            'tmean__3': {'List(0)': 6.08829927444458},
+            'tmean__4': {'List(0)': 11.881658554077148},
+            'tmean__5': {'List(0)': 17.683929443359375},
+            'tmean__6': {'List(0)': 22.579280853271484},
+            'tmean__7': {'List(0)': 25.288223266601562},
+            'tmean__8': {'List(0)': 24.355039596557617},
+            'tmean__9': {'List(0)': 20.743885040283203},
+            'tmean__10': {'List(0)': 14.532132148742676},
+            'tmean__11': {'List(0)': 8.510452270507812},
+            'tmean__12': {'List(0)': 2.786508560180664},
+        }}
+        expected = {
+            "survey": {
+                "categories": [
+                    {
+                        "month": "January",
+                        "monthidx": 1,
+                        "ppt": 8.610894775390625,
+                        "tmean": 0.7002114057540894
+                    },
+                    {
+                        "month": "February",
+                        "monthidx": 2,
+                        "ppt": 7.705979919433594,
+                        "tmean": 1.3823009729385376
+                    },
+                    {
+                        "month": "March",
+                        "monthidx": 3,
+                        "ppt": 9.734568023681641,
+                        "tmean": 6.08829927444458
+                    },
+                    {
+                        "month": "April",
+                        "monthidx": 4,
+                        "ppt": 9.216392517089844,
+                        "tmean": 11.881658554077148
+                    },
+                    {
+                        "month": "May",
+                        "monthidx": 5,
+                        "ppt": 9.218870544433594,
+                        "tmean": 17.683929443359375
+                    },
+                    {
+                        "month": "June",
+                        "monthidx": 6,
+                        "ppt": 9.85276107788086,
+                        "tmean": 22.579280853271484
+                    },
+                    {
+                        "month": "July",
+                        "monthidx": 7,
+                        "ppt": 11.481684112548828,
+                        "tmean": 25.288223266601562
+                    },
+                    {
+                        "month": "August",
+                        "monthidx": 8,
+                        "ppt": 11.824303436279298,
+                        "tmean": 24.355039596557617
+                    },
+                    {
+                        "month": "September",
+                        "monthidx": 9,
+                        "ppt": 9.380207061767578,
+                        "tmean": 20.743885040283203
+                    },
+                    {
+                        "month": "October",
+                        "monthidx": 10,
+                        "ppt": 8.233834075927735,
+                        "tmean": 14.532132148742676
+                    },
+                    {
+                        "month": "November",
+                        "monthidx": 11,
+                        "ppt": 7.92877426147461,
+                        "tmean": 8.510452270507812
+                    },
+                    {
+                        "month": "December",
+                        "monthidx": 12,
+                        "ppt": 9.107259368896484,
+                        "tmean": 2.786508560180664
+                    }
+                ],
+                "displayName": "Climate",
+                "name": "climate"
+            }
+        }
+
+        actual = tasks.analyze_climate(histogram, 'nocache')
         self.assertEqual(actual, expected)
 
 

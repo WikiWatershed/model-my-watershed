@@ -739,14 +739,14 @@ describe('Modeling', function() {
                     });
 
                     model.updateModificationHash();
-                    assert.equal(model.get('modification_hash'), '95abe779fa6e7c59668acc5c3f2881e6');
+                    assert.equal(model.get('modification_hash'), '29597d88c74d4c2139567d6e3ffaa44d');
 
                     var mod = new models.ModificationModel(mocks.modifications.sample2);
                     model.get('modifications').add(mod);
-                    assert.equal(model.get('modification_hash'), '6d99c132e843a5257bfd0f7f2561c890');
+                    assert.equal(model.get('modification_hash'), 'aef9730ccb49e3d15c56e22d5207cd94');
 
                     model.get('modifications').remove(mod);
-                    assert.equal(model.get('modification_hash'), '95abe779fa6e7c59668acc5c3f2881e6');
+                    assert.equal(model.get('modification_hash'), '29597d88c74d4c2139567d6e3ffaa44d');
                 });
 
                 it('is called when the modifications for a scenario changes', function() {

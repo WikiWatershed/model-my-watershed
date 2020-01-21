@@ -11,7 +11,7 @@
     - "{{ app_static_cache }}"
 
 - name: Install application JavaScript dependencies
-  command: "npm install --unsafe-perm"
+  command: "yarn"
   args:
     chdir: "{{ app_home }}"
   become: False
@@ -41,4 +41,16 @@
   template: src=testem-harness.html.j2
             dest="{{ app_static_root }}/test.html"
   become: False
+  when: "['development', 'test'] | some_are_in(group_names)"
+
+- name: Copy JavaScript test dependencies - mocha.css
+  copy: src="{{ app_home }}/node_modules/mocha/mocha.css"
+        dest="{{ app_static_root }}"
+        remote_src=True
+  when: "['development', 'test'] | some_are_in(group_names)"
+
+- name: Copy JavaScript test dependencies - mocha.js
+  copy: src="{{ app_home }}/node_modules/mocha/mocha.js"
+        dest="{{ app_static_root }}"
+        remote_src=True
   when: "['development', 'test'] | some_are_in(group_names)"
