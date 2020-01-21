@@ -201,6 +201,9 @@ header {
     }
 
     #modifications {
+      max-height: calc(100vh - 152px);
+      overflow-y: scroll;
+
       .modification-type {
         min-width: 140px;
       }

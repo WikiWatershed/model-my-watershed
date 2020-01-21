@@ -246,7 +246,7 @@ GWLFE_DEFAULTS = {
     'n60': 0,  # Distribution of Treatment Upgrades (%): Primary to Secondary
     'n61': 0,  # Distribution of Treatment Upgrades (%): Primary to Tertiary
     'n62': 0,  # Distribution of Treatment Upgrades (%): Secondary to Tertiary
-    'n63': 0.29,  # BMP 1 (Nitrogen)
+    'n63': 0.40,  # BMP 1 (Nitrogen)
     'n64': 0.41,  # Vegetated Buffer Strips (Nitrogen)
     'n65': 0.08,  # BMP 2 (Nitrogen)
     'n66': 0.66,  # BMP 3 (Nitrogen)
