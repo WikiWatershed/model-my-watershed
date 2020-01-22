@@ -7,6 +7,9 @@
             {% endif %}
             <th class="text-right" data-sortable="true" data-sorter="window.numericSort">Area ({{ headerUnits }})</th>
             <th class="text-right" data-sortable="true" data-sorter="window.numericSort">Coverage (%)</th>
+            {% if isLandTable %}
+                <th class="text-right" data-sortable="true" data-sorter="window.numericSort">Active River Area ({{ headerUnits }})</th>
+            {% endif %}
         </tr>
     </thead>
     <tbody>

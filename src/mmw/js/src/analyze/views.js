@@ -683,6 +683,8 @@ var TableRowView = Marionette.ItemView.extend({
         var area = this.model.get('area'),
             units = this.options.units,
             isLandTable = this.options.isLandTable,
+            ara = isLandTable ? this.model.get('active_river_area') : null,
+            araNull = _.isNull(ara),
             code = isLandTable ? this.model.get('nlcd') : null;
 
         return {
@@ -690,6 +692,8 @@ var TableRowView = Marionette.ItemView.extend({
             coveragePct: (this.model.get('coverage') * 100),
             // Scale the area to display units.
             scaledArea: coreUnits.get(units, area).value,
+            ara: coreUnits.get(units, ara).value,
+            araNull: araNull,
             code: code,
             isLandTable: isLandTable
         };
