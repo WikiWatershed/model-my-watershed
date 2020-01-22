@@ -34,7 +34,8 @@ var $ = require('jquery'),
     climateTableRowTmpl = require('./templates/climateTableRow.html'),
     streamTableTmpl = require('./templates/streamTable.html'),
     streamTableRowTmpl = require('./templates/streamTableRow.html'),
-    selectorTmpl = require('./templates/selector.html'),
+    taskSelectorTmpl = require('./templates/taskSelector.html'),
+    varSelectorTmpl = require('./templates/varSelector.html'),
     paginationConrolTmpl = require('./templates/paginationControl.html'),
     pageableTableTmpl = require('./templates/pageableTable.html'),
     pointSourceTableTmpl = require('./templates/pointSourceTable.html'),
@@ -181,6 +182,7 @@ var ResultsView = Marionette.LayoutView.extend({
                 place: App.map.get('areaOfInterestName')
             }),
             analysisResults = App.getAnalyzeCollection()
+                                 .findWhere({name: 'land'}).get('tasks')
                                  .findWhere({taskName: 'analyze/land'})
                                  .get('result') || {},
             landResults = analysisResults.survey;
@@ -390,6 +392,10 @@ var TabContentView = Marionette.LayoutView.extend({
         resultRegion: '.result-region'
     },
 
+    initialize: function() {
+        this.listenTo(this.model, 'change:activeTask', this.onShow);
+    },
+
     onShow: function() {
         this.showAnalyzingMessage();
 
@@ -429,14 +435,16 @@ var TabContentView = Marionette.LayoutView.extend({
     },
 
     showResults: function() {
-        var name = this.model.get('name'),
-            result = this.model.get('result').survey,
+        var activeTask = this.model.getActiveTask(),
+            name = activeTask.get('name'),
+            result = activeTask.get('result').survey,
             resultModel = new models.LayerModel(result),
-            ResultView = AnalyzeResultViews[name];
+            resultView = new AnalyzeResultViews[name]({
+                model: resultModel,
+                taskGroup: this.model
+            });
 
-        this.resultRegion.show(new ResultView({
-            model: resultModel
-        }));
+        this.resultRegion.show(resultView);
         this.model.set({ polling: false });
     },
 
@@ -1239,7 +1247,11 @@ var ChartView = Marionette.ItemView.extend({
             return 'nlcd-fill-' + item.nlcd;
         } else if (name === 'soil') {
             return 'soil-fill-' + item.code;
+        } else if (name === 'protected_lands') {
+            return 'protected-lands-fill-' + item.code;
         }
+
+        return null;
     },
 
     addChart: function() {
@@ -1266,8 +1278,9 @@ var ChartView = Marionette.ItemView.extend({
 var AnalyzeResultView = Marionette.LayoutView.extend({
     template: analyzeResultsTmpl,
     regions: {
+        taskSelectorRegion: '.task-selector-region',
         descriptionRegion: '.desc-region',
-        selectorRegion: '.selector-region',
+        varSelectorRegion: '.var-selector-region',
         chartRegion: '.chart-region',
         tableRegion: '.table-region',
         printTableRegion: '.print-table-region'
@@ -1281,6 +1294,10 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
 
     events: {
         'click @ui.downloadCSV': 'downloadCSV'
+    },
+
+    initialize: function(options) {
+        this.taskGroup = options.taskGroup;
     },
 
     downloadCSV: function() {
@@ -1357,13 +1374,38 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
 });
 
 var LandResultView  = AnalyzeResultView.extend({
-    onShow: function() {
+    onShowNlcd: function() {
         var title = 'Land cover distribution',
             source = 'National Land Cover Database (NLCD 2011)',
             helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
             associatedLayerCodes = ['nlcd'];
         this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView,
             ChartView, title, source, helpText, associatedLayerCodes);
+    },
+    onShowProtectedLands: function() {
+        var title = 'Protected Lands Distribution',
+            source = 'National Inventory of Protected Areas (2016)',
+            helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
+            associatedLayerCodes = ['protected-lands-30m'];
+        this.showAnalyzeResults(coreModels.ProtectedLandsCensusCollection, TableView,
+            ChartView, title, source, helpText, associatedLayerCodes);
+    },
+    onShow: function() {
+        var taskName = this.model.get('name'),
+            taskGroup = this.taskGroup;
+
+        if(taskName === 'protected_lands') {
+            this.onShowProtectedLands();
+        } else {
+            this.onShowNlcd();
+        }
+
+        if(taskGroup.get('tasks').length > 1) {
+            this.taskSelectorRegion.show(new TaskSelectorView({
+                model: this.model,
+                taskGroup: taskGroup
+            }));
+        }
     }
 });
 
@@ -1438,8 +1480,42 @@ var TerrainResultView = AnalyzeResultView.extend({
     }
 });
 
-var SelectorView = Marionette.ItemView.extend({
-    template: selectorTmpl,
+var TaskSelectorView = Marionette.ItemView.extend({
+    template: taskSelectorTmpl,
+
+    ui: {
+        selector: 'select',
+    },
+
+    events: {
+        'change @ui.selector': 'updateTask',
+    },
+
+    modelEvents: {
+        'change:name': 'render',
+    },
+
+    initialize: function(options) {
+        this.taskGroup = options.taskGroup;
+        this.keys = this.taskGroup.get('tasks').map(function(t) {
+            return { name: t.get('name'), label: t.get('displayName') };
+        });
+    },
+
+    templateHelpers: function() {
+        return {
+            keys: this.keys,
+        };
+    },
+
+    updateTask: function() {
+        var taskName = this.ui.selector.val();
+        this.taskGroup.setActiveTask(taskName);
+    }
+});
+
+var VarSelectorView = Marionette.ItemView.extend({
+    template: varSelectorTmpl,
 
     ui: {
         selector: 'select',
@@ -1523,7 +1599,8 @@ var ClimateChartView = ChartView.extend({
 });
 
 var ClimateResultView = AnalyzeResultView.extend({
-    initialize: function() {
+    initialize: function(options) {
+        AnalyzeResultView.prototype.initialize.call(this, options);
         this.model.set('activeVar', 'ppt');
     },
 
@@ -1539,7 +1616,7 @@ var ClimateResultView = AnalyzeResultView.extend({
         this.showAnalyzeResults(coreModels.ClimateCensusCollection, ClimateTableView,
             ClimateChartView, title, source, helpText, associatedLayerCodes);
 
-        this.selectorRegion.show(new SelectorView({
+        this.varSelectorRegion.show(new VarSelectorView({
             model: this.model,
             keys: [
                 { name: 'ppt', label: 'Mean Precipitation' },

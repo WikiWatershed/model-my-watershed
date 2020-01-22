@@ -16,7 +16,7 @@ from collections import OrderedDict
 import json
 
 from django.contrib.gis.geos import GEOSGeometry
-from layer_classmaps import NLCD, SOIL
+from layer_classmaps import NLCD, SOIL, PROTECTED_LANDS
 
 # [01, 02, ...] style list for layer time sliders
 MONTH_CODES = [str(m).zfill(2) for m in range(1, 13)]
@@ -210,7 +210,7 @@ LAYER_GROUPS = {
             'code': 'protected-lands-30m',
             'display': 'Protected Lands',
             'short_display': 'Protected Lands',
-            'css_class_prefix': 'protected-lands-30m ',
+            'css_class_prefix': 'protected-lands-30m',
             'help_text': '',
             'url': 'https://{s}.tiles.azavea.com/protected-lands-30m/{z}/{x}/{y}.png',
             'maxNativeZoom': 13,
@@ -218,18 +218,10 @@ LAYER_GROUPS = {
             'opacity': 0.8,
             'has_opacity_slider': True,
             'legend_mapping': OrderedDict([
-                ('park-federal', 'Park or Recreation Area - Federal'),
-                ('park-state', 'Park or Recreation Area - State'),
-                ('park-local', 'Park or Recreation Area - Local'),
-                ('park-private', 'Park or Recreation Area - Private'),
-                ('park-unknown', 'Park or Recreation Area - Unknown'),
-                ('natural-resource-federal', 'Natural Resource Area - Federal'),
-                ('natural-resource-state', 'Natural Resource Area - State'),
-                ('natural-resource-local', 'Natural Resource Area - Local'),
-                ('natural-resource-private', 'Natural Resource Area - Private'),
-                ('natural-resource-unknown', 'Natural Resource Area - Unknown'),
-                ('conservation-easement', 'Conservation Easement'),
-                ('agricultural-easement', 'Agricultural Easement'),
+                (shortname, longname)
+                for _, (shortname, longname) in sorted(
+                        PROTECTED_LANDS.iteritems(), key=lambda x: x[0]
+                )
             ]),
         },
         {

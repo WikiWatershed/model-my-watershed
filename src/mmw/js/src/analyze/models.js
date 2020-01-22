@@ -141,89 +141,204 @@ var AnalyzeTaskCollection = Backbone.Collection.extend({
     model: AnalyzeTaskModel
 });
 
-function createAnalyzeTaskCollection(aoi, wkaoi) {
-    var tasks = [
+var AnalyzeTaskGroupModel = Backbone.Model.extend({
+    defaults: {
+        name: 'analysis',
+        displayName: 'Analysis',
+        enabledForCatalogMode: false,
+        tasks: null, // AnalyzeTaskCollection
+        activeTask: null
+    },
+
+    initialize: function() {
+        var tasks = this.get('tasks');
+
+        // Convert tasks array to collection
+        this.set('tasks', new AnalyzeTaskCollection(tasks));
+    },
+
+    /**
+     * Returns a promise that completes when Analysis has been fetched. If
+     * fetching is not required, returns an immediatley resolved promise.
+     */
+    fetchAnalysisIfNeeded: function() {
+        var taskAnalysisFetches = this.get('tasks').map(function(t) {
+            return t.fetchAnalysisIfNeeded();
+        });
+
+        return $.when.apply($, taskAnalysisFetches);
+    },
+
+    /**
+     * Gets the task that is active in the group.
+     * This is the task that will be displayed in the UI.
+     */
+    getActiveTask: function() {
+        var self = this,
+            activeTask = self.get('activeTask'),
+            tasks = self.get('tasks');
+
+        if(activeTask) {
+            return activeTask;
+        }
+
+        if(tasks.length > 0) {
+            return tasks.first();
+        }
+
+        return null;
+    },
+
+    /**
+     * Gets the active task to be displayed based on
+     * the task name.
+     */
+    setActiveTask: function(taskName) {
+        var self = this,
+            tasks = self.get('tasks'),
+            task = tasks.findWhere({ name: taskName });
+
+        self.set('activeTask', task);
+    }
+});
+
+var AnalyzeTaskGroupCollection = Backbone.Collection.extend({
+    model: AnalyzeTaskGroupModel
+});
+
+function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
+    var taskGroups = [
         {
             name: "streams",
             displayName: "Streams",
-            area_of_interest: aoi,
-            wkaoi: wkaoi,
-            taskName: "analyze/streams"
+            tasks: [
+                {
+                    name: "streams",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/streams"
+                },
+            ]
         },
         {
             name: "land",
             displayName: "Land",
-            area_of_interest: aoi,
-            wkaoi: wkaoi,
-            taskName: "analyze/land",
-            enabledForCatalogMode: true,
+            tasks: [
+                {
+                    name: "land",
+                    displayName: "Land cover distribution",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/land",
+                    enabledForCatalogMode: true
+                },
+                {
+                    name: "protected_lands",
+                    displayName: "Protected lands distribution",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/protected-lands"
+                },
+            ]
         },
         {
             name: "soil",
             displayName: "Soil",
-            area_of_interest: aoi,
-            wkaoi: wkaoi,
-            taskName: "analyze/soil",
-            enabledForCatalogMode: true,
+            tasks: [
+                {
+                    name: "soil",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/soil",
+                    enabledForCatalogMode: true,
+                },
+            ]
         },
         {
             name: "terrain",
             displayName: "Terrain",
-            area_of_interest: aoi,
-            wkaoi: wkaoi,
-            taskName: "analyze/terrain"
+            tasks: [
+                {
+                    name: "terrain",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/terrain"
+                }
+            ]
         },
         {
             name: "climate",
             displayName: "Climate",
-            area_of_interest: aoi,
-            wkaoi: wkaoi,
-            taskName: "analyze/climate",
-            enabledForCatalogMode: true,
+            tasks: [
+                {
+                    name: "climate",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/climate",
+                    enabledForCatalogMode: true,
+                },
+            ]
         },
         {
             name: "pointsource",
             displayName: "Pt Sources",
-            area_of_interest: aoi,
-            wkaoi: wkaoi,
-            taskName: "analyze/pointsource"
+            tasks: [
+                {
+                    name: "pointsource",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/pointsource"
+                }
+            ]
         },
         {
             name: "animals",
             displayName: "Animals",
-            area_of_interest: aoi,
-            wkaoi: wkaoi,
-            taskName: "analyze/animals"
+            tasks: [
+                {
+                    name: "animals",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/animals"
+                }
+            ]
         },
         {
             name: "catchment_water_quality",
             displayName: "Water Qual",
-            area_of_interest: aoi,
-            wkaoi: wkaoi,
-            taskName: "analyze/catchment-water-quality"
-        },
-        {
-            name: "protected_lands",
-            displayName: "Protected Lands",
-            area_of_interest: aoi,
-            wkaoi: wkaoi,
-            taskName: "analyze/protected-lands"
+            tasks: [
+                {
+                    name: "catchment_water_quality",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/catchment-water-quality"
+                }
+            ]
         },
     ];
 
-    // Remove analyses which aren't available for catalog search mode
     if (settings.get('data_catalog_enabled')) {
-        tasks = _.filter(tasks, { enabledForCatalogMode: true });
+        taskGroups = _(taskGroups)
+            // Remove tasks not supported in data catalog mode
+            .map(function(tg) {
+                tg.tasks = _.filter(tg.tasks, { enabledForCatalogMode: true });
+                return tg;
+            })
+            // Remove task groups with no tasks
+            .filter(function(tg) {
+                return !_.isEmpty(tg.tasks);
+            })
+            .value();
     }
 
-    return new AnalyzeTaskCollection(tasks);
+    return new AnalyzeTaskGroupCollection(taskGroups);
 }
 
 module.exports = {
-    AnalyzeTaskModel: AnalyzeTaskModel,
+    AnalyzeTaskGroupModel: AnalyzeTaskGroupModel,
     LayerModel: LayerModel,
     LayerCollection: LayerCollection,
     LayerCategoryCollection: LayerCategoryCollection,
-    createAnalyzeTaskCollection: createAnalyzeTaskCollection,
+    createAnalyzeTaskGroupCollection: createAnalyzeTaskGroupCollection,
     WorksheetModel: WorksheetModel,
 };
