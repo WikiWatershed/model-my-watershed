@@ -683,6 +683,8 @@ var TableRowView = Marionette.ItemView.extend({
         var area = this.model.get('area'),
             units = this.options.units,
             isLandTable = this.options.isLandTable,
+            ara = isLandTable ? this.model.get('active_river_area') : null,
+            araNull = _.isNull(ara),
             code = isLandTable ? this.model.get('nlcd') : null;
 
         return {
@@ -690,6 +692,8 @@ var TableRowView = Marionette.ItemView.extend({
             coveragePct: (this.model.get('coverage') * 100),
             // Scale the area to display units.
             scaledArea: coreUnits.get(units, area).value,
+            ara: coreUnits.get(units, ara).value,
+            araNull: araNull,
             code: code,
             isLandTable: isLandTable
         };
@@ -707,14 +711,19 @@ var TableView = Marionette.CompositeView.extend({
     templateHelpers: function() {
         var scheme = settings.get('unit_scheme'),
             units = this.options.units,
+            data = _(this.collection.toJSON()),
             isLandTable = this.options.modelName === 'land',
-            araData = isLandTable && _(this.collection.toJSON()).map('active_river_area'),
+            areaTotal = data.map('area').sum(),
+            coverageTotal = data.map('coverage').sum(),
+            araData = isLandTable && data.map('active_river_area'),
             araTotal = isLandTable && araData.sum(),
             araNull = isLandTable && araData.every(_.isNull);
 
         return {
             headerUnits: coreUnits[scheme][units].name,
             isLandTable: isLandTable,
+            areaTotal: coreUnits.get(units, areaTotal).value,
+            coverageTotal: coverageTotal * 100,
             araTotal: araTotal && coreUnits.get(units, araTotal).value,
             araNull: araNull,
         };

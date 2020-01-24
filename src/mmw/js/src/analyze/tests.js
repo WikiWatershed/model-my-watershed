@@ -105,9 +105,15 @@ function landTableFormatter(categories) {
     return collection.map(function(category) {
         var name = category.get('type'),
             areaKm2 = category.get('area') / coreUnits.METRIC.AREA_XL.factor,
-            coverage = category.get('coverage') * 100;
+            coverage = category.get('coverage') * 100,
+            ara = category.get('active_river_area') / coreUnits.METRIC.AREA_XL.factor;
 
-        return [name, areaKm2.toFixed(2), coverage.toFixed(1)];
+        return [
+            name,
+            areaKm2.toFixed(2),
+            coverage.toFixed(1),
+            ara.toFixed(2),
+        ];
     });
 }
 
@@ -192,7 +198,7 @@ var dataFormatters = {
 };
 
 var tableHeaders = {
-    land: ['Type', 'Area (km²)', 'Coverage (%)'],
+    land: ['Type', 'Area (km²)', 'Coverage (%)', 'Active River Area (km²)'],
     protected_lands: ['Type', 'Area (km²)', 'Coverage (%)'],
     soil: ['Type', 'Area (km²)', 'Coverage (%)'],
     animals: ['Animal', 'Count'],

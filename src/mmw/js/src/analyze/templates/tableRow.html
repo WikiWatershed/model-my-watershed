@@ -4,3 +4,12 @@
 {% endif %}
 <td class="strong text-right">{{ scaledArea|round(2)|toLocaleString(2) }}</td>
 <td class="strong text-right">{{ coveragePct|toFixed(1) }}</td>
+{% if isLandTable %}
+    <td class="strong text-right">
+        {% if araNull %}
+            No Data
+        {% else %}
+            {{ ara|round(2)|toLocaleString(2) }}
+        {% endif %}
+    </td>
+{% endif %}

@@ -7,15 +7,31 @@
             {% endif %}
             <th class="text-right" data-sortable="true" data-sorter="window.numericSort">Area ({{ headerUnits }})</th>
             <th class="text-right" data-sortable="true" data-sorter="window.numericSort">Coverage (%)</th>
+            {% if isLandTable %}
+                <th class="text-right" data-sortable="true" data-sorter="window.numericSort">Active River Area ({{ headerUnits }})</th>
+            {% endif %}
         </tr>
     </thead>
     <tbody>
     </tbody>
+    <tfoot>
+    <tr>
+        <th>Total</th>
+        {% if isLandTable %}
+            <!-- Empty column for NLCD -->
+            <th class="hidden-analyze-table-column" data-tableexport-display="always"></th>
+        {% endif %}
+        <th class="text-right">{{ areaTotal|round(2)|toLocaleString(2) }}</th>
+        <th class="text-right">{{ coverageTotal|round(1)|toLocaleString(1) }}</th>
+        {% if isLandTable %}
+            <th class="text-right">
+                {% if araNull %}
+                    No Data
+                {% else %}
+                    {{ araTotal|round(2)|toLocaleString(2) }}
+                {% endif %}
+            </th>
+        {% endif %}
+    </tr>
+    </tfoot>
 </table>
-{% if isLandTable and not araNull %}
-<div id="land-tab-ara-section">
-    <div class="land-tab-ara-line-item">
-        Active river area = {{ araTotal|round(2)|toLocaleString(2) }} {{ headerUnits }}
-    </div>
-</div>
-{% endif %}
