@@ -37,14 +37,6 @@ pa_perimeter_path = join(dirname(abspath(__file__)), 'data/pa_perimeter.json')
 pa_perimeter_file = open(pa_perimeter_path)
 pa_perimeter = json.load(pa_perimeter_file)
 
-# Hand drawn perimeter of the Active River Area raster which only exist for
-# the North East and Mid Atlantic regions, used to pre-validate analysis
-ara_perimeter_path = join(dirname(abspath(__file__)), 'data/ara_perimeter.json')
-ara_perimeter_file = open(ara_perimeter_path)
-ara_perimeter = json.load(ara_perimeter_file)
-ARA_PERIMETER = GEOSGeometry(json.dumps(ara_perimeter['geometry']), srid=4326)
-
-
 # Simplified perimeter of the continental US, used to prevent non-CONUS
 # AoIs from being sent to the API
 conus_perimeter_path = join(dirname(abspath(__file__)), 'data/conus_perimeter.json')
