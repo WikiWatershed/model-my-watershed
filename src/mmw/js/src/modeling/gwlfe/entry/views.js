@@ -7,6 +7,7 @@ var _ = require('lodash'),
     coreUnits = require('../../../core/units'),
     round = require('../../../core/utils').round,
     CropTillageEfficiencyValues = require('../../gwlfeModificationConfig').CropTillageEfficiencyValues,
+    GWLFE_LAND_COVERS = require('../../constants').GWLFE_LAND_COVERS,
     models = require('./models'),
     calcs = require('./calcs'),
     fieldTmpl = require('./templates/field.html'),
@@ -999,88 +1000,17 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
 function showLandCoverModal(dataModel, modifications, addModification) {
     var scheme = settings.get('unit_scheme'),
         areaLUnits = coreUnits[scheme].AREA_L_FROM_HA.name,
-        fields = models.makeFieldCollection('landcover', dataModel, modifications, [
-            {
-                name: 'Area__0',
-                label: 'Hay / Pasture (' + areaLUnits + ')',
+        landCovers = _(GWLFE_LAND_COVERS).sortBy('id').map(function(lc) {
+            return {
+                name: 'Area__' + lc.id,
+                label: lc.label + ' (' + areaLUnits + ')',
                 unit: 'AREA_L_FROM_HA',
                 calculator: calcs.ArrayIndex,
                 decimalPlaces: 1,
-                minValue: 0
-            },
-            {
-                name: 'Area__1',
-                label: 'Cropland (' + areaLUnits + ')',
-                unit: 'AREA_L_FROM_HA',
-                calculator: calcs.ArrayIndex,
-                decimalPlaces: 1,
-                minValue: 0
-            },
-            {
-                name: 'Area__2',
-                label: 'Wooded Areas (' + areaLUnits + ')',
-                unit: 'AREA_L_FROM_HA',
-                calculator: calcs.ArrayIndex,
-                decimalPlaces: 1,
-                minValue: 0
-            },
-            {
-                name: 'Area__3',
-                label: 'Wetlands (' + areaLUnits + ')',
-                unit: 'AREA_L_FROM_HA',
-                calculator: calcs.ArrayIndex,
-                decimalPlaces: 1,
-                minValue: 0
-            },
-            {
-                name: 'Area__6',
-                label: 'Open Land (' + areaLUnits + ')',
-                unit: 'AREA_L_FROM_HA',
-                calculator: calcs.ArrayIndex,
-                decimalPlaces: 1,
-                minValue: 0
-            },
-            {
-                name: 'Area__7',
-                label: 'Barren Areas (' + areaLUnits + ')',
-                unit: 'AREA_L_FROM_HA',
-                calculator: calcs.ArrayIndex,
-                decimalPlaces: 1,
-                minValue: 0
-            },
-            {
-                name: 'Area__10',
-                label: 'Low-Density Mixed (' + areaLUnits + ')',
-                unit: 'AREA_L_FROM_HA',
-                calculator: calcs.ArrayIndex,
-                decimalPlaces: 1,
-                minValue: 0
-            },
-            {
-                name: 'Area__11',
-                label: 'Medium-Density Mixed (' + areaLUnits + ')',
-                unit: 'AREA_L_FROM_HA',
-                calculator: calcs.ArrayIndex,
-                decimalPlaces: 1,
-                minValue: 0
-            },
-            {
-                name: 'Area__12',
-                label: 'High-Density Mixed (' + areaLUnits + ')',
-                unit: 'AREA_L_FROM_HA',
-                calculator: calcs.ArrayIndex,
-                decimalPlaces: 1,
-                minValue: 0
-            },
-            {
-                name: 'Area__13',
-                label: 'Low-Density Open Space (' + areaLUnits + ')',
-                unit: 'AREA_L_FROM_HA',
-                calculator: calcs.ArrayIndex,
-                decimalPlaces: 1,
-                minValue: 0
-            },
-        ]),
+                minValue: 0,
+            };
+        }).value(),
+        fields = models.makeFieldCollection('landcover', dataModel, modifications, landCovers),
         windowModel = new models.LandCoverWindowModel({
             dataModel: dataModel,
             title: 'Land Cover',
