@@ -588,6 +588,7 @@ var Tr55ScenarioItemView = Marionette.ItemView.extend({
             }),
             el: this.ui.mapContainer,
             addZoomControl: false,
+            addFitToAoiControl: false,
             addLocateMeButton: false,
             addSidebarToggleControl: false,
             showLayerAttribution: false,

@@ -16,7 +16,8 @@ var L = require('leaflet'),
     modalModels = require('./modals/models'),
     modalViews = require('./modals/views'),
     settings = require('./settings'),
-    SidebarToggleControl = require('./sidebarToggleControl');
+    SidebarToggleControl = require('./sidebarToggleControl'),
+    FitToAoiControl = require('./fitToAoiControl');
 
 require('leaflet.locatecontrol');
 require('leaflet-plugins/layer/tile/Google');
@@ -342,12 +343,14 @@ var MapView = Marionette.ItemView.extend({
     _googleMaps: (window.google ? window.google.maps : null),
 
     initialize: function(options) {
-        var map_controls = settings.get('map_controls');
+        var self = this,
+            map_controls = settings.get('map_controls');
 
         this.layerTabCollection = options.layerTabCollection;
 
         _.defaults(options, {
             addZoomControl: _.includes(map_controls, 'ZoomControl'),
+            addFitToAoiControl: _.includes(map_controls, 'FitToAoiControl'),
             addSidebarToggleControl: _.includes(map_controls, 'SidebarToggleControl'),
             addLocateMeButton: _.includes(map_controls, 'LocateMeButton'),
             showLayerAttribution: _.includes(map_controls, 'LayerAttribution'),
@@ -391,6 +394,13 @@ var MapView = Marionette.ItemView.extend({
 
         if (options.addSidebarToggleControl) {
             map.addControl(new SidebarToggleControl({ model: options.model }));
+        }
+
+        if (options.addFitToAoiControl) {
+            map.addControl(new FitToAoiControl({
+                model: options.model,
+                fitToAoi: function() { self.fitToAoi(); }
+            }));
         }
 
         this.setMapEvents();
@@ -641,7 +651,7 @@ var MapView = Marionette.ItemView.extend({
                 var layer = new L.GeoJSON(areaOfInterest);
                 applyMask(this._areaOfInterestLayer, layer);
                 this.model.set('maskLayerApplied', true);
-                this._leafletMap.fitBounds(layer.getBounds(), { reset: true });
+                this.fitToAoi(layer);
                 this.addAdditionalAoiShapes();
             } catch (ex) {
                 console.log('Error adding Leaflet layer (invalid GeoJSON object)');
@@ -745,11 +755,22 @@ var MapView = Marionette.ItemView.extend({
         this.fitToAoi();
     },
 
-    fitToAoi: function() {
-        var areaOfInterest = this.model.get('areaOfInterest');
+    /**
+    Fits the current map view to an AOI if one is set.
+    @param layer -- A leaflet layer of the AOI if one is available.
+                    If not provided, a new L.GeoJSON layer is created to
+                    obtain the bounds of the AOI.
+    **/
+    fitToAoi: function(layer) {
+        if (!layer) {
+            var areaOfInterest = this.model.get('areaOfInterest');
 
-        if (areaOfInterest) {
-            var layer = new L.GeoJSON(areaOfInterest);
+            if (areaOfInterest) {
+                layer = new L.GeoJSON(areaOfInterest);
+            }
+        }
+
+        if (layer) {
             this._leafletMap.fitBounds(layer.getBounds(), { reset: true });
         }
     },

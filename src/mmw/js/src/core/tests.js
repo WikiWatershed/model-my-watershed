@@ -39,6 +39,7 @@ describe('Core', function() {
             'LayerSelector',
             'LocateMeButton',
             'ZoomControl',
+            'FitToAoiControl',
         ]);
     });
 

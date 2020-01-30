@@ -934,6 +934,7 @@ MAP_CONTROLS = [
     'LayerSelector',
     'LocateMeButton',
     'ZoomControl',
+    'FitToAoiControl',
     'SidebarToggleControl',
 ]
 
