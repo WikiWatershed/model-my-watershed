@@ -14,8 +14,6 @@ from drf_yasg.utils import swagger_auto_schema
 
 from django.utils.timezone import now
 from django.urls import reverse
-from django.conf import settings
-from django.contrib.gis.geos import GEOSGeometry
 
 from apps.core.models import Job
 from apps.core.tasks import (save_job_error,
@@ -414,14 +412,8 @@ def start_analyze_land(request, format=None):
 
     geop_input = {'polygon': [area_of_interest]}
 
-    aoi_geom = GEOSGeometry(area_of_interest, srid=4326)
-    geop_task = 'nlcd'
-
-    if settings.ARA_PERIMETER.contains(aoi_geom):
-        geop_task = 'nlcd_ara'
-
     return start_celery_job([
-        geoprocessing.run.s(geop_task, geop_input, wkaoi),
+        geoprocessing.run.s('nlcd_ara', geop_input, wkaoi),
         tasks.analyze_nlcd.s(area_of_interest)
     ], area_of_interest, user)
 

@@ -130,19 +130,21 @@ def analyze_nlcd(result, area_of_interest=None):
 
     result = parse(result)
     histogram = {}
+    total_ara = 0
     total_count = 0
     categories = []
-
-    has_ara = type(result.keys()[0]) == tuple
 
     def area(dictionary, key, default=0):
         return dictionary.get(key, default) * pixel_width * pixel_width
 
     # Convert results to histogram, calculate total
     for key, count in result.iteritems():
-        nlcd = key[0] if has_ara else key
+        nlcd, ara = key
         total_count += count
+        total_ara += count if ara == 1 else 0
         histogram[nlcd] = count + histogram.get(nlcd, 0)
+
+    has_ara = total_ara > 0
 
     for nlcd, (code, name) in layer_classmaps.NLCD.iteritems():
         categories.append({

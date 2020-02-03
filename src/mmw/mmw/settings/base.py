@@ -14,7 +14,7 @@ from os.path import abspath, basename, dirname, join, normpath
 from sys import path
 
 from layer_settings import (LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
-                            ARA_PERIMETER, DRB_PERIMETER, DRB_SIMPLE_PERIMETER,
+                            DRB_PERIMETER, DRB_SIMPLE_PERIMETER,
                             NHD_REGION2_PERIMETER, CONUS_PERIMETER)  # NOQA
 from gwlfe_settings import (GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, # NOQA
                             CURVE_NUMBER, NODATA, SRAT_KEYS, SUBBASIN_SOURCE_NORMALIZING_AREAS)  # NOQA
@@ -450,18 +450,6 @@ GEOP = {
     'port': environ.get('MMW_GEOPROCESSING_PORT', '8090'),
     'args': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.MapshedJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),  # NOQA
     'json': {
-        'nlcd': {
-            'input': {
-                'polygon': [],
-                'polygonCRS': 'LatLng',
-                'rasters': [
-                    'nlcd-2011-30m-epsg5070-512-int8'
-                ],
-                'rasterCRS': 'ConusAlbers',
-                'operationType': 'RasterGroupedCount',
-                'zoom': 0
-            }
-        },
         'nlcd_ara': {
             'input': {
                 'polygon': [],
