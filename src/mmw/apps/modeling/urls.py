@@ -34,4 +34,6 @@ urlpatterns = [
         views.boundary_layer_search, name='boundary_layer_search'),
     url(r'export/gms/?$', views.export_gms, name='export_gms'),
     url(r'point-source/$', views.drb_point_sources, name='drb_point_sources'),
+    url(r'weather-stations/$', views.weather_stations,
+        name='weather_stations'),
 ]
