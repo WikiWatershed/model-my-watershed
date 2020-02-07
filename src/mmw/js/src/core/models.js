@@ -293,9 +293,12 @@ var ObservationsLayerGroupModel = LayerGroupModel.extend({
         var self = this,
             weatherStationAPIUrl = '/mmw/modeling/weather-stations/';
 
-        this.set('polling', true);
+        // LayerPickerGroupView's onShow fires on modelChange as of e93743eba77
+        // where this function is called from. To prevent a series of recursive
+        // calls, we change the model here silently to not trigger extra onShow.
+        this.set('polling', true, { silent: true });
 
-        $.ajax({ 'url': weatherStationAPIUrl, 'type': 'GET'})
+        return $.ajax({ 'url': weatherStationAPIUrl, 'type': 'GET'})
             .done(function(weatherStationData) {
                 self.set({
                     'polling': false,
@@ -326,6 +329,17 @@ var ObservationsLayerGroupModel = LayerGroupModel.extend({
                     'error': 'Could not load observations',
                 });
             });
+    },
+
+    fetchLayersIfNeeded: function() {
+        var notAlreadyFetching = !this.fetchLayersPromise,
+            thereIsAnError = this.get('error');
+
+        if (notAlreadyFetching || thereIsAnError) {
+            this.fetchLayersPromise = this.fetchLayers();
+        }
+
+        return this.fetchLayersPromise;
     },
 });
 
