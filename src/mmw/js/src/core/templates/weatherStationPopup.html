@@ -1,0 +1,19 @@
+<div class="data-catalog-popover-result-region">
+    <div class="resource-wrapper">
+        <h3 class="resource-title">
+            Weather Station: {{ station }}</h2>
+        </h3>
+        <div class="resource-detail">
+            <i class="fa fa-star"></i> {{ location if location else '' }}
+        </div>
+        <div class="resource-detail">
+            <i class="fa fa-calendar"></i> {{ begyear }} - {{ endyear }}
+        </div>
+        <div class="resource-detail">
+            <i class="fa fa-leaf"></i> Grow Season: {{ grw_start }} - {{ grw_end }}
+        </div>
+        <div class="resource-detail">
+            <i class="fa fa-tint"></i> Mean precipitation: {{ meanprecip }} (in)
+        </div>
+    </div>
+</div>

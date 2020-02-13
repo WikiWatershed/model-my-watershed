@@ -6,11 +6,10 @@ var Backbone = require('../../shim/backbone'),
     turfArea = require('turf-area'),
     L = require('leaflet'),
     utils = require('./utils'),
-    pointSourceLayer = require('../core/pointSourceLayer'),
+    weatherStationLayer = require('../core/weatherStationLayer'),
     drawUtils = require('../draw/utils'),
     settings = require('./settings'),
-    coreUnits = require('./units'),
-    VizerLayers = require('./vizerLayers');
+    coreUnits = require('./units');
 
 var MapModel = Backbone.Model.extend({
     defaults: {
@@ -290,42 +289,35 @@ var ObservationsLayerGroupModel = LayerGroupModel.extend({
         layers: null,
     },
 
-    fetchLayers: function(map) {
+    fetchLayers: function() {
         var self = this,
-            pointSrcAPIUrl = '/mmw/modeling/point-source/';
-        var vizer = new VizerLayers();
-        this.set('polling', true);
+            weatherStationAPIUrl = '/mmw/modeling/weather-stations/';
 
-        $.when(vizer.getLayers(), $.ajax({ 'url': pointSrcAPIUrl, 'type': 'GET'}))
-            .done(function(observationLayers, pointSourceData) {
+        // LayerPickerGroupView's onShow fires on modelChange as of e93743eba77
+        // where this function is called from. To prevent a series of recursive
+        // calls, we change the model here silently to not trigger extra onShow.
+        this.set('polling', true, { silent: true });
+
+        return $.ajax({ 'url': weatherStationAPIUrl, 'type': 'GET'})
+            .done(function(weatherStationData) {
                 self.set({
                     'polling': false,
                     'error': null,
                 });
 
-                var observationLayerObjects =_.map(observationLayers, function(leafletLayer, display) {
-                        return {
-                                leafletLayer: leafletLayer,
-                                display: display,
-                                active: false,
-                                layerType: 'observations'
-                            };
-                    }),
-                    observationLayersCollection = new Backbone.Collection(observationLayerObjects);
-
-                if (pointSourceData) {
+                var observationLayersCollection = new Backbone.Collection();
+                if (weatherStationData) {
                     try {
-                        var parsedPointSource = JSON.parse(pointSourceData[0]),
-                            numberOfPoints = parsedPointSource.features.length;
+                        var numberOfPoints = weatherStationData.features.length;
                         observationLayersCollection.add({
-                            leafletLayer: pointSourceLayer.Layer.createLayer(pointSourceData[0], map),
-                            display: 'EPA Permitted Point Sources (' + numberOfPoints + ')',
+                            leafletLayer: weatherStationLayer.Layer.createLayer(weatherStationData),
+                            display: 'Weather Stations (' + numberOfPoints + ')',
                             active: false,
-                            code: 'pointsource',
+                            code: 'weatherstations',
                             layerType: 'observations'
                         });
-                    } catch (e) {
-                        console.error('Unable to parse point source data');
+                    } catch(e) {
+                        console.error('Unable to parse weather data');
                     }
                 }
 
@@ -337,6 +329,17 @@ var ObservationsLayerGroupModel = LayerGroupModel.extend({
                     'error': 'Could not load observations',
                 });
             });
+    },
+
+    fetchLayersIfNeeded: function() {
+        var notAlreadyFetching = !this.fetchLayersPromise,
+            thereIsAnError = this.get('error');
+
+        if (notAlreadyFetching || thereIsAnError) {
+            this.fetchLayersPromise = this.fetchLayers();
+        }
+
+        return this.fetchLayersPromise;
     },
 });
 

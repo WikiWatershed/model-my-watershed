@@ -543,6 +543,35 @@ def drb_point_sources(request):
                     headers={'Cache-Control': 'max-age: 604800'})
 
 
+@decorators.api_view(['GET'])
+@decorators.permission_classes((AllowAny, ))
+def weather_stations(request):
+    query = '''
+          WITH features AS (
+              SELECT jsonb_build_object(
+                  'type',       'Feature',
+                  'id',         ogc_fid,
+                  'geometry',   ST_AsGeoJSON(geom)::jsonb,
+                  'properties', to_jsonb(ws) - 'ogc_fid' - 'geom'
+              ) AS feature
+              FROM (SELECT * FROM ms_weather_station) AS ws
+          )
+
+          SELECT jsonb_build_object(
+              'type',     'FeatureCollection',
+              'features', jsonb_agg(features.feature)
+          )
+          FROM features;
+          '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(query)
+        result = cursor.fetchall()[0][0]
+
+    return Response(result,
+                    headers={'Cache-Control': 'max-age: 604800'})
+
+
 @swagger_auto_schema(method='get',
                      responses={200: JOB_RESPONSE})
 @decorators.api_view(['GET'])
