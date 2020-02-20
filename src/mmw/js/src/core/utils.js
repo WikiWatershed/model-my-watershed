@@ -153,7 +153,8 @@ var utils = {
     _addLayer: function(layer, layerGroup, map) {
         var hasTimeSlider = layer.get('hasTimeSlider'),
             hasOverLayers = layer.get('hasOverLayers'),
-            leafletLayer = layer.get('leafletLayer');
+            leafletLayer = layer.get('leafletLayer'),
+            bringToFront = layer.get('bringToFront');
 
         if (hasTimeSlider) {
             // If the layer has multiple time periods, use the most recently set
@@ -165,6 +166,10 @@ var utils = {
 
         layer.set('active', true);
         map.addLayer(leafletLayer);
+
+        if(bringToFront) {
+            leafletLayer.bringToFront();
+        }
 
         if (hasOverLayers) {
             map.addLayer(layer.get('overLayers'));

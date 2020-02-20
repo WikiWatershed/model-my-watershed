@@ -529,7 +529,7 @@ var AnalyzeLayerToggleView = Marionette.ItemView.extend({
             }, this);
             this.listenTo(this.layerGroup, 'change:error change:polling', this.setMessage, this);
             if (!this.layerGroup.get('polling')) {
-                this.layerGroup.fetchLayers(App.getLeafletMap());
+                this.layerGroup.fetchLayersIfNeeded(App.getLeafletMap());
             }
         }
     },

@@ -275,6 +275,10 @@ function projectCleanUp() {
         scenarios.off('change:activeScenario change:id', updateScenario);
         App.currentProject.set('scenarios_events_initialized', false);
 
+        // Clear any of the project's active weather stations from
+        // the weather stations layer.
+        App.getLayerTabCollection().getObservationLayerGroup().clearActiveWeatherStations();
+
         // App.projectNumber holds the number of the project that was
         // in use when the user left the `/project` page.  The intent
         // is to allow the same project to be returned-to via the UI
