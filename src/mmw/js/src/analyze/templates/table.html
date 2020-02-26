@@ -22,7 +22,7 @@
             <th class="hidden-analyze-table-column" data-tableexport-display="always"></th>
         {% endif %}
         <th class="text-right">{{ areaTotal|round(2)|toLocaleString(2) }}</th>
-        <th class="text-right">{{ coverageTotal|round(1)|toLocaleString(1) }}</th>
+        <th class="text-right">{{ coverageTotal|round(1)|toLocaleString(2) }}</th>
         {% if isLandTable %}
             <th class="text-right">
                 {% if araNull %}

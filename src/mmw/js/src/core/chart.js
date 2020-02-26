@@ -46,7 +46,14 @@ function handleCommonOptions(chart, options) {
         chart.yAxis.axisLabel(options.yAxisLabel);
     }
     if (options.isPercentage) {
-        chart.yAxis.tickFormat(d3.format('.0%'));
+        // If the max proportion area is less than 1%, include
+        // 2 digits of precision on the y axis label, otherwise
+        // use whole integers
+        if (options.maxYValue < .01) {
+            chart.yAxis.tickFormat(d3.format('.02%'));
+        } else {
+            chart.yAxis.tickFormat(d3.format('.0%'));
+        }
     }
     if (options.abbreviateTicks) {
         chart.yAxis.tickFormat(d3.format('.2s'));
@@ -67,10 +74,7 @@ function setChartWidth(chart, chartEl, data, options) {
 }
 
 function yFormat(data) {
-    var getYs = function(d) { return _.map(d.values, 'y'); },
-        nonZero = function(x) { return x > 0; },
-        ys = _(data).map(getYs).flatten().filter(nonZero).value(),
-        minY = Math.min.apply(null, ys);
+    var minY = getMinYValue(data);
 
     if (minY > 1) {
         return '0.1f';
@@ -82,6 +86,22 @@ function yFormat(data) {
     }
 
     return '0.0' + i + 'f';
+}
+
+function getMinYValue(data) {
+    return Math.min.apply(null, getNonZeroYValues(data));
+}
+
+function getMaxYValue(data) {
+    return Math.max.apply(null, getNonZeroYValues(data));
+}
+
+function getNonZeroYValues(data) {
+    var getYs = function(d) { return _.map(d.values, 'y'); },
+        nonZero = function(x) { return x > 0; },
+        ys = _(data).map(getYs).flatten().filter(nonZero).value();
+
+    return ys;
 }
 
 /*
@@ -114,7 +134,6 @@ function renderHorizontalBarChart(chartEl, data, options) {
           values: data
         }
     ];
-
 
     // The colors and barColors methods on chart do not
     // support the behavior we want.
@@ -165,7 +184,8 @@ function renderHorizontalBarChart(chartEl, data, options) {
     options = options || {};
     _.defaults(options, {
         margin: {top: 30, right: 30, bottom: 40, left: 210},
-        maxBarHeight: 150
+        maxBarHeight: 150,
+        maxYValue: getMaxYValue(data),
     });
 
     nv.addGraph(function() {
