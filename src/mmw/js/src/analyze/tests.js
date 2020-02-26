@@ -111,7 +111,7 @@ function landTableFormatter(categories) {
         return [
             name,
             areaKm2.toFixed(2),
-            coverage.toFixed(1),
+            coverage.toFixed(2),
             ara.toFixed(2),
         ];
     });
@@ -125,7 +125,7 @@ function protectedLandsTableFormatter(categories) {
             areaKm2 = category.get('area') / coreUnits.METRIC.AREA_XL.factor,
             coverage = category.get('coverage') * 100;
 
-        return [name, areaKm2.toFixed(2), coverage.toFixed(1)];
+        return [name, areaKm2.toFixed(2), coverage.toFixed(2)];
     });
 }
 
@@ -137,7 +137,7 @@ function soilTableFormatter(categories) {
             areaKm2 = category.get('area') / coreUnits.METRIC.AREA_XL.factor,
             coverage = category.get('coverage') * 100;
 
-        return [name, areaKm2.toFixed(2), coverage.toFixed(1)];
+        return [name, areaKm2.toFixed(2), coverage.toFixed(2)];
     });
 }
 
