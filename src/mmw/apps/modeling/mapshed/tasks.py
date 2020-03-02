@@ -65,6 +65,9 @@ def collect_data(geop_results, geojson, watershed_id=None, weather=None):
     else:
         ws = nearest_weather_stations([(None, watershed_id, geojson)])
 
+    z['WeatherStations'] = [{'station': s.station,
+                             'distance': s.dist} for s in ws]
+
     z['Grow'] = growing_season(ws)
     z['Acoef'] = erosion_coeff(ws, z['Grow'])
     z['PcntET'] = et_adjustment(ws)

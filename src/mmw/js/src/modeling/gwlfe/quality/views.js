@@ -8,7 +8,8 @@ var $ = require('jquery'),
     tableTmpl = require('./templates/table.html'),
     settings = require('../../../core/settings'),
     coreUnits = require('../../../core/units'),
-    utils = require('../../../core/utils');
+    utils = require('../../../core/utils'),
+    gwlfeViews = require('../views');
 
 var ResultView = Marionette.LayoutView.extend({
     className: 'tab-pane',
@@ -25,6 +26,7 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     regions: {
+        layerRegion: '.layer-region',
         tableRegion: '.quality-table-region',
     },
 
@@ -46,6 +48,7 @@ var ResultView = Marionette.LayoutView.extend({
 
     onShow: function() {
         var result = this.model.get('result');
+        this.layerRegion.show(new gwlfeViews.WeatherStationLayerToggleView());
         this.tableRegion.empty();
         this.activateTooltip();
 

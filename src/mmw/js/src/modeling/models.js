@@ -644,6 +644,12 @@ var ProjectModel = Backbone.Model.extend({
                         }
                         self.set(mapshedJobUUIDAttribute, job);
                         saveProjectAndScenarios();
+
+                        if('WeatherStations' in result) {
+                            App.getLayerTabCollection()
+                                .getObservationLayerGroup()
+                                .setActiveWeatherStations(result['WeatherStations']);
+                        }
                     }
                 }).fail(function(error) {
                     self.set(mapshedJobErrorAttribute, error);
