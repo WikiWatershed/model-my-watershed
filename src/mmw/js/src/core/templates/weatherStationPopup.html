@@ -19,7 +19,7 @@
             <i class="fa fa-leaf"></i> Grow Season: {{ grw_start }} - {{ grw_end }}
         </div>
         <div class="resource-detail">
-            <i class="fa fa-tint"></i> Mean precipitation: {{ meanprecip }} (in)
+            <i class="fa fa-tint"></i> Mean precipitation: {{ meanprecip|round(2)|toLocaleString(2) }} {{ lengthUnit }}
         </div>
     </div>
 </div>
