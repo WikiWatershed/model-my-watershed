@@ -58,11 +58,9 @@ LAYER_GROUPS = {
             'display': 'Streets',
             'url': 'https://{s}.tiles.mapbox.com/v4/stroudcenter.1f06e119'
                     '/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic3Ryb3VkY2VudGVyIiwiYSI6ImNpd2NhMmZiMDA1enUyb2xrdjlhYzV6N24ifQ.3dFii4MfQFOqYEDg9kVguA',  # NOQA
-            'attribution': 'Map data &copy; <a href="http://openstreetmap.org">'
-                           'OpenStreetMap</a> contributors, '
-                           '<a href="http://creativecommons.org/licenses/by-sa/'
-                           '2.0/">CC-BY-SA</a>, Imagery &copy; '
-                           '<a href="http://mapbox.com">Mapbox</a>',
+            'attribution': '<a href="https://www.mapbox.com/about/maps/">&copy; Mapbox | </a>'
+                           '<a href="http://www.openstreetmap.org/copyright">&copy; OpenStreetMap | </a>'
+                           '<a href="https://www.mapbox.com/map-feedback/" target="_blank"><strong>Improve this map</strong>',
             'maxZoom': 18,
             'default': True,
             'big_cz': True,

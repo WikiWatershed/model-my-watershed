@@ -3,6 +3,8 @@
 var L = require('leaflet'),
     Backbone = require('../../shim/backbone'),
     Marionette = require('../../shim/backbone.marionette'),
+    settings = require('./settings'),
+    coreUnits = require('./units'),
     weatherStationPopupTmpl = require('./templates/weatherStationPopup.html');
 
 var inactiveWeatherStationStyle = {
@@ -24,8 +26,16 @@ var activeWeatherStationStyle = {
 };
 
 var bindPopup = function(marker, feature, isActive) {
-    var view = new WeatherStationPopupView({ model: new Backbone.Model(feature.properties),
-                                             isActive: isActive });
+    var scheme = settings.get('unit_scheme'),
+        model = new Backbone.Model(feature.properties),
+        standardizedPrecip = model.get('meanprecip') * coreUnits.CONVERSIONS.M_PER_MM,
+        view = new WeatherStationPopupView({ model: model, isActive: isActive });
+
+    model.set({
+        meanprecip: coreUnits.get('LENGTH_S', standardizedPrecip).value,
+        lengthUnit: coreUnits[scheme].LENGTH_S.name,
+    });
+
     marker.unbindPopup();
     marker.bindPopup(view.render().el, { className: 'data-catalog-popover'});
 };

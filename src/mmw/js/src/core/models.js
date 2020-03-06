@@ -890,6 +890,8 @@ var AppStateModel = Backbone.Model.extend({
 
 module.exports = {
     MapModel: MapModel,
+    LayersCollection: LayersCollection,
+    ObservationsLayerGroupModel: ObservationsLayerGroupModel,
     LayerTabCollection: LayerTabCollection,
     TaskModel: TaskModel,
     TaskMessageViewModel: TaskMessageViewModel,

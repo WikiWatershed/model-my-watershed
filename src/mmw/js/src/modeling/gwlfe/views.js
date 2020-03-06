@@ -9,6 +9,7 @@ var WeatherStationLayerToggleView = Marionette.ItemView.extend({
 
     ui: {
         'toggleButton': '.analyze-layertoggle',
+        helptextIcon: 'a.help',
     },
 
     events: {
@@ -32,6 +33,10 @@ var WeatherStationLayerToggleView = Marionette.ItemView.extend({
     renderIfNotDestroyed: function() {
         if (!this.isDestroyed) {
             this.render();
+            this.ui.helptextIcon.popover({
+                placement: 'right',
+                trigger: 'focus'
+            });
         }
     },
 

@@ -49,7 +49,7 @@ function handleCommonOptions(chart, options) {
         // If the max proportion area is less than 1%, include
         // 2 digits of precision on the y axis label, otherwise
         // use whole integers
-        if (options.maxYValue < .01) {
+        if (options.maxYValue < 0.02) {
             chart.yAxis.tickFormat(d3.format('.02%'));
         } else {
             chart.yAxis.tickFormat(d3.format('.0%'));

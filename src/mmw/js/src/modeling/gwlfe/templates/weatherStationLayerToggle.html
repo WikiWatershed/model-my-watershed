@@ -15,4 +15,17 @@
             {% endif %}
         </div>
     </button>
+    <div class="analyze-source">
+        <span>Source: USEPA National Climate Data</span>
+        <a class="help" data-toggle="popover" tabindex="0" data-html="true"
+            data-container="body" role="button"
+            data-content="For more information on the data source, see
+                          <a href='https://wikiwatershed.org/help/model-help/mmw-tech/#usepa-climate'
+                             target='_blank'>MMW Technical Documentation</a>"
+            data-template="<div class='popover'><div class='pull-right'
+                            id='popover-close-button'><i class='fa fa-times' /></div><div
+                            class='popover-content'></div><div class='arrow'></div></div>">
+            <i class="fa fa-info-circle black"></i>
+        </a>
+    </div>
 {% endif %}
