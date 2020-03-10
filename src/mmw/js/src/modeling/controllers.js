@@ -282,6 +282,10 @@ function projectCleanUp() {
         App.projectNumber = scenarios.at(0).get('project');
     }
 
+    // Clear any of the current or previous project's active weather stations
+    // from the weather stations layer.
+    App.getLayerTabCollection().getObservationLayerGroup().clearActiveWeatherStations();
+
     App.getMapView().updateModifications(null);
     App.getMapView().clearSubbasinHuc12s();
     App.getMapView().clearSubbasinCatchments();

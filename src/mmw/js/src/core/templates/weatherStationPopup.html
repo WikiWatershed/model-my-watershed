@@ -3,6 +3,12 @@
         <h3 class="resource-title">
             Weather Station: {{ station }}</h2>
         </h3>
+        <div class="distance">
+            {{ 'Distance: ' + distanceToProjectAoi + ' (km)' if isActive else '' }}
+        </div>
+        <div class="resource-detail">
+            {{ "This weather station was used in the project's model." if isActive else '' }}
+        </div>
         <div class="resource-detail">
             <i class="fa fa-star"></i> {{ location if location else '' }}
         </div>
@@ -13,7 +19,7 @@
             <i class="fa fa-leaf"></i> Grow Season: {{ grw_start }} - {{ grw_end }}
         </div>
         <div class="resource-detail">
-            <i class="fa fa-tint"></i> Mean precipitation: {{ meanprecip }} (in)
+            <i class="fa fa-tint"></i> Mean precipitation: {{ meanprecip|round(2)|toLocaleString(2) }} {{ lengthUnit }}
         </div>
     </div>
 </div>

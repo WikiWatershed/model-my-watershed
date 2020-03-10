@@ -193,6 +193,7 @@ var units = {
     },
     CONVERSIONS: {
         CM_PER_IN: 2.54,
+        M_PER_MM: 0.001,
     },
 };
 

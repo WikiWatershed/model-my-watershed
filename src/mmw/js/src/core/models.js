@@ -6,7 +6,7 @@ var Backbone = require('../../shim/backbone'),
     turfArea = require('turf-area'),
     L = require('leaflet'),
     utils = require('./utils'),
-    weatherStationLayer = require('../core/weatherStationLayer'),
+    weatherStationLayer = require('./weatherStationLayer'),
     drawUtils = require('../draw/utils'),
     settings = require('./settings'),
     coreUnits = require('./units');
@@ -154,6 +154,7 @@ var LayerModel = Backbone.Model.extend({
         legendUnitsLabel: null,
         legendUnitBreaks: null,
         bigCZ: null,
+        bringToFront: false
     },
 
     buildLayer: function(layerSettings, layerType, initialActive) {
@@ -238,6 +239,77 @@ var LayerModel = Backbone.Model.extend({
     }
 });
 
+var WeatherStationLayerModel = LayerModel.extend({
+    defaults: {
+        bringToFront: true, // Ensures popups work when station is within project AOI.
+        activeWeatherStations: null,
+        activeWeatherStationPoints: null
+    },
+
+    // Sets active weather stations. Used to change the visual appearance
+    // of any stations participating as modeling input, and to set the
+    // distance of the weather station from an AOI into the popup.
+    setActiveWeatherStations: function(weatherStations) {
+        var leafletLayer = this.get('leafletLayer'),
+            activeWeatherStations = {};
+
+        if(this.activeWeatherStations) {
+            this.clearActiveWeatherStations();
+        }
+
+        _.forEach(weatherStations, function(ws) {
+            activeWeatherStations[ws.station] = ws;
+        });
+
+
+        this.set('activeWeatherStations', activeWeatherStations);
+
+        if(leafletLayer) {
+            var activeWeatherStationPoints =
+                weatherStationLayer.Layer.setActiveWeatherStations(leafletLayer, activeWeatherStations);
+            this.set('activeWeatherStationPoints', activeWeatherStationPoints);
+        }
+    },
+
+    clearActiveWeatherStations: function() {
+        var leafletLayer = this.get('leafletLayer'),
+            prevActiveWeatherStations = this.get('activeWeatherStations');
+
+        this.set('activeWeatherStations', null);
+        this.set('activeWeatherStationPoints', null);
+
+        if(leafletLayer && prevActiveWeatherStations) {
+            weatherStationLayer.Layer.clearActiveWeatherStations(leafletLayer, prevActiveWeatherStations);
+        }
+    },
+
+    // Toggles the layer. If toggling on, zoom the map to fit both
+    // the AOI and the active weather stations.
+    toggleAndZoom: function(areaOfInterest, map, layerGroup) {
+        utils.toggleLayer(this, map, layerGroup);
+
+        if(this.get('active')) {
+            // We toggled on; zoom to the active weather stations.
+            var activeStationPoints = this.get('activeWeatherStationPoints'),
+                geoms = activeStationPoints ? activeStationPoints.slice(0) : [];
+
+            if(geoms) {
+                if(areaOfInterest) {
+                    geoms.push(areaOfInterest);
+                }
+                var geomCollection = {
+                    'type': 'GeometryCollection',
+                    'geometries': geoms
+                };
+
+                var gjLayer = new L.GeoJSON(geomCollection);
+
+                map.fitBounds(gjLayer.getBounds(), { reset: true });
+            }
+        }
+    }
+});
+
 var LayersCollection = Backbone.Collection.extend({
     model: LayerModel,
 
@@ -305,17 +377,17 @@ var ObservationsLayerGroupModel = LayerGroupModel.extend({
                     'error': null,
                 });
 
-                var observationLayersCollection = new Backbone.Collection();
+                var observationLayersCollection = new LayersCollection();
                 if (weatherStationData) {
                     try {
+                        var leafletLayer = weatherStationLayer.Layer.createLayer(weatherStationData);
                         var numberOfPoints = weatherStationData.features.length;
-                        observationLayersCollection.add({
-                            leafletLayer: weatherStationLayer.Layer.createLayer(weatherStationData),
+                        observationLayersCollection.add(new WeatherStationLayerModel({
+                            leafletLayer: leafletLayer,
                             display: 'Weather Stations (' + numberOfPoints + ')',
                             active: false,
                             code: 'weatherstations',
-                            layerType: 'observations'
-                        });
+                            layerType: 'observations'}));
                     } catch(e) {
                         console.error('Unable to parse weather data');
                     }
@@ -341,6 +413,49 @@ var ObservationsLayerGroupModel = LayerGroupModel.extend({
 
         return this.fetchLayersPromise;
     },
+
+    // Returns a promise that resolves to the weather station layer, if available.
+    getWeatherStationLayer: function() {
+        var self = this;
+
+        return self
+            .fetchLayersIfNeeded()
+            .then(function() {
+                var layers = self.get('layers');
+                if (layers) {
+                    return layers.findWhere({ code: 'weatherstations' });
+                }
+                return null;
+            });
+    },
+
+    // Method for setting the active stations on the model and
+    // GeoJSON layer. If the ObservationTab is not yet fetched,
+    // this fetches those layers in order to access the weather stations
+    // layer model.
+    //
+    // The argument is a list if objects with a 'station' and 'distance' property,
+    // where the distance is the distance in meters to the project AOI.
+    setActiveWeatherStations: function(activeWeatherStations) {
+        this.getWeatherStationLayer()
+            .done(function(layer) {
+                if(layer) {
+                    layer.setActiveWeatherStations(activeWeatherStations);
+                }
+            });
+    },
+
+    // If the weather stations layer is fetched, clear out any
+    // weather stations that are marked active.
+    clearActiveWeatherStations: function() {
+        var layers = this.get('layers');
+        if (layers) {
+            var layer = layers.findWhere({ code: 'weatherstations' });
+            if(layer) {
+                layer.clearActiveWeatherStations();
+            }
+        }
+    }
 });
 
 var LayerTabModel = Backbone.Model.extend({
@@ -775,6 +890,8 @@ var AppStateModel = Backbone.Model.extend({
 
 module.exports = {
     MapModel: MapModel,
+    LayersCollection: LayersCollection,
+    ObservationsLayerGroupModel: ObservationsLayerGroupModel,
     LayerTabCollection: LayerTabCollection,
     TaskModel: TaskModel,
     TaskMessageViewModel: TaskMessageViewModel,
