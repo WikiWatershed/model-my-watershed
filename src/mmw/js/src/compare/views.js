@@ -18,6 +18,7 @@ var _ = require('lodash'),
     PrecipitationView = require('../modeling/controls').PrecipitationView,
     modConfigUtils = require('../modeling/modificationConfigUtils'),
     gwlfeConfig = require('../modeling/gwlfeModificationConfig'),
+    GWLFE_LAND_COVERS = require('../modeling/constants').GWLFE_LAND_COVERS,
     compareModalTmpl = require('./templates/compareModal.html'),
     compareTabPanelTmpl = require('./templates/compareTabPanel.html'),
     compareInputsTmpl = require('./templates/compareInputs.html'),
@@ -504,13 +505,27 @@ var CompareModificationsPopoverView = Marionette.ItemView.extend({
     templateHelpers: function() {
         var isTr55 = App.currentProject.get('model_package') ===
                      coreUtils.TR55_PACKAGE,
+            scheme = settings.get('unit_scheme'),
             gwlfeModifications = isTr55 ? [] : _.flatten(
                 this.model.map(function(m) {
                     return _.map(m.get('userInput'), function(value, key) {
+                        var unit = gwlfeConfig.displayUnits[key],
+                            areaUnit = unit && coreUnits[scheme][unit].name,
+                            modKey = m.get('modKey'),
+                            name = modKey,
+                            input = gwlfeConfig.displayNames[key];
+
+                        if (modKey === 'entry_landcover') {
+                            name = _.find(GWLFE_LAND_COVERS, { id: parseInt(key.substring(6)) }).label;
+                            input = coreUnits[scheme].AREA_L_FROM_HA.name;
+                        } else {
+                            input = input.replace('AREAUNITNAME', areaUnit);
+                        }
+
                         return {
-                            name: m.get('modKey'),
+                            name: name,
                             value: value,
-                            input: gwlfeConfig.displayNames[key],
+                            input: input,
                         };
                     });
                 })
@@ -588,6 +603,7 @@ var Tr55ScenarioItemView = Marionette.ItemView.extend({
             }),
             el: this.ui.mapContainer,
             addZoomControl: false,
+            addFitToAoiControl: false,
             addLocateMeButton: false,
             addSidebarToggleControl: false,
             showLayerAttribution: false,

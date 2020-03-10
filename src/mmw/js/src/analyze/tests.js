@@ -57,15 +57,19 @@ describe('Analyze', function() {
     describe('Views', function() {
         describe('AnalysisResultView', function() {
             _.forEach(['land', 'soil', 'animals', 'pointsource', 'catchment_water_quality'], testAnalysisType);
+            testAnalysisType('protected_lands', 'land');
         });
     });
 });
 
-function testAnalysisType(type) {
+function testAnalysisType(type, taskGroupName) {
     it('tests ' + type + ' analysis renders as expected', function(done) {
         var sandbox = new SandboxRegion(),
-            result = new models.LayerModel(_.find(mocks.results, { name: type })),
+            tgName = (typeof taskGroupName === 'string') ? taskGroupName : type,
+            taskGroup = new models.AnalyzeTaskGroupModel(_.find(mocks.results, { name: tgName })),
+            result = new models.LayerModel(taskGroup.get('tasks').findWhere({ name: type }).get('result').survey),
             resultView = new views.AnalyzeResultViews[type]({
+                taskGroup: taskGroup,
                 model: result
             });
 
@@ -101,9 +105,27 @@ function landTableFormatter(categories) {
     return collection.map(function(category) {
         var name = category.get('type'),
             areaKm2 = category.get('area') / coreUnits.METRIC.AREA_XL.factor,
+            coverage = category.get('coverage') * 100,
+            ara = category.get('active_river_area') / coreUnits.METRIC.AREA_XL.factor;
+
+        return [
+            name,
+            areaKm2.toFixed(2),
+            coverage.toFixed(2),
+            ara.toFixed(2),
+        ];
+    });
+}
+
+function protectedLandsTableFormatter(categories) {
+    var collection = new coreModels.ProtectedLandsCensusCollection(categories);
+
+    return collection.map(function(category) {
+        var name = category.get('type'),
+            areaKm2 = category.get('area') / coreUnits.METRIC.AREA_XL.factor,
             coverage = category.get('coverage') * 100;
 
-        return [name, areaKm2.toFixed(2), coverage.toFixed(1)];
+        return [name, areaKm2.toFixed(2), coverage.toFixed(2)];
     });
 }
 
@@ -115,7 +137,7 @@ function soilTableFormatter(categories) {
             areaKm2 = category.get('area') / coreUnits.METRIC.AREA_XL.factor,
             coverage = category.get('coverage') * 100;
 
-        return [name, areaKm2.toFixed(2), coverage.toFixed(1)];
+        return [name, areaKm2.toFixed(2), coverage.toFixed(2)];
     });
 }
 
@@ -168,6 +190,7 @@ function catchmentWaterQualityTableFormatter(categories) {
 
 var dataFormatters = {
     land: landTableFormatter,
+    protected_lands: protectedLandsTableFormatter,
     soil: soilTableFormatter,
     animals: animalTableFormatter,
     pointsource: pointsourceTableFormatter,
@@ -175,7 +198,8 @@ var dataFormatters = {
 };
 
 var tableHeaders = {
-    land: ['Type', 'Area (km²)', 'Coverage (%)'],
+    land: ['Type', 'Area (km²)', 'Coverage (%)', 'Active River Area (km²)'],
+    protected_lands: ['Type', 'Area (km²)', 'Coverage (%)'],
     soil: ['Type', 'Area (km²)', 'Coverage (%)'],
     animals: ['Animal', 'Count'],
     pointsource: ['NPDES Code', 'City', 'Discharge (m³/d)', 'TN Load (kg/yr)', 'TP Load (kg/yr)'],

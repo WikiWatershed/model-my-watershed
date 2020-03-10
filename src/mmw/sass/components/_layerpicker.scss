@@ -175,52 +175,10 @@ span.time-slider-end {
     width: 14px;
     height: 14px;
 
-    &.-park-federal {
-      background-color: #AFB42B;
-    }
-
-    &.-park-state {
-      background-color: #C0CA33;
-    }
-
-    &.-park-local {
-      background-color: #CDDC39;
-    }
-
-    &.-park-private {
-      background-color: #D4E157;
-    }
-
-    &.-park-unknown {
-      background-color: #E6EE9C;
-    }
-
-    &.-natural-resource-federal {
-      background-color: #388E3C;
-    }
-
-    &.-natural-resource-state {
-      background-color: #43A047;
-    }
-
-    &.-natural-resource-local {
-      background-color: #4CAF50;
-    }
-
-    &.-natural-resource-private {
-      background-color: #66BB6A;
-    }
-
-    &.-natural-resource-unknown {
-      background-color: #A5D6A7;
-    }
-
-    &.-conservation-easement {
-      background-color: #9E9446; // Originally #827717, changed for distinguishability
-    }
-
-    &.-agricultural-easement {
-      background-color: #8D6E63;
+    @each $id, $color in $protectedLandsColors {
+        &-#{$id} {
+            background-color: $color;
+        }
     }
   }
 }

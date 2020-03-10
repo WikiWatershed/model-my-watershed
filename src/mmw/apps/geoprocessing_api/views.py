@@ -14,8 +14,6 @@ from drf_yasg.utils import swagger_auto_schema
 
 from django.utils.timezone import now
 from django.urls import reverse
-from django.conf import settings
-from django.contrib.gis.geos import GEOSGeometry
 
 from apps.core.models import Job
 from apps.core.tasks import (save_job_error,
@@ -414,14 +412,8 @@ def start_analyze_land(request, format=None):
 
     geop_input = {'polygon': [area_of_interest]}
 
-    aoi_geom = GEOSGeometry(area_of_interest, srid=4326)
-    geop_task = 'nlcd'
-
-    if settings.ARA_PERIMETER.contains(aoi_geom):
-        geop_task = 'nlcd_ara'
-
     return start_celery_job([
-        geoprocessing.run.s(geop_task, geop_input, wkaoi),
+        geoprocessing.run.s('nlcd_ara', geop_input, wkaoi),
         tasks.analyze_nlcd.s(area_of_interest)
     ], area_of_interest, user)
 
@@ -1016,6 +1008,144 @@ def start_analyze_terrain(request, format=None):
     return start_celery_job([
         geoprocessing.run.s('terrain', geop_input, wkaoi),
         tasks.analyze_terrain.s()
+    ], area_of_interest, user)
+
+
+@swagger_auto_schema(method='post',
+                     manual_parameters=[schemas.WKAOI],
+                     request_body=schemas.MULTIPOLYGON,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_analyze_protected_lands(request, format=None):
+    """
+    Starts a job to produce a protected lands histogram for a given area.
+
+    Uses the Protected Areas Database of the United States (PADUS),
+    published by the U.S. Geological Survey Gap Analysis Program in 2016.
+
+    For more information, see the
+    [technical documentation](https://wikiwatershed.org/
+    documentation/mmw-tech/#overlays-tab-coverage).
+
+    ## Response
+
+    You can use the URL provided in the response's `Location`
+    header to poll for the job's results.
+
+    <summary>
+       **Example of a completed job's `result`**
+    </summary>
+
+    <details>
+
+        {
+          "survey": {
+            "displayName": "Protected Lands",
+            "name": "protected_lands",
+            "categories": [
+              {
+                "area": 3589.015925407952,
+                "class_id": 1,
+                "code": "pra_f",
+                "coverage": 0.00004202077927535166,
+                "type": "Park or Recreational Area - Federal"
+              },
+              {
+                "area": 0.0,
+                "class_id": 2,
+                "code": "pra_s",
+                "coverage": 0.0,
+                "type": "Park or Recreational Area - State"
+              },
+              {
+                "area": 11292838.60929612,
+                "class_id": 3,
+                "code": "pra_l",
+                "coverage": 0.132218381989894,
+                "type": "Park or Recreational Area - Local"
+              },
+              {
+                "area": 0.0,
+                "class_id": 4,
+                "code": "pra_p",
+                "coverage": 0.0,
+                "type": "Park or Recreational Area - Private"
+              },
+              {
+                "area": 0.0,
+                "class_id": 5,
+                "code": "pra_u",
+                "coverage": 0.0,
+                "type": "Park or Recreational Area - Unknown"
+              },
+              {
+                "area": 19739.587589743736,
+                "class_id": 6,
+                "code": "nra_f",
+                "coverage": 0.00023111428601443412,
+                "type": "Natural Resource Area - Federal"
+              },
+              {
+                "area": 0.0,
+                "class_id": 7,
+                "code": "nra_s",
+                "coverage": 0.0,
+                "type": "Natural Resource Area - State"
+              },
+              {
+                "area": 206368.41571095726,
+                "class_id": 8,
+                "code": "nra_l",
+                "coverage": 0.0024161948083327206,
+                "type": "Natural Resource Area - Local"
+              },
+              {
+                "area": 4486.26990675994,
+                "class_id": 9,
+                "code": "nra_p",
+                "coverage": 0.000052525974094189576,
+                "type": "Natural Resource Area - Private"
+              },
+              {
+                "area": 0.0,
+                "class_id": 10,
+                "code": "nra_u",
+                "coverage": 0.0,
+                "type": "Natural Resource Area - Unknown"
+              },
+              {
+                "area": 0.0,
+                "class_id": 11,
+                "code": "con_ease",
+                "coverage": 0.0,
+                "type": "Conservation Easement"
+              },
+              {
+                "area": 0.0,
+                "class_id": 12,
+                "code": "ag_ease",
+                "coverage": 0.0,
+                "type": "Agricultural Easement"
+              }
+            ]
+          }
+        }
+
+    </details>
+    """
+    user = request.user if request.user.is_authenticated else None
+    area_of_interest, wkaoi = _parse_input(request)
+
+    geop_input = {'polygon': [area_of_interest]}
+
+    return start_celery_job([
+        geoprocessing.run.s('protected_lands', geop_input, wkaoi),
+        tasks.analyze_protected_lands.s(area_of_interest)
     ], area_of_interest, user)
 
 

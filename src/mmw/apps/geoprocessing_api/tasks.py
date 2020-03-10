@@ -16,6 +16,8 @@ import requests
 
 from django.conf import settings
 
+from mmw.settings import layer_classmaps
+
 from apps.modeling.geoprocessing import multi, parse
 from apps.modeling.tr55.utils import aoi_resolution
 
@@ -128,21 +130,23 @@ def analyze_nlcd(result, area_of_interest=None):
 
     result = parse(result)
     histogram = {}
+    total_ara = 0
     total_count = 0
     categories = []
-
-    has_ara = type(result.keys()[0]) == tuple
 
     def area(dictionary, key, default=0):
         return dictionary.get(key, default) * pixel_width * pixel_width
 
     # Convert results to histogram, calculate total
     for key, count in result.iteritems():
-        nlcd = key[0] if has_ara else key
+        nlcd, ara = key
         total_count += count
+        total_ara += count if ara == 1 else 0
         histogram[nlcd] = count + histogram.get(nlcd, 0)
 
-    for nlcd, (code, name) in settings.NLCD_MAPPING.iteritems():
+    has_ara = total_ara > 0
+
+    for nlcd, (code, name) in layer_classmaps.NLCD.iteritems():
         categories.append({
             'area': area(histogram, nlcd),
             'active_river_area': area(result, (nlcd, 1)) if has_ara else None,
@@ -179,7 +183,7 @@ def analyze_soil(result, area_of_interest=None):
         s = s if s != settings.NODATA else 3  # Map NODATA to 3
         histogram[s] = count + histogram.get(s, 0)
 
-    for soil, (code, name) in settings.SOIL_MAPPING.iteritems():
+    for soil, (code, name) in layer_classmaps.SOIL.iteritems():
         categories.append({
             'area': histogram.get(soil, 0) * pixel_width * pixel_width,
             'code': code,
@@ -305,6 +309,40 @@ def analyze_terrain(result):
     }
 
 
+@shared_task
+def analyze_protected_lands(result, area_of_interest=None):
+    if 'error' in result:
+        raise Exception('[analyze_protected_lands] {}'.format(result['error']))
+
+    pixel_width = aoi_resolution(area_of_interest) if area_of_interest else 1
+
+    result = parse(result)
+    histogram = {}
+    total_count = 0
+    categories = []
+
+    for key, count in result.iteritems():
+        total_count += count
+        histogram[key] = count + histogram.get(key, 0)
+
+    for class_id, (code, name) in layer_classmaps.PROTECTED_LANDS.iteritems():
+        categories.append({
+            'area': histogram.get(class_id, 0) * pixel_width * pixel_width,
+            'class_id': class_id,
+            'code': code,
+            'coverage': float(histogram.get(class_id, 0)) / total_count,
+            'type': name,
+        })
+
+    return {
+        'survey': {
+            'name': 'protected_lands',
+            'displayName': 'Protected Lands',
+            'categories': categories,
+        }
+    }
+
+
 def collect_nlcd(histogram, geojson=None):
     """
     Convert raw NLCD geoprocessing result to area dictionary
@@ -316,7 +354,7 @@ def collect_nlcd(histogram, geojson=None):
         'code': code,
         'nlcd': nlcd,
         'type': name,
-    } for nlcd, (code, name) in settings.NLCD_MAPPING.iteritems()]
+    } for nlcd, (code, name) in layer_classmaps.NLCD.iteritems()]
 
     return {'categories': categories}
 

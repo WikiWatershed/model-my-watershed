@@ -242,7 +242,7 @@ var LayerPickerGroupView = Marionette.LayoutView.extend({
 
     onShow: function() {
         if (this.model.get('name') === 'Observations' && !this.model.get('layers')) {
-            this.model.fetchLayers(this.leafletMap);
+            this.model.fetchLayersIfNeeded();
         } else {
             this.showChildView('layers', new LayerPickerLayerListView({
                 collection: this.model.get('layers'),

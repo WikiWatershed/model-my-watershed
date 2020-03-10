@@ -2,7 +2,7 @@
 # rasters), and the values of the dictionary are arrays of length two.
 # The first element of each array is the name of the NLCD category in
 # the TR-55 code.  The second string is a short, human-readable name.
-NLCD_MAPPING = {
+NLCD = {
     11: ['open_water', 'Open Water'],
     12: ['perennial_ice', 'Perennial Ice/Snow'],
     21: ['developed_open', 'Developed, Open Space'],
@@ -27,7 +27,7 @@ NLCD_MAPPING = {
 # used for the corresponding soil-type in the TR-55 code.  The second
 # member of each array is a human-readable description of that
 # soil-type.
-SOIL_MAPPING = {
+SOIL = {
     1: ['a', 'A - High Infiltration'],
     2: ['b', 'B - Moderate Infiltration'],
     3: ['c', 'C - Slow Infiltration'],
@@ -35,4 +35,19 @@ SOIL_MAPPING = {
     5: ['ad', 'A/D - High/Very Slow Infiltration'],
     6: ['bd', 'B/D - Medium/Very Slow Infiltration'],
     7: ['cd', 'C/D - Medium/Very Slow Infiltration']
+}
+
+PROTECTED_LANDS = {
+    1: ['pra_f', 'Park or Recreational Area - Federal'],
+    2: ['pra_s', 'Park or Recreational Area - State'],
+    3: ['pra_l', 'Park or Recreational Area - Local'],
+    4: ['pra_p', 'Park or Recreational Area - Private'],
+    5: ['pra_u', 'Park or Recreational Area - Unknown'],
+    6: ['nra_f', 'Natural Resource Area - Federal'],
+    7: ['nra_s', 'Natural Resource Area - State'],
+    8: ['nra_l', 'Natural Resource Area - Local'],
+    9: ['nra_p', 'Natural Resource Area - Private'],
+    10: ['nra_u', 'Natural Resource Area - Unknown'],
+    11: ['con_ease', 'Conservation Easement'],
+    12: ['ag_ease', 'Agricultural Easement'],
 }

@@ -136,6 +136,10 @@
         height: 38px;
         width: 38px;
     }
+
+    &.hidden-control {
+        visibility: hidden;
+    }
 }
 
 .leaflet-control {

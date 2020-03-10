@@ -61,6 +61,16 @@ The same script can be used to load the stream network data:
 $ ./scripts/aws/setupdb.sh -s
 ```
 
+and all the other data:
+
+```bash
+$ ./scripts/aws/setupdb.sh -d
+$ ./scripts/aws/setupdb.sh -m
+$ ./scripts/aws/setupdb.sh -p
+$ ./scripts/aws/setupdb.sh -c
+$ ./scripts/aws/setupdb.sh -q
+```
+
 Note that if you receive out of memory errors while loading the data, you may want to increase the RAM on your `services` VM (1512 MB may be all that is necessary).
 
 See debug messages from the web app server:

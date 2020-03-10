@@ -16,7 +16,7 @@ from collections import OrderedDict
 import json
 
 from django.contrib.gis.geos import GEOSGeometry
-from tr55_settings import NLCD_MAPPING, SOIL_MAPPING
+from layer_classmaps import NLCD, SOIL, PROTECTED_LANDS
 
 # [01, 02, ...] style list for layer time sliders
 MONTH_CODES = [str(m).zfill(2) for m in range(1, 13)]
@@ -36,14 +36,6 @@ drb_simple_perimeter = json.load(drb_simple_perimeter_file)
 pa_perimeter_path = join(dirname(abspath(__file__)), 'data/pa_perimeter.json')
 pa_perimeter_file = open(pa_perimeter_path)
 pa_perimeter = json.load(pa_perimeter_file)
-
-# Hand drawn perimeter of the Active River Area raster which only exist for
-# the North East and Mid Atlantic regions, used to pre-validate analysis
-ara_perimeter_path = join(dirname(abspath(__file__)), 'data/ara_perimeter.json')
-ara_perimeter_file = open(ara_perimeter_path)
-ara_perimeter = json.load(ara_perimeter_file)
-ARA_PERIMETER = GEOSGeometry(json.dumps(ara_perimeter['geometry']), srid=4326)
-
 
 # Simplified perimeter of the continental US, used to prevent non-CONUS
 # AoIs from being sent to the API
@@ -66,11 +58,9 @@ LAYER_GROUPS = {
             'display': 'Streets',
             'url': 'https://{s}.tiles.mapbox.com/v4/stroudcenter.1f06e119'
                     '/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic3Ryb3VkY2VudGVyIiwiYSI6ImNpd2NhMmZiMDA1enUyb2xrdjlhYzV6N24ifQ.3dFii4MfQFOqYEDg9kVguA',  # NOQA
-            'attribution': 'Map data &copy; <a href="http://openstreetmap.org">'
-                           'OpenStreetMap</a> contributors, '
-                           '<a href="http://creativecommons.org/licenses/by-sa/'
-                           '2.0/">CC-BY-SA</a>, Imagery &copy; '
-                           '<a href="http://mapbox.com">Mapbox</a>',
+            'attribution': '<a href="https://www.mapbox.com/about/maps/">&copy; Mapbox | </a>'
+                           '<a href="http://www.openstreetmap.org/copyright">&copy; OpenStreetMap | </a>'
+                           '<a href="https://www.mapbox.com/map-feedback/" target="_blank"><strong>Improve this map</strong>',
             'maxZoom': 18,
             'default': True,
             'big_cz': True,
@@ -111,7 +101,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in NLCD_MAPPING.iteritems()},
+            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
             'big_cz': True,
         },
         {
@@ -130,13 +120,13 @@ LAYER_GROUPS = {
             'opacity': 0.618,
             'has_opacity_slider': True,
             'legend_mapping': OrderedDict([
-                SOIL_MAPPING[1],
-                SOIL_MAPPING[2],
-                SOIL_MAPPING[3],
-                SOIL_MAPPING[5],
-                SOIL_MAPPING[6],
-                SOIL_MAPPING[7],
-                SOIL_MAPPING[4],
+                SOIL[1],
+                SOIL[2],
+                SOIL[3],
+                SOIL[5],
+                SOIL[6],
+                SOIL[7],
+                SOIL[4],
             ]),
             'big_cz': True,
         },
@@ -210,7 +200,7 @@ LAYER_GROUPS = {
             'code': 'protected-lands-30m',
             'display': 'Protected Lands',
             'short_display': 'Protected Lands',
-            'css_class_prefix': 'protected-lands-30m ',
+            'css_class_prefix': 'protected-lands-30m',
             'help_text': '',
             'url': 'https://{s}.tiles.azavea.com/protected-lands-30m/{z}/{x}/{y}.png',
             'maxNativeZoom': 13,
@@ -218,18 +208,10 @@ LAYER_GROUPS = {
             'opacity': 0.8,
             'has_opacity_slider': True,
             'legend_mapping': OrderedDict([
-                ('park-federal', 'Park or Recreation Area - Federal'),
-                ('park-state', 'Park or Recreation Area - State'),
-                ('park-local', 'Park or Recreation Area - Local'),
-                ('park-private', 'Park or Recreation Area - Private'),
-                ('park-unknown', 'Park or Recreation Area - Unknown'),
-                ('natural-resource-federal', 'Natural Resource Area - Federal'),
-                ('natural-resource-state', 'Natural Resource Area - State'),
-                ('natural-resource-local', 'Natural Resource Area - Local'),
-                ('natural-resource-private', 'Natural Resource Area - Private'),
-                ('natural-resource-unknown', 'Natural Resource Area - Unknown'),
-                ('conservation-easement', 'Conservation Easement'),
-                ('agricultural-easement', 'Agricultural Easement'),
+                (shortname, longname)
+                for _, (shortname, longname) in sorted(
+                        PROTECTED_LANDS.iteritems(), key=lambda x: x[0]
+                )
             ]),
         },
         {

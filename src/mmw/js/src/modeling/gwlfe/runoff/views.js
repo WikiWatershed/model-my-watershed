@@ -9,7 +9,8 @@ var $ = require('jquery'),
     barChartTmpl = require('../../../core/templates/barChart.html'),
     selectorTmpl = require('./templates/selector.html'),
     resultTmpl = require('./templates/result.html'),
-    tableTmpl = require('./templates/table.html');
+    tableTmpl = require('./templates/table.html'),
+    gwlfeViews = require('../views');
 
 var runoffVars = [
         { name: 'AvStreamFlow', display: 'Stream Flow' },
@@ -28,6 +29,7 @@ var ResultView = Marionette.LayoutView.extend({
 
     regions: {
         selectorRegion: '.runoff-selector-region',
+        layerRegion: '.layer-region',
         chartRegion: '.runoff-chart-region',
         tableRegion: '.runoff-table-region'
     },
@@ -64,6 +66,7 @@ var ResultView = Marionette.LayoutView.extend({
 
     onShow: function() {
         this.selectorRegion.empty();
+        this.layerRegion.show(new gwlfeViews.WeatherStationLayerToggleView());
         this.tableRegion.empty();
         this.chartRegion.empty();
         this.activateTooltip();

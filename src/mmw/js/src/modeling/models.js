@@ -655,7 +655,17 @@ var ProjectModel = Backbone.Model.extend({
         }
 
         // Return fetchGisDataPromise if it exists, else an immediately resolved one.
-        return self.fetchGisDataPromise || $.when();
+        return (self.fetchGisDataPromise || $.when()).done(function() {
+            // Set active weather stations if available
+
+            var gis_data = self.get('gis_data');
+
+            if(gis_data && 'WeatherStations' in gis_data) {
+                App.getLayerTabCollection()
+                    .getObservationLayerGroup()
+                    .setActiveWeatherStations(gis_data['WeatherStations']);
+            }
+        });
     },
 
     fetchSubbasins: function() {
@@ -671,13 +681,18 @@ var ProjectModel = Backbone.Model.extend({
      */
     exportToHydroShare: function(payload) {
         var self = this,
-            analyzeTasks = App.getAnalyzeCollection(),
+            analyzeTaskGroups = App.getAnalyzeCollection(),
+            analyzeTasks = _.flattenDeep(
+                analyzeTaskGroups.map(function(tg) {
+                    return tg.get('tasks').models;
+                })
+            ),
             analyzeFiles = analyzeTasks.map(function(at) {
-                    return {
-                        name: 'analyze_' + at.get('name') + '.csv',
-                        contents: at.getResultCSV(),
-                    };
-                }),
+                return {
+                    name: 'analyze_' + at.get('name') + '.csv',
+                    contents: at.getResultCSV(),
+                };
+            }),
             scenarios = self.get('scenarios'),
             lowerAndHyphenate = function(name) {
                     return name.toLowerCase().replace(/\s/g, '-');

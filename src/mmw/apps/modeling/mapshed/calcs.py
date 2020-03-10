@@ -60,7 +60,11 @@ def nearest_weather_stations(shapes, n=NUM_WEATHER_STATIONS):
     subquery = '''
           (SELECT %s watershed_id, station, location, meanrh, meanwind,
                  meanprecip, begyear, endyear, eroscoeff, rain_cool,
-                 rain_warm, etadj, grw_start, grw_end
+                 rain_warm, etadj, grw_start, grw_end,
+                 ST_Distance(ST_Transform(geom, 5070),
+                             ST_Transform(
+                                ST_SetSRID(ST_GeomFromText(%s), 4326),
+                                           5070)) dist
           FROM ms_weather_station
           ORDER BY geom <-> ST_SetSRID(ST_GeomFromText(%s), 4326)
           LIMIT %s)
@@ -69,7 +73,7 @@ def nearest_weather_stations(shapes, n=NUM_WEATHER_STATIONS):
     for (_, watershed_id, aoi) in shapes:
         subqueries.append(subquery)
         geom = GEOSGeometry(aoi, srid=4326)
-        params.extend([watershed_id, geom.wkt, n])
+        params.extend([watershed_id, geom.wkt, geom.wkt, n])
 
     sql = ' UNION '.join(subqueries) + ';'
 

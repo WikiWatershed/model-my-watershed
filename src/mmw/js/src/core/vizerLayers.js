@@ -14,6 +14,10 @@ var $ = require('jquery'),
     vizerIgnore = require('./settings').get('vizer_ignore'),
     vizerNames = require('./settings').get('vizer_names');
 
+// TODO: Fix or delete, as this is no longer used in the Observation Tab.
+// See issue #3255.
+
+
 // These are likely temporary until we develop custom icons for each type
 var platformIcons = {
         'River Guage': '#10A579',
