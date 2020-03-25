@@ -65,6 +65,15 @@ class Project(models.Model):
         null=True,
         max_length=255,
         help_text='Well-Known Area of Interest ID for faster geoprocessing')
+    uses_custom_weather = models.BooleanField(
+        default=False,
+        help_text='Whether or not this project currently uses a custom weather'
+                  ' dataset. If true, requires a non-NULL value for'
+                  ' custom_weather_dataset.')
+    custom_weather_dataset = models.CharField(
+        null=True,
+        max_length=511,
+        help_text='The S3 key for the custom weather dataset.')
 
     def __unicode__(self):
         return self.name
