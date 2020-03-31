@@ -3,10 +3,15 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+from django.db.models import FileField
 from django.contrib.gis.db import models
 from django.contrib.auth.models import User
 
 from apps.core.models import Job
+
+
+def project_filename(project, filename):
+    return 'project_{0}/{1}'.format(project.id, filename)
 
 
 class Project(models.Model):
@@ -70,10 +75,10 @@ class Project(models.Model):
         help_text='Whether or not this project currently uses a custom weather'
                   ' dataset. If true, requires a non-NULL value for'
                   ' custom_weather_dataset.')
-    custom_weather_dataset = models.CharField(
+    custom_weather_dataset = FileField(
         null=True,
-        max_length=511,
-        help_text='The S3 key for the custom weather dataset.')
+        upload_to=project_filename,
+        help_text='Reference path of the uploaded file.')
 
     def __unicode__(self):
         return self.name
