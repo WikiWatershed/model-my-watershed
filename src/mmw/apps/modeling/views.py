@@ -123,6 +123,90 @@ def project(request, proj_id):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
+@decorators.api_view(['GET', 'POST', 'PATCH', 'DELETE'])
+@decorators.permission_classes((IsAuthenticatedOrReadOnly, ))
+def project_custom_weather_data(request, proj_id):
+    """
+    Given a project id, creates, retrieves, updates, or deletes custom weather.
+
+    GET from owners or on public projects will return the raw weather data if
+    available, else 404.
+
+    POST from owners will validate and save new weather data, overwriting any
+    existing data. Errors will be reported as 400s.
+
+    PATCH from owners must specify uses_custom_weather as true or false, else
+    get a 400. This will be used to set projects to use default or custom
+    weather data.
+
+    DELETE from owners will remove the custom weather data.
+    """
+    project = get_object_or_404(Project, id=proj_id)
+
+    if request.method == 'GET':
+        if project.user.id != request.user.id and project.is_private:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        cwd = project.custom_weather_dataset
+        if not cwd.name:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        filename = cwd.name.split('/')[-1]
+        response = HttpResponse(cwd, content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; ' \
+                                          'filename={}'.format(filename)
+        return response
+
+    elif project.user.id == request.user.id:
+        if request.method == 'POST':
+            errors = []
+
+            if not request.FILES or 'weather' not in request.FILES:
+                errors.append('Must specify file in `weather` field.')
+
+            # TODO Validate the file
+            # https://github.com/WikiWatershed/model-my-watershed/issues/3284
+
+            if errors:
+                return Response({'errors': errors},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            project.custom_weather_dataset = request.FILES['weather']
+            project.uses_custom_weather = True
+
+        elif request.method == 'PATCH':
+            uses_custom_weather = request.data.get('uses_custom_weather')
+            if uses_custom_weather is not True and \
+               uses_custom_weather is not False:
+                return Response(
+                    {'errors': [
+                        'Must specify `uses_custom_weather`'
+                        ' as true or false']},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+            if uses_custom_weather and not project.custom_weather_dataset:
+                return Response(
+                    {'errors': [
+                        'Cannot set `uses_custom_weather` to true for'
+                        ' a project with no custom weather data.']},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+            project.uses_custom_weather = uses_custom_weather
+
+        elif request.method == 'DELETE':
+            if project.custom_weather_dataset.name:
+                project.custom_weather_dataset.delete()
+
+            project.uses_custom_weather = False
+
+        project.save()
+        serializer = ProjectListingSerializer(project)
+        return Response(serializer.data)
+
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+
 @decorators.api_view(['POST'])
 @decorators.permission_classes((IsAuthenticated, ))
 def scenarios(request):
