@@ -7,25 +7,16 @@ from urlparse import urljoin
 from rauth import OAuth2Service, OAuth2Session
 
 
-CLIENT_ID = settings.ITSI['client_id']
-CLIENT_SECRET = settings.ITSI['client_secret']
-SERVICE_NAME = 'itsi'
-BASE_URL = settings.ITSI['base_url']
-AUTHORIZE_URL = urljoin(BASE_URL, settings.ITSI['authorize_url'])
-ACCESS_TOKEN_URL = urljoin(BASE_URL, settings.ITSI['access_token_url'])
-USER_JSON_URL = urljoin(BASE_URL, settings.ITSI['user_json_url'])
-
-
-class ItsiService(OAuth2Service):
+class SSOService(OAuth2Service):
     """
-    An OAuth 2.0 Service container for ITSI Portal.
+    An OAuth 2.0 Service container for Single Sign On.
 
     This class provides a wrapper around the OAuth2Service class which has been
     initialized with site-wide parameters. It initializes the OAuth2Service
-    with client_id, client_secret, and base_url taken from app settings, with
-    AUTHORIZE_URL and ACCESS_TOKEN_URL which are explicitly defined, and with a
-    custom ItsiSession object which is a sub-class of OAuth2Session and
-    provides some convenience methods for getting data.
+    with client_id, client_secret, base_url, authorize_url, and
+    access_token_url taken from given config, and with a custom session object
+    which is a sub-class of OAuth2Session and provides some convenience methods
+    for getting data.
 
     Documentation for OAuth2Service can be found here:
     https://rauth.readthedocs.org/en/latest/api/#oauth-2-0-services
@@ -48,15 +39,17 @@ class ItsiService(OAuth2Service):
         user = session.get_user()
     """
 
-    def __init__(self):
-        super(ItsiService, self).__init__(
-            CLIENT_ID,
-            CLIENT_SECRET,
-            SERVICE_NAME,
-            ACCESS_TOKEN_URL,
-            AUTHORIZE_URL,
-            BASE_URL,
-            ItsiSession
+    def __init__(self, config, SessionClass):
+        super(SSOService, self).__init__(
+            config['client_id'],
+            config['client_secret'],
+            config['service_name'],
+            urljoin(config['base_url'],
+                    config['access_token_url']),
+            urljoin(config['base_url'],
+                    config['authorize_url']),
+            config['base_url'],
+            SessionClass
         )
 
     def get_session_from_code(self, code):
@@ -67,18 +60,37 @@ class ItsiService(OAuth2Service):
         return self.get_session(token=tokens['access_token'])
 
 
-class ItsiSession(OAuth2Session):
+class SSOSession(OAuth2Session):
     """
-    An OAuth 2.0 Session container for ITSI Portal.
+    An OAuth 2.0 Session container for Single Sign On.
 
     This is a simple wrapper around the OAuth2Session class, and provides a
-    convenience method for getting user data from ITSI Portal.
+    convenience method for getting user data from OAuth providers. Must be
+    initialized with a config dictionary.
 
     Documentation for OAuth2Session can be found here:
     https://rauth.readthedocs.org/en/latest/api/#oauth-2-0-sessions
     """
 
+    def __init__(self, config, args, kwargs):
+        super(SSOSession, self).__init__(*args, **kwargs)
+        self.user_json_url = urljoin(config['base_url'],
+                                     config['user_json_url'])
+
     def get_user(self):
-        user_json = self.get(USER_JSON_URL)
+        user_json = self.get(self.user_json_url)
 
         return json.loads(user_json.content)
+
+
+class ItsiService(SSOService):
+    def __init__(self):
+        super(ItsiService, self).__init__(
+            settings.ITSI,
+            ItsiSession
+        )
+
+
+class ItsiSession(SSOSession):
+    def __init__(self, *args, **kwargs):
+        super(ItsiSession, self).__init__(settings.ITSI, args, kwargs)

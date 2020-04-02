@@ -29,7 +29,7 @@ from apps.export.hydroshare import HydroShareService
 from apps.export.models import HydroShareResource
 from apps.home.views import get_context
 from apps.user.models import ItsiUser, UserProfile, HydroShareToken
-from apps.user.itsi import ItsiService
+from apps.user.sso import ItsiService
 from apps.user.serializers import UserProfileSerializer
 
 EMBED_FLAG = settings.ITSI['embed_flag']
@@ -169,7 +169,7 @@ def itsi_auth(request):
         # In case we are unable to reach ITSI and get an unexpected response
         return redirect('/error/itsi')
 
-    user = authenticate(itsi_id=itsi_user['id'])
+    user = authenticate(sso_id=itsi_user['id'])
     if user is not None and user.is_active:
         auth_login(request, user)
         return redirect(request.GET.get('next', '/'))
@@ -213,7 +213,7 @@ def itsi_create_user(request, itsi_user):
     itsi_embed = request.session.get(EMBED_FLAG, False)
 
     # Authenticate and log new user in
-    user = authenticate(itsi_id=itsi_id)
+    user = authenticate(sso_id=itsi_id)
     auth_login(request, user)
 
     # Re-set itsi_embed flag

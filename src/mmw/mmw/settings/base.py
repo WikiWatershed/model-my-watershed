@@ -418,6 +418,7 @@ ITSI = {
     'client_secret': environ.get('MMW_ITSI_SECRET_KEY', 'itsi_secret_key'),
     'base_url': environ.get('MMW_ITSI_BASE_URL',
                             'http://learn.staging.concord.org/'),
+    'service_name': 'itsi',
     'authorize_url': 'auth/concord_id/authorize',
     'access_token_url': 'auth/concord_id/access_token',
     'user_json_url': 'auth/concord_id/user.json',
