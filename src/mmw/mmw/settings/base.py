@@ -57,7 +57,9 @@ DEBUG = False
 
 
 # FILE STORAGE CONFIGURATION
-DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+DEFAULT_FILE_STORAGE = environ.get('MMW_DEFAULT_FILE_STORAGE', 'storages.backends.s3boto3.S3Boto3Storage')
+AWS_STORAGE_BUCKET_NAME = environ.get('MMW_AWS_STORAGE_BUCKET_NAME', 'mmw-development-data-us-east-1')
+AWS_DEFAULT_ACL = None
 # END FILE STORAGE CONFIGURATION
 
 # STACK COLOR CONFIGURATION

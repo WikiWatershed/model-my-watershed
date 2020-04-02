@@ -1,6 +1,8 @@
 envdir_home: "/etc/mmw.d/env"
 
 envdir_config:
+  AWS_PROFILE: "{{ aws_profile }}"
+
   MMW_DB_NAME: "{{ postgresql_database }}"
   MMW_DB_USER: "{{ postgresql_username }}"
   MMW_DB_PASSWORD: "{{ postgresql_password }}"
@@ -26,5 +28,7 @@ envdir_config:
   MMW_TILECACHE_BUCKET: "{{ tilecache_bucket_name }}"
   MMW_STACK_TYPE: "{{ stack_type }}"
   MMW_ENABLED_FEATURES: "{{ enabled_features }}"
+  MMW_DEFAULT_FILE_STORAGE: "{{ default_file_storage }}"
+  MMW_AWS_STORAGE_BUCKET_NAME: "{{ aws_storage_bucket_name }}"
 
   ROLLBAR_SERVER_SIDE_ACCESS_TOKEN: "Unknown"

@@ -35,3 +35,5 @@ docker_options: "-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock --storage-
 aws_profile: "mmw-stg"
 
 stack_type: "Development"
+
+aws_storage_bucket_name: "mmw-development-data-us-east-1"

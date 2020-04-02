@@ -1,5 +1,4 @@
 -r base.txt
 
 boto==2.34.0
-django-storages-redux==1.2.2
 awscli==1.10.17

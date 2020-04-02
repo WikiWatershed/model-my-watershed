@@ -55,3 +55,5 @@ numba_version: "0.38.1"
 phantomjs_version: "2.1.*"
 
 redis_version: "2:3.0.6-1ubuntu0.*"
+
+default_file_storage: "storages.backends.s3boto3.S3Boto3Storage"
