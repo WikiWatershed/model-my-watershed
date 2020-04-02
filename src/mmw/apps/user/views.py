@@ -165,8 +165,10 @@ def itsi_auth(request):
     try:
         session = itsi.get_session_from_code(code)
         itsi_user = session.get_user()
-    except:
+    except Exception as e:
         # In case we are unable to reach ITSI and get an unexpected response
+        rollbar.report_message('ITSI OAuth Error: {}'.format(e.message),
+                               'error')
         return redirect('/error/itsi')
 
     user = authenticate(sso_id=itsi_user['id'])
@@ -190,7 +192,7 @@ def itsi_create_user(request, itsi_user):
     midfix = '.itsi'
     username = trim_to_valid_length(itsi_username, midfix)
     while User.objects.filter(username=username).exists():
-        username = trim_to_valid_length(itsi_username,  midfix + suffix)
+        username = trim_to_valid_length(itsi_username,  midfix + str(suffix))
         suffix += 1
 
     # Create new user with given details and no email address or password
