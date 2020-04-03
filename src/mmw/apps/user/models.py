@@ -43,6 +43,16 @@ class ItsiUser(models.Model):
         return unicode(self.user.username)
 
 
+class ConcordUser(models.Model):
+    user = models.OneToOneField(User,
+                                on_delete=models.CASCADE,
+                                primary_key=True)
+    concord_id = models.IntegerField()
+
+    def __unicode__(self):
+        return unicode(self.user.username)
+
+
 class UserProfile(models.Model):
     UNSPECIFIED = 'Unspecified'
     UNI_FACULTY = 'University Faculty'
