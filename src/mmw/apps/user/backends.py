@@ -2,7 +2,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 
-from apps.user.models import ItsiUser
+from apps.user.models import ItsiUser, ConcordUser
 
 
 class SSOAuthenticationBackend(object):
@@ -41,3 +41,9 @@ class ItsiAuthenticationBackend(SSOAuthenticationBackend):
     def __init__(self):
         super(ItsiAuthenticationBackend, self).__init__(
             ItsiUser, 'itsi_id')
+
+
+class ConcordAuthenticationBackend(SSOAuthenticationBackend):
+    def __init__(self):
+        super(ConcordAuthenticationBackend, self).__init__(
+            ConcordUser, 'concord_id')

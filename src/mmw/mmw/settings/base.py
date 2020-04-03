@@ -358,6 +358,7 @@ ACCOUNT_ACTIVATION_DAYS = 7  # One-week activation window.
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'apps.user.backends.ItsiAuthenticationBackend',
+    'apps.user.backends.ConcordAuthenticationBackend',
 )
 
 # END THIRD-PARTY CONFIGURATION

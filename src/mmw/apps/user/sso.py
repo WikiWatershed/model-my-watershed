@@ -94,3 +94,16 @@ class ItsiService(SSOService):
 class ItsiSession(SSOSession):
     def __init__(self, *args, **kwargs):
         super(ItsiSession, self).__init__(settings.ITSI, args, kwargs)
+
+
+class ConcordService(SSOService):
+    def __init__(self):
+        super(ConcordService, self).__init__(
+            settings.CONCORD,
+            ConcordSession
+        )
+
+
+class ConcordSession(SSOSession):
+    def __init__(self, *args, **kwargs):
+        super(ConcordSession, self).__init__(settings.CONCORD, args, kwargs)
