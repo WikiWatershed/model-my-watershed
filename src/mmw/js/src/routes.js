@@ -20,7 +20,7 @@ router.addRoute('project/:projectId/draw(/)', ModelingController, 'projectDraw')
 router.addRoute('projects(/)', ProjectsController, 'projects');
 router.addRoute('error(/:type)(/)', ErrorController, 'error');
 router.addRoute('sign-up(/)', SignUpController, 'signUp');
-router.addRoute('sign-up/itsi(/:username)(/:first_name)(/:last_name)(/)', SignUpController, 'itsiSignUp');
+router.addRoute('sign-up/sso(/:provider)(/:username)(/:first_name)(/:last_name)(/)', SignUpController, 'ssoSignUp');
 
 router.on('route', function() {
     // Allow Google Analytics to track virtual pageloads following approach in

@@ -6,12 +6,12 @@ var router = require('../../router').router,
     App = require('../../app');
 
 var ErrorHandlers = {
-    itsi: function() {
+    sso: function() {
         router.navigate('', { trigger: true });
         var alertView = new modalViews.AlertView({
             model: new modalModels.AlertModel({
                 alertMessage: "We're sorry, but there was an error logging you in with your" +
-                            " ITSI credentials. Please log in using another method or" +
+                            " credentials. Please log in using another method or" +
                             " continue as a guest.",
                 alertType: modalModels.AlertTypes.error
             })

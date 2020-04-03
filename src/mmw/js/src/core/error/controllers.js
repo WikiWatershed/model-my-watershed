@@ -5,8 +5,8 @@ var ErrorHandlers = require('./handlers').ErrorHandlers;
 var ErrorController = {
     error: function(type) {
         switch(type) {
-            case 'itsi':
-                ErrorHandlers.itsi();
+            case 'sso':
+                ErrorHandlers.sso();
                 break;
             case 'hydroshare-not-found':
                 ErrorHandlers.hydroshareNotFound();
