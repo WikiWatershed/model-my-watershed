@@ -425,6 +425,18 @@ ITSI = {
     'embed_flag': 'itsi_embed',
 }
 
+# Concord SSO Settings
+CONCORD = {
+    'client_id': 'model-my-watershed',
+    'client_secret': environ.get('MMW_CONCORD_SECRET_KEY',
+                                 'MISSING MMW_CONCORD_SECRET_KEY ENV VAR'),
+    'base_url': 'https://learn.concord.org/',
+    'service_name': 'concord',
+    'authorize_url': 'auth/concord_id/authorize',
+    'access_token_url': 'auth/concord_id/access_token',
+    'user_json_url': 'auth/concord_id/user.json',
+}
+
 # HydroShare Integration Settings
 HYDROSHARE = {
     'client_id': environ.get('MMW_HYDROSHARE_CLIENT_ID', 'model-my-watershed'),

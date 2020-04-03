@@ -16,6 +16,7 @@ envdir_config:
   MMW_ITSI_CLIENT_ID: "{{ itsi_client_id }}"
   MMW_ITSI_SECRET_KEY: "{{ itsi_secret_key }}"
   MMW_ITSI_BASE_URL: "{{ itsi_base_url }}"
+  MMW_CONCORD_SECRET_KEY: "{{ concord_secret_key }}"
   MMW_HYDROSHARE_CLIENT_ID: "{{ hydroshare_client_id }}"
   MMW_HYDROSHARE_SECRET_KEY: "{{ hydroshare_secret_key }}"
   MMW_HYDROSHARE_BASE_URL: "{{ hydroshare_base_url }}"

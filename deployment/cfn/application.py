@@ -64,6 +64,7 @@ class Application(StackNode):
             'TileDeliveryNetwork:GreenTileServerDistributionEndpoint'],
         'ITSIBaseURL': ['global:ITSIBaseURL'],
         'ITSISecretKey': ['global:ITSISecretKey'],
+        'ConcordSecretKey': ['global:ConcordSecretKey'],
         'HydroShareBaseURL': ['global:HydroShareBaseURL'],
         'HydroShareSecretKey': ['global:HydroShareSecretKey'],
         'SRATCatchmentAPIURL': ['global:SRATCatchmentAPIURL'],
@@ -239,6 +240,11 @@ class Application(StackNode):
             'ITSISecretKey', Type='String', NoEcho=True,
             Description='Secret key for ITSI portal integration'
         ), 'ITSISecretKey')
+
+        self.concord_secret_key = self.add_parameter(Parameter(
+            'ConcordSecretKey', Type='String', NoEcho=True,
+            Description='Secret key for Concord OAuth integration'
+        ), 'ConcordSecretKey')
 
         self.hydroshare_base_url = self.add_parameter(Parameter(
             'HydroShareBaseURL', Type='String',
@@ -614,6 +620,10 @@ class Application(StackNode):
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
                 '    content: ', Ref(self.itsi_secret_key), '\n',
+                '  - path: /etc/mmw.d/env/MMW_CONCORD_SECRET_KEY\n',
+                '    permissions: 0750\n',
+                '    owner: root:mmw\n',
+                '    content: ', Ref(self.concord_secret_key), '\n',
                 '  - path: /etc/mmw.d/env/MMW_HYDROSHARE_BASE_URL\n',
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
