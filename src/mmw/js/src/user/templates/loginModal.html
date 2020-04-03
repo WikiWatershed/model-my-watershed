@@ -11,9 +11,9 @@
     <button type="button" class="btn btn-lg btn-block btn-active" id="primary-button">Login</button>
 </div>
 <hr class="hr-text" data-content="or" />
-<div class="row{% if showItsiButton %} half-width{% endif %}" id="guest-buttons">
+<div class="row{% if showSSOButtons %} half-width{% endif %}" id="guest-buttons">
     <button type="button" class="btn btn-lg btn-primary" data-dismiss="modal" id="dismiss-button">Continue as guest</button>
-    {% if showItsiButton %}
+    {% if showSSOButtons %}
     <button type="button" class="btn btn-lg btn-primary itsi-login">Login with ITSI</button>
     {% endif %}
 </div>

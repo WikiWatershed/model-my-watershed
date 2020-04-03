@@ -16,7 +16,7 @@ var _ = require('underscore'),
     forgotModalTmpl = require('./templates/forgotModal.html'),
     changePasswordModalTmpl =
         require('./templates/changePasswordModal.html'),
-    itsiSignUpModalTmpl = require('./templates/itsiSignUpModal.html');
+    ssoSignUpModalTmpl = require('./templates/ssoSignUpModal.html');
 
 var ENTER_KEYCODE = 13;
 var ESC_KEYCODE = 27;
@@ -519,8 +519,8 @@ var ForgotModalView = ModalBaseView.extend({
     }
 });
 
-var ItsiSignUpModalView = ModalBaseView.extend({
-    template: itsiSignUpModalTmpl,
+var SSOSignUpModalView = ModalBaseView.extend({
+    template: ssoSignUpModalTmpl,
 
     ui: _.defaults({}, ModalBaseView.prototype.ui),
 
@@ -576,5 +576,5 @@ module.exports = {
     ResendModalView: ResendModalView,
     ForgotModalView: ForgotModalView,
     ChangePasswordModalView: ChangePasswordModalView,
-    ItsiSignUpModalView: ItsiSignUpModalView
+    SSOSignUpModalView: SSOSignUpModalView
 };

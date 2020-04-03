@@ -163,7 +163,7 @@ def itsi_auth(request):
 
     # Basic validation
     if code is None:
-        return redirect('/error/itsi')
+        return redirect('/error/sso')
 
     try:
         session = itsi.get_session_from_code(code)
@@ -172,7 +172,7 @@ def itsi_auth(request):
         # In case we are unable to reach ITSI and get an unexpected response
         rollbar.report_message('ITSI OAuth Error: {}'.format(e.message),
                                'error')
-        return redirect('/error/itsi')
+        return redirect('/error/sso')
 
     user = authenticate(sso_id=itsi_user['id'])
     if user is not None and user.is_active:
@@ -225,7 +225,7 @@ def itsi_create_user(request, itsi_user):
     request.session[EMBED_FLAG] = itsi_embed
 
     return redirect(
-        '/sign-up/itsi/{0}/{1}/{2}?next={3}'
+        '/sign-up/sso/ITSI/{0}/{1}/{2}?next={3}'
         .format(
             itsi_username,
             first_name,
@@ -331,7 +331,7 @@ def concord_create_user(request, concord_user):
     auth_login(request, user)
 
     return redirect(
-        '/sign-up/itsi/{0}/{1}/{2}?next={3}'
+        '/sign-up/sso/Learn Portal/{0}/{1}/{2}?next={3}'
         .format(
             concord_username,
             first_name,

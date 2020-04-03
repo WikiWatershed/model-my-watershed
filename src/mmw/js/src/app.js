@@ -22,7 +22,7 @@ var App = new Marionette.Application({
         this.state = new models.AppStateModel();
 
         // If in embed mode we are by default in activity mode.
-        var activityMode = settings.get('itsi_enabled') &&
+        var activityMode = settings.get('sso_enabled') &&
                 settings.get('itsi_embed');
         settings.set('activityMode', activityMode);
 
@@ -171,7 +171,7 @@ var App = new Marionette.Application({
         var self = this;
         var loginModalView = new userViews.LoginModalView({
             model: new userModels.LoginFormModel({
-                showItsiButton: settings.get('itsi_enabled'),
+                showSSOButtons: settings.get('sso_enabled'),
             },
             {
                 onSuccess:  function(loginResponse) {
