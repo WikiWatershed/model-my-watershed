@@ -71,7 +71,6 @@ class Application(StackNode):
         'RollbarServerSideAccessToken':
         ['global:RollbarServerSideAccessToken'],
         'ClientAppUserPassword': ['global:ClientAppUserPassword'],
-        'AWSStorageBucketName': ['global:AWSStorageBucketName'],
         'PapertrailHost': ['global:PapertrailHost'],
         'PapertrailPort': ['global:PapertrailPort'],
     }
@@ -635,10 +634,6 @@ class Application(StackNode):
                 '    permissions: 0750\n',
                 '    owner: root:mmw\n',
                 '    content: ', Ref(self.client_app_user_password), '\n',
-                '  - path: /etc/mmw.d/env/MMW_AWS_STORAGE_BUCKET_NAME\n',
-                '    permissions: 0750\n',
-                '    owner: root:mmw\n',
-                '    content: ', self.get_input('AWSStorageBucketName'), '\n',
                 '\n',
                 'rsyslog:\n',
                 '  - $DefaultNetstreamDriverCAFile /etc/papertrail-bundle.pem # trust these CAs\n',

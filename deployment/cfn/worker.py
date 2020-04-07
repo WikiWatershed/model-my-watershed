@@ -61,7 +61,6 @@ class Worker(StackNode):
         'SRATCatchmentAPIKey': ['global:SRATCatchmentAPIKey'],
         'RollbarServerSideAccessToken':
         ['global:RollbarServerSideAccessToken'],
-        'AWSStorageBucketName': ['global:AWSStorageBucketName'],
         'PapertrailHost': ['global:PapertrailHost'],
         'PapertrailPort': ['global:PapertrailPort'],
     }
@@ -454,10 +453,6 @@ class Worker(StackNode):
                 '    permissions: 0440\n',
                 '    owner: root:mmw\n',
                 '    content: ', Ref(self.srat_catchment_api_key), '\n',
-                '  - path: /etc/mmw.d/env/MMW_AWS_STORAGE_BUCKET_NAME\n',
-                '    permissions: 0750\n',
-                '    owner: root:mmw\n',
-                '    content: ', self.get_input('AWSStorageBucketName'), '\n',
                 '  - path: /etc/fstab.rwd-data\n',
                 '    permissions: 0440\n',
                 '    owner: root:mmw\n',

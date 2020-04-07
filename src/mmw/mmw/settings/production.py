@@ -39,6 +39,11 @@ ALLOWED_HOSTS = [
 ALLOWED_HOSTS.append(instance_metadata['local-ipv4'])
 # END HOST CONFIGURATION
 
+# FILE STORAGE CONFIGURATION
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+AWS_STORAGE_BUCKET_NAME = 'mmw-{}-data-us-east-1'.format('production' if get_env_setting('MMW_STACK_TYPE') == 'Production' else 'staging')
+AWS_DEFAULT_ACL = None
+# END FILE STORAGE CONFIGURATION
 
 # EMAIL CONFIGURATION
 EMAIL_BACKEND = 'apps.core.mail.backends.boto_ses_mailer.EmailBackend'
