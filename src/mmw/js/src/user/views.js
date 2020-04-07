@@ -16,7 +16,7 @@ var _ = require('underscore'),
     forgotModalTmpl = require('./templates/forgotModal.html'),
     changePasswordModalTmpl =
         require('./templates/changePasswordModal.html'),
-    itsiSignUpModalTmpl = require('./templates/itsiSignUpModal.html');
+    ssoSignUpModalTmpl = require('./templates/ssoSignUpModal.html');
 
 var ENTER_KEYCODE = 13;
 var ESC_KEYCODE = 27;
@@ -166,6 +166,7 @@ var LoginModalView = ModalBaseView.extend({
         signUp: '.sign-up',
         resend: '.resend',
         forgot: '.forgot',
+        concordLogin: '.concord-login',
         itsiLogin: '.itsi-login'
     }, ModalBaseView.prototype.ui),
 
@@ -173,6 +174,7 @@ var LoginModalView = ModalBaseView.extend({
         'click @ui.signUp': 'signUp',
         'click @ui.resend': 'resend',
         'click @ui.forgot': 'forgot',
+        'click @ui.concordLogin': 'concordLogin',
         'click @ui.itsiLogin': 'itsiLogin'
     }, ModalBaseView.prototype.events),
 
@@ -251,6 +253,17 @@ var LoginModalView = ModalBaseView.extend({
                 model: new models.ForgotFormModel({})
             }).render();
         });
+    },
+
+    // Login with Concord
+    concordLogin: function() {
+        if (this.getDisabledState(this.ui.concordLogin) === true) {
+            return;
+        }
+
+        var loginURL = '/user/concord/login?next=/' + Backbone.history.getFragment();
+
+        window.location.href = loginURL;
     },
 
     // Login with ITSI
@@ -519,8 +532,8 @@ var ForgotModalView = ModalBaseView.extend({
     }
 });
 
-var ItsiSignUpModalView = ModalBaseView.extend({
-    template: itsiSignUpModalTmpl,
+var SSOSignUpModalView = ModalBaseView.extend({
+    template: ssoSignUpModalTmpl,
 
     ui: _.defaults({}, ModalBaseView.prototype.ui),
 
@@ -576,5 +589,5 @@ module.exports = {
     ResendModalView: ResendModalView,
     ForgotModalView: ForgotModalView,
     ChangePasswordModalView: ChangePasswordModalView,
-    ItsiSignUpModalView: ItsiSignUpModalView
+    SSOSignUpModalView: SSOSignUpModalView
 };

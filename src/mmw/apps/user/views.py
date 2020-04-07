@@ -28,8 +28,11 @@ from rest_framework.permissions import (AllowAny,
 from apps.export.hydroshare import HydroShareService
 from apps.export.models import HydroShareResource
 from apps.home.views import get_context
-from apps.user.models import ItsiUser, UserProfile, HydroShareToken
-from apps.user.itsi import ItsiService
+from apps.user.models import (ConcordUser,
+                              ItsiUser,
+                              UserProfile,
+                              HydroShareToken)
+from apps.user.sso import ItsiService, ConcordService
 from apps.user.serializers import UserProfileSerializer
 
 EMBED_FLAG = settings.ITSI['embed_flag']
@@ -160,16 +163,18 @@ def itsi_auth(request):
 
     # Basic validation
     if code is None:
-        return redirect('/error/itsi')
+        return redirect('/error/sso')
 
     try:
         session = itsi.get_session_from_code(code)
         itsi_user = session.get_user()
-    except:
+    except Exception as e:
         # In case we are unable to reach ITSI and get an unexpected response
-        return redirect('/error/itsi')
+        rollbar.report_message('ITSI OAuth Error: {}'.format(e.message),
+                               'error')
+        return redirect('/error/sso')
 
-    user = authenticate(itsi_id=itsi_user['id'])
+    user = authenticate(sso_id=itsi_user['id'])
     if user is not None and user.is_active:
         auth_login(request, user)
         return redirect(request.GET.get('next', '/'))
@@ -190,7 +195,7 @@ def itsi_create_user(request, itsi_user):
     midfix = '.itsi'
     username = trim_to_valid_length(itsi_username, midfix)
     while User.objects.filter(username=username).exists():
-        username = trim_to_valid_length(itsi_username,  midfix + suffix)
+        username = trim_to_valid_length(itsi_username,  midfix + str(suffix))
         suffix += 1
 
     # Create new user with given details and no email address or password
@@ -213,14 +218,14 @@ def itsi_create_user(request, itsi_user):
     itsi_embed = request.session.get(EMBED_FLAG, False)
 
     # Authenticate and log new user in
-    user = authenticate(itsi_id=itsi_id)
+    user = authenticate(sso_id=itsi_id)
     auth_login(request, user)
 
     # Re-set itsi_embed flag
     request.session[EMBED_FLAG] = itsi_embed
 
     return redirect(
-        '/sign-up/itsi/{0}/{1}/{2}?next={3}'
+        '/sign-up/sso/ITSI/{0}/{1}/{2}?next={3}'
         .format(
             itsi_username,
             first_name,
@@ -248,6 +253,92 @@ def trim_to_valid_length(basename, suffix):
         username = basename[:-diff] + unique + suffix
 
     return username
+
+
+concord = ConcordService()
+
+
+def concord_login(request):
+    redirect_uri = request.build_absolute_uri(reverse('user:concord_auth'))
+    params = {
+        'redirect_uri': redirect_uri,
+        'state': request.GET.get('next', '/'),
+        'response_type': 'code',
+    }
+    auth_url = concord.get_authorize_url(**params)
+
+    return redirect(auth_url)
+
+
+def concord_auth(request):
+    code = request.GET.get('code', None)
+
+    # Basic validation
+    if code is None:
+        return redirect('/error/sso')
+
+    try:
+        session = concord.get_session_from_code(code)
+        concord_user = session.get_user()
+    except Exception as e:
+        # Report OAuth error
+        rollbar.report_message('Concord OAuth Error: {}'.format(e.message),
+                               'error')
+        return redirect('/error/sso')
+
+    user = authenticate(sso_id=concord_user['id'])
+    if user is not None and user.is_active:
+        auth_login(request, user)
+        return redirect(request.GET.get('state', '/'))
+    else:
+        return concord_create_user(request, concord_user)
+
+
+def concord_create_user(request, concord_user):
+    """In high correspondence itsi_create_user"""
+    concord_id = concord_user['id']
+    concord_username = concord_user['extra']['username']
+    # Truncate names to 30 characters max
+    first_name = concord_user['extra']['first_name'][:29]
+    last_name = concord_user['extra']['last_name'][:29]
+
+    # If username already exists, append a number to it, and keep it below
+    # 31 characters
+    suffix = 0
+    midfix = '.concord'
+    username = trim_to_valid_length(concord_username, midfix)
+    while User.objects.filter(username=username).exists():
+        username = trim_to_valid_length(concord_username, midfix + str(suffix))
+        suffix += 1
+
+    # Create new user with given details and no email address or password
+    # since they will be authenticated using Concord credentials
+    user = User.objects.create_user(
+        username,
+        email=None,
+        password=None,
+        first_name=first_name,
+        last_name=last_name,
+    )
+    user.save()
+
+    # Create corresponding concord_user object that links to Concord account
+    concord_user = ConcordUser.objects.create(user=user, concord_id=concord_id)
+    concord_user.save()
+
+    # Authenticate and log new user in
+    user = authenticate(sso_id=concord_id)
+    auth_login(request, user)
+
+    return redirect(
+        '/sign-up/sso/Learn Portal/{0}/{1}/{2}?next={3}'
+        .format(
+            concord_username,
+            first_name,
+            last_name,
+            request.GET.get('state', '/')
+        )
+    )
 
 
 @decorators.api_view(['POST'])

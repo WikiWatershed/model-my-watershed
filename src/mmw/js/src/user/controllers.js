@@ -13,10 +13,11 @@ var SignUpController = {
         }).render();
     },
 
-    itsiSignUp: function(username, first_name, last_name, queryParams) {
-        new views.ItsiSignUpModalView({
+    ssoSignUp: function(provider, username, first_name, last_name, queryParams) {
+        new views.SSOSignUpModalView({
             app: App,
-            model: new models.ItsiSignUpFormModel({
+            model: new models.SSOSignUpFormModel({
+                provider: provider,
                 username: username,
                 first_name: first_name,
                 last_name: last_name,
