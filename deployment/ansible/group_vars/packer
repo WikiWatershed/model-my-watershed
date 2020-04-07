@@ -25,8 +25,4 @@ postgresql_host: "database.service.mmw.internal"
 tiler_host: ""
 tilecache_bucket_name: ""
 
-aws_profile: ""
-
 stack_type: "Packer"
-
-aws_storage_bucket_name: ""
