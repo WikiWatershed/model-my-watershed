@@ -3,10 +3,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
+import cStringIO
+import os
+
 from celery import chain, shared_task
 
 from rest_framework.test import APIClient
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.test.utils import override_settings
@@ -14,6 +18,7 @@ from django.utils.timezone import now
 
 from apps.core.models import Job
 from apps.modeling import tasks, views
+from apps.modeling.models import Project
 
 
 @shared_task
@@ -890,3 +895,269 @@ class APIAccessTestCase(TestCase):
         scenario_id = str(response.data['id'])
 
         return scenario_id
+
+
+class CustomWeatherDataTestCase(TestCase):
+
+    """Test the custom weather dataset API."""
+
+    def setUp(self):
+        self.c = APIClient()
+        self.test_user = User.objects.create_user(username='test',
+                                                  email='test@azavea.com',
+                                                  password='test')
+
+        self.another_user = User.objects.create_user(username='foo',
+                                                     email='test@azavea.com',
+                                                     password='bar')
+        self.project = {
+            "area_of_interest": ("MULTIPOLYGON (((30 20, 45 40, 10 40, 30 20))"
+                                 ",((15 5, 40 10, 10 20, 5 10, 15 5)))"),
+            "name": "My Project",
+            "model_package": "gwlfe"
+        }
+
+        sio = cStringIO.StringIO()
+        sio.write('\n'.join([
+            "DATE,PRCP,TAVG",
+            "1/1/2001,0,22",
+            "1/2/2001,0,19",
+            "1/3/2001,0,18",
+        ]))
+        sio.seek(0)
+
+        self.weather_data_file = sio
+
+        self.c.login(username='test', password='test')
+
+    def tearDown(self):
+        """Remove test uploads when done."""
+        projects = (
+            Project.objects.exclude(custom_weather_dataset__isnull=True)
+                           .distinct('custom_weather_dataset'))
+
+        for p in projects:
+            self.delete_weather_dataset(p.custom_weather_dataset)
+
+    def endpoint(self, project_id):
+        return '/mmw/modeling/projects/{}/custom-weather-data/'\
+               .format(project_id)
+
+    def delete_weather_dataset(self, path):
+        """
+        Delete weather data at path.
+
+        Only runs if MEDIA_ROOT is defined to prevent accidents.
+        """
+        if settings.MEDIA_ROOT and path:
+                os.remove('{}/{}'.format(settings.MEDIA_ROOT, path))
+
+    def create_public_project(self):
+        self.project['is_private'] = False
+        response = self.c.post('/mmw/modeling/projects/', self.project,
+                               format='json')
+
+        project_id = str(response.data['id'])
+
+        return project_id
+
+    def create_public_project_with_weather_data(self):
+        self.project['is_private'] = False
+        response = self.c.post('/mmw/modeling/projects/', self.project,
+                               format='json')
+
+        project_id = str(response.data['id'])
+
+        self.c.post(self.endpoint(project_id),
+                    {'weather': self.weather_data_file},
+                    format='multipart')
+
+        return project_id
+
+    def create_private_project_with_weather_data(self):
+        response = self.c.post('/mmw/modeling/projects/', self.project,
+                               format='json')
+
+        project_id = str(response.data['id'])
+
+        self.c.post(self.endpoint(project_id),
+                    {'weather': self.weather_data_file},
+                    format='multipart')
+
+        return project_id
+
+    # Custom Weather Data Tests
+
+    # GET
+    def test_weather_get_project_owner_can_get_private(self):
+        project_id = self.create_private_project_with_weather_data()
+
+        response = self.c.get(self.endpoint(project_id))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_weather_get_logged_in_user_cant_get_private(self):
+        project_id = self.create_private_project_with_weather_data()
+
+        self.c.logout()
+        self.c.login(username='foo', password='bar')
+
+        response = self.c.get(self.endpoint(project_id))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_weather_get_logged_out_user_cant_get_private(self):
+        project_id = self.create_private_project_with_weather_data()
+
+        self.c.logout()
+
+        response = self.c.get(self.endpoint(project_id))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_weather_get_project_owner_can_get_public(self):
+        project_id = self.create_public_project_with_weather_data()
+
+        response = self.c.get(self.endpoint(project_id))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_weather_get_logged_in_user_can_get_public(self):
+        project_id = self.create_public_project_with_weather_data()
+
+        self.c.logout()
+        self.c.login(username='foo', password='bar')
+
+        response = self.c.get(self.endpoint(project_id))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_weather_get_logged_out_user_can_get_public(self):
+        project_id = self.create_public_project_with_weather_data()
+
+        self.c.logout()
+
+        response = self.c.get(self.endpoint(project_id))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_weather_get_missing_data_404s(self):
+        project_id = self.create_public_project()
+
+        response = self.c.get(self.endpoint(project_id))
+
+        self.assertEqual(response.status_code, 404)
+
+    # POST
+    def test_weather_post_project_owner_can_post(self):
+        """
+        Test that project owners can overwrite their weather data.
+
+        In the current implementation, old weather data is not automatically
+        deleted. We delete it manually at the end of this test.
+        """
+        project_id = self.create_private_project_with_weather_data()
+        old_weather = Project.objects.get(pk=project_id).custom_weather_dataset
+
+        response = self.c.post(self.endpoint(project_id),
+                               {'weather': self.weather_data_file},
+                               format='multipart')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['uses_custom_weather'], True)
+
+        self.delete_weather_dataset(old_weather)
+
+    def test_weather_post_logged_out_user_cant_post(self):
+        project_id = self.create_private_project_with_weather_data()
+
+        self.c.logout()
+
+        response = self.c.post(self.endpoint(project_id),
+                               {'weather': self.weather_data_file},
+                               format='multipart')
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_weather_post_missing_weather_400s(self):
+        project_id = self.create_private_project_with_weather_data()
+
+        response = self.c.post(self.endpoint(project_id), {})
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_weather_post_invalid_weather_400s(self):
+        project_id = self.create_private_project_with_weather_data()
+
+        response = self.c.post(self.endpoint(project_id),
+                               {'XYZ': self.weather_data_file},
+                               format='multipart')
+
+        self.assertEqual(response.status_code, 400)
+
+    # PATCH
+    def test_weather_patch_project_owner_can_patch(self):
+        project_id = self.create_private_project_with_weather_data()
+
+        response = self.c.patch(self.endpoint(project_id),
+                                {'uses_custom_weather': False},
+                                format='json')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['uses_custom_weather'], False)
+        self.assertNotEqual(response.data['custom_weather_dataset'], None)
+
+    def test_weather_patch_logged_out_user_cant_patch(self):
+        project_id = self.create_private_project_with_weather_data()
+        self.c.logout()
+
+        response = self.c.patch(self.endpoint(project_id),
+                                {'uses_custom_weather': False},
+                                format='json')
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_weather_patch_missing_param_400s(self):
+        project_id = self.create_private_project_with_weather_data()
+
+        response = self.c.patch(self.endpoint(project_id),
+                                {'XYZ': False},
+                                format='json')
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_weather_patch_invalid_param_400s(self):
+        project_id = self.create_private_project_with_weather_data()
+
+        response = self.c.patch(self.endpoint(project_id),
+                                {'uses_custom_weather': 'false'},
+                                format='json')
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_weather_patch_without_weather_data_400s(self):
+        project_id = self.create_public_project()
+
+        response = self.c.patch(self.endpoint(project_id),
+                                {'uses_custom_weather': True},
+                                format='json')
+
+        self.assertEqual(response.status_code, 400)
+
+    # DELETE
+    def test_weather_delete_project_owner_can_delete(self):
+        project_id = self.create_private_project_with_weather_data()
+
+        response = self.c.delete(self.endpoint(project_id))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['uses_custom_weather'], False)
+        self.assertEqual(response.data['custom_weather_dataset'], None)
+
+    def test_weather_delete_logged_out_user_cant_delete(self):
+        project_id = self.create_private_project_with_weather_data()
+        self.c.logout()
+
+        response = self.c.delete(self.endpoint(project_id))
+
+        self.assertEqual(response.status_code, 403)
