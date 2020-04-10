@@ -13,5 +13,5 @@
   cron:
     name: celery-restart
     special_time: daily
-    job: service celeryd restart
+    job: /usr/sbin/service celeryd restart
     state: present
