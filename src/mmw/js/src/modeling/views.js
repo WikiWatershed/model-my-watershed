@@ -921,11 +921,13 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
         // the only scenario is current conditions (ie no modifications)
         var gisData = this.model.get('gis_data'),
             isGwlfe = this.modelPackage === utils.GWLFE && !_.isEmpty(gisData),
+            isCurrentConditions = this.currentConditions.get('active'),
             isOnlyCurrentConditions = this.collection.length === 1 &&
                 this.collection.first().get('is_current_conditions'),
             editable = isEditable(this.model);
 
         return {
+            isCurrentConditions: isCurrentConditions,
             isOnlyCurrentConditions: isOnlyCurrentConditions,
             isGwlfe: isGwlfe,
             csrftoken: csrf.getToken(),
