@@ -231,6 +231,7 @@ header {
         flex-basis: 100%;
         flex-direction: row;
         height: 100%;
+        align-items: center;
 
         .right-controls-container {
             margin-left: auto;
@@ -239,11 +240,6 @@ header {
         #add-changes {
             color: $brand-primary;
             height: 100%;
-        }
-
-        #download-cc-gms {
-            font-size: 13px;
-            color: inherit;
         }
     }
 
