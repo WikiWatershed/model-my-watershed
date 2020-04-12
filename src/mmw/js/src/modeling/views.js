@@ -863,11 +863,13 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
         addChangesButton: '#add-changes',
         downloadGmsFile: '#download-cc-gms',
         exportGmsForm: '#export-gms-form',
+        customWeatherDataButton: '#custom-weather-data',
     },
 
     events: {
         'click @ui.addChangesButton': 'onAddChangesClick',
         'click @ui.downloadGmsFile': 'onGmsDownloadClick',
+        'click @ui.customWeatherDataButton': 'onCustomWeatherDataClick',
     },
 
     collectionEvents: {
@@ -913,6 +915,18 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
 
         this.ui.exportGmsForm.find('.gms-filename').val(filename);
         this.ui.exportGmsForm.trigger('submit');
+    },
+
+    onCustomWeatherDataClick: function() {
+        if (App.user.get('guest')) {
+            App.getUserOrShowLogin();
+        } else {
+            var cwdModal = new modalViews.CustomWeaterDataView({
+                    model: this.model,
+                });
+
+            cwdModal.render();
+        }
     },
 
     templateHelpers: function() {
