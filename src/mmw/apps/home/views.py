@@ -354,7 +354,7 @@ def get_client_settings(request):
             'mapshed_max_area': settings.GWLFE_CONFIG['MaxAoIArea'],
             'data_catalog_enabled': bigcz,
             'data_catalog_page_size': settings.BIGCZ_CLIENT_PAGE_SIZE,
-            'itsi_enabled': not bigcz,
+            'sso_enabled': not bigcz,
             'title': title,
             'api_token': get_api_token(),
             'choices': {
