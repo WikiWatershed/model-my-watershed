@@ -51,6 +51,7 @@ nginx_cache_dir: "/var/cache/nginx"
 
 enabled_features: ''
 
+llvmlite_version: "0.31.0"
 numba_version: "0.38.1"
 phantomjs_version: "2.1.*"
 
