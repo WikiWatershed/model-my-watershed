@@ -1,6 +1,9 @@
 ---
 - name: Install numba
-  pip: name=numba version={{ numba_version }}
+  pip: name="{{ item.name }}" version={{ item.version }} state=present
+  with_items:
+    - { name: "llvmlite", version: "{{ llvmlite_version }}" }
+    - { name: "numba", version: "{{ numba_version }}" }
 
 - name: Install application Python dependencies for development and test
   pip: requirements="{{ app_home }}/requirements/{{ item }}.txt"
