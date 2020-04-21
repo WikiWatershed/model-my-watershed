@@ -285,15 +285,16 @@ var ChangePasswordFormModel = ModalBaseModel.extend({
     }
 });
 
-var ItsiSignUpFormModel = ModalBaseModel.extend({
+var SSOSignUpFormModel = ModalBaseModel.extend({
     defaults: {
+        provider: null,
         username: null,
         first_name: null,
         last_name: null,
         next: '/'
     },
 
-    url: '/user/itsi/sign_up',
+    url: '/user/sso/sign_up',
 
     validate: function(attrs) {
         var errors = [];
@@ -334,5 +335,5 @@ module.exports = {
     ResendFormModel: ResendFormModel,
     ForgotFormModel: ForgotFormModel,
     ChangePasswordFormModel: ChangePasswordFormModel,
-    ItsiSignUpFormModel: ItsiSignUpFormModel
+    SSOSignUpFormModel: SSOSignUpFormModel
 };

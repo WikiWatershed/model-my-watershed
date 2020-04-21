@@ -10,12 +10,16 @@
 <div class="row">
     <button type="button" class="btn btn-lg btn-block btn-active" id="primary-button">Login</button>
 </div>
+{% if showSSOButtons %}
+<hr class="hr-text" data-content="or Login with" />
+<div class="row half-width" id="guest-buttons">
+    <button type="button" class="btn btn-lg btn-primary concord-login">Learn Portal</button>
+    <button type="button" class="btn btn-lg btn-primary itsi-login">ITSI</button>
+</div>
+{% endif %}
 <hr class="hr-text" data-content="or" />
-<div class="row{% if showItsiButton %} half-width{% endif %}" id="guest-buttons">
-    <button type="button" class="btn btn-lg btn-primary" data-dismiss="modal" id="dismiss-button">Continue as guest</button>
-    {% if showItsiButton %}
-    <button type="button" class="btn btn-lg btn-primary itsi-login">Login with ITSI</button>
-    {% endif %}
+<div class="row">
+    <button type="button" class="btn btn-lg btn-block btn-primary" data-dismiss="modal" id="dismiss-button">Continue as guest</button>
 </div>
 <div class="actions">
     <button type="button" class="btn btn-default resend">Resend confirmation email</button>
