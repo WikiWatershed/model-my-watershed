@@ -18,5 +18,11 @@ module.exports = {
         {id: 11, label: "Medium-Density Mixed"},
         {id: 12, label: "High-Density Mixed"},
         {id: 13, label: "Low-Density Open Space"},
-    ]
+    ],
+    // In sync with apps.modeling.models.WeatherType
+    WeatherType: {
+        DEFAULT: 'DEFAULT',
+        SIMULATION: 'SIMULATION',
+        CUSTOM: 'CUSTOM',
+    },
 };

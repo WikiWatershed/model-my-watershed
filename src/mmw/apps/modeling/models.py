@@ -14,6 +14,10 @@ def project_filename(project, filename):
     return 'project_{0}/{1}'.format(project.id, filename)
 
 
+def scenario_filename(scenario, filename):
+    return 'p{0}/s{1}/{2}'.format(scenario.project.id, scenario.id, filename)
+
+
 class Project(models.Model):
     TR55 = 'tr-55'
     GWLFE = 'gwlfe'
@@ -84,6 +88,34 @@ class Project(models.Model):
         return self.name
 
 
+class WeatherType:
+
+    """Types of weather data available for modeling.
+
+    In sync with modeling/constants.js"""
+
+    # Default, uses data from ms_weather, historical data from ~1960 to ~1990
+    DEFAULT = 'DEFAULT'
+
+    # Simulation, uses projections for future weather generated based on
+    # historical data. A certain set of pre-calculated simulations will be
+    # available to choose from. May only apply to AoIs in a certain area,
+    # e.g. within DRB.
+    SIMULATION = 'SIMULATION'
+
+    # Custom, user uploaded, may be more accurate, more recent, or more
+    # relevant than our default set. Will go through some validation.
+    # Must be between 3 and 30 years of data.
+    CUSTOM = 'CUSTOM'
+
+    # Django ORM Tuple of Choices
+    choices = (
+        (DEFAULT, DEFAULT),
+        (SIMULATION, SIMULATION),
+        (CUSTOM, CUSTOM),
+    )
+
+
 class Scenario(models.Model):
 
     class Meta:
@@ -131,6 +163,20 @@ class Scenario(models.Model):
         auto_now_add=True)
     modified_at = models.DateTimeField(
         auto_now=True)
+    weather_type = models.CharField(
+        max_length=255,
+        default=WeatherType.DEFAULT,
+        choices=WeatherType.choices,
+        help_text='The source of weather data for this scenario. '
+                  'Only applies to GWLF-E scenarios.')
+    weather_simulation = models.CharField(
+        max_length=255,
+        null=True,
+        help_text='Identifier of the weather simulation to use.')
+    weather_custom = FileField(
+        null=True,
+        upload_to=scenario_filename,
+        help_text='Reference path of the custom weather file.')
 
     def __unicode__(self):
         return self.name
