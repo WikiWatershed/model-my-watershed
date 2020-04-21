@@ -108,8 +108,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'area_of_interest', 'area_of_interest_name',
                   'scenarios', 'model_package', 'created_at', 'modified_at',
                   'is_private', 'is_activity', 'gis_data', 'mapshed_job_uuid',
-                  'subbasin_mapshed_job_uuid', 'wkaoi', 'user', 'hydroshare',
-                  'uses_custom_weather', 'custom_weather_dataset')
+                  'subbasin_mapshed_job_uuid', 'wkaoi', 'user', 'hydroshare')
 
     user = UserSerializer(default=serializers.CurrentUserDefault())
     gis_data = JsonField(required=False, allow_null=True)
@@ -133,8 +132,7 @@ class ProjectListingSerializer(serializers.ModelSerializer):
         model = Project
         fields = ('id', 'name', 'area_of_interest_name', 'is_private',
                   'model_package', 'created_at', 'modified_at', 'user',
-                  'hydroshare', 'uses_custom_weather',
-                  'custom_weather_dataset')
+                  'hydroshare')
 
     hydroshare = HydroShareResourceSerializer(read_only=True)
 
@@ -148,8 +146,7 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'area_of_interest', 'area_of_interest_name',
                   'model_package', 'created_at', 'modified_at',
                   'is_private', 'is_activity', 'gis_data', 'mapshed_job_uuid',
-                  'subbasin_mapshed_job_uuid', 'wkaoi', 'user',
-                  'uses_custom_weather')
+                  'subbasin_mapshed_job_uuid', 'wkaoi', 'user')
 
     user = UserSerializer(default=serializers.CurrentUserDefault(),
                           read_only=True)

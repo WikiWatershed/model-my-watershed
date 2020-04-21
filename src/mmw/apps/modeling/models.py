@@ -74,15 +74,6 @@ class Project(models.Model):
         null=True,
         max_length=255,
         help_text='Well-Known Area of Interest ID for faster geoprocessing')
-    uses_custom_weather = models.BooleanField(
-        default=False,
-        help_text='Whether or not this project currently uses a custom weather'
-                  ' dataset. If true, requires a non-NULL value for'
-                  ' custom_weather_dataset.')
-    custom_weather_dataset = FileField(
-        null=True,
-        upload_to=project_filename,
-        help_text='Reference path of the uploaded file.')
 
     def __unicode__(self):
         return self.name
