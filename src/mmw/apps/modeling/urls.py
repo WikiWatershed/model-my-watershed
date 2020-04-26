@@ -19,10 +19,11 @@ app_name = 'modeling'
 urlpatterns = [
     url(r'projects/$', views.projects, name='projects'),
     url(r'projects/(?P<proj_id>[0-9]+)$', views.project, name='project'),
-    url(r'projects/(?P<proj_id>[0-9]+)/custom-weather-data/?$',
-        views.project_custom_weather_data, name='project_custom_weather_data'),
     url(r'scenarios/$', views.scenarios, name='scenarios'),
     url(r'scenarios/(?P<scen_id>[0-9]+)$', views.scenario, name='scenario'),
+    url(r'scenarios/(?P<scen_id>[0-9]+)/custom-weather-data/?$',
+        views.scenario_custom_weather_data,
+        name='scenario_custom_weather_data'),
     url(r'mapshed/$', views.start_mapshed, name='start_mapshed'),
     url(r'jobs/' + uuid_regex, views.get_job, name='get_job'),
     url(r'tr55/$', views.start_tr55, name='start_tr55'),

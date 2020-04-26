@@ -9,7 +9,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from apps.export.serializers import HydroShareResourceSerializer
-from apps.modeling.models import Project, Scenario
+from apps.modeling.models import Project, Scenario, WeatherType
 from apps.modeling.validation import validate_aoi
 from apps.modeling.calcs import get_layer_shape
 from apps.user.serializers import UserSerializer
@@ -70,13 +70,33 @@ class ScenarioSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'project', 'is_current_conditions', 'inputs',
                   'inputmod_hash', 'modifications', 'modification_hash',
                   'aoi_census', 'modification_censuses', 'results',
-                  'created_at', 'modified_at')
+                  'created_at', 'modified_at', 'weather_type',
+                  'weather_simulation', 'weather_custom')
+        read_only_fields = ('weather_custom',)
 
     inputs = JsonField()
     modifications = JsonField()
     aoi_census = JsonField(required=False, allow_null=True)
     modification_censuses = JsonField(required=False, allow_null=True)
     results = JsonField(required=False, allow_null=True)
+
+    def validate_weather_type(self, value):
+        if value == WeatherType.CUSTOM and \
+                not self.instance.weather_custom:
+            raise ValidationError('Cannot use Custom Weather Data: '
+                                  'none specified.')
+
+        if value == WeatherType.SIMULATION and \
+                not self.instance.weather_simulation:
+            raise ValidationError('Cannot use Simulation Weather Data: '
+                                  'none specified.')
+
+        if value != WeatherType.DEFAULT and \
+                self.instance.is_current_conditions:
+            raise ValidationError('Cannot use non-Default Weather Data '
+                                  'with Current Conditions')
+
+        return value
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -88,8 +108,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'area_of_interest', 'area_of_interest_name',
                   'scenarios', 'model_package', 'created_at', 'modified_at',
                   'is_private', 'is_activity', 'gis_data', 'mapshed_job_uuid',
-                  'subbasin_mapshed_job_uuid', 'wkaoi', 'user', 'hydroshare',
-                  'uses_custom_weather', 'custom_weather_dataset')
+                  'subbasin_mapshed_job_uuid', 'wkaoi', 'user', 'hydroshare')
 
     user = UserSerializer(default=serializers.CurrentUserDefault())
     gis_data = JsonField(required=False, allow_null=True)
@@ -113,8 +132,7 @@ class ProjectListingSerializer(serializers.ModelSerializer):
         model = Project
         fields = ('id', 'name', 'area_of_interest_name', 'is_private',
                   'model_package', 'created_at', 'modified_at', 'user',
-                  'hydroshare', 'uses_custom_weather',
-                  'custom_weather_dataset')
+                  'hydroshare')
 
     hydroshare = HydroShareResourceSerializer(read_only=True)
 
@@ -128,8 +146,7 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'area_of_interest', 'area_of_interest_name',
                   'model_package', 'created_at', 'modified_at',
                   'is_private', 'is_activity', 'gis_data', 'mapshed_job_uuid',
-                  'subbasin_mapshed_job_uuid', 'wkaoi', 'user',
-                  'uses_custom_weather')
+                  'subbasin_mapshed_job_uuid', 'wkaoi', 'user')
 
     user = UserSerializer(default=serializers.CurrentUserDefault(),
                           read_only=True)

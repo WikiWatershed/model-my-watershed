@@ -18,7 +18,7 @@ from django.utils.timezone import now
 
 from apps.core.models import Job
 from apps.modeling import tasks, views
-from apps.modeling.models import Project
+from apps.modeling.models import Scenario, WeatherType
 
 
 @shared_task
@@ -917,6 +917,13 @@ class CustomWeatherDataTestCase(TestCase):
             "model_package": "gwlfe"
         }
 
+        self.scenario = {
+            "name": "New Scenario",
+            "is_current_conditions": False,
+            "inputs": "[]",
+            "modifications": "[]"
+        }
+
         sio = cStringIO.StringIO()
         sio.write('\n'.join([
             "DATE,PRCP,TAVG",
@@ -932,16 +939,16 @@ class CustomWeatherDataTestCase(TestCase):
 
     def tearDown(self):
         """Remove test uploads when done."""
-        projects = (
-            Project.objects.exclude(custom_weather_dataset__isnull=True)
-                           .distinct('custom_weather_dataset'))
+        scenarios = (
+            Scenario.objects.exclude(weather_custom__isnull=True)
+                            .distinct('weather_custom'))
 
-        for p in projects:
-            self.delete_weather_dataset(p.custom_weather_dataset)
+        for s in scenarios:
+            self.delete_weather_dataset(s.weather_custom)
 
-    def endpoint(self, project_id):
-        return '/mmw/modeling/projects/{}/custom-weather-data/'\
-               .format(project_id)
+    def endpoint(self, scenario_id):
+        return '/mmw/modeling/scenarios/{}/custom-weather-data/'\
+               .format(scenario_id)
 
     def delete_weather_dataset(self, path):
         """
@@ -952,99 +959,112 @@ class CustomWeatherDataTestCase(TestCase):
         if settings.MEDIA_ROOT and path:
                 os.remove('{}/{}'.format(settings.MEDIA_ROOT, path))
 
-    def create_public_project(self):
-        self.project['is_private'] = False
+    def create_private_scenario(self):
         response = self.c.post('/mmw/modeling/projects/', self.project,
                                format='json')
-
         project_id = str(response.data['id'])
 
-        return project_id
-
-    def create_public_project_with_weather_data(self):
-        self.project['is_private'] = False
-        response = self.c.post('/mmw/modeling/projects/', self.project,
+        self.scenario['project'] = project_id
+        response = self.c.post('/mmw/modeling/scenarios/', self.scenario,
                                format='json')
+        return response.data
 
-        project_id = str(response.data['id'])
+    def create_private_scenario_with_weather_data(self):
+        scenario = self.create_private_scenario()
 
-        self.c.post(self.endpoint(project_id),
+        self.c.post(self.endpoint(scenario['id']),
                     {'weather': self.weather_data_file},
                     format='multipart')
 
-        return project_id
+        return scenario
 
-    def create_private_project_with_weather_data(self):
-        response = self.c.post('/mmw/modeling/projects/', self.project,
-                               format='json')
+    def create_public_scenario_with_weather_data(self):
+        scenario = self.create_private_scenario_with_weather_data()
 
-        project_id = str(response.data['id'])
+        project_id = scenario['project']
 
-        self.c.post(self.endpoint(project_id),
-                    {'weather': self.weather_data_file},
-                    format='multipart')
+        response = self.c.get('/mmw/modeling/projects/{}'.format(project_id))
+        project = response.data
+        project['user'] = project['user']['id']
+        project['is_private'] = False
 
-        return project_id
+        self.c.patch('/mmw/modeling/projects/{}'.format(project_id),
+                     project,
+                     format='json')
+
+        return scenario
+
+    def create_current_conditions_scenario(self):
+        scenario = self.create_private_scenario()
+
+        scenario['name'] = 'Current Conditions'
+        scenario['is_current_conditions'] = True
+
+        self.c.put('/mmw/modeling/scenarios/{}'.format(scenario['id']),
+                   scenario,
+                   format='json')
+
+        return scenario
 
     # Custom Weather Data Tests
 
     # GET
     def test_weather_get_project_owner_can_get_private(self):
-        project_id = self.create_private_project_with_weather_data()
+        scenario = self.create_private_scenario_with_weather_data()
 
-        response = self.c.get(self.endpoint(project_id))
+        response = self.c.get(self.endpoint(scenario['id']))
 
         self.assertEqual(response.status_code, 200)
 
     def test_weather_get_logged_in_user_cant_get_private(self):
-        project_id = self.create_private_project_with_weather_data()
+        scenario = self.create_private_scenario_with_weather_data()
 
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.get(self.endpoint(project_id))
+        response = self.c.get(self.endpoint(scenario['id']))
 
         self.assertEqual(response.status_code, 404)
 
     def test_weather_get_logged_out_user_cant_get_private(self):
-        project_id = self.create_private_project_with_weather_data()
+        scenario = self.create_private_scenario_with_weather_data()
 
         self.c.logout()
 
-        response = self.c.get(self.endpoint(project_id))
+        response = self.c.get(self.endpoint(scenario['id']))
 
         self.assertEqual(response.status_code, 404)
 
     def test_weather_get_project_owner_can_get_public(self):
-        project_id = self.create_public_project_with_weather_data()
+        scenario = self.create_public_scenario_with_weather_data()
 
-        response = self.c.get(self.endpoint(project_id))
+        response = self.c.get(self.endpoint(scenario['id']))
 
         self.assertEqual(response.status_code, 200)
 
     def test_weather_get_logged_in_user_can_get_public(self):
-        project_id = self.create_public_project_with_weather_data()
+        scenario = self.create_public_scenario_with_weather_data()
 
         self.c.logout()
         self.c.login(username='foo', password='bar')
 
-        response = self.c.get(self.endpoint(project_id))
+        response = self.c.get(self.endpoint(scenario['id']))
 
         self.assertEqual(response.status_code, 200)
 
     def test_weather_get_logged_out_user_can_get_public(self):
-        project_id = self.create_public_project_with_weather_data()
+        scenario = self.create_public_scenario_with_weather_data()
 
         self.c.logout()
 
-        response = self.c.get(self.endpoint(project_id))
+        response = self.c.get(self.endpoint(scenario['id']))
 
         self.assertEqual(response.status_code, 200)
 
     def test_weather_get_missing_data_404s(self):
-        project_id = self.create_public_project()
+        scenario = self.create_private_scenario()
 
-        response = self.c.get(self.endpoint(project_id))
+        response = self.c.get(self.endpoint(scenario['id']))
 
         self.assertEqual(response.status_code, 404)
 
@@ -1056,108 +1076,132 @@ class CustomWeatherDataTestCase(TestCase):
         In the current implementation, old weather data is not automatically
         deleted. We delete it manually at the end of this test.
         """
-        project_id = self.create_private_project_with_weather_data()
-        old_weather = Project.objects.get(pk=project_id).custom_weather_dataset
+        scenario = self.create_private_scenario_with_weather_data()
+        old_weather = scenario['weather_custom']
 
-        response = self.c.post(self.endpoint(project_id),
+        response = self.c.post(self.endpoint(scenario['id']),
                                {'weather': self.weather_data_file},
                                format='multipart')
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['uses_custom_weather'], True)
+        self.assertEqual(response.data['weather_type'], WeatherType.CUSTOM)
 
         self.delete_weather_dataset(old_weather)
 
     def test_weather_post_logged_out_user_cant_post(self):
-        project_id = self.create_private_project_with_weather_data()
+        scenario = self.create_private_scenario_with_weather_data()
 
         self.c.logout()
 
-        response = self.c.post(self.endpoint(project_id),
+        response = self.c.post(self.endpoint(scenario['id']),
                                {'weather': self.weather_data_file},
                                format='multipart')
 
         self.assertEqual(response.status_code, 403)
 
     def test_weather_post_missing_weather_400s(self):
-        project_id = self.create_private_project_with_weather_data()
+        scenario = self.create_private_scenario_with_weather_data()
 
-        response = self.c.post(self.endpoint(project_id), {})
+        response = self.c.post(self.endpoint(scenario['id']), {})
 
         self.assertEqual(response.status_code, 400)
 
     def test_weather_post_invalid_weather_400s(self):
-        project_id = self.create_private_project_with_weather_data()
+        scenario = self.create_private_scenario_with_weather_data()
 
-        response = self.c.post(self.endpoint(project_id),
+        response = self.c.post(self.endpoint(scenario['id']),
                                {'XYZ': self.weather_data_file},
                                format='multipart')
 
         self.assertEqual(response.status_code, 400)
 
-    # PATCH
-    def test_weather_patch_project_owner_can_patch(self):
-        project_id = self.create_private_project_with_weather_data()
+    # PUT
+    def test_weather_put_project_owner_can(self):
+        scenario = self.create_private_scenario_with_weather_data()
+        scenario['weather_type'] = WeatherType.DEFAULT
 
-        response = self.c.patch(self.endpoint(project_id),
-                                {'uses_custom_weather': False},
-                                format='json')
+        response = self.c.put('/mmw/modeling/scenarios/{}'
+                              .format(scenario['id']),
+                              scenario,
+                              format='json')
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['uses_custom_weather'], False)
-        self.assertNotEqual(response.data['custom_weather_dataset'], None)
+        self.assertEqual(response.data['weather_type'], WeatherType.DEFAULT)
+        self.assertNotEqual(response.data['weather_custom'], None)
 
-    def test_weather_patch_logged_out_user_cant_patch(self):
-        project_id = self.create_private_project_with_weather_data()
+    def test_weather_put_logged_out_user_cant(self):
+        scenario = self.create_private_scenario_with_weather_data()
+        scenario['weather_type'] = WeatherType.DEFAULT
         self.c.logout()
 
-        response = self.c.patch(self.endpoint(project_id),
-                                {'uses_custom_weather': False},
-                                format='json')
+        response = self.c.put('/mmw/modeling/scenarios/{}'
+                              .format(scenario['id']),
+                              scenario,
+                              format='json')
 
         self.assertEqual(response.status_code, 403)
 
-    def test_weather_patch_missing_param_400s(self):
-        project_id = self.create_private_project_with_weather_data()
+    def test_weather_put_invalid_param_400s(self):
+        scenario = self.create_private_scenario_with_weather_data()
+        scenario['weather_type'] = 'A_WRONG_VALUE'
 
-        response = self.c.patch(self.endpoint(project_id),
-                                {'XYZ': False},
-                                format='json')
-
-        self.assertEqual(response.status_code, 400)
-
-    def test_weather_patch_invalid_param_400s(self):
-        project_id = self.create_private_project_with_weather_data()
-
-        response = self.c.patch(self.endpoint(project_id),
-                                {'uses_custom_weather': 'false'},
-                                format='json')
+        response = self.c.put('/mmw/modeling/scenarios/{}'
+                              .format(scenario['id']),
+                              scenario,
+                              format='json')
 
         self.assertEqual(response.status_code, 400)
 
-    def test_weather_patch_without_weather_data_400s(self):
-        project_id = self.create_public_project()
+    def test_weather_put_without_weather_data_400s(self):
+        scenario = self.create_private_scenario()
+        scenario['weather_type'] = WeatherType.CUSTOM
 
-        response = self.c.patch(self.endpoint(project_id),
-                                {'uses_custom_weather': True},
-                                format='json')
+        response = self.c.put('/mmw/modeling/scenarios/{}'
+                              .format(scenario['id']),
+                              scenario,
+                              format='json')
+        self.assertEqual(response.status_code, 400)
 
+        scenario['weather_type'] = WeatherType.SIMULATION
+
+        response = self.c.put('/mmw/modeling/scenarios/{}'
+                              .format(scenario['id']),
+                              scenario,
+                              format='json')
+        self.assertEqual(response.status_code, 400)
+
+    def test_weather_put_cannot_set_on_current_conditions(self):
+        scenario = self.create_current_conditions_scenario()
+        scenario['weather_type'] = WeatherType.CUSTOM
+
+        response = self.c.put('/mmw/modeling/scenarios/{}'
+                              .format(scenario['id']),
+                              scenario,
+                              format='json')
+        self.assertEqual(response.status_code, 400)
+
+        scenario['weather_type'] = WeatherType.SIMULATION
+
+        response = self.c.put('/mmw/modeling/scenarios/{}'
+                              .format(scenario['id']),
+                              scenario,
+                              format='json')
         self.assertEqual(response.status_code, 400)
 
     # DELETE
     def test_weather_delete_project_owner_can_delete(self):
-        project_id = self.create_private_project_with_weather_data()
+        scenario = self.create_private_scenario_with_weather_data()
 
-        response = self.c.delete(self.endpoint(project_id))
+        response = self.c.delete(self.endpoint(scenario['id']))
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['uses_custom_weather'], False)
-        self.assertEqual(response.data['custom_weather_dataset'], None)
+        self.assertEqual(response.data['weather_type'], WeatherType.DEFAULT)
+        self.assertEqual(response.data['weather_custom'], None)
 
     def test_weather_delete_logged_out_user_cant_delete(self):
-        project_id = self.create_private_project_with_weather_data()
+        scenario = self.create_private_scenario_with_weather_data()
         self.c.logout()
 
-        response = self.c.delete(self.endpoint(project_id))
+        response = self.c.delete(self.endpoint(scenario['id']))
 
         self.assertEqual(response.status_code, 403)

@@ -1210,7 +1210,10 @@ var ScenarioModel = Backbone.Model.extend({
         aoi_census: null, // JSON blob
         modification_censuses: null, // JSON blob
         allow_save: true, // Is allowed to save to the server - false in compare mode
-        options_menu_is_open: false // The sub-dropdown options menu for this scenario is open
+        options_menu_is_open: false, // The sub-dropdown options menu for this scenario is open
+        weather_type: constants.WeatherType.DEFAULT,
+        weather_simulation: null,
+        weather_custom: null,
     },
 
     initialize: function(attrs) {
