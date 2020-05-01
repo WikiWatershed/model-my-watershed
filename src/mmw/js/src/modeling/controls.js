@@ -8,6 +8,7 @@ var $ = require('jquery'),
     drawUtils = require('../draw/utils'),
     settings = require('../core/settings'),
     coreUnits = require('../core/units'),
+    modalViews = require('../core/modals/views'),
     models = require('./models'),
     modificationConfigUtils = require('./modificationConfigUtils'),
     gwlfeConfig = require('./gwlfeModificationConfig'),
@@ -19,6 +20,7 @@ var $ = require('jquery'),
     thumbSelectTmpl = require('./templates/controls/thumbSelect.html'),
     settingsTmpl = require('./templates/controls/settings.html'),
     greenButtonTmpl = require('./templates/controls/greenButton.html'),
+    customWeatherTmpl = require('./templates/controls/customWeather.html'),
     modDropdownTmpl = require('./templates/controls/modDropdown.html');
 
 var ENTER_KEYCODE = 13;
@@ -438,6 +440,44 @@ var ConservationPracticeView = ModificationsView.extend({
     }
 });
 
+var GwlfeCustomWeatherView = ControlView.extend({
+    template: customWeatherTmpl,
+
+    events: {
+        'click button': 'showCustomWeatherModal',
+    },
+
+    getControlName: function() {
+        return 'gwlfe_custom_weather';
+    },
+
+    initialize: function(options) {
+        ControlView.prototype.initialize.apply(this, [options]);
+
+        this.model.set({
+            controlName: this.getControlName(),
+            controlDisplayName: 'Custom Weather',
+            dataModel: gwlfeConfig.cleanDataModel(App.currentProject.get('gis_data')),
+            errorMessages: null,
+            infoMessages: null,
+        });
+    },
+
+    showCustomWeatherModal: function() {
+        if (App.user.get('guest')) {
+            App.getUserOrShowLogin();
+        } else {
+            var currentScenario = App.currentProject.get('scenarios')
+                                     .findWhere({ active: true }),
+                cwdModal = new modalViews.CustomWeaterDataView({
+                    model: currentScenario,
+                });
+
+            cwdModal.render();
+        }
+    },
+});
+
 var GwlfeLandCoverView = ControlView.extend({
     template: greenButtonTmpl,
 
@@ -632,6 +672,8 @@ function getControlView(controlName) {
             return LandCoverView;
         case 'conservation_practice':
             return ConservationPracticeView;
+        case 'gwlfe_custom_weather':
+            return GwlfeCustomWeatherView;
         case 'gwlfe_landcover':
             return GwlfeLandCoverView;
         case 'gwlfe_conservation_practice':
