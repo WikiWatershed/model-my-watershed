@@ -863,13 +863,11 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
         addChangesButton: '#add-changes',
         downloadGmsFile: '#download-cc-gms',
         exportGmsForm: '#export-gms-form',
-        customWeatherDataButton: '#custom-weather-data',
     },
 
     events: {
         'click @ui.addChangesButton': 'onAddChangesClick',
         'click @ui.downloadGmsFile': 'onGmsDownloadClick',
-        'click @ui.customWeatherDataButton': 'onCustomWeatherDataClick',
     },
 
     collectionEvents: {
@@ -917,31 +915,17 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
         this.ui.exportGmsForm.trigger('submit');
     },
 
-    onCustomWeatherDataClick: function() {
-        if (App.user.get('guest')) {
-            App.getUserOrShowLogin();
-        } else {
-            var cwdModal = new modalViews.CustomWeaterDataView({
-                    model: this.model,
-                });
-
-            cwdModal.render();
-        }
-    },
-
     templateHelpers: function() {
         // We don't need to apply modifications to gis_data here
         // because it's only downloadable from this view if
         // the only scenario is current conditions (ie no modifications)
         var gisData = this.model.get('gis_data'),
             isGwlfe = this.modelPackage === utils.GWLFE && !_.isEmpty(gisData),
-            isCurrentConditions = this.currentConditions.get('active'),
             isOnlyCurrentConditions = this.collection.length === 1 &&
                 this.collection.first().get('is_current_conditions'),
             editable = isEditable(this.model);
 
         return {
-            isCurrentConditions: isCurrentConditions,
             isOnlyCurrentConditions: isOnlyCurrentConditions,
             isGwlfe: isGwlfe,
             csrftoken: csrf.getToken(),
