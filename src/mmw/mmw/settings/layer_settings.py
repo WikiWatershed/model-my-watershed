@@ -66,6 +66,28 @@ LAYER_GROUPS = {
             'big_cz': True,
         },
         {
+            'display': 'ESRI World Topo',
+            'url': 'https://server.arcgisonline.com/arcgis/rest/services/'
+                   'World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+            'attribution': 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ,'
+                           ' TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN,'
+                           ' GeoBase, Kadaster NL, Ordnance Survey,'
+                           ' Esri Japan, METI, Esri China (Hong Kong),'
+                           ' and the GIS User Community',
+            'maxZoom': 19,
+            'big_cz': True,
+        },
+        {
+            'display': 'National Geographic',
+            'url': 'https://server.arcgisonline.com/arcgis/rest/services/'
+                   'NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}',
+            'attribution': 'Tiles &copy; Esri &mdash; National Geographic,'
+                           ' Garmin, HERE, UNEP-WCMC, USGS, NASA, ESA, METI,'
+                           ' NRCAN, GEBCO, NOAA, increment P Corp.',
+            'maxZoom': 17,
+            'big_cz': True,
+        },
+        {
             'display': 'Satellite',
             'url': 'https://server.arcgisonline.com/arcgis/rest/services/'
                    'World_Imagery/MapServer/tile/{z}/{y}/{x}',
