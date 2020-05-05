@@ -1870,7 +1870,7 @@ function getControlsForModelPackage(modelPackageName, options) {
             return new ModelPackageControlsCollection();
         } else {
             return new ModelPackageControlsCollection([
-                new ModelPackageControlModel({ name: 'gwlfe_custom_weather' }),
+                new ModelPackageControlModel({ name: 'gwlfe_weather_data' }),
                 new ModelPackageControlModel({ name: 'gwlfe_landcover' }),
                 new ModelPackageControlModel({ name: 'gwlfe_conservation_practice' }),
                 new ModelPackageControlModel({ name: 'gwlfe_settings' }),
