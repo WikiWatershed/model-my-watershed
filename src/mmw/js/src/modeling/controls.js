@@ -8,11 +8,11 @@ var $ = require('jquery'),
     drawUtils = require('../draw/utils'),
     settings = require('../core/settings'),
     coreUnits = require('../core/units'),
-    modalViews = require('../core/modals/views'),
     models = require('./models'),
     modificationConfigUtils = require('./modificationConfigUtils'),
     gwlfeConfig = require('./gwlfeModificationConfig'),
     entryViews = require('./gwlfe/entry/views'),
+    weatherViews = require('./gwlfe/weather/views'),
     precipitationTmpl = require('./templates/controls/precipitation.html'),
     manualEntryTmpl = require('./templates/controls/manualEntry.html'),
     userInputTmpl = require('./templates/controls/userInput.html'),
@@ -468,12 +468,12 @@ var GwlfeWeatherDataView = ControlView.extend({
             App.getUserOrShowLogin();
         } else {
             var currentScenario = App.currentProject.get('scenarios')
-                                     .findWhere({ active: true }),
-                cwdModal = new modalViews.CustomWeaterDataView({
-                    model: currentScenario,
-                });
+                                     .findWhere({ active: true });
 
-            cwdModal.render();
+            weatherViews.showWeatherDataModal(
+                currentScenario,
+                this.addModification
+            );
         }
     },
 });

@@ -22,7 +22,6 @@ var _ = require('lodash'),
     modalTosTmpl = require('./templates/tosModal.html'),
     modalPrivacyTmpl = require('./templates/privacyModal.html'),
     modalCookieTmpl = require('./templates/cookieModal.html'),
-    modalCustomWeatherDataTmpl = require('./templates/customWeatherDataModal.html'),
     settings = require('../settings'),
 
     ENTER_KEYCODE = 13,
@@ -868,40 +867,6 @@ var CookieModal = Marionette.ItemView.extend({
     },
 });
 
-var CustomWeaterDataView = ModalBaseView.extend({
-    // model: modeling.ProjectModel,
-
-    template: modalCustomWeatherDataTmpl,
-
-    ui: {
-        form: 'form',
-        upload: '.upload',
-        deny: '.btn-default'
-    },
-
-    events: _.defaults({
-        'click @ui.upload': 'primaryAction',
-        'click @ui.deny': 'dismissAction'
-    }, ModalBaseView.prototype.events),
-
-    primaryAction: function() {
-        if (this.getDisabledState(this.ui.upload)) {
-            return;
-        }
-
-        // TODO Upload the file
-        // https://github.com/WikiWatershed/model-my-watershed/issues/3287
-        this.ui.form.submit();
-
-        this.triggerMethod('upload');
-        this.hide();
-    },
-
-    dismissAction: function() {
-        this.triggerMethod('deny');
-    }
-});
-
 module.exports = {
     AboutModal: AboutModal,
     TosModal: TosModal,
@@ -915,6 +880,5 @@ module.exports = {
     ConfirmLargeView: ConfirmLargeView,
     PlotView: PlotView,
     IframeView: IframeView,
-    CustomWeaterDataView: CustomWeaterDataView,
     AlertView: AlertView
 };
