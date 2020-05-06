@@ -17,7 +17,7 @@
         <div class="modal-body">
             <div class="weather-col in-built-weather">
                 <h2 class="weather-col-title">
-                    <input type="radio" name="weather-data" value="DEFAULT" checked />
+                    <input type="radio" name="weather-type" value="DEFAULT" {{ 'checked' if weatherType == 'DEFAULT' }} />
                     Available Data
                 </h2>
                 <p class="weather-col-description">
@@ -31,16 +31,26 @@
             </div>
             <div class="weather-col custom-weather">
                 <h2 class="weather-col-title">
-                    <input type="radio" name="weather-data" value="CUSTOM" />
+                    <input type="radio" name="weather-type" value="CUSTOM" {{ 'checked' if weatherType == 'CUSTOM' }} />
                     Custom Data
                 </h2>
                 <p class="weather-col-description">
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit,
                     sed do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua.
+                    aliqua. <a href="#" target="_blank">Download Sample CSV.</a>
                 </p>
-                <button class="btn btn-md btn-block btn-active">Upload</button>
-                <button class="btn btn-md btn-block btn-link">Download Sample CSV</button>
+                <div class="weather-col-custom-button-set">
+                    <form enctype="multipart/form-data" method="POST" action="/mmw/modeling/scenarios/{{ scenario_id }}/custom-weather-data/">
+                        <input class="file-input hidden" type="file" name="weather" accept=".csv" />
+                        <div class="form-group">
+                            <div class="input-group file-select">
+                                <span class="input-group-addon">Select</span>
+                                <input class="form-control" type="text" placeholder="custom-weather.csv" readonly />
+                            </div>
+                        </div>
+                        <button class="btn btn-md btn-block btn-active upload hidden" type="button">Upload</button>
+                    </form>
+                </div>
             </div>
         </div>
         <div class="modal-footer" style="text-align: right">

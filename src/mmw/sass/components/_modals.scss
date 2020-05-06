@@ -423,7 +423,7 @@
     display: flex;
 
     .weather-col {
-      flex: 0 0 calc(50% - 1rem);
+      flex: 0 0 50%;
       padding: 0 1rem;
 
       &+.weather-col {
@@ -442,6 +442,20 @@
       &-description {
         font-size: 13px;
         margin-bottom: 1rem;
+      }
+
+      .file-select {
+        cursor: pointer;
+
+        span {
+          color: $paper;
+          background-color: $brand-primary;
+          border-color: $brand-primary-border;
+        }
+
+        input[type="text"] {
+          background-color: $paper;
+        }
       }
     }
   }
