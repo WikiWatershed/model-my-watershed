@@ -15,24 +15,40 @@
             </div>
         </div>
         <div class="modal-body">
-            <form class="cwd-upload-form" action="/mmw/modeling/projects/{{ id }}/custom-weather-data/" method="POST" target="_blank">
-                <p>Select a file to upload.</p>
-                <!-- TODO Add link to sample weather data -->
-                <!-- https://github.com/WikiWatershed/model-my-watershed/issues/3287 -->
-                <div class="custom-input-group">
-                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrftoken }}">
-                    <label class="modal-file-input-label">Select Weather CSV</label>
-                    <input class="modal-file-input" name="weather" type="file" required />
-                </div>
-                <label class="error"></label>
-            </form>
+            <div class="weather-col in-built-weather">
+                <h2 class="weather-col-title">
+                    <input type="radio" name="weather-data" value="DEFAULT" checked />
+                    Available Data
+                </h2>
+                <p class="weather-col-description">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+                    sed do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua.
+                </p>
+                <select class="form-control btn btn-small btn-primary">
+                    <option selected>1960-1990</option>
+                </select>
+            </div>
+            <div class="weather-col custom-weather">
+                <h2 class="weather-col-title">
+                    <input type="radio" name="weather-data" value="CUSTOM" />
+                    Custom Data
+                </h2>
+                <p class="weather-col-description">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+                    sed do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua.
+                </p>
+                <button class="btn btn-md btn-block btn-active">Upload</button>
+                <button class="btn btn-md btn-block btn-link">Download Sample CSV</button>
+            </div>
         </div>
         <div class="modal-footer" style="text-align: right">
             <div class="footer-content">
                 <button class="btn btn-md btn-default" data-dismiss="modal">
                     Cancel
                 </button>
-                <button class="btn btn-md btn-active">Save</button>
+                <button class="btn btn-md btn-active save">Save</button>
             </div>
         </div>
     </div>

@@ -11,7 +11,7 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
     className: 'modal modal-large fade',
 
     ui: {
-        saveButton: '.btn-active',
+        saveButton: 'button.save',
     },
 
     events: _.defaults({

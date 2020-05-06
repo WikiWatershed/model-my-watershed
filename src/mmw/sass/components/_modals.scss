@@ -417,6 +417,36 @@
   }
 }
 
+#weather-data-modal {
+  .modal-body {
+    padding: 1rem;
+    display: flex;
+
+    .weather-col {
+      flex: 0 0 calc(50% - 1rem);
+      padding: 0 1rem;
+
+      &+.weather-col {
+        border-left: 1px solid #eee;
+      }
+
+      &-title {
+        margin-bottom: 1rem;
+
+        input {
+          float: left;
+          margin-right: 1rem;
+        }
+      }
+
+      &-description {
+        font-size: 13px;
+        margin-bottom: 1rem;
+      }
+    }
+  }
+}
+
 #entry-modal {
   .nav-tabs {
     padding: 0 2rem;
