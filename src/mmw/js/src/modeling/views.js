@@ -827,7 +827,9 @@ var GwlfeToolbarView = ScenarioModelToolbarView.extend({
 
     templateHelpers: function() {
         var activeMod = this.getActiveMod(),
-            isEntry = function(m) { return m.modKey.startsWith('entry_'); },
+            isThumbnailable = function(m) {
+                return m.modKey === 'weather_data' ||
+                       m.modKey.startsWith('entry_'); },
             modifications = this.model.get('modifications').toJSON(),
             editable = isEditable(this.model),
             scheme = settings.get('unit_scheme'),
@@ -842,7 +844,7 @@ var GwlfeToolbarView = ScenarioModelToolbarView.extend({
         activeMod = activeMod ? activeMod.toJSON() : null;
 
         return {
-            modifications: _.reject(modifications, isEntry),
+            modifications: _.reject(modifications, isThumbnailable),
             activeMod: activeMod,
             displayNames: _.mapValues(gwlfeConfig.displayNames, labelUnits),
             displayUnits: gwlfeConfig.displayUnits,

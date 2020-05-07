@@ -2,6 +2,7 @@
 
 var _ = require('lodash'),
     $ = require('jquery'),
+    WeatherType = require('../../constants').WeatherType,
     modalViews = require('../../../core/modals/views'),
     models = require('./models'),
     modalTmpl = require('./templates/modal.html');
@@ -41,12 +42,26 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
     },
 
     validateModal: function() {
-        // TODO Add Validation
-        // this.ui.saveButton.prop('disabled', autoTotal !== userTotal);
+        var weather_type = this.model.get('weather_type'),
+            custom_weather_output = this.model.get('custom_weather_output'),
+            custom_weather_errors = this.model.get('custom_weather_errors'),
+
+            valid_default = weather_type === WeatherType.DEFAULT,
+            valid_simulation = weather_type === WeatherType.SIMULATION,
+            valid_custom = weather_type === WeatherType.CUSTOM &&
+                custom_weather_output !== null &&
+                custom_weather_errors.length === 0,
+
+            disabled = !(valid_default || valid_simulation || valid_custom);
+
+
+        this.ui.saveButton.prop('disabled', disabled);
     },
 
     onWeatherTypeChange: function(e) {
-        this.model.set('weatherType', e.target.value);
+        this.model.set('weather_type', e.target.value);
+
+        this.validateModal();
     },
 
     onSelectClick: function() {
@@ -66,6 +81,8 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
     },
 
     onUploadClick: function() {
+        var self = this;
+
         $.ajax({
             url: '/mmw/modeling/scenarios/' + this.scenario.get('id') + '/custom-weather-data/',
             type: 'POST',
@@ -75,20 +92,41 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
             cache: false,
             contentType: false,
             processData: false,
+        }).then(function(data) {
+            self.model.set({
+                custom_weather_output: data.output,
+                custom_weather_errors: [],
+            });
+
+            self.validateModal();
+        }).catch(function(err) {
+            var errors = err && err.responseJSON && err.responseJSON.errors;
+
+            self.model.set({
+                custom_weather_output: null,
+                custom_weather_errors: errors || ['Unknown server error.'],
+            });
+
+            self.validateModal();
         });
     },
 
     saveAndClose: function() {
-        // TODO Update Scenario Settings
-        // TODO Trigger Reclaculation
-        // this.addModification(this.model.getOutput());
+        this.addModification(this.model.getOutput());
+        this.scenario.set('weather_type', this.model.get('weather_type'));
 
         this.hide();
     }
 });
 
 function showWeatherDataModal(scenario, addModification) {
-    var model = new models.WindowModel();
+    var weather_type = scenario.get('weather_type'),
+        weather_mod = scenario.get('modifications').findWhere({ name: 'weather_data' }),
+        model = new models.WindowModel({
+            weather_type: weather_type,
+            custom_weather_type: weather_type === WeatherType.CUSTOM ?
+                weather_mod && weather_mod.get('output') : null,
+        });
 
     new WeatherDataModal({
         model: model,
