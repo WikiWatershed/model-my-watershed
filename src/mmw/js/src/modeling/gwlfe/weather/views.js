@@ -20,6 +20,8 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
         fileSelect: '.file-select',
         fileSelectText: '.file-select > input[type="text"]',
         uploadButton: 'button.upload',
+        uploadErrorBox: '.upload-error-box',
+        uploadErrorList: '.upload-error-list',
         saveButton: 'button.save',
     },
 
@@ -56,6 +58,18 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
 
 
         this.ui.saveButton.prop('disabled', disabled);
+
+        if (custom_weather_errors.length > 0) {
+            this.ui.uploadErrorBox.removeClass('hidden');
+            this.ui.uploadErrorList.html(
+                custom_weather_errors
+                    .map(function(e) { return '<li>' + e + '</li>'; })
+                    .join('')
+            );
+        } else {
+            this.ui.uploadErrorBox.addClass('hidden');
+            this.ui.uploadErrorList.html('');
+        }
     },
 
     onWeatherTypeChange: function(e) {
@@ -74,6 +88,7 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
         if (f) {
             this.ui.fileSelectText.val(f.name);
             this.ui.uploadButton.removeClass('hidden');
+            this.ui.uploadErrorBox.addClass('hidden');
         } else {
             this.ui.fileSelectText.val(null);
             this.ui.uploadButton.addClass('hidden');

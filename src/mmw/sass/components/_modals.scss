@@ -457,6 +457,14 @@
           background-color: $paper;
         }
       }
+
+      .upload-error-box {
+        margin-top: 15px;
+      }
+
+      .upload-error-list {
+        padding-left: 15px;
+      }
     }
   }
 }
