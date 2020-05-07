@@ -39,21 +39,42 @@
                     sed do eiusmod tempor incididunt ut labore et dolore magna
                     aliqua. <a href="#" target="_blank">Download Sample CSV.</a>
                 </p>
-                <div class="weather-col-custom-button-set">
+                <div class="weather-col-custom-button-set upload">
                     <form enctype="multipart/form-data" method="POST" action="/mmw/modeling/scenarios/{{ scenario_id }}/custom-weather-data/">
                         <input class="file-input hidden" type="file" name="weather" accept=".csv" />
                         <div class="form-group">
                             <div class="input-group file-select">
                                 <span class="input-group-addon">Select</span>
-                                <input class="form-control" type="text" placeholder="custom-weather.csv" readonly />
+                                <input class="form-control custom-weather-file-text" type="text" placeholder="custom-weather.csv" readonly />
                             </div>
                         </div>
-                        <button class="btn btn-md btn-block btn-active upload hidden" type="button">Upload</button>
+                        <button class="btn btn-md btn-block btn-active upload-button hidden" type="button">Upload</button>
                         <div class="alert alert-danger hidden upload-error-box">
                             <strong>Upload failed:</strong>
                             <ul class="upload-error-list"></ul>
                         </div>
                     </form>
+                </div>
+                <div class="weather-col-custom-button-set existing">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <input class="form-control custom-weather-file-text" type="text" readonly value="{{ custom_weather_file_name }}" />
+                            <div class="input-group-btn">
+                                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <span class="caret"></span>
+                                    <span class="sr-only">Toggle Dropdown</span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a href="#">Download</a></li>
+                                    <li role="separator" class="divider"></li>
+                                    <li><a href="#">Delete</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <p>
+                        {{ custom_weather_output.WxYrs }} years, {{ custom_weather_output.WxYrBeg }}&ndash;{{ custom_weather_output.WxYrEnd }}
+                    </p>
                 </div>
             </div>
         </div>

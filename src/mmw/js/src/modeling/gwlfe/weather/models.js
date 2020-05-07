@@ -10,6 +10,7 @@ var WindowModel = Backbone.Model.extend({
         built_in_weather_type: 'MAPSHED',
         custom_weather_output: null,
         custom_weather_errors: [], // Array of String
+        custom_weather_file_name: null,
     },
 
     getOutput: function() {

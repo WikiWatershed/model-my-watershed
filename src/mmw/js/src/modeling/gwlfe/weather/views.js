@@ -3,6 +3,7 @@
 var _ = require('lodash'),
     $ = require('jquery'),
     WeatherType = require('../../constants').WeatherType,
+    utils = require('../../../core/utils'),
     modalViews = require('../../../core/modals/views'),
     models = require('./models'),
     modalTmpl = require('./templates/modal.html');
@@ -19,7 +20,7 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
         fileInput: '.file-input',
         fileSelect: '.file-select',
         fileSelectText: '.file-select > input[type="text"]',
-        uploadButton: 'button.upload',
+        uploadButton: '.upload-button',
         uploadErrorBox: '.upload-error-box',
         uploadErrorList: '.upload-error-list',
         saveButton: 'button.save',
@@ -136,11 +137,13 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
 
 function showWeatherDataModal(scenario, addModification) {
     var weather_type = scenario.get('weather_type'),
-        weather_mod = scenario.get('modifications').findWhere({ name: 'weather_data' }),
+        weather_mod = scenario.get('modifications').findWhere({ modKey: 'weather_data' }),
         model = new models.WindowModel({
             weather_type: weather_type,
-            custom_weather_type: weather_type === WeatherType.CUSTOM ?
+            custom_weather_output: weather_type === WeatherType.CUSTOM ?
                 weather_mod && weather_mod.get('output') : null,
+            custom_weather_file_name: weather_type === WeatherType.CUSTOM ?
+                utils.getFileName(scenario.get('weather_custom')) : null,
         });
 
     new WeatherDataModal({

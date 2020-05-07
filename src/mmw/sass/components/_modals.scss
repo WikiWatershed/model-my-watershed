@@ -458,6 +458,11 @@
         }
       }
 
+      .custom-weather-file-text {
+        background-color: $paper;
+        border: solid 1px darken($ui-light, 5%);
+      }
+
       .upload-error-box {
         margin-top: 15px;
       }
