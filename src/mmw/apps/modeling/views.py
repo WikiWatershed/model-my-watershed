@@ -51,6 +51,7 @@ from apps.modeling.calcs import (get_layer_shape,
                                  boundary_search_context,
                                  split_into_huc12s,
                                  sum_subbasin_stream_lengths,
+                                 get_weather_modifications,
                                  )
 
 
@@ -213,25 +214,30 @@ def scenario_custom_weather_data(request, scen_id):
             if not request.FILES or 'weather' not in request.FILES:
                 errors.append('Must specify file in `weather` field.')
 
-            # TODO Validate the file
-            # https://github.com/WikiWatershed/model-my-watershed/issues/3284
-
             if errors:
                 return Response({'errors': errors},
                                 status=status.HTTP_400_BAD_REQUEST)
 
             scenario.weather_custom = request.FILES['weather']
-            scenario.weather_type = WeatherType.CUSTOM
+
+            mods, errs = get_weather_modifications(
+                scenario.weather_custom)
+
+            if errs:
+                return Response({'errors': errors + errs},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            scenario.save()
+            return Response({'output': mods})
 
         elif request.method == 'DELETE':
             if scenario.weather_custom.name:
                 scenario.weather_custom.delete()
 
             scenario.weather_type = WeatherType.DEFAULT
-
-        scenario.save()
-        serializer = ScenarioSerializer(scenario)
-        return Response(serializer.data)
+            scenario.save()
+            return Response(None,
+                            status=status.HTTP_204_NO_CONTENT)
 
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
