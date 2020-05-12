@@ -7,7 +7,8 @@ var _ = require('lodash'),
     settings = require('../core/settings'),
     coreUnits = require('../core/units'),
     csrf = require('../core/csrf'),
-    utils = require('../core/utils'),
+    coreUtils = require('../core/utils'),
+    utils = require('./utils'),
     models = require('./models'),
     controls = require('./controls'),
     coreModels = require('../core/models'),
@@ -68,7 +69,7 @@ var ModelingHeaderView = Marionette.LayoutView.extend({
     },
 
     toggleToolbar: function() {
-        if (this.model.get('sidebar_mode') === utils.MODEL) {
+        if (this.model.get('sidebar_mode') === coreUtils.MODEL) {
             this.ui.scenarioAndToolbarContainer.removeClass('hidden');
             App.map.setModelSize();
         } else {
@@ -158,12 +159,12 @@ var ProjectMenuView = Marionette.ItemView.extend({
                                   {name: modelPackageName}),
             aoiModel = new coreModels.GeoModel({
                 shape: App.map.get('areaOfInterest'),
-                place: utils.parseAoIName(App.map.get('areaOfInterestName')),
+                place: coreUtils.parseAoIName(App.map.get('areaOfInterestName')),
             });
         return {
             itsi: App.user.get('itsi'),
             itsi_embed: settings.get('itsi_embed'),
-            editable: isEditable(this.model),
+            editable: utils.isEditable(this.model),
             is_new: this.model.isNew(),
             modelPackage: modelPackage,
             aoiModel: aoiModel
@@ -301,15 +302,15 @@ var ProjectMenuView = Marionette.ItemView.extend({
     },
 
     showAnalyze: function() {
-        this.model.set('sidebar_mode', utils.ANALYZE);
+        this.model.set('sidebar_mode', coreUtils.ANALYZE);
     },
 
     showMonitor: function() {
-        this.model.set('sidebar_mode', utils.MONITOR);
+        this.model.set('sidebar_mode', coreUtils.MONITOR);
     },
 
     showModel: function() {
-        this.model.set('sidebar_mode', utils.MODEL);
+        this.model.set('sidebar_mode', coreUtils.MODEL);
     }
 });
 
@@ -347,13 +348,13 @@ var ScenarioButtonsView = Marionette.ItemView.extend({
         var scenario = this.collection.first(),
             activeScenario = this.collection.findWhere({ active: true }),
             gis_data = activeScenario && activeScenario.getModifiedGwlfeGisData(),
-            isGwlfe = App.currentProject.get('model_package') === utils.GWLFE && !_.isEmpty(gis_data),
+            isGwlfe = App.currentProject.get('model_package') === coreUtils.GWLFE && !_.isEmpty(gis_data),
             isOnlyCurrentConditions = this.collection.length === 1,
             compareUrl = this.projectModel.getCompareUrl();
 
         return {
             isOnlyCurrentConditions: isOnlyCurrentConditions,
-            editable: isEditable(scenario),
+            editable: utils.isEditable(scenario),
             activeScenario: activeScenario,
             isGwlfe: isGwlfe,
             csrftoken: csrf.getToken(),
@@ -489,13 +490,13 @@ var ScenarioDropDownMenuOptionsView = Marionette.ItemView.extend({
 
     templateHelpers: function() {
         var gis_data = this.model.getModifiedGwlfeGisData(),
-            is_gwlfe = App.currentProject.get('model_package') === utils.GWLFE && !_.isEmpty(gis_data);
+            is_gwlfe = App.currentProject.get('model_package') === coreUtils.GWLFE && !_.isEmpty(gis_data);
 
         return {
             is_gwlfe: is_gwlfe,
             csrftoken: csrf.getToken(),
             gis_data: JSON.stringify(gis_data),
-            editable: isEditable(this.model),
+            editable: utils.isEditable(this.model),
             is_new: this.model.isNew(),
         };
     },
@@ -574,7 +575,7 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
 
     templateHelpers: function() {
         var gis_data = this.model.getModifiedGwlfeGisData(),
-            is_gwlfe = App.currentProject.get('model_package') === utils.GWLFE &&
+            is_gwlfe = App.currentProject.get('model_package') === coreUtils.GWLFE &&
                         gis_data !== null &&
                         gis_data !== '{}' &&
                         gis_data !== '';
@@ -583,7 +584,7 @@ var ScenarioDropDownMenuItemView = Marionette.LayoutView.extend({
                 is_gwlfe: is_gwlfe,
                 gis_data: JSON.stringify(gis_data),
                 csrftoken: csrf.getToken(),
-                editable: isEditable(this.model),
+                editable: utils.isEditable(this.model),
                 is_new: this.model.isNew(),
             };
         },
@@ -674,7 +675,7 @@ var ScenarioModelToolbarView = Marionette.CompositeView.extend({
     // Only display modification controls if scenario is editable.
     // Input controls should always be shown.
     filter: function(modelPackageControl) {
-        return isEditable(this.model) || modelPackageControl.isInputControl();
+        return utils.isEditable(this.model) || modelPackageControl.isInputControl();
     },
 
     onRender: function() {
@@ -725,7 +726,7 @@ var Tr55ToolbarView = ScenarioModelToolbarView.extend({
             compareMode: this.compareMode,
             shapes: shapes,
             groupedShapes: groupedShapes,
-            editable: isEditable(this.model)
+            editable: utils.isEditable(this.model)
         };
     },
 
@@ -831,7 +832,7 @@ var GwlfeToolbarView = ScenarioModelToolbarView.extend({
                 return m.modKey === 'weather_data' ||
                        m.modKey.startsWith('entry_'); },
             modifications = this.model.get('modifications').toJSON(),
-            editable = isEditable(this.model),
+            editable = utils.isEditable(this.model),
             scheme = settings.get('unit_scheme'),
             areaUnit = coreUnits[scheme].AREA_L_FROM_HA.name,
             lengthUnit = coreUnits[scheme].LENGTH_XL_FROM_KM.name,
@@ -877,7 +878,7 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
     },
 
     getChildView: function() {
-        var isGwlfe = this.modelPackage === utils.GWLFE;
+        var isGwlfe = this.modelPackage === coreUtils.GWLFE;
 
         if (isGwlfe) {
             return GwlfeToolbarView;
@@ -922,10 +923,10 @@ var ScenarioToolbarView = Marionette.CompositeView.extend({
         // because it's only downloadable from this view if
         // the only scenario is current conditions (ie no modifications)
         var gisData = this.model.get('gis_data'),
-            isGwlfe = this.modelPackage === utils.GWLFE && !_.isEmpty(gisData),
+            isGwlfe = this.modelPackage === coreUtils.GWLFE && !_.isEmpty(gisData),
             isOnlyCurrentConditions = this.collection.length === 1 &&
                 this.collection.first().get('is_current_conditions'),
-            editable = isEditable(this.model);
+            editable = utils.isEditable(this.model);
 
         return {
             isOnlyCurrentConditions: isOnlyCurrentConditions,
@@ -1022,7 +1023,7 @@ var ResultsView = Marionette.LayoutView.extend({
 
     toggleAoiRegion: function() {
         switch (this.model.get('sidebar_mode')) {
-            case utils.ANALYZE:
+            case coreUtils.ANALYZE:
                 this.aoiRegion.currentView.$el.removeClass('hidden');
                 this.analyzeRegion.$el.addClass('active');
                 this.monitorRegion.$el.removeClass('active');
@@ -1033,7 +1034,7 @@ var ResultsView = Marionette.LayoutView.extend({
                 App.getMapView().clearSubbasinHuc12s();
                 App.getMapView().clearSubbasinCatchments();
                 break;
-            case utils.MONITOR:
+            case coreUtils.MONITOR:
                 if (App.map.get('dataCatalogDetailResult') !== null) {
                     this.aoiRegion.currentView.$el.addClass('hidden');
                 } else {
@@ -1048,7 +1049,7 @@ var ResultsView = Marionette.LayoutView.extend({
                 App.getMapView().clearSubbasinHuc12s();
                 App.getMapView().clearSubbasinCatchments();
                 break;
-            case utils.MODEL:
+            case coreUtils.MODEL:
                 this.aoiRegion.currentView.$el.addClass('hidden');
                 this.analyzeRegion.$el.removeClass('active');
                 this.monitorRegion.$el.removeClass('active');
@@ -1422,17 +1423,13 @@ var ResultsTabContentsView = Marionette.CollectionView.extend({
     }
 });
 
-function isEditable(scenario) {
-    return App.user.userMatch(scenario.get('user_id'));
-}
-
 function triggerBarChartRefresh() {
     $('#model-output-wrapper .bar-chart').trigger('bar-chart:refresh');
 }
 
 function getResultView(modelPackage, resultName) {
     switch (modelPackage) {
-        case utils.TR55_PACKAGE:
+        case coreUtils.TR55_PACKAGE:
             switch(resultName) {
                 case 'runoff':
                     return tr55RunoffViews.ResultView;
@@ -1442,7 +1439,7 @@ function getResultView(modelPackage, resultName) {
                     console.log('Result not supported.');
             }
             break;
-        case utils.GWLFE:
+        case coreUtils.GWLFE:
             switch(resultName) {
                 case 'runoff':
                     return gwlfeRunoffViews.ResultView;
@@ -1461,9 +1458,9 @@ function getResultView(modelPackage, resultName) {
 
 function getNumSteps(modelPackage) {
     switch (modelPackage) {
-        case utils.TR55_PACKAGE:
+        case coreUtils.TR55_PACKAGE:
             return 1;
-        case utils.GWLFE:
+        case coreUtils.GWLFE:
             return 2;
         default:
             console.log('Model package ' + modelPackage + ' not supported.');
@@ -1472,9 +1469,9 @@ function getNumSteps(modelPackage) {
 
 function getExpectedWaitTime(modelPackage, resultName, isGatheringData) {
     switch (modelPackage) {
-        case utils.TR55_PACKAGE:
+        case coreUtils.TR55_PACKAGE:
             return null;
-        case utils.GWLFE:
+        case coreUtils.GWLFE:
             if (resultName !== 'subbasin') {
                 if (isGatheringData) {
                     return 'This may take up to 30 seconds';

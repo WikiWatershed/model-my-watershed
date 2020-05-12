@@ -3,7 +3,7 @@
 var _ = require('lodash'),
     Marionette = require('../../../../shim/backbone.marionette'),
     WeatherType = require('../../constants').WeatherType,
-    utils = require('../../../core/utils'),
+    utils = require('../../utils'),
     modalModels = require('../../../core/modals/models'),
     modalViews = require('../../../core/modals/views'),
     models = require('./models'),
@@ -208,6 +208,7 @@ function showWeatherDataModal(scenario, addModification) {
     var weather_type = scenario.get('weather_type'),
         weather_mod = scenario.get('modifications').findWhere({ modKey: 'weather_data' }),
         model = new models.WindowModel({
+            is_editable: utils.isEditable(scenario),
             scenario_id: scenario.get('id'),
             weather_type: weather_type,
             custom_weather_output: weather_type === WeatherType.CUSTOM ?

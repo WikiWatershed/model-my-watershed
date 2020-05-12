@@ -772,16 +772,6 @@ var utils = {
 
         return result;
     },
-
-    // Given a path like '/media/p29/s46/albanyRCP8520802100daily_EWIEWhh.csv',
-    // returns the file name 'albanyRCP8520802100daily_EWIEWhh.csv'.
-    getFileName: function(path) {
-        if (!_.isString(path) || path.length < 1) {
-            return false;
-        }
-
-        return path.substring(path.lastIndexOf('/') + 1);
-    }
 };
 
 module.exports = utils;

@@ -8,8 +8,10 @@
             </button>
             <ul class="dropdown-menu">
                 <li><a href="/mmw/modeling/scenarios/{{ scenario_id }}/custom-weather-data/download" target="_blank">Download</a></li>
+                {% if is_editable %}
                 <li role="separator" class="divider"></li>
                 <li><a href="#" class="delete">Delete</a></li>
+                {% endif %}
             </ul>
         </div>
     </div>
