@@ -945,6 +945,10 @@ class CustomWeatherDataTestCase(TestCase):
         return '/mmw/modeling/scenarios/{}/custom-weather-data/'\
                .format(scenario_id)
 
+    def download_endpoint(self, scenario_id):
+        return '/mmw/modeling/scenarios/{}/custom-weather-data/download/'\
+               .format(scenario_id)
+
     def delete_weather_dataset(self, path):
         """
         Delete weather data at path.
@@ -1010,6 +1014,9 @@ class CustomWeatherDataTestCase(TestCase):
         response = self.c.get(self.endpoint(scenario['id']))
 
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['output']['WxYrBeg'], 1990)
+        self.assertEqual(response.data['output']['WxYrEnd'], 1992)
+        self.assertEqual(response.data['output']['WxYrs'], 3)
 
     def test_weather_get_logged_in_user_cant_get_private(self):
         scenario = self.create_private_scenario_with_weather_data()
@@ -1060,6 +1067,65 @@ class CustomWeatherDataTestCase(TestCase):
         scenario = self.create_private_scenario()
 
         response = self.c.get(self.endpoint(scenario['id']))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_weather_download_project_owner_can_get_private(self):
+        scenario = self.create_private_scenario_with_weather_data()
+
+        response = self.c.get(self.download_endpoint(scenario['id']))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_weather_download_logged_in_user_cant_get_private(self):
+        scenario = self.create_private_scenario_with_weather_data()
+
+        self.c.logout()
+        self.c.login(username='foo', password='bar')
+
+        response = self.c.get(self.download_endpoint(scenario['id']))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_weather_download_logged_out_user_cant_get_private(self):
+        scenario = self.create_private_scenario_with_weather_data()
+
+        self.c.logout()
+
+        response = self.c.get(self.download_endpoint(scenario['id']))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_weather_download_project_owner_can_get_public(self):
+        scenario = self.create_public_scenario_with_weather_data()
+
+        response = self.c.get(self.download_endpoint(scenario['id']))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_weather_download_logged_in_user_can_get_public(self):
+        scenario = self.create_public_scenario_with_weather_data()
+
+        self.c.logout()
+        self.c.login(username='foo', password='bar')
+
+        response = self.c.get(self.download_endpoint(scenario['id']))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_weather_download_logged_out_user_can_get_public(self):
+        scenario = self.create_public_scenario_with_weather_data()
+
+        self.c.logout()
+
+        response = self.c.get(self.download_endpoint(scenario['id']))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_weather_download_missing_data_404s(self):
+        scenario = self.create_private_scenario()
+
+        response = self.c.get(self.download_endpoint(scenario['id']))
 
         self.assertEqual(response.status_code, 404)
 
