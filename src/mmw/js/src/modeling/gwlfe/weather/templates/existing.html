@@ -1,0 +1,19 @@
+<div class="form-group">
+    <div class="input-group">
+        <input class="form-control custom-weather-file-text" type="text" readonly value="{{ custom_weather_file_name }}" />
+        <div class="input-group-btn">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a href="#">Download</a></li>
+                <li role="separator" class="divider"></li>
+                <li><a href="#">Delete</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<p>
+    {{ custom_weather_output.WxYrs }} years, {{ custom_weather_output.WxYrBeg }}&ndash;{{ custom_weather_output.WxYrEnd }}
+</p>

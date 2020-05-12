@@ -228,7 +228,8 @@ def scenario_custom_weather_data(request, scen_id):
                                 status=status.HTTP_400_BAD_REQUEST)
 
             scenario.save()
-            return Response({'output': mods})
+            return Response({'output': mods,
+                             'file_name': scenario.weather_custom.name})
 
         elif request.method == 'DELETE':
             if scenario.weather_custom.name:

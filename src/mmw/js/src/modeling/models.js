@@ -1335,8 +1335,13 @@ var ScenarioModel = Backbone.Model.extend({
 
         if (options.silent) {
             // Don't reload server values, except for modified_at
+            // and weather fields
             return _.assign({}, this.attributes, {
-                modified_at: response.modified_at
+                modified_at: response.modified_at,
+
+                weather_type: response.weather_type,
+                weather_simulation: response.weather_simulation,
+                weather_custom: response.weather_custom,
             });
         }
 

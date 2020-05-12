@@ -6,6 +6,7 @@ var Backbone = require('../../../../shim/backbone'),
 
 var WindowModel = Backbone.Model.extend({
     defaults: {
+        scenario_id: null, // Must be specified
         weather_type: WeatherType.DEFAULT,
         built_in_weather_type: 'MAPSHED',
         custom_weather_output: null,
