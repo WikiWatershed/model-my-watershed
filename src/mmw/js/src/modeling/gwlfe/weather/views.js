@@ -42,14 +42,30 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
 
     // Override to populate fields
     onRender: function() {
-        this.showWeatherDataView();
+        // If the scenario has a custom weather file, but the current weather
+        // type is not custom weather, fetch the custom weather data from the
+        // server, as we cannot get it from the weather_data modification.
+        var self = this,
+            url = '/mmw/modeling/scenarios/' + self.model.get('scenario_id') + '/custom-weather-data/',
+            custom_weather_file_name = self.model.get('custom_weather_file_name'),
+            weather_type = self.model.get('weather_type');
 
-        this.$el.modal('show');
+        if (custom_weather_file_name && weather_type !== WeatherType.CUSTOM) {
+            $.get(url).then(function(data) {
+                self.model.set('custom_weather_output', data.output);
+
+                self.showWeatherDataView();
+                self.$el.modal('show');
+            });
+        } else {
+            self.showWeatherDataView();
+            self.$el.modal('show');
+        }
     },
 
     showWeatherDataView: function() {
-        var custom_weather_output = this.model.get('custom_weather_output'),
-            WeatherDataView = custom_weather_output === null ?
+        var custom_weather_file_name = this.model.get('custom_weather_file_name'),
+            WeatherDataView = custom_weather_file_name === null ?
                 UploadWeatherDataView : ExistingWeatherDataView;
 
         this.customWeatherRegion.show(new WeatherDataView({
