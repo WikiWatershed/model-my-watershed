@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-import cStringIO
 import os
 
 from celery import chain, shared_task
@@ -19,6 +18,8 @@ from django.utils.timezone import now
 from apps.core.models import Job
 from apps.modeling import tasks, views
 from apps.modeling.models import Scenario, WeatherType
+
+TEST_DATA = os.path.join(os.path.dirname(__file__), 'test_data')
 
 
 @shared_task
@@ -924,16 +925,8 @@ class CustomWeatherDataTestCase(TestCase):
             "modifications": "[]"
         }
 
-        sio = cStringIO.StringIO()
-        sio.write('\n'.join([
-            "DATE,PRCP,TAVG",
-            "1/1/2001,0,22",
-            "1/2/2001,0,19",
-            "1/3/2001,0,18",
-        ]))
-        sio.seek(0)
-
-        self.weather_data_file = sio
+        self.weather_data_file = open(os.path.join(TEST_DATA,
+                                                   'full-3-years.csv'))
 
         self.c.login(username='test', password='test')
 
@@ -945,6 +938,8 @@ class CustomWeatherDataTestCase(TestCase):
 
         for s in scenarios:
             self.delete_weather_dataset(s.weather_custom)
+
+        self.weather_data_file.close()
 
     def endpoint(self, scenario_id):
         return '/mmw/modeling/scenarios/{}/custom-weather-data/'\
@@ -1078,13 +1073,16 @@ class CustomWeatherDataTestCase(TestCase):
         """
         scenario = self.create_private_scenario_with_weather_data()
         old_weather = scenario['weather_custom']
+        self.weather_data_file.seek(0)
 
         response = self.c.post(self.endpoint(scenario['id']),
                                {'weather': self.weather_data_file},
                                format='multipart')
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['weather_type'], WeatherType.CUSTOM)
+        self.assertEqual(response.data['output']['WxYrBeg'], 1990)
+        self.assertEqual(response.data['output']['WxYrEnd'], 1992)
+        self.assertEqual(response.data['output']['WxYrs'], 3)
 
         self.delete_weather_dataset(old_weather)
 
@@ -1194,9 +1192,7 @@ class CustomWeatherDataTestCase(TestCase):
 
         response = self.c.delete(self.endpoint(scenario['id']))
 
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['weather_type'], WeatherType.DEFAULT)
-        self.assertEqual(response.data['weather_custom'], None)
+        self.assertEqual(response.status_code, 204)
 
     def test_weather_delete_logged_out_user_cant_delete(self):
         scenario = self.create_private_scenario_with_weather_data()
