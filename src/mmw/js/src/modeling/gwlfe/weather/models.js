@@ -77,6 +77,24 @@ var WindowModel = Backbone.Model.extend({
         return this.fetchCustomWeatherPromise || $.when();
     },
 
+    deleteCustomWeather: function() {
+        var self = this,
+            scenario_id = this.get('scenario_id'),
+            url = '/mmw/modeling/scenarios/' + scenario_id + '/custom-weather-data/';
+
+        return $.ajax({
+            url: url,
+            method: 'DELETE',
+        }).then(function() {
+            self.set({
+                weather_type: WeatherType.DEFAULT,
+                custom_weather_output: null,
+                custom_weather_errors: [], // Array of String
+                custom_weather_file_name: null,
+            });
+        });
+    },
+
     getOutput: function() {
         var self = this,
             weather_data = function() {

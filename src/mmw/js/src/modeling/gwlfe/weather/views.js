@@ -4,6 +4,7 @@ var _ = require('lodash'),
     Marionette = require('../../../../shim/backbone.marionette'),
     WeatherType = require('../../constants').WeatherType,
     utils = require('../../../core/utils'),
+    modalModels = require('../../../core/modals/models'),
     modalViews = require('../../../core/modals/views'),
     models = require('./models'),
     modalTmpl = require('./templates/modal.html'),
@@ -170,11 +171,36 @@ var UploadWeatherDataView = Marionette.ItemView.extend({
 var ExistingWeatherDataView = Marionette.ItemView.extend({
     template: existingTmpl,
 
+    ui: {
+        delete: '.delete',
+    },
+
+    events: {
+        'click @ui.delete': 'onDeleteClick',
+    },
+
     templateHelpers: function() {
         return {
             custom_weather_file_name:
                 utils.getFileName(this.model.get('custom_weather_file_name')),
         };
+    },
+
+    onDeleteClick: function() {
+        var self = this,
+            del = new modalViews.ConfirmView({
+                model: new modalModels.ConfirmModel({
+                    question: 'Are you sure you want to delete this weather file?',
+                    confirmLabel: 'Delete',
+                    cancelLabel: 'Cancel'
+                })
+            });
+
+        del.render();
+
+        del.on('confirmation', function() {
+            self.model.deleteCustomWeather();
+        });
     },
 });
 
