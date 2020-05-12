@@ -1,6 +1,7 @@
 "use strict";
 
-var Backbone = require('../../../../shim/backbone'),
+var $ = require('jquery'),
+    Backbone = require('../../../../shim/backbone'),
     GwlfeModificationModel = require('../../models').GwlfeModificationModel,
     WeatherType = require('../../constants').WeatherType;
 
@@ -12,6 +13,68 @@ var WindowModel = Backbone.Model.extend({
         custom_weather_output: null,
         custom_weather_errors: [], // Array of String
         custom_weather_file_name: null,
+    },
+
+    postCustomWeather: function(formData) {
+        var self = this,
+            scenario_id = this.get('scenario_id'),
+            url = '/mmw/modeling/scenarios/' + scenario_id + '/custom-weather-data/';
+
+        return $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+
+            // Necessary options for file uploads
+            cache: false,
+            contentType: false,
+            processData: false,
+        }).then(function(data) {
+            self.set({
+                custom_weather_file_name: data.file_name,
+                custom_weather_output: data.output,
+                custom_weather_errors: [],
+            });
+        }).catch(function(err) {
+            var errors = err && err.responseJSON && err.responseJSON.errors;
+
+            self.set({
+                custom_weather_output: null,
+                custom_weather_errors: errors || ['Unknown server error.'],
+            });
+        });
+    },
+
+    fetchCustomWeather: function() {
+        var self = this,
+            scenario_id = this.get('scenario_id'),
+            url = '/mmw/modeling/scenarios/' + scenario_id + '/custom-weather-data/';
+
+        return $.get(url).then(function(data) {
+            self.set({
+                custom_weather_output: data.output,
+                custom_weather_file_name: data.file_name,
+                custom_weather_errors: data.errors || [],
+            });
+        });
+    },
+
+    fetchCustomWeatherIfNeeded: function() {
+        var self = this,
+            custom_weather_file_name = this.get('custom_weather_file_name'),
+            weather_type = this.get('weather_type'),
+            needsCustomWeather =
+                custom_weather_file_name &&
+                weather_type !== WeatherType.CUSTOM;
+
+        if (needsCustomWeather && this.fetchCustomWeatherPromise === undefined) {
+            this.fetchCustomWeatherPromise = this.fetchCustomWeather();
+            this.fetchCustomWeatherPromise.always(function () {
+                delete self.fetchCustomWeatherPromise;
+            });
+        }
+
+        return this.fetchCustomWeatherPromise || $.when();
     },
 
     getOutput: function() {

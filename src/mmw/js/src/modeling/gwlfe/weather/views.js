@@ -1,7 +1,6 @@
 "use strict";
 
 var _ = require('lodash'),
-    $ = require('jquery'),
     Marionette = require('../../../../shim/backbone.marionette'),
     WeatherType = require('../../constants').WeatherType,
     utils = require('../../../core/utils'),
@@ -42,25 +41,12 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
 
     // Override to populate fields
     onRender: function() {
-        // If the scenario has a custom weather file, but the current weather
-        // type is not custom weather, fetch the custom weather data from the
-        // server, as we cannot get it from the weather_data modification.
-        var self = this,
-            url = '/mmw/modeling/scenarios/' + self.model.get('scenario_id') + '/custom-weather-data/',
-            custom_weather_file_name = self.model.get('custom_weather_file_name'),
-            weather_type = self.model.get('weather_type');
+        var self = this;
 
-        if (custom_weather_file_name && weather_type !== WeatherType.CUSTOM) {
-            $.get(url).then(function(data) {
-                self.model.set('custom_weather_output', data.output);
-
-                self.showWeatherDataView();
-                self.$el.modal('show');
-            });
-        } else {
+        this.model.fetchCustomWeatherIfNeeded().then(function() {
             self.showWeatherDataView();
             self.$el.modal('show');
-        }
+        });
     },
 
     showWeatherDataView: function() {
@@ -160,34 +146,9 @@ var UploadWeatherDataView = Marionette.ItemView.extend({
     },
 
     onUploadClick: function() {
-        var self = this,
-            scenario_id = this.model.get('scenario_id');
-
         this.ui.uploadButton.prop('disabled', true);
 
-        $.ajax({
-            url: '/mmw/modeling/scenarios/' + scenario_id + '/custom-weather-data/',
-            type: 'POST',
-            data: new FormData(this.ui.form[0]),
-
-            // Necessary options for file uploads
-            cache: false,
-            contentType: false,
-            processData: false,
-        }).then(function(data) {
-            self.model.set({
-                custom_weather_file_name: data.file_name,
-                custom_weather_output: data.output,
-                custom_weather_errors: [],
-            });
-        }).catch(function(err) {
-            var errors = err && err.responseJSON && err.responseJSON.errors;
-
-            self.model.set({
-                custom_weather_output: null,
-                custom_weather_errors: errors || ['Unknown server error.'],
-            });
-        });
+        this.model.postCustomWeather(new FormData(this.ui.form[0]));
     },
 
     onServerValidation: function() {
