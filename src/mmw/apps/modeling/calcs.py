@@ -3,9 +3,11 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+import csv
 import json
 
 from copy import deepcopy
+from datetime import datetime
 
 from django.conf import settings
 from django.db import connection
@@ -15,7 +17,94 @@ from django.contrib.gis.geos import WKBReader
 from apps.modeling.mapshed.calcs import area_calculations
 
 
+NODATA = -999.0
 HECTARES_PER_SQM = 0.0001
+DATE_FORMAT = '%m/%d/%Y'
+
+
+def get_weather_modifications(csv_file):
+    """
+    Given a CSV file like:
+
+    DATE,PRCP,TAVG
+    01/01/2001,0,-6
+    01/02/2001,0,-7
+    01/03/2001,0,-8
+
+    where PRCP is in CM and TAVG is in C, converts it into a JSON
+    modifications object that can override gis_data. Also parses
+    for errors.
+
+    Returns a tuple where the first item is the output and the second is
+    a list of errors.
+    """
+    rows = list(csv.reader(csv_file))
+    errs = []
+
+    if rows[0] != ['DATE', 'PRCP', 'TAVG']:
+        errs.append('Missing or incorrect header.'
+                    ' Expected "DATE,PRCP,TAVG", got {}'
+                    .format(','.join(rows[0])))
+
+    if len(rows) < 1097:
+        errs.append('Need at least 3 years of contiguous data.')
+
+    if len(rows) > 10958:
+        errs.append('Need at most 30 years of contiguous data.')
+
+    if errs:
+        return None, errs
+
+    try:
+        begyear = datetime.strptime(rows[1][0], DATE_FORMAT).year
+    except ValueError as ve:
+        errs.append(ve.message)
+        return None, errs
+
+    try:
+        endyear = datetime.strptime(rows[-1][0], DATE_FORMAT).year
+    except ValueError as ve:
+        errs.append(ve.message)
+        return None, errs
+
+    year_range = endyear - begyear + 1
+
+    if year_range < 3 or year_range > 30:
+        errs.append('Invalid year range {} between beginning year {}'
+                    ' and end year {}. Year range must be between 3 and 30.'
+                    .format(year_range, begyear, endyear))
+
+    if errs:
+        return None, errs
+
+    prcps = [[[NODATA] * 31 for m in range(12)] for y in range(year_range)]
+    tavgs = [[[NODATA] * 31 for m in range(12)] for y in range(year_range)]
+
+    try:
+        for row in rows[1:]:
+            # TODO Validate missing, repeated dates, data types
+            # https://github.com/WikiWatershed/model-my-watershed/issues/3284
+            date, prcp, tavg = row
+            d = datetime.strptime(date, DATE_FORMAT)
+            yidx = d.year - begyear
+            midx = d.month - 1
+            didx = d.day - 1
+
+            prcps[yidx][midx][didx] = float(prcp)
+            tavgs[yidx][midx][didx] = float(tavg)
+    except Exception as e:
+        errs.append('Processing error: {}'.format(e.message))
+        return None, errs
+
+    mods = {
+        'WxYrBeg': begyear,
+        'WxYrEnd': endyear,
+        'WxYrs': year_range,
+        'Prec': prcps,
+        'Temp': tavgs,
+    }
+
+    return mods, errs
 
 
 def split_into_huc12s(code, id):

@@ -1,0 +1,54 @@
+<div class="modal-dialog">
+    <div class="modal-content weather-modal-content">
+        <div class="modal-header">
+            <div class="title">
+                <!-- TODO Add Documenation link for Weather Data -->
+                <a
+                        class="btn close"
+                        target="_blank"
+                        href="https://wikiwatershed.org/documentation/mmw-tech/"
+                        title="Weather Data Documentation"
+                >
+                    <i class="fa fa-question-circle"></i>
+                </a>
+                <h1>Weather Data</h1>
+            </div>
+        </div>
+        <div class="modal-body">
+            <div class="weather-col in-built-weather">
+                <h2 class="weather-col-title">
+                    <input type="radio" name="weather-type" value="DEFAULT" {{ 'checked' if weather_type == 'DEFAULT' }} />
+                    Available Data
+                </h2>
+                <p class="weather-col-description">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+                    sed do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua.
+                </p>
+                <select class="form-control btn btn-small btn-primary">
+                    <option selected>1960-1990</option>
+                </select>
+            </div>
+            <div class="weather-col custom-weather">
+                <h2 class="weather-col-title">
+                    <input type="radio" name="weather-type" value="CUSTOM" {{ 'checked' if weather_type == 'CUSTOM' }} />
+                    Custom Data
+                </h2>
+                <p class="weather-col-description">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+                    sed do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua. <a href="#" target="_blank">Download Sample CSV.</a>
+                </p>
+                <div id="custom-weather-region"></div>
+            </div>
+        </div>
+        <div class="modal-footer" style="text-align: right">
+            <div class="footer-content">
+                <button class="btn btn-md btn-default" data-dismiss="modal">
+                    Cancel
+                </button>
+                <button class="btn btn-md btn-active save">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

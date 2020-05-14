@@ -398,6 +398,7 @@
   }
 }
 
+#weather-data-modal,
 #entry-modal,
 #land-cover-modal {
   .modal-header {
@@ -413,6 +414,63 @@
   .modal-footer > .footer-content {
     background: $paper;
     border-top: 1px solid $black-12;
+  }
+}
+
+#weather-data-modal {
+  .modal-body {
+    padding: 1rem;
+    display: flex;
+
+    .weather-col {
+      flex: 0 0 50%;
+      padding: 0 1rem;
+
+      &+.weather-col {
+        border-left: 1px solid #eee;
+      }
+
+      &-title {
+        margin-bottom: 1rem;
+
+        input {
+          float: left;
+          margin-right: 1rem;
+        }
+      }
+
+      &-description {
+        font-size: 13px;
+        margin-bottom: 1rem;
+      }
+
+      .file-select {
+        cursor: pointer;
+
+        span {
+          color: $paper;
+          background-color: $brand-primary;
+          border-color: $brand-primary-border;
+        }
+
+        input[type="text"] {
+          background-color: $paper;
+        }
+      }
+
+      .custom-weather-file-text {
+        background-color: $paper;
+        border: solid 1px darken($ui-light, 5%);
+      }
+
+      .upload-error-box {
+        margin-top: 15px;
+      }
+
+      .upload-error-list {
+        padding-left: 15px;
+      }
+    }
   }
 }
 

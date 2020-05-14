@@ -51,6 +51,7 @@ from apps.modeling.calcs import (get_layer_shape,
                                  boundary_search_context,
                                  split_into_huc12s,
                                  sum_subbasin_stream_lengths,
+                                 get_weather_modifications,
                                  )
 
 
@@ -181,8 +182,8 @@ def scenario_custom_weather_data(request, scen_id):
     """
     Given a scenario id, creates, retrieves, or deletes custom weather.
 
-    GET from owners or on public projects will return the raw weather data if
-    available, else 404.
+    GET from owners or on public projects will return the weather data if
+    available, else 404. Errors will be reported alongside the weather data.
 
     POST from owners will validate and save new weather data, overwriting any
     existing data. Errors will be reported as 400s.
@@ -196,15 +197,13 @@ def scenario_custom_weather_data(request, scen_id):
         if project.user.id != request.user.id and project.is_private:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        cwd = scenario.weather_custom
-        if not cwd.name:
+        if not scenario.weather_custom.name:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        filename = cwd.name.split('/')[-1]
-        response = HttpResponse(cwd, content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; ' \
-                                          'filename={}'.format(filename)
-        return response
+        mods, errs = get_weather_modifications(scenario.weather_custom)
+
+        return Response({'output': mods, 'errors': errs,
+                         'file_name': scenario.weather_custom.name})
 
     elif project.user.id == request.user.id:
         if request.method == 'POST':
@@ -213,28 +212,57 @@ def scenario_custom_weather_data(request, scen_id):
             if not request.FILES or 'weather' not in request.FILES:
                 errors.append('Must specify file in `weather` field.')
 
-            # TODO Validate the file
-            # https://github.com/WikiWatershed/model-my-watershed/issues/3284
-
             if errors:
                 return Response({'errors': errors},
                                 status=status.HTTP_400_BAD_REQUEST)
 
             scenario.weather_custom = request.FILES['weather']
-            scenario.weather_type = WeatherType.CUSTOM
+
+            mods, errs = get_weather_modifications(
+                scenario.weather_custom)
+
+            if errs:
+                return Response({'errors': errors + errs},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            scenario.save()
+            return Response({'output': mods,
+                             'file_name': scenario.weather_custom.name})
 
         elif request.method == 'DELETE':
             if scenario.weather_custom.name:
                 scenario.weather_custom.delete()
 
             scenario.weather_type = WeatherType.DEFAULT
-
-        scenario.save()
-        serializer = ScenarioSerializer(scenario)
-        return Response(serializer.data)
+            scenario.save()
+            return Response(None,
+                            status=status.HTTP_204_NO_CONTENT)
 
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@decorators.api_view(['GET'])
+@decorators.permission_classes((IsAuthenticatedOrReadOnly, ))
+def scenario_custom_weather_data_download(request, scen_id):
+    """
+    Given a scenario id retrieves the custom weather data file if available.
+    """
+    scenario = get_object_or_404(Scenario, id=scen_id)
+    project = scenario.project
+
+    if project.user.id != request.user.id and project.is_private:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    cwd = scenario.weather_custom
+    if not cwd.name:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    filename = cwd.name.split('/')[-1]
+    response = HttpResponse(cwd, content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; ' \
+                                      'filename={}'.format(filename)
+    return response
 
 
 @decorators.api_view(['POST'])

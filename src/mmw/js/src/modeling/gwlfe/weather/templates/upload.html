@@ -1,0 +1,14 @@
+<form enctype="multipart/form-data" method="POST">
+    <input class="file-input hidden" type="file" name="weather" accept=".csv" />
+    <div class="form-group">
+        <div class="input-group file-select">
+            <span class="input-group-addon">Select</span>
+            <input class="form-control custom-weather-file-text" type="text" placeholder="custom-weather.csv" readonly />
+        </div>
+    </div>
+    <button class="btn btn-md btn-block btn-active upload-button hidden" type="button">Upload</button>
+    <div class="alert alert-danger hidden upload-error-box">
+        <strong>Upload failed:</strong>
+        <ul class="upload-error-list"></ul>
+    </div>
+</form>
