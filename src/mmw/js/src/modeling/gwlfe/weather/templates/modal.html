@@ -21,12 +21,14 @@
                     Available Data
                 </h2>
                 <p class="weather-col-description">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                    sed do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua.
+                    A database of national-scale daily weather data compiled by
+                    USEPA is available by default.
+                    <a href="https://wikiwatershed.org/help/model-help/mmw-tech/#usepa-climate" target="_blank" rel="noreferrer noopener">See details.</a>
                 </p>
                 <select class="form-control btn btn-small btn-primary">
-                    <option selected>1960-1990</option>
+                    <optgroup label="Default">
+                        <option selected>USEPA National Climate 1960&ndash;1990</option>
+                    </optgroup>
                 </select>
             </div>
             <div class="weather-col custom-weather">
@@ -35,9 +37,10 @@
                     Custom Data
                 </h2>
                 <p class="weather-col-description">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                    sed do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua. <a href="/static/resources/weather_data_sample.csv" target="_blank">Download Sample CSV.</a>
+                    Upload a CSV file containing 3 to 30 years of contiguous
+                    daily precipitation (cm) and average temperature (&deg;C)
+                    data.
+                    <a href="/static/resources/weather_data_sample.csv" target="_blank" rel="noreferrer noopener">Download Sample CSV.</a>
                 </p>
                 <div id="custom-weather-region"></div>
             </div>
