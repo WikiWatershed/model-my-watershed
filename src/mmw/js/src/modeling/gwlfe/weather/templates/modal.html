@@ -16,10 +16,12 @@
         </div>
         <div class="modal-body">
             <div class="weather-col in-built-weather">
-                <h2 class="weather-col-title">
-                    <input type="radio" name="weather-type" value="DEFAULT" {{ 'checked' if weather_type == 'DEFAULT' }} />
-                    Available Data
-                </h2>
+                <label>
+                    <h2 class="weather-col-title">
+                        <input type="radio" name="weather-type" value="DEFAULT" {{ 'checked' if weather_type != 'CUSTOM' }} />
+                        Available Data
+                    </h2>
+                </label>
                 <p class="weather-col-description">
                     A database of national-scale daily weather data compiled by
                     USEPA is available by default.
@@ -32,10 +34,12 @@
                 </select>
             </div>
             <div class="weather-col custom-weather">
-                <h2 class="weather-col-title">
-                    <input type="radio" name="weather-type" value="CUSTOM" {{ 'checked' if weather_type == 'CUSTOM' }} />
-                    Custom Data
-                </h2>
+                <label>
+                    <h2 class="weather-col-title">
+                        <input type="radio" name="weather-type" value="CUSTOM" {{ 'checked' if weather_type == 'CUSTOM' }} />
+                        Custom Data
+                    </h2>
+                </label>
                 <p class="weather-col-description">
                     Upload a CSV file containing 3 to 30 years of contiguous
                     daily precipitation (cm) and average temperature (&deg;C)
