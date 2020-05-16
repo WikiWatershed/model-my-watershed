@@ -1,8 +1,13 @@
 <div class="result-title">
     Average annual loads
-    from 30-years of daily fluxes
+    from {{ years }}-years of daily fluxes
 </div>
 <div class="layer-region"></div>
+{% if weather_type == 'CUSTOM' and weather_custom %}
+<p class="result-description text-muted">
+    Source: {{ weather_custom }}
+</p>
+{% endif %}
 <p class="result-description text-muted">
     Simulated by the GWLF-E (MapShed) model <a
         class="model-results-tooltip" data-toggle="popover" tabindex="0" data-html="true"
