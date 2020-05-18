@@ -186,7 +186,7 @@ var ExistingWeatherDataView = Marionette.ItemView.extend({
     templateHelpers: function() {
         return {
             custom_weather_file_name:
-                utils.getFileName(this.model.get('custom_weather_file_name')),
+                utils.getFileName(this.model.get('custom_weather_file_name'), '.csv'),
         };
     },
 
