@@ -63,18 +63,7 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
     },
 
     validateModal: function() {
-        var weather_type = this.model.get('weather_type'),
-            custom_weather_output = this.model.get('custom_weather_output'),
-            custom_weather_errors = this.model.get('custom_weather_errors'),
-
-            valid_default = weather_type === WeatherType.DEFAULT,
-            valid_simulation = weather_type === WeatherType.SIMULATION,
-            valid_custom = weather_type === WeatherType.CUSTOM &&
-                custom_weather_output !== null &&
-                custom_weather_errors.length === 0,
-
-            disabled = !(valid_default || valid_simulation || valid_custom);
-
+        var disabled = !this.model.isValid();
 
         this.ui.saveButton.prop('disabled', disabled);
     },
