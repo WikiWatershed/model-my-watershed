@@ -176,6 +176,36 @@ def scenario(request, scen_id):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
+@decorators.api_view(['POST'])
+@decorators.permission_classes((IsAuthenticatedOrReadOnly, ))
+def scenario_duplicate(request, scen_id):
+    """Duplicate a scenario."""
+    scenario = get_object_or_404(Scenario, id=scen_id)
+
+    if scenario.project.user != request.user:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    scenario.pk = None
+    scenario.is_current_conditions = False
+
+    # Give the scenario a new name. Same logic as in
+    # modeling/models.js:makeNewScenarioName.
+    names = scenario.project.scenarios.values_list('name', flat=True)
+    copy_name = 'Copy of {}'.format(scenario.name)
+    copy_counter = 1
+
+    while copy_name in names:
+        copy_name = 'Copy of {} {}'.format(scenario.name, copy_counter)
+        copy_counter += 1
+
+    scenario.name = copy_name
+    scenario.save()
+
+    serializer = ScenarioSerializer(scenario)
+
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
 @decorators.api_view(['GET', 'POST', 'DELETE'])
 @decorators.permission_classes((IsAuthenticatedOrReadOnly, ))
 def scenario_custom_weather_data(request, scen_id):

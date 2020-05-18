@@ -1002,20 +1002,6 @@ describe('Modeling', function() {
                 });
             });
 
-            describe('#duplicateScenario', function() {
-                it('duplicates an existing scenario and add the new scenario to the collection', function() {
-                    var collection = getTestScenarioCollection(),
-                        scenario = collection.at(1);
-
-                    assert.equal(collection.length, 3);
-
-                    collection.duplicateScenario(scenario.cid);
-                    assert.equal(collection.length, 4, 'Collection length did not update after duplication.');
-                    assert.deepEqual(collection.at(1).get('modifications').attributes, collection.at(3).get('modifications').attributes, 'Modifications did not match.');
-                    assert.equal(collection.at(3).get('name'), 'Copy of ' + collection.at(1).get('name'), 'Names did not match.');
-                });
-            });
-
             describe('#makeScenarioName', function() {
                 it('creates a new unique scenario name based off baseName', function() {
                     var collection = getTestScenarioCollection();
