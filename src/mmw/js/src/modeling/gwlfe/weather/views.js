@@ -23,17 +23,16 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
 
     ui: {
         weatherTypeRadio: 'input[name="weather-type"]',
-        saveButton: 'button.save',
     },
 
     events: _.defaults({
         'change @ui.weatherTypeRadio': 'onWeatherTypeDOMChange',
-        'click @ui.saveButton': 'saveAndClose',
     }, modalViews.ModalBaseView.prototype.events),
 
     modelEvents: {
         'change:custom_weather_file_name': 'showWeatherDataView',
         'change:weather_type': 'onWeatherTypeModelChange',
+        'change:weather_type change:custom_weather_output change:custom_weather_file_name': 'validateAndSave',
     },
 
     initialize: function(options) {
@@ -58,20 +57,10 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
         this.customWeatherRegion.show(new WeatherDataView({
             model: this.model,
         }));
-
-        this.validateModal();
-    },
-
-    validateModal: function() {
-        var disabled = !this.model.isValid();
-
-        this.ui.saveButton.prop('disabled', disabled);
     },
 
     onWeatherTypeDOMChange: function(e) {
         this.model.set('weather_type', e.target.value);
-
-        this.validateModal();
     },
 
     onWeatherTypeModelChange: function() {
@@ -82,16 +71,18 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
                 this.$('input[name="weather-type"][value="' + weather_type + '"]');
 
         radio.prop('checked', true);
-
-        this.validateModal();
     },
 
-    saveAndClose: function() {
-        this.addModification(this.model.getOutput());
-        this.scenario.set('weather_type', this.model.get('weather_type'));
+    validateAndSave: function() {
+        var oldWeather = this.scenario.get('weather_type'),
+            newWeather = this.model.get('weather_type');
 
-        this.hide();
-    }
+        if (this.model.isValid() && oldWeather !== newWeather) {
+            // Set weather type silently so it doesn't trigger it's own save
+            this.scenario.set('weather_type', newWeather, { silent: true });
+            this.addModification(this.model.getOutput());
+        }
+    },
 });
 
 var UploadWeatherDataView = Marionette.ItemView.extend({
