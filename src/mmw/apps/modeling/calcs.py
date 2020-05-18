@@ -7,7 +7,7 @@ import csv
 import json
 
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.db import connection
@@ -20,6 +20,7 @@ from apps.modeling.mapshed.calcs import area_calculations
 NODATA = -999.0
 HECTARES_PER_SQM = 0.0001
 DATE_FORMAT = '%m/%d/%Y'
+MAX_ERRORS = 10  # Number of maximum errors reported while parsing weather data
 
 
 def get_weather_modifications(csv_file):
@@ -41,16 +42,19 @@ def get_weather_modifications(csv_file):
     rows = list(csv.reader(csv_file))
     errs = []
 
+    def err(msg, line=None):
+        text = 'Line {}: {}'.format(line, msg) if line else msg
+        errs.append(text)
+
     if rows[0] != ['DATE', 'PRCP', 'TAVG']:
-        errs.append('Missing or incorrect header.'
-                    ' Expected "DATE,PRCP,TAVG", got {}'
-                    .format(','.join(rows[0])))
+        err('Missing or incorrect header. Expected "DATE,PRCP,TAVG", got {}'
+            .format(','.join(rows[0]), 1))
 
     if len(rows) < 1097:
-        errs.append('Need at least 3 years of contiguous data.')
+        err('Need at least 3 years of contiguous data.')
 
     if len(rows) > 10958:
-        errs.append('Need at most 30 years of contiguous data.')
+        err('Need at most 30 years of contiguous data.')
 
     if errs:
         return None, errs
@@ -58,43 +62,74 @@ def get_weather_modifications(csv_file):
     try:
         begyear = datetime.strptime(rows[1][0], DATE_FORMAT).year
     except ValueError as ve:
-        errs.append(ve.message)
+        err(ve.message, 2)
         return None, errs
 
     try:
         endyear = datetime.strptime(rows[-1][0], DATE_FORMAT).year
     except ValueError as ve:
-        errs.append(ve.message)
+        err(ve.message, len(rows))
         return None, errs
 
     year_range = endyear - begyear + 1
 
     if year_range < 3 or year_range > 30:
-        errs.append('Invalid year range {} between beginning year {}'
-                    ' and end year {}. Year range must be between 3 and 30.'
-                    .format(year_range, begyear, endyear))
+        err('Invalid year range {} between beginning year {}'
+            ' and end year {}. Year range must be between 3 and 30.'
+            .format(year_range, begyear, endyear))
 
     if errs:
         return None, errs
 
+    # Initialize precipitation and temperature dicts. Same shape as in
+    # apps.modeling.mapshed.calcs.weather_data. The extra days for months
+    # with fewer than 31 will remain NODATA.
     prcps = [[[NODATA] * 31 for m in range(12)] for y in range(year_range)]
     tavgs = [[[NODATA] * 31 for m in range(12)] for y in range(year_range)]
 
-    try:
-        for row in rows[1:]:
-            # TODO Validate missing, repeated dates, data types
-            # https://github.com/WikiWatershed/model-my-watershed/issues/3284
-            date, prcp, tavg = row
+    previous_d = None
+
+    for row in enumerate(rows[1:]):
+        # Only report so many errors before abandoning parsing
+        if len(errs) >= MAX_ERRORS:
+            err('Maximum error limit reached.')
+            return None, errs
+
+        idx, (date, prcp, tavg) = row
+
+        try:
             d = datetime.strptime(date, DATE_FORMAT)
+
+            # For every row after the first, check to see that the date
+            # is the next one in the sequence.
+            if idx > 0:
+                if d == previous_d:
+                    raise ValueError('Duplicate date: {}'.format(date))
+
+                expected_d = previous_d + timedelta(days=1)
+                if d != expected_d:
+                    raise ValueError('Incorrect date sequence:'
+                                     ' Expected {}, got {}.'.format(
+                                         datetime.strftime(expected_d,
+                                                           DATE_FORMAT),
+                                         datetime.strftime(d, DATE_FORMAT)))
+
             yidx = d.year - begyear
             midx = d.month - 1
             didx = d.day - 1
 
             prcps[yidx][midx][didx] = float(prcp)
             tavgs[yidx][midx][didx] = float(tavg)
-    except Exception as e:
-        errs.append('Processing error: {}'.format(e.message))
-        return None, errs
+
+            if (prcps[yidx][midx][didx]) < 0:
+                raise ValueError('Precipitation cannot be less than 0.')
+
+        except Exception as e:
+            # Record error with line. idx + 2 because idx starts at 0 while
+            # line numbers start at 1, and we need to account for the header.
+            err(e.message, idx + 2)
+
+        previous_d = d
 
     mods = {
         'WxYrBeg': begyear,

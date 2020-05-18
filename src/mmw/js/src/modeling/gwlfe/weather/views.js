@@ -147,9 +147,15 @@ var UploadWeatherDataView = Marionette.ItemView.extend({
     },
 
     onUploadClick: function() {
-        this.ui.uploadButton.prop('disabled', true);
+        var uploadButton = this.ui.uploadButton;
 
-        this.model.postCustomWeather(new FormData(this.ui.form[0]));
+        uploadButton.prop('disabled', true);
+
+        this.model
+            .postCustomWeather(new FormData(this.ui.form[0]))
+            .always(function() {
+                uploadButton.prop('disabled', false);
+            });
     },
 
     onServerValidation: function() {
@@ -162,8 +168,6 @@ var UploadWeatherDataView = Marionette.ItemView.extend({
                     .map(function(err) { return '<li>' + err + '</li>'; })
                     .join('')
             );
-
-            this.ui.uploadButton.prop('disabled', false);
         }
     },
 });
