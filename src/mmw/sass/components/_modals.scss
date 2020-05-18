@@ -463,10 +463,12 @@
         border: solid 1px darken($ui-light, 5%);
       }
 
+      .delete-error-box,
       .upload-error-box {
         margin-top: 15px;
       }
 
+      .delete-error-list,
       .upload-error-list {
         padding-left: 15px;
       }

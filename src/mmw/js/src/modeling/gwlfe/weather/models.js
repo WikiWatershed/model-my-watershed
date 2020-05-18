@@ -68,6 +68,22 @@ var WindowModel = Backbone.Model.extend({
                 custom_weather_file_name: data.file_name,
                 custom_weather_errors: data.errors || [],
             });
+        }).catch(function(err) {
+            var errors = err && err.responseJSON && err.responseJSON.errors;
+
+            if (err.status === 404) {
+                if (errors) {
+                    errors.push('Custom weather file not found.');
+                } else {
+                    errors = ['Custom weather file not found.'];
+                }
+            }
+
+            self.set({
+                custom_weather_output: null,
+                custom_weather_errors: errors || ['Unknown server error.'],
+                custom_weather_file_name: null,
+            });
         });
     },
 
@@ -103,6 +119,12 @@ var WindowModel = Backbone.Model.extend({
                 custom_weather_output: null,
                 custom_weather_errors: [], // Array of String
                 custom_weather_file_name: null,
+            });
+        }).catch(function(err) {
+            var errors = err && err.responseJSON && err.responseJSON.errors;
+
+            self.set({
+                custom_weather_errors: errors || ['Unknown server error.'],
             });
         });
     },

@@ -43,10 +43,12 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
     onRender: function() {
         var self = this;
 
-        this.model.fetchCustomWeatherIfNeeded().then(function() {
-            self.showWeatherDataView();
-            self.$el.modal('show');
-        });
+        this.model
+            .fetchCustomWeatherIfNeeded()
+            .always(function() {
+                self.showWeatherDataView();
+                self.$el.modal('show');
+            });
     },
 
     showWeatherDataView: function() {
@@ -157,10 +159,16 @@ var ExistingWeatherDataView = Marionette.ItemView.extend({
 
     ui: {
         delete: '.delete',
+        deleteErrorBox: '.delete-error-box',
+        deleteErrorList: '.delete-error-list',
     },
 
     events: {
         'click @ui.delete': 'onDeleteClick',
+    },
+
+    modelEvents: {
+        'change:custom_weather_errors': 'onServerValidation',
     },
 
     templateHelpers: function() {
@@ -185,6 +193,19 @@ var ExistingWeatherDataView = Marionette.ItemView.extend({
         del.on('confirmation', function() {
             self.model.deleteCustomWeather();
         });
+    },
+
+    onServerValidation: function() {
+        var custom_weather_errors = this.model.get('custom_weather_errors');
+
+        if (custom_weather_errors.length > 0) {
+            this.ui.deleteErrorBox.removeClass('hidden');
+            this.ui.deleteErrorList.html(
+                custom_weather_errors
+                    .map(function(err) { return '<li>' + err + '</li>'; })
+                    .join('')
+            );
+        }
     },
 });
 

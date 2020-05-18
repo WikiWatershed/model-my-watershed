@@ -236,8 +236,9 @@ def scenario_custom_weather_data(request, scen_id):
                          'file_name': scenario.weather_custom.name})
 
     elif project.user.id == request.user.id:
+        errors = []
+
         if request.method == 'POST':
-            errors = []
 
             if not request.FILES or 'weather' not in request.FILES:
                 errors.append('Must specify file in `weather` field.')
@@ -261,6 +262,34 @@ def scenario_custom_weather_data(request, scen_id):
 
         elif request.method == 'DELETE':
             if scenario.weather_custom.name:
+                # Check if any other scenarios use the same weather file
+                others = (scenario.project.scenarios
+                          .exclude(id=scenario.id)
+                          .filter(weather_type=WeatherType.CUSTOM,
+                                  weather_custom=scenario.weather_custom)
+                          .values_list('name', flat=True))
+
+                if others.count() > 0:
+                    errors.append('Cannot delete weather file.'
+                                  ' It is also used in: "{}".'
+                                  ' Either delete those scenarios, or set them'
+                                  ' to use Available Data before deleting'
+                                  ' the custom weather file.'.format(
+                                      '", "'.join(others)))
+                    return Response({'errors': errors},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+                # Delete file from all scenarios not actively using it
+                passives = (scenario.project.scenarios
+                            .exclude(id=scenario.id,
+                                     weather_type=WeatherType.CUSTOM)
+                            .filter(weather_custom=scenario.weather_custom))
+
+                for s in passives:
+                    s.weather_custom.delete()
+                    s.save()
+
+                # Delete file from given scenario
                 scenario.weather_custom.delete()
 
             scenario.weather_type = WeatherType.DEFAULT
