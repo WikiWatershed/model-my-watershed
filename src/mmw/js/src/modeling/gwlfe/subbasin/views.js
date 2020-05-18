@@ -28,9 +28,16 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     templateHelpers: function() {
+        var gis_data = this.scenario.getModifiedGwlfeGisData();
+
         return {
             aoiDetails: App.currentProject.get('area_of_interest_name'),
+            years: gis_data.WxYrs,
         };
+    },
+
+    initialize: function(options) {
+        this.scenario = options.scenario;
     },
 
     onShow: function() {

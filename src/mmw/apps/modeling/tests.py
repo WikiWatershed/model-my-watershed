@@ -19,8 +19,6 @@ from apps.core.models import Job
 from apps.modeling import tasks, views
 from apps.modeling.models import Scenario, WeatherType
 
-TEST_DATA = os.path.join(os.path.dirname(__file__), 'test_data')
-
 
 @shared_task
 def get_test_histogram():
@@ -925,8 +923,9 @@ class CustomWeatherDataTestCase(TestCase):
             "modifications": "[]"
         }
 
-        self.weather_data_file = open(os.path.join(TEST_DATA,
-                                                   'full-3-years.csv'))
+        self.weather_data_file = open(
+            os.path.join(settings.STATIC_ROOT,
+                         'resources/weather_data_sample.csv'))
 
         self.c.login(username='test', password='test')
 
@@ -1014,9 +1013,9 @@ class CustomWeatherDataTestCase(TestCase):
         response = self.c.get(self.endpoint(scenario['id']))
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['output']['WxYrBeg'], 1990)
-        self.assertEqual(response.data['output']['WxYrEnd'], 1992)
-        self.assertEqual(response.data['output']['WxYrs'], 3)
+        self.assertEqual(response.data['output']['WxYrBeg'], 2000)
+        self.assertEqual(response.data['output']['WxYrEnd'], 2005)
+        self.assertEqual(response.data['output']['WxYrs'], 6)
 
     def test_weather_get_logged_in_user_cant_get_private(self):
         scenario = self.create_private_scenario_with_weather_data()
@@ -1146,9 +1145,9 @@ class CustomWeatherDataTestCase(TestCase):
                                format='multipart')
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['output']['WxYrBeg'], 1990)
-        self.assertEqual(response.data['output']['WxYrEnd'], 1992)
-        self.assertEqual(response.data['output']['WxYrs'], 3)
+        self.assertEqual(response.data['output']['WxYrBeg'], 2000)
+        self.assertEqual(response.data['output']['WxYrEnd'], 2005)
+        self.assertEqual(response.data['output']['WxYrs'], 6)
 
         self.delete_weather_dataset(old_weather)
 

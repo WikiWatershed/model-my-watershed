@@ -14,6 +14,7 @@ STATIC_JS_DIR="${DJANGO_STATIC_ROOT}js/"
 STATIC_CSS_DIR="${DJANGO_STATIC_ROOT}css/"
 STATIC_IMAGES_DIR="${DJANGO_STATIC_ROOT}images/"
 STATIC_FONTS_DIR="${DJANGO_STATIC_ROOT}fonts/"
+STATIC_RESOURCES_DIR="${DJANGO_STATIC_ROOT}resources/"
 
 BROWSERIFY="$BIN/browserify"
 ENTRY_JS_FILES="./js/src/main.js"
@@ -92,6 +93,10 @@ COPY_FONTS_COMMAND="cp -r \
     ./node_modules/font-awesome/fonts/* \
     ./font/* \
     $STATIC_FONTS_DIR"
+
+COPY_RESOURCES_COMMAND="cp -r \
+    ./resources/* \
+    $STATIC_RESOURCES_DIR"
 
 CONCAT_VENDOR_CSS_COMMAND="cat \
     ./node_modules/leaflet/dist/leaflet.css \
@@ -174,6 +179,7 @@ if [ -n "$BUILD_VENDOR_BUNDLE" ]; then
     VENDOR_COMMAND="
         $COPY_IMAGES_COMMAND &
         $COPY_FONTS_COMMAND &
+        $COPY_RESOURCES_COMMAND &
         $CONCAT_VENDOR_CSS_COMMAND &
         $BROWSERIFY $BROWSERIFY_REQ \
             -o ${STATIC_JS_DIR}vendor.js $EXTRA_ARGS &
@@ -202,7 +208,8 @@ mkdir -p \
     $STATIC_JS_DIR \
     $STATIC_CSS_DIR \
     $STATIC_IMAGES_DIR \
-    $STATIC_FONTS_DIR
+    $STATIC_FONTS_DIR \
+    $STATIC_RESOURCES_DIR
 
 echo "$VAGRANT_COMMAND"
 eval "$VAGRANT_COMMAND"
