@@ -766,7 +766,7 @@ var ProjectModel = Backbone.Model.extend({
             isTR55 = self.get('model_package') === utils.TR55_PACKAGE,
             modelFiles = isTR55 ? getTR55ModelFiles() : getMapShedModelFiles(),
             getMapshedData = function(scenario) {
-                    var gisData = scenario.getGisData(),
+                    var gisData = scenario.getModifiedGwlfeGisData(),
                         scenarioName = lowerAndHyphenate(scenario.get('name'));
 
                     if (!gisData) {
@@ -775,7 +775,7 @@ var ProjectModel = Backbone.Model.extend({
 
                     return {
                         name: 'model_multiyear_' + scenarioName + '.gms',
-                        uuid: gisData.mapshed_job_uuid
+                        data: gisData,
                     };
                 },
             mapshedData = isTR55 ? [] : _.compact(scenarios.map(getMapshedData)),

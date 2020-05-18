@@ -14,7 +14,6 @@ from celery import shared_task
 from django.utils.timezone import now
 from django.contrib.gis.geos import GEOSGeometry
 
-from apps.core.models import Job
 from apps.modeling.models import Project
 from apps.modeling.tasks import to_gms_file
 
@@ -42,18 +41,11 @@ def update_resource(user_id, project_id, params):
     # Update files
     files = params.get('files', [])
     for md in params.get('mapshed_data', []):
-        muuid = md.get('uuid')
-        if muuid:
-            try:
-                job = Job.objects.get(uuid=muuid)
-                mdata = json.loads(job.result)
-                files.append({
-                    'name': md.get('name'),
-                    'contents': to_gms_file(mdata).read(),
-                })
-            except (Job.DoesNotExist, ValueError):
-                # Either the job wasn't found, or its content isn't JSON
-                pass
+        mdata = md.get('data')
+        files.append({
+            'name': md.get('name'),
+            'contents': to_gms_file(mdata).read() if mdata else None,
+        })
 
     hs.add_files(hsresource.resource, files)
 
@@ -94,18 +86,11 @@ def create_resource(user_id, project_id, params):
 
     # MapShed Data
     for md in params.get('mapshed_data', []):
-        muuid = md.get('uuid')
-        if muuid:
-            try:
-                job = Job.objects.get(uuid=muuid)
-                mdata = json.loads(job.result)
-                files.append({
-                    'name': md.get('name'),
-                    'contents': to_gms_file(mdata).read(),
-                })
-            except (Job.DoesNotExist, ValueError):
-                # Either the job wasn't found, or its content isn't JSON
-                pass
+        mdata = md.get('data')
+        files.append({
+            'name': md.get('name'),
+            'contents': to_gms_file(mdata).read() if mdata else None,
+        })
 
     # Add all files
     hs.add_files(resource, files)
