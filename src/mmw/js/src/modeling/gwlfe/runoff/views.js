@@ -59,7 +59,7 @@ var ResultView = Marionette.LayoutView.extend({
         return {
             lengthUnit: lengthUnit,
             weather_type: weather_type,
-            weather_custom: modelingUtils.getFileName(weather_custom),
+            weather_custom: modelingUtils.getFileName(weather_custom, '.csv'),
             years: gis_data.WxYrs,
         };
     },

@@ -42,7 +42,7 @@ var ResultView = Marionette.LayoutView.extend({
 
         return {
             weather_type: weather_type,
-            weather_custom: modelingUtils.getFileName(weather_custom),
+            weather_custom: modelingUtils.getFileName(weather_custom, '.csv'),
             years: gis_data.WxYrs,
             showSubbasinModelingButton: coreUtils
                 .isWKAoIValidForSubbasinModeling(App.currentProject.get('wkaoi')),

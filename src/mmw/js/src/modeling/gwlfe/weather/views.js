@@ -23,17 +23,16 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
 
     ui: {
         weatherTypeRadio: 'input[name="weather-type"]',
-        saveButton: 'button.save',
     },
 
     events: _.defaults({
         'change @ui.weatherTypeRadio': 'onWeatherTypeDOMChange',
-        'click @ui.saveButton': 'saveAndClose',
     }, modalViews.ModalBaseView.prototype.events),
 
     modelEvents: {
         'change:custom_weather_file_name': 'showWeatherDataView',
         'change:weather_type': 'onWeatherTypeModelChange',
+        'change:weather_type change:custom_weather_output change:custom_weather_file_name': 'validateAndSave',
     },
 
     initialize: function(options) {
@@ -44,10 +43,12 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
     onRender: function() {
         var self = this;
 
-        this.model.fetchCustomWeatherIfNeeded().then(function() {
-            self.showWeatherDataView();
-            self.$el.modal('show');
-        });
+        this.model
+            .fetchCustomWeatherIfNeeded()
+            .always(function() {
+                self.showWeatherDataView();
+                self.$el.modal('show');
+            });
     },
 
     showWeatherDataView: function() {
@@ -58,31 +59,10 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
         this.customWeatherRegion.show(new WeatherDataView({
             model: this.model,
         }));
-
-        this.validateModal();
-    },
-
-    validateModal: function() {
-        var weather_type = this.model.get('weather_type'),
-            custom_weather_output = this.model.get('custom_weather_output'),
-            custom_weather_errors = this.model.get('custom_weather_errors'),
-
-            valid_default = weather_type === WeatherType.DEFAULT,
-            valid_simulation = weather_type === WeatherType.SIMULATION,
-            valid_custom = weather_type === WeatherType.CUSTOM &&
-                custom_weather_output !== null &&
-                custom_weather_errors.length === 0,
-
-            disabled = !(valid_default || valid_simulation || valid_custom);
-
-
-        this.ui.saveButton.prop('disabled', disabled);
     },
 
     onWeatherTypeDOMChange: function(e) {
         this.model.set('weather_type', e.target.value);
-
-        this.validateModal();
     },
 
     onWeatherTypeModelChange: function() {
@@ -93,16 +73,18 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
                 this.$('input[name="weather-type"][value="' + weather_type + '"]');
 
         radio.prop('checked', true);
-
-        this.validateModal();
     },
 
-    saveAndClose: function() {
-        this.addModification(this.model.getOutput());
-        this.scenario.set('weather_type', this.model.get('weather_type'));
+    validateAndSave: function() {
+        var oldWeather = this.scenario.get('weather_type'),
+            newWeather = this.model.get('weather_type');
 
-        this.hide();
-    }
+        if (this.model.isValid() && oldWeather !== newWeather) {
+            // Set weather type silently so it doesn't trigger it's own save
+            this.scenario.set('weather_type', newWeather, { silent: true });
+            this.addModification(this.model.getOutput());
+        }
+    },
 });
 
 var UploadWeatherDataView = Marionette.ItemView.extend({
@@ -177,16 +159,22 @@ var ExistingWeatherDataView = Marionette.ItemView.extend({
 
     ui: {
         delete: '.delete',
+        deleteErrorBox: '.delete-error-box',
+        deleteErrorList: '.delete-error-list',
     },
 
     events: {
         'click @ui.delete': 'onDeleteClick',
     },
 
+    modelEvents: {
+        'change:custom_weather_errors': 'onServerValidation',
+    },
+
     templateHelpers: function() {
         return {
             custom_weather_file_name:
-                utils.getFileName(this.model.get('custom_weather_file_name')),
+                utils.getFileName(this.model.get('custom_weather_file_name'), '.csv'),
         };
     },
 
@@ -205,6 +193,19 @@ var ExistingWeatherDataView = Marionette.ItemView.extend({
         del.on('confirmation', function() {
             self.model.deleteCustomWeather();
         });
+    },
+
+    onServerValidation: function() {
+        var custom_weather_errors = this.model.get('custom_weather_errors');
+
+        if (custom_weather_errors.length > 0) {
+            this.ui.deleteErrorBox.removeClass('hidden');
+            this.ui.deleteErrorList.html(
+                custom_weather_errors
+                    .map(function(err) { return '<li>' + err + '</li>'; })
+                    .join('')
+            );
+        }
     },
 });
 

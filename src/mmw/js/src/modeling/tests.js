@@ -15,6 +15,7 @@ var _ = require('lodash'),
     views = require('./views'),
     App = require('../app.js'),
     testUtils = require('../core/testUtils'),
+    modelingUtils = require('./utils'),
     modConfigUtils = require('./modificationConfigUtils');
 
 var sandboxId = 'sandbox',
@@ -1001,20 +1002,6 @@ describe('Modeling', function() {
                 });
             });
 
-            describe('#duplicateScenario', function() {
-                it('duplicates an existing scenario and add the new scenario to the collection', function() {
-                    var collection = getTestScenarioCollection(),
-                        scenario = collection.at(1);
-
-                    assert.equal(collection.length, 3);
-
-                    collection.duplicateScenario(scenario.cid);
-                    assert.equal(collection.length, 4, 'Collection length did not update after duplication.');
-                    assert.deepEqual(collection.at(1).get('modifications').attributes, collection.at(3).get('modifications').attributes, 'Modifications did not match.');
-                    assert.equal(collection.at(3).get('name'), 'Copy of ' + collection.at(1).get('name'), 'Names did not match.');
-                });
-            });
-
             describe('#makeScenarioName', function() {
                 it('creates a new unique scenario name based off baseName', function() {
                     var collection = getTestScenarioCollection();
@@ -1054,6 +1041,23 @@ describe('Modeling', function() {
                     var newName3 = collection.makeNewScenarioName('Copy of ' + collection.at(0).get('name'));
                     assert.equal(newName3, 'Copy of ' + collection.at(0).get('name') + ' 2');
                 });
+            });
+        });
+    });
+
+    describe('Utils', function() {
+        describe('#getFileName', function() {
+            var filename = 'phillyRCP4520802100daily.csv',
+                ext = '.csv',
+                s3BucketPath = 'https://mmw-staging-data-us-east-1.s3.amazonaws.com/p1470/s2603/phillyRCP4520802100daily.csv?AWSAccessKeyId=XXX&Expires=1589820561&x-amz-security-token=YYY&Signature=ZZZ',
+                localPath = '/media/p32/s56/phillyRCP4520802100daily.csv';
+
+            it('returns the file name from an S3 Bucket Path', function() {
+                assert.equal(modelingUtils.getFileName(s3BucketPath, ext), filename);
+            });
+
+            it('returns the file name from a local DJANGO_MEDIA_ROOT path', function() {
+                assert.equal(modelingUtils.getFileName(localPath, ext), filename);
             });
         });
     });

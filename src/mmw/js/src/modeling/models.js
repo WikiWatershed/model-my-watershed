@@ -1787,25 +1787,13 @@ var ScenariosCollection = Backbone.Collection.extend({
     },
 
     duplicateScenario: function(cid) {
-        var source = this.get(cid),
-            newModel = new ScenarioModel({
-                is_current_conditions: false,
-                name: this.makeNewScenarioName('Copy of ' + source.get('name')),
-                user_id: source.get('user_id'),
-                inputs: source.get('inputs').toJSON(),
-                inputmod_hash: source.get('inputmod_hash'),
-                modifications: source.get('modifications').toJSON(),
-                modification_hash: source.get('modification_hash'),
-                job_id: source.get('job_id'),
-                poll_error: source.get('poll_error'),
-                results: source.get('results').toJSON(),
-                aoi_census: source.get('aoi_census'),
-                modification_censuses: source.get('modification_censuses'),
-                allow_save: source.get('allow_save'),
-            });
+        var self = this;
 
-        this.add(newModel);
-        this.setActiveScenarioByCid(newModel.cid);
+        $.post('/mmw/modeling/scenarios/' + this.get(cid).id + '/duplicate/')
+            .then(function(data) {
+                self.add(new ScenarioModel(data));
+                self.setActiveScenarioById(data.id);
+            });
     },
 
     // Generate a unique scenario name based off baseName.
