@@ -228,7 +228,7 @@ LAYER_GROUPS = {
             'big_cz': False,
         },
         {
-            'display': 'DRB Urban Land 2011 Baseline',
+            'display': 'DRB 2011 Urban Baseline',
             'code': 'urban-land-cover-2011-30m',
             'css_class_prefix': 'urban-land-cover-2011-30m',
             'short_display': '2011 Urban Land Cover',
@@ -244,11 +244,11 @@ LAYER_GROUPS = {
             'big_cz': False,
         },
         {
-            'display': 'DRB Urban Land 2050 Business as Usual',
-            'code': 'shippensburg-2050-baseline-30m',
-            'css_class_prefix': 'shippensburg-2050',
-            'short_display': '2050 Baseline',
-            'url': 'https://{s}.tiles.azavea.com/shippensburg-2050-baseline-30m/{z}/{x}/{y}.png',  # NOQA
+            'display': 'DRB 2100 Urban Centers FX',
+            'code': 'shippensburg-2100-centers-30m',
+            'css_class_prefix': 'shippensburg-2100',
+            'short_display': '2100 Centers',
+            'url': 'https://{s}.tiles.azavea.com/shippensburg-2100-centers-30m/{z}/{x}/{y}.png',  # NOQA
             'maxNativeZoom': 13,
             'maxZoom': 18,
             'opacity': 0.618,
@@ -260,11 +260,11 @@ LAYER_GROUPS = {
             'big_cz': False,
         },
         {
-            'display': 'DRB Urban Land 2050 Corridors',
-            'code': 'shippensburg-2050-scenario1-30m',
-            'css_class_prefix': 'shippensburg-2050',
-            'short_display': '2050 Scenario 1',
-            'url': 'https://{s}.tiles.azavea.com/shippensburg-2050-scenario1-30m/{z}/{x}/{y}.png',  # NOQA
+            'display': 'DRB 2100 Urban Centers-NP FX',
+            'code': 'shippensburg-2100-centers-np-30m',
+            'css_class_prefix': 'shippensburg-2100',
+            'short_display': '2100 Centers',
+            'url': 'https://{s}.tiles.azavea.com/shippensburg-2100-centers-np-30m/{z}/{x}/{y}.png',  # NOQA
             'maxNativeZoom': 13,
             'maxZoom': 18,
             'opacity': 0.618,
@@ -276,11 +276,27 @@ LAYER_GROUPS = {
             'big_cz': False,
         },
         {
-            'display': 'DRB Urban Land 2050 Centers',
-            'code': 'shippensburg-2050-scenario2-30m',
-            'css_class_prefix': 'shippensburg-2050',
-            'short_display': '2050 Scenario 2',
-            'url': 'https://{s}.tiles.azavea.com/shippensburg-2050-scenario2-30m/{z}/{x}/{y}.png',  # NOQA
+            'display': 'DRB 2100 Urban Corridors FX',
+            'code': 'shippensburg-2100-corridors-30m',
+            'css_class_prefix': 'shippensburg-2100',
+            'short_display': '2100 Corridors',
+            'url': 'https://{s}.tiles.azavea.com/shippensburg-2100-corridors-30m/{z}/{x}/{y}.png',  # NOQA
+            'maxNativeZoom': 13,
+            'maxZoom': 18,
+            'opacity': 0.618,
+            'has_opacity_slider': True,
+            'use_color_ramp': True,
+            'color_ramp_id': 'shippensburg-legend',
+            'legend_units_label': 'Projected Urbanization (%)',
+            'legend_unit_breaks': [0, '', 20, '', 40, '', 60, '', 80, '', 100],
+            'big_cz': False,
+        },
+        {
+            'display': 'DRB 2100 Urban Corridors-NP FX',
+            'code': 'shippensburg-2100-corridors-np-30m',
+            'css_class_prefix': 'shippensburg-2100',
+            'short_display': '2100 Corridors',
+            'url': 'https://{s}.tiles.azavea.com/shippensburg-2100-corridors-np-30m/{z}/{x}/{y}.png',  # NOQA
             'maxNativeZoom': 13,
             'maxZoom': 18,
             'opacity': 0.618,
