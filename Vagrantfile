@@ -68,6 +68,9 @@ Vagrant.configure("2") do |config|
     worker.vm.network "private_network", ip: ENV.fetch("MMW_WORKER_IP", "33.33.34.20")
 
     worker.vm.synced_folder "src/mmw", "/opt/app"
+    # Facilitates the sharing of Django media root directories across virtual machines.
+    worker.vm.synced_folder ".vagrant/machines/app/virtualbox/media", "/tmp/media",
+      create: true
 
     # Path to RWD data (ex. /media/passport/rwd-nhd)
     worker.vm.synced_folder ENV.fetch("RWD_DATA", "/tmp"), "/opt/rwd-data"
@@ -105,6 +108,9 @@ Vagrant.configure("2") do |config|
     app.vm.network "private_network", ip: ENV.fetch("MMW_APP_IP", "33.33.34.10")
 
     app.vm.synced_folder "src/mmw", "/opt/app"
+    # Facilitates the sharing of Django media root directories across virtual machines.
+    app.vm.synced_folder ".vagrant/machines/app/virtualbox/media", "/var/www/mmw/media",
+      create: true, mount_options: ["dmode=777"]
 
     # Django via Nginx/Gunicorn
     app.vm.network "forwarded_port", {
