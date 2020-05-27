@@ -788,7 +788,7 @@ var ProjectModel = Backbone.Model.extend({
                 }
 
                 var weather_custom = scenario.get('weather_custom'),
-                    weatherFileName = modelingUtils.getFileName(weather_custom),
+                    weatherFileName = modelingUtils.getFileName(weather_custom, '.csv'),
                     scenarioName = lowerAndHyphenate(scenario.get('name'));
 
                 return {
