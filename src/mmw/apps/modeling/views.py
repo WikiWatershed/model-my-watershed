@@ -38,7 +38,7 @@ from apps.modeling.mapshed.tasks import (multi_subbasin,
                                          collect_data,
                                          collect_subbasin,
                                          )
-from apps.modeling.models import Project, Scenario
+from apps.modeling.models import Project, Scenario, WeatherType
 from apps.modeling.serializers import (ProjectSerializer,
                                        ProjectListingSerializer,
                                        ProjectUpdateSerializer,
@@ -51,6 +51,7 @@ from apps.modeling.calcs import (get_layer_shape,
                                  boundary_search_context,
                                  split_into_huc12s,
                                  sum_subbasin_stream_lengths,
+                                 get_weather_modifications,
                                  )
 
 
@@ -173,6 +174,154 @@ def scenario(request, scen_id):
 
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((IsAuthenticatedOrReadOnly, ))
+def scenario_duplicate(request, scen_id):
+    """Duplicate a scenario."""
+    scenario = get_object_or_404(Scenario, id=scen_id)
+
+    if scenario.project.user != request.user:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    scenario.pk = None
+    scenario.is_current_conditions = False
+
+    # Give the scenario a new name. Same logic as in
+    # modeling/models.js:makeNewScenarioName.
+    names = scenario.project.scenarios.values_list('name', flat=True)
+    copy_name = 'Copy of {}'.format(scenario.name)
+    copy_counter = 1
+
+    while copy_name in names:
+        copy_name = 'Copy of {} {}'.format(scenario.name, copy_counter)
+        copy_counter += 1
+
+    scenario.name = copy_name
+    scenario.save()
+
+    serializer = ScenarioSerializer(scenario)
+
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@decorators.api_view(['GET', 'POST', 'DELETE'])
+@decorators.permission_classes((IsAuthenticatedOrReadOnly, ))
+def scenario_custom_weather_data(request, scen_id):
+    """
+    Given a scenario id, creates, retrieves, or deletes custom weather.
+
+    GET from owners or on public projects will return the weather data if
+    available, else 404. Errors will be reported alongside the weather data.
+
+    POST from owners will validate and save new weather data, overwriting any
+    existing data. Errors will be reported as 400s.
+
+    DELETE from owners will remove the custom weather data.
+    """
+    scenario = get_object_or_404(Scenario, id=scen_id)
+    project = scenario.project
+
+    if request.method == 'GET':
+        if project.user.id != request.user.id and project.is_private:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if not scenario.weather_custom.name:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        mods, errs = get_weather_modifications(scenario.weather_custom)
+
+        return Response({'output': mods, 'errors': errs,
+                         'file_name': scenario.weather_custom.name})
+
+    elif project.user.id == request.user.id:
+        errors = []
+
+        if request.method == 'POST':
+
+            if not request.FILES or 'weather' not in request.FILES:
+                errors.append('Must specify file in `weather` field.')
+
+            if errors:
+                return Response({'errors': errors},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            scenario.weather_custom = request.FILES['weather']
+
+            mods, errs = get_weather_modifications(
+                scenario.weather_custom)
+
+            if errs:
+                return Response({'errors': errors + errs},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            scenario.save()
+            return Response({'output': mods,
+                             'file_name': scenario.weather_custom.name})
+
+        elif request.method == 'DELETE':
+            if scenario.weather_custom.name:
+                # Check if any other scenarios use the same weather file
+                others = (scenario.project.scenarios
+                          .exclude(id=scenario.id)
+                          .filter(weather_type=WeatherType.CUSTOM,
+                                  weather_custom=scenario.weather_custom)
+                          .values_list('name', flat=True))
+
+                if others.count() > 0:
+                    errors.append('Cannot delete weather file.'
+                                  ' It is also used in: "{}".'
+                                  ' Either delete those scenarios, or set them'
+                                  ' to use Available Data before deleting'
+                                  ' the custom weather file.'.format(
+                                      '", "'.join(others)))
+                    return Response({'errors': errors},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+                # Delete file from all scenarios not actively using it
+                passives = (scenario.project.scenarios
+                            .exclude(id=scenario.id,
+                                     weather_type=WeatherType.CUSTOM)
+                            .filter(weather_custom=scenario.weather_custom))
+
+                for s in passives:
+                    s.weather_custom.delete()
+                    s.save()
+
+                # Delete file from given scenario
+                scenario.weather_custom.delete()
+
+            scenario.weather_type = WeatherType.DEFAULT
+            scenario.save()
+            return Response(None,
+                            status=status.HTTP_204_NO_CONTENT)
+
+    else:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@decorators.api_view(['GET'])
+@decorators.permission_classes((IsAuthenticatedOrReadOnly, ))
+def scenario_custom_weather_data_download(request, scen_id):
+    """
+    Given a scenario id retrieves the custom weather data file if available.
+    """
+    scenario = get_object_or_404(Scenario, id=scen_id)
+    project = scenario.project
+
+    if project.user.id != request.user.id and project.is_private:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    cwd = scenario.weather_custom
+    if not cwd.name:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    filename = cwd.name.split('/')[-1]
+    response = HttpResponse(cwd, content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; ' \
+                                      'filename={}'.format(filename)
+    return response
 
 
 @decorators.api_view(['POST'])

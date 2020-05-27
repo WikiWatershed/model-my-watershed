@@ -7,6 +7,7 @@ var $ = require('jquery'),
     coreUnits = require('../../../core/units'),
     chart = require('../../../core/chart.js'),
     barChartTmpl = require('../../../core/templates/barChart.html'),
+    modelingUtils = require('../../utils'),
     selectorTmpl = require('./templates/selector.html'),
     resultTmpl = require('./templates/result.html'),
     tableTmpl = require('./templates/table.html'),
@@ -50,10 +51,16 @@ var ResultView = Marionette.LayoutView.extend({
 
     templateHelpers: function() {
         var scheme = settings.get('unit_scheme'),
-            lengthUnit = coreUnits[scheme].LENGTH_S.name;
+            lengthUnit = coreUnits[scheme].LENGTH_S.name,
+            gis_data = this.scenario.getModifiedGwlfeGisData(),
+            weather_type = this.scenario.get('weather_type'),
+            weather_custom = this.scenario.get('weather_custom');
 
         return {
             lengthUnit: lengthUnit,
+            weather_type: weather_type,
+            weather_custom: modelingUtils.getFileName(weather_custom, '.csv'),
+            years: gis_data.WxYrs,
         };
     },
 

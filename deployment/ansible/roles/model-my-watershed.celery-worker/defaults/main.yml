@@ -5,8 +5,8 @@ app_deploy_branch: "master"
 app_config:
   DJANGO_TEST_DB_NAME: "{{ django_test_database }}"
   DJANGO_SETTINGS_MODULE: "{{ django_settings_module }}"
-  DJANGO_STATIC_ROOT: "/tmp"
-  DJANGO_MEDIA_ROOT: "/tmp"
+  DJANGO_STATIC_ROOT: "/tmp/static"
+  DJANGO_MEDIA_ROOT: "/tmp/media"
   DJANGO_POSTGIS_VERSION: "{{ app_postgis_version }}"
   DJANGO_SECRET_KEY: "{{ app_secret_key }}"
 

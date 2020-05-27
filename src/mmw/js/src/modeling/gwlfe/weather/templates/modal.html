@@ -1,0 +1,60 @@
+<div class="modal-dialog">
+    <div class="modal-content weather-modal-content">
+        <div class="modal-header">
+            <div class="title">
+                <!-- TODO Add Documenation link for Weather Data -->
+                <a
+                        class="btn close"
+                        target="_blank"
+                        href="https://wikiwatershed.org/documentation/mmw-tech/"
+                        title="Weather Data Documentation"
+                >
+                    <i class="fa fa-question-circle"></i>
+                </a>
+                <h1>Weather Data</h1>
+            </div>
+        </div>
+        <div class="modal-body">
+            <div class="weather-col in-built-weather">
+                <label>
+                    <h2 class="weather-col-title">
+                        <input type="radio" name="weather-type" value="DEFAULT" {{ 'checked' if weather_type != 'CUSTOM' }} />
+                        Available Data
+                    </h2>
+                </label>
+                <p class="weather-col-description">
+                    A database of national-scale daily weather data compiled by
+                    USEPA is available by default.
+                    <a href="https://wikiwatershed.org/help/model-help/mmw-tech/#usepa-climate" target="_blank" rel="noreferrer noopener">See details.</a>
+                </p>
+                <select class="form-control btn btn-small btn-primary">
+                    <optgroup label="Default">
+                        <option selected>USEPA National Climate 1960&ndash;1990</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="weather-col custom-weather">
+                <label>
+                    <h2 class="weather-col-title">
+                        <input type="radio" name="weather-type" value="CUSTOM" {{ 'checked' if weather_type == 'CUSTOM' }} />
+                        Custom Data
+                    </h2>
+                </label>
+                <p class="weather-col-description">
+                    Upload a CSV file containing 3 to 30 years of contiguous
+                    daily precipitation (cm) and average temperature (&deg;C)
+                    data.
+                    <a href="/static/resources/weather_data_sample.csv" target="_blank" rel="noreferrer noopener">Download Sample CSV.</a>
+                </p>
+                <div id="custom-weather-region"></div>
+            </div>
+        </div>
+        <div class="modal-footer" style="text-align: right">
+            <div class="footer-content">
+                <button class="btn btn-md btn-active" data-dismiss="modal">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

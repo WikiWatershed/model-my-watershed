@@ -3,9 +3,11 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
 
+import csv
 import json
 
 from copy import deepcopy
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.db import connection
@@ -15,7 +17,129 @@ from django.contrib.gis.geos import WKBReader
 from apps.modeling.mapshed.calcs import area_calculations
 
 
+NODATA = -999.0
 HECTARES_PER_SQM = 0.0001
+DATE_FORMAT = '%m/%d/%Y'
+MAX_ERRORS = 10  # Number of maximum errors reported while parsing weather data
+
+
+def get_weather_modifications(csv_file):
+    """
+    Given a CSV file like:
+
+    DATE,PRCP,TAVG
+    01/01/2001,0,-6
+    01/02/2001,0,-7
+    01/03/2001,0,-8
+
+    where PRCP is in CM and TAVG is in C, converts it into a JSON
+    modifications object that can override gis_data. Also parses
+    for errors.
+
+    Returns a tuple where the first item is the output and the second is
+    a list of errors.
+    """
+    rows = list(csv.reader(csv_file))
+    errs = []
+
+    def err(msg, line=None):
+        text = 'Line {}: {}'.format(line, msg) if line else msg
+        errs.append(text)
+
+    if rows[0] != ['DATE', 'PRCP', 'TAVG']:
+        err('Missing or incorrect header. Expected "DATE,PRCP,TAVG", got {}'
+            .format(','.join(rows[0]), 1))
+
+    if len(rows) < 1097:
+        err('Need at least 3 years of contiguous data.')
+
+    if len(rows) > 10958:
+        err('Need at most 30 years of contiguous data.')
+
+    if errs:
+        return None, errs
+
+    try:
+        begyear = datetime.strptime(rows[1][0], DATE_FORMAT).year
+    except ValueError as ve:
+        err(ve.message, 2)
+        return None, errs
+
+    try:
+        endyear = datetime.strptime(rows[-1][0], DATE_FORMAT).year
+    except ValueError as ve:
+        err(ve.message, len(rows))
+        return None, errs
+
+    year_range = endyear - begyear + 1
+
+    if year_range < 3 or year_range > 30:
+        err('Invalid year range {} between beginning year {}'
+            ' and end year {}. Year range must be between 3 and 30.'
+            .format(year_range, begyear, endyear))
+
+    if errs:
+        return None, errs
+
+    # Initialize precipitation and temperature dicts. Same shape as in
+    # apps.modeling.mapshed.calcs.weather_data. The extra days for months
+    # with fewer than 31 will remain NODATA.
+    prcps = [[[NODATA] * 31 for m in range(12)] for y in range(year_range)]
+    tavgs = [[[NODATA] * 31 for m in range(12)] for y in range(year_range)]
+
+    previous_d = None
+
+    for row in enumerate(rows[1:]):
+        # Only report so many errors before abandoning parsing
+        if len(errs) >= MAX_ERRORS:
+            err('Maximum error limit reached.')
+            return None, errs
+
+        idx, (date, prcp, tavg) = row
+
+        try:
+            d = datetime.strptime(date, DATE_FORMAT)
+
+            # For every row after the first, check to see that the date
+            # is the next one in the sequence.
+            if idx > 0:
+                if d == previous_d:
+                    raise ValueError('Duplicate date: {}'.format(date))
+
+                expected_d = previous_d + timedelta(days=1)
+                if d != expected_d:
+                    raise ValueError('Incorrect date sequence:'
+                                     ' Expected {}, got {}.'.format(
+                                         datetime.strftime(expected_d,
+                                                           DATE_FORMAT),
+                                         datetime.strftime(d, DATE_FORMAT)))
+
+            yidx = d.year - begyear
+            midx = d.month - 1
+            didx = d.day - 1
+
+            prcps[yidx][midx][didx] = float(prcp)
+            tavgs[yidx][midx][didx] = float(tavg)
+
+            if (prcps[yidx][midx][didx]) < 0:
+                raise ValueError('Precipitation cannot be less than 0.')
+
+        except Exception as e:
+            # Record error with line. idx + 2 because idx starts at 0 while
+            # line numbers start at 1, and we need to account for the header.
+            err(e.message, idx + 2)
+
+        previous_d = d
+
+    mods = {
+        'WxYrBeg': begyear,
+        'WxYrEnd': endyear,
+        'WxYrs': year_range,
+        'Prec': prcps,
+        'Temp': tavgs,
+    }
+
+    return mods, errs
 
 
 def split_into_huc12s(code, id):

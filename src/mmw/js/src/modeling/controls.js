@@ -12,6 +12,7 @@ var $ = require('jquery'),
     modificationConfigUtils = require('./modificationConfigUtils'),
     gwlfeConfig = require('./gwlfeModificationConfig'),
     entryViews = require('./gwlfe/entry/views'),
+    weatherViews = require('./gwlfe/weather/views'),
     precipitationTmpl = require('./templates/controls/precipitation.html'),
     manualEntryTmpl = require('./templates/controls/manualEntry.html'),
     userInputTmpl = require('./templates/controls/userInput.html'),
@@ -19,6 +20,7 @@ var $ = require('jquery'),
     thumbSelectTmpl = require('./templates/controls/thumbSelect.html'),
     settingsTmpl = require('./templates/controls/settings.html'),
     greenButtonTmpl = require('./templates/controls/greenButton.html'),
+    weatherDataTmpl = require('./templates/controls/weatherData.html'),
     modDropdownTmpl = require('./templates/controls/modDropdown.html');
 
 var ENTER_KEYCODE = 13;
@@ -438,6 +440,44 @@ var ConservationPracticeView = ModificationsView.extend({
     }
 });
 
+var GwlfeWeatherDataView = ControlView.extend({
+    template: weatherDataTmpl,
+
+    events: {
+        'click button': 'showWeatherDataModal',
+    },
+
+    getControlName: function() {
+        return 'gwlfe_weather_data';
+    },
+
+    initialize: function(options) {
+        ControlView.prototype.initialize.apply(this, [options]);
+
+        this.model.set({
+            controlName: this.getControlName(),
+            controlDisplayName: 'Weather Data',
+            dataModel: gwlfeConfig.cleanDataModel(App.currentProject.get('gis_data')),
+            errorMessages: null,
+            infoMessages: null,
+        });
+    },
+
+    showWeatherDataModal: function() {
+        if (App.user.get('guest')) {
+            App.getUserOrShowLogin();
+        } else {
+            var currentScenario = App.currentProject.get('scenarios')
+                                     .findWhere({ active: true });
+
+            weatherViews.showWeatherDataModal(
+                currentScenario,
+                this.addModification
+            );
+        }
+    },
+});
+
 var GwlfeLandCoverView = ControlView.extend({
     template: greenButtonTmpl,
 
@@ -632,6 +672,8 @@ function getControlView(controlName) {
             return LandCoverView;
         case 'conservation_practice':
             return ConservationPracticeView;
+        case 'gwlfe_weather_data':
+            return GwlfeWeatherDataView;
         case 'gwlfe_landcover':
             return GwlfeLandCoverView;
         case 'gwlfe_conservation_practice':

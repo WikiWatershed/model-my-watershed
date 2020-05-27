@@ -771,7 +771,7 @@ var utils = {
         }
 
         return result;
-    }
+    },
 };
 
 module.exports = utils;

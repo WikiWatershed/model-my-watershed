@@ -55,14 +55,14 @@ NHD_REGION2_PERIMETER = json.load(nhd_region2_simple_perimeter_file)
 LAYER_GROUPS = {
     'basemap': [
         {
-            'display': 'Streets',
-            'url': 'https://{s}.tiles.mapbox.com/v4/stroudcenter.1f06e119'
-                    '/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic3Ryb3VkY2VudGVyIiwiYSI6ImNpd2NhMmZiMDA1enUyb2xrdjlhYzV6N24ifQ.3dFii4MfQFOqYEDg9kVguA',  # NOQA
-            'attribution': '<a href="https://www.mapbox.com/about/maps/">&copy; Mapbox | </a>'
-                           '<a href="http://www.openstreetmap.org/copyright">&copy; OpenStreetMap | </a>'
-                           '<a href="https://www.mapbox.com/map-feedback/" target="_blank"><strong>Improve this map</strong>',
-            'maxZoom': 18,
+            'display': 'Topography',
+            'url': 'https://server.arcgisonline.com/arcgis/rest/services/'
+                   'World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+            'attribution': 'Map data from <a href="http://www.arcgis.com/home/'
+                           'item.html?id=30e5fe3149c34df1ba922e6f5bbf808f" '
+                           'target="_blank">ESRI</a>',
             'default': True,
+            'maxZoom': 19,
             'big_cz': True,
         },
         {
@@ -70,8 +70,8 @@ LAYER_GROUPS = {
             'url': 'https://server.arcgisonline.com/arcgis/rest/services/'
                    'World_Imagery/MapServer/tile/{z}/{y}/{x}',
             'attribution': 'Map data from <a href="http://www.arcgis.com/home/'
-                           'item.html?id=10df2279f9684e4a9f6a7f08febac2a9">ESRI'
-                           '</a>',
+                           'item.html?id=10df2279f9684e4a9f6a7f08febac2a9" '
+                           'target="_blank">ESRI</a>',
             'maxZoom': 19,
             'big_cz': True,
         },

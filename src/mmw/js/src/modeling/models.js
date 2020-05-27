@@ -12,6 +12,7 @@ var $ = require('jquery'),
     turfArea = require('turf-area'),
     turfErase = require('turf-erase'),
     turfIntersect = require('turf-intersect'),
+    modelingUtils = require('./utils'),
     AoiVolumeModel = require('./tr55/models').AoiVolumeModel,
     subbasinModels = require('./gwlfe/subbasin/models'),
     ColorRamps = subbasinModels.ColorRamps,
@@ -766,7 +767,7 @@ var ProjectModel = Backbone.Model.extend({
             isTR55 = self.get('model_package') === utils.TR55_PACKAGE,
             modelFiles = isTR55 ? getTR55ModelFiles() : getMapShedModelFiles(),
             getMapshedData = function(scenario) {
-                    var gisData = scenario.getGisData(),
+                    var gisData = scenario.getModifiedGwlfeGisData(),
                         scenarioName = lowerAndHyphenate(scenario.get('name'));
 
                     if (!gisData) {
@@ -775,10 +776,27 @@ var ProjectModel = Backbone.Model.extend({
 
                     return {
                         name: 'model_multiyear_' + scenarioName + '.gms',
-                        uuid: gisData.mapshed_job_uuid
+                        data: gisData,
                     };
                 },
             mapshedData = isTR55 ? [] : _.compact(scenarios.map(getMapshedData)),
+            getWeatherData = function(scenario) {
+                // TODO Add support for exporting simulated weather
+
+                if (scenario.get('weather_type') !== constants.WeatherType.CUSTOM) {
+                    return null;
+                }
+
+                var weather_custom = scenario.get('weather_custom'),
+                    weatherFileName = modelingUtils.getFileName(weather_custom, '.csv'),
+                    scenarioName = lowerAndHyphenate(scenario.get('name'));
+
+                return {
+                    id: scenario.id,
+                    name: 'model_multiyear_' + scenarioName + '_weather_' + weatherFileName,
+                };
+            },
+            weatherData = isTR55 ? [] : _.compact(scenarios.map(getWeatherData)),
             snapshotFile = [{
                 name: 'mmw_project_snapshot.json',
                 contents: JSON.stringify(self.getSnapshot()),
@@ -790,6 +808,7 @@ var ProjectModel = Backbone.Model.extend({
                 postData: JSON.stringify(_.defaults({
                     files: analyzeFiles.concat(modelFiles).concat(snapshotFile),
                     mapshed_data: mapshedData,
+                    weather_data: weatherData,
                 }, payload))
             };
 
@@ -1210,7 +1229,10 @@ var ScenarioModel = Backbone.Model.extend({
         aoi_census: null, // JSON blob
         modification_censuses: null, // JSON blob
         allow_save: true, // Is allowed to save to the server - false in compare mode
-        options_menu_is_open: false // The sub-dropdown options menu for this scenario is open
+        options_menu_is_open: false, // The sub-dropdown options menu for this scenario is open
+        weather_type: constants.WeatherType.DEFAULT,
+        weather_simulation: null,
+        weather_custom: null,
     },
 
     initialize: function(attrs) {
@@ -1332,8 +1354,13 @@ var ScenarioModel = Backbone.Model.extend({
 
         if (options.silent) {
             // Don't reload server values, except for modified_at
+            // and weather fields
             return _.assign({}, this.attributes, {
-                modified_at: response.modified_at
+                modified_at: response.modified_at,
+
+                weather_type: response.weather_type,
+                weather_simulation: response.weather_simulation,
+                weather_custom: response.weather_custom,
             });
         }
 
@@ -1779,25 +1806,13 @@ var ScenariosCollection = Backbone.Collection.extend({
     },
 
     duplicateScenario: function(cid) {
-        var source = this.get(cid),
-            newModel = new ScenarioModel({
-                is_current_conditions: false,
-                name: this.makeNewScenarioName('Copy of ' + source.get('name')),
-                user_id: source.get('user_id'),
-                inputs: source.get('inputs').toJSON(),
-                inputmod_hash: source.get('inputmod_hash'),
-                modifications: source.get('modifications').toJSON(),
-                modification_hash: source.get('modification_hash'),
-                job_id: source.get('job_id'),
-                poll_error: source.get('poll_error'),
-                results: source.get('results').toJSON(),
-                aoi_census: source.get('aoi_census'),
-                modification_censuses: source.get('modification_censuses'),
-                allow_save: source.get('allow_save'),
-            });
+        var self = this;
 
-        this.add(newModel);
-        this.setActiveScenarioByCid(newModel.cid);
+        $.post('/mmw/modeling/scenarios/' + this.get(cid).id + '/duplicate/')
+            .then(function(data) {
+                self.add(new ScenarioModel(data));
+                self.setActiveScenarioById(data.id);
+            });
     },
 
     // Generate a unique scenario name based off baseName.
@@ -1867,6 +1882,7 @@ function getControlsForModelPackage(modelPackageName, options) {
             return new ModelPackageControlsCollection();
         } else {
             return new ModelPackageControlsCollection([
+                new ModelPackageControlModel({ name: 'gwlfe_weather_data' }),
                 new ModelPackageControlModel({ name: 'gwlfe_landcover' }),
                 new ModelPackageControlModel({ name: 'gwlfe_conservation_practice' }),
                 new ModelPackageControlModel({ name: 'gwlfe_settings' }),

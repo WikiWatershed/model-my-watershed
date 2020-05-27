@@ -8,7 +8,8 @@ var $ = require('jquery'),
     tableTmpl = require('./templates/table.html'),
     settings = require('../../../core/settings'),
     coreUnits = require('../../../core/units'),
-    utils = require('../../../core/utils'),
+    coreUtils = require('../../../core/utils'),
+    modelingUtils = require('../../utils'),
     gwlfeViews = require('../views');
 
 var ResultView = Marionette.LayoutView.extend({
@@ -35,8 +36,15 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     templateHelpers: function() {
+        var gis_data = this.scenario.getModifiedGwlfeGisData(),
+            weather_type = this.scenario.get('weather_type'),
+            weather_custom = this.scenario.get('weather_custom');
+
         return {
-            showSubbasinModelingButton: utils
+            weather_type: weather_type,
+            weather_custom: modelingUtils.getFileName(weather_custom, '.csv'),
+            years: gis_data.WxYrs,
+            showSubbasinModelingButton: coreUtils
                 .isWKAoIValidForSubbasinModeling(App.currentProject.get('wkaoi')),
         };
     },

@@ -9,7 +9,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from apps.export.serializers import HydroShareResourceSerializer
-from apps.modeling.models import Project, Scenario
+from apps.modeling.models import Project, Scenario, WeatherType
 from apps.modeling.validation import validate_aoi
 from apps.modeling.calcs import get_layer_shape
 from apps.user.serializers import UserSerializer
@@ -70,13 +70,33 @@ class ScenarioSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'project', 'is_current_conditions', 'inputs',
                   'inputmod_hash', 'modifications', 'modification_hash',
                   'aoi_census', 'modification_censuses', 'results',
-                  'created_at', 'modified_at')
+                  'created_at', 'modified_at', 'weather_type',
+                  'weather_simulation', 'weather_custom')
+        read_only_fields = ('weather_custom',)
 
     inputs = JsonField()
     modifications = JsonField()
     aoi_census = JsonField(required=False, allow_null=True)
     modification_censuses = JsonField(required=False, allow_null=True)
     results = JsonField(required=False, allow_null=True)
+
+    def validate_weather_type(self, value):
+        if value == WeatherType.CUSTOM and \
+                not self.instance.weather_custom:
+            raise ValidationError('Cannot use Custom Weather Data: '
+                                  'none specified.')
+
+        if value == WeatherType.SIMULATION and \
+                not self.instance.weather_simulation:
+            raise ValidationError('Cannot use Simulation Weather Data: '
+                                  'none specified.')
+
+        if value != WeatherType.DEFAULT and \
+                self.instance.is_current_conditions:
+            raise ValidationError('Cannot use non-Default Weather Data '
+                                  'with Current Conditions')
+
+        return value
 
 
 class ProjectSerializer(serializers.ModelSerializer):

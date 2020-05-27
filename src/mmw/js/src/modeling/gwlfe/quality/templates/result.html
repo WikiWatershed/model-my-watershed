@@ -1,15 +1,20 @@
 <div class="result-title">
     Average annual loads
-    from 30-years of daily fluxes
+    from {{ years }}-years of daily fluxes
 </div>
 <div class="layer-region"></div>
+{% if weather_type == 'CUSTOM' and weather_custom %}
+<p class="result-description text-muted">
+    Source: {{ weather_custom }}
+</p>
+{% endif %}
 <p class="result-description text-muted">
     Simulated by the GWLF-E (MapShed) model <a
         class="model-results-tooltip" data-toggle="popover" tabindex="0" data-html="true"
         data-container="body" role="button"
         data-content="Stream lengths presented here are for NHDplus v2 medium resolution flow lines. To make GWLF-E bank erosion calculations similar to those of the high resolution flow lines available for PA, and soon to be available nationwide with the NHDplus HR release, we used a sediment erosion adjustment factor of 1.4."
         data-template="<div class='popover'><div class='popover-content'></div><div class='arrow'></div></div>">
-        <i class="fa fa-info-circle black"></i>
+        <i class="fa fa-info-circle black-74"></i>
     </a>
 </p>
 {% if showSubbasinModelingButton %}
