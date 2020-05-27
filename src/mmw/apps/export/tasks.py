@@ -116,7 +116,7 @@ def create_resource(user_id, project_id, params):
         'hs_file_type': 'GeoFeature',
     })
 
-    # Link HydroShareResrouce to Project and save
+    # Link HydroShareResource to Project and save
     hsresource = HydroShareResource.objects.create(
         project=project,
         resource=resource,
