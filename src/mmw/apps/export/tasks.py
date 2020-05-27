@@ -14,7 +14,7 @@ from celery import shared_task
 from django.utils.timezone import now
 from django.contrib.gis.geos import GEOSGeometry
 
-from apps.modeling.models import Project
+from apps.modeling.models import Project, Scenario
 from apps.modeling.tasks import to_gms_file
 
 from hydroshare import HydroShareService
@@ -39,13 +39,7 @@ def update_resource(user_id, project_id, params):
         raise RuntimeError('HydroShare could not find requested resource')
 
     # Update files
-    files = params.get('files', [])
-    for md in params.get('mapshed_data', []):
-        mdata = md.get('data')
-        files.append({
-            'name': md.get('name'),
-            'contents': to_gms_file(mdata).read() if mdata else None,
-        })
+    files = _hs_gather_client_files(params)
 
     hs.add_files(hsresource.resource, files)
 
@@ -75,7 +69,7 @@ def create_resource(user_id, project_id, params):
     )
 
     # Files sent from the client
-    files = params.get('files', [])
+    files = _hs_gather_client_files(params)
 
     # AoI GeoJSON
     aoi_geojson = GEOSGeometry(project.area_of_interest).geojson
@@ -83,14 +77,6 @@ def create_resource(user_id, project_id, params):
         'name': 'area-of-interest.geojson',
         'contents': aoi_geojson,
     })
-
-    # MapShed Data
-    for md in params.get('mapshed_data', []):
-        mdata = md.get('data')
-        files.append({
-            'name': md.get('name'),
-            'contents': to_gms_file(mdata).read() if mdata else None,
-        })
 
     # Add all files
     hs.add_files(resource, files)
@@ -130,7 +116,7 @@ def create_resource(user_id, project_id, params):
         'hs_file_type': 'GeoFeature',
     })
 
-    # Link HydroShareResrouce to Project and save
+    # Link HydroShareResource to Project and save
     hsresource = HydroShareResource.objects.create(
         project=project,
         resource=resource,
@@ -147,6 +133,29 @@ def create_resource(user_id, project_id, params):
     # Return newly created HydroShareResource
     serializer = HydroShareResourceSerializer(hsresource)
     return serializer.data
+
+
+def _hs_gather_client_files(params):
+    # Files sent from the client
+    files = params.get('files', [])
+
+    # MapShed Data
+    for md in params.get('mapshed_data', []):
+        mdata = md.get('data')
+        files.append({
+            'name': md.get('name'),
+            'contents': to_gms_file(mdata).read() if mdata else None,
+        })
+
+    # Weather Data
+    for wd in params.get('weather_data', []):
+        s = Scenario.objects.get(id=wd.get('id'))
+        files.append({
+            'name': wd.get('name'),
+            'contents': s.weather_custom.read(),
+        })
+
+    return files
 
 
 @shared_task

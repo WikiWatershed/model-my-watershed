@@ -12,6 +12,7 @@ var $ = require('jquery'),
     turfArea = require('turf-area'),
     turfErase = require('turf-erase'),
     turfIntersect = require('turf-intersect'),
+    modelingUtils = require('./utils'),
     AoiVolumeModel = require('./tr55/models').AoiVolumeModel,
     subbasinModels = require('./gwlfe/subbasin/models'),
     ColorRamps = subbasinModels.ColorRamps,
@@ -779,6 +780,23 @@ var ProjectModel = Backbone.Model.extend({
                     };
                 },
             mapshedData = isTR55 ? [] : _.compact(scenarios.map(getMapshedData)),
+            getWeatherData = function(scenario) {
+                // TODO Add support for exporting simulated weather
+
+                if (scenario.get('weather_type') !== constants.WeatherType.CUSTOM) {
+                    return null;
+                }
+
+                var weather_custom = scenario.get('weather_custom'),
+                    weatherFileName = modelingUtils.getFileName(weather_custom, '.csv'),
+                    scenarioName = lowerAndHyphenate(scenario.get('name'));
+
+                return {
+                    id: scenario.id,
+                    name: 'model_multiyear_' + scenarioName + '_weather_' + weatherFileName,
+                };
+            },
+            weatherData = isTR55 ? [] : _.compact(scenarios.map(getWeatherData)),
             snapshotFile = [{
                 name: 'mmw_project_snapshot.json',
                 contents: JSON.stringify(self.getSnapshot()),
@@ -790,6 +808,7 @@ var ProjectModel = Backbone.Model.extend({
                 postData: JSON.stringify(_.defaults({
                     files: analyzeFiles.concat(modelFiles).concat(snapshotFile),
                     mapshed_data: mapshedData,
+                    weather_data: weatherData,
                 }, payload))
             };
 
