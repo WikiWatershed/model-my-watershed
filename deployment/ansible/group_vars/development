@@ -32,7 +32,7 @@ srat_catchment_api_key: "{{ lookup('env', 'MMW_SRAT_CATCHMENT_API_KEY') }}"
 
 tilecache_bucket_name: "{{ lookup('env', 'MMW_TILECACHE_BUCKET') | default('', true) }}"
 
-docker_options: "-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock --storage-driver=aufs"
+docker_options: "-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock"
 
 aws_profile: "mmw-stg"
 
