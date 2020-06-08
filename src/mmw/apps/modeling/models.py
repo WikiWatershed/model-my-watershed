@@ -4,10 +4,14 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.db.models import FileField
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.auth.models import User
 
 from apps.core.models import Job
+
+
+DRB = settings.DRB_PERIMETER.buffer(0.1)
 
 
 def project_filename(project, filename):
@@ -77,6 +81,9 @@ class Project(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def in_drb(self):
+        return self.area_of_interest.within(DRB)
 
 
 class WeatherType:
