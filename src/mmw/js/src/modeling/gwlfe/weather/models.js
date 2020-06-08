@@ -7,6 +7,7 @@ var $ = require('jquery'),
 
 var WindowModel = Backbone.Model.extend({
     defaults: {
+        project_id: null, // Must be specified
         scenario_id: null, // Must be specified
         weather_type: WeatherType.DEFAULT,
         built_in_weather_type: 'MAPSHED',

@@ -209,11 +209,13 @@ var ExistingWeatherDataView = Marionette.ItemView.extend({
     },
 });
 
-function showWeatherDataModal(scenario, addModification) {
-    var weather_type = scenario.get('weather_type'),
+function showWeatherDataModal(project, addModification) {
+    var scenario = project.get('scenarios').findWhere({ active: true }),
+        weather_type = scenario.get('weather_type'),
         weather_mod = scenario.get('modifications').findWhere({ modKey: 'weather_data' }),
         model = new models.WindowModel({
             is_editable: utils.isEditable(scenario),
+            project_id: project.get('id'),
             scenario_id: scenario.get('id'),
             weather_type: weather_type,
             custom_weather_output: weather_type === WeatherType.CUSTOM ?
