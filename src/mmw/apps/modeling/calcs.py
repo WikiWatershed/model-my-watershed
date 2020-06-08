@@ -5,7 +5,9 @@ from __future__ import absolute_import
 
 import csv
 import json
+import requests
 
+from contextlib import closing
 from copy import deepcopy
 from datetime import datetime, timedelta
 
@@ -14,7 +16,10 @@ from django.db import connection
 
 from django.contrib.gis.geos import WKBReader
 
-from apps.modeling.mapshed.calcs import area_calculations
+from apps.modeling.mapshed.calcs import (area_calculations,
+                                         nearest_weather_stations,
+                                         average_weather_data
+                                         )
 
 
 NODATA = -999.0
@@ -140,6 +145,50 @@ def get_weather_modifications(csv_file):
     }
 
     return mods, errs
+
+
+def get_weather_simulation_for_project(project, category):
+    wss = nearest_weather_stations([(None, None, project.area_of_interest)])
+    data = []
+    errs = []
+
+    for ws in wss:
+        url = settings.WEATHER_DATA_BUCKET_URL.format(category=category,
+                                                      station=ws.station)
+
+        # Ensure the station exists, if not exit quickly
+        res = requests.head(url)
+        if not res.ok:
+            errs.append('Error {} while getting data for {}/{}'
+                        .format(res.status_code, category, ws.station))
+            return {}, errs
+
+        # Fetch and parse station weather data, noting any errors
+        with closing(requests.get(url, stream=True)) as r:
+            ws_data, ws_errs = get_weather_modifications(r.iter_lines())
+            data.append(ws_data)
+            errs += ws_errs
+
+    # Check that the datasets have the same characteristics
+    for c in ['WxYrBeg', 'WxYrEnd', 'WxYrs']:
+        s = set([d[c] for d in data])
+        if len(s) > 1:
+            errs.append('{} does not match in dataset: {}'.format(c, s))
+
+    # Respond with errors, if any
+    if errs:
+        return {}, errs
+
+    # Final result has characteristics of the first station (which would be
+    # identical to all other stations), and the precipitation and temperature
+    # data which is the mean of all stations.
+    return {
+        'WxYrBeg': data[0]['WxYrBeg'],
+        'WxYrEnd': data[0]['WxYrEnd'],
+        'WxYrs': data[0]['WxYrs'],
+        'Prec': average_weather_data([d['Prec'] for d in data]),
+        'Temp': average_weather_data([d['Temp'] for d in data]),
+    }, errs
 
 
 def split_into_huc12s(code, id):

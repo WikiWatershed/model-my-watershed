@@ -101,6 +101,12 @@ class WeatherType:
     # e.g. within DRB.
     SIMULATION = 'SIMULATION'
 
+    # Valid Simulations currently supported in the app
+    simulations = [
+        'RCP45_2080_2099',
+        'RCP85_2080_2099',
+    ]
+
     # Custom, user uploaded, may be more accurate, more recent, or more
     # relevant than our default set. Will go through some validation.
     # Must be between 3 and 30 years of data.
