@@ -27,11 +27,17 @@
                     USEPA is available by default.
                     <a href="https://wikiwatershed.org/help/model-help/mmw-tech/#usepa-climate" target="_blank" rel="noreferrer noopener">See details.</a>
                 </p>
-                <select class="form-control btn btn-small btn-primary">
+                <select id="available-data" class="form-control btn btn-small btn-primary">
                     <optgroup label="Default">
-                        <option selected>USEPA National Climate 1960&ndash;1990</option>
+                        <option value="DEFAULT" {{ 'selected' if available_data == 'DEFAULT' }}>USEPA National Climate 1960&ndash;1990</option>
+                    </optgroup>
+                    <optgroup label="Future Weather Simulations">
+                        {%  for key, label in Simulations %}
+                            <option value="{{ key }}" {{ 'selected' if available_data == key }}>{{ label }}</option>
+                        {% endfor %}
                     </optgroup>
                 </select>
+
             </div>
             <div class="weather-col custom-weather">
                 <label>
