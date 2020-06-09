@@ -145,7 +145,7 @@ def project_weather(request, proj_id, category):
     # This applies to all current weather categories. If in the future there
     # are categories to which it doesn't apply, this will have to be further
     # qualified.
-    if not project.in_drb():
+    if not project.in_drb:
         return Response({'errors': ['Only supported within'
                                     ' Delware River Basin.']},
                         status=status.HTTP_400_BAD_REQUEST)

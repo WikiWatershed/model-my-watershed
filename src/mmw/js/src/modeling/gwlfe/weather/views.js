@@ -277,6 +277,7 @@ function showWeatherDataModal(project, addModification) {
         model = new models.WindowModel({
             is_editable: utils.isEditable(scenario),
             project_id: project.get('id'),
+            in_drb: project.get('in_drb'),
             scenario_id: scenario.get('id'),
             weather_type: weather_type,
             available_data:

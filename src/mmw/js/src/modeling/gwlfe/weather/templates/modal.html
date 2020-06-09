@@ -31,9 +31,9 @@
                     <optgroup label="Default">
                         <option value="DEFAULT" {{ 'selected' if available_data == 'DEFAULT' }}>USEPA National Climate 1960&ndash;1990</option>
                     </optgroup>
-                    <optgroup label="Future Weather Simulations">
+                    <optgroup label="Future Weather Simulations {{ '(DRB Only)' if not in_drb }}">
                         {%  for key, label in Simulations %}
-                            <option value="{{ key }}" {{ 'selected' if available_data == key }}>{{ label }}</option>
+                            <option value="{{ key }}" {{ 'selected' if available_data == key }} {{ 'disabled' if not in_drb }}>{{ label }}</option>
                         {% endfor %}
                     </optgroup>
                 </select>

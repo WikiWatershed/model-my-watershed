@@ -82,6 +82,7 @@ class Project(models.Model):
     def __unicode__(self):
         return self.name
 
+    @property
     def in_drb(self):
         return self.area_of_interest.within(DRB)
 
