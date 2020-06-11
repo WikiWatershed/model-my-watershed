@@ -3,6 +3,11 @@
     from {{ years }}-years of daily water balance
 </div>
 <div class="layer-region"></div>
+{% if weather_type == 'SIMULATION' and weather_simulation %}
+<p class="result-description text-muted">
+    Source: {{ weather_simulation }}
+</p>
+{% endif %}
 {% if weather_type == 'CUSTOM' and weather_custom %}
 <p class="result-description text-muted">
     Source: {{ weather_custom }}

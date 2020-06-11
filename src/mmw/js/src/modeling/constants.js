@@ -25,4 +25,9 @@ module.exports = {
         SIMULATION: 'SIMULATION',
         CUSTOM: 'CUSTOM',
     },
+    // In sync with apps.modeling.models.WeatherType.simulations
+    Simulations: {
+        RCP45_2080_2099: 'RCP 4.5 2080-2099',
+        RCP85_2080_2099: 'RCP 8.5 2080-2099',
+    }
 };

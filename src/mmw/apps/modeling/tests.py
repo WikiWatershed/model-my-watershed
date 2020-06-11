@@ -1225,14 +1225,6 @@ class CustomWeatherDataTestCase(TestCase):
                               format='json')
         self.assertEqual(response.status_code, 400)
 
-        scenario['weather_type'] = WeatherType.SIMULATION
-
-        response = self.c.put('/mmw/modeling/scenarios/{}'
-                              .format(scenario['id']),
-                              scenario,
-                              format='json')
-        self.assertEqual(response.status_code, 400)
-
     def test_weather_put_cannot_set_on_current_conditions(self):
         scenario = self.create_current_conditions_scenario()
         scenario['weather_type'] = WeatherType.CUSTOM

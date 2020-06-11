@@ -467,11 +467,8 @@ var GwlfeWeatherDataView = ControlView.extend({
         if (App.user.get('guest')) {
             App.getUserOrShowLogin();
         } else {
-            var currentScenario = App.currentProject.get('scenarios')
-                                     .findWhere({ active: true });
-
             weatherViews.showWeatherDataModal(
-                currentScenario,
+                App.currentProject,
                 this.addModification
             );
         }

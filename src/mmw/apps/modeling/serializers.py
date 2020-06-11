@@ -86,15 +86,17 @@ class ScenarioSerializer(serializers.ModelSerializer):
             raise ValidationError('Cannot use Custom Weather Data: '
                                   'none specified.')
 
-        if value == WeatherType.SIMULATION and \
-                not self.instance.weather_simulation:
-            raise ValidationError('Cannot use Simulation Weather Data: '
-                                  'none specified.')
-
         if value != WeatherType.DEFAULT and \
                 self.instance.is_current_conditions:
             raise ValidationError('Cannot use non-Default Weather Data '
                                   'with Current Conditions')
+
+        return value
+
+    def validate_weather_simulation(self, value):
+        if value and value not in WeatherType.simulations:
+            raise ValidationError('Cannot use Simulation Weather Data: '
+                                  'invalid simulation.')
 
         return value
 
@@ -108,7 +110,8 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'area_of_interest', 'area_of_interest_name',
                   'scenarios', 'model_package', 'created_at', 'modified_at',
                   'is_private', 'is_activity', 'gis_data', 'mapshed_job_uuid',
-                  'subbasin_mapshed_job_uuid', 'wkaoi', 'user', 'hydroshare')
+                  'subbasin_mapshed_job_uuid', 'wkaoi', 'user', 'hydroshare',
+                  'in_drb')
 
     user = UserSerializer(default=serializers.CurrentUserDefault())
     gis_data = JsonField(required=False, allow_null=True)

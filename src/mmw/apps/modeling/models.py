@@ -4,10 +4,14 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from django.db.models import FileField
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.auth.models import User
 
 from apps.core.models import Job
+
+
+DRB = settings.DRB_PERIMETER.buffer(0.1)
 
 
 def project_filename(project, filename):
@@ -78,6 +82,10 @@ class Project(models.Model):
     def __unicode__(self):
         return self.name
 
+    @property
+    def in_drb(self):
+        return self.area_of_interest.within(DRB)
+
 
 class WeatherType:
 
@@ -93,6 +101,12 @@ class WeatherType:
     # available to choose from. May only apply to AoIs in a certain area,
     # e.g. within DRB.
     SIMULATION = 'SIMULATION'
+
+    # Valid Simulations currently supported in the app
+    simulations = [
+        'RCP45_2080_2099',
+        'RCP85_2080_2099',
+    ]
 
     # Custom, user uploaded, may be more accurate, more recent, or more
     # relevant than our default set. Will go through some validation.

@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import json
+import rollbar
 import urllib
 
 from celery import chain, group
@@ -52,6 +53,7 @@ from apps.modeling.calcs import (get_layer_shape,
                                  split_into_huc12s,
                                  sum_subbasin_stream_lengths,
                                  get_weather_modifications,
+                                 get_weather_simulation_for_project,
                                  )
 
 
@@ -122,6 +124,47 @@ def project(request, proj_id):
 
     else:
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+@decorators.api_view(['GET'])
+@decorators.permission_classes((IsAuthenticatedOrReadOnly, ))
+def project_weather(request, proj_id, category):
+    """
+    Get weather data for project given a category, if available.
+
+    Current categories are RCP45_2080_2099 and RCP85_2080_2099, and only
+    support shapes within the DRB. Given a project within the DRB, we find the
+    N=2 nearest weather stations and average their values.
+    """
+    project = get_object_or_404(Project, id=proj_id, user=request.user)
+
+    if category not in WeatherType.simulations:
+        return Response({'errors': ['Invalid category specified.']},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    # This applies to all current weather categories. If in the future there
+    # are categories to which it doesn't apply, this will have to be further
+    # qualified.
+    if not project.in_drb:
+        return Response({'errors': ['Only supported within'
+                                    ' Delware River Basin.']},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    # Get weather simulation data for this project
+    mods, errs = get_weather_simulation_for_project(project, category)
+
+    # Report errors as server side, since they are fault with our
+    # built-in data
+    if errs:
+        rollbar.report_message('Weather Data Errors: {}'.format(errs),
+                               'error')
+        return Response({'errors': errs},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # Return response, and cache it for a long time, because it is constant
+    # for a project and category
+    return Response({'output': mods},
+                    headers={'Cache-Control': 'max-age: 604800'})
 
 
 @decorators.api_view(['POST'])
