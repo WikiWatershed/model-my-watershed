@@ -454,6 +454,14 @@ SRAT_CATCHMENT_API = {
                            'ERROR: Could not get SRAT Catchment API Key'),
 }
 
+# Drexel Fast Zonal API Settings
+DREXEL_FAST_ZONAL_API = {
+    'url': environ.get('MMW_DREXEL_FAST_ZONAL_API_URL',
+                       'http://watersheds.cci.drexel.edu/api/fzs_buildout/'),
+    'keys': ['centers', 'centers_np', 'centers_osi',
+             'corridors', 'corridors_np', 'corridors_osi'],
+}
+
 # Geoprocessing Settings
 GEOP = {
     'cache': bool(int(environ.get('MMW_GEOPROCESSING_CACHE', 1))),
