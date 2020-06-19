@@ -1252,7 +1252,10 @@ var ChartView = Marionette.ItemView.extend({
 
     getBarClass: function(item) {
         var name = this.model.get('name');
-        if (name === 'land') {
+        if (['land',
+             'drb_2100_land_centers',
+             'drb_2100_land_corridors'].indexOf(name) > -1)
+        {
             return 'nlcd-fill-' + item.nlcd;
         } else if (name === 'soil') {
             return 'soil-fill-' + item.code;
@@ -1399,14 +1402,39 @@ var LandResultView  = AnalyzeResultView.extend({
         this.showAnalyzeResults(coreModels.ProtectedLandsCensusCollection, TableView,
             ChartView, title, source, helpText, associatedLayerCodes);
     },
+    onShowFutureLandCenters: function() {
+        var title = 'DRB 2100 land forecast (Centers)',
+            source = 'DRB Future Land Cover - Shippensburg U.',
+            helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
+            associatedLayerCodes = ['shippensburg-2100-centers-30m'];
+        this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView,
+            ChartView, title, source, helpText, associatedLayerCodes);
+    },
+    onShowFutureLandCorridors: function() {
+        var title = 'DRB 2100 land forecast (Corridors)',
+            source = 'DRB Future Land Cover - Shippensburg U.',
+            helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
+            associatedLayerCodes = ['shippensburg-2100-corridors-30m'];
+        this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView,
+            ChartView, title, source, helpText, associatedLayerCodes);
+    },
     onShow: function() {
         var taskName = this.model.get('name'),
             taskGroup = this.taskGroup;
 
-        if(taskName === 'protected_lands') {
-            this.onShowProtectedLands();
-        } else {
-            this.onShowNlcd();
+        switch(taskName) {
+            case 'protected_lands':
+                this.onShowProtectedLands();
+                break;
+            case 'drb_2100_land_centers':
+                this.onShowFutureLandCenters();
+                break;
+            case 'drb_2100_land_corridors':
+                this.onShowFutureLandCorridors();
+                break;
+            case 'land':
+            default:
+                this.onShowNlcd();
         }
 
         if(taskGroup.get('tasks').length > 1) {
@@ -1672,6 +1700,8 @@ var AnalyzeResultViews = {
     streams: StreamResultView,
     terrain: TerrainResultView,
     protected_lands: LandResultView,
+    drb_2100_land_centers: LandResultView,
+    drb_2100_land_corridors: LandResultView,
 };
 
 module.exports = {

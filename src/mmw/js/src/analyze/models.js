@@ -239,6 +239,20 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                     wkaoi: wkaoi,
                     taskName: "analyze/protected-lands"
                 },
+                {
+                    name: "drb_2100_land_centers",
+                    displayName: "DRB 2100 land forecast (Centers)",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/drb-2100-land/centers"
+                },
+                {
+                    name: "drb_2100_land_corridors",
+                    displayName: "DRB 2100 land forecast (Corridors)",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/drb-2100-land/corridors"
+                },
             ]
         },
         {
@@ -322,6 +336,24 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
             // Remove tasks not supported in data catalog mode
             .map(function(tg) {
                 tg.tasks = _.filter(tg.tasks, { enabledForCatalogMode: true });
+                return tg;
+            })
+            // Remove task groups with no tasks
+            .filter(function(tg) {
+                return !_.isEmpty(tg.tasks);
+            })
+            .value();
+    }
+
+    if (!utils.isInDrb(aoi)) {
+        var isDrbTask = function(task) {
+            return task.name.startsWith('drb');
+        };
+
+        taskGroups = _(taskGroups)
+            // Remove tasks that are DRB only
+            .map(function(tg) {
+                tg.tasks = _.reject(tg.tasks, isDrbTask);
                 return tg;
             })
             // Remove task groups with no tasks
