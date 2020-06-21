@@ -563,12 +563,29 @@ var utils = {
         return self.indexOf(value) === index;
     },
 
-    isInDrb: function(geom) {
-        var layers = settings.get('stream_layers'),
-            drb = _.find(layers, {code: 'drb_streams_v2'}).perimeter;
-
-        return !!intersect(geom, drb);
+    // Takes a geometry and returns an array of its coordinates
+    coordinates: function(geom) {
+        switch(geom.type) {
+            case 'MultiPolygon':
+                return _.flatten(_.flatten(geom.coordinates));
+            case 'Polygon':
+                return _.flatten(geom.coordinates);
+            default:
+                throw new Error('Unsupported geometry');
+        }
     },
+
+    // Check if a geom is completely within DRB_SIMPLE_PERIMETER
+    isInDrb: _.memoize(function(geom) {
+        var layers = settings.get('stream_layers'),
+            drb = _.find(layers, {code: 'drb_streams_v2'}).perimeter,
+            coordCount = this.coordinates(geom).length,
+            intersection = intersect(geom, drb),
+            intersectionCount = intersection &&
+                                this.coordinates(intersection.geometry).length;
+
+        return intersection && coordCount === intersectionCount;
+    }),
 
     // Calculates a range from 0 to the upper bound
     // of the order of magnitde of the value. Returns

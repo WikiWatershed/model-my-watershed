@@ -11,9 +11,6 @@ from django.contrib.auth.models import User
 from apps.core.models import Job
 
 
-DRB = settings.DRB_PERIMETER.buffer(0.1)
-
-
 def project_filename(project, filename):
     return 'project_{0}/{1}'.format(project.id, filename)
 
@@ -84,7 +81,7 @@ class Project(models.Model):
 
     @property
     def in_drb(self):
-        return self.area_of_interest.within(DRB)
+        return self.area_of_interest.within(settings.DRB_SIMPLE_PERIMETER)
 
 
 class WeatherType:

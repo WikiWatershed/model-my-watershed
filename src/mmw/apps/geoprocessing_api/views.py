@@ -1328,7 +1328,7 @@ def start_analyze_drb_2100_land(request, key=None, format=None):
     # In the front-end, we use DRB_SIMPLE_PERIMETER. This is sent from the
     # back-end on every page render, and is considerably lighter ~0.2% than
     # the actual perimeter. We use the same here for consistency.
-    if not geom.intersects(settings.DRB_SIMPLE_PERIMETER):
+    if not geom.within(settings.DRB_SIMPLE_PERIMETER):
         errs.append('The area of interest must be within the'
                     ' Delaware River Basin.')
 
