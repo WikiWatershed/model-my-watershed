@@ -106,6 +106,9 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
             self.fetchAnalysisPromise = $.when(promises.startPromise,
                                                promises.pollingPromise);
             self.fetchAnalysisPromise
+                .fail(function(err) {
+                    self.set('error', err);
+                })
                 .always(function() {
                     delete self.fetchAnalysisPromise;
                 });

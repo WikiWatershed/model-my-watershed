@@ -389,19 +389,39 @@ var TabContentView = Marionette.LayoutView.extend({
         role: 'tabpanel'
     },
     regions: {
+        taskSelectorRegion: '.task-selector-region',
         resultRegion: '.result-region'
     },
 
+    modelEvents: {
+        'change:activeTask': 'showTaskOutput',
+    },
+
     initialize: function() {
-        this.listenTo(this.model, 'change:activeTask', this.onShow);
+        var model = this.model,
+            listenTo = this.listenTo,
+            showTaskOutput = _.bind(this.showTaskOutput, this);
+
+        model.get('tasks').forEach(function(task) {
+            listenTo(task, 'change:status', function(taskModel) {
+                if (taskModel.get('name') === model.getActiveTask().get('name')) {
+                    showTaskOutput();
+                }
+            });
+        });
     },
 
     onShow: function() {
         this.showAnalyzingMessage();
 
         this.model.fetchAnalysisIfNeeded()
-            .done(_.bind(this.showResultsIfNotDestroyed, this))
-            .fail(_.bind(this.showErrorIfNotDestroyed, this));
+            .always(_.bind(this.showTaskOutput, this));
+
+        if(this.model.get('tasks').length > 1) {
+            this.taskSelectorRegion.show(new TaskSelectorView({
+                model: this.model
+            }));
+        }
     },
 
     showAnalyzingMessage: function() {
@@ -428,12 +448,6 @@ var TabContentView = Marionette.LayoutView.extend({
         this.model.set({ polling: false });
     },
 
-    showErrorIfNotDestroyed: function(err) {
-        if (!this.isDestroyed) {
-            this.showErrorMessage(err);
-        }
-    },
-
     showResults: function() {
         var activeTask = this.model.getActiveTask(),
             name = activeTask.get('name'),
@@ -448,9 +462,19 @@ var TabContentView = Marionette.LayoutView.extend({
         this.model.set({ polling: false });
     },
 
-    showResultsIfNotDestroyed: function() {
+    showTaskOutput: function() {
         if (!this.isDestroyed) {
-            this.showResults();
+            var activeTask = this.model.getActiveTask(),
+                status = activeTask.get('status'),
+                error = activeTask.get('error');
+
+            if (status === 'started') {
+                this.showAnalyzingMessage();
+            } else if (status === 'complete') {
+                this.showResults();
+            } else if (status === 'failed') {
+                this.showErrorMessage(error);
+            }
         }
     }
 });
@@ -1290,7 +1314,6 @@ var ChartView = Marionette.ItemView.extend({
 var AnalyzeResultView = Marionette.LayoutView.extend({
     template: analyzeResultsTmpl,
     regions: {
-        taskSelectorRegion: '.task-selector-region',
         descriptionRegion: '.desc-region',
         varSelectorRegion: '.var-selector-region',
         chartRegion: '.chart-region',
@@ -1419,8 +1442,7 @@ var LandResultView  = AnalyzeResultView.extend({
             ChartView, title, source, helpText, associatedLayerCodes);
     },
     onShow: function() {
-        var taskName = this.model.get('name'),
-            taskGroup = this.taskGroup;
+        var taskName = this.model.get('name');
 
         switch(taskName) {
             case 'protected_lands':
@@ -1435,13 +1457,6 @@ var LandResultView  = AnalyzeResultView.extend({
             case 'land':
             default:
                 this.onShowNlcd();
-        }
-
-        if(taskGroup.get('tasks').length > 1) {
-            this.taskSelectorRegion.show(new TaskSelectorView({
-                model: this.model,
-                taskGroup: taskGroup
-            }));
         }
     }
 });
@@ -1528,26 +1543,21 @@ var TaskSelectorView = Marionette.ItemView.extend({
         'change @ui.selector': 'updateTask',
     },
 
-    modelEvents: {
-        'change:name': 'render',
-    },
-
-    initialize: function(options) {
-        this.taskGroup = options.taskGroup;
-        this.keys = this.taskGroup.get('tasks').map(function(t) {
-            return { name: t.get('name'), label: t.get('displayName') };
-        });
-    },
-
     templateHelpers: function() {
         return {
-            keys: this.keys,
+            activeTaskName: this.model.getActiveTask().get('name'),
+            keys: this.model.get('tasks').map(function(task) {
+                return {
+                    name: task.get('name'),
+                    label: task.get('displayName'),
+                };
+            }),
         };
     },
 
     updateTask: function() {
         var taskName = this.ui.selector.val();
-        this.taskGroup.setActiveTask(taskName);
+        this.model.setActiveTask(taskName);
     }
 });
 

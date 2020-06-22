@@ -1,6 +1,6 @@
 <select class="form-control btn btn-small btn-primary">
     {% for key in keys %}
-    <option value="{{ key.name }}" {{ "selected" if key.name == name }}>
+    <option value="{{ key.name }}" {{ "selected" if key.name == activeTaskName }}>
         {{ key.label }}
     </option>
     {% endfor %}
