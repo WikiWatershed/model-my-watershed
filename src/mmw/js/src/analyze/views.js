@@ -1550,9 +1550,19 @@ var TaskSelectorView = Marionette.ItemView.extend({
                 return {
                     name: task.get('name'),
                     label: task.get('displayName'),
+                    loading: task.get('status') === 'started',
+                    failed: task.get('status') === 'failed',
                 };
             }),
         };
+    },
+
+    initialize: function() {
+        var self = this;
+
+        this.model.get('tasks').forEach(function(task) {
+            self.listenTo(task, 'change:status', self.render);
+        });
     },
 
     updateTask: function() {
