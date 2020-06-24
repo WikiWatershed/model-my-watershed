@@ -87,9 +87,13 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
         var self = this,
             aoi = self.get('area_of_interest'),
             wkaoi = self.get('wkaoi'),
-            result = self.get('result');
+            result = self.get('result'),
+            status = self.get('status'),
+            // An analysis is in an End State if it has failed,
+            // or completed with a result
+            inEndState = status === 'failed' || (status === 'complete' && !!result);
 
-        if (aoi && !result && self.fetchAnalysisPromise === undefined) {
+        if (aoi && !inEndState && self.fetchAnalysisPromise === undefined) {
             var gaEvent = self.get('name') + '-analyze',
                 gaLabel = utils.isInDrb(aoi) ? 'drb-aoi' : 'national-aoi',
                 gaAoiSize = turfArea(aoi) / 1000000;
