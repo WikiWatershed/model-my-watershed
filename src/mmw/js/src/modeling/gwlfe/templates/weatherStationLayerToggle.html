@@ -15,6 +15,7 @@
             {% endif %}
         </div>
     </button>
+    {% if weather_type == "DEFAULT" %}
     <div class="analyze-source">
         <span>Source: USEPA National Climate Data</span>
         <a class="help" data-toggle="popover" tabindex="0" data-html="true"
@@ -28,4 +29,5 @@
             <i class="fa fa-info-circle black-74"></i>
         </a>
     </div>
+    {% endif %}
 {% endif %}
