@@ -303,7 +303,7 @@ THIRD_PARTY_APPS = (
 REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'sustained': '5000/day',
-        'burst': '20/min',
+        'burst': '30/min',
     },
 }
 
