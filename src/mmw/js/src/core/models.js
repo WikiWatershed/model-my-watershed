@@ -618,6 +618,13 @@ var TaskModel = Backbone.Model.extend({
         timeout: 160000,
     },
 
+    // Log a debug mesasge if available, plain otherwise
+    log: function(message) {
+        var logger = console.debug || console.log;
+
+        logger('[' + this.get('name') + '] ' + message);
+    },
+
     url: function(queryParams) {
         var encodedQueryParams = queryParams ? '?' + $.param(queryParams) : '';
         if (this.get('job')) {
@@ -676,7 +683,7 @@ var TaskModel = Backbone.Model.extend({
                     .done(taskHelper.pollSuccess)
                     .fail(function(error) {
                         if (error && error.cancelledJob) {
-                            console.log('Job ' + error.cancelledJob + ' was cancelled.');
+                            self.log('Job ' + error.cancelledJob + ' was cancelled.');
                         } else {
                             taskHelper.pollFailure(error);
                         }
@@ -718,7 +725,7 @@ var TaskModel = Backbone.Model.extend({
 
             self.fetch({ headers: self.headers() })
                 .done(function(response) {
-                    console.log('Polling ' + self.url());
+                    self.log('Polling ' + self.url());
                     if (response.status === 'started') {
                         elapsed = elapsed + self.get('pollInterval');
                         window.setTimeout(getResults, self.get('pollInterval'));
