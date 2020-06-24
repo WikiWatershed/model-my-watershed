@@ -35,6 +35,7 @@ from apps.geoprocessing_api.calcs import (animal_population,
                                           stream_data,
                                           streams_for_huc12s,
                                           huc12s_with_aois,
+                                          drexel_fast_zonal,
                                           )
 
 logger = logging.getLogger(__name__)
@@ -338,6 +339,35 @@ def analyze_protected_lands(result, area_of_interest=None):
         'survey': {
             'name': 'protected_lands',
             'displayName': 'Protected Lands',
+            'categories': categories,
+        }
+    }
+
+
+@shared_task
+def analyze_drb_2100_land(area_of_interest, key):
+    result = drexel_fast_zonal(area_of_interest, key)
+    histogram = {}
+    total_count = 0
+    categories = []
+
+    for nlcd, count in result.iteritems():
+        total_count += count
+        histogram[nlcd] = count + histogram.get(nlcd, 0)
+
+    for nlcd, (code, name) in layer_classmaps.NLCD.iteritems():
+        categories.append({
+            'area': histogram.get(nlcd, 0),
+            'code': code,
+            'coverage': float(histogram.get(nlcd, 0)) / total_count,
+            'nlcd': nlcd,
+            'type': name,
+        })
+
+    return {
+        'survey': {
+            'name': 'drb_2100_land_{}'.format(key),
+            'displayName': 'DRB 2100 land forecast ({})'.format(key),
             'categories': categories,
         }
     }

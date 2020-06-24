@@ -4,9 +4,22 @@ from __future__ import unicode_literals
 
 from drf_yasg.openapi import (
     Parameter, Schema,
-    IN_QUERY,
+    IN_PATH, IN_QUERY,
     FORMAT_DATETIME, FORMAT_UUID,
     TYPE_ARRAY, TYPE_BOOLEAN, TYPE_NUMBER, TYPE_OBJECT, TYPE_STRING
+)
+
+from django.conf import settings
+
+DRB_2100_LAND_KEY = Parameter(
+    'key',
+    IN_PATH,
+    description='The DRB 2100 land dataset key to query.'
+                ' Must be one of: "{}".'.format(
+                    '", "'.join(settings.DREXEL_FAST_ZONAL_API['keys'])
+                ),
+    type=TYPE_STRING,
+    required=True,
 )
 
 WKAOI = Parameter(
@@ -66,6 +79,17 @@ TOKEN_RESPONSE = Schema(
                         example='ea467ed7f67c53cfdd313198647a1d187b4d3ab9'),
         'created_at': Schema(type=TYPE_STRING, format=FORMAT_DATETIME,
                              example='2019-07-30T20:28:12.880Z'),
+    }
+)
+
+DRB_2100_LAND_ERROR_RESPONSE = Schema(
+    title='DRB 2100 Land Error Response',
+    type=TYPE_OBJECT,
+    properties={
+        'errors': Schema(type=TYPE_ARRAY, items=Schema(type=TYPE_STRING),
+                         example=['`key` must be specified',
+                                  'The area of interest must be within the'
+                                  ' Delaware River Basin.'])
     }
 )
 

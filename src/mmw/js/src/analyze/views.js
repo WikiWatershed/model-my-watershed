@@ -389,19 +389,39 @@ var TabContentView = Marionette.LayoutView.extend({
         role: 'tabpanel'
     },
     regions: {
+        taskSelectorRegion: '.task-selector-region',
         resultRegion: '.result-region'
     },
 
+    modelEvents: {
+        'change:activeTask': 'showTaskOutput',
+    },
+
     initialize: function() {
-        this.listenTo(this.model, 'change:activeTask', this.onShow);
+        var model = this.model,
+            listenTo = this.listenTo,
+            showTaskOutput = _.bind(this.showTaskOutput, this);
+
+        model.get('tasks').forEach(function(task) {
+            listenTo(task, 'change:status', function(taskModel) {
+                if (taskModel.get('name') === model.getActiveTask().get('name')) {
+                    showTaskOutput();
+                }
+            });
+        });
     },
 
     onShow: function() {
         this.showAnalyzingMessage();
 
         this.model.fetchAnalysisIfNeeded()
-            .done(_.bind(this.showResultsIfNotDestroyed, this))
-            .fail(_.bind(this.showErrorIfNotDestroyed, this));
+            .always(_.bind(this.showTaskOutput, this));
+
+        if(this.model.get('tasks').length > 1) {
+            this.taskSelectorRegion.show(new TaskSelectorView({
+                model: this.model
+            }));
+        }
     },
 
     showAnalyzingMessage: function() {
@@ -428,12 +448,6 @@ var TabContentView = Marionette.LayoutView.extend({
         this.model.set({ polling: false });
     },
 
-    showErrorIfNotDestroyed: function(err) {
-        if (!this.isDestroyed) {
-            this.showErrorMessage(err);
-        }
-    },
-
     showResults: function() {
         var activeTask = this.model.getActiveTask(),
             name = activeTask.get('name'),
@@ -448,9 +462,19 @@ var TabContentView = Marionette.LayoutView.extend({
         this.model.set({ polling: false });
     },
 
-    showResultsIfNotDestroyed: function() {
+    showTaskOutput: function() {
         if (!this.isDestroyed) {
-            this.showResults();
+            var activeTask = this.model.getActiveTask(),
+                status = activeTask.get('status'),
+                error = activeTask.get('error');
+
+            if (status === 'started') {
+                this.showAnalyzingMessage();
+            } else if (status === 'complete') {
+                this.showResults();
+            } else if (status === 'failed') {
+                this.showErrorMessage(error);
+            }
         }
     }
 });
@@ -1252,7 +1276,10 @@ var ChartView = Marionette.ItemView.extend({
 
     getBarClass: function(item) {
         var name = this.model.get('name');
-        if (name === 'land') {
+        if (['land',
+             'drb_2100_land_centers',
+             'drb_2100_land_corridors'].indexOf(name) > -1)
+        {
             return 'nlcd-fill-' + item.nlcd;
         } else if (name === 'soil') {
             return 'soil-fill-' + item.code;
@@ -1287,7 +1314,6 @@ var ChartView = Marionette.ItemView.extend({
 var AnalyzeResultView = Marionette.LayoutView.extend({
     template: analyzeResultsTmpl,
     regions: {
-        taskSelectorRegion: '.task-selector-region',
         descriptionRegion: '.desc-region',
         varSelectorRegion: '.var-selector-region',
         chartRegion: '.chart-region',
@@ -1399,21 +1425,38 @@ var LandResultView  = AnalyzeResultView.extend({
         this.showAnalyzeResults(coreModels.ProtectedLandsCensusCollection, TableView,
             ChartView, title, source, helpText, associatedLayerCodes);
     },
+    onShowFutureLandCenters: function() {
+        var title = 'DRB 2100 land forecast (Centers)',
+            source = 'DRB Future Land Cover - Shippensburg U.',
+            helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
+            associatedLayerCodes = ['shippensburg-2100-centers-30m'];
+        this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView,
+            ChartView, title, source, helpText, associatedLayerCodes);
+    },
+    onShowFutureLandCorridors: function() {
+        var title = 'DRB 2100 land forecast (Corridors)',
+            source = 'DRB Future Land Cover - Shippensburg U.',
+            helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
+            associatedLayerCodes = ['shippensburg-2100-corridors-30m'];
+        this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView,
+            ChartView, title, source, helpText, associatedLayerCodes);
+    },
     onShow: function() {
-        var taskName = this.model.get('name'),
-            taskGroup = this.taskGroup;
+        var taskName = this.model.get('name');
 
-        if(taskName === 'protected_lands') {
-            this.onShowProtectedLands();
-        } else {
-            this.onShowNlcd();
-        }
-
-        if(taskGroup.get('tasks').length > 1) {
-            this.taskSelectorRegion.show(new TaskSelectorView({
-                model: this.model,
-                taskGroup: taskGroup
-            }));
+        switch(taskName) {
+            case 'protected_lands':
+                this.onShowProtectedLands();
+                break;
+            case 'drb_2100_land_centers':
+                this.onShowFutureLandCenters();
+                break;
+            case 'drb_2100_land_corridors':
+                this.onShowFutureLandCorridors();
+                break;
+            case 'land':
+            default:
+                this.onShowNlcd();
         }
     }
 });
@@ -1500,26 +1543,31 @@ var TaskSelectorView = Marionette.ItemView.extend({
         'change @ui.selector': 'updateTask',
     },
 
-    modelEvents: {
-        'change:name': 'render',
-    },
-
-    initialize: function(options) {
-        this.taskGroup = options.taskGroup;
-        this.keys = this.taskGroup.get('tasks').map(function(t) {
-            return { name: t.get('name'), label: t.get('displayName') };
-        });
-    },
-
     templateHelpers: function() {
         return {
-            keys: this.keys,
+            activeTaskName: this.model.getActiveTask().get('name'),
+            keys: this.model.get('tasks').map(function(task) {
+                return {
+                    name: task.get('name'),
+                    label: task.get('displayName'),
+                    loading: task.get('status') === 'started',
+                    failed: task.get('status') === 'failed',
+                };
+            }),
         };
+    },
+
+    initialize: function() {
+        var self = this;
+
+        this.model.get('tasks').forEach(function(task) {
+            self.listenTo(task, 'change:status', self.render);
+        });
     },
 
     updateTask: function() {
         var taskName = this.ui.selector.val();
-        this.taskGroup.setActiveTask(taskName);
+        this.model.setActiveTask(taskName);
     }
 });
 
@@ -1672,6 +1720,8 @@ var AnalyzeResultViews = {
     streams: StreamResultView,
     terrain: TerrainResultView,
     protected_lands: LandResultView,
+    drb_2100_land_centers: LandResultView,
+    drb_2100_land_corridors: LandResultView,
 };
 
 module.exports = {

@@ -87,9 +87,13 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
         var self = this,
             aoi = self.get('area_of_interest'),
             wkaoi = self.get('wkaoi'),
-            result = self.get('result');
+            result = self.get('result'),
+            status = self.get('status'),
+            // An analysis is in an End State if it has failed,
+            // or completed with a result
+            inEndState = status === 'failed' || (status === 'complete' && !!result);
 
-        if (aoi && !result && self.fetchAnalysisPromise === undefined) {
+        if (aoi && !inEndState && self.fetchAnalysisPromise === undefined) {
             var gaEvent = self.get('name') + '-analyze',
                 gaLabel = utils.isInDrb(aoi) ? 'drb-aoi' : 'national-aoi',
                 gaAoiSize = turfArea(aoi) / 1000000;
@@ -106,6 +110,9 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
             self.fetchAnalysisPromise = $.when(promises.startPromise,
                                                promises.pollingPromise);
             self.fetchAnalysisPromise
+                .fail(function(err) {
+                    self.set('error', err);
+                })
                 .always(function() {
                     delete self.fetchAnalysisPromise;
                 });
@@ -239,6 +246,20 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                     wkaoi: wkaoi,
                     taskName: "analyze/protected-lands"
                 },
+                {
+                    name: "drb_2100_land_centers",
+                    displayName: "DRB 2100 land forecast (Centers)",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/drb-2100-land/centers"
+                },
+                {
+                    name: "drb_2100_land_corridors",
+                    displayName: "DRB 2100 land forecast (Corridors)",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/drb-2100-land/corridors"
+                },
             ]
         },
         {
@@ -322,6 +343,24 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
             // Remove tasks not supported in data catalog mode
             .map(function(tg) {
                 tg.tasks = _.filter(tg.tasks, { enabledForCatalogMode: true });
+                return tg;
+            })
+            // Remove task groups with no tasks
+            .filter(function(tg) {
+                return !_.isEmpty(tg.tasks);
+            })
+            .value();
+    }
+
+    if (!utils.isInDrb(aoi)) {
+        var isDrbTask = function(task) {
+            return task.name.startsWith('drb');
+        };
+
+        taskGroups = _(taskGroups)
+            // Remove tasks that are DRB only
+            .map(function(tg) {
+                tg.tasks = _.reject(tg.tasks, isDrbTask);
                 return tg;
             })
             // Remove task groups with no tasks

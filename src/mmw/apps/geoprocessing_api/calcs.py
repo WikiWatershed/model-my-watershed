@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 
 import json
+import requests
 from operator import itemgetter
 
 from django.contrib.gis.geos import GEOSGeometry
@@ -332,3 +333,17 @@ def streams_for_huc12s(huc12s, drb=False):
         cursor.execute(sql, [tuple(huc12s)])
 
         return [row[0] for row in cursor.fetchall()]  # List of GeoJSON strings
+
+
+def drexel_fast_zonal(geojson, key):
+    payload = '{{"geom": {}, "rasters": ["{}"]}}'.format(geojson, key)
+
+    res = requests.post(settings.DREXEL_FAST_ZONAL_API['url'], data=payload)
+
+    # Raise any non-success responses as exceptions, indicating failure
+    res.raise_for_status()
+
+    # Select results for the given key
+    result = {int(k): v for k, v in res.json()[key].iteritems()}
+
+    return result
