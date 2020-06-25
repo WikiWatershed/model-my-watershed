@@ -16,8 +16,10 @@ var WeatherStationLayerToggleView = Marionette.ItemView.extend({
         'click @ui.toggleButton': 'toggleLayer',
     },
 
-    initialize: function() {
+    initialize: function(options) {
         var self = this;
+
+        self.mergeOptions(options, 'weather_type');
 
         self.layerGroup = App.getLayerTabCollection().getObservationLayerGroup();
         self.layerGroup.getWeatherStationLayer()
@@ -62,18 +64,18 @@ var WeatherStationLayerToggleView = Marionette.ItemView.extend({
     },
 
     templateHelpers: function() {
+        var helpers = {
+            weather_type: this.weather_type,
+        };
+
         if (this.message) {
-            return {
-                message: this.message,
-            };
+            helpers.message = this.message;
         }
         else if (this.model) {
-            return {
-                isLayerOn: this.model.get('active')
-            };
+            helpers.isLayerOn = this.model.get('active');
         }
 
-        return null;
+        return helpers;
     },
 });
 

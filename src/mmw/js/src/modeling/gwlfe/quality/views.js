@@ -57,8 +57,12 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        var result = this.model.get('result');
-        this.layerRegion.show(new gwlfeViews.WeatherStationLayerToggleView());
+        var result = this.model.get('result'),
+            weather_type = this.scenario.get('weather_type');
+
+        this.layerRegion.show(new gwlfeViews.WeatherStationLayerToggleView({
+            weather_type: weather_type
+        }));
         this.tableRegion.empty();
         this.activateTooltip();
 

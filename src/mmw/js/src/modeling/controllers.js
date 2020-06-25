@@ -6,6 +6,7 @@ var $ = require('jquery'),
     App = require('../app'),
     constants = require('./constants.js'),
     settings = require('../core/settings'),
+    utils = require('../core/utils'),
     router = require('../router').router,
     views = require('./views'),
     models = require('./models');
@@ -129,7 +130,8 @@ var ModelingController = {
                 area_of_interest_name: App.map.get('areaOfInterestName'),
                 wkaoi: App.map.get('wellKnownAreaOfInterest'),
                 model_package: modelPackage,
-                scenarios: new models.ScenariosCollection()
+                scenarios: new models.ScenariosCollection(),
+                in_drb: utils.isInDrb(App.map.get('areaOfInterest')),
             });
 
             App.currentProject = project;
