@@ -108,6 +108,7 @@ var LandCoverWindowModel = WindowModel.extend({
         autoTotal: 0,
         userTotal: 0,
         fields: null, // FieldCollection
+        in_drb: false,
     }, WindowModel.prototype.defaults),
 
     initialize: function(attrs) {

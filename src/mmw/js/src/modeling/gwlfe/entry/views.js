@@ -36,7 +36,7 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
     }, modalViews.ModalBaseView.prototype.events),
 
     regions: {
-        fieldsRegion: '.rows',
+        fieldsRegion: '#fields-region',
         totalRegion: '.total-content',
     },
 
@@ -997,7 +997,7 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
     }).render();
 }
 
-function showLandCoverModal(dataModel, modifications, addModification) {
+function showLandCoverModal(dataModel, modifications, addModification, in_drb) {
     var scheme = settings.get('unit_scheme'),
         areaLUnits = coreUnits[scheme].AREA_L_FROM_HA.name,
         landCovers = _(GWLFE_LAND_COVERS).sortBy('id').map(function(lc) {
@@ -1015,6 +1015,7 @@ function showLandCoverModal(dataModel, modifications, addModification) {
             dataModel: dataModel,
             title: 'Land Cover',
             fields: fields,
+            in_drb: in_drb,
         });
 
     new LandCoverModal({
