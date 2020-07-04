@@ -14,7 +14,28 @@
             </div>
         </div>
         <div class="modal-body">
-            <div class="rows"></div>
+            <div class="rows">
+                <div class="row mapshed-manual-entry">
+                    <div class="col-sm-4">
+                        <div class="mapshed-manual-entry-label">
+                            Landcover Preset
+                        </div>
+                    </div>
+                    <div class="col-sm-8">
+                        <select id="land-cover-preset" class="form-control btn btn-primary">
+                            <optgroup label="Default">
+                                <option value="">NLCD 2011</option>
+                            </optgroup>
+                            <optgroup label="Future Simulations{{ ' (DRB Only)' if not in_drb }}">
+                                <option value="drb_2100_land_centers" {{ 'disabled' if not in_drb }}>DRB 2100 land forecast (Centers)</option>
+                                <option value="drb_2100_land_corridors" {{ 'disabled' if not in_drb }}>DRB 2100 land forecast (Corridors)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                <hr />
+                <div id="fields-region"></div>
+            </div>
         </div>
         <div class="modal-footer">
             <div class="footer-content">
