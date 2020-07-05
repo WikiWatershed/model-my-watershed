@@ -2,12 +2,14 @@
 
 var _ = require('lodash'),
     Marionette = require('../../../../shim/backbone.marionette'),
+    App = require('../../../app'),
     modalViews = require('../../../core/modals/views'),
     settings = require('../../../core/settings'),
     coreUnits = require('../../../core/units'),
     round = require('../../../core/utils').round,
     CropTillageEfficiencyValues = require('../../gwlfeModificationConfig').CropTillageEfficiencyValues,
     GWLFE_LAND_COVERS = require('../../constants').GWLFE_LAND_COVERS,
+    modelingUtils = require('../../utils'),
     models = require('./models'),
     calcs = require('./calcs'),
     fieldTmpl = require('./templates/field.html'),
@@ -29,10 +31,12 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
 
     ui: {
         saveButton: '.btn-active',
+        landCoverPreset: '#land-cover-preset',
     },
 
     events: _.defaults({
         'click @ui.saveButton': 'saveAndClose',
+        'change @ui.landCoverPreset': 'onPresetChange',
     }, modalViews.ModalBaseView.prototype.events),
 
     regions: {
@@ -87,6 +91,63 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
             userTotal = round(get(this.model.get('userTotal')), 1);
 
         this.ui.saveButton.prop('disabled', autoTotal !== userTotal);
+    },
+
+    onPresetChange: function(e) {
+        var self = this;
+
+        if (e.target.value) {
+            // One of the non-default presets has been selected. Fetch the
+            // NLCD-style landcover distribution from the relevant Analyze
+            // results, convert them to Mapshed-style, and populate all the
+            // field boxes. Then recalculate the total to ensure it still
+            // fits.
+            var task = App.getAnalyzeCollection()
+                          .findWhere({ name: 'land' })
+                          .get('tasks')
+                          .findWhere({ name: e.target.value });
+
+            if (!task) {
+                throw new Error('Could not find analysis results for ' + e.target.value);
+            }
+
+            task.fetchAnalysisIfNeeded()
+                .then(function() {
+                    var categories = task.get('result').survey.categories;
+
+                    if (!categories) {
+                        throw new Error('Invalid analysis results for ' + e.target.value);
+                    }
+
+                    var m2ToHa = function(m2) { return m2 / coreUnits.METRIC.AREA_L.factor; },
+                        // Convert list of NLCD results to dictionary mapping
+                        // NLCD to Hectares
+                        nlcd = categories.reduce(function(acc, category) {
+                                acc[category.nlcd] = category.area;
+                                return acc;
+                            }, {}),
+                        landcover = modelingUtils.nlcdToMapshedLandCover(nlcd).map(m2ToHa);
+
+                    self.model.get('fields').forEach(function(field) {
+                        var index = parseInt(field.get('name').split('__')[1]);
+
+                        field.set('userValue', landcover[index]);
+                    });
+                    self.fieldsRegion.currentView.render();
+
+                    self.model.set('userTotal', _.sum(landcover));
+                    self.validateModal();
+                });
+        } else {
+            // Default NLCD 2011. Reset all fields.
+            self.model.get('fields').forEach(function(field) {
+                field.set('userValue', null);
+            });
+            self.fieldsRegion.currentView.render();
+
+            self.model.set('userTotal', _.sum(self.model.get('dataModel')['Area']));
+            self.validateModal();
+        }
     },
 
     saveAndClose: function() {

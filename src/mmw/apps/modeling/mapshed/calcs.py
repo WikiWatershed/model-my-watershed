@@ -562,6 +562,8 @@ def landuse_pcts(n_count):
     Given a dictionary mapping NLCD Codes to counts of cells, returns an
     array mapping MapShed Land Use Types (as the index) to percent
     area covered.
+
+    In sync with js/src/modeling/utils.js:nlcdToMapshedLandCover
     """
 
     total = sum(n_count.values())
