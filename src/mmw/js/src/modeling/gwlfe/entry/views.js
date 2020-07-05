@@ -2,6 +2,7 @@
 
 var _ = require('lodash'),
     Marionette = require('../../../../shim/backbone.marionette'),
+    App = require('../../../app'),
     modalViews = require('../../../core/modals/views'),
     settings = require('../../../core/settings'),
     coreUnits = require('../../../core/units'),
@@ -29,10 +30,12 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
 
     ui: {
         saveButton: '.btn-active',
+        landCoverPreset: '#land-cover-preset',
     },
 
     events: _.defaults({
         'click @ui.saveButton': 'saveAndClose',
+        'change @ui.landCoverPreset': 'onPresetChange',
     }, modalViews.ModalBaseView.prototype.events),
 
     regions: {
@@ -87,6 +90,20 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
             userTotal = round(get(this.model.get('userTotal')), 1);
 
         this.ui.saveButton.prop('disabled', autoTotal !== userTotal);
+    },
+
+    onPresetChange: function(e) {
+        if (e.target.value) {
+            var task = App.getAnalyzeCollection()
+                          .findWhere({ name: 'land' })
+                          .get('tasks')
+                          .findWhere({ name: e.target.value });
+
+            task.fetchAnalysisIfNeeded()
+                .then(function() {
+                    console.log(task.get('result').survey.categories);
+                });
+        }
     },
 
     saveAndClose: function() {
