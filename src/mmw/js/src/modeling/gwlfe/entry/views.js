@@ -9,6 +9,8 @@ var _ = require('lodash'),
     round = require('../../../core/utils').round,
     CropTillageEfficiencyValues = require('../../gwlfeModificationConfig').CropTillageEfficiencyValues,
     GWLFE_LAND_COVERS = require('../../constants').GWLFE_LAND_COVERS,
+    GwlfeModificationModel = require('../../models').GwlfeModificationModel,
+    modelingUtils = require('../../utils'),
     models = require('./models'),
     calcs = require('./calcs'),
     fieldTmpl = require('./templates/field.html'),
@@ -94,14 +96,36 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
 
     onPresetChange: function(e) {
         if (e.target.value) {
-            var task = App.getAnalyzeCollection()
+            var addModification = this.addModification,
+                task = App.getAnalyzeCollection()
                           .findWhere({ name: 'land' })
                           .get('tasks')
                           .findWhere({ name: e.target.value });
 
             task.fetchAnalysisIfNeeded()
                 .then(function() {
-                    console.log(task.get('result').survey.categories);
+                    var categories = task.get('result').survey.categories;
+
+                    if (categories) {
+                        var m2ToHa = function(m2) { return m2 / coreUnits.METRIC.AREA_L.factor; },
+                            // Convert list of NLCD results to dictionary mapping
+                            // NLCD to Hectares
+                            nlcd = categories.reduce(function(acc, category) {
+                                    acc[category.nlcd] = m2ToHa(category.area);
+                                    return acc;
+                                }, {}),
+                            landcover = modelingUtils.nlcdToMapshedLandCover(nlcd);
+
+                        addModification(new GwlfeModificationModel({
+                            modKey: 'entry_landcover_preset',
+                            output: landcover.reduce(function(acc, area, index) {
+                                        acc['Area__' + index] = area;
+                                        return acc;
+                                    }, {}),
+                            userInput: e.target.value,
+                            ring: 1,
+                        }));
+                    }
                 });
         }
     },

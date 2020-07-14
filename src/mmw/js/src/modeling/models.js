@@ -1206,7 +1206,10 @@ var GwlfeModificationModel = Backbone.Model.extend({
     defaults: {
         modKey: null,
         output: null,
-        userInput: null
+        userInput: null,
+
+        // Higher rings build on top of lower rings. Default to highest ring.
+        ring: 9,
     }
 });
 
