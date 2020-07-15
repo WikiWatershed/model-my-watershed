@@ -101,6 +101,7 @@ class WeatherType:
 
     # Valid Simulations currently supported in the app
     simulations = [
+        'NASA_NLDAS_2000_2019',
         'RCP45_2080_2099',
         'RCP85_2080_2099',
     ]

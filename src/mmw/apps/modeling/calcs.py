@@ -169,6 +169,10 @@ def get_weather_simulation_for_project(project, category):
             data.append(ws_data)
             errs += ws_errs
 
+    # Respond with errors, if any
+    if errs:
+        return {}, errs
+
     # Check that the datasets have the same characteristics
     for c in ['WxYrBeg', 'WxYrEnd', 'WxYrs']:
         s = set([d[c] for d in data])

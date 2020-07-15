@@ -132,9 +132,10 @@ def project_weather(request, proj_id, category):
     """
     Get weather data for project given a category, if available.
 
-    Current categories are RCP45_2080_2099 and RCP85_2080_2099, and only
-    support shapes within the DRB. Given a project within the DRB, we find the
-    N=2 nearest weather stations and average their values.
+    Current categories are NASA_NLDAS_2000_2019, RCP45_2080_2099 and
+    RCP85_2080_2099, and only support shapes within the DRB. Given a project
+    within the DRB, we find the N=2 nearest weather stations and
+    average their values.
     """
     project = get_object_or_404(Project, id=proj_id, user=request.user)
 
