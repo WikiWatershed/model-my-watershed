@@ -27,8 +27,8 @@
                                 <option value="">NLCD 2011</option>
                             </optgroup>
                             <optgroup label="Future Simulations{{ ' (DRB Only)' if not in_drb }}">
-                                <option value="drb_2100_land_centers" {{ 'disabled' if not in_drb }}>DRB 2100 land forecast (Centers)</option>
-                                <option value="drb_2100_land_corridors" {{ 'disabled' if not in_drb }}>DRB 2100 land forecast (Corridors)</option>
+                                <option value="drb_2100_land_centers" {{ 'selected' if preset == 'drb_2100_land_centers' }} {{ 'disabled' if not in_drb }}>DRB 2100 land forecast (Centers)</option>
+                                <option value="drb_2100_land_corridors" {{ 'selected' if preset == 'drb_2100_land_corridors' }} {{ 'disabled' if not in_drb }}>DRB 2100 land forecast (Corridors)</option>
                             </optgroup>
                         </select>
                     </div>

@@ -8,6 +8,7 @@ var _ = require('lodash'),
     round = require('../../../core/utils').round,
     CropTillageEfficiencyValues = require('../../gwlfeModificationConfig').CropTillageEfficiencyValues,
     GWLFE_LAND_COVERS = require('../../constants').GWLFE_LAND_COVERS,
+    GwlfeModificationModel = require('../../models').GwlfeModificationModel,
     modelingUtils = require('../../utils'),
     models = require('./models'),
     calcs = require('./calcs'),
@@ -50,6 +51,15 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
             fields = this.model.get('fields');
 
         this.listenTo(fields, 'change', onFieldUpdated);
+    },
+
+    templateHelpers: function() {
+        var presetMod = this.scenario.get('modifications').findWhere({ modKey: 'entry_landcover_preset' }),
+            preset = presetMod && presetMod.get('userInput').entry_landcover_preset;
+
+        return {
+            preset: preset,
+        };
     },
 
     // Override to populate fields
@@ -150,6 +160,21 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
     },
 
     saveAndClose: function() {
+        var preset = this.ui.landCoverPreset.val();
+        if (preset) {
+            // If the preset is legitimate, add it as a modification
+            this.scenario.addModification(new GwlfeModificationModel({
+                modKey: 'entry_landcover_preset',
+                output: { 'entry_landcover_preset': preset },
+                userInput: { 'entry_landcover_preset': preset },
+            }));
+        } else {
+            // Default preset, remove from modifications
+            var mods = this.scenario.get('modifications');
+
+            mods.remove(mods.findWhere({ modKey: 'entry_landcover_preset' }));
+        }
+
         this.scenario.addModification(this.model.getOutput());
 
         this.hide();
