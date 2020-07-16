@@ -504,9 +504,9 @@ var GwlfeLandCoverView = ControlView.extend({
 
         entryViews.showLandCoverModal(
             this.model.get('dataModel'),
-            currentScenario.get('modifications'),
-            this.addModification,
-            App.currentProject.get('in_drb')
+            currentScenario,
+            App.currentProject.get('in_drb'),
+            App.getAnalyzeCollection()
         );
     },
 });

@@ -2,7 +2,6 @@
 
 var _ = require('lodash'),
     Marionette = require('../../../../shim/backbone.marionette'),
-    App = require('../../../app'),
     modalViews = require('../../../core/modals/views'),
     settings = require('../../../core/settings'),
     coreUnits = require('../../../core/units'),
@@ -45,7 +44,7 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
     },
 
     initialize: function(options) {
-        this.mergeOptions(options, ['addModification']);
+        this.mergeOptions(options, ['scenario', 'analyzeCollection']);
 
         var onFieldUpdated = _.bind(this.onFieldUpdated, this),
             fields = this.model.get('fields');
@@ -102,10 +101,10 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
             // results, convert them to Mapshed-style, and populate all the
             // field boxes. Then recalculate the total to ensure it still
             // fits.
-            var task = App.getAnalyzeCollection()
-                          .findWhere({ name: 'land' })
-                          .get('tasks')
-                          .findWhere({ name: e.target.value });
+            var task = self.analyzeCollection
+                           .findWhere({ name: 'land' })
+                           .get('tasks')
+                           .findWhere({ name: e.target.value });
 
             if (!task) {
                 throw new Error('Could not find analysis results for ' + e.target.value);
@@ -151,7 +150,7 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
     },
 
     saveAndClose: function() {
-        this.addModification(this.model.getOutput());
+        this.scenario.addModification(this.model.getOutput());
 
         this.hide();
     }
@@ -1058,7 +1057,7 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
     }).render();
 }
 
-function showLandCoverModal(dataModel, modifications, addModification, in_drb) {
+function showLandCoverModal(dataModel, scenario, in_drb, analyzeCollection) {
     var scheme = settings.get('unit_scheme'),
         areaLUnits = coreUnits[scheme].AREA_L_FROM_HA.name,
         landCovers = _(GWLFE_LAND_COVERS).sortBy('id').map(function(lc) {
@@ -1071,6 +1070,7 @@ function showLandCoverModal(dataModel, modifications, addModification, in_drb) {
                 minValue: 0,
             };
         }).value(),
+        modifications = scenario.get('modifications'),
         fields = models.makeFieldCollection('landcover', dataModel, modifications, landCovers),
         windowModel = new models.LandCoverWindowModel({
             dataModel: dataModel,
@@ -1081,7 +1081,8 @@ function showLandCoverModal(dataModel, modifications, addModification, in_drb) {
 
     new LandCoverModal({
         model: windowModel,
-        addModification: addModification,
+        scenario: scenario,
+        analyzeCollection: analyzeCollection,
     }).render();
 }
 
