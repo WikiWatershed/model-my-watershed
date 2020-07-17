@@ -518,6 +518,19 @@ var CompareModificationsPopoverView = Marionette.ItemView.extend({
                         if (modKey === 'entry_landcover') {
                             name = _.find(GWLFE_LAND_COVERS, { id: parseInt(key.substring(6)) }).label;
                             input = coreUnits[scheme].AREA_L_FROM_HA.name;
+                        } else if (modKey === 'entry_landcover_preset') {
+                            var task = App.getAnalyzeCollection()
+                                          .findWhere({ name: 'land' })
+                                          .get('tasks')
+                                          .findWhere({ name: value });
+
+                            if (!task) {
+                                console.error('Unknown entry_landcover_preset: ' + value);
+                            }
+
+                            name = 'Land Cover Preset';
+                            value = null;
+                            input = task && task.get('displayName');
                         } else {
                             input = input.replace('AREAUNITNAME', areaUnit);
                         }
