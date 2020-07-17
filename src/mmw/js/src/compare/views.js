@@ -536,6 +536,7 @@ var CompareModificationsPopoverView = Marionette.ItemView.extend({
                         }
 
                         return {
+                            modKey: modKey,
                             name: name,
                             value: value,
                             input: input,
@@ -546,7 +547,15 @@ var CompareModificationsPopoverView = Marionette.ItemView.extend({
 
         return {
             isTr55: isTr55,
-            gwlfeModifications: gwlfeModifications,
+            gwlfeLandCovers: gwlfeModifications.filter(function(m) {
+                return m.modKey.startsWith('entry_landcover');
+            }),
+            gwlfeConservationPractices: gwlfeModifications.filter(function(m) {
+                return !m.modKey.startsWith('entry_');
+            }),
+            gwlfeSettings: gwlfeModifications.filter(function(m) {
+                return m.modKey.startsWith('entry_') && !m.modKey.startsWith('entry_landcover');
+            }).map(function(m) { m.name = m.name.substring(6); return m; }),
             conservationPractices: this.model.filter(function(modification) {
                 return modification.get('name') === 'conservation_practice';
             }),

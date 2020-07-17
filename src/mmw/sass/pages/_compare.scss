@@ -538,6 +538,11 @@ $compare-chart-table-height: calc(100vh - #{$height-lg} - #{$compare-footer-heig
     display: flex;
     flex-flow: row nowrap;
     transition: margin 0.3s ease-in-out;
+
+    .popover-content h5 {
+      margin-top: 2rem;
+      margin-bottom: 0;
+    }
   }
 
   .compare-scenario-samplechartplaceholder {
