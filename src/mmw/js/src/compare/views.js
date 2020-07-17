@@ -513,7 +513,7 @@ var CompareModificationsPopoverView = Marionette.ItemView.extend({
                             areaUnit = unit && coreUnits[scheme][unit].name,
                             modKey = m.get('modKey'),
                             name = modKey,
-                            input = gwlfeConfig.displayNames[key];
+                            input = gwlfeConfig.displayNames[key] || key;
 
                         if (modKey === 'entry_landcover') {
                             name = _.find(GWLFE_LAND_COVERS, { id: parseInt(key.substring(6)) }).label;
