@@ -513,16 +513,31 @@ var CompareModificationsPopoverView = Marionette.ItemView.extend({
                             areaUnit = unit && coreUnits[scheme][unit].name,
                             modKey = m.get('modKey'),
                             name = modKey,
-                            input = gwlfeConfig.displayNames[key];
+                            input = gwlfeConfig.displayNames[key] || key;
 
                         if (modKey === 'entry_landcover') {
                             name = _.find(GWLFE_LAND_COVERS, { id: parseInt(key.substring(6)) }).label;
+                            value = value.toFixed(1);
                             input = coreUnits[scheme].AREA_L_FROM_HA.name;
+                        } else if (modKey === 'entry_landcover_preset') {
+                            var task = App.getAnalyzeCollection()
+                                          .findWhere({ name: 'land' })
+                                          .get('tasks')
+                                          .findWhere({ name: value });
+
+                            if (!task) {
+                                console.error('Unknown entry_landcover_preset: ' + value);
+                            }
+
+                            name = 'Land Cover Preset';
+                            value = null;
+                            input = task && task.get('displayName');
                         } else {
                             input = input.replace('AREAUNITNAME', areaUnit);
                         }
 
                         return {
+                            modKey: modKey,
                             name: name,
                             value: value,
                             input: input,
@@ -533,7 +548,15 @@ var CompareModificationsPopoverView = Marionette.ItemView.extend({
 
         return {
             isTr55: isTr55,
-            gwlfeModifications: gwlfeModifications,
+            gwlfeLandCovers: gwlfeModifications.filter(function(m) {
+                return m.modKey.startsWith('entry_landcover');
+            }),
+            gwlfeConservationPractices: gwlfeModifications.filter(function(m) {
+                return !m.modKey.startsWith('entry_');
+            }),
+            gwlfeSettings: gwlfeModifications.filter(function(m) {
+                return m.modKey.startsWith('entry_') && !m.modKey.startsWith('entry_landcover');
+            }).map(function(m) { m.name = m.name.substring(6); return m; }),
             conservationPractices: this.model.filter(function(modification) {
                 return modification.get('name') === 'conservation_practice';
             }),

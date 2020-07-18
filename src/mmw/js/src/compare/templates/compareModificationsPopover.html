@@ -20,7 +20,7 @@
 
 {% macro gwlfeModificationsTable(caption, mods) %}
 <table class="compare-modifications-table -gwlfe">
-{% if modifications.length > 0 %}
+{% if mods.length > 0 %}
     <h5>{{ caption }}</h5>
 {% endif %}
     <tbody>
@@ -30,7 +30,7 @@
                 {{ mod.name | replace("_", " ") | title }}
             </td>
             <td class="modification-area -gwlfe">
-                +{{ mod.value }} {{ mod.input }}
+                {{ mod.value }} {{ mod.input }}
             </td>
         </tr>
     {% endfor %}
@@ -43,5 +43,7 @@
 {{ modificationsTable('Land Cover', landCovers) }}
 {{ modificationsTable('Conservation Practices', conservationPractices) }}
 {% else %}
-{{ gwlfeModificationsTable('Conservation Practices', gwlfeModifications) }}
+{{ gwlfeModificationsTable('Land Cover', gwlfeLandCovers) }}
+{{ gwlfeModificationsTable('Conservation Practices', gwlfeConservationPractices) }}
+{{ gwlfeModificationsTable('Settings', gwlfeSettings) }}
 {% endif %}
