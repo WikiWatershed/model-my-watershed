@@ -135,7 +135,14 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
                                 acc[category.nlcd] = category.area;
                                 return acc;
                             }, {}),
-                        landcover = modelingUtils.nlcdToMapshedLandCover(nlcd).map(m2ToHa);
+                        landcoverRaw = modelingUtils.nlcdToMapshedLandCover(nlcd).map(m2ToHa),
+                        // Proportion land cover with base NLCD 2011 total
+                        // so that the user doesn't have to manually update it
+                        autoTotal = self.model.get('autoTotal'),
+                        presetTotal = _.sum(landcoverRaw),
+                        landcover = landcoverRaw.map(function(l) {
+                            return l * autoTotal / presetTotal;
+                        });
 
                     self.model.get('fields').forEach(function(field) {
                         var index = parseInt(field.get('name').split('__')[1]);
