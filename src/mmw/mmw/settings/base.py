@@ -254,6 +254,8 @@ TEMPLATES = [
 # MIDDLEWARE CONFIGURATION
 # See: https://docs.djangoproject.com/en/1.11/topics/http/middleware/
 MIDDLEWARE = (
+    # Django Cookies Samesite Middleware must be first
+    'django_cookies_samesite.middleware.CookiesSameSite',
     # Default Django middleware.
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -298,6 +300,10 @@ THIRD_PARTY_APPS = (
 )
 
 # THIRD-PARTY CONFIGURATION
+
+# django-cookies-samesite
+SESSION_COOKIE_SAMESITE = 'None'  # Allows for cross site embedding into LARA
+SESSION_COOKIE_SECURE = True      # Only set cookies in HTTPS connections
 
 # rest_framework
 REST_FRAMEWORK = {

@@ -32,3 +32,4 @@ redis==2.10.6
 numpy==1.16.4
 dictdiffer==0.8.0
 BMPxlsx==0.0.4
+django-cookies-samesite==0.6.6
