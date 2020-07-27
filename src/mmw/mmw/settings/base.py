@@ -301,10 +301,6 @@ THIRD_PARTY_APPS = (
 
 # THIRD-PARTY CONFIGURATION
 
-# django-cookies-samesite
-SESSION_COOKIE_SAMESITE = 'None'  # Allows for cross site embedding into LARA
-SESSION_COOKIE_SECURE = True      # Only set cookies in HTTPS connections
-
 # rest_framework
 REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
