@@ -2,7 +2,7 @@
 
 var _ = require('lodash'),
     Marionette = require('../../../../shim/backbone.marionette'),
-    WeatherType = require('../../constants').WeatherType,
+    constants = require('../../constants'),
     utils = require('../../utils'),
     modalModels = require('../../../core/modals/models'),
     modalViews = require('../../../core/modals/views'),
@@ -10,6 +10,9 @@ var _ = require('lodash'),
     modalTmpl = require('./templates/modal.html'),
     uploadTmpl = require('./templates/upload.html'),
     existingTmpl = require('./templates/existing.html');
+
+var WeatherType = constants.WeatherType,
+    Simulations = constants.Simulations;
 
 var WeatherDataModal = modalViews.ModalBaseView.extend({
     template: modalTmpl,
@@ -23,16 +26,25 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
 
     ui: {
         weatherTypeRadio: 'input[name="weather-type"]',
+        availableDataSelect: '#available-data',
     },
 
     events: _.defaults({
         'change @ui.weatherTypeRadio': 'onWeatherTypeDOMChange',
+        'change @ui.availableDataSelect': 'onAvailableDataDOMChange',
     }, modalViews.ModalBaseView.prototype.events),
 
     modelEvents: {
         'change:custom_weather_file_name': 'showWeatherDataView',
         'change:weather_type': 'onWeatherTypeModelChange',
-        'change:weather_type change:custom_weather_output change:custom_weather_file_name': 'validateAndSave',
+        'change:available_data': 'onAvailableDataModelChange',
+        'change:weather_type change:simulation_weather_output change:custom_weather_output change:custom_weather_file_name': 'validateAndSave',
+    },
+
+    templateHelpers: function() {
+        return {
+            Simulations: Simulations,
+        };
     },
 
     initialize: function(options) {
@@ -44,7 +56,7 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
         var self = this;
 
         this.model
-            .fetchCustomWeatherIfNeeded()
+            .fetchWeatherIfNeeded()
             .always(function() {
                 self.showWeatherDataView();
                 self.$el.modal('show');
@@ -62,7 +74,18 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
     },
 
     onWeatherTypeDOMChange: function(e) {
-        this.model.set('weather_type', e.target.value);
+        var available_data = this.model.get('available_data'),
+            newWeatherType = e.target.value;
+
+        if (newWeatherType === WeatherType.CUSTOM) {
+            this.model.set('weather_type', newWeatherType);
+        } else {
+            if (available_data === WeatherType.DEFAULT) {
+                this.model.set('weather_type', WeatherType.DEFAULT);
+            } else {
+                this.model.set('weather_type', WeatherType.SIMULATION);
+            }
+        }
     },
 
     onWeatherTypeModelChange: function() {
@@ -75,13 +98,51 @@ var WeatherDataModal = modalViews.ModalBaseView.extend({
         radio.prop('checked', true);
     },
 
+    onAvailableDataDOMChange: function(e) {
+        if (e.target.value === WeatherType.DEFAULT) {
+            this.model.set({
+                weather_type: WeatherType.DEFAULT,
+                available_data: e.target.value,
+            });
+        } else {
+            this.model.set({
+                weather_type: WeatherType.SIMULATION,
+                available_data: e.target.value,
+            });
+            this.model.fetchSimulationWeatherIfNeeded();
+        }
+    },
+
+    onAvailableDataModelChange: function() {
+        this.ui.availableDataSelect.val(this.model.get('available_data'));
+    },
+
     validateAndSave: function() {
         var oldWeather = this.scenario.get('weather_type'),
-            newWeather = this.model.get('weather_type');
+            newWeather = this.model.get('weather_type'),
+            oldSimulation = this.scenario.get('weather_simulation'),
+            newSimulation = this.model.get('simulation_weather_category');
 
-        if (this.model.isValid() && oldWeather !== newWeather) {
+        if (this.model.isValid() && (
+                oldWeather !== newWeather ||
+                oldSimulation !== newSimulation
+        )) {
             // Set weather type silently so it doesn't trigger it's own save
             this.scenario.set('weather_type', newWeather, { silent: true });
+            // Save simulation type if applicable
+            if (newWeather === WeatherType.SIMULATION) {
+                this.scenario.set(
+                    'weather_simulation',
+                    newSimulation,
+                    { silent: true }
+                );
+            } else if (newWeather === WeatherType.DEFAULT) {
+                this.scenario.set(
+                    'weather_simulation',
+                    null,
+                    { silent: true }
+                );
+            }
             this.addModification(this.model.getOutput());
         }
     },
@@ -209,13 +270,23 @@ var ExistingWeatherDataView = Marionette.ItemView.extend({
     },
 });
 
-function showWeatherDataModal(scenario, addModification) {
-    var weather_type = scenario.get('weather_type'),
+function showWeatherDataModal(project, addModification) {
+    var scenario = project.get('scenarios').findWhere({ active: true }),
+        weather_type = scenario.get('weather_type'),
         weather_mod = scenario.get('modifications').findWhere({ modKey: 'weather_data' }),
         model = new models.WindowModel({
             is_editable: utils.isEditable(scenario),
+            project_id: project.get('id'),
+            in_drb: project.get('in_drb'),
             scenario_id: scenario.get('id'),
             weather_type: weather_type,
+            available_data:
+                (weather_type === WeatherType.SIMULATION &&
+                 scenario.get('weather_simulation')) ||
+                WeatherType.DEFAULT,
+            simulation_weather_output: weather_type === WeatherType.SIMULATION ?
+                weather_mod && weather_mod.get('output') : null,
+            simulation_weather_category: scenario.get('weather_simulation'),
             custom_weather_output: weather_type === WeatherType.CUSTOM ?
                 weather_mod && weather_mod.get('output') : null,
             custom_weather_file_name: scenario.get('weather_custom'),

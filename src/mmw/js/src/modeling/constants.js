@@ -25,4 +25,31 @@ module.exports = {
         SIMULATION: 'SIMULATION',
         CUSTOM: 'CUSTOM',
     },
+    // In sync with apps.modeling.models.WeatherType.simulations
+    Simulations: [
+        // {
+        //     group: 'Recent Weather',
+        //     items: [
+        //         {
+        //             name: 'NASA_NLDAS_2000_2019',
+        //             label: 'NASA NLDAS 2000-2019',
+        //         },
+        //     ],
+        //     in_drb: true,
+        // },
+        {
+            group: 'Future Weather Simulations',
+            items: [
+                {
+                    name: 'RCP45_2080_2099',
+                    label: 'RCP 4.5 2080-2099',
+                },
+                {
+                    name: 'RCP85_2080_2099',
+                    label: 'RCP 8.5 2080-2099',
+                },
+            ],
+            in_drb: true,
+        },
+    ],
 };

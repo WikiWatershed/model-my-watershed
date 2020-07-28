@@ -99,3 +99,7 @@ GOOGLE_MAPS_API_KEY = 'AIzaSyCXdkywU7rps_i1CeKqWxlBi97vyGeXsqk'
 
 # Stroud account
 GOOGLE_ANALYTICS_ACCOUNT = 'UA-47047573-15'
+
+# django-cookies-samesite
+SESSION_COOKIE_SAMESITE = 'None'  # Allows for cross site embedding into LARA
+SESSION_COOKIE_SECURE = True      # Only set cookies in HTTPS connections

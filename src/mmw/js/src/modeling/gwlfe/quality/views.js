@@ -38,10 +38,12 @@ var ResultView = Marionette.LayoutView.extend({
     templateHelpers: function() {
         var gis_data = this.scenario.getModifiedGwlfeGisData(),
             weather_type = this.scenario.get('weather_type'),
+            weather_simulation = this.scenario.get('weather_simulation'),
             weather_custom = this.scenario.get('weather_custom');
 
         return {
             weather_type: weather_type,
+            weather_simulation: weather_simulation,
             weather_custom: modelingUtils.getFileName(weather_custom, '.csv'),
             years: gis_data.WxYrs,
             showSubbasinModelingButton: coreUtils
@@ -55,8 +57,12 @@ var ResultView = Marionette.LayoutView.extend({
     },
 
     onShow: function() {
-        var result = this.model.get('result');
-        this.layerRegion.show(new gwlfeViews.WeatherStationLayerToggleView());
+        var result = this.model.get('result'),
+            weather_type = this.scenario.get('weather_type');
+
+        this.layerRegion.show(new gwlfeViews.WeatherStationLayerToggleView({
+            weather_type: weather_type
+        }));
         this.tableRegion.empty();
         this.activateTooltip();
 

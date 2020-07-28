@@ -19,6 +19,9 @@ app_name = 'modeling'
 urlpatterns = [
     url(r'projects/$', views.projects, name='projects'),
     url(r'projects/(?P<proj_id>[0-9]+)$', views.project, name='project'),
+    url(r'projects/(?P<proj_id>[0-9]+)/weather/(?P<category>\w+)?$',
+        views.project_weather,
+        name='project_weather'),
     url(r'scenarios/$', views.scenarios, name='scenarios'),
     url(r'scenarios/(?P<scen_id>[0-9]+)$', views.scenario, name='scenario'),
     url(r'scenarios/(?P<scen_id>[0-9]+)/duplicate/?$',

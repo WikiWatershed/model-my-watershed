@@ -7,6 +7,7 @@ var $ = require('jquery'),
     coreUnits = require('../../../core/units'),
     chart = require('../../../core/chart.js'),
     barChartTmpl = require('../../../core/templates/barChart.html'),
+    modelingConstants = require('../../constants'),
     modelingUtils = require('../../utils'),
     selectorTmpl = require('./templates/selector.html'),
     resultTmpl = require('./templates/result.html'),
@@ -54,11 +55,13 @@ var ResultView = Marionette.LayoutView.extend({
             lengthUnit = coreUnits[scheme].LENGTH_S.name,
             gis_data = this.scenario.getModifiedGwlfeGisData(),
             weather_type = this.scenario.get('weather_type'),
+            weather_simulation = this.scenario.get('weather_simulation'),
             weather_custom = this.scenario.get('weather_custom');
 
         return {
             lengthUnit: lengthUnit,
             weather_type: weather_type,
+            weather_simulation: modelingConstants.Simulations[weather_simulation],
             weather_custom: modelingUtils.getFileName(weather_custom, '.csv'),
             years: gis_data.WxYrs,
         };
@@ -73,7 +76,9 @@ var ResultView = Marionette.LayoutView.extend({
 
     onShow: function() {
         this.selectorRegion.empty();
-        this.layerRegion.show(new gwlfeViews.WeatherStationLayerToggleView());
+        this.layerRegion.show(new gwlfeViews.WeatherStationLayerToggleView({
+            weather_type: this.scenario.get('weather_type'),
+        }));
         this.tableRegion.empty();
         this.chartRegion.empty();
         this.activateTooltip();

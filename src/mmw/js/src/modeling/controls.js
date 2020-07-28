@@ -467,11 +467,8 @@ var GwlfeWeatherDataView = ControlView.extend({
         if (App.user.get('guest')) {
             App.getUserOrShowLogin();
         } else {
-            var currentScenario = App.currentProject.get('scenarios')
-                                     .findWhere({ active: true });
-
             weatherViews.showWeatherDataModal(
-                currentScenario,
+                App.currentProject,
                 this.addModification
             );
         }
@@ -507,8 +504,9 @@ var GwlfeLandCoverView = ControlView.extend({
 
         entryViews.showLandCoverModal(
             this.model.get('dataModel'),
-            currentScenario.get('modifications'),
-            this.addModification
+            currentScenario,
+            App.currentProject.get('in_drb'),
+            App.getAnalyzeCollection()
         );
     },
 });

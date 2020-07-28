@@ -17,7 +17,8 @@ from layer_settings import (LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
                             DRB_PERIMETER, DRB_SIMPLE_PERIMETER,
                             NHD_REGION2_PERIMETER, CONUS_PERIMETER)  # NOQA
 from gwlfe_settings import (GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, # NOQA
-                            CURVE_NUMBER, NODATA, SRAT_KEYS, SUBBASIN_SOURCE_NORMALIZING_AREAS)  # NOQA
+                            CURVE_NUMBER, NODATA, SRAT_KEYS, SUBBASIN_SOURCE_NORMALIZING_AREAS,  # NOQA
+                            WEATHER_DATA_BUCKET_URL)  # NOQA
 
 # Normally you should not import ANYTHING from Django directly
 # into your settings, but ImproperlyConfigured is an exception.
@@ -253,6 +254,8 @@ TEMPLATES = [
 # MIDDLEWARE CONFIGURATION
 # See: https://docs.djangoproject.com/en/1.11/topics/http/middleware/
 MIDDLEWARE = (
+    # Django Cookies Samesite Middleware must be first
+    'django_cookies_samesite.middleware.CookiesSameSite',
     # Default Django middleware.
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -302,7 +305,7 @@ THIRD_PARTY_APPS = (
 REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'sustained': '5000/day',
-        'burst': '20/min',
+        'burst': '30/min',
     },
 }
 
@@ -451,6 +454,14 @@ SRAT_CATCHMENT_API = {
                        'ERROR: Could not get SRAT Catchment API URL'),
     'api_key': environ.get('MMW_SRAT_CATCHMENT_API_KEY',
                            'ERROR: Could not get SRAT Catchment API Key'),
+}
+
+# Drexel Fast Zonal API Settings
+DREXEL_FAST_ZONAL_API = {
+    'url': environ.get('MMW_DREXEL_FAST_ZONAL_API_URL',
+                       'http://watersheds.cci.drexel.edu/api/fzs_buildout/'),
+    'keys': ['centers', 'centers_np', 'centers_osi',
+             'corridors', 'corridors_np', 'corridors_osi'],
 }
 
 # Geoprocessing Settings

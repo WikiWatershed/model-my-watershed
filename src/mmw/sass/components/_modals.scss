@@ -582,6 +582,10 @@
     }
   }
 
+  select.form-control {
+    color: $ui-primary;
+  }
+
   .btn-undo {
     display: none;
     position: absolute;

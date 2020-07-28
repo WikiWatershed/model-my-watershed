@@ -2,11 +2,11 @@
     <div class="modal-content weather-modal-content">
         <div class="modal-header">
             <div class="title">
-                <!-- TODO Add Documenation link for Weather Data -->
                 <a
                         class="btn close"
                         target="_blank"
-                        href="https://wikiwatershed.org/documentation/mmw-tech/"
+                        href="https://wikiwatershed.org/help/model-help/mmw-tech/#description-and-editing-of-key-model-input-data-and-parameters"
+                        rel="noreferrer noopener"
                         title="Weather Data Documentation"
                 >
                     <i class="fa fa-question-circle"></i>
@@ -27,11 +27,19 @@
                     USEPA is available by default.
                     <a href="https://wikiwatershed.org/help/model-help/mmw-tech/#usepa-climate" target="_blank" rel="noreferrer noopener">See details.</a>
                 </p>
-                <select class="form-control btn btn-small btn-primary">
+                <select id="available-data" class="form-control btn btn-small btn-primary">
                     <optgroup label="Default">
-                        <option selected>USEPA National Climate 1960&ndash;1990</option>
+                        <option value="DEFAULT" {{ 'selected' if available_data == 'DEFAULT' }}>USEPA National Climate 1960&ndash;1990</option>
                     </optgroup>
+                    {% for s in Simulations %}
+                        <optgroup label="{{ s.group }} {{ '(DRB Only)' if s.in_drb and not in_drb }}">
+                            {% for i in s.items %}
+                                <option value="{{ i.name }}" {{ 'selected' if available_data == i.name }} {{ 'disabled' if s.in_drb and not in_drb }}>{{ i.label }}</option>
+                            {% endfor %}
+                        </optgroup>
+                    {% endfor %}
                 </select>
+
             </div>
             <div class="weather-col custom-weather">
                 <label>

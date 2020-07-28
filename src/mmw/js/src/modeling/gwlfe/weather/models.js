@@ -7,15 +7,30 @@ var $ = require('jquery'),
 
 var WindowModel = Backbone.Model.extend({
     defaults: {
+        project_id: null, // Must be specified
+        in_drb: false,
         scenario_id: null, // Must be specified
         weather_type: WeatherType.DEFAULT,
-        built_in_weather_type: 'MAPSHED',
+        available_data: 'DEFAULT',
+        simulation_weather_output: null,
+        simulation_weather_errors: [], // Array of String
+        simulation_weather_category: null,
         custom_weather_output: null,
         custom_weather_errors: [], // Array of String
         custom_weather_file_name: null,
     },
 
     validate: function(attrs) {
+        if (attrs.weather_type === WeatherType.SIMULATION) {
+            if (attrs.simulation_weather_output === null) {
+                return 'Simulation Weather cannot have empty output';
+            }
+
+            if (attrs.simulation_weather_errors.length > 0) {
+                return 'Simulation Weather has errors';
+            }
+        }
+
         if (attrs.weather_type === WeatherType.CUSTOM) {
             if (attrs.custom_weather_output === null) {
                 return 'Custom Weather cannot have empty output';
@@ -25,6 +40,65 @@ var WindowModel = Backbone.Model.extend({
                 return 'Custom Weather has errors';
             }
         }
+    },
+
+    fetchSimulationWeather: function() {
+        var self = this,
+            project_id = this.get('project_id'),
+            category = this.get('available_data'),
+            url = '/mmw/modeling/projects/' + project_id + '/weather/' + category;
+
+        return $.ajax({
+            url: url,
+            type: 'GET',
+            cache: true,
+        }).then(function(data) {
+            self.set({
+                simulation_weather_output: data.output,
+                simulation_weather_errors: data.errors || [],
+                simulation_weather_category: category,
+            });
+        }).catch(function(err) {
+            var errors = err && err.responseJSON && err.responseJSON.errors;
+
+            if (err.status === 403) {
+                if (errors) {
+                    errors.push('Available weather file not found.');
+                } else {
+                    errors = ['Available weather file not found.'];
+                }
+            }
+
+            self.set({
+                simulation_weather_output: null,
+                simulation_weather_errors: errors || ['Unknown server error.'],
+                simulation_weather_category: category,
+            });
+        });
+    },
+
+    fetchSimulationWeatherIfNeeded: function() {
+        var self = this,
+            weather_type = this.get('weather_type'),
+            available_data = this.get('available_data'),
+            simulation_weather_output = this.get('simulation_weather_output'),
+            simulation_weather_category = this.get('simulation_weather_category'),
+            needsSimulationWeather =
+                weather_type === WeatherType.SIMULATION && (
+                    available_data !== simulation_weather_category || (
+                        available_data === simulation_weather_category &&
+                        simulation_weather_output === null
+                )
+            );
+
+        if (needsSimulationWeather && this.fetchSimulationWeatherPromise === undefined) {
+            this.fetchSimulationWeatherPromise = this.fetchSimulationWeather();
+            this.fetchSimulationWeatherPromise.always(function() {
+                delete self.fetchSimulationWeatherPromise;
+            });
+        }
+
+        return this.fetchSimulationWeatherPromise || $.when();
     },
 
     postCustomWeather: function(formData) {
@@ -107,6 +181,8 @@ var WindowModel = Backbone.Model.extend({
 
     deleteCustomWeather: function() {
         var self = this,
+            available_data = this.get('available_data'),
+            switchToDefault = available_data === WeatherType.DEFAULT,
             scenario_id = this.get('scenario_id'),
             url = '/mmw/modeling/scenarios/' + scenario_id + '/custom-weather-data/';
 
@@ -115,7 +191,7 @@ var WindowModel = Backbone.Model.extend({
             method: 'DELETE',
         }).then(function() {
             self.set({
-                weather_type: WeatherType.DEFAULT,
+                weather_type: switchToDefault ? WeatherType.DEFAULT : WeatherType.SIMULATION,
                 custom_weather_output: null,
                 custom_weather_errors: [], // Array of String
                 custom_weather_file_name: null,
@@ -129,6 +205,22 @@ var WindowModel = Backbone.Model.extend({
         });
     },
 
+    fetchWeatherIfNeeded: function() {
+        var self = this;
+
+        if (this.fetchWeatherPromise === undefined) {
+            this.fetchWeatherPromise = $.when(
+                this.fetchSimulationWeatherIfNeeded(),
+                this.fetchCustomWeatherIfNeeded()
+            );
+            this.fetchWeatherPromise.always(function() {
+                delete self.fetchWeatherPromise;
+            });
+        }
+
+        return this.fetchWeatherPromise || $.when();
+    },
+
     getOutput: function() {
         var self = this,
             weather_data = function() {
@@ -136,7 +228,7 @@ var WindowModel = Backbone.Model.extend({
                     case WeatherType.CUSTOM:
                         return self.get('custom_weather_output') || {};
                     case WeatherType.SIMULATION:
-                    // TODO Handle simulation weather types
+                        return self.get('simulation_weather_output') || {};
                     case WeatherType.DEFAULT:
                     default:
                         return {};

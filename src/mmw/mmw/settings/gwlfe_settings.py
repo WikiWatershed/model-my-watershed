@@ -656,3 +656,6 @@ SUBBASIN_SOURCE_NORMALIZING_AREAS = {
     'Wetlands': [3],
     'Septic Systems': [10],
 }
+
+
+WEATHER_DATA_BUCKET_URL = 'https://s3.amazonaws.com/weather.modelmywatershed.org/{category}/{station}.csv'  # NOQA

@@ -8,6 +8,8 @@ var _ = require('lodash'),
     round = require('../../../core/utils').round,
     CropTillageEfficiencyValues = require('../../gwlfeModificationConfig').CropTillageEfficiencyValues,
     GWLFE_LAND_COVERS = require('../../constants').GWLFE_LAND_COVERS,
+    GwlfeModificationModel = require('../../models').GwlfeModificationModel,
+    modelingUtils = require('../../utils'),
     models = require('./models'),
     calcs = require('./calcs'),
     fieldTmpl = require('./templates/field.html'),
@@ -29,24 +31,35 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
 
     ui: {
         saveButton: '.btn-active',
+        landCoverPreset: '#land-cover-preset',
     },
 
     events: _.defaults({
         'click @ui.saveButton': 'saveAndClose',
+        'change @ui.landCoverPreset': 'onPresetChange',
     }, modalViews.ModalBaseView.prototype.events),
 
     regions: {
-        fieldsRegion: '.rows',
+        fieldsRegion: '#fields-region',
         totalRegion: '.total-content',
     },
 
     initialize: function(options) {
-        this.mergeOptions(options, ['addModification']);
+        this.mergeOptions(options, ['scenario', 'analyzeCollection']);
 
         var onFieldUpdated = _.bind(this.onFieldUpdated, this),
             fields = this.model.get('fields');
 
         this.listenTo(fields, 'change', onFieldUpdated);
+    },
+
+    templateHelpers: function() {
+        var presetMod = this.scenario.get('modifications').findWhere({ modKey: 'entry_landcover_preset' }),
+            preset = presetMod && presetMod.get('userInput').entry_landcover_preset;
+
+        return {
+            preset: preset,
+        };
     },
 
     // Override to populate fields
@@ -89,8 +102,87 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
         this.ui.saveButton.prop('disabled', autoTotal !== userTotal);
     },
 
+    onPresetChange: function(e) {
+        var self = this;
+
+        if (e.target.value) {
+            // One of the non-default presets has been selected. Fetch the
+            // NLCD-style landcover distribution from the relevant Analyze
+            // results, convert them to Mapshed-style, and populate all the
+            // field boxes. Then recalculate the total to ensure it still
+            // fits.
+            var task = self.analyzeCollection
+                           .findWhere({ name: 'land' })
+                           .get('tasks')
+                           .findWhere({ name: e.target.value });
+
+            if (!task) {
+                throw new Error('Could not find analysis results for ' + e.target.value);
+            }
+
+            task.fetchAnalysisIfNeeded()
+                .then(function() {
+                    var categories = task.get('result').survey.categories;
+
+                    if (!categories) {
+                        throw new Error('Invalid analysis results for ' + e.target.value);
+                    }
+
+                    var m2ToHa = function(m2) { return m2 / coreUnits.METRIC.AREA_L.factor; },
+                        // Convert list of NLCD results to dictionary mapping
+                        // NLCD to Hectares
+                        nlcd = categories.reduce(function(acc, category) {
+                                acc[category.nlcd] = category.area;
+                                return acc;
+                            }, {}),
+                        landcoverRaw = modelingUtils.nlcdToMapshedLandCover(nlcd).map(m2ToHa),
+                        // Proportion land cover with base NLCD 2011 total
+                        // so that the user doesn't have to manually update it
+                        autoTotal = self.model.get('autoTotal'),
+                        presetTotal = _.sum(landcoverRaw),
+                        landcover = landcoverRaw.map(function(l) {
+                            return l * autoTotal / presetTotal;
+                        });
+
+                    self.model.get('fields').forEach(function(field) {
+                        var index = parseInt(field.get('name').split('__')[1]);
+
+                        field.set('userValue', landcover[index]);
+                    });
+                    self.fieldsRegion.currentView.render();
+
+                    self.model.set('userTotal', _.sum(landcover));
+                    self.validateModal();
+                });
+        } else {
+            // Default NLCD 2011. Reset all fields.
+            self.model.get('fields').forEach(function(field) {
+                field.set('userValue', null);
+            });
+            self.fieldsRegion.currentView.render();
+
+            self.model.set('userTotal', _.sum(self.model.get('dataModel')['Area']));
+            self.validateModal();
+        }
+    },
+
     saveAndClose: function() {
-        this.addModification(this.model.getOutput());
+        var preset = this.ui.landCoverPreset.val();
+        if (preset) {
+            // If the preset is legitimate, add it as a modification
+            this.scenario.addModification(new GwlfeModificationModel({
+                modKey: 'entry_landcover_preset',
+                output: { 'entry_landcover_preset': preset },
+                userInput: { 'entry_landcover_preset': preset },
+            }));
+        } else {
+            // Default preset, remove from modifications
+            var mods = this.scenario.get('modifications');
+
+            mods.remove(mods.findWhere({ modKey: 'entry_landcover_preset' }));
+        }
+
+        this.scenario.addModification(this.model.getOutput());
 
         this.hide();
     }
@@ -997,7 +1089,7 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
     }).render();
 }
 
-function showLandCoverModal(dataModel, modifications, addModification) {
+function showLandCoverModal(dataModel, scenario, in_drb, analyzeCollection) {
     var scheme = settings.get('unit_scheme'),
         areaLUnits = coreUnits[scheme].AREA_L_FROM_HA.name,
         landCovers = _(GWLFE_LAND_COVERS).sortBy('id').map(function(lc) {
@@ -1010,16 +1102,19 @@ function showLandCoverModal(dataModel, modifications, addModification) {
                 minValue: 0,
             };
         }).value(),
+        modifications = scenario.get('modifications'),
         fields = models.makeFieldCollection('landcover', dataModel, modifications, landCovers),
         windowModel = new models.LandCoverWindowModel({
             dataModel: dataModel,
             title: 'Land Cover',
             fields: fields,
+            in_drb: in_drb,
         });
 
     new LandCoverModal({
         model: windowModel,
-        addModification: addModification,
+        scenario: scenario,
+        analyzeCollection: analyzeCollection,
     }).render();
 }
 
