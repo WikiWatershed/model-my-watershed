@@ -119,7 +119,7 @@ var ChartView = Marionette.ItemView.extend({
             data = getData(result, seriesNames, seriesDisplayNames,
                            labelDisplayNames);
             chartOptions = {
-                seriesColors: ['#F8AA00', '#CF4300', '#C2D33C'],
+                seriesColors: ['#F2CF46', '#ED3B3B', '#2D8BFF'],
                 yAxisLabel: 'Level (' + lengthUnit + ')',
                 yAxisUnit: lengthUnit,
                 reverseLegend: true,
