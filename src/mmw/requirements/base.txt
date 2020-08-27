@@ -20,7 +20,7 @@ requests[security]==2.22.0
 rollbar==0.13.8
 retry==0.9.1
 python-dateutil==2.6.0
-https://bitbucket.org/jurko/suds/get/94664ddd46a6.tar.gz#egg=suds-jurko
+suds-community==0.8.4
 django_celery_results==1.0.1
 pandas==0.22.0
 tables==3.5.2

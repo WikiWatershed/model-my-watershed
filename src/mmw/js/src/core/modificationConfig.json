@@ -95,7 +95,7 @@
         "strokeColor": "#2364AA"
     },
     "infiltration_basin": {
-        "name": "Vegetation Infiltration Basin",
+        "name": "Vegetated Infiltration Basin",
         "shortName": "Veg Basin",
         "summary": "Constructed large depressions that receive runoff from storm drain sewers or directly from impervious surfaces.  The runoff is temporarily stored until it infiltrates into the ground.",
         "strokeColor": "#B1C4A1"
