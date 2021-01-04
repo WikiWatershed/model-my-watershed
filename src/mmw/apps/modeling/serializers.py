@@ -180,6 +180,18 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
 
         return super(ProjectUpdateSerializer, self).create(validated_data)
 
+    def validate(self, data):
+        """
+        Ensure that all non-activity projects have a legitimate AoI.
+        """
+        is_activity = data.get('is_activity', False)
+        aoi = data.get('area_of_interest', None)
+
+        if not aoi and not is_activity:
+            raise ValidationError('Area of Interest cannot be empty')
+
+        return data
+
 
 class AoiSerializer(serializers.BaseSerializer):
     def to_internal_value(self, data):
