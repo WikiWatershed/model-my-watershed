@@ -185,10 +185,11 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         Ensure that all non-activity projects have a legitimate AoI.
         """
         is_activity = data.get('is_activity', False)
-        aoi = data.get('area_of_interest', None)
 
-        if not aoi and not is_activity:
-            raise ValidationError('Area of Interest cannot be empty')
+        if not is_activity:
+            # Validate that either AoI or WKAoI is specified correctly
+            serializer = AoiSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
 
         return data
 
