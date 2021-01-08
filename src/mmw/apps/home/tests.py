@@ -22,8 +22,14 @@ class RouteAccessTestCase(TestCase):
                                                      email='test@azavea.com',
                                                      password='bar')
         self.project = {
-            "area_of_interest": ("MULTIPOLYGON (((30 20, 45 40, 10 40, 30 20))"
-                                 ",((15 5, 40 10, 10 20, 5 10, 15 5)))"),
+            "area_of_interest": {
+                "type": "MultiPolygon",
+                "coordinates": [[[
+                    [-75.16030455947867, 39.95694877899765],
+                    [-75.14857505439767, 39.95694877899765],
+                    [-75.14857505439767, 39.9659391727703],
+                    [-75.16030455947867, 39.9659391727703],
+                    [-75.16030455947867, 39.95694877899765]]]]},
             "name": "My Project",
             "model_package": "tr-55"
         }
