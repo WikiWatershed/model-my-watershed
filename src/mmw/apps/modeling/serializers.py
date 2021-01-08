@@ -42,10 +42,12 @@ class MultiPolygonGeoJsonField(JsonField):
         if isinstance(data, basestring):
             data = json.loads(data)
 
-        geom = data['geometry'] if 'geometry' in data else data
+        geometry = data['geometry'] if 'geometry' in data else data
 
         try:
-            geometry = GEOSGeometry(json.dumps(geom), srid=4326)
+            if not isinstance(geometry, GEOSGeometry):
+                geometry = GEOSGeometry(json.dumps(geometry))
+            geometry.srid = 4326
         except:
             raise ValidationError('Area of interest must ' +
                                   'be valid GeoJSON, of type ' +
