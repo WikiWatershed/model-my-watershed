@@ -2,6 +2,8 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import rollbar
+
 from django.contrib.gis.geos import (GEOSGeometry,
                                      MultiPolygon)
 
@@ -189,9 +191,13 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         is_activity = data.get('is_activity', False)
 
         if not is_activity:
-            # Validate that either AoI or WKAoI is specified correctly
-            serializer = AoiSerializer(data=data)
-            serializer.is_valid(raise_exception=True)
+            try:
+                # Validate that either AoI or WKAoI is specified correctly
+                serializer = AoiSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+            except:
+                rollbar.report_exc_info()
+                raise
 
         return data
 
