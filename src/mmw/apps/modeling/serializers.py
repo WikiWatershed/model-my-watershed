@@ -2,6 +2,8 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import rollbar
+
 from django.contrib.gis.geos import (GEOSGeometry,
                                      MultiPolygon)
 
@@ -42,10 +44,12 @@ class MultiPolygonGeoJsonField(JsonField):
         if isinstance(data, basestring):
             data = json.loads(data)
 
-        geom = data['geometry'] if 'geometry' in data else data
+        geometry = data['geometry'] if 'geometry' in data else data
 
         try:
-            geometry = GEOSGeometry(json.dumps(geom), srid=4326)
+            if not isinstance(geometry, GEOSGeometry):
+                geometry = GEOSGeometry(json.dumps(geometry))
+            geometry.srid = 4326
         except:
             raise ValidationError('Area of interest must ' +
                                   'be valid GeoJSON, of type ' +
@@ -179,6 +183,23 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
             validated_data['user'] = self.context['request'].user
 
         return super(ProjectUpdateSerializer, self).create(validated_data)
+
+    def validate(self, data):
+        """
+        Ensure that all non-activity projects have a legitimate AoI.
+        """
+        is_activity = data.get('is_activity', False)
+
+        if not is_activity:
+            try:
+                # Validate that either AoI or WKAoI is specified correctly
+                serializer = AoiSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+            except:
+                rollbar.report_exc_info()
+                raise
+
+        return data
 
 
 class AoiSerializer(serializers.BaseSerializer):
