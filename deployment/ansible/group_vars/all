@@ -1,4 +1,7 @@
 ---
+pip_get_pip_version: "2.7"
+pip_version: "20.3.*"
+
 django_test_database: "{{ lookup('env', 'MMW_TEST_DB_NAME') | default('test_mmw', true) }}"
 
 redis_port: 6379
