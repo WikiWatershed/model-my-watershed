@@ -4,10 +4,10 @@
         state=directory
 
 - name: Configure RWD service definition
-  docker_service:
+  docker_compose:
     project_name: mmw
     state: present
-    definition: 
+    definition:
       version: "3"
       services:
         mmw-rwd:
@@ -22,4 +22,3 @@
             driver: syslog
             options:
               tag: mmw-rwd
-
