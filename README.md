@@ -2,7 +2,7 @@
 
 ## Local Development
 
-A combination of Vagrant 2.2+ and Ansible 2.x+ is used to setup the development environment for this project. The project consists of the following virtual machines:
+A combination of Vagrant 2.2+ and Ansible 2.5+ is used to setup the development environment for this project. The project consists of the following virtual machines:
 
 - `app`
 - `services`
