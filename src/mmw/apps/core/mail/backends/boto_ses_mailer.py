@@ -7,7 +7,7 @@ import json
 import logging
 import sys
 import traceback
-import boto.ses
+import boto3
 
 from django.conf import settings
 from django.core.mail.backends.base import BaseEmailBackend
@@ -101,7 +101,13 @@ class BotoMailer():
         self.send_message_bytes(message.as_string(), from_email, to)
 
     def send_message_bytes(self, message_bytes, from_email, to):
-        return self._connection().send_raw_email(message_bytes, from_email, to)
+        kwargs = {
+            "Source": from_email,
+            "Destinations": to,
+            "RawMessage": {"Data": message_bytes},
+        }
+
+        return self._connection().send_raw_email(**kwargs)
 
     def get_remaining_message_quota(self):
         response = self._connection().get_send_quota()
@@ -111,4 +117,4 @@ class BotoMailer():
         return limit - sent_count
 
     def _connection(self):
-        return boto.ses.connect_to_region(self.aws_region)
+        return boto3.client('ses', region_name=self.aws_region)
