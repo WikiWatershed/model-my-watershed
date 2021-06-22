@@ -90,6 +90,36 @@ LAYER_GROUPS = {
     ],
     'coverage': [
         {
+            'display': 'National Land Cover Database 2016',
+            'code': 'nlcd-2016-30m',
+            'css_class_prefix': 'nlcd-2016-30m nlcd',
+            'short_display': 'NLCD 2016',
+            'helptext': 'National Land Cover Database defines'
+                        'land use across the U.S. From 2016.',
+            'url': 'https://{s}.tiles.azavea.com/nlcd-2016-30m/{z}/{x}/{y}.png',
+            'maxNativeZoom': 13,
+            'maxZoom': 18,
+            'opacity': 0.618,
+            'has_opacity_slider': True,
+            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
+            'big_cz': True,
+        },
+        {
+            'display': 'National Land Cover Database 2011',
+            'code': 'nlcd-2011-30m',
+            'css_class_prefix': 'nlcd-2011-30m nlcd',
+            'short_display': 'NLCD 2011',
+            'helptext': 'National Land Cover Database defines'
+                        'land use across the U.S. From 2011.',
+            'url': 'https://{s}.tiles.azavea.com/nlcd-2011-30m/{z}/{x}/{y}.png',
+            'maxNativeZoom': 13,
+            'maxZoom': 18,
+            'opacity': 0.618,
+            'has_opacity_slider': True,
+            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
+            'big_cz': True,
+        },
+        {
             'display': 'National Land Cover Database',
             'code': 'nlcd',
             'css_class_prefix': 'nlcd',
