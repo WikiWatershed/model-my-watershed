@@ -150,12 +150,12 @@ LAYER_GROUPS = {
             'big_cz': True,
         },
         {
-            'display': 'National Land Cover Database',
+            'display': 'National Land Cover Database Old 2011',
             'code': 'nlcd',
             'css_class_prefix': 'nlcd',
             'short_display': 'NLCD',
             'helptext': 'National Land Cover Database defines'
-                        'land use across the U.S.',
+                        'land use across the U.S. Old 2011.',
             'url': 'https://{s}.tiles.azavea.com/nlcd/{z}/{x}/{y}.png',
             'maxNativeZoom': 13,
             'maxZoom': 18,
