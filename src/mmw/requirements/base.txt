@@ -9,6 +9,7 @@ django-extensions==2.2.5
 python-omgeo==4.0.0
 rauth==0.7.1
 djangorestframework-gis==0.14.0
+ruamel.yaml==0.15.34
 drf_yasg==1.16.0
 django-cors-headers==3.0.2
 cryptography==2.7
