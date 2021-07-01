@@ -90,6 +90,21 @@ LAYER_GROUPS = {
     ],
     'coverage': [
         {
+            'display': 'Land Use/Cover 2019 (NLCD19)',
+            'code': 'nlcd-2019_2019',
+            'css_class_prefix': 'nlcd-2019-30m nlcd',
+            'short_display': 'NLCD 2019',
+            'helptext': 'National Land Cover Database defines'
+                        'land use across the U.S. From 2019 of NLCD19.',
+            'url': 'https://{s}.tiles.azavea.com/nlcd-2019-30m/{z}/{x}/{y}.png',
+            'maxNativeZoom': 13,
+            'maxZoom': 18,
+            'opacity': 0.618,
+            'has_opacity_slider': True,
+            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
+            'big_cz': True,
+        },
+        {
             'display': 'Land Use/Cover 2016 (NLCD19)',
             'code': 'nlcd-2019_2016',
             'css_class_prefix': 'nlcd-2016-30m nlcd',
