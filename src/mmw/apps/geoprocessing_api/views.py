@@ -249,7 +249,7 @@ def start_rwd(request, format=None):
 @decorators.permission_classes((IsAuthenticated, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
-def start_analyze_land(request, format=None):
+def start_analyze_land(request, nlcd_year='2011_2011', format=None):
     """
     Starts a job to produce a land-use histogram for a given area.
 
@@ -415,8 +415,9 @@ def start_analyze_land(request, format=None):
     geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
-        geoprocessing.run.s('nlcd_ara', geop_input, wkaoi),
-        tasks.analyze_nlcd.s(area_of_interest)
+        geoprocessing.run.s(
+            'nlcd_{}_ara'.format(nlcd_year), geop_input, wkaoi),
+        tasks.analyze_nlcd.s(area_of_interest, nlcd_year)
     ], area_of_interest, user)
 
 

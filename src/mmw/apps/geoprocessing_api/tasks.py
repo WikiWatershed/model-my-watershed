@@ -123,9 +123,10 @@ def analyze_catchment_water_quality(area_of_interest):
 
 
 @shared_task(throws=Exception)
-def analyze_nlcd(result, area_of_interest=None):
+def analyze_nlcd(result, area_of_interest=None, nlcd_year='2011_2011'):
     if 'error' in result:
-        raise Exception('[analyze_nlcd] {}'.format(result['error']))
+        raise Exception('[analyze_nlcd_{}] {}'.format(
+            nlcd_year, result['error']))
 
     pixel_width = aoi_resolution(area_of_interest) if area_of_interest else 1
 
@@ -159,8 +160,10 @@ def analyze_nlcd(result, area_of_interest=None):
 
     return {
         'survey': {
-            'name': 'land',
-            'displayName': 'Land',
+            'name': 'land_{}'.format(nlcd_year),
+            'displayName':
+                'Land Use/Cover {} (NLCD{})'.format(
+                    nlcd_year[5:], nlcd_year[2:4]),
             'categories': categories,
         }
     }
