@@ -240,7 +240,8 @@ def start_rwd(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.NLCD_YEAR,
+                                        schemas.WKAOI],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -249,11 +250,13 @@ def start_rwd(request, format=None):
 @decorators.permission_classes((IsAuthenticated, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
-def start_analyze_land(request, nlcd_year='2011_2011', format=None):
+def start_analyze_land(request, nlcd_year, format=None):
     """
-    Starts a job to produce a land-use histogram for a given area.
+    Starts a job to produce a land-use histogram for a given area and year.
 
-    Uses the National Land Cover Database (NLCD 2011)
+    Supports the years 2019, 2016, 2011, 2006, and 2001 from the NLCD 2019
+    product. Also supports the year 2011 from the NLCD 2011 product, which
+    used to be the default previously.
 
     For more information, see the
     [technical documentation](https://wikiwatershed.org/
@@ -272,8 +275,8 @@ def start_analyze_land(request, nlcd_year='2011_2011', format=None):
 
         {
             "survey": {
-                "displayName": "Land",
-                "name": "land",
+                "displayName": "Land Use/Cover 2019 (NLCD19)",
+                "name": "land_2019_2019",
                 "categories": [
                     {
                         "nlcd": 43,

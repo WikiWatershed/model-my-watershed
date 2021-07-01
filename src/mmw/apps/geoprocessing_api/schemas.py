@@ -11,6 +11,21 @@ from drf_yasg.openapi import (
 
 from django.conf import settings
 
+nlcd_year_allowed_values = sorted(
+    [n[5:14] for n in settings.GEOP['json'].keys()
+     if n[:4] == 'nlcd' and n[-3:] == 'ara'],
+    reverse=True)
+NLCD_YEAR = Parameter(
+    'nlcd_year',
+    IN_PATH,
+    description='The NLCD product version and target year to query.'
+                ' Must be one of: "{}"'.format(
+                    '", "'.join(nlcd_year_allowed_values)
+                ),
+    type=TYPE_STRING,
+    required=True,
+)
+
 DRB_2100_LAND_KEY = Parameter(
     'key',
     IN_PATH,

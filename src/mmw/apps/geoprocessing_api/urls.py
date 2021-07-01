@@ -14,7 +14,7 @@ app_name = 'geoprocessing_api'
 urlpatterns = [
     url(r'^token/', views.get_auth_token,
         name="authtoken"),
-    url(r'analyze/land/(?P<nlcd_year>\w*)/?$', views.start_analyze_land,
+    url(r'analyze/land/(?P<nlcd_year>\w+)/?$', views.start_analyze_land,
         name='start_analyze_land'),
     url(r'analyze/soil/$', views.start_analyze_soil,
         name='start_analyze_soil'),
