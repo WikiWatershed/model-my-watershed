@@ -90,12 +90,12 @@ LAYER_GROUPS = {
     ],
     'coverage': [
         {
-            'display': 'National Land Cover Database 2016',
-            'code': 'nlcd-2016-30m',
+            'display': 'Land Use/Cover 2016 (NLCD19)',
+            'code': 'nlcd-2019_2016',
             'css_class_prefix': 'nlcd-2016-30m nlcd',
             'short_display': 'NLCD 2016',
             'helptext': 'National Land Cover Database defines'
-                        'land use across the U.S. From 2016.',
+                        'land use across the U.S. From 2016 of NLCD19.',
             'url': 'https://{s}.tiles.azavea.com/nlcd-2016-30m/{z}/{x}/{y}.png',
             'maxNativeZoom': 13,
             'maxZoom': 18,
@@ -105,12 +105,12 @@ LAYER_GROUPS = {
             'big_cz': True,
         },
         {
-            'display': 'National Land Cover Database 2011',
-            'code': 'nlcd-2011-30m',
+            'display': 'Land Use/Cover 2011 (NLCD19)',
+            'code': 'nlcd-2019_2011',
             'css_class_prefix': 'nlcd-2011-30m nlcd',
             'short_display': 'NLCD 2011',
             'helptext': 'National Land Cover Database defines'
-                        'land use across the U.S. From 2011.',
+                        'land use across the U.S. From 2011 of NLCD19.',
             'url': 'https://{s}.tiles.azavea.com/nlcd-2011-30m/{z}/{x}/{y}.png',
             'maxNativeZoom': 13,
             'maxZoom': 18,
@@ -120,12 +120,12 @@ LAYER_GROUPS = {
             'big_cz': True,
         },
         {
-            'display': 'National Land Cover Database 2006',
-            'code': 'nlcd-2006-30m',
+            'display': 'Land Use/Cover 2006 (NLCD19)',
+            'code': 'nlcd-2019_2006',
             'css_class_prefix': 'nlcd-2006-30m nlcd',
             'short_display': 'NLCD 2006',
             'helptext': 'National Land Cover Database defines'
-                        'land use across the U.S. From 2006.',
+                        'land use across the U.S. From 2006 of NLCD19.',
             'url': 'https://{s}.tiles.azavea.com/nlcd-2006-30m/{z}/{x}/{y}.png',
             'maxNativeZoom': 13,
             'maxZoom': 18,
@@ -135,12 +135,12 @@ LAYER_GROUPS = {
             'big_cz': True,
         },
         {
-            'display': 'National Land Cover Database 2001',
-            'code': 'nlcd-2001-30m',
+            'display': 'Land Use/Cover 2001 (NLCD19)',
+            'code': 'nlcd-2019_2001',
             'css_class_prefix': 'nlcd-2001-30m nlcd',
             'short_display': 'NLCD 2001',
             'helptext': 'National Land Cover Database defines'
-                        'land use across the U.S. From 2001.',
+                        'land use across the U.S. From 2001 of NLCD19.',
             'url': 'https://{s}.tiles.azavea.com/nlcd-2001-30m/{z}/{x}/{y}.png',
             'maxNativeZoom': 13,
             'maxZoom': 18,
@@ -150,12 +150,12 @@ LAYER_GROUPS = {
             'big_cz': True,
         },
         {
-            'display': 'National Land Cover Database Old 2011',
-            'code': 'nlcd',
+            'display': 'Land Use/Cover 2011 (NLCD11)',
+            'code': 'nlcd-2011_2011',
             'css_class_prefix': 'nlcd',
             'short_display': 'NLCD',
             'helptext': 'National Land Cover Database defines'
-                        'land use across the U.S. Old 2011.',
+                        'land use across the U.S. From NLCD11.',
             'url': 'https://{s}.tiles.azavea.com/nlcd/{z}/{x}/{y}.png',
             'maxNativeZoom': 13,
             'maxZoom': 18,
