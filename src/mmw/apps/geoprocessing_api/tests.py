@@ -157,8 +157,8 @@ class ExerciseAnalyze(TestCase):
 
         expected = {
             "survey": {
-                "displayName": "Land",
-                "name": "land",
+                "displayName": "Land Use/Cover 2011 (NLCD11)",
+                "name": "land_2011_2011",
                 "categories": [
                     {
                         "code": "mixed_forest",
@@ -277,7 +277,7 @@ class ExerciseAnalyze(TestCase):
             }
         }
 
-        actual = tasks.analyze_nlcd(histogram)
+        actual = tasks.analyze_nlcd(histogram, nlcd_year='2011_2011')
         self.assertEqual(actual, expected)
 
     def test_survey_land_with_ara(self):
@@ -447,12 +447,12 @@ class ExerciseAnalyze(TestCase):
                         "type": "Barren Land (Rock/Sand/Clay)"
                     }
                 ],
-                "displayName": "Land",
-                "name": "land"
+                "displayName": "Land Use/Cover 2011 (NLCD11)",
+                "name": "land_2011_2011"
             }
         }
 
-        actual = tasks.analyze_nlcd(histogram)
+        actual = tasks.analyze_nlcd(histogram, nlcd_year='2011_2011')
         self.assertEqual(actual, expected)
 
     def test_survey_soil(self):

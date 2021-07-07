@@ -183,7 +183,7 @@ var ResultsView = Marionette.LayoutView.extend({
             }),
             analysisResults = App.getAnalyzeCollection()
                                  .findWhere({name: 'land'}).get('tasks')
-                                 .findWhere({taskName: 'analyze/land'})
+                                 .findWhere({taskName: 'analyze/land/2011_2011'})
                                  .get('result') || {},
             landResults = analysisResults.survey;
 
@@ -729,14 +729,14 @@ var TableView = Marionette.CompositeView.extend({
     childViewOptions: function() {
         return {
             units: this.options.units,
-            isLandTable: this.options.modelName === 'land'
+            isLandTable: this.options.modelName.startsWith('land_')
         };
     },
     templateHelpers: function() {
         var scheme = settings.get('unit_scheme'),
             units = this.options.units,
             data = _(this.collection.toJSON()),
-            isLandTable = this.options.modelName === 'land',
+            isLandTable = this.options.modelName.startsWith('land_'),
             areaTotal = data.map('area').sum(),
             coverageTotal = data.map('coverage').sum(),
             araData = isLandTable && data.map('active_river_area'),
@@ -1276,10 +1276,7 @@ var ChartView = Marionette.ItemView.extend({
 
     getBarClass: function(item) {
         var name = this.model.get('name');
-        if (['land',
-             'drb_2100_land_centers',
-             'drb_2100_land_corridors'].indexOf(name) > -1)
-        {
+        if (name.startsWith('land_') || name.startsWith('drb_2100_land_')) {
             return 'nlcd-fill-' + item.nlcd;
         } else if (name === 'soil') {
             return 'soil-fill-' + item.code;
@@ -1409,11 +1406,14 @@ var AnalyzeResultView = Marionette.LayoutView.extend({
 });
 
 var LandResultView  = AnalyzeResultView.extend({
-    onShowNlcd: function() {
-        var title = 'Land cover distribution',
-            source = 'National Land Cover Database (NLCD 2011)',
+    onShowNlcd: function(taskName) {
+        var year = taskName.substring(10), // land_2019_2011 => 2011
+            nlcd = 'NLCD' + taskName.substring(7, 9), // land_2019_2011 => NLCD19
+            nlcd_year = taskName.substring(5, 9), // land_2019_2011 => 2019
+            title = 'Land Use/Cover ' + year + ' (' + nlcd + ')',
+            source = 'National Land Cover Database (NLCD ' + nlcd_year + ')',
             helpText = 'For more information and data sources, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage\' target=\'_blank\' rel=\'noreferrer noopener\'>Model My Watershed Technical Documentation on Coverage Grids</a>',
-            associatedLayerCodes = ['nlcd'];
+            associatedLayerCodes = ['nlcd-' + taskName.substring(5)]; // land_2019_2011 => nlcd-2019_2011
         this.showAnalyzeResults(coreModels.LandUseCensusCollection, TableView,
             ChartView, title, source, helpText, associatedLayerCodes);
     },
@@ -1454,9 +1454,9 @@ var LandResultView  = AnalyzeResultView.extend({
             case 'drb_2100_land_corridors':
                 this.onShowFutureLandCorridors();
                 break;
-            case 'land':
             default:
-                this.onShowNlcd();
+                // e.g. taskName === land_2019_2011
+                this.onShowNlcd(taskName);
         }
     }
 });
@@ -1711,7 +1711,12 @@ var StreamResultView = AnalyzeResultView.extend({
 });
 
 var AnalyzeResultViews = {
-    land: LandResultView,
+    land_2019_2019: LandResultView,
+    land_2019_2016: LandResultView,
+    land_2019_2011: LandResultView,
+    land_2019_2006: LandResultView,
+    land_2019_2001: LandResultView,
+    land_2011_2011: LandResultView,
     soil: SoilResultView,
     animals: AnimalsResultView,
     pointsource: PointSourceResultView,

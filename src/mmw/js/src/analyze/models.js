@@ -232,11 +232,51 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
             displayName: "Land",
             tasks: [
                 {
-                    name: "land",
-                    displayName: "Land cover distribution",
+                    name: "land_2019_2019",
+                    displayName: "Land Use/Cover 2019 (NLCD19)",
                     area_of_interest: aoi,
                     wkaoi: wkaoi,
-                    taskName: "analyze/land",
+                    taskName: "analyze/land/2019_2019",
+                    enabledForCatalogMode: true
+                },
+                {
+                    name: "land_2019_2016",
+                    displayName: "Land Use/Cover 2016 (NLCD19)",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/land/2019_2016",
+                    enabledForCatalogMode: true
+                },
+                {
+                    name: "land_2019_2011",
+                    displayName: "Land Use/Cover 2011 (NLCD19)",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/land/2019_2011",
+                    enabledForCatalogMode: true
+                },
+                {
+                    name: "land_2019_2006",
+                    displayName: "Land Use/Cover 2006 (NLCD19)",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/land/2019_2006",
+                    enabledForCatalogMode: true
+                },
+                {
+                    name: "land_2019_2001",
+                    displayName: "Land Use/Cover 2001 (NLCD19)",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/land/2019_2001",
+                    enabledForCatalogMode: true
+                },
+                {
+                    name: "land_2011_2011",
+                    displayName: "Land Use/Cover 2011 (NLCD11)",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/land/2011_2011",
                     enabledForCatalogMode: true
                 },
                 {
