@@ -40,12 +40,12 @@ Vagrant.configure("2") do |config|
     services.vm.network "private_network", ip: ENV.fetch("MMW_SERVICES_IP", "33.33.34.30")
 
     # PostgreSQL
-    services.vm.network "forwarded_port", {
+    services.vm.network "forwarded_port", **{
       guest: 5432,
       host: 5432
     }.merge(VAGRANT_NETWORK_OPTIONS)
     # Redis
-    services.vm.network "forwarded_port", {
+    services.vm.network "forwarded_port", **{
       guest: 6379,
       host: 6379
     }.merge(VAGRANT_NETWORK_OPTIONS)
@@ -79,12 +79,12 @@ Vagrant.configure("2") do |config|
     worker.vm.synced_folder "~/.aws", "/var/lib/mmw/.aws"
 
     # Docker
-    worker.vm.network "forwarded_port", {
+    worker.vm.network "forwarded_port", **{
       guest: 2375,
       host: 2375
     }.merge(VAGRANT_NETWORK_OPTIONS)
     # Geoprocessing Service
-    worker.vm.network "forwarded_port", {
+    worker.vm.network "forwarded_port", **{
       guest: 8090,
       host: 8090
     }.merge(VAGRANT_NETWORK_OPTIONS)
@@ -113,17 +113,17 @@ Vagrant.configure("2") do |config|
       create: true, mount_options: ["dmode=777"]
 
     # Django via Nginx/Gunicorn
-    app.vm.network "forwarded_port", {
+    app.vm.network "forwarded_port", **{
       guest: 80,
       host: 8000
     }.merge(VAGRANT_NETWORK_OPTIONS)
     # Livereload server
-    app.vm.network "forwarded_port", {
+    app.vm.network "forwarded_port", **{
       guest: 35729,
       host: 35729,
     }.merge(VAGRANT_NETWORK_OPTIONS)
     # Testem server
-    app.vm.network "forwarded_port", {
+    app.vm.network "forwarded_port", **{
       guest: 7357,
       host: 7357
     }.merge(VAGRANT_NETWORK_OPTIONS)
@@ -150,7 +150,7 @@ Vagrant.configure("2") do |config|
     tiler.vm.synced_folder "src/tiler", "/opt/tiler"
 
     # Expose the tiler. Tiler is served by Nginx.
-    tiler.vm.network "forwarded_port", {
+    tiler.vm.network "forwarded_port", **{
       guest: 80,
       host: 4000
     }.merge(VAGRANT_NETWORK_OPTIONS)
