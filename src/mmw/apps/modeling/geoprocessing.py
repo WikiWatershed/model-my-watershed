@@ -68,7 +68,11 @@ def run(self, opname, input_data, wkaoi=None, cache_key='',
     key = ''
 
     if wkaoi and settings.GEOP['cache']:
-        key = 'geop_{}__{}{}'.format(wkaoi, opname, cache_key)
+        key = 'geop_{wkaoi}__{opname}{layers_cache_key}{cache_key}'.format(
+            wkaoi=wkaoi,
+            opname=opname,
+            layers_cache_key='__'.join(layer_overrides.values()),
+            cache_key=cache_key)
         cached = cache.get(key)
         if cached:
             return cached
@@ -177,7 +181,9 @@ def multi(self, opname, shapes, stream_lines, layer_overrides={}):
 
     Each `operation_results` is cached with the key:
 
-        {{ shape_id }}__{{ operation_label }}
+        {{ shape_id }}__{{ operation_label }}{{ layers_cache_key }}
+
+    where `layers_cache_key` is a string of optional layers provided.
 
     Before running the geoprocessing service, we inspect the cache to see
     if all the requested operations are already cached for this shape. If so,
@@ -204,6 +210,7 @@ def multi(self, opname, shapes, stream_lines, layer_overrides={}):
 
     # Populate layers
     layer_config = dict(settings.GEOP['layers'], **layer_overrides)
+    layers_cache_key = '__'.join(layer_overrides.values())
 
     try:
         for oidx, operation in enumerate(data['operations']):
@@ -225,7 +232,10 @@ def multi(self, opname, shapes, stream_lines, layer_overrides={}):
         if not shape['id'].startswith(NOCACHE):
             output[shape['id']] = {}
             for op in data['operations']:
-                key = 'geop_{}__{}'.format(shape['id'], op['label'])
+                key = 'geop_{shape_id}__{op_label}{layers}'.format(
+                    shape_id=shape['id'],
+                    op_label=op['label'],
+                    layers=layers_cache_key)
                 cached = cache.get(key)
                 if cached:
                     output[shape['id']][op['label']] = cached
@@ -245,7 +255,10 @@ def multi(self, opname, shapes, stream_lines, layer_overrides={}):
         for shape_id, operation_results in result.iteritems():
             if not shape_id.startswith(NOCACHE):
                 for op_label, value in operation_results.iteritems():
-                    key = 'geop_{}__{}'.format(shape_id, op_label)
+                    key = 'geop_{shape_id}__{op_label}{layers}'.format(
+                        shape_id=shape_id,
+                        op_label=op_label,
+                        layers=layers_cache_key)
                     cache.set(key, value, None)
 
         output.update(result)
