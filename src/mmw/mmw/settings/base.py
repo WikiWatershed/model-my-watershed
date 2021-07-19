@@ -470,14 +470,28 @@ GEOP = {
     'host': environ.get('MMW_GEOPROCESSING_HOST', 'localhost'),
     'port': environ.get('MMW_GEOPROCESSING_PORT', '8090'),
     'args': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.MapshedJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),  # NOQA
+    'layers': {
+        '__ARA__': 'ara-30m-epsg5070-512',
+        '__AWC__': 'us-ssurgo-aws100-30m-epsg5070-512',
+        '__BFI__': 'bfi48grd-epsg5070',
+        '__GWN__': 'us-groundwater-nitrogen-30m-epsg5070-512',
+        '__KFACTOR__': 'us-ssugro-kfactor-30m-epsg5070-512',
+        '__LAND__': 'nlcd-2011-30m-epsg5070-512-int8',
+        '__NED__': 'ned-nhdplus-30m-epsg5070-512',
+        '__PROTECTED_LANDS__': 'protected-lands-30m-epsg5070-512',
+        '__SLOPE__': 'us-percent-slope-30m-epsg5070-512',
+        '__SOIL__': 'ssurgo-hydro-groups-30m-epsg5070-512-int8',
+        '__SOILN__': 'soiln-epsg5070',
+        '__SOILP__': 'soilpallland2-epsg5070',
+    },
     'json': {
         'nlcd_2011_2011_ara': {
             'input': {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-512-int8',
-                    'ara-30m-epsg5070-512'
+                    '__LAND__',
+                    '__ARA__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -490,7 +504,7 @@ GEOP = {
                 'polygonCRS': 'LatLng',
                 'rasters': [
                     'nlcd-2019-30m-epsg5070-512-byte',
-                    'ara-30m-epsg5070-512'
+                    '__ARA__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -503,7 +517,7 @@ GEOP = {
                 'polygonCRS': 'LatLng',
                 'rasters': [
                     'nlcd-2016-30m-epsg5070-512-byte',
-                    'ara-30m-epsg5070-512'
+                    '__ARA__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -516,7 +530,7 @@ GEOP = {
                 'polygonCRS': 'LatLng',
                 'rasters': [
                     'nlcd-2011-30m-epsg5070-512-byte',
-                    'ara-30m-epsg5070-512'
+                    '__ARA__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -529,7 +543,7 @@ GEOP = {
                 'polygonCRS': 'LatLng',
                 'rasters': [
                     'nlcd-2006-30m-epsg5070-512-byte',
-                    'ara-30m-epsg5070-512'
+                    '__ARA__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -542,7 +556,7 @@ GEOP = {
                 'polygonCRS': 'LatLng',
                 'rasters': [
                     'nlcd-2001-30m-epsg5070-512-byte',
-                    'ara-30m-epsg5070-512'
+                    '__ARA__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -554,7 +568,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'ssurgo-hydro-groups-30m-epsg5070-512-int8'
+                    '__SOIL__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -566,8 +580,8 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-512-int8',
-                    'ssurgo-hydro-groups-30m-epsg5070-512-int8'
+                    '__LAND__',
+                    '__SOIL__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -581,7 +595,7 @@ GEOP = {
                 'vector': [],
                 'vectorCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-512-int8'
+                    '__LAND__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterLinesJoin',
@@ -593,7 +607,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'us-groundwater-nitrogen-30m-epsg5070-512'
+                    '__GWN__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -603,7 +617,7 @@ GEOP = {
         'avg_awc': {
             'input': {
                 'polygon': [],
-                'targetRaster': 'us-ssurgo-aws100-30m-epsg5070-512',
+                'targetRaster': '__AWC__',
                 'rasters': [],
                 'rasterCRS': 'ConusAlbers',
                 'polygonCRS': 'LatLng',
@@ -616,8 +630,8 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-512-int8',
-                    'us-percent-slope-30m-epsg5070-512'
+                    '__LAND__',
+                    '__SLOPE__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -629,7 +643,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [],
-                'targetRaster': 'us-percent-slope-30m-epsg5070-512',
+                'targetRaster': '__SLOPE__',
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0
@@ -640,9 +654,9 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-512-int8'
+                    '__LAND__'
                 ],
-                'targetRaster': 'us-ssugro-kfactor-30m-epsg5070-512',
+                'targetRaster': '__KFACTOR__',
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0
@@ -653,7 +667,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [],
-                'targetRaster': 'soiln-epsg5070',
+                'targetRaster': '__SOILN__',
                 'pixelIsArea': True,
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
@@ -665,7 +679,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [],
-                'targetRaster': 'soilpallland2-epsg5070',
+                'targetRaster': '__SOILP__',
                 'pixelIsArea': True,
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
@@ -677,7 +691,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [],
-                'targetRaster': 'bfi48grd-epsg5070',
+                'targetRaster': '__BFI__',
                 'pixelIsArea': True,
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
@@ -689,8 +703,8 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'ned-nhdplus-30m-epsg5070-512',
-                    'us-percent-slope-30m-epsg5070-512',
+                    '__NED__',
+                    '__SLOPE__',
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterSummary',
@@ -702,7 +716,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'protected-lands-30m-epsg5070-512'
+                    '__PROTECTED_LANDS__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -717,72 +731,72 @@ GEOP = {
                     'name': 'RasterGroupedCount',
                     'label': 'nlcd_soil',
                     'rasters': [
-                        'nlcd-2011-30m-epsg5070-512-int8',
-                        'ssurgo-hydro-groups-30m-epsg5070-512-int8'
+                        '__LAND__',
+                        '__SOIL__'
                     ]
                 },
                 {
                     'name': 'RasterLinesJoin',
                     'label': 'nlcd_streams',
                     'rasters': [
-                        'nlcd-2011-30m-epsg5070-512-int8'
+                        '__LAND__'
                     ]
                 },
                 {
                     'name': 'RasterGroupedCount',
                     'label': 'gwn',
                     'rasters': [
-                        'us-groundwater-nitrogen-30m-epsg5070-512'
+                        '__GWN__'
                     ]
                 },
                 {
                     'name': 'RasterGroupedAverage',
                     'label': 'avg_awc',
-                    'targetRaster': 'us-ssurgo-aws100-30m-epsg5070-512',
+                    'targetRaster': '__AWC__',
                     'rasters': [
-                        'us-groundwater-nitrogen-30m-epsg5070-512'
+                        '__GWN__'
                     ]
                 },
                 {
                     'name': 'RasterGroupedCount',
                     'label': 'nlcd_slope',
                     'rasters': [
-                        'nlcd-2011-30m-epsg5070-512-int8',
-                        'us-percent-slope-30m-epsg5070-512'
+                        '__LAND__',
+                        '__SLOPE__'
                     ]
                 },
                 {
                     'name': 'RasterGroupedAverage',
                     'label': 'slope',
-                    'targetRaster': 'us-percent-slope-30m-epsg5070-512',
+                    'targetRaster': '__SLOPE__',
                     'rasters': []
                 },
                 {
                     'name': 'RasterGroupedAverage',
                     'label': 'nlcd_kfactor',
-                    'targetRaster': 'us-ssugro-kfactor-30m-epsg5070-512',
+                    'targetRaster': '__KFACTOR__',
                     'rasters': [
-                        'nlcd-2011-30m-epsg5070-512-int8'
+                        '__LAND__'
                     ]
                 },
                 {
                     'name': 'RasterGroupedAverage',
                     'label': 'soiln',
-                    'targetRaster': 'soiln-epsg5070',
+                    'targetRaster': '__SOILN__',
                     'rasters': [],
                     'pixelIsArea': True
                 },
                 {
                     'name': 'RasterGroupedAverage',
                     'label': 'soilp',
-                    'targetRaster': 'soilpallland2-epsg5070',
+                    'targetRaster': '__SOILP__',
                     'rasters': [],
                     'pixelIsArea': True
                 },
                 {
                     'name': 'RasterGroupedAverage',
                     'label': 'recess_coef',
-                    'targetRaster': 'bfi48grd-epsg5070',
+                    'targetRaster': '__BFI__',
                     'rasters': [],
                     'pixelIsArea': True
                 }
@@ -796,14 +810,14 @@ GEOP = {
                     'name': 'RasterGroupedCount',
                     'label': 'nlcd',
                     'rasters': [
-                        'nlcd-2011-30m-epsg5070-512-int8'
+                        '__LAND__'
                     ]
                 },
                 {
                     'name': 'RasterLinesJoin',
                     'label': 'nlcd_streams',
                     'rasters': [
-                        'nlcd-2011-30m-epsg5070-512-int8'
+                        '__LAND__'
                     ]
                 }
             ]
