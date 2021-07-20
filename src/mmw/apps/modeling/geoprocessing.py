@@ -7,6 +7,7 @@ import requests
 import json
 
 from ast import literal_eval as make_tuple
+from copy import deepcopy
 
 from celery import shared_task
 from celery.exceptions import Retry
@@ -77,7 +78,7 @@ def run(self, opname, input_data, wkaoi=None, cache_key='',
         if cached:
             return cached
 
-    data = settings.GEOP['json'][opname].copy()
+    data = deepcopy(settings.GEOP['json'][opname])
     data['input'].update(input_data)
 
     # Populate layers
@@ -194,7 +195,7 @@ def multi(self, opname, shapes, stream_lines, layer_overrides={}):
     we are using the same cache naming scheme as run, any operation cached via
     `multi` can be reused by `run`.
     """
-    data = settings.GEOP['json'][opname].copy()
+    data = deepcopy(settings.GEOP['json'][opname])
     data['shapes'] = []
 
     # Don't include the RasterLinesJoin operation if the AoI does
