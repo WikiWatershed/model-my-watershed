@@ -486,77 +486,12 @@ GEOP = {
         '__SOILP__': 'soilpallland2-epsg5070',
     },
     'json': {
-        'nlcd_2011_2011_ara': {
+        'nlcd_ara': {
             'input': {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
                     '__LAND__',
-                    '__ARA__'
-                ],
-                'rasterCRS': 'ConusAlbers',
-                'operationType': 'RasterGroupedCount',
-                'zoom': 0
-            }
-        },
-        'nlcd_2019_2019_ara': {
-            'input': {
-                'polygon': [],
-                'polygonCRS': 'LatLng',
-                'rasters': [
-                    'nlcd-2019-30m-epsg5070-512-byte',
-                    '__ARA__'
-                ],
-                'rasterCRS': 'ConusAlbers',
-                'operationType': 'RasterGroupedCount',
-                'zoom': 0
-            }
-        },
-        'nlcd_2019_2016_ara': {
-            'input': {
-                'polygon': [],
-                'polygonCRS': 'LatLng',
-                'rasters': [
-                    'nlcd-2016-30m-epsg5070-512-byte',
-                    '__ARA__'
-                ],
-                'rasterCRS': 'ConusAlbers',
-                'operationType': 'RasterGroupedCount',
-                'zoom': 0
-            }
-        },
-        'nlcd_2019_2011_ara': {
-            'input': {
-                'polygon': [],
-                'polygonCRS': 'LatLng',
-                'rasters': [
-                    'nlcd-2011-30m-epsg5070-512-byte',
-                    '__ARA__'
-                ],
-                'rasterCRS': 'ConusAlbers',
-                'operationType': 'RasterGroupedCount',
-                'zoom': 0
-            }
-        },
-        'nlcd_2019_2006_ara': {
-            'input': {
-                'polygon': [],
-                'polygonCRS': 'LatLng',
-                'rasters': [
-                    'nlcd-2006-30m-epsg5070-512-byte',
-                    '__ARA__'
-                ],
-                'rasterCRS': 'ConusAlbers',
-                'operationType': 'RasterGroupedCount',
-                'zoom': 0
-            }
-        },
-        'nlcd_2019_2001_ara': {
-            'input': {
-                'polygon': [],
-                'polygonCRS': 'LatLng',
-                'rasters': [
-                    'nlcd-2001-30m-epsg5070-512-byte',
                     '__ARA__'
                 ],
                 'rasterCRS': 'ConusAlbers',

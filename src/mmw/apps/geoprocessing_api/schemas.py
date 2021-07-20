@@ -11,10 +11,14 @@ from drf_yasg.openapi import (
 
 from django.conf import settings
 
-nlcd_year_allowed_values = sorted(
-    [n[5:14] for n in settings.GEOP['json'].keys()
-     if n[:4] == 'nlcd' and n[-3:] == 'ara'],
-    reverse=True)
+nlcd_year_allowed_values = [
+    '2019_2019',
+    '2019_2016',
+    '2019_2011',
+    '2019_2006',
+    '2019_2001',
+    '2011_2011',
+]
 NLCD_YEAR = Parameter(
     'nlcd_year',
     IN_PATH,
