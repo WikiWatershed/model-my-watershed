@@ -130,6 +130,12 @@ $ vagrant ssh worker -c 'sudo service celeryd restart'
 
 To enable the geoprocessing cache simply set it to `1` and restart the `celeryd` service.
 
+In some cases, it may be necessary to remove all cached values. This can be done with:
+
+```bash
+$ vagrant ssh services -c 'redis-cli -n 1 --raw KEYS ":1:geop_*" | xargs redis-cli -n 1 DEL'
+```
+
 ### Test Mode
 
 In order to run the app in test mode, which simulates the production static asset bundle, reprovision with `VAGRANT_ENV=TEST vagrant provision`.

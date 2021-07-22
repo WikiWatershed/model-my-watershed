@@ -471,6 +471,7 @@ GEOP = {
     'port': environ.get('MMW_GEOPROCESSING_PORT', '8090'),
     'args': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.MapshedJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),  # NOQA
     # Clear all cached geop_ values when changing this
+    # https://github.com/WikiWatershed/model-my-watershed#caching
     'layers': {
         '__ARA__': 'ara-30m-epsg5070-512',
         '__AWC__': 'us-ssurgo-aws100-30m-epsg5070-512',
