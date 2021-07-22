@@ -413,9 +413,18 @@ def start_analyze_land(request, nlcd_year, format=None):
 
     geop_input = {'polygon': [area_of_interest]}
 
+    layer_overrides = {}
+    if nlcd_year == '2011_2011':
+        layer_overrides['__LAND__'] = 'nlcd-2011-30m-epsg5070-512-int8'
+
+    nlcd, year = nlcd_year.split('_')
+    if nlcd == '2019' and year in ['2019', '2016', '2011', '2006', '2001']:
+        layer_overrides['__LAND__'] = 'nlcd-{}-30m-epsg5070-512-byte'.format(
+            year)
+
     return start_celery_job([
-        geoprocessing.run.s(
-            'nlcd_{}_ara'.format(nlcd_year), geop_input, wkaoi),
+        geoprocessing.run.s('nlcd_ara', geop_input, wkaoi,
+                            layer_overrides=layer_overrides),
         tasks.analyze_nlcd.s(area_of_interest, nlcd_year)
     ], area_of_interest, user)
 
