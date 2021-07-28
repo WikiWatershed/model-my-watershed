@@ -366,6 +366,7 @@ var ProjectModel = Backbone.Model.extend({
         sidebar_mode: utils.MODEL,         // The current mode of the sidebar. ANALYZE, MONITOR, or MODEL.
         is_exporting: false,               // Is the project currently exporting?
         hydroshare_errors: [],             // List of errors from connecting to hydroshare
+        layer_overrides: {},               // Keys of tokens mapped to overriding layer names, e.g. {"__LAND__": "nlcd-2011-30m-epsg5070-512-int8"}
     },
 
     initialize: function() {
