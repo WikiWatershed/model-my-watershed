@@ -569,9 +569,13 @@ var ProjectModel = Backbone.Model.extend({
             var aoi = this.get('area_of_interest'),
                 wkaoi = this.get('wkaoi'),
                 promise = $.Deferred(),
-                mapshedInput = utils.isWKAoIValid(wkaoi) ?
-                                   JSON.stringify({ 'wkaoi': wkaoi }) :
-                                   JSON.stringify({ 'area_of_interest': aoi }),
+                aoi_param = utils.isWKAoIValid(wkaoi) ?
+                    { 'wkaoi': wkaoi } :
+                    { 'area_of_interest': aoi },
+                mapshedInput = JSON.stringify(
+                    _.extend({
+                        layer_overrides: this.get('layer_overrides'),
+                    }, aoi_param)),
                 queryParams = isSubbasinMode ? { subbasin: true } : null,
                 taskModel = isSubbasinMode ?
                     createSubbasinTaskModel(utils.MAPSHED) :
@@ -1679,7 +1683,8 @@ var ScenarioModel = Backbone.Model.extend({
                         aoi_census: self.get('aoi_census'),
                         modification_censuses: self.get('modification_censuses'),
                         inputmod_hash: self.get('inputmod_hash'),
-                        modification_hash: self.get('modification_hash')
+                        modification_hash: self.get('modification_hash'),
+                        layer_overrides: project.get('layer_overrides'),
                     };
 
                 if (utils.isWKAoIValid(wkaoi)) {
@@ -1701,6 +1706,7 @@ var ScenarioModel = Backbone.Model.extend({
                     mapshed_job_uuid: isSubbasinMode ?
                         project.get('subbasin_mapshed_job_uuid') :
                         project.get('mapshed_job_uuid'),
+                    layer_overrides: project.get('layer_overrides'),
                 };
         }
     }
