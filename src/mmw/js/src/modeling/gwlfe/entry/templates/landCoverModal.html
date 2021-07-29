@@ -24,7 +24,14 @@
                     <div class="col-sm-8">
                         <select id="land-cover-preset" class="form-control">
                             <optgroup label="Default">
-                                <option value="">NLCD 2011</option>
+                                <option value="">{{ defaultLandCover.displayName }}</option>
+                            </optgroup>
+                            <optgroup label="NLCD">
+                                {% for lc in landCovers %}
+                                    {% if lc.name != defaultLandCover.name %}
+                                        <option value="{{ lc.name }}" {{ 'selected' if preset == lc.name }}>{{ lc.displayName }}</option>        
+                                    {% endif %}
+                                {% endfor %}
                             </optgroup>
                             <optgroup label="Future Simulations{{ ' (DRB Only)' if not in_drb }}">
                                 <option value="drb_2100_land_centers" {{ 'selected' if preset == 'drb_2100_land_centers' }} {{ 'disabled' if not in_drb }}>DRB 2100 land forecast (Centers)</option>

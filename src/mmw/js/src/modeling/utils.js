@@ -54,4 +54,32 @@ module.exports = {
             0,  // High Density Residential
         ];
     },
+
+    /**
+     * Takes a layer_overrides object and converts it to a Land Cover Type
+     * identifier. Defaults to "land_2019_2019"
+     * 
+     * e.g. {"__LAND__": "nlcd-2011-30m-epsg5070-512-int8"} -> "land_2011_2011"
+     */
+    layerOverrideToDefaultLandCoverType: function(layer_overrides) {
+        var raster = layer_overrides && _.get(layer_overrides, "__LAND__"),
+            mapping = {
+                "nlcd-2019-30m-epsg5070-512-byte": "land_2019_2019",
+                "nlcd-2016-30m-epsg5070-512-byte": "land_2019_2016",
+                "nlcd-2011-30m-epsg5070-512-byte": "land_2019_2011",
+                "nlcd-2006-30m-epsg5070-512-byte": "land_2019_2006",
+                "nlcd-2001-30m-epsg5070-512-byte": "land_2019_2001",
+                "nlcd-2011-30m-epsg5070-512-int8": "land_2011_2011",
+            };
+
+        if (!raster) {
+            return "land_2019_2019";
+        }
+
+        if (_.has(mapping, raster)) {
+            return mapping[raster];
+        }
+
+        throw new Error('Invalid layer override: ' + raster);
+    },
 };

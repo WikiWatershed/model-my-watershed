@@ -55,10 +55,18 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
 
     templateHelpers: function() {
         var presetMod = this.scenario.get('modifications').findWhere({ modKey: 'entry_landcover_preset' }),
-            preset = presetMod && presetMod.get('userInput').entry_landcover_preset;
+            preset = presetMod && presetMod.get('userInput').entry_landcover_preset,
+            landTasks = this.analyzeCollection.findWhere({ name: 'land' }).get('tasks'),
+            fields = ['name', 'displayName'],
+            defaultLandCoverType = this.model.get('defaultLandCoverType'),
+            defaultLandCover = landTasks.findWhere({ name: defaultLandCoverType }).pick(fields),
+            landCoverFilter = function(a) { return a.get('name').startsWith('land_'); },
+            landCovers = landTasks.filter(landCoverFilter).map(function(lc) { return lc.pick(fields); });
 
         return {
             preset: preset,
+            defaultLandCover: defaultLandCover,
+            landCovers: landCovers,
         };
     },
 
@@ -1089,7 +1097,7 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
     }).render();
 }
 
-function showLandCoverModal(dataModel, scenario, in_drb, analyzeCollection) {
+function showLandCoverModal(dataModel, scenario, in_drb, analyzeCollection, defaultLandCoverType) {
     var scheme = settings.get('unit_scheme'),
         areaLUnits = coreUnits[scheme].AREA_L_FROM_HA.name,
         landCovers = _(GWLFE_LAND_COVERS).sortBy('id').map(function(lc) {
@@ -1109,6 +1117,7 @@ function showLandCoverModal(dataModel, scenario, in_drb, analyzeCollection) {
             title: 'Land Cover',
             fields: fields,
             in_drb: in_drb,
+            defaultLandCoverType: defaultLandCoverType,
         });
 
     new LandCoverModal({

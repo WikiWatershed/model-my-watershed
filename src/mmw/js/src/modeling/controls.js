@@ -9,6 +9,7 @@ var $ = require('jquery'),
     settings = require('../core/settings'),
     coreUnits = require('../core/units'),
     models = require('./models'),
+    utils = require('./utils'),
     modificationConfigUtils = require('./modificationConfigUtils'),
     gwlfeConfig = require('./gwlfeModificationConfig'),
     entryViews = require('./gwlfe/entry/views'),
@@ -506,7 +507,8 @@ var GwlfeLandCoverView = ControlView.extend({
             this.model.get('dataModel'),
             currentScenario,
             App.currentProject.get('in_drb'),
-            App.getAnalyzeCollection()
+            App.getAnalyzeCollection(),
+            utils.layerOverrideToDefaultLandCoverType(App.currentProject.get('layer_overrides'))
         );
     },
 });
