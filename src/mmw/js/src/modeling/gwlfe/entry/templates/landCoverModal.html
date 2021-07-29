@@ -42,8 +42,17 @@
                                 {% endfor %}
                             </optgroup>
                             <optgroup label="Future Simulations{{ ' (DRB Only)' if not in_drb }}">
-                                <option value="drb_2100_land_centers" {{ 'selected' if preset == 'drb_2100_land_centers' }} {{ 'disabled' if not in_drb }}>DRB 2100 land forecast (Centers)</option>
-                                <option value="drb_2100_land_corridors" {{ 'selected' if preset == 'drb_2100_land_corridors' }} {{ 'disabled' if not in_drb }}>DRB 2100 land forecast (Corridors)</option>
+                                {% for drb in drbCovers %}
+                                    <option
+                                        value="{{ drb.name }}"
+                                        {{ 'selected' if preset == drb.name }}
+                                        {{ 'disabled' if not in_drb or drb.status != 'complete' }}
+                                    >
+                                        {{ '(Loading) ' if drb.status == 'started' }}
+                                        {{ '(Analysis failed) ' if drb.status == 'failed' }}
+                                        {{ drb.displayName }}
+                                    </option>
+                                {% endfor %}
                             </optgroup>
                         </select>
                     </div>

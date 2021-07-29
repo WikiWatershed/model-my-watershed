@@ -60,13 +60,17 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
             fields = ['name', 'displayName', 'status'],
             defaultLandCoverType = this.model.get('defaultLandCoverType'),
             defaultLandCover = landTasks.findWhere({ name: defaultLandCoverType }).pick(fields),
-            landCoverFilter = function(a) { return a.get('name').startsWith('land_'); },
-            landCovers = landTasks.filter(landCoverFilter).map(function(lc) { return lc.pick(fields); });
+            pickFields = function(x) { return x.pick(fields); },
+            landCoverFilter = function(x) { return x.get('name').startsWith('land_'); },
+            drbFilter = function(x) { return x.get('name').startsWith('drb_'); },
+            landCovers = landTasks.filter(landCoverFilter).map(pickFields),
+            drbCovers = landTasks.filter(drbFilter).map(pickFields);
 
         return {
             preset: preset,
             defaultLandCover: defaultLandCover,
             landCovers: landCovers,
+            drbCovers: drbCovers,
         };
     },
 
