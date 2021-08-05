@@ -7,6 +7,7 @@ from django.db.models import FileField
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.auth.models import User
+from django.contrib.postgres.fields import JSONField
 
 from apps.core.models import Job
 
@@ -75,6 +76,9 @@ class Project(models.Model):
         null=True,
         max_length=255,
         help_text='Well-Known Area of Interest ID for faster geoprocessing')
+    layer_overrides = JSONField(
+        default=dict,
+        help_text='JSON object of layers to override defaults with')
 
     def __unicode__(self):
         return self.name

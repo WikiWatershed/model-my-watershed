@@ -514,6 +514,8 @@ def _initiate_subbasin_mapshed_job_chain(mapshed_input, job_id):
 
     area_of_interest, wkaoi = _parse_input(mapshed_input)
 
+    layer_overrides = mapshed_input.get('layer_overrides', {})
+
     if not wkaoi:
         raise ValidationError('You must provide the `wkaoi` key: ' +
                               'a HUC id is currently required for ' +
@@ -528,7 +530,7 @@ def _initiate_subbasin_mapshed_job_chain(mapshed_input, job_id):
     if not huc12s:
         raise EmptyResultSet('No subbasins found')
 
-    job_chain = (multi_subbasin(area_of_interest, huc12s) |
+    job_chain = (multi_subbasin(area_of_interest, huc12s, layer_overrides) |
                  collect_subbasin.s(huc12s) |
                  tasks.subbasin_results_to_dict.s() |
                  save_job_result.s(job_id, mapshed_input))
@@ -541,8 +543,10 @@ def _initiate_mapshed_job_chain(mapshed_input, job_id):
 
     area_of_interest, wkaoi = _parse_input(mapshed_input)
 
+    layer_overrides = mapshed_input.get('layer_overrides', {})
+
     job_chain = (
-        multi_mapshed(area_of_interest, wkaoi) |
+        multi_mapshed(area_of_interest, wkaoi, layer_overrides) |
         convert_data.s(wkaoi) |
         collect_data.s(area_of_interest) |
         save_job_result.s(job_id, mapshed_input))
@@ -604,6 +608,7 @@ def _construct_tr55_job_chain(model_input, job_id):
     aoi = json.loads(aoi_json_str)
     aoi_census = model_input.get('aoi_census')
     modification_censuses = model_input.get('modification_censuses')
+    layer_overrides = model_input.get('layer_overrides', {})
     # Non-overlapping polygons derived from the modifications
     pieces = model_input.get('modification_pieces', [])
     # The hash of the current modifications
@@ -629,8 +634,11 @@ def _construct_tr55_job_chain(model_input, job_id):
             polygons = [m['shape']['geometry'] for m in pieces]
             geop_input = {'polygon': [json.dumps(p) for p in polygons]}
 
-            job_chain.insert(0, geoprocessing.run.s('nlcd_soil',
-                                                    geop_input))
+            job_chain.insert(
+                0,
+                geoprocessing.run.s('nlcd_soil',
+                                    geop_input,
+                                    layer_overrides=layer_overrides))
             job_chain.append(tasks.run_tr55.s(aoi, model_input,
                                               cached_aoi_census=aoi_census))
         else:
@@ -639,9 +647,12 @@ def _construct_tr55_job_chain(model_input, job_id):
             # Use WKAoI only if there are no pieces to modify the AoI
             wkaoi = wkaoi if not pieces else None
 
-            job_chain.insert(0, geoprocessing.run.s('nlcd_soil',
-                                                    geop_input,
-                                                    wkaoi))
+            job_chain.insert(
+                0,
+                geoprocessing.run.s('nlcd_soil',
+                                    geop_input,
+                                    wkaoi,
+                                    layer_overrides=layer_overrides))
             job_chain.append(tasks.run_tr55.s(aoi, model_input))
 
     job_chain.append(save_job_result.s(job_id, model_input))

@@ -494,19 +494,21 @@ def nlcd_kfactor(result):
     return output
 
 
-def multi_mapshed(aoi, wkaoi):
+def multi_mapshed(aoi, wkaoi, layer_overrides=dict):
     shape = [{'id': wkaoi or NOCACHE, 'shape': aoi}]
     stream_lines = streams(aoi)[0]
 
-    return multi.s('mapshed', shape, stream_lines)
+    return multi.s('mapshed', shape, stream_lines,
+                   layer_overrides=layer_overrides)
 
 
-def multi_subbasin(parent_aoi, child_shapes):
+def multi_subbasin(parent_aoi, child_shapes, layer_overrides=dict):
     shapes = [{'id': wkaoi, 'shape': aoi}
               for (wkaoi, _, aoi) in child_shapes]
     stream_lines = streams(parent_aoi)[0]
 
-    return multi.s('mapshed', shapes, stream_lines)
+    return multi.s('mapshed', shapes, stream_lines,
+                   layer_overrides=layer_overrides)
 
 
 @shared_task(throws=Exception)
