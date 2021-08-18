@@ -35,7 +35,7 @@ yarn_version: "1.19.*"
 app_nodejs_version: "12.11.1"
 app_nodejs_npm_version: "6.9.0"
 tiler_nodejs_version: "10.16.0"
-tiler_nodejs_npm_version: "6.9.0"
+tiler_nodejs_npm_version: "7.20.6"
 
 java_version: "8u*"
 java_major_version: "8"
