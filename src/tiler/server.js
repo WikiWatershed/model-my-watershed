@@ -90,6 +90,10 @@ var interactivity = {
             name: 'nhdflowline',
             style: styles.streams,
         },
+        nhd_streams_hr_v1: {
+            name: 'nhdflowlinehr',
+            style: styles.streams,
+        },
         nhd_quality_tn: {
             name: 'nhd_quality_tn',
             style: styles.quality,

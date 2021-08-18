@@ -546,6 +546,14 @@ LAYER_GROUPS = {
             'big_cz': True,
         },
         {
+            'code': 'nhd_streams_hr_v1',
+            'display': ('Continental US High Resolution' +
+                        ' Stream Network'),
+            'table_name': 'nhdflowlinehr',
+            'minZoom': 3,
+            'big_cz': True,
+        },
+        {
             'code': 'drb_streams_v2',
             'display': ('Delaware River Basin High Resolution' +
                         ' Stream Network'),
