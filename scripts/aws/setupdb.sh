@@ -24,11 +24,12 @@ FILE_HOST="https://s3.amazonaws.com/data.mmw.azavea.com"
 load_boundary=false
 file_to_load=
 load_stream=false
+load_hires_stream=false
 load_mapshed=false
 load_water_quality=false
 load_catchment=false
 
-while getopts ":hbsdpmqcf:x:" opt; do
+while getopts ":hbsSdpmqcf:x:" opt; do
     case $opt in
         h)
             echo -e $usage
@@ -37,6 +38,8 @@ while getopts ":hbsdpmqcf:x:" opt; do
             load_boundary=true ;;
         s)
             load_stream=true ;;
+        S)
+            load_hires_stream=true ;;
         d)
             load_drb_streams=true ;;
         p)
@@ -133,6 +136,16 @@ if [ "$load_stream" = "true" ] ; then
     download_and_load $FILES
     purge_tile_cache $PATHS
 fi
+
+if [ "$load_hires_stream" = "true" ] ; then
+    # Fetch hires stream network layer sql files
+    FILES=("nhdflowlinehr.sql.gz")
+    PATHS=("nhd_streams_hr_v1")
+
+    download_and_load $FILES
+    purge_tile_cache $PATHS
+fi
+
 
 if [ "$load_drb_streams" = "true" ] ; then
     # Fetch DRB stream network layer sql file
