@@ -27,7 +27,7 @@ postgresql_support_psycopg2_version: "2.7"
 postgis_version: "2.3"
 postgis_package_version: "2.3.*.pgdg16.04+1"
 
-daemontools_version: "1:0.76-6ubuntu1"
+daemontools_version: "1:0.76-7"
 
 python_version: "2.7.17-2ubuntu4"
 
@@ -59,4 +59,4 @@ llvmlite_version: "0.31.0"
 numba_version: "0.38.1"
 phantomjs_version: "2.1.*"
 
-redis_version: "2:3.0.6-1ubuntu0.*"
+redis_version: "5:5.0.*"
