@@ -11,8 +11,7 @@
   apt:
     pkg: ["libmapnik3.0=3.0.*",
           "libmapnik-dev=3.0.*",
-          "mapnik-utils=3.0.*",
-          "python-mapnik=1:0.0~20151125-92e79d2-1build1"]
+          "mapnik-utils=3.0.*"]
     state: present
 
 - name: Install Windshaft JavaScript dependencies
