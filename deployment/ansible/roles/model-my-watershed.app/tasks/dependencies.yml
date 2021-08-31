@@ -1,12 +1,12 @@
 ---
 - name: Install numba
-  pip: name="{{ item.name }}" version={{ item.version }} state=present
+  pip: name="{{ item.name }}" version={{ item.version }} state=present executable=pip
   with_items:
     - { name: "llvmlite", version: "{{ llvmlite_version }}" }
     - { name: "numba", version: "{{ numba_version }}" }
 
 - name: Install application Python dependencies for development and test
-  pip: requirements="{{ app_home }}/requirements/{{ item }}.txt"
+  pip: requirements="{{ app_home }}/requirements/{{ item }}.txt" executable=pip
   with_items:
     - development
     - test
@@ -15,7 +15,7 @@
     - Restart mmw-app
 
 - name: Install application Python dependencies for production
-  pip: requirements="{{ app_home }}/requirements/production.txt"
+  pip: requirements="{{ app_home }}/requirements/production.txt" executable=pip
   when: "['packer'] | is_in(group_names)"
   notify:
     - Restart mmw-app
