@@ -1,5 +1,4 @@
 ---
 dependencies:
   - { role: "model-my-watershed.base" }
-  - { role: "azavea.build-essential" }
   - { role: "model-my-watershed.celery" }
