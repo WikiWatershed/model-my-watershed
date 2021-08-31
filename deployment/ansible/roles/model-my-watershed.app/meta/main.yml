@@ -1,8 +1,6 @@
 ---
 dependencies:
   - { role: "model-my-watershed.base" }
-  - { role: "azavea.python", python_development: True }
-  - { role: "azavea.pip" }
   - { role: "azavea.yarn" }
   - { role: "azavea.nodejs", nodejs_version: "{{ app_nodejs_version }}", nodejs_npm_version: "{{ app_nodejs_npm_version }}" }
   - { role: "azavea.phantomjs" }

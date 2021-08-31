@@ -1,7 +1,5 @@
 - src: azavea.ntp
   version: 0.1.1
-- src: azavea.pip
-  version: 2.0.1
 - src: azavea.nodejs
   version: 0.3.0
 - src: azavea.yarn
@@ -18,8 +16,6 @@
   version: 1.0.0
 - src: azavea.postgis
   version: 0.3.0
-- src: azavea.python
-  version: 0.1.0
 - src: azavea.redis
   version: 0.1.0
 - src: azavea.phantomjs

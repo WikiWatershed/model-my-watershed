@@ -29,7 +29,7 @@ postgis_package_version: "2.3.*.pgdg16.04+1"
 
 daemontools_version: "1:0.76-6ubuntu1"
 
-python_version: "2.7.12-1~16.04"
+python_version: "2.7.17-2ubuntu4"
 
 yarn_version: "1.19.*"
 app_nodejs_version: "12.11.1"

@@ -1,7 +1,5 @@
 ---
 dependencies:
   - { role: "model-my-watershed.base" }
-  - { role: "azavea.python", python_development: True }
-  - { role: "azavea.pip" }
   - { role: "azavea.build-essential" }
   - { role: "model-my-watershed.celery" }
