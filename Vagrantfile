@@ -52,7 +52,8 @@ Vagrant.configure("2") do |config|
 
     services.vm.provider "virtualbox" do |v|
       v.customize ["guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 10000 ]
-      v.memory = 2048
+      v.memory = 4096
+      v.cpus = 4
     end
 
     services.vm.provision "ansible" do |ansible|
