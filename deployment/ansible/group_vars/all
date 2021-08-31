@@ -41,8 +41,9 @@ java_version: "8u*"
 java_major_version: "8"
 java_flavor: "openjdk"
 
-docker_version: "5:18.*"
-docker_compose_version: "1.23.*"
+docker_version: "5:19.*"
+docker_python_version: "4.4.*"
+docker_compose_version: "1.26.*"
 
 geop_host: "localhost"
 geop_port: 8090
