@@ -1,5 +1,5 @@
 ---
 dependencies:
-  - { role: "azavea.postgresql-support" }
+  - { role: "model-my-watershed.postgresql-support" }
   - { role: "azavea.postgresql" }
   - { role: "azavea.postgis" }

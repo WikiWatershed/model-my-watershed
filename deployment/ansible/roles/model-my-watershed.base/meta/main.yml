@@ -4,5 +4,5 @@ dependencies:
   - { role: "azavea.git" }
   - { role: "azavea.build-essential" }
   - { role: "azavea.daemontools" }
-  - { role: "azavea.postgresql-support" }
   - { role: "model-my-watershed.python" }
+  - { role: "model-my-watershed.postgresql-support" }

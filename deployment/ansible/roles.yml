@@ -10,8 +10,6 @@
   version: 0.3.1
 - src: azavea.daemontools
   version: 0.1.0
-- src: azavea.postgresql-support
-  version: 0.3.0
 - src: azavea.postgresql
   version: 1.0.0
 - src: azavea.postgis
