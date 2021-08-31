@@ -1,8 +1,8 @@
 ---
 - name: Install canvas rendering dependencies
   apt:
-    pkg: ["libcairo2-dev=1.14.*",
-          "libpango1.0-dev=1.38.*",
+    pkg: ["libcairo2-dev=1.16.*",
+          "libpango1.0-dev=1.44.*",
           "libjpeg8-dev=8c-*",
           "libgif-dev=5.1.*"]
     state: present
