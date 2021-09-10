@@ -5,6 +5,8 @@ from __future__ import division
 
 import json
 
+from unittest import skip
+
 from django.test import (Client,
                          TestCase,
                          LiveServerTestCase)
@@ -757,6 +759,7 @@ class ExerciseCatchmentIntersectsAOI(TestCase):
         self.assertTrue(calcs.catchment_intersects_aoi(reprojected_aoi,
                                                        contained_catchment))
 
+    @skip('Disabling until Django Upgrade #3419')
     def test_hundred_sq_km_aoi(self):
         aoi = GEOSGeometry(json.dumps({
             "type": "Polygon",
@@ -878,6 +881,7 @@ class ExerciseCatchmentIntersectsAOI(TestCase):
         self.assertTrue(calcs.catchment_intersects_aoi(reprojected_aoi,
                                                        contained_catchment))
 
+    @skip('Disabling until Django Upgrade #3419')
     def test_thousand_sq_km_aoi(self):
         aoi = GEOSGeometry(json.dumps({
             "type": "Polygon",
@@ -999,6 +1003,7 @@ class ExerciseCatchmentIntersectsAOI(TestCase):
         self.assertTrue(calcs.catchment_intersects_aoi(reprojected_aoi,
                                                        contained_catchment))
 
+    @skip('Disabling until Django Upgrade #3419')
     def test_ten_thousand_sq_km_aoi(self):
         aoi = GEOSGeometry(json.dumps({
             "type": "Polygon",
