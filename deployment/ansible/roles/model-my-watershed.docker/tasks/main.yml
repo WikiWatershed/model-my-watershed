@@ -1,6 +1,5 @@
 ---
 - name: Install Docker Compose
-  pip: name="{{ item.name }}" version={{ item.version }} state=present
-  with_items:
-    - { name: "docker", version: "{{ docker_python_version }}" }
-    - { name: "docker-compose", version: "{{ docker_compose_version }}" }
+  pip:
+    name: docker-compose
+    version: "{{ docker_compose_version }}"
