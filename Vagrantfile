@@ -3,6 +3,11 @@
 
 Vagrant.require_version ">= 2.2"
 
+# We need to stay on Ansible 2.8 because the version_compare filter was removed
+# in 2.9.
+# https://github.com/ansible/ansible/issues/64174#issuecomment-548639160
+ANSIBLE_VERSION = "2.8.*"
+
 if ["up", "provision", "status"].include?(ARGV.first)
   require_relative "vagrant/ansible_galaxy_helper"
 
@@ -56,8 +61,14 @@ Vagrant.configure("2") do |config|
       v.cpus = 4
     end
 
-    services.vm.provision "ansible" do |ansible|
+    services.vm.provision "ansible_local" do |ansible|
       ansible.compatibility_mode = "2.0"
+      ansible.install_mode = "pip_args_only"
+      # We can't use Python 3 yet because the provisioning process fails on
+      # "Create PostgreSQL super user." Failed to import the required Python
+      # library (psycopg2) on services's Python /usr/bin/python3.
+      ansible.pip_install_cmd = "curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo python"
+      ansible.pip_args = "ansible==#{ANSIBLE_VERSION}"
       ansible.playbook = "deployment/ansible/services.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
@@ -96,8 +107,11 @@ Vagrant.configure("2") do |config|
       v.cpus = 2
     end
 
-    worker.vm.provision "ansible" do |ansible|
+    worker.vm.provision "ansible_local" do |ansible|
       ansible.compatibility_mode = "2.0"
+      ansible.install_mode = "pip_args_only"
+      ansible.pip_install_cmd = "curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo python"
+      ansible.pip_args = "ansible==#{ANSIBLE_VERSION}"
       ansible.playbook = "deployment/ansible/workers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
@@ -136,8 +150,11 @@ Vagrant.configure("2") do |config|
       v.memory = 2048
     end
 
-    app.vm.provision "ansible" do |ansible|
+    app.vm.provision "ansible_local" do |ansible|
       ansible.compatibility_mode = "2.0"
+      ansible.install_mode = "pip_args_only"
+      ansible.pip_install_cmd = "curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo python"
+      ansible.pip_args = "ansible==#{ANSIBLE_VERSION}"
       ansible.playbook = "deployment/ansible/app-servers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
@@ -160,8 +177,11 @@ Vagrant.configure("2") do |config|
       v.memory = 1024
     end
 
-    tiler.vm.provision "ansible" do |ansible|
+    tiler.vm.provision "ansible_local" do |ansible|
       ansible.compatibility_mode = "2.0"
+      ansible.install_mode = "pip_args_only"
+      ansible.pip_install_cmd = "curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo python"
+      ansible.pip_args = "ansible==#{ANSIBLE_VERSION}"
       ansible.playbook = "deployment/ansible/tile-servers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
