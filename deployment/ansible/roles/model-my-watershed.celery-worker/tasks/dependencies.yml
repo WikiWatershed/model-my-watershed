@@ -1,12 +1,12 @@
 ---
 - name: Install numba
-  pip: name="{{ item.name }}" version={{ item.version }} state=present executable=pip
+  pip: name="{{ item.name }}" version={{ item.version }} state=present
   with_items:
     - { name: "llvmlite", version: "{{ llvmlite_version }}" }
     - { name: "numba", version: "{{ numba_version }}" }
 
 - name: Install application Python dependencies for development and test
-  pip: requirements="{{ app_home }}/requirements/{{ item }}.txt" executable=pip
+  pip: requirements="{{ app_home }}/requirements/{{ item }}.txt"
   with_items:
     - development
     - test
@@ -15,7 +15,7 @@
     - Restart Celery
 
 - name: Install application Python dependencies for production
-  pip: requirements="{{ app_home }}/requirements/production.txt" executable=pip
+  pip: requirements="{{ app_home }}/requirements/production.txt"
   when: "['packer'] | is_in(group_names)"
   notify:
     - Restart Celery

@@ -14,4 +14,3 @@
   pip: name=psycopg2
        version={{ postgresql_support_psycopg2_version }}
        state=present
-       executable=pip
