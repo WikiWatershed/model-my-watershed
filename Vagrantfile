@@ -42,7 +42,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "services" do |services|
     services.vm.hostname = "services"
-    services.vm.network "private_network", ip: ENV.fetch("MMW_SERVICES_IP", "33.33.34.30")
+    services.vm.network "private_network", ip: ENV["MMW_SERVICES_IP"] || "33.33.34.30"
 
     # PostgreSQL
     services.vm.network "forwarded_port", **{
@@ -77,7 +77,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "worker" do |worker|
     worker.vm.hostname = "worker"
-    worker.vm.network "private_network", ip: ENV.fetch("MMW_WORKER_IP", "33.33.34.20")
+    worker.vm.network "private_network", ip: ENV["MMW_WORKER_IP"] || "33.33.34.20"
 
     worker.vm.synced_folder "src/mmw", "/opt/app"
     # Facilitates the sharing of Django media root directories across virtual machines.
@@ -85,7 +85,7 @@ Vagrant.configure("2") do |config|
       create: true
 
     # Path to RWD data (ex. /media/passport/rwd-nhd)
-    worker.vm.synced_folder ENV.fetch("RWD_DATA", "/tmp"), "/opt/rwd-data"
+    worker.vm.synced_folder ENV["RWD_DATA"] || "/tmp", "/opt/rwd-data"
 
     # AWS
     worker.vm.synced_folder "~/.aws", "/var/lib/mmw/.aws"
@@ -120,7 +120,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "app" do |app|
     app.vm.hostname = "app"
-    app.vm.network "private_network", ip: ENV.fetch("MMW_APP_IP", "33.33.34.10")
+    app.vm.network "private_network", ip: ENV["MMW_APP_IP"] || "33.33.34.10"
 
     app.vm.synced_folder "src/mmw", "/opt/app"
     # Facilitates the sharing of Django media root directories across virtual machines.
@@ -163,7 +163,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "tiler" do |tiler|
     tiler.vm.hostname = "tiler"
-    tiler.vm.network "private_network", ip: ENV.fetch("MMW_TILER_IP", "33.33.34.35")
+    tiler.vm.network "private_network", ip: ENV["MMW_TILER_IP"] || "33.33.34.35"
 
     tiler.vm.synced_folder "src/tiler", "/opt/tiler"
 
