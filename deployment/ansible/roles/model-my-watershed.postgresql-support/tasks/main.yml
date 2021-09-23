@@ -3,7 +3,7 @@
   apt_key: url=https://www.postgresql.org/media/keys/ACCC4CF8.asc state=present
 
 - name: Configure the PostgreSQL APT repositories
-  apt_repository: repo="deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release}}-pgdg {{ postgresql_support_repository_channel }}"
+  apt_repository: repo="deb [arch=amd64] https://apt-archive.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg-archive {{ postgresql_support_repository_channel }}"
                   state=present
 
 - name: Install client API libraries for PostgreSQL

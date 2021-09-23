@@ -9,7 +9,7 @@
   when: "['tile-servers'] | is_not_in(group_names)"
 
 - name: Configure the main PostgreSQL APT repository
-  apt_repository: repo="deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release}}-pgdg main"
+  apt_repository: repo="deb [arch=amd64] https://apt-archive.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg-archive {{ postgresql_support_repository_channel }}"
                   state=present
 
 - name: Install PostgreSQL client
