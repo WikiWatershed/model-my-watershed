@@ -22,3 +22,5 @@
             driver: syslog
             options:
               tag: mmw-rwd
+  vars:
+    ansible_python_interpreter: /usr/bin/python

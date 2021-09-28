@@ -19,3 +19,9 @@
   when: "['packer'] | is_in(group_names)"
   notify:
     - Restart Celery
+
+- name: Hack Python 2.7 to work with Ubuntu Focal
+  replace:
+    path: /usr/local/lib/python2.7/dist-packages/django/contrib/gis/geos/libgeos.py
+    regexp: geos_version\(\)\.decode\(\)
+    replace: geos_version().strip().decode()
