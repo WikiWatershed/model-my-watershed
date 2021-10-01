@@ -37,6 +37,17 @@ else
   VAGRANT_NETWORK_OPTIONS = { auto_correct: false }
 end
 
+MMW_EXTRA_VARS = {
+  django_test_database: ENV["MMW_TEST_DB_NAME"] || "test_mmw",
+  services_ip: ENV["MMW_SERVICES_IP"] || "33.33.34.30",
+  tiler_host: ENV["MMW_TILER_IP"] || "33.33.34.35",
+  itsi_secret_key: ENV["MMW_ITSI_SECRET_KEY"],
+  concord_secret_key: ENV["MMW_CONCORD_SECRET_KEY"],
+  hydroshare_secret_key: ENV["MMW_HYDROSHARE_SECRET_KEY"],
+  srat_catchment_api_key: ENV["MMW_SRAT_CATCHMENT_API_KEY"],
+  tilecache_bucket_name: ENV["MMW_TILECACHE_BUCKET"] || "",
+}
+
 Vagrant.configure("2") do |config|
   config.vm.box = "bento/ubuntu-20.04"
 
@@ -72,6 +83,7 @@ Vagrant.configure("2") do |config|
       ansible.playbook = "deployment/ansible/services.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
+      ansible.extra_vars = MMW_EXTRA_VARS
     end
   end
 
@@ -115,6 +127,7 @@ Vagrant.configure("2") do |config|
       ansible.playbook = "deployment/ansible/workers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
+      ansible.extra_vars = MMW_EXTRA_VARS
     end
   end
 
@@ -158,6 +171,7 @@ Vagrant.configure("2") do |config|
       ansible.playbook = "deployment/ansible/app-servers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
+      ansible.extra_vars = MMW_EXTRA_VARS
     end
   end
 
@@ -185,6 +199,7 @@ Vagrant.configure("2") do |config|
       ansible.playbook = "deployment/ansible/tile-servers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
+      ansible.extra_vars = MMW_EXTRA_VARS
     end
   end
 end

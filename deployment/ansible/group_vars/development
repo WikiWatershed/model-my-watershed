@@ -9,28 +9,18 @@ postgresql_hba_mapping:
   - { type: "host", database: "all", user: "all", address: "33.33.34.1/24", method: "md5" }
   - { type: "host", database: "all", user: "all", address: "10.0.2.0/24", method: "md5" }
 
-services_ip: "{{ lookup('env', 'MMW_SERVICES_IP') | default('33.33.34.30', true) }}"
-
 redis_host: "{{ services_ip }}"
 postgresql_host: "{{ services_ip }}"
-tiler_host: "{{ lookup('env', 'MMW_TILER_IP') | default('33.33.34.35', true) }}"
 
 celery_log_level: "DEBUG"
 celery_number_of_workers: 2
 celery_processes_per_worker: 1
 
 itsi_base_url: "https://learn.staging.concord.org/"
-itsi_secret_key: "{{ lookup('env', 'MMW_ITSI_SECRET_KEY') }}"
-
-concord_secret_key: "{{ lookup('env', 'MMW_CONCORD_SECRET_KEY') }}"
 
 hydroshare_base_url: "https://beta.hydroshare.org/"
-hydroshare_secret_key: "{{ lookup('env', 'MMW_HYDROSHARE_SECRET_KEY') }}"
 
 srat_catchment_api_url: "https://802or9kkk2.execute-api.us-east-2.amazonaws.com/prod/SratRunModel_DEV"
-srat_catchment_api_key: "{{ lookup('env', 'MMW_SRAT_CATCHMENT_API_KEY') }}"
-
-tilecache_bucket_name: "{{ lookup('env', 'MMW_TILECACHE_BUCKET') | default('', true) }}"
 
 docker_options: "-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock"
 
