@@ -4,12 +4,6 @@
           "python2-dev={{ python_version }}"]
     state: present
 
-- name: Link python to python2
-  ansible.builtin.file:
-    src: /usr/bin/python2
-    dest: /usr/bin/python
-    state: link
-
 - name: Install pip
   shell: curl -sL https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo python
   args:
