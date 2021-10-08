@@ -102,7 +102,7 @@
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-app-server",
             "extra_arguments": [
-                "--user 'ubuntu' --extra-vars 'app_deploy_branch={{user `version`}}'"
+                "--user 'ubuntu' --extra-vars 'app_deploy_branch={{user `version`}} django_test_database=test_mmw'"
             ],
             "only": [
                 "mmw-app"
@@ -126,7 +126,7 @@
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-worker-server",
             "extra_arguments": [
-                "--user 'ubuntu' --extra-vars 'app_deploy_branch={{user `version`}}'"
+                "--user 'ubuntu' --extra-vars 'app_deploy_branch={{user `version`}} django_test_database=test_mmw'"
             ],
             "only": [
                 "mmw-worker"
