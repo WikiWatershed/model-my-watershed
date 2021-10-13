@@ -52,9 +52,9 @@ def animal_population(geojson):
     }
 
 
-def stream_data(results, geojson):
+def stream_data(results, geojson, datasource='nhd'):
     """
-    Given a GeoJSON shape, retreive stream data from the `nhdflowline` table
+    Given a GeoJSON shape, retreive stream data from the specified table
     to display in the Analyze tab
 
     Returns a dictionary to append to outgoing JSON for analysis results.
@@ -62,14 +62,18 @@ def stream_data(results, geojson):
 
     NULL_SLOPE = -9998.0
 
+    if datasource not in settings.STREAM_TABLES:
+        raise Exception('Invalid stream datasource {}'.format(datasource))
+
     sql = '''
         SELECT sum(lengthkm) as lengthkm,
                stream_order,
                sum(lengthkm * NULLIF(slope, {NULL_SLOPE})) as slopesum
-        FROM nhdflowline
+        FROM {stream_table}
         WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
         GROUP BY stream_order;
-        '''.format(NULL_SLOPE=NULL_SLOPE)
+        '''.format(NULL_SLOPE=NULL_SLOPE,
+                   stream_table=settings.STREAM_TABLES[datasource])
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [geojson])

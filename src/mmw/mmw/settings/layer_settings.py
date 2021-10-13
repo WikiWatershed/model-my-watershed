@@ -615,6 +615,13 @@ LAYER_GROUPS = {
 }
 
 
+# List of valid stream tables
+STREAM_TABLES = {
+    'nhd': 'nhdflowline',
+    'nhdhr': 'nhdflowlinehr',
+    'drb': 'drb_streams_50',
+}
+
 DRB_PERIMETER = GEOSGeometry(json.dumps(drb_perimeter['geometry']), srid=4326)
 DRB_SIMPLE_PERIMETER = \
     GEOSGeometry(json.dumps(drb_simple_perimeter['geometry']), srid=4326)
