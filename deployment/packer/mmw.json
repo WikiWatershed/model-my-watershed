@@ -89,9 +89,10 @@
             "inline": [
                 "sleep 5",
                 "sudo apt-get update -qq",
-                "sudo apt-get install python-pip python-dev -y",
-                "sudo pip install --upgrade pip==18.1",
-                "sudo pip install ansible==2.6.18",
+                "sudo apt-get install python2 python2-dev -y",
+                "sudo ln -s /usr/bin/python2 /usr/bin/python",
+                "curl -sL https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo python",
+                "sudo pip install ansible==2.7.18",
                 "sudo /bin/sh -c 'echo {{user `branch`}} {{user `description`}} > /srv/version.txt'"
             ]
         },
@@ -101,7 +102,7 @@
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-app-server",
             "extra_arguments": [
-                "--user 'ubuntu' --extra-vars 'app_deploy_branch={{user `version`}}'"
+                "--user 'ubuntu' --extra-vars 'app_deploy_branch={{user `version`}} django_test_database=test_mmw'"
             ],
             "only": [
                 "mmw-app"
@@ -125,7 +126,7 @@
             "playbook_dir": "ansible",
             "inventory_file": "ansible/inventory/packer-worker-server",
             "extra_arguments": [
-                "--user 'ubuntu' --extra-vars 'app_deploy_branch={{user `version`}}'"
+                "--user 'ubuntu' --extra-vars 'app_deploy_branch={{user `version`}} django_test_database=test_mmw'"
             ],
             "only": [
                 "mmw-worker"
