@@ -350,7 +350,7 @@ def streams(geojson, datasource='nhd'):
         raise Exception('Invalid stream datasource {}'.format(datasource))
 
     sql = '''
-          SELECT ST_AsGeoJSON(ST_Collect(ST_Force2D(geom)))
+          SELECT ST_AsGeoJSON(ST_Multi(geom))
           FROM {stream_table}
           WHERE ST_Intersects(geom,
                               ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
