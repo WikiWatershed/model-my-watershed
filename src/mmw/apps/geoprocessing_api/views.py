@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import decorators, status
 from rest_framework.authentication import (TokenAuthentication,
                                            SessionAuthentication)
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from drf_yasg.utils import swagger_auto_schema
@@ -523,7 +524,8 @@ def start_analyze_soil(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.STREAM_DATASOURCE,
+                                        schemas.WKAOI],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -532,7 +534,7 @@ def start_analyze_soil(request, format=None):
 @decorators.permission_classes((IsAuthenticated, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
-def start_analyze_streams(request, format=None):
+def start_analyze_streams(request, datasource, format=None):
     """
     Starts a job to display streams & stream order within a given area of
     interest.
@@ -642,12 +644,20 @@ def start_analyze_streams(request, format=None):
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_input(request)
 
+    if datasource not in settings.STREAM_TABLES:
+        raise ValidationError('Invalid stream datasource: {}.'
+                              ' Must be one of: "{}".'.format(
+                                  datasource,
+                                  '", "'.join(settings.STREAM_TABLES.keys())))
+
     return start_celery_job([
         geoprocessing.run.s('nlcd_streams',
                             {'polygon': [area_of_interest],
-                             'vector': streams(area_of_interest)}, wkaoi),
+                             'vector': streams(area_of_interest, datasource)},
+                            wkaoi,
+                            cache_key=datasource),
         nlcd_streams.s(),
-        tasks.analyze_streams.s(area_of_interest)
+        tasks.analyze_streams.s(area_of_interest, datasource)
     ], area_of_interest, user)
 
 

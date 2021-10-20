@@ -223,7 +223,7 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                     name: "streams",
                     area_of_interest: aoi,
                     wkaoi: wkaoi,
-                    taskName: "analyze/streams"
+                    taskName: "analyze/streams/nhd"
                 },
             ]
         },
