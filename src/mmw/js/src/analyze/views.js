@@ -1685,10 +1685,17 @@ var ClimateResultView = AnalyzeResultView.extend({
 
 var StreamResultView = AnalyzeResultView.extend({
     onShow: function() {
-        var title = 'Stream Network Statistics',
-            source = 'NHDplusV2',
+        var taskName = this.model.get('name'),
+            title = taskName === 'streams_nhdhr' ?
+                    'NHD High Resolution Stream Network Statistics' :
+                    'NHD Medium Resolution Stream Network Statistics',
+            source = taskName === 'streams_nhdhr' ?
+                     'NHDplusHR' :
+                     'NHDplusV2',
             helpText = 'For more information on the data source, see <a href=\'https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-in-layers-streams\' target=\'_blank\' >MMW Technical Documentation</a>',
-            associatedLayerCodes = ['nhd_streams_v2'],
+            associatedLayerCodes = taskName === 'streams_nhdhr' ?
+                                   ['nhd_streams_hr_v1'] :
+                                   ['nhd_streams_v2'],
             chart = null,
             streamOrderHelpText = [
                 {
@@ -1722,7 +1729,8 @@ var AnalyzeResultViews = {
     pointsource: PointSourceResultView,
     catchment_water_quality: CatchmentWaterQualityResultView,
     climate: ClimateResultView,
-    streams: StreamResultView,
+    streams_nhd: StreamResultView,
+    streams_nhdhr: StreamResultView,
     terrain: TerrainResultView,
     protected_lands: LandResultView,
     drb_2100_land_centers: LandResultView,

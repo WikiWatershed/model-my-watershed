@@ -119,7 +119,7 @@ def stream_data(results, geojson, datasource='nhd'):
 
     return {
         'displayName': 'Streams',
-        'name': 'streams',
+        'name': 'streams_{}'.format(datasource),
         'categories': sorted(list(stream_data.values()),
                              key=itemgetter('order')),
     }

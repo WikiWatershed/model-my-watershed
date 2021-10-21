@@ -556,7 +556,7 @@ def start_analyze_streams(request, datasource, format=None):
         {
             "survey": {
                 "displayName": "Streams",
-                "name": "streams",
+                "name": "streams_nhd",
                 "categories": [
                     {
                         "lengthkm": 2.598,
