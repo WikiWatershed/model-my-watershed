@@ -66,17 +66,28 @@ def stream_data(results, geojson, datasource='nhd'):
         raise Exception('Invalid stream datasource {}'.format(datasource))
 
     sql = '''
-        SELECT sum(lengthkm) as lengthkm,
+        WITH stream_intersection AS (
+            SELECT ST_Length(ST_Transform(
+                      ST_Intersection(geom,
+                                      ST_SetSRID(ST_GeomFromGeoJSON(%s),
+                                                 4326)),
+                      5070)) AS lengthm,
+                   stream_order,
+                   slope
+            FROM {stream_table}
+            WHERE ST_Intersects(geom,
+                                ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326)))
+
+        SELECT SUM(lengthm) / 1000 AS lengthkm,
                stream_order,
-               sum(lengthkm * NULLIF(slope, {NULL_SLOPE})) as slopesum
-        FROM {stream_table}
-        WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
+               SUM(lengthm * NULLIF(slope, {NULL_SLOPE})) / 1000 AS slopesum
+        FROM stream_intersection
         GROUP BY stream_order;
         '''.format(NULL_SLOPE=NULL_SLOPE,
                    stream_table=settings.STREAM_TABLES[datasource])
 
     with connection.cursor() as cursor:
-        cursor.execute(sql, [geojson])
+        cursor.execute(sql, [geojson, geojson])
 
         if cursor.rowcount:
             columns = [col[0] for col in cursor.description]
