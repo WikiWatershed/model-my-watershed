@@ -472,7 +472,7 @@ module.exports = {
         },
         "started": "2020-01-17T21:19:06.880891Z",
         "status": "complete",
-        "taskName": "analyze/streams",
+        "taskName": "analyze/streams/nhd",
         "taskType": "api",
         "timeout": 160000,
         "token": "1831c4a26158079f2b5f1530f01beaeca6517544",

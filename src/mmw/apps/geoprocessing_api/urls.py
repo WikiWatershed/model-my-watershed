@@ -27,7 +27,7 @@ urlpatterns = [
         name='start_analyze_catchment_water_quality'),
     url(r'analyze/climate/$', views.start_analyze_climate,
         name='start_analyze_climate'),
-    url(r'analyze/streams/$', views.start_analyze_streams,
+    url(r'analyze/streams/(?P<datasource>\w+)/?$', views.start_analyze_streams,
         name='start_analyze_streams'),
     url(r'analyze/terrain/$', views.start_analyze_terrain,
         name='start_analyze_terrain'),

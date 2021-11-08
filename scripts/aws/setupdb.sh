@@ -3,14 +3,15 @@
 set -e
 set -x
 
-usage="$(basename "$0") [-h] [-b] [-s] \n
+usage="$(basename "$0") [-h] [options] \n
 --Sets up a postgresql database for MMW \n
 \n
-where: \n
+where options are one or more of: \n
     -h  show this help text\n
     -b  load/reload boundary data\n
     -f  load a named boundary sql.gz\n
     -s  load/reload stream data\n
+    -S  load/reload Hi Res stream data (very large)\n
     -d  load/reload DRB stream data\n
     -m  load/reload mapshed data\n
     -p  load/reload DEP data\n

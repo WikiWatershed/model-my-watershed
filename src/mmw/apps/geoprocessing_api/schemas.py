@@ -11,6 +11,16 @@ from drf_yasg.openapi import (
 
 from django.conf import settings
 
+STREAM_DATASOURCE = Parameter(
+    'datasource',
+    IN_PATH,
+    description='The stream datasource to query.'
+                ' Must be one of: "{}"'.format(
+                    '", "'.join(settings.STREAM_TABLES.keys())),
+    type=TYPE_STRING,
+    required=True,
+)
+
 nlcd_year_allowed_values = [
     '2019_2019',
     '2019_2016',

@@ -313,22 +313,25 @@ def ls_factor(stream_length, area, avg_slope, m):
         return ls
 
 
-def stream_length(geom, drb=False):
+def stream_length(geom, datasource='nhd'):
     """
     Given a geometry, finds the total length of streams in meters within it.
     If the drb flag is set, we use the Delaware River Basin dataset instead
     of NHD Flowline.
     """
+    if datasource not in settings.STREAM_TABLES:
+        raise Exception('Invalid stream datasource {}'.format(datasource))
+
     sql = '''
           SELECT ROUND(SUM(ST_Length(
               ST_Transform(
                   ST_Intersection(geom,
                                   ST_SetSRID(ST_GeomFromText(%s), 4326)),
                   5070))))
-          FROM {datasource}
+          FROM {stream_table}
           WHERE ST_Intersects(geom,
                               ST_SetSRID(ST_GeomFromText(%s), 4326));
-          '''.format(datasource='drb_streams_50' if drb else 'nhdflowline')
+          '''.format(stream_table=settings.STREAM_TABLES[datasource])
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [geom.wkt, geom.wkt])
@@ -336,19 +339,22 @@ def stream_length(geom, drb=False):
         return cursor.fetchone()[0] or 0  # Aggregate query returns singleton
 
 
-def streams(geojson, drb=False):
+def streams(geojson, datasource='nhd'):
     """
     Given a GeoJSON, returns a list containing a single MultiLineString, that
     represents the set of streams that intersect with the geometry, in LatLng.
     If the drb flag is set, we use the Delaware River Basin dataset instead of
     NHD Flowline.
     """
+    if datasource not in settings.STREAM_TABLES:
+        raise Exception('Invalid stream datasource {}'.format(datasource))
+
     sql = '''
-          SELECT ST_AsGeoJSON(ST_Collect(ST_Force2D(geom)))
-          FROM {datasource}
+          SELECT ST_AsGeoJSON(ST_Multi(geom))
+          FROM {stream_table}
           WHERE ST_Intersects(geom,
                               ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
-          '''.format(datasource='drb_streams_50' if drb else 'nhdflowline')
+          '''.format(stream_table=settings.STREAM_TABLES[datasource])
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [geojson])
