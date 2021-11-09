@@ -333,16 +333,19 @@ def huc12s_with_aois(geojson):
     return matches
 
 
-def streams_for_huc12s(huc12s, drb=False):
+def streams_for_huc12s(huc12s, datasource='nhd'):
     """
     Get MultiLineString of all streams in the given HUC-12s
     """
+    if datasource not in settings.STREAM_TABLES:
+        raise Exception('Invalid stream datasource {}'.format(datasource))
+
     sql = '''
           SELECT ST_AsGeoJSON(ST_Multi(s.geom))
-          FROM {datasource} s INNER JOIN boundary_huc12 b
+          FROM {stream_table} s INNER JOIN boundary_huc12 b
             ON ST_Intersects(s.geom, b.geom_detailed)
           WHERE b.huc12 IN %s
-          '''.format(datasource='drb_streams_50' if drb else 'nhdflowline')
+          '''.format(stream_table=settings.STREAM_TABLES[datasource])
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [tuple(huc12s)])
