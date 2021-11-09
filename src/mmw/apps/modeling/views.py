@@ -531,7 +531,7 @@ def _initiate_subbasin_mapshed_job_chain(mapshed_input, job_id):
         raise EmptyResultSet('No subbasins found')
 
     job_chain = (multi_subbasin(area_of_interest, huc12s, layer_overrides) |
-                 collect_subbasin.s(huc12s) |
+                 collect_subbasin.s(huc12s, layer_overrides=layer_overrides) |
                  tasks.subbasin_results_to_dict.s() |
                  save_job_result.s(job_id, mapshed_input))
 
@@ -548,7 +548,7 @@ def _initiate_mapshed_job_chain(mapshed_input, job_id):
     job_chain = (
         multi_mapshed(area_of_interest, wkaoi, layer_overrides) |
         convert_data.s(wkaoi) |
-        collect_data.s(area_of_interest) |
+        collect_data.s(area_of_interest, layer_overrides=layer_overrides) |
         save_job_result.s(job_id, mapshed_input))
 
     return chain(job_chain).apply_async(link_error=errback)
