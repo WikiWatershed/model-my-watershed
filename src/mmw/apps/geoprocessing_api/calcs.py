@@ -338,7 +338,7 @@ def streams_for_huc12s(huc12s, drb=False):
     Get MultiLineString of all streams in the given HUC-12s
     """
     sql = '''
-          SELECT ST_AsGeoJSON(ST_Collect(ST_Force2D(s.geom)))
+          SELECT ST_AsGeoJSON(ST_Multi(s.geom))
           FROM {datasource} s INNER JOIN boundary_huc12 b
             ON ST_Intersects(s.geom, b.geom_detailed)
           WHERE b.huc12 IN %s
