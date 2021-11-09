@@ -313,7 +313,7 @@ def ls_factor(stream_length, area, avg_slope, m):
         return ls
 
 
-def stream_length(geom, datasource='nhd'):
+def stream_length(geom, datasource='nhdhr'):
     """
     Given a geometry, finds the total length of streams in meters within it.
     If the drb flag is set, we use the Delaware River Basin dataset instead
@@ -339,7 +339,7 @@ def stream_length(geom, datasource='nhd'):
         return cursor.fetchone()[0] or 0  # Aggregate query returns singleton
 
 
-def streams(geojson, datasource='nhd'):
+def streams(geojson, datasource='nhdhr'):
     """
     Given a GeoJSON, returns a list containing a single MultiLineString, that
     represents the set of streams that intersect with the geometry, in LatLng.

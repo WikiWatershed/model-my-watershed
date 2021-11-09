@@ -485,7 +485,7 @@ GEOP = {
         '__SOIL__': 'ssurgo-hydro-groups-30m-epsg5070-512-int8',
         '__SOILN__': 'soiln-epsg5070',
         '__SOILP__': 'soilpallland2-epsg5070',
-        '__STREAMS__': 'nhd',
+        '__STREAMS__': 'nhdhr',
     },
     'json': {
         'nlcd_ara': {

@@ -52,7 +52,7 @@ def animal_population(geojson):
     }
 
 
-def stream_data(results, geojson, datasource='nhd'):
+def stream_data(results, geojson, datasource='nhdhr'):
     """
     Given a GeoJSON shape, retreive stream data from the specified table
     to display in the Analyze tab
@@ -333,7 +333,7 @@ def huc12s_with_aois(geojson):
     return matches
 
 
-def streams_for_huc12s(huc12s, datasource='nhd'):
+def streams_for_huc12s(huc12s, datasource='nhdhr'):
     """
     Get MultiLineString of all streams in the given HUC-12s
     """
