@@ -46,7 +46,7 @@ docker_compose_version: "1.26.*"
 geop_host: "localhost"
 geop_port: 8090
 
-geop_version: "4.0.3"
+geop_version: "5.0.0"
 geop_cache_enabled: 1
 
 nginx_cache_dir: "/var/cache/nginx"

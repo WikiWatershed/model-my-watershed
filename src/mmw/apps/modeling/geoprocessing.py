@@ -132,13 +132,13 @@ def multi(self, opname, shapes, stream_lines, layer_overrides={}):
         { 'id': '', shape: '' }
 
     where 'shape' is a stringified GeoJSON of a Polygon or MultiPolygon and
-    'stream_lines' is a stringified GeoJSON of a MultiLine, combines it with
-    the JSON saved in settings.GEOP.json corresponding to the opname, to make
-    a payload like this:
+    'stream_lines' is a list of stringified GeoJSON of a MultiLine, combines
+    it with the JSON saved in settings.GEOP.json corresponding to the opname,
+    to make a payload like this:
 
         {
             'shapes': [],
-            'streamLines': '',
+            'streamLines': [],
             'operations': []
         }
 

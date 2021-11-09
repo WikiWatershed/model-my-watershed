@@ -662,7 +662,7 @@ GEOP = {
         },
         'mapshed': {
             'shapes': [],
-            'streamLines': '',
+            'streamLines': [],
             'operations': [
                 {
                     'name': 'RasterGroupedCount',
@@ -741,7 +741,7 @@ GEOP = {
         },
         'worksheet_aoi': {
             'shapes': [],
-            'streamLines': '',
+            'streamLines': [],
             'operations': [
                 {
                     'name': 'RasterGroupedCount',
@@ -931,7 +931,7 @@ GEOP = {
                 }
             ],
             'shapes': [],
-            'streamLines': '',
+            'streamLines': [],
         }
     }
 }

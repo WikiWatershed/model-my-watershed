@@ -469,7 +469,7 @@ def collect_worksheet(area_of_interest):
     matches = huc12s_with_aois(area_of_interest)
 
     huc12_ids = [m['huc12'] for m in matches]
-    streams = streams_for_huc12s(huc12_ids)[0]
+    streams = streams_for_huc12s(huc12_ids)
 
     aoi_shapes = [{
         'id': to_aoi_id(m),
