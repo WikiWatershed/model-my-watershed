@@ -370,6 +370,31 @@ def get_layer_shape(table_code, id):
             return None
 
 
+def get_layer_value(layer, layer_overrides=dict):
+    """
+    Given a layer, gets its value from default or overridden config.
+
+    If the default config is something like:
+
+    {
+        '__LAND__': 'nlcd-2019-30m-epsg5070-512-byte',
+        '__SOIL__': 'ssurgo-hydro-groups-30m-epsg5070-512-int8',
+        '__STREAMS__': 'nhd',
+    }
+
+    and the layer_overrides are:
+
+    {
+        '__STREAMS__': 'drb',
+    }
+
+    Then get_layer_value('__STREAMS__', layer_overrides) => 'drb'.
+
+    Throws an exception if the layer name is not found.
+    """
+    return layer_overrides.get(layer, settings.GEOP['layers'][layer])
+
+
 def boundary_search_context(search_term):
     suggestions = [] if len(search_term) < 3 else \
         _do_boundary_search(search_term)

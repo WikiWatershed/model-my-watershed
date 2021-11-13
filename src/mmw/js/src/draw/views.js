@@ -142,6 +142,7 @@ function validatePointWithinDataSourceBounds(latlng, dataSource) {
             perimeter = _.find(streamLayers, {code: 'drb_streams_v2'}).perimeter;
             point_outside_message = 'Selected point is outside the Delaware River Basin';
             break;
+        case utils.NHDHR:
         case utils.NHD:
             // Bounds checking disabled until #1656 is complete.
             d.resolve(latlng);

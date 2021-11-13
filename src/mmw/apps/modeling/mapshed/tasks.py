@@ -8,6 +8,7 @@ from django.conf import settings
 
 from django.contrib.gis.geos import GEOSGeometry
 
+from apps.modeling.calcs import get_layer_value
 from apps.modeling.geoprocessing import NOCACHE, multi, run, parse
 from apps.modeling.mapshed.calcs import (day_lengths,
                                          nearest_weather_stations,
@@ -45,7 +46,8 @@ NO_LAND_COVER = 'NO_LAND_COVER'
 
 
 @shared_task
-def collect_data(geop_results, geojson, watershed_id=None, weather=None):
+def collect_data(geop_results, geojson, watershed_id=None, weather=None,
+                 layer_overrides={}):
     geop_result = {k: v for r in geop_results for k, v in r.items()}
 
     geom = GEOSGeometry(geojson, srid=4326)
@@ -91,8 +93,9 @@ def collect_data(geop_results, geojson, watershed_id=None, weather=None):
     z['ManNitr'], z['ManPhos'] = manure_spread(z['AEU'])
 
     # Data from Streams dataset
-    z['StreamLength'] = stream_length(geom) or 10   # Meters
-    z['n42b'] = round(z['StreamLength'] / 1000, 1)  # Kilometers
+    datasource = get_layer_value('__STREAMS__', layer_overrides)
+    z['StreamLength'] = stream_length(geom, datasource) or 10  # Meters
+    z['n42b'] = round(z['StreamLength'] / 1000, 1)             # Kilometers
 
     # Data from Point Source Discharge dataset
     n_load, p_load, discharge = point_source_discharge(geom, area,
@@ -494,18 +497,20 @@ def nlcd_kfactor(result):
     return output
 
 
-def multi_mapshed(aoi, wkaoi, layer_overrides=dict):
+def multi_mapshed(aoi, wkaoi, layer_overrides={}):
     shape = [{'id': wkaoi or NOCACHE, 'shape': aoi}]
-    stream_lines = streams(aoi)[0]
+    datasource = get_layer_value('__STREAMS__', layer_overrides)
+    stream_lines = streams(aoi, datasource)
 
     return multi.s('mapshed', shape, stream_lines,
                    layer_overrides=layer_overrides)
 
 
-def multi_subbasin(parent_aoi, child_shapes, layer_overrides=dict):
+def multi_subbasin(parent_aoi, child_shapes, layer_overrides={}):
     shapes = [{'id': wkaoi, 'shape': aoi}
               for (wkaoi, _, aoi) in child_shapes]
-    stream_lines = streams(parent_aoi)[0]
+    datasource = get_layer_value('__STREAMS__', layer_overrides)
+    stream_lines = streams(parent_aoi, datasource)
 
     return multi.s('mapshed', shapes, stream_lines,
                    layer_overrides=layer_overrides)
@@ -539,7 +544,7 @@ def convert_data(payload, wkaoi):
 
 
 @shared_task
-def collect_subbasin(payload, shapes):
+def collect_subbasin(payload, shapes, layer_overrides={}):
     # Gather weather stations and their data
     # collectively to avoid re-reading stations
     # that are shared across huc-12s
@@ -566,7 +571,8 @@ def collect_subbasin(payload, shapes):
     # Build the GMS data for each huc-12
     return [
         collect_data(convert_data(payload, wkaoi), aoi, watershed_id,
-                     get_weather(watershed_id))
+                     get_weather(watershed_id),
+                     layer_overrides=layer_overrides)
         for (wkaoi, watershed_id, aoi) in shapes
     ]
 

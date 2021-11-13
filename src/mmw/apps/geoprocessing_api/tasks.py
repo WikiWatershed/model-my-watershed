@@ -89,7 +89,7 @@ def start_rwd_job(location, snapping, simplify, data_source):
 
 
 @shared_task
-def analyze_streams(results, area_of_interest, datasource='nhd'):
+def analyze_streams(results, area_of_interest, datasource='nhdhr'):
     """
     Given geoprocessing results with stream data and an area of interest,
     returns the streams and stream order within it.
@@ -469,7 +469,7 @@ def collect_worksheet(area_of_interest):
     matches = huc12s_with_aois(area_of_interest)
 
     huc12_ids = [m['huc12'] for m in matches]
-    streams = streams_for_huc12s(huc12_ids)[0]
+    streams = streams_for_huc12s(huc12_ids)
 
     aoi_shapes = [{
         'id': to_aoi_id(m),
