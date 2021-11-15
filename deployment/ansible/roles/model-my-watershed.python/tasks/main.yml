@@ -1,10 +1,20 @@
-- name: Install Python 2.7
+- name: Install Python 3
   apt:
-    pkg: ["python2={{ python_version }}",
-          "python2-dev={{ python_version }}"]
+    pkg: ["python3={{ python_version }}",
+          "python3-dev={{ python_version }}",
+          "python3-distutils={{ python_version }}"]
     state: present
 
+- name: Make python3 default
+  shell: update-alternatives --install /usr/bin/python python /usr/bin/python3 10
+  become: yes
+
 - name: Install pip
-  shell: curl -sL https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo python
+  shell: curl -sL https://bootstrap.pypa.io/get-pip.py | sudo python3
   args:
     warn: no
+
+- name: Install old setuptools with use_2to3 support
+  pip: name=setuptools
+       version=<58
+       state=present

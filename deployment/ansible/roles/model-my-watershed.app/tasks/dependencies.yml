@@ -20,8 +20,8 @@
   notify:
     - Restart mmw-app
 
-- name: Hack Python 2.7 to work with Ubuntu Focal
+- name: Hack Django 1.11 to work with Ubuntu Focal
   replace:
-    path: /usr/local/lib/python2.7/dist-packages/django/contrib/gis/geos/libgeos.py
+    path: /usr/local/lib/python3.8/dist-packages/django/contrib/gis/geos/libgeos.py
     regexp: geos_version\(\)\.decode\(\)
     replace: geos_version().strip().decode()

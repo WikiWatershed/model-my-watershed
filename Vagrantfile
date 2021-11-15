@@ -75,10 +75,7 @@ Vagrant.configure("2") do |config|
     services.vm.provision "ansible_local" do |ansible|
       ansible.compatibility_mode = "2.0"
       ansible.install_mode = "pip_args_only"
-      # We can't use Python 3 yet because the provisioning process fails on
-      # "Create PostgreSQL super user." Failed to import the required Python
-      # library (psycopg2) on services's Python /usr/bin/python3.
-      ansible.pip_install_cmd = "curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo python"
+      ansible.pip_install_cmd = "sudo apt-get install -y python3-distutils && curl https://bootstrap.pypa.io/get-pip.py | sudo python3"
       ansible.pip_args = "ansible==#{ANSIBLE_VERSION}"
       ansible.playbook = "deployment/ansible/services.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
@@ -122,7 +119,7 @@ Vagrant.configure("2") do |config|
     worker.vm.provision "ansible_local" do |ansible|
       ansible.compatibility_mode = "2.0"
       ansible.install_mode = "pip_args_only"
-      ansible.pip_install_cmd = "curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo python"
+      ansible.pip_install_cmd = "sudo apt-get install -y python3-distutils && curl https://bootstrap.pypa.io/get-pip.py | sudo python3"
       ansible.pip_args = "ansible==#{ANSIBLE_VERSION}"
       ansible.playbook = "deployment/ansible/workers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
@@ -166,7 +163,7 @@ Vagrant.configure("2") do |config|
     app.vm.provision "ansible_local" do |ansible|
       ansible.compatibility_mode = "2.0"
       ansible.install_mode = "pip_args_only"
-      ansible.pip_install_cmd = "curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo python"
+      ansible.pip_install_cmd = "sudo apt-get install -y python3-distutils && curl https://bootstrap.pypa.io/get-pip.py | sudo python3"
       ansible.pip_args = "ansible==#{ANSIBLE_VERSION}"
       ansible.playbook = "deployment/ansible/app-servers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
@@ -194,7 +191,7 @@ Vagrant.configure("2") do |config|
     tiler.vm.provision "ansible_local" do |ansible|
       ansible.compatibility_mode = "2.0"
       ansible.install_mode = "pip_args_only"
-      ansible.pip_install_cmd = "curl https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo python"
+      ansible.pip_install_cmd = "sudo apt-get install -y python3-distutils && curl https://bootstrap.pypa.io/get-pip.py | sudo python3"
       ansible.pip_args = "ansible==#{ANSIBLE_VERSION}"
       ansible.playbook = "deployment/ansible/tile-servers.yml"
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
