@@ -310,7 +310,7 @@ def get_api_token():
             username=settings.CLIENT_APP_USERNAME)
         token = Token.objects.get(user=client_app_user)
         return token.key
-    except User.DoesNotExist, Token.DoesNotExist:
+    except (User.DoesNotExist, Token.DoesNotExist):
         return None
 
 

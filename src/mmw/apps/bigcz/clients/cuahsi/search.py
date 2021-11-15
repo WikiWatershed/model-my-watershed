@@ -240,7 +240,7 @@ def make_request(request, expiry, **kwargs):
         response = recursive_asdict(request(**kwargs))
         cache.set(key, response, timeout=expiry)
         return response
-    except URLError, e:
+    except URLError as e:
         if isinstance(e.reason, timeout):
             raise RequestTimedOutError()
         else:

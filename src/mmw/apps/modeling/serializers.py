@@ -46,7 +46,7 @@ class MultiPolygonGeoJsonField(JsonField):
             if not isinstance(geometry, GEOSGeometry):
                 geometry = GEOSGeometry(json.dumps(geometry))
             geometry.srid = 4326
-        except:
+        except Exception:
             raise ValidationError('Area of interest must ' +
                                   'be valid GeoJSON, of type ' +
                                   'Feature, Polygon or MultiPolygon')
@@ -192,7 +192,7 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
                 # Validate that either AoI or WKAoI is specified correctly
                 serializer = AoiSerializer(data=data)
                 serializer.is_valid(raise_exception=True)
-            except:
+            except Exception:
                 rollbar.report_exc_info()
                 raise
 
@@ -226,7 +226,7 @@ class AoiSerializer(serializers.BaseSerializer):
         if (wkaoi and not aoi):
             try:
                 table, id = wkaoi.split('__')
-            except:
+            except Exception:
                 raise ValidationError('wkaoi must be of the form table__id')
 
             aoi = get_layer_shape(table, id)

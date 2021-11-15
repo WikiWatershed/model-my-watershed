@@ -380,7 +380,7 @@ def run_srat(watersheds, mapshed_job_uuid):
                           headers=headers,
                           data=json.dumps(data),
                           timeout=settings.TASK_REQUEST_TIMEOUT)
-    except Timeout as e:
+    except Timeout:
         raise Exception('Request to SRAT Catchment API timed out')
     except ConnectionError:
         raise Exception('Failed to connect to SRAT Catchment API')

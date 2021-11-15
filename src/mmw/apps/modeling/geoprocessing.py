@@ -291,7 +291,7 @@ def geoprocess(endpoint, data, retry=None):
     except ConnectionError as exc:
         if retry is not None:
             retry(exc=exc)
-    except Timeout as exc:
+    except Timeout:
         raise Exception('Geoprocessing service timed out.')
 
     if response.ok:
