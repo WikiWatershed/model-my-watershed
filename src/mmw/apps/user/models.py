@@ -39,7 +39,7 @@ class ItsiUser(models.Model):
     objects = ItsiUserManager()
 
     def __unicode__(self):
-        return unicode(self.user.username)
+        return str(self.user.username)
 
 
 class ConcordUser(models.Model):
@@ -49,7 +49,7 @@ class ConcordUser(models.Model):
     concord_id = models.IntegerField()
 
     def __unicode__(self):
-        return unicode(self.user.username)
+        return str(self.user.username)
 
 
 class UserProfile(models.Model):

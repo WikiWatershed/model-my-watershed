@@ -267,7 +267,7 @@ LAYER_GROUPS = {
             'time_slider_values': MONTH_CODES,
             'use_color_ramp': True,
             'color_ramp_id': 'temperature-legend',
-            'legend_units_label': u'Air Temperature (\xb0C)',
+            'legend_units_label': 'Air Temperature (\xb0C)',
             'legend_unit_breaks': [-20, '', -8, '', 4, '', 16, '', 28, '', 40],
             'big_cz': True,
         },

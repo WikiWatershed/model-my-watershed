@@ -713,7 +713,7 @@ def drb_point_sources(request):
           FROM ms_pointsource_drb
           '''
 
-    point_source_results = {u'type': u'FeatureCollection', u'features': []}
+    point_source_results = {'type': 'FeatureCollection', 'features': []}
 
     with connection.cursor() as cursor:
         cursor.execute(query)

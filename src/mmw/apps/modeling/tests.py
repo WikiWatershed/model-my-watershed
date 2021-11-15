@@ -351,14 +351,14 @@ class TaskRunnerTestCase(TestCase):
         job_chain = views._construct_tr55_job_chain(self.model_input,
                                                     self.job.id)
 
-        cached_argument = ("cached_aoi_census={u'distribution': "
-                           "{u'b:developed_med'"
-                           ": {u'cell_count': 155}, u'a:developed_high': "
-                           "{u'cell_count': 1044}, u'b:developed_high': "
-                           "{u'cell_count': 543}, u'd:developed_high': "
-                           "{u'cell_count': 503}, u'd:developed_med': "
-                           "{u'cell_count': 164}, u'a:developed_med': "
-                           "{u'cell_count': 295}}, u'cell_count': 2704})")
+        cached_argument = ("cached_aoi_census={'distribution': "
+                           "{'b:developed_med'"
+                           ": {'cell_count': 155}, 'a:developed_high': "
+                           "{'cell_count': 1044}, 'b:developed_high': "
+                           "{'cell_count': 543}, 'd:developed_high': "
+                           "{'cell_count': 503}, 'd:developed_med': "
+                           "{'cell_count': 164}, 'a:developed_med': "
+                           "{'cell_count': 295}}, 'cell_count': 2704})")
 
         self.assertTrue(all([True if t in str(job_chain)
                              else False for t in skipped_tasks]),

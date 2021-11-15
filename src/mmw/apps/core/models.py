@@ -22,7 +22,7 @@ class Job(models.Model):
     status = models.CharField(max_length=255)
 
     def __unicode__(self):
-        return unicode(self.uuid)
+        return str(self.uuid)
 
 
 class RequestLog(models.Model):

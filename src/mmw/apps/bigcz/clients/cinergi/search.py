@@ -69,7 +69,7 @@ def parse_links(source):
     result = []
     links = source.get('links_s', [])
 
-    if isinstance(links, basestring):
+    if isinstance(links, str):
         links = [links]
 
     for url in links:
@@ -91,7 +91,7 @@ def parse_string_or_list(string_or_list):
     Fields like contact_organizations be either a list of strings, or
     a string. Make it always a list of strings
     """
-    if isinstance(string_or_list, basestring):
+    if isinstance(string_or_list, str):
         return [string_or_list]
 
     return string_or_list
@@ -112,11 +112,11 @@ def parse_categories(source):
     categories = source.get('hierarchies_cat',
                             source.get('categories_cat'))
     if not categories or \
-       not all(isinstance(c, basestring) for c in categories):
+       not all(isinstance(c, str) for c in categories):
         # We only handle categories that are lists of strings
         return None
 
-    if isinstance(categories, basestring):
+    if isinstance(categories, str):
         categories = [categories]
 
     split_categories = [category.split(">") for category in categories]

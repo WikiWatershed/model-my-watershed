@@ -37,7 +37,7 @@ class MultiPolygonGeoJsonField(JsonField):
         """
         if data == '' or data is None:
             return data
-        if isinstance(data, basestring):
+        if isinstance(data, str):
             data = json.loads(data)
 
         geometry = data['geometry'] if 'geometry' in data else data
