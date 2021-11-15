@@ -44,7 +44,7 @@ def day_lengths(geom):
                                          math.cos(0.0172 *
                                                   ((m + 1) * 30.4375 - 5)))
 
-    return [round(l, 1) for l in lengths]
+    return [round(length, 1) for length in lengths]
 
 
 def nearest_weather_stations(shapes, n=NUM_WEATHER_STATIONS):

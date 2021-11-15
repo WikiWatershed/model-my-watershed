@@ -315,7 +315,7 @@ def search(**kwargs):
             'error': 'The selected area of interest with a bounding box of {} '
                      'km² is larger than the currently supported maximum size '
                      'of {} km².'.format(round(bbox_area, 2),
-                                          settings.BIGCZ_MAX_AREA)})
+                                         settings.BIGCZ_MAX_AREA)})
 
     world = BBox(-180, -90, 180, 90)
 

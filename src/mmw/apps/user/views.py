@@ -144,6 +144,7 @@ def logout(request):
     else:
         return redirect('/')
 
+
 itsi = ItsiService()
 
 

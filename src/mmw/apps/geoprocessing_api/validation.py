@@ -30,7 +30,7 @@ def create_invalid_rwd_location_format_error_msg(loc):
 
 
 def check_location_format(loc):
-    if loc is None or type(loc) is not list or len(loc) is not 2:
+    if loc is None or type(loc) is not list or len(loc) != 2:
         return False
     else:
         [lat, lng] = loc

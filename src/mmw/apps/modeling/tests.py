@@ -970,7 +970,7 @@ class CustomWeatherDataTestCase(TestCase):
         Only runs if MEDIA_ROOT is defined to prevent accidents.
         """
         if settings.MEDIA_ROOT and path:
-                os.remove('{}/{}'.format(settings.MEDIA_ROOT, path))
+            os.remove('{}/{}'.format(settings.MEDIA_ROOT, path))
 
     def create_private_scenario(self):
         response = self.c.post('/mmw/modeling/projects/', self.project,
