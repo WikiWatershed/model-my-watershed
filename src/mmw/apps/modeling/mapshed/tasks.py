@@ -104,8 +104,8 @@ def collect_data(geop_results, geojson, watershed_id=None, weather=None,
     if weather is None:
         wd = weather_data(ws, z['WxYrBeg'], z['WxYrEnd'])
         temps_dict, prcps_dict = wd
-        temps = average_weather_data(temps_dict.values())
-        prcps = average_weather_data(prcps_dict.values())
+        temps = average_weather_data(list(temps_dict.values()))
+        prcps = average_weather_data(list(prcps_dict.values()))
     else:
         temps, prcps = wd
     z['Temp'] = temps
@@ -336,7 +336,7 @@ def avg_awc(result):
     result = parse(result)
 
     return {
-        'avg_awc': result.values()[0]
+        'avg_awc': list(result.values())[0]
     }
 
 
@@ -353,7 +353,7 @@ def soilp(result):
 
     result = parse(result)
 
-    soilp = result.values()[0] * 1.6
+    soilp = list(result.values())[0] * 1.6
 
     return {
         'soilp': soilp
@@ -373,7 +373,7 @@ def recess_coef(result):
 
     result = parse(result)
 
-    recess_coef = result.values()[0] * -0.0015 + 0.1103
+    recess_coef = list(result.values())[0] * -0.0015 + 0.1103
     recess_coef = recess_coef if recess_coef >= 0 else 0.01
 
     return {
@@ -394,7 +394,7 @@ def soiln(result):
 
     result = parse(result)
 
-    soiln = result.values()[0] * 9.0
+    soiln = list(result.values())[0] * 9.0
 
     return {
         'soiln': soiln

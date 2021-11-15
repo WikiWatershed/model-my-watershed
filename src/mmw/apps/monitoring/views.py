@@ -17,7 +17,7 @@ def health_check(request):
     for check in [_check_cache, _check_database]:
         response.update(check())
 
-    if all(map(lambda x: x[0]['default']['ok'], response.values())):
+    if all([x[0]['default']['ok'] for x in response.values()]):
         return JsonResponse(response, status=status.HTTP_200_OK)
     else:
         return JsonResponse(response,

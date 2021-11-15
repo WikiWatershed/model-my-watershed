@@ -6,6 +6,7 @@ import json
 from ast import literal_eval as make_tuple
 from requests.exceptions import ConnectionError, Timeout
 from io import StringIO
+from functools import reduce
 
 from celery import shared_task
 
@@ -45,7 +46,7 @@ def format_quality(model_output):
                 'runoff': model_output[key]['runoff']  # Already CM
             }
 
-        quality[key] = map(map_and_convert_units, zip(measures, codes))
+        quality[key] = list(map(map_and_convert_units, zip(measures, codes)))
 
     return quality
 
