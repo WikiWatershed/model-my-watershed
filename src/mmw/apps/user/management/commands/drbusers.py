@@ -148,4 +148,4 @@ class Command(BaseCommand):
                 u.postal_code
             ))
 
-        print('\n'.join(rows))
+        print(('\n'.join(rows)))

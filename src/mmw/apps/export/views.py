@@ -147,7 +147,7 @@ def shapefile(request):
                       for ext in SHAPEFILE_EXTENSIONS]
 
         # Create a zip file in memory from all the shapefiles
-        stream = StringIO.StringIO()
+        stream = StringIO()
         with zipfile.ZipFile(stream, 'w') as zf:
             for fpath in shapefiles:
                 _, fname = os.path.split(fpath)
@@ -200,7 +200,7 @@ def worksheet(request):
         files = glob.glob('{}/*.*'.format(tempdir))
 
         # Create a zip file in memory for all the files
-        stream = StringIO.StringIO()
+        stream = StringIO()
         with zipfile.ZipFile(stream, 'w') as zf:
             for fpath in files:
                 _, fname = os.path.split(fpath)

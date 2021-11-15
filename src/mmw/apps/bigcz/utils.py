@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import csv
+from io import TextIOWrapper
 
 from apps.bigcz.models import BBox
 
@@ -71,10 +72,11 @@ class ServiceNotAvailableError(ValidationError):
     default_detail = 'Underlying service is not available.'
 
 
-def read_unicode_csv(utf8_data, **kwargs):
+def read_unicode_csv(file_in_zip, **kwargs):
+    utf8_data = TextIOWrapper(file_in_zip, encoding='utf-8')
     csv_reader = csv.DictReader(utf8_data, **kwargs)
     for row in csv_reader:
         yield {
-            key.decode('utf-8'): value.decode('utf-8')
+            key: value
             for key, value in row.items()
         }

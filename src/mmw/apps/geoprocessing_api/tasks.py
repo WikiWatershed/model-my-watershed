@@ -70,7 +70,7 @@ def start_rwd_job(location, snapping, simplify, data_source):
     if simplify is not False:
         params['simplify'] = simplify
 
-    query_string = urllib.urlencode(params)
+    query_string = urlencode(params)
 
     if query_string:
         rwd_url += ('?%s' % query_string)

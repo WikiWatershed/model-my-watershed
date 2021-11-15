@@ -674,7 +674,7 @@ def subbasins_detail(request):
 @decorators.permission_classes((AllowAny, ))
 def subbasin_catchments_detail(request):
     encoded_comids = request.query_params.get('catchment_comids')
-    catchment_comids = json.loads(urllib.unquote(encoded_comids))
+    catchment_comids = json.loads(unquote(encoded_comids))
     if catchment_comids and len(catchment_comids) > 0:
         catchments = get_catchments(catchment_comids)
         return Response(catchments)

@@ -6,6 +6,7 @@ import requests
 from contextlib import closing
 from copy import deepcopy
 from datetime import datetime, timedelta
+from io import StringIO
 
 from django.conf import settings
 from django.db import connection
@@ -40,7 +41,8 @@ def get_weather_modifications(csv_file):
     Returns a tuple where the first item is the output and the second is
     a list of errors.
     """
-    rows = list(csv.reader(csv_file))
+    file = csv_file.read().decode('utf-8')
+    rows = list(csv.reader(StringIO(file)))
     errs = []
 
     def err(msg, line=None):
