@@ -228,7 +228,7 @@ def analyze_climate(result, wkaoi):
         'month': month_name[i],
         'ppt': ppt[str(i)] * CM_PER_MM,
         'tmean': tmean[str(i)],
-    } for i in xrange(1, 13)]
+    } for i in range(1, 13)]
 
     return {
         'survey': {

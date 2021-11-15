@@ -279,7 +279,7 @@ def ls_factors(lu_strms, total_strm_len, areas, avg_slope, ag_lscp):
     results[0] = ag_lscp.hp_ls
     results[1] = ag_lscp.crop_ls
 
-    for i in xrange(2, 16):
+    for i in range(2, 16):
         results[i] = (ls_factor(lu_strms[i] * total_strm_len * KM_PER_M,
                       areas[i], avg_slope, m))
 
@@ -616,7 +616,7 @@ def num_normal_sys(lu_area):
 
     normal_sys_estimate = SSLDR * lu_area[14] + SSLDM * lu_area[11]
     normal_sys_int = int(round(normal_sys_estimate))
-    return [normal_sys_int for n in xrange(12)]
+    return [normal_sys_int for n in range(12)]
 
 
 def sed_a_factor(landuse_pct_vals, cn, AEU, AvKF, AvSlope):
