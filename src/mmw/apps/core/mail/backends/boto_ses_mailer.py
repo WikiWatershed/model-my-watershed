@@ -31,7 +31,7 @@ class EmailBackend(BaseEmailBackend):
         if self.check_quota:
             remaining_quota = self.mailer.get_remaining_message_quota()
         else:
-            remaining_quota = sys.maxint
+            remaining_quota = sys.maxsize
 
         if len(email_messages) <= remaining_quota:
             for email_message in email_messages:
