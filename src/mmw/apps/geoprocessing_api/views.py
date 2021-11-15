@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-
 from celery import chain
 
 from rest_framework.response import Response

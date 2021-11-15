@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-
 from django.utils.timezone import now
 from celery import shared_task
 from apps.core.models import Job

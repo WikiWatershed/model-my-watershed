@@ -1,20 +1,16 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-
 import json
 
 from math import sqrt
 
 
 def aoi_resolution(area_of_interest):
-    if isinstance(area_of_interest, basestring):
+    if isinstance(area_of_interest, str):
         area_of_interest = json.loads(area_of_interest)
 
     pairs = area_of_interest['coordinates'][0][0]
 
-    average_lat = reduce(lambda total, p: total+p[1], pairs, 0) / len(pairs)
+    average_lat = sum([p[1] for p in pairs]) / len(pairs)
 
     max_lat = 48.7
     max_lat_count = 1116  # Number of pixels found in sq km at max lat

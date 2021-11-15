@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
 from urllib.parse import urlencode
 
 from django.test import TestCase, Client
