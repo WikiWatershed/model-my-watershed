@@ -316,18 +316,18 @@ def stream_length(geom, datasource='nhdhr'):
     of NHD Flowline.
     """
     if datasource not in settings.STREAM_TABLES:
-        raise Exception('Invalid stream datasource {}'.format(datasource))
+        raise Exception(f'Invalid stream datasource {datasource}')
 
-    sql = '''
+    sql = f'''
           SELECT ROUND(SUM(ST_Length(
               ST_Transform(
                   ST_Intersection(geom,
                                   ST_SetSRID(ST_GeomFromText(%s), 4326)),
                   5070))))
-          FROM {stream_table}
+          FROM {settings.STREAM_TABLES[datasource]}
           WHERE ST_Intersects(geom,
                               ST_SetSRID(ST_GeomFromText(%s), 4326));
-          '''.format(stream_table=settings.STREAM_TABLES[datasource])
+          '''
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [geom.wkt, geom.wkt])
@@ -343,14 +343,14 @@ def streams(geojson, datasource='nhdhr'):
     NHD Flowline.
     """
     if datasource not in settings.STREAM_TABLES:
-        raise Exception('Invalid stream datasource {}'.format(datasource))
+        raise Exception(f'Invalid stream datasource {datasource}')
 
-    sql = '''
+    sql = f'''
           SELECT ST_AsGeoJSON(ST_Multi(geom))
-          FROM {stream_table}
+          FROM {settings.STREAM_TABLES[datasource]}
           WHERE ST_Intersects(geom,
                               ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
-          '''.format(stream_table=settings.STREAM_TABLES[datasource])
+          '''
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [geojson])
@@ -371,14 +371,14 @@ def point_source_discharge(geom, area, drb=False):
     this uses the ms_pointsource_drb table.
     """
     table_name = get_point_source_table(drb)
-    sql = '''
+    sql = f'''
           SELECT SUM(mgd) AS mg_d,
                  SUM(kgn_yr) / 12 AS kgn_month,
                  SUM(kgp_yr) / 12 AS kgp_month
           FROM {table_name}
           WHERE ST_Intersects(geom,
                               ST_SetSRID(ST_GeomFromText(%s), 4326));
-          '''.format(table_name=table_name)
+          '''
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [geom.wkt])

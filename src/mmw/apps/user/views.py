@@ -171,8 +171,7 @@ def itsi_auth(request):
         itsi_user = session.get_user()
     except Exception as e:
         # In case we are unable to reach ITSI and get an unexpected response
-        rollbar.report_message('ITSI OAuth Error: {}'.format(e.message),
-                               'error')
+        rollbar.report_message(f'ITSI OAuth Error: {e.message}', 'error')
         return redirect('/error/sso')
 
     user = authenticate(sso_id=itsi_user['id'])
@@ -283,8 +282,7 @@ def concord_auth(request):
         concord_user = session.get_user()
     except Exception as e:
         # Report OAuth error
-        rollbar.report_message('Concord OAuth Error: {}'.format(e.message),
-                               'error')
+        rollbar.report_message(f'Concord OAuth Error: {e.message}', 'error')
         return redirect('/error/sso')
 
     user = authenticate(sso_id=concord_user['id'])

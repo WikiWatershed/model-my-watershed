@@ -117,18 +117,14 @@ def parse_details_url(record):
         if len(parts) == 2:
             code, id = parts
             if code == 'NWISDV':
-                url = 'https://waterdata.usgs.gov/nwis/dv/?site_no={}'
-                return url.format(id)
+                return f'https://waterdata.usgs.gov/nwis/dv/?site_no={id}'
             elif code == 'NWISUV':
-                url = 'https://waterdata.usgs.gov/nwis/uv/?site_no={}'
-                return url.format(id)
+                return f'https://waterdata.usgs.gov/nwis/uv/?site_no={id}'
             elif code == 'NWISGW':
-                url = ('https://nwis.waterdata.usgs.gov/' +
-                       'usa/nwis/gwlevels/?site_no={}')
-                return url.format(id)
+                return ('https://nwis.waterdata.usgs.gov/'
+                        f'usa/nwis/gwlevels/?site_no={id}')
             elif code == 'EnviroDIY':
-                url = 'http://data.envirodiy.org/sites/{}/'
-                return url.format(id)
+                return f'http://data.envirodiy.org/sites/{id}/'
     return None
 
 
@@ -230,8 +226,8 @@ def group_series_by_location(series):
 
 
 def make_request(request, expiry, **kwargs):
-    key = 'bigcz_cuahsi_{}_{}'.format(request.method.name,
-                                      hash(frozenset(kwargs.items())))
+    key = \
+        f'bigcz_cuahsi_{request.method.name}_{hash(frozenset(kwargs.items()))}'
     cached = cache.get(key)
     if cached:
         return cached
@@ -312,10 +308,9 @@ def search(**kwargs):
 
     if bbox_area > settings.BIGCZ_MAX_AREA:
         raise ValidationError({
-            'error': 'The selected area of interest with a bounding box of {} '
-                     'km² is larger than the currently supported maximum size '
-                     'of {} km².'.format(round(bbox_area, 2),
-                                         settings.BIGCZ_MAX_AREA)})
+            'error': 'The selected area of interest with a bounding box of '
+                     f'{round(bbox_area, 2)} km² is larger than the currently '
+                     f'supported maximum size of {settings.BIGCZ_MAX_AREA} km².'})  # NOQA
 
     world = BBox(-180, -90, 180, 90)
 

@@ -203,7 +203,7 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
 @shared_task(throws=Exception)
 def nlcd_soil(result):
     if 'error' in result:
-        raise Exception('[nlcd_soil] {}'.format(result['error']))
+        raise Exception(f'[nlcd_soil] {result["error"]}')
 
     dist = {}
     total_count = 0

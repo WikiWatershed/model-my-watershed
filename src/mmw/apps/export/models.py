@@ -29,9 +29,9 @@ class HydroShareResource(models.Model):
         auto_now=True)
 
     def _url(self):
-        return '{}resource/{}'.format(HYDROSHARE_BASE_URL, self.resource)
+        return f'{HYDROSHARE_BASE_URL}resource/{self.resource}'
 
     url = property(_url)
 
     def __unicode__(self):
-        return '{} <{}>'.format(self.title, self.url)
+        return f'{self.title} <{self.url}>'

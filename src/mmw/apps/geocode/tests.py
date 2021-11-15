@@ -10,7 +10,7 @@ class GeocodeTestCase(TestCase):
 
     def assert_candidate_exists_for(self, address):
         c = Client()
-        url = '{}?{}'.format(self.SEARCH_URL, urlencode({'search': address}))
+        url = f'{self.SEARCH_URL}?{urlencode({"search": address})}'
         response = c.get(url).json()
 
         self.assertTrue(len(response) > 0, 'Expected '

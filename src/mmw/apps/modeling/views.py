@@ -154,8 +154,7 @@ def project_weather(request, proj_id, category):
     # Report errors as server side, since they are fault with our
     # built-in data
     if errs:
-        rollbar.report_message('Weather Data Errors: {}'.format(errs),
-                               'error')
+        rollbar.report_message(f'Weather Data Errors: {errs}', 'error')
         return Response({'errors': errs},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -232,11 +231,11 @@ def scenario_duplicate(request, scen_id):
     # Give the scenario a new name. Same logic as in
     # modeling/models.js:makeNewScenarioName.
     names = scenario.project.scenarios.values_list('name', flat=True)
-    copy_name = 'Copy of {}'.format(scenario.name)
+    copy_name = f'Copy of {scenario.name}'
     copy_counter = 1
 
     while copy_name in names:
-        copy_name = 'Copy of {} {}'.format(scenario.name, copy_counter)
+        copy_name = f'Copy of {scenario.name} {copy_counter}'
         copy_counter += 1
 
     scenario.name = copy_name
@@ -360,8 +359,7 @@ def scenario_custom_weather_data_download(request, scen_id):
 
     filename = cwd.name.split('/')[-1]
     response = HttpResponse(cwd, content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; ' \
-                                      'filename={}'.format(filename)
+    response['Content-Disposition'] = f'attachment; filename={filename}'
     return response
 
 
@@ -564,8 +562,7 @@ def export_gms(request, format=None):
     gms_file = tasks.to_gms_file(mapshed_data)
 
     response = HttpResponse(FileWrapper(gms_file), content_type='text/plain')
-    response['Content-Disposition'] = 'attachment; '\
-                                      'filename={}.gms'.format(filename)
+    response['Content-Disposition'] = f'attachment; filename={filename}.gms'
     return response
 
 

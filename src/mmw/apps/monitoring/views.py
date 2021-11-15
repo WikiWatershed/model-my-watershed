@@ -25,7 +25,7 @@ def health_check(request):
 
 
 def _check_cache(cache='default'):
-    key = 'health-check-{}'.format(uuid.uuid4())
+    key = f'health-check-{uuid.uuid4()}'
 
     try:
         caches[cache].set(key, uuid.uuid4())

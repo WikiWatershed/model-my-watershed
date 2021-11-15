@@ -82,16 +82,15 @@ def create_resource(user_id, project_id, params):
     crs = {'no_defs': True, 'proj': 'longlat',
            'ellps': 'WGS84', 'datum': 'WGS84'}
     schema = {'geometry': aoi_json['type'], 'properties': {}}
-    with fiona.open('/tmp/{}.shp'.format(resource), 'w',
+    with fiona.open(f'/tmp/{resource}.shp', 'w',
                     driver='ESRI Shapefile',
                     crs=crs, schema=schema) as shapefile:
         shapefile.write({'geometry': aoi_json, 'properties': {}})
 
     for ext in SHAPEFILE_EXTENSIONS:
-        filename = '/tmp/{}.{}'.format(resource, ext)
+        filename = f'/tmp/{resource}.{ext}'
         with open(filename) as shapefile:
-            hs.addResourceFile(resource, shapefile,
-                               'area-of-interest.{}'.format(ext))
+            hs.addResourceFile(resource, shapefile, f'area-of-interest.{ext}')
         os.remove(filename)
 
     # MapShed BMP Spreadsheet Tool

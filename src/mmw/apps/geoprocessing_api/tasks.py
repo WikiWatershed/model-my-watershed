@@ -121,8 +121,7 @@ def analyze_catchment_water_quality(area_of_interest):
 @shared_task(throws=Exception)
 def analyze_nlcd(result, area_of_interest=None, nlcd_year='2011_2011'):
     if 'error' in result:
-        raise Exception('[analyze_nlcd_{}] {}'.format(
-            nlcd_year, result['error']))
+        raise Exception(f'[analyze_nlcd_{nlcd_year}] {result["error"]}')
 
     pixel_width = aoi_resolution(area_of_interest) if area_of_interest else 1
 
@@ -156,10 +155,9 @@ def analyze_nlcd(result, area_of_interest=None, nlcd_year='2011_2011'):
 
     return {
         'survey': {
-            'name': 'land_{}'.format(nlcd_year),
+            'name': f'land_{nlcd_year}',
             'displayName':
-                'Land Use/Cover {} (NLCD{})'.format(
-                    nlcd_year[5:], nlcd_year[2:4]),
+                f'Land Use/Cover {nlcd_year[5:]} (NLCD{nlcd_year[2:4]})',
             'categories': categories,
         }
     }
@@ -168,7 +166,7 @@ def analyze_nlcd(result, area_of_interest=None, nlcd_year='2011_2011'):
 @shared_task(throws=Exception)
 def analyze_soil(result, area_of_interest=None):
     if 'error' in result:
-        raise Exception('[analyze_soil] {}'.format(result['error']))
+        raise Exception(f'[analyze_soil] {result["error"]}')
 
     pixel_width = aoi_resolution(area_of_interest) if area_of_interest else 1
 
@@ -216,7 +214,7 @@ def analyze_climate(result, wkaoi):
     used for sorting purposes on the client side.
     """
     if 'error' in result:
-        raise Exception('[analyze_climate] {}'.format(result['error']))
+        raise Exception(f'[analyze_climate] {result["error"]}')
 
     ppt = {k[5:]: v['List(0)']
            for k, v in result[wkaoi].items() if 'ppt' in k}
@@ -281,7 +279,7 @@ def analyze_terrain(result):
     which has Elevation in m and keeps Slope in %.
     """
     if 'error' in result:
-        raise Exception('[analyze_terrain] {}'.format(result['error']))
+        raise Exception(f'[analyze_terrain] {result["error"]}')
 
     [elevation, slope] = result
 
@@ -312,7 +310,7 @@ def analyze_terrain(result):
 @shared_task
 def analyze_protected_lands(result, area_of_interest=None):
     if 'error' in result:
-        raise Exception('[analyze_protected_lands] {}'.format(result['error']))
+        raise Exception(f'[analyze_protected_lands] {result["error"]}')
 
     pixel_width = aoi_resolution(area_of_interest) if area_of_interest else 1
 
@@ -365,8 +363,8 @@ def analyze_drb_2100_land(area_of_interest, key):
 
     return {
         'survey': {
-            'name': 'drb_2100_land_{}'.format(key),
-            'displayName': 'DRB 2100 land forecast ({})'.format(key),
+            'name': f'drb_2100_land_{key}',
+            'displayName': f'DRB 2100 land forecast ({key})',
             'categories': categories,
         }
     }
@@ -397,8 +395,7 @@ def collect_worksheet_aois(result, shapes):
     their processed results.
     """
     if 'error' in result:
-        raise Exception('[collect_worksheet_aois] {}'
-                        .format(result['error']))
+        raise Exception(f'[collect_worksheet_aois] {result["error"]}')
 
     NULL_RESULT = {'nlcd_streams': {}, 'nlcd': {}}
     collection = {}
@@ -422,8 +419,7 @@ def collect_worksheet_wkaois(result, shapes):
     modeled results, and also the processed NLCD and NLCD+Streams.
     """
     if 'error' in result:
-        raise Exception('[collect_worksheet_wkaois] {}'
-                        .format(result['error']))
+        raise Exception(f'[collect_worksheet_wkaois] {result["error"]}')
 
     collection = {}
 
@@ -460,7 +456,7 @@ def collect_worksheet(area_of_interest):
     worksheet containing these values, which can be used for further modeling.
     """
     def to_aoi_id(m):
-        return '{}-{}'.format(NOCACHE, m['wkaoi'])
+        return f'{NOCACHE}-{m["wkaoi"]}'
 
     matches = huc12s_with_aois(area_of_interest)
 
@@ -486,7 +482,7 @@ def collect_worksheet(area_of_interest):
     collection = {}
 
     for m in matches:
-        filename = '{}__{}'.format(m['huc12'], m['name'].replace(' ', '_'))
+        filename = f'{m["huc12"]}__{m["name"].replace(" ", "_")}'
         collection[filename] = {
             'name': m['name'],
             'aoi': aoi_results.get(to_aoi_id(m), {}),

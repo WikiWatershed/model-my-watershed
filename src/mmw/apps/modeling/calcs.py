@@ -46,7 +46,7 @@ def get_weather_modifications(csv_file):
     errs = []
 
     def err(msg, line=None):
-        text = 'Line {}: {}'.format(line, msg) if line else msg
+        text = f'Line {line}: {msg}' if line else msg
         errs.append(text)
 
     if rows[0] != ['DATE', 'PRCP', 'TAVG']:
@@ -77,9 +77,8 @@ def get_weather_modifications(csv_file):
     year_range = endyear - begyear + 1
 
     if year_range < 3 or year_range > 30:
-        err('Invalid year range {} between beginning year {}'
-            ' and end year {}. Year range must be between 3 and 30.'
-            .format(year_range, begyear, endyear))
+        err(f'Invalid year range {year_range} between beginning year {begyear}'
+            f' and end year {endyear}. Year range must be between 3 and 30.')
 
     if errs:
         return None, errs
@@ -107,7 +106,7 @@ def get_weather_modifications(csv_file):
             # is the next one in the sequence.
             if idx > 0:
                 if d == previous_d:
-                    raise ValueError('Duplicate date: {}'.format(date))
+                    raise ValueError(f'Duplicate date: {date}')
 
                 expected_d = previous_d + timedelta(days=1)
                 if d != expected_d:
@@ -157,8 +156,8 @@ def get_weather_simulation_for_project(project, category):
         # Ensure the station exists, if not exit quickly
         res = requests.head(url)
         if not res.ok:
-            errs.append('Error {} while getting data for {}/{}'
-                        .format(res.status_code, category, ws.station))
+            errs.append(f'Error {res.status_code} while getting data for'
+                        f' {category}/{ws.station}')
             return {}, errs
 
         # Fetch and parse station weather data, noting any errors
@@ -175,7 +174,7 @@ def get_weather_simulation_for_project(project, category):
     for c in ['WxYrBeg', 'WxYrEnd', 'WxYrs']:
         s = set([d[c] for d in data])
         if len(s) > 1:
-            errs.append('{} does not match in dataset: {}'.format(c, s))
+            errs.append(f'{c} does not match in dataset: {s}')
 
     # Respond with errors, if any
     if errs:
@@ -201,14 +200,14 @@ def split_into_huc12s(code, id):
     table_name = layer.get('table_name')
     huc_code = table_name.split('_')[1]
 
-    sql = '''
+    sql = f'''
           SELECT 'huc12__' || boundary_huc12.id,
                  boundary_huc12.huc12,
                  ST_AsGeoJSON(boundary_huc12.geom_detailed)
           FROM boundary_huc12, {table_name}
           WHERE huc12 LIKE ({huc_code} || '%%')
           AND {table_name}.id = %s
-          '''.format(table_name=table_name, huc_code=huc_code)
+          '''
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [int(id)])
@@ -346,9 +345,9 @@ def get_layer_shape(table_code, id):
     properties = ''
 
     if table.startswith('boundary_huc'):
-        properties = "'huc', {}".format(table[-5:])
+        properties = f"'huc', {table[-5:]}"
 
-    sql = '''
+    sql = f'''
           SELECT json_build_object(
             'type', 'Feature',
             'id', id,
@@ -356,7 +355,7 @@ def get_layer_shape(table_code, id):
             'properties', json_build_object({properties}))
           FROM {table}
           WHERE id = %s
-          '''.format(field=field, properties=properties, table=table)
+          '''
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [int(id)])
@@ -432,11 +431,11 @@ def _get_boundary_search_query(search_term):
 
     subquery = ' UNION ALL '.join(selects)
 
-    return """
+    return f"""
         SELECT id, code, name, rank, center
-        FROM ({}) AS subquery
+        FROM ({subquery}) AS subquery
         ORDER BY rank DESC, name
-    """.format(subquery)
+    """
 
 
 def _do_boundary_search(search_term):
@@ -447,7 +446,7 @@ def _do_boundary_search(search_term):
     query = _get_boundary_search_query(search_term)
 
     with connection.cursor() as cursor:
-        wildcard_term = '%{}%'.format(search_term)
+        wildcard_term = f'%{search_term}%'
         cursor.execute(query, {'term': wildcard_term})
 
         wkb_r = WKBReader()

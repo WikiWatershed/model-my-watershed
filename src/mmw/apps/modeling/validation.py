@@ -28,9 +28,9 @@ def get_aoi_sq_km(aoi):
 
 
 def create_excessive_aoi_size_error_msg(aoi):
-    return ('Area of interest is too exceeds maximum size: submitted {} sq km '
-            'but the maximum size is {}'.format(get_aoi_sq_km(aoi),
-                                                settings.MMW_MAX_AREA))
+    return ('Area of interest is too exceeds maximum size:'
+            f' submitted {get_aoi_sq_km(aoi)} sq km'
+            f' but the maximum size is {settings.MMW_MAX_AREA}')
 
 
 def check_analyze_aoi_size_below_max_area(aoi):
@@ -38,8 +38,7 @@ def check_analyze_aoi_size_below_max_area(aoi):
 
 
 def create_invalid_shape_error_msg(aoi):
-    return ('Area of interest is invalid: {}'.format(
-            aoi.valid_reason))
+    return f'Area of interest is invalid: {aoi.valid_reason}'
 
 
 def check_aoi_does_not_self_intersect(aoi):

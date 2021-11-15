@@ -956,12 +956,10 @@ class CustomWeatherDataTestCase(TestCase):
         self.weather_data_file.close()
 
     def endpoint(self, scenario_id):
-        return '/mmw/modeling/scenarios/{}/custom-weather-data/'\
-               .format(scenario_id)
+        return f'/mmw/modeling/scenarios/{scenario_id}/custom-weather-data/'
 
     def download_endpoint(self, scenario_id):
-        return '/mmw/modeling/scenarios/{}/custom-weather-data/download/'\
-               .format(scenario_id)
+        return f'/mmw/modeling/scenarios/{scenario_id}/custom-weather-data/download/'  # NOQA
 
     def delete_weather_dataset(self, path):
         """
@@ -970,7 +968,7 @@ class CustomWeatherDataTestCase(TestCase):
         Only runs if MEDIA_ROOT is defined to prevent accidents.
         """
         if settings.MEDIA_ROOT and path:
-            os.remove('{}/{}'.format(settings.MEDIA_ROOT, path))
+            os.remove(f'{settings.MEDIA_ROOT}/{path}')
 
     def create_private_scenario(self):
         response = self.c.post('/mmw/modeling/projects/', self.project,
@@ -996,12 +994,12 @@ class CustomWeatherDataTestCase(TestCase):
 
         project_id = scenario['project']
 
-        response = self.c.get('/mmw/modeling/projects/{}'.format(project_id))
+        response = self.c.get(f'/mmw/modeling/projects/{project_id}')
         project = response.data
         project['user'] = project['user']['id']
         project['is_private'] = False
 
-        self.c.patch('/mmw/modeling/projects/{}'.format(project_id),
+        self.c.patch(f'/mmw/modeling/projects/{project_id}',
                      project,
                      format='json')
 
@@ -1013,7 +1011,7 @@ class CustomWeatherDataTestCase(TestCase):
         scenario['name'] = 'Current Conditions'
         scenario['is_current_conditions'] = True
 
-        self.c.put('/mmw/modeling/scenarios/{}'.format(scenario['id']),
+        self.c.put(f'/mmw/modeling/scenarios/{scenario["id"]}',
                    scenario,
                    format='json')
 
@@ -1198,8 +1196,7 @@ class CustomWeatherDataTestCase(TestCase):
         scenario = self.create_private_scenario_with_weather_data()
         scenario['weather_type'] = WeatherType.DEFAULT
 
-        response = self.c.put('/mmw/modeling/scenarios/{}'
-                              .format(scenario['id']),
+        response = self.c.put(f'/mmw/modeling/scenarios/{scenario["id"]}',
                               scenario,
                               format='json')
 
@@ -1212,8 +1209,7 @@ class CustomWeatherDataTestCase(TestCase):
         scenario['weather_type'] = WeatherType.DEFAULT
         self.c.logout()
 
-        response = self.c.put('/mmw/modeling/scenarios/{}'
-                              .format(scenario['id']),
+        response = self.c.put(f'/mmw/modeling/scenarios/{scenario["id"]}',
                               scenario,
                               format='json')
 
@@ -1223,8 +1219,7 @@ class CustomWeatherDataTestCase(TestCase):
         scenario = self.create_private_scenario_with_weather_data()
         scenario['weather_type'] = 'A_WRONG_VALUE'
 
-        response = self.c.put('/mmw/modeling/scenarios/{}'
-                              .format(scenario['id']),
+        response = self.c.put(f'/mmw/modeling/scenarios/{scenario["id"]}',
                               scenario,
                               format='json')
 
@@ -1234,8 +1229,7 @@ class CustomWeatherDataTestCase(TestCase):
         scenario = self.create_private_scenario()
         scenario['weather_type'] = WeatherType.CUSTOM
 
-        response = self.c.put('/mmw/modeling/scenarios/{}'
-                              .format(scenario['id']),
+        response = self.c.put(f'/mmw/modeling/scenarios/{scenario["id"]}',
                               scenario,
                               format='json')
         self.assertEqual(response.status_code, 400)
@@ -1244,16 +1238,14 @@ class CustomWeatherDataTestCase(TestCase):
         scenario = self.create_current_conditions_scenario()
         scenario['weather_type'] = WeatherType.CUSTOM
 
-        response = self.c.put('/mmw/modeling/scenarios/{}'
-                              .format(scenario['id']),
+        response = self.c.put(f'/mmw/modeling/scenarios/{scenario["id"]}',
                               scenario,
                               format='json')
         self.assertEqual(response.status_code, 400)
 
         scenario['weather_type'] = WeatherType.SIMULATION
 
-        response = self.c.put('/mmw/modeling/scenarios/{}'
-                              .format(scenario['id']),
+        response = self.c.put(f'/mmw/modeling/scenarios/{scenario["id"]}',
                               scenario,
                               format='json')
         self.assertEqual(response.status_code, 400)

@@ -138,12 +138,12 @@ def shapefile(request):
 
     try:
         # Write shapefiles
-        with fiona.open('{}/area-of-interest.shp'.format(tempdir), 'w',
+        with fiona.open(f'{tempdir}/area-of-interest.shp', 'w',
                         driver='ESRI Shapefile',
                         crs=crs, schema=schema) as sf:
             sf.write({'geometry': aoi_json, 'properties': {}})
 
-        shapefiles = ['{}/area-of-interest.{}'.format(tempdir, ext)
+        shapefiles = [f'{tempdir}/area-of-interest.{ext}'
                       for ext in SHAPEFILE_EXTENSIONS]
 
         # Create a zip file in memory from all the shapefiles
@@ -160,8 +160,7 @@ def shapefile(request):
 
     # Return the zip file from memory with appropriate headers
     resp = HttpResponse(stream.getvalue(), content_type='application/zip')
-    resp['Content-Disposition'] = 'attachment; '\
-                                  'filename="{}.zip"'.format(filename)
+    resp['Content-Disposition'] = f'attachment; filename="{filename}.zip"'
     return resp
 
 
@@ -179,7 +178,7 @@ def worksheet(request):
 
     try:
         for item in items:
-            worksheet_path = '{}/{}.xlsx'.format(tempdir, item['name'])
+            worksheet_path = f'{tempdir}/{item["name"]}.xlsx'
 
             # Copy the Excel template
             shutil.copyfile(EXCEL_TEMPLATE, worksheet_path)
@@ -191,13 +190,12 @@ def worksheet(request):
 
             # If geojson specified, write it to file
             if 'geojson' in item:
-                geojson_path = '{}/{}__Urban_Area.geojson'.format(tempdir,
-                                                                  item['name'])
+                geojson_path = f'{tempdir}/{item["name"]}__Urban_Area.geojson'
 
                 with open(geojson_path, 'w') as geojson_file:
                     json.dump(item['geojson'], geojson_file)
 
-        files = glob.glob('{}/*.*'.format(tempdir))
+        files = glob.glob(f'{tempdir}/*.*')
 
         # Create a zip file in memory for all the files
         stream = StringIO()

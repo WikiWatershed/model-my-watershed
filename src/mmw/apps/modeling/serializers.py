@@ -231,7 +231,7 @@ class AoiSerializer(serializers.BaseSerializer):
 
             aoi = get_layer_shape(table, id)
             if (not aoi):
-                raise ValidationError(detail='Invalid wkaoi: {}'.format(wkaoi))
+                raise ValidationError(detail=f'Invalid wkaoi: {wkaoi}')
 
         aoi_field = MultiPolygonGeoJsonField().to_internal_value(aoi)
 

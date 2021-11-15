@@ -62,9 +62,8 @@ class RequestTimedOutError(APIException):
 
 class ValuesTimedOutError(APIException):
     status_code = status.HTTP_504_GATEWAY_TIMEOUT
-    default_detail = \
-        'Request for values did not finish in {} seconds'.format(
-            settings.BIGCZ_CLIENT_TIMEOUT)
+    default_detail = ('Request for values did not finish in '
+                      f'{settings.BIGCZ_CLIENT_TIMEOUT} seconds')
 
 
 class ServiceNotAvailableError(ValidationError):

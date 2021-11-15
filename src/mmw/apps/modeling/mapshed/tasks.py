@@ -213,7 +213,7 @@ def nlcd_streams(result):
     post-processing tasks, to be used in geop_tasks.
     """
     if 'error' in result:
-        raise Exception('[nlcd_streams] {}'.format(result['error']))
+        raise Exception(f'[nlcd_streams] {result["error"]}')
 
     # This can't be done in geoprocessing.run because the keys may be tuples,
     # which are not JSON serializable and thus can't be shared between tasks
@@ -250,7 +250,7 @@ def nlcd_streams_drb(result):
     the percentage of DRB streams in each land use type.
     """
     if 'error' in result:
-        raise Exception('[nlcd_streams_drb] {}'.format(result['error']))
+        raise Exception(f'[nlcd_streams_drb] {result["error"]}')
 
     result = parse(result)
     total = sum(result.values())
@@ -278,7 +278,7 @@ def nlcd_soil(result):
     of these raster datasets.
     """
     if 'error' in result:
-        raise Exception('[nlcd_soil] {}'.format(result['error']))
+        raise Exception(f'[nlcd_soil] {result["error"]}')
 
     ng_count = parse(result)
 
@@ -310,8 +310,7 @@ def gwn(result):
     Derive Groundwater Nitrogen and Phosphorus
     """
     if 'error' in result:
-        raise Exception('[gwn] {}'
-                        .format(result['error']))
+        raise Exception(f'[gwn] {result["error"]}')
 
     result = parse(result)
     gr_nitr_conc, gr_phos_conc = groundwater_nitrogen_conc(result)
@@ -330,8 +329,7 @@ def avg_awc(result):
     Original at Class1.vb@1.3.0:4150
     """
     if 'error' in result:
-        raise Exception('[awc] {}'
-                        .format(result['error']))
+        raise Exception(f'[awc] {result["error"]}')
 
     result = parse(result)
 
@@ -348,8 +346,7 @@ def soilp(result):
     Originally calculated via lookup table at Class1.vb@1.3.0:8975-8988
     """
     if 'error' in result:
-        raise Exception('[soilp] {}'
-                        .format(result['error']))
+        raise Exception(f'[soilp] {result["error"]}')
 
     result = parse(result)
 
@@ -368,8 +365,7 @@ def recess_coef(result):
     Originally a static value 0.06 Class1.vb@1.3.0:10333
     """
     if 'error' in result:
-        raise Exception('[recess_coef] {}'
-                        .format(result['error']))
+        raise Exception(f'[recess_coef] {result["error"]}')
 
     result = parse(result)
 
@@ -389,8 +385,7 @@ def soiln(result):
     Originally a static value of 2000 at Class1.vb@1.3.0:9587
     """
     if 'error' in result:
-        raise Exception('[soiln] {}'
-                        .format(result['error']))
+        raise Exception(f'[soiln] {result["error"]}')
 
     result = parse(result)
 
@@ -404,7 +399,7 @@ def soiln(result):
 @shared_task(throws=Exception)
 def nlcd_slope(result):
     if 'error' in result:
-        raise Exception('[nlcd_slope] {}'.format(result['error']))
+        raise Exception(f'[nlcd_slope] {result["error"]}')
 
     result = parse(result)
 
@@ -448,7 +443,7 @@ def nlcd_slope(result):
 @shared_task(throws=Exception)
 def slope(result):
     if 'error' in result:
-        raise Exception('[slope] {}'.format(result['error']))
+        raise Exception(f'[slope] {result["error"]}')
 
     result = parse(result)
 
@@ -466,7 +461,7 @@ def slope(result):
 @shared_task(throws=Exception)
 def nlcd_kfactor(result):
     if 'error' in result:
-        raise Exception('[nlcd_kfactor] {}'.format(result['error']))
+        raise Exception(f'[nlcd_kfactor] {result["error"]}')
 
     result = parse(result)
 
@@ -516,8 +511,7 @@ def multi_subbasin(parent_aoi, child_shapes, layer_overrides={}):
 def convert_data(payload, wkaoi):
     if 'error' in payload:
         raise Exception(
-            '[convert_data] {} {}'.format(
-                wkaoi or NOCACHE, payload['error']))
+            f'[convert_data] {wkaoi or NOCACHE} {payload["error"]}')
 
     results = payload[wkaoi or NOCACHE]
 

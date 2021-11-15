@@ -87,7 +87,7 @@ def project_clone(request, proj_id=None):
         scenario.project = project
         scenario.save()
 
-    return redirect('/project/{0}'.format(project.id))
+    return redirect(f'/project/{project.id}')
 
 
 def _via_hydroshare(request, resource, callback, errback):
@@ -154,7 +154,7 @@ def project_via_hydroshare_open(request, resource):
     """Redirect to project given a HydroShare resource, if found."""
 
     def callback(project_id):
-        return redirect('/project/{}/'.format(project_id))
+        return redirect(f'/project/{project_id}/')
 
     def errback():
         return redirect('/error/hydroshare-not-found')
@@ -200,11 +200,11 @@ def project_via_hydroshare_edit(request, resource):
         if hsresource and hsresource.resource == resource:
             # Use case (1). The user owns this exact project, so we show it.
             if request.user == project.user:
-                return redirect('/project/{}/'.format(project_id))
+                return redirect(f'/project/{project_id}/')
 
             # Use case (2). This is a different user trying to edit a project
             # they don't own, so we clone it to their account.
-            return redirect('/project/{}/clone'.format(project_id))
+            return redirect(f'/project/{project_id}/clone')
 
         # Use cases (3) and (4). This is a copy in HydroShare that needs a
         # corresponding new copy in MMW. Fetch that resource's details.
@@ -261,7 +261,7 @@ def project_via_hydroshare_edit(request, resource):
                     # from which this project was created, don't associate it
                     pass
 
-                return redirect('/project/{0}'.format(project.id))
+                return redirect(f'/project/{project.id}')
 
         except IntegrityError:
             return redirect('/error/hydroshare-not-found')

@@ -141,7 +141,7 @@ def search(**kwargs):
                                               CATALOG_URL,
                                               params=params))
 
-    key = 'bigcz_hydroshare_{}'.format(hash(frozenset(params.items())))
+    key = f'bigcz_hydroshare_{hash(frozenset(params.items()))}'
     cached = cache.get(key)
     if cached:
         data = cached

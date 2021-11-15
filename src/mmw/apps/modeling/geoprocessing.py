@@ -54,7 +54,7 @@ def run(self, opname, input_data, wkaoi=None, cache_key='',
     """
     if opname not in settings.GEOP['json']:
         return {
-            'error': 'Unsupported operation {}'.format(opname)
+            'error': f'Unsupported operation {opname}'
         }
 
     if not input_data:
@@ -65,11 +65,8 @@ def run(self, opname, input_data, wkaoi=None, cache_key='',
     key = ''
 
     if wkaoi and settings.GEOP['cache']:
-        key = 'geop_{wkaoi}__{opname}{layers_cache_key}{cache_key}'.format(
-            wkaoi=wkaoi,
-            opname=opname,
-            layers_cache_key='__'.join(layer_overrides.values()),
-            cache_key=cache_key)
+        layers_cache_key = '__'.join(layer_overrides.values())
+        key = f'geop_{wkaoi}__{opname}{layers_cache_key}{cache_key}'
         cached = cache.get(key)
         if cached:
             return cached
@@ -229,10 +226,7 @@ def multi(self, opname, shapes, stream_lines, layer_overrides={}):
         if not shape['id'].startswith(NOCACHE):
             output[shape['id']] = {}
             for op in data['operations']:
-                key = 'geop_{shape_id}__{op_label}{layers}'.format(
-                    shape_id=shape['id'],
-                    op_label=op['label'],
-                    layers=layers_cache_key)
+                key = f'geop_{shape["id"]}__{op["label"]}{layers_cache_key}'
                 cached = cache.get(key)
                 if cached:
                     output[shape['id']][op['label']] = cached
@@ -252,10 +246,7 @@ def multi(self, opname, shapes, stream_lines, layer_overrides={}):
         for shape_id, operation_results in result.items():
             if not shape_id.startswith(NOCACHE):
                 for op_label, value in operation_results.items():
-                    key = 'geop_{shape_id}__{op_label}{layers}'.format(
-                        shape_id=shape_id,
-                        op_label=op_label,
-                        layers=layers_cache_key)
+                    key = f'geop_{shape_id}__{op_label}{layers_cache_key}'
                     cache.set(key, value, None)
 
         output.update(result)
@@ -281,7 +272,7 @@ def geoprocess(endpoint, data, retry=None):
     host = settings.GEOP['host']
     port = settings.GEOP['port']
 
-    geop_url = 'http://{}:{}/{}'.format(host, port, endpoint)
+    geop_url = f'http://{host}:{port}/{endpoint}'
 
     try:
         response = requests.post(geop_url,
@@ -301,8 +292,7 @@ def geoprocess(endpoint, data, retry=None):
         else:
             return result
     else:
-        raise Exception('Geoprocessing Error.\n'
-                        'Details: {}'.format(response.text))
+        raise Exception(f'Geoprocessing Error.\nDetails: {response.text}')
 
 
 def parse(result):

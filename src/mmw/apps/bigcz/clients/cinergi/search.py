@@ -14,7 +14,7 @@ from apps.bigcz.clients.cinergi.models import CinergiResource
 
 CINERGI_HOST = 'http://cinergi.sdsc.edu'
 CATALOG_NAME = 'cinergi'
-CATALOG_URL = '{}/geoportal/opensearch'.format(CINERGI_HOST)
+CATALOG_URL = f'{CINERGI_HOST}/geoportal/opensearch'
 PAGE_SIZE = settings.BIGCZ_CLIENT_PAGE_SIZE
 
 
@@ -83,7 +83,7 @@ def parse_cinergi_url(fileid):
     Convert fileid to URL in CINERGI Portal
     """
 
-    return '{}/geoportal/?filter=%22{}%22'.format(CINERGI_HOST, fileid)
+    return f'{CINERGI_HOST}/geoportal/?filter=%22{fileid}%22'
 
 
 def parse_string_or_list(string_or_list):
@@ -218,7 +218,7 @@ def parse_record(item):
 
 
 def prepare_bbox(box):
-    return '{},{},{},{}'.format(box.xmin, box.ymin, box.xmax, box.ymax)
+    return f'{box.xmin},{box.ymin},{box.xmax},{box.ymax}'
 
 
 def prepare_date(value):
@@ -230,7 +230,7 @@ def prepare_date(value):
 def prepare_time(from_date, to_date):
     value = prepare_date(from_date)
     if to_date:
-        value = '{}/{}'.format(value, prepare_date(to_date))
+        value = f'{value}/{prepare_date(to_date)}'
     return value
 
 
