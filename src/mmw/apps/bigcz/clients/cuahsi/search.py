@@ -65,7 +65,7 @@ def recursive_asdict(d):
     From https://gist.github.com/robcowie/a6a56cf5b17a86fdf461
     """
     out = {}
-    for k, v in asdict(d).iteritems():
+    for k, v in asdict(d).items():
         if hasattr(v, '__keylist__'):
             out[k] = recursive_asdict(v)
         elif isinstance(v, list):
@@ -201,7 +201,7 @@ def group_series_by_location(series):
             group.append(record)
 
     records = []
-    for location, group in groups.iteritems():
+    for location, group in groups.items():
         records.append({
             'serv_code': group[0]['ServCode'],
             'serv_url': group[0]['ServURL'],

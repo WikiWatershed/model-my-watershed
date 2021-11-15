@@ -55,7 +55,7 @@ class HydroShareService(OAuth2Service):
         if 'error' in res:
             raise RuntimeError(res['error'])
 
-        for key, value in res.iteritems():
+        for key, value in res.items():
             setattr(token, key, value)
         token.save()
 

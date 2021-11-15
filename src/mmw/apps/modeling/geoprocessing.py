@@ -249,9 +249,9 @@ def multi(self, opname, shapes, stream_lines, layer_overrides={}):
         result = geoprocess('multi', data, self.retry)
 
         # Set cached results
-        for shape_id, operation_results in result.iteritems():
+        for shape_id, operation_results in result.items():
             if not shape_id.startswith(NOCACHE):
-                for op_label, value in operation_results.iteritems():
+                for op_label, value in operation_results.items():
                     key = 'geop_{shape_id}__{op_label}{layers}'.format(
                         shape_id=shape_id,
                         op_label=op_label,

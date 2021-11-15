@@ -487,7 +487,7 @@ def curve_number(n_count, ng_count):
     # Calculate average hydrological soil group for each NLCD type by
     # reducing [(n, g): c] to [n: avg(g * c)]
     n_gavg = {}
-    for (n, g), count in ng_count.iteritems():
+    for (n, g), count in ng_count.items():
         n_gavg[n] = float(g) * count / n_count[n] + n_gavg.get(n, 0)
 
     def cni(nlcd):
@@ -534,7 +534,7 @@ def groundwater_nitrogen_conc(gwn_dict):
     weighted_conc = 0
     if valid_total_cells > 0:
         weighted_conc = sum([float(gwn * count)/valid_total_cells
-                             for gwn, count in valid_res.iteritems()])
+                             for gwn, count in valid_res.items()])
 
     groundwater_nitrogen_conc = (0.7973 * weighted_conc) - 0.692
     groundwater_phosphorus_conc = (0.0049 * weighted_conc) + 0.0089
@@ -571,7 +571,7 @@ def landuse_pcts(n_count):
     total = sum(n_count.values())
     if total > 0:
         n_pct = {nlcd: float(count) / total
-                 for nlcd, count in n_count.iteritems()}
+                 for nlcd, count in n_count.items()}
     else:
         n_pct = {nlcd: 0 for nlcd in n_count.keys()}
 

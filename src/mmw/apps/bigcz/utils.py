@@ -76,5 +76,5 @@ def read_unicode_csv(utf8_data, **kwargs):
     for row in csv_reader:
         yield {
             key.decode('utf-8'): value.decode('utf-8')
-            for key, value in row.iteritems()
+            for key, value in row.items()
         }

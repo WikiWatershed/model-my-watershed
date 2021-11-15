@@ -179,7 +179,7 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
             'SummaryLoads': summary_loads,
             'Catchments': {comid: format_catchment(result)
                            for comid, result
-                           in srat_huc12['catchments'].iteritems()},
+                           in srat_huc12['catchments'].items()},
         }
 
     aggregate = {
@@ -188,13 +188,13 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
         'SummaryLoads': empty_source('Entire area'),
         # All gwlf-e results should have the same inputmod hash,
         # so grab any of them
-        'inputmod_hash': huc12_gwlfe_results.itervalues()
-                                            .next()['inputmod_hash'],
+        'inputmod_hash': next(iter(
+            huc12_gwlfe_results.values()))['inputmod_hash'],
     }
 
     aggregate['HUC12s'] = {huc12_id: add_huc12(result, aggregate)
                            for huc12_id, result
-                           in srat_catchment_results['huc12s'].iteritems()}
+                           in srat_catchment_results['huc12s'].items()}
 
     return aggregate
 
@@ -207,7 +207,7 @@ def nlcd_soil(result):
     dist = {}
     total_count = 0
 
-    for key, count in result.iteritems():
+    for key, count in result.items():
         # Extract (3, 4) from "List(3,4)"
         (n, s) = make_tuple(key[4:])
         # Map [NODATA, ad, bd] to c, [cd] to d
@@ -369,7 +369,7 @@ def run_subbasin_gwlfe_chunks(mapshed_job_uuid, modifications,
 @shared_task
 def run_srat(watersheds, mapshed_job_uuid):
     try:
-        data = [format_for_srat(id, w) for id, w in watersheds.iteritems()]
+        data = [format_for_srat(id, w) for id, w in watersheds.items()]
     except Exception as e:
         raise Exception('Formatting sub-basin GWLF-E results failed: %s' % e)
 

@@ -230,7 +230,7 @@ def nlcd_streams(result):
                                        low_urban_count,
                                        med_high_urban_count))
     lu_stream_pct = [0.0] * NLU
-    for nlcd, stream_count in result.iteritems():
+    for nlcd, stream_count in result.items():
         lu = get_lu_index(nlcd)
         if lu is not None:
             lu_stream_pct[lu] += float(stream_count) / total
@@ -256,7 +256,7 @@ def nlcd_streams_drb(result):
     total = sum(result.values())
 
     lu_stream_pct_drb = [0.0] * NLU
-    for nlcd, stream_count in result.iteritems():
+    for nlcd, stream_count in result.items():
         lu = get_lu_index(nlcd)
         if lu is not None:
             lu_stream_pct_drb[lu] += float(stream_count) / total
@@ -290,7 +290,7 @@ def nlcd_soil(result):
     # Reduce [(n, g, t): c] to
     n_count = {}   # [n: sum(c)]
     ng2_count = {}  # [(n, g): sum(c)]
-    for (n, g), count in ng_count.iteritems():
+    for (n, g), count in ng_count.items():
         n_count[n] = count + n_count.get(n, 0)
 
         # Map soil group values to usable subset
@@ -413,7 +413,7 @@ def nlcd_slope(result):
     ag_count = 0
     total_count = 0
 
-    for (nlcd_code, slope), count in result.iteritems():
+    for (nlcd_code, slope), count in result.items():
         if nlcd_code in AG_NLCD_CODES:
             if slope > 3:
                 ag_slope_3_count += count
@@ -473,7 +473,7 @@ def nlcd_kfactor(result):
     # average kfactor for each land use
     # see Class1.vb#6431
     kf = [0.0] * NLU
-    for nlcd_code, kfactor in result.iteritems():
+    for nlcd_code, kfactor in result.items():
         lu_ind = get_lu_index(nlcd_code)
         if lu_ind is not None:
             kf[lu_ind] = kfactor

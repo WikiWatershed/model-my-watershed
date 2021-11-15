@@ -163,7 +163,7 @@ def padep_worksheet(results):
     """
     payload = []
 
-    for k, v in results.iteritems():
+    for k, v in results.items():
         huc12_stream_length_km = sum(
             [c['lengthkm'] for c in v['huc12']['streams']['categories']])
         huc12_stream_ag_pct = \

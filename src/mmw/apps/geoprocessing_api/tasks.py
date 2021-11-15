@@ -136,7 +136,7 @@ def analyze_nlcd(result, area_of_interest=None, nlcd_year='2011_2011'):
         return dictionary.get(key, default) * pixel_width * pixel_width
 
     # Convert results to histogram, calculate total
-    for key, count in result.iteritems():
+    for key, count in result.items():
         nlcd, ara = key
         total_count += count
         total_ara += count if ara == 1 else 0
@@ -144,7 +144,7 @@ def analyze_nlcd(result, area_of_interest=None, nlcd_year='2011_2011'):
 
     has_ara = total_ara > 0
 
-    for nlcd, (code, name) in layer_classmaps.NLCD.iteritems():
+    for nlcd, (code, name) in layer_classmaps.NLCD.items():
         categories.append({
             'area': area(histogram, nlcd),
             'active_river_area': area(result, (nlcd, 1)) if has_ara else None,
@@ -177,13 +177,13 @@ def analyze_soil(result, area_of_interest=None):
     categories = []
 
     # Convert results to histogram, calculate total
-    for key, count in result.iteritems():
+    for key, count in result.items():
         total_count += count
         s = make_tuple(key[4:])  # Change {"List(1)":5} to {1:5}
         s = s if s != settings.NODATA else 3  # Map NODATA to 3
         histogram[s] = count + histogram.get(s, 0)
 
-    for soil, (code, name) in layer_classmaps.SOIL.iteritems():
+    for soil, (code, name) in layer_classmaps.SOIL.items():
         categories.append({
             'area': histogram.get(soil, 0) * pixel_width * pixel_width,
             'code': code,
@@ -321,11 +321,11 @@ def analyze_protected_lands(result, area_of_interest=None):
     total_count = 0
     categories = []
 
-    for key, count in result.iteritems():
+    for key, count in result.items():
         total_count += count
         histogram[key] = count + histogram.get(key, 0)
 
-    for class_id, (code, name) in layer_classmaps.PROTECTED_LANDS.iteritems():
+    for class_id, (code, name) in layer_classmaps.PROTECTED_LANDS.items():
         categories.append({
             'area': histogram.get(class_id, 0) * pixel_width * pixel_width,
             'class_id': class_id,
@@ -350,11 +350,11 @@ def analyze_drb_2100_land(area_of_interest, key):
     total_count = 0
     categories = []
 
-    for nlcd, count in result.iteritems():
+    for nlcd, count in result.items():
         total_count += count
         histogram[nlcd] = count + histogram.get(nlcd, 0)
 
-    for nlcd, (code, name) in layer_classmaps.NLCD.iteritems():
+    for nlcd, (code, name) in layer_classmaps.NLCD.items():
         categories.append({
             'area': histogram.get(nlcd, 0),
             'code': code,
@@ -383,7 +383,7 @@ def collect_nlcd(histogram, geojson=None):
         'code': code,
         'nlcd': nlcd,
         'type': name,
-    } for nlcd, (code, name) in layer_classmaps.NLCD.iteritems()]
+    } for nlcd, (code, name) in layer_classmaps.NLCD.items()]
 
     return {'categories': categories}
 

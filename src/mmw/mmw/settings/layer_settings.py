@@ -101,7 +101,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
             'big_cz': True,
         },
         {
@@ -116,7 +116,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
             'big_cz': True,
         },
         {
@@ -131,7 +131,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
             'big_cz': True,
         },
         {
@@ -146,7 +146,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
             'big_cz': True,
         },
         {
@@ -161,7 +161,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
             'big_cz': True,
         },
         {
@@ -176,7 +176,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
             'big_cz': True,
         },
         {
@@ -285,7 +285,7 @@ LAYER_GROUPS = {
             'legend_mapping': OrderedDict([
                 (shortname, longname)
                 for _, (shortname, longname) in sorted(
-                        PROTECTED_LANDS.iteritems(), key=lambda x: x[0]
+                        PROTECTED_LANDS.items(), key=lambda x: x[0]
                 )
             ]),
         },

@@ -264,14 +264,14 @@ def apply_gwlfe_modifications(gms, modifications):
     modified_gms = deepcopy(gms)
 
     for mod in modifications:
-        for key, value in mod.iteritems():
+        for key, value in mod.items():
             if '__' in key:
                 array_mods.append({key: value})
             else:
                 key_mods.append({key: value})
 
     for mod in array_mods:
-        for key, value in mod.iteritems():
+        for key, value in mod.items():
             gmskey, i = key.split('__')
             modified_gms[gmskey][int(i)] = value
 
@@ -306,7 +306,7 @@ def apply_subbasin_gwlfe_modifications(gms, modifications,
         urban_pct_total_stream_length = 1
 
     for mod in weighted_modifications:
-        for key, val in mod.iteritems():
+        for key, val in mod.items():
             if key in ag_stream_length_weighted_keys:
                 val *= ag_pct_total_stream_length
             elif key in urban_stream_length_weighted_keys:
@@ -317,9 +317,9 @@ def apply_subbasin_gwlfe_modifications(gms, modifications,
 
 
 def sum_subbasin_stream_lengths(gmss):
-    ag = sum([gms['AgLength'] for gms in gmss.itervalues()])
+    ag = sum([gms['AgLength'] for gms in gmss.values()])
     urban = sum([gms['StreamLength'] - gms['AgLength']
-                 for gms in gmss.itervalues()])
+                 for gms in gmss.values()])
 
     return {
         'ag': ag,

@@ -35,7 +35,7 @@ def animal_population(geojson):
     aeu_for_geom = animal_energy_units(geom)[2]
     aeu_return_values = []
 
-    for animal, aeu_value in aeu_for_geom.iteritems():
+    for animal, aeu_value in aeu_for_geom.items():
         aeu_return_values.append({
             'type': ANIMAL_DISPLAY_NAMES[animal],
             'aeu': int(aeu_value),
@@ -358,6 +358,6 @@ def drexel_fast_zonal(geojson, key):
     res.raise_for_status()
 
     # Select results for the given key
-    result = {int(k): v for k, v in res.json()[key].iteritems()}
+    result = {int(k): v for k, v in res.json()[key].items()}
 
     return result
