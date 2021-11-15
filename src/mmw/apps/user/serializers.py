@@ -3,8 +3,9 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
-from models import UserProfile
 from rest_framework import serializers
+
+from apps.user.models import UserProfile
 
 
 class UserSerializer(serializers.ModelSerializer):

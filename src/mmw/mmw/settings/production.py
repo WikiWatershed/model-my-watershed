@@ -12,7 +12,7 @@ import os
 
 from boto.utils import get_instance_metadata
 
-from base import *  # NOQA
+from mmw.settings.base import *  # NOQA
 
 
 instance_metadata = get_instance_metadata(timeout=5)

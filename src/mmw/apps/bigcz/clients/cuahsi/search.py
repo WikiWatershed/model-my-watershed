@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from __future__ import division
 
 from datetime import date
-from urllib2 import URLError
+from urllib.error import URLError
 from socket import timeout
 from operator import attrgetter, itemgetter
 

@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 import os
 import logging
-import urllib
+from urllib.parse import urlencode
 
 from ast import literal_eval as make_tuple
 from calendar import month_name

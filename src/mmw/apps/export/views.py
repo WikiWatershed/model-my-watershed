@@ -9,9 +9,10 @@ import glob
 import json
 import os
 import shutil
-import StringIO
 import tempfile
 import zipfile
+
+from io import StringIO
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -26,10 +27,10 @@ from apps.modeling.models import Project
 from apps.modeling.serializers import AoiSerializer
 from apps.geoprocessing_api.views import start_celery_job
 
-from hydroshare import HydroShareService
-from models import HydroShareResource
-from serializers import HydroShareResourceSerializer
-from tasks import create_resource, update_resource, padep_worksheet
+from apps.export.hydroshare import HydroShareService
+from apps.export.models import HydroShareResource
+from apps.export.serializers import HydroShareResourceSerializer
+from apps.export.tasks import create_resource, update_resource, padep_worksheet
 
 hss = HydroShareService()
 HYDROSHARE_BASE_URL = settings.HYDROSHARE['base_url']

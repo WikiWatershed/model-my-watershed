@@ -16,7 +16,7 @@ from collections import OrderedDict
 import json
 
 from django.contrib.gis.geos import GEOSGeometry
-from layer_classmaps import NLCD, SOIL, PROTECTED_LANDS
+from mmw.settings.layer_classmaps import NLCD, SOIL, PROTECTED_LANDS
 
 # [01, 02, ...] style list for layer time sliders
 MONTH_CODES = [str(m).zfill(2) for m in range(1, 13)]

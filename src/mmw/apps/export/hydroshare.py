@@ -5,10 +5,10 @@ from __future__ import division
 
 import json
 
-from cStringIO import StringIO
+from io import StringIO
 from zipfile import ZipFile
 from rauth import OAuth2Service
-from urlparse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse
 from hs_restclient import HydroShare, HydroShareAuthOAuth2, HydroShareNotFound
 
 from django.conf import settings

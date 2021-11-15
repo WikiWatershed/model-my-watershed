@@ -5,7 +5,7 @@ from __future__ import division
 
 import requests
 import dateutil.parser
-from HTMLParser import HTMLParser
+from html.parser import HTMLParser
 from django.contrib.gis.geos import Polygon
 
 from django.conf import settings

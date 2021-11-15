@@ -3,8 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import division
 
-# NOTE Change to from urllib.parse import urlencode for Python 3
-from urllib import urlencode
+from urllib.parse import urlencode
 
 from django.test import TestCase, Client
 from django.urls import reverse

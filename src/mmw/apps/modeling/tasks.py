@@ -9,7 +9,7 @@ import json
 
 from ast import literal_eval as make_tuple
 from requests.exceptions import ConnectionError, Timeout
-from StringIO import StringIO
+from io import StringIO
 
 from celery import shared_task
 

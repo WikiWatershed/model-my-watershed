@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import json
 import rollbar
-import urllib
+from urllib.parse import unquote
 
 from celery import chain, group
 

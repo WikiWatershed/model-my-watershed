@@ -13,12 +13,14 @@ from os import environ
 from os.path import abspath, basename, dirname, join, normpath
 from sys import path
 
-from layer_settings import (LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
-                            DRB_PERIMETER, DRB_SIMPLE_PERIMETER, STREAM_TABLES,
-                            NHD_REGION2_PERIMETER, CONUS_PERIMETER)  # NOQA
-from gwlfe_settings import (GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, # NOQA
-                            CURVE_NUMBER, NODATA, SRAT_KEYS, SUBBASIN_SOURCE_NORMALIZING_AREAS,  # NOQA
-                            WEATHER_DATA_BUCKET_URL)  # NOQA
+from mmw.settings.layer_settings import (
+    LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
+    DRB_PERIMETER, DRB_SIMPLE_PERIMETER, STREAM_TABLES,
+    NHD_REGION2_PERIMETER, CONUS_PERIMETER)
+from mmw.settings.gwlfe_settings import (
+    GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP,
+    CURVE_NUMBER, NODATA, SRAT_KEYS, SUBBASIN_SOURCE_NORMALIZING_AREAS,
+    WEATHER_DATA_BUCKET_URL)
 
 # Normally you should not import ANYTHING from Django directly
 # into your settings, but ImproperlyConfigured is an exception.

@@ -17,9 +17,9 @@ from django.contrib.gis.geos import GEOSGeometry
 from apps.modeling.models import Project, Scenario
 from apps.modeling.tasks import to_gms_file
 
-from hydroshare import HydroShareService
-from models import HydroShareResource
-from serializers import HydroShareResourceSerializer
+from apps.export.hydroshare import HydroShareService
+from apps.export.models import HydroShareResource
+from apps.export.serializers import HydroShareResourceSerializer
 
 hss = HydroShareService()
 

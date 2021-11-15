@@ -5,7 +5,7 @@ from __future__ import division
 
 import json
 import requests
-from urlparse import urljoin
+from urllib.parse import urljoin
 from copy import deepcopy
 from hs_restclient import HydroShareNotAuthorized
 
