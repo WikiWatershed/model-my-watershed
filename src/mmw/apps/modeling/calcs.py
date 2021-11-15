@@ -51,7 +51,7 @@ def get_weather_modifications(csv_file):
 
     if rows[0] != ['DATE', 'PRCP', 'TAVG']:
         err('Missing or incorrect header. Expected "DATE,PRCP,TAVG", got {}'
-            .format(','.join(rows[0]), 1))
+            .format(','.join(rows[0])), 1)
 
     if len(rows) < 1097:
         err('Need at least 3 years of contiguous data.')
