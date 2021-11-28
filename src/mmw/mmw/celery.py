@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import os
 import rollbar
 
@@ -34,4 +32,4 @@ def handle_task_failure(**kw):
 
 @app.task(bind=True)
 def debug_task(self):
-    print('Request: {0!r}'.format(self.request))
+    print(('Request: {0!r}'.format(self.request)))

@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-
 from drf_yasg.openapi import (
     Parameter, Schema,
     IN_PATH, IN_QUERY,

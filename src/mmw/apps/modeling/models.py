@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
 from django.db.models import FileField
 from django.conf import settings
 from django.contrib.gis.db import models
@@ -13,11 +9,11 @@ from apps.core.models import Job
 
 
 def project_filename(project, filename):
-    return 'project_{0}/{1}'.format(project.id, filename)
+    return f'project_{project.id}/{filename}'
 
 
 def scenario_filename(scenario, filename):
-    return 'p{0}/s{1}/{2}'.format(scenario.project.id, scenario.id, filename)
+    return f'p{scenario.project.id}/s{scenario.id}/{filename}'
 
 
 class Project(models.Model):

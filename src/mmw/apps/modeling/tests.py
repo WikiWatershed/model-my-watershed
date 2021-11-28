@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
 import os
 
 from celery import chain, shared_task
@@ -136,6 +132,13 @@ class ExerciseGeoprocessing(TestCase):
         self.assertEqual(actual, expected)
 
 
+CELERY_TEST_OVERRIDES = {
+    'task_always_eager': True,
+    'task_store_eager_result': True,
+    'task_eager_propagates': True,
+}
+
+
 class TaskRunnerTestCase(TestCase):
     def setUp(self):
         self.model_input = {
@@ -206,7 +209,7 @@ class TaskRunnerTestCase(TestCase):
                                       status='started')
         self.job.save()
 
-    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+    @override_settings(**CELERY_TEST_OVERRIDES)
     def test_tr55_job_runs_in_chain(self):
         # For the purposes of this test, there are no modifications
         self.model_input['modification_pieces'] = []
@@ -232,7 +235,7 @@ class TaskRunnerTestCase(TestCase):
                          'complete',
                          'Job found but incomplete.')
 
-    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+    @override_settings(**CELERY_TEST_OVERRIDES)
     def test_tr55_job_error_in_chain(self):
         model_input = {
             'inputs': [],
@@ -348,14 +351,14 @@ class TaskRunnerTestCase(TestCase):
         job_chain = views._construct_tr55_job_chain(self.model_input,
                                                     self.job.id)
 
-        cached_argument = ("cached_aoi_census={u'distribution': "
-                           "{u'b:developed_med'"
-                           ": {u'cell_count': 155}, u'a:developed_high': "
-                           "{u'cell_count': 1044}, u'b:developed_high': "
-                           "{u'cell_count': 543}, u'd:developed_high': "
-                           "{u'cell_count': 503}, u'd:developed_med': "
-                           "{u'cell_count': 164}, u'a:developed_med': "
-                           "{u'cell_count': 295}}, u'cell_count': 2704})")
+        cached_argument = ("cached_aoi_census={'distribution': "
+                           "{'b:developed_med'"
+                           ": {'cell_count': 155}, 'a:developed_high': "
+                           "{'cell_count': 1044}, 'b:developed_high': "
+                           "{'cell_count': 543}, 'd:developed_high': "
+                           "{'cell_count': 503}, 'd:developed_med': "
+                           "{'cell_count': 164}, 'a:developed_med': "
+                           "{'cell_count': 295}}, 'cell_count': 2704})")
 
         self.assertTrue(all([True if t in str(job_chain)
                              else False for t in skipped_tasks]),
@@ -405,7 +408,7 @@ class TaskRunnerTestCase(TestCase):
                             else False for t in needed_tasks]),
                         'missing necessary job in chain')
 
-    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+    @override_settings(**CELERY_TEST_OVERRIDES)
     def test_tr55_chain_generates_modification_censuses_if_they_are_old(self):
         """If they modification censuses exist in the model input, but the
         hash stored with the censuses does not match the hash passed in
@@ -459,7 +462,7 @@ class TaskRunnerTestCase(TestCase):
                             else False for t in needed_tasks]),
                         'missing necessary job in chain')
 
-    @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+    @override_settings(**CELERY_TEST_OVERRIDES)
     def test_tr55_chain_generates_both_censuses_if_they_are_missing(self):
         """If neither the AoI censuses or the modification censuses exist,
         they are both generated.
@@ -953,12 +956,10 @@ class CustomWeatherDataTestCase(TestCase):
         self.weather_data_file.close()
 
     def endpoint(self, scenario_id):
-        return '/mmw/modeling/scenarios/{}/custom-weather-data/'\
-               .format(scenario_id)
+        return f'/mmw/modeling/scenarios/{scenario_id}/custom-weather-data/'
 
     def download_endpoint(self, scenario_id):
-        return '/mmw/modeling/scenarios/{}/custom-weather-data/download/'\
-               .format(scenario_id)
+        return f'/mmw/modeling/scenarios/{scenario_id}/custom-weather-data/download/'  # NOQA
 
     def delete_weather_dataset(self, path):
         """
@@ -967,7 +968,7 @@ class CustomWeatherDataTestCase(TestCase):
         Only runs if MEDIA_ROOT is defined to prevent accidents.
         """
         if settings.MEDIA_ROOT and path:
-                os.remove('{}/{}'.format(settings.MEDIA_ROOT, path))
+            os.remove(f'{settings.MEDIA_ROOT}/{path}')
 
     def create_private_scenario(self):
         response = self.c.post('/mmw/modeling/projects/', self.project,
@@ -993,12 +994,12 @@ class CustomWeatherDataTestCase(TestCase):
 
         project_id = scenario['project']
 
-        response = self.c.get('/mmw/modeling/projects/{}'.format(project_id))
+        response = self.c.get(f'/mmw/modeling/projects/{project_id}')
         project = response.data
         project['user'] = project['user']['id']
         project['is_private'] = False
 
-        self.c.patch('/mmw/modeling/projects/{}'.format(project_id),
+        self.c.patch(f'/mmw/modeling/projects/{project_id}',
                      project,
                      format='json')
 
@@ -1010,7 +1011,7 @@ class CustomWeatherDataTestCase(TestCase):
         scenario['name'] = 'Current Conditions'
         scenario['is_current_conditions'] = True
 
-        self.c.put('/mmw/modeling/scenarios/{}'.format(scenario['id']),
+        self.c.put(f'/mmw/modeling/scenarios/{scenario["id"]}',
                    scenario,
                    format='json')
 
@@ -1195,8 +1196,7 @@ class CustomWeatherDataTestCase(TestCase):
         scenario = self.create_private_scenario_with_weather_data()
         scenario['weather_type'] = WeatherType.DEFAULT
 
-        response = self.c.put('/mmw/modeling/scenarios/{}'
-                              .format(scenario['id']),
+        response = self.c.put(f'/mmw/modeling/scenarios/{scenario["id"]}',
                               scenario,
                               format='json')
 
@@ -1209,8 +1209,7 @@ class CustomWeatherDataTestCase(TestCase):
         scenario['weather_type'] = WeatherType.DEFAULT
         self.c.logout()
 
-        response = self.c.put('/mmw/modeling/scenarios/{}'
-                              .format(scenario['id']),
+        response = self.c.put(f'/mmw/modeling/scenarios/{scenario["id"]}',
                               scenario,
                               format='json')
 
@@ -1220,8 +1219,7 @@ class CustomWeatherDataTestCase(TestCase):
         scenario = self.create_private_scenario_with_weather_data()
         scenario['weather_type'] = 'A_WRONG_VALUE'
 
-        response = self.c.put('/mmw/modeling/scenarios/{}'
-                              .format(scenario['id']),
+        response = self.c.put(f'/mmw/modeling/scenarios/{scenario["id"]}',
                               scenario,
                               format='json')
 
@@ -1231,8 +1229,7 @@ class CustomWeatherDataTestCase(TestCase):
         scenario = self.create_private_scenario()
         scenario['weather_type'] = WeatherType.CUSTOM
 
-        response = self.c.put('/mmw/modeling/scenarios/{}'
-                              .format(scenario['id']),
+        response = self.c.put(f'/mmw/modeling/scenarios/{scenario["id"]}',
                               scenario,
                               format='json')
         self.assertEqual(response.status_code, 400)
@@ -1241,16 +1238,14 @@ class CustomWeatherDataTestCase(TestCase):
         scenario = self.create_current_conditions_scenario()
         scenario['weather_type'] = WeatherType.CUSTOM
 
-        response = self.c.put('/mmw/modeling/scenarios/{}'
-                              .format(scenario['id']),
+        response = self.c.put(f'/mmw/modeling/scenarios/{scenario["id"]}',
                               scenario,
                               format='json')
         self.assertEqual(response.status_code, 400)
 
         scenario['weather_type'] = WeatherType.SIMULATION
 
-        response = self.c.put('/mmw/modeling/scenarios/{}'
-                              .format(scenario['id']),
+        response = self.c.put(f'/mmw/modeling/scenarios/{scenario["id"]}',
                               scenario,
                               format='json')
         self.assertEqual(response.status_code, 400)

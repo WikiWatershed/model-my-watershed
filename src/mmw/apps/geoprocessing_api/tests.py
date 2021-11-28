@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
 import json
 
 from unittest import skip
@@ -163,34 +159,6 @@ class ExerciseAnalyze(TestCase):
                 "name": "land_2011_2011",
                 "categories": [
                     {
-                        "code": "mixed_forest",
-                        "active_river_area": None,
-                        "area": 35,
-                        "nlcd": 43,
-                        "coverage": 4.2627666817284424e-05,
-                        "type": "Mixed Forest"
-                    }, {
-                        "code": "grassland",
-                        "active_river_area": None,
-                        "area": 3228,
-                        "nlcd": 71,
-                        "coverage": 0.00393148881389126,
-                        "type": "Grassland/Herbaceous"
-                    }, {
-                        "code": "deciduous_forest",
-                        "active_river_area": None,
-                        "area": 0,
-                        "nlcd": 41,
-                        "coverage": 0.0,
-                        "type": "Deciduous Forest"
-                    }, {
-                        "code": "evergreen_forest",
-                        "active_river_area": None,
-                        "area": 5758,
-                        "nlcd": 42,
-                        "coverage": 0.007012860158112106,
-                        "type": "Evergreen Forest"
-                    }, {
                         "code": "open_water",
                         "active_river_area": None,
                         "area": 279,
@@ -204,27 +172,6 @@ class ExerciseAnalyze(TestCase):
                         "nlcd": 12,
                         "coverage": 0.0,
                         "type": "Perennial Ice/Snow"
-                    }, {
-                        "code": "pasture",
-                        "active_river_area": None,
-                        "area": 57,
-                        "nlcd": 81,
-                        "coverage": 6.942220024529177e-05,
-                        "type": "Pasture/Hay"
-                    }, {
-                        "code": "cultivated_crops",
-                        "active_river_area": None,
-                        "area": 682,
-                        "nlcd": 82,
-                        "coverage": 0.0008306305362682279,
-                        "type": "Cultivated Crops"
-                    }, {
-                        "code": "shrub",
-                        "active_river_area": None,
-                        "area": 499636,
-                        "nlcd": 52,
-                        "coverage": 0.6085233410834492,
-                        "type": "Shrub/Scrub"
                     }, {
                         "code": "developed_open",
                         "active_river_area": None,
@@ -254,6 +201,62 @@ class ExerciseAnalyze(TestCase):
                         "coverage": 0.025234360822494743,
                         "type": "Developed, High Intensity"
                     }, {
+                        "code": "barren_land",
+                        "active_river_area": None,
+                        "area": 25,
+                        "nlcd": 31,
+                        "coverage": 3.0448333440917446e-05,
+                        "type": "Barren Land (Rock/Sand/Clay)"
+                    }, {
+                        "code": "deciduous_forest",
+                        "active_river_area": None,
+                        "area": 0,
+                        "nlcd": 41,
+                        "coverage": 0.0,
+                        "type": "Deciduous Forest"
+                    }, {
+                        "code": "evergreen_forest",
+                        "active_river_area": None,
+                        "area": 5758,
+                        "nlcd": 42,
+                        "coverage": 0.007012860158112106,
+                        "type": "Evergreen Forest"
+                    }, {
+                        "code": "mixed_forest",
+                        "active_river_area": None,
+                        "area": 35,
+                        "nlcd": 43,
+                        "coverage": 4.2627666817284424e-05,
+                        "type": "Mixed Forest"
+                    }, {
+                        "code": "shrub",
+                        "active_river_area": None,
+                        "area": 499636,
+                        "nlcd": 52,
+                        "coverage": 0.6085233410834492,
+                        "type": "Shrub/Scrub"
+                    }, {
+                        "code": "grassland",
+                        "active_river_area": None,
+                        "area": 3228,
+                        "nlcd": 71,
+                        "coverage": 0.00393148881389126,
+                        "type": "Grassland/Herbaceous"
+                    }, {
+                        "code": "pasture",
+                        "active_river_area": None,
+                        "area": 57,
+                        "nlcd": 81,
+                        "coverage": 6.942220024529177e-05,
+                        "type": "Pasture/Hay"
+                    }, {
+                        "code": "cultivated_crops",
+                        "active_river_area": None,
+                        "area": 682,
+                        "nlcd": 82,
+                        "coverage": 0.0008306305362682279,
+                        "type": "Cultivated Crops"
+                    }, {
                         "code": "woody_wetlands",
                         "active_river_area": None,
                         "area": 461,
@@ -267,13 +270,6 @@ class ExerciseAnalyze(TestCase):
                         "nlcd": 95,
                         "coverage": 0.00019365140068423496,
                         "type": "Emergent Herbaceous Wetlands"
-                    }, {
-                        "code": "barren_land",
-                        "active_river_area": None,
-                        "area": 25,
-                        "nlcd": 31,
-                        "coverage": 3.0448333440917446e-05,
-                        "type": "Barren Land (Rock/Sand/Clay)"
                     }
                 ]
             }
@@ -321,38 +317,6 @@ class ExerciseAnalyze(TestCase):
             "survey": {
                 "categories": [
                     {
-                        "active_river_area": 117,
-                        "area": 329,
-                        "code": "mixed_forest",
-                        "coverage": 0.002653825057270997,
-                        "nlcd": 43,
-                        "type": "Mixed Forest"
-                    },
-                    {
-                        "active_river_area": 260,
-                        "area": 684,
-                        "code": "grassland",
-                        "coverage": 0.005517374891104443,
-                        "nlcd": 71,
-                        "type": "Grassland/Herbaceous"
-                    },
-                    {
-                        "active_river_area": 7254,
-                        "area": 19218,
-                        "code": "deciduous_forest",
-                        "coverage": 0.1550188752298906,
-                        "nlcd": 41,
-                        "type": "Deciduous Forest"
-                    },
-                    {
-                        "active_river_area": 15,
-                        "area": 153,
-                        "code": "evergreen_forest",
-                        "coverage": 0.001234149646694415,
-                        "nlcd": 42,
-                        "type": "Evergreen Forest"
-                    },
-                    {
                         "active_river_area": 34,
                         "area": 39,
                         "code": "open_water",
@@ -367,30 +331,6 @@ class ExerciseAnalyze(TestCase):
                         "coverage": 0.0,
                         "nlcd": 12,
                         "type": "Perennial Ice/Snow"
-                    },
-                    {
-                        "active_river_area": 2108,
-                        "area": 8922,
-                        "code": "pasture",
-                        "coverage": 0.07196786371116058,
-                        "nlcd": 81,
-                        "type": "Pasture/Hay"
-                    },
-                    {
-                        "active_river_area": 1632,
-                        "area": 6345,
-                        "code": "cultivated_crops",
-                        "coverage": 0.051180911818797796,
-                        "nlcd": 82,
-                        "type": "Cultivated Crops"
-                    },
-                    {
-                        "active_river_area": 963,
-                        "area": 3309,
-                        "code": "shrub",
-                        "coverage": 0.026691510986351755,
-                        "nlcd": 52,
-                        "type": "Shrub/Scrub"
                     },
                     {
                         "active_river_area": 9330,
@@ -425,6 +365,70 @@ class ExerciseAnalyze(TestCase):
                         "type": "Developed, High Intensity"
                     },
                     {
+                        "active_river_area": 132,
+                        "area": 364,
+                        "code": "barren_land",
+                        "coverage": 0.0029361468718742943,
+                        "nlcd": 31,
+                        "type": "Barren Land (Rock/Sand/Clay)"
+                    },
+                    {
+                        "active_river_area": 7254,
+                        "area": 19218,
+                        "code": "deciduous_forest",
+                        "coverage": 0.1550188752298906,
+                        "nlcd": 41,
+                        "type": "Deciduous Forest"
+                    },
+                    {
+                        "active_river_area": 15,
+                        "area": 153,
+                        "code": "evergreen_forest",
+                        "coverage": 0.001234149646694415,
+                        "nlcd": 42,
+                        "type": "Evergreen Forest"
+                    },
+                    {
+                        "active_river_area": 117,
+                        "area": 329,
+                        "code": "mixed_forest",
+                        "coverage": 0.002653825057270997,
+                        "nlcd": 43,
+                        "type": "Mixed Forest"
+                    },
+                    {
+                        "active_river_area": 963,
+                        "area": 3309,
+                        "code": "shrub",
+                        "coverage": 0.026691510986351755,
+                        "nlcd": 52,
+                        "type": "Shrub/Scrub"
+                    },
+                    {
+                        "active_river_area": 260,
+                        "area": 684,
+                        "code": "grassland",
+                        "coverage": 0.005517374891104443,
+                        "nlcd": 71,
+                        "type": "Grassland/Herbaceous"
+                    },
+                    {
+                        "active_river_area": 2108,
+                        "area": 8922,
+                        "code": "pasture",
+                        "coverage": 0.07196786371116058,
+                        "nlcd": 81,
+                        "type": "Pasture/Hay"
+                    },
+                    {
+                        "active_river_area": 1632,
+                        "area": 6345,
+                        "code": "cultivated_crops",
+                        "coverage": 0.051180911818797796,
+                        "nlcd": 82,
+                        "type": "Cultivated Crops"
+                    },
+                    {
                         "active_river_area": 3756,
                         "area": 3940,
                         "code": "woody_wetlands",
@@ -440,14 +444,6 @@ class ExerciseAnalyze(TestCase):
                         "nlcd": 95,
                         "type": "Emergent Herbaceous Wetlands"
                     },
-                    {
-                        "active_river_area": 132,
-                        "area": 364,
-                        "code": "barren_land",
-                        "coverage": 0.0029361468718742943,
-                        "nlcd": 31,
-                        "type": "Barren Land (Rock/Sand/Clay)"
-                    }
                 ],
                 "displayName": "Land Use/Cover 2011 (NLCD11)",
                 "name": "land_2011_2011"

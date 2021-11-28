@@ -1,6 +1,6 @@
 -r base.txt
 
-boto3==1.12.33
+boto3==1.20.5
 django-storages==1.9.1
-boto==2.34.0
-awscli==1.10.17
+boto==2.49.0
+awscli==1.22.5

@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-
 import logging
 import requests
 import json
 
 from ast import literal_eval as make_tuple
 from requests.exceptions import ConnectionError, Timeout
-from StringIO import StringIO
+from io import StringIO
+from functools import reduce
 
 from celery import shared_task
 
@@ -49,7 +46,7 @@ def format_quality(model_output):
                 'runoff': model_output[key]['runoff']  # Already CM
             }
 
-        quality[key] = map(map_and_convert_units, zip(measures, codes))
+        quality[key] = list(map(map_and_convert_units, zip(measures, codes)))
 
     return quality
 
@@ -183,7 +180,7 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
             'SummaryLoads': summary_loads,
             'Catchments': {comid: format_catchment(result)
                            for comid, result
-                           in srat_huc12['catchments'].iteritems()},
+                           in srat_huc12['catchments'].items()},
         }
 
     aggregate = {
@@ -192,13 +189,13 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
         'SummaryLoads': empty_source('Entire area'),
         # All gwlf-e results should have the same inputmod hash,
         # so grab any of them
-        'inputmod_hash': huc12_gwlfe_results.itervalues()
-                                            .next()['inputmod_hash'],
+        'inputmod_hash': next(iter(
+            huc12_gwlfe_results.values()))['inputmod_hash'],
     }
 
     aggregate['HUC12s'] = {huc12_id: add_huc12(result, aggregate)
                            for huc12_id, result
-                           in srat_catchment_results['huc12s'].iteritems()}
+                           in srat_catchment_results['huc12s'].items()}
 
     return aggregate
 
@@ -206,12 +203,12 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
 @shared_task(throws=Exception)
 def nlcd_soil(result):
     if 'error' in result:
-        raise Exception('[nlcd_soil] {}'.format(result['error']))
+        raise Exception(f'[nlcd_soil] {result["error"]}')
 
     dist = {}
     total_count = 0
 
-    for key, count in result.iteritems():
+    for key, count in result.items():
         # Extract (3, 4) from "List(3,4)"
         (n, s) = make_tuple(key[4:])
         # Map [NODATA, ad, bd] to c, [cd] to d
@@ -373,7 +370,7 @@ def run_subbasin_gwlfe_chunks(mapshed_job_uuid, modifications,
 @shared_task
 def run_srat(watersheds, mapshed_job_uuid):
     try:
-        data = [format_for_srat(id, w) for id, w in watersheds.iteritems()]
+        data = [format_for_srat(id, w) for id, w in watersheds.items()]
     except Exception as e:
         raise Exception('Formatting sub-basin GWLF-E results failed: %s' % e)
 
@@ -384,7 +381,7 @@ def run_srat(watersheds, mapshed_job_uuid):
                           headers=headers,
                           data=json.dumps(data),
                           timeout=settings.TASK_REQUEST_TIMEOUT)
-    except Timeout as e:
+    except Timeout:
         raise Exception('Request to SRAT Catchment API timed out')
     except ConnectionError:
         raise Exception('Failed to connect to SRAT Catchment API')

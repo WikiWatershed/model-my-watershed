@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
 from django.core.management.base import BaseCommand
 
 from apps.user.models import UserProfile
@@ -152,4 +148,4 @@ class Command(BaseCommand):
                 u.postal_code
             ))
 
-        print('\n'.join(rows))
+        print(('\n'.join(rows)))

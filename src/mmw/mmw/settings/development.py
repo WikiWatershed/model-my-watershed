@@ -8,7 +8,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
 
-from base import *  # NOQA
+from mmw.settings.base import *  # NOQA
 
 
 # SITE CONFIGURATION

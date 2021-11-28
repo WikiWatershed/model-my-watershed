@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-
 from celery import shared_task
 from django.conf import settings
 
@@ -108,8 +104,8 @@ def collect_data(geop_results, geojson, watershed_id=None, weather=None,
     if weather is None:
         wd = weather_data(ws, z['WxYrBeg'], z['WxYrEnd'])
         temps_dict, prcps_dict = wd
-        temps = average_weather_data(temps_dict.values())
-        prcps = average_weather_data(prcps_dict.values())
+        temps = average_weather_data(list(temps_dict.values()))
+        prcps = average_weather_data(list(prcps_dict.values()))
     else:
         temps, prcps = wd
     z['Temp'] = temps
@@ -217,7 +213,7 @@ def nlcd_streams(result):
     post-processing tasks, to be used in geop_tasks.
     """
     if 'error' in result:
-        raise Exception('[nlcd_streams] {}'.format(result['error']))
+        raise Exception(f'[nlcd_streams] {result["error"]}')
 
     # This can't be done in geoprocessing.run because the keys may be tuples,
     # which are not JSON serializable and thus can't be shared between tasks
@@ -234,7 +230,7 @@ def nlcd_streams(result):
                                        low_urban_count,
                                        med_high_urban_count))
     lu_stream_pct = [0.0] * NLU
-    for nlcd, stream_count in result.iteritems():
+    for nlcd, stream_count in result.items():
         lu = get_lu_index(nlcd)
         if lu is not None:
             lu_stream_pct[lu] += float(stream_count) / total
@@ -254,13 +250,13 @@ def nlcd_streams_drb(result):
     the percentage of DRB streams in each land use type.
     """
     if 'error' in result:
-        raise Exception('[nlcd_streams_drb] {}'.format(result['error']))
+        raise Exception(f'[nlcd_streams_drb] {result["error"]}')
 
     result = parse(result)
     total = sum(result.values())
 
     lu_stream_pct_drb = [0.0] * NLU
-    for nlcd, stream_count in result.iteritems():
+    for nlcd, stream_count in result.items():
         lu = get_lu_index(nlcd)
         if lu is not None:
             lu_stream_pct_drb[lu] += float(stream_count) / total
@@ -282,7 +278,7 @@ def nlcd_soil(result):
     of these raster datasets.
     """
     if 'error' in result:
-        raise Exception('[nlcd_soil] {}'.format(result['error']))
+        raise Exception(f'[nlcd_soil] {result["error"]}')
 
     ng_count = parse(result)
 
@@ -294,7 +290,7 @@ def nlcd_soil(result):
     # Reduce [(n, g, t): c] to
     n_count = {}   # [n: sum(c)]
     ng2_count = {}  # [(n, g): sum(c)]
-    for (n, g), count in ng_count.iteritems():
+    for (n, g), count in ng_count.items():
         n_count[n] = count + n_count.get(n, 0)
 
         # Map soil group values to usable subset
@@ -314,8 +310,7 @@ def gwn(result):
     Derive Groundwater Nitrogen and Phosphorus
     """
     if 'error' in result:
-        raise Exception('[gwn] {}'
-                        .format(result['error']))
+        raise Exception(f'[gwn] {result["error"]}')
 
     result = parse(result)
     gr_nitr_conc, gr_phos_conc = groundwater_nitrogen_conc(result)
@@ -334,13 +329,12 @@ def avg_awc(result):
     Original at Class1.vb@1.3.0:4150
     """
     if 'error' in result:
-        raise Exception('[awc] {}'
-                        .format(result['error']))
+        raise Exception(f'[awc] {result["error"]}')
 
     result = parse(result)
 
     return {
-        'avg_awc': result.values()[0]
+        'avg_awc': list(result.values())[0]
     }
 
 
@@ -352,12 +346,11 @@ def soilp(result):
     Originally calculated via lookup table at Class1.vb@1.3.0:8975-8988
     """
     if 'error' in result:
-        raise Exception('[soilp] {}'
-                        .format(result['error']))
+        raise Exception(f'[soilp] {result["error"]}')
 
     result = parse(result)
 
-    soilp = result.values()[0] * 1.6
+    soilp = list(result.values())[0] * 1.6
 
     return {
         'soilp': soilp
@@ -372,12 +365,11 @@ def recess_coef(result):
     Originally a static value 0.06 Class1.vb@1.3.0:10333
     """
     if 'error' in result:
-        raise Exception('[recess_coef] {}'
-                        .format(result['error']))
+        raise Exception(f'[recess_coef] {result["error"]}')
 
     result = parse(result)
 
-    recess_coef = result.values()[0] * -0.0015 + 0.1103
+    recess_coef = list(result.values())[0] * -0.0015 + 0.1103
     recess_coef = recess_coef if recess_coef >= 0 else 0.01
 
     return {
@@ -393,12 +385,11 @@ def soiln(result):
     Originally a static value of 2000 at Class1.vb@1.3.0:9587
     """
     if 'error' in result:
-        raise Exception('[soiln] {}'
-                        .format(result['error']))
+        raise Exception(f'[soiln] {result["error"]}')
 
     result = parse(result)
 
-    soiln = result.values()[0] * 9.0
+    soiln = list(result.values())[0] * 9.0
 
     return {
         'soiln': soiln
@@ -408,7 +399,7 @@ def soiln(result):
 @shared_task(throws=Exception)
 def nlcd_slope(result):
     if 'error' in result:
-        raise Exception('[nlcd_slope] {}'.format(result['error']))
+        raise Exception(f'[nlcd_slope] {result["error"]}')
 
     result = parse(result)
 
@@ -417,7 +408,7 @@ def nlcd_slope(result):
     ag_count = 0
     total_count = 0
 
-    for (nlcd_code, slope), count in result.iteritems():
+    for (nlcd_code, slope), count in result.items():
         if nlcd_code in AG_NLCD_CODES:
             if slope > 3:
                 ag_slope_3_count += count
@@ -452,7 +443,7 @@ def nlcd_slope(result):
 @shared_task(throws=Exception)
 def slope(result):
     if 'error' in result:
-        raise Exception('[slope] {}'.format(result['error']))
+        raise Exception(f'[slope] {result["error"]}')
 
     result = parse(result)
 
@@ -470,14 +461,14 @@ def slope(result):
 @shared_task(throws=Exception)
 def nlcd_kfactor(result):
     if 'error' in result:
-        raise Exception('[nlcd_kfactor] {}'.format(result['error']))
+        raise Exception(f'[nlcd_kfactor] {result["error"]}')
 
     result = parse(result)
 
     # average kfactor for each land use
     # see Class1.vb#6431
     kf = [0.0] * NLU
-    for nlcd_code, kfactor in result.iteritems():
+    for nlcd_code, kfactor in result.items():
         lu_ind = get_lu_index(nlcd_code)
         if lu_ind is not None:
             kf[lu_ind] = kfactor
@@ -520,8 +511,7 @@ def multi_subbasin(parent_aoi, child_shapes, layer_overrides={}):
 def convert_data(payload, wkaoi):
     if 'error' in payload:
         raise Exception(
-            '[convert_data] {} {}'.format(
-                wkaoi or NOCACHE, payload['error']))
+            f'[convert_data] {wkaoi or NOCACHE} {payload["error"]}')
 
     results = payload[wkaoi or NOCACHE]
 

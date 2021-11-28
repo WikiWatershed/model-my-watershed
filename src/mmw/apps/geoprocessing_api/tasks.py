@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-
 import os
 import logging
-import urllib
+from urllib.parse import urlencode
 
 from ast import literal_eval as make_tuple
 from calendar import month_name
@@ -74,7 +70,7 @@ def start_rwd_job(location, snapping, simplify, data_source):
     if simplify is not False:
         params['simplify'] = simplify
 
-    query_string = urllib.urlencode(params)
+    query_string = urlencode(params)
 
     if query_string:
         rwd_url += ('?%s' % query_string)
@@ -125,8 +121,7 @@ def analyze_catchment_water_quality(area_of_interest):
 @shared_task(throws=Exception)
 def analyze_nlcd(result, area_of_interest=None, nlcd_year='2011_2011'):
     if 'error' in result:
-        raise Exception('[analyze_nlcd_{}] {}'.format(
-            nlcd_year, result['error']))
+        raise Exception(f'[analyze_nlcd_{nlcd_year}] {result["error"]}')
 
     pixel_width = aoi_resolution(area_of_interest) if area_of_interest else 1
 
@@ -140,7 +135,7 @@ def analyze_nlcd(result, area_of_interest=None, nlcd_year='2011_2011'):
         return dictionary.get(key, default) * pixel_width * pixel_width
 
     # Convert results to histogram, calculate total
-    for key, count in result.iteritems():
+    for key, count in result.items():
         nlcd, ara = key
         total_count += count
         total_ara += count if ara == 1 else 0
@@ -148,7 +143,7 @@ def analyze_nlcd(result, area_of_interest=None, nlcd_year='2011_2011'):
 
     has_ara = total_ara > 0
 
-    for nlcd, (code, name) in layer_classmaps.NLCD.iteritems():
+    for nlcd, (code, name) in layer_classmaps.NLCD.items():
         categories.append({
             'area': area(histogram, nlcd),
             'active_river_area': area(result, (nlcd, 1)) if has_ara else None,
@@ -160,10 +155,9 @@ def analyze_nlcd(result, area_of_interest=None, nlcd_year='2011_2011'):
 
     return {
         'survey': {
-            'name': 'land_{}'.format(nlcd_year),
+            'name': f'land_{nlcd_year}',
             'displayName':
-                'Land Use/Cover {} (NLCD{})'.format(
-                    nlcd_year[5:], nlcd_year[2:4]),
+                f'Land Use/Cover {nlcd_year[5:]} (NLCD{nlcd_year[2:4]})',
             'categories': categories,
         }
     }
@@ -172,7 +166,7 @@ def analyze_nlcd(result, area_of_interest=None, nlcd_year='2011_2011'):
 @shared_task(throws=Exception)
 def analyze_soil(result, area_of_interest=None):
     if 'error' in result:
-        raise Exception('[analyze_soil] {}'.format(result['error']))
+        raise Exception(f'[analyze_soil] {result["error"]}')
 
     pixel_width = aoi_resolution(area_of_interest) if area_of_interest else 1
 
@@ -181,13 +175,13 @@ def analyze_soil(result, area_of_interest=None):
     categories = []
 
     # Convert results to histogram, calculate total
-    for key, count in result.iteritems():
+    for key, count in result.items():
         total_count += count
         s = make_tuple(key[4:])  # Change {"List(1)":5} to {1:5}
         s = s if s != settings.NODATA else 3  # Map NODATA to 3
         histogram[s] = count + histogram.get(s, 0)
 
-    for soil, (code, name) in layer_classmaps.SOIL.iteritems():
+    for soil, (code, name) in layer_classmaps.SOIL.items():
         categories.append({
             'area': histogram.get(soil, 0) * pixel_width * pixel_width,
             'code': code,
@@ -220,7 +214,7 @@ def analyze_climate(result, wkaoi):
     used for sorting purposes on the client side.
     """
     if 'error' in result:
-        raise Exception('[analyze_climate] {}'.format(result['error']))
+        raise Exception(f'[analyze_climate] {result["error"]}')
 
     ppt = {k[5:]: v['List(0)']
            for k, v in result[wkaoi].items() if 'ppt' in k}
@@ -232,7 +226,7 @@ def analyze_climate(result, wkaoi):
         'month': month_name[i],
         'ppt': ppt[str(i)] * CM_PER_MM,
         'tmean': tmean[str(i)],
-    } for i in xrange(1, 13)]
+    } for i in range(1, 13)]
 
     return {
         'survey': {
@@ -285,7 +279,7 @@ def analyze_terrain(result):
     which has Elevation in m and keeps Slope in %.
     """
     if 'error' in result:
-        raise Exception('[analyze_terrain] {}'.format(result['error']))
+        raise Exception(f'[analyze_terrain] {result["error"]}')
 
     [elevation, slope] = result
 
@@ -316,7 +310,7 @@ def analyze_terrain(result):
 @shared_task
 def analyze_protected_lands(result, area_of_interest=None):
     if 'error' in result:
-        raise Exception('[analyze_protected_lands] {}'.format(result['error']))
+        raise Exception(f'[analyze_protected_lands] {result["error"]}')
 
     pixel_width = aoi_resolution(area_of_interest) if area_of_interest else 1
 
@@ -325,11 +319,11 @@ def analyze_protected_lands(result, area_of_interest=None):
     total_count = 0
     categories = []
 
-    for key, count in result.iteritems():
+    for key, count in result.items():
         total_count += count
         histogram[key] = count + histogram.get(key, 0)
 
-    for class_id, (code, name) in layer_classmaps.PROTECTED_LANDS.iteritems():
+    for class_id, (code, name) in layer_classmaps.PROTECTED_LANDS.items():
         categories.append({
             'area': histogram.get(class_id, 0) * pixel_width * pixel_width,
             'class_id': class_id,
@@ -354,11 +348,11 @@ def analyze_drb_2100_land(area_of_interest, key):
     total_count = 0
     categories = []
 
-    for nlcd, count in result.iteritems():
+    for nlcd, count in result.items():
         total_count += count
         histogram[nlcd] = count + histogram.get(nlcd, 0)
 
-    for nlcd, (code, name) in layer_classmaps.NLCD.iteritems():
+    for nlcd, (code, name) in layer_classmaps.NLCD.items():
         categories.append({
             'area': histogram.get(nlcd, 0),
             'code': code,
@@ -369,8 +363,8 @@ def analyze_drb_2100_land(area_of_interest, key):
 
     return {
         'survey': {
-            'name': 'drb_2100_land_{}'.format(key),
-            'displayName': 'DRB 2100 land forecast ({})'.format(key),
+            'name': f'drb_2100_land_{key}',
+            'displayName': f'DRB 2100 land forecast ({key})',
             'categories': categories,
         }
     }
@@ -387,7 +381,7 @@ def collect_nlcd(histogram, geojson=None):
         'code': code,
         'nlcd': nlcd,
         'type': name,
-    } for nlcd, (code, name) in layer_classmaps.NLCD.iteritems()]
+    } for nlcd, (code, name) in layer_classmaps.NLCD.items()]
 
     return {'categories': categories}
 
@@ -401,8 +395,7 @@ def collect_worksheet_aois(result, shapes):
     their processed results.
     """
     if 'error' in result:
-        raise Exception('[collect_worksheet_aois] {}'
-                        .format(result['error']))
+        raise Exception(f'[collect_worksheet_aois] {result["error"]}')
 
     NULL_RESULT = {'nlcd_streams': {}, 'nlcd': {}}
     collection = {}
@@ -426,8 +419,7 @@ def collect_worksheet_wkaois(result, shapes):
     modeled results, and also the processed NLCD and NLCD+Streams.
     """
     if 'error' in result:
-        raise Exception('[collect_worksheet_wkaois] {}'
-                        .format(result['error']))
+        raise Exception(f'[collect_worksheet_wkaois] {result["error"]}')
 
     collection = {}
 
@@ -464,7 +456,7 @@ def collect_worksheet(area_of_interest):
     worksheet containing these values, which can be used for further modeling.
     """
     def to_aoi_id(m):
-        return '{}-{}'.format(NOCACHE, m['wkaoi'])
+        return f'{NOCACHE}-{m["wkaoi"]}'
 
     matches = huc12s_with_aois(area_of_interest)
 
@@ -490,7 +482,7 @@ def collect_worksheet(area_of_interest):
     collection = {}
 
     for m in matches:
-        filename = '{}__{}'.format(m['huc12'], m['name'].replace(' ', '_'))
+        filename = f'{m["huc12"]}__{m["name"].replace(" ", "_")}'
         collection[filename] = {
             'name': m['name'],
             'aoi': aoi_results.get(to_aoi_id(m), {}),

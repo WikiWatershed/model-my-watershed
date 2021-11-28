@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
 import json
 
 from django.contrib.gis.geos import GEOSGeometry
@@ -48,8 +44,7 @@ def _do_search(request):
 
     if catalog not in CATALOGS:
         raise ValidationError({
-            'error': 'Catalog must be one of: {}'
-                     .format(', '.join(CATALOGS.keys()))})
+            'error': f'Catalog must be one of: {", ".join(CATALOGS.keys())}'})
 
     # Store geojson to pass in search kwargs
     geojson = json.dumps(params.get('geom'))
@@ -100,15 +95,13 @@ def _get_details(request):
 
     if catalog not in CATALOGS:
         raise ValidationError({
-            'error': 'Catalog must be one of: {}'
-                     .format(', '.join(CATALOGS.keys()))})
+            'error': f'Catalog must be one of: {", ".join(CATALOGS.keys())}'})
 
     details = CATALOGS[catalog]['details']
 
     if not details:
         raise NotFound({
-            'error': 'No details endpoint for {}'
-                     .format(catalog)})
+            'error': f'No details endpoint for {catalog}'})
 
     details_kwargs = {
         'wsdl': params.get('wsdl'),
@@ -131,15 +124,13 @@ def _get_values(request):
 
     if catalog not in CATALOGS:
         raise ValidationError({
-            'error': 'Catalog must be one of: {}'
-                     .format(', '.join(CATALOGS.keys()))})
+            'error': f'Catalog must be one of: {", ".join(CATALOGS.keys())}'})
 
     values = CATALOGS[catalog]['values']
 
     if not values:
         raise NotFound({
-            'error': 'No values endpoint for {}'
-                     .format(catalog)})
+            'error': f'No values endpoint for {catalog}'})
 
     values_kwargs = {
         'wsdl': params.get('wsdl'),

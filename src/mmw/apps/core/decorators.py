@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import sys
 import rollbar
 
@@ -65,7 +62,7 @@ def _get_remote_addr(request):
     ipaddr = request.META.get("HTTP_X_FORWARDED_FOR", None)
     if ipaddr:
         # X_FORWARDED_FOR returns client1, proxy1, proxy2,...
-            return [x.strip() for x in ipaddr.split(",")][0]
+        return [x.strip() for x in ipaddr.split(",")][0]
     else:
         return request.META.get("REMOTE_ADDR", "")
 

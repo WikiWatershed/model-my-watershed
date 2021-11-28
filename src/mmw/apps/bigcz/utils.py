@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
 import csv
+from io import TextIOWrapper
 
 from apps.bigcz.models import BBox
 
@@ -65,9 +62,8 @@ class RequestTimedOutError(APIException):
 
 class ValuesTimedOutError(APIException):
     status_code = status.HTTP_504_GATEWAY_TIMEOUT
-    default_detail = \
-        'Request for values did not finish in {} seconds'.format(
-            settings.BIGCZ_CLIENT_TIMEOUT)
+    default_detail = ('Request for values did not finish in '
+                      f'{settings.BIGCZ_CLIENT_TIMEOUT} seconds')
 
 
 class ServiceNotAvailableError(ValidationError):
@@ -75,10 +71,11 @@ class ServiceNotAvailableError(ValidationError):
     default_detail = 'Underlying service is not available.'
 
 
-def read_unicode_csv(utf8_data, **kwargs):
+def read_unicode_csv(file_in_zip, **kwargs):
+    utf8_data = TextIOWrapper(file_in_zip, encoding='utf-8')
     csv_reader = csv.DictReader(utf8_data, **kwargs)
     for row in csv_reader:
         yield {
-            key.decode('utf-8'): value.decode('utf-8')
-            for key, value in row.iteritems()
+            key: value
+            for key, value in row.items()
         }

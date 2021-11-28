@@ -16,7 +16,7 @@ from collections import OrderedDict
 import json
 
 from django.contrib.gis.geos import GEOSGeometry
-from layer_classmaps import NLCD, SOIL, PROTECTED_LANDS
+from mmw.settings.layer_classmaps import NLCD, SOIL, PROTECTED_LANDS
 
 # [01, 02, ...] style list for layer time sliders
 MONTH_CODES = [str(m).zfill(2) for m in range(1, 13)]
@@ -101,7 +101,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
             'big_cz': True,
         },
         {
@@ -116,7 +116,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
             'big_cz': True,
         },
         {
@@ -131,7 +131,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
             'big_cz': True,
         },
         {
@@ -146,7 +146,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
             'big_cz': True,
         },
         {
@@ -161,7 +161,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
             'big_cz': True,
         },
         {
@@ -176,7 +176,7 @@ LAYER_GROUPS = {
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
             'big_cz': True,
         },
         {
@@ -267,7 +267,7 @@ LAYER_GROUPS = {
             'time_slider_values': MONTH_CODES,
             'use_color_ramp': True,
             'color_ramp_id': 'temperature-legend',
-            'legend_units_label': u'Air Temperature (\xb0C)',
+            'legend_units_label': 'Air Temperature (\xb0C)',
             'legend_unit_breaks': [-20, '', -8, '', 4, '', 16, '', 28, '', 40],
             'big_cz': True,
         },
@@ -285,7 +285,7 @@ LAYER_GROUPS = {
             'legend_mapping': OrderedDict([
                 (shortname, longname)
                 for _, (shortname, longname) in sorted(
-                        PROTECTED_LANDS.iteritems(), key=lambda x: x[0]
+                        PROTECTED_LANDS.items(), key=lambda x: x[0]
                 )
             ]),
         },

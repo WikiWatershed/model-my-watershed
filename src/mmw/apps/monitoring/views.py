@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
 from rest_framework import status
 
 from django.http import JsonResponse
@@ -21,7 +17,7 @@ def health_check(request):
     for check in [_check_cache, _check_database]:
         response.update(check())
 
-    if all(map(lambda x: x[0]['default']['ok'], response.values())):
+    if all([x[0]['default']['ok'] for x in response.values()]):
         return JsonResponse(response, status=status.HTTP_200_OK)
     else:
         return JsonResponse(response,
@@ -29,7 +25,7 @@ def health_check(request):
 
 
 def _check_cache(cache='default'):
-    key = 'health-check-{}'.format(uuid.uuid4())
+    key = f'health-check-{uuid.uuid4()}'
 
     try:
         caches[cache].set(key, uuid.uuid4())

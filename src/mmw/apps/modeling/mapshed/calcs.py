@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-
 import math
 import numpy
 
@@ -48,7 +44,7 @@ def day_lengths(geom):
                                          math.cos(0.0172 *
                                                   ((m + 1) * 30.4375 - 5)))
 
-    return [round(l, 1) for l in lengths]
+    return [round(length, 1) for length in lengths]
 
 
 def nearest_weather_stations(shapes, n=NUM_WEATHER_STATIONS):
@@ -283,7 +279,7 @@ def ls_factors(lu_strms, total_strm_len, areas, avg_slope, ag_lscp):
     results[0] = ag_lscp.hp_ls
     results[1] = ag_lscp.crop_ls
 
-    for i in xrange(2, 16):
+    for i in range(2, 16):
         results[i] = (ls_factor(lu_strms[i] * total_strm_len * KM_PER_M,
                       areas[i], avg_slope, m))
 
@@ -320,18 +316,18 @@ def stream_length(geom, datasource='nhdhr'):
     of NHD Flowline.
     """
     if datasource not in settings.STREAM_TABLES:
-        raise Exception('Invalid stream datasource {}'.format(datasource))
+        raise Exception(f'Invalid stream datasource {datasource}')
 
-    sql = '''
+    sql = f'''
           SELECT ROUND(SUM(ST_Length(
               ST_Transform(
                   ST_Intersection(geom,
                                   ST_SetSRID(ST_GeomFromText(%s), 4326)),
                   5070))))
-          FROM {stream_table}
+          FROM {settings.STREAM_TABLES[datasource]}
           WHERE ST_Intersects(geom,
                               ST_SetSRID(ST_GeomFromText(%s), 4326));
-          '''.format(stream_table=settings.STREAM_TABLES[datasource])
+          '''
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [geom.wkt, geom.wkt])
@@ -347,14 +343,14 @@ def streams(geojson, datasource='nhdhr'):
     NHD Flowline.
     """
     if datasource not in settings.STREAM_TABLES:
-        raise Exception('Invalid stream datasource {}'.format(datasource))
+        raise Exception(f'Invalid stream datasource {datasource}')
 
-    sql = '''
+    sql = f'''
           SELECT ST_AsGeoJSON(ST_Multi(geom))
-          FROM {stream_table}
+          FROM {settings.STREAM_TABLES[datasource]}
           WHERE ST_Intersects(geom,
                               ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
-          '''.format(stream_table=settings.STREAM_TABLES[datasource])
+          '''
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [geojson])
@@ -375,14 +371,14 @@ def point_source_discharge(geom, area, drb=False):
     this uses the ms_pointsource_drb table.
     """
     table_name = get_point_source_table(drb)
-    sql = '''
+    sql = f'''
           SELECT SUM(mgd) AS mg_d,
                  SUM(kgn_yr) / 12 AS kgn_month,
                  SUM(kgp_yr) / 12 AS kgp_month
           FROM {table_name}
           WHERE ST_Intersects(geom,
                               ST_SetSRID(ST_GeomFromText(%s), 4326));
-          '''.format(table_name=table_name)
+          '''
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [geom.wkt])
@@ -491,7 +487,7 @@ def curve_number(n_count, ng_count):
     # Calculate average hydrological soil group for each NLCD type by
     # reducing [(n, g): c] to [n: avg(g * c)]
     n_gavg = {}
-    for (n, g), count in ng_count.iteritems():
+    for (n, g), count in ng_count.items():
         n_gavg[n] = float(g) * count / n_count[n] + n_gavg.get(n, 0)
 
     def cni(nlcd):
@@ -538,7 +534,7 @@ def groundwater_nitrogen_conc(gwn_dict):
     weighted_conc = 0
     if valid_total_cells > 0:
         weighted_conc = sum([float(gwn * count)/valid_total_cells
-                             for gwn, count in valid_res.iteritems()])
+                             for gwn, count in valid_res.items()])
 
     groundwater_nitrogen_conc = (0.7973 * weighted_conc) - 0.692
     groundwater_phosphorus_conc = (0.0049 * weighted_conc) + 0.0089
@@ -575,7 +571,7 @@ def landuse_pcts(n_count):
     total = sum(n_count.values())
     if total > 0:
         n_pct = {nlcd: float(count) / total
-                 for nlcd, count in n_count.iteritems()}
+                 for nlcd, count in n_count.items()}
     else:
         n_pct = {nlcd: 0 for nlcd in n_count.keys()}
 
@@ -620,7 +616,7 @@ def num_normal_sys(lu_area):
 
     normal_sys_estimate = SSLDR * lu_area[14] + SSLDM * lu_area[11]
     normal_sys_int = int(round(normal_sys_estimate))
-    return [normal_sys_int for n in xrange(12)]
+    return [normal_sys_int for n in range(12)]
 
 
 def sed_a_factor(landuse_pct_vals, cn, AEU, AvKF, AvSlope):

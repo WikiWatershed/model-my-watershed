@@ -11,6 +11,6 @@
        state=present
 
 - name: Install PostgreSQL driver for Python
-  pip: name=psycopg2
+  pip: name=psycopg2-binary
        version={{ postgresql_support_psycopg2_version }}
        state=present

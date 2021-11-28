@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-
 from celery import chain
 
 from rest_framework.response import Response
@@ -420,8 +417,7 @@ def start_analyze_land(request, nlcd_year, format=None):
 
     nlcd, year = nlcd_year.split('_')
     if nlcd == '2019' and year in ['2019', '2016', '2011', '2006', '2001']:
-        layer_overrides['__LAND__'] = 'nlcd-{}-30m-epsg5070-512-byte'.format(
-            year)
+        layer_overrides['__LAND__'] = f'nlcd-{year}-30m-epsg5070-512-byte'
 
     return start_celery_job([
         geoprocessing.run.s('nlcd_ara', geop_input, wkaoi,
@@ -645,9 +641,8 @@ def start_analyze_streams(request, datasource, format=None):
     area_of_interest, wkaoi = _parse_input(request)
 
     if datasource not in settings.STREAM_TABLES:
-        raise ValidationError('Invalid stream datasource: {}.'
+        raise ValidationError(f'Invalid stream datasource: {datasource}.'
                               ' Must be one of: "{}".'.format(
-                                  datasource,
                                   '", "'.join(settings.STREAM_TABLES.keys())))
 
     return start_celery_job([

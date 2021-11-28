@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from datetime import timedelta
 
 from django.conf import settings
@@ -13,7 +12,7 @@ from rest_framework.authtoken.models import Token
 
 from apps.core.models import UnitScheme
 
-import countries
+from apps.user import countries
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -40,7 +39,7 @@ class ItsiUser(models.Model):
     objects = ItsiUserManager()
 
     def __unicode__(self):
-        return unicode(self.user.username)
+        return str(self.user.username)
 
 
 class ConcordUser(models.Model):
@@ -50,7 +49,7 @@ class ConcordUser(models.Model):
     concord_id = models.IntegerField()
 
     def __unicode__(self):
-        return unicode(self.user.username)
+        return str(self.user.username)
 
 
 class UserProfile(models.Model):
