@@ -1,3 +1,4 @@
 ---
 dependencies:
+  - { role: "model-my-watershed.base" }
   - { role: "model-my-watershed.docker" }
