@@ -4,7 +4,7 @@
         state=directory
 
 - name: Configure RWD service definition
-  docker_service:
+  docker_compose:
     project_name: mmw
     state: present
     definition:
