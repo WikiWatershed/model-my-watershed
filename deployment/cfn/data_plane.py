@@ -12,9 +12,9 @@ from troposphere import (
     route53 as r53
 )
 
-from utils.cfn import get_recent_ami
+from cfn.utils.cfn import get_recent_ami
 
-from utils.constants import (
+from cfn.utils.constants import (
     ALLOW_ALL_CIDR,
     CANONICAL_ACCOUNT_ID,
     EC2_INSTANCE_TYPES,
