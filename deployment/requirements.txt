@@ -1,5 +1,5 @@
 ansible<2.10
-majorkirby==1.0.0
 troposphere==1.1.0
+majorkirby==1.0.0
 boto==2.49.0
 awscli>=1.9.15
