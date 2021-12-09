@@ -86,6 +86,10 @@
     "provisioners": [
         {
             "type": "shell",
+            "script": "{{ template_dir }}/scripts/wait_for_cloud_init.sh"
+        },
+        {
+            "type": "shell",
             "inline": [
                 "sleep 5",
                 "sudo apt-get update -qq",
