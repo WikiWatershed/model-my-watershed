@@ -89,7 +89,7 @@ class TileDeliveryNetwork(StackNode):
                         DomainName=Join('.',
                                         ['tile-cache',
                                          Ref(self.public_hosted_zone_name)]),
-                        CustomOriginConfig=cf.CustomOrigin(
+                        CustomOriginConfig=cf.CustomOriginConfig(
                             OriginProtocolPolicy='http-only'
                         )
                     )
@@ -112,7 +112,7 @@ class TileDeliveryNetwork(StackNode):
                         DomainName=Join('.',
                                         ['tile-cache',
                                          Ref(self.public_hosted_zone_name)]),
-                        CustomOriginConfig=cf.CustomOrigin(
+                        CustomOriginConfig=cf.CustomOriginConfig(
                             OriginProtocolPolicy='http-only'
                         )
                     )
