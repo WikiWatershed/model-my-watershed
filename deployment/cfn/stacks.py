@@ -12,7 +12,7 @@ from cfn.public_hosted_zone import PublicHostedZone
 
 from boto import cloudformation as cfn
 
-import configparser
+import ConfigParser
 import sys
 
 
@@ -23,13 +23,13 @@ def get_config(mmw_config_path, profile):
     :param mmw_config_path: Path to the config file
     :param profile: Config profile to read
     """
-    mmw_config = configparser.ConfigParser()
+    mmw_config = ConfigParser.ConfigParser()
     mmw_config.optionxform = str
     mmw_config.read(mmw_config_path)
 
     try:
         section = mmw_config.items(profile)
-    except configparser.NoSectionError:
+    except ConfigParser.NoSectionError:
         sys.stderr.write('There is no section [{}] in the configuration '
                          'file\n'.format(profile))
         sys.stderr.write('you specified. Did you specify the correct file?')
