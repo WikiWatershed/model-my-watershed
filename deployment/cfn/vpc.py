@@ -94,9 +94,9 @@ class VPC(StackNode):
         self.add_output(Output('AvailabilityZones',
                                Value=','.join(self.default_azs)))
         self.add_output(Output('PrivateSubnets',
-                               Value=Join(',', list(map(Ref, self.default_private_subnets)))))  # NOQA
+                               Value=Join(',', map(Ref, self.default_private_subnets))))  # NOQA
         self.add_output(Output('PublicSubnets',
-                               Value=Join(',', list(map(Ref, self.default_public_subnets)))))  # NOQA
+                               Value=Join(',', map(Ref, self.default_public_subnets))))  # NOQA
         self.add_output(Output('RouteTableId', Value=Ref(public_route_table)))
 
     def get_recent_nat_ami(self):
