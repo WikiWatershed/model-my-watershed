@@ -59,7 +59,7 @@ def get_git_sha():
                    'rev-parse',
                    'HEAD']
 
-    return subprocess.check_output(git_command).rstrip()
+    return subprocess.check_output(git_command, text=True).rstrip()
 
 
 def get_git_branch():
@@ -69,7 +69,7 @@ def get_git_branch():
                    '--abbrev-ref',
                    'HEAD']
 
-    return subprocess.check_output(git_command).rstrip()
+    return subprocess.check_output(git_command, text=True).rstrip()
 
 
 def get_git_desc():
@@ -81,7 +81,7 @@ def get_git_desc():
                    '--dirty',
                    '--abbrev=40']
 
-    return subprocess.check_output(git_command).rstrip()
+    return subprocess.check_output(git_command, text=True).rstrip()
 
 
 def run_packer(mmw_config, machine_types, aws_profile):
