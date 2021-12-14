@@ -7,13 +7,13 @@ from troposphere import (
     ec2
 )
 
-from utils.cfn import (
+from cfn.utils.cfn import (
     get_availability_zones,
     get_recent_ami,
     get_subnet_cidr_block
 )
 
-from utils.constants import (
+from cfn.utils.constants import (
     ALLOW_ALL_CIDR,
     EC2_INSTANCE_TYPES,
     HTTP,
