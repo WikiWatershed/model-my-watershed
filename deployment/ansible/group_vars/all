@@ -25,6 +25,7 @@ postgis_package_version: "2.5.*.pgdg20.04+1"
 daemontools_version: "1:0.76-7"
 
 python_version: "3.8.*"
+ansible_python_interpreter: "/usr/bin/python3"
 
 yarn_version: "1.19.*"
 app_nodejs_version: "12.11.1"
