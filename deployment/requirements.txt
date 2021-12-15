@@ -1,5 +1,6 @@
-ansible==2.6.18
-majorkirby>=0.2.0,<0.2.99
-troposphere==1.1.0
-boto==2.39.0
+cryptography==3.2.1
+ansible==2.9.27
+troposphere==2.4.9
+majorkirby==1.0.0
+boto==2.49.0
 awscli>=1.9.15

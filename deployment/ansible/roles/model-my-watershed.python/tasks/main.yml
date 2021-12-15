@@ -5,10 +5,6 @@
           "python3-distutils={{ python_version }}"]
     state: present
 
-- name: Make python3 default
-  shell: update-alternatives --install /usr/bin/python python /usr/bin/python3 10
-  become: yes
-
 - name: Install pip
   shell: curl -sL https://bootstrap.pypa.io/get-pip.py | sudo python3
   args:
