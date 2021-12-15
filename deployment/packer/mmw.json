@@ -92,7 +92,7 @@
                 "sudo apt-get install python2 python2-dev -y",
                 "sudo ln -s /usr/bin/python2 /usr/bin/python",
                 "curl -sL https://bootstrap.pypa.io/pip/2.7/get-pip.py | sudo python",
-                "sudo pip install ansible==2.7.18",
+                "sudo pip install ansible==2.9.27",
                 "sudo /bin/sh -c 'echo {{user `branch`}} {{user `description`}} > /srv/version.txt'"
             ]
         },
