@@ -18,7 +18,7 @@ from drf_yasg.utils import swagger_auto_schema
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
 from django.db import connection
-from django.db.models.sql import EmptyResultSet
+from django.core.exceptions import EmptyResultSet
 from django.http import (HttpResponse,
                          Http404,
                          )
