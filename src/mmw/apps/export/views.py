@@ -8,7 +8,7 @@ import shutil
 import tempfile
 import zipfile
 
-from io import StringIO
+from io import BytesIO
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -147,7 +147,7 @@ def shapefile(request):
                       for ext in SHAPEFILE_EXTENSIONS]
 
         # Create a zip file in memory from all the shapefiles
-        stream = StringIO()
+        stream = BytesIO()
         with zipfile.ZipFile(stream, 'w') as zf:
             for fpath in shapefiles:
                 _, fname = os.path.split(fpath)
@@ -198,7 +198,7 @@ def worksheet(request):
         files = glob.glob(f'{tempdir}/*.*')
 
         # Create a zip file in memory for all the files
-        stream = StringIO()
+        stream = BytesIO()
         with zipfile.ZipFile(stream, 'w') as zf:
             for fpath in files:
                 _, fname = os.path.split(fpath)
