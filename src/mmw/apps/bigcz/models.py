@@ -43,6 +43,6 @@ class BBox(object):
         polygon = Polygon.from_bbox((
             self.xmin, self.ymin,
             self.xmax, self.ymax))
-        polygon.set_srid(4326)
+        polygon.srid = 4326
 
         return polygon.transform(5070, clone=True).area
