@@ -737,7 +737,7 @@ def drb_point_sources(request):
 
     point_source_results['features'] = point_source_array
 
-    return Response(json.dumps(point_source_results),
+    return Response(point_source_results,
                     headers={'Cache-Control': 'max-age: 604800'})
 
 
@@ -766,8 +766,9 @@ def weather_stations(request):
         cursor.execute(query)
         result = cursor.fetchall()[0][0]
 
-    return Response(result,
-                    headers={'Cache-Control': 'max-age: 604800'})
+    return HttpResponse(result,
+                        content_type='application/json',
+                        headers={'Cache-Control': 'max-age: 604800'})
 
 
 @swagger_auto_schema(method='get',
