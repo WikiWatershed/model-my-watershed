@@ -258,8 +258,6 @@ TEMPLATES = [
 # MIDDLEWARE CONFIGURATION
 # See: https://docs.djangoproject.com/en/1.11/topics/http/middleware/
 MIDDLEWARE = (
-    # Django Cookies Samesite Middleware must be first
-    'django_cookies_samesite.middleware.CookiesSameSite',
     # Default Django middleware.
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
