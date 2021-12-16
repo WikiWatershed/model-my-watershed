@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from django.conf.urls import include, url
+from django.urls import include, re_path
 from django.contrib import admin
 from django.conf import settings
 
@@ -11,7 +11,7 @@ from drf_yasg import openapi
 admin.autodiscover()
 
 apipatterns = [
-    url(r'^api/', include('apps.geoprocessing_api.urls')),
+    re_path(r'^api/', include('apps.geoprocessing_api.urls')),
 ]
 
 schema_view = get_schema_view(
@@ -27,18 +27,18 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    url(r'^', include('apps.home.urls')),
-    url(r'^health-check/', include('apps.monitoring.urls')),
-    url(r'^api-auth/', include('rest_framework.urls')),
-    url(r'^accounts/', include('registration.backends.default.urls')),
-    url(r'^bigcz/', include('apps.bigcz.urls')),
-    url(r'^mmw/geocode/', include('apps.geocode.urls')),
-    url(r'^mmw/modeling/', include('apps.modeling.urls')),
-    url(r'^export/', include('apps.export.urls')),
-    url(r'^api/docs/$', schema_view.with_ui('swagger', cache_timeout=0),
-        name='schema-swagger-ui'),
-    url(r'^api/', include('apps.geoprocessing_api.urls')),
-    url(r'^micro/', include('apps.water_balance.urls')),
-    url(r'^user/', include('apps.user.urls')),
-    url(r'^admin/', admin.site.urls),
+    re_path(r'^', include('apps.home.urls')),
+    re_path(r'^health-check/', include('apps.monitoring.urls')),
+    re_path(r'^api-auth/', include('rest_framework.urls')),
+    re_path(r'^accounts/', include('registration.backends.default.urls')),
+    re_path(r'^bigcz/', include('apps.bigcz.urls')),
+    re_path(r'^mmw/geocode/', include('apps.geocode.urls')),
+    re_path(r'^mmw/modeling/', include('apps.modeling.urls')),
+    re_path(r'^export/', include('apps.export.urls')),
+    re_path(r'^api/docs/$', schema_view.with_ui('swagger', cache_timeout=0),
+            name='schema-swagger-ui'),
+    re_path(r'^api/', include('apps.geoprocessing_api.urls')),
+    re_path(r'^micro/', include('apps.water_balance.urls')),
+    re_path(r'^user/', include('apps.user.urls')),
+    re_path(r'^admin/', admin.site.urls),
 ]
