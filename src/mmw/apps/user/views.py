@@ -133,7 +133,7 @@ def profile(request):
 def logout(request):
     auth_logout(request)
 
-    if request.is_ajax():
+    if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
         response_data = {
             'result': 'success',
             'itsi': False,
