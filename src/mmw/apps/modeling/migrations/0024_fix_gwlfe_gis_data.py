@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
+
 from django.db import migrations
+from django.utils.timezone import make_aware
 
 
 def fix_gis_data_serialization(apps, schema_editor):
@@ -14,7 +17,7 @@ def fix_gis_data_serialization(apps, schema_editor):
     """
 
     Project = apps.get_model('modeling', 'Project')
-    bug_released_date = '2017-10-17'
+    bug_released_date = make_aware(datetime.fromisoformat('2017-10-17'))
 
     # Apply fix to Multi-Year projects created after the release
     for project in Project.objects.filter(created_at__gte=bug_released_date,
