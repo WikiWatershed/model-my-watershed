@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import rollbar
+from contextlib import closing
 from urllib.parse import unquote
 
 from celery import chain, group
@@ -270,7 +271,8 @@ def scenario_custom_weather_data(request, scen_id):
         if not scenario.weather_custom.name:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        mods, errs = get_weather_modifications(scenario.weather_custom)
+        with closing(scenario.weather_custom):
+            mods, errs = get_weather_modifications(scenario.weather_custom)
 
         return Response({'output': mods, 'errors': errs,
                          'file_name': scenario.weather_custom.name})
