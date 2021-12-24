@@ -173,6 +173,8 @@ USE_TZ = True
 # This generates false positives and is being removed
 # (https://code.djangoproject.com/ticket/23469)
 SILENCED_SYSTEM_CHECKS = ['1_6.W001', '1_6.W002']
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # END GENERAL CONFIGURATION
 
 
@@ -256,8 +258,6 @@ TEMPLATES = [
 # MIDDLEWARE CONFIGURATION
 # See: https://docs.djangoproject.com/en/1.11/topics/http/middleware/
 MIDDLEWARE = (
-    # Django Cookies Samesite Middleware must be first
-    'django_cookies_samesite.middleware.CookiesSameSite',
     # Default Django middleware.
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',

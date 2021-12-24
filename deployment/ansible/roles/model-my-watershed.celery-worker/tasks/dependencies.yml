@@ -6,7 +6,7 @@
     - { name: "numba", version: "{{ numba_version }}" }
 
 - name: Install application Python dependencies for development and test
-  pip: requirements="{{ app_home }}/requirements/{{ item }}.txt"
+  pip: requirements="{{ app_home }}/requirements/{{ item }}.txt" state=latest
   with_items:
     - development
     - test
@@ -19,9 +19,3 @@
   when: "['packer'] | is_in(group_names)"
   notify:
     - Restart Celery
-
-- name: Hack Django 1.11 to work with Ubuntu Focal
-  replace:
-    path: /usr/local/lib/python3.8/dist-packages/django/contrib/gis/geos/libgeos.py
-    regexp: geos_version\(\)\.decode\(\)
-    replace: geos_version().strip().decode()

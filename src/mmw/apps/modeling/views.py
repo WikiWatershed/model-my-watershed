@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import rollbar
+from contextlib import closing
 from urllib.parse import unquote
 
 from celery import chain, group
@@ -18,7 +19,7 @@ from drf_yasg.utils import swagger_auto_schema
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
 from django.db import connection
-from django.db.models.sql import EmptyResultSet
+from django.core.exceptions import EmptyResultSet
 from django.http import (HttpResponse,
                          Http404,
                          )
@@ -270,7 +271,8 @@ def scenario_custom_weather_data(request, scen_id):
         if not scenario.weather_custom.name:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        mods, errs = get_weather_modifications(scenario.weather_custom)
+        with closing(scenario.weather_custom):
+            mods, errs = get_weather_modifications(scenario.weather_custom)
 
         return Response({'output': mods, 'errors': errs,
                          'file_name': scenario.weather_custom.name})
@@ -737,7 +739,7 @@ def drb_point_sources(request):
 
     point_source_results['features'] = point_source_array
 
-    return Response(json.dumps(point_source_results),
+    return Response(point_source_results,
                     headers={'Cache-Control': 'max-age: 604800'})
 
 
@@ -766,8 +768,9 @@ def weather_stations(request):
         cursor.execute(query)
         result = cursor.fetchall()[0][0]
 
-    return Response(result,
-                    headers={'Cache-Control': 'max-age: 604800'})
+    return HttpResponse(result,
+                        content_type='application/json',
+                        headers={'Cache-Control': 'max-age: 604800'})
 
 
 @swagger_auto_schema(method='get',

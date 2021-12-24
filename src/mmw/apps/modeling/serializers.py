@@ -40,10 +40,11 @@ class MultiPolygonGeoJsonField(JsonField):
         if isinstance(data, str):
             data = json.loads(data)
 
-        geometry = data['geometry'] if 'geometry' in data else data
+        geometry = data
 
         try:
             if not isinstance(geometry, GEOSGeometry):
+                geometry = data['geometry'] if 'geometry' in data else data
                 geometry = GEOSGeometry(json.dumps(geometry))
             geometry.srid = 4326
         except Exception:

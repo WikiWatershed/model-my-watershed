@@ -23,34 +23,33 @@ MONTH_CODES = [str(m).zfill(2) for m in range(1, 13)]
 
 # Full perimeter of the Delaware River Basin (DRB).
 drb_perimeter_path = join(dirname(abspath(__file__)), 'data/drb_perimeter.json')
-drb_perimeter_file = open(drb_perimeter_path)
-drb_perimeter = json.load(drb_perimeter_file)
+with open(drb_perimeter_path) as drb_perimeter_file:
+    drb_perimeter = json.load(drb_perimeter_file)
 
 # Buffered (3 mi) and simplified perimeter of the Delaware River Basin (DRB).
 drb_simple_perimeter_path = join(dirname(abspath(__file__)),
                                  'data/drb_simple_perimeter.json')
-drb_simple_perimeter_file = open(drb_simple_perimeter_path)
-drb_simple_perimeter = json.load(drb_simple_perimeter_file)
+with open(drb_simple_perimeter_path) as drb_simple_perimeter_file:
+    drb_simple_perimeter = json.load(drb_simple_perimeter_file)
 
 # Simplified perimeter of PA, used for DEP specific layers
 pa_perimeter_path = join(dirname(abspath(__file__)), 'data/pa_perimeter.json')
-pa_perimeter_file = open(pa_perimeter_path)
-pa_perimeter = json.load(pa_perimeter_file)
+with open(pa_perimeter_path) as pa_perimeter_file:
+    pa_perimeter = json.load(pa_perimeter_file)
 
 # Simplified perimeter of the continental US, used to prevent non-CONUS
 # AoIs from being sent to the API
 conus_perimeter_path = join(dirname(abspath(__file__)), 'data/conus_perimeter.json')
-conus_perimeter_file = open(conus_perimeter_path)
-CONUS_PERIMETER = json.load(conus_perimeter_file)
+with open(conus_perimeter_path) as conus_perimeter_file:
+    CONUS_PERIMETER = json.load(conus_perimeter_file)
 
 # Buffered with QGIS [buffer distance = 0.10] and simplified [factor=0.01]
 # perimeter of the NHD Mid Atlantic Region (02)
 # Not a visible layer, but used for to detect if a point will work for RWD.
 nhd_region2_simple_perimeter_path = join(dirname(abspath(__file__)),
                                          'data/nhd_region2_simple_perimeter.json')
-nhd_region2_simple_perimeter_file = open(nhd_region2_simple_perimeter_path)
-
-NHD_REGION2_PERIMETER = json.load(nhd_region2_simple_perimeter_file)
+with open(nhd_region2_simple_perimeter_path) as nhd_region2_simple_perimeter_file:
+    NHD_REGION2_PERIMETER = json.load(nhd_region2_simple_perimeter_file)
 
 LAYER_GROUPS = {
     'basemap': [

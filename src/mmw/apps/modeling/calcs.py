@@ -6,7 +6,6 @@ import requests
 from contextlib import closing
 from copy import deepcopy
 from datetime import datetime, timedelta
-from io import StringIO
 
 from django.conf import settings
 from django.db import connection
@@ -42,7 +41,7 @@ def get_weather_modifications(csv_file):
     a list of errors.
     """
     file = csv_file.read().decode('utf-8')
-    rows = list(csv.reader(StringIO(file)))
+    rows = list(csv.reader(file.splitlines()))
     errs = []
 
     def err(msg, line=None):
@@ -162,7 +161,7 @@ def get_weather_simulation_for_project(project, category):
 
         # Fetch and parse station weather data, noting any errors
         with closing(requests.get(url, stream=True)) as r:
-            ws_data, ws_errs = get_weather_modifications(r.iter_lines())
+            ws_data, ws_errs = get_weather_modifications(r.raw)
             data.append(ws_data)
             errs += ws_errs
 

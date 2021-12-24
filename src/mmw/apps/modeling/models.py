@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-from django.db.models import FileField
+from django.db.models import FileField, JSONField
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.auth.models import User
-from django.contrib.postgres.fields import JSONField
 
 from apps.core.models import Job
 
