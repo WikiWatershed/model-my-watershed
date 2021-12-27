@@ -10,8 +10,6 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.db import connection
 
-from django.contrib.gis.geos import WKBReader
-
 from apps.modeling.mapshed.calcs import (area_calculations,
                                          nearest_weather_stations,
                                          average_weather_data
@@ -431,7 +429,7 @@ def _get_boundary_search_query(search_term):
     subquery = ' UNION ALL '.join(selects)
 
     return f"""
-        SELECT id, code, name, rank, center
+        SELECT id, code, name, rank, ST_X(center) AS x, ST_Y(center) AS y
         FROM ({subquery}) AS subquery
         ORDER BY rank DESC, name
     """
@@ -448,14 +446,13 @@ def _do_boundary_search(search_term):
         wildcard_term = f'%{search_term}%'
         cursor.execute(query, {'term': wildcard_term})
 
-        wkb_r = WKBReader()
-
         for row in cursor.fetchall():
             id = row[0]
             code = row[1]
             name = row[2]
             rank = row[3]
-            point = wkb_r.read(row[4])
+            x = row[4]
+            y = row[5]
 
             layer = _get_boundary_layer_by_code(code)
 
@@ -465,8 +462,8 @@ def _do_boundary_search(search_term):
                 'text': name,
                 'label': layer['short_display'],
                 'rank': rank,
-                'y': point.y,
-                'x': point.x,
+                'x': x,
+                'y': y,
             })
 
     return result
