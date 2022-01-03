@@ -296,7 +296,7 @@ class DataPlane(StackNode):
             DBParameterGroupName=Ref(self.rds_parameter_group_name),
             DBSubnetGroupName=Ref(rds_subnet_group),
             Engine='postgres',
-            EngineVersion='9.6.22',
+            EngineVersion='9.6.23',
             MasterUsername=Ref(self.rds_username),
             MasterUserPassword=Ref(self.rds_password),
             MultiAZ=Ref(self.rds_multi_az),
