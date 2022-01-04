@@ -455,21 +455,22 @@ def _initiate_subbasin_gwlfe_job_chain(model_input, mapshed_job_uuid,
     # If we don't chunk, a shape that has 60+ subbasins could take >60sec
     # to generate a response (and thus timeout) because we'll be waiting to
     # submit one task for each subbasin.
-    gwlfe_chunked_group = group(iter([
+    gwlfe_chunked_group = group([
         tasks.run_subbasin_gwlfe_chunks.s(mapshed_job_uuid,
                                           modifications,
                                           stream_lengths,
                                           inputmod_hash,
                                           watershed_id_chunk)
         .set(link_error=errback)
-        for watershed_id_chunk in watershed_id_chunks]))
+        for watershed_id_chunk in watershed_id_chunks])
 
-    post_process = \
-        tasks.subbasin_results_to_dict.s().set(link_error=errback) | \
-        tasks.run_srat.s(mapshed_job_uuid).set(link_error=errback) | \
-        save_job_result.s(job_id, mapshed_job_uuid)
+    job_chain = (
+        gwlfe_chunked_group |
+        tasks.subbasin_results_to_dict.s().set(link_error=errback) |
+        tasks.run_srat.s(mapshed_job_uuid).set(link_error=errback) |
+        save_job_result.s(job_id, mapshed_job_uuid))
 
-    return (gwlfe_chunked_group | post_process).apply_async()
+    return chain(job_chain).apply_async()
 
 
 @decorators.api_view(['POST'])
