@@ -3,6 +3,11 @@
 
 Vagrant.require_version ">= 2.2"
 
+# Install vagrant-disksize to allow resizing the services VM.
+unless Vagrant.has_plugin?("vagrant-disksize")
+  raise  Vagrant::Errors::VagrantError.new, "vagrant-disksize plugin is missing. Please install it using 'vagrant plugin install vagrant-disksize' and rerun 'vagrant up'"
+end
+
 # We need to stay on Ansible 2.8 because the version_compare filter was removed
 # in 2.9.
 # https://github.com/ansible/ansible/issues/64174#issuecomment-548639160
@@ -54,6 +59,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "services" do |services|
     services.vm.hostname = "services"
     services.vm.network "private_network", ip: ENV["MMW_SERVICES_IP"] || "33.33.34.30"
+    services.disksize.size = '64GB'
 
     # PostgreSQL
     services.vm.network "forwarded_port", **{
@@ -81,6 +87,13 @@ Vagrant.configure("2") do |config|
       ansible.groups = ANSIBLE_GROUPS.merge(ANSIBLE_ENV_GROUPS)
       ansible.raw_arguments = ["--timeout=60"]
       ansible.extra_vars = MMW_EXTRA_VARS
+    end
+
+    services.vm.provision "shell" do |s|
+      s.inline = <<-SHELL
+        sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
+        sudo resize2fs /dev/mapper/ubuntu--vg-ubuntu--lv
+      SHELL
     end
   end
 
