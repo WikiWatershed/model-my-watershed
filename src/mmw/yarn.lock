@@ -2412,9 +2412,9 @@ ieee754@^1.1.13, ieee754@^1.1.4:
   resolved "https://registry.yarnpkg.com/ieee754/-/ieee754-1.2.1.tgz#8eb7a10a63fff25d15a57b001586d177d1b0d352"
   integrity sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==
 
-"iframe-phone@git://github.com/concord-consortium/iframe-phone#v1.1.3":
+"iframe-phone@https://github.com/concord-consortium/iframe-phone#v1.1.3":
   version "1.1.3"
-  resolved "git://github.com/concord-consortium/iframe-phone#200f47f43ee32d640868072c17de4a675e16d96a"
+  resolved "https://github.com/concord-consortium/iframe-phone#200f47f43ee32d640868072c17de4a675e16d96a"
 
 immediate@~3.0.5:
   version "3.0.6"
@@ -2933,13 +2933,13 @@ lazy-cache@^1.0.3:
   resolved "https://registry.yarnpkg.com/lazy-cache/-/lazy-cache-1.0.4.tgz#a1d78fc3a50474cb80845d3b3b6e1da49a446e8e"
   integrity sha1-odePw6UEdMuAhF07O24dpJpEbo4=
 
-"leaflet-draw@git://github.com/azavea/Leaflet.draw":
+"leaflet-draw@https://github.com/azavea/Leaflet.draw":
   version "0.3.2"
-  resolved "git://github.com/azavea/Leaflet.draw#35f0df26bb8e403b1395a684f8d8a7fa0fae775e"
+  resolved "https://github.com/azavea/Leaflet.draw#35f0df26bb8e403b1395a684f8d8a7fa0fae775e"
 
-"leaflet-plugins@git://github.com/azavea/leaflet-plugins#feature/browserify":
+"leaflet-plugins@https://github.com/azavea/leaflet-plugins#feature/browserify":
   version "1.3.8"
-  resolved "git://github.com/azavea/leaflet-plugins#4d077a6f2e8a12ac26955bc80a15148777192530"
+  resolved "https://github.com/azavea/leaflet-plugins#4d077a6f2e8a12ac26955bc80a15148777192530"
 
 leaflet.locatecontrol@0.43.0:
   version "0.43.0"
@@ -4371,9 +4371,9 @@ ret@~0.1.10:
   resolved "https://registry.yarnpkg.com/ret/-/ret-0.1.15.tgz#b8a4825d5bdb1fc3f6f53c2bc33f81388681c7bc"
   integrity sha512-TTlYpa+OL+vMMNG24xSlQGEJ3B/RzEfUlLct7b5G/ytav+wPrplCpVMFuwzXbkecJrb6IYo1iFb0S9v37754mg==
 
-"retina.js@git://github.com/imulus/retinajs#1.3.0":
+"retina.js@https://github.com/imulus/retinajs#1.3.0":
   version "1.3.0"
-  resolved "git://github.com/imulus/retinajs#a70e73639817473bad7bbb33f866b8e060e5f5a7"
+  resolved "https://github.com/imulus/retinajs#a70e73639817473bad7bbb33f866b8e060e5f5a7"
 
 right-align@^0.1.1:
   version "0.1.3"
