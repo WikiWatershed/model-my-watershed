@@ -517,7 +517,7 @@ var CompareModificationsPopoverView = Marionette.ItemView.extend({
 
                         if (modKey === 'entry_landcover') {
                             name = _.find(GWLFE_LAND_COVERS, { id: parseInt(key.substring(6)) }).label;
-                            value = value.toFixed(1);
+                            value = coreUnits.get('AREA_L_FROM_HA', value).value.toFixed(1);
                             input = coreUnits[scheme].AREA_L_FROM_HA.name;
                         } else if (modKey === 'entry_landcover_preset') {
                             var task = App.getAnalyzeCollection()
@@ -533,6 +533,7 @@ var CompareModificationsPopoverView = Marionette.ItemView.extend({
                             value = null;
                             input = task && task.get('displayName');
                         } else {
+                            value = coreUnits.get(unit, value).value.toFixed(3);
                             input = input.replace('AREAUNITNAME', areaUnit);
                         }
 
