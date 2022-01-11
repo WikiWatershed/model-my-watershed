@@ -19,7 +19,7 @@ def override_sedaadjust_for_old_projects(apps, schema_editor):
     for p in ps:
         for s in p.scenarios.all():
             mods = json.loads(s.modifications)
-            m_other = next((m for m in mods if m['modKey'] == 'entry_other'), None)
+            m_other = next((m for m in mods if m.get('modKey') == 'entry_other'), None)
 
             if m_other:
                 if 'SedAAdjust' not in m_other['output']:
