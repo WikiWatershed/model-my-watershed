@@ -362,6 +362,7 @@ def get_client_settings(request):
             },
             'enabled_features': settings.ENABLED_FEATURES,
             'unit_scheme': unit_scheme,
+            'celery_task_time_limit': settings.CELERY_TASK_TIME_LIMIT,
         }),
         'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY,
         'title': title,

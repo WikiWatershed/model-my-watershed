@@ -4,7 +4,9 @@ After=network.target
 
 [Service]
 {% if ['development', 'test'] | some_are_in(group_names) -%}
-Environment=AWS_PROFILE={{ aws_profile }}
+Environment=MMW_GEOPROCESSING_TIMEOUT={{ geop_timeout }}s AWS_PROFILE={{ aws_profile }}
+{% else %}
+Environment=MMW_GEOPROCESSING_TIMEOUT={{ geop_timeout }}s
 {% endif %}
 User=mmw
 WorkingDirectory={{ geop_home }}
