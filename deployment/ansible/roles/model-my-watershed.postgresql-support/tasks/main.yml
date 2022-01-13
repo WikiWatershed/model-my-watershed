@@ -12,6 +12,7 @@
       - libpq5={{ postgresql_support_libpq_version }}
       - libpq-dev={{ postgresql_support_libpq_version }}
     state: present
+    force: true
 
 - name: Install PostgreSQL driver for Python
   pip: name=psycopg2-binary
