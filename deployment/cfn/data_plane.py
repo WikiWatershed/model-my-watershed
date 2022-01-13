@@ -64,7 +64,7 @@ class DataPlane(StackNode):
         'KeyName': 'mmw-stg',
         'IPAccess': ALLOW_ALL_CIDR,
         'BastionHostInstanceType': 't2.medium',
-        'RDSInstanceType': 'db.t2.micro',
+        'RDSInstanceType': 'db.t3.micro',
         'RDSDbName': 'modelmywatershed',
         'RDSUsername': 'modelmywatershed',
         'RDSPassword': 'modelmywatershed',
@@ -111,7 +111,7 @@ class DataPlane(StackNode):
         ), 'BastionHostAMI')
 
         self.rds_instance_type = self.add_parameter(Parameter(
-            'RDSInstanceType', Type='String', Default='db.t2.micro',
+            'RDSInstanceType', Type='String', Default='db.t3.micro',
             Description='RDS instance type', AllowedValues=RDS_INSTANCE_TYPES,
             ConstraintDescription='must be a valid RDS instance type.'
         ), 'RDSInstanceType')
@@ -296,7 +296,7 @@ class DataPlane(StackNode):
             DBParameterGroupName=Ref(self.rds_parameter_group_name),
             DBSubnetGroupName=Ref(rds_subnet_group),
             Engine='postgres',
-            EngineVersion='9.6.14',
+            EngineVersion='13.4',
             MasterUsername=Ref(self.rds_username),
             MasterUserPassword=Ref(self.rds_password),
             MultiAZ=Ref(self.rds_multi_az),
