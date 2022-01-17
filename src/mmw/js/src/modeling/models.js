@@ -366,6 +366,7 @@ var ProjectModel = Backbone.Model.extend({
         sidebar_mode: utils.MODEL,         // The current mode of the sidebar. ANALYZE, MONITOR, or MODEL.
         is_exporting: false,               // Is the project currently exporting?
         hydroshare_errors: [],             // List of errors from connecting to hydroshare
+        layer_overrides: {},               // Keys of tokens mapped to overriding layer names, e.g. {"__LAND__": "nlcd-2011-30m-epsg5070-512-int8"}
     },
 
     initialize: function() {
@@ -568,9 +569,13 @@ var ProjectModel = Backbone.Model.extend({
             var aoi = this.get('area_of_interest'),
                 wkaoi = this.get('wkaoi'),
                 promise = $.Deferred(),
-                mapshedInput = utils.isWKAoIValid(wkaoi) ?
-                                   JSON.stringify({ 'wkaoi': wkaoi }) :
-                                   JSON.stringify({ 'area_of_interest': aoi }),
+                aoi_param = utils.isWKAoIValid(wkaoi) ?
+                    { 'wkaoi': wkaoi } :
+                    { 'area_of_interest': aoi },
+                mapshedInput = JSON.stringify(
+                    _.extend({
+                        layer_overrides: this.get('layer_overrides'),
+                    }, aoi_param)),
                 queryParams = isSubbasinMode ? { subbasin: true } : null,
                 taskModel = isSubbasinMode ?
                     createSubbasinTaskModel(utils.MAPSHED) :
@@ -1678,7 +1683,8 @@ var ScenarioModel = Backbone.Model.extend({
                         aoi_census: self.get('aoi_census'),
                         modification_censuses: self.get('modification_censuses'),
                         inputmod_hash: self.get('inputmod_hash'),
-                        modification_hash: self.get('modification_hash')
+                        modification_hash: self.get('modification_hash'),
+                        layer_overrides: project.get('layer_overrides'),
                     };
 
                 if (utils.isWKAoIValid(wkaoi)) {
@@ -1700,6 +1706,7 @@ var ScenarioModel = Backbone.Model.extend({
                     mapshed_job_uuid: isSubbasinMode ?
                         project.get('subbasin_mapshed_job_uuid') :
                         project.get('mapshed_job_uuid'),
+                    layer_overrides: project.get('layer_overrides'),
                 };
         }
     }

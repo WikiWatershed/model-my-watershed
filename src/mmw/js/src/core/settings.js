@@ -22,6 +22,7 @@ var defaultSettings = {
     enabled_features: [],
     branch: null,
     gitDescribe: null,
+    celery_task_time_limit: 120,
 };
 
 var settings = (function() {

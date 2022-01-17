@@ -1,4 +1,9 @@
 ---
+- name: Install ACL, required for Ansible Super User
+  apt:
+    name: acl
+    state: present
+
 - name: Create PostgreSQL super user
   become_user: postgres
   postgresql_user: name="{{ postgresql_username }}"

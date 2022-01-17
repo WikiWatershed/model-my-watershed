@@ -10,7 +10,7 @@ from troposphere import (
     s3
 )
 
-from utils.constants import (
+from cfn.utils.constants import (
     AMAZON_S3_HOSTED_ZONE_ID,
     AMAZON_S3_WEBSITE_DOMAIN,
 )
@@ -89,7 +89,7 @@ class TileDeliveryNetwork(StackNode):
                         DomainName=Join('.',
                                         ['tile-cache',
                                          Ref(self.public_hosted_zone_name)]),
-                        CustomOriginConfig=cf.CustomOrigin(
+                        CustomOriginConfig=cf.CustomOriginConfig(
                             OriginProtocolPolicy='http-only'
                         )
                     )
@@ -112,7 +112,7 @@ class TileDeliveryNetwork(StackNode):
                         DomainName=Join('.',
                                         ['tile-cache',
                                          Ref(self.public_hosted_zone_name)]),
-                        CustomOriginConfig=cf.CustomOrigin(
+                        CustomOriginConfig=cf.CustomOriginConfig(
                             OriginProtocolPolicy='http-only'
                         )
                     )

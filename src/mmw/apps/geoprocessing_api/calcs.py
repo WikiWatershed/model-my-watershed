@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-
 import json
 import requests
 from operator import itemgetter
@@ -39,7 +35,7 @@ def animal_population(geojson):
     aeu_for_geom = animal_energy_units(geom)[2]
     aeu_return_values = []
 
-    for animal, aeu_value in aeu_for_geom.iteritems():
+    for animal, aeu_value in aeu_for_geom.items():
         aeu_return_values.append({
             'type': ANIMAL_DISPLAY_NAMES[animal],
             'aeu': int(aeu_value),
@@ -52,9 +48,9 @@ def animal_population(geojson):
     }
 
 
-def stream_data(results, geojson):
+def stream_data(results, geojson, datasource='nhdhr'):
     """
-    Given a GeoJSON shape, retreive stream data from the `nhdflowline` table
+    Given a GeoJSON shape, retreive stream data from the specified table
     to display in the Analyze tab
 
     Returns a dictionary to append to outgoing JSON for analysis results.
@@ -62,17 +58,31 @@ def stream_data(results, geojson):
 
     NULL_SLOPE = -9998.0
 
-    sql = '''
-        SELECT sum(lengthkm) as lengthkm,
+    if datasource not in settings.STREAM_TABLES:
+        raise Exception(f'Invalid stream datasource {datasource}')
+
+    sql = f'''
+        WITH stream_intersection AS (
+            SELECT ST_Length(ST_Transform(
+                      ST_Intersection(geom,
+                                      ST_SetSRID(ST_GeomFromGeoJSON(%s),
+                                                 4326)),
+                      5070)) AS lengthm,
+                   stream_order,
+                   slope
+            FROM {settings.STREAM_TABLES[datasource]}
+            WHERE ST_Intersects(geom,
+                                ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326)))
+
+        SELECT SUM(lengthm) / 1000 AS lengthkm,
                stream_order,
-               sum(lengthkm * NULLIF(slope, {NULL_SLOPE})) as slopesum
-        FROM nhdflowline
-        WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromGeoJSON(%s), 4326))
+               SUM(lengthm * NULLIF(slope, {NULL_SLOPE})) / 1000 AS slopesum
+        FROM stream_intersection
         GROUP BY stream_order;
-        '''.format(NULL_SLOPE=NULL_SLOPE)
+        '''
 
     with connection.cursor() as cursor:
-        cursor.execute(sql, [geojson])
+        cursor.execute(sql, [geojson, geojson])
 
         if cursor.rowcount:
             columns = [col[0] for col in cursor.description]
@@ -115,7 +125,7 @@ def stream_data(results, geojson):
 
     return {
         'displayName': 'Streams',
-        'name': 'streams',
+        'name': f'streams_{datasource}',
         'categories': sorted(list(stream_data.values()),
                              key=itemgetter('order')),
     }
@@ -133,13 +143,12 @@ def point_source_pollution(geojson):
     geom = GEOSGeometry(geojson, srid=4326)
     drb = geom.within(DRB)
     table_name = get_point_source_table(drb)
-    sql = '''
+    sql = f'''
           SELECT city, state, npdes_id, mgd, kgn_yr, kgp_yr, latitude,
-                 longitude, {facilityname}
+                 longitude, {'facilityname' if drb else 'null'}
           FROM {table_name}
           WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromText(%s), 4326))
-          '''.format(facilityname='facilityname' if drb else 'null',
-                     table_name=table_name)
+          '''
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [geom.wkt])
@@ -178,7 +187,7 @@ def catchment_water_quality(geojson):
     """
     geom = GEOSGeometry(geojson, srid=4326)
     table_name = 'drb_catchment_water_quality'
-    sql = '''
+    sql = f'''
           SELECT nord, areaha, tn_tot_kgy, tp_tot_kgy, tss_tot_kg,
           tn_urban_k, tn_riparia, tn_ag_kgyr, tn_natural, tn_pt_kgyr,
           tp_urban_k, tp_riparia, tp_ag_kgyr, tp_natural, tp_pt_kgyr,
@@ -187,7 +196,7 @@ def catchment_water_quality(geojson):
           ST_AsGeoJSON(ST_Simplify(geom, 0.0003)) as geom
           FROM {table_name}
           WHERE ST_Intersects(geom, ST_SetSRID(ST_GeomFromText(%s), 4326))
-          '''.format(table_name=table_name)
+          '''
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [geom.wkt])
@@ -318,16 +327,20 @@ def huc12s_with_aois(geojson):
     return matches
 
 
-def streams_for_huc12s(huc12s, drb=False):
+def streams_for_huc12s(huc12s, datasource='nhdhr'):
     """
     Get MultiLineString of all streams in the given HUC-12s
     """
-    sql = '''
-          SELECT ST_AsGeoJSON(ST_Collect(ST_Force2D(s.geom)))
-          FROM {datasource} s INNER JOIN boundary_huc12 b
+    if datasource not in settings.STREAM_TABLES:
+        raise Exception(f'Invalid stream datasource {datasource}')
+
+    sql = f'''
+          SELECT ST_AsGeoJSON(ST_Multi(s.geom))
+          FROM {settings.STREAM_TABLES[datasource]} s
+            INNER JOIN boundary_huc12 b
             ON ST_Intersects(s.geom, b.geom_detailed)
           WHERE b.huc12 IN %s
-          '''.format(datasource='drb_streams_50' if drb else 'nhdflowline')
+          '''
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [tuple(huc12s)])
@@ -344,6 +357,6 @@ def drexel_fast_zonal(geojson, key):
     res.raise_for_status()
 
     # Select results for the given key
-    result = {int(k): v for k, v in res.json()[key].iteritems()}
+    result = {int(k): v for k, v in res.json()[key].items()}
 
     return result

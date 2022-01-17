@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
 from apps.bigcz.clients.cuahsi.models import CuahsiResource
 from apps.bigcz.clients.cuahsi.serializers import CuahsiResourceSerializer
 

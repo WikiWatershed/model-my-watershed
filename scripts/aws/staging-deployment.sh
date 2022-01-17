@@ -32,7 +32,7 @@ fi
 pushd deployment
 
 # Attempt to launch a new stack & cutover DNS
-python mmw_stack.py launch-stacks \
+python3 mmw_stack.py launch-stacks \
   --aws-profile "${MMW_AWS_PROFILE}" \
   --mmw-profile "${MMW_PROFILE}" \
   --mmw-config-path "${MMW_CONFIG_PATH}" \
@@ -40,7 +40,7 @@ python mmw_stack.py launch-stacks \
   --activate-dns
 
 # Remove old stack
-python mmw_stack.py remove-stacks \
+python3 mmw_stack.py remove-stacks \
   --aws-profile "${MMW_AWS_PROFILE}" \
   --mmw-profile "${MMW_PROFILE}" \
   --mmw-config-path "${MMW_CONFIG_PATH}" \

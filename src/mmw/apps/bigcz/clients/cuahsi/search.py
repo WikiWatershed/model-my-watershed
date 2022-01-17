@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
 from datetime import date
-from urllib2 import URLError
+from urllib.error import URLError
 from socket import timeout
 from operator import attrgetter, itemgetter
 
@@ -69,7 +65,7 @@ def recursive_asdict(d):
     From https://gist.github.com/robcowie/a6a56cf5b17a86fdf461
     """
     out = {}
-    for k, v in asdict(d).iteritems():
+    for k, v in asdict(d).items():
         if hasattr(v, '__keylist__'):
             out[k] = recursive_asdict(v)
         elif isinstance(v, list):
@@ -121,18 +117,14 @@ def parse_details_url(record):
         if len(parts) == 2:
             code, id = parts
             if code == 'NWISDV':
-                url = 'https://waterdata.usgs.gov/nwis/dv/?site_no={}'
-                return url.format(id)
+                return f'https://waterdata.usgs.gov/nwis/dv/?site_no={id}'
             elif code == 'NWISUV':
-                url = 'https://waterdata.usgs.gov/nwis/uv/?site_no={}'
-                return url.format(id)
+                return f'https://waterdata.usgs.gov/nwis/uv/?site_no={id}'
             elif code == 'NWISGW':
-                url = ('https://nwis.waterdata.usgs.gov/' +
-                       'usa/nwis/gwlevels/?site_no={}')
-                return url.format(id)
+                return ('https://nwis.waterdata.usgs.gov/'
+                        f'usa/nwis/gwlevels/?site_no={id}')
             elif code == 'EnviroDIY':
-                url = 'http://data.envirodiy.org/sites/{}/'
-                return url.format(id)
+                return f'http://data.envirodiy.org/sites/{id}/'
     return None
 
 
@@ -205,7 +197,7 @@ def group_series_by_location(series):
             group.append(record)
 
     records = []
-    for location, group in groups.iteritems():
+    for location, group in groups.items():
         records.append({
             'serv_code': group[0]['ServCode'],
             'serv_url': group[0]['ServURL'],
@@ -234,8 +226,8 @@ def group_series_by_location(series):
 
 
 def make_request(request, expiry, **kwargs):
-    key = 'bigcz_cuahsi_{}_{}'.format(request.method.name,
-                                      hash(frozenset(kwargs.items())))
+    key = \
+        f'bigcz_cuahsi_{request.method.name}_{hash(frozenset(kwargs.items()))}'
     cached = cache.get(key)
     if cached:
         return cached
@@ -244,7 +236,7 @@ def make_request(request, expiry, **kwargs):
         response = recursive_asdict(request(**kwargs))
         cache.set(key, response, timeout=expiry)
         return response
-    except URLError, e:
+    except URLError as e:
         if isinstance(e.reason, timeout):
             raise RequestTimedOutError()
         else:
@@ -316,10 +308,9 @@ def search(**kwargs):
 
     if bbox_area > settings.BIGCZ_MAX_AREA:
         raise ValidationError({
-            'error': 'The selected area of interest with a bounding box of {} '
-                     'km² is larger than the currently supported maximum size '
-                     'of {} km².'.format(round(bbox_area, 2),
-                                          settings.BIGCZ_MAX_AREA)})
+            'error': 'The selected area of interest with a bounding box of '
+                     f'{round(bbox_area, 2)} km² is larger than the currently '
+                     f'supported maximum size of {settings.BIGCZ_MAX_AREA} km².'})  # NOQA
 
     world = BBox(-180, -90, 180, 90)
 

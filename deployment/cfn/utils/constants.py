@@ -8,10 +8,10 @@ EC2_INSTANCE_TYPES = [
 ]
 
 RDS_INSTANCE_TYPES = [
-    'db.t2.micro',
-    'db.t2.small',
-    'db.t2.medium',
-    'db.t2.large'
+    'db.t3.micro',
+    'db.t3.small',
+    'db.t3.medium',
+    'db.t3.large'
 ]
 
 ELASTICACHE_INSTANCE_TYPES = [

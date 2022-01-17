@@ -16,41 +16,40 @@ from collections import OrderedDict
 import json
 
 from django.contrib.gis.geos import GEOSGeometry
-from layer_classmaps import NLCD, SOIL, PROTECTED_LANDS
+from mmw.settings.layer_classmaps import NLCD, SOIL, PROTECTED_LANDS
 
 # [01, 02, ...] style list for layer time sliders
 MONTH_CODES = [str(m).zfill(2) for m in range(1, 13)]
 
 # Full perimeter of the Delaware River Basin (DRB).
 drb_perimeter_path = join(dirname(abspath(__file__)), 'data/drb_perimeter.json')
-drb_perimeter_file = open(drb_perimeter_path)
-drb_perimeter = json.load(drb_perimeter_file)
+with open(drb_perimeter_path) as drb_perimeter_file:
+    drb_perimeter = json.load(drb_perimeter_file)
 
 # Buffered (3 mi) and simplified perimeter of the Delaware River Basin (DRB).
 drb_simple_perimeter_path = join(dirname(abspath(__file__)),
                                  'data/drb_simple_perimeter.json')
-drb_simple_perimeter_file = open(drb_simple_perimeter_path)
-drb_simple_perimeter = json.load(drb_simple_perimeter_file)
+with open(drb_simple_perimeter_path) as drb_simple_perimeter_file:
+    drb_simple_perimeter = json.load(drb_simple_perimeter_file)
 
 # Simplified perimeter of PA, used for DEP specific layers
 pa_perimeter_path = join(dirname(abspath(__file__)), 'data/pa_perimeter.json')
-pa_perimeter_file = open(pa_perimeter_path)
-pa_perimeter = json.load(pa_perimeter_file)
+with open(pa_perimeter_path) as pa_perimeter_file:
+    pa_perimeter = json.load(pa_perimeter_file)
 
 # Simplified perimeter of the continental US, used to prevent non-CONUS
 # AoIs from being sent to the API
 conus_perimeter_path = join(dirname(abspath(__file__)), 'data/conus_perimeter.json')
-conus_perimeter_file = open(conus_perimeter_path)
-CONUS_PERIMETER = json.load(conus_perimeter_file)
+with open(conus_perimeter_path) as conus_perimeter_file:
+    CONUS_PERIMETER = json.load(conus_perimeter_file)
 
 # Buffered with QGIS [buffer distance = 0.10] and simplified [factor=0.01]
 # perimeter of the NHD Mid Atlantic Region (02)
 # Not a visible layer, but used for to detect if a point will work for RWD.
 nhd_region2_simple_perimeter_path = join(dirname(abspath(__file__)),
                                          'data/nhd_region2_simple_perimeter.json')
-nhd_region2_simple_perimeter_file = open(nhd_region2_simple_perimeter_path)
-
-NHD_REGION2_PERIMETER = json.load(nhd_region2_simple_perimeter_file)
+with open(nhd_region2_simple_perimeter_path) as nhd_region2_simple_perimeter_file:
+    NHD_REGION2_PERIMETER = json.load(nhd_region2_simple_perimeter_file)
 
 LAYER_GROUPS = {
     'basemap': [
@@ -90,18 +89,93 @@ LAYER_GROUPS = {
     ],
     'coverage': [
         {
-            'display': 'National Land Cover Database',
-            'code': 'nlcd',
+            'display': 'Land Use/Cover 2019 (NLCD19)',
+            'code': 'nlcd-2019_2019',
+            'css_class_prefix': 'nlcd-2019-30m nlcd',
+            'short_display': 'NLCD 2019',
+            'helptext': 'National Land Cover Database defines'
+                        'land use across the U.S. From 2019 of NLCD19.',
+            'url': 'https://{s}.tiles.azavea.com/nlcd-2019-30m/{z}/{x}/{y}.png',
+            'maxNativeZoom': 13,
+            'maxZoom': 18,
+            'opacity': 0.618,
+            'has_opacity_slider': True,
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'big_cz': True,
+        },
+        {
+            'display': 'Land Use/Cover 2016 (NLCD19)',
+            'code': 'nlcd-2019_2016',
+            'css_class_prefix': 'nlcd-2016-30m nlcd',
+            'short_display': 'NLCD 2016',
+            'helptext': 'National Land Cover Database defines'
+                        'land use across the U.S. From 2016 of NLCD19.',
+            'url': 'https://{s}.tiles.azavea.com/nlcd-2016-30m/{z}/{x}/{y}.png',
+            'maxNativeZoom': 13,
+            'maxZoom': 18,
+            'opacity': 0.618,
+            'has_opacity_slider': True,
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'big_cz': True,
+        },
+        {
+            'display': 'Land Use/Cover 2011 (NLCD19)',
+            'code': 'nlcd-2019_2011',
+            'css_class_prefix': 'nlcd-2011-30m nlcd',
+            'short_display': 'NLCD 2011',
+            'helptext': 'National Land Cover Database defines'
+                        'land use across the U.S. From 2011 of NLCD19.',
+            'url': 'https://{s}.tiles.azavea.com/nlcd-2011-30m/{z}/{x}/{y}.png',
+            'maxNativeZoom': 13,
+            'maxZoom': 18,
+            'opacity': 0.618,
+            'has_opacity_slider': True,
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'big_cz': True,
+        },
+        {
+            'display': 'Land Use/Cover 2006 (NLCD19)',
+            'code': 'nlcd-2019_2006',
+            'css_class_prefix': 'nlcd-2006-30m nlcd',
+            'short_display': 'NLCD 2006',
+            'helptext': 'National Land Cover Database defines'
+                        'land use across the U.S. From 2006 of NLCD19.',
+            'url': 'https://{s}.tiles.azavea.com/nlcd-2006-30m/{z}/{x}/{y}.png',
+            'maxNativeZoom': 13,
+            'maxZoom': 18,
+            'opacity': 0.618,
+            'has_opacity_slider': True,
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'big_cz': True,
+        },
+        {
+            'display': 'Land Use/Cover 2001 (NLCD19)',
+            'code': 'nlcd-2019_2001',
+            'css_class_prefix': 'nlcd-2001-30m nlcd',
+            'short_display': 'NLCD 2001',
+            'helptext': 'National Land Cover Database defines'
+                        'land use across the U.S. From 2001 of NLCD19.',
+            'url': 'https://{s}.tiles.azavea.com/nlcd-2001-30m/{z}/{x}/{y}.png',
+            'maxNativeZoom': 13,
+            'maxZoom': 18,
+            'opacity': 0.618,
+            'has_opacity_slider': True,
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
+            'big_cz': True,
+        },
+        {
+            'display': 'Land Use/Cover 2011 (NLCD11)',
+            'code': 'nlcd-2011_2011',
             'css_class_prefix': 'nlcd',
             'short_display': 'NLCD',
             'helptext': 'National Land Cover Database defines'
-                        'land use across the U.S.',
+                        'land use across the U.S. From NLCD11.',
             'url': 'https://{s}.tiles.azavea.com/nlcd/{z}/{x}/{y}.png',
             'maxNativeZoom': 13,
             'maxZoom': 18,
             'opacity': 0.618,
             'has_opacity_slider': True,
-            'legend_mapping': { key: names[1] for key, names in NLCD.iteritems()},
+            'legend_mapping': { key: names[1] for key, names in NLCD.items()},
             'big_cz': True,
         },
         {
@@ -192,7 +266,7 @@ LAYER_GROUPS = {
             'time_slider_values': MONTH_CODES,
             'use_color_ramp': True,
             'color_ramp_id': 'temperature-legend',
-            'legend_units_label': u'Air Temperature (\xb0C)',
+            'legend_units_label': 'Air Temperature (\xb0C)',
             'legend_unit_breaks': [-20, '', -8, '', 4, '', 16, '', 28, '', 40],
             'big_cz': True,
         },
@@ -210,7 +284,7 @@ LAYER_GROUPS = {
             'legend_mapping': OrderedDict([
                 (shortname, longname)
                 for _, (shortname, longname) in sorted(
-                        PROTECTED_LANDS.iteritems(), key=lambda x: x[0]
+                        PROTECTED_LANDS.items(), key=lambda x: x[0]
                 )
             ]),
         },
@@ -471,6 +545,14 @@ LAYER_GROUPS = {
             'big_cz': True,
         },
         {
+            'code': 'nhd_streams_hr_v1',
+            'display': ('Continental US High Resolution' +
+                        ' Stream Network'),
+            'table_name': 'nhdflowlinehr',
+            'minZoom': 3,
+            'big_cz': True,
+        },
+        {
             'code': 'drb_streams_v2',
             'display': ('Delaware River Basin High Resolution' +
                         ' Stream Network'),
@@ -531,6 +613,13 @@ LAYER_GROUPS = {
     ],
 }
 
+
+# List of valid stream tables
+STREAM_TABLES = {
+    'nhd': 'nhdflowline',
+    'nhdhr': 'nhdflowlinehr',
+    'drb': 'drb_streams_50',
+}
 
 DRB_PERIMETER = GEOSGeometry(json.dumps(drb_perimeter['geometry']), srid=4326)
 DRB_SIMPLE_PERIMETER = \

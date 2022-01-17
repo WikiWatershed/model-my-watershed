@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
-from django.db.models import FileField
+from django.db.models import FileField, JSONField
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.contrib.auth.models import User
@@ -12,11 +8,11 @@ from apps.core.models import Job
 
 
 def project_filename(project, filename):
-    return 'project_{0}/{1}'.format(project.id, filename)
+    return f'project_{project.id}/{filename}'
 
 
 def scenario_filename(scenario, filename):
-    return 'p{0}/s{1}/{2}'.format(scenario.project.id, scenario.id, filename)
+    return f'p{scenario.project.id}/s{scenario.id}/{filename}'
 
 
 class Project(models.Model):
@@ -75,6 +71,9 @@ class Project(models.Model):
         null=True,
         max_length=255,
         help_text='Well-Known Area of Interest ID for faster geoprocessing')
+    layer_overrides = JSONField(
+        default=dict,
+        help_text='JSON object of layers to override defaults with')
 
     def __unicode__(self):
         return self.name

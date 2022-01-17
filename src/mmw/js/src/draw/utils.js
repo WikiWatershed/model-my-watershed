@@ -262,6 +262,7 @@ module.exports = {
     getSquareKmBoxForPoint: getSquareKmBoxForPoint,
     loadAsyncShpFilesFromZip: loadAsyncShpFilesFromZip,
     NHD: 'nhd',
+    NHDHR: 'nhdhr',
     DRB: 'drb',
     CANCEL_DRAWING: CANCEL_DRAWING,
 };

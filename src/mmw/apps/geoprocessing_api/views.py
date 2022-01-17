@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-
 from celery import chain
 
 from rest_framework.response import Response
 from rest_framework import decorators, status
 from rest_framework.authentication import (TokenAuthentication,
                                            SessionAuthentication)
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from drf_yasg.utils import swagger_auto_schema
@@ -103,9 +101,7 @@ def start_rwd(request, format=None):
     this point is automatically delineated using the 10m resolution national
     elevation model or the 30m resolution flow direction grid.
 
-    For more information, see the
-    [technical documentation](https://wikiwatershed.org/
-    documentation/mmw-tech/#delineate-watershed).
+    For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/#delineate-watershed).  # NOQA
 
     ## Request Body
 
@@ -240,7 +236,8 @@ def start_rwd(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.NLCD_YEAR,
+                                        schemas.WKAOI],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -249,15 +246,15 @@ def start_rwd(request, format=None):
 @decorators.permission_classes((IsAuthenticated, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
-def start_analyze_land(request, format=None):
+def start_analyze_land(request, nlcd_year, format=None):
     """
-    Starts a job to produce a land-use histogram for a given area.
+    Starts a job to produce a land-use histogram for a given area and year.
 
-    Uses the National Land Cover Database (NLCD 2011)
+    Supports the years 2019, 2016, 2011, 2006, and 2001 from the NLCD 2019
+    product. Also supports the year 2011 from the NLCD 2011 product, which
+    used to be the default previously.
 
-    For more information, see the
-    [technical documentation](https://wikiwatershed.org/
-    documentation/mmw-tech/#overlays-tab-coverage).
+    For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage).  # NOQA
 
     ## Response
 
@@ -272,8 +269,8 @@ def start_analyze_land(request, format=None):
 
         {
             "survey": {
-                "displayName": "Land",
-                "name": "land",
+                "displayName": "Land Use/Cover 2019 (NLCD19)",
+                "name": "land_2019_2019",
                 "categories": [
                     {
                         "nlcd": 43,
@@ -414,9 +411,18 @@ def start_analyze_land(request, format=None):
 
     geop_input = {'polygon': [area_of_interest]}
 
+    layer_overrides = {}
+    if nlcd_year == '2011_2011':
+        layer_overrides['__LAND__'] = 'nlcd-2011-30m-epsg5070-512-int8'
+
+    nlcd, year = nlcd_year.split('_')
+    if nlcd == '2019' and year in ['2019', '2016', '2011', '2006', '2001']:
+        layer_overrides['__LAND__'] = f'nlcd-{year}-30m-epsg5070-512-byte'
+
     return start_celery_job([
-        geoprocessing.run.s('nlcd_ara', geop_input, wkaoi),
-        tasks.analyze_nlcd.s(area_of_interest)
+        geoprocessing.run.s('nlcd_ara', geop_input, wkaoi,
+                            layer_overrides=layer_overrides),
+        tasks.analyze_nlcd.s(area_of_interest, nlcd_year)
     ], area_of_interest, user)
 
 
@@ -436,9 +442,7 @@ def start_analyze_soil(request, format=None):
 
     Uses the Hydrologic Soil Groups From USDA gSSURGO 2016
 
-    For more information, see the
-    [technical documentation](https://wikiwatershed.org/
-    documentation/mmw-tech/#overlays-tab-coverage).
+    For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage).  # NOQA
 
     ## Response
 
@@ -516,7 +520,8 @@ def start_analyze_soil(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.STREAM_DATASOURCE,
+                                        schemas.WKAOI],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -525,14 +530,12 @@ def start_analyze_soil(request, format=None):
 @decorators.permission_classes((IsAuthenticated, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
-def start_analyze_streams(request, format=None):
+def start_analyze_streams(request, datasource, format=None):
     """
     Starts a job to display streams & stream order within a given area of
     interest.
 
-    For more information, see
-    the [technical documentation](https://wikiwatershedorg/documentation/
-    mmw-tech/#additional-data-layers)
+    For more information, see the [technical documentation](https://wikiwatershedorg/documentation/mmw-tech/#additional-data-layers)  # NOQA
 
     ## Response
 
@@ -549,7 +552,7 @@ def start_analyze_streams(request, format=None):
         {
             "survey": {
                 "displayName": "Streams",
-                "name": "streams",
+                "name": "streams_nhd",
                 "categories": [
                     {
                         "lengthkm": 2.598,
@@ -637,12 +640,19 @@ def start_analyze_streams(request, format=None):
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_input(request)
 
+    if datasource not in settings.STREAM_TABLES:
+        raise ValidationError(f'Invalid stream datasource: {datasource}.'
+                              ' Must be one of: "{}".'.format(
+                                  '", "'.join(settings.STREAM_TABLES.keys())))
+
     return start_celery_job([
         geoprocessing.run.s('nlcd_streams',
                             {'polygon': [area_of_interest],
-                             'vector': streams(area_of_interest)}, wkaoi),
+                             'vector': streams(area_of_interest, datasource)},
+                            wkaoi,
+                            cache_key=datasource),
         nlcd_streams.s(),
-        tasks.analyze_streams.s(area_of_interest)
+        tasks.analyze_streams.s(area_of_interest, datasource)
     ], area_of_interest, user)
 
 
@@ -662,9 +672,7 @@ def start_analyze_animals(request, format=None):
 
     Source USDA
 
-    For more information, see
-    the [technical documentation](https://wikiwatershed.org/documentation/
-    mmw-tech/#additional-data-layers)
+    For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/#additional-data-layers)  # NOQA
 
     ## Response
 
@@ -744,9 +752,7 @@ def start_analyze_pointsource(request, format=None):
 
     Source EPA NPDES
 
-    For more information, see the
-    [technical documentation](https://wikiwatershed.org/
-    documentation/mmw-tech/#additional-data-layers)
+    For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/#additional-data-layers)  # NOQA
 
     ## Response
 
@@ -807,9 +813,7 @@ def start_analyze_catchment_water_quality(request, format=None):
 
     Source Stream Reach Tool Assessment (SRAT)
 
-    For more information, see
-    the [technical documentation](https://wikiwatershed.org/
-    documentation/mmw-tech/#overlays-tab-coverage)
+    For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage)  # NOQA
 
     ## Response
 
@@ -895,9 +899,7 @@ def start_analyze_climate(request, format=None):
 
     Source PRISM Climate Group
 
-    For more information, see
-    the [technical documentation](https://wikiwatershed.org/
-    documentation/mmw-tech/#overlays-tab-coverage)
+    For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage)  # NOQA
 
     ## Response
 
@@ -961,9 +963,7 @@ def start_analyze_terrain(request, format=None):
 
     Source NHDPlus V2 NEDSnapshot DEM
 
-    For more information, see the
-    [technical documentation](https://wikiwatershed.org/
-    documentation/mmw-tech/#overlays-tab-coverage).
+    For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage).  # NOQA
 
     ## Response
 
@@ -1030,9 +1030,7 @@ def start_analyze_protected_lands(request, format=None):
     Uses the Protected Areas Database of the United States (PADUS),
     published by the U.S. Geological Survey Gap Analysis Program in 2016.
 
-    For more information, see the
-    [technical documentation](https://wikiwatershed.org/
-    documentation/mmw-tech/#overlays-tab-coverage).
+    For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage).  # NOQA
 
     ## Response
 
@@ -1172,9 +1170,7 @@ def start_analyze_drb_2100_land(request, key=None, format=None):
     Shippensburg University, serviced via APIs by Drexel University and the
     Academy of Natural Sciences.
 
-    For more information, see the
-    [technical documentation](https://wikiwatershed.org/
-    documentation/mmw-tech/#overlays-tab-coverage).
+    For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/#overlays-tab-coverage).  # NOQA
 
     ## Response
 

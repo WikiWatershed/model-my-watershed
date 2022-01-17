@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-
 import csv
 import json
 import requests
@@ -13,8 +9,6 @@ from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.db import connection
-
-from django.contrib.gis.geos import WKBReader
 
 from apps.modeling.mapshed.calcs import (area_calculations,
                                          nearest_weather_stations,
@@ -44,16 +38,17 @@ def get_weather_modifications(csv_file):
     Returns a tuple where the first item is the output and the second is
     a list of errors.
     """
-    rows = list(csv.reader(csv_file))
+    file = csv_file.read().decode('utf-8')
+    rows = list(csv.reader(file.splitlines()))
     errs = []
 
     def err(msg, line=None):
-        text = 'Line {}: {}'.format(line, msg) if line else msg
+        text = f'Line {line}: {msg}' if line else msg
         errs.append(text)
 
     if rows[0] != ['DATE', 'PRCP', 'TAVG']:
         err('Missing or incorrect header. Expected "DATE,PRCP,TAVG", got {}'
-            .format(','.join(rows[0]), 1))
+            .format(','.join(rows[0])), 1)
 
     if len(rows) < 1097:
         err('Need at least 3 years of contiguous data.')
@@ -79,9 +74,8 @@ def get_weather_modifications(csv_file):
     year_range = endyear - begyear + 1
 
     if year_range < 3 or year_range > 30:
-        err('Invalid year range {} between beginning year {}'
-            ' and end year {}. Year range must be between 3 and 30.'
-            .format(year_range, begyear, endyear))
+        err(f'Invalid year range {year_range} between beginning year {begyear}'
+            f' and end year {endyear}. Year range must be between 3 and 30.')
 
     if errs:
         return None, errs
@@ -109,7 +103,7 @@ def get_weather_modifications(csv_file):
             # is the next one in the sequence.
             if idx > 0:
                 if d == previous_d:
-                    raise ValueError('Duplicate date: {}'.format(date))
+                    raise ValueError(f'Duplicate date: {date}')
 
                 expected_d = previous_d + timedelta(days=1)
                 if d != expected_d:
@@ -159,13 +153,13 @@ def get_weather_simulation_for_project(project, category):
         # Ensure the station exists, if not exit quickly
         res = requests.head(url)
         if not res.ok:
-            errs.append('Error {} while getting data for {}/{}'
-                        .format(res.status_code, category, ws.station))
+            errs.append(f'Error {res.status_code} while getting data for'
+                        f' {category}/{ws.station}')
             return {}, errs
 
         # Fetch and parse station weather data, noting any errors
         with closing(requests.get(url, stream=True)) as r:
-            ws_data, ws_errs = get_weather_modifications(r.iter_lines())
+            ws_data, ws_errs = get_weather_modifications(r.raw)
             data.append(ws_data)
             errs += ws_errs
 
@@ -177,7 +171,7 @@ def get_weather_simulation_for_project(project, category):
     for c in ['WxYrBeg', 'WxYrEnd', 'WxYrs']:
         s = set([d[c] for d in data])
         if len(s) > 1:
-            errs.append('{} does not match in dataset: {}'.format(c, s))
+            errs.append(f'{c} does not match in dataset: {s}')
 
     # Respond with errors, if any
     if errs:
@@ -203,14 +197,14 @@ def split_into_huc12s(code, id):
     table_name = layer.get('table_name')
     huc_code = table_name.split('_')[1]
 
-    sql = '''
+    sql = f'''
           SELECT 'huc12__' || boundary_huc12.id,
                  boundary_huc12.huc12,
                  ST_AsGeoJSON(boundary_huc12.geom_detailed)
           FROM boundary_huc12, {table_name}
           WHERE huc12 LIKE ({huc_code} || '%%')
           AND {table_name}.id = %s
-          '''.format(table_name=table_name, huc_code=huc_code)
+          '''
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [int(id)])
@@ -268,14 +262,14 @@ def apply_gwlfe_modifications(gms, modifications):
     modified_gms = deepcopy(gms)
 
     for mod in modifications:
-        for key, value in mod.iteritems():
+        for key, value in mod.items():
             if '__' in key:
                 array_mods.append({key: value})
             else:
                 key_mods.append({key: value})
 
     for mod in array_mods:
-        for key, value in mod.iteritems():
+        for key, value in mod.items():
             gmskey, i = key.split('__')
             modified_gms[gmskey][int(i)] = value
 
@@ -310,7 +304,7 @@ def apply_subbasin_gwlfe_modifications(gms, modifications,
         urban_pct_total_stream_length = 1
 
     for mod in weighted_modifications:
-        for key, val in mod.iteritems():
+        for key, val in mod.items():
             if key in ag_stream_length_weighted_keys:
                 val *= ag_pct_total_stream_length
             elif key in urban_stream_length_weighted_keys:
@@ -321,9 +315,9 @@ def apply_subbasin_gwlfe_modifications(gms, modifications,
 
 
 def sum_subbasin_stream_lengths(gmss):
-    ag = sum([gms['AgLength'] for gms in gmss.itervalues()])
+    ag = sum([gms['AgLength'] for gms in gmss.values()])
     urban = sum([gms['StreamLength'] - gms['AgLength']
-                 for gms in gmss.itervalues()])
+                 for gms in gmss.values()])
 
     return {
         'ag': ag,
@@ -348,9 +342,9 @@ def get_layer_shape(table_code, id):
     properties = ''
 
     if table.startswith('boundary_huc'):
-        properties = "'huc', {}".format(table[-5:])
+        properties = f"'huc', {table[-5:]}"
 
-    sql = '''
+    sql = f'''
           SELECT json_build_object(
             'type', 'Feature',
             'id', id,
@@ -358,7 +352,7 @@ def get_layer_shape(table_code, id):
             'properties', json_build_object({properties}))
           FROM {table}
           WHERE id = %s
-          '''.format(field=field, properties=properties, table=table)
+          '''
 
     with connection.cursor() as cursor:
         cursor.execute(sql, [int(id)])
@@ -368,6 +362,31 @@ def get_layer_shape(table_code, id):
             return row[0]
         else:
             return None
+
+
+def get_layer_value(layer, layer_overrides=dict):
+    """
+    Given a layer, gets its value from default or overridden config.
+
+    If the default config is something like:
+
+    {
+        '__LAND__': 'nlcd-2019-30m-epsg5070-512-byte',
+        '__SOIL__': 'ssurgo-hydro-groups-30m-epsg5070-512-int8',
+        '__STREAMS__': 'nhd',
+    }
+
+    and the layer_overrides are:
+
+    {
+        '__STREAMS__': 'drb',
+    }
+
+    Then get_layer_value('__STREAMS__', layer_overrides) => 'drb'.
+
+    Throws an exception if the layer name is not found.
+    """
+    return layer_overrides.get(layer, settings.GEOP['layers'][layer])
 
 
 def boundary_search_context(search_term):
@@ -409,11 +428,11 @@ def _get_boundary_search_query(search_term):
 
     subquery = ' UNION ALL '.join(selects)
 
-    return """
-        SELECT id, code, name, rank, center
-        FROM ({}) AS subquery
+    return f"""
+        SELECT id, code, name, rank, ST_X(center) AS x, ST_Y(center) AS y
+        FROM ({subquery}) AS subquery
         ORDER BY rank DESC, name
-    """.format(subquery)
+    """
 
 
 def _do_boundary_search(search_term):
@@ -424,17 +443,16 @@ def _do_boundary_search(search_term):
     query = _get_boundary_search_query(search_term)
 
     with connection.cursor() as cursor:
-        wildcard_term = '%{}%'.format(search_term)
+        wildcard_term = f'%{search_term}%'
         cursor.execute(query, {'term': wildcard_term})
-
-        wkb_r = WKBReader()
 
         for row in cursor.fetchall():
             id = row[0]
             code = row[1]
             name = row[2]
             rank = row[3]
-            point = wkb_r.read(row[4])
+            x = row[4]
+            y = row[5]
 
             layer = _get_boundary_layer_by_code(code)
 
@@ -444,8 +462,8 @@ def _do_boundary_search(search_term):
                 'text': name,
                 'label': layer['short_display'],
                 'rank': rank,
-                'y': point.y,
-                'x': point.x,
+                'x': x,
+                'y': y,
             })
 
     return result

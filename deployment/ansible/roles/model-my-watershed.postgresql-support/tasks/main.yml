@@ -1,0 +1,20 @@
+---
+- name: Configure the PostgreSQL APT key
+  apt_key: url=https://www.postgresql.org/media/keys/ACCC4CF8.asc state=present
+
+- name: Configure the PostgreSQL APT repositories
+  apt_repository: repo="deb [arch=amd64] https://apt-archive.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg-archive {{ postgresql_support_repository_channel }}"
+                  state=present
+
+- name: Install client API libraries for PostgreSQL
+  apt:
+    pkg:
+      - libpq5={{ postgresql_support_libpq_version }}
+      - libpq-dev={{ postgresql_support_libpq_version }}
+    state: present
+    force: true
+
+- name: Install PostgreSQL driver for Python
+  pip: name=psycopg2-binary
+       version={{ postgresql_support_psycopg2_version }}
+       state=present

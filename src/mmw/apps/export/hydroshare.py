@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
 import json
 
-from cStringIO import StringIO
+from io import StringIO
 from zipfile import ZipFile
 from rauth import OAuth2Service
-from urlparse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse
 from hs_restclient import HydroShare, HydroShareAuthOAuth2, HydroShareNotFound
 
 from django.conf import settings
@@ -59,7 +55,7 @@ class HydroShareService(OAuth2Service):
         if 'error' in res:
             raise RuntimeError(res['error'])
 
-        for key, value in res.iteritems():
+        for key, value in res.items():
             setattr(token, key, value)
         token.save()
 

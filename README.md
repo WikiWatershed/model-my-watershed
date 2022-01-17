@@ -2,7 +2,7 @@
 
 ## Local Development
 
-A combination of Vagrant 2.2+ and Ansible 2.5+ is used to setup the development environment for this project. The project consists of the following virtual machines:
+A combination of Vagrant 2.2+ and Ansible 2.8 is used to setup the development environment for this project. The project consists of the following virtual machines:
 
 - `app`
 - `services`
@@ -32,10 +32,16 @@ First, ensure that you have a set of Amazon Web Services (AWS) credentials with 
 $ aws configure --profile mmw-stg
 ```
 
+Ensure you have the [vagrant-disksize](https://github.com/sprotheroe/vagrant-disksize) plugin installed:
+
+```bash
+$ vagrant plugin install vagrant-disksize
+```
+
 Next, use the following command to bring up a local development environment:
 
 ```bash
-$ MMW_ITSI_SECRET_KEY="***" vagrant up
+$ vagrant up
 ```
 
 The application will now be running at [http://localhost:8000](http://localhost:8000).
@@ -129,6 +135,12 @@ $ vagrant ssh worker -c 'sudo service celeryd restart'
 ```
 
 To enable the geoprocessing cache simply set it to `1` and restart the `celeryd` service.
+
+In some cases, it may be necessary to remove all cached values. This can be done with:
+
+```bash
+$ vagrant ssh services -c 'redis-cli -n 1 --raw KEYS ":1:geop_*" | xargs redis-cli -n 1 DEL'
+```
 
 ### Test Mode
 

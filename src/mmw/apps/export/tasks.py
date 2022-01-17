@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
 import fiona
 import io
 import json
@@ -17,9 +13,9 @@ from django.contrib.gis.geos import GEOSGeometry
 from apps.modeling.models import Project, Scenario
 from apps.modeling.tasks import to_gms_file
 
-from hydroshare import HydroShareService
-from models import HydroShareResource
-from serializers import HydroShareResourceSerializer
+from apps.export.hydroshare import HydroShareService
+from apps.export.models import HydroShareResource
+from apps.export.serializers import HydroShareResourceSerializer
 
 hss = HydroShareService()
 
@@ -86,16 +82,15 @@ def create_resource(user_id, project_id, params):
     crs = {'no_defs': True, 'proj': 'longlat',
            'ellps': 'WGS84', 'datum': 'WGS84'}
     schema = {'geometry': aoi_json['type'], 'properties': {}}
-    with fiona.open('/tmp/{}.shp'.format(resource), 'w',
+    with fiona.open(f'/tmp/{resource}.shp', 'w',
                     driver='ESRI Shapefile',
                     crs=crs, schema=schema) as shapefile:
         shapefile.write({'geometry': aoi_json, 'properties': {}})
 
     for ext in SHAPEFILE_EXTENSIONS:
-        filename = '/tmp/{}.{}'.format(resource, ext)
+        filename = f'/tmp/{resource}.{ext}'
         with open(filename) as shapefile:
-            hs.addResourceFile(resource, shapefile,
-                               'area-of-interest.{}'.format(ext))
+            hs.addResourceFile(resource, shapefile, f'area-of-interest.{ext}')
         os.remove(filename)
 
     # MapShed BMP Spreadsheet Tool
@@ -167,7 +162,7 @@ def padep_worksheet(results):
     """
     payload = []
 
-    for k, v in results.iteritems():
+    for k, v in results.items():
         huc12_stream_length_km = sum(
             [c['lengthkm'] for c in v['huc12']['streams']['categories']])
         huc12_stream_ag_pct = \

@@ -6,7 +6,7 @@
     - { name: "numba", version: "{{ numba_version }}" }
 
 - name: Install application Python dependencies for development and test
-  pip: requirements="{{ app_home }}/requirements/{{ item }}.txt"
+  pip: requirements="{{ app_home }}/requirements/{{ item }}.txt" state=latest
   with_items:
     - development
     - test

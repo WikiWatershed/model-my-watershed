@@ -12,9 +12,9 @@ from troposphere import (
     route53 as r53
 )
 
-from utils.cfn import get_recent_ami
+from cfn.utils.cfn import get_recent_ami
 
-from utils.constants import (
+from cfn.utils.constants import (
     ALLOW_ALL_CIDR,
     CANONICAL_ACCOUNT_ID,
     EC2_INSTANCE_TYPES,
@@ -64,7 +64,7 @@ class DataPlane(StackNode):
         'KeyName': 'mmw-stg',
         'IPAccess': ALLOW_ALL_CIDR,
         'BastionHostInstanceType': 't2.medium',
-        'RDSInstanceType': 'db.t2.micro',
+        'RDSInstanceType': 'db.t3.micro',
         'RDSDbName': 'modelmywatershed',
         'RDSUsername': 'modelmywatershed',
         'RDSPassword': 'modelmywatershed',
@@ -111,7 +111,7 @@ class DataPlane(StackNode):
         ), 'BastionHostAMI')
 
         self.rds_instance_type = self.add_parameter(Parameter(
-            'RDSInstanceType', Type='String', Default='db.t2.micro',
+            'RDSInstanceType', Type='String', Default='db.t3.micro',
             Description='RDS instance type', AllowedValues=RDS_INSTANCE_TYPES,
             ConstraintDescription='must be a valid RDS instance type.'
         ), 'RDSInstanceType')
@@ -195,7 +195,7 @@ class DataPlane(StackNode):
             bastion_ami_id = self.get_input('BastionHostAMI')
         except MKUnresolvableInputError:
             filters = {'name':
-                       'ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*',
+                       'ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*',
                        'architecture': 'x86_64',
                        'block-device-mapping.volume-type': 'gp2',
                        'root-device-type': 'ebs',
@@ -296,7 +296,7 @@ class DataPlane(StackNode):
             DBParameterGroupName=Ref(self.rds_parameter_group_name),
             DBSubnetGroupName=Ref(rds_subnet_group),
             Engine='postgres',
-            EngineVersion='9.6.14',
+            EngineVersion='13.4',
             MasterUsername=Ref(self.rds_username),
             MasterUserPassword=Ref(self.rds_password),
             MultiAZ=Ref(self.rds_multi_az),

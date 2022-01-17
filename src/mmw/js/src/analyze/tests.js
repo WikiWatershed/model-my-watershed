@@ -56,7 +56,8 @@ describe('Analyze', function() {
 
     describe('Views', function() {
         describe('AnalysisResultView', function() {
-            _.forEach(['land', 'soil', 'animals', 'pointsource', 'catchment_water_quality'], testAnalysisType);
+            _.forEach(['soil', 'animals', 'pointsource', 'catchment_water_quality'], testAnalysisType);
+            testAnalysisType('land_2011_2011', 'land');
             testAnalysisType('protected_lands', 'land');
         });
     });
@@ -189,7 +190,7 @@ function catchmentWaterQualityTableFormatter(categories) {
 }
 
 var dataFormatters = {
-    land: landTableFormatter,
+    land_2011_2011: landTableFormatter,
     protected_lands: protectedLandsTableFormatter,
     soil: soilTableFormatter,
     animals: animalTableFormatter,
@@ -198,7 +199,7 @@ var dataFormatters = {
 };
 
 var tableHeaders = {
-    land: ['Type', 'Area (km²)', 'Coverage (%)', 'Active River Area (km²)'],
+    land_2011_2011: ['Type', 'Area (km²)', 'Coverage (%)', 'Active River Area (km²)'],
     protected_lands: ['Type', 'Area (km²)', 'Coverage (%)'],
     soil: ['Type', 'Area (km²)', 'Coverage (%)'],
     animals: ['Animal', 'Count'],

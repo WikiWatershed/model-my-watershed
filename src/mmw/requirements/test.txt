@@ -1,5 +1,5 @@
 -r base.txt
 
-coverage==3.6
-selenium==2.44
-flake8==2.2.5
+coverage==6.1.2
+selenium==4.0.0
+flake8==4.0.1

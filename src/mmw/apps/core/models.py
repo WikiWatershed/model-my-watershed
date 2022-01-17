@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-
 from django.db import models
 from django.conf import settings
 
@@ -25,7 +22,7 @@ class Job(models.Model):
     status = models.CharField(max_length=255)
 
     def __unicode__(self):
-        return unicode(self.uuid)
+        return str(self.uuid)
 
 
 class RequestLog(models.Model):

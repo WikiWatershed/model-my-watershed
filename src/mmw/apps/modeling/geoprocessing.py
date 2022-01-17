@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import absolute_import
-
 import requests
 import json
 
 from ast import literal_eval as make_tuple
+from copy import deepcopy
 
 from celery import shared_task
 from celery.exceptions import Retry
@@ -20,7 +17,8 @@ NOCACHE = 'nocache'
 
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=6)
-def run(self, opname, input_data, wkaoi=None, cache_key=''):
+def run(self, opname, input_data, wkaoi=None, cache_key='',
+        layer_overrides={}):
     """
     Run a geoprocessing operation.
 
@@ -41,6 +39,9 @@ def run(self, opname, input_data, wkaoi=None, cache_key=''):
     cache_key can be provided which will be used for caching instead of the
     opname, which in this case is not unique to the operation.
 
+    Uses the layers configured in settings.GEOP['layers'] by default. If any
+    should be overridden, they may be specified in layer_overrides.
+
     To be used for single operation requests. Uses the /run endpoint of the
     geoprocessing service.
 
@@ -48,11 +49,12 @@ def run(self, opname, input_data, wkaoi=None, cache_key=''):
     :param input_data: Dictionary of values to extend base operation JSON with
     :param wkaoi: String id of well-known area of interest. "{table}__{id}"
     :param cache_key: String to use for caching instead of opname. Optional.
+    :param layer_overrides: Dictionary of layers to override defaults with
     :return: Dictionary containing either results if successful, error if not
     """
     if opname not in settings.GEOP['json']:
         return {
-            'error': 'Unsupported operation {}'.format(opname)
+            'error': f'Unsupported operation {opname}'
         }
 
     if not input_data:
@@ -63,13 +65,30 @@ def run(self, opname, input_data, wkaoi=None, cache_key=''):
     key = ''
 
     if wkaoi and settings.GEOP['cache']:
-        key = 'geop_{}__{}{}'.format(wkaoi, opname, cache_key)
+        layers_cache_key = '__'.join(layer_overrides.values())
+        key = f'geop_{wkaoi}__{opname}{layers_cache_key}{cache_key}'
         cached = cache.get(key)
         if cached:
             return cached
 
-    data = settings.GEOP['json'][opname].copy()
+    data = deepcopy(settings.GEOP['json'][opname])
     data['input'].update(input_data)
+
+    # Populate layers
+    layer_config = dict(settings.GEOP['layers'], **layer_overrides)
+
+    try:
+        if 'targetRaster' in data['input']:
+            data['input']['targetRaster'] = use_layer(
+                data['input']['targetRaster'], layer_config)
+
+        for idx, raster in enumerate(data['input']['rasters']):
+            data['input']['rasters'][idx] = use_layer(
+                raster, layer_config)
+    except Exception as x:
+        return {
+            'error': str(x)
+        }
 
     # If no vector data is supplied for vector operation, shortcut to empty
     if 'vector' in data['input'] and data['input']['vector'] == [None]:
@@ -96,7 +115,7 @@ def run(self, opname, input_data, wkaoi=None, cache_key=''):
 
 
 @shared_task(bind=True, default_retry_delay=1, max_retries=6)
-def multi(self, opname, shapes, stream_lines):
+def multi(self, opname, shapes, stream_lines, layer_overrides={}):
     """
     Perform a multi-operation geoprocessing request.
 
@@ -106,13 +125,13 @@ def multi(self, opname, shapes, stream_lines):
         { 'id': '', shape: '' }
 
     where 'shape' is a stringified GeoJSON of a Polygon or MultiPolygon and
-    'stream_lines' is a stringified GeoJSON of a MultiLine, combines it with
-    the JSON saved in settings.GEOP.json corresponding to the opname, to make
-    a payload like this:
+    'stream_lines' is a list of stringified GeoJSON of a MultiLine, combines
+    it with the JSON saved in settings.GEOP.json corresponding to the opname,
+    to make a payload like this:
 
         {
             'shapes': [],
-            'streamLines': '',
+            'streamLines': [],
             'operations': []
         }
 
@@ -136,6 +155,9 @@ def multi(self, opname, shapes, stream_lines):
     If there is an operation with 'name' == 'RasterLinesJoin', 'streamLines'
     should not be empty. If it is empty, that operation will be skipped.
 
+    If layer_overrides are provided, they will be used. Else we'll default to
+    the layers defined in settings.GEOP['layers'].
+
     The results will be in the format:
 
         {
@@ -153,7 +175,9 @@ def multi(self, opname, shapes, stream_lines):
 
     Each `operation_results` is cached with the key:
 
-        {{ shape_id }}__{{ operation_label }}
+        {{ shape_id }}__{{ operation_label }}{{ layers_cache_key }}
+
+    where `layers_cache_key` is a string of optional layers provided.
 
     Before running the geoprocessing service, we inspect the cache to see
     if all the requested operations are already cached for this shape. If so,
@@ -164,7 +188,7 @@ def multi(self, opname, shapes, stream_lines):
     we are using the same cache naming scheme as run, any operation cached via
     `multi` can be reused by `run`.
     """
-    data = settings.GEOP['json'][opname].copy()
+    data = deepcopy(settings.GEOP['json'][opname])
     data['shapes'] = []
 
     # Don't include the RasterLinesJoin operation if the AoI does
@@ -178,13 +202,31 @@ def multi(self, opname, shapes, stream_lines):
     operation_count = len(data['operations'])
     output = {}
 
+    # Populate layers
+    layer_config = dict(settings.GEOP['layers'], **layer_overrides)
+    layers_cache_key = '__'.join(layer_overrides.values())
+
+    try:
+        for oidx, operation in enumerate(data['operations']):
+            if 'targetRaster' in operation:
+                data['operations'][oidx]['targetRaster'] = use_layer(
+                    operation['targetRaster'], layer_config)
+
+            for ridx, raster in enumerate(operation['rasters']):
+                data['operations'][oidx]['rasters'][ridx] = use_layer(
+                    raster, layer_config)
+    except Exception as x:
+        return {
+            'error': str(x)
+        }
+
     # Get cached results
     for shape in shapes:
         cached_operations = 0
         if not shape['id'].startswith(NOCACHE):
             output[shape['id']] = {}
             for op in data['operations']:
-                key = 'geop_{}__{}'.format(shape['id'], op['label'])
+                key = f'geop_{shape["id"]}__{op["label"]}{layers_cache_key}'
                 cached = cache.get(key)
                 if cached:
                     output[shape['id']][op['label']] = cached
@@ -201,10 +243,10 @@ def multi(self, opname, shapes, stream_lines):
         result = geoprocess('multi', data, self.retry)
 
         # Set cached results
-        for shape_id, operation_results in result.iteritems():
+        for shape_id, operation_results in result.items():
             if not shape_id.startswith(NOCACHE):
-                for op_label, value in operation_results.iteritems():
-                    key = 'geop_{}__{}'.format(shape_id, op_label)
+                for op_label, value in operation_results.items():
+                    key = f'geop_{shape_id}__{op_label}{layers_cache_key}'
                     cache.set(key, value, None)
 
         output.update(result)
@@ -230,7 +272,7 @@ def geoprocess(endpoint, data, retry=None):
     host = settings.GEOP['host']
     port = settings.GEOP['port']
 
-    geop_url = 'http://{}:{}/{}'.format(host, port, endpoint)
+    geop_url = f'http://{host}:{port}/{endpoint}'
 
     try:
         response = requests.post(geop_url,
@@ -240,7 +282,7 @@ def geoprocess(endpoint, data, retry=None):
     except ConnectionError as exc:
         if retry is not None:
             retry(exc=exc)
-    except Timeout as exc:
+    except Timeout:
         raise Exception('Geoprocessing service timed out.')
 
     if response.ok:
@@ -250,8 +292,7 @@ def geoprocess(endpoint, data, retry=None):
         else:
             return result
     else:
-        raise Exception('Geoprocessing Error.\n'
-                        'Details: {}'.format(response.text))
+        raise Exception(f'Geoprocessing Error.\nDetails: {response.text}')
 
 
 def parse(result):
@@ -276,3 +317,17 @@ def parse(result):
     :return: Dictionary mapping tuples of ints to ints
     """
     return {make_tuple(key[4:]): val for key, val in result.items()}
+
+
+def use_layer(token, config):
+    """
+    Replace layer tokens with real values from the config.
+
+    Given a token string and a config in the shape of settings.GEOP['layers'],
+    if the token string is in the format __XYZ__, finds the tokenized layer
+    from the config and return that. Else, the input is a layer string, not a
+    token string, and is returned as is.
+
+    Throws an exception if the token is not found in the configuration.
+    """
+    return config[token] if token.startswith('__') else token

@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
-from django.conf.urls import url
+from django.urls import re_path
 
 from apps.user.views import (login,
                              profile,
@@ -23,19 +19,19 @@ from apps.user.views import (login,
 
 app_name = 'user'
 urlpatterns = [
-    url(r'^logout$', logout, name='logout'),
-    url(r'^itsi/login$', itsi_login, name='itsi_login'),
-    url(r'^itsi/authenticate$', itsi_auth, name='itsi_auth'),
-    url(r'^concord/login/?$', concord_login, name='concord_login'),
-    url(r'^concord/authenticate/?$', concord_auth, name='concord_auth'),
-    url(r'^hydroshare/login', hydroshare_login, name='hydroshare_login'),
-    url(r'^hydroshare/authorize', hydroshare_auth, name='hydroshare_auth'),
-    url(r'^hydroshare/logout', hydroshare_logout, name='hydroshare_logout'),
-    url(r'^login$', login, name='login'),
-    url(r'^profile$', profile, name='profile'),
-    url(r'^sign_up$', sign_up, name='sign_up'),
-    url(r'^resend$', resend, name='resend'),
-    url(r'^forgot$', forgot, name='forgot'),
-    url(r'^change-password$', change_password,
-        name='change_password'),
+    re_path(r'^logout$', logout, name='logout'),
+    re_path(r'^itsi/login$', itsi_login, name='itsi_login'),
+    re_path(r'^itsi/authenticate$', itsi_auth, name='itsi_auth'),
+    re_path(r'^concord/login/?$', concord_login, name='concord_login'),
+    re_path(r'^concord/authenticate/?$', concord_auth, name='concord_auth'),
+    re_path(r'^hydroshare/login', hydroshare_login, name='hydroshare_login'),
+    re_path(r'^hydroshare/authorize', hydroshare_auth, name='hydroshare_auth'),
+    re_path(r'^hydroshare/logout',
+            hydroshare_logout, name='hydroshare_logout'),
+    re_path(r'^login$', login, name='login'),
+    re_path(r'^profile$', profile, name='profile'),
+    re_path(r'^sign_up$', sign_up, name='sign_up'),
+    re_path(r'^resend$', resend, name='resend'),
+    re_path(r'^forgot$', forgot, name='forgot'),
+    re_path(r'^change-password$', change_password, name='change_password'),
 ]

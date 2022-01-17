@@ -405,6 +405,13 @@ function initializeShutterbug() {
 }
 
 function fetchVersion() {
+    if (document.location.hostname === 'localhost') {
+        // Local development environment, don't fetch version.txt
+        settings.set('branch', 'local');
+        settings.set('gitDescribe', null);
+        return;
+    }
+
     $.get('/version.txt')
         .done(function(data) {
             var versions = data.match(/(\S+)\s+(\S+)/),
@@ -415,15 +422,8 @@ function fetchVersion() {
             settings.set('gitDescribe', gitDescribe);
         })
         .fail(function(error) {
-            if (error.status === 404) {
-                // No /version.txt found, this could be a development environment
-                settings.set('branch', 'local');
-                settings.set('gitDescribe', null);
-            } else {
-                // Some other error occurred. Could indicate a faulty deployment
-                settings.set('branch', null);
-                settings.set('gitDescribe', null);
-            }
+            settings.set('branch', null);
+            settings.set('gitDescribe', null);
         });
 }
 

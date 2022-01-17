@@ -1,18 +1,18 @@
 from majorkirby import GlobalConfigNode
 
-from vpc import VPC
-from s3_vpc_endpoint import S3VPCEndpoint
-from private_hosted_zone import PrivateHostedZone
-from data_plane import DataPlane
-from application import Application
-from tiler import Tiler
-from tile_delivery_network import TileDeliveryNetwork
-from worker import Worker
-from public_hosted_zone import PublicHostedZone
+from cfn.vpc import VPC
+from cfn.s3_vpc_endpoint import S3VPCEndpoint
+from cfn.private_hosted_zone import PrivateHostedZone
+from cfn.data_plane import DataPlane
+from cfn.application import Application
+from cfn.tiler import Tiler
+from cfn.tile_delivery_network import TileDeliveryNetwork
+from cfn.worker import Worker
+from cfn.public_hosted_zone import PublicHostedZone
 
 from boto import cloudformation as cfn
 
-import ConfigParser
+import configparser
 import sys
 
 
@@ -23,13 +23,13 @@ def get_config(mmw_config_path, profile):
     :param mmw_config_path: Path to the config file
     :param profile: Config profile to read
     """
-    mmw_config = ConfigParser.ConfigParser()
+    mmw_config = configparser.ConfigParser()
     mmw_config.optionxform = str
     mmw_config.read(mmw_config_path)
 
     try:
         section = mmw_config.items(profile)
-    except ConfigParser.NoSectionError:
+    except configparser.NoSectionError:
         sys.stderr.write('There is no section [{}] in the configuration '
                          'file\n'.format(profile))
         sys.stderr.write('you specified. Did you specify the correct file?')

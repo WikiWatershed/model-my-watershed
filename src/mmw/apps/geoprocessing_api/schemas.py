@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-
 from drf_yasg.openapi import (
     Parameter, Schema,
     IN_PATH, IN_QUERY,
@@ -10,6 +7,35 @@ from drf_yasg.openapi import (
 )
 
 from django.conf import settings
+
+STREAM_DATASOURCE = Parameter(
+    'datasource',
+    IN_PATH,
+    description='The stream datasource to query.'
+                ' Must be one of: "{}"'.format(
+                    '", "'.join(settings.STREAM_TABLES.keys())),
+    type=TYPE_STRING,
+    required=True,
+)
+
+nlcd_year_allowed_values = [
+    '2019_2019',
+    '2019_2016',
+    '2019_2011',
+    '2019_2006',
+    '2019_2001',
+    '2011_2011',
+]
+NLCD_YEAR = Parameter(
+    'nlcd_year',
+    IN_PATH,
+    description='The NLCD product version and target year to query.'
+                ' Must be one of: "{}"'.format(
+                    '", "'.join(nlcd_year_allowed_values)
+                ),
+    type=TYPE_STRING,
+    required=True,
+)
 
 DRB_2100_LAND_KEY = Parameter(
     'key',

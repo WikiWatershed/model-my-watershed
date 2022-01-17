@@ -609,13 +609,9 @@ var LayerTabCollection = Backbone.Collection.extend({
 var TaskModel = Backbone.Model.extend({
     defaults: {
         pollInterval: 1000,
-        /* The timeout is set to 160 seconds here. It may be set
-           differently in other parts of the app, in most cases less.
-           The front-end timeout is the highest to allow for patient
-           users time to let large processing finish (subbasin, large
-           areas of interest, etc). In most cases, back-end jobs will
-           finish or fail before this is hit. */
-        timeout: 160000,
+        
+        // As many seconds as the max configured limit in the back-end
+        timeout: settings.get('celery_task_time_limit') * 1000,
     },
 
     // Log a debug mesasge if available, plain otherwise

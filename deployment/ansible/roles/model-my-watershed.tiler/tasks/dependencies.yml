@@ -1,8 +1,8 @@
 ---
 - name: Install canvas rendering dependencies
   apt:
-    pkg: ["libcairo2-dev=1.14.*",
-          "libpango1.0-dev=1.38.*",
+    pkg: ["libcairo2-dev=1.16.*",
+          "libpango1.0-dev=1.44.*",
           "libjpeg8-dev=8c-*",
           "libgif-dev=5.1.*"]
     state: present
@@ -11,12 +11,11 @@
   apt:
     pkg: ["libmapnik3.0=3.0.*",
           "libmapnik-dev=3.0.*",
-          "mapnik-utils=3.0.*",
-          "python-mapnik=1:0.0~20151125-92e79d2-1build1"]
+          "mapnik-utils=3.0.*"]
     state: present
 
 - name: Install Windshaft JavaScript dependencies
-  command: npm install --unsafe-perm
+  command: sudo npm install --unsafe-perm
   args:
     chdir: "{{ tiler_home }}"
   become: False

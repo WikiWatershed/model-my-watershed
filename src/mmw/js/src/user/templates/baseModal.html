@@ -8,16 +8,16 @@
 {% macro select(value, name, model, field, defaultChoice='', label='') %}
     <label>{{ label }}</label>
     <select id="{{ name }}" name="{{ name }}" class="selectpicker" data-live-search="true" data-width="100%">
-        <script>
-         $.each(window.clientSettings.choices.{{ model }}.{{ field }}, function(index, choice) {
-             var value = choice[0];
-             var text = choice[1];
-             var selected = value === '{{defaultChoice}}' ? ' selected ' : '';
-             $('#{{ name }}').append('<option ' + selected + ' value="' + value + '">' + text + '</option>');
-         });
-         $('#{{ name }}').selectpicker();
-        </script>
     </select>
+    <script>
+        $.each(window.clientSettings.choices.{{ model }}.{{ field }}, function(index, choice) {
+            var value = choice[0];
+            var text = choice[1];
+            var selected = value === '{{defaultChoice}}' ? ' selected ' : '';
+            $('#{{ name }}').append('<option ' + selected + ' value="' + value + '">' + text + '</option>');
+        });
+        $('#{{ name }}').selectpicker();
+    </script>
 {% endmacro %}
 
 <div class="modal-dialog modal-dialog-sm">

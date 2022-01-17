@@ -1,6 +1,6 @@
 import os
 
-from base import *  # NOQA
+from mmw.settings.base import *  # NOQA
 
 # TEST SETTINGS
 ALLOWED_HOSTS = ['localhost']

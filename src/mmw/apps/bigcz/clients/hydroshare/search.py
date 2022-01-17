@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
 from requests import Request, Session, Timeout
 import dateutil.parser
 from datetime import datetime
@@ -145,7 +141,7 @@ def search(**kwargs):
                                               CATALOG_URL,
                                               params=params))
 
-    key = 'bigcz_hydroshare_{}'.format(hash(frozenset(params.items())))
+    key = f'bigcz_hydroshare_{hash(frozenset(params.items()))}'
     cached = cache.get(key)
     if cached:
         data = cached

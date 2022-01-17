@@ -2,7 +2,7 @@
 import json
 
 from django.conf import settings
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 from rauth import OAuth2Service, OAuth2Session
 

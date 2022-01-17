@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import json
 import rollbar
-import urllib
+from contextlib import closing
+from urllib.parse import unquote
 
 from celery import chain, group
 
@@ -21,7 +19,7 @@ from drf_yasg.utils import swagger_auto_schema
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
 from django.db import connection
-from django.db.models.sql import EmptyResultSet
+from django.core.exceptions import EmptyResultSet
 from django.http import (HttpResponse,
                          Http404,
                          )
@@ -157,8 +155,7 @@ def project_weather(request, proj_id, category):
     # Report errors as server side, since they are fault with our
     # built-in data
     if errs:
-        rollbar.report_message('Weather Data Errors: {}'.format(errs),
-                               'error')
+        rollbar.report_message(f'Weather Data Errors: {errs}', 'error')
         return Response({'errors': errs},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -235,11 +232,11 @@ def scenario_duplicate(request, scen_id):
     # Give the scenario a new name. Same logic as in
     # modeling/models.js:makeNewScenarioName.
     names = scenario.project.scenarios.values_list('name', flat=True)
-    copy_name = 'Copy of {}'.format(scenario.name)
+    copy_name = f'Copy of {scenario.name}'
     copy_counter = 1
 
     while copy_name in names:
-        copy_name = 'Copy of {} {}'.format(scenario.name, copy_counter)
+        copy_name = f'Copy of {scenario.name} {copy_counter}'
         copy_counter += 1
 
     scenario.name = copy_name
@@ -274,7 +271,8 @@ def scenario_custom_weather_data(request, scen_id):
         if not scenario.weather_custom.name:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        mods, errs = get_weather_modifications(scenario.weather_custom)
+        with closing(scenario.weather_custom):
+            mods, errs = get_weather_modifications(scenario.weather_custom)
 
         return Response({'output': mods, 'errors': errs,
                          'file_name': scenario.weather_custom.name})
@@ -363,8 +361,7 @@ def scenario_custom_weather_data_download(request, scen_id):
 
     filename = cwd.name.split('/')[-1]
     response = HttpResponse(cwd, content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; ' \
-                                      'filename={}'.format(filename)
+    response['Content-Disposition'] = f'attachment; filename={filename}'
     return response
 
 
@@ -458,21 +455,22 @@ def _initiate_subbasin_gwlfe_job_chain(model_input, mapshed_job_uuid,
     # If we don't chunk, a shape that has 60+ subbasins could take >60sec
     # to generate a response (and thus timeout) because we'll be waiting to
     # submit one task for each subbasin.
-    gwlfe_chunked_group = group(iter([
+    gwlfe_chunked_group = group([
         tasks.run_subbasin_gwlfe_chunks.s(mapshed_job_uuid,
                                           modifications,
                                           stream_lengths,
                                           inputmod_hash,
                                           watershed_id_chunk)
         .set(link_error=errback)
-        for watershed_id_chunk in watershed_id_chunks]))
+        for watershed_id_chunk in watershed_id_chunks])
 
-    post_process = \
-        tasks.subbasin_results_to_dict.s().set(link_error=errback) | \
-        tasks.run_srat.s(mapshed_job_uuid).set(link_error=errback) | \
-        save_job_result.s(job_id, mapshed_job_uuid)
+    job_chain = (
+        gwlfe_chunked_group |
+        tasks.subbasin_results_to_dict.s().set(link_error=errback) |
+        tasks.run_srat.s(mapshed_job_uuid).set(link_error=errback) |
+        save_job_result.s(job_id, mapshed_job_uuid))
 
-    return (gwlfe_chunked_group | post_process).apply_async()
+    return chain(job_chain).apply_async()
 
 
 @decorators.api_view(['POST'])
@@ -514,6 +512,8 @@ def _initiate_subbasin_mapshed_job_chain(mapshed_input, job_id):
 
     area_of_interest, wkaoi = _parse_input(mapshed_input)
 
+    layer_overrides = mapshed_input.get('layer_overrides', {})
+
     if not wkaoi:
         raise ValidationError('You must provide the `wkaoi` key: ' +
                               'a HUC id is currently required for ' +
@@ -528,8 +528,8 @@ def _initiate_subbasin_mapshed_job_chain(mapshed_input, job_id):
     if not huc12s:
         raise EmptyResultSet('No subbasins found')
 
-    job_chain = (multi_subbasin(area_of_interest, huc12s) |
-                 collect_subbasin.s(huc12s) |
+    job_chain = (multi_subbasin(area_of_interest, huc12s, layer_overrides) |
+                 collect_subbasin.s(huc12s, layer_overrides=layer_overrides) |
                  tasks.subbasin_results_to_dict.s() |
                  save_job_result.s(job_id, mapshed_input))
 
@@ -541,10 +541,12 @@ def _initiate_mapshed_job_chain(mapshed_input, job_id):
 
     area_of_interest, wkaoi = _parse_input(mapshed_input)
 
+    layer_overrides = mapshed_input.get('layer_overrides', {})
+
     job_chain = (
-        multi_mapshed(area_of_interest, wkaoi) |
+        multi_mapshed(area_of_interest, wkaoi, layer_overrides) |
         convert_data.s(wkaoi) |
-        collect_data.s(area_of_interest) |
+        collect_data.s(area_of_interest, layer_overrides=layer_overrides) |
         save_job_result.s(job_id, mapshed_input))
 
     return chain(job_chain).apply_async(link_error=errback)
@@ -563,8 +565,7 @@ def export_gms(request, format=None):
     gms_file = tasks.to_gms_file(mapshed_data)
 
     response = HttpResponse(FileWrapper(gms_file), content_type='text/plain')
-    response['Content-Disposition'] = 'attachment; '\
-                                      'filename={}.gms'.format(filename)
+    response['Content-Disposition'] = f'attachment; filename={filename}.gms'
     return response
 
 
@@ -604,6 +605,7 @@ def _construct_tr55_job_chain(model_input, job_id):
     aoi = json.loads(aoi_json_str)
     aoi_census = model_input.get('aoi_census')
     modification_censuses = model_input.get('modification_censuses')
+    layer_overrides = model_input.get('layer_overrides', {})
     # Non-overlapping polygons derived from the modifications
     pieces = model_input.get('modification_pieces', [])
     # The hash of the current modifications
@@ -629,8 +631,11 @@ def _construct_tr55_job_chain(model_input, job_id):
             polygons = [m['shape']['geometry'] for m in pieces]
             geop_input = {'polygon': [json.dumps(p) for p in polygons]}
 
-            job_chain.insert(0, geoprocessing.run.s('nlcd_soil',
-                                                    geop_input))
+            job_chain.insert(
+                0,
+                geoprocessing.run.s('nlcd_soil',
+                                    geop_input,
+                                    layer_overrides=layer_overrides))
             job_chain.append(tasks.run_tr55.s(aoi, model_input,
                                               cached_aoi_census=aoi_census))
         else:
@@ -639,9 +644,12 @@ def _construct_tr55_job_chain(model_input, job_id):
             # Use WKAoI only if there are no pieces to modify the AoI
             wkaoi = wkaoi if not pieces else None
 
-            job_chain.insert(0, geoprocessing.run.s('nlcd_soil',
-                                                    geop_input,
-                                                    wkaoi))
+            job_chain.insert(
+                0,
+                geoprocessing.run.s('nlcd_soil',
+                                    geop_input,
+                                    wkaoi,
+                                    layer_overrides=layer_overrides))
             job_chain.append(tasks.run_tr55.s(aoi, model_input))
 
     job_chain.append(save_job_result.s(job_id, model_input))
@@ -666,7 +674,7 @@ def subbasins_detail(request):
 @decorators.permission_classes((AllowAny, ))
 def subbasin_catchments_detail(request):
     encoded_comids = request.query_params.get('catchment_comids')
-    catchment_comids = json.loads(urllib.unquote(encoded_comids))
+    catchment_comids = json.loads(unquote(encoded_comids))
     if catchment_comids and len(catchment_comids) > 0:
         catchments = get_catchments(catchment_comids)
         return Response(catchments)
@@ -705,7 +713,7 @@ def drb_point_sources(request):
           FROM ms_pointsource_drb
           '''
 
-    point_source_results = {u'type': u'FeatureCollection', u'features': []}
+    point_source_results = {'type': 'FeatureCollection', 'features': []}
 
     with connection.cursor() as cursor:
         cursor.execute(query)
@@ -732,7 +740,7 @@ def drb_point_sources(request):
 
     point_source_results['features'] = point_source_array
 
-    return Response(json.dumps(point_source_results),
+    return Response(point_source_results,
                     headers={'Cache-Control': 'max-age: 604800'})
 
 
@@ -761,8 +769,9 @@ def weather_stations(request):
         cursor.execute(query)
         result = cursor.fetchall()[0][0]
 
-    return Response(result,
-                    headers={'Cache-Control': 'max-age: 604800'})
+    return HttpResponse(result,
+                        content_type='application/json',
+                        headers={'Cache-Control': 'max-age: 604800'})
 
 
 @swagger_auto_schema(method='get',

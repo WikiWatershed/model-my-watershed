@@ -1,0 +1,11 @@
+- name: Install Python 3
+  apt:
+    pkg: ["python3={{ python_version }}",
+          "python3-dev={{ python_version }}",
+          "python3-distutils={{ python_version }}"]
+    state: present
+
+- name: Install old setuptools with use_2to3 support
+  pip: name=setuptools
+       version=<58
+       state=present

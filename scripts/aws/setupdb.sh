@@ -3,14 +3,15 @@
 set -e
 set -x
 
-usage="$(basename "$0") [-h] [-b] [-s] \n
+usage="$(basename "$0") [-h] [options] \n
 --Sets up a postgresql database for MMW \n
 \n
-where: \n
+where options are one or more of: \n
     -h  show this help text\n
     -b  load/reload boundary data\n
     -f  load a named boundary sql.gz\n
     -s  load/reload stream data\n
+    -S  load/reload Hi Res stream data (very large)\n
     -d  load/reload DRB stream data\n
     -m  load/reload mapshed data\n
     -p  load/reload DEP data\n
@@ -24,11 +25,12 @@ FILE_HOST="https://s3.amazonaws.com/data.mmw.azavea.com"
 load_boundary=false
 file_to_load=
 load_stream=false
+load_hires_stream=false
 load_mapshed=false
 load_water_quality=false
 load_catchment=false
 
-while getopts ":hbsdpmqcf:x:" opt; do
+while getopts ":hbsSdpmqcf:x:" opt; do
     case $opt in
         h)
             echo -e $usage
@@ -37,6 +39,8 @@ while getopts ":hbsdpmqcf:x:" opt; do
             load_boundary=true ;;
         s)
             load_stream=true ;;
+        S)
+            load_hires_stream=true ;;
         d)
             load_drb_streams=true ;;
         p)
@@ -116,7 +120,7 @@ fi
 
 if [ "$load_boundary" = "true" ] ; then
     # Fetch boundary layer sql files
-    FILES=("boundary_county.sql.gz" "boundary_school_district.sql.gz" "boundary_district.sql.gz" "boundary_huc12_deduped.sql.gz" "boundary_huc10.sql.gz" "boundary_huc08.sql.gz")
+    FILES=("boundary_county_20210910.sql.gz" "boundary_school_district.sql.gz" "boundary_district.sql.gz" "boundary_huc12_deduped.sql.gz" "boundary_huc10.sql.gz" "boundary_huc08.sql.gz")
     PATHS=("county" "district" "huc8" "huc10" "huc12" "school")
     TRGM_TABLES=("boundary_huc08" "boundary_huc10" "boundary_huc12")
 
@@ -133,6 +137,16 @@ if [ "$load_stream" = "true" ] ; then
     download_and_load $FILES
     purge_tile_cache $PATHS
 fi
+
+if [ "$load_hires_stream" = "true" ] ; then
+    # Fetch hires stream network layer sql files
+    FILES=("nhdflowlinehr.sql.gz")
+    PATHS=("nhd_streams_hr_v1")
+
+    download_and_load $FILES
+    purge_tile_cache $PATHS
+fi
+
 
 if [ "$load_drb_streams" = "true" ] ; then
     # Fetch DRB stream network layer sql file

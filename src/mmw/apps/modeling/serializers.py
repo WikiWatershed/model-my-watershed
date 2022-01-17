@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import rollbar
-
 from django.contrib.gis.geos import (GEOSGeometry,
                                      MultiPolygon)
 
@@ -41,16 +37,17 @@ class MultiPolygonGeoJsonField(JsonField):
         """
         if data == '' or data is None:
             return data
-        if isinstance(data, basestring):
+        if isinstance(data, str):
             data = json.loads(data)
 
-        geometry = data['geometry'] if 'geometry' in data else data
+        geometry = data
 
         try:
             if not isinstance(geometry, GEOSGeometry):
+                geometry = data['geometry'] if 'geometry' in data else data
                 geometry = GEOSGeometry(json.dumps(geometry))
             geometry.srid = 4326
-        except:
+        except Exception:
             raise ValidationError('Area of interest must ' +
                                   'be valid GeoJSON, of type ' +
                                   'Feature, Polygon or MultiPolygon')
@@ -115,7 +112,7 @@ class ProjectSerializer(serializers.ModelSerializer):
                   'scenarios', 'model_package', 'created_at', 'modified_at',
                   'is_private', 'is_activity', 'gis_data', 'mapshed_job_uuid',
                   'subbasin_mapshed_job_uuid', 'wkaoi', 'user', 'hydroshare',
-                  'in_drb')
+                  'in_drb', 'layer_overrides')
 
     user = UserSerializer(default=serializers.CurrentUserDefault())
     gis_data = JsonField(required=False, allow_null=True)
@@ -139,7 +136,7 @@ class ProjectListingSerializer(serializers.ModelSerializer):
         model = Project
         fields = ('id', 'name', 'area_of_interest_name', 'is_private',
                   'model_package', 'created_at', 'modified_at', 'user',
-                  'hydroshare')
+                  'hydroshare', 'layer_overrides')
 
     hydroshare = HydroShareResourceSerializer(read_only=True)
 
@@ -153,7 +150,8 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'area_of_interest', 'area_of_interest_name',
                   'model_package', 'created_at', 'modified_at',
                   'is_private', 'is_activity', 'gis_data', 'mapshed_job_uuid',
-                  'subbasin_mapshed_job_uuid', 'wkaoi', 'user')
+                  'subbasin_mapshed_job_uuid', 'wkaoi', 'user',
+                  'layer_overrides')
 
     user = UserSerializer(default=serializers.CurrentUserDefault(),
                           read_only=True)
@@ -195,7 +193,7 @@ class ProjectUpdateSerializer(serializers.ModelSerializer):
                 # Validate that either AoI or WKAoI is specified correctly
                 serializer = AoiSerializer(data=data)
                 serializer.is_valid(raise_exception=True)
-            except:
+            except Exception:
                 rollbar.report_exc_info()
                 raise
 
@@ -229,12 +227,12 @@ class AoiSerializer(serializers.BaseSerializer):
         if (wkaoi and not aoi):
             try:
                 table, id = wkaoi.split('__')
-            except:
+            except Exception:
                 raise ValidationError('wkaoi must be of the form table__id')
 
             aoi = get_layer_shape(table, id)
             if (not aoi):
-                raise ValidationError(detail='Invalid wkaoi: {}'.format(wkaoi))
+                raise ValidationError(detail=f'Invalid wkaoi: {wkaoi}')
 
         aoi_field = MultiPolygonGeoJsonField().to_internal_value(aoi)
 

@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
-# NOTE Change to from urllib.parse import urlencode for Python 3
-from urllib import urlencode
+from urllib.parse import urlencode
 
 from django.test import TestCase, Client
 from django.urls import reverse
@@ -15,7 +10,7 @@ class GeocodeTestCase(TestCase):
 
     def assert_candidate_exists_for(self, address):
         c = Client()
-        url = '{}?{}'.format(self.SEARCH_URL, urlencode({'search': address}))
+        url = f'{self.SEARCH_URL}?{urlencode({"search": address})}'
         response = c.get(url).json()
 
         self.assertTrue(len(response) > 0, 'Expected '

@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-from __future__ import division
-
 import BMPxlsx
 import fiona
 import glob
 import json
 import os
 import shutil
-import StringIO
 import tempfile
 import zipfile
+
+from io import BytesIO
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -26,10 +23,10 @@ from apps.modeling.models import Project
 from apps.modeling.serializers import AoiSerializer
 from apps.geoprocessing_api.views import start_celery_job
 
-from hydroshare import HydroShareService
-from models import HydroShareResource
-from serializers import HydroShareResourceSerializer
-from tasks import create_resource, update_resource, padep_worksheet
+from apps.export.hydroshare import HydroShareService
+from apps.export.models import HydroShareResource
+from apps.export.serializers import HydroShareResourceSerializer
+from apps.export.tasks import create_resource, update_resource, padep_worksheet
 
 hss = HydroShareService()
 HYDROSHARE_BASE_URL = settings.HYDROSHARE['base_url']
@@ -141,16 +138,16 @@ def shapefile(request):
 
     try:
         # Write shapefiles
-        with fiona.open('{}/area-of-interest.shp'.format(tempdir), 'w',
+        with fiona.open(f'{tempdir}/area-of-interest.shp', 'w',
                         driver='ESRI Shapefile',
                         crs=crs, schema=schema) as sf:
             sf.write({'geometry': aoi_json, 'properties': {}})
 
-        shapefiles = ['{}/area-of-interest.{}'.format(tempdir, ext)
+        shapefiles = [f'{tempdir}/area-of-interest.{ext}'
                       for ext in SHAPEFILE_EXTENSIONS]
 
         # Create a zip file in memory from all the shapefiles
-        stream = StringIO.StringIO()
+        stream = BytesIO()
         with zipfile.ZipFile(stream, 'w') as zf:
             for fpath in shapefiles:
                 _, fname = os.path.split(fpath)
@@ -163,8 +160,7 @@ def shapefile(request):
 
     # Return the zip file from memory with appropriate headers
     resp = HttpResponse(stream.getvalue(), content_type='application/zip')
-    resp['Content-Disposition'] = 'attachment; '\
-                                  'filename="{}.zip"'.format(filename)
+    resp['Content-Disposition'] = f'attachment; filename="{filename}.zip"'
     return resp
 
 
@@ -182,7 +178,7 @@ def worksheet(request):
 
     try:
         for item in items:
-            worksheet_path = '{}/{}.xlsx'.format(tempdir, item['name'])
+            worksheet_path = f'{tempdir}/{item["name"]}.xlsx'
 
             # Copy the Excel template
             shutil.copyfile(EXCEL_TEMPLATE, worksheet_path)
@@ -194,16 +190,15 @@ def worksheet(request):
 
             # If geojson specified, write it to file
             if 'geojson' in item:
-                geojson_path = '{}/{}__Urban_Area.geojson'.format(tempdir,
-                                                                  item['name'])
+                geojson_path = f'{tempdir}/{item["name"]}__Urban_Area.geojson'
 
                 with open(geojson_path, 'w') as geojson_file:
                     json.dump(item['geojson'], geojson_file)
 
-        files = glob.glob('{}/*.*'.format(tempdir))
+        files = glob.glob(f'{tempdir}/*.*')
 
         # Create a zip file in memory for all the files
-        stream = StringIO.StringIO()
+        stream = BytesIO()
         with zipfile.ZipFile(stream, 'w') as zf:
             for fpath in files:
                 _, fname = os.path.split(fpath)

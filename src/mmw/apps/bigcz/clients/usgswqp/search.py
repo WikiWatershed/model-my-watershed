@@ -1,8 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import (absolute_import,
-                        division,
-                        print_function,
-                        unicode_literals)
 import requests
 
 from datetime import date
@@ -64,15 +60,13 @@ def parse_record(record):
         created_at=None,
         updated_at=None,
         geom=geom,
-        details_url='https://www.waterqualitydata.us/provider/{prov}/{org}/{id}/'.format(prov=record['ProviderName'],  # NOQA
-                                                                                         org=record['OrganizationIdentifier'],  # NOQA
-                                                                                         id=record['MonitoringLocationIdentifier']),  # NOQA
+        details_url=f'https://www.waterqualitydata.us/provider/{record["ProviderName"]}/{record["OrganizationIdentifier"]}/{record["MonitoringLocationIdentifier"]}/',  # NOQA
         sample_mediums=None,
         variables=None,
         service_org=record['OrganizationIdentifier'],
         service_orgname=record['OrganizationFormalName'],
         service_code=record['MonitoringLocationIdentifier'],
-        service_url='https://www.waterqualitydata.us/data/Result/search?siteid={}&mimeType=csv&sorted=no&zip=yes'.format(record['MonitoringLocationIdentifier']),  # NOQA
+        service_url=f'https://www.waterqualitydata.us/data/Result/search?siteid={record["MonitoringLocationIdentifier"]}&mimeType=csv&sorted=no&zip=yes',  # NOQA
         service_title=None,
         service_citation='National Water Quality Monitoring Council, [YEAR]. Water Quality Portal. Accessed [DATE ACCESSED]. https://www.waterqualitydata.us/',  # NOQA
         begin_date=None,
@@ -96,9 +90,9 @@ def search(**kwargs):
 
     if bbox_area > USGS_MAX_SIZE_SQKM:
         raise ValidationError({
-            'error': 'The selected area of interest with a bounding box of {} '
-                     'km² is larger than the currently supported maximum size '
-                     'of {} km².'.format(round(bbox_area, 2), USGS_MAX_SIZE_SQKM)})  # NOQA
+            'error': 'The selected area of interest with a bounding box of '
+                     f'{round(bbox_area, 2)} km² is larger than the currently '
+                     f'supported maximum size of {USGS_MAX_SIZE_SQKM} km².'})
     params = {
         # bBox might be used in the future
         # 'bBox': '{0:.3f},{1:.3f},{2:.3f},{3:.3f}'.format(bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax),  # NOQA

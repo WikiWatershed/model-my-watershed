@@ -1,5 +1,6 @@
 -r base.txt
 
-flake8==2.4.0
-ipython==2.3.0
-ipdb==0.8
+flake8==4.0.1
+jedi==0.17.2
+ipython==7.17.0
+ipdb==0.13.9

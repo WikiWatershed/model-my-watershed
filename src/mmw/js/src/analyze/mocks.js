@@ -135,8 +135,8 @@ module.exports = {
                             "type": "Pasture/Hay"
                         }
                     ],
-                    "displayName": "Land",
-                    "name": "land"
+                    "displayName": "Land Use/Cover 2011 (NLCD11)",
+                    "name": "land_2011_2011"
                 },
                 {
                     "categories": [
@@ -472,7 +472,7 @@ module.exports = {
         },
         "started": "2020-01-17T21:19:06.880891Z",
         "status": "complete",
-        "taskName": "analyze/streams",
+        "taskName": "analyze/streams/nhd",
         "taskType": "api",
         "timeout": 160000,
         "token": "1831c4a26158079f2b5f1530f01beaeca6517544",
@@ -488,13 +488,13 @@ module.exports = {
     "polling": false,
     "tasks": [
       {
-        "displayName": "Land cover distribution",
+        "displayName": "Land Use/Cover 2011 (NLCD11)",
         "enabledForCatalogMode": true,
         "error": "",
         "finished": "2020-01-17T21:19:31.041031Z",
         "job": "b9fe20fa-0747-423f-848a-f399b224aac5",
         "job_uuid": "b9fe20fa-0747-423f-848a-f399b224aac5",
-        "name": "land",
+        "name": "land_2011_2011",
         "pollInterval": 1000,
         "result": {
           "survey": {
@@ -628,13 +628,13 @@ module.exports = {
                 "type": "Barren Land (Rock/Sand/Clay)"
               }
             ],
-            "displayName": "Land",
-            "name": "land"
+            "displayName": "Land Use/Cover 2011 (NLCD11)",
+            "name": "land_2011_2011"
           }
         },
         "started": "2020-01-17T21:19:07.446246Z",
         "status": "complete",
-        "taskName": "analyze/land",
+        "taskName": "analyze/land/2011_2011",
         "taskType": "api",
         "timeout": 160000,
         "token": "1831c4a26158079f2b5f1530f01beaeca6517544",

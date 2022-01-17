@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-
 from rest_framework import authentication
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 

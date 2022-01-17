@@ -1472,17 +1472,14 @@ function getExpectedWaitTime(modelPackage, resultName, isGatheringData) {
         case coreUtils.TR55_PACKAGE:
             return null;
         case coreUtils.GWLFE:
-            if (resultName !== 'subbasin') {
-                if (isGatheringData) {
-                    return 'This may take up to 30 seconds';
-                }
-
+            if (resultName !== 'subbasin' && !isGatheringData) {
+                // Running GWLFE for one shape
                 return 'This may take a few seconds';
             }
-            if (isGatheringData) {
-                return 'This may take up to a minute';
-            }
-            return 'This may take up to 3 minutes';
+
+            // Running Mapshed for one or more shapes,
+            // running GWLFE for multiple shapes
+            return 'This may take a few minutes';
         default:
             console.log('Model package ' + modelPackage + ' not supported.');
     }

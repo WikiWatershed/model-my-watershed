@@ -55,10 +55,22 @@ var LandCoverModal = modalViews.ModalBaseView.extend({
 
     templateHelpers: function() {
         var presetMod = this.scenario.get('modifications').findWhere({ modKey: 'entry_landcover_preset' }),
-            preset = presetMod && presetMod.get('userInput').entry_landcover_preset;
+            preset = presetMod && presetMod.get('userInput').entry_landcover_preset,
+            landTasks = this.analyzeCollection.findWhere({ name: 'land' }).get('tasks'),
+            fields = ['name', 'displayName', 'status'],
+            defaultLandCoverType = this.model.get('defaultLandCoverType'),
+            defaultLandCover = landTasks.findWhere({ name: defaultLandCoverType }).pick(fields),
+            pickFields = function(x) { return x.pick(fields); },
+            landCoverFilter = function(x) { return x.get('name').startsWith('land_'); },
+            drbFilter = function(x) { return x.get('name').startsWith('drb_'); },
+            landCovers = landTasks.filter(landCoverFilter).map(pickFields),
+            drbCovers = landTasks.filter(drbFilter).map(pickFields);
 
         return {
             preset: preset,
+            defaultLandCover: defaultLandCover,
+            landCovers: landCovers,
+            drbCovers: drbCovers,
         };
     },
 
@@ -1089,7 +1101,7 @@ function showSettingsModal(title, dataModel, modifications, addModification) {
     }).render();
 }
 
-function showLandCoverModal(dataModel, scenario, in_drb, analyzeCollection) {
+function showLandCoverModal(dataModel, scenario, in_drb, analyzeCollection, defaultLandCoverType) {
     var scheme = settings.get('unit_scheme'),
         areaLUnits = coreUnits[scheme].AREA_L_FROM_HA.name,
         landCovers = _(GWLFE_LAND_COVERS).sortBy('id').map(function(lc) {
@@ -1109,6 +1121,7 @@ function showLandCoverModal(dataModel, scenario, in_drb, analyzeCollection) {
             title: 'Land Cover',
             fields: fields,
             in_drb: in_drb,
+            defaultLandCoverType: defaultLandCoverType,
         });
 
     new LandCoverModal({

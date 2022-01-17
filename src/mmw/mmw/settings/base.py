@@ -13,12 +13,14 @@ from os import environ
 from os.path import abspath, basename, dirname, join, normpath
 from sys import path
 
-from layer_settings import (LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
-                            DRB_PERIMETER, DRB_SIMPLE_PERIMETER,
-                            NHD_REGION2_PERIMETER, CONUS_PERIMETER)  # NOQA
-from gwlfe_settings import (GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP, # NOQA
-                            CURVE_NUMBER, NODATA, SRAT_KEYS, SUBBASIN_SOURCE_NORMALIZING_AREAS,  # NOQA
-                            WEATHER_DATA_BUCKET_URL)  # NOQA
+from mmw.settings.layer_settings import (
+    LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
+    DRB_PERIMETER, DRB_SIMPLE_PERIMETER, STREAM_TABLES,
+    NHD_REGION2_PERIMETER, CONUS_PERIMETER)
+from mmw.settings.gwlfe_settings import (
+    GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP,
+    CURVE_NUMBER, NODATA, SRAT_KEYS, SUBBASIN_SOURCE_NORMALIZING_AREAS,
+    WEATHER_DATA_BUCKET_URL)
 
 # Normally you should not import ANYTHING from Django directly
 # into your settings, but ImproperlyConfigured is an exception.
@@ -96,7 +98,7 @@ DATABASES = {
 }
 
 POSTGIS_VERSION = tuple(
-    map(int, environ.get('DJANGO_POSTGIS_VERSION', '2.3.7').split("."))
+    map(int, environ.get('DJANGO_POSTGIS_VERSION', '3.1.4').split("."))
 )
 # END DATABASE CONFIGURATION
 
@@ -125,10 +127,7 @@ CELERY_TASK_QUEUES = {
 CELERY_TASK_DEFAULT_EXCHANGE = 'tasks'
 CELERY_TASK_DEFAULT_ROUTING_KEY = "task.%s" % STACK_COLOR
 
-# The longest running tasks contain geoprocessing requests
-# Keep the task and request time limit above, but in the ballpark of
-# https://github.com/WikiWatershed/mmw-geoprocessing/blob/develop/api/src/main/resources/application.conf#L9
-CELERY_TASK_TIME_LIMIT = 90
+CELERY_TASK_TIME_LIMIT = int(environ.get('MMW_GEOPROCESSING_TIMEOUT', 120))
 TASK_REQUEST_TIMEOUT = CELERY_TASK_TIME_LIMIT - 10
 # END CELERY CONFIGURATION
 
@@ -171,6 +170,8 @@ USE_TZ = True
 # This generates false positives and is being removed
 # (https://code.djangoproject.com/ticket/23469)
 SILENCED_SYSTEM_CHECKS = ['1_6.W001', '1_6.W002']
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # END GENERAL CONFIGURATION
 
 
@@ -254,8 +255,6 @@ TEMPLATES = [
 # MIDDLEWARE CONFIGURATION
 # See: https://docs.djangoproject.com/en/1.11/topics/http/middleware/
 MIDDLEWARE = (
-    # Django Cookies Samesite Middleware must be first
-    'django_cookies_samesite.middleware.CookiesSameSite',
     # Default Django middleware.
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -470,14 +469,31 @@ GEOP = {
     'host': environ.get('MMW_GEOPROCESSING_HOST', 'localhost'),
     'port': environ.get('MMW_GEOPROCESSING_PORT', '8090'),
     'args': 'context=geoprocessing&appName=geoprocessing-%s&classPath=org.wikiwatershed.mmw.geoprocessing.MapshedJob' % environ.get('MMW_GEOPROCESSING_VERSION', '0.1.0'),  # NOQA
+    # Clear all cached geop_ values when changing this
+    # https://github.com/WikiWatershed/model-my-watershed#caching
+    'layers': {
+        '__ARA__': 'ara-30m-epsg5070-512',
+        '__AWC__': 'us-ssurgo-aws100-30m-epsg5070-512',
+        '__BFI__': 'bfi48grd-epsg5070',
+        '__GWN__': 'us-groundwater-nitrogen-30m-epsg5070-512',
+        '__KFACTOR__': 'us-ssugro-kfactor-30m-epsg5070-512',
+        '__LAND__': 'nlcd-2019-30m-epsg5070-512-byte',
+        '__NED__': 'ned-nhdplus-30m-epsg5070-512',
+        '__PROTECTED_LANDS__': 'protected-lands-30m-epsg5070-512',
+        '__SLOPE__': 'us-percent-slope-30m-epsg5070-512',
+        '__SOIL__': 'ssurgo-hydro-groups-30m-epsg5070-512-int8',
+        '__SOILN__': 'soiln-epsg5070',
+        '__SOILP__': 'soilpallland2-epsg5070',
+        '__STREAMS__': 'nhdhr',
+    },
     'json': {
         'nlcd_ara': {
             'input': {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-512-int8',
-                    'ara-30m-epsg5070-512'
+                    '__LAND__',
+                    '__ARA__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -489,7 +505,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'ssurgo-hydro-groups-30m-epsg5070-512-int8'
+                    '__SOIL__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -501,8 +517,8 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-512-int8',
-                    'ssurgo-hydro-groups-30m-epsg5070-512-int8'
+                    '__LAND__',
+                    '__SOIL__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -516,7 +532,7 @@ GEOP = {
                 'vector': [],
                 'vectorCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-512-int8'
+                    '__LAND__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterLinesJoin',
@@ -528,7 +544,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'us-groundwater-nitrogen-30m-epsg5070-512'
+                    '__GWN__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -538,7 +554,7 @@ GEOP = {
         'avg_awc': {
             'input': {
                 'polygon': [],
-                'targetRaster': 'us-ssurgo-aws100-30m-epsg5070-512',
+                'targetRaster': '__AWC__',
                 'rasters': [],
                 'rasterCRS': 'ConusAlbers',
                 'polygonCRS': 'LatLng',
@@ -551,8 +567,8 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-512-int8',
-                    'us-percent-slope-30m-epsg5070-512'
+                    '__LAND__',
+                    '__SLOPE__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -564,7 +580,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [],
-                'targetRaster': 'us-percent-slope-30m-epsg5070-512',
+                'targetRaster': '__SLOPE__',
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0
@@ -575,9 +591,9 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'nlcd-2011-30m-epsg5070-512-int8'
+                    '__LAND__'
                 ],
-                'targetRaster': 'us-ssugro-kfactor-30m-epsg5070-512',
+                'targetRaster': '__KFACTOR__',
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
                 'zoom': 0
@@ -588,7 +604,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [],
-                'targetRaster': 'soiln-epsg5070',
+                'targetRaster': '__SOILN__',
                 'pixelIsArea': True,
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
@@ -600,7 +616,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [],
-                'targetRaster': 'soilpallland2-epsg5070',
+                'targetRaster': '__SOILP__',
                 'pixelIsArea': True,
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
@@ -612,7 +628,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [],
-                'targetRaster': 'bfi48grd-epsg5070',
+                'targetRaster': '__BFI__',
                 'pixelIsArea': True,
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedAverage',
@@ -624,8 +640,8 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'ned-nhdplus-30m-epsg5070-512',
-                    'us-percent-slope-30m-epsg5070-512',
+                    '__NED__',
+                    '__SLOPE__',
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterSummary',
@@ -637,7 +653,7 @@ GEOP = {
                 'polygon': [],
                 'polygonCRS': 'LatLng',
                 'rasters': [
-                    'protected-lands-30m-epsg5070-512'
+                    '__PROTECTED_LANDS__'
                 ],
                 'rasterCRS': 'ConusAlbers',
                 'operationType': 'RasterGroupedCount',
@@ -646,78 +662,78 @@ GEOP = {
         },
         'mapshed': {
             'shapes': [],
-            'streamLines': '',
+            'streamLines': [],
             'operations': [
                 {
                     'name': 'RasterGroupedCount',
                     'label': 'nlcd_soil',
                     'rasters': [
-                        'nlcd-2011-30m-epsg5070-512-int8',
-                        'ssurgo-hydro-groups-30m-epsg5070-512-int8'
+                        '__LAND__',
+                        '__SOIL__'
                     ]
                 },
                 {
                     'name': 'RasterLinesJoin',
                     'label': 'nlcd_streams',
                     'rasters': [
-                        'nlcd-2011-30m-epsg5070-512-int8'
+                        '__LAND__'
                     ]
                 },
                 {
                     'name': 'RasterGroupedCount',
                     'label': 'gwn',
                     'rasters': [
-                        'us-groundwater-nitrogen-30m-epsg5070-512'
+                        '__GWN__'
                     ]
                 },
                 {
                     'name': 'RasterGroupedAverage',
                     'label': 'avg_awc',
-                    'targetRaster': 'us-ssurgo-aws100-30m-epsg5070-512',
+                    'targetRaster': '__AWC__',
                     'rasters': [
-                        'us-groundwater-nitrogen-30m-epsg5070-512'
+                        '__GWN__'
                     ]
                 },
                 {
                     'name': 'RasterGroupedCount',
                     'label': 'nlcd_slope',
                     'rasters': [
-                        'nlcd-2011-30m-epsg5070-512-int8',
-                        'us-percent-slope-30m-epsg5070-512'
+                        '__LAND__',
+                        '__SLOPE__'
                     ]
                 },
                 {
                     'name': 'RasterGroupedAverage',
                     'label': 'slope',
-                    'targetRaster': 'us-percent-slope-30m-epsg5070-512',
+                    'targetRaster': '__SLOPE__',
                     'rasters': []
                 },
                 {
                     'name': 'RasterGroupedAverage',
                     'label': 'nlcd_kfactor',
-                    'targetRaster': 'us-ssugro-kfactor-30m-epsg5070-512',
+                    'targetRaster': '__KFACTOR__',
                     'rasters': [
-                        'nlcd-2011-30m-epsg5070-512-int8'
+                        '__LAND__'
                     ]
                 },
                 {
                     'name': 'RasterGroupedAverage',
                     'label': 'soiln',
-                    'targetRaster': 'soiln-epsg5070',
+                    'targetRaster': '__SOILN__',
                     'rasters': [],
                     'pixelIsArea': True
                 },
                 {
                     'name': 'RasterGroupedAverage',
                     'label': 'soilp',
-                    'targetRaster': 'soilpallland2-epsg5070',
+                    'targetRaster': '__SOILP__',
                     'rasters': [],
                     'pixelIsArea': True
                 },
                 {
                     'name': 'RasterGroupedAverage',
                     'label': 'recess_coef',
-                    'targetRaster': 'bfi48grd-epsg5070',
+                    'targetRaster': '__BFI__',
                     'rasters': [],
                     'pixelIsArea': True
                 }
@@ -725,20 +741,20 @@ GEOP = {
         },
         'worksheet_aoi': {
             'shapes': [],
-            'streamLines': '',
+            'streamLines': [],
             'operations': [
                 {
                     'name': 'RasterGroupedCount',
                     'label': 'nlcd',
                     'rasters': [
-                        'nlcd-2011-30m-epsg5070-512-int8'
+                        '__LAND__'
                     ]
                 },
                 {
                     'name': 'RasterLinesJoin',
                     'label': 'nlcd_streams',
                     'rasters': [
-                        'nlcd-2011-30m-epsg5070-512-int8'
+                        '__LAND__'
                     ]
                 }
             ]
@@ -915,7 +931,7 @@ GEOP = {
                 }
             ],
             'shapes': [],
-            'streamLines': '',
+            'streamLines': [],
         }
     }
 }
