@@ -549,7 +549,7 @@ LAYER_GROUPS = {
             'display': ('Continental US High Resolution' +
                         ' Stream Network'),
             'table_name': 'nhdflowlinehr',
-            'minZoom': 3,
+            'minZoom': 8,
             'big_cz': True,
         },
         {
