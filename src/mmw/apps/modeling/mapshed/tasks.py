@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from copy import deepcopy
 from celery import shared_task
 from django.conf import settings
 
@@ -50,7 +51,7 @@ def collect_data(geop_results, geojson, watershed_id=None, weather=None,
     area = geom.transform(5070, clone=True).area  # Square Meters
 
     # Data Model is called z by convention
-    z = settings.GWLFE_DEFAULTS.copy()
+    z = deepcopy(settings.GWLFE_DEFAULTS)
 
     z['watershed_id'] = watershed_id
 
