@@ -321,8 +321,13 @@ def stream_length(geom, datasource='nhdhr'):
     sql = f'''
           SELECT ROUND(SUM(ST_Length(
               ST_Transform(
-                  ST_Intersection(geom,
-                                  ST_SetSRID(ST_GeomFromText(%s), 4326)),
+                  CASE
+                    WHEN ST_CoveredBy(geom,
+                                      ST_SetSRID(ST_GeomFromText(%s), 4326))
+                    THEN geom
+                    ELSE ST_Intersection(geom,
+                                         ST_SetSRID(ST_GeomFromText(%s), 4326))
+                  END,
                   5070))))
           FROM {settings.STREAM_TABLES[datasource]}
           WHERE ST_Intersects(geom,
@@ -330,7 +335,7 @@ def stream_length(geom, datasource='nhdhr'):
           '''
 
     with connection.cursor() as cursor:
-        cursor.execute(sql, [geom.wkt, geom.wkt])
+        cursor.execute(sql, [geom.wkt, geom.wkt, geom.wkt])
 
         return cursor.fetchone()[0] or 0  # Aggregate query returns singleton
 
