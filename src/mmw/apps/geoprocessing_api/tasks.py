@@ -11,6 +11,7 @@ from celery import shared_task
 import requests
 
 from django.conf import settings
+from django.core.cache import cache
 
 from mmw.settings import layer_classmaps
 
@@ -85,12 +86,28 @@ def start_rwd_job(location, snapping, simplify, data_source):
 
 
 @shared_task
-def analyze_streams(results, area_of_interest, datasource='nhdhr'):
+def analyze_streams(results, area_of_interest, datasource='nhdhr', wkaoi=None):
     """
     Given geoprocessing results with stream data and an area of interest,
     returns the streams and stream order within it.
+
+    If a wkaoi is specified and caching is enabled, the results will be
+    cached and reused.
     """
-    return {'survey': stream_data(results, area_of_interest, datasource)}
+    key = None
+
+    if wkaoi and settings.GEOP['cache']:
+        key = f'db_{wkaoi}__{datasource}__stream_data'
+        cached = cache.get(key)
+        if cached:
+            return {'survey': cached}
+
+    survey = stream_data(results, area_of_interest, datasource)
+
+    if key:
+        cache.set(key, survey, None)
+
+    return {'survey': survey}
 
 
 @shared_task
