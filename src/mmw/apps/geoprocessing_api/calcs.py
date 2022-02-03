@@ -64,9 +64,15 @@ def stream_data(results, geojson, datasource='nhdhr'):
     sql = f'''
         WITH stream_intersection AS (
             SELECT ST_Length(ST_Transform(
-                      ST_Intersection(geom,
-                                      ST_SetSRID(ST_GeomFromGeoJSON(%s),
-                                                 4326)),
+                      CASE
+                        WHEN ST_CoveredBy(geom,
+                                          ST_SetSRID(ST_GeomFromGeoJSON(%s),
+                                                     4326))
+                        THEN geom
+                        ELSE ST_Intersection(geom,
+                                             ST_SetSRID(ST_GeomFromGeoJSON(%s),
+                                                        4326))
+                      END,
                       5070)) AS lengthm,
                    stream_order,
                    slope
@@ -82,7 +88,7 @@ def stream_data(results, geojson, datasource='nhdhr'):
         '''
 
     with connection.cursor() as cursor:
-        cursor.execute(sql, [geojson, geojson])
+        cursor.execute(sql, [geojson, geojson, geojson])
 
         if cursor.rowcount:
             columns = [col[0] for col in cursor.description]

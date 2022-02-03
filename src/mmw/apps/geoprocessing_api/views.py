@@ -652,7 +652,7 @@ def start_analyze_streams(request, datasource, format=None):
                             wkaoi,
                             cache_key=datasource),
         nlcd_streams.s(),
-        tasks.analyze_streams.s(area_of_interest, datasource)
+        tasks.analyze_streams.s(area_of_interest, datasource, wkaoi)
     ], area_of_interest, user)
 
 
