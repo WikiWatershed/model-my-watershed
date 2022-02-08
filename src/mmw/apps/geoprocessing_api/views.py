@@ -21,7 +21,10 @@ from apps.core.tasks import (save_job_error,
 from apps.core.decorators import log_request
 from apps.modeling import geoprocessing
 from apps.modeling.mapshed.calcs import streams
-from apps.modeling.mapshed.tasks import nlcd_streams
+from apps.modeling.mapshed.tasks import (collect_data,
+                                         convert_data,
+                                         multi_mapshed,
+                                         nlcd_streams)
 from apps.modeling.serializers import AoiSerializer
 
 from apps.geoprocessing_api import schemas, tasks
@@ -1362,6 +1365,30 @@ def start_modeling_worksheet(request, format=None):
 
     return start_celery_job([
         tasks.collect_worksheet.s(area_of_interest),
+    ], area_of_interest, user)
+
+
+@swagger_auto_schema(method='post',
+                     manual_parameters=[schemas.WKAOI],
+                     request_body=schemas.MULTIPOLYGON,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_modeling_mapshed(request, format=None):
+    user = request.user if request.user.is_authenticated else None
+    area_of_interest, wkaoi = _parse_input(request)
+
+    # TODO Add support for overriding layers
+    layer_overrides = {}
+
+    return start_celery_job([
+        multi_mapshed(area_of_interest, wkaoi, layer_overrides),
+        convert_data.s(wkaoi),
+        collect_data.s(area_of_interest, layer_overrides=layer_overrides),
     ], area_of_interest, user)
 
 

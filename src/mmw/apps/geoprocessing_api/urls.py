@@ -36,5 +36,7 @@ urlpatterns = [
     re_path(r'jobs/' + uuid_regex, get_job, name='get_job'),
     re_path(r'modeling/worksheet/$', views.start_modeling_worksheet,
             name='start_modeling_worksheet'),
+    re_path(r'modeling/mapshed/$', views.start_modeling_mapshed,
+            name='start_modeling_mapshed'),
     re_path(r'watershed/$', views.start_rwd, name='start_rwd'),
 ]
