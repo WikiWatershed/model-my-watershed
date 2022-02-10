@@ -178,3 +178,20 @@ RWD_REQUEST = Schema(
     },
     required=['location'],
 )
+
+MODELING_REQUEST = Schema(
+    title='Modeling Request',
+    type=TYPE_OBJECT,
+    properties={
+        'area_of_interest': MULTIPOLYGON,
+        'wkaoi': Schema(
+            title='Well-Known Area of Interest',
+            type=TYPE_STRING,
+            example='huc12__55174',
+            description='The table and ID for a well-known area of interest, '
+                        'such as a HUC. '
+                        'Format "table__id", eg. "huc12__55174" will analyze '
+                        'the HUC-12 City of Philadelphia-Schuylkill River.',
+        ),
+    },
+)

@@ -26,6 +26,7 @@ from apps.modeling.mapshed.tasks import (collect_data,
                                          multi_mapshed,
                                          nlcd_streams)
 from apps.modeling.serializers import AoiSerializer
+from apps.modeling.views import _parse_input as _parse_modeling_input
 
 from apps.geoprocessing_api import schemas, tasks
 from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
@@ -1369,8 +1370,7 @@ def start_modeling_worksheet(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.MODELING_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -1380,7 +1380,7 @@ def start_modeling_worksheet(request, format=None):
 @log_request
 def start_modeling_mapshed(request, format=None):
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_input(request)
+    area_of_interest, wkaoi = _parse_modeling_input(request.data)
 
     # TODO Add support for overriding layers
     layer_overrides = {}
