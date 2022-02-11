@@ -1378,7 +1378,7 @@ def start_modeling_worksheet(request, format=None):
 @decorators.permission_classes((IsAuthenticated, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
-def start_modeling_mapshed(request, format=None):
+def start_modeling_gwlfe_prepare(request, format=None):
     """
     Starts a job to prepare an input payload for GWLF-E for a given area.
 
@@ -1392,7 +1392,7 @@ def start_modeling_mapshed(request, format=None):
     Only one of `area_of_interest` or `wkaoi` should be provided. If both are
     given, the `area_of_interest` will be used.
 
-    The `result` should be used with the gwlf-e endpoint.
+    The `result` should be used with the gwlf-e/run endpoint.
     """
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_modeling_input(request.data)
