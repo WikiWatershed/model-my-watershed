@@ -179,6 +179,47 @@ RWD_REQUEST = Schema(
     required=['location'],
 )
 
+nlcd_override_allowed_values = '", "'.join([
+    'nlcd-2019-30m-epsg5070-512-byte',
+    'nlcd-2016-30m-epsg5070-512-byte',
+    'nlcd-2011-30m-epsg5070-512-byte',
+    'nlcd-2006-30m-epsg5070-512-byte',
+    'nlcd-2001-30m-epsg5070-512-byte',
+    'nlcd-2011-30m-epsg5070-512-int8',
+])
+LAYER_OVERRIDES = Schema(
+    title='Layer Overrides',
+    type=TYPE_OBJECT,
+    description='MMW combines different datasets in model runs. These have '
+                'default values, but can be overridden by specifying them '
+                'here. Only specify a value for the layers you want to '
+                'override.',
+    properties={
+        '__LAND__': Schema(
+            type=TYPE_STRING,
+            example='nlcd-2019-30m-epsg5070-512-byte',
+            description='The NLCD layer to use. Valid options are: '
+                        f'"{nlcd_override_allowed_values}". All "-byte" '
+                        'layers are from the NLCD19 product. The "-int8" '
+                        'layer is from the NLCD11 product. The default value '
+                        'is NLCD19 2019 "nlcd-2019-30m-epsg5070-512-byte".',
+        ),
+        '__STREAMS__': Schema(
+            type=TYPE_STRING,
+            example='nhdhr',
+            description='The streams layer to use. Valid options are: '
+                        '"nhdhr" for NHD High Resolution Streams, "nhd" for '
+                        'NHD Medium Resolution Streams, and "drb" for '
+                        'Delaware High Resolution. The area of interest must '
+                        'be completely within the Delaware River Basin for '
+                        '"drb". "nhdhr" and "nhd" can be used within the '
+                        'Continental United States. In some cases, "nhdhr" '
+                        'may timeout. In such cases, "nhd" can be used as a '
+                        'fallback. "nhdhr" is the default.'
+        )
+    },
+)
+
 MODELING_REQUEST = Schema(
     title='Modeling Request',
     type=TYPE_OBJECT,
@@ -193,5 +234,6 @@ MODELING_REQUEST = Schema(
                         'Format "table__id", eg. "huc12__55174" will analyze '
                         'the HUC-12 City of Philadelphia-Schuylkill River.',
         ),
+        'layer_overrides': LAYER_OVERRIDES,
     },
 )

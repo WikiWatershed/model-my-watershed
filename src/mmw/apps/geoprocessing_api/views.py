@@ -1382,8 +1382,7 @@ def start_modeling_mapshed(request, format=None):
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_modeling_input(request.data)
 
-    # TODO Add support for overriding layers
-    layer_overrides = {}
+    layer_overrides = request.data.get('layer_overrides', {})
 
     return start_celery_job([
         multi_mapshed(area_of_interest, wkaoi, layer_overrides),
