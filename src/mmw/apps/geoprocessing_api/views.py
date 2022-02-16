@@ -15,7 +15,7 @@ from django.utils.timezone import now
 from django.urls import reverse
 from django.contrib.gis.geos import GEOSGeometry
 
-from apps.core.models import Job
+from apps.core.models import Job, JobStatus
 from apps.core.tasks import (save_job_error,
                              save_job_result)
 from apps.core.decorators import log_request
@@ -221,7 +221,7 @@ def start_rwd(request, format=None):
     validate_rwd(location, data_source, snapping, simplify)
 
     job = Job.objects.create(created_at=created, result='', error='',
-                             traceback='', user=user, status='started')
+                             traceback='', user=user, status=JobStatus.STARTED)
 
     task_list = _initiate_rwd_job_chain(location, snapping, simplify,
                                         data_source, job.id)
@@ -232,7 +232,7 @@ def start_rwd(request, format=None):
     return Response(
         {
             'job': task_list.id,
-            'status': 'started',
+            'status': JobStatus.STARTED,
         },
         headers={'Location': reverse('geoprocessing_api:get_job',
                                      args=[task_list.id])}
@@ -1425,11 +1425,11 @@ def start_celery_job(task_list, job_input, user=None, link_error=True):
     :param job_input: Input to the first task, used in recording started jobs
     :param user: The user requesting the job. Optional.
     :param link_error: Whether or not to apply error handler to entire chain
-    :return: A Response contianing the job id, marked as 'started'
+    :return: A Response contianing the job id, marked as JobStatus.STARTED
     """
     created = now()
     job = Job.objects.create(created_at=created, result='', error='',
-                             traceback='', user=user, status='started',
+                             traceback='', user=user, status=JobStatus.STARTED,
                              model_input=job_input)
 
     success = save_job_result.s(job.id, job_input)
@@ -1447,7 +1447,7 @@ def start_celery_job(task_list, job_input, user=None, link_error=True):
     return Response(
         {
             'job': task_chain.id,
-            'status': 'started',
+            'status': JobStatus.STARTED,
         },
         headers={'Location': reverse('geoprocessing_api:get_job',
                                      args=[task_chain.id])}
