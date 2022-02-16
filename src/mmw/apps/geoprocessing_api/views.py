@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import json
+
 from celery import chain
 
 from rest_framework.response import Response
@@ -14,12 +16,15 @@ from django.conf import settings
 from django.utils.timezone import now
 from django.urls import reverse
 from django.contrib.gis.geos import GEOSGeometry
+from django.shortcuts import get_object_or_404
 
 from apps.core.models import Job, JobStatus
 from apps.core.tasks import (save_job_error,
                              save_job_result)
 from apps.core.decorators import log_request
 from apps.modeling import geoprocessing
+from apps.modeling.calcs import apply_gwlfe_modifications
+from apps.modeling.tasks import run_gwlfe
 from apps.modeling.mapshed.calcs import streams
 from apps.modeling.mapshed.tasks import (collect_data,
                                          convert_data,
@@ -28,7 +33,7 @@ from apps.modeling.mapshed.tasks import (collect_data,
 from apps.modeling.serializers import AoiSerializer
 from apps.modeling.views import _parse_input as _parse_modeling_input
 
-from apps.geoprocessing_api import schemas, tasks
+from apps.geoprocessing_api import exceptions, schemas, tasks
 from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
                                                SustainedRateThrottle)
@@ -1404,6 +1409,64 @@ def start_modeling_gwlfe_prepare(request, format=None):
         convert_data.s(wkaoi),
         collect_data.s(area_of_interest, layer_overrides=layer_overrides),
     ], area_of_interest, user)
+
+
+@swagger_auto_schema(method='post',
+                     request_body=schemas.GWLFE_REQUEST,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_modeling_gwlfe_run(request, format=None):
+    """
+    Starts a job to GWLF-E for a given prepared input.
+
+    Given an `input` JSON of the gwlf-e/prepare endpoint's `result`, or a
+    `job_uuid` of a gwlf-e/prepare job, runs GWLF-E and returns a JSON
+    dictionary containing mean flow: total and per-second; sediment, nitrogen,
+    and phosphorous loads for various sources; summarized loads; and monthly
+    values for average precipitation, evapotranspiration, groundwater, runoff,
+    stream flow, point source flow, and tile drain.
+
+    If the specified `job_uuid` is not ready or has failed, returns an error.
+
+    For more details on the GWLF-E package, please see: [https://github.com/WikiWatershed/gwlf-e](https://github.com/WikiWatershed/gwlf-e)  # NOQA
+    """
+    user = request.user if request.user.is_authenticated else None
+    model_input = request.data.get('input')
+
+    if not model_input:
+        job_uuid = request.data.get('job_uuid')
+
+        if not job_uuid:
+            raise ValidationError(
+                'At least one of `input` or `job_uuid` must be specified')
+
+        input_job = get_object_or_404(Job, uuid=job_uuid)
+        if input_job.status == JobStatus.STARTED:
+            raise exceptions.JobNotReadyError(
+                f'The prepare job {job_uuid} has not finished yet.')
+
+        if input_job.status == JobStatus.FAILED:
+            raise exceptions.JobFailedError(
+                f'The prepare job {job_uuid} has failed.')
+
+        model_input = json.loads(input_job.result)
+
+    # TODO #3484 Validate model_input
+
+    # TODO #3485 Implement modifications, hash
+    mods = []
+    hash = ''
+
+    modified_model_input = apply_gwlfe_modifications(model_input, mods)
+
+    return start_celery_job([
+        run_gwlfe.s(modified_model_input, hash)
+    ], model_input, user)
 
 
 def _initiate_rwd_job_chain(location, snapping, simplify, data_source,

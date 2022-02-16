@@ -38,5 +38,7 @@ urlpatterns = [
             name='start_modeling_worksheet'),
     re_path(r'modeling/gwlf-e/prepare/$', views.start_modeling_gwlfe_prepare,
             name='start_modeling_gwlfe_prepare'),
+    re_path(r'modeling/gwlf-e/run/$', views.start_modeling_gwlfe_run,
+            name='start_modeling_gwlfe_run'),
     re_path(r'watershed/$', views.start_rwd, name='start_rwd'),
 ]
