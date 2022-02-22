@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.models import User
 
 from apps.user.models import ItsiUser, ConcordUser
 
 
-class SSOAuthenticationBackend(object):
+class SSOAuthenticationBackend(BaseBackend):
     """
     A custom authentication back-end for Single Sign On providers.
 
