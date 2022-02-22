@@ -1397,7 +1397,9 @@ def start_modeling_gwlfe_prepare(request, format=None):
     Only one of `area_of_interest` or `wkaoi` should be provided. If both are
     given, the `area_of_interest` will be used.
 
-    The `result` should be used with the gwlf-e/run endpoint.
+    The `result` should be used with the gwlf-e/run endpoint, by sending at as
+    the `input`. Alternatively, the `job` UUID can be used as well by sending
+    it as the `job_uuid`.
     """
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_modeling_input(request.data)
