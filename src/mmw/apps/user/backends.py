@@ -21,7 +21,7 @@ class SSOAuthenticationBackend(BaseBackend):
         self.SSOUserModel = model
         self.SSOField = field
 
-    def authenticate(self, sso_id=None):
+    def authenticate(self, request=None, sso_id=None):
         if sso_id is not None:
             try:
                 query = {self.SSOField: sso_id}
