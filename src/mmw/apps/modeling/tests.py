@@ -11,7 +11,7 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django.utils.timezone import now
 
-from apps.core.models import Job
+from apps.core.models import Job, JobStatus
 from apps.modeling import tasks, views
 from apps.modeling.models import Scenario, WeatherType
 
@@ -232,7 +232,7 @@ class TaskRunnerTestCase(TestCase):
                          'Job not found')
 
         self.assertEqual(str(found_job.status),
-                         'complete',
+                         JobStatus.COMPLETE,
                          'Job found but incomplete.')
 
     @override_settings(**CELERY_TEST_OVERRIDES)

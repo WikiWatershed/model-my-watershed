@@ -8,6 +8,8 @@ from drf_yasg.openapi import (
 
 from django.conf import settings
 
+from apps.core.models import JobStatus
+
 STREAM_DATASOURCE = Parameter(
     'datasource',
     IN_PATH,
@@ -125,7 +127,7 @@ JOB_STARTED_RESPONSE = Schema(
     properties={
         'job': Schema(type=TYPE_STRING, format=FORMAT_UUID,
                       example='6e514e69-f46b-47e7-9476-c1f5be0bac01'),
-        'status': Schema(type=TYPE_STRING, example='started'),
+        'status': Schema(type=TYPE_STRING, example=JobStatus.STARTED),
     }
 )
 
@@ -135,7 +137,7 @@ JOB_RESPONSE = Schema(
     properties={
         'job_uuid': Schema(type=TYPE_STRING, format=FORMAT_UUID,
                            example='6e514e69-f46b-47e7-9476-c1f5be0bac01'),
-        'status': Schema(type=TYPE_STRING, example='started'),
+        'status': Schema(type=TYPE_STRING, example=JobStatus.STARTED),
         'result': Schema(type=TYPE_OBJECT),
         'error': Schema(type=TYPE_STRING),
         'started': Schema(type=TYPE_STRING, format=FORMAT_DATETIME,
@@ -235,5 +237,22 @@ MODELING_REQUEST = Schema(
                         'the HUC-12 City of Philadelphia-Schuylkill River.',
         ),
         'layer_overrides': LAYER_OVERRIDES,
+    },
+)
+
+GWLFE_REQUEST = Schema(
+    title='GWLF-E Request',
+    type=TYPE_OBJECT,
+    properties={
+        'input': Schema(
+            type=TYPE_OBJECT,
+            description='The result of modeling/gwlf-e/prepare/',
+        ),
+        'job_uuid': Schema(
+            type=TYPE_STRING,
+            format=FORMAT_UUID,
+            example='6e514e69-f46b-47e7-9476-c1f5be0bac01',
+            description='The job uuid of modeling/gwlf-e/prepare/',
+        ),
     },
 )

@@ -5,6 +5,12 @@ from django.conf import settings
 AUTH_USER_MODEL = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
+class JobStatus:
+    STARTED = 'started'
+    COMPLETE = 'complete'
+    FAILED = 'failed'
+
+
 class Job(models.Model):
     user = models.ForeignKey(AUTH_USER_MODEL,
                              on_delete=models.SET_NULL,
