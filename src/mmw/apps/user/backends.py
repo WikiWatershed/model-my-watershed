@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.backends import BaseBackend
 from django.contrib.auth.models import User
 
 from apps.user.models import ItsiUser, ConcordUser
 
 
-class SSOAuthenticationBackend(object):
+class SSOAuthenticationBackend(BaseBackend):
     """
     A custom authentication back-end for Single Sign On providers.
 
@@ -20,7 +21,7 @@ class SSOAuthenticationBackend(object):
         self.SSOUserModel = model
         self.SSOField = field
 
-    def authenticate(self, sso_id=None):
+    def authenticate(self, request=None, sso_id=None):
         if sso_id is not None:
             try:
                 query = {self.SSOField: sso_id}

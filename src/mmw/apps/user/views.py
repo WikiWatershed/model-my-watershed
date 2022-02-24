@@ -283,7 +283,11 @@ def concord_auth(request):
         concord_user = session.get_user()
     except Exception as e:
         # Report OAuth error
-        rollbar.report_message(f'Concord OAuth Error: {e.message}', 'error')
+        message = 'Concord OAuth Error'
+        if hasattr(e, 'message'):
+            message += f': {e.message}'
+
+        rollbar.report_message(message, 'error')
         return redirect('/error/sso')
 
     user = authenticate(sso_id=concord_user['id'])
