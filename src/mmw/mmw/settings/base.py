@@ -326,7 +326,7 @@ SWAGGER_SETTINGS = {
         'Do not use the Django Login / Logout buttons. This API uses Token Authentication only. '  # NOQA
         '</p>'
         '<p>'
-        'All <strong>analyze</strong> endpoints take <em>either</em> a MultiPolygon request body <em>or</em> a well-known area of interest query parameter. '  # NOQA
+        'All <strong>analyze</strong> endpoints take <em>either</em> a MultiPolygon request body <em>or</em> a well-known area of interest query parameter <em>or</em> a HUC query parameter. '  # NOQA
         'The shape of their result object is documented individually. '
         '</p>'
         '<p>'
