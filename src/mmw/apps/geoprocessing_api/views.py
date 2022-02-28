@@ -246,7 +246,8 @@ def start_rwd(request, format=None):
 
 @swagger_auto_schema(method='post',
                      manual_parameters=[schemas.NLCD_YEAR,
-                                        schemas.WKAOI],
+                                        schemas.WKAOI,
+                                        schemas.HUC],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -436,7 +437,7 @@ def start_analyze_land(request, nlcd_year, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.WKAOI, schemas.HUC],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -666,7 +667,7 @@ def start_analyze_streams(request, datasource, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.WKAOI, schemas.HUC],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -745,7 +746,7 @@ def start_analyze_animals(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.WKAOI, schemas.HUC],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -805,7 +806,7 @@ def start_analyze_pointsource(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.WKAOI, schemas.HUC],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -892,7 +893,7 @@ def start_analyze_catchment_water_quality(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.WKAOI, schemas.HUC],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -956,7 +957,7 @@ def start_analyze_climate(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.WKAOI, schemas.HUC],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -1023,7 +1024,7 @@ def start_analyze_terrain(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.WKAOI, schemas.HUC],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
