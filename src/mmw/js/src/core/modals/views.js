@@ -309,52 +309,24 @@ var MultiShareView = ModalBaseView.extend({
 
             checkbox.prop('checked', false);
 
-            if (coreUtils.getIEVersion()) {
-                // Special handling for IE which does not support 3rd party
-                // cookies in iframes, which are necessary for the iframe
-                // workflow.
-
-                var confirm = new ConfirmView({
-                    model: new models.ConfirmModel({
-                        titleText: 'Link Account to HydroShare',
-                        question: 'You must link your Model My Watershed ' +
-                                  'account to HydroShare before you can ' +
-                                  'export this project. This can be done ' +
-                                  'under "Linked Accounts" in your account ' +
-                                  'page. Would you like to do this now?',
-                        confirmLabel: 'Link Account to HydroShare',
-                        cancelLabel: 'Not Now'
-                    })
-                });
-
-                confirm.render();
-
-                confirm.on('confirmation', function() {
-                    router.navigate('/account', { trigger: true });
-                    self.hide();
-                });
-
-                return;
-            }
-
-            var iframe = new IframeView({
-                model: new models.IframeModel({
-                    href: '/user/hydroshare/login/',
-                    signalSuccess: 'mmw-hydroshare-success',
-                    signalFailure: 'mmw-hydroshare-failure',
-                    signalCancel: 'mmw-hydroshare-cancel',
+            var confirm = new ConfirmView({
+                model: new models.ConfirmModel({
+                    titleText: 'Link Account to HydroShare',
+                    question: 'You must link your Model My Watershed ' +
+                              'account to HydroShare before you can ' +
+                              'export this project. This can be done ' +
+                              'under "Linked Accounts" in your account ' +
+                              'page. Would you like to do this now?',
+                    confirmLabel: 'Link Account to HydroShare',
+                    cancelLabel: 'Not Now'
                 })
             });
 
-            iframe.render();
+            confirm.render();
 
-            iframe.on('success', function() {
-                // Fetch user again to save new HydroShare Access state
-                self.options.app.user.fetch();
-                self.ui.hydroShareNotification.addClass('hidden');
-
-                // Export to HydroShare
-                self.exportToHydroShare();
+            confirm.on('confirmation', function() {
+                router.navigate('/account', { trigger: true });
+                self.hide();
             });
         }
     },

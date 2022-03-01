@@ -12,7 +12,6 @@ var $ = require('jquery'),
     modalModels = require('../core/modals/models'),
     models = require('./models'),
     settings = require('../core/settings'),
-    utils = require('../core/utils'),
     containerTmpl = require('./templates/container.html'),
     pageToggleTmpl = require('./templates/pageToggle.html'),
     linkedAccountsTmpl = require('./templates/linkedAccounts.html'),
@@ -38,29 +37,7 @@ var LinkedAccountsView = Marionette.ItemView.extend({
     },
 
     linkHydroShare: function() {
-        var self = this,
-            iframe = new modalViews.IframeView({
-                model: new modalModels.IframeModel({
-                    href: '/user/hydroshare/login/',
-                    signalSuccess: 'mmw-hydroshare-success',
-                    signalFailure: 'mmw-hydroshare-failure',
-                    signalCancel: 'mmw-hydroshare-cancel',
-                })
-            });
-
-        if (utils.getIEVersion()) {
-            // Special handling for IE which does not support 3rd party
-            // cookies in iframes, which are necessary for the iframe
-            // workflow.
-
-            window.location.href = window.location.origin + '/user/hydroshare/login/';
-        }
-
-        iframe.render();
-        iframe.on('success', function() {
-            // Fetch user again to save new HydroShare Access state
-            self.model.fetch();
-        });
+        window.location.href = window.location.origin + '/user/hydroshare/login/';
     },
 
     unlinkHydroShare: function() {
