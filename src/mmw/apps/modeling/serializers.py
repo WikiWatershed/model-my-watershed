@@ -9,7 +9,7 @@ from rest_framework.exceptions import ValidationError
 from apps.export.serializers import HydroShareResourceSerializer
 from apps.modeling.models import Project, Scenario, WeatherType
 from apps.modeling.validation import validate_aoi
-from apps.modeling.calcs import get_layer_shape
+from apps.modeling.calcs import get_layer_shape, wkaoi_from_huc
 from apps.user.serializers import UserSerializer
 from apps.core.models import Job
 
@@ -207,22 +207,28 @@ class AoiSerializer(serializers.BaseSerializer):
         to its validated, geojson string representation, and 'wkaoi' as None.
         If the input has a 'wkaoi' key, its shape is pulled from the
         appropriate database, and returned as 'area_of_interest' with the
-        value of 'wkaoi' returned unchanged.
+        value of 'wkaoi' returned unchanged. If the input has a 'huc' key, then
+        we use it to look up the 'wkaoi'.
 
         Args:
         data: Only one of the keys is necessary
             {
                 'area_of_interest': { <geojson dict or string> }
                 'wkaoi': '{table}__{id}',
+                'huc': '<huc8, huc10, or huc12 id>',
             }
         """
         wkaoi = data.get('wkaoi', None)
+        huc = data.get('huc', None)
         aoi = data.get('area_of_interest', None)
 
-        if (not aoi and not wkaoi):
-            raise ValidationError(detail='Must supply either ' +
+        if (not aoi and not wkaoi and not huc):
+            raise ValidationError(detail='Must supply exactly one of: ' +
                                          'the area of interest (GeoJSON), ' +
-                                         'or a WKAoI ID.')
+                                         'a WKAoI ID, or a HUC.')
+
+        if (huc and not wkaoi):
+            wkaoi = wkaoi_from_huc(huc)
 
         if (wkaoi and not aoi):
             try:
@@ -234,9 +240,12 @@ class AoiSerializer(serializers.BaseSerializer):
             if (not aoi):
                 raise ValidationError(detail=f'Invalid wkaoi: {wkaoi}')
 
+            huc = aoi['properties'].get('huc')
+
         aoi_field = MultiPolygonGeoJsonField().to_internal_value(aoi)
 
         return {
             'area_of_interest': aoi_field,
-            'wkaoi': wkaoi
+            'wkaoi': wkaoi,
+            'huc': huc,
         }

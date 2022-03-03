@@ -33,7 +33,6 @@ from apps.modeling.mapshed.tasks import (collect_data,
 from apps.modeling.serializers import AoiSerializer
 
 from apps.geoprocessing_api import exceptions, schemas, tasks
-from apps.geoprocessing_api.calcs import wkaoi_from_huc
 from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
                                                SustainedRateThrottle)
@@ -1521,26 +1520,13 @@ def start_celery_job(task_list, job_input, user=None, link_error=True):
 
 
 def _parse_analyze_input(request):
-    wkaoi = request.query_params.get('wkaoi')
-
-    if not wkaoi:
-        huc = request.query_params.get('huc')
-        if huc:
-            wkaoi = wkaoi_from_huc(huc)
-
     return _parse_aoi(data={'area_of_interest': request.data,
-                            'wkaoi': wkaoi})
+                            'wkaoi': request.query_params.get('wkaoi'),
+                            'huc': request.query_params.get('huc')})
 
 
 def _parse_modeling_input(request):
-    data = request.data
-
-    if not request.data.get('wkaoi'):
-        huc = request.data.get('huc')
-        if huc:
-            data['wkaoi'] = wkaoi_from_huc(huc)
-
-    return _parse_aoi(data)
+    return _parse_aoi(request.data)
 
 
 def _parse_aoi(data):

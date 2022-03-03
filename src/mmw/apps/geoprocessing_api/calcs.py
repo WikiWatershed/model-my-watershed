@@ -3,8 +3,6 @@ import json
 import requests
 from operator import itemgetter
 
-from rest_framework.exceptions import NotFound, ValidationError
-
 from django.contrib.gis.geos import GEOSGeometry
 
 from django.conf import settings
@@ -368,30 +366,3 @@ def drexel_fast_zonal(geojson, key):
     result = {int(k): v for k, v in res.json()[key].items()}
 
     return result
-
-
-def wkaoi_from_huc(huc):
-    huc_len = len(huc)
-    if huc_len not in [8, 10, 12]:
-        raise ValidationError(f'Specified HUC {huc} is {huc_len} digits. '
-                              'Must be 8, 10, or 12.')
-
-    if huc_len == 8:
-        huc_col = 'huc08'
-    else:
-        huc_col = f'huc{huc_len}'
-
-    sql = f'''
-          SELECT id
-          FROM boundary_{huc_col}
-          WHERE {huc_col} = %s
-          '''
-
-    with connection.cursor() as cursor:
-        cursor.execute(sql, [huc])
-        row = cursor.fetchone()
-        if not row:
-            raise NotFound(f'No shape found for HUC {huc}')
-
-        wkaoi = f'huc{huc_len}__{row[0]}'
-        return wkaoi
