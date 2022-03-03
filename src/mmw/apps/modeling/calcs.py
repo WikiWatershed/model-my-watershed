@@ -64,13 +64,13 @@ def get_weather_modifications(csv_file):
     try:
         begyear = datetime.strptime(rows[1][0], DATE_FORMAT).year
     except ValueError as ve:
-        err(ve.message, 2)
+        err(ve, 2)
         return None, errs
 
     try:
         endyear = datetime.strptime(rows[-1][0], DATE_FORMAT).year
     except ValueError as ve:
-        err(ve.message, len(rows))
+        err(ve, len(rows))
         return None, errs
 
     year_range = endyear - begyear + 1
@@ -128,7 +128,7 @@ def get_weather_modifications(csv_file):
         except Exception as e:
             # Record error with line. idx + 2 because idx starts at 0 while
             # line numbers start at 1, and we need to account for the header.
-            err(e.message, idx + 2)
+            err(e, idx + 2)
 
         previous_d = d
 

@@ -89,7 +89,7 @@ def create_resource(user_id, project_id, params):
 
     for ext in SHAPEFILE_EXTENSIONS:
         filename = f'/tmp/{resource}.{ext}'
-        with open(filename) as shapefile:
+        with open(filename, 'rb') as shapefile:
             hs.addResourceFile(resource, shapefile, f'area-of-interest.{ext}')
         os.remove(filename)
 

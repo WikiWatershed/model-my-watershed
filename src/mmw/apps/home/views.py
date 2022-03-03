@@ -185,7 +185,7 @@ def project_via_hydroshare_edit(request, resource):
     """
 
     # Only logged in users are allowed to edit
-    if request.user.is_anonymous():
+    if request.user.is_anonymous:
         return redirect('/error/hydroshare-not-logged-in')
 
     def callback(project_id):
