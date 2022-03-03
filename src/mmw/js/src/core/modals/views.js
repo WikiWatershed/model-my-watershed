@@ -18,7 +18,6 @@ var _ = require('lodash'),
     modalMultiShareTmpl = require('./templates/multiShareModal.html'),
     modalHydroShareTmpl = require('./templates/hydroShareExportModal.html'),
     modalAlertTmpl = require('./templates/alertModal.html'),
-    modalIframeTmpl = require('./templates/iframeModal.html'),
     modalTosTmpl = require('./templates/tosModal.html'),
     modalPrivacyTmpl = require('./templates/privacyModal.html'),
     modalCookieTmpl = require('./templates/cookieModal.html'),
@@ -309,52 +308,24 @@ var MultiShareView = ModalBaseView.extend({
 
             checkbox.prop('checked', false);
 
-            if (coreUtils.getIEVersion()) {
-                // Special handling for IE which does not support 3rd party
-                // cookies in iframes, which are necessary for the iframe
-                // workflow.
-
-                var confirm = new ConfirmView({
-                    model: new models.ConfirmModel({
-                        titleText: 'Link Account to HydroShare',
-                        question: 'You must link your Model My Watershed ' +
-                                  'account to HydroShare before you can ' +
-                                  'export this project. This can be done ' +
-                                  'under "Linked Accounts" in your account ' +
-                                  'page. Would you like to do this now?',
-                        confirmLabel: 'Link Account to HydroShare',
-                        cancelLabel: 'Not Now'
-                    })
-                });
-
-                confirm.render();
-
-                confirm.on('confirmation', function() {
-                    router.navigate('/account', { trigger: true });
-                    self.hide();
-                });
-
-                return;
-            }
-
-            var iframe = new IframeView({
-                model: new models.IframeModel({
-                    href: '/user/hydroshare/login/',
-                    signalSuccess: 'mmw-hydroshare-success',
-                    signalFailure: 'mmw-hydroshare-failure',
-                    signalCancel: 'mmw-hydroshare-cancel',
+            var confirm = new ConfirmView({
+                model: new models.ConfirmModel({
+                    titleText: 'Link Account to HydroShare',
+                    question: 'You must link your Model My Watershed ' +
+                              'account to HydroShare before you can ' +
+                              'export this project. This can be done ' +
+                              'under "Linked Accounts" in your account ' +
+                              'page. Would you like to do this now?',
+                    confirmLabel: 'Link Account to HydroShare',
+                    cancelLabel: 'Not Now'
                 })
             });
 
-            iframe.render();
+            confirm.render();
 
-            iframe.on('success', function() {
-                // Fetch user again to save new HydroShare Access state
-                self.options.app.user.fetch();
-                self.ui.hydroShareNotification.addClass('hidden');
-
-                // Export to HydroShare
-                self.exportToHydroShare();
+            confirm.on('confirmation', function() {
+                router.navigate('/account', { trigger: true });
+                self.hide();
             });
         }
     },
@@ -549,48 +520,6 @@ var AlertView = ModalBaseView.extend({
 
     templateHelpers: function() {
         return _.extend(this.model.get('alertType'), { alertMessage: this.model.get('alertMessage') });
-    }
-});
-
-var IframeView = ModalBaseView.extend({
-    template: modalIframeTmpl,
-
-    initialize: function() {
-        this.onPostMessage = _.bind(this.onPostMessage, this);
-
-        window.addEventListener('message', this.onPostMessage, false);
-    },
-
-    onPostMessage: function(e) {
-        var hide = _.bind(this.hide, this);
-
-        if (e.origin !== window.location.origin) {
-            return;
-        }
-
-        switch (e.data) {
-            case this.model.get('signalSuccess'):
-                this.triggerMethod('success');
-                setTimeout(function() { hide(); }, 500);
-                break;
-            case this.model.get('signalFailure'):
-                this.triggerMethod('failure');
-                break;
-            case this.model.get('signalCancel'):
-                this.dismissAction();
-                hide();
-                break;
-            default:
-                this.triggerMethod('error');
-        }
-    },
-
-    dismissAction: function() {
-        this.triggerMethod('dismiss');
-    },
-
-    onDestroy: function() {
-        window.removeEventListener('message', this.onPostMessage, false);
     }
 });
 
@@ -879,6 +808,5 @@ module.exports = {
     ConfirmView: ConfirmView,
     ConfirmLargeView: ConfirmLargeView,
     PlotView: PlotView,
-    IframeView: IframeView,
     AlertView: AlertView
 };

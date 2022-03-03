@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 
-from io import StringIO
+from io import BytesIO
 from zipfile import ZipFile
 from rauth import OAuth2Service
 from urllib.parse import urljoin, urlparse
@@ -87,7 +87,7 @@ class HydroShareClient(HydroShare):
                       {'name': 'String', 'contents': 'String'}
         """
         zippath = resource_id + '.zip'
-        stream = StringIO()
+        stream = BytesIO()
 
         # Zip all given files into the stream
         with ZipFile(stream, 'w') as zf:
@@ -124,7 +124,7 @@ class HydroShareClient(HydroShare):
         snapshot_path = 'mmw_project_snapshot.json'
         try:
             stream = self.getResourceFile(resource_id, snapshot_path)
-            fio = StringIO()
+            fio = BytesIO()
             for chunk in stream:
                 fio.write(chunk)
 

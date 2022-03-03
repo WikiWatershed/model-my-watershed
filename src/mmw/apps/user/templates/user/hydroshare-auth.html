@@ -40,11 +40,10 @@
             parent.postMessage(message, window.location.origin);
 
             {% if not error %}
-            // Redirect to home if not in iframe and already closed
-            // since iframes are closed after 500ms in core.modals.views.IframeView.
+            // Redirect to home
             setTimeout(function() {
                 window.location.href = window.location.origin + '/account/';
-            }, 750);
+            }, 500);
             {% endif %}
         });
 
@@ -54,11 +53,10 @@
 
             // Disable button to prevent double-clicking
             document.getElementById('hydroshare-cancel').disabled = true;
-            // Redirect to home if not in iframe and already closed
-            // since iframes are closed after 500ms in core.modals.views.IframeView.
+            // Redirect to home
             setTimeout(function() {
                 window.location.href = window.location.origin + '/account/';
-            }, 750);
+            }, 500);
         });
         {% endif %}
     </script>

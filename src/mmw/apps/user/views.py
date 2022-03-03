@@ -172,7 +172,7 @@ def itsi_auth(request):
         itsi_user = session.get_user()
     except Exception as e:
         # In case we are unable to reach ITSI and get an unexpected response
-        rollbar.report_message(f'ITSI OAuth Error: {e.message}', 'error')
+        rollbar.report_message(f'ITSI OAuth Error: {e}', 'error')
         return redirect('/error/sso')
 
     user = authenticate(sso_id=itsi_user['id'])
@@ -283,11 +283,7 @@ def concord_auth(request):
         concord_user = session.get_user()
     except Exception as e:
         # Report OAuth error
-        message = 'Concord OAuth Error'
-        if hasattr(e, 'message'):
-            message += f': {e.message}'
-
-        rollbar.report_message(message, 'error')
+        rollbar.report_message(f'Concord OAuth Error: {e}', 'error')
         return redirect('/error/sso')
 
     user = authenticate(sso_id=concord_user['id'])
@@ -477,7 +473,7 @@ def hydroshare_auth(request):
             token = hss.set_token_from_code(code, redirect_uri, request.user)
             context.update({'token': token.access_token})
         except (IOError, RuntimeError) as e:
-            context.update({'error': e.message})
+            context.update({'error': e})
 
     if context.get('error') == 'invalid_client':
         rollbar.report_message('HydroShare OAuth credentials '
