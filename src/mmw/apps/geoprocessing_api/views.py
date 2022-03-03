@@ -1394,8 +1394,9 @@ def start_modeling_gwlfe_prepare(request, format=None):
     By default, NLCD 2019 and NHD High Resolution Streams are used to prepare
     the input payload. This can be changed using the `layer_overrides` option.
 
-    Only one of `area_of_interest` or `wkaoi` should be provided. If both are
-    given, the `area_of_interest` will be used.
+    Only one of `area_of_interest`, `wkaoi`, or `huc` should be provided.
+    If multiple are given, the `area_of_interest` will be used first, then
+    `wkaoi`, then `huc`.
 
     The `result` should be used with the gwlf-e/run endpoint, by sending at as
     the `input`. Alternatively, the `job` UUID can be used as well by sending
