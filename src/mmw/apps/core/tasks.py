@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.utils.timezone import now
 from celery import shared_task
-from apps.core.models import Job
+from apps.core.models import Job, JobStatus
 
 import json
 import logging
@@ -29,7 +29,7 @@ def save_job_error(request, exc, traceback, job_id):
         job.error = exc
         job.traceback = traceback or 'No traceback'
         job.delivered_at = now()
-        job.status = 'failed'
+        job.status = JobStatus.FAILED
         job.save()
     except Exception as e:
         logger.error('Failed to save job error status. Job will appear hung.'
@@ -47,5 +47,5 @@ def save_job_result(self, result, id, model_input):
     job.delivered_at = now()
     job.uuid = self.request.id
     job.model_input = model_input
-    job.status = 'complete'
+    job.status = JobStatus.COMPLETE
     job.save()

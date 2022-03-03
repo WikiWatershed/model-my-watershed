@@ -32,6 +32,8 @@ First, ensure that you have a set of Amazon Web Services (AWS) credentials with 
 $ aws configure --profile mmw-stg
 ```
 
+You will also need to set the MMW Datahub AWS credential as your default. These are stored in lastpass under the name `MMW Azavea DataHub AWS`. Ensure that the AWS credentials file has universal read permissions.
+
 Ensure you have the [vagrant-disksize](https://github.com/sprotheroe/vagrant-disksize) plugin installed:
 
 ```bash
