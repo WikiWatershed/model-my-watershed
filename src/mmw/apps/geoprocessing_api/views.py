@@ -26,15 +26,18 @@ from apps.core.tasks import (save_job_error,
 from apps.core.decorators import log_request
 from apps.modeling import geoprocessing
 from apps.modeling.calcs import apply_gwlfe_modifications
-from apps.modeling.tasks import run_gwlfe
+from apps.modeling.tasks import run_gwlfe, subbasin_results_to_dict
 from apps.modeling.mapshed.calcs import streams
 from apps.modeling.mapshed.tasks import (collect_data,
+                                         collect_subbasin,
                                          convert_data,
                                          multi_mapshed,
+                                         multi_subbasin,
                                          nlcd_streams)
 from apps.modeling.serializers import AoiSerializer
 
 from apps.geoprocessing_api import exceptions, schemas, tasks
+from apps.geoprocessing_api.calcs import huc12s_for_huc
 from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
                                                SustainedRateThrottle)
@@ -1472,6 +1475,55 @@ def start_modeling_gwlfe_run(request, format=None):
     return start_celery_job([
         run_gwlfe.s(modified_model_input, hash)
     ], model_input, user)
+
+
+@swagger_auto_schema(method='post',
+                     request_body=schemas.SUBBASIN_REQUEST,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_modeling_subbasin_prepare(request, format=None):
+    """
+    Starts a job to prepare input for running Subbasin GWLF-E for a given HUC.
+
+    Given a HUC-8, HUC-10, or HUC-12, via a WKAoI or a HUC parameter, gathers
+    data from land, soil type, groundwater nitrogen, available water capacity,
+    K-factor, slope, soil nitrogen, soil phosphorus, base-flow index, and
+    stream datasets, for each HUC-12 within the given HUC.
+
+    Does not run on arbitrary areas of interest, only on HUCs. They must be
+    specified via one of `wkaoi` or `huc`. If both are specified, `wkaoi` will
+    be used.
+
+    `layer_overrides` can be provied to use specific land and streams layers.
+    NLCD 2019 and NHD High Resolution are used by default.
+
+    The `result` is a dictionary where the keys are HUC-12s and the values are
+    the same as those of `gwlf-e/prepare`, for each HUC-12.
+
+    The `result` should be used with the subbasin/run endpoint, by sending at
+    as the `input`. Alternatively, the `job` UUID can be used as well by
+    sending it as the `job_uuid`.
+    """
+    user = request.user if request.user.is_authenticated else None
+    area_of_interest, wkaoi, huc = _parse_subbasin_input(request)
+
+    layer_overrides = request.data.get('layer_overrides', {})
+
+    huc12s = huc12s_for_huc(huc)
+
+    if not huc12s:
+        raise ValidationError(f'No HUC-12s found for WKAoI {wkaoi}, HUC {huc}')
+
+    return start_celery_job([
+        multi_subbasin(area_of_interest, huc12s, layer_overrides),
+        collect_subbasin.s(huc12s, layer_overrides),
+        subbasin_results_to_dict.s()
+    ], request.data, user)
 
 
 def _initiate_rwd_job_chain(location, snapping, simplify, data_source,
