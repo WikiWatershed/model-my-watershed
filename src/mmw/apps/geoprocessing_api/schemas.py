@@ -232,29 +232,33 @@ LAYER_OVERRIDES = Schema(
     },
 )
 
+WKAOI_SCHEMA = Schema(
+    title='Well-Known Area of Interest',
+    type=TYPE_STRING,
+    example='huc12__55174',
+    description='The table and ID for a well-known area of interest, '
+                'such as a HUC. '
+                'Format "table__id", eg. "huc12__55174" will analyze '
+                'the HUC-12 City of Philadelphia-Schuylkill River.',
+)
+
+HUC_SCHEMA = Schema(
+    title='Hydrologic Unit Code',
+    type=TYPE_STRING,
+    example='020402031008',
+    description='The Hydrologic Unit Code (HUC) of the area of '
+                'interest. Should be an 8, 10, or 12 digit string of '
+                'numbers, e.g. "020402031008" will analyze the HUC-12 '
+                'City of Philadelphia-Schuylkill River.',
+)
+
 MODELING_REQUEST = Schema(
     title='Modeling Request',
     type=TYPE_OBJECT,
     properties={
         'area_of_interest': MULTIPOLYGON,
-        'wkaoi': Schema(
-            title='Well-Known Area of Interest',
-            type=TYPE_STRING,
-            example='huc12__55174',
-            description='The table and ID for a well-known area of interest, '
-                        'such as a HUC. '
-                        'Format "table__id", eg. "huc12__55174" will analyze '
-                        'the HUC-12 City of Philadelphia-Schuylkill River.',
-        ),
-        'huc': Schema(
-            title='Hydrologic Unit Code',
-            type=TYPE_STRING,
-            example='020402031008',
-            description='The Hydrologic Unit Code (HUC) of the area of '
-                        'interest. Should be an 8, 10, or 12 digit string of '
-                        'numbers, e.g. "020402031008" will analyze the HUC-12 '
-                        'City of Philadelphia-Schuylkill River.',
-        ),
+        'wkaoi': WKAOI_SCHEMA,
+        'huc': HUC_SCHEMA,
         'layer_overrides': LAYER_OVERRIDES,
     },
 )
