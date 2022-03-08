@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import json
 
+from operator import itemgetter
+
 from celery import chain
 
 from rest_framework.response import Response
@@ -1537,3 +1539,14 @@ def _parse_aoi(data):
     wkaoi = serializer.validated_data.get('wkaoi')
 
     return area_of_interest, wkaoi
+
+
+def _parse_subbasin_input(request):
+    if 'wkaoi' not in request.data and 'huc' not in request.data:
+        raise ValidationError('Must specify exactly one of: WKAoI ID or HUC')
+
+    serializer = AoiSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    return itemgetter('area_of_interest', 'wkaoi', 'huc')(
+        serializer.validated_data)

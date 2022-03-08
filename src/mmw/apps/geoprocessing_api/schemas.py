@@ -279,3 +279,13 @@ GWLFE_REQUEST = Schema(
         ),
     },
 )
+
+SUBBASIN_REQUEST = Schema(
+    title='Subbasin Request',
+    type=TYPE_OBJECT,
+    properties={
+        'wkaoi': WKAOI_SCHEMA,
+        'huc': HUC_SCHEMA,
+        'layer_overrides': LAYER_OVERRIDES,
+    },
+)
