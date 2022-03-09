@@ -366,3 +366,22 @@ def drexel_fast_zonal(geojson, key):
     result = {int(k): v for k, v in res.json()[key].items()}
 
     return result
+
+
+def huc12s_for_huc(huc):
+    """
+    Given a HUC code, returns a list of all HUC-12s starting with it.
+
+    This will effectively give a list of all HUC-12s within a HUC-8 or HUC-10,
+    given those codes. If a HUC-12 code is given, will return a singleton list.
+    If no HUC-12s are found, returns an empty list.
+    """
+    sql = '''
+          SELECT 'huc12__' || id, huc12, ST_AsGeoJSON(geom_detailed)
+          FROM boundary_huc12
+          WHERE huc12 LIKE %s
+          '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [f'{huc}%'])
+        return cursor.fetchall()
