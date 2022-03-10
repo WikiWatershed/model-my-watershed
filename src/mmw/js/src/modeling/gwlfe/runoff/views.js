@@ -56,12 +56,18 @@ var ResultView = Marionette.LayoutView.extend({
             gis_data = this.scenario.getModifiedGwlfeGisData(),
             weather_type = this.scenario.get('weather_type'),
             weather_simulation = this.scenario.get('weather_simulation'),
+            weather_simulation_label = weather_simulation &&
+                _.chain(modelingConstants.Simulations)
+                    .flatMap(function(g) { return g.items; })
+                    .find(function(i) { return i.name === weather_simulation; })
+                    .value()
+                    .label,
             weather_custom = this.scenario.get('weather_custom');
 
         return {
             lengthUnit: lengthUnit,
             weather_type: weather_type,
-            weather_simulation: modelingConstants.Simulations[weather_simulation],
+            weather_simulation: weather_simulation_label,
             weather_custom: modelingUtils.getFileName(weather_custom, '.csv'),
             years: gis_data.WxYrs,
         };

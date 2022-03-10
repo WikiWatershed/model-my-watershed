@@ -7,6 +7,8 @@ from contextlib import closing
 from copy import deepcopy
 from datetime import datetime, timedelta
 
+from rest_framework.exceptions import NotFound, ValidationError
+
 from django.conf import settings
 from django.db import connection
 
@@ -187,6 +189,33 @@ def get_weather_simulation_for_project(project, category):
         'Prec': average_weather_data([d['Prec'] for d in data]),
         'Temp': average_weather_data([d['Temp'] for d in data]),
     }, errs
+
+
+def wkaoi_from_huc(huc):
+    huc_len = len(huc)
+    if huc_len not in [8, 10, 12]:
+        raise ValidationError(f'Specified HUC {huc} is {huc_len} digits. '
+                              'Must be 8, 10, or 12.')
+
+    if huc_len == 8:
+        huc_col = 'huc08'
+    else:
+        huc_col = f'huc{huc_len}'
+
+    sql = f'''
+          SELECT id
+          FROM boundary_{huc_col}
+          WHERE {huc_col} = %s
+          '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [huc])
+        row = cursor.fetchone()
+        if not row:
+            raise NotFound(f'No shape found for HUC {huc}')
+
+        wkaoi = f'huc{huc_len}__{row[0]}'
+        return wkaoi
 
 
 def split_into_huc12s(code, id):

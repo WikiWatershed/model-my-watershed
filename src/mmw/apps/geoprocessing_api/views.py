@@ -31,7 +31,6 @@ from apps.modeling.mapshed.tasks import (collect_data,
                                          multi_mapshed,
                                          nlcd_streams)
 from apps.modeling.serializers import AoiSerializer
-from apps.modeling.views import _parse_input as _parse_modeling_input
 
 from apps.geoprocessing_api import exceptions, schemas, tasks
 from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
@@ -246,7 +245,8 @@ def start_rwd(request, format=None):
 
 @swagger_auto_schema(method='post',
                      manual_parameters=[schemas.NLCD_YEAR,
-                                        schemas.WKAOI],
+                                        schemas.WKAOI,
+                                        schemas.HUC],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -416,7 +416,7 @@ def start_analyze_land(request, nlcd_year, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_input(request)
+    area_of_interest, wkaoi = _parse_analyze_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -436,7 +436,7 @@ def start_analyze_land(request, nlcd_year, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.WKAOI, schemas.HUC],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -518,7 +518,7 @@ def start_analyze_soil(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_input(request)
+    area_of_interest, wkaoi = _parse_analyze_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -647,7 +647,7 @@ def start_analyze_streams(request, datasource, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_input(request)
+    area_of_interest, wkaoi = _parse_analyze_input(request)
 
     if datasource not in settings.STREAM_TABLES:
         raise ValidationError(f'Invalid stream datasource: {datasource}.'
@@ -666,7 +666,7 @@ def start_analyze_streams(request, datasource, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.WKAOI, schemas.HUC],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -737,7 +737,7 @@ def start_analyze_animals(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_input(request)
+    area_of_interest, wkaoi = _parse_analyze_input(request)
 
     return start_celery_job([
         tasks.analyze_animals.s(area_of_interest)
@@ -745,7 +745,7 @@ def start_analyze_animals(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.WKAOI, schemas.HUC],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -797,7 +797,7 @@ def start_analyze_pointsource(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_input(request)
+    area_of_interest, wkaoi = _parse_analyze_input(request)
 
     return start_celery_job([
         tasks.analyze_pointsource.s(area_of_interest)
@@ -805,7 +805,7 @@ def start_analyze_pointsource(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.WKAOI, schemas.HUC],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -884,7 +884,7 @@ def start_analyze_catchment_water_quality(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_input(request)
+    area_of_interest, wkaoi = _parse_analyze_input(request)
 
     return start_celery_job([
         tasks.analyze_catchment_water_quality.s(area_of_interest)
@@ -892,7 +892,7 @@ def start_analyze_catchment_water_quality(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.WKAOI, schemas.HUC],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -946,7 +946,7 @@ def start_analyze_climate(request, format=None):
     """
     user = request.user if request.user.is_authenticated else None
 
-    area_of_interest, wkaoi = _parse_input(request)
+    area_of_interest, wkaoi = _parse_analyze_input(request)
     shape = [{'id': wkaoi or geoprocessing.NOCACHE, 'shape': area_of_interest}]
 
     return start_celery_job([
@@ -956,7 +956,7 @@ def start_analyze_climate(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.WKAOI, schemas.HUC],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -1012,7 +1012,7 @@ def start_analyze_terrain(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_input(request)
+    area_of_interest, wkaoi = _parse_analyze_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -1023,7 +1023,7 @@ def start_analyze_terrain(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI],
+                     manual_parameters=[schemas.WKAOI, schemas.HUC],
                      request_body=schemas.MULTIPOLYGON,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
@@ -1148,7 +1148,7 @@ def start_analyze_protected_lands(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_input(request)
+    area_of_interest, wkaoi = _parse_analyze_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -1316,7 +1316,7 @@ def start_analyze_drb_2100_land(request, key=None, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_input(request)
+    area_of_interest, wkaoi = _parse_analyze_input(request)
 
     errs = []
     if not key:
@@ -1326,8 +1326,8 @@ def start_analyze_drb_2100_land(request, key=None, format=None):
             '", "'.join(settings.DREXEL_FAST_ZONAL_API['keys'])))
 
     # A little redundant since GeoJSON -> GEOSGeometry is already done once
-    # within _parse_input, but it is not returned from there and changing
-    # that API could break many things.
+    # within _parse_analyze_input, but it is not returned from there and
+    # changing that API could break many things.
     geom = GEOSGeometry(area_of_interest, srid=4326)
 
     # In the front-end, we use DRB_SIMPLE_PERIMETER. This is sent from the
@@ -1367,7 +1367,7 @@ def start_modeling_worksheet(request, format=None):
     to get the actual Excel files.
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, _ = _parse_input(request)
+    area_of_interest, _ = _parse_analyze_input(request)
 
     return start_celery_job([
         tasks.collect_worksheet.s(area_of_interest),
@@ -1394,15 +1394,16 @@ def start_modeling_gwlfe_prepare(request, format=None):
     By default, NLCD 2019 and NHD High Resolution Streams are used to prepare
     the input payload. This can be changed using the `layer_overrides` option.
 
-    Only one of `area_of_interest` or `wkaoi` should be provided. If both are
-    given, the `area_of_interest` will be used.
+    Only one of `area_of_interest`, `wkaoi`, or `huc` should be provided.
+    If multiple are given, the `area_of_interest` will be used first, then
+    `wkaoi`, then `huc`.
 
     The `result` should be used with the gwlf-e/run endpoint, by sending at as
     the `input`. Alternatively, the `job` UUID can be used as well by sending
     it as the `job_uuid`.
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_modeling_input(request.data)
+    area_of_interest, wkaoi = _parse_modeling_input(request)
 
     layer_overrides = request.data.get('layer_overrides', {})
 
@@ -1519,10 +1520,20 @@ def start_celery_job(task_list, job_input, user=None, link_error=True):
     )
 
 
-def _parse_input(request):
-    wkaoi = request.query_params.get('wkaoi', None)
-    serializer = AoiSerializer(data={'area_of_interest': request.data,
-                                     'wkaoi': wkaoi})
+def _parse_analyze_input(request):
+    return _parse_aoi(data={'area_of_interest': request.data,
+                            'wkaoi': request.query_params.get('wkaoi'),
+                            'huc': request.query_params.get('huc')})
+
+
+def _parse_modeling_input(request):
+    return _parse_aoi(request.data)
+
+
+def _parse_aoi(data):
+    serializer = AoiSerializer(data=data)
     serializer.is_valid(raise_exception=True)
-    return (serializer.validated_data.get('area_of_interest'),
-            wkaoi)
+    area_of_interest = serializer.validated_data.get('area_of_interest')
+    wkaoi = serializer.validated_data.get('wkaoi')
+
+    return area_of_interest, wkaoi

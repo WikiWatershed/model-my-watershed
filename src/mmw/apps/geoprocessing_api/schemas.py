@@ -60,6 +60,16 @@ WKAOI = Parameter(
     type=TYPE_STRING,
 )
 
+HUC = Parameter(
+    'huc',
+    IN_QUERY,
+    description='The Hydrologic Unit Code (HUC) of the area of interest. '
+                'Should be an 8, 10, or 12 digit string of numbers, e.g. '
+                '"020402031008" will analyze the HUC-12 City of Philadelphia-'
+                'Schuylkill River.',
+    type=TYPE_STRING,
+)
+
 MULTIPOLYGON = Schema(
     title='Area of Interest',
     description='A valid single-ringed Multipolygon GeoJSON '
@@ -235,6 +245,15 @@ MODELING_REQUEST = Schema(
                         'such as a HUC. '
                         'Format "table__id", eg. "huc12__55174" will analyze '
                         'the HUC-12 City of Philadelphia-Schuylkill River.',
+        ),
+        'huc': Schema(
+            title='Hydrologic Unit Code',
+            type=TYPE_STRING,
+            example='020402031008',
+            description='The Hydrologic Unit Code (HUC) of the area of '
+                        'interest. Should be an 8, 10, or 12 digit string of '
+                        'numbers, e.g. "020402031008" will analyze the HUC-12 '
+                        'City of Philadelphia-Schuylkill River.',
         ),
         'layer_overrides': LAYER_OVERRIDES,
     },

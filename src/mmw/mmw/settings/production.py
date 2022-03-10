@@ -103,3 +103,12 @@ GOOGLE_ANALYTICS_ACCOUNT = 'UA-47047573-15'
 # django-cookies-samesite
 SESSION_COOKIE_SAMESITE = 'None'  # Allows for cross site embedding into LARA
 SESSION_COOKIE_SECURE = True      # Only set cookies in HTTPS connections
+
+# CSRF
+CSRF_TRUSTED_ORIGINS = [
+    '.modelmywatershed.org',
+    '.concord.org'
+]
+
+CSRF_COOKIE_SAMESITE = 'None'  # Allow for embedding into Concord
+CSRF_COOKIE_SECURE = True      # Only set cookies in HTTPS connections
