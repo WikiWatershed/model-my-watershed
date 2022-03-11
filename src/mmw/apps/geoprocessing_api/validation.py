@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from numbers import Number
+from uuid import UUID
 
 from rest_framework.exceptions import ValidationError
 
@@ -59,3 +60,12 @@ def create_invalid_rwd_simplify_param_type_error_msg(simplify):
 
 def check_rwd_simplify_param_type(simplify):
     return isinstance(simplify, Number) or simplify is False
+
+
+def validate_uuid(uuid):
+    try:
+        u = UUID(uuid)
+    except ValueError:
+        return False
+
+    return uuid == str(u)

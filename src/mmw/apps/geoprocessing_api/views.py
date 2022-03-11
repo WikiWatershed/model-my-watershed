@@ -42,7 +42,7 @@ from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
                                                SustainedRateThrottle)
 
-from apps.geoprocessing_api.validation import validate_rwd
+from apps.geoprocessing_api.validation import validate_rwd, validate_uuid
 
 
 @swagger_auto_schema(method='post',
@@ -1452,6 +1452,9 @@ def start_modeling_gwlfe_run(request, format=None):
         if not job_uuid:
             raise ValidationError(
                 'At least one of `input` or `job_uuid` must be specified')
+
+        if not validate_uuid(job_uuid):
+            raise ValidationError(f'Invalid `job_uuid`: {job_uuid}')
 
         input_job = get_object_or_404(Job, uuid=job_uuid)
         if input_job.status == JobStatus.STARTED:
