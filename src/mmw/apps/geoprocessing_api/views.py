@@ -1444,34 +1444,7 @@ def start_modeling_gwlfe_run(request, format=None):
     For more details on the GWLF-E package, please see: [https://github.com/WikiWatershed/gwlf-e](https://github.com/WikiWatershed/gwlf-e)  # NOQA
     """
     user = request.user if request.user.is_authenticated else None
-    model_input = request.data.get('input')
-
-    if not model_input:
-        job_uuid = request.data.get('job_uuid')
-
-        if not job_uuid:
-            raise ValidationError(
-                'At least one of `input` or `job_uuid` must be specified')
-
-        if not validate_uuid(job_uuid):
-            raise ValidationError(f'Invalid `job_uuid`: {job_uuid}')
-
-        input_job = get_object_or_404(Job, uuid=job_uuid)
-        if input_job.status == JobStatus.STARTED:
-            raise exceptions.JobNotReadyError(
-                f'The prepare job {job_uuid} has not finished yet.')
-
-        if input_job.status == JobStatus.FAILED:
-            raise exceptions.JobFailedError(
-                f'The prepare job {job_uuid} has failed.')
-
-        model_input = json.loads(input_job.result)
-
-    # TODO #3484 Validate model_input
-
-    # TODO #3485 Implement modifications, hash
-    mods = []
-    hash = ''
+    model_input, job_uuid, mods, hash = _parse_gwlfe_input(request)
 
     modified_model_input = apply_gwlfe_modifications(model_input, mods)
 
@@ -1605,3 +1578,47 @@ def _parse_subbasin_input(request):
 
     return itemgetter('area_of_interest', 'wkaoi', 'huc')(
         serializer.validated_data)
+
+
+def _parse_gwlfe_input(request, raw_input=True):
+    """
+    Given a request, parses the model_input from it.
+
+    If raw_input is True, then assumes there may be a model_input key specified
+    directly in the request body. If found, uses that. Otherwise uses the
+    job_uuid field.
+
+    Raises validation errors where appropriate.
+    """
+    job_uuid = request.data.get('job_uuid')
+
+    # TODO #3485 Implement modifications, hash
+    mods = []
+    hash = ''
+
+    if raw_input:
+        model_input = request.data.get('input')
+
+        if model_input:
+            # TODO #3484 Validate model_input
+            return model_input, job_uuid, mods, hash
+
+    if not job_uuid:
+        raise ValidationError('`job_uuid` must be specified')
+
+    if not validate_uuid(job_uuid):
+        raise ValidationError(f'Invalid `job_uuid`: {job_uuid}')
+
+    input_job = get_object_or_404(Job, uuid=job_uuid)
+    if input_job.status == JobStatus.STARTED:
+        raise exceptions.JobNotReadyError(
+            f'The prepare job {job_uuid} has not finished yet.')
+
+    if input_job.status == JobStatus.FAILED:
+        raise exceptions.JobFailedError(
+            f'The prepare job {job_uuid} has failed.')
+
+    model_input = json.loads(input_job.result)
+
+    # TODO #3484 Validate model_input
+    return model_input, job_uuid, mods, hash
