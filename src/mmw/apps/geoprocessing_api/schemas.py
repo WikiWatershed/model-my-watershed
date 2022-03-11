@@ -289,3 +289,17 @@ SUBBASIN_REQUEST = Schema(
         'layer_overrides': LAYER_OVERRIDES,
     },
 )
+
+SUBBASIN_RUN_REQUEST = Schema(
+    title='Subbasin Run Request',
+    type=TYPE_OBJECT,
+    properties={
+        'job_uuid': Schema(
+            type=TYPE_STRING,
+            format=FORMAT_UUID,
+            example='6e514e69-f46b-47e7-9476-c1f5be0bac01',
+            description='The job uuid of modeling/subbasin/prepare/',
+        ),
+    },
+    required=['job_uuid'],
+)

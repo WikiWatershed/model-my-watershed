@@ -35,6 +35,7 @@ from apps.modeling.mapshed.tasks import (collect_data,
                                          multi_subbasin,
                                          nlcd_streams)
 from apps.modeling.serializers import AoiSerializer
+from apps.modeling.views import _initiate_subbasin_gwlfe_job_chain
 
 from apps.geoprocessing_api import exceptions, schemas, tasks
 from apps.geoprocessing_api.calcs import huc12s_for_huc
@@ -1500,6 +1501,44 @@ def start_modeling_subbasin_prepare(request, format=None):
         collect_subbasin.s(huc12s, layer_overrides),
         subbasin_results_to_dict.s()
     ], request.data, user)
+
+
+@swagger_auto_schema(method='post',
+                     request_body=schemas.SUBBASIN_RUN_REQUEST,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_modeling_subbasin_run(request, format=None):
+    user = request.user if request.user.is_authenticated else None
+    model_input, job_uuid, mods, hash = _parse_gwlfe_input(request, False)
+
+    # Instead of using start_celery_job, we do a manual implementation here.
+    # This is required because start_celery_job tries to add an error handler
+    # to ever job in the chain, but this includes groups, for which that is not
+    # allowed. So we manually create a job and a task_chain, wire up all the
+    # error handling, and return the job response.
+
+    job = Job.objects.create(created_at=now(), result='', error='',
+                             traceback='', user=user, status='started')
+
+    task_chain = _initiate_subbasin_gwlfe_job_chain(
+        model_input, job_uuid, mods, hash, job.id)
+
+    job.uuid = task_chain.id
+    job.save()
+
+    return Response(
+        {
+            'job': task_chain.id,
+            'status': JobStatus.STARTED,
+        },
+        headers={'Location': reverse('geoprocessing_api:get_job',
+                                     args=[task_chain.id])}
+    )
 
 
 def _initiate_rwd_job_chain(location, snapping, simplify, data_source,
