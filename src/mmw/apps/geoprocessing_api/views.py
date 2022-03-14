@@ -1431,7 +1431,7 @@ def start_modeling_gwlfe_prepare(request, format=None):
 @log_request
 def start_modeling_gwlfe_run(request, format=None):
     """
-    Starts a job to GWLF-E for a given prepared input.
+    Starts a job to run GWLF-E for a given prepared input.
 
     Given an `input` JSON of the gwlf-e/prepare endpoint's `result`, or a
     `job_uuid` of a gwlf-e/prepare job, runs GWLF-E and returns a JSON
@@ -1513,6 +1513,27 @@ def start_modeling_subbasin_prepare(request, format=None):
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def start_modeling_subbasin_run(request, format=None):
+    """
+    Starts a job to run GWLF-E for all subbasins in given input.
+
+    Given a `job_uuid` of a subbasin/prepare job, runs GWLF-E on every HUC-12
+    subbasin whose results were prepared.
+
+    The result includes `Loads` which have total nitrogen, phosphorus, and
+    sediment loads for GWLF-E land cover types, including Hay/Pasture,
+    Cropland, Wooded Areas, Open Land, Barren Areas, Low-Density Mixed, Medium-
+    Density Mixed, High-Density Mixed, Low-Density Open Space, and other
+    categories such as Farm Animals, Stream Bank Erosion, Subsurface Flow,
+    Welands, Point Sources, and Septic Systems.
+
+    The total loads across all these cateogires are summarized in
+    `SummaryLoads`.
+
+    `Loads` and `SummaryLoads` are also available for every HUC-12 in the
+    input. Every HUC-12 also has `Catchments` level data, which include
+    Loading Rate Concentrations and Total Loading Rates for nitrogen,
+    phosphorus, and sediment.
+    """
     user = request.user if request.user.is_authenticated else None
     model_input, job_uuid, mods, hash = _parse_gwlfe_input(request, False)
 
