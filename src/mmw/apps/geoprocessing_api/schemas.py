@@ -138,6 +138,9 @@ JOB_STARTED_RESPONSE = Schema(
         'job': Schema(type=TYPE_STRING, format=FORMAT_UUID,
                       example='6e514e69-f46b-47e7-9476-c1f5be0bac01'),
         'status': Schema(type=TYPE_STRING, example=JobStatus.STARTED),
+        'messages': Schema(type=TYPE_ARRAY, items=Schema(type=TYPE_STRING),
+                           description='Optional messages provided by the API,'
+                                       ' e.g. deprecation notices, etc.')
     }
 )
 

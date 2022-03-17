@@ -1571,7 +1571,8 @@ def _initiate_rwd_job_chain(location, snapping, simplify, data_source,
         .apply_async(link_error=errback)
 
 
-def start_celery_job(task_list, job_input, user=None, link_error=True):
+def start_celery_job(task_list, job_input, user=None, link_error=True,
+                     messages=list()):
     """
     Given a list of Celery tasks and it's input, starts a Celery async job with
     those tasks, adds save_job_result and save_job_error handlers, and returns
@@ -1581,6 +1582,8 @@ def start_celery_job(task_list, job_input, user=None, link_error=True):
     :param job_input: Input to the first task, used in recording started jobs
     :param user: The user requesting the job. Optional.
     :param link_error: Whether or not to apply error handler to entire chain
+    :param messages: A list of messages to include in the output
+                     (e.g. deprecations)
     :return: A Response contianing the job id, marked as JobStatus.STARTED
     """
     created = now()
@@ -1600,11 +1603,16 @@ def start_celery_job(task_list, job_input, user=None, link_error=True):
     job.uuid = task_chain.id
     job.save()
 
-    return Response(
-        {
+    data = {
             'job': task_chain.id,
             'status': JobStatus.STARTED,
-        },
+    }
+
+    if messages:
+        data['messages'] = messages
+
+    return Response(
+        data,
         headers={'Location': reverse('geoprocessing_api:get_job',
                                      args=[task_chain.id])}
     )
