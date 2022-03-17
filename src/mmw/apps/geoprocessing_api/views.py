@@ -422,7 +422,7 @@ def start_analyze_land(request, nlcd_year, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -438,7 +438,7 @@ def start_analyze_land(request, nlcd_year, format=None):
         geoprocessing.run.s('nlcd_ara', geop_input, wkaoi,
                             layer_overrides=layer_overrides),
         tasks.analyze_nlcd.s(area_of_interest, nlcd_year)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
@@ -524,14 +524,14 @@ def start_analyze_soil(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
         geoprocessing.run.s('soil', geop_input, wkaoi),
         tasks.analyze_soil.s(area_of_interest)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
@@ -653,7 +653,7 @@ def start_analyze_streams(request, datasource, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     if datasource not in settings.STREAM_TABLES:
         raise ValidationError(f'Invalid stream datasource: {datasource}.'
@@ -668,7 +668,7 @@ def start_analyze_streams(request, datasource, format=None):
                             cache_key=datasource),
         nlcd_streams.s(),
         tasks.analyze_streams.s(area_of_interest, datasource, wkaoi)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
@@ -743,11 +743,11 @@ def start_analyze_animals(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     return start_celery_job([
         tasks.analyze_animals.s(area_of_interest)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
@@ -803,7 +803,7 @@ def start_analyze_pointsource(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     return start_celery_job([
         tasks.analyze_pointsource.s(area_of_interest)
@@ -890,11 +890,11 @@ def start_analyze_catchment_water_quality(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     return start_celery_job([
         tasks.analyze_catchment_water_quality.s(area_of_interest)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
@@ -952,13 +952,13 @@ def start_analyze_climate(request, format=None):
     """
     user = request.user if request.user.is_authenticated else None
 
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
     shape = [{'id': wkaoi or geoprocessing.NOCACHE, 'shape': area_of_interest}]
 
     return start_celery_job([
         geoprocessing.multi.s('climate', shape, None),
         tasks.analyze_climate.s(wkaoi or geoprocessing.NOCACHE),
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
@@ -1018,14 +1018,14 @@ def start_analyze_terrain(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
         geoprocessing.run.s('terrain', geop_input, wkaoi),
         tasks.analyze_terrain.s()
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
@@ -1154,14 +1154,14 @@ def start_analyze_protected_lands(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
         geoprocessing.run.s('protected_lands', geop_input, wkaoi),
         tasks.analyze_protected_lands.s(area_of_interest)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
@@ -1322,7 +1322,7 @@ def start_analyze_drb_2100_land(request, key=None, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     errs = []
     if not key:
@@ -1348,7 +1348,7 @@ def start_analyze_drb_2100_land(request, key=None, format=None):
 
     return start_celery_job([
         tasks.analyze_drb_2100_land.s(area_of_interest, key)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
@@ -1373,11 +1373,11 @@ def start_modeling_worksheet(request, format=None):
     to get the actual Excel files.
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, _ = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     return start_celery_job([
         tasks.collect_worksheet.s(area_of_interest),
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
@@ -1604,8 +1604,8 @@ def start_celery_job(task_list, job_input, user=None, link_error=True,
     job.save()
 
     data = {
-            'job': task_chain.id,
-            'status': JobStatus.STARTED,
+        'job': task_chain.id,
+        'status': JobStatus.STARTED,
     }
 
     if messages:
@@ -1619,9 +1619,45 @@ def start_celery_job(task_list, job_input, user=None, link_error=True,
 
 
 def _parse_analyze_input(request):
-    return _parse_aoi(data={'area_of_interest': request.data,
-                            'wkaoi': request.query_params.get('wkaoi'),
-                            'huc': request.query_params.get('huc')})
+    """
+    Parses analyze requests and returns area_of_interest, wkaoi, and msg.
+
+    Old style analyze requests put the area of interest GeoJSON in the POST
+    body, and wkaoi and huc as query parameters. We are transitioning to a
+    new model where all input is provided in the POST body, in the format:
+
+    {
+        area_of_interest: <GeoJSON?>,
+        wkaoi: <string?>,
+        huc: <string?>
+    }
+
+    If the request is in the old style, returns a msg list which includes a
+    message for users warning about upcoming deprecation.
+    """
+    msg = []
+
+    if ('area_of_interest' in request.data or
+            'wkaoi' in request.data or
+            'huc' in request.data):
+        area_of_interest, wkaoi = _parse_aoi(request.data)
+        return area_of_interest, wkaoi, msg
+
+    # TODO Remove this message when old style /analyze/ input is deprecated
+    msg = [
+        'The /analyze/ APIs will be updated to match the /modeling/ APIs in '
+        'an upcoming release. Instead of sending GeoJSON of the area of '
+        'interest in the request body, and wkaoi and huc as query parameters, '
+        'please send all in the request body, as { area_of_interest, wkaoi, '
+        'huc }. Consult the API documentation for details.'
+    ]
+
+    area_of_interest, wkaoi = _parse_aoi(data={
+        'area_of_interest': request.data,
+        'wkaoi': request.query_params.get('wkaoi'),
+        'huc': request.query_params.get('huc')})
+
+    return area_of_interest, wkaoi, msg
 
 
 def _parse_modeling_input(request):
