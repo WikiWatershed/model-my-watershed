@@ -35,6 +35,7 @@ from apps.modeling.mapshed.tasks import (collect_data,
                                          multi_subbasin,
                                          nlcd_streams)
 from apps.modeling.serializers import AoiSerializer
+from apps.modeling.views import _initiate_subbasin_gwlfe_job_chain
 
 from apps.geoprocessing_api import exceptions, schemas, tasks
 from apps.geoprocessing_api.calcs import huc12s_for_huc
@@ -42,7 +43,7 @@ from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
                                                SustainedRateThrottle)
 
-from apps.geoprocessing_api.validation import validate_rwd
+from apps.geoprocessing_api.validation import validate_rwd, validate_uuid
 
 
 @swagger_auto_schema(method='post',
@@ -1430,7 +1431,7 @@ def start_modeling_gwlfe_prepare(request, format=None):
 @log_request
 def start_modeling_gwlfe_run(request, format=None):
     """
-    Starts a job to GWLF-E for a given prepared input.
+    Starts a job to run GWLF-E for a given prepared input.
 
     Given an `input` JSON of the gwlf-e/prepare endpoint's `result`, or a
     `job_uuid` of a gwlf-e/prepare job, runs GWLF-E and returns a JSON
@@ -1444,31 +1445,7 @@ def start_modeling_gwlfe_run(request, format=None):
     For more details on the GWLF-E package, please see: [https://github.com/WikiWatershed/gwlf-e](https://github.com/WikiWatershed/gwlf-e)  # NOQA
     """
     user = request.user if request.user.is_authenticated else None
-    model_input = request.data.get('input')
-
-    if not model_input:
-        job_uuid = request.data.get('job_uuid')
-
-        if not job_uuid:
-            raise ValidationError(
-                'At least one of `input` or `job_uuid` must be specified')
-
-        input_job = get_object_or_404(Job, uuid=job_uuid)
-        if input_job.status == JobStatus.STARTED:
-            raise exceptions.JobNotReadyError(
-                f'The prepare job {job_uuid} has not finished yet.')
-
-        if input_job.status == JobStatus.FAILED:
-            raise exceptions.JobFailedError(
-                f'The prepare job {job_uuid} has failed.')
-
-        model_input = json.loads(input_job.result)
-
-    # TODO #3484 Validate model_input
-
-    # TODO #3485 Implement modifications, hash
-    mods = []
-    hash = ''
+    model_input, job_uuid, mods, hash = _parse_gwlfe_input(request)
 
     modified_model_input = apply_gwlfe_modifications(model_input, mods)
 
@@ -1524,6 +1501,65 @@ def start_modeling_subbasin_prepare(request, format=None):
         collect_subbasin.s(huc12s, layer_overrides),
         subbasin_results_to_dict.s()
     ], request.data, user)
+
+
+@swagger_auto_schema(method='post',
+                     request_body=schemas.SUBBASIN_RUN_REQUEST,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_modeling_subbasin_run(request, format=None):
+    """
+    Starts a job to run GWLF-E for all subbasins in given input.
+
+    Given a `job_uuid` of a subbasin/prepare job, runs GWLF-E on every HUC-12
+    subbasin whose results were prepared.
+
+    The result includes `Loads` which have total nitrogen, phosphorus, and
+    sediment loads for GWLF-E land cover types, including Hay/Pasture,
+    Cropland, Wooded Areas, Open Land, Barren Areas, Low-Density Mixed, Medium-
+    Density Mixed, High-Density Mixed, Low-Density Open Space, and other
+    categories such as Farm Animals, Stream Bank Erosion, Subsurface Flow,
+    Welands, Point Sources, and Septic Systems.
+
+    The total loads across all these cateogires are summarized in
+    `SummaryLoads`.
+
+    `Loads` and `SummaryLoads` are also available for every HUC-12 in the
+    input. Every HUC-12 also has `Catchments` level data, which include
+    Loading Rate Concentrations and Total Loading Rates for nitrogen,
+    phosphorus, and sediment.
+    """
+    user = request.user if request.user.is_authenticated else None
+    model_input, job_uuid, mods, hash = _parse_gwlfe_input(request, False)
+
+    # Instead of using start_celery_job, we do a manual implementation here.
+    # This is required because start_celery_job tries to add an error handler
+    # to ever job in the chain, but this includes groups, for which that is not
+    # allowed. So we manually create a job and a task_chain, wire up all the
+    # error handling, and return the job response.
+
+    job = Job.objects.create(created_at=now(), result='', error='',
+                             traceback='', user=user, status='started')
+
+    task_chain = _initiate_subbasin_gwlfe_job_chain(
+        model_input, job_uuid, mods, hash, job.id)
+
+    job.uuid = task_chain.id
+    job.save()
+
+    return Response(
+        {
+            'job': task_chain.id,
+            'status': JobStatus.STARTED,
+        },
+        headers={'Location': reverse('geoprocessing_api:get_job',
+                                     args=[task_chain.id])}
+    )
 
 
 def _initiate_rwd_job_chain(location, snapping, simplify, data_source,
@@ -1602,3 +1638,47 @@ def _parse_subbasin_input(request):
 
     return itemgetter('area_of_interest', 'wkaoi', 'huc')(
         serializer.validated_data)
+
+
+def _parse_gwlfe_input(request, raw_input=True):
+    """
+    Given a request, parses the model_input from it.
+
+    If raw_input is True, then assumes there may be a model_input key specified
+    directly in the request body. If found, uses that. Otherwise uses the
+    job_uuid field.
+
+    Raises validation errors where appropriate.
+    """
+    job_uuid = request.data.get('job_uuid')
+
+    # TODO #3485 Implement modifications, hash
+    mods = []
+    hash = ''
+
+    if raw_input:
+        model_input = request.data.get('input')
+
+        if model_input:
+            # TODO #3484 Validate model_input
+            return model_input, job_uuid, mods, hash
+
+    if not job_uuid:
+        raise ValidationError('`job_uuid` must be specified')
+
+    if not validate_uuid(job_uuid):
+        raise ValidationError(f'Invalid `job_uuid`: {job_uuid}')
+
+    input_job = get_object_or_404(Job, uuid=job_uuid)
+    if input_job.status == JobStatus.STARTED:
+        raise exceptions.JobNotReadyError(
+            f'The prepare job {job_uuid} has not finished yet.')
+
+    if input_job.status == JobStatus.FAILED:
+        raise exceptions.JobFailedError(
+            f'The prepare job {job_uuid} has failed.')
+
+    model_input = json.loads(input_job.result)
+
+    # TODO #3484 Validate model_input
+    return model_input, job_uuid, mods, hash

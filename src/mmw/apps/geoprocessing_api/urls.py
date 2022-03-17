@@ -43,5 +43,8 @@ urlpatterns = [
     re_path(r'modeling/subbasin/prepare/$',
             views.start_modeling_subbasin_prepare,
             name='start_modeling_subbasin_prepare'),
+    re_path(r'modeling/subbasin/run/$',
+            views.start_modeling_subbasin_run,
+            name='start_modeling_subbasin_run'),
     re_path(r'watershed/$', views.start_rwd, name='start_rwd'),
 ]
