@@ -250,10 +250,8 @@ def start_rwd(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.NLCD_YEAR,
-                                        schemas.WKAOI,
-                                        schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     manual_parameters=[schemas.NLCD_YEAR],
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -442,8 +440,7 @@ def start_analyze_land(request, nlcd_year, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -535,9 +532,8 @@ def start_analyze_soil(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.STREAM_DATASOURCE,
-                                        schemas.WKAOI],
-                     request_body=schemas.MULTIPOLYGON,
+                     manual_parameters=[schemas.STREAM_DATASOURCE],
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -672,8 +668,7 @@ def start_analyze_streams(request, datasource, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -751,8 +746,7 @@ def start_analyze_animals(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -811,8 +805,7 @@ def start_analyze_pointsource(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -898,8 +891,7 @@ def start_analyze_catchment_water_quality(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -962,8 +954,7 @@ def start_analyze_climate(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -1029,8 +1020,7 @@ def start_analyze_terrain(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -1165,9 +1155,8 @@ def start_analyze_protected_lands(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.DRB_2100_LAND_KEY,
-                                        schemas.WKAOI],
-                     request_body=schemas.MULTIPOLYGON,
+                     manual_parameters=[schemas.DRB_2100_LAND_KEY],
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE,
                                 400: schemas.DRB_2100_LAND_ERROR_RESPONSE})
 @decorators.api_view(['POST'])
@@ -1352,7 +1341,7 @@ def start_analyze_drb_2100_land(request, key=None, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,

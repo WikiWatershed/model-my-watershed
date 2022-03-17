@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from drf_yasg.openapi import (
     Parameter, Schema,
-    IN_PATH, IN_QUERY,
+    IN_PATH,
     FORMAT_DATETIME, FORMAT_UUID,
     TYPE_ARRAY, TYPE_BOOLEAN, TYPE_NUMBER, TYPE_OBJECT, TYPE_STRING
 )
@@ -48,26 +48,6 @@ DRB_2100_LAND_KEY = Parameter(
                 ),
     type=TYPE_STRING,
     required=True,
-)
-
-WKAOI = Parameter(
-    'wkaoi',
-    IN_QUERY,
-    description='The table and ID for a well-known area of interest, '
-                'such as a HUC. '
-                'Format "table__id", eg. "huc12__55174" will analyze '
-                'the HUC-12 City of Philadelphia-Schuylkill River.',
-    type=TYPE_STRING,
-)
-
-HUC = Parameter(
-    'huc',
-    IN_QUERY,
-    description='The Hydrologic Unit Code (HUC) of the area of interest. '
-                'Should be an 8, 10, or 12 digit string of numbers, e.g. '
-                '"020402031008" will analyze the HUC-12 City of Philadelphia-'
-                'Schuylkill River.',
-    type=TYPE_STRING,
 )
 
 MULTIPOLYGON = Schema(
@@ -235,7 +215,7 @@ LAYER_OVERRIDES = Schema(
     },
 )
 
-WKAOI_SCHEMA = Schema(
+WKAOI = Schema(
     title='Well-Known Area of Interest',
     type=TYPE_STRING,
     example='huc12__55174',
@@ -245,7 +225,7 @@ WKAOI_SCHEMA = Schema(
                 'the HUC-12 City of Philadelphia-Schuylkill River.',
 )
 
-HUC_SCHEMA = Schema(
+HUC = Schema(
     title='Hydrologic Unit Code',
     type=TYPE_STRING,
     example='020402031008',
@@ -255,13 +235,23 @@ HUC_SCHEMA = Schema(
                 'City of Philadelphia-Schuylkill River.',
 )
 
+ANALYZE_REQUEST = Schema(
+    title='Analyze Request',
+    type=TYPE_OBJECT,
+    properties={
+        'area_of_interest': MULTIPOLYGON,
+        'wkaoi': WKAOI,
+        'huc': HUC,
+    },
+)
+
 MODELING_REQUEST = Schema(
     title='Modeling Request',
     type=TYPE_OBJECT,
     properties={
         'area_of_interest': MULTIPOLYGON,
-        'wkaoi': WKAOI_SCHEMA,
-        'huc': HUC_SCHEMA,
+        'wkaoi': WKAOI,
+        'huc': HUC,
         'layer_overrides': LAYER_OVERRIDES,
     },
 )
@@ -287,8 +277,8 @@ SUBBASIN_REQUEST = Schema(
     title='Subbasin Request',
     type=TYPE_OBJECT,
     properties={
-        'wkaoi': WKAOI_SCHEMA,
-        'huc': HUC_SCHEMA,
+        'wkaoi': WKAOI,
+        'huc': HUC,
         'layer_overrides': LAYER_OVERRIDES,
     },
 )
