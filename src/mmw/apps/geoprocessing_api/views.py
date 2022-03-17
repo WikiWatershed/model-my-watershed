@@ -1594,8 +1594,14 @@ def start_celery_job(task_list, job_input, user=None, link_error=True,
 
     data = {
         'job': task_chain.id,
+        'job_uuid': task_chain.id,
         'status': JobStatus.STARTED,
     }
+
+    messages.append(
+        'The `job` field will be deprecated in an upcoming release. Please '
+        'switch to using `job_uuid` instead.'
+    )
 
     if messages:
         data['messages'] = messages
