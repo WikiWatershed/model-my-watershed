@@ -1394,8 +1394,7 @@ def start_modeling_gwlfe_prepare(request, format=None):
     `wkaoi`, then `huc`.
 
     The `result` should be used with the gwlf-e/run endpoint, by sending at as
-    the `input`. Alternatively, the `job` UUID can be used as well by sending
-    it as the `job_uuid`.
+    the `input`. Alternatively, the `job_uuid` can be used as well.
     """
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_modeling_input(request)
@@ -1472,8 +1471,7 @@ def start_modeling_subbasin_prepare(request, format=None):
     the same as those of `gwlf-e/prepare`, for each HUC-12.
 
     The `result` should be used with the subbasin/run endpoint, by sending at
-    as the `input`. Alternatively, the `job` UUID can be used as well by
-    sending it as the `job_uuid`.
+    as the `input`. Alternatively, the `job_uuid` can be used as well.
     """
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi, huc = _parse_subbasin_input(request)
@@ -1598,6 +1596,7 @@ def start_celery_job(task_list, job_input, user=None, link_error=True,
         'status': JobStatus.STARTED,
     }
 
+    # TODO Remove this message when `job` is deprecated
     messages.append(
         'The `job` field will be deprecated in an upcoming release. Please '
         'switch to using `job_uuid` instead.'
