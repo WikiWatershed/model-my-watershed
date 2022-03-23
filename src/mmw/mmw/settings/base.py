@@ -975,7 +975,7 @@ MODEL_PACKAGES = [
                        'SLAMM, TR-55, and EPA\'s STEP-L model algorithms. '
                        'Designed primarily for use with smaller, more '
                        'developed areas.',
-        'help_link': 'https://wikiwatershed.org/documentation/mmw-tech/#site-storm-model',
+        'help_link': 'https://wikiwatershed.org/documentation/mmw-tech/#site-storm-model',  # NOQA
     },
     {
         'name': GWLFE,
@@ -983,7 +983,7 @@ MODEL_PACKAGES = [
         'description': 'Simulates 30-years of daily data by the GWLF-E '
                        '(MapShed) model. Designed primarily for use with '
                        'larger, more rural areas.',
-        'help_link': 'https://wikiwatershed.org/documentation/mmw-tech/#watershed-multi-year-model',
+        'help_link': 'https://wikiwatershed.org/documentation/mmw-tech/#watershed-multi-year-model',  # NOQA
     },
 ]
 
