@@ -250,10 +250,8 @@ def start_rwd(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.NLCD_YEAR,
-                                        schemas.WKAOI,
-                                        schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     manual_parameters=[schemas.NLCD_YEAR],
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -422,7 +420,7 @@ def start_analyze_land(request, nlcd_year, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
@@ -438,12 +436,11 @@ def start_analyze_land(request, nlcd_year, format=None):
         geoprocessing.run.s('nlcd_ara', geop_input, wkaoi,
                             layer_overrides=layer_overrides),
         tasks.analyze_nlcd.s(area_of_interest, nlcd_year)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -524,20 +521,19 @@ def start_analyze_soil(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
         geoprocessing.run.s('soil', geop_input, wkaoi),
         tasks.analyze_soil.s(area_of_interest)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.STREAM_DATASOURCE,
-                                        schemas.WKAOI],
-                     request_body=schemas.MULTIPOLYGON,
+                     manual_parameters=[schemas.STREAM_DATASOURCE],
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -653,7 +649,7 @@ def start_analyze_streams(request, datasource, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     if datasource not in settings.STREAM_TABLES:
         raise ValidationError(f'Invalid stream datasource: {datasource}.'
@@ -668,12 +664,11 @@ def start_analyze_streams(request, datasource, format=None):
                             cache_key=datasource),
         nlcd_streams.s(),
         tasks.analyze_streams.s(area_of_interest, datasource, wkaoi)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -743,16 +738,15 @@ def start_analyze_animals(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     return start_celery_job([
         tasks.analyze_animals.s(area_of_interest)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -803,7 +797,7 @@ def start_analyze_pointsource(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     return start_celery_job([
         tasks.analyze_pointsource.s(area_of_interest)
@@ -811,8 +805,7 @@ def start_analyze_pointsource(request, format=None):
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -890,16 +883,15 @@ def start_analyze_catchment_water_quality(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     return start_celery_job([
         tasks.analyze_catchment_water_quality.s(area_of_interest)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -952,18 +944,17 @@ def start_analyze_climate(request, format=None):
     """
     user = request.user if request.user.is_authenticated else None
 
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
     shape = [{'id': wkaoi or geoprocessing.NOCACHE, 'shape': area_of_interest}]
 
     return start_celery_job([
         geoprocessing.multi.s('climate', shape, None),
         tasks.analyze_climate.s(wkaoi or geoprocessing.NOCACHE),
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -1018,19 +1009,18 @@ def start_analyze_terrain(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
         geoprocessing.run.s('terrain', geop_input, wkaoi),
         tasks.analyze_terrain.s()
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.WKAOI, schemas.HUC],
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -1154,20 +1144,19 @@ def start_analyze_protected_lands(request, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     geop_input = {'polygon': [area_of_interest]}
 
     return start_celery_job([
         geoprocessing.run.s('protected_lands', geop_input, wkaoi),
         tasks.analyze_protected_lands.s(area_of_interest)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     manual_parameters=[schemas.DRB_2100_LAND_KEY,
-                                        schemas.WKAOI],
-                     request_body=schemas.MULTIPOLYGON,
+                     manual_parameters=[schemas.DRB_2100_LAND_KEY],
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE,
                                 400: schemas.DRB_2100_LAND_ERROR_RESPONSE})
 @decorators.api_view(['POST'])
@@ -1322,7 +1311,7 @@ def start_analyze_drb_2100_land(request, key=None, format=None):
     </details>
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     errs = []
     if not key:
@@ -1348,11 +1337,11 @@ def start_analyze_drb_2100_land(request, key=None, format=None):
 
     return start_celery_job([
         tasks.analyze_drb_2100_land.s(area_of_interest, key)
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
-                     request_body=schemas.MULTIPOLYGON,
+                     request_body=schemas.ANALYZE_REQUEST,
                      responses={200: schemas.JOB_STARTED_RESPONSE})
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
@@ -1373,11 +1362,11 @@ def start_modeling_worksheet(request, format=None):
     to get the actual Excel files.
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, _ = _parse_analyze_input(request)
+    area_of_interest, wkaoi, msg = _parse_analyze_input(request)
 
     return start_celery_job([
         tasks.collect_worksheet.s(area_of_interest),
-    ], area_of_interest, user)
+    ], area_of_interest, user, messages=msg)
 
 
 @swagger_auto_schema(method='post',
@@ -1405,8 +1394,7 @@ def start_modeling_gwlfe_prepare(request, format=None):
     `wkaoi`, then `huc`.
 
     The `result` should be used with the gwlf-e/run endpoint, by sending at as
-    the `input`. Alternatively, the `job` UUID can be used as well by sending
-    it as the `job_uuid`.
+    the `input`. Alternatively, the `job_uuid` can be used as well.
     """
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi = _parse_modeling_input(request)
@@ -1483,8 +1471,7 @@ def start_modeling_subbasin_prepare(request, format=None):
     the same as those of `gwlf-e/prepare`, for each HUC-12.
 
     The `result` should be used with the subbasin/run endpoint, by sending at
-    as the `input`. Alternatively, the `job` UUID can be used as well by
-    sending it as the `job_uuid`.
+    as the `input`. Alternatively, the `job_uuid` can be used as well.
     """
     user = request.user if request.user.is_authenticated else None
     area_of_interest, wkaoi, huc = _parse_subbasin_input(request)
@@ -1571,7 +1558,8 @@ def _initiate_rwd_job_chain(location, snapping, simplify, data_source,
         .apply_async(link_error=errback)
 
 
-def start_celery_job(task_list, job_input, user=None, link_error=True):
+def start_celery_job(task_list, job_input, user=None, link_error=True,
+                     messages=list()):
     """
     Given a list of Celery tasks and it's input, starts a Celery async job with
     those tasks, adds save_job_result and save_job_error handlers, and returns
@@ -1581,6 +1569,8 @@ def start_celery_job(task_list, job_input, user=None, link_error=True):
     :param job_input: Input to the first task, used in recording started jobs
     :param user: The user requesting the job. Optional.
     :param link_error: Whether or not to apply error handler to entire chain
+    :param messages: A list of messages to include in the output
+                     (e.g. deprecations)
     :return: A Response contianing the job id, marked as JobStatus.STARTED
     """
     created = now()
@@ -1600,20 +1590,68 @@ def start_celery_job(task_list, job_input, user=None, link_error=True):
     job.uuid = task_chain.id
     job.save()
 
+    data = {
+        'job': task_chain.id,
+        'job_uuid': task_chain.id,
+        'status': JobStatus.STARTED,
+    }
+
+    # TODO Remove this message when `job` is deprecated
+    messages.append(
+        'The `job` field will be deprecated in an upcoming release. Please '
+        'switch to using `job_uuid` instead.'
+    )
+
+    if messages:
+        data['messages'] = messages
+
     return Response(
-        {
-            'job': task_chain.id,
-            'status': JobStatus.STARTED,
-        },
+        data,
         headers={'Location': reverse('geoprocessing_api:get_job',
                                      args=[task_chain.id])}
     )
 
 
 def _parse_analyze_input(request):
-    return _parse_aoi(data={'area_of_interest': request.data,
-                            'wkaoi': request.query_params.get('wkaoi'),
-                            'huc': request.query_params.get('huc')})
+    """
+    Parses analyze requests and returns area_of_interest, wkaoi, and msg.
+
+    Old style analyze requests put the area of interest GeoJSON in the POST
+    body, and wkaoi and huc as query parameters. We are transitioning to a
+    new model where all input is provided in the POST body, in the format:
+
+    {
+        area_of_interest: <GeoJSON?>,
+        wkaoi: <string?>,
+        huc: <string?>
+    }
+
+    If the request is in the old style, returns a msg list which includes a
+    message for users warning about upcoming deprecation.
+    """
+    msg = []
+
+    if ('area_of_interest' in request.data or
+            'wkaoi' in request.data or
+            'huc' in request.data):
+        area_of_interest, wkaoi = _parse_aoi(request.data)
+        return area_of_interest, wkaoi, msg
+
+    # TODO Remove this message when old style /analyze/ input is deprecated
+    msg = [
+        'The /analyze/ APIs will be updated to match the /modeling/ APIs in '
+        'an upcoming release. Instead of sending GeoJSON of the area of '
+        'interest in the request body, and wkaoi and huc as query parameters, '
+        'please send all in the request body, as { area_of_interest, wkaoi, '
+        'huc }. Consult the API documentation for details.'
+    ]
+
+    area_of_interest, wkaoi = _parse_aoi(data={
+        'area_of_interest': request.data,
+        'wkaoi': request.query_params.get('wkaoi'),
+        'huc': request.query_params.get('huc')})
+
+    return area_of_interest, wkaoi, msg
 
 
 def _parse_modeling_input(request):
