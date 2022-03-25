@@ -1542,7 +1542,13 @@ def start_modeling_subbasin_run(request, format=None):
     return Response(
         {
             'job': task_chain.id,
+            'job_uuid': task_chain.id,
             'status': JobStatus.STARTED,
+            # TODO Remove this message when `job` is deprecated
+            'messages': [
+                'The `job` field will be deprecated in an upcoming release. '
+                'Please switch to using `job_uuid` instead.'
+            ],
         },
         headers={'Location': reverse('geoprocessing_api:get_job',
                                      args=[task_chain.id])}
