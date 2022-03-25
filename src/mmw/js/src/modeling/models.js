@@ -57,45 +57,25 @@ var Tr55TaskModel = coreModels.TaskModel.extend({
     )
 });
 
-var MapshedTaskModel = coreModels.TaskModel.extend({
-    defaults: _.extend(
-        {
-            taskName: utils.MAPSHED,
-            taskType: 'mmw/modeling'
-        },
-        coreModels.TaskModel.prototype.defaults
-    )
-});
+function makeModelingTaskModel(taskName) {
+    return coreModels.TaskModel.extend({
+        defaults: _.extend(
+            {
+                taskName: 'modeling/' + taskName,
+                taskType: 'api',
+                token: settings.get('api_token'),
+            },
+            coreModels.TaskModel.prototype.defaults),
+    });
+}
 
-var GwlfeTaskModel = coreModels.TaskModel.extend({
-    defaults: _.extend(
-        {
-            taskName: utils.GWLFE,
-            taskType: 'mmw/modeling'
-        },
-        coreModels.TaskModel.prototype.defaults
-    )
-});
+var MapshedTaskModel = makeModelingTaskModel('gwlf-e/prepare');
 
-var SubbasinMapshedTaskModel = coreModels.TaskModel.extend({
-    defaults: _.extend(
-        {
-            taskName: utils.MAPSHED,
-            taskType: 'mmw/modeling'
-        },
-        coreModels.TaskModel.prototype.defaults
-    )
-});
+var GwlfeTaskModel = makeModelingTaskModel('gwlf-e/run');
 
-var SubbasinGwlfeTaskModel = coreModels.TaskModel.extend({
-    defaults: _.extend(
-        {
-            taskName: utils.GWLFE,
-            taskType: 'mmw/modeling'
-        },
-        coreModels.TaskModel.prototype.defaults
-    )
-});
+var SubbasinMapshedTaskModel = makeModelingTaskModel('subbasin/prepare');
+
+var SubbasinGwlfeTaskModel = makeModelingTaskModel('subbasin/run');
 
 var ResultModel = Backbone.Model.extend({
     defaults: {
