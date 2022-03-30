@@ -18,14 +18,14 @@ from django.conf import settings
 from django.utils.timezone import now
 from django.urls import reverse
 from django.contrib.gis.geos import GEOSGeometry
-from django.shortcuts import get_object_or_404
+from django.http import Http404
 
 from apps.core.models import Job, JobStatus
 from apps.core.tasks import (save_job_error,
                              save_job_result)
 from apps.core.decorators import log_request
 from apps.modeling import geoprocessing
-from apps.modeling.calcs import apply_gwlfe_modifications
+from apps.modeling.calcs import apply_gwlfe_modifications, get_huc12s
 from apps.modeling.tasks import run_gwlfe, subbasin_results_to_dict
 from apps.modeling.mapshed.calcs import streams
 from apps.modeling.mapshed.tasks import (collect_data,
@@ -1555,6 +1555,30 @@ def start_modeling_subbasin_run(request, format=None):
     )
 
 
+@swagger_auto_schema(method='get',
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['GET'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def get_modeling_subbasin_huc12s(request, job_uuid, format=None):
+    user = request.user if request.user.is_authenticated else None
+    gmss = _parse_job(job_uuid, user)
+
+    if not gmss:
+        # TODO Add more validation
+        raise ValidationError(f'Unrecognized output for job {job_uuid}')
+
+    huc12s = get_huc12s(gmss.keys())
+
+    return Response({
+        'job_uuid': job_uuid,
+        'result': huc12s,
+    })
+
+
 def _initiate_rwd_job_chain(location, snapping, simplify, data_source,
                             job_id, testing=False):
     errback = save_job_error.s(job_id)
@@ -1709,19 +1733,32 @@ def _parse_gwlfe_input(request, raw_input=True):
     if not job_uuid:
         raise ValidationError('`job_uuid` must be specified')
 
-    if not validate_uuid(job_uuid):
-        raise ValidationError(f'Invalid `job_uuid`: {job_uuid}')
-
-    input_job = get_object_or_404(Job, uuid=job_uuid)
-    if input_job.status == JobStatus.STARTED:
-        raise exceptions.JobNotReadyError(
-            f'The prepare job {job_uuid} has not finished yet.')
-
-    if input_job.status == JobStatus.FAILED:
-        raise exceptions.JobFailedError(
-            f'The prepare job {job_uuid} has failed.')
-
-    model_input = json.loads(input_job.result)
+    model_input = _parse_job(job_uuid, request.user)
 
     # TODO #3484 Validate model_input
     return model_input, job_uuid, mods, hash
+
+
+def _parse_job(job_uuid, user=None):
+    if not validate_uuid(job_uuid):
+        raise ValidationError(f'Invalid `job_uuid`: {job_uuid}')
+
+    try:
+        job = Job.objects.get(uuid=job_uuid)
+    except Job.DoesNotExist:
+        raise Http404("Not found.")
+
+    if job.user and job.user != user:
+        raise Http404("Not found.")
+
+    if job.status == JobStatus.STARTED:
+        raise exceptions.JobNotReadyError(
+            f'The prepare job {job_uuid} has not finished yet.')
+
+    if job.status == JobStatus.FAILED:
+        raise exceptions.JobFailedError(
+            f'The prepare job {job_uuid} has failed.')
+
+    model_input = json.loads(job.result)
+
+    return model_input

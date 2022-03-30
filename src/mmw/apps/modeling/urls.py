@@ -9,7 +9,7 @@ from apps.modeling import views
 # Third set of characters must start with a '4'.
 # Fourth set of characters must start with one of 'a,b,8,9'.
 uuid_regex = '(?P<job_uuid>[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-4[0-9A-Fa-f]{3}-' \
-             + '[89abAB][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12})/$'
+             + '[89abAB][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12})'
 
 app_name = 'modeling'
 urlpatterns = [
@@ -32,7 +32,7 @@ urlpatterns = [
             views.scenario_custom_weather_data_download,
             name='scenario_custom_weather_data_download'),
     re_path(r'mapshed/$', views.start_mapshed, name='start_mapshed'),
-    re_path(r'jobs/' + uuid_regex, views.get_job, name='get_job'),
+    re_path(f'jobs/{uuid_regex}/$', views.get_job, name='get_job'),
     re_path(r'tr55/$', views.start_tr55, name='start_tr55'),
     re_path(r'gwlfe/$', views.start_gwlfe, name='start_gwlfe'),
     re_path(r'subbasins/$', views.subbasins_detail, name='subbasins_detail'),

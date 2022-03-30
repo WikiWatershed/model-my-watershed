@@ -31,7 +31,7 @@ def log_request(view):
 
         log = RequestLog.objects.create(
             user=user,
-            job_uuid=view_result.data.get('job', None),
+            job_uuid=view_result.data.get('job_uuid', None),
             requested_at=requested_at,
             response_ms=response_ms,
             status_code=view_result.status_code,
