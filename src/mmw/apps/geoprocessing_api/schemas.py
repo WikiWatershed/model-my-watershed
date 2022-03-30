@@ -256,6 +256,28 @@ MODELING_REQUEST = Schema(
     },
 )
 
+GWLFE_MODIFICATIONS = Schema(
+    type=TYPE_ARRAY,
+    items=Schema(type=TYPE_OBJECT),
+    description='An optional list of objects each overriding the GWLF-E input '
+                'object. An object in the array should have keys that either '
+                'match a key in the GWLF-E input, or be in the format '
+                'KEY__INDEX, where KEY corresponds to an array key in the '
+                'GWLF-E input, and the INDEX corresponds to the index in that '
+                'array to modify. The value of the modification is the one '
+                'that will be used. Modifications are applied in order, so '
+                'later ones will override earlier ones. This is particularly '
+                'useful when the input is provided as job_uuid rather than an '
+                'object. e.g. [{ "n26": 88.8, "CN__1": 80.3 }]'
+)
+
+INPUTMOD_HASH = Schema(
+    type=TYPE_STRING,
+    description='An optional string to uniquely represent the contents of the '
+                'input and the modifications, usually a hash of them. It is '
+                'included as is in the result, and can be used '
+)
+
 GWLFE_REQUEST = Schema(
     title='GWLF-E Request',
     type=TYPE_OBJECT,
@@ -270,6 +292,8 @@ GWLFE_REQUEST = Schema(
             example='6e514e69-f46b-47e7-9476-c1f5be0bac01',
             description='The job uuid of modeling/gwlf-e/prepare/',
         ),
+        'modifications': GWLFE_MODIFICATIONS,
+        'inputmod_hash': INPUTMOD_HASH,
     },
 )
 
@@ -293,6 +317,8 @@ SUBBASIN_RUN_REQUEST = Schema(
             example='6e514e69-f46b-47e7-9476-c1f5be0bac01',
             description='The job uuid of modeling/subbasin/prepare/',
         ),
+        'modifications': GWLFE_MODIFICATIONS,
+        'inputmod_hash': INPUTMOD_HASH,
     },
     required=['job_uuid'],
 )

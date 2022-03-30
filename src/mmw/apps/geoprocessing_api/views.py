@@ -1690,9 +1690,8 @@ def _parse_gwlfe_input(request, raw_input=True):
     """
     job_uuid = request.data.get('job_uuid')
 
-    # TODO #3485 Implement modifications, hash
-    mods = []
-    hash = ''
+    mods = request.data.get('modifications', list())
+    hash = request.data.get('inputmod_hash', '')
 
     if raw_input:
         model_input = request.data.get('input')
