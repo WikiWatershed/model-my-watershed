@@ -43,7 +43,9 @@ from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
                                                SustainedRateThrottle)
 
-from apps.geoprocessing_api.validation import validate_rwd, validate_uuid
+from apps.geoprocessing_api.validation import (validate_rwd,
+                                               validate_uuid,
+                                               validate_gwlfe_prepare)
 
 
 @swagger_auto_schema(method='post',
@@ -1397,9 +1399,7 @@ def start_modeling_gwlfe_prepare(request, format=None):
     the `input`. Alternatively, the `job_uuid` can be used as well.
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_modeling_input(request)
-
-    layer_overrides = request.data.get('layer_overrides', {})
+    area_of_interest, wkaoi, layer_overrides = _parse_modeling_input(request)
 
     return start_celery_job([
         multi_mapshed(area_of_interest, wkaoi, layer_overrides),
@@ -1661,7 +1661,11 @@ def _parse_analyze_input(request):
 
 
 def _parse_modeling_input(request):
-    return _parse_aoi(request.data)
+    validate_gwlfe_prepare(request.data)
+    layer_overrides = request.data.get('layer_overrides', {})
+    area_of_interest, wkaoi = _parse_aoi(request.data)
+
+    return area_of_interest, wkaoi, layer_overrides
 
 
 def _parse_aoi(data):
