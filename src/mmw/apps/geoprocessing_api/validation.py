@@ -102,6 +102,18 @@ def validate_gwlfe_prepare(data):
         raise ValidationError(error)
 
 
+def validate_gwlfe_run(input, job_uuid):
+    if not check_gwlfe_only_one([input, job_uuid]):
+        error = ('Invalid parameter: Only one type of prepared input'
+                 '(input JSON or job_uuid) is allowed')
+        raise ValidationError(error)
+
+    if not check_gwlfe_run_input(input):
+        error = ("Invalid input: Please use the full result "
+                 "of gwlf-e/prepare endpoint's result object")
+        raise ValidationError(error)
+
+
 def check_gwlfe_only_one(params):
     if sum(map(check_is_none, params)) == 1:
         return True
@@ -130,6 +142,11 @@ def check_land_layer_overrides(layers):
 
 def check_streams_layer_overrides(layers):
     return layers['__STREAMS__'] in STREAM_LAYER_OVERRIDES
+
+
+def check_gwlfe_run_input(input):
+    result = all(el in input for el in settings.GWLFE_DEFAULTS.keys())
+    return result
 
 
 def create_layer_overrides_keys_not_valid_msg(layers):

@@ -45,7 +45,8 @@ from apps.geoprocessing_api.throttling import (BurstRateThrottle,
 
 from apps.geoprocessing_api.validation import (validate_rwd,
                                                validate_uuid,
-                                               validate_gwlfe_prepare)
+                                               validate_gwlfe_prepare,
+                                               validate_gwlfe_run)
 
 
 @swagger_auto_schema(method='post',
@@ -1707,11 +1708,12 @@ def _parse_gwlfe_input(request, raw_input=True):
         model_input = request.data.get('input')
 
         if model_input:
-            # TODO #3484 Validate model_input
+            validate_gwlfe_run(model_input, job_uuid)
             return model_input, job_uuid, mods, hash
 
     if not job_uuid:
-        raise ValidationError('`job_uuid` must be specified')
+        raise ValidationError('Either `input` or `job_uuid` '
+                              'must be specified.')
 
     if not validate_uuid(job_uuid):
         raise ValidationError(f'Invalid `job_uuid`: {job_uuid}')
@@ -1727,5 +1729,6 @@ def _parse_gwlfe_input(request, raw_input=True):
 
     model_input = json.loads(input_job.result)
 
-    # TODO #3484 Validate model_input
+    validate_gwlfe_run(model_input, job_uuid)
+
     return model_input, job_uuid, mods, hash
