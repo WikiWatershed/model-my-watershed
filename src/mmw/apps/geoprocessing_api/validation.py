@@ -97,10 +97,9 @@ def validate_gwlfe_prepare(data):
 
 
 def validate_gwlfe_run(input):
-    if not check_gwlfe_run_input(input):
-        error = ("Invalid input: Please use the full result "
-                 "of gwlf-e/prepare endpoint's result object")
-        raise ValidationError(error)
+    missing_keys = [k for k in GWLFE_INPUT_KEYS if k not in input]
+    if missing_keys:
+        raise ValidationError(f'Provided `input` is missing: {missing_keys}')
 
 
 def check_exactly_one_provided(one_of: list, params: dict):
@@ -130,11 +129,6 @@ def check_streams_layer_overrides(layers):
     return layers['__STREAMS__'] in STREAM_LAYER_OVERRIDES
 
 
-def check_gwlfe_run_input(input):
-    result = all(el in input for el in settings.GWLFE_DEFAULTS.keys())
-    return result
-
-
 def create_layer_overrides_keys_not_valid_msg(layers):
     error = 'These layers are not standard layers for layer overrides: '
     for layler in layers:
@@ -157,3 +151,14 @@ LAND_LAYER_OVERRIDES = [
 ]
 
 STREAM_LAYER_OVERRIDES = ['drb', 'nhdhr', 'nhd']
+
+# These are not present in GWLFE_DEFAULTS, but are necessary for running GWLF-E
+GWLFE_INPUT_KEYS = list(settings.GWLFE_DEFAULTS.keys()) + [
+    'AEU', 'Acoef', 'AgLength', 'AgSlope3', 'AgSlope3To8', 'Area', 'AvKF',
+    'AvSlope', 'CN', 'DayHrs', 'GrNitrConc', 'GrPhosConc', 'Grow', 'KF', 'KV',
+    'LS', 'ManNitr', 'ManPhos', 'MaxWaterCap', 'NumNormalSys', 'P', 'PhosConc',
+    'PointFlow', 'PointNitr', 'PointPhos', 'Prec', 'RecessionCoef',
+    'SedAFactor', 'SedDelivRatio', 'SedNitr', 'SedPhos', 'StreamLength',
+    'Temp', 'TotArea', 'UrbAreaTotal', 'UrbLength', 'WeatherStations',
+    'WxYrBeg', 'WxYrEnd', 'WxYrs', 'n23', 'n23b', 'n24', 'n24b', 'n41', 'n41j',
+    'n41k', 'n41l', 'n42', 'n42b', 'n46e', 'n46f']
