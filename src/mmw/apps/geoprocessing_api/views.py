@@ -1729,6 +1729,5 @@ def _parse_gwlfe_input(request, raw_input=True):
             f'The prepare job {job_uuid} has failed.')
 
     model_input = json.loads(input_job.result)
-    validate_gwlfe_run(model_input)
 
     return model_input, job_uuid, mods, hash
