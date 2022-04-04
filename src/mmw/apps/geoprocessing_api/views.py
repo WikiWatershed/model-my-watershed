@@ -43,7 +43,10 @@ from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
                                                SustainedRateThrottle)
 
-from apps.geoprocessing_api.validation import validate_rwd, validate_uuid
+from apps.geoprocessing_api.validation import (validate_rwd,
+                                               validate_uuid,
+                                               validate_gwlfe_prepare,
+                                               validate_gwlfe_run)
 
 
 @swagger_auto_schema(method='post',
@@ -1397,9 +1400,7 @@ def start_modeling_gwlfe_prepare(request, format=None):
     the `input`. Alternatively, the `job_uuid` can be used as well.
     """
     user = request.user if request.user.is_authenticated else None
-    area_of_interest, wkaoi = _parse_modeling_input(request)
-
-    layer_overrides = request.data.get('layer_overrides', {})
+    area_of_interest, wkaoi, layer_overrides = _parse_modeling_input(request)
 
     return start_celery_job([
         multi_mapshed(area_of_interest, wkaoi, layer_overrides),
@@ -1661,7 +1662,11 @@ def _parse_analyze_input(request):
 
 
 def _parse_modeling_input(request):
-    return _parse_aoi(request.data)
+    validate_gwlfe_prepare(request.data)
+    layer_overrides = request.data.get('layer_overrides', {})
+    area_of_interest, wkaoi = _parse_aoi(request.data)
+
+    return area_of_interest, wkaoi, layer_overrides
 
 
 def _parse_aoi(data):
@@ -1703,11 +1708,12 @@ def _parse_gwlfe_input(request, raw_input=True):
         model_input = request.data.get('input')
 
         if model_input:
-            # TODO #3484 Validate model_input
+            validate_gwlfe_run(model_input, job_uuid)
             return model_input, job_uuid, mods, hash
 
     if not job_uuid:
-        raise ValidationError('`job_uuid` must be specified')
+        raise ValidationError('Either `input` or `job_uuid` '
+                              'must be specified.')
 
     if not validate_uuid(job_uuid):
         raise ValidationError(f'Invalid `job_uuid`: {job_uuid}')
@@ -1723,5 +1729,6 @@ def _parse_gwlfe_input(request, raw_input=True):
 
     model_input = json.loads(input_job.result)
 
-    # TODO #3484 Validate model_input
+    validate_gwlfe_run(model_input, job_uuid)
+
     return model_input, job_uuid, mods, hash
