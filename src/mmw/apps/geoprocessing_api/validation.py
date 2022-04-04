@@ -74,15 +74,9 @@ def validate_uuid(uuid):
 
 
 def validate_gwlfe_prepare(data):
-    area_of_interest = data.get('area_of_interest')
-    wkaoi = data.get('wkaoi')
-    huc = data.get('huc')
     layer_overrides = data.get('layer_overrides', {})
 
-    if not check_gwlfe_only_one([area_of_interest, wkaoi, huc]):
-        error = ('Invalid parameter: One and only one type of area object'
-                 ' (area_of_interest, wkaoi, or huc) is allowed')
-        raise ValidationError(error)
+    check_exactly_one_provided(['area_of_interest', 'wkaoi', 'huc'], data)
 
     not_valid_layers = check_layer_overrides_keys(layer_overrides)
 
@@ -126,6 +120,17 @@ def check_is_none(v):
         return 0
     else:
         return 1
+
+
+def check_exactly_one_provided(one_of: list, params: dict):
+    # Dictionary for just the keys of which we want one of
+    one_of_params = {k: params.get(k) for k in one_of}
+    # List of keys with not None values
+    not_none_keys = [k for k, v in one_of_params.items() if v is not None]
+    if len(not_none_keys) != 1:
+        raise ValidationError(
+            f'Must provide exactly one of: {one_of}. '
+            f'You provided values for: {not_none_keys}')
 
 
 def check_layer_overrides_keys(layers):
