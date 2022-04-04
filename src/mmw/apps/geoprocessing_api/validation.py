@@ -96,30 +96,11 @@ def validate_gwlfe_prepare(data):
         raise ValidationError(error)
 
 
-def validate_gwlfe_run(input, job_uuid):
-    if not check_gwlfe_only_one([input, job_uuid]):
-        error = ('Invalid parameter: Only one type of prepared input'
-                 '(input JSON or job_uuid) is allowed')
-        raise ValidationError(error)
-
+def validate_gwlfe_run(input):
     if not check_gwlfe_run_input(input):
         error = ("Invalid input: Please use the full result "
                  "of gwlf-e/prepare endpoint's result object")
         raise ValidationError(error)
-
-
-def check_gwlfe_only_one(params):
-    if sum(map(check_is_none, params)) == 1:
-        return True
-    else:
-        return False
-
-
-def check_is_none(v):
-    if v is None:
-        return 0
-    else:
-        return 1
 
 
 def check_exactly_one_provided(one_of: list, params: dict):
