@@ -1712,8 +1712,11 @@ def _parse_gwlfe_input(request, raw_input=True):
             return model_input, job_uuid, mods, hash
 
     if not job_uuid:
-        raise ValidationError('Either `input` or `job_uuid` '
-                              'must be specified.')
+        if raw_input:
+            raise ValidationError('Either `input` or `job_uuid` '
+                                  'must be specified.')
+
+        raise ValidationError('`job_uuid` must be specified.')
 
     if not validate_uuid(job_uuid):
         raise ValidationError(f'Invalid `job_uuid`: {job_uuid}')
