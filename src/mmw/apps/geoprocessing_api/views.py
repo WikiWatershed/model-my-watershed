@@ -43,7 +43,8 @@ from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
                                                SustainedRateThrottle)
 
-from apps.geoprocessing_api.validation import (validate_rwd,
+from apps.geoprocessing_api.validation import (check_exactly_one_provided,
+                                               validate_rwd,
                                                validate_uuid,
                                                validate_gwlfe_prepare,
                                                validate_gwlfe_run)
@@ -1679,8 +1680,7 @@ def _parse_aoi(data):
 
 
 def _parse_subbasin_input(request):
-    if 'wkaoi' not in request.data and 'huc' not in request.data:
-        raise ValidationError('Must specify exactly one of: WKAoI ID or HUC')
+    check_exactly_one_provided(['wkaoi', 'huc'], request.data)
 
     serializer = AoiSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -1704,16 +1704,17 @@ def _parse_gwlfe_input(request, raw_input=True):
     mods = request.data.get('modifications', list())
     hash = request.data.get('inputmod_hash', '')
 
+    one_of = ['input', 'job_uuid'] if raw_input else ['job_uuid']
+
+    check_exactly_one_provided(one_of, request.data)
+
     if raw_input:
         model_input = request.data.get('input')
 
         if model_input:
-            validate_gwlfe_run(model_input, job_uuid)
-            return model_input, job_uuid, mods, hash
+            validate_gwlfe_run(model_input)
 
-    if not job_uuid:
-        raise ValidationError('Either `input` or `job_uuid` '
-                              'must be specified.')
+            return model_input, job_uuid, mods, hash
 
     if not validate_uuid(job_uuid):
         raise ValidationError(f'Invalid `job_uuid`: {job_uuid}')
@@ -1728,7 +1729,5 @@ def _parse_gwlfe_input(request, raw_input=True):
             f'The prepare job {job_uuid} has failed.')
 
     model_input = json.loads(input_job.result)
-
-    validate_gwlfe_run(model_input, job_uuid)
 
     return model_input, job_uuid, mods, hash

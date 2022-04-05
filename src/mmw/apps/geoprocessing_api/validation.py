@@ -74,15 +74,9 @@ def validate_uuid(uuid):
 
 
 def validate_gwlfe_prepare(data):
-    area_of_interest = data.get('area_of_interest')
-    wkaoi = data.get('wkaoi')
-    huc = data.get('huc')
     layer_overrides = data.get('layer_overrides', {})
 
-    if not check_gwlfe_only_one([area_of_interest, wkaoi, huc]):
-        error = ('Invalid parameter: One and only one type of area object'
-                 ' (area_of_interest, wkaoi, or huc) is allowed')
-        raise ValidationError(error)
+    check_exactly_one_provided(['area_of_interest', 'wkaoi', 'huc'], data)
 
     not_valid_layers = check_layer_overrides_keys(layer_overrides)
 
@@ -102,30 +96,21 @@ def validate_gwlfe_prepare(data):
         raise ValidationError(error)
 
 
-def validate_gwlfe_run(input, job_uuid):
-    if not check_gwlfe_only_one([input, job_uuid]):
-        error = ('Invalid parameter: Only one type of prepared input'
-                 '(input JSON or job_uuid) is allowed')
-        raise ValidationError(error)
-
-    if not check_gwlfe_run_input(input):
-        error = ("Invalid input: Please use the full result "
-                 "of gwlf-e/prepare endpoint's result object")
-        raise ValidationError(error)
+def validate_gwlfe_run(input):
+    missing_keys = [k for k in GWLFE_INPUT_KEYS if k not in input]
+    if missing_keys:
+        raise ValidationError(f'Provided `input` is missing: {missing_keys}')
 
 
-def check_gwlfe_only_one(params):
-    if sum(map(check_is_none, params)) == 1:
-        return True
-    else:
-        return False
-
-
-def check_is_none(v):
-    if v is None:
-        return 0
-    else:
-        return 1
+def check_exactly_one_provided(one_of: list, params: dict):
+    # Dictionary for just the keys of which we want one of
+    one_of_params = {k: params.get(k) for k in one_of}
+    # List of keys with not None values
+    not_none_keys = [k for k, v in one_of_params.items() if v is not None]
+    if len(not_none_keys) != 1:
+        raise ValidationError(
+            f'Must provide exactly one of: {one_of}. '
+            f'You provided values for: {not_none_keys}')
 
 
 def check_layer_overrides_keys(layers):
@@ -142,11 +127,6 @@ def check_land_layer_overrides(layers):
 
 def check_streams_layer_overrides(layers):
     return layers['__STREAMS__'] in STREAM_LAYER_OVERRIDES
-
-
-def check_gwlfe_run_input(input):
-    result = all(el in input for el in settings.GWLFE_DEFAULTS.keys())
-    return result
 
 
 def create_layer_overrides_keys_not_valid_msg(layers):
@@ -171,3 +151,14 @@ LAND_LAYER_OVERRIDES = [
 ]
 
 STREAM_LAYER_OVERRIDES = ['drb', 'nhdhr', 'nhd']
+
+# These are not present in GWLFE_DEFAULTS, but are necessary for running GWLF-E
+GWLFE_INPUT_KEYS = list(settings.GWLFE_DEFAULTS.keys()) + [
+    'AEU', 'Acoef', 'AgLength', 'AgSlope3', 'AgSlope3To8', 'Area', 'AvKF',
+    'AvSlope', 'CN', 'DayHrs', 'GrNitrConc', 'GrPhosConc', 'Grow', 'KF', 'KV',
+    'LS', 'ManNitr', 'ManPhos', 'MaxWaterCap', 'NumNormalSys', 'P', 'PhosConc',
+    'PointFlow', 'PointNitr', 'PointPhos', 'Prec', 'RecessionCoef',
+    'SedAFactor', 'SedDelivRatio', 'SedNitr', 'SedPhos', 'StreamLength',
+    'Temp', 'TotArea', 'UrbAreaTotal', 'UrbLength', 'WeatherStations',
+    'WxYrBeg', 'WxYrEnd', 'WxYrs', 'n23', 'n23b', 'n24', 'n24b', 'n41', 'n41j',
+    'n41k', 'n41l', 'n42', 'n42b', 'n46e', 'n46f']
