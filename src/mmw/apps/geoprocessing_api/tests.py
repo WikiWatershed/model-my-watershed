@@ -12,7 +12,9 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 
 from django.contrib.gis.geos import GEOSGeometry
+from django.utils.timezone import now
 
+from apps.core.models import Job, JobStatus
 from apps.geoprocessing_api import (tasks, calcs)
 
 
@@ -1402,12 +1404,18 @@ class ExerciseModeling(LiveServerTestCase):
             ]
         })
 
-    def send_gwlfe_prepare(self, data):
+        self.gwlfe_incomplete_input = json.dumps({
+            "SeepCoef": 0,
+        })
+
+    def send_request(self, url, data):
         client = Client()
 
-        return client.post(
-            reverse('geoprocessing_api:start_modeling_gwlfe_prepare'),
-            data, HTTP_AUTHORIZATION=f'Token {self.token}')
+        return client.post(url, data, HTTP_AUTHORIZATION=f'Token {self.token}')
+
+    def send_gwlfe_prepare(self, data):
+        return self.send_request(
+            reverse('geoprocessing_api:start_modeling_gwlfe_prepare'), data)
 
     def test_modeling_gwlfe_prepare_multiple_aois_rejected(self):
         response = self.send_gwlfe_prepare({
@@ -1459,3 +1467,53 @@ class ExerciseModeling(LiveServerTestCase):
             'huc': 'not huc'
         })
         self.assertEqual(response.status_code, 400)
+
+    def send_gwlfe_run(self, data):
+        return self.send_request(
+            reverse('geoprocessing_api:start_modeling_gwlfe_run'), data)
+
+    def test_modeling_gwlfe_run_multiple_inputs(self):
+        response = self.send_gwlfe_run({
+            'input': {
+                "SeepCoef": 0,
+            },
+            'job_uuid': 'cbed307e-4046-4889-b6fb-658080186ae6',
+        })
+        self.assertEqual(response.status_code, 400)
+
+    def test_modeling_gwlfe_run_invalid_inputs(self):
+        response = self.send_gwlfe_run({
+            'input': {
+                "SeepCoef": 0,
+            },
+        })
+        self.assertEqual(response.status_code, 400)
+
+        response = self.send_gwlfe_run({
+            'job_uuid': 'not uuid'
+        })
+        self.assertEqual(response.status_code, 400)
+
+    def test_modeling_gwlfe_run_nonready_jobs(self):
+        job_uuid = 'cbed307e-4046-4889-b6fb-658080186ae6'
+        response = self.send_gwlfe_run({
+            'job_uuid': job_uuid
+        })
+        self.assertEqual(response.status_code, 404)
+
+        job = Job.objects.create(uuid=job_uuid, created_at=now())
+        job.status = JobStatus.STARTED
+        job.save()
+
+        response = self.send_gwlfe_run({
+            'job_uuid': job_uuid
+        })
+        self.assertEqual(response.status_code, 428)
+
+        job.status = JobStatus.FAILED
+        job.save()
+
+        response = self.send_gwlfe_run({
+            'job_uuid': job_uuid
+        })
+        self.assertEqual(response.status_code, 412)
