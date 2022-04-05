@@ -1682,6 +1682,14 @@ def _parse_aoi(data):
 def _parse_subbasin_input(request):
     check_exactly_one_provided(['wkaoi', 'huc'], request.data)
 
+    wkaoi = request.data.get('wkaoi')
+    if wkaoi:
+        table = wkaoi.split('__')[0]
+        if table not in ['huc8', 'huc10', 'huc12']:
+            raise ValidationError(
+                'Invalid `wkaoi`: Subbasin modeling is only supported for '
+                '"huc8__XX", "huc10__XX", and "huc12__XX" wkaois.')
+
     serializer = AoiSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 

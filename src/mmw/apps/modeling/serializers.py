@@ -237,6 +237,10 @@ class AoiSerializer(serializers.BaseSerializer):
         if (wkaoi and not aoi):
             try:
                 table, id = wkaoi.split('__')
+
+                if not table or not id:
+                    raise ValidationError(
+                        'wkaoi must be of the form table__id')
             except Exception:
                 raise ValidationError('wkaoi must be of the form table__id')
 

@@ -1517,3 +1517,52 @@ class ExerciseModeling(LiveServerTestCase):
             'job_uuid': job_uuid
         })
         self.assertEqual(response.status_code, 412)
+
+    def send_subbasin_prepare(self, data):
+        return self.send_request(
+            reverse('geoprocessing_api:start_modeling_subbasin_prepare'), data)
+
+    def test_modeling_subbasin_prepare_multiple_aois_rejected(self):
+        response = self.send_subbasin_prepare({
+            'wkaoi': 'huc12__55174',
+            'huc': '020402031008',
+        })
+        self.assertEqual(response.status_code, 400)
+
+    def test_modeling_subbasin_prepare_geojson_aoi_rejected(self):
+        response = self.send_subbasin_prepare({
+            'area_of_interest': self.aoi,
+        })
+        self.assertEqual(response.status_code, 400)
+
+    def test_modeling_subbasin_prepare_invalid_huc_rejected(self):
+        response = self.send_subbasin_prepare({
+            'huc': '020402',
+        })
+        self.assertEqual(response.status_code, 400)
+
+        response = self.send_subbasin_prepare({
+            'huc': '0204020310081012',
+        })
+        self.assertEqual(response.status_code, 400)
+
+    def test_modeling_subbasin_prepare_invalid_wkaoi_rejected(self):
+        response = self.send_subbasin_prepare({
+            'wkaoi': 'huc12__',
+        })
+        self.assertEqual(response.status_code, 400)
+
+        response = self.send_subbasin_prepare({
+            'wkaoi': '__1234',
+        })
+        self.assertEqual(response.status_code, 400)
+
+        response = self.send_subbasin_prepare({
+            'wkaoi': 'huc6__1',
+        })
+        self.assertEqual(response.status_code, 400)
+
+        response = self.send_subbasin_prepare({
+            'wkaoi': 'school__1',
+        })
+        self.assertEqual(response.status_code, 400)
