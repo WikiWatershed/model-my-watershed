@@ -37,8 +37,12 @@ class MultiPolygonGeoJsonField(JsonField):
         """
         if data == '' or data is None:
             return data
+
         if isinstance(data, str):
-            data = json.loads(data)
+            try:
+                data = json.loads(data)
+            except Exception:
+                raise ValidationError('Area of interest must be valid JSON')
 
         geometry = data
 

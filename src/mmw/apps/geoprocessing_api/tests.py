@@ -1365,3 +1365,97 @@ class ExerciseCatchmentIntersectsAOI(TestCase):
                                                        intersecting_catchment))
         self.assertTrue(calcs.catchment_intersects_aoi(reprojected_aoi,
                                                        containing_catchment))
+
+
+class ExerciseModeling(LiveServerTestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='user', password='user',
+                                             email='user@azavea.com')
+
+        self.token = Token.objects.get(user=self.user)
+
+        self.aoi = json.dumps({
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [
+                        -75.27900695800781,
+                        39.891925022904516
+                    ],
+                    [
+                        -75.26608943939209,
+                        39.891925022904516
+                    ],
+                    [
+                        -75.26608943939209,
+                        39.90173657727282
+                    ],
+                    [
+                        -75.27900695800781,
+                        39.90173657727282
+                    ],
+                    [
+                        -75.27900695800781,
+                        39.891925022904516
+                    ]
+                ]
+            ]
+        })
+
+    def send_gwlfe_prepare(self, data):
+        client = Client()
+
+        return client.post(
+            reverse('geoprocessing_api:start_modeling_gwlfe_prepare'),
+            data, HTTP_AUTHORIZATION=f'Token {self.token}')
+
+    def test_modeling_gwlfe_prepare_multiple_aois_rejected(self):
+        response = self.send_gwlfe_prepare({
+            'area_of_interest': self.aoi,
+            'wkaoi': 'huc12__55174',
+            'huc': '020402031008',
+        })
+        self.assertEqual(response.status_code, 400)
+
+        response = self.send_gwlfe_prepare({
+            'area_of_interest': self.aoi,
+            'wkaoi': 'huc12__55174',
+        })
+        self.assertEqual(response.status_code, 400)
+
+        response = self.send_gwlfe_prepare({
+            'area_of_interest': self.aoi,
+            'huc': '020402031008',
+        })
+        self.assertEqual(response.status_code, 400)
+
+        response = self.send_gwlfe_prepare({
+            'wkaoi': 'huc12__55174',
+            'huc': '020402031008',
+        })
+        self.assertEqual(response.status_code, 400)
+
+    def test_modeling_gwlfe_prepare_missing_aoi_rejected(self):
+        response = self.send_gwlfe_prepare({})
+        self.assertEqual(response.status_code, 400)
+
+        response = self.send_gwlfe_prepare({
+            'bad': 'key'
+        })
+        self.assertEqual(response.status_code, 400)
+
+    def test_modeling_gwlfe_prepare_invalid_aoi_rejected(self):
+        response = self.send_gwlfe_prepare({
+            'area_of_interest': 'not geojson'
+        })
+        self.assertEqual(response.status_code, 400)
+
+        response = self.send_gwlfe_prepare({
+            'wkaoi': 'not wkaoi'
+        })
+        self.assertEqual(response.status_code, 400)
+
+        response = self.send_gwlfe_prepare({
+            'huc': 'not huc'
+        })
+        self.assertEqual(response.status_code, 400)
