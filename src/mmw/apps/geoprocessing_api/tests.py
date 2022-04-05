@@ -1566,3 +1566,44 @@ class ExerciseModeling(LiveServerTestCase):
             'wkaoi': 'school__1',
         })
         self.assertEqual(response.status_code, 400)
+
+    def send_subbasin_run(self, data):
+        return self.send_request(
+            reverse('geoprocessing_api:start_modeling_subbasin_run'), data)
+
+    def test_modeling_subbasin_run_invalid_inputs(self):
+        response = self.send_subbasin_run({
+            'input': {
+                "SeepCoef": 0,
+            },
+        })
+        self.assertEqual(response.status_code, 400)
+
+        response = self.send_subbasin_run({
+            'job_uuid': 'not uuid'
+        })
+        self.assertEqual(response.status_code, 400)
+
+    def test_modeling_subbasin_run_nonready_jobs(self):
+        job_uuid = 'cbed307e-4046-4889-b6fb-658080186ae6'
+        response = self.send_subbasin_run({
+            'job_uuid': job_uuid
+        })
+        self.assertEqual(response.status_code, 404)
+
+        job = Job.objects.create(uuid=job_uuid, created_at=now())
+        job.status = JobStatus.STARTED
+        job.save()
+
+        response = self.send_subbasin_run({
+            'job_uuid': job_uuid
+        })
+        self.assertEqual(response.status_code, 428)
+
+        job.status = JobStatus.FAILED
+        job.save()
+
+        response = self.send_subbasin_run({
+            'job_uuid': job_uuid
+        })
+        self.assertEqual(response.status_code, 412)
