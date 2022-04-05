@@ -4,8 +4,7 @@ import json
 from unittest import skip
 
 from django.test import (Client,
-                         TestCase,
-                         LiveServerTestCase)
+                         TestCase)
 from django.urls import reverse
 from django.contrib.auth.models import User
 
@@ -18,7 +17,7 @@ from apps.core.models import Job, JobStatus
 from apps.geoprocessing_api import (tasks, calcs)
 
 
-class ExerciseManageApiToken(LiveServerTestCase):
+class ExerciseManageApiToken(TestCase):
     TOKEN_URL = reverse('geoprocessing_api:authtoken')
 
     def setUp(self):
@@ -1369,7 +1368,7 @@ class ExerciseCatchmentIntersectsAOI(TestCase):
                                                        containing_catchment))
 
 
-class ExerciseModeling(LiveServerTestCase):
+class ExerciseModeling(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='user', password='user',
                                              email='user@azavea.com')
