@@ -45,11 +45,11 @@ Starting with Virtualbox 6.1.28, [host-only networks](https://www.virtualbox.org
 We will need to do the following to override this restriction:
 
 ```bash
-mkdir /etc/vbox
+sudo mkdir /etc/vbox
 
 echo "
 * 192.168.56.0/21
-* 33.33.0.0/16" >> /etc/vbox/networks.conf
+* 33.33.0.0/16" | sudo tee /etc/vbox/networks.conf
 ```
 
 Next, use the following command to bring up a local development environment:
