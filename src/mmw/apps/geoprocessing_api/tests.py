@@ -2,6 +2,7 @@
 import json
 
 from unittest import skip
+from os.path import join, dirname, abspath
 
 from django.test import (Client,
                          TestCase)
@@ -15,6 +16,7 @@ from django.utils.timezone import now
 
 from apps.core.models import Job, JobStatus
 from apps.geoprocessing_api import (tasks, calcs)
+from apps.modeling.calcs import apply_gwlfe_modifications
 
 
 class ExerciseManageApiToken(TestCase):
@@ -1606,3 +1608,48 @@ class ExerciseModeling(TestCase):
             'job_uuid': job_uuid
         })
         self.assertEqual(response.status_code, 412)
+
+
+class ExerciseModelingModifications(TestCase):
+    def test_modifications_are_applied_correctly(self):
+        gms_json = join(dirname(abspath(__file__)),
+                        'tests/gwlfe-prepare-huc12__55174.json')
+        with open(gms_json) as f:
+            gwlfe_input = json.load(f)
+
+        # Baseline
+        self.assertNotEqual(gwlfe_input['Area'][10], 1122.6449285434453)
+        self.assertNotEqual(gwlfe_input['CN'][1], 80.38481449550069)
+        self.assertNotEqual(gwlfe_input['n73'], 0.29)
+        self.assertNotEqual(gwlfe_input['n24b'], 2639.642634937583)
+
+        # Generated from the front-end by setting Land Cover to NLCD11 2011,
+        # and No-Till Agriculture to 5 acres
+        modifications = [{
+            'entry_landcover_preset': 'land_2011_2011',
+            'Area__0': 15.305929733931002,
+            'Area__1': 4.141604516240153,
+            'Area__2': 313.50145490322205,
+            'Area__3': 138.11350712853036,
+            'Area__6': 19.987743534898133,
+            'Area__7': 1.260488331029612,
+            'Area__10': 1122.6449285434453,
+            'Area__11': 2639.642634937583,
+            'Area__12': 2837.9894773131714,
+            'Area__13': 1118.3232542656292,
+            'CN__1': 80.38481449550069,
+            'n26': 48.8561858590235,
+            'n65': 0.22,
+            'n73': 0.29,
+            'n81': 0.4
+        }]
+
+        modded_input = apply_gwlfe_modifications(gwlfe_input, modifications)
+
+        # Changed directly
+        self.assertEqual(modded_input['Area'][10], 1122.6449285434453)
+        self.assertEqual(modded_input['CN'][1], 80.38481449550069)
+        self.assertEqual(modded_input['n73'], 0.29)
+
+        # Changed indirectly
+        self.assertEqual(modded_input['n24b'], 2639.642634937583)
