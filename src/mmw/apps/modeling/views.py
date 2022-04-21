@@ -606,6 +606,9 @@ def _construct_tr55_job_chain(model_input, job_id):
     aoi_census = model_input.get('aoi_census')
     modification_censuses = model_input.get('modification_censuses')
     layer_overrides = model_input.get('layer_overrides', {})
+    # Default to NLCD 2011 unless explicitly specified otherwise
+    layer_overrides['__LAND__'] = layer_overrides.get(
+        '__LAND__', 'nlcd-2011-30m-epsg5070-512-int8')
     # Non-overlapping polygons derived from the modifications
     pieces = model_input.get('modification_pieces', [])
     # The hash of the current modifications
