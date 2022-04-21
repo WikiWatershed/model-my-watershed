@@ -18,7 +18,7 @@ from apps.modeling.models import Scenario, WeatherType
 
 @shared_task
 def get_test_histogram():
-    return {
+    return [{
         'List(21,1)': 22,
         'List(21,2)': 1,
         'List(21,4)': 5,
@@ -31,12 +31,12 @@ def get_test_histogram():
         'List(24,1)': 537,
         'List(24,2)': 268,
         'List(24,4)': 279,
-    }
+    }]
 
 
 class ExerciseGeoprocessing(TestCase):
     def test_census(self):
-        histogram = {
+        histogram = [{
             'List(11, 1)': 434,
             'List(82, 4)': 202,
             'List(23, 4)': 1957,
@@ -79,7 +79,7 @@ class ExerciseGeoprocessing(TestCase):
             'List(31, 2)': 25,
             'List(31, 1)': 37,
             'List(43, 2)': 800
-        }
+        }]
 
         expected = [{
             'cell_count': 136100,
@@ -128,7 +128,7 @@ class ExerciseGeoprocessing(TestCase):
                 'd:woody_wetlands': {'cell_count': 1093}
             }
         }]
-        actual = tasks.nlcd_soil(histogram)
+        actual = tasks.nlcd_soil_tr55(histogram)
         self.assertEqual(actual, expected)
 
 
@@ -307,7 +307,7 @@ class TaskRunnerTestCase(TestCase):
 
         skipped_tasks = [
             'run',
-            'nlcd_soil'
+            'nlcd_soil_tr55'
         ]
 
         needed_tasks = [
@@ -344,7 +344,7 @@ class TaskRunnerTestCase(TestCase):
         # we still need to generate modification censuses
         needed_tasks = [
             'run',
-            'nlcd_soil',
+            'nlcd_soil_tr55',
             'run_tr55'
         ]
 
@@ -390,7 +390,7 @@ class TaskRunnerTestCase(TestCase):
 
         skipped_tasks = [
             'run',
-            'nlcd_soil',
+            'nlcd_soil_tr55',
         ]
 
         needed_tasks = [
@@ -450,7 +450,7 @@ class TaskRunnerTestCase(TestCase):
 
         needed_tasks = [
             'run',
-            'nlcd_soil',
+            'nlcd_soil_tr55',
             'run_tr55'
         ]
 
@@ -477,7 +477,7 @@ class TaskRunnerTestCase(TestCase):
 
         needed_tasks = [
             'run',
-            'nlcd_soil',
+            'nlcd_soil_tr55',
             'run_tr55'
         ]
 
