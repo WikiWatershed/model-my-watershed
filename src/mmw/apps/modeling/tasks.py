@@ -201,10 +201,14 @@ def format_subbasin(huc12_gwlfe_results, srat_catchment_results, gmss):
 
 
 @shared_task(throws=Exception)
-def nlcd_soil(result):
-    if 'error' in result:
-        raise Exception(f'[nlcd_soil] {result["error"]}')
+def nlcd_soil_tr55(results):
+    if 'error' in results:
+        raise Exception(f'[nlcd_soil_tr55] {results["error"]}')
 
+    return [nlcd_soil(result) for result in results]
+
+
+def nlcd_soil(result):
     dist = {}
     total_count = 0
 
@@ -222,10 +226,10 @@ def nlcd_soil(result):
                 count + (dist[label]['cell_count'] if label in dist else 0)
             )}
 
-    return [{
+    return {
         'cell_count': total_count,
         'distribution': dist,
-    }]
+    }
 
 
 @shared_task

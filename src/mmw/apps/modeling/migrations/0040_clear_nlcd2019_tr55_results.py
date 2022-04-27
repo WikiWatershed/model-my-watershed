@@ -19,7 +19,9 @@ def clear_nlcd2019_tr55_results(apps, schema_editor):
         project__created_at__gte='2022-01-17'
     ).update(
         results='[]',
-        modification_hash=''
+        modification_hash='',
+        aoi_census='{}',
+        modification_censuses='{}',
     )
 
 
