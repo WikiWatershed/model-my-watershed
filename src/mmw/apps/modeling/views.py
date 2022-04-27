@@ -628,7 +628,7 @@ def _construct_tr55_job_chain(model_input, job_id):
 
         job_chain.append(tasks.run_tr55.s(censuses, aoi, model_input))
     else:
-        job_chain.append(tasks.nlcd_soil.s())
+        job_chain.append(tasks.nlcd_soil_tr55.s())
 
         if aoi_census and pieces:
             polygons = [m['shape']['geometry'] for m in pieces]
@@ -636,7 +636,7 @@ def _construct_tr55_job_chain(model_input, job_id):
 
             job_chain.insert(
                 0,
-                geoprocessing.run.s('nlcd_soil',
+                geoprocessing.run.s('nlcd_soil_tr55',
                                     geop_input,
                                     layer_overrides=layer_overrides))
             job_chain.append(tasks.run_tr55.s(aoi, model_input,
@@ -649,7 +649,7 @@ def _construct_tr55_job_chain(model_input, job_id):
 
             job_chain.insert(
                 0,
-                geoprocessing.run.s('nlcd_soil',
+                geoprocessing.run.s('nlcd_soil_tr55',
                                     geop_input,
                                     wkaoi,
                                     layer_overrides=layer_overrides))

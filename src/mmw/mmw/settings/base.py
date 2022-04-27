@@ -526,6 +526,19 @@ GEOP = {
                 'zoom': 0
             }
         },
+        'nlcd_soil_tr55': {
+            'input': {
+                'polygon': [],
+                'polygonCRS': 'LatLng',
+                'rasters': [
+                    '__LAND__',
+                    '__SOIL__'
+                ],
+                'rasterCRS': 'ConusAlbers',
+                'operationType': 'RasterGroupedCountMany',
+                'zoom': 0
+            }
+        },
         'nlcd_streams': {
             'input': {
                 'polygon': [],
