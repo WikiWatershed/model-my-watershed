@@ -1671,7 +1671,7 @@ var ScenarioModel = Backbone.Model.extend({
                 }
 
                 return {
-                    model_input: JSON.stringify(modelInput)
+                    model_input: modelInput
                 };
 
             case utils.GWLFE:
