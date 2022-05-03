@@ -433,9 +433,9 @@ GWLFE_DEFAULTS = {
     'GRBarnFCRate':     [ 0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12,  0.12],  # Barnyard/Confined Area: Base Fecal Coliform Loss Rate
 
     'ShedAreaDrainLake': 0,  # Percentage of watershed area that drains into a lake or wetlands: (0 - 1)
-    'RetentNLake': 0.12,  # Lake Retention Rate: Nitrogen
-    'RetentPLake': 0.29,  # Lake Retention Rate: Phosphorus
-    'RetentSedLake': 0.84,  # Lake Retention Rate: Sediment
+    'RetentNLake': 0.06,  # Lake Retention Rate: Nitrogen
+    'RetentPLake': 0.45,  # Lake Retention Rate: Phosphorus
+    'RetentSedLake': 0.95,  # Lake Retention Rate: Sediment
     'AttenFlowDist': 0,  # Attenuation: Flow Distance (km)
     'AttenFlowVel': 4,  # Attenuation: Flow Velocity (km/hr)
     'AttenLossRateN': 0.287,  # Attenuation: Loss Rate: Nitrogen
