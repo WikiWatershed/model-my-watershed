@@ -477,7 +477,7 @@ GEOP = {
         '__BFI__': 'bfi48grd-epsg5070',
         '__GWN__': 'us-groundwater-nitrogen-30m-epsg5070-512',
         '__KFACTOR__': 'us-ssugro-kfactor-30m-epsg5070-512',
-        '__LAND__': 'nlcd-2019-30m-epsg5070-512-byte',
+        '__LAND__': 'nlcd-2019-30m-epsg5070-512-uint8raw',
         '__NED__': 'ned-nhdplus-30m-epsg5070-512',
         '__PROTECTED_LANDS__': 'protected-lands-30m-epsg5070-512',
         '__SLOPE__': 'us-percent-slope-30m-epsg5070-512',
