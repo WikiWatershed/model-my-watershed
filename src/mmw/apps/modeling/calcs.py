@@ -400,7 +400,7 @@ def get_layer_value(layer, layer_overrides=dict):
     If the default config is something like:
 
     {
-        '__LAND__': 'nlcd-2019-30m-epsg5070-512-byte',
+        '__LAND__': 'nlcd-2019-30m-epsg5070-512-uint8raw',
         '__SOIL__': 'ssurgo-hydro-groups-30m-epsg5070-512-int8',
         '__STREAMS__': 'nhd',
     }
