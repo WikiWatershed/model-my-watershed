@@ -35,7 +35,7 @@ module.exports = {
                     label: 'NASA NLDAS 2000-2019',
                 },
             ],
-            in_drb: true,
+            in_drwi: true,
         },
         {
             group: 'Future Weather Simulations',
