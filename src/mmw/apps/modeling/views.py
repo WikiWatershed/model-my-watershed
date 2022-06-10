@@ -141,10 +141,13 @@ def project_weather(request, proj_id, category):
         return Response({'errors': ['Invalid category specified.']},
                         status=status.HTTP_400_BAD_REQUEST)
 
-    # This applies to all current weather categories. If in the future there
-    # are categories to which it doesn't apply, this will have to be further
-    # qualified.
-    if not project.in_drb:
+    if category == 'NASA_NLDAS_2000_2019' and not project.in_drwi:
+        return Response({'errors': ['Only supported within'
+                                    ' Delware River Watershed Initiative.']},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    if category in ['RCP45_2080_2099', 'RCP85_2080_2099'] \
+            and not project.in_drb:
         return Response({'errors': ['Only supported within'
                                     ' Delware River Basin.']},
                         status=status.HTTP_400_BAD_REQUEST)
