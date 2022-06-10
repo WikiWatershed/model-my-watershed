@@ -82,6 +82,10 @@ class Project(models.Model):
     def in_drb(self):
         return self.area_of_interest.within(settings.DRB_SIMPLE_PERIMETER)
 
+    @property
+    def in_drwi(self):
+        return self.area_of_interest.within(settings.DRWI_SIMPLE_PERIMETER)
+
 
 class WeatherType:
 
