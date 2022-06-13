@@ -1435,7 +1435,7 @@ def start_modeling_gwlfe_run(request, format=None):
     For more details on the GWLF-E package, please see: [https://github.com/WikiWatershed/gwlf-e](https://github.com/WikiWatershed/gwlf-e)  # NOQA
     """
     user = request.user if request.user.is_authenticated else None
-    model_input, job_uuid, mods, hash = _parse_gwlfe_input(request)
+    model_input, job_uuid, mods, hash = _parse_gwlfe_input(request, False)
 
     modified_model_input = apply_gwlfe_modifications(model_input, mods)
 
@@ -1524,7 +1524,7 @@ def start_modeling_subbasin_run(request, format=None):
     phosphorus, and sediment.
     """
     user = request.user if request.user.is_authenticated else None
-    model_input, job_uuid, mods, hash = _parse_gwlfe_input(request, False)
+    model_input, job_uuid, mods, hash = _parse_gwlfe_input(request, True)
 
     # Instead of using start_celery_job, we do a manual implementation here.
     # This is required because start_celery_job tries to add an error handler
@@ -1697,13 +1697,13 @@ def _parse_subbasin_input(request):
         serializer.validated_data)
 
 
-def _parse_gwlfe_input(request, raw_input=True):
+def _parse_gwlfe_input(request, subbasin_analysis=False):
     """
     Given a request, parses the model_input from it.
 
-    If raw_input is True, then assumes there may be a model_input key specified
-    directly in the request body. If found, uses that. Otherwise uses the
-    job_uuid field.
+    If subbasin_analysis is True, then assumes the function that calls
+    _parse_gwlfe_input is from the /subbasin/run/ endpoint. Otherwise,
+    it is from the /gwlf-e/run/ endpoint
 
     Raises validation errors where appropriate.
     """
@@ -1712,15 +1712,28 @@ def _parse_gwlfe_input(request, raw_input=True):
     mods = request.data.get('modifications', list())
     hash = request.data.get('inputmod_hash', '')
 
-    one_of = ['input', 'job_uuid'] if raw_input else ['job_uuid']
+    one_of = ['input', 'job_uuid']
 
     check_exactly_one_provided(one_of, request.data)
 
-    if raw_input:
-        model_input = request.data.get('input')
+    model_input = request.data.get('input')
 
-        if model_input:
+    if model_input:
+        if not subbasin_analysis:
             validate_gwlfe_run(model_input)
+
+            return model_input, job_uuid, mods, hash
+        else:
+            for huc in model_input:
+                # Make sure the keys are actual HUC-12 IDs and
+                if len(huc) != 12:
+                    raise ValidationError(
+                        f'The input HUC {huc} is not a HUC-12,'
+                        f'please use the full result of /subbasin/prepare/')
+                _parse_aoi({ "huc": huc})
+
+                # Validate the values are valid results of HUC-12 gwlf-e results
+                validate_gwlfe_run(model_input[huc])
 
             return model_input, job_uuid, mods, hash
 

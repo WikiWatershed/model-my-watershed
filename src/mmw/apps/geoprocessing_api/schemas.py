@@ -311,6 +311,10 @@ SUBBASIN_RUN_REQUEST = Schema(
     title='Subbasin Run Request',
     type=TYPE_OBJECT,
     properties={
+        'input': Schema(
+            type=TYPE_OBJECT,
+            description='The result of modeling/subbasin/prepare/',
+        ),
         'job_uuid': Schema(
             type=TYPE_STRING,
             format=FORMAT_UUID,
