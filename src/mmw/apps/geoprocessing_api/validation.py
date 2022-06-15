@@ -142,11 +142,11 @@ def create_layer_overrides_land_not_valid_msg(values):
 
 
 LAND_LAYER_OVERRIDES = [
-     'nlcd-2019-30m-epsg5070-512-byte',
-     'nlcd-2016-30m-epsg5070-512-byte',
-     'nlcd-2011-30m-epsg5070-512-byte',
-     'nlcd-2006-30m-epsg5070-512-byte',
-     'nlcd-2001-30m-epsg5070-512-byte',
+     'nlcd-2019-30m-epsg5070-512-uint8raw',
+     'nlcd-2016-30m-epsg5070-512-uint8raw',
+     'nlcd-2011-30m-epsg5070-512-uint8raw',
+     'nlcd-2006-30m-epsg5070-512-uint8raw',
+     'nlcd-2001-30m-epsg5070-512-uint8raw',
      'nlcd-2011-30m-epsg5070-512-int8',
 ]
 

@@ -175,11 +175,11 @@ RWD_REQUEST = Schema(
 )
 
 nlcd_override_allowed_values = '", "'.join([
-    'nlcd-2019-30m-epsg5070-512-byte',
-    'nlcd-2016-30m-epsg5070-512-byte',
-    'nlcd-2011-30m-epsg5070-512-byte',
-    'nlcd-2006-30m-epsg5070-512-byte',
-    'nlcd-2001-30m-epsg5070-512-byte',
+    'nlcd-2019-30m-epsg5070-512-uint8raw',
+    'nlcd-2016-30m-epsg5070-512-uint8raw',
+    'nlcd-2011-30m-epsg5070-512-uint8raw',
+    'nlcd-2006-30m-epsg5070-512-uint8raw',
+    'nlcd-2001-30m-epsg5070-512-uint8raw',
     'nlcd-2011-30m-epsg5070-512-int8',
 ])
 LAYER_OVERRIDES = Schema(
@@ -192,12 +192,12 @@ LAYER_OVERRIDES = Schema(
     properties={
         '__LAND__': Schema(
             type=TYPE_STRING,
-            example='nlcd-2019-30m-epsg5070-512-byte',
+            example='nlcd-2019-30m-epsg5070-512-uint8raw',
             description='The NLCD layer to use. Valid options are: '
-                        f'"{nlcd_override_allowed_values}". All "-byte" '
+                        f'"{nlcd_override_allowed_values}". All "-uint8raw" '
                         'layers are from the NLCD19 product. The "-int8" '
                         'layer is from the NLCD11 product. The default value '
-                        'is NLCD19 2019 "nlcd-2019-30m-epsg5070-512-byte".',
+                        'is NLCD19 2019 "nlcd-2019-30m-epsg5070-512-uint8raw".'
         ),
         '__STREAMS__': Schema(
             type=TYPE_STRING,
