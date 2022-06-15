@@ -340,6 +340,7 @@ def get_client_settings(request):
             'stream_layers': create_layer_config_with_urls('stream'),
             'nhd_perimeter': settings.NHD_REGION2_PERIMETER,
             'conus_perimeter': settings.CONUS_PERIMETER,
+            'drwi_simple_perimeter': settings.DRWI_SIMPLE_PERIMETER_JSON,
             'draw_tools': settings.DRAW_TOOLS,
             'map_controls': settings.MAP_CONTROLS,
             'vizer_urls': settings.VIZER_URLS,
