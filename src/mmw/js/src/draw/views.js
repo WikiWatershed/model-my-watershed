@@ -27,6 +27,9 @@ var $ = require('jquery'),
 var selectBoundary = 'selectBoundary',
     drawArea = 'drawArea',
     delineateWatershed = 'delineateWatershed',
+    drainageArea = 'drainageArea',
+    drainagePoint = 'drainage-point',
+    drainageStream = 'drainage-stream',
     aoiUpload = 'aoiUpload',
     freeDraw = 'free-draw',
     squareKm = 'square-km',
@@ -172,6 +175,7 @@ var DrawWindow = Marionette.LayoutView.extend({
         selectBoundaryRegion: '#select-boundary-region',
         drawAreaRegion: '#draw-area-region',
         watershedDelineationRegion: '#watershed-delineation-region',
+        drainageAreaRegion: '#drainage-area-region',
         uploadFileRegion: '#upload-file-region'
     },
 
@@ -225,6 +229,11 @@ var DrawWindow = Marionette.LayoutView.extend({
                 rwdTaskModel: this.rwdTaskModel
             })
         );
+
+        this.drainageAreaRegion.show(new DrainageAreaView({
+            model: this.model,
+            resetDrawingState: resetDrawingState
+        }));
 
         this.uploadFileRegion.show(new AoIUploadView({
             model: this.model,
@@ -1048,6 +1057,103 @@ var WatershedDelineationView = DrawToolBaseView.extend({
 
         return result;
     }
+});
+
+var DrainageAreaView = DrawToolBaseView.extend({
+    initialize: function(options) {
+        DrawToolBaseView.prototype.initialize.call(this, options);
+        this.id = drainageArea;
+    },
+
+    getToolData: function() {
+        return {
+            id: this.id,
+            title: 'Drainage area',
+            info: 'Find the area that drains to a point or stream',
+            items: [
+                {
+                    id: drainagePoint,
+                    title: 'Point based',
+                    info: 'Click on the map to specify a drainage point, and an ' +
+                          'area draining to that point will be generated.<br />' +
+                          'See ' +
+                          '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#drainage-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
+                          'our documentation on Drainage Area.</a>',
+                    minZoom: 0,
+                    directions: 'Click a point.'
+                },
+                {
+                    id: drainageStream,
+                    title: 'Stream based',
+                    info: 'Draw an area around a stream to select a segment of ' +
+                          'it, and an area draining to that stream segment will be ' +
+                          'generated.<br />' +
+                          'See ' +
+                          '<a href=\'https://wikiwatershed.org/documentation/mmw-tech/#drainage-area\' target=\'_blank\' rel=\'noreferrer noopener\'>' +
+                          'our documentation on Drainage Area.</a>',
+                    minZoom: 0,
+                    directions: 'Draw a boundary around a stream.'
+                }
+            ],
+        };
+    },
+
+    onClickItem: function(e) {
+        this.resetDrawingState();
+
+        var itemId = e.currentTarget.id;
+        switch (itemId) {
+            case drainagePoint:
+                this.enablePointSelection();
+                break;
+            case drainageStream:
+                this.enableStreamSelection();
+                break;
+        }
+
+        this.model.selectDrawToolItem(this.id, itemId);
+    },
+
+    // TODO This mimics stamp tool, change to request drainage area
+    enablePointSelection: function() {
+        var self = this,
+            map = App.getLeafletMap(),
+            revertLayer = clearAoiLayer();
+
+        utils.placeMarker(map).then(function(latlng) {
+            var point = L.marker(latlng).toGeoJSON(),
+                box = utils.getSquareKmBoxForPoint(point);
+
+            window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'drainage-point');
+            return box;
+        }).then(validateShape).then(function(polygon) {
+            addLayer(polygon, 'Point-based Drainage Area');
+            navigateToAnalyze();
+        }).fail(function(message) {
+            revertLayer();
+            displayAlert(message, modalModels.AlertTypes.error);
+            self.model.reset();
+        });
+    },
+
+    // TODO This mimics draw tool, change to request drainage area
+    enableStreamSelection: function() {
+        var self = this,
+            map = App.getLeafletMap(),
+            revertLayer = clearAoiLayer();
+
+        utils.drawPolygon(map)
+            .then(validateShape)
+            .then(function(shape) {
+                addLayer(shape, 'Stream-based Drainage Area');
+                navigateToAnalyze();
+                window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'drainage-stream');
+            }).fail(function(message) {
+                revertLayer();
+                displayAlert(message, modalModels.AlertTypes.error);
+                self.model.reset();
+            });
+    },
 });
 
 function makePointGeoJson(coords, props) {
