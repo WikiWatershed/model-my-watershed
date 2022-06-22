@@ -17,7 +17,7 @@ from drf_yasg.utils import swagger_auto_schema
 from django.conf import settings
 from django.utils.timezone import now
 from django.urls import reverse
-from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
 from django.shortcuts import get_object_or_404
 
 from apps.core.models import Job, JobStatus
@@ -1555,6 +1555,35 @@ def start_modeling_subbasin_run(request, format=None):
         headers={'Location': reverse('geoprocessing_api:get_job',
                                      args=[task_chain.id])}
     )
+
+
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def draw_drainage_area_point(request):
+    # Parse the input and ensure it is a valid point, raising errors
+
+    # Send a request to the Drexel / ANS API to get the drainage area,
+    # raising errors if the API cannot be reached or errors out
+
+    # Validate the response and raise errors, if any
+
+    # Return the valid response
+
+    # TODO Replace this test code with actual implementation described above
+    point = GEOSGeometry(json.dumps(request.data['geometry']))
+    box = json.loads(MultiPolygon(point.buffer(0.01), srid=4326).geojson)
+    feature = {
+        'type': 'Feature',
+        'properties': {
+            'drainage_area': True,
+        },
+        'geometry': box,
+    }
+    return Response(feature)
 
 
 def _initiate_rwd_job_chain(location, snapping, simplify, data_source,

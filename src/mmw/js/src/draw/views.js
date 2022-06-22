@@ -1114,21 +1114,25 @@ var DrainageAreaView = DrawToolBaseView.extend({
         this.model.selectDrawToolItem(this.id, itemId);
     },
 
-    // TODO This mimics stamp tool, change to request drainage area
     enablePointSelection: function() {
         var self = this,
             map = App.getLeafletMap(),
             revertLayer = clearAoiLayer();
 
         utils.placeMarker(map).then(function(latlng) {
-            var point = L.marker(latlng).toGeoJSON(),
-                box = utils.getSquareKmBoxForPoint(point);
+            var point = L.marker(latlng).toGeoJSON()
 
-            window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'drainage-point');
-            return box;
+            // TODO Handle errors / maybe convert to task runner
+            return $.post({
+                url: '/api/draw/drainage-area/point/',
+                data: JSON.stringify(point),
+                dataType: 'json',
+                contentType: 'application/json',
+            });
         }).then(validateShape).then(function(polygon) {
             addLayer(polygon, 'Point-based Drainage Area');
             navigateToAnalyze();
+            window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'drainage-point');
         }).fail(function(message) {
             revertLayer();
             displayAlert(message, modalModels.AlertTypes.error);
