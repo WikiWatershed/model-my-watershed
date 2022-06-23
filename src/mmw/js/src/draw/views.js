@@ -1146,7 +1146,28 @@ var DrainageAreaView = DrawToolBaseView.extend({
             map = App.getLeafletMap(),
             revertLayer = clearAoiLayer();
 
+        // Enable streams layer so user can draw a polygon around a stream
+        var streamLayerCode = 'nhd_streams_hr_v1',
+            collection = App.getLayerTabCollection(),
+            leafletMap = App.getLeafletMap(),
+            layer = collection.findLayerWhere({ code: streamLayerCode }),
+            group = collection.findLayerGroup(layer.get('layerType'));
+
+        if (!layer.get('active')) {
+            coreUtils.toggleLayer(layer, leafletMap, group);
+        }
+
         utils.drawPolygon(map)
+            .then(validateShape)
+            .then(function(shape) {
+                // TODO Handle errors / maybe convert to task runner
+                return $.post({
+                    url: '/api/draw/drainage-area/stream/',
+                    data: JSON.stringify(shape),
+                    dataType: 'json',
+                    contentType: 'application/json',
+                });
+            })
             .then(validateShape)
             .then(function(shape) {
                 addLayer(shape, 'Stream-based Drainage Area');

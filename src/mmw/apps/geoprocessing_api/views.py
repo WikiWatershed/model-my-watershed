@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 
+from functools import reduce
 from operator import itemgetter
 
 from celery import chain
@@ -1576,6 +1577,43 @@ def draw_drainage_area_point(request):
     # TODO Replace this test code with actual implementation described above
     point = GEOSGeometry(json.dumps(request.data['geometry']))
     box = json.loads(MultiPolygon(point.buffer(0.01), srid=4326).geojson)
+    feature = {
+        'type': 'Feature',
+        'properties': {
+            'drainage_area': True,
+        },
+        'geometry': box,
+    }
+    return Response(feature)
+
+
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def draw_drainage_area_stream(request):
+    # Parse the input and ensure it is a valid polygon, raising errors if not
+
+    # Ensure it intersects with a stream section, raising errors if not
+
+    # Send a request to the Drexel / ANS API to get the drainage area,
+    # raising errors if the API cannot be reached or errors out
+
+    # Validate the response and raise errors, if any
+
+    # Return the valid response
+
+    # TODO Replace this test code with actual implementation described above
+    def union(collection, line):
+        return collection.union(line)
+
+    polygon = GEOSGeometry(json.dumps(request.data['geometry']))
+    stream_lines = [GEOSGeometry(s) for s in streams(polygon.geojson)]
+    segment = reduce(union, stream_lines[1:], stream_lines[0])
+
+    box = json.loads(MultiPolygon(segment.buffer(0.01), srid=4326).geojson)
     feature = {
         'type': 'Feature',
         'properties': {
