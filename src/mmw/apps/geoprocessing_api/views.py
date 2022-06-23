@@ -11,7 +11,7 @@ from rest_framework import decorators, status
 from rest_framework.authentication import (TokenAuthentication,
                                            SessionAuthentication)
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from drf_yasg.utils import swagger_auto_schema
 
@@ -1561,7 +1561,7 @@ def start_modeling_subbasin_run(request, format=None):
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
                                     TokenAuthentication, ))
-@decorators.permission_classes((IsAuthenticated, ))
+@decorators.permission_classes((AllowAny, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def draw_drainage_area_point(request):
@@ -1590,7 +1590,7 @@ def draw_drainage_area_point(request):
 @decorators.api_view(['POST'])
 @decorators.authentication_classes((SessionAuthentication,
                                     TokenAuthentication, ))
-@decorators.permission_classes((IsAuthenticated, ))
+@decorators.permission_classes((AllowAny, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
 def draw_drainage_area_stream(request):
