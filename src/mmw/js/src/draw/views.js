@@ -196,6 +196,8 @@ var DrawWindow = Marionette.LayoutView.extend({
         this.model.set('outlineFeatureGroup', ofg);
         map.addLayer(ofg);
         this.rwdTaskModel = new models.RwdTaskModel();
+        this.drainageAreaPointModel = new models.DrainageAreaPointModel();
+        this.drainageAreaStreamModel = new models.DrainageAreaStreamModel();
     },
 
     onShow: function() {
@@ -232,7 +234,9 @@ var DrawWindow = Marionette.LayoutView.extend({
 
         this.drainageAreaRegion.show(new DrainageAreaView({
             model: this.model,
-            resetDrawingState: resetDrawingState
+            resetDrawingState: resetDrawingState,
+            drainageAreaPointModel: this.drainageAreaPointModel,
+            drainageAreaStreamModel: this.drainageAreaStreamModel,
         }));
 
         this.uploadFileRegion.show(new AoIUploadView({
@@ -1063,6 +1067,8 @@ var DrainageAreaView = DrawToolBaseView.extend({
     initialize: function(options) {
         DrawToolBaseView.prototype.initialize.call(this, options);
         this.id = drainageArea;
+        this.drainageAreaPointModel = options.drainageAreaPointModel;
+        this.drainageAreaStreamModel = options.drainageAreaStreamModel;
     },
 
     getToolData: function() {
@@ -1120,15 +1126,9 @@ var DrainageAreaView = DrawToolBaseView.extend({
             revertLayer = clearAoiLayer();
 
         utils.placeMarker(map).then(function(latlng) {
-            var point = L.marker(latlng).toGeoJSON()
+            var point = L.marker(latlng).toGeoJSON();
 
-            // TODO Handle errors / maybe convert to task runner
-            return $.post({
-                url: '/api/draw/drainage-area/point/',
-                data: JSON.stringify(point),
-                dataType: 'json',
-                contentType: 'application/json',
-            });
+            return self.requestDrainageArea(drawUtils.POINT, point);
         }).then(validateShape).then(function(polygon) {
             addLayer(polygon, 'Point-based Drainage Area');
             navigateToAnalyze();
@@ -1160,13 +1160,7 @@ var DrainageAreaView = DrawToolBaseView.extend({
         utils.drawPolygon(map)
             .then(validateShape)
             .then(function(shape) {
-                // TODO Handle errors / maybe convert to task runner
-                return $.post({
-                    url: '/api/draw/drainage-area/stream/',
-                    data: JSON.stringify(shape),
-                    dataType: 'json',
-                    contentType: 'application/json',
-                });
+                return self.requestDrainageArea(drawUtils.STREAM, shape);
             })
             .then(validateShape)
             .then(function(shape) {
@@ -1179,6 +1173,61 @@ var DrainageAreaView = DrawToolBaseView.extend({
                 self.model.reset();
             });
     },
+
+    // Start polling for a drainage area
+    // `type` should be one of "point" or "stream"
+    // `data` should be a GeoJSON point for "point", a GeoJSON polygon for "stream"
+    requestDrainageArea: function(type, data) {
+        var self = this,
+            deferred = $.Deferred(),
+            taskHelper = {
+                onStart: function() {
+                    self.model.set('polling', true);
+                },
+
+                startFailure: function(response) {
+                    self.model.set({
+                        pollError: true,
+                        polling: false,
+                    });
+                    console.error(response.error);
+                    deferred.reject('Failed to request drainage area');
+                },
+
+                pollSuccess: function(response) {
+                    self.model.set('polling', false);
+
+                    deferred.resolve(response.result);
+                },
+
+                pollFailure: function(response) {
+                    self.model.set({
+                        pollError: true,
+                        polling: false,
+                    });
+                    console.error(response.error);
+                    deferred.reject('Drainage area could not be calculated');
+                },
+
+                pollEnd: function() {
+                    self.model.set('polling', false);
+                },
+
+                postData: JSON.stringify(data),
+
+                contentType: 'application/json',
+            };
+
+        if (type === drawUtils.POINT) {
+            self.drainageAreaPointModel.start(taskHelper);
+        } else if (type === drawUtils.STREAM) {
+            self.drainageAreaStreamModel.start(taskHelper);
+        } else {
+            deferred.reject('Invalid drainage area type: ' + type);
+        }
+
+        return deferred;
+    }
 });
 
 function makePointGeoJson(coords, props) {

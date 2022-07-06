@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
 
-from functools import reduce
 from operator import itemgetter
 
 from celery import chain
@@ -18,7 +17,7 @@ from drf_yasg.utils import swagger_auto_schema
 from django.conf import settings
 from django.utils.timezone import now
 from django.urls import reverse
-from django.contrib.gis.geos import GEOSGeometry, MultiPolygon
+from django.contrib.gis.geos import GEOSGeometry
 from django.shortcuts import get_object_or_404
 
 from apps.core.models import Job, JobStatus
@@ -1564,27 +1563,12 @@ def start_modeling_subbasin_run(request, format=None):
 @decorators.permission_classes((AllowAny, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
-def draw_drainage_area_point(request):
-    # Parse the input and ensure it is a valid point, raising errors
+def start_draw_drainage_area_point(request):
+    user = request.user if request.user.is_authenticated else None
 
-    # Send a request to the Drexel / ANS API to get the drainage area,
-    # raising errors if the API cannot be reached or errors out
-
-    # Validate the response and raise errors, if any
-
-    # Return the valid response
-
-    # TODO Replace this test code with actual implementation described above
-    point = GEOSGeometry(json.dumps(request.data['geometry']))
-    box = json.loads(MultiPolygon(point.buffer(0.01), srid=4326).geojson)
-    feature = {
-        'type': 'Feature',
-        'properties': {
-            'drainage_area': True,
-        },
-        'geometry': box,
-    }
-    return Response(feature)
+    return start_celery_job([
+        tasks.draw_drainage_area_point.s(request.data),
+    ], request.data, user)
 
 
 @decorators.api_view(['POST'])
@@ -1593,35 +1577,12 @@ def draw_drainage_area_point(request):
 @decorators.permission_classes((AllowAny, ))
 @decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
 @log_request
-def draw_drainage_area_stream(request):
-    # Parse the input and ensure it is a valid polygon, raising errors if not
+def start_draw_drainage_area_stream(request):
+    user = request.user if request.user.is_authenticated else None
 
-    # Ensure it intersects with a stream section, raising errors if not
-
-    # Send a request to the Drexel / ANS API to get the drainage area,
-    # raising errors if the API cannot be reached or errors out
-
-    # Validate the response and raise errors, if any
-
-    # Return the valid response
-
-    # TODO Replace this test code with actual implementation described above
-    def union(collection, line):
-        return collection.union(line)
-
-    polygon = GEOSGeometry(json.dumps(request.data['geometry']))
-    stream_lines = [GEOSGeometry(s) for s in streams(polygon.geojson)]
-    segment = reduce(union, stream_lines[1:], stream_lines[0])
-
-    box = json.loads(MultiPolygon(segment.buffer(0.01), srid=4326).geojson)
-    feature = {
-        'type': 'Feature',
-        'properties': {
-            'drainage_area': True,
-        },
-        'geometry': box,
-    }
-    return Response(feature)
+    return start_celery_job([
+        tasks.draw_drainage_area_stream.s(request.data),
+    ], request.data, user)
 
 
 def _initiate_rwd_job_chain(location, snapping, simplify, data_source,
