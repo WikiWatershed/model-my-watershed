@@ -533,7 +533,7 @@ def draw_drainage_area_point(input):
     # TODO Replace this test code with actual implementation described above
     point = GEOSGeometry(json.dumps(input['geometry']))
     box = json.loads(MultiPolygon(point.buffer(0.01), srid=4326).geojson)
-    feature = {
+    area_of_interest = {
         'type': 'Feature',
         'properties': {
             'drainage_area': True,
@@ -541,7 +541,10 @@ def draw_drainage_area_point(input):
         'geometry': box,
     }
 
-    return feature
+    return {
+        'area_of_interest': area_of_interest,
+        'point': json.loads(point.geojson),
+    }
 
 
 @shared_task(time_limit=300)
@@ -566,7 +569,7 @@ def draw_drainage_area_stream(input):
     segment = reduce(union, stream_lines[1:], stream_lines[0])
 
     box = json.loads(MultiPolygon(segment.buffer(0.01), srid=4326).geojson)
-    feature = {
+    area_of_interest = {
         'type': 'Feature',
         'properties': {
             'drainage_area': True,
@@ -574,4 +577,7 @@ def draw_drainage_area_stream(input):
         'geometry': box,
     }
 
-    return feature
+    return {
+        'area_of_interest': area_of_interest,
+        'stream_segment': json.loads(segment.geojson),
+    }

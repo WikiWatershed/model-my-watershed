@@ -1035,6 +1035,7 @@ var WatershedDelineationView = DrawToolBaseView.extend({
         var inputPoint = result.input_pt,
             inputPoints = {
                 type: "FeatureCollection",
+                id: drawUtils.RWD,
                 features: [inputPoint]
             };
 
@@ -1129,8 +1130,15 @@ var DrainageAreaView = DrawToolBaseView.extend({
             var point = L.marker(latlng).toGeoJSON();
 
             return self.requestDrainageArea(drawUtils.POINT, point);
-        }).then(validateShape).then(function(polygon) {
-            addLayer(polygon, 'Point-based Drainage Area');
+        }).then(function(response) {
+            var additionalShapes = {
+                type: 'FeatureCollection',
+                id: drawUtils.POINT,
+                features: [response.point],
+            };
+
+            App.map.set('areaOfInterestAdditionals', additionalShapes);
+            addLayer(response.area_of_interest, 'Point-based Drainage Area');
             navigateToAnalyze();
             window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'drainage-point');
         }).fail(function(message) {
@@ -1140,7 +1148,6 @@ var DrainageAreaView = DrawToolBaseView.extend({
         });
     },
 
-    // TODO This mimics draw tool, change to request drainage area
     enableStreamSelection: function() {
         var self = this,
             map = App.getLeafletMap(),
@@ -1162,9 +1169,15 @@ var DrainageAreaView = DrawToolBaseView.extend({
             .then(function(shape) {
                 return self.requestDrainageArea(drawUtils.STREAM, shape);
             })
-            .then(validateShape)
-            .then(function(shape) {
-                addLayer(shape, 'Stream-based Drainage Area');
+            .then(function(response) {
+                var additionalShapes = {
+                    type: 'FeatureCollection',
+                    id: drawUtils.STREAM,
+                    features: [response.stream_segment],
+                };
+
+                App.map.set('areaOfInterestAdditionals', additionalShapes);
+                addLayer(response.area_of_interest, 'Stream-based Drainage Area');
                 navigateToAnalyze();
                 window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'drainage-stream');
             }).fail(function(message) {

@@ -267,4 +267,5 @@ module.exports = {
     CANCEL_DRAWING: CANCEL_DRAWING,
     POINT: 'point',
     STREAM: 'stream',
+    RWD: 'rwd',
 };
