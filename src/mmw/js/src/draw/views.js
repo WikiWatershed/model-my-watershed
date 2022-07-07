@@ -1203,8 +1203,12 @@ var DrainageAreaView = DrawToolBaseView.extend({
                         pollError: true,
                         polling: false,
                     });
-                    console.error(response.error);
-                    deferred.reject('Failed to request drainage area');
+                    
+                    var msg = 'Failed to request drainage area.';
+                    if (response.error) {
+                        msg += '<br /> Details: ' + response.error;
+                    }
+                    deferred.reject(msg);
                 },
 
                 pollSuccess: function(response) {
@@ -1218,8 +1222,11 @@ var DrainageAreaView = DrawToolBaseView.extend({
                         pollError: true,
                         polling: false,
                     });
-                    console.error(response.error);
-                    deferred.reject('Drainage area could not be calculated');
+                    var msg = 'Drainage area could not be calculated.';
+                    if (response.error) {
+                        msg += '<br /> Details: ' + response.error;
+                    }
+                    deferred.reject(msg);
                 },
 
                 pollEnd: function() {

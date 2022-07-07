@@ -551,8 +551,6 @@ def draw_drainage_area_point(input):
 def draw_drainage_area_stream(input):
     # Parse the input and ensure it is a valid polygon, raising errors if not
 
-    # Ensure it intersects with a stream section, raising errors if not
-
     # Send a request to the Drexel / ANS API to get the drainage area,
     # raising errors if the API cannot be reached or errors out
 
@@ -565,7 +563,12 @@ def draw_drainage_area_stream(input):
         return collection.union(line)
 
     polygon = GEOSGeometry(json.dumps(input['geometry']))
+
+    # Ensure it intersects with a stream section, raising errors if not
     stream_lines = [GEOSGeometry(s) for s in streams(polygon.geojson)]
+    if not stream_lines:
+        raise Exception('No streams within given shape.')
+
     segment = reduce(union, stream_lines[1:], stream_lines[0])
 
     box = json.loads(MultiPolygon(segment.buffer(0.01), srid=4326).geojson)
