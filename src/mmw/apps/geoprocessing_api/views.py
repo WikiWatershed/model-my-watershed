@@ -10,7 +10,7 @@ from rest_framework import decorators, status
 from rest_framework.authentication import (TokenAuthentication,
                                            SessionAuthentication)
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from drf_yasg.utils import swagger_auto_schema
 
@@ -1555,6 +1555,34 @@ def start_modeling_subbasin_run(request, format=None):
         headers={'Location': reverse('geoprocessing_api:get_job',
                                      args=[task_chain.id])}
     )
+
+
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((AllowAny, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_draw_drainage_area_point(request):
+    user = request.user if request.user.is_authenticated else None
+
+    return start_celery_job([
+        tasks.draw_drainage_area_point.s(request.data),
+    ], request.data, user)
+
+
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((AllowAny, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_draw_drainage_area_stream(request):
+    user = request.user if request.user.is_authenticated else None
+
+    return start_celery_job([
+        tasks.draw_drainage_area_stream.s(request.data),
+    ], request.data, user)
 
 
 def _initiate_rwd_job_chain(location, snapping, simplify, data_source,
