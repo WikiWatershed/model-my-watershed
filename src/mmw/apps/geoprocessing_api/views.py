@@ -38,7 +38,7 @@ from apps.modeling.serializers import AoiSerializer
 from apps.modeling.views import _initiate_subbasin_gwlfe_job_chain
 
 from apps.geoprocessing_api import exceptions, schemas, tasks
-from apps.geoprocessing_api.calcs import huc12s_for_huc
+from apps.geoprocessing_api.calcs import huc12s_for_huc, huc12_for_point
 from apps.geoprocessing_api.permissions import AuthTokenSerializerAuthentication  # noqa
 from apps.geoprocessing_api.throttling import (BurstRateThrottle,
                                                SustainedRateThrottle)
@@ -1342,6 +1342,319 @@ def start_analyze_drb_2100_land(request, key=None, format=None):
     return start_celery_job([
         tasks.analyze_drb_2100_land.s(area_of_interest, key)
     ], area_of_interest, user, messages=msg)
+
+
+@swagger_auto_schema(method='post',
+                     request_body=schemas.ANALYZE_REQUEST,
+                     responses={200: schemas.JOB_STARTED_RESPONSE})
+@decorators.api_view(['POST'])
+@decorators.authentication_classes((SessionAuthentication,
+                                    TokenAuthentication, ))
+@decorators.permission_classes((IsAuthenticated, ))
+@decorators.throttle_classes([BurstRateThrottle, SustainedRateThrottle])
+@log_request
+def start_analyze_drainage_area(request, format=None):
+    """
+    Starts a job to get a drainage area hydrology for given area.
+
+    Runs GWLF-E on the HUC-12 that contains this drainage area, calculated
+    via its centroid, and then scales the results to the land use of the
+    drainage area.
+    
+    For more information, see the [technical documentation](https://wikiwatershed.org/documentation/mmw-tech/).  # NOQA
+
+    ## Response
+
+    You can use the URL provided in the response's `Location`
+    header to poll for the job's results.
+
+    <summary>
+       **Example of a completed job's `result`**
+    </summary>
+
+    <details>
+
+        {
+          "meta":
+          {
+            "NYrs": 30,
+            "NRur": 10,
+            "NUrb": 6,
+            "NLU": 16,
+            "SedDelivRatio": 0.10329591514237264,
+            "WxYrBeg": 1961,
+            "WxYrEnd": 1990
+          },
+          "AreaTotal": 13483.099999999999,
+          "MeanFlow": 53702264.44135976,
+          "MeanFlowPerSecond": 1.7028876344926356,
+          "monthly":
+          [
+            {
+              "AvPrecipitation": 5.935980000000001,
+              "AvEvapoTrans": 0.3640651150606054,
+              "AvGroundWater": 2.415980542694388,
+              "AvRunoff": 2.0450296179817204,
+              "AvStreamFlow": 4.652982319512902,
+              "AvPtSrcFlow": 0.1919721588367937,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 5.620596666666668,
+              "AvEvapoTrans": 0.5447986275074899,
+              "AvGroundWater": 2.862858613564621,
+              "AvRunoff": 2.532449353864494,
+              "AvStreamFlow": 5.568702175410736,
+              "AvPtSrcFlow": 0.1733942079816201,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 8.288866666666665,
+              "AvEvapoTrans": 1.9127442299891178,
+              "AvGroundWater": 4.086730876191852,
+              "AvRunoff": 2.589661518891096,
+              "AvStreamFlow": 6.868364553919741,
+              "AvPtSrcFlow": 0.1919721588367937,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 7.886700000000001,
+              "AvEvapoTrans": 4.211447033345926,
+              "AvGroundWater": 3.852441756683534,
+              "AvRunoff": 1.6233684040299379,
+              "AvStreamFlow": 5.661589669265208,
+              "AvPtSrcFlow": 0.18577950855173586,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 9.02716,
+              "AvEvapoTrans": 7.758601272279417,
+              "AvGroundWater": 2.6855549869745166,
+              "AvRunoff": 0.4060813333942047,
+              "AvStreamFlow": 3.283608479205515,
+              "AvPtSrcFlow": 0.1919721588367937,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 9.713806666666668,
+              "AvEvapoTrans": 10.777498042140484,
+              "AvGroundWater": 1.4751431431687578,
+              "AvRunoff": 0.5816421838758978,
+              "AvStreamFlow": 2.242564835596392,
+              "AvPtSrcFlow": 0.18577950855173586,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 9.989396666666668,
+              "AvEvapoTrans": 11.593721062439405,
+              "AvGroundWater": 0.6661877477937888,
+              "AvRunoff": 0.8152539126393926,
+              "AvStreamFlow": 1.673413819269975,
+              "AvPtSrcFlow": 0.1919721588367937,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 8.285903333333334,
+              "AvEvapoTrans": 9.03076590143804,
+              "AvGroundWater": 0.2865799207156192,
+              "AvRunoff": 0.4201142751876688,
+              "AvStreamFlow": 0.8986663547400817,
+              "AvPtSrcFlow": 0.1919721588367937,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 8.243993333333332,
+              "AvEvapoTrans": 5.765425020494629,
+              "AvGroundWater": 0.20079490532123093,
+              "AvRunoff": 0.4929207074944218,
+              "AvStreamFlow": 0.8794951213673886,
+              "AvPtSrcFlow": 0.18577950855173586,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 6.307243333333332,
+              "AvEvapoTrans": 3.307483147726791,
+              "AvGroundWater": 0.42132342594922767,
+              "AvRunoff": 0.7008363758256483,
+              "AvStreamFlow": 1.3141319606116697,
+              "AvPtSrcFlow": 0.1919721588367937,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 7.578089999999999,
+              "AvEvapoTrans": 1.6795306216051686,
+              "AvGroundWater": 0.6006275882877178,
+              "AvRunoff": 1.3259111531948593,
+              "AvStreamFlow": 2.112318250034313,
+              "AvPtSrcFlow": 0.18577950855173586,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            },
+            {
+              "AvPrecipitation": 7.458710000000001,
+              "AvEvapoTrans": 0.6766907152814289,
+              "AvGroundWater": 2.3147485239734436,
+              "AvRunoff": 2.1667573224257652,
+              "AvStreamFlow": 4.673478005236002,
+              "AvPtSrcFlow": 0.1919721588367937,
+              "AvTileDrain": 0.0,
+              "AvWithdrawal": 0.0
+            }
+          ],
+          "Loads":
+          [
+            {
+              "Source": "Hay/Pasture",
+              "Sediment": 5524.1197254487815,
+              "TotalN": 20.96423556471483,
+              "TotalP": 14.529152392929996
+            },
+            {
+              "Source": "Cropland",
+              "Sediment": 2866.725211058347,
+              "TotalN": 57.60388240862847,
+              "TotalP": 14.330044790332682
+            },
+            {
+              "Source": "Wooded Areas",
+              "Sediment": 2850.835069352931,
+              "TotalN": 135.18680640281562,
+              "TotalP": 11.54617681868244
+            },
+            {
+              "Source": "Wetlands",
+              "Sediment": 0.13506127130755424,
+              "TotalN": 0.021966952077695324,
+              "TotalP": 0.0013660824707702928
+            },
+            {
+              "Source": "Open Land",
+              "Sediment": 2862.306146808489,
+              "TotalN": 24.907408818598775,
+              "TotalP": 5.124074691225902
+            },
+            {
+              "Source": "Barren Areas",
+              "Sediment": 3.3585171802445153,
+              "TotalN": 6.3482575486352175,
+              "TotalP": 0.21695159700799732
+            },
+            {
+              "Source": "Low-Density Mixed",
+              "Sediment": 35133.947620364095,
+              "TotalN": 1016.380617046707,
+              "TotalP": 106.35252673942016
+            },
+            {
+              "Source": "Medium-Density Mixed",
+              "Sediment": 322398.99473830906,
+              "TotalN": 7285.073355291861,
+              "TotalP": 747.4625341104565
+            },
+            {
+              "Source": "High-Density Mixed",
+              "Sediment": 177887.7413473253,
+              "TotalN": 4019.6317788594556,
+              "TotalP": 412.42194952432857
+            },
+            {
+              "Source": "Low-Density Open Space",
+              "Sediment": 23899.004471251348,
+              "TotalN": 691.3679377495677,
+              "TotalP": 72.34369275945146
+            },
+            {
+              "Source": "Farm Animals",
+              "Sediment": 0,
+              "TotalN": 435.22179396903744,
+              "TotalP": 116.44851594069331
+            },
+            {
+              "Source": "Stream Bank Erosion",
+              "Sediment": 9765717,
+              "TotalN": 4627,
+              "TotalP": 4038
+            },
+            {
+              "Source": "Subsurface Flow",
+              "Sediment": 0,
+              "TotalN": 42729.26816394586,
+              "TotalP": 650.4301088992864
+            },
+            {
+              "Source": "Point Sources",
+              "Sediment": 0,
+              "TotalN": 2118.0,
+              "TotalP": 0.0
+            },
+            {
+              "Source": "Septic Systems",
+              "Sediment": 0,
+              "TotalN": 15214.245842399996,
+              "TotalP": 0.0
+            }
+          ],
+          "SummaryLoads":
+          [
+            {
+              "Source": "Total Loads",
+              "Unit": "kg",
+              "Sediment": 10339144.16790837,
+              "TotalN": 78381.22204695796,
+              "TotalP": 6189.207094346286
+            },
+            {
+              "Source": "Loading Rates",
+              "Unit": "kg/ha",
+              "Sediment": 766.8224790966744,
+              "TotalN": 5.813293830569971,
+              "TotalP": 0.4590344278649781
+            },
+            {
+              "Source": "Mean Annual Concentration",
+              "Unit": "mg/l",
+              "Sediment": 192.52715458950917,
+              "TotalN": 1.45955152659431,
+              "TotalP": 0.11525039323257211
+            },
+            {
+              "Source": "Mean Low-Flow Concentration",
+              "Unit": "mg/l",
+              "Sediment": 303.15693688123486,
+              "TotalN": 2.8770246570983296,
+              "TotalP": 0.3617462067299904
+            }
+          ],
+          "inputmod_hash": "",
+          "watershed_id": null
+        }
+
+    </details>
+    """
+    user = request.user if request.user.is_authenticated else None
+    area_of_interest, _, _ = _parse_analyze_input(request)
+
+    geom = GEOSGeometry(area_of_interest, srid=4326)
+
+    huc12_geojson, huc12_wkaoi = huc12_for_point(geom.centroid)
+
+    return start_celery_job([
+        multi_mapshed(huc12_geojson, huc12_wkaoi),
+        convert_data.s(huc12_wkaoi),
+        collect_data.s(huc12_geojson),
+        run_gwlfe.s(inputmod_hash=''),
+        # TODO Scale results to Drainage Area
+    ], area_of_interest, user)
 
 
 @swagger_auto_schema(method='post',

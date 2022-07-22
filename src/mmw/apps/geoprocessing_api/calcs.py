@@ -385,3 +385,22 @@ def huc12s_for_huc(huc):
     with connection.cursor() as cursor:
         cursor.execute(sql, [f'{huc}%'])
         return cursor.fetchall()
+
+
+def huc12_for_point(point):
+    """
+    Given a point, returns a HUC-12 that contains it.
+
+    Raises an error if the point is not contained in any HUC-12.
+    """
+    sql = '''
+          SELECT
+            ST_AsGeoJSON(geom_detailed) AS area_of_interest,
+            ('huc12__' || id) AS wkaoi
+          FROM boundary_huc12
+          WHERE ST_Contains(geom, ST_GeomFromGeoJSON(%s))
+          '''
+
+    with connection.cursor() as cursor:
+        cursor.execute(sql, [point.geojson])
+        return cursor.fetchone()
