@@ -1654,6 +1654,7 @@ def start_analyze_drainage_area(request, format=None):
         collect_data.s(huc12_geojson),
         run_gwlfe.s(inputmod_hash=''),
         # TODO Scale results to Drainage Area
+        tasks.wrap_in_survey.s(),
     ], area_of_interest, user)
 
 
