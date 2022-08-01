@@ -214,7 +214,7 @@ var AnalyzeTaskGroupCollection = Backbone.Collection.extend({
     model: AnalyzeTaskGroupModel
 });
 
-function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
+function createAnalyzeTaskGroupCollection(aoi, wkaoi, drainageArea) {
     var taskGroups = [
         {
             name: "streams",

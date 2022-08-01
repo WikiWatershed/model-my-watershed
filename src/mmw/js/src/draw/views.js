@@ -1138,6 +1138,7 @@ var DrainageAreaView = DrawToolBaseView.extend({
             };
 
             App.map.set('areaOfInterestAdditionals', additionalShapes);
+            App.map.set('areaOfInterestDrainageArea', true);
             addLayer(response.area_of_interest, 'Point-based Drainage Area');
             navigateToAnalyze();
             window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'drainage-point');
@@ -1177,6 +1178,7 @@ var DrainageAreaView = DrawToolBaseView.extend({
                 };
 
                 App.map.set('areaOfInterestAdditionals', additionalShapes);
+                App.map.set('areaOfInterestDrainageArea', true);
                 addLayer(response.area_of_interest, 'Stream-based Drainage Area');
                 navigateToAnalyze();
                 window.ga('send', 'event', GA_AOI_CATEGORY, 'aoi-create', 'drainage-stream');
@@ -1340,6 +1342,7 @@ function clearAoiLayer() {
         'areaOfInterest': null,
         'areaOfInterestName': '',
         'wellKnownAreaOfInterest': null,
+        'areaOfInterestDrainageArea': false,
     });
     App.projectNumber = undefined;
     App.map.setDrawSize(false);
