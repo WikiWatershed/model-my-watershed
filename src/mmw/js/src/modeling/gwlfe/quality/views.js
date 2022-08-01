@@ -193,5 +193,6 @@ var TableView = Marionette.CompositeView.extend({
 });
 
 module.exports = {
+    TableView: TableView,
     ResultView: ResultView
 };
