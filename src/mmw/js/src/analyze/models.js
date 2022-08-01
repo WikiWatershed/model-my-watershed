@@ -387,6 +387,21 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi, drainageArea) {
         },
     ];
 
+    if (drainageArea) {
+        taskGroups.push({
+            name: "drainage_area",
+            displayName: "Drainage Area",
+            tasks: [
+                {
+                    name: "drainage_area",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/drainage-area"
+                }
+            ]
+        });
+    }
+
     if (settings.get('data_catalog_enabled')) {
         taskGroups = _(taskGroups)
             // Remove tasks not supported in data catalog mode
