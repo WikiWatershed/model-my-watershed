@@ -1730,7 +1730,6 @@ var DrainageAreaResultView = Marionette.LayoutView.extend({
     regions: {
         descriptionRegion: '.desc-region',
         varSelectorRegion: '.var-selector-region',
-        chartRegion: '.chart-region',
         tableRegion: '.table-region',
     },
 
