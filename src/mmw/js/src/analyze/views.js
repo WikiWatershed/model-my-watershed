@@ -1735,7 +1735,7 @@ var DrainageAreaResultView = Marionette.LayoutView.extend({
     },
 
     initialize: function(options) {
-        // Wrap raw model in "results" to work with GWLF-E views
+        // Wrap raw model in `result` to work with GWLF-E views
         this.model = new Backbone.Model({ result: options.model.toJSON() });
         
         // Initialize to runoff / hydrology
