@@ -220,18 +220,18 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
             displayName: "Streams",
             tasks: [
                 {
-                    name: "streams_nhdhr",
-                    displayName: "NHD High Resolution Streams",
-                    area_of_interest: aoi,
-                    wkaoi: wkaoi,
-                    taskName: "analyze/streams/nhdhr"
-                },
-                {
                     name: "streams_nhd",
                     displayName: "NHD Medium Resolution Streams",
                     area_of_interest: aoi,
                     wkaoi: wkaoi,
-                    taskName: "analyze/streams/nhd"
+                    taskName: "analyze/streams/nhd",
+                },
+                {
+                    name: "streams_nhdhr",
+                    displayName: "NHD High Resolution Streams",
+                    area_of_interest: aoi,
+                    wkaoi: wkaoi,
+                    taskName: "analyze/streams/nhdhr",
                 },
             ]
         },
