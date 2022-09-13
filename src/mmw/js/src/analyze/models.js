@@ -76,6 +76,7 @@ var AnalyzeTaskModel = coreModels.TaskModel.extend({
             token: settings.get('api_token'),
             // Include this task in Catalog Search results (ie, BigCZ)
             enabledForCatalogMode: false,
+            lazy: false, // Will not execute immediately if lazy is true
         }, coreModels.TaskModel.prototype.defaults
     ),
 
@@ -167,11 +168,13 @@ var AnalyzeTaskGroupModel = Backbone.Model.extend({
     /**
      * Returns a promise that completes when Analysis has been fetched. If
      * fetching is not required, returns an immediatley resolved promise.
+     * Skips lazy analyses, which should be triggered explicitly on the task.
      */
     fetchAnalysisIfNeeded: function() {
-        var taskAnalysisFetches = this.get('tasks').map(function(t) {
-            return t.fetchAnalysisIfNeeded();
-        });
+        var taskAnalysisFetches =
+            this.get('tasks')
+                .filter(function(t) { return !t.get('lazy'); })
+                .map(function(t) { return t.fetchAnalysisIfNeeded(); });
 
         return $.when.apply($, taskAnalysisFetches);
     },
@@ -232,6 +235,7 @@ function createAnalyzeTaskGroupCollection(aoi, wkaoi) {
                     area_of_interest: aoi,
                     wkaoi: wkaoi,
                     taskName: "analyze/streams/nhdhr",
+                    lazy: true,
                 },
             ]
         },
