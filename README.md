@@ -52,9 +52,10 @@ echo "
 * 33.33.0.0/16" | sudo tee /etc/vbox/networks.conf
 ```
 
-Next, use the following command to bring up a local development environment:
+Next, use the following command to bring up a local development environment, ensuring you have the most recent version of the base box:
 
 ```bash
+$ vagrant box update
 $ vagrant up
 ```
 
