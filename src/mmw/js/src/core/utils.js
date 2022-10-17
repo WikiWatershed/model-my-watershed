@@ -575,16 +575,27 @@ var utils = {
         }
     },
 
-    // Check if a geom is completely within DRB_SIMPLE_PERIMETER
-    isInDrb: _.memoize(function(geom) {
-        var layers = settings.get('stream_layers'),
-            drb = _.find(layers, {code: 'drb_streams_v2'}).perimeter,
-            coordCount = this.coordinates(geom).length,
-            intersection = intersect(geom, drb),
+    _containedIn: function(perimeter, geom) {
+        var coordCount = this.coordinates(geom).length,
+            intersection = intersect(geom, perimeter),
             intersectionCount = intersection &&
                                 this.coordinates(intersection.geometry).length;
 
         return intersection && coordCount === intersectionCount;
+    },
+
+    isInDrb: _.memoize(function(geom) {
+        var DRB_SIMPLE_PERIMETER =
+            _.find(settings.get('stream_layers'),
+                   {code: 'drb_streams_v2'}).perimeter;
+
+        return this._containedIn(DRB_SIMPLE_PERIMETER, geom);
+    }),
+
+    isInDrwi: _.memoize(function(geom) {
+        var DRWI_SIMPLE_PERIMETER = settings.get('drwi_simple_perimeter');
+
+        return this._containedIn(DRWI_SIMPLE_PERIMETER, geom);
     }),
 
     // Calculates a range from 0 to the upper bound

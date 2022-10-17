@@ -8,3 +8,20 @@ to be modified slightly to put it into the same format as
 `drb_simple_perimeter.json`. To test the validity of the GeoJSON, use
 [GeoJSONLint](http://geojsonlint.com/). The original and simplified polygons can
 be easily compared using QGIS.
+
+The `drwi_perimeter.json` was generated with the following query in PostGIS:
+
+```sql
+SELECT ST_AsGeoJSON(ST_Union(geom))
+FROM boundary_huc08
+WHERE huc08 LIKE '0204%'
+  AND huc08 NOT IN ('02040303', '02040304');
+```
+
+This was then buffered with `scripts/bufferDRWI.js`, and then simplified using
+[Mapshaper](http://www.mapshaper.org) to 2.2%, which is about the same as was
+done for `drb_simple_perimeter`. The file was then manually edited to remove
+the `GeometryCollection` parent, keeping only the `Polygon` value.
+
+Finally, this was Unioned and Dissolved with the `drb_simple_perimeter` in QGIS
+to ensure that no DRB parts were missed.
