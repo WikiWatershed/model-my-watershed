@@ -426,7 +426,7 @@ def start_analyze_land(request, nlcd_year, format=None):
 
     nlcd, year = nlcd_year.split('_')
     if nlcd == '2019' and year in ['2019', '2016', '2011', '2006', '2001']:
-        layer_overrides['__LAND__'] = f'nlcd-{year}-30m-epsg5070-512-byte'
+        layer_overrides['__LAND__'] = f'nlcd-{year}-30m-epsg5070-512-uint8raw'
 
     return start_celery_job([
         geoprocessing.run.s('nlcd_ara', geop_input, wkaoi,
