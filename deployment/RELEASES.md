@@ -87,13 +87,10 @@ Disable the `release` job in Jenkins, and enable the `develop` job:
 - http://civicci01.internal.azavea.com/view/mmw/job/model-my-watershed-develop/
 - http://civicci01.internal.azavea.com/view/mmw/job/model-my-watershed-release/
 
-Execute the following commands to reconcile the release branch:
+Execute the following command to reconcile the release branch:
 
 ```bash
-$ git flow release finish X.Y.Z
-$ git push origin develop
-$ git checkout master && git push origin master
-$ git push --tags
+git flow release finish -p X.Y.Z
 ```
 
 ## Remove Old Stack
