@@ -16,6 +16,7 @@ from sys import path
 from mmw.settings.layer_settings import (
     LAYER_GROUPS, VIZER_URLS, VIZER_IGNORE, VIZER_NAMES,
     DRB_PERIMETER, DRB_SIMPLE_PERIMETER, STREAM_TABLES,
+    DRWI_SIMPLE_PERIMETER, DRWI_SIMPLE_PERIMETER_JSON,
     NHD_REGION2_PERIMETER, CONUS_PERIMETER)
 from mmw.settings.gwlfe_settings import (
     GWLFE_DEFAULTS, GWLFE_CONFIG, SOIL_GROUP,
@@ -477,7 +478,7 @@ GEOP = {
         '__BFI__': 'bfi48grd-epsg5070',
         '__GWN__': 'us-groundwater-nitrogen-30m-epsg5070-512',
         '__KFACTOR__': 'us-ssugro-kfactor-30m-epsg5070-512',
-        '__LAND__': 'nlcd-2019-30m-epsg5070-512-byte',
+        '__LAND__': 'nlcd-2019-30m-epsg5070-512-uint8raw',
         '__NED__': 'ned-nhdplus-30m-epsg5070-512',
         '__PROTECTED_LANDS__': 'protected-lands-30m-epsg5070-512',
         '__SLOPE__': 'us-percent-slope-30m-epsg5070-512',

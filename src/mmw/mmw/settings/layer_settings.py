@@ -51,6 +51,13 @@ nhd_region2_simple_perimeter_path = join(dirname(abspath(__file__)),
 with open(nhd_region2_simple_perimeter_path) as nhd_region2_simple_perimeter_file:
     NHD_REGION2_PERIMETER = json.load(nhd_region2_simple_perimeter_file)
 
+# Buffered (3 mi) and simplified perimeter of the
+# Delaware River Watershed Initiative (DRWI)
+drwi_simple_perimeter_path = join(dirname(abspath(__file__)),
+                                  'data/drwi_simple_perimeter.json')
+with open(drwi_simple_perimeter_path) as drwi_simple_perimeter_file:
+    DRWI_SIMPLE_PERIMETER_JSON = json.load(drwi_simple_perimeter_file)
+
 LAYER_GROUPS = {
     'basemap': [
         {
@@ -624,6 +631,8 @@ STREAM_TABLES = {
 DRB_PERIMETER = GEOSGeometry(json.dumps(drb_perimeter['geometry']), srid=4326)
 DRB_SIMPLE_PERIMETER = \
     GEOSGeometry(json.dumps(drb_simple_perimeter['geometry']), srid=4326)
+DRWI_SIMPLE_PERIMETER = \
+    GEOSGeometry(json.dumps(DRWI_SIMPLE_PERIMETER_JSON['geometry']), srid=4326)
 
 # Vizer observation meta data URL.  Happens to be proxied through a local app
 # server to avoid Cross Domain request errors

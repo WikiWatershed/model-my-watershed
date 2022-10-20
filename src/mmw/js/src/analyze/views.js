@@ -1568,6 +1568,7 @@ var TaskSelectorView = Marionette.ItemView.extend({
     updateTask: function() {
         var taskName = this.ui.selector.val();
         this.model.setActiveTask(taskName);
+        this.model.get('activeTask').fetchAnalysisIfNeeded();
     }
 });
 
