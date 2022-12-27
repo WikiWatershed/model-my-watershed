@@ -63,6 +63,12 @@
             "ami_name": "mmw-worker-{{timestamp}}-{{user `version`}}",
             "ami_block_device_mappings": [
                 {
+                    "device_name": "/dev/sda1",
+                    "volume_type": "gp2",
+                    "volume_size": 12,
+                    "delete_on_termination": true
+                },
+                {
                     "device_name": "/dev/sdf",
                     "snapshot_id": "snap-0211cbbff8a81266f",
                     "volume_type": "gp2",
