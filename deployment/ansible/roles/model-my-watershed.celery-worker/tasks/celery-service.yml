@@ -15,3 +15,8 @@
     special_time: daily
     job: /usr/sbin/service celeryd restart
     state: present
+
+- name: Configure Celery log rotation
+  template: src=celery-logrotate.j2
+            dest=/etc/logrotate.d/celery
+            mode=0755
